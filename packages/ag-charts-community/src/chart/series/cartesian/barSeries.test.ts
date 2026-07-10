@@ -545,157 +545,20 @@ describe('BarSeries', () => {
         });
     });
 
-    describe('initial animation', () => {
-        const animate = spyOnAnimationManager();
-
-        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-            it(`for COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS should animate at ${ratio * 100}%`, async () => {
-                animate(1200, ratio);
-
-                const options: AgChartOptions = { ...examples.COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS };
-                prepareTestOptions(options);
-
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
-                await compare();
-            });
-        }
-
-        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-            it(`for BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS should animate at ${ratio * 100}%`, async () => {
-                animate(1200, ratio);
-
-                const options: AgChartOptions = { ...examples.BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS };
-                prepareTestOptions(options);
-
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
-                await compare();
-            });
-        }
-    });
-
-    describe('remove animation', () => {
-        const animate = spyOnAnimationManager();
-
-        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-            it(`for COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS should animate at ${ratio * 100}%`, async () => {
-                animate(1200, 1);
-
-                const options: AgChartOptions = { ...examples.COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS };
-                prepareTestOptions(options);
-
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
-
-                animate(1200, ratio);
-                await chart.updateDelta({
-                    data: [...options.data!.slice(2, 4), ...options.data!.slice(6, -2)],
-                });
-
-                await waitForChartStability(chart);
-                await compare();
-            });
-        }
-
-        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-            it(`for BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS should animate at ${ratio * 100}%`, async () => {
-                animate(1200, 1);
-
-                const options: AgChartOptions = { ...examples.BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS };
-                prepareTestOptions(options);
-
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
-
-                animate(1200, ratio);
-                await chart.updateDelta({
-                    data: options.data!.slice(0, options.data!.length / 2),
-                });
-
-                await waitForChartStability(chart);
-                await compare();
-            });
-        }
-    });
-
-    describe('add animation', () => {
-        const animate = spyOnAnimationManager();
-
-        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-            it(`for COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS should animate at ${ratio * 100}%`, async () => {
-                animate(1200, 1);
-
-                const options: AgChartOptions = { ...examples.COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS };
-                prepareTestOptions(options);
-
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
-
-                await chart.updateDelta({
-                    data: [...options.data!.slice(2, 4), ...options.data!.slice(6, -2)],
-                });
-                await waitForChartStability(chart);
-
-                animate(1200, ratio);
-                await chart.update(options);
-
-                await waitForChartStability(chart);
-                await compare();
-            });
-        }
-
-        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-            it(`for BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS should animate at ${ratio * 100}%`, async () => {
-                animate(1200, 1);
-
-                const options: AgChartOptions = { ...examples.BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS };
-                prepareTestOptions(options);
-
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
-
-                await chart.updateDelta({
-                    data: options.data!.slice(0, options.data!.length / 2),
-                });
-                await waitForChartStability(chart);
-
-                animate(1200, ratio);
-                await chart.update(options);
-
-                await waitForChartStability(chart);
-                await compare();
-            });
-        }
-    });
+    // Initial-load reveals and data add/remove animations are pinned per-frame by the trajectory
+    // CASEs ('standalone: initial load', the integrated initial-load variants, spike CASE 2, and
+    // 'remove data') in the suites below.
 
     describe('update animation', () => {
         const animate = spyOnAnimationManager();
 
-        // Only the endpoint (0%/100%) snapshots are kept as a visual sanity check; update-animation
-        // invariants at intermediate frames are asserted by the frame-trajectory tests below (CASE 1
-        // covers the same update shape, albeit on a category rather than time x-axis).
-        for (const ratio of [0, 1]) {
-            it(`for COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS should animate at ${ratio * 100}%`, async () => {
-                animate(1200, 1);
+        // Update-animation trajectories are pinned by spike CASE 1 and the 'sanity: randomise'
+        // endpoint guard; no per-ratio snapshots remain for the plain update.
 
-                const options: AgChartOptions = { ...examples.COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS };
-                prepareTestOptions(options);
-
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
-
-                animate(1200, ratio);
-                await chart.updateDelta({
-                    data: [...options.data!.map((d, i) => (i % 2 === 0 ? { ...d, value: d.value * 2 } : d))],
-                });
-
-                await waitForChartStability(chart);
-                await compare();
-            });
-        }
-
-        for (const ratio of [0, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2]) {
+        // Re-add paint fidelity only (palette and label pixels are invisible to the geometry
+        // sampler): CASE 10 pins the full toggle trajectory, so just a mid-flight and settled
+        // frame of the re-add leg are snapshotted.
+        for (const ratio of [1.5, 2]) {
             it(`for BAR_STACKED_AND_GROUPED_NUMBER_CRT_950 should animate at ${ratio * 100}%`, async () => {
                 animate(1200, 1);
 
@@ -1589,40 +1452,8 @@ describe('BarSeries', () => {
         });
     });
 
-    describe('legend toggle animation', () => {
-        const animate = spyOnAnimationManager();
-
-        let options: AgChartOptions;
-
-        beforeEach(() => {
-            options = { ...examples.BAR_CHART_WITH_LABELS_EXAMPLE };
-            prepareTestOptions(options);
-            options.series = [options.series![0], { ...options.series![0], visible: true }];
-            options.data = options.data?.slice(0, 3);
-        });
-
-        it('should render to canvas as expected', async () => {
-            animate(1200, 1);
-            chart = AgCharts.create(options);
-            await compare();
-        });
-
-        for (const ratio of [0, 0.2, 0.5, 0.8, 0.9, 1]) {
-            it(`for BAR_CHART_WITH_LABELS_EXAMPLE should animate at ${ratio * 100}%`, async () => {
-                animate(1200, 1);
-
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
-
-                animate(1200, ratio);
-                (options.series![1] as AgBarSeriesOptions).visible = false;
-                await chart.update(options);
-
-                await waitForChartStability(chart);
-                await compare();
-            });
-        }
-    });
+    // Legend toggle animations are pinned per-frame by the 'legend hide'/'legend show' trajectory
+    // CASEs in 'animation -test page actions'.
 
     // CRT-1040: Invisible stacked series must still populate nodeData so animation uses the
     // coordinated 'update' phase rather than the out-of-sync 'remove'/'add' phases.
@@ -1663,35 +1494,8 @@ describe('BarSeries', () => {
             }
         });
 
-        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-            it(`should animate coordinated legend toggle at ${ratio * 100}%`, async () => {
-                animate(1200, 1);
-
-                const options: AgChartOptions = {
-                    data: [
-                        { category: 'A', v1: 10, v2: 20, v3: 15 },
-                        { category: 'B', v1: 30, v2: 40, v3: 25 },
-                        { category: 'C', v1: 20, v2: 10, v3: 35 },
-                    ],
-                    series: [
-                        { type: 'bar', xKey: 'category', yKey: 'v1', stacked: true },
-                        { type: 'bar', xKey: 'category', yKey: 'v2', stacked: true },
-                        { type: 'bar', xKey: 'category', yKey: 'v3', stacked: true },
-                    ],
-                };
-                prepareTestOptions(options);
-
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
-
-                animate(1200, ratio);
-                (options.series![0] as AgBarSeriesOptions).visible = false;
-                await chart.update(options);
-                await waitForChartStability(chart);
-
-                await compare();
-            });
-        }
+        // The coordinated-toggle animation itself is pinned per-frame by the 'CRT-1040 stacked
+        // toggle' trajectory CASE in 'animation -test page actions'.
     });
 
     describe('invalid data domain', () => {

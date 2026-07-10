@@ -1474,7 +1474,7 @@ describe('LineSeries', () => {
                 })
             );
             const pathKeys = (sample: SceneGeometrySample) =>
-                [...sample.keys()].filter((k) => /^series\[[01]\]\/path/.test(k)).sort();
+                [...sample.keys()].filter((k) => /^series\[[01]\]\/path/.test(k)).sort((a, b) => a.localeCompare(b));
             expect(pathKeys(before)).toHaveLength(2);
             expect(markerCount(before)).toBe(6);
             // Both stacked paths share one bbox x-range per frame, so same-index stations align in
@@ -1602,24 +1602,8 @@ describe('LineSeries', () => {
         );
     });
 
-    describe('initial animation', () => {
-        const animate = spyOnAnimationManager();
-
-        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-            it(`for LINE_CATEGORY_X_AXIS_FRACTIONAL_LOG_Y_AXIS should animate at ${ratio * 100}%`, async () => {
-                animate(1200, ratio);
-                const options: AgChartOptions = examples.CARTESIAN_CATEGORY_X_AXIS_LOG_Y_AXIS(
-                    DATA_FRACTIONAL_LOG_AXIS,
-                    'line'
-                );
-                prepareTestOptions(options);
-
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
-                await compare();
-            });
-        }
-    });
+    // The initial-load reveal is pinned per-frame by the 'easeOut reveal' and integrated
+    // initial-load trajectory CASEs in 'animation -test page actions'.
 
     const ANIMATION_CATEGORY_DATA = [
         { quarter: 'week 3', iphone: 60, macos: 31 },
@@ -1631,261 +1615,11 @@ describe('LineSeries', () => {
         { quarter: 'week 11', iphone: 121, macos: 57 },
     ];
 
-    describe('category animation', () => {
-        const animate = spyOnAnimationManager();
+    // Category data updates (add/remove/replace/update points) and legend hide/show are pinned
+    // per-frame by the trajectory CASEs in 'animation -test page actions'.
 
-        const OPTIONS: AgChartOptions = {
-            data: ANIMATION_CATEGORY_DATA,
-            series: [
-                {
-                    type: 'line',
-                    xKey: 'quarter',
-                    yKey: 'iphone',
-                    label: {
-                        formatter: ({ value }) => String(value),
-                    },
-                },
-            ],
-            axes: {
-                y: {
-                    position: 'left',
-                    type: 'number',
-                },
-                x: {
-                    position: 'bottom',
-                    type: 'category',
-                },
-            },
-        };
-
-        const animationTestCases: Array<[string, any] | [string, any, number]> = [
-            ['removing points', [...ANIMATION_CATEGORY_DATA.slice(0, 2), ...ANIMATION_CATEGORY_DATA.slice(4)]],
-            ['removing the first point', [...ANIMATION_CATEGORY_DATA.slice(1)]],
-            ['removing the last point', [...ANIMATION_CATEGORY_DATA.slice(0, -1)]],
-            [
-                'adding points',
-                [
-                    ...ANIMATION_CATEGORY_DATA.slice(0, 4),
-                    { quarter: 'week 7', iphone: 142 },
-                    { quarter: 'week 8', iphone: 87 },
-                    ...ANIMATION_CATEGORY_DATA.slice(4),
-                ],
-            ],
-            [
-                'adding points before',
-                [{ quarter: 'week 1', iphone: 89 }, { quarter: 'week 2', iphone: 110 }, ...ANIMATION_CATEGORY_DATA],
-            ],
-            [
-                'adding points after',
-                [...ANIMATION_CATEGORY_DATA, { quarter: 'week 12', iphone: 78 }, { quarter: 'week 13', iphone: 138 }],
-            ],
-            [
-                'updating points',
-                [
-                    ...ANIMATION_CATEGORY_DATA.slice(0, 2),
-                    { quarter: 'week 5', iphone: 190 },
-                    { quarter: 'week 6', iphone: 38 },
-                    ...ANIMATION_CATEGORY_DATA.slice(4),
-                ],
-            ],
-            [
-                'updating points to undefined',
-                [
-                    ...ANIMATION_CATEGORY_DATA.slice(0, 2),
-                    { quarter: 'week 5', iphone: undefined },
-                    ...ANIMATION_CATEGORY_DATA.slice(3),
-                ],
-            ],
-            [
-                'adding, removing and updating simultaneously',
-                [
-                    { quarter: 'week 1', iphone: 89, mac: 40 },
-                    { quarter: 'week 2', iphone: 110, mac: 40 },
-                    { quarter: 'week 3', iphone: 82, mac: 40 },
-                    { quarter: 'week 6', iphone: 130 },
-                    { quarter: 'week 7', iphone: 142 },
-                    { quarter: 'week 8', iphone: 87 },
-                    { quarter: 'week 9', iphone: 62, mac: 42 },
-                    { quarter: 'week 10', iphone: 137 },
-                    { quarter: 'week 11', iphone: 121 },
-                ],
-                700,
-            ],
-            [
-                'replacing all categories with fewer points',
-                [
-                    { quarter: 'Mon', iphone: 100 },
-                    { quarter: 'Tue', iphone: 150 },
-                    { quarter: 'Wed', iphone: 120 },
-                ],
-            ],
-            [
-                'replacing all categories with more points',
-                [
-                    { quarter: 'Mon', iphone: 100 },
-                    { quarter: 'Tue', iphone: 150 },
-                    { quarter: 'Wed', iphone: 120 },
-                    { quarter: 'Thu', iphone: 180 },
-                    { quarter: 'Fri', iphone: 90 },
-                    { quarter: 'Sat', iphone: 110 },
-                    { quarter: 'Sun', iphone: 140 },
-                    { quarter: 'holiday 1', iphone: 160 },
-                    { quarter: 'holiday 2', iphone: 130 },
-                ],
-            ],
-            [
-                'replacing all categories with same count',
-                [
-                    { quarter: 'Mon', iphone: 100 },
-                    { quarter: 'Tue', iphone: 150 },
-                    { quarter: 'Wed', iphone: 120 },
-                    { quarter: 'Thu', iphone: 180 },
-                    { quarter: 'Fri', iphone: 90 },
-                    { quarter: 'Sat', iphone: 110 },
-                    { quarter: 'Sun', iphone: 140 },
-                ],
-            ],
-        ];
-
-        for (const [testCase, changedData, duration = 1200] of animationTestCases) {
-            for (const ratio of [0, 0.5, 1]) {
-                it(`should animate ${testCase} at ${ratio * 100}%`, async () => {
-                    animate(1200, 1);
-                    prepareTestOptions(OPTIONS);
-                    chart = AgCharts.create(OPTIONS);
-                    await waitForChartStability(chart);
-
-                    animate(duration, ratio);
-                    await chart.updateDelta({ data: changedData });
-                    await waitForChartStability(chart);
-                    await compare();
-                });
-            }
-        }
-    });
-
-    describe('legend toggle animation', () => {
-        const animate = spyOnAnimationManager();
-
-        const OPTIONS: AgChartOptions = {
-            data: ANIMATION_CATEGORY_DATA,
-            series: [
-                {
-                    type: 'line',
-                    xKey: 'quarter',
-                    yKey: 'iphone',
-                    label: {
-                        formatter: ({ value }) => String(value),
-                    },
-                },
-                {
-                    type: 'line',
-                    xKey: 'quarter',
-                    yKey: 'macos',
-                    label: {
-                        formatter: ({ value }) => String(value),
-                    },
-                },
-            ],
-            axes: {
-                y: {
-                    position: 'left',
-                    type: 'number',
-                },
-                x: {
-                    position: 'bottom',
-                    type: 'category',
-                },
-            },
-        };
-
-        describe('hide', () => {
-            for (const ratio of [0, 0.1, 0.2, 0.3, 1]) {
-                it(`should animate at ${ratio * 100}%`, async () => {
-                    animate(1200, 1);
-
-                    const options: AgChartOptions = deepClone(OPTIONS);
-                    prepareTestOptions(options);
-
-                    chart = AgCharts.create(options);
-                    await waitForChartStability(chart);
-
-                    animate(1200, ratio);
-                    options.series![0].visible = false;
-                    await chart.update({ ...options });
-
-                    await compare();
-                });
-            }
-        });
-
-        describe('show', () => {
-            for (const ratio of [0, 0.7, 0.8, 0.9, 1]) {
-                it(`should animate at ${ratio * 100}%`, async () => {
-                    animate(1200, 1);
-
-                    const options: AgChartOptions = deepClone(OPTIONS);
-                    options.series![1].visible = false;
-                    prepareTestOptions(options);
-
-                    chart = AgCharts.create(options);
-                    await waitForChartStability(chart);
-
-                    animate(1200, ratio);
-                    options.series![1].visible = true;
-                    await chart.update(options);
-
-                    await compare();
-                });
-            }
-        });
-    });
-
-    // CRT-995: Verify stacked line series animation works correctly when adding points.
-    // The fix ensures animation uses yCumulative instead of yDatum for stacked series,
-    // preventing lines from animating up from the bottom (y=0) when points are added.
-    describe('CRT-995 stacked line animation', () => {
-        const animate = spyOnAnimationManager();
-
-        const STACKED_DATA = [
-            { quarter: 'Q1', apples: 50, oranges: 30 },
-            { quarter: 'Q2', apples: 60, oranges: 40 },
-            { quarter: 'Q3', apples: 70, oranges: 35 },
-        ];
-
-        const STACKED_OPTIONS: AgChartOptions = {
-            data: STACKED_DATA,
-            series: [
-                { type: 'line', xKey: 'quarter', yKey: 'apples', stacked: true },
-                { type: 'line', xKey: 'quarter', yKey: 'oranges', stacked: true },
-            ],
-            axes: {
-                x: { type: 'category', position: 'bottom' },
-                y: { type: 'number', position: 'left' },
-            },
-        };
-
-        for (const ratio of [0, 0.5, 0.6, 0.7, 0.8]) {
-            it(`should animate adding points to stacked series at ${ratio * 100}%`, async () => {
-                animate(1200, 1);
-                prepareTestOptions(STACKED_OPTIONS);
-                chart = AgCharts.create(STACKED_OPTIONS);
-                await waitForChartStability(chart);
-
-                // Add more data points
-                const newData = [
-                    ...STACKED_DATA,
-                    { quarter: 'Q4', apples: 80, oranges: 45 },
-                    { quarter: 'Q5', apples: 65, oranges: 50 },
-                ];
-
-                animate(1200, ratio);
-                await chart.updateDelta({ data: newData });
-                await waitForChartStability(chart);
-                await compare();
-            });
-        }
-    });
+    // CRT-995 stacked-line animation is pinned per-frame by the 'stacked add points' trajectory
+    // CASE in 'animation -test page actions'.
 
     describe('multiple overlapping lines', () => {
         beforeEach(() => {
@@ -1925,11 +1659,13 @@ describe('LineSeries', () => {
         });
     });
 
+    // Painted-clipping fidelity only: the clip-window motion itself is pinned by the 'easeOut
+    // reveal' trajectory CASE, so just the endpoint and midpoint ratios are snapshotted.
     describe('clipping animation', () => {
         const animate = spyOnAnimationManager();
 
         describe('AG-10477', () => {
-            for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
+            for (const ratio of [0, 0.5, 1]) {
                 it(`should render correctly at ${ratio * 100}%`, async () => {
                     animate(1200, ratio);
                     const options: AgChartOptions = {
@@ -3333,11 +3069,13 @@ describe('LineSeries', () => {
     // CRT-1052: Line series with markers should not have stroke gaps during fade-in animation.
     // Markers should use overlay drawing mode while animating in.
     // The fix ensures getAnimationDrawingModes() passes start: { drawingMode: 'overlay' }
-    // so markers don't use 'cutout' (destination-out compositing) during animation.
+    // so markers don't use 'cutout' (destination-out compositing) during animation. The compositing
+    // result is pixel-only (the drawing-mode mechanism is asserted directly below), so just the
+    // endpoint and midpoint ratios are snapshotted.
     describe('CRT-1052 line stroke gaps with markers', () => {
         const animate = spyOnAnimationManager();
 
-        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
+        for (const ratio of [0, 0.5, 1]) {
             it(`should render continuous stroke at ${ratio * 100}%`, async () => {
                 animate(1200, ratio);
 
