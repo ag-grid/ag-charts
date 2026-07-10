@@ -1988,6 +1988,48 @@ describe('AreaSeries', () => {
 
         // AG-9954: the initial-load swipe glues the marker scale-in to the sweep edge — the leftmost marker
         // finishes scaling in before the rightmost even starts, in lock-step with the clip window's advance.
+        // AG-12468: adding the first data via updateDelta onto an empty chart. With unpinned axes the
+        // empty starting state has a non-finite (invalid) x-scale, which isScaleValid guards: the batch
+        // must snap so the area is drawn at full geometry immediately. Without the guard the batch tweens
+        // from that invalid scale and the fill is absent for the first half of the animation — the historic
+        // "area doesn't render until a resize". (The type-flip half of the pair is covered above.)
+        it('AG-12468 add initial data: the area snaps in at full geometry rather than tweening from an invalid scale', async () => {
+            const empty = prepareTestOptions({
+                data: [],
+                series: [{ type: 'area', xKey: 'x', yKey: 'y', marker: { enabled: true } }],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+            } as AgCartesianChartOptions);
+            chart = AgCharts.create(empty);
+            await frames.runToEnd(chart);
+            const sampleScene = createSceneGeometrySampler(chart);
+            await chart.updateDelta({
+                data: [
+                    { x: 0, y: 40 },
+                    { x: 2, y: 120 },
+                    { x: 4, y: 80 },
+                    { x: 6, y: 160 },
+                    { x: 8, y: 60 },
+                ],
+            });
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
+            await frames.runToEnd(chart);
+            const after = sampleScene();
+            // Anti-vacuity: the update genuinely rendered a full-height area (the empty start had none).
+            const finalHeight = after.get(fillKey(after))!.height;
+            expect(finalHeight).toBeGreaterThan(400);
+            // Every frame draws the fill at that final height — it never grows from the invalid scale.
+            for (let i = 0; i < trajectory.length; i++) {
+                const key = [...trajectory[i].keys()].find((k) => /^series\[0\]\/background\/path\[fill/.test(k));
+                expect(key, `frame ${i} fill present`).toBeDefined();
+                expect(Math.abs(trajectory[i].get(key!)!.height - finalHeight), `frame ${i} fill height`).toBeLessThan(
+                    1
+                );
+            }
+        });
+
         it('AG-9954 reveal sync: markers scale in left-to-right in lock-step with the swipe', async () => {
             const labels = ['A', 'B', 'C', 'D', 'E', 'F'];
             chart = AgCharts.create(
