@@ -125,10 +125,20 @@ const maybeApplySubstitutions = (node: unknown) => {
     return node;
 };
 
+// Substituted strings (including base64-inlined images) are identical across the theme x DPI
+// render loop, so cache per original string to avoid re-reading and re-encoding per render.
+const substitutionCache = new Map<string, string>();
+
 const applySubstitutions = (content: string, substitutions?: ExampleSubstitutions) => {
     if (content == null || substitutions == null || !content.includes('${')) {
         return content;
     }
+
+    const cached = substitutionCache.get(content);
+    if (cached != null) {
+        return cached;
+    }
+    const original = content;
 
     Object.keys(substitutions).forEach((key) => {
         const value = substitutions[key];
@@ -146,5 +156,6 @@ const applySubstitutions = (content: string, substitutions?: ExampleSubstitution
         }
     });
 
+    substitutionCache.set(original, content);
     return content;
 };
