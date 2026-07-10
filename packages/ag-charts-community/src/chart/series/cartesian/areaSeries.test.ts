@@ -64,7 +64,6 @@ import {
     doubleClickAction,
     doubleTapAction,
     expectMonotonic,
-    expectNoAnimation,
     expectProgresses,
     expectSceneSamplesMatch,
     expectSceneTrajectory,
@@ -777,7 +776,7 @@ describe('AreaSeries', () => {
         // The clip-based reveal: both paths are drawn in full from the first frame (their vertices never
         // move) while a clip window sweeps left-to-right (clip:x grows across the plot). clip drops to 0
         // once the mask is removed at the end, so clip:x is only present during the sweep.
-        const swipeReveal = (key: string): SceneNodeExpectation => ({
+        const swipeReveal = (): SceneNodeExpectation => ({
             'top@0': 'constant',
             'top@1': 'constant',
             'top@2': 'constant',
@@ -823,12 +822,11 @@ describe('AreaSeries', () => {
             const sampleScene = createSceneGeometrySampler(chart);
             const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
             const fill0 = fillKey(trajectory.at(-1)!);
-            const stroke0 = strokeKey(trajectory.at(-1)!);
             expectSceneTrajectory(
                 trajectory,
                 {
-                    'series[*]/background/path[*]': swipeReveal(fill0),
-                    'series[*]/path[stroke]': swipeReveal(stroke0),
+                    'series[*]/background/path[*]': swipeReveal(),
+                    'series[*]/path[stroke*]': swipeReveal(),
                     ...markersScaleIn,
                 },
                 { frameInvariants: [stackTopsOrdered] }
@@ -845,9 +843,6 @@ describe('AreaSeries', () => {
             chart = AgCharts.create(options);
             await frames.runToEnd(chart);
             const sampleScene = createSceneGeometrySampler(chart);
-            const before = sampleScene();
-            const stroke0 = strokeKey(before);
-            const fill0 = fillKey(before);
             await chart.updateDelta({
                 data: [
                     { q: 'Q1', a: 20, b: 60, c: 30 },
@@ -881,8 +876,6 @@ describe('AreaSeries', () => {
                 { frameInvariants: [stackTopsOrdered] }
             );
             expectMarkerStartsCollapsed(trajectory, 'Q1');
-            expect(stroke0).toContain('stroke');
-            expect(fill0).toContain('fill');
         });
 
         // "Add Series" — a fourth layer would stack on top; here the third is added back. The entering
@@ -1457,6 +1450,375 @@ describe('AreaSeries', () => {
                 'decreasing'
             );
             expectMarkerStartsCollapsed(trajectory, '1');
+        });
+
+        const WEEKS: Array<{ x: string; y: number }> = [
+            { x: 'w3', y: 60 },
+            { x: 'w4', y: 185 },
+            { x: 'w5', y: 148 },
+            { x: 'w6', y: 130 },
+            { x: 'w9', y: 62 },
+            { x: 'w10', y: 137 },
+            { x: 'w11', y: 121 },
+        ];
+
+        // "Add End Week" — a new category appends; every band narrows and shifts left to make room, the
+        // paths re-cover the reflowed bands, and the new marker fades in.
+        it('category add end week: bands reflow left and the new marker fades in', async () => {
+            const { before, trajectory, after } = await captureFrom(categoryOptions(WEEKS), () =>
+                chart.updateDelta({ data: [...WEEKS, { x: 'w12', y: 90 }] })
+            );
+            expect(markerCount(before)).toBe(7);
+            expect(markerCount(after)).toBe(8);
+            expectSceneTrajectory(trajectory, {
+                'series[0]/background/path[*]': 'any',
+                'series[0]/path[stroke]': 'any',
+                ...markersFadeIn,
+                ...axisReflowSpec('bottom', { shift: 'left' }),
+            });
+            expectMarkerStartsCollapsed(trajectory, 'w12');
+        });
+
+        // "Add Start Week" — a new category prepends; bands reflow right and the new leading marker fades in.
+        it('category add start week: bands reflow right and the leading marker fades in', async () => {
+            const { trajectory, after } = await captureFrom(categoryOptions(WEEKS), () =>
+                chart.updateDelta({ data: [{ x: 'w2', y: 90 }, ...WEEKS] })
+            );
+            expect(markerCount(after)).toBe(8);
+            expectSceneTrajectory(trajectory, {
+                'series[0]/background/path[*]': 'any',
+                'series[0]/path[stroke]': 'any',
+                ...markersFadeIn,
+                ...axisReflowSpec('bottom', { shift: 'right' }),
+            });
+            expectMarkerStartsCollapsed(trajectory, 'w2');
+        });
+
+        // "Add Weeks 7+8" — the middle-insertion case: two categories drop into the interior gap between
+        // w6 and w9 rather than at an edge, so the inserted markers land between their neighbours and the
+        // categories to their right slide right to make room.
+        it('category add middle weeks: inserted bands land between neighbours', async () => {
+            const withMiddle = [
+                { x: 'w3', y: 60 },
+                { x: 'w4', y: 185 },
+                { x: 'w5', y: 148 },
+                { x: 'w6', y: 130 },
+                { x: 'w7', y: 90 },
+                { x: 'w8', y: 110 },
+                { x: 'w9', y: 62 },
+                { x: 'w10', y: 137 },
+                { x: 'w11', y: 121 },
+            ];
+            const { before, trajectory, after } = await captureFrom(categoryOptions(WEEKS), () =>
+                chart.updateDelta({ data: withMiddle })
+            );
+            expect(markerCount(before)).toBe(7);
+            expect(markerCount(after)).toBe(9);
+            expect([...after.keys()]).toContain('series[0]/marker[w7]');
+            expect([...after.keys()]).toContain('series[0]/marker[w8]');
+            // The inserted markers land in order between w6 and w9...
+            expect(markerX(after, 'w6')).toBeLessThan(markerX(after, 'w7')!);
+            expect(markerX(after, 'w7')).toBeLessThan(markerX(after, 'w8')!);
+            expect(markerX(after, 'w8')).toBeLessThan(markerX(after, 'w9')!);
+            // ...and the point just past the insertion slides right to make room.
+            expect(markerX(after, 'w9')).toBeGreaterThan(markerX(before, 'w9')!);
+            expectSceneTrajectory(trajectory, {
+                'series[0]/background/path[*]': 'any',
+                'series[0]/path[stroke]': 'any',
+                ...markersFadeIn,
+                'axis[bottom]/text[*]': {
+                    opacity: { during: ['remove', 'update', 'add'], expect: 'bounded' },
+                    x: 'any',
+                },
+                'axis[bottom]/line[*]': {
+                    opacity: { during: ['remove', 'update', 'add'], expect: 'bounded' },
+                    x1: 'any',
+                    x2: 'any',
+                },
+            });
+            expectMarkerStartsCollapsed(trajectory, 'w7');
+        });
+
+        // "Reorder" — the category order is scrambled; the same markers stay (count holds) but re-map to
+        // the reshuffled bands, so the coverage is that the reshuffle LANDED (the settled left-to-right
+        // order matches the reordered data) while the paths reshape.
+        it('category reorder: markers re-map to the reshuffled bands', async () => {
+            const reordered = [WEEKS[3], WEEKS[0], WEEKS[5], WEEKS[1], WEEKS[6], WEEKS[2], WEEKS[4]];
+            const { before, trajectory, after } = await captureFrom(categoryOptions(WEEKS), () =>
+                chart.updateDelta({ data: reordered })
+            );
+            expect(markerCount(after)).toBe(markerCount(before));
+            const order = reordered.map((d) => d.x);
+            for (let i = 1; i < order.length; i++) {
+                expect(markerX(after, order[i - 1])!).toBeLessThan(markerX(after, order[i])!);
+            }
+            // w6 moved from last to first, so it really shifted left.
+            expect(markerX(after, 'w6')!).toBeLessThan(markerX(before, 'w6')!);
+            expectSceneTrajectory(trajectory, {
+                'series[0]/background/path[*]': 'any',
+                'series[0]/path[stroke]': 'any',
+                ...markersFadeIn,
+                ...axisReflowSpec('bottom', {}),
+            });
+        });
+
+        // The swipe anti-vacuity for the re-reveal switches: some marker begins the sweep at zero size.
+        const expectSomeMarkerCollapsed = (frame: SceneGeometrySample) => {
+            const widths = [...frame]
+                .filter(([k]) => /\/marker\[/.test(k))
+                .map(([, p]) => p.width)
+                .filter((w) => w != null);
+            expect(Math.min(...widths), 'a marker starts the sweep at zero size').toBeLessThanOrEqual(0.1);
+        };
+
+        // The "stack -> group" toggle from the missing-data-area example: no grouped<->stacked morph
+        // exists, so the switch re-creates the series and replays the initial-load swipe reveal. After it,
+        // the areas are un-stacked (each fill reaches the shared baseline independently).
+        it('stack -> group: the switch re-reveals via a swipe and un-stacks the fills', async () => {
+            const options = stackedOptions();
+            const all = options.series! as AgAreaSeriesOptions[];
+            const { trajectory, after } = await captureFrom(options, () => {
+                for (const s of all) delete s.stacked;
+                return chart.update({ ...options, series: all });
+            });
+            const fill0 = fillKey(trajectory[0]);
+            expectSceneTrajectory(trajectory, {
+                'series[*]/background/path[*]': swipeReveal(),
+                'series[*]/path[stroke*]': swipeReveal(),
+                ...markersScaleIn,
+            });
+            expect(trajectory[0].get(fill0)!['clip:x']).toBeLessThanOrEqual(0.1);
+            expectSomeMarkerCollapsed(trajectory[0]);
+            // Un-stacked: every fill now reaches the same baseline (bottom edge coincident).
+            const baselines = [0, 1, 2].map((i) => {
+                const f = after.get(fillKey(after, i))!;
+                return f.y + f.height;
+            });
+            expect(Math.abs(baselines[1] - baselines[0])).toBeLessThanOrEqual(1);
+            expect(Math.abs(baselines[2] - baselines[0])).toBeLessThanOrEqual(1);
+        });
+
+        // "normalizedTo" — switching into normalized stacking re-creates the series (swipe reveal); the
+        // top layer settles flat at the 100% line, proving the normalisation landed.
+        it('normalizedTo: switching into normalised stacking re-reveals and flattens the top layer', async () => {
+            const options = stackedOptions();
+            const all = options.series! as AgAreaSeriesOptions[];
+            const { trajectory, after } = await captureFrom(options, () => {
+                for (const s of all) s.normalizedTo = 100;
+                return chart.update({ ...options, series: all });
+            });
+            const fill0 = fillKey(trajectory[0]);
+            expectSceneTrajectory(
+                trajectory,
+                {
+                    'series[*]/background/path[*]': swipeReveal(),
+                    'series[*]/path[stroke*]': swipeReveal(),
+                    ...markersScaleIn,
+                },
+                { frameInvariants: [stackTopsOrdered] }
+            );
+            expect(trajectory[0].get(fill0)!['clip:x']).toBeLessThanOrEqual(0.1);
+            // The top layer's cumulative is the constant normalized total, so its top edge is flat.
+            const topStroke = after.get(strokeKey(after, 2))!;
+            expect(Math.abs(topStroke['top@0'] - topStroke['top@4'])).toBeLessThanOrEqual(1);
+        });
+
+        // "Data 1 / Data 2" (category-changes, smooth) — the whole category set swaps to a differing one.
+        // The path morphs across frames (its bbox sweeps out and back) while the axis cross-fades the
+        // outgoing and incoming label sets.
+        it('category set swap: the smooth path morphs while the axis label set changes', async () => {
+            // Pinned to cover both data sets' ranges so only the x-band remap animates (no y rescale).
+            const swapOptions = (data: Array<{ category: string; iphone: number }>): AgCartesianChartOptions =>
+                prepareTestOptions({
+                    data,
+                    series: [
+                        {
+                            type: 'area',
+                            xKey: 'category',
+                            yKey: 'iphone',
+                            strokeWidth: 3,
+                            interpolation: { type: 'smooth' },
+                        },
+                    ],
+                    axes: {
+                        x: { type: 'category', position: 'bottom' },
+                        y: { type: 'number', position: 'left', min: -100, max: 260 },
+                    },
+                });
+            const d1 = [
+                { category: 'cat 1', iphone: 181 },
+                { category: 'cat 2', iphone: 67 },
+                { category: 'cat 3', iphone: 192 },
+                { category: 'cat 4', iphone: 14 },
+            ];
+            const d2 = [
+                { category: 'cat 2', iphone: 118 },
+                { category: 'cat 9', iphone: 185 },
+                { category: 'cat 3', iphone: 165 },
+                { category: 'cat 4', iphone: -55 },
+            ];
+            const { before, trajectory, after } = await captureFrom(swapOptions(d1), () =>
+                chart.update(swapOptions(d2))
+            );
+            const fill0 = fillKey(before);
+            // The fill genuinely tweens: its left edge sweeps out to an intermediate and back.
+            expectProgresses(trajectory.map((f) => f.get(fill0)?.x ?? Number.NaN));
+            expectSceneTrajectory(trajectory, {
+                'series[0]/background/path[*]': 'any',
+                'series[0]/path[stroke]': 'any',
+                'axis[bottom]/text[*]': {
+                    opacity: { during: ['remove', 'update', 'add'], expect: 'bounded' },
+                    x: 'any',
+                },
+                'axis[bottom]/line[*]': {
+                    opacity: { during: ['remove', 'update', 'add'], expect: 'bounded' },
+                    x1: 'any',
+                    x2: 'any',
+                },
+            });
+            // The label set swaps: cat 1 leaves, cat 9 arrives.
+            expect([...before.keys()]).toContain('axis[bottom]/text[l:cat 1]');
+            expect([...after.keys()]).not.toContain('axis[bottom]/text[l:cat 1]');
+            expect([...after.keys()]).toContain('axis[bottom]/text[l:cat 9]');
+        });
+
+        // Integrated mode changes animation defaults, so the initial-load swipe reveal must still run.
+        it('integrated mode: initial load reveals the stacked fills via a swipe', async () => {
+            chart = AgCharts.create(stackedOptions('integrated'));
+            const sampleScene = createSceneGeometrySampler(chart);
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
+            const fill0 = fillKey(trajectory.at(-1)!);
+            expectSceneTrajectory(
+                trajectory,
+                {
+                    'series[*]/background/path[*]': swipeReveal(),
+                    'series[*]/path[stroke*]': swipeReveal(),
+                    ...markersScaleIn,
+                },
+                { frameInvariants: [stackTopsOrdered] }
+            );
+            expect(trajectory[0].get(fill0)!['clip:x']).toBeLessThanOrEqual(0.1);
+        });
+
+        // Integrated defaults must not suppress the entrance animation: adding an end week still fades the
+        // new marker in.
+        it('integrated mode: category add end week fades the new marker in', async () => {
+            const { before, trajectory, after } = await captureFrom(categoryOptions(WEEKS, 'integrated'), () =>
+                chart.updateDelta({ data: [...WEEKS, { x: 'w12', y: 90 }] })
+            );
+            expect(markerCount(before)).toBe(7);
+            expect(markerCount(after)).toBe(8);
+            expectSceneTrajectory(trajectory, {
+                'series[0]/background/path[*]': 'any',
+                'series[0]/path[stroke]': 'any',
+                ...markersFadeIn,
+                ...axisReflowSpec('bottom', { shift: 'left' }),
+            });
+            expectMarkerStartsCollapsed(trajectory, 'w12');
+        });
+
+        // Integrated reorder mirrors the standalone case: the reshuffle lands under integrated defaults too.
+        it('integrated mode: reorder re-maps markers to the reshuffled bands', async () => {
+            const reordered = [WEEKS[3], WEEKS[0], WEEKS[5], WEEKS[1], WEEKS[6], WEEKS[2], WEEKS[4]];
+            const { before, trajectory, after } = await captureFrom(categoryOptions(WEEKS, 'integrated'), () =>
+                chart.updateDelta({ data: reordered })
+            );
+            expect(markerCount(after)).toBe(markerCount(before));
+            const order = reordered.map((d) => d.x);
+            for (let i = 1; i < order.length; i++) {
+                expect(markerX(after, order[i - 1])!).toBeLessThan(markerX(after, order[i])!);
+            }
+            expect(markerX(after, 'w6')!).toBeLessThan(markerX(before, 'w6')!);
+            expectSceneTrajectory(trajectory, {
+                'series[0]/background/path[*]': 'any',
+                'series[0]/path[stroke]': 'any',
+                ...markersFadeIn,
+                ...axisReflowSpec('bottom', {}),
+            });
+        });
+
+        // "Start ticking" — a point is appended on a timer while the previous append is still animating.
+        // Each interrupting update must keep the stroke a single connected subpath and let the area keep
+        // growing rightward, never leaving a broken or frozen path.
+        it('ticking: appending points mid-animation keeps the stroke connected and growing', async () => {
+            const data = [
+                { x: 0, y: 40 },
+                { x: 1, y: 120 },
+                { x: 2, y: 80 },
+                { x: 3, y: 160 },
+                { x: 4, y: 60 },
+            ];
+            chart = AgCharts.create(singleOptions(data));
+            await frames.runToEnd(chart);
+            const sampleScene = createSceneGeometrySampler(chart);
+            let nextX = 5;
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene, {
+                frames: 40,
+                onFrame: async (i) => {
+                    if (i > 0 && i % 8 === 0 && nextX <= 8) {
+                        data.push({ x: nextX, y: nextX % 2 === 0 ? 90 : 140 });
+                        nextX++;
+                        await chart.updateDelta({ data: [...data] });
+                    }
+                },
+            });
+            const key = strokeKey(trajectory.at(-1)!);
+            for (let i = 0; i < trajectory.length; i++) {
+                expect(trajectory[i].get(key)?.subpaths, `frame ${i} subpaths`).toBe(1);
+            }
+            expect(markerCount(trajectory.at(-1)!)).toBeGreaterThan(markerCount(trajectory[0]));
+            expect(trajectory.at(-1)!.get(key)!.width).toBeGreaterThan(trajectory[0].get(key)!.width);
+        });
+
+        // "Rapid Update" — a second data change lands before the first has finished. The batch must
+        // abandon the first target and settle on the second: the final point count is the second update's
+        // (3 -> 7), proving the interrupted first update (which shrank to 3) did not win.
+        it('rapid update: an interrupting update settles on the final data, not the abandoned one', async () => {
+            chart = AgCharts.create(
+                singleOptions([
+                    { x: 0, y: 40 },
+                    { x: 1, y: 120 },
+                    { x: 2, y: 80 },
+                    { x: 3, y: 160 },
+                    { x: 4, y: 60 },
+                ])
+            );
+            await frames.runToEnd(chart);
+            const sampleScene = createSceneGeometrySampler(chart);
+            await chart.updateDelta({
+                data: [
+                    { x: 0, y: 40 },
+                    { x: 1, y: 120 },
+                    { x: 2, y: 80 },
+                ],
+            });
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene, {
+                onFrame: async (i) => {
+                    if (i === 5) {
+                        await chart.updateDelta({
+                            data: [
+                                { x: 0, y: 40 },
+                                { x: 1, y: 120 },
+                                { x: 2, y: 80 },
+                                { x: 3, y: 160 },
+                                { x: 4, y: 60 },
+                                { x: 5, y: 130 },
+                                { x: 6, y: 90 },
+                            ],
+                        });
+                    }
+                },
+            });
+            for (let i = 0; i < trajectory.length; i++) {
+                const frameKey = [...trajectory[i].keys()].find((k) => k.startsWith('series[0]/path[stroke'));
+                if (frameKey != null) {
+                    expect(trajectory[i].get(frameKey)!.subpaths, `frame ${i} subpaths`).toBe(1);
+                }
+            }
+            await frames.runToEnd(chart);
+            const after = sampleScene();
+            expect(markerCount(after)).toBe(7);
+            expect(after.get(strokeKey(after))!.subpaths).toBe(1);
         });
     });
 
