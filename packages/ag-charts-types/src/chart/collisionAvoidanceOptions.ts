@@ -1,9 +1,12 @@
 import type { PixelSize } from './types';
 
 /**
- * Placement of a label relative to its anchor, including the diagonal corners.
+ * Placement of a label relative to its anchor. The directional values (including the diagonal corners)
+ * position the label outside the marker, offset in that direction; `inside` centres the label within
+ * the marker, hiding or truncating it if it does not fit.
  */
 export type AgChartLabelCollisionPlacement =
+    | 'inside'
     | 'top'
     | 'bottom'
     | 'left'

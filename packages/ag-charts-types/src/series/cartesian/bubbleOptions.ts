@@ -38,7 +38,7 @@ export interface AgBubbleSeriesLabel<TDatum, TContext = ContextDefault> extends 
 > {
     /**
      * Placement of the label in relation to the marker. Either a single placement or an ordered
-     * fallback list tried in turn until one fits.
+     * fallback list tried in turn until one fits. Use `inside` to centre the label within the marker.
      *
      * Default: `top`
      */

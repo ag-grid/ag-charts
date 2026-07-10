@@ -751,6 +751,7 @@ const labelCollideWithCategoryDef = {
 };
 
 const labelCollisionPlacementValidator = union(
+    'inside',
     'top',
     'bottom',
     'left',

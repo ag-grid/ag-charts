@@ -55,6 +55,7 @@ import {
     valueProperty,
 } from '../../data/processors';
 import { expandLabelPadding } from '../../label';
+import { boundLabelFit, insideMarkerContainer } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import { type LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
@@ -473,8 +474,14 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
         this.ensureBucketLookupFeature()?.setActiveFilter(processedData, dataAggregationFilter);
         const canIncrementallyUpdate = this.canIncrementallyUpdateNodes(dataAggregationFilter != null);
 
-        const { label } = this.properties;
+        const { label, marker } = this.properties;
         const { collisionAvoidance } = label;
+        const labelPlacement = toArray(label.placement)[0];
+        const markerSize = marker.enabled ? marker.size : 0;
+        const labelFit =
+            labelPlacement === 'inside'
+                ? boundLabelFit(resolveLabelFit(label, true), insideMarkerContainer(markerSize))
+                : resolveLabelFit(label, collisionAvoidance.avoid);
 
         return {
             xAxis,
@@ -495,7 +502,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             yScale,
             xOffset: (xScale.bandwidth ?? 0) / 2,
             yOffset: (yScale.bandwidth ?? 0) / 2,
-            size: this.properties.marker.enabled ? this.properties.marker.size : 0,
+            size: markerSize,
             yDomain: this.getSeriesDomain(ChartAxisDirection.Y).domain,
             labelsEnabled: this.properties.label.enabled,
             labelPadding: expandLabelPadding(this.properties.label),
@@ -504,7 +511,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             labelPlacements: toArray(label.placement),
             labelMinSpacing: collisionAvoidance.minSpacing,
             labelCollideWith: collisionAvoidance.resolveCollideWith(),
-            labelFit: resolveLabelFit(label, label.collisionAvoidance.avoid),
+            labelFit,
             animationEnabled: !this.ctx.animationManager.isSkipped(),
             canIncrementallyUpdate,
             dataAggregationFilter,

@@ -18,7 +18,6 @@ import {
     dateToNumber,
     extent,
     findDiscreteColorBinLabel,
-    fitLabelText,
     formatValue,
     isArray,
     measureTextSegments,
@@ -63,7 +62,7 @@ import type { DataController } from '../../data/dataController';
 import { DataModel, type ProcessedData, fixNumericExtent } from '../../data/dataModel';
 import { createDatumId, processedDataIsAnimatable, valueProperty } from '../../data/processors';
 import { expandLabelPadding } from '../../label';
-import { getLabelStyles } from '../../labelUtil';
+import { fitLabelToContainer, getLabelStyles, insideMarkerContainer } from '../../labelUtil';
 import {
     type CategoryLegendDatum,
     type ChartLegendType,
@@ -573,6 +572,8 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             marker,
         } = this.properties;
 
+        const labelPlacement = toArray(label.placement)[0];
+
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
 
@@ -637,12 +638,13 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
 
             // Label properties
             labelsEnabled: label.enabled,
-            labelPlacement: toArray(label.placement)[0],
+            labelPlacement,
             labelAnchor: Marker.anchor(marker.shape),
             labelTextDomain,
             labelPadding: expandLabelPadding(label),
             labelTextMeasurer: cachedTextMeasurer(label),
-            labelFit: resolveLabelFit(label, label.collisionAvoidance.avoid),
+            // `inside` labels always fit to the marker, hiding (or truncating) text that overflows it.
+            labelFit: resolveLabelFit(label, label.collisionAvoidance.avoid || labelPlacement === 'inside'),
             label,
 
             // Other state
@@ -820,16 +822,17 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
 
         const crossFilterSelected = ctx.crossFilterSelectedDataValues?.[datumIndex];
 
+        // Compute marker size
+        const markerSize = sizeValue == null ? ctx.sizeScale.range[0] : ctx.sizeScale.convertClamped(sizeValue);
+
         // Compute label (skip expensive formatting if labels disabled)
         let nodeLabel: MeasuredLabel;
         if (ctx.labelsEnabled) {
-            nodeLabel = this.computeLabel(ctx, datum, yDatum, sizeValue, datumIndex);
+            const markerPixelSize = ctx.labelPlacement === 'inside' ? Math.sqrt(scratch.dilation) * markerSize : 0;
+            nodeLabel = this.computeLabel(ctx, datum, yDatum, sizeValue, datumIndex, markerPixelSize);
         } else {
             nodeLabel = { text: '', width: 0, height: 0 };
         }
-
-        // Compute marker size
-        const markerSize = sizeValue == null ? ctx.sizeScale.range[0] : ctx.sizeScale.convertClamped(sizeValue);
 
         const colorValue = ctx.colorDataValues?.[datumIndex];
 
@@ -857,7 +860,8 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         datum: any,
         yDatum: any,
         sizeValue: number | undefined,
-        datumIndex: number
+        datumIndex: number,
+        markerSize: number
     ): MeasuredLabel {
         let labelTextValue: any;
         let labelTextKey: string;
@@ -902,7 +906,8 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             }
         );
 
-        const fittedText = fitLabelText(labelText, ctx.labelFit, ctx.label);
+        const container = ctx.labelPlacement === 'inside' ? insideMarkerContainer(markerSize) : undefined;
+        const fittedText = fitLabelToContainer(labelText, ctx.labelFit, ctx.label, container);
         let { width, height } = isArray(fittedText)
             ? measureTextSegments(fittedText, ctx.label)
             : ctx.labelTextMeasurer.measureLines(String(fittedText));

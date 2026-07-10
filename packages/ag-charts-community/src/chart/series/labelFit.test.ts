@@ -206,4 +206,40 @@ describe('series label fit', () => {
         expect(someWrapped(texts)).toBe(true);
         expect(someTruncated(texts)).toBe(true);
     });
+
+    it('centres bubble labels inside large markers and hides those overflowing small markers', async () => {
+        // `placement: 'inside'` fits each label to its marker: big bubbles hold their label, small bubbles
+        // hide a label that cannot fit. Sizes and label lengths are mixed so one image shows both outcomes.
+        const bubbleData = [
+            { x: 0, y: 50, size: 100, label: 'Big' },
+            { x: 1, y: 55, size: 90, label: 'Large' },
+            { x: 2, y: 45, size: 6, label: 'Tiny bubble label' },
+            { x: 3, y: 60, size: 70, label: 'Mid' },
+            { x: 4, y: 40, size: 8, label: 'Another long label' },
+        ];
+        await renderAndSnapshot({
+            data: bubbleData,
+            legend: { enabled: false },
+            axes: {
+                x: { type: 'number', position: 'bottom' },
+                y: { type: 'number', position: 'left', min: 0, max: 100 },
+            },
+            series: [
+                {
+                    type: 'bubble',
+                    xKey: 'x',
+                    yKey: 'y',
+                    sizeKey: 'size',
+                    labelKey: 'label',
+                    minSize: 8,
+                    maxSize: 100,
+                    label: { enabled: true, placement: 'inside', formatter: (p: any) => p.datum.label },
+                },
+            ],
+        });
+        const texts = labelTexts();
+        // Small bubbles hide their label (empty); at least one large bubble keeps its label.
+        expect(texts.some((text) => text === '' || text == null)).toBe(true);
+        expect(texts.some((text) => typeof text === 'string' && text.length > 0)).toBe(true);
+    });
 });

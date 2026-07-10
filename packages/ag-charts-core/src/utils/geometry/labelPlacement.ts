@@ -12,6 +12,7 @@ import { getMinOuterRectSize } from './math/shapeUtils';
 import { SpatialIndex, gridCellSize } from './spatialIndex';
 
 export type LabelPlacement =
+    | 'inside'
     | 'top'
     | 'bottom'
     | 'left'
@@ -388,6 +389,7 @@ export function buildBarLabelData<T>(
 }
 
 const labelPlacements: Record<LabelPlacement, { x: -1 | 0 | 1; y: -1 | 0 | 1 }> = {
+    inside: { x: 0, y: 0 },
     top: { x: 0, y: -1 },
     bottom: { x: 0, y: 1 },
     left: { x: -1, y: 0 },
@@ -417,6 +419,9 @@ const queryBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
 const inflatedBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
 // The candidate datum's per-category obstacle config, set before each obstacle query.
 let candidateCollideWith: CollideWith | undefined;
+// The placement of the candidate being tested; an `inside` candidate ignores marker obstacles because
+// it is centred on a marker by design (and would otherwise always collide with that very marker).
+let candidatePlacement: LabelPlacement | undefined;
 // The label's text/box after the fit step, reused per label to keep the hot path allocation-free.
 const fittedLabel: { text: NormalisedTextOrSegments; width: number; height: number } = {
     text: '',
@@ -450,7 +455,9 @@ function inflateBoxInto(dest: BoxBounds, src: BoxBounds, inflate: number) {
 }
 
 function obstacleOverlapsCandidate(o: LabelObstacle): boolean {
-    const cfg = candidateCollideWith?.[o.category ?? 'seriesItem'];
+    const category = o.category ?? 'seriesItem';
+    if (candidatePlacement === 'inside' && category === 'marker') return false;
+    const cfg = candidateCollideWith?.[category];
     if (cfg?.enabled === false) return false;
 
     inflateBoxInto(inflatedBox, candidateBox, cfg?.minSpacing ?? 0);
@@ -749,6 +756,7 @@ function placeAvoidingLabel(
                 candidateBox.x = x = nx;
                 candidateBox.y = y = ny;
             }
+            candidatePlacement = placement;
             inflateBoxInto(queryBox, candidateBox, inflate);
             if (boxContains(region, x, y, cw, ch) && !obstacleIndex.query(queryBox, obstacleOverlapsCandidate)) {
                 return {

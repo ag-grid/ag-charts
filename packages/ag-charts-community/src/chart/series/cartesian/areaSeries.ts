@@ -64,6 +64,7 @@ import {
     valueProperty,
 } from '../../data/processors';
 import { expandLabelPadding } from '../../label';
+import { boundLabelFit, insideMarkerContainer } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
@@ -993,6 +994,12 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         const canIncrementallyUpdate =
             existingNodeData != null && this.canIncrementallyUpdateNodes(dataAggregationFilter != null);
 
+        const labelPlacement = toArray(label.placement)[0];
+        const labelFit =
+            labelPlacement === 'inside'
+                ? boundLabelFit(resolveLabelFit(label, true), insideMarkerContainer(marker.size))
+                : resolveLabelFit(label, label.collisionAvoidance.avoid);
+
         return {
             // Axes (from template method parameters)
             xAxis,
@@ -1029,7 +1036,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
             labelPlacements: toArray(label.placement),
             labelMinSpacing: label.collisionAvoidance.minSpacing,
             labelCollideWith: label.collisionAvoidance.resolveCollideWith(),
-            labelFit: resolveLabelFit(label, label.collisionAvoidance.avoid),
+            labelFit,
             normalizedTo,
             canIncrementallyUpdate,
             animationEnabled: !this.ctx.animationManager.isSkipped(),

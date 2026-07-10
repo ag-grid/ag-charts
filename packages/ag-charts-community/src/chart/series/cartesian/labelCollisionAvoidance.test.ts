@@ -216,6 +216,68 @@ describe('label collision avoidance', () => {
         }
     });
 
+    // `inside` centres the label on the marker and fits its text to the marker, hiding text that
+    // cannot fit — distinct from the directional placements, which offset the label off the marker.
+    describe('inside placement (centre in marker, fit to marker)', () => {
+        const sparseData = Array.from({ length: 5 }, (_, i) => ({ x: i, y: 50 }));
+
+        const placedLabels = () => {
+            const series = deproxy(chart as any).series[0] as unknown as {
+                placedLabelData: {
+                    x: number;
+                    y: number;
+                    width: number;
+                    height: number;
+                    placement?: string;
+                    datum: { point: { x: number; y: number } };
+                }[];
+            };
+            return series.placedLabelData;
+        };
+
+        const render = async (type: 'line' | 'area', markerSize: number) => {
+            const options: any = {
+                data: sparseData,
+                legend: { enabled: false },
+                axes: cartesianAxes,
+                series: [
+                    {
+                        type,
+                        xKey: 'x',
+                        yKey: 'y',
+                        marker: { enabled: true, size: markerSize },
+                        label: {
+                            enabled: true,
+                            placement: 'inside',
+                            formatter: ({ value }: any) => String(value),
+                        },
+                    },
+                ],
+            };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            return placedLabels();
+        };
+
+        for (const type of ['line', 'area'] as const) {
+            it(`${type}: centres each label on its point when it fits the marker`, async () => {
+                const placed = await render(type, 40);
+                expect(placed.length).toBe(sparseData.length);
+                for (const label of placed) {
+                    expect(label.placement).toBe('inside');
+                    expect(label.x + label.width / 2).toBeCloseTo(label.datum.point.x, 0);
+                    expect(label.y + label.height / 2).toBeCloseTo(label.datum.point.y, 0);
+                }
+            });
+
+            it(`${type}: hides labels whose text overflows a small marker`, async () => {
+                const placed = await render(type, 4);
+                expect(placed.length).toBe(0);
+            });
+        }
+    });
+
     describe('scatter series', () => {
         const data = markerData;
 
