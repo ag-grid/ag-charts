@@ -475,6 +475,33 @@ describe('ChartOptions', () => {
             expect(messages.some((m) => m.includes('required modules are not registered'))).toBe(true);
             expect(messages.some((m) => m.includes('OrdinalTimeAxisModule'))).toBe(true);
         });
+
+        it('warns with a CDN-friendly message when an enterprise feature is used in UMD mode', () => {
+            ModuleRegistry.setRegistryMode(ModuleRegistry.RegistryMode.UMD);
+            try {
+                prepareOptions({
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    axes: {
+                        x: { type: 'ordinal-time', position: 'bottom' },
+                        y: { type: 'number', position: 'left' },
+                    },
+                });
+
+                const messages = (console.error as Mock).mock.calls.map(([m]) => String(m));
+                expect(
+                    messages.some((m) =>
+                        m.includes(
+                            "unable to use these enterprise features as 'ag-charts-enterprise' has not been loaded"
+                        )
+                    )
+                ).toBe(true);
+                expect(messages.some((m) => m.includes('ordinal-time'))).toBe(true);
+                expect(messages.every((m) => !m.includes('import {'))).toBe(true);
+                expect(messages.every((m) => !m.includes('ModuleRegistry.registerModules'))).toBe(true);
+            } finally {
+                ModuleRegistry.clearRegistryModes();
+            }
+        });
     });
 
     describe('tooltip range warnings', () => {
