@@ -1296,6 +1296,16 @@ describe('AreaSeries', () => {
             expectMarkerStartsCollapsed(trajectory, '2');
         });
 
+        // The interior stations trace the same zigzag curve as it steps across the pinned domain: two
+        // alternate rising and falling monotonically to their new resting value, while the far edge
+        // (top@4) rides the structurally-changing station and legitimately goes non-finite mid-tween.
+        const shiftTops = {
+            'top@0': decreasingExtent,
+            'top@1': increasingExtent,
+            'top@2': decreasingExtent,
+            'top@3': increasingExtent,
+        };
+
         // "Shift left" — drop the first point, append one at the end: the left edge steps in (x increases)
         // while one marker leaves at the start and one enters at the end.
         it('single shift left: the left edge steps in as the first point leaves and one enters', async () => {
@@ -1320,8 +1330,8 @@ describe('AreaSeries', () => {
             );
             expect(markerCount(after)).toBe(5);
             expectSceneTrajectory(trajectory, {
-                'series[0]/background/path[*]': extentMorph(increasingExtent, squeezing, 'any', [4]),
-                'series[0]/path[stroke]': extentMorph(increasingExtent, squeezing, 'constant', [4]),
+                'series[0]/background/path[*]': extentMorph(increasingExtent, squeezing, 'any', [4], shiftTops),
+                'series[0]/path[stroke]': extentMorph(increasingExtent, squeezing, 'constant', [4], shiftTops),
                 ...markersFadeIn,
             });
             expectMarkerStartsCollapsed(trajectory, '6');
@@ -1350,8 +1360,8 @@ describe('AreaSeries', () => {
             );
             expect(markerCount(after)).toBe(5);
             expectSceneTrajectory(trajectory, {
-                'series[0]/background/path[*]': extentMorph(decreasingExtent, squeezing, 'any', [4]),
-                'series[0]/path[stroke]': extentMorph(decreasingExtent, squeezing, 'constant', [4]),
+                'series[0]/background/path[*]': extentMorph(decreasingExtent, squeezing, 'any', [4], shiftTops),
+                'series[0]/path[stroke]': extentMorph(decreasingExtent, squeezing, 'constant', [4], shiftTops),
                 ...markersFadeIn,
             });
             expectMarkerStartsCollapsed(trajectory, '1');
