@@ -6,6 +6,7 @@ import type {
     SeriesCallbackParams,
     Styler,
 } from '../../chart/callbackOptions';
+import type { AgChartLabelOrientation } from '../../chart/collisionAvoidanceOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgCssColorOrRef } from '../../chart/themeParamsOptions';
@@ -80,6 +81,14 @@ export interface AgRangeAreaSeriesLabelOptions<TDatum, TParams, TContext = Conte
      * fallback list tried in turn until one fits.
      */
     placement?: AgRangeAreaSeriesLabelPlacement | AgRangeAreaSeriesLabelPlacement[];
+    /**
+     * Orientation of the label within the area. `parallel` reads upright; the two `perpendicular`
+     * variants rotate it a quarter-turn in opposite directions. Either a single orientation or an
+     * ordered fallback list tried in turn until one fits.
+     *
+     * Default: `parallel`
+     */
+    orientation?: AgChartLabelOrientation | AgChartLabelOrientation[];
     /** Spacing in pixels between the label and the edge of the marker. */
     spacing?: PixelSize;
 }

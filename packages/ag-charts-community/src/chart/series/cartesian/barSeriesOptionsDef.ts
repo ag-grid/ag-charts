@@ -11,6 +11,7 @@ import {
     errorBarOptionsDefs,
     errorBarThemeableOptionsDefs,
     fillOptionsDef,
+    labelOrientationDef,
     lineDashOptionsDef,
     multiSeriesHighlightOptionsDef,
     number,
@@ -51,6 +52,7 @@ export const barSeriesThemeableOptionsDef: OptionsDefs<AgBarSeriesThemeableOptio
     label: {
         ...seriesLabelOptionsDefs,
         placement: or(barLabelPlacement, arrayOf(barLabelPlacement)),
+        orientation: labelOrientationDef,
         spacing: positiveNumber,
     },
     errorBar: errorBarThemeableOptionsDefs,
