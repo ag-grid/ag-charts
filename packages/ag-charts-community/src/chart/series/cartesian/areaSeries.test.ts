@@ -14,7 +14,6 @@ import type {
     AgImageFillFit,
     AgPatternName,
     AgSeriesMarkerStyle,
-    AgUnitTimeAxisOptions,
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
@@ -77,7 +76,6 @@ import {
     setupMockCanvas,
     setupMockConsole,
     spyOnAnimationFrames,
-    spyOnAnimationManager,
     tapAction,
     waitForChartStability,
 } from '../../test/utils';
@@ -438,185 +436,19 @@ describe('AreaSeries', () => {
         }
     });
 
-    describe('initial animation', () => {
-        const animate = spyOnAnimationManager();
+    // The initial-load reveal is pinned per-frame by the 'initial load: the stacked fills and strokes
+    // swipe in while markers scale in' and 'integrated mode: initial load' trajectory CASEs in
+    // 'animation -test page actions'.
 
-        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-            it(`for AREA_CATEGORY_X_AXIS_FRACTIONAL_LOG_Y_AXIS should animate at ${ratio * 100}%`, async () => {
-                animate(1200, ratio);
+    // Adding and removing points at both edges is pinned per-frame by the 'single add points
+    // before/after' and 'single remove first/last point' trajectory CASEs in 'animation -test page
+    // actions'.
 
-                const options: AgChartOptions = examples.CARTESIAN_CATEGORY_X_AXIS_LOG_Y_AXIS(
-                    DATA_FRACTIONAL_LOG_AXIS,
-                    'area'
-                );
-                prepareTestOptions(options);
+    // Opening and closing a gap (data to/from undefined) is pinned per-frame by the 'single update to
+    // undefined' and 'single update from undefined' trajectory CASEs in 'animation -test page actions'.
 
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
-                await compare();
-            });
-        }
-    });
-
-    describe('add/update/remove animation', () => {
-        const animate = spyOnAnimationManager();
-
-        const EXAMPLE = deepClone(examples.STACKED_AREA_GRAPH_EXAMPLE);
-        (EXAMPLE.axes!.x as AgUnitTimeAxisOptions).label!.format = '%b %Y';
-
-        const mutateData = (count: number) => {
-            return ({ date: inputDate, ...d }: any) => {
-                const date = new Date(inputDate);
-                date.setFullYear(date.getFullYear() + count);
-                return { date, ...d };
-            };
-        };
-
-        const updatedData = [...EXAMPLE.data!];
-        updatedData.splice(0, 0, ...EXAMPLE.data!.map(mutateData(-1)));
-        updatedData.push(...EXAMPLE.data!.map(mutateData(+1)));
-
-        describe('add', () => {
-            for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-                it(`for STACKED_AREA_GRAPH_EXAMPLE should animate at ${ratio * 100}%`, async () => {
-                    animate(1200, 1);
-
-                    const options: AgChartOptions = { ...EXAMPLE };
-                    prepareTestOptions(options);
-
-                    chart = AgCharts.create(options);
-                    await waitForChartStability(chart);
-
-                    animate(1200, ratio);
-                    await chart.update({ ...options, data: updatedData });
-
-                    await compare();
-                });
-            }
-        });
-
-        describe('remove', () => {
-            for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-                it(`for STACKED_AREA_GRAPH_EXAMPLE should animate at ${ratio * 100}%`, async () => {
-                    animate(1200, 1);
-
-                    const options: AgChartOptions = { ...EXAMPLE, data: updatedData };
-                    prepareTestOptions(options);
-
-                    chart = AgCharts.create(options);
-                    await waitForChartStability(chart);
-
-                    animate(1200, ratio);
-                    await chart.update({ ...options, data: EXAMPLE.data });
-
-                    await compare();
-                });
-            }
-        });
-    });
-
-    describe('undefined data animation', () => {
-        const animate = spyOnAnimationManager();
-
-        const EXAMPLE = deepClone(examples.STACKED_AREA_GRAPH_EXAMPLE);
-        if (EXAMPLE.series) {
-            for (const series of EXAMPLE.series) {
-                (series as any).interpolation = { type: 'smooth' };
-            }
-        }
-
-        const updatedData = deepClone(EXAMPLE.data)!;
-        updatedData[4]['Science Museum'] = undefined;
-
-        describe('set to undefined', () => {
-            for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-                it(`for STACKED_AREA_GRAPH_EXAMPLE should animate at ${ratio * 100}%`, async () => {
-                    animate(1200, 1);
-
-                    const options: AgChartOptions = { ...EXAMPLE };
-                    prepareTestOptions(options);
-
-                    chart = AgCharts.create(options);
-                    await waitForChartStability(chart);
-
-                    animate(1200, ratio);
-                    await chart.update({ ...options, data: updatedData });
-
-                    await compare();
-                });
-            }
-        });
-
-        describe('unset from undefined', () => {
-            for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-                it(`for STACKED_AREA_GRAPH_EXAMPLE should animate at ${ratio * 100}%`, async () => {
-                    animate(1200, 1);
-
-                    const options: AgChartOptions = { ...EXAMPLE, data: updatedData };
-                    prepareTestOptions(options);
-
-                    chart = AgCharts.create(options);
-                    await waitForChartStability(chart);
-
-                    animate(1200, ratio);
-                    await chart.update({ ...options, data: EXAMPLE.data });
-
-                    await compare();
-                });
-            }
-        });
-    });
-
-    describe('legend toggle animation', () => {
-        const animate = spyOnAnimationManager();
-
-        const EXAMPLE = deepClone(examples.STACKED_AREA_GRAPH_EXAMPLE);
-        if (EXAMPLE.series)
-            for (const s of EXAMPLE.series) {
-                (s as AgAreaSeriesOptions).strokeWidth = 2;
-            }
-
-        describe('hide', () => {
-            for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-                it(`for STACKED_AREA_GRAPH_EXAMPLE should animate at ${ratio * 100}%`, async () => {
-                    animate(1200, 1);
-
-                    const options: AgChartOptions = deepClone(EXAMPLE);
-                    prepareTestOptions(options);
-
-                    chart = AgCharts.create(options);
-                    await waitForChartStability(chart);
-
-                    animate(1200, ratio);
-                    options.series![0].visible = false;
-                    await chart.update({ ...options });
-
-                    await compare();
-                });
-            }
-        });
-
-        describe('show', () => {
-            for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-                it(`for STACKED_AREA_GRAPH_EXAMPLE should animate at ${ratio * 100}%`, async () => {
-                    animate(1200, 1);
-
-                    const options: AgChartOptions = deepClone(EXAMPLE);
-                    options.series![1].visible = false;
-                    prepareTestOptions(options);
-
-                    chart = AgCharts.create(options);
-                    await waitForChartStability(chart);
-
-                    animate(1200, ratio);
-                    options.series![1].visible = true;
-                    await chart.update(options);
-
-                    await compare();
-                });
-            }
-        });
-    });
+    // Legend hide/show is pinned per-frame by the 'legend hide' and 'legend show' trajectory CASEs in
+    // 'animation -test page actions'.
 
     // One CASE per control on the area-series-test pages, in standalone and integrated modes. Area
     // paints TWO nodes per series — a fill polygon (in the background group) and a top-edge stroke — so
