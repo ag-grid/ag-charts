@@ -1,0 +1,422 @@
+/* Trading-terminal chrome. Scoped under .fin-container so it never leaks into
+   other demos. Chart visuals are handled by the AG Charts theme, not here. */
+
+/* Tokens + base typography live on the container and on any portalled content
+   (Radix menus/selects/dialogs mount at document.body, outside .fin-container). */
+.fin-container,
+.fin-portal {
+    --fin-bg: #0d1117;
+    --fin-panel: #161b22;
+    --fin-panel-2: #020617;
+    --fin-border: #2a313c;
+    --fin-text: #e4e4e7;
+    --fin-muted: #a1a1aa;
+    --fin-up: #10b981;
+    --fin-down: #f43f5e;
+    --fin-accent: #388bfd;
+    --fin-chart-palette-0: #60a5fa;
+    --fin-chart-palette-1: #f0a68c;
+    --fin-chart-palette-2: #fbbf24;
+    --fin-chart-palette-3: #f472b6;
+    --fin-chart-palette-4: #a78bfa;
+    --fin-chart-palette-5: #22d3ee;
+    --fin-chart-palette-6: #fb923c;
+    --fin-chart-palette-7: #a3e635;
+    --fin-chart-palette-8: #e879f9;
+    --fin-chart-palette-9: #2dd4bf;
+    color: var(--fin-text);
+    font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 12px;
+}
+
+.fin-container {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    background: var(--fin-bg);
+    overflow: hidden;
+}
+
+/* ---- top toolbar ---- */
+.fin-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 8px 14px;
+    background: var(--fin-panel);
+    border-bottom: 1px solid var(--fin-border);
+    flex: 0 0 auto;
+}
+
+.fin-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: var(--fin-accent);
+}
+
+.fin-brand-logo {
+    flex: none;
+}
+
+.fin-up {
+    color: var(--fin-up);
+}
+.fin-down {
+    color: var(--fin-down);
+}
+
+.fin-search {
+    box-sizing: border-box;
+    height: 30px;
+    width: 220px;
+    padding: 0 10px;
+    border: 1px solid var(--fin-border);
+    background: var(--fin-panel-2);
+    color: var(--fin-text);
+    font: inherit;
+}
+.fin-search::placeholder {
+    color: var(--fin-muted);
+}
+.fin-search:focus {
+    outline: none;
+    border-color: var(--fin-accent);
+}
+
+.fin-toolbar-spacer {
+    flex: 1 1 auto;
+}
+
+.fin-clock {
+    color: var(--fin-muted);
+    font-variant-numeric: tabular-nums;
+}
+
+/* ---- layout ---- */
+.fin-body {
+    flex: 1 1 auto;
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    min-height: 0;
+}
+
+.fin-sidebar-left {
+    border-right: 1px solid var(--fin-border);
+}
+
+.fin-main {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 0;
+    min-width: 0;
+    overflow-y: auto;
+    padding: 8px;
+    background: var(--fin-panel);
+    border-top: 1px solid var(--fin-border);
+}
+
+/* The main financial chart fills the remaining viewport height; the sections
+   below it (gauges, peer charts) scroll into view. */
+.fin-main > .fin-detail-card {
+    flex: 1 1 auto;
+    min-height: 320px;
+}
+
+.fin-sidebar {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow-y: auto;
+    background: var(--fin-panel);
+}
+
+.fin-section {
+    padding: 12px 14px;
+}
+.fin-section-title {
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    font-size: 11px;
+    color: var(--fin-text);
+    margin: 0 0 10px;
+}
+
+/* ---- generic controls ---- */
+.fin-btn {
+    all: unset;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 30px;
+    padding: 0 8px;
+    border-radius: 0;
+    border: 1px solid var(--fin-border);
+    background: var(--fin-panel-2);
+    color: var(--fin-text);
+    cursor: pointer;
+    font: inherit;
+    user-select: none;
+    transition:
+        background 0.12s ease,
+        border-color 0.12s ease;
+}
+.fin-btn:hover {
+    border-color: var(--fin-accent);
+}
+.fin-btn[data-state='open'] {
+    border-color: var(--fin-accent);
+}
+
+/* ---- radix Select ---- */
+
+.fin-labeled-select {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.fin-select-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    min-width: 24px;
+}
+.fin-select-content {
+    z-index: 60;
+    background: var(--fin-panel-2);
+    border: 1px solid var(--fin-border);
+    border-radius: 0;
+    padding: 4px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+}
+.fin-select-item {
+    all: unset;
+    display: flex;
+    align-items: center;
+    height: 28px;
+    padding: 0 24px 0 10px;
+    border-radius: 0;
+    cursor: pointer;
+    color: var(--fin-text);
+}
+.fin-select-item[data-highlighted] {
+    background: var(--fin-accent);
+    color: #fff;
+}
+
+/* ---- radix ToggleGroup ---- */
+.fin-toggle-group {
+    display: inline-flex;
+    border: 1px solid var(--fin-border);
+    border-radius: 0;
+    overflow: hidden;
+}
+.fin-toggle-item {
+    all: unset;
+    padding: 0 10px;
+    height: 30px;
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    color: var(--fin-muted);
+    border-left: 1px solid var(--fin-border);
+}
+.fin-toggle-item:first-child {
+    border-left: none;
+}
+.fin-toggle-item[data-state='on'] {
+    background: var(--fin-panel-2);
+    color: var(--fin-text);
+}
+
+.fin-title-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 16px;
+    flex-wrap: wrap;
+}
+.fin-title-controls {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+.fin-title-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+/* Drawer toggle + overlay: inert on wide layouts, activated in the media query. */
+.fin-drawer-toggle {
+    display: none;
+    padding: 0 10px;
+}
+.fin-drawer-overlay {
+    display: none;
+}
+
+/* ---- watchlist drawer (narrow viewports) ---- */
+@media (max-width: 860px) {
+    /* Sidebar leaves the grid and becomes an off-canvas drawer. */
+    .fin-body {
+        grid-template-columns: 1fr;
+    }
+    .fin-sidebar-left {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 90;
+        width: min(320px, 85vw);
+        border-right: 1px solid var(--fin-border);
+        box-shadow: 0 0 40px rgba(0, 0, 0, 0.6);
+        transform: translateX(-100%);
+        transition: transform 0.2s ease;
+    }
+    .fin-body[data-drawer-open='true'] .fin-sidebar-left {
+        transform: translateX(0);
+    }
+    .fin-body[data-drawer-open='true'] .fin-drawer-overlay {
+        display: block;
+        position: fixed;
+        inset: 0;
+        z-index: 80;
+        background: rgba(0, 0, 0, 0.55);
+    }
+    .fin-drawer-toggle {
+        display: inline-flex;
+    }
+}
+
+/* ---- instrument detail (quote + stats + gauges + peer charts) ---- */
+/* Chart card lays out a title header (quote + stats) above the chart body. */
+.fin-chart-card {
+    display: flex;
+    flex-direction: column;
+}
+.fin-quote {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+.fin-quote-symbol {
+    font-size: 16px;
+    font-weight: 700;
+}
+.fin-quote-price {
+    font-size: 16px;
+    font-variant-numeric: tabular-nums;
+}
+.fin-chart-body {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+/* Cards that hold a chart or a gauge share the same panel framing. */
+.fin-detail-card {
+    background: var(--fin-panel-2);
+    border: 1px solid var(--fin-border);
+    padding: 12px;
+    min-width: 0;
+}
+
+.fin-detail-card-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    font-size: 11px;
+    color: var(--fin-text);
+}
+
+.fin-detail-card-title .fin-value {
+    font-weight: 700;
+}
+
+.fin-detail-charts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 8px;
+}
+.fin-detail-chart {
+    /* Scale with viewport height but stay within a sensible band. */
+    height: clamp(220px, 32vh, 340px);
+}
+
+.fin-detail-gauges {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+.fin-detail-gauges .fin-detail-card {
+    display: flex;
+    flex-direction: column;
+}
+.fin-detail-gauge {
+    height: 56px;
+}
+
+/* Stack the two-up detail charts and shorten them on narrow viewports. */
+@media (max-width: 1600px) {
+    .fin-detail-charts {
+        grid-template-columns: 1fr;
+    }
+    .fin-detail-chart {
+        height: clamp(200px, 40vh, 300px);
+    }
+}
+
+@media (max-width: 900px) {
+    .fin-detail-gauges {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ---- watchlist + trending (AG Grid) ---- */
+/* Sparkline trend cell: let the chart fill the full cell box. */
+.fin-sparkline-col {
+    padding: 0;
+}
+.fin-sparkline-cell {
+    width: 100%;
+    height: 100%;
+}
+
+.fin-watchlist-grid {
+    height: 310px;
+}
+.fin-trending-grid {
+    height: 310px;
+}
+.fin-watchlist-grid .ag-row,
+.fin-trending-grid .ag-row {
+    cursor: pointer;
+}
+.fin-watchlist-grid .ag-row.fin-grid-active,
+.fin-trending-grid .ag-row.fin-grid-active {
+    box-shadow: inset 2px 0 0 var(--fin-accent);
+}
+.fin-watchlist-grid .fin-grid-active .ag-cell:first-child,
+.fin-trending-grid .fin-grid-active .ag-cell:first-child {
+    color: var(--fin-accent);
+}
+/* Reuse the terminal up/down colours inside grid cells. */
+.fin-watchlist-grid .ag-cell.fin-up,
+.fin-trending-grid .ag-cell.fin-up {
+    color: var(--fin-up);
+}
+.fin-watchlist-grid .ag-cell.fin-down,
+.fin-trending-grid .ag-cell.fin-down {
+    color: var(--fin-down);
+}
