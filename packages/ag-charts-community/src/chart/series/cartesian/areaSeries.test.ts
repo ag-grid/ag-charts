@@ -816,8 +816,25 @@ describe('AreaSeries', () => {
                         x: 'any',
                         width: 'any',
                     },
-                    'series[0]/path[stroke]': 'any',
-                    'series[0]/marker[*]': 'any',
+                    // The stroke traces the same collapsing top edge as the background fill above, but
+                    // (unlike the fill polygon) never splits into a second subpath, so every station holds
+                    // its collapse cleanly and x/width stay pinned to the full plot width throughout.
+                    'series[0]/path[stroke]': {
+                        x: 'constant',
+                        width: 'constant',
+                        y: { during: 'update', expect: ['increases', 'bounded'] },
+                        height: { during: 'update', expect: ['decreases', 'bounded'], settlesAt: 0 },
+                        visible: { during: 'update', expect: ['decreases', 'bounded'], settlesAt: 0 },
+                        'top@0': { during: 'update', expect: ['increases', 'bounded'] },
+                        'top@1': { during: 'update', expect: ['increases', 'bounded'] },
+                        'top@2': { during: 'update', expect: ['increases', 'bounded'] },
+                        'top@3': { during: 'update', expect: ['increases', 'bounded'] },
+                        'top@4': { during: 'update', expect: ['increases', 'bounded'] },
+                        subpaths: 'any',
+                    },
+                    // The toggled-off layer's markers never render (visible stays 0 throughout); their
+                    // opacity keeps re-fading internally regardless, so only that property is left free.
+                    'series[0]/marker[*]': { opacity: 'any', visible: 'constant' },
                     'series[1]/background/path[*]': slideDown,
                     'series[1]/path[stroke]': slideDown,
                     'series[2]/background/path[*]': slideDown,
@@ -841,27 +858,45 @@ describe('AreaSeries', () => {
             };
             const { trajectory, after } = await captureFrom(hidden, () => chart.update(options));
             const shownFill = fillKey(after, 0);
+            // The mirror of "legend hide"'s slideDown: the two survivors slide back up as the re-shown
+            // layer grows in beneath them.
+            const slideUp: SceneNodeExpectation = {
+                y: { during: 'update', expect: ['decreases', 'bounded'] },
+                height: 'any',
+                x: { during: 'update', expect: 'constant' },
+                width: { during: 'update', expect: 'constant' },
+                subpaths: 'any',
+                'top@0': { during: 'update', expect: ['decreases', 'bounded'] },
+                'top@2': { during: 'update', expect: ['decreases', 'bounded'] },
+                'top@4': { during: 'update', expect: ['decreases', 'bounded'] },
+                'top@1': 'any',
+                'top@3': 'any',
+            };
+            // The re-shown layer's own growth, mirroring "legend hide"'s collapse in reverse. Unlike the
+            // hide toggle, `visible` flips to 1 immediately (show-then-animate, not collapse-then-hide), so
+            // it holds constant across the whole capture rather than transitioning mid-trajectory.
+            const growFromBaseline: SceneNodeExpectation = {
+                height: { during: 'update', expect: ['increases', 'bounded'] },
+                y: { during: 'update', expect: ['decreases', 'bounded'] },
+                x: { during: 'update', expect: 'constant' },
+                width: { during: 'update', expect: 'constant' },
+                subpaths: 'any',
+                'top@0': { during: 'update', expect: ['decreases', 'bounded'] },
+                'top@2': { during: 'update', expect: ['decreases', 'bounded'] },
+                'top@4': { during: 'update', expect: ['decreases', 'bounded'] },
+                'top@1': 'any',
+                'top@3': 'any',
+            };
             expectSceneTrajectory(
                 trajectory,
                 {
-                    'series[0]/background/path[*]': 'any',
-                    'series[0]/path[stroke]': 'any',
-                    'series[0]/marker[*]': 'any',
-                    'series[1]/background/path[*]': {
-                        y: { during: 'update', expect: ['decreases', 'bounded'] },
-                        height: 'any',
-                        subpaths: 'any',
-                        'top@0': { during: 'update', expect: ['decreases', 'bounded'] },
-                        'top@2': { during: 'update', expect: ['decreases', 'bounded'] },
-                        'top@4': { during: 'update', expect: ['decreases', 'bounded'] },
-                        'top@1': 'any',
-                        'top@3': 'any',
-                        x: { during: 'update', expect: 'constant' },
-                        width: { during: 'update', expect: 'constant' },
-                    },
-                    'series[2]/background/path[*]': 'any',
-                    'series[1]/path[stroke]': 'any',
-                    'series[2]/path[stroke]': 'any',
+                    'series[0]/background/path[*]': growFromBaseline,
+                    'series[0]/path[stroke]': growFromBaseline,
+                    'series[0]/marker[*]': markerRefade,
+                    'series[1]/background/path[*]': slideUp,
+                    'series[2]/background/path[*]': slideUp,
+                    'series[1]/path[stroke]': slideUp,
+                    'series[2]/path[stroke]': slideUp,
                     'series[1]/marker[*]': markerRefade,
                     'series[2]/marker[*]': markerRefade,
                     ...axisReflowSpec('bottom', {}),
@@ -1830,7 +1865,9 @@ describe('AreaSeries', () => {
                 },
                 { frameInvariants: [stackTopsOrdered] }
             );
+            // Anti-vacuity: the sweep starts collapsed (clip window at the left edge) and a marker at zero size.
             expect(trajectory[0].get(fill0)!['clip:x']).toBeLessThanOrEqual(0.1);
+            expectMarkerStartsCollapsed(trajectory, 'Q3', 'width');
         });
 
         // Integrated defaults must not suppress the entrance animation: adding an end week still fades the
@@ -2113,8 +2150,25 @@ describe('AreaSeries', () => {
                         x: 'any',
                         width: 'any',
                     },
-                    'series[0]/path[stroke]': 'any',
-                    'series[0]/marker[*]': 'any',
+                    // The stroke traces the same collapsing top edge as the background fill above, but
+                    // (unlike the fill polygon) never splits into a second subpath, so every station holds
+                    // its collapse cleanly and x/width stay pinned to the full plot width throughout.
+                    'series[0]/path[stroke]': {
+                        x: 'constant',
+                        width: 'constant',
+                        y: { during: 'update', expect: ['increases', 'bounded'] },
+                        height: { during: 'update', expect: ['decreases', 'bounded'], settlesAt: 0 },
+                        visible: { during: 'update', expect: ['decreases', 'bounded'], settlesAt: 0 },
+                        'top@0': { during: 'update', expect: ['increases', 'bounded'] },
+                        'top@1': { during: 'update', expect: ['increases', 'bounded'] },
+                        'top@2': { during: 'update', expect: ['increases', 'bounded'] },
+                        'top@3': { during: 'update', expect: ['increases', 'bounded'] },
+                        'top@4': { during: 'update', expect: ['increases', 'bounded'] },
+                        subpaths: 'any',
+                    },
+                    // The toggled-off layer's markers never render (visible stays 0 throughout); their
+                    // opacity keeps re-fading internally regardless, so only that property is left free.
+                    'series[0]/marker[*]': { opacity: 'any', visible: 'constant' },
                     'series[1]/background/path[*]': slideDown,
                     'series[1]/path[stroke]': slideDown,
                     'series[1]/marker[*]': markerRefade,
