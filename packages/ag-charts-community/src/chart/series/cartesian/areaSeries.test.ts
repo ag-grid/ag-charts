@@ -1245,8 +1245,8 @@ describe('AreaSeries', () => {
                     subpaths: 'any',
                     'top@0': 'constant',
                     'top@1': 'constant',
-                    'top@2': { during: 'update', expect: ['increases', 'bounded'] },
-                    'top@3': 'any',
+                    'top@2': { during: 'update', expect: increasingExtent },
+                    'top@3': { during: 'update', expect: increasingExtent },
                     'top@4': 'constant',
                 },
                 ...markersFadeIn,
@@ -1254,7 +1254,9 @@ describe('AreaSeries', () => {
         });
 
         // "Update points to defined" — the reverse: an undefined interior value fills back in, so the
-        // stroke re-joins (2 subpaths -> 1) and the returning marker fades in.
+        // stroke re-joins (2 subpaths -> 1) and the returning marker fades in. The gap stations don't
+        // animate FROM their true (non-finite) static geometry: the tween starts from a collapsed
+        // placeholder shared by both stations, then morphs down to where the reconnected path settles.
         it('single update from undefined: the stroke re-joins as the gap closes', async () => {
             const { before, trajectory, after } = await captureFrom(
                 singleOptions([
@@ -1279,9 +1281,16 @@ describe('AreaSeries', () => {
             expect(before.get(stroke0)!.subpaths).toBe(2);
             expect(after.get(stroke0)!.subpaths).toBe(1);
             expect(markerCount(after)).toBeGreaterThan(markerCount(before));
+            const gapClosingTops = {
+                'top@0': 'constant' as const,
+                'top@1': 'constant' as const,
+                'top@2': decreasingExtent,
+                'top@3': decreasingExtent,
+                'top@4': 'constant' as const,
+            };
             expectSceneTrajectory(trajectory, {
-                'series[0]/path[stroke]': extentMorph('constant', 'constant', 'any'),
-                'series[0]/background/path[*]': extentMorph('constant', 'constant', 'any'),
+                'series[0]/path[stroke]': extentMorph('constant', 'constant', 'any', [], gapClosingTops),
+                'series[0]/background/path[*]': extentMorph('constant', 'constant', 'any', [], gapClosingTops),
                 ...markersFadeIn,
             });
             expectMarkerStartsCollapsed(trajectory, '2');
