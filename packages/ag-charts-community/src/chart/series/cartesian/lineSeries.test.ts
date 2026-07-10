@@ -38,11 +38,20 @@ import { testLegendItemName } from '../../test/legendItemName';
 import type { CartesianOrPolarTestCase } from '../../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    type PhasedPropertyExpectation,
+    type SceneFrameInvariant,
+    type SceneGeometrySample,
+    type SceneNodeExpectation,
+    type ScenePropertyExpectation,
     axisReflowSpec,
     cartesianChartAssertions,
     createChart,
     createSceneGeometrySampler,
     deproxy,
+    expectAnimatedEndpointsMatchStatic,
+    expectMonotonic,
+    expectNoAnimation,
+    expectSceneSamplesMatch,
     expectSceneTrajectory,
     extractImageData,
     hoverAction,
@@ -307,6 +316,1248 @@ describe('LineSeries', () => {
         });
     });
 
+    // One CASE per control on the line-series-test page, in standalone and integrated modes.
+    describe('animation -test page actions', () => {
+        const frames = spyOnAnimationFrames();
+
+        // A single line with markers on pinned x- AND y-domains: within [0, 10] × [0, 200] every data
+        // mutation below is provably non-scale-affecting, so both axes hold and the path/markers animate in
+        // isolation. Adding/removing/shifting points extends or slides the path within the fixed pixel
+        // mapping (the axis rescale those buttons also trigger is covered by the scale-affecting spike CASE).
+        const lineOptions = (
+            data: Array<{ x: number; y: number | undefined }>,
+            mode?: 'integrated'
+        ): AgCartesianChartOptions => {
+            const options: AgCartesianChartOptions = {
+                data,
+                series: [{ type: 'line', xKey: 'x', yKey: 'y', marker: { enabled: true } }],
+                axes: {
+                    x: { type: 'number', position: 'bottom', min: 0, max: 10 },
+                    y: { type: 'number', position: 'left', min: 0, max: 200 },
+                },
+            };
+            if (mode != null) {
+                (options as AgChartOptions & { mode: string }).mode = mode;
+            }
+            return prepareTestOptions(options);
+        };
+
+        // The sampler suffixes re-created paths (path[stroke#2]); match the single stroke path by prefix.
+        const pathKey = (sample: SceneGeometrySample): string => {
+            const keys = [...sample.keys()].filter((k) => k.startsWith('series[0]/path'));
+            expect(keys, 'series[0]/path').toHaveLength(1);
+            return keys[0];
+        };
+
+        const markerCount = (sample: SceneGeometrySample) =>
+            [...sample.keys()].filter((k) => /^series\[\d+\]\/marker\[/.test(k)).length;
+
+        // A marker's settled screen x (its position may live in the local coord or the translation).
+        const markerX = (sample: SceneGeometrySample, label: string) => {
+            const m = sample.get(`series[0]/marker[${label}]`);
+            return m ? m.x + (m.translationX ?? 0) : undefined;
+        };
+
+        // Line markers set their local position to the new target the instant the data lands and hold it
+        // there (translation stays 0 — they do NOT position-tween); the animation a data update carries is
+        // the opacity re-fade (number-axis value updates) and the path reshape, while category reorders snap
+        // the markers to their new bands. captureUpdate's whole-scene endpoint check trips on that frame-0
+        // snap, so line CASEs hand-roll the capture (as spike CASE 3 does) and pin only what genuinely tweens.
+        const captureFrom = async (options: AgCartesianChartOptions, action: () => void | Promise<void>) => {
+            chart = AgCharts.create(options);
+            await frames.runToEnd(chart);
+            const sampleScene = createSceneGeometrySampler(chart);
+            const before = sampleScene();
+            await action();
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
+            await frames.runToEnd(chart);
+            const after = sampleScene();
+            // The last captured frame must already be the settled state: this end-anchor (which captureUpdate
+            // also applies, and which the dropped frame-0 start check has no bearing on) guards against a
+            // trajectory that never converged within the capture window.
+            expectSceneSamplesMatch(trajectory.at(-1)!, after);
+            return { sampleScene, before, trajectory, after };
+        };
+
+        // The anti-vacuous guard for the fade/scale-in specs: a node must be present but visually collapsed
+        // (opacity or size ~0) on the first captured frame, proving the animation started from nothing
+        // rather than snapping to its final state. A missing node defaults to Infinity so the guard fails
+        // loudly rather than passing on an absent node.
+        const expectNodeStartsCollapsed = (
+            trajectory: SceneGeometrySample[],
+            key: string,
+            prop: 'opacity' | 'width' = 'opacity'
+        ) => {
+            const value = trajectory[0].get(key)?.[prop] ?? Infinity;
+            expect(value, `${key} ${prop} at frame 0`).toBeLessThanOrEqual(0.001);
+        };
+        const expectMarkerStartsCollapsed = (
+            trajectory: SceneGeometrySample[],
+            label: string,
+            prop: 'opacity' | 'width' = 'opacity'
+        ) => expectNodeStartsCollapsed(trajectory, `series[0]/marker[${label}]`, prop);
+
+        // The fade contract shared by every marker re-entry: on a number-axis value update all present
+        // markers (survivors and entrants) snap to opacity 0 and fade back to 1 during add/trailing. Defined
+        // once so the CASEs express intent by name. NOTE this is only anti-vacuous alongside a frame-0
+        // `expectMarkerStartsCollapsed` guard — a marker held at opacity 1 throughout also satisfies
+        // increases/bounded/settlesAt, so the guard is what proves a fade actually happened.
+        const fadeIn: PhasedPropertyExpectation = {
+            during: ['add', 'trailing'],
+            expect: ['increases', 'bounded'],
+            settlesAt: 1,
+        };
+        // Markers re-map their local x/y to new targets the instant the data lands — and ride a category-axis
+        // reflow across frames — so local position is left free. Translation, however, must stay put: the
+        // CRT-238 regression tweened marker translation via fromToMotion, making the markers fly across the
+        // screen instead of the path extending smoothly. Pinning translation to constant catches a recurrence
+        // while leaving the legitimate local re-map free.
+        const markerPosition: Record<string, ScenePropertyExpectation> = {
+            x: 'any',
+            y: 'any',
+            translationX: 'constant',
+            translationY: 'constant',
+        };
+
+        // "Update points" / "Randomise" — every value jitters within the pinned domain. The path morphs
+        // per-station (the stations tween through intermediate shapes) and the markers re-fade opacity at
+        // their new heights, while the x-extent (bbox x/width, marker translation) and both axes hold, and
+        // the stroke stays a single unbroken subpath.
+        it('update points: path morphs per-station while the x-extent and axes hold', async () => {
+            const { before, trajectory } = await captureFrom(
+                lineOptions([
+                    { x: 0, y: 40 },
+                    { x: 1, y: 120 },
+                    { x: 2, y: 80 },
+                    { x: 3, y: 160 },
+                    { x: 4, y: 60 },
+                ]),
+                () =>
+                    chart.updateDelta({
+                        data: [
+                            { x: 0, y: 90 },
+                            { x: 1, y: 50 },
+                            { x: 2, y: 140 },
+                            { x: 3, y: 70 },
+                            { x: 4, y: 110 },
+                        ],
+                    })
+            );
+            const key = pathKey(before);
+            expectSceneTrajectory(trajectory, {
+                [key]: {
+                    x: { during: 'update', expect: 'constant' },
+                    width: { during: 'update', expect: 'constant' },
+                    // The bbox envelope (top y, total height) is not endpoint-bounded mid-morph: different
+                    // stations peak at different times, so the aggregate swings past its endpoints. The
+                    // per-station tops carry the real per-point invariant, and `progresses` on two of them
+                    // proves the path tweens through intermediate shapes rather than snapping.
+                    y: 'any',
+                    height: 'any',
+                    'top@0': { during: 'update', expect: ['monotonic', 'progresses', 'bounded'] },
+                    'top@1': { during: 'update', expect: ['monotonic', 'bounded'] },
+                    'top@2': { during: 'update', expect: ['monotonic', 'progresses', 'bounded'] },
+                    'top@3': { during: 'update', expect: ['monotonic', 'bounded'] },
+                    'top@4': { during: 'update', expect: ['monotonic', 'bounded'] },
+                },
+                // Markers are re-created at their new local position and only opacity re-fades — they do not
+                // position-tween, so translation holds at 0. The path stations above carry the value motion.
+                'series[0]/marker[*]': {
+                    translationX: 'constant',
+                    translationY: 'constant',
+                    opacity: fadeIn,
+                },
+            });
+            // Marker 2 survives the update yet still re-fades from invisible: the guard that makes the
+            // opacity spec above non-vacuous (without it a marker held at opacity 1 would also pass).
+            expectMarkerStartsCollapsed(trajectory, '2');
+        });
+
+        // Marker enter/exit is asserted through markerCount plus this shared fade-in glob rather than by
+        // naming a departed marker (departed markers leave the scene immediately). The path's per-station
+        // tops and bbox envelope reshape freely on a structural change, so only the extent and continuity
+        // are pinned by the CASEs.
+        const markersFadeIn: Record<string, SceneNodeExpectation> = {
+            'series[0]/marker[*]': { opacity: fadeIn },
+        };
+        // When survivors also change position (their y updates, or a category axis re-spaces the bands),
+        // the markers move while still fading in — pin the fade, leave local position free (translation
+        // stays pinned by markerPosition so a fly-across regression is still caught).
+        const markersReflow: Record<string, SceneNodeExpectation> = {
+            'series[0]/marker[*]': { opacity: fadeIn, ...markerPosition },
+        };
+        // On an initial-load reveal the markers additionally scale in from zero size (the swipe scale-in
+        // the easeOut-very-slow debug flag suppresses), staggered across the reveal, so width/height grow.
+        const markersScaleIn: Record<string, SceneNodeExpectation> = {
+            'series[0]/marker[*]': {
+                opacity: fadeIn,
+                width: ['increases', 'bounded'],
+                height: ['increases', 'bounded'],
+                ...markerPosition,
+            },
+        };
+        const reshapingPath = {
+            y: 'any',
+            height: 'any',
+            'top@0': 'constant',
+            'top@1': 'any',
+            'top@2': 'any',
+            'top@3': 'any',
+            'top@4': 'any',
+        } as const;
+
+        // "Add points after" — new points extend the path rightward within the pinned x-domain: the left
+        // edge (x=0) is anchored so bbox x holds while width grows, and the two new markers fade in.
+        it('add points: path extends and new markers fade in', async () => {
+            const { before, trajectory, after } = await captureFrom(
+                lineOptions([
+                    { x: 0, y: 40 },
+                    { x: 1, y: 120 },
+                    { x: 2, y: 80 },
+                    { x: 3, y: 160 },
+                    { x: 4, y: 60 },
+                ]),
+                () =>
+                    chart.updateDelta({
+                        data: [
+                            { x: 0, y: 40 },
+                            { x: 1, y: 120 },
+                            { x: 2, y: 80 },
+                            { x: 3, y: 160 },
+                            { x: 4, y: 60 },
+                            { x: 5, y: 130 },
+                            { x: 6, y: 90 },
+                        ],
+                    })
+            );
+            expect(markerCount(before)).toBe(5);
+            expect(markerCount(after)).toBe(7);
+            const key = pathKey(before);
+            expectSceneTrajectory(trajectory, {
+                [key]: {
+                    ...reshapingPath,
+                    x: { during: 'update', expect: 'constant' },
+                    width: { during: ['update', 'add', 'trailing'], expect: ['increases', 'bounded'] },
+                    subpaths: { during: 'update', expect: 'constant' },
+                },
+                ...markersFadeIn,
+            });
+            expectMarkerStartsCollapsed(trajectory, '5');
+        });
+
+        // "Add points before" — prepend points; the path's left edge steps OUT (bbox x decreases) and the
+        // width grows, mirroring add-after. The new leading markers fade in.
+        it('add points before: the left edge steps out and the width grows', async () => {
+            const { before, trajectory, after } = await captureFrom(
+                lineOptions([
+                    { x: 3, y: 40 },
+                    { x: 4, y: 120 },
+                    { x: 5, y: 80 },
+                    { x: 6, y: 160 },
+                    { x: 7, y: 60 },
+                ]),
+                () =>
+                    chart.updateDelta({
+                        data: [
+                            { x: 1, y: 90 },
+                            { x: 2, y: 70 },
+                            { x: 3, y: 40 },
+                            { x: 4, y: 120 },
+                            { x: 5, y: 80 },
+                            { x: 6, y: 160 },
+                            { x: 7, y: 60 },
+                        ],
+                    })
+            );
+            expect(markerCount(before)).toBe(5);
+            expect(markerCount(after)).toBe(7);
+            const key = pathKey(before);
+            // The extent grew leftward: the left edge stepped out and the width grew (settled endpoints),
+            // and the left edge slid there monotonically. Per-station tops go transiently non-finite as the
+            // path reshapes, so the path node is left 'any' and its edge motion asserted via the scalars.
+            expect(after.get(key)!.x).toBeLessThan(before.get(key)!.x);
+            expect(after.get(key)!.width).toBeGreaterThan(before.get(key)!.width);
+            expectSceneTrajectory(trajectory, { [key]: 'any', ...markersFadeIn });
+            expectMonotonic(
+                trajectory.map((f) => f.get(key)!.x),
+                'decreasing'
+            );
+            expectMarkerStartsCollapsed(trajectory, '1');
+        });
+
+        // "Add points middle" (continuous) — insert interpolated interior points. The extent is unchanged so
+        // the width HOLDS while the interior densifies (distinct from add-after, which grows the width, and
+        // from the category middle-weeks reflow). The new interior markers fade in.
+        it('add points middle: the extent holds while the interior densifies', async () => {
+            const { before, trajectory, after } = await captureFrom(
+                lineOptions([
+                    { x: 0, y: 40 },
+                    { x: 2, y: 120 },
+                    { x: 4, y: 80 },
+                    { x: 6, y: 160 },
+                    { x: 8, y: 60 },
+                ]),
+                () =>
+                    chart.updateDelta({
+                        data: [
+                            { x: 0, y: 40 },
+                            { x: 1, y: 90 },
+                            { x: 2, y: 120 },
+                            { x: 4, y: 80 },
+                            { x: 5, y: 110 },
+                            { x: 6, y: 160 },
+                            { x: 8, y: 60 },
+                        ],
+                    })
+            );
+            expect(markerCount(before)).toBe(5);
+            expect(markerCount(after)).toBe(7);
+            const key = pathKey(before);
+            expect(after.get(key)!.x).toBeCloseTo(before.get(key)!.x, 0);
+            expect(after.get(key)!.width).toBeCloseTo(before.get(key)!.width, 0);
+            expectSceneTrajectory(trajectory, {
+                [key]: {
+                    ...reshapingPath,
+                    // Both endpoints are pinned, so the right-edge station holds too — only the interior
+                    // stations resample the reshaped middle.
+                    'top@4': 'constant',
+                    x: { during: 'update', expect: 'constant' },
+                    width: { during: 'update', expect: 'constant' },
+                    subpaths: { during: 'update', expect: 'constant' },
+                },
+                ...markersFadeIn,
+            });
+            expectMarkerStartsCollapsed(trajectory, '1');
+        });
+
+        // "Remove points middle" — interior points leave; the endpoints (x-extent) are unchanged so the
+        // path keeps its width and single subpath, and the removed markers drop from the scene.
+        it('remove points: interior markers leave while the stroke stays connected', async () => {
+            const { before, trajectory, after } = await captureFrom(
+                lineOptions([
+                    { x: 0, y: 40 },
+                    { x: 1, y: 120 },
+                    { x: 2, y: 80 },
+                    { x: 3, y: 160 },
+                    { x: 4, y: 100 },
+                    { x: 5, y: 60 },
+                ]),
+                () =>
+                    chart.updateDelta({
+                        data: [
+                            { x: 0, y: 40 },
+                            { x: 1, y: 120 },
+                            { x: 4, y: 100 },
+                            { x: 5, y: 60 },
+                        ],
+                    })
+            );
+            expect(markerCount(before)).toBe(6);
+            expect(markerCount(after)).toBe(4);
+            const key = pathKey(before);
+            expectSceneTrajectory(trajectory, {
+                [key]: {
+                    ...reshapingPath,
+                    // Both endpoints are pinned, so the right-edge station holds too — only the interior
+                    // stations resample the reshaped middle.
+                    'top@4': 'constant',
+                    x: { during: 'update', expect: 'constant' },
+                    width: { during: 'update', expect: 'constant' },
+                    subpaths: { during: 'update', expect: 'constant' },
+                },
+                ...markersFadeIn,
+            });
+        });
+
+        // "Remove the first point" — the leftmost point leaves, so the path's left edge steps IN: bbox x
+        // increases while width shrinks (unlike remove-middle, which holds the extent).
+        it('remove first point: the left edge steps in and the width shrinks', async () => {
+            const { before, trajectory, after } = await captureFrom(
+                lineOptions([
+                    { x: 1, y: 40 },
+                    { x: 2, y: 120 },
+                    { x: 3, y: 80 },
+                    { x: 4, y: 160 },
+                    { x: 5, y: 60 },
+                ]),
+                () =>
+                    chart.updateDelta({
+                        data: [
+                            { x: 2, y: 120 },
+                            { x: 3, y: 80 },
+                            { x: 4, y: 160 },
+                            { x: 5, y: 60 },
+                        ],
+                    })
+            );
+            expect(markerCount(before)).toBe(5);
+            expect(markerCount(after)).toBe(4);
+            const key = pathKey(before);
+            // The left edge stepped in and the width shrank (settled endpoints), and the edge slid there
+            // monotonically. The reshaping tops go transiently non-finite, so the path node is left 'any'.
+            expect(after.get(key)!.x).toBeGreaterThan(before.get(key)!.x);
+            expect(after.get(key)!.width).toBeLessThan(before.get(key)!.width);
+            expectSceneTrajectory(trajectory, { [key]: 'any', ...markersFadeIn });
+            expectMonotonic(
+                trajectory.map((f) => f.get(key)!.x),
+                'increasing'
+            );
+            // Marker 2 survives the removal yet re-fades from invisible (removal snaps all present markers to
+            // opacity 0 and fades them back, as value updates do), making the fade glob non-vacuous.
+            expectMarkerStartsCollapsed(trajectory, '2');
+        });
+
+        // "Remove the last point" — the rightmost point leaves, so the path's right edge steps in: bbox x
+        // holds (left edge anchored) while width shrinks.
+        it('remove last point: the right edge steps in and the width shrinks', async () => {
+            const { before, trajectory, after } = await captureFrom(
+                lineOptions([
+                    { x: 1, y: 40 },
+                    { x: 2, y: 120 },
+                    { x: 3, y: 80 },
+                    { x: 4, y: 160 },
+                    { x: 5, y: 60 },
+                ]),
+                () =>
+                    chart.updateDelta({
+                        data: [
+                            { x: 1, y: 40 },
+                            { x: 2, y: 120 },
+                            { x: 3, y: 80 },
+                            { x: 4, y: 160 },
+                        ],
+                    })
+            );
+            expect(markerCount(before)).toBe(5);
+            expect(markerCount(after)).toBe(4);
+            const key = pathKey(before);
+            // The left edge stays anchored (x holds on every frame) while the width shrinks monotonically as
+            // the right edge steps in. The path node is 'any' because the reshaping tops go non-finite.
+            expect(after.get(key)!.width).toBeLessThan(before.get(key)!.width);
+            expect(trajectory.every((f) => Math.abs(f.get(key)!.x - before.get(key)!.x) < 1)).toBe(true);
+            expectSceneTrajectory(trajectory, { [key]: 'any', ...markersFadeIn });
+            expectMonotonic(
+                trajectory.map((f) => f.get(key)!.width),
+                'decreasing'
+            );
+            expectMarkerStartsCollapsed(trajectory, '1');
+        });
+
+        // "Update points to undefined" — an interior value becoming undefined opens a gap: the stroke
+        // splits (before=1 subpath, after=2) and the gap's marker leaves, while the x-extent holds. The
+        // gap makes the stations straddling it non-finite (degenerate), and subpaths spikes mid-morph
+        // before settling, so both are pinned only at the endpoints.
+        it('update to undefined: the stroke splits at the gap and the gap marker leaves', async () => {
+            const { before, trajectory, after } = await captureFrom(
+                lineOptions([
+                    { x: 0, y: 40 },
+                    { x: 1, y: 120 },
+                    { x: 2, y: 80 },
+                    { x: 3, y: 160 },
+                    { x: 4, y: 60 },
+                ]),
+                () =>
+                    chart.updateDelta({
+                        data: [
+                            { x: 0, y: 40 },
+                            { x: 1, y: 120 },
+                            { x: 2, y: undefined },
+                            { x: 3, y: 160 },
+                            { x: 4, y: 60 },
+                        ],
+                    })
+            );
+            expect(markerCount(after)).toBeLessThan(markerCount(before));
+            const key = pathKey(before);
+            expect(before.get(key)!.subpaths).toBe(1);
+            expect(after.get(key)!.subpaths).toBe(2);
+            expectSceneTrajectory(trajectory, {
+                [key]: {
+                    x: { during: 'update', expect: 'constant' },
+                    width: { during: 'update', expect: 'constant' },
+                    y: 'any',
+                    height: 'any',
+                    subpaths: 'any',
+                    // Stations 2 and 3 straddle the opened gap (x=2), so they lose their crossing and go
+                    // non-finite; the flanking stations sit on unchanged pinned-extent points and hold.
+                    'top@0': 'constant',
+                    'top@1': 'constant',
+                    'top@2': 'degenerate',
+                    'top@3': 'degenerate',
+                    'top@4': 'constant',
+                },
+                ...markersFadeIn,
+            });
+        });
+
+        // "Add & Remove & Update" (docs data-updates) — one update simultaneously drops points, adds
+        // points, and changes surviving values. The removed markers leave, the new ones enter, and the
+        // survivors re-map to their new heights (positions in flux), all in a single batch.
+        it('combined add/remove/update: markers leave, enter, and re-map in one update', async () => {
+            const { before, trajectory, after } = await captureFrom(
+                lineOptions([
+                    { x: 0, y: 40 },
+                    { x: 1, y: 120 },
+                    { x: 2, y: 80 },
+                    { x: 3, y: 160 },
+                    { x: 4, y: 60 },
+                ]),
+                () =>
+                    chart.updateDelta({
+                        data: [
+                            { x: 1, y: 100 },
+                            { x: 2, y: 60 },
+                            { x: 3, y: 150 },
+                            { x: 5, y: 90 },
+                            { x: 6, y: 120 },
+                        ],
+                    })
+            );
+            expect([...before.keys()]).toContain('series[0]/marker[0]');
+            expect([...after.keys()]).not.toContain('series[0]/marker[0]');
+            expect([...after.keys()]).not.toContain('series[0]/marker[4]');
+            expect([...after.keys()]).toContain('series[0]/marker[5]');
+            const key = pathKey(before);
+            expectSceneTrajectory(trajectory, { [key]: 'any', ...markersReflow });
+            expectMarkerStartsCollapsed(trajectory, '5');
+        });
+
+        // "Shift left" — drop the first point, append one at the end. The shared interior points hold, so
+        // the path's left edge steps in (x increases) while its width holds; one marker leaves at the start
+        // and one enters at the end.
+        it('shift left: left edge steps in as the first point leaves and one enters at the end', async () => {
+            const { before, trajectory, after } = await captureFrom(
+                lineOptions([
+                    { x: 1, y: 40 },
+                    { x: 2, y: 120 },
+                    { x: 3, y: 80 },
+                    { x: 4, y: 160 },
+                    { x: 5, y: 60 },
+                ]),
+                () =>
+                    chart.updateDelta({
+                        data: [
+                            { x: 2, y: 120 },
+                            { x: 3, y: 80 },
+                            { x: 4, y: 160 },
+                            { x: 5, y: 60 },
+                            { x: 6, y: 90 },
+                        ],
+                    })
+            );
+            expect(markerCount(before)).toBe(5);
+            expect(markerCount(after)).toBe(5);
+            const key = pathKey(before);
+            // The path is transiently in flux mid-shift (width dips and recovers, the far station flickers
+            // as the extent changes), so its edge motion is asserted directly rather than per-property.
+            expectSceneTrajectory(trajectory, { [key]: 'any', ...markersFadeIn });
+            expectMonotonic(
+                trajectory.map((f) => f.get(key)!.x),
+                'increasing'
+            );
+            expectMarkerStartsCollapsed(trajectory, '6');
+        });
+
+        // "Shift right" — prepend a point, drop the last. Mirror of shift left: the left edge steps out
+        // (x decreases) as a new first point enters and the last leaves.
+        it('shift right: left edge steps out as a new first point enters and the last leaves', async () => {
+            const { before, trajectory, after } = await captureFrom(
+                lineOptions([
+                    { x: 2, y: 40 },
+                    { x: 3, y: 120 },
+                    { x: 4, y: 80 },
+                    { x: 5, y: 160 },
+                    { x: 6, y: 60 },
+                ]),
+                () =>
+                    chart.updateDelta({
+                        data: [
+                            { x: 1, y: 90 },
+                            { x: 2, y: 40 },
+                            { x: 3, y: 120 },
+                            { x: 4, y: 80 },
+                            { x: 5, y: 160 },
+                        ],
+                    })
+            );
+            expect(markerCount(after)).toBe(5);
+            const key = pathKey(before);
+            expectSceneTrajectory(trajectory, { [key]: 'any', ...markersFadeIn });
+            expectMonotonic(
+                trajectory.map((f) => f.get(key)!.x),
+                'decreasing'
+            );
+            expectMarkerStartsCollapsed(trajectory, '1');
+        });
+
+        const twoSeriesOptions = (seriesCount: 1 | 2): AgCartesianChartOptions => {
+            const series: NonNullable<AgCartesianChartOptions['series']> = [
+                { type: 'line', xKey: 'x', yKey: 'a', marker: { enabled: true } },
+                { type: 'line', xKey: 'x', yKey: 'b', marker: { enabled: true } },
+            ];
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: 0, a: 40, b: 100 },
+                    { x: 1, a: 120, b: 60 },
+                    { x: 2, a: 80, b: 140 },
+                    { x: 3, a: 160, b: 90 },
+                    { x: 4, a: 60, b: 120 },
+                ],
+                series: series.slice(0, seriesCount),
+                axes: {
+                    x: { type: 'number', position: 'bottom', min: 0, max: 10 },
+                    y: { type: 'number', position: 'left', min: 0, max: 200 },
+                },
+            };
+            return prepareTestOptions(options);
+        };
+
+        // "Add Series" — a second line joins. The line implementation brings a newly added series in
+        // fully-formed with no entrance animation: its path and markers are at final geometry and full
+        // opacity from the first frame and nothing tweens. (Bar, by contrast, fades its entering series in
+        // from opacity 0 — see barSeries.test.ts.) This CASE pins the snap so a future change either way is
+        // caught.
+        it('add series: the entering series appears fully-formed without animation', async () => {
+            const options = twoSeriesOptions(1);
+            const { before, trajectory, after } = await captureFrom(options, () =>
+                chart.update({ ...options, series: twoSeriesOptions(2).series })
+            );
+            expect([...before.keys()].filter((k) => k.startsWith('series[1]/path'))).toHaveLength(0);
+            const enteringPath = [...after.keys()].filter((k) => k.startsWith('series[1]/path'));
+            expect(enteringPath).toHaveLength(1);
+            // Present and already at full opacity on the first frame (a snap, not a fade)...
+            expect(trajectory[0].get(enteringPath[0])?.opacity).toBe(1);
+            expect(trajectory[0].get('series[1]/marker[0]')?.opacity).toBe(1);
+            // ...and nothing animates across the capture.
+            expectNoAnimation(trajectory);
+        });
+
+        // "Remove Series" — the second line leaves the scene (its nodes drop immediately, like a removed
+        // bar series), so only the survivor's continued presence is observable.
+        it('remove series: the removed series drops from the scene', async () => {
+            const { before, trajectory, after } = await captureFrom(twoSeriesOptions(2), () =>
+                chart.update(twoSeriesOptions(1))
+            );
+            expect([...before.keys()].filter((k) => k.startsWith('series[1]/path'))).toHaveLength(1);
+            expect([...after.keys()].filter((k) => k.startsWith('series[1]/path'))).toHaveLength(0);
+            // The removed series drops immediately (no fade-out to observe), so the honest invariant is
+            // that nothing else animates: the surviving series[0] holds every property constant across the
+            // capture (default-constant catches it) — not the misleading survivor fade the shared glob
+            // would vacuously accept. series[1] is already gone by the first captured frame.
+            expect(trajectory.some((f) => [...f.keys()].some((k) => k.startsWith('series[1]')))).toBe(false);
+            expectSceneTrajectory(trajectory, {});
+        });
+
+        // CRT-823: a series that is legend-hidden both before and after an update must stay visually inert,
+        // even when its own data changes underneath it. The historic bug ran the hidden line's update
+        // animation regardless, briefly drawing its line across the x-axis baseline before it vanished again.
+        // The invariant is defended in more than one place (the guard in animateWaitingUpdateReady, plus the
+        // hidden path rendering visible:0), so any single regression may not surface it — but the observable
+        // contract is worth pinning: while a visible sibling genuinely animates, the hidden series contributes
+        // no motion of any kind (its path never flips visible, its opacity never moves).
+        it('hidden series: a legend-hidden line stays inert while a sibling animates', async () => {
+            const base = twoSeriesOptions(2);
+            const hidden: AgCartesianChartOptions = {
+                ...base,
+                series: base.series!.map((s, i) => (i === 1 ? { ...s, visible: false } : s)),
+            };
+            chart = AgCharts.create(hidden);
+            await frames.runToEnd(chart);
+            const sampleScene = createSceneGeometrySampler(chart);
+            const before = sampleScene();
+            // Every value changes; series[1] is hidden throughout, so only visible series[0] may animate.
+            await chart.updateDelta({
+                data: [
+                    { x: 0, a: 90, b: 150 },
+                    { x: 1, a: 50, b: 30 },
+                    { x: 2, a: 140, b: 175 },
+                    { x: 3, a: 70, b: 45 },
+                    { x: 4, a: 110, b: 160 },
+                ],
+            });
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
+            expect([...before.keys()].filter((k) => k.startsWith('series[1]')).length).toBeGreaterThan(0);
+            // The update triggered real motion: the visible series[0] re-fades its markers from invisible.
+            // Without this the hidden-series assertion below could pass on an update that did nothing at all.
+            expectMarkerStartsCollapsed(trajectory, '0');
+            // The hidden series[1], by contrast, holds every tracked property constant across that same
+            // capture — filtered to its nodes, nothing (visibility, opacity, geometry) moves.
+            const hiddenOnly = (s: SceneGeometrySample) => new Map([...s].filter(([k]) => k.startsWith('series[1]')));
+            expectNoAnimation(trajectory.map(hiddenOnly));
+        });
+
+        // "Toggle series off" — the hidden line's stroke fades out in place then flips non-visible,
+        // while its markers leave the scene at once; the sibling and both axes hold still on the
+        // pinned domains (default-constant covers them).
+        it('legend hide: the toggled-off line fades its stroke out and drops its markers at once', async () => {
+            const options = twoSeriesOptions(2);
+            const { before, trajectory, after } = await captureFrom(options, () =>
+                chart.update({
+                    ...options,
+                    series: options.series!.map((s, i) => (i === 1 ? { ...s, visible: false } : s)),
+                })
+            );
+            const key = [...before.keys()].find((k) => k.startsWith('series[1]/path'))!;
+            expect([...before.keys()].filter((k) => k.startsWith('series[1]/marker'))).toHaveLength(5);
+            expect([...trajectory[0].keys()].filter((k) => k.startsWith('series[1]/marker'))).toHaveLength(0);
+            // Anti-vacuity: the stroke starts fully visible, so the fade below is a genuine departure.
+            expect(trajectory[0].get(key)!.opacity).toBe(1);
+            expectSceneTrajectory(trajectory, {
+                [key]: {
+                    opacity: { during: ['remove', 'update'], expect: ['decreases', 'bounded'], settlesAt: 0 },
+                    visible: { during: ['remove', 'update'], expect: ['decreases', 'bounded'] },
+                },
+            });
+            expect(after.get(key)!.visible).toBe(0);
+        });
+
+        // "Toggle series back on" — the line re-enters exactly where it left: the stroke fades back in
+        // place and the markers re-fade behind it, never ahead of it, all at settled geometry
+        // (translation pinned), so nothing sweeps or flies in.
+        it('legend show: the re-shown line fades back in place, markers never outrunning the stroke', async () => {
+            const options = twoSeriesOptions(2);
+            const hidden: AgCartesianChartOptions = {
+                ...options,
+                series: options.series!.map((s, i) => (i === 1 ? { ...s, visible: false } : s)),
+            };
+            const { trajectory, after } = await captureFrom(hidden, () => chart.update(options));
+            const key = [...trajectory[0].keys()].find((k) => k.startsWith('series[1]/path'))!;
+            expectSceneTrajectory(trajectory, {
+                [key]: {
+                    opacity: { during: ['update', 'add'], expect: ['increases', 'bounded'], settlesAt: 1 },
+                },
+                'series[1]/marker[*]': { opacity: fadeIn, ...markerPosition },
+            });
+            // Anti-vacuity: both fades genuinely start from invisible.
+            expectNodeStartsCollapsed(trajectory, key);
+            expectNodeStartsCollapsed(trajectory, 'series[1]/marker[2]');
+            // The stroke leads the re-entry: on every frame the markers are at most as opaque as it.
+            for (let i = 0; i < trajectory.length; i++) {
+                const strokeOpacity = trajectory[i].get(key)?.opacity ?? 0;
+                const markerOpacity = trajectory[i].get('series[1]/marker[2]')?.opacity ?? 0;
+                expect(markerOpacity, `frame ${i}`).toBeLessThanOrEqual(strokeOpacity + 0.001);
+            }
+            expect(after.get('series[1]/marker[2]')!.opacity).toBe(1);
+        });
+
+        const WEEKS: Array<{ x: string; y: number }> = [
+            { x: 'w3', y: 60 },
+            { x: 'w4', y: 185 },
+            { x: 'w5', y: 148 },
+            { x: 'w6', y: 130 },
+            { x: 'w9', y: 62 },
+            { x: 'w10', y: 137 },
+            { x: 'w11', y: 121 },
+        ];
+
+        const categoryOptions = (
+            data: Array<{ x: string; y: number }>,
+            mode?: 'integrated'
+        ): AgCartesianChartOptions => {
+            const options: AgCartesianChartOptions = {
+                data,
+                series: [{ type: 'line', xKey: 'x', yKey: 'y', marker: { enabled: true } }],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left', min: 0, max: 200 },
+                },
+            };
+            if (mode != null) {
+                (options as AgChartOptions & { mode: string }).mode = mode;
+            }
+            return prepareTestOptions(options);
+        };
+
+        // "Add End Week" — a new category appends; every band narrows and shifts left to make room, the
+        // path re-covers the reflowed bands, and the new marker fades in.
+        it('category add end week: bands reflow left and the new marker fades in', async () => {
+            const { before, trajectory, after } = await captureFrom(categoryOptions(WEEKS), () =>
+                chart.updateDelta({ data: [...WEEKS, { x: 'w12', y: 78 }] })
+            );
+            expect(markerCount(before)).toBe(7);
+            expect(markerCount(after)).toBe(8);
+            const key = pathKey(before);
+            expectSceneTrajectory(trajectory, {
+                [key]: 'any',
+                ...markersReflow,
+                ...axisReflowSpec('bottom', { shift: 'left' }),
+            });
+            expectMarkerStartsCollapsed(trajectory, 'w12');
+        });
+
+        // "Add Start Week" — a new category prepends; bands reflow right and the new leading marker fades in.
+        it('category add start week: bands reflow right and the leading marker fades in', async () => {
+            const { before, trajectory, after } = await captureFrom(categoryOptions(WEEKS), () =>
+                chart.updateDelta({ data: [{ x: 'w2', y: 90 }, ...WEEKS] })
+            );
+            expect(markerCount(after)).toBe(8);
+            const key = pathKey(before);
+            expectSceneTrajectory(trajectory, {
+                [key]: 'any',
+                ...markersReflow,
+                ...axisReflowSpec('bottom', { shift: 'right' }),
+            });
+            expectMarkerStartsCollapsed(trajectory, 'w2');
+        });
+
+        // "Replace all categories" — the whole band set swaps at once. The markers land at their new
+        // positions instantly and fade in, while the axis cross-fades the outgoing and incoming label
+        // sets in place (neither set slides).
+        it('category replace all: markers and axis labels cross-fade to the new set', async () => {
+            const { before, trajectory, after } = await captureFrom(categoryOptions(WEEKS), () =>
+                chart.updateDelta({
+                    data: [
+                        { x: 'Mon', y: 100 },
+                        { x: 'Tue', y: 150 },
+                        { x: 'Wed', y: 120 },
+                    ],
+                })
+            );
+            expect(markerCount(before)).toBe(7);
+            expect(markerCount(after)).toBe(3);
+            expectSceneTrajectory(trajectory, {
+                'series[0]/path[*]': 'any',
+                ...markersReflow,
+                'axis[bottom]/text[*]': {
+                    opacity: { during: ['remove', 'update', 'add'], expect: 'bounded' },
+                    x: 'constant',
+                },
+                'axis[bottom]/line[*]': { opacity: { during: ['remove', 'update', 'add'], expect: 'bounded' } },
+            });
+            expectMarkerStartsCollapsed(trajectory, 'Mon');
+            // The outgoing label set leaves the scene once faded; the incoming set settles fully opaque.
+            expect(after.has('axis[bottom]/text[l:w3]')).toBe(false);
+            expect(after.get('axis[bottom]/text[l:Mon]')!.opacity).toBe(1);
+        });
+
+        // "Add Weeks 7+8" — the distinct middle-insertion case: two categories drop into the interior gap
+        // (between w6 and w9) rather than at an edge. The new bands must land BETWEEN their neighbours and
+        // the categories to their right must slide right to make room, on both the series and the axis.
+        it('category add middle weeks: inserted bands land between neighbours and slide the rest right', async () => {
+            const withMiddle = [
+                { x: 'w3', y: 60 },
+                { x: 'w4', y: 185 },
+                { x: 'w5', y: 148 },
+                { x: 'w6', y: 130 },
+                { x: 'w7', y: 90 },
+                { x: 'w8', y: 110 },
+                { x: 'w9', y: 62 },
+                { x: 'w10', y: 137 },
+                { x: 'w11', y: 121 },
+            ];
+            const { before, trajectory, after } = await captureFrom(categoryOptions(WEEKS), () =>
+                chart.updateDelta({ data: withMiddle })
+            );
+            expect(markerCount(before)).toBe(7);
+            expect(markerCount(after)).toBe(9);
+            expect([...before.keys()]).not.toContain('series[0]/marker[w7]');
+            expect([...after.keys()]).toContain('series[0]/marker[w7]');
+            expect([...after.keys()]).toContain('series[0]/marker[w8]');
+
+            // The inserted markers land in order between w6 and w9...
+            expect(markerX(after, 'w6')).toBeLessThan(markerX(after, 'w7')!);
+            expect(markerX(after, 'w7')).toBeLessThan(markerX(after, 'w8')!);
+            expect(markerX(after, 'w8')).toBeLessThan(markerX(after, 'w9')!);
+            // ...and the series point just past the insertion slides right to make room for them.
+            expect(markerX(after, 'w9')).toBeGreaterThan(markerX(before, 'w9')!);
+
+            // The axis mirrors it: the two interior category labels are inserted, and the category to their
+            // right slides right to make room (the axis reflow is a bidirectional spread from the gap, so it
+            // is asserted directly here rather than through the single-direction axisReflowSpec).
+            const axisLabelX = (s: SceneGeometrySample, label: string) => s.get(`axis[bottom]/text[${label}]`)?.x;
+            expect(axisLabelX(before, 'l:w7')).toBeUndefined();
+            expect(axisLabelX(after, 'l:w7')).toBeDefined();
+            expect(axisLabelX(after, 'l:w8')).toBeDefined();
+            expect(axisLabelX(after, 'l:w9')!).toBeGreaterThan(axisLabelX(before, 'l:w9')!);
+
+            // The inserted markers animate in from invisible to fully shown.
+            expectMarkerStartsCollapsed(trajectory, 'w7');
+            expect(after.get('series[0]/marker[w7]')!.opacity).toBeGreaterThan(0.99);
+        });
+
+        // "Reorder" — the category order is scrambled; the same markers stay (count holds) but re-map to
+        // reshuffled bands, so positions move while the path reshapes and markers re-fade.
+        // "Reorder" — the category order is scrambled. The markers snap to their new band positions (line
+        // reorder does not tween marker position), so the animation coverage here is that the reshuffle
+        // actually LANDED: the settled left-to-right order matches the reordered data and w6 (moved from
+        // last to first) really shifted left. Without this the CASE would pass on a no-op reorder.
+        it('category reorder: markers re-map to the reshuffled bands', async () => {
+            const reordered = [WEEKS[3], WEEKS[0], WEEKS[5], WEEKS[1], WEEKS[6], WEEKS[2], WEEKS[4]];
+            const { before, trajectory, after } = await captureFrom(categoryOptions(WEEKS), () =>
+                chart.updateDelta({ data: reordered })
+            );
+            expect(markerCount(after)).toBe(markerCount(before));
+            const order = reordered.map((d) => d.x);
+            for (let i = 1; i < order.length; i++) {
+                expect(markerX(after, order[i - 1])!).toBeLessThan(markerX(after, order[i])!);
+            }
+            expect(markerX(after, 'w6')!).toBeLessThan(markerX(before, 'w6')!);
+            // Markers snap rather than tween: each holds position and opacity constant across the capture
+            // (default-constant), while only the path reshapes.
+            expectSceneTrajectory(trajectory, { [pathKey(before)]: 'any' });
+        });
+
+        // Integrated mode initial load: the line must still reveal, scaling its markers in from zero size.
+        it('integrated mode: initial load reveals the line and scales its markers in', async () => {
+            chart = AgCharts.create(categoryOptions(WEEKS, 'integrated'));
+            const sampleScene = createSceneGeometrySampler(chart);
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
+            const key = pathKey(trajectory.at(-1)!);
+            expectSceneTrajectory(trajectory, { [key]: 'any', ...markersScaleIn });
+            // The last marker scales in last, so it is still zero-size at the start of the reveal.
+            expectMarkerStartsCollapsed(trajectory, 'w11', 'width');
+        });
+
+        // "Reverse" (integrated-only) — the data order is reversed, reshuffling the category bands. As with
+        // reorder the markers snap to their new bands, so the coverage is that the reversal LANDED: the first
+        // category (w3) is now rightmost and the last (w11) leftmost.
+        it('integrated mode: reverse re-maps markers to the reversed bands', async () => {
+            const { before, trajectory, after } = await captureFrom(categoryOptions(WEEKS, 'integrated'), () =>
+                chart.updateDelta({ data: [...WEEKS].reverse() })
+            );
+            expect(markerCount(after)).toBe(markerCount(before));
+            expect(markerX(after, 'w11')!).toBeLessThan(markerX(after, 'w3')!);
+            expect(markerX(after, 'w3')!).toBeGreaterThan(markerX(before, 'w3')!);
+            expect(markerX(after, 'w11')!).toBeLessThan(markerX(before, 'w11')!);
+            expectSceneTrajectory(trajectory, { [pathKey(before)]: 'any' });
+        });
+
+        // Integrated mode changes animation defaults, so re-exercise a category add there: adding an end
+        // week must still fade the new marker in (the entrant is invisible on the first frame) — proving
+        // integrated defaults do not suppress the entrance animation.
+        it('integrated mode: category add end week fades the new marker in', async () => {
+            const { before, trajectory, after } = await captureFrom(categoryOptions(WEEKS, 'integrated'), () =>
+                chart.updateDelta({ data: [...WEEKS, { x: 'w12', y: 78 }] })
+            );
+            expect(markerCount(before)).toBe(7);
+            expect(markerCount(after)).toBe(8);
+            expectSceneTrajectory(trajectory, {
+                [pathKey(before)]: 'any',
+                ...markersReflow,
+                ...axisReflowSpec('bottom', { shift: 'left' }),
+            });
+            expectMarkerStartsCollapsed(trajectory, 'w12');
+        });
+
+        // Integrated reorder mirrors the standalone case: the reshuffle must land (markers re-map to their
+        // new bands) under integrated defaults too.
+        it('integrated mode: reorder re-maps markers to the reshuffled bands', async () => {
+            const reordered = [WEEKS[3], WEEKS[0], WEEKS[5], WEEKS[1], WEEKS[6], WEEKS[2], WEEKS[4]];
+            const { before, trajectory, after } = await captureFrom(categoryOptions(WEEKS, 'integrated'), () =>
+                chart.updateDelta({ data: reordered })
+            );
+            expect(markerCount(after)).toBe(markerCount(before));
+            const order = reordered.map((d) => d.x);
+            for (let i = 1; i < order.length; i++) {
+                expect(markerX(after, order[i - 1])!).toBeLessThan(markerX(after, order[i])!);
+            }
+            expect(markerX(after, 'w6')!).toBeLessThan(markerX(before, 'w6')!);
+            expectSceneTrajectory(trajectory, { [pathKey(before)]: 'any' });
+        });
+
+        // "Start ticking" — a point is appended on a timer while the previous append is still animating.
+        // Each interrupting update must keep the stroke a single connected subpath and let the line keep
+        // growing, never leaving a broken or frozen path.
+        it('ticking: appending points mid-animation keeps the stroke connected and growing', async () => {
+            const data = [
+                { x: 0, y: 40 },
+                { x: 1, y: 120 },
+                { x: 2, y: 80 },
+                { x: 3, y: 160 },
+                { x: 4, y: 60 },
+            ];
+            chart = AgCharts.create(lineOptions(data));
+            await frames.runToEnd(chart);
+            const sampleScene = createSceneGeometrySampler(chart);
+            let nextX = 5;
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene, {
+                frames: 40,
+                onFrame: async (i) => {
+                    if (i > 0 && i % 8 === 0 && nextX <= 8) {
+                        data.push({ x: nextX, y: nextX % 2 === 0 ? 90 : 140 });
+                        nextX++;
+                        await chart.updateDelta({ data: [...data] });
+                    }
+                },
+            });
+            const key = pathKey(trajectory.at(-1)!);
+            for (let i = 0; i < trajectory.length; i++) {
+                expect(trajectory[i].get(key)?.subpaths, `frame ${i} subpaths`).toBe(1);
+            }
+            expect(markerCount(trajectory.at(-1)!)).toBeGreaterThan(markerCount(trajectory[0]));
+            // The stroke keeps growing (not frozen mid-tick): its final width exceeds its initial width.
+            expect(trajectory.at(-1)!.get(key)!.width).toBeGreaterThan(trajectory[0].get(key)!.width);
+        });
+
+        // "Rapid Update" — a second data change lands before the first has finished animating. The batch
+        // must abandon the first target and settle on the second: the final point count is the second
+        // update's (3 -> 7), proving the interrupted first update (which shrank to 3) did not win.
+        it('rapid update: an interrupting update settles on the final data, not the abandoned one', async () => {
+            chart = AgCharts.create(
+                lineOptions([
+                    { x: 0, y: 40 },
+                    { x: 1, y: 120 },
+                    { x: 2, y: 80 },
+                    { x: 3, y: 160 },
+                    { x: 4, y: 60 },
+                ])
+            );
+            await frames.runToEnd(chart);
+            const sampleScene = createSceneGeometrySampler(chart);
+
+            await chart.updateDelta({
+                data: [
+                    { x: 0, y: 40 },
+                    { x: 1, y: 120 },
+                    { x: 2, y: 80 },
+                ],
+            });
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene, {
+                onFrame: async (i) => {
+                    if (i === 5) {
+                        await chart.updateDelta({
+                            data: [
+                                { x: 0, y: 40 },
+                                { x: 1, y: 120 },
+                                { x: 2, y: 80 },
+                                { x: 3, y: 160 },
+                                { x: 4, y: 60 },
+                                { x: 5, y: 130 },
+                                { x: 6, y: 90 },
+                            ],
+                        });
+                    }
+                },
+            });
+            // The stroke stays a single connected subpath through the interrupted transition.
+            for (let i = 0; i < trajectory.length; i++) {
+                const frameKey = [...trajectory[i].keys()].find((k) => k.startsWith('series[0]/path'));
+                if (frameKey != null) {
+                    expect(trajectory[i].get(frameKey)!.subpaths, `frame ${i} subpaths`).toBe(1);
+                }
+            }
+            await frames.runToEnd(chart);
+            const after = sampleScene();
+            const key = pathKey(after);
+            expect(markerCount(after)).toBe(7);
+            expect(after.get(key)!.subpaths).toBe(1);
+        });
+
+        // easeOut-very-slow: the initial load reveals the line via a left-to-right path swipe with the
+        // markers scaling in glued to that swipe edge. The observable sync is the ordering — the leftmost
+        // marker completes its scale-in before the rightmost even starts — captured here across frames.
+        it('easeOut reveal: markers scale in left-to-right in sync with the path swipe', async () => {
+            const data = [
+                { x: 'A', y: 40 },
+                { x: 'B', y: 120 },
+                { x: 'C', y: 80 },
+                { x: 'D', y: 160 },
+                { x: 'E', y: 60 },
+                { x: 'F', y: 100 },
+            ];
+            chart = AgCharts.create(categoryOptions(data));
+            const sampleScene = createSceneGeometrySampler(chart);
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene, { frames: 40 });
+            const key = pathKey(trajectory.at(-1)!);
+            // The swipe is clip-based: the stroke is drawn in full from the first frame and a clip window
+            // reveals it left-to-right, so the path's vertices (its per-station tops) never move while the
+            // clip window's right edge (clip:x) grows monotonically across the plot — that growth IS the
+            // swipe, so it is asserted rather than left 'any'. (clip drops to 0 once the mask is removed at
+            // the end, so clip:x is only present during the sweep and checked over those frames.)
+            expectSceneTrajectory(trajectory, {
+                [key]: {
+                    'top@0': 'constant',
+                    'top@1': 'constant',
+                    'top@2': 'constant',
+                    'top@3': 'constant',
+                    'top@4': 'constant',
+                    'clip:x': ['increases', 'progresses', 'bounded'],
+                    x: 'any',
+                    y: 'any',
+                    width: 'any',
+                    height: 'any',
+                    opacity: 'any',
+                    subpaths: 'any',
+                    clip: 'any',
+                    'clip:y': 'any',
+                },
+                ...markersScaleIn,
+            });
+
+            const finalWidth = trajectory.at(-1)!.get('series[0]/marker[A]')!.width;
+            expect(finalWidth).toBeGreaterThan(1);
+            const firstFrameAbove = (label: string, fraction: number) =>
+                trajectory.findIndex((f) => (f.get(`series[0]/marker[${label}]`)?.width ?? 0) > finalWidth * fraction);
+            // Each marker begins scaling in no earlier than the one to its left: the L-to-R stagger across
+            // the whole row, not just the extremes.
+            const starts = ['A', 'B', 'C', 'D', 'E', 'F'].map((l) => firstFrameAbove(l, 0.01));
+            expectMonotonic(starts, 'increasing');
+            // And the stagger is wide enough that the leftmost finishes (>=90%) strictly before the rightmost
+            // even starts — this strictness is what fails on a total snap (all indices would be 0).
+            const leftmostDone = trajectory.findIndex(
+                (f) => (f.get('series[0]/marker[A]')?.width ?? 0) >= finalWidth * 0.9
+            );
+            expect(leftmostDone).toBeGreaterThan(0);
+            expect(starts.at(-1)!).toBeGreaterThan(0);
+            expect(leftmostDone).toBeLessThan(starts.at(-1)!);
+        });
+
+        // "Move Legend" — a legend reposition reflows the layout rect, which the product snaps rather than
+        // tweening. The reflow lands (the path width changes) but no frame animates.
+        it('legend move snaps without tweening', async () => {
+            const options = categoryOptions(WEEKS);
+            options.legend = { position: 'bottom' };
+            chart = AgCharts.create(options);
+            await frames.runToEnd(chart);
+            const sampleScene = createSceneGeometrySampler(chart);
+
+            const before = sampleScene();
+            await chart.update({ ...options, legend: { position: 'right' } });
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
+            expectNoAnimation(trajectory);
+            const key = pathKey(before);
+            expect(Math.abs(trajectory.at(-1)!.get(key)!.width - before.get(key)!.width)).toBeGreaterThan(1);
+        });
+
+        // "Change Theme" — a restyle, not a data change: the data-driven series geometry lands immediately
+        // (no tween), while only the axis re-fades its restyled tick lines.
+        it('theme change snaps the series without tweening', async () => {
+            const options = categoryOptions(WEEKS);
+            options.theme = 'ag-default';
+            chart = AgCharts.create(options);
+            await frames.runToEnd(chart);
+            const sampleScene = createSceneGeometrySampler(chart);
+
+            const strokeOf = () => (deproxy(chart).series[0] as any).properties.stroke;
+            const strokeBefore = strokeOf();
+            await chart.update({ ...options, theme: 'ag-sheets' });
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
+            // Per-frame (not just endpoints): the data-driven series geometry holds constant on EVERY frame,
+            // so a tween that wandered off and returned would still be caught. Restricted to series nodes
+            // because the axis legitimately re-fades its restyled tick lines.
+            const seriesOnly = (s: SceneGeometrySample) => new Map([...s].filter(([k]) => k.startsWith('series[')));
+            expectNoAnimation(trajectory.map(seriesOnly));
+            // The sampler reads geometry only, so the palette swap is the change-landed signal.
+            expect(strokeOf()).not.toBe(strokeBefore);
+        });
+
+        // CRT-995: extending stacked lines must animate the stack as a unit. The historic bug keyed the
+        // datum match on the raw (non-cumulative) y value, so the upper layer's new segment swept up from
+        // near the baseline instead of from its stacked positions. Two per-frame invariants pin the
+        // contract: the stack never inverts at any station, and neither path ever dips below its settled
+        // bottom envelope.
+        it('stacked add points: the stack never inverts nor dips below its bottom envelope', async () => {
+            const stackedData = [
+                { quarter: 'Q1', apples: 50, oranges: 30 },
+                { quarter: 'Q2', apples: 60, oranges: 40 },
+                { quarter: 'Q3', apples: 70, oranges: 35 },
+            ];
+            const options: AgCartesianChartOptions = {
+                data: stackedData,
+                series: [
+                    { type: 'line', xKey: 'quarter', yKey: 'apples', stacked: true, marker: { enabled: true } },
+                    { type: 'line', xKey: 'quarter', yKey: 'oranges', stacked: true, marker: { enabled: true } },
+                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    // Pinned so the added points are non-scale-affecting (cumulative max 125 < 150).
+                    y: { type: 'number', position: 'left', min: 0, max: 150 },
+                },
+            };
+            const { before, trajectory, after } = await captureFrom(prepareTestOptions(options), () =>
+                chart.updateDelta({
+                    data: [
+                        ...stackedData,
+                        { quarter: 'Q4', apples: 80, oranges: 45 },
+                        { quarter: 'Q5', apples: 65, oranges: 50 },
+                    ],
+                })
+            );
+            const pathKeys = (sample: SceneGeometrySample) =>
+                [...sample.keys()].filter((k) => /^series\[[01]\]\/path/.test(k)).sort((a, b) => a.localeCompare(b));
+            expect(pathKeys(before)).toHaveLength(2);
+            expect(markerCount(before)).toBe(6);
+            // Both stacked paths share one bbox x-range per frame, so same-index stations align in
+            // screen x and the settled bottoms (y + height) define the envelope nothing may dip below.
+            const settledBottoms = pathKeys(before).map((k) => {
+                const path = before.get(k)!;
+                return path.y + path.height;
+            });
+            const stackHolds: SceneFrameInvariant = {
+                name: 'stack order and bottom envelope hold',
+                check: (frame) => {
+                    const [lower, upper] = pathKeys(frame).map((k) => frame.get(k));
+                    if (lower == null || upper == null) return 'expected both stacked paths in every frame';
+                    for (let s = 0; s <= 4; s++) {
+                        const lowerTop = lower[`top@${s}`];
+                        const upperTop = upper[`top@${s}`];
+                        if (!Number.isFinite(lowerTop) || !Number.isFinite(upperTop)) {
+                            return `station ${s} is non-finite`;
+                        }
+                        if (upperTop > lowerTop + 1) {
+                            return `stack inverted at station ${s}: upper y ${upperTop.toFixed(2)} below lower y ${lowerTop.toFixed(2)}`;
+                        }
+                    }
+                    return [lower, upper].some((path, i) => path.y + path.height > settledBottoms[i] + 1)
+                        ? 'a path dipped below its settled bottom envelope'
+                        : undefined;
+                },
+            };
+            expectSceneTrajectory(
+                trajectory,
+                {
+                    'series[*]/path[*]': 'any',
+                    'series[*]/marker[*]': { opacity: fadeIn, ...markerPosition },
+                    ...axisReflowSpec('bottom', { shift: 'left' }),
+                },
+                { frameInvariants: [stackHolds] }
+            );
+            expect(markerCount(after)).toBe(10);
+            expectMarkerStartsCollapsed(trajectory, 'Q4');
+        });
+
+        // Endpoint sanity guards: the animated route must settle at exactly the pixels a snapped
+        // render of the same options produces (see expectAnimatedEndpointsMatchStatic).
+        it('sanity: update points endpoints match static renders', async () => {
+            const options = lineOptions([
+                { x: 0, y: 40 },
+                { x: 1, y: 120 },
+                { x: 2, y: 80 },
+                { x: 3, y: 160 },
+                { x: 4, y: 60 },
+            ]);
+            chart = AgCharts.create(options);
+            await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, options, {
+                ...options,
+                data: [
+                    { x: 0, y: 90 },
+                    { x: 1, y: 50 },
+                    { x: 2, y: 140 },
+                    { x: 3, y: 70 },
+                    { x: 4, y: 110 },
+                ],
+            });
+        });
+
+        it('sanity: category add end week endpoints match static renders', async () => {
+            const options = categoryOptions(WEEKS);
+            chart = AgCharts.create(options);
+            await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, options, {
+                ...options,
+                data: [...WEEKS, { x: 'w12', y: 78 }],
+            });
+        });
+
+        it('sanity: legend hide endpoints match static renders', async () => {
+            const options = twoSeriesOptions(2);
+            chart = AgCharts.create(options);
+            await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, options, {
+                ...options,
+                series: options.series!.map((s, i) => (i === 1 ? { ...s, visible: false } : s)),
+            });
+        });
+    });
+
     describe('#create', () => {
         beforeEach(() => {
             console.warn = vi.fn();
@@ -351,24 +1602,8 @@ describe('LineSeries', () => {
         );
     });
 
-    describe('initial animation', () => {
-        const animate = spyOnAnimationManager();
-
-        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-            it(`for LINE_CATEGORY_X_AXIS_FRACTIONAL_LOG_Y_AXIS should animate at ${ratio * 100}%`, async () => {
-                animate(1200, ratio);
-                const options: AgChartOptions = examples.CARTESIAN_CATEGORY_X_AXIS_LOG_Y_AXIS(
-                    DATA_FRACTIONAL_LOG_AXIS,
-                    'line'
-                );
-                prepareTestOptions(options);
-
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
-                await compare();
-            });
-        }
-    });
+    // The initial-load reveal is pinned per-frame by the 'easeOut reveal' and integrated
+    // initial-load trajectory CASEs in 'animation -test page actions'.
 
     const ANIMATION_CATEGORY_DATA = [
         { quarter: 'week 3', iphone: 60, macos: 31 },
@@ -380,261 +1615,11 @@ describe('LineSeries', () => {
         { quarter: 'week 11', iphone: 121, macos: 57 },
     ];
 
-    describe('category animation', () => {
-        const animate = spyOnAnimationManager();
+    // Category data updates (add/remove/replace/update points) and legend hide/show are pinned
+    // per-frame by the trajectory CASEs in 'animation -test page actions'.
 
-        const OPTIONS: AgChartOptions = {
-            data: ANIMATION_CATEGORY_DATA,
-            series: [
-                {
-                    type: 'line',
-                    xKey: 'quarter',
-                    yKey: 'iphone',
-                    label: {
-                        formatter: ({ value }) => String(value),
-                    },
-                },
-            ],
-            axes: {
-                y: {
-                    position: 'left',
-                    type: 'number',
-                },
-                x: {
-                    position: 'bottom',
-                    type: 'category',
-                },
-            },
-        };
-
-        const animationTestCases: Array<[string, any] | [string, any, number]> = [
-            ['removing points', [...ANIMATION_CATEGORY_DATA.slice(0, 2), ...ANIMATION_CATEGORY_DATA.slice(4)]],
-            ['removing the first point', [...ANIMATION_CATEGORY_DATA.slice(1)]],
-            ['removing the last point', [...ANIMATION_CATEGORY_DATA.slice(0, -1)]],
-            [
-                'adding points',
-                [
-                    ...ANIMATION_CATEGORY_DATA.slice(0, 4),
-                    { quarter: 'week 7', iphone: 142 },
-                    { quarter: 'week 8', iphone: 87 },
-                    ...ANIMATION_CATEGORY_DATA.slice(4),
-                ],
-            ],
-            [
-                'adding points before',
-                [{ quarter: 'week 1', iphone: 89 }, { quarter: 'week 2', iphone: 110 }, ...ANIMATION_CATEGORY_DATA],
-            ],
-            [
-                'adding points after',
-                [...ANIMATION_CATEGORY_DATA, { quarter: 'week 12', iphone: 78 }, { quarter: 'week 13', iphone: 138 }],
-            ],
-            [
-                'updating points',
-                [
-                    ...ANIMATION_CATEGORY_DATA.slice(0, 2),
-                    { quarter: 'week 5', iphone: 190 },
-                    { quarter: 'week 6', iphone: 38 },
-                    ...ANIMATION_CATEGORY_DATA.slice(4),
-                ],
-            ],
-            [
-                'updating points to undefined',
-                [
-                    ...ANIMATION_CATEGORY_DATA.slice(0, 2),
-                    { quarter: 'week 5', iphone: undefined },
-                    ...ANIMATION_CATEGORY_DATA.slice(3),
-                ],
-            ],
-            [
-                'adding, removing and updating simultaneously',
-                [
-                    { quarter: 'week 1', iphone: 89, mac: 40 },
-                    { quarter: 'week 2', iphone: 110, mac: 40 },
-                    { quarter: 'week 3', iphone: 82, mac: 40 },
-                    { quarter: 'week 6', iphone: 130 },
-                    { quarter: 'week 7', iphone: 142 },
-                    { quarter: 'week 8', iphone: 87 },
-                    { quarter: 'week 9', iphone: 62, mac: 42 },
-                    { quarter: 'week 10', iphone: 137 },
-                    { quarter: 'week 11', iphone: 121 },
-                ],
-                700,
-            ],
-            [
-                'replacing all categories with fewer points',
-                [
-                    { quarter: 'Mon', iphone: 100 },
-                    { quarter: 'Tue', iphone: 150 },
-                    { quarter: 'Wed', iphone: 120 },
-                ],
-            ],
-            [
-                'replacing all categories with more points',
-                [
-                    { quarter: 'Mon', iphone: 100 },
-                    { quarter: 'Tue', iphone: 150 },
-                    { quarter: 'Wed', iphone: 120 },
-                    { quarter: 'Thu', iphone: 180 },
-                    { quarter: 'Fri', iphone: 90 },
-                    { quarter: 'Sat', iphone: 110 },
-                    { quarter: 'Sun', iphone: 140 },
-                    { quarter: 'holiday 1', iphone: 160 },
-                    { quarter: 'holiday 2', iphone: 130 },
-                ],
-            ],
-            [
-                'replacing all categories with same count',
-                [
-                    { quarter: 'Mon', iphone: 100 },
-                    { quarter: 'Tue', iphone: 150 },
-                    { quarter: 'Wed', iphone: 120 },
-                    { quarter: 'Thu', iphone: 180 },
-                    { quarter: 'Fri', iphone: 90 },
-                    { quarter: 'Sat', iphone: 110 },
-                    { quarter: 'Sun', iphone: 140 },
-                ],
-            ],
-        ];
-
-        for (const [testCase, changedData, duration = 1200] of animationTestCases) {
-            for (const ratio of [0, 0.5, 1]) {
-                it(`should animate ${testCase} at ${ratio * 100}%`, async () => {
-                    animate(1200, 1);
-                    prepareTestOptions(OPTIONS);
-                    chart = AgCharts.create(OPTIONS);
-                    await waitForChartStability(chart);
-
-                    animate(duration, ratio);
-                    await chart.updateDelta({ data: changedData });
-                    await waitForChartStability(chart);
-                    await compare();
-                });
-            }
-        }
-    });
-
-    describe('legend toggle animation', () => {
-        const animate = spyOnAnimationManager();
-
-        const OPTIONS: AgChartOptions = {
-            data: ANIMATION_CATEGORY_DATA,
-            series: [
-                {
-                    type: 'line',
-                    xKey: 'quarter',
-                    yKey: 'iphone',
-                    label: {
-                        formatter: ({ value }) => String(value),
-                    },
-                },
-                {
-                    type: 'line',
-                    xKey: 'quarter',
-                    yKey: 'macos',
-                    label: {
-                        formatter: ({ value }) => String(value),
-                    },
-                },
-            ],
-            axes: {
-                y: {
-                    position: 'left',
-                    type: 'number',
-                },
-                x: {
-                    position: 'bottom',
-                    type: 'category',
-                },
-            },
-        };
-
-        describe('hide', () => {
-            for (const ratio of [0, 0.1, 0.2, 0.3, 1]) {
-                it(`should animate at ${ratio * 100}%`, async () => {
-                    animate(1200, 1);
-
-                    const options: AgChartOptions = deepClone(OPTIONS);
-                    prepareTestOptions(options);
-
-                    chart = AgCharts.create(options);
-                    await waitForChartStability(chart);
-
-                    animate(1200, ratio);
-                    options.series![0].visible = false;
-                    await chart.update({ ...options });
-
-                    await compare();
-                });
-            }
-        });
-
-        describe('show', () => {
-            for (const ratio of [0, 0.7, 0.8, 0.9, 1]) {
-                it(`should animate at ${ratio * 100}%`, async () => {
-                    animate(1200, 1);
-
-                    const options: AgChartOptions = deepClone(OPTIONS);
-                    options.series![1].visible = false;
-                    prepareTestOptions(options);
-
-                    chart = AgCharts.create(options);
-                    await waitForChartStability(chart);
-
-                    animate(1200, ratio);
-                    options.series![1].visible = true;
-                    await chart.update(options);
-
-                    await compare();
-                });
-            }
-        });
-    });
-
-    // CRT-995: Verify stacked line series animation works correctly when adding points.
-    // The fix ensures animation uses yCumulative instead of yDatum for stacked series,
-    // preventing lines from animating up from the bottom (y=0) when points are added.
-    describe('CRT-995 stacked line animation', () => {
-        const animate = spyOnAnimationManager();
-
-        const STACKED_DATA = [
-            { quarter: 'Q1', apples: 50, oranges: 30 },
-            { quarter: 'Q2', apples: 60, oranges: 40 },
-            { quarter: 'Q3', apples: 70, oranges: 35 },
-        ];
-
-        const STACKED_OPTIONS: AgChartOptions = {
-            data: STACKED_DATA,
-            series: [
-                { type: 'line', xKey: 'quarter', yKey: 'apples', stacked: true },
-                { type: 'line', xKey: 'quarter', yKey: 'oranges', stacked: true },
-            ],
-            axes: {
-                x: { type: 'category', position: 'bottom' },
-                y: { type: 'number', position: 'left' },
-            },
-        };
-
-        for (const ratio of [0, 0.5, 0.6, 0.7, 0.8]) {
-            it(`should animate adding points to stacked series at ${ratio * 100}%`, async () => {
-                animate(1200, 1);
-                prepareTestOptions(STACKED_OPTIONS);
-                chart = AgCharts.create(STACKED_OPTIONS);
-                await waitForChartStability(chart);
-
-                // Add more data points
-                const newData = [
-                    ...STACKED_DATA,
-                    { quarter: 'Q4', apples: 80, oranges: 45 },
-                    { quarter: 'Q5', apples: 65, oranges: 50 },
-                ];
-
-                animate(1200, ratio);
-                await chart.updateDelta({ data: newData });
-                await waitForChartStability(chart);
-                await compare();
-            });
-        }
-    });
+    // CRT-995 stacked-line animation is pinned per-frame by the 'stacked add points' trajectory
+    // CASE in 'animation -test page actions'.
 
     describe('multiple overlapping lines', () => {
         beforeEach(() => {
@@ -674,11 +1659,13 @@ describe('LineSeries', () => {
         });
     });
 
+    // Painted-clipping fidelity only: the clip-window motion itself is pinned by the 'easeOut
+    // reveal' trajectory CASE, so just the endpoint and midpoint ratios are snapshotted.
     describe('clipping animation', () => {
         const animate = spyOnAnimationManager();
 
         describe('AG-10477', () => {
-            for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
+            for (const ratio of [0, 0.5, 1]) {
                 it(`should render correctly at ${ratio * 100}%`, async () => {
                     animate(1200, ratio);
                     const options: AgChartOptions = {
@@ -2082,11 +3069,13 @@ describe('LineSeries', () => {
     // CRT-1052: Line series with markers should not have stroke gaps during fade-in animation.
     // Markers should use overlay drawing mode while animating in.
     // The fix ensures getAnimationDrawingModes() passes start: { drawingMode: 'overlay' }
-    // so markers don't use 'cutout' (destination-out compositing) during animation.
+    // so markers don't use 'cutout' (destination-out compositing) during animation. The compositing
+    // result is pixel-only (the drawing-mode mechanism is asserted directly below), so just the
+    // endpoint and midpoint ratios are snapshotted.
     describe('CRT-1052 line stroke gaps with markers', () => {
         const animate = spyOnAnimationManager();
 
-        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
+        for (const ratio of [0, 0.5, 1]) {
             it(`should render continuous stroke at ${ratio * 100}%`, async () => {
                 animate(1200, ratio);
 
