@@ -12,6 +12,7 @@ import type {
 import { type NormalisedChartLabelStyleOptions, fitLabelText, mergeDefaults } from 'ag-charts-core';
 import type {
     AgChartLabelStylerParams,
+    AgMarkerShape,
     CssColor,
     HighlightState,
     NormalisedCallbackParams,
@@ -24,6 +25,7 @@ import type { ChartRegistry } from '../module/moduleContext';
 import type { Text } from '../scene/shape/text';
 import { isRotatable } from '../scene/transformable';
 import type { Label } from './label';
+import { markerLabelRect } from './marker/markerLabelRect';
 import { getItemId } from './series/pickManager';
 import type { DatumIndex, SeriesNodeDatum } from './series/seriesTypes';
 
@@ -77,15 +79,42 @@ export function fitLabelToContainer(
     font: FontOptions,
     container: { width: number; height: number } | undefined
 ): NormalisedTextOrSegments {
+    return fitLabelText(text, boundLabelFit(fit, container), font);
+}
+
+/**
+ * Bounds a fit's `maxWidth`/`maxHeight` by a container extent, taking the tighter of the explicit bound
+ * and the container. Returns `fit` unchanged when there is no fit or no container. Series with an
+ * invariant container should call this once at context-build time rather than per datum.
+ */
+export function boundLabelFit(
+    fit: LabelFit | undefined,
+    container: { width: number; height: number } | undefined
+): LabelFit | undefined {
     if (fit == null || container == null) {
-        return fitLabelText(text, fit, font);
+        return fit;
     }
-    const boundedFit: LabelFit = {
+    return {
         ...fit,
         maxWidth: Math.min(fit.maxWidth ?? Infinity, container.width),
         maxHeight: Math.min(fit.maxHeight ?? Infinity, container.height),
     };
-    return fitLabelText(text, boundedFit, font);
+}
+
+/**
+ * Container that keeps an `inside` label within a marker of diameter `markerSize`, sized to the largest
+ * rectangle that fits the marker's shape (analysed once per shape by {@link markerLabelRect}). Pair with
+ * {@link insideMarkerOffset} to position the label at that rectangle, which need not be marker-centred.
+ */
+export function insideMarkerContainer(markerSize: number, shape?: AgMarkerShape): { width: number; height: number } {
+    const rect = markerLabelRect(shape);
+    return { width: markerSize * rect.width, height: markerSize * rect.height };
+}
+
+/** The inside-label rectangle's centre offset from the marker centre, as a fraction of the diameter. */
+export function insideMarkerOffset(shape: AgMarkerShape | undefined): Point {
+    const { cx, cy } = markerLabelRect(shape);
+    return { x: cx, y: cy };
 }
 
 export function getLabelStyles<TParams>(

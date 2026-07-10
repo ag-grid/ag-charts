@@ -206,4 +206,149 @@ describe('series label fit', () => {
         expect(someWrapped(texts)).toBe(true);
         expect(someTruncated(texts)).toBe(true);
     });
+
+    it('centres bubble labels inside large markers and hides those overflowing small markers', async () => {
+        // `placement: 'inside'` fits each label to its marker: big bubbles hold their label, small bubbles
+        // hide a label that cannot fit. Sizes and label lengths are mixed so one image shows both outcomes.
+        const bubbleData = [
+            { x: 0, y: 50, size: 100, label: 'Big' },
+            { x: 1, y: 55, size: 90, label: 'Large' },
+            { x: 2, y: 45, size: 6, label: 'Tiny bubble label' },
+            { x: 3, y: 60, size: 70, label: 'Mid' },
+            { x: 4, y: 40, size: 8, label: 'Another long label' },
+        ];
+        await renderAndSnapshot({
+            data: bubbleData,
+            legend: { enabled: false },
+            axes: {
+                x: { type: 'number', position: 'bottom' },
+                y: { type: 'number', position: 'left', min: 0, max: 100 },
+            },
+            series: [
+                {
+                    type: 'bubble',
+                    xKey: 'x',
+                    yKey: 'y',
+                    sizeKey: 'size',
+                    labelKey: 'label',
+                    minSize: 8,
+                    maxSize: 100,
+                    label: { enabled: true, placement: 'inside', formatter: (p: any) => p.datum.label },
+                },
+            ],
+        });
+        const texts = labelTexts();
+        // Small bubbles hide their label (empty); at least one large bubble keeps its label.
+        expect(texts.some((text) => text === '' || text == null)).toBe(true);
+        expect(texts.some((text) => typeof text === 'string' && text.length > 0)).toBe(true);
+    });
+
+    // Line feeds `marker.size` straight into the inside-marker container, so it isolates the shape
+    // factor with a fully-controlled marker diameter (bubble/scatter derive size from the size scale).
+    const insideLineSeries = (shape: string, size: number) => ({
+        type: 'line',
+        xKey: 'x',
+        yKey: 'y',
+        marker: { enabled: true, shape, size },
+        label: { enabled: true, placement: 'inside', truncate: true, formatter: () => 'Revenue growth' },
+    });
+    const insideAxes = {
+        x: { type: 'number', position: 'bottom', min: -1, max: 3 },
+        y: { type: 'number', position: 'left', min: 0, max: 100 },
+    };
+    const lineData = [
+        { x: 0, y: 50 },
+        { x: 1, y: 55 },
+        { x: 2, y: 45 },
+    ];
+
+    it('fits progressively less label text as the marker box shrinks by shape', async () => {
+        const fittedText = async (shape: string) => {
+            const options = {
+                data: lineData,
+                legend: { enabled: false },
+                axes: insideAxes,
+                series: [insideLineSeries(shape, 60)],
+            };
+            prepareTestOptions(options as any);
+            chart = AgCharts.create(options as any);
+            await waitForChartStability(chart);
+            const text = String(labelTexts()[0] ?? '');
+            chart.destroy();
+            return text;
+        };
+        const [square, circle, diamond] = [
+            await fittedText('square'),
+            await fittedText('circle'),
+            await fittedText('diamond'),
+        ];
+        const visibleChars = (text: string) => text.replace(/\n/g, '').replace(ELLIPSIS, '').length;
+        // The box shrinks square (whole marker) > circle (inscribed square) > diamond (inscribed square
+        // of the diamond), so the same label survives whole in the square but truncates ever harder.
+        expect(square).toContain('growth');
+        expect(square).not.toContain(ELLIPSIS);
+        expect(circle.endsWith(ELLIPSIS)).toBe(true);
+        expect(diamond.endsWith(ELLIPSIS)).toBe(true);
+        expect(visibleChars(square)).toBeGreaterThan(visibleChars(circle));
+        expect(visibleChars(circle)).toBeGreaterThan(visibleChars(diamond));
+    });
+
+    it('centres and fits inside labels within square and diamond markers', async () => {
+        // A square uses its full box; a diamond its inscribed square. The image proves the fitted text
+        // stays within each visible shape.
+        await renderAndSnapshot({
+            data: lineData,
+            legend: { enabled: false },
+            axes: insideAxes,
+            series: [
+                { ...insideLineSeries('square', 90), yKey: 'y' },
+                {
+                    data: lineData.map((d) => ({ x: d.x, y2: d.y - 20 })),
+                    ...insideLineSeries('diamond', 90),
+                    yKey: 'y2',
+                },
+            ],
+        });
+        expect(labelTexts(0).some((text) => typeof text === 'string' && text.length > 0)).toBe(true);
+    });
+
+    it('scales an inside label to a complex (heart) marker across data-driven sizes', async () => {
+        // Bubble derives each marker's diameter from the size scale, so this exercises the per-datum fit:
+        // a heart uses a conservative central box, and the same label survives in big hearts but is
+        // truncated (then hidden) as the marker shrinks.
+        const heartData = [
+            { x: 0, y: 55, size: 9, label: 'Quarterly revenue growth' },
+            { x: 1, y: 50, size: 4, label: 'Quarterly revenue growth' },
+            { x: 2, y: 45, size: 1, label: 'Quarterly revenue growth' },
+        ];
+        await renderAndSnapshot({
+            data: heartData,
+            legend: { enabled: false },
+            axes: {
+                x: { type: 'number', position: 'bottom', min: -1, max: 3 },
+                y: { type: 'number', position: 'left', min: 0, max: 100 },
+            },
+            series: [
+                {
+                    type: 'bubble',
+                    xKey: 'x',
+                    yKey: 'y',
+                    sizeKey: 'size',
+                    labelKey: 'label',
+                    showInLegend: false,
+                    minSize: 60,
+                    maxSize: 260,
+                    shape: 'heart',
+                    label: { enabled: true, placement: 'inside', truncate: true, formatter: (p: any) => p.datum.label },
+                },
+            ],
+        });
+        const visibleChars = (text: unknown) => String(text ?? '').replace(ELLIPSIS, '').length;
+        const [big, mid, small] = labelTexts().map(visibleChars);
+        // Larger hearts hold at least as much of the label as smaller ones, and the smallest truncates.
+        expect(big).toBeGreaterThanOrEqual(mid);
+        expect(mid).toBeGreaterThanOrEqual(small);
+        expect(big).toBeGreaterThan(small);
+        expect(small).toBeGreaterThan(0);
+    });
 });

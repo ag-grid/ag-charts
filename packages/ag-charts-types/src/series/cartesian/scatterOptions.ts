@@ -54,7 +54,7 @@ export interface AgScatterSeriesLabel<TDatum, TContext = ContextDefault>
     extends AgChartLabelOptions<TDatum, AgScatterSeriesLabelFormatterParams<TDatum>, TContext>, AgChartLabelFitOptions {
     /**
      * Placement of the label in relation to the marker. Either a single placement or an ordered
-     * fallback list tried in turn until one fits.
+     * fallback list tried in turn until one fits. Use `inside` to centre the label within the marker.
      *
      * Default: `top`
      */

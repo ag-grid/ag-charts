@@ -35,6 +35,8 @@ export interface PlacedLabelContext {
     readonly labelMinSpacing: number | undefined;
     readonly labelCollideWith: CollideWith | undefined;
     readonly labelFit: LabelFit | undefined;
+    /** Marker-shape rectangle offset for `inside` labels; set only when fitting inside the marker. */
+    readonly labelInsideOffset: Point | undefined;
 }
 
 /**

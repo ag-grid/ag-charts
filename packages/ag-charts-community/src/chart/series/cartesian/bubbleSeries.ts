@@ -18,7 +18,6 @@ import {
     dateToNumber,
     extent,
     findDiscreteColorBinLabel,
-    fitLabelText,
     formatValue,
     isArray,
     measureTextSegments,
@@ -63,7 +62,7 @@ import type { DataController } from '../../data/dataController';
 import { DataModel, type ProcessedData, fixNumericExtent } from '../../data/dataModel';
 import { createDatumId, processedDataIsAnimatable, valueProperty } from '../../data/processors';
 import { expandLabelPadding } from '../../label';
-import { getLabelStyles } from '../../labelUtil';
+import { fitLabelToContainer, getLabelStyles } from '../../labelUtil';
 import {
     type CategoryLegendDatum,
     type ChartLegendType,
@@ -74,6 +73,7 @@ import {
 } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
+import { type MarkerLabelRect, markerLabelRect } from '../../marker/markerLabelRect';
 import { type TooltipContent, type TooltipContentDataRow, isTooltipValueMissing } from '../../tooltip/tooltip';
 import { IndexSetBucketLookupManager } from '../bucketLookupFeature';
 import {
@@ -191,6 +191,7 @@ export interface BubbleScatterNodeDatum extends CartesianSeriesNodeDatum, ErrorB
     readonly label: MeasuredLabel;
     readonly placement: LabelPlacement;
     readonly anchor: Point;
+    readonly insideOffset: Point | undefined;
     readonly count: number;
     readonly dilation: number;
     readonly area: number;
@@ -252,6 +253,8 @@ interface BubbleSeriesNodeDatumContext extends CartesianMarkerLikeContext<Bubble
     readonly labelsEnabled: boolean;
     readonly labelPlacement: LabelPlacement;
     readonly labelAnchor: Point;
+    readonly labelInsideOffset: Point | undefined;
+    readonly labelInsideRect: MarkerLabelRect | undefined;
     readonly labelTextDomain: any[];
     readonly labelPadding: { left: number; right: number; top: number; bottom: number };
     readonly labelTextMeasurer: { measureLines: (text: string) => { width: number; height: number } };
@@ -573,6 +576,9 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             marker,
         } = this.properties;
 
+        const labelPlacement = toArray(label.placement)[0];
+        const insideRect = labelPlacement === 'inside' ? markerLabelRect(marker.shape) : undefined;
+
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
 
@@ -637,12 +643,15 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
 
             // Label properties
             labelsEnabled: label.enabled,
-            labelPlacement: toArray(label.placement)[0],
+            labelPlacement,
             labelAnchor: Marker.anchor(marker.shape),
+            labelInsideOffset: insideRect ? { x: insideRect.cx, y: insideRect.cy } : undefined,
+            labelInsideRect: insideRect,
             labelTextDomain,
             labelPadding: expandLabelPadding(label),
             labelTextMeasurer: cachedTextMeasurer(label),
-            labelFit: resolveLabelFit(label, label.collisionAvoidance.avoid),
+            // `inside` labels always fit to the marker, hiding (or truncating) text that overflows it.
+            labelFit: resolveLabelFit(label, label.collisionAvoidance.avoid || labelPlacement === 'inside'),
             label,
 
             // Other state
@@ -820,16 +829,17 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
 
         const crossFilterSelected = ctx.crossFilterSelectedDataValues?.[datumIndex];
 
+        // Compute marker size
+        const markerSize = sizeValue == null ? ctx.sizeScale.range[0] : ctx.sizeScale.convertClamped(sizeValue);
+
         // Compute label (skip expensive formatting if labels disabled)
         let nodeLabel: MeasuredLabel;
         if (ctx.labelsEnabled) {
-            nodeLabel = this.computeLabel(ctx, datum, yDatum, sizeValue, datumIndex);
+            const markerPixelSize = ctx.labelPlacement === 'inside' ? Math.sqrt(scratch.dilation) * markerSize : 0;
+            nodeLabel = this.computeLabel(ctx, datum, yDatum, sizeValue, datumIndex, markerPixelSize);
         } else {
             nodeLabel = { text: '', width: 0, height: 0 };
         }
-
-        // Compute marker size
-        const markerSize = sizeValue == null ? ctx.sizeScale.range[0] : ctx.sizeScale.convertClamped(sizeValue);
 
         const colorValue = ctx.colorDataValues?.[datumIndex];
 
@@ -857,7 +867,8 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         datum: any,
         yDatum: any,
         sizeValue: number | undefined,
-        datumIndex: number
+        datumIndex: number,
+        markerSize: number
     ): MeasuredLabel {
         let labelTextValue: any;
         let labelTextKey: string;
@@ -902,7 +913,9 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             }
         );
 
-        const fittedText = fitLabelText(labelText, ctx.labelFit, ctx.label);
+        const rect = ctx.labelInsideRect;
+        const container = rect ? { width: markerSize * rect.width, height: markerSize * rect.height } : undefined;
+        const fittedText = fitLabelToContainer(labelText, ctx.labelFit, ctx.label, container);
         let { width, height } = isArray(fittedText)
             ? measureTextSegments(fittedText, ctx.label)
             : ctx.labelTextMeasurer.measureLines(String(fittedText));
@@ -936,6 +949,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             midPoint: { x: 0, y: 0 },
             label: { text: '', width: 0, height: 0 },
             anchor: ctx.labelAnchor,
+            insideOffset: ctx.labelInsideOffset,
             placement: ctx.labelPlacement,
             count: 1,
             dilation: 1,
@@ -970,6 +984,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         mutableNode.area = scratch.area;
         mutableNode.label = scratch.nodeLabel;
         mutableNode.anchor = ctx.labelAnchor;
+        mutableNode.insideOffset = ctx.labelInsideOffset;
         mutableNode.placement = ctx.labelPlacement;
 
         // Update point in-place
