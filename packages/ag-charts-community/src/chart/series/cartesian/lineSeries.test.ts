@@ -872,9 +872,11 @@ describe('LineSeries', () => {
             expectMarkerStartsCollapsed(trajectory, '5');
         });
 
-        // "Shift left" — drop the first point, append one at the end. The shared interior points hold, so
-        // the path's left edge steps in (x increases) while its width holds; one marker leaves at the start
-        // and one enters at the end.
+        // "Shift left" — drop the first point, append one at the end. The left edge steps in (x is
+        // endpoint-bounded, monotonic) while width dips through the mid-shift shape before recovering
+        // near its start value (squeezing); the interior stations morph monotonically to their new
+        // crossings (endpoint-bounded), and the rightmost station loses its crossing as the new trailing
+        // point sweeps into place (degenerate); one marker leaves at the start and one enters at the end.
         it('shift left: left edge steps in as the first point leaves and one enters at the end', async () => {
             const { before, trajectory, after } = await captureFrom(
                 lineOptions([
@@ -898,18 +900,24 @@ describe('LineSeries', () => {
             expect(markerCount(before)).toBe(5);
             expect(markerCount(after)).toBe(5);
             const key = pathKey(before);
-            // The path is transiently in flux mid-shift (width dips and recovers, the far station flickers
-            // as the extent changes), so its edge motion is asserted directly rather than per-property.
-            expectSceneTrajectory(trajectory, { [key]: 'any', ...markersFadeIn });
-            expectMonotonic(
-                trajectory.map((f) => f.get(key)!.x),
-                'increasing'
-            );
+            const shiftLeftTops = {
+                'top@0': decreasingExtent,
+                'top@1': increasingExtent,
+                'top@2': decreasingExtent,
+                'top@3': increasingExtent,
+            };
+            expectSceneTrajectory(trajectory, {
+                [key]: extentMorph(increasingExtent, squeezing, 'constant', [4], shiftLeftTops),
+                ...markersFadeIn,
+            });
             expectMarkerStartsCollapsed(trajectory, '6');
         });
 
         // "Shift right" — prepend a point, drop the last. Mirror of shift left: the left edge steps out
-        // (x decreases) as a new first point enters and the last leaves.
+        // (x is endpoint-bounded, monotonic) while width dips through the mid-shift shape before
+        // recovering (squeezing); the interior stations morph monotonically to their new crossings
+        // (endpoint-bounded), and the rightmost station loses its crossing as the new leading point
+        // sweeps into place (degenerate).
         it('shift right: left edge steps out as a new first point enters and the last leaves', async () => {
             const { before, trajectory, after } = await captureFrom(
                 lineOptions([
@@ -932,11 +940,16 @@ describe('LineSeries', () => {
             );
             expect(markerCount(after)).toBe(5);
             const key = pathKey(before);
-            expectSceneTrajectory(trajectory, { [key]: 'any', ...markersFadeIn });
-            expectMonotonic(
-                trajectory.map((f) => f.get(key)!.x),
-                'decreasing'
-            );
+            const shiftRightTops = {
+                'top@0': decreasingExtent,
+                'top@1': increasingExtent,
+                'top@2': decreasingExtent,
+                'top@3': increasingExtent,
+            };
+            expectSceneTrajectory(trajectory, {
+                [key]: extentMorph(decreasingExtent, squeezing, 'constant', [4], shiftRightTops),
+                ...markersFadeIn,
+            });
             expectMarkerStartsCollapsed(trajectory, '1');
         });
 
