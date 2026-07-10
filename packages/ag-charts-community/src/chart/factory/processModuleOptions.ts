@@ -189,21 +189,24 @@ export function processModuleOptions<T extends Partial<AgChartOptions>>(
 
     const missingOptions = groupBy(missingModules, (module) => (module.enterprise ? 'enterprise' : 'community'));
 
-    if (missingModules.length) {
-        Logger.errorOnce(
-            ModuleRegistry.isUmd()
-                ? umdMissingModulesMessage(missingOptions.enterprise ?? [], installationReferenceUrl)
-                : bundlerMissingModulesMessage(missingModules, missingOptions, installationReferenceUrl)
-        );
+    if (ModuleRegistry.isUmd()) {
+        Logger.warnOnce(umdMissingModulesMessage(missingOptions.enterprise ?? []));
+    } else {
+        Logger.errorOnce(bundlerMissingModulesMessage(missingModules, missingOptions, installationReferenceUrl));
     }
 }
 
-function umdMissingModulesMessage(enterpriseModules: ModulePlaceholder[], installationReferenceUrl: string): string {
-    const enterpriseOptions = enterpriseModules.map((module) => module.name).join(', ');
+function umdMissingModulesMessage(enterpriseModules: ModulePlaceholder[]): string {
+    const installationUrl = ModuleRegistry.isIntegrated()
+        ? 'https://www.ag-grid.com/data-grid/integrated-charts-installation/'
+        : 'https://www.ag-grid.com/charts/javascript/installation/';
+    const enterpriseOptions = enterpriseModules.map((module) => module.name).join('\n');
     return [
-        `unable to use these enterprise features as 'ag-charts-enterprise' has not been loaded: ${enterpriseOptions}`,
+        `unable to use these enterprise features as 'ag-charts-enterprise' has not been loaded:`,
         '',
-        `See ${installationReferenceUrl} for more details.`,
+        enterpriseOptions,
+        '',
+        `See ${installationUrl} for more details.`,
     ].join('\n');
 }
 
