@@ -788,17 +788,20 @@ describe('AreaSeries', () => {
             const hiddenFill = fillKey(trajectory[0], 0);
             // Anti-vacuity: the toggled-off layer starts at full height and must genuinely collapse.
             expect(trajectory[0].get(hiddenFill)!.height).toBeGreaterThan(40);
+            // The survivors genuinely tween (not snap): y/height/every top@N pass through several
+            // intermediate frames rather than jumping straight to their resting value, so `progresses`
+            // proves real sliding, not just a net direction.
             const slideDown: SceneNodeExpectation = {
-                y: { during: 'update', expect: ['increases', 'bounded'] },
-                height: 'any',
+                y: { during: 'update', expect: ['increases', 'progresses', 'bounded'] },
+                height: { during: 'update', expect: ['decreases', 'progresses', 'bounded'] },
                 x: { during: 'update', expect: 'constant' },
                 width: { during: 'update', expect: 'constant' },
                 subpaths: 'any',
-                'top@0': { during: 'update', expect: ['increases', 'bounded'] },
-                'top@2': { during: 'update', expect: ['increases', 'bounded'] },
-                'top@4': { during: 'update', expect: ['increases', 'bounded'] },
-                'top@1': 'any',
-                'top@3': 'any',
+                'top@0': { during: 'update', expect: ['increases', 'progresses', 'bounded'] },
+                'top@1': { during: 'update', expect: ['increases', 'progresses', 'bounded'] },
+                'top@2': { during: 'update', expect: ['increases', 'progresses', 'bounded'] },
+                'top@3': { during: 'update', expect: ['increases', 'progresses', 'bounded'] },
+                'top@4': { during: 'update', expect: ['increases', 'progresses', 'bounded'] },
             };
             expectSceneTrajectory(
                 trajectory,
@@ -859,33 +862,34 @@ describe('AreaSeries', () => {
             const { trajectory, after } = await captureFrom(hidden, () => chart.update(options));
             const shownFill = fillKey(after, 0);
             // The mirror of "legend hide"'s slideDown: the two survivors slide back up as the re-shown
-            // layer grows in beneath them.
+            // layer grows in beneath them. As there, every property tweens through several frames rather
+            // than snapping, so `progresses` proves real sliding.
             const slideUp: SceneNodeExpectation = {
-                y: { during: 'update', expect: ['decreases', 'bounded'] },
-                height: 'any',
+                y: { during: 'update', expect: ['decreases', 'progresses', 'bounded'] },
+                height: { during: 'update', expect: ['increases', 'progresses', 'bounded'] },
                 x: { during: 'update', expect: 'constant' },
                 width: { during: 'update', expect: 'constant' },
                 subpaths: 'any',
-                'top@0': { during: 'update', expect: ['decreases', 'bounded'] },
-                'top@2': { during: 'update', expect: ['decreases', 'bounded'] },
-                'top@4': { during: 'update', expect: ['decreases', 'bounded'] },
-                'top@1': 'any',
-                'top@3': 'any',
+                'top@0': { during: 'update', expect: ['decreases', 'progresses', 'bounded'] },
+                'top@1': { during: 'update', expect: ['decreases', 'progresses', 'bounded'] },
+                'top@2': { during: 'update', expect: ['decreases', 'progresses', 'bounded'] },
+                'top@3': { during: 'update', expect: ['decreases', 'progresses', 'bounded'] },
+                'top@4': { during: 'update', expect: ['decreases', 'progresses', 'bounded'] },
             };
             // The re-shown layer's own growth, mirroring "legend hide"'s collapse in reverse. Unlike the
             // hide toggle, `visible` flips to 1 immediately (show-then-animate, not collapse-then-hide), so
             // it holds constant across the whole capture rather than transitioning mid-trajectory.
             const growFromBaseline: SceneNodeExpectation = {
-                height: { during: 'update', expect: ['increases', 'bounded'] },
-                y: { during: 'update', expect: ['decreases', 'bounded'] },
+                height: { during: 'update', expect: ['increases', 'progresses', 'bounded'] },
+                y: { during: 'update', expect: ['decreases', 'progresses', 'bounded'] },
                 x: { during: 'update', expect: 'constant' },
                 width: { during: 'update', expect: 'constant' },
                 subpaths: 'any',
-                'top@0': { during: 'update', expect: ['decreases', 'bounded'] },
-                'top@2': { during: 'update', expect: ['decreases', 'bounded'] },
-                'top@4': { during: 'update', expect: ['decreases', 'bounded'] },
-                'top@1': 'any',
-                'top@3': 'any',
+                'top@0': { during: 'update', expect: ['decreases', 'progresses', 'bounded'] },
+                'top@1': { during: 'update', expect: ['decreases', 'progresses', 'bounded'] },
+                'top@2': { during: 'update', expect: ['decreases', 'progresses', 'bounded'] },
+                'top@3': { during: 'update', expect: ['decreases', 'progresses', 'bounded'] },
+                'top@4': { during: 'update', expect: ['decreases', 'progresses', 'bounded'] },
             };
             expectSceneTrajectory(
                 trajectory,
@@ -2122,17 +2126,20 @@ describe('AreaSeries', () => {
             const bottomFill = fillKey(trajectory[0], 0);
             // Anti-vacuity: the toggled-off layer starts at full height and must genuinely collapse.
             expect(trajectory[0].get(bottomFill)!.height).toBeGreaterThan(40);
+            // The survivors genuinely tween (not snap): y/height/every top@N pass through several
+            // intermediate frames rather than jumping straight to their resting value, so `progresses`
+            // proves real sliding, not just a net direction.
             const slideDown: SceneNodeExpectation = {
-                y: { during: 'update', expect: ['increases', 'bounded'] },
-                height: 'any',
+                y: { during: 'update', expect: ['increases', 'progresses', 'bounded'] },
+                height: { during: 'update', expect: ['decreases', 'progresses', 'bounded'] },
                 x: { during: 'update', expect: 'constant' },
                 width: { during: 'update', expect: 'constant' },
                 subpaths: 'any',
-                'top@0': { during: 'update', expect: ['increases', 'bounded'] },
-                'top@2': { during: 'update', expect: ['increases', 'bounded'] },
-                'top@4': { during: 'update', expect: ['increases', 'bounded'] },
-                'top@1': 'any',
-                'top@3': 'any',
+                'top@0': { during: 'update', expect: ['increases', 'progresses', 'bounded'] },
+                'top@1': { during: 'update', expect: ['increases', 'progresses', 'bounded'] },
+                'top@2': { during: 'update', expect: ['increases', 'progresses', 'bounded'] },
+                'top@3': { during: 'update', expect: ['increases', 'progresses', 'bounded'] },
+                'top@4': { during: 'update', expect: ['increases', 'progresses', 'bounded'] },
             };
             expectSceneTrajectory(
                 trajectory,
