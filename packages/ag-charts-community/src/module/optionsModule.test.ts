@@ -487,17 +487,25 @@ describe('ChartOptions', () => {
                     },
                 });
 
-                const messages = (console.error as Mock).mock.calls.map(([m]) => String(m));
+                const warnings = (console.warn as Mock).mock.calls.map(([m]) => String(m));
                 expect(
-                    messages.some((m) =>
+                    warnings.some((m) =>
                         m.includes(
                             "unable to use these enterprise features as 'ag-charts-enterprise' has not been loaded"
                         )
                     )
                 ).toBe(true);
-                expect(messages.some((m) => m.includes('ordinal-time'))).toBe(true);
-                expect(messages.every((m) => !m.includes('import {'))).toBe(true);
-                expect(messages.every((m) => !m.includes('ModuleRegistry.registerModules'))).toBe(true);
+                expect(warnings.some((m) => m.includes('ordinal-time'))).toBe(true);
+                expect(
+                    warnings.some((m) => m.includes('https://www.ag-grid.com/charts/javascript/installation/'))
+                ).toBe(true);
+                expect(warnings.some((m) => m.includes('has not been loaded:\n\nordinal-time'))).toBe(true);
+                expect(warnings.some((m) => m.includes('ordinal-time\n\nSee '))).toBe(true);
+                expect(warnings.every((m) => !m.includes('import {'))).toBe(true);
+                expect(warnings.every((m) => !m.includes('ModuleRegistry.registerModules'))).toBe(true);
+
+                const errors = (console.error as Mock).mock.calls.map(([m]) => String(m));
+                expect(errors.every((m) => !m.includes('unable to use these enterprise features'))).toBe(true);
             } finally {
                 ModuleRegistry.clearRegistryModes();
             }
