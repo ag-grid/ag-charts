@@ -58,7 +58,8 @@ function matchesKeyBinding(e: KeyboardEvent, bindings: readonly KeyBinding[]) {
     for (const kb of bindings) {
         if ('code' in kb) {
             if (kb.code === e.code && matchesModifiers(e, kb)) return true;
-        } else {
+        }
+        if ('key' in kb) {
             if (kb.key === e.key && matchesModifiers(e, kb)) return true;
         }
     }
