@@ -46,6 +46,7 @@ import {
     createChart,
     createSceneGeometrySampler,
     deproxy,
+    expectAnimatedEndpointsMatchStatic,
     expectNoAnimation,
     expectSceneSamplesMatch,
     expectSceneTrajectory,
@@ -1379,6 +1380,65 @@ describe('BarSeries', () => {
                     `${key} centre ${cx} outside all bands`
                 ).toBe(true);
             }
+        });
+
+        // Endpoint sanity guards: the animated route must settle at exactly the pixels a snapped
+        // render of the same options produces (see expectAnimatedEndpointsMatchStatic).
+        it('sanity: randomise endpoints match static renders', async () => {
+            const options = groupedOptions();
+            chart = AgCharts.create(options);
+            await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, options, {
+                ...options,
+                data: [
+                    { quarter: 'Q1', iphone: 70, mac: 40, services: 110 },
+                    { quarter: 'Q2', iphone: 90, mac: 140, services: 15 },
+                ],
+            });
+        });
+
+        it('sanity: remove series endpoints match static renders', async () => {
+            const options = groupedOptions();
+            chart = AgCharts.create(options);
+            await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, options, {
+                ...options,
+                series: options.series!.slice(0, 2),
+            });
+        });
+
+        it('sanity: series re-add endpoints match static renders', async () => {
+            const full = prepareTestOptions({ ...examples.BAR_STACKED_AND_GROUPED_NUMBER_CRT_950 });
+            const reduced = { ...full, series: full.series!.slice(0, 2) };
+            chart = AgCharts.create(reduced);
+            await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, reduced, full);
+        });
+
+        // Meta-tests: the endpoint guard must fail loudly in both comparison directions.
+        describe('endpoint sanity guard validation', () => {
+            it('rejects when a static render diverges from the animated settle', async () => {
+                const options = groupedOptions();
+                chart = AgCharts.create(options);
+                const divergedStart = {
+                    ...options,
+                    data: options.data!.map((d) => ({ ...d, iphone: d.iphone / 2 })),
+                };
+                const grownEnd = {
+                    ...options,
+                    data: [...options.data!, { quarter: 'Q3', iphone: 80, mac: 40, services: 50 }],
+                };
+                await expect(
+                    expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, divergedStart, grownEnd, {
+                        writeDiff: false,
+                    })
+                ).rejects.toThrow(/pixels different/);
+            });
+
+            it('rejects a transition that changes no pixels', async () => {
+                const options = groupedOptions();
+                chart = AgCharts.create(options);
+                await expect(
+                    expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, options, { ...options })
+                ).rejects.toThrow(/pixels different/);
+            });
         });
     });
 

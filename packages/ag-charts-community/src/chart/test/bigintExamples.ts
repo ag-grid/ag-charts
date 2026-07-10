@@ -2,7 +2,7 @@ import { expect } from 'vitest';
 
 import type { AgChartOptions } from 'ag-charts-types';
 
-import { type Chart, prepareTestOptions, waitForChartStability } from './utils';
+import { type Chart, expectNonBlank, prepareTestOptions, waitForChartStability } from './utils';
 
 /** Shared fixtures for bigint / ISO-datetime series coverage. */
 
@@ -111,17 +111,6 @@ export function isoEpochPair(
             data: Array.from({ length: count }, (_, i) => buildRow(new Date(at(i)).toISOString(), i)),
         } as AgChartOptions,
     };
-}
-
-// Guards against a vacuously-identical comparison: a chart that failed to render leaves the
-// snapshot canvas uniform, and two uniform snapshots always match.
-function expectNonBlank(image: ImageData): void {
-    const [r, g, b, a] = image.data;
-    let uniform = true;
-    for (let i = 4; uniform && i < image.data.length; i += 4) {
-        uniform = image.data[i] === r && image.data[i + 1] === g && image.data[i + 2] === b && image.data[i + 3] === a;
-    }
-    expect(uniform, 'expected the rendered chart to produce a non-uniform snapshot').toBe(false);
 }
 
 /**

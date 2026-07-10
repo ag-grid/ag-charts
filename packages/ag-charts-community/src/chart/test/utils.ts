@@ -1044,6 +1044,58 @@ export function spyOnAnimationFrames() {
     return { runToEnd, captureAnimationFrames, captureUpdate };
 }
 
+// Guards against a vacuously-identical comparison: a chart that failed to render leaves the
+// snapshot canvas uniform, and two uniform snapshots always match.
+export function expectNonBlank(image: ImageData): void {
+    const [r, g, b, a] = image.data;
+    let uniform = true;
+    for (let i = 4; uniform && i < image.data.length; i += 4) {
+        uniform = image.data[i] === r && image.data[i + 1] === g && image.data[i + 2] === b && image.data[i + 3] === a;
+    }
+    expect(uniform, 'expected the rendered chart to produce a non-uniform snapshot').toBe(false);
+}
+
+/**
+ * Endpoint sanity guard for trajectory suites: the animated routes into `before` (the initial reveal)
+ * and `after` (the transition) must settle at exactly the pixels a non-animated (snapped) render of the
+ * same options produces, compared in memory via `toMatchImage`.
+ *
+ * Must run on the suite's single snapshot-backed chart: create the chart with `before` immediately
+ * beforehand and pass the un-mutated option objects here. The static legs snap via the public
+ * `chart.skipAnimations()` — `animation: { enabled: false }` is inert under `spyOnAnimationFrames`,
+ * which preserves only batch-level skips. A static-start mismatch has two readings: the animated
+ * reveal not settling at the static render, or the `after` → `before` update not round-tripping.
+ */
+export async function expectAnimatedEndpointsMatchStatic(
+    frames: Pick<ReturnType<typeof spyOnAnimationFrames>, 'runToEnd'>,
+    snapshot: () => ImageData,
+    chart: AgChartInstance,
+    before: AgChartOptions,
+    after: AgChartOptions,
+    { transition, writeDiff = true }: { transition?: () => void | Promise<void>; writeDiff?: boolean } = {}
+): Promise<void> {
+    await frames.runToEnd(chart);
+    const animatedStart = snapshot();
+    expectNonBlank(animatedStart);
+
+    await (transition ? transition() : chart.update(after));
+    await frames.runToEnd(chart);
+    const animatedEnd = snapshot();
+    expectNonBlank(animatedEnd);
+    // A transition that changes no pixels would let all four comparisons pass vacuously.
+    expect(animatedEnd).not.toMatchImage(animatedStart, { writeDiff: false });
+
+    chart.skipAnimations();
+    await chart.update(before);
+    await frames.runToEnd(chart);
+    expect(snapshot()).toMatchImage(animatedStart, { writeDiff });
+
+    chart.skipAnimations();
+    await chart.update(after);
+    await frames.runToEnd(chart);
+    expect(snapshot()).toMatchImage(animatedEnd, { writeDiff });
+}
+
 /**
  * Assert a numeric series never reverses direction (monotonic non-strict). With `direction` omitted the
  * dominant direction is inferred from the endpoints; a flat series (all-equal) satisfies either direction.

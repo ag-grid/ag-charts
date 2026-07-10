@@ -47,6 +47,7 @@ import {
     createChart,
     createSceneGeometrySampler,
     deproxy,
+    expectAnimatedEndpointsMatchStatic,
     expectMonotonic,
     expectNoAnimation,
     expectSceneSamplesMatch,
@@ -1353,6 +1354,47 @@ describe('LineSeries', () => {
             expectNoAnimation(trajectory.map(seriesOnly));
             // The sampler reads geometry only, so the palette swap is the change-landed signal.
             expect(strokeOf()).not.toBe(strokeBefore);
+        });
+
+        // Endpoint sanity guards: the animated route must settle at exactly the pixels a snapped
+        // render of the same options produces (see expectAnimatedEndpointsMatchStatic).
+        it('sanity: update points endpoints match static renders', async () => {
+            const options = lineOptions([
+                { x: 0, y: 40 },
+                { x: 1, y: 120 },
+                { x: 2, y: 80 },
+                { x: 3, y: 160 },
+                { x: 4, y: 60 },
+            ]);
+            chart = AgCharts.create(options);
+            await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, options, {
+                ...options,
+                data: [
+                    { x: 0, y: 90 },
+                    { x: 1, y: 50 },
+                    { x: 2, y: 140 },
+                    { x: 3, y: 70 },
+                    { x: 4, y: 110 },
+                ],
+            });
+        });
+
+        it('sanity: category add end week endpoints match static renders', async () => {
+            const options = categoryOptions(WEEKS);
+            chart = AgCharts.create(options);
+            await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, options, {
+                ...options,
+                data: [...WEEKS, { x: 'w12', y: 78 }],
+            });
+        });
+
+        it('sanity: legend hide endpoints match static renders', async () => {
+            const options = twoSeriesOptions(2);
+            chart = AgCharts.create(options);
+            await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, options, {
+                ...options,
+                series: options.series!.map((s, i) => (i === 1 ? { ...s, visible: false } : s)),
+            });
         });
     });
 
