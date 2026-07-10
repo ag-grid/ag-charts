@@ -3469,7 +3469,7 @@ describe('ChartOptions', () => {
             const node: any = { foregroundColor: { ref: 'accentColor', mix: 0.5, ontoColor: 'var(--bad)' } };
             chartOptions.processCSSVariablesPartial(node, container);
 
-            expect(node.foregroundColor).toEqual({});
+            expect(node).toEqual({});
             expect((console.warn as Mock).mock.calls.some(([m]) => String(m).includes('is not a valid color'))).toBe(
                 true
             );
