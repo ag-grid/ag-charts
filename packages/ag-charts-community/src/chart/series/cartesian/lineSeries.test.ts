@@ -1309,20 +1309,28 @@ describe('LineSeries', () => {
             expectSceneTrajectory(trajectory, { [pathKey(before)]: 'constant' });
         });
 
-        // Integrated mode initial load: the line must still reveal, scaling its markers in from zero size.
+        // Integrated mode initial load: the swipe-in reveal masks the fully-drawn path behind a growing
+        // clip window rather than growing the path geometry itself — the drawn shape (bbox, per-station
+        // tops) is already in its settled form on frame 0, so the clip window's advance is the only
+        // signal of the reveal, alongside the markers scaling in from zero size.
         it('integrated mode: initial load reveals the line and scales its markers in', async () => {
             chart = AgCharts.create(categoryOptions(WEEKS, 'integrated'));
             const sampleScene = createSceneGeometrySampler(chart);
             const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
             const key = pathKey(trajectory.at(-1)!);
-            expectSceneTrajectory(trajectory, { [key]: 'any', ...markersScaleIn });
+            expectSceneTrajectory(trajectory, {
+                [key]: { clip: 'decreases', 'clip:x': increasingExtent },
+                ...markersScaleIn,
+            });
             // The last marker scales in last, so it is still zero-size at the start of the reveal.
             expectMarkerStartsCollapsed(trajectory, 'w11', 'width');
         });
 
         // "Reverse" (integrated-only) — the data order is reversed, reshuffling the category bands. As with
         // reorder the markers snap to their new bands, so the coverage is that the reversal LANDED: the first
-        // category (w3) is now rightmost and the last (w11) leftmost.
+        // category (w3) is now rightmost and the last (w11) leftmost. A line always draws its stroke in
+        // category-axis order, so reversing the input array cannot change the drawn shape at all — the path
+        // is pinned `constant`, and genuinely holds through every frame.
         it('integrated mode: reverse re-maps markers to the reversed bands', async () => {
             const { before, trajectory, after } = await captureFrom(categoryOptions(WEEKS, 'integrated'), () =>
                 chart.updateDelta({ data: [...WEEKS].reverse() })
@@ -1331,20 +1339,31 @@ describe('LineSeries', () => {
             expect(markerX(after, 'w11')!).toBeLessThan(markerX(after, 'w3')!);
             expect(markerX(after, 'w3')!).toBeGreaterThan(markerX(before, 'w3')!);
             expect(markerX(after, 'w11')!).toBeLessThan(markerX(before, 'w11')!);
-            expectSceneTrajectory(trajectory, { [pathKey(before)]: 'any' });
+            expectSceneTrajectory(trajectory, { [pathKey(before)]: 'constant' });
         });
 
         // Integrated mode changes animation defaults, so re-exercise a category add there: adding an end
-        // week must still fade the new marker in (the entrant is invisible on the first frame) — proving
-        // integrated defaults do not suppress the entrance animation.
+        // week must still reflow the bands and fade the new marker in (the entrant is invisible on the
+        // first frame) — proving integrated defaults do not suppress the reflow or entrance animation.
         it('integrated mode: category add end week fades the new marker in', async () => {
             const { before, trajectory, after } = await captureFrom(categoryOptions(WEEKS, 'integrated'), () =>
                 chart.updateDelta({ data: [...WEEKS, { x: 'w12', y: 78 }] })
             );
             expect(markerCount(before)).toBe(7);
             expect(markerCount(after)).toBe(8);
+            const key = pathKey(before);
+            // The narrower bands pull the left edge in a touch (decreasingExtent) while the new band
+            // widens the covered extent past its start before settling (squeezing); stations 1, 2, 4
+            // ride the rescale monotonically to their new crossings, and station 3 overshoots past its
+            // settled height before recovering (squeezing) — station 0 sits on the unmoved first band.
             expectSceneTrajectory(trajectory, {
-                [pathKey(before)]: 'any',
+                [key]: extentMorph(decreasingExtent, squeezing, 'constant', [], {
+                    'top@0': 'constant',
+                    'top@1': increasingExtent,
+                    'top@2': increasingExtent,
+                    'top@3': squeezing,
+                    'top@4': increasingExtent,
+                }),
                 ...markersReflow,
                 ...axisReflowSpec('bottom', { shift: 'left' }),
             });
@@ -1352,7 +1371,8 @@ describe('LineSeries', () => {
         });
 
         // Integrated reorder mirrors the standalone case: the reshuffle must land (markers re-map to their
-        // new bands) under integrated defaults too.
+        // new bands) under integrated defaults too, and the path — drawn in category-axis order regardless
+        // of input order — is pinned `constant` for the same reason.
         it('integrated mode: reorder re-maps markers to the reshuffled bands', async () => {
             const reordered = [WEEKS[3], WEEKS[0], WEEKS[5], WEEKS[1], WEEKS[6], WEEKS[2], WEEKS[4]];
             const { before, trajectory, after } = await captureFrom(categoryOptions(WEEKS, 'integrated'), () =>
@@ -1364,7 +1384,7 @@ describe('LineSeries', () => {
                 expect(markerX(after, order[i - 1])!).toBeLessThan(markerX(after, order[i])!);
             }
             expect(markerX(after, 'w6')!).toBeLessThan(markerX(before, 'w6')!);
-            expectSceneTrajectory(trajectory, { [pathKey(before)]: 'any' });
+            expectSceneTrajectory(trajectory, { [pathKey(before)]: 'constant' });
         });
 
         // "Start ticking" — a point is appended on a timer while the previous append is still animating.
