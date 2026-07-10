@@ -15,6 +15,16 @@
         "command": "vite build"
       }
     },
+    "build:watch": {
+      "executor": "nx:run-commands",
+      "inputs": ["production"],
+      "outputs": ["{projectRoot}/dist"],
+      "cache": false,
+      "options": {
+        "cwd": "{projectRoot}",
+        "command": "DEMOS_BASE_PATH=/internal-demos/ vite build"
+      }
+    },
     "typecheck": {
       "executor": "nx:run-commands",
       "dependsOn": ["^build:types"],

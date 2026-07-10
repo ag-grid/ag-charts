@@ -64,6 +64,10 @@ if (id) {
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
                 <meta name="robots" content="noindex" />
                 <title>Demos</title>
+                {/* Partial routes get no auto-injected client, so pull in the Vite HMR
+                    client by hand — without it this page never receives the watch loop's
+                    full-reload signal (touch of ag-build-queue.empty → agHotModuleReload). */}
+                {import.meta.env.DEV && <script type="module" src="/@vite/client" />}
             </head>
             <body style="margin: 0; padding: 24px; font-family: system-ui, sans-serif;">
                 <h1>AG Charts demo apps</h1>
@@ -87,6 +91,9 @@ if (id) {
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
                 <meta name="robots" content="noindex" />
                 <title>{`Demo: ${id}`}</title>
+                {/* See the listing branch: the Vite HMR client must be pulled in by hand on
+                    partial routes so the watch loop's full-reload signal reaches this page. */}
+                {import.meta.env.DEV && <script type="module" src="/@vite/client" />}
             </head>
             <body style="margin: 0; height: 100%;">
                 <div id="root" data-demo-id={id} />
