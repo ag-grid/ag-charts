@@ -27,6 +27,7 @@ import type { DataServiceRestoredData } from './data/dataService';
 import { deepCloneDataSet } from './data/dataSetUtil';
 import { InteractionState } from './interaction/interactionManager';
 import type { UpdateZoomSourcing } from './interaction/zoomManager';
+import { LegendPaginationOriginator, findCategoryLegend } from './legend/legendPaginationOriginator';
 
 const debug = Debug.create(true, 'opts');
 const DESTROYED_ERROR = 'AG Charts - Chart was destroyed, cannot perform request.';
@@ -385,6 +386,11 @@ export class AgChartInstanceProxy implements AgChartProxy {
         const legendEnabled = modulesManager.isEnabled('legend') && processedOptions.legend?.enabled !== false;
         if (legendEnabled && legendManager) {
             originators.push(legendManager);
+        }
+
+        const categoryLegend = findCategoryLegend(modulesManager.legends());
+        if (categoryLegend?.pagination && categoryLegend.pagination.totalPages > 1) {
+            originators.push(new LegendPaginationOriginator(categoryLegend));
         }
 
         originators.push(this.chart.ctx.activeManager);

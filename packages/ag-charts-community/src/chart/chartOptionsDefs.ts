@@ -62,6 +62,7 @@ export const commonChartOptions = {
             },
             'legend state array'
         ),
+        legendPagination: positiveNumber,
         zoom: defined,
     },
 };
