@@ -12,6 +12,7 @@ import {
     cartesianChartAssertions,
     clickAction,
     deproxy,
+    expectWarningsCalls,
     extractImageData,
     prepareTestOptions,
     repeat,
@@ -503,6 +504,19 @@ describe('AgChartV2', () => {
             expect(paginationB.totalPages).toBeGreaterThan(1);
             expect(lastPage).toBeGreaterThan(paginationB.totalPages - 1);
             expect(paginationB.currentPage).toBe(paginationB.totalPages - 1);
+        });
+
+        it('rejects a non-integer initialState pagination page and keeps the first page', async () => {
+            const options: AgChartOptions = {
+                ...paginatingOptions(),
+                initialState: { legendPagination: 1.5 },
+            };
+            prepareTestOptions(options, container);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expect(getCategoryLegend(chart)!.pagination!.currentPage).toBe(0);
+            expectWarningsCalls().not.toHaveLength(0);
         });
     });
 

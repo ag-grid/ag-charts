@@ -117,7 +117,7 @@ A `legendItemName` can be added to the legend initial state and series options, 
 
 ### Legend Pagination
 
-The `legendPagination` state stores the current legend page as a number. It is only present when the legend is enabled and spans more than one page.
+The `legendPagination` state stores the current legend page as a zero-based index, so `0` is the first page. It is only present when the legend is enabled and spans more than one page.
 
 The number of pages depends on the render size, so the page is restored on a best-effort, like-for-like basis. If the saved page does not exist at the current size, it is clamped to the last available page.
 

@@ -21,7 +21,7 @@ export class LegendPaginationOriginator implements MementoOriginator<number> {
     }
 
     public guardMemento(blob: unknown): blob is number | undefined {
-        return blob == null || typeof blob === 'number';
+        return blob == null || (typeof blob === 'number' && Number.isInteger(blob) && blob >= 0);
     }
 
     public restoreMemento(_version: string, _mementoVersion: string, page: number | undefined): void {
