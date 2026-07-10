@@ -873,7 +873,7 @@ describe('AreaSeries', () => {
 
         // The pinned-extent single-series update spec: the fill/stroke keep their x-extent while the
         // top edge morphs per-station, and the stroke stays one connected subpath.
-        const morphInPlace = (opts: { pinnedTops?: boolean } = {}): SceneNodeExpectation => ({
+        const morphInPlace = (opts: { pinnedTops?: boolean } = {}): Record<string, ScenePropertyExpectation> => ({
             x: { during: 'update', expect: 'constant' },
             width: { during: 'update', expect: 'constant' },
             y: 'any',
