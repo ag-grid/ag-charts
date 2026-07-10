@@ -1057,9 +1057,12 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
             case ChartUpdateType.PERFORM_LAYOUT:
                 await this.checkFirstAutoSize();
+
+                // Refresh theme CSS variables whenever resolved options change, independent of the layout shortcut.
+                ctx.domManager.setThemeParameters(this.chartOptions.themeParameters);
+
                 if (this.checkUpdateShortcut(ChartUpdateType.PERFORM_LAYOUT)) break;
 
-                ctx.domManager.setThemeParameters(this.chartOptions.themeParameters);
                 ctx.chartState.flushChanges('legendData');
                 await this.processLayout();
                 this.updateSplits('⌖');
