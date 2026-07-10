@@ -1841,9 +1841,19 @@ describe('AreaSeries', () => {
             );
             expect(markerCount(before)).toBe(7);
             expect(markerCount(after)).toBe(8);
+            // Mirrors the standalone "category add end week" CASE: the left edge is pinned, the interior
+            // widens towards the new right edge, except the station nearest it, which overshoots past its
+            // resting value before correcting.
+            const addEndWeekTops = {
+                'top@0': 'constant' as const,
+                'top@1': increasingExtent,
+                'top@2': increasingExtent,
+                'top@3': squeezing,
+                'top@4': increasingExtent,
+            };
             expectSceneTrajectory(trajectory, {
-                'series[0]/background/path[*]': extentMorph('constant', squeezing, 'any'),
-                'series[0]/path[stroke]': extentMorph('constant', squeezing, 'constant'),
+                'series[0]/background/path[*]': extentMorph('constant', squeezing, 'any', [], addEndWeekTops),
+                'series[0]/path[stroke]': extentMorph('constant', squeezing, 'constant', [], addEndWeekTops),
                 ...markersFadeIn,
                 ...axisReflowSpec('bottom', { shift: 'left' }),
             });
