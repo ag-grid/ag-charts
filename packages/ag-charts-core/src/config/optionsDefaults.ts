@@ -1,6 +1,7 @@
 import type {
     AgBarHighlightStyleOptions,
     AgColorRefMixOnto,
+    AgColorRefMixOntoColor,
     AgColorScale,
     AgColorScaleColorStop,
     AgColorType,
@@ -57,6 +58,7 @@ import type {
     InternalAgImageFill,
     InternalAgPatternColor,
 } from '../types/normalised-options/normalisedCommonOptions';
+import { Color } from '../utils/format/color';
 import { isObject } from '../utils/types/typeGuards';
 
 // Validator for internal theme operators.
@@ -111,17 +113,24 @@ const themeParams = [
     'groupedCategoryLineColor',
 ];
 const themeParamsValidator = union(...themeParams);
+// `ontoColor` accepts only what the blend engine (`Color.fromString`) can render, plus a `var(--…)`; the browser-backed
+// `color` validator would admit `oklch()`/`lab()` etc. that `Color.fromString` then throws on, silently mis-colouring.
+const ontoColorValidator = attachDescription(
+    (value: unknown) => typeof value === 'string' && (value.startsWith('var(--') || Color.validColorString(value)),
+    'a literal color or var()'
+);
 const colorRefDef = attachDescription(
-    optionsDefs<AgColorRefMixOnto>({
+    optionsDefs<AgColorRefMixOnto & AgColorRefMixOntoColor>({
         ref: themeParamsValidator,
         mix: positiveNumber, // mix is silently clamped to 0-1 ratio to match Grid
         onto: themeParamsValidator,
+        ontoColor: ontoColorValidator,
     }),
     'a color ref'
 );
 const colorRefMixOnto = attachDescription((value: unknown) => {
-    return !isObject(value) || !('onto' in value) || 'mix' in value;
-}, 'where a color ref with [onto] must also have [mix]');
+    return !isObject(value) || !('onto' in value || 'ontoColor' in value) || 'mix' in value;
+}, 'where a color ref with [onto] or [ontoColor] must also have [mix]');
 const colorRef = and(colorRefDef, colorRefMixOnto);
 
 // `themeOperator` validator is required by the preset modules which perform a validation of the overrides before

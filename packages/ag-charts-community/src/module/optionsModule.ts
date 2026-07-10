@@ -1520,38 +1520,60 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         for (const key of Object.keys(optionsNode) as any[]) {
             const value = optionsNode[key];
-            if (typeof value !== 'string' || !value.startsWith('var(--')) continue;
 
-            const propertyKey = value.slice(4, -1);
-            const [mainKey, ...fallbackKeys] = propertyKey.split(',');
-
-            // Only process external css variables.
-            if (propertyKey.startsWith('--ag-charts')) continue;
-
-            const computedStyle = getComputedStyle(container);
-            let propertyValue = computedStyle.getPropertyValue(mainKey);
-
-            // Only process color values.
-            let isValid = Color.validColorString(propertyValue);
-
-            if (!isValid && fallbackKeys.length > 0) {
-                const trimmedKey = fallbackKeys.join(',').trim();
-
-                // Use the fallback if it is a variable or value.
-                propertyValue = computedStyle.getPropertyValue(trimmedKey) || trimmedKey;
-                isValid = Color.validColorString(propertyValue);
+            // A colour reference blending onto an invalid `ontoColor` var must fall back like a direct-value var:
+            // drop the whole property so its theme default applies. Emptying the ref in place would instead leave a
+            // `{}` that overrides the default. Handled here, at the parent, because the walk cannot delete the key
+            // once it descends into the ref object itself.
+            if (isObjectLike(value) && 'ref' in value && ChartOptions.isExternalColorVar(value.ontoColor)) {
+                const resolved = ChartOptions.resolveColorVar(value.ontoColor, container);
+                if (resolved && !resolved.isValid) {
+                    Logger.warnOnce(`CSS property [${value.ontoColor}] is not a valid color, ignoring.`);
+                    delete optionsNode[key];
+                }
+                continue;
             }
 
-            if (!isValid) {
+            if (!ChartOptions.isExternalColorVar(value)) continue;
+
+            const resolved = ChartOptions.resolveColorVar(value, container);
+            if (!resolved) continue;
+
+            if (!resolved.isValid) {
                 Logger.warnOnce(`CSS property [${value}] is not a valid color, ignoring.`);
                 delete optionsNode[key];
                 continue;
             }
 
-            processedCSSVariables[value] ??= propertyValue;
+            processedCSSVariables[value] ??= resolved.propertyValue;
         }
 
         return processedCSSVariables;
+    }
+
+    private static isExternalColorVar(value: unknown): value is string {
+        return typeof value === 'string' && value.startsWith('var(--') && !value.slice(4, -1).startsWith('--ag-charts');
+    }
+
+    private static resolveColorVar(
+        value: string,
+        container: HTMLElement
+    ): { isValid: boolean; propertyValue: string } | undefined {
+        const propertyKey = value.slice(4, -1);
+        const [mainKey, ...fallbackKeys] = propertyKey.split(',');
+
+        const computedStyle = getComputedStyle(container);
+        let propertyValue = computedStyle.getPropertyValue(mainKey);
+        let isValid = Color.validColorString(propertyValue);
+
+        if (!isValid && fallbackKeys.length > 0) {
+            const trimmedKey = fallbackKeys.join(',').trim();
+            // Use the fallback if it is a variable or value.
+            propertyValue = computedStyle.getPropertyValue(trimmedKey) || trimmedKey;
+            isValid = Color.validColorString(propertyValue);
+        }
+
+        return { isValid, propertyValue };
     }
 
     private processCSSVariables(options: Partial<T>) {

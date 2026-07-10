@@ -63,4 +63,16 @@ test.describe('css variables', () => {
         await expect(page.locator('#status')).toContainText('Mode: Light');
         await expect(charts).toHaveScreenshot('css-variables-dark-mode-light-restored.png');
     });
+
+    // A theme param blends `accentColor` onto a `var(--onto-color)` via `ontoColor`. Changing the CSS
+    // variable must re-resolve and repaint the bars without an explicit `chart.update()` call.
+    test('ontoColor blends onto a CSS variable and reacts to its changes', async ({ page }) => {
+        const { url } = toExamplePageUrl('themes-e2e', 'css-variables-onto-color', 'vanilla');
+        await gotoExample(page, url);
+        await expect(page.locator(SELECTORS.canvas)).toHaveScreenshot('onto-color-initial.png');
+
+        await page.getByText('Change CSS Variable').click();
+        await waitForAllChartUpdates(page);
+        await expect(page.locator(SELECTORS.canvas)).toHaveScreenshot('onto-color-changed.png');
+    });
 });
