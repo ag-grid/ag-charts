@@ -497,16 +497,6 @@ describe('LineSeries', () => {
                 ...markerPosition,
             },
         };
-        const reshapingPath = {
-            y: 'any',
-            height: 'any',
-            'top@0': 'constant',
-            'top@1': 'any',
-            'top@2': 'any',
-            'top@3': 'any',
-            'top@4': 'any',
-        } as const;
-
         // Add/remove cases pin the path to the x-extent motion it settles on — the left edge (x) and total
         // width step a known direction — and leave the interior (per-station tops and the vertical bbox
         // derived from them) free unless probing supports a stronger per-station expectation.
@@ -559,13 +549,24 @@ describe('LineSeries', () => {
             expect(markerCount(before)).toBe(5);
             expect(markerCount(after)).toBe(7);
             const key = pathKey(before);
+            // The retained points sit at fixed stations, so each interior station morphs monotonically to
+            // where the widened path now re-samples it — except the station nearest the growing right edge,
+            // which overshoots past its settled crossing before easing back (squeezing).
+            const addAfterTops = {
+                'top@0': 'constant' as const,
+                'top@1': increasingExtent,
+                'top@2': decreasingExtent,
+                'top@3': squeezing,
+                'top@4': decreasingExtent,
+            };
             expectSceneTrajectory(trajectory, {
-                [key]: {
-                    ...reshapingPath,
-                    x: { during: 'update', expect: 'constant' },
-                    width: { during: ['update', 'add', 'trailing'], expect: ['increases', 'bounded'] },
-                    subpaths: { during: 'update', expect: 'constant' },
-                },
+                [key]: extentMorph(
+                    { during: 'update', expect: 'constant' },
+                    { during: ['update', 'add', 'trailing'], expect: ['increases', 'bounded'] },
+                    { during: 'update', expect: 'constant' },
+                    [],
+                    addAfterTops
+                ),
                 ...markersFadeIn,
             });
             expectMarkerStartsCollapsed(trajectory, '5');
@@ -645,16 +646,24 @@ describe('LineSeries', () => {
             const key = pathKey(before);
             expect(after.get(key)!.x).toBeCloseTo(before.get(key)!.x, 0);
             expect(after.get(key)!.width).toBeCloseTo(before.get(key)!.width, 0);
+            // The evenly-spaced retained points land exactly on the five fixed-fraction stations, and the
+            // interpolated points fall strictly between them, so every station holds constant even though
+            // the path visibly densifies between the sampled crossings.
+            const addMiddleTops = {
+                'top@0': 'constant' as const,
+                'top@1': 'constant' as const,
+                'top@2': 'constant' as const,
+                'top@3': 'constant' as const,
+                'top@4': 'constant' as const,
+            };
             expectSceneTrajectory(trajectory, {
-                [key]: {
-                    ...reshapingPath,
-                    // Both endpoints are pinned, so the right-edge station holds too — only the interior
-                    // stations resample the reshaped middle.
-                    'top@4': 'constant',
-                    x: { during: 'update', expect: 'constant' },
-                    width: { during: 'update', expect: 'constant' },
-                    subpaths: { during: 'update', expect: 'constant' },
-                },
+                [key]: extentMorph(
+                    { during: 'update', expect: 'constant' },
+                    { during: 'update', expect: 'constant' },
+                    { during: 'update', expect: 'constant' },
+                    [],
+                    addMiddleTops
+                ),
                 ...markersFadeIn,
             });
             expectMarkerStartsCollapsed(trajectory, '1');
@@ -685,16 +694,23 @@ describe('LineSeries', () => {
             expect(markerCount(before)).toBe(6);
             expect(markerCount(after)).toBe(4);
             const key = pathKey(before);
+            // Both endpoints are pinned, so the outermost stations hold too — the interior stations morph
+            // monotonically to where the closed gap now re-samples them.
+            const removeMiddleTops = {
+                'top@0': 'constant' as const,
+                'top@1': decreasingExtent,
+                'top@2': increasingExtent,
+                'top@3': increasingExtent,
+                'top@4': 'constant' as const,
+            };
             expectSceneTrajectory(trajectory, {
-                [key]: {
-                    ...reshapingPath,
-                    // Both endpoints are pinned, so the right-edge station holds too — only the interior
-                    // stations resample the reshaped middle.
-                    'top@4': 'constant',
-                    x: { during: 'update', expect: 'constant' },
-                    width: { during: 'update', expect: 'constant' },
-                    subpaths: { during: 'update', expect: 'constant' },
-                },
+                [key]: extentMorph(
+                    { during: 'update', expect: 'constant' },
+                    { during: 'update', expect: 'constant' },
+                    { during: 'update', expect: 'constant' },
+                    [],
+                    removeMiddleTops
+                ),
                 ...markersFadeIn,
             });
         });
@@ -1635,10 +1651,27 @@ describe('LineSeries', () => {
                         : undefined;
                 },
             };
+            // Both paths tween the same shared x/width; interior stations 1-3 morph the same direction on
+            // each layer, but station 4 diverges — proof the upper layer's new segment moves from its
+            // stacked position rather than snapping up from the baseline.
+            const [lowerKey, upperKey] = pathKeys(before);
+            const sharedInteriorTops = {
+                'top@0': 'constant' as const,
+                'top@1': decreasingExtent,
+                'top@2': decreasingExtent,
+                'top@3': decreasingExtent,
+            };
             expectSceneTrajectory(
                 trajectory,
                 {
-                    'series[*]/path[*]': 'any',
+                    [lowerKey]: extentMorph(decreasingExtent, squeezing, 'constant', [], {
+                        ...sharedInteriorTops,
+                        'top@4': increasingExtent,
+                    }),
+                    [upperKey]: extentMorph(decreasingExtent, squeezing, 'constant', [], {
+                        ...sharedInteriorTops,
+                        'top@4': decreasingExtent,
+                    }),
                     'series[*]/marker[*]': { opacity: fadeIn, ...markerPosition },
                     ...axisReflowSpec('bottom', { shift: 'left' }),
                 },
