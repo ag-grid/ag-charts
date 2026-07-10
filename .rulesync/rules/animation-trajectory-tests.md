@@ -2,7 +2,7 @@
 root: false
 targets: ['*']
 description: 'Frame-trajectory harness usage and pitfalls for AG Charts animation tests'
-globs: ['**/*.test.ts', '**/test/**']
+globs: ['**/series/**/*.test.ts', '**/axis/**/*.test.ts', '**/chart/test/utils.ts']
 ---
 
 # Animation Trajectory Tests

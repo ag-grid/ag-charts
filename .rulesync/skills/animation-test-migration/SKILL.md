@@ -14,10 +14,11 @@ for harness vocabulary. Work one series per PR against `latest`, under the AG-17
 
 ## Step 1 — Inventory the behaviours to cover
 
-1. List every control on the series' `-test` page(s)
+1. List the animation examples on the series' `-test` page(s)
    (`packages/ag-charts-website/src/content/docs/<series>-series-test/_examples/*/main.ts`) — each
-   button becomes at least one trajectory CASE, in both `standalone` and `integrated` mode where
-   the page has an integrated variant (`options.mode: 'integrated'`).
+   control on those examples becomes at least one trajectory CASE, in both `standalone` and
+   `integrated` mode where the page has an integrated variant (`options.mode: 'integrated'`).
+   Non-animation examples on the same page (missing-data rendering, layout variants) stay put.
 2. Add the relevant public `animation` docs-page actions (initial load, add/remove/update data,
    legend toggle) if the page lacks a button for them — same code path, cheap coverage.
 3. List the existing snapshot animation describes in the series' `*.test.ts` and classify each:
@@ -68,13 +69,20 @@ Add 2-3 `expectAnimatedEndpointsMatchStatic` call sites per suite for the highes
 transitions (data update, series add/remove, legend toggle). These replace the endpoint role of
 the deleted 0%/100% snapshots.
 
-## Step 7 — Retire the -test page
+## Step 7 — Retire the animation examples
 
-Only after steps 1-6 are merged-quality and the user signs off:
+Only after steps 1-6 are merged-quality and the user signs off. Scope removal to the animation
+examples, not the whole page — a `-test` page often hosts unrelated examples too (e.g.
+`area-series-test` keeps `missing-data-area`), and only line and bar happened to be
+animation-only:
 
--   delete `packages/ag-charts-website/src/content/docs/<series>-series-test/` (index.mdoc +
-    `_examples/`);
--   delete any `'<series>-series-test'` block in `packages/ag-charts-website/e2e/example-options.ts`;
+-   delete the animation `_examples/<name>/` directories the CASEs now cover, and remove their
+    entries from the page's `index.mdoc`;
+-   remove the matching per-example keys from any `'<series>-series-test'` block in
+    `packages/ag-charts-website/e2e/example-options.ts`;
+-   **only if no examples remain**, delete the whole
+    `packages/ag-charts-website/src/content/docs/<series>-series-test/` directory and its
+    `example-options.ts` block (this is what happened for line and bar);
 -   grep the repo for remaining references (nav.json needs nothing — `-test` pages are excluded
     automatically).
 
