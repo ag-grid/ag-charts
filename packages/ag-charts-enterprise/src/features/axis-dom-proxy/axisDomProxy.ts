@@ -199,7 +199,7 @@ export class AxisDOMProxy extends AbstractModuleInstance {
         const axis = this.pickAxisAtPoint(event);
         if (!axis) return;
 
-        this.dispatchAxisContextMenu(axis.axisId, axis.direction, event.widgetEvent, event.canvasX, event.canvasY);
+        this.dispatchAxisContextMenu(axis.axisId, event.widgetEvent, event.canvasX, event.canvasY);
     }
 
     private onSeriesAreaDoubleClick(event: _ModuleSupport.DragInterpreterDblClickEvent) {
@@ -281,12 +281,13 @@ export class AxisDOMProxy extends AbstractModuleInstance {
 
     private dispatchAxisContextMenu(
         axisId: AxisID,
-        direction: ChartAxisDirection,
         widgetEvent: _Widget.MouseWidgetEvent<'contextmenu'>,
         canvasX: number,
         canvasY: number
     ) {
-        this.ctx.contextMenuRegistry?.dispatchContext('axis', { widgetEvent, canvasX, canvasY }, { axisId, direction });
+        const axisCtx = this.ctx.axisManager.getAxisIdContext(axisId);
+        if (!axisCtx) return;
+        this.ctx.contextMenuRegistry?.dispatchContext('axis', { widgetEvent, canvasX, canvasY }, axisCtx);
     }
 
     private pickAxisAtPoint(point: { canvasX: number; canvasY: number }): AxisHit | undefined {
@@ -346,7 +347,6 @@ export class AxisDOMProxy extends AbstractModuleInstance {
 
     private createAxisDOMProxy(axisId: AxisID, direction: ChartAxisDirection): ProxyAxis {
         const div = this.ctx.widgets.axisWidgets.acquireRegion(axisId);
-        const proxyAxis: ProxyAxis = { axisId, div, direction };
 
         div.addListener('drag-start', (event) => {
             if (!this.isEnabled() || !this.isEnabledDragging()) return;
@@ -389,10 +389,10 @@ export class AxisDOMProxy extends AbstractModuleInstance {
             // nested axis title) was actually hit, so they stay correct once the title is nested.
             const canvasX = event.currentX + div.cssLeft();
             const canvasY = event.currentY + div.cssTop();
-            this.dispatchAxisContextMenu(axisId, direction, event, canvasX, canvasY);
+            this.dispatchAxisContextMenu(axisId, event, canvasX, canvasY);
         });
 
-        return proxyAxis;
+        return { axisId, div, direction };
     }
 
     private diffAxisIds(axesCtx: _ModuleSupport.AxisContext[]) {

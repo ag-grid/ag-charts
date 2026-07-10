@@ -204,6 +204,7 @@ export interface AgContextMenuGetItemsParamsLegendItem<_TDatumReserved = never, 
 
 export type AgContextMenuGetItemsParams<TDatum = DatumDefault, TContext = ContextDefault> =
     | AgContextMenuGetItemsParamsAlways<TDatum, TContext>
+    | AgContextMenuGetItemsParamsAxis<TDatum, TContext>
     | AgContextMenuGetItemsParamsCaption<TDatum, TContext>
     | AgContextMenuGetItemsParamsSeriesArea<TDatum, TContext>
     | AgContextMenuGetItemsParamsSeriesNode<TDatum, TContext>

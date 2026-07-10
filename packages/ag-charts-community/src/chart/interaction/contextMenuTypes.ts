@@ -1,4 +1,4 @@
-import type { AxisID, ChartAxisDirection, RequireOptional } from 'ag-charts-core';
+import type { RequireOptional } from 'ag-charts-core';
 import type {
     AgContextMenuGetItemsParamsCaption,
     AgContextMenuItem,
@@ -8,6 +8,7 @@ import type {
     AgContextMenuItemShowOn,
 } from 'ag-charts-types';
 
+import type { AxisContext } from '../../module/axisContext';
 import type { CategoryLegendDatum } from '../legend/legendDatum';
 import type { ISeries, SeriesNodeDatum } from '../series/seriesTypes';
 
@@ -33,7 +34,7 @@ export interface ContextShowOnMap extends ContextShowOnMapRule {
     axis: {
         event: InferTEvent<'axis'>;
         callback: (param: InferTEvent<'axis'>) => void;
-        context: { axisId: AxisID; direction: ChartAxisDirection };
+        context: AxisContext;
     };
     caption: {
         event: InferTEvent<'caption'>;
