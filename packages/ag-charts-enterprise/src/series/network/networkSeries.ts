@@ -172,16 +172,14 @@ export abstract class AbstractNetworkSeries<
                 }
             }),
             ctx.eventsHub.on('series:keynav-expand', (event) => {
-                if (event.itemId) {
-                    this.expandItem(event.itemId);
-                    this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.PERFORM_LAYOUT });
-                }
+                if (event.itemId == null || event.series !== this) return;
+                this.expandItem(event.itemId);
+                this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.PERFORM_LAYOUT });
             }),
             ctx.eventsHub.on('series:keynav-collapse', (event) => {
-                if (event.itemId) {
-                    this.collapseItem(event.itemId);
-                    this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.PERFORM_LAYOUT });
-                }
+                if (event.itemId == null || event.series !== this) return;
+                this.collapseItem(event.itemId);
+                this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.PERFORM_LAYOUT });
             })
         );
     }
