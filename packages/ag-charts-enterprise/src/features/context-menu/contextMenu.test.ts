@@ -221,6 +221,35 @@ describe('Context Menu', () => {
         });
     });
 
+    describe('legend-item without toggleSeries (AG-17832)', () => {
+        test('shows legend-item items when toggleSeries is false', async () => {
+            await prepareChart(
+                {
+                    enabled: true,
+                    items: [
+                        { type: 'action', label: 'Always Item', showOn: 'always', action: () => {} },
+                        { type: 'action', label: 'Legend Item', showOn: 'legend-item', action: () => {} },
+                    ],
+                },
+                { ...EXAMPLE_OPTIONS, legend: { toggleSeries: false } }
+            );
+
+            const chartInstance = deproxy(chart);
+            const legendBBox = computeLegendBBox(chartInstance);
+            await contextMenuAction(legendBBox.x + 2, legendBBox.y + 2)(chart);
+            await waitForChartStability(chart);
+
+            const labels = Array.from(
+                document.body.getElementsByClassName(
+                    `${DEFAULT_CONTEXT_MENU_CLASS}__item`
+                ) as HTMLCollectionOf<HTMLElement>
+            ).map((item) => item.textContent);
+
+            expect(labels.some((label) => label?.includes('Legend Item'))).toBe(true);
+            expect(labels.some((label) => label?.includes('Always Item'))).toBe(true);
+        });
+    });
+
     test('submenu cycle detection', () => {
         const subsubmenu: Exclude<AgContextMenuItem, string> = { label: 'subsubmenu', items: [] };
         const contextMenu: AgChartOptions['contextMenu'] = {
