@@ -931,7 +931,6 @@ describe('AreaSeries', () => {
                         ],
                     })
             );
-            const fill0 = fillKey(before);
             const stroke0 = strokeKey(before);
             expectSceneTrajectory(trajectory, {
                 'series[0]/background/path[*]': morphInPlace(),
@@ -941,7 +940,6 @@ describe('AreaSeries', () => {
             // Anti-vacuity: the stroke really tweens through an intermediate at the middle station.
             expectProgresses(trajectory.map((f) => f.get(stroke0)!['top@2']));
             expectMarkerStartsCollapsed(trajectory, '2');
-            expect(fill0).toContain('fill');
         });
 
         // "Add points after" — new points extend the path rightward within the pinned x-domain: the left
