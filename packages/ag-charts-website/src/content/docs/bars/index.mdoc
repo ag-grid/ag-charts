@@ -134,7 +134,7 @@ In this example:
 
 ## Skip Null Bars
 
-Use the `skipNullBars` option on a [Category](./axes-types/#category), [Unit Time](./axes-time/#unit-time) or [Ordinal Time](./axes-time/#ordinal-time) axis to prevent bars with `null`, `undefined` or missing values from taking up space within each category band.
+Use the `skipNullBars` option on a [Category](./axes-types/#category), [Unit Time](./axes-time/#unit-time) or [Ordinal Time](./axes-time/#ordinal-time) axis to prevent bars with `null`, `undefined` or missing values from taking up space within each category band. This also closes the gap when a series supplies its own `data` array and a category is absent from it.
 
 {% chartExampleRunner title="Skip Null Bars" name="skip-null-bars" type="generated" /%}
 

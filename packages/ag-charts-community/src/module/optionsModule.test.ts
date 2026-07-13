@@ -475,6 +475,41 @@ describe('ChartOptions', () => {
             expect(messages.some((m) => m.includes('required modules are not registered'))).toBe(true);
             expect(messages.some((m) => m.includes('OrdinalTimeAxisModule'))).toBe(true);
         });
+
+        it('warns with a CDN-friendly message when an enterprise feature is used in UMD mode', () => {
+            ModuleRegistry.setRegistryMode(ModuleRegistry.RegistryMode.UMD);
+            try {
+                prepareOptions({
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    axes: {
+                        x: { type: 'ordinal-time', position: 'bottom' },
+                        y: { type: 'number', position: 'left' },
+                    },
+                });
+
+                const warnings = (console.warn as Mock).mock.calls.map(([m]) => String(m));
+                expect(
+                    warnings.some((m) =>
+                        m.includes(
+                            "unable to use these enterprise features as 'ag-charts-enterprise' has not been loaded"
+                        )
+                    )
+                ).toBe(true);
+                expect(warnings.some((m) => m.includes('ordinal-time'))).toBe(true);
+                expect(
+                    warnings.some((m) => m.includes('https://www.ag-grid.com/charts/javascript/installation/'))
+                ).toBe(true);
+                expect(warnings.some((m) => m.includes('has not been loaded:\n\nordinal-time'))).toBe(true);
+                expect(warnings.some((m) => m.includes('ordinal-time\n\nSee '))).toBe(true);
+                expect(warnings.every((m) => !m.includes('import {'))).toBe(true);
+                expect(warnings.every((m) => !m.includes('ModuleRegistry.registerModules'))).toBe(true);
+
+                const errors = (console.error as Mock).mock.calls.map(([m]) => String(m));
+                expect(errors.every((m) => !m.includes('unable to use these enterprise features'))).toBe(true);
+            } finally {
+                ModuleRegistry.clearRegistryModes();
+            }
+        });
     });
 
     describe('tooltip range warnings', () => {
@@ -620,7 +655,6 @@ describe('ChartOptions', () => {
                     "key": "x",
                   },
                   "selection": {
-                    "clickModifier": "none",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -706,7 +740,6 @@ describe('ChartOptions', () => {
                     "key": "x",
                   },
                   "selection": {
-                    "clickModifier": "none",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -792,7 +825,6 @@ describe('ChartOptions', () => {
                     "key": "x",
                   },
                   "selection": {
-                    "clickModifier": "none",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -878,7 +910,6 @@ describe('ChartOptions', () => {
                     "key": "x",
                   },
                   "selection": {
-                    "clickModifier": "none",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -971,7 +1002,6 @@ describe('ChartOptions', () => {
                     "key": "x",
                   },
                   "selection": {
-                    "clickModifier": "none",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1050,7 +1080,6 @@ describe('ChartOptions', () => {
                     "key": "x",
                   },
                   "selection": {
-                    "clickModifier": "none",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1133,7 +1162,6 @@ describe('ChartOptions', () => {
                     "key": "x",
                   },
                   "selection": {
-                    "clickModifier": "none",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1219,7 +1247,6 @@ describe('ChartOptions', () => {
                     "key": "x",
                   },
                   "selection": {
-                    "clickModifier": "none",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1305,7 +1332,6 @@ describe('ChartOptions', () => {
                     "key": "x",
                   },
                   "selection": {
-                    "clickModifier": "none",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1391,7 +1417,6 @@ describe('ChartOptions', () => {
                     "key": "x",
                   },
                   "selection": {
-                    "clickModifier": "none",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1484,7 +1509,6 @@ describe('ChartOptions', () => {
                     "key": "x",
                   },
                   "selection": {
-                    "clickModifier": "none",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1563,7 +1587,6 @@ describe('ChartOptions', () => {
                     "key": "x",
                   },
                   "selection": {
-                    "clickModifier": "none",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1646,7 +1669,6 @@ describe('ChartOptions', () => {
                     "key": "x",
                   },
                   "selection": {
-                    "clickModifier": "none",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1732,7 +1754,6 @@ describe('ChartOptions', () => {
                     "key": "x",
                   },
                   "selection": {
-                    "clickModifier": "none",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1818,7 +1839,6 @@ describe('ChartOptions', () => {
                     "key": "x",
                   },
                   "selection": {
-                    "clickModifier": "none",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1904,7 +1924,6 @@ describe('ChartOptions', () => {
                     "key": "x",
                   },
                   "selection": {
-                    "clickModifier": "none",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1997,7 +2016,6 @@ describe('ChartOptions', () => {
                     "key": "x",
                   },
                   "selection": {
-                    "clickModifier": "none",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -2076,7 +2094,6 @@ describe('ChartOptions', () => {
                     "key": "x",
                   },
                   "selection": {
-                    "clickModifier": "none",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,

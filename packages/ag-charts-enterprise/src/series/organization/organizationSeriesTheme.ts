@@ -48,10 +48,7 @@ export const organizationSeriesTheme: ExtensibleTheme<'organization'> = {
                 strokeWidth: 2,
             },
         },
-        selection: {
-            ...SERIES_SELECTION_THEME,
-            clickModifier: 'alt',
-        } satisfies Partial<typeof SERIES_SELECTION_THEME> as Partial<typeof SERIES_SELECTION_THEME>,
+        selection: SERIES_SELECTION_THEME,
         link: {
             interpolation: {
                 type: 'step',
@@ -118,6 +115,17 @@ export const organizationSeriesTheme: ExtensibleTheme<'organization'> = {
                     spacing: 4,
                     textAlign: 'center',
                     wrapping: 'on-space',
+                },
+            },
+            clickToExpand: {
+                $not: {
+                    $or: [
+                        { $path: ['/series/$index/selection/enabled', false] },
+                        { $isUserOption: ['/listeners/seriesNodeClick', true, false] },
+                        { $isUserOption: ['/listeners/seriesNodeDoubleClick', true, false] },
+                        { $isUserOption: ['/series/$index/listeners/seriesNodeClick', true, false] },
+                        { $isUserOption: ['/series/$index/listeners/seriesNodeDoubleClick', true, false] },
+                    ],
                 },
             },
         },

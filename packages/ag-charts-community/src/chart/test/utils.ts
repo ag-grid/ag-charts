@@ -1044,6 +1044,58 @@ export function spyOnAnimationFrames() {
     return { runToEnd, captureAnimationFrames, captureUpdate };
 }
 
+// Guards against a vacuously-identical comparison: a chart that failed to render leaves the
+// snapshot canvas uniform, and two uniform snapshots always match.
+export function expectNonBlank(image: ImageData): void {
+    const [r, g, b, a] = image.data;
+    let uniform = true;
+    for (let i = 4; uniform && i < image.data.length; i += 4) {
+        uniform = image.data[i] === r && image.data[i + 1] === g && image.data[i + 2] === b && image.data[i + 3] === a;
+    }
+    expect(uniform, 'expected the rendered chart to produce a non-uniform snapshot').toBe(false);
+}
+
+/**
+ * Endpoint sanity guard for trajectory suites: the animated routes into `before` (the initial reveal)
+ * and `after` (the transition) must settle at exactly the pixels a non-animated (snapped) render of the
+ * same options produces, compared in memory via `toMatchImage`.
+ *
+ * Must run on the suite's single snapshot-backed chart: create the chart with `before` immediately
+ * beforehand and pass the un-mutated option objects here. The static legs snap via the public
+ * `chart.skipAnimations()` — `animation: { enabled: false }` is inert under `spyOnAnimationFrames`,
+ * which preserves only batch-level skips. A static-start mismatch has two readings: the animated
+ * reveal not settling at the static render, or the `after` → `before` update not round-tripping.
+ */
+export async function expectAnimatedEndpointsMatchStatic(
+    frames: Pick<ReturnType<typeof spyOnAnimationFrames>, 'runToEnd'>,
+    snapshot: () => ImageData,
+    chart: AgChartInstance,
+    before: AgChartOptions,
+    after: AgChartOptions,
+    { transition, writeDiff = true }: { transition?: () => void | Promise<void>; writeDiff?: boolean } = {}
+): Promise<void> {
+    await frames.runToEnd(chart);
+    const animatedStart = snapshot();
+    expectNonBlank(animatedStart);
+
+    await (transition ? transition() : chart.update(after));
+    await frames.runToEnd(chart);
+    const animatedEnd = snapshot();
+    expectNonBlank(animatedEnd);
+    // A transition that changes no pixels would let all four comparisons pass vacuously.
+    expect(animatedEnd).not.toMatchImage(animatedStart, { writeDiff: false });
+
+    chart.skipAnimations();
+    await chart.update(before);
+    await frames.runToEnd(chart);
+    expect(snapshot()).toMatchImage(animatedStart, { writeDiff });
+
+    chart.skipAnimations();
+    await chart.update(after);
+    await frames.runToEnd(chart);
+    expect(snapshot()).toMatchImage(animatedEnd, { writeDiff });
+}
+
 /**
  * Assert a numeric series never reverses direction (monotonic non-strict). With `direction` omitted the
  * dominant direction is inferred from the endpoints; a flat series (all-equal) satisfies either direction.
@@ -1782,11 +1834,13 @@ export function expectSceneTrajectory(
 
         for (const prop of props) {
             const raw = expectation === 'constant' ? 'constant' : ((expectation as any)[prop] ?? 'constant');
-            // `constant`/`bounded`/`settlesAt` all pin absolute position, so they must use the prop's
-            // native scale; direction (`monotonic`) and `progresses` are scale-agnostic and keep the
-            // pixel tolerances.
-            const propConstantTol = EXACT_MATCH_PROPS.has(prop) ? EXACT_MATCH_TRAJECTORY_TOL : constantTol;
-            const propTolerances = { ...tolerances, constant: propConstantTol };
+            // Flag/range props must be judged on their native 0..1 scale for constancy AND direction:
+            // at the pixel-scaled monotonic tolerance every per-frame opacity step fits both
+            // `increases` and `decreases`, making direction assertions vacuous. `progresses` keeps its
+            // own scale-free spread tolerance.
+            const propTolerances = EXACT_MATCH_PROPS.has(prop)
+                ? { ...tolerances, constant: EXACT_MATCH_TRAJECTORY_TOL, monotonic: EXACT_MATCH_TRAJECTORY_TOL }
+                : tolerances;
             const isPhased = typeof raw === 'object' && !Array.isArray(raw);
             const propExpectations: TrajectoryExpectation[] = [isPhased ? (raw.expect ?? []) : raw].flat();
             const rawValues = rawValuesFor(prop);
@@ -1828,7 +1882,7 @@ export function expectSceneTrajectory(
             }
             if (isPhased && raw.settlesAt != null) {
                 const finalValue = checkedValues.at(-1)!;
-                if (Math.abs(finalValue - raw.settlesAt) > propConstantTol) {
+                if (Math.abs(finalValue - raw.settlesAt) > propTolerances.constant) {
                     violations.push({
                         key,
                         prop,

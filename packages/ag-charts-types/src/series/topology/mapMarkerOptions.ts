@@ -1,7 +1,7 @@
 import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from '../../chart/callbackOptions';
 import type { AgChartLabelCollisionPlacement } from '../../chart/collisionAvoidanceOptions';
 import type { AgNumericValue } from '../../chart/dataValues';
-import type { AgChartLabelOptions } from '../../chart/labelOptions';
+import type { AgChartLabelFitOptions, AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { AgMarkerShape, ContextDefault, DatumDefault, DatumKey, GeoJSON, PixelSize } from '../../chart/types';
 import type { AgColorScale, FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
@@ -70,11 +70,10 @@ export interface AgMapMarkerSeriesStyle extends FillOptions, StrokeOptions, Line
     size?: PixelSize;
 }
 
-export interface AgMapMarkerSeriesLabel<TDatum, TContext = ContextDefault> extends AgChartLabelOptions<
-    TDatum,
-    AgMapMarkerSeriesLabelFormatterParams<TDatum>,
-    TContext
-> {
+export interface AgMapMarkerSeriesLabel<TDatum, TContext = ContextDefault>
+    extends
+        AgChartLabelOptions<TDatum, AgMapMarkerSeriesLabelFormatterParams<TDatum>, TContext>,
+        AgChartLabelFitOptions {
     /**
      * Placement of the label in relation to the marker. Either a single placement or an ordered
      * fallback list tried in turn until one fits.

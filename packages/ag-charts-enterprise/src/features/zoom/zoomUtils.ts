@@ -47,6 +47,19 @@ export function pointToRatio(bbox: BoxBounds, x: number, y: number): { x: number
 }
 
 /**
+ * Position on the series rect as a ratio, without pinning the point to the rect edges. A drag gesture
+ * naturally travels to and past the plot edge, so the delta must keep growing once the pointer leaves it.
+ */
+export function pointToRatioUnconstrained(bbox: BoxBounds, x: number, y: number): { x: number; y: number } {
+    if (!bbox) return { x: 0, y: 0 };
+
+    const rx = (x - bbox.x) / bbox.width;
+    const ry = 1 - (y - bbox.y) / bbox.height;
+
+    return { x: rx, y: ry };
+}
+
+/**
  * Translate a zoom bounding box by shifting all points by the given x & y amounts.
  */
 export function translateZoom(zoom: DefinedZoomState, x: number, y: number): DefinedZoomState {

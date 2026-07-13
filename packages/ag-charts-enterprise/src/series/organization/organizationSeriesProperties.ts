@@ -201,6 +201,9 @@ class OrganizationSeriesNodeProperties extends BaseProperties {
 
     @Property
     labels = new PropertiesArray(OrganizationSeriesNodeTextProperties);
+
+    @Property
+    clickToExpand = true;
 }
 
 export class OrganizationSeriesNodeImageProperties extends BaseProperties {

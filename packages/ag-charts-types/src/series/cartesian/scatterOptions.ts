@@ -8,7 +8,11 @@ import type {
 } from '../../chart/callbackOptions';
 import type { AgChartLabelCollisionPlacement } from '../../chart/collisionAvoidanceOptions';
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from '../../chart/errorBarOptions';
-import type { AgChartLabelOptions, AgSeriesLabelPlacementStyleOptions } from '../../chart/labelOptions';
+import type {
+    AgChartLabelFitOptions,
+    AgChartLabelOptions,
+    AgSeriesLabelPlacementStyleOptions,
+} from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault, DatumKey } from '../../chart/types';
 import type { AgSeriesMarkerStyle } from '../markerOptions';
@@ -53,6 +57,7 @@ export type AgScatterSeriesItemStylerParams<TDatum = DatumDefault, TContext = Co
 export interface AgScatterSeriesLabel<TDatum, TContext = ContextDefault>
     extends
         AgChartLabelOptions<TDatum, AgScatterSeriesLabelFormatterParams<TDatum>, TContext>,
+        AgChartLabelFitOptions,
         AgSeriesLabelPlacementStyleOptions {
     /**
      * Placement of the label in relation to the marker. Either a single placement or an ordered

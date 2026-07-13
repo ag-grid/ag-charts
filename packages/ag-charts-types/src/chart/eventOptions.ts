@@ -2,6 +2,7 @@ import type { AgActiveState } from '../api/activeState';
 import type { AgStateGroupingValueType, AgStateValueType } from '../api/stateTypes';
 import type { TextOrSegments } from '../series/cartesian/commonOptions';
 import type { AgAnnotation } from './annotationsOptions';
+import type { AgAxisBoundSeries, AgAxisDirection, AgAxisDomain } from './axisOptions';
 import type { AgItemType, Listener, SelectionState } from './callbackOptions';
 import type { AgNumericValue } from './dataValues';
 import type { ContextDefault, DatumDefault, Ratio, ResolvedDatumKey } from './types';
@@ -168,6 +169,22 @@ export type AgSeriesAreaContextMenuActionEvent<TContext = ContextDefault> = AgCh
 >;
 
 export type AgCaptionType = 'title' | 'subtitle' | 'footnote';
+
+export interface AgAxisContextMenuActionEvent<TContext = ContextDefault> extends AgChartEvent<
+    'axisContextMenuAction',
+    TContext
+> {
+    /** Axis ID, as specified in `axes`. */
+    axisId: string;
+    /** TODO: TBD */
+    value: number | bigint | string | Date;
+    /** Direction of the axis the title belongs to. */
+    direction: AgAxisDirection;
+    /** Metadata about series bound to the axis the title belongs to. */
+    boundSeries: AgAxisBoundSeries[];
+    /** Computed domain of the axis */
+    domain: AgAxisDomain[];
+}
 
 export interface AgCaptionContextMenuActionEvent<TContext = ContextDefault> extends AgChartEvent<
     'captionContextMenuAction',

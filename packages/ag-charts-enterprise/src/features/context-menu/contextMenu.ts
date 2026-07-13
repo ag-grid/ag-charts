@@ -1,14 +1,18 @@
 import type {
+    AgAxisContextMenuActionEvent,
     AgCaptionContextMenuActionEvent,
     AgContextMenuGetItemsParams,
+    AgContextMenuGetItemsParamsAxis,
     AgContextMenuGetItemsParamsSeriesNode,
     AgContextMenuItem,
     AgContextMenuItemShowOn,
+    ContextDefault,
+    DatumDefault,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
+import type { DynamicContext, RequireOptional } from 'ag-charts-core';
 import {
     AbstractModuleInstance,
-    type DynamicContext,
     Logger,
     callWithContext,
     clamp,
@@ -19,6 +23,7 @@ import {
 
 import { ContextMenuItem, expandBuiltinLists, expandItems } from './contextMenuItem';
 import { DEFAULT_CONTEXT_MENU_CLASS } from './contextMenuStyles';
+import { type PublicAxisContext, toPublicAxisContext } from './contextMenuUtil';
 
 type ContextShowOnMap = _ModuleSupport.ContextShowOnMap;
 type ContextMenuEvent<K extends AgContextMenuItemShowOn = AgContextMenuItemShowOn> = _ModuleSupport.ContextMenuEvent<K>;
@@ -75,6 +80,7 @@ export class ContextMenu extends AbstractModuleInstance {
     private pickedNode: PickedNode | undefined = undefined;
     private pickedLegendItem?: _ModuleSupport.CategoryLegendDatum;
     private pickedCaptionCtx?: ContextShowOnMap['caption']['context'];
+    private pickedAxisCtx?: PublicAxisContext;
     private x: number = 0;
     private y: number = 0;
     private collapsingSubMenus = 0;
@@ -132,7 +138,22 @@ export class ContextMenu extends AbstractModuleInstance {
             });
         };
 
-        this.cleanup.register(this.ctx.eventsHub.on('context-menu:complete', (e) => this.onContext(e)));
+        this.cleanup.register(
+            this.ctx.eventsHub.on('context-menu:complete', (e) => this.onContext(e)),
+            this.ctx.eventsHub.on('layout:complete', () => this.updateAxisDOMProxy())
+        );
+    }
+
+    private updateAxisDOMProxy() {
+        const enabled = this.opts.enabled ?? true;
+        this.ctx.eventsHub.emit('axis-dom-proxy:update', {
+            source: moduleId,
+            enabled,
+            enableDoubleClick: false,
+            enableDragging: false,
+            enableScrolling: false,
+            enableContextMenu: enabled,
+        });
     }
 
     private makeGetItemsParams(event: ContextMenuEvent): AgContextMenuGetItemsParams {
@@ -169,6 +190,22 @@ export class ContextMenu extends AbstractModuleInstance {
                     const { datums, binIndex, binRange, aggregatedValue, frequency } = this.pickedNode;
                     Object.assign(params, { datums, binIndex, binRange, aggregatedValue, frequency });
                 }
+                return params;
+            }
+
+            case 'axis': {
+                if (this.pickedAxisCtx == null) throw new Error(`this.pickedAxisCtx is null`);
+                const { axisId, boundSeries, direction, domain, value } = this.pickedAxisCtx;
+                const params: RequireOptional<AgContextMenuGetItemsParamsAxis<DatumDefault, ContextDefault>> = {
+                    showOn,
+                    context: this.pickedAxisCtx.context ?? context,
+                    defaultItems,
+                    axisId,
+                    boundSeries,
+                    direction,
+                    domain,
+                    value,
+                };
                 return params;
             }
 
@@ -220,6 +257,8 @@ export class ContextMenu extends AbstractModuleInstance {
             this.pickedLegendItem = event.context.legendItem;
         } else if (ContextMenuRegistry.check('caption', event)) {
             this.pickedCaptionCtx = event.context;
+        } else if (ContextMenuRegistry.check('axis', event)) {
+            this.pickedAxisCtx = toPublicAxisContext(event);
         }
 
         const expandedItems = this.expandItemsOptions(event);
@@ -382,6 +421,26 @@ export class ContextMenu extends AbstractModuleInstance {
                     callWithContext(callers, callback, apiEvent);
                 } else {
                     Logger.error('series node not found');
+                }
+                this.hide();
+            };
+        } else if (ContextMenuRegistry.checkCallback('axis', showOn, callback)) {
+            return () => {
+                if (this.pickedAxisCtx) {
+                    const { axisId, direction, boundSeries, domain, value } = this.pickedAxisCtx;
+                    const callers: Caller[] = [this.pickedAxisCtx, this.ctx.chartService];
+                    const apiEvent: Omit<AgAxisContextMenuActionEvent<never>, 'context'> = {
+                        type: 'axisContextMenuAction',
+                        event: showEvent,
+                        axisId,
+                        direction,
+                        boundSeries,
+                        domain,
+                        value,
+                    };
+                    callWithContext(callers, callback, apiEvent);
+                } else {
+                    Logger.error('axis item not found');
                 }
                 this.hide();
             };

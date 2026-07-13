@@ -20,6 +20,7 @@ import {
     STRIPPED_NUMBER_AXES,
     STRIPPED_TIME_AXES,
     expectPixelIdenticalAcrossMagnitude,
+    expectPixelIdenticalAcrossUpdate,
     isoEpochPair,
     magnitudePair,
     scaleToBigIntFinite,
@@ -46,6 +47,7 @@ import {
     createChart,
     createSceneGeometrySampler,
     deproxy,
+    expectAnimatedEndpointsMatchStatic,
     expectNoAnimation,
     expectSceneSamplesMatch,
     expectSceneTrajectory,
@@ -544,157 +546,20 @@ describe('BarSeries', () => {
         });
     });
 
-    describe('initial animation', () => {
-        const animate = spyOnAnimationManager();
-
-        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-            it(`for COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS should animate at ${ratio * 100}%`, async () => {
-                animate(1200, ratio);
-
-                const options: AgChartOptions = { ...examples.COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS };
-                prepareTestOptions(options);
-
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
-                await compare();
-            });
-        }
-
-        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-            it(`for BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS should animate at ${ratio * 100}%`, async () => {
-                animate(1200, ratio);
-
-                const options: AgChartOptions = { ...examples.BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS };
-                prepareTestOptions(options);
-
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
-                await compare();
-            });
-        }
-    });
-
-    describe('remove animation', () => {
-        const animate = spyOnAnimationManager();
-
-        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-            it(`for COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS should animate at ${ratio * 100}%`, async () => {
-                animate(1200, 1);
-
-                const options: AgChartOptions = { ...examples.COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS };
-                prepareTestOptions(options);
-
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
-
-                animate(1200, ratio);
-                await chart.updateDelta({
-                    data: [...options.data!.slice(2, 4), ...options.data!.slice(6, -2)],
-                });
-
-                await waitForChartStability(chart);
-                await compare();
-            });
-        }
-
-        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-            it(`for BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS should animate at ${ratio * 100}%`, async () => {
-                animate(1200, 1);
-
-                const options: AgChartOptions = { ...examples.BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS };
-                prepareTestOptions(options);
-
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
-
-                animate(1200, ratio);
-                await chart.updateDelta({
-                    data: options.data!.slice(0, options.data!.length / 2),
-                });
-
-                await waitForChartStability(chart);
-                await compare();
-            });
-        }
-    });
-
-    describe('add animation', () => {
-        const animate = spyOnAnimationManager();
-
-        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-            it(`for COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS should animate at ${ratio * 100}%`, async () => {
-                animate(1200, 1);
-
-                const options: AgChartOptions = { ...examples.COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS };
-                prepareTestOptions(options);
-
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
-
-                await chart.updateDelta({
-                    data: [...options.data!.slice(2, 4), ...options.data!.slice(6, -2)],
-                });
-                await waitForChartStability(chart);
-
-                animate(1200, ratio);
-                await chart.update(options);
-
-                await waitForChartStability(chart);
-                await compare();
-            });
-        }
-
-        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-            it(`for BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS should animate at ${ratio * 100}%`, async () => {
-                animate(1200, 1);
-
-                const options: AgChartOptions = { ...examples.BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS };
-                prepareTestOptions(options);
-
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
-
-                await chart.updateDelta({
-                    data: options.data!.slice(0, options.data!.length / 2),
-                });
-                await waitForChartStability(chart);
-
-                animate(1200, ratio);
-                await chart.update(options);
-
-                await waitForChartStability(chart);
-                await compare();
-            });
-        }
-    });
+    // Initial-load reveals and data add/remove animations are pinned per-frame by the trajectory
+    // CASEs ('standalone: initial load', the integrated initial-load variants, spike CASE 2, and
+    // 'remove data') in the suites below.
 
     describe('update animation', () => {
         const animate = spyOnAnimationManager();
 
-        // Only the endpoint (0%/100%) snapshots are kept as a visual sanity check; update-animation
-        // invariants at intermediate frames are asserted by the frame-trajectory tests below (CASE 1
-        // covers the same update shape, albeit on a category rather than time x-axis).
-        for (const ratio of [0, 1]) {
-            it(`for COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS should animate at ${ratio * 100}%`, async () => {
-                animate(1200, 1);
+        // Update-animation trajectories are pinned by spike CASE 1 and the 'sanity: randomise'
+        // endpoint guard; no per-ratio snapshots remain for the plain update.
 
-                const options: AgChartOptions = { ...examples.COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS };
-                prepareTestOptions(options);
-
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
-
-                animate(1200, ratio);
-                await chart.updateDelta({
-                    data: [...options.data!.map((d, i) => (i % 2 === 0 ? { ...d, value: d.value * 2 } : d))],
-                });
-
-                await waitForChartStability(chart);
-                await compare();
-            });
-        }
-
-        for (const ratio of [0, 0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2]) {
+        // Re-add paint fidelity only (palette and label pixels are invisible to the geometry
+        // sampler): CASE 10 pins the full toggle trajectory, so just a mid-flight and settled
+        // frame of the re-add leg are snapshotted.
+        for (const ratio of [1.5, 2]) {
             it(`for BAR_STACKED_AND_GROUPED_NUMBER_CRT_950 should animate at ${ratio * 100}%`, async () => {
                 animate(1200, 1);
 
@@ -1295,6 +1160,16 @@ describe('BarSeries', () => {
             expectSceneShifted(before, trajectory.at(-1)!);
         });
 
+        // The create-time reveal in standalone mode (the integrated variants below re-run it via
+        // resetAnimations; this pins the plain first render).
+        it('standalone: initial load reveals bars from the baseline', async () => {
+            chart = AgCharts.create(groupedOptions());
+            const sampleScene = createSceneGeometrySampler(chart);
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
+            expectSceneTrajectory(trajectory, revealFromBaseline('height'));
+            expectStartsCollapsed(trajectory[0], 'series[0]/rect[Q1]', 'height');
+        });
+
         // The grouped-category axis is what AG Grid integrated charts use for row groups.
         it('integrated mode: grouped-category chart reveals bars from the baseline on initial load', async () => {
             chart = AgCharts.create(groupedCategoryOptions());
@@ -1380,42 +1255,206 @@ describe('BarSeries', () => {
                 ).toBe(true);
             }
         });
-    });
 
-    describe('legend toggle animation', () => {
-        const animate = spyOnAnimationManager();
+        // A series toggle snaps structurally at frame 0 (the labels group flips visible, re-entering
+        // rects arrive from a null-x placeholder), which trips captureUpdate's whole-scene start
+        // anchor — so the toggle CASEs hand-roll the capture, keeping only the end anchor (as the
+        // line suite's captureFrom does).
+        const captureToggle = async (create: AgCartesianChartOptions, action: () => Promise<void> | void) => {
+            chart = AgCharts.create(create);
+            await frames.runToEnd(chart);
+            const sampleScene = createSceneGeometrySampler(chart);
+            await action();
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
+            await frames.runToEnd(chart);
+            const after = sampleScene();
+            expectSceneSamplesMatch(trajectory.at(-1)!, after);
+            return { trajectory, after };
+        };
 
-        let options: AgChartOptions;
+        // Survivors of a series toggle re-share the category band: width tweens during update while
+        // the value dimension holds (bounded absorbs the crisp-pixel settle).
+        const survivorBands = (width: 'increases' | 'decreases'): SceneNodeExpectation =>
+            ({
+                width: { during: 'update', expect: [width, 'progresses'] },
+                x: { during: 'update', expect: 'bounded' },
+                height: 'bounded',
+                y: 'bounded',
+            }) as const;
 
-        beforeEach(() => {
-            options = { ...examples.BAR_CHART_WITH_LABELS_EXAMPLE };
-            prepareTestOptions(options);
-            options.series = [options.series![0], { ...options.series![0], visible: true }];
-            options.data = options.data?.slice(0, 3);
-        });
-
-        it('should render to canvas as expected', async () => {
-            animate(1200, 1);
-            chart = AgCharts.create(options);
-            await compare();
-        });
-
-        for (const ratio of [0, 0.2, 0.5, 0.8, 0.9, 1]) {
-            it(`for BAR_CHART_WITH_LABELS_EXAMPLE should animate at ${ratio * 100}%`, async () => {
-                animate(1200, 1);
-
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
-
-                animate(1200, ratio);
-                (options.series![1] as AgBarSeriesOptions).visible = false;
-                await chart.update(options);
-
-                await waitForChartStability(chart);
-                await compare();
+        // "Toggle series off" — a two-beat exit: the toggled-off bars first collapse to the baseline
+        // (remove phase, their band frozen), THEN the survivors widen into the vacated band (update
+        // phase). Contrast with the stacked CRT-1040 toggle below, which coordinates in one beat.
+        it('legend hide: toggled-off bars collapse to the baseline before survivors widen', async () => {
+            const options = groupedOptions();
+            const { trajectory, after } = await captureToggle(options, () =>
+                chart.update({
+                    ...options,
+                    series: options.series!.map((s, i) => (i === 1 ? { ...s, visible: false } : s)),
+                })
+            );
+            // Anti-vacuity: the toggled-off bar starts at full height and must genuinely collapse.
+            expect(trajectory[0].get('series[1]/rect[Q1]')!.height).toBeGreaterThan(40);
+            expectSceneTrajectory(trajectory, {
+                'series[1]/rect[*]': {
+                    height: { during: 'remove', expect: ['decreases', 'bounded'], settlesAt: 0 },
+                    y: { during: 'remove', expect: ['increases', 'bounded'] },
+                },
+                'series[0]/rect[*]': survivorBands('increases'),
+                'series[2]/rect[*]': survivorBands('increases'),
             });
-        }
+            expect(after.get('series[1]/rect[Q1]')!.height).toBe(0);
+        });
+
+        // "Toggle series back on" — the exit in reverse: survivors narrow to re-make room (update
+        // phase), then the re-shown bars grow back from the baseline (add phase) — a grow, not a fade.
+        it('legend show: survivors narrow before the re-shown bars grow from the baseline', async () => {
+            const options = groupedOptions();
+            const hidden = {
+                ...options,
+                series: options.series!.map((s, i) => (i === 1 ? { ...s, visible: false } : s)),
+            };
+            const { trajectory, after } = await captureToggle(hidden, () => chart.update(options));
+            expectStartsCollapsed(trajectory[0], 'series[1]/rect[Q1]', 'height');
+            expectSceneTrajectory(trajectory, {
+                'series[1]/rect[*]': {
+                    height: { during: 'add', expect: ['increases', 'bounded'] },
+                    y: { during: 'add', expect: ['decreases', 'bounded'] },
+                },
+                'series[0]/rect[*]': survivorBands('decreases'),
+                'series[2]/rect[*]': survivorBands('decreases'),
+            });
+            expect(after.get('series[1]/rect[Q1]')!.height).toBeGreaterThan(40);
+        });
+
+        // CRT-1040: a stacked legend toggle must animate as ONE coordinated update — the toggled-off
+        // layer collapses at the baseline while the survivors slide down into its place, tiling
+        // contiguously on every frame. The historic bug left the invisible series without nodeData, so
+        // it ran the desynchronised remove/add phases instead; the `during: 'update'` windows are the
+        // regression detector.
+        it('CRT-1040 stacked toggle: survivors slide in the coordinated update phase, tiling contiguously', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { category: 'A', v1: 10, v2: 20, v3: 15 },
+                    { category: 'B', v1: 30, v2: 40, v3: 25 },
+                    { category: 'C', v1: 20, v2: 10, v3: 35 },
+                ],
+                series: [
+                    { type: 'bar', xKey: 'category', yKey: 'v1', stacked: true },
+                    { type: 'bar', xKey: 'category', yKey: 'v2', stacked: true },
+                    { type: 'bar', xKey: 'category', yKey: 'v3', stacked: true },
+                ],
+                // Pinned so the toggle is non-scale-affecting: survivors slide, nothing rescales.
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left', min: 0, max: 110 },
+                },
+            };
+            prepareTestOptions(options);
+            const { trajectory, after } = await captureToggle(options, () =>
+                chart.update({
+                    ...options,
+                    series: options.series!.map((s, i) => (i === 0 ? { ...s, visible: false } : s)),
+                })
+            );
+            const slideDown: SceneNodeExpectation = {
+                y: { during: 'update', expect: ['increases', 'progresses', 'bounded'] },
+                height: { during: 'update', expect: 'bounded' },
+                x: { during: 'update', expect: 'bounded' },
+                width: { during: 'update', expect: 'bounded' },
+            };
+            const stackedContiguous: SceneFrameInvariant = {
+                name: 'stack tiles contiguously above the collapsing layer',
+                check: (frame) => {
+                    for (const cat of ['A', 'B', 'C']) {
+                        const [v1, v2, v3] = [0, 1, 2].map((i) => frame.get(`series[${i}]/rect[${cat}]`));
+                        if (v1 == null || v2 == null || v3 == null) return `missing rects for category ${cat}`;
+                        const gaps = [Math.abs(v2.y + v2.height - v1.y), Math.abs(v3.y + v3.height - v2.y)];
+                        if (gaps.some((gap) => gap > 1)) {
+                            return `stack gap at category ${cat}: [${gaps.map((g) => g.toFixed(2)).join(', ')}]`;
+                        }
+                    }
+                    return undefined;
+                },
+            };
+            expect(trajectory[0].get('series[0]/rect[A]')!.height).toBeGreaterThan(40);
+            expectSceneTrajectory(
+                trajectory,
+                {
+                    'series[0]/rect[*]': {
+                        height: { during: 'update', expect: ['decreases', 'bounded'], settlesAt: 0 },
+                        y: { during: 'update', expect: ['increases', 'bounded'] },
+                    },
+                    'series[1]/rect[*]': slideDown,
+                    'series[2]/rect[*]': slideDown,
+                },
+                { frameInvariants: [stackedContiguous] }
+            );
+            expect(after.get('series[0]/rect[A]')!.height).toBe(0);
+        });
+
+        // Endpoint sanity guards: the animated route must settle at exactly the pixels a snapped
+        // render of the same options produces (see expectAnimatedEndpointsMatchStatic).
+        it('sanity: randomise endpoints match static renders', async () => {
+            const options = groupedOptions();
+            chart = AgCharts.create(options);
+            await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, options, {
+                ...options,
+                data: [
+                    { quarter: 'Q1', iphone: 70, mac: 40, services: 110 },
+                    { quarter: 'Q2', iphone: 90, mac: 140, services: 15 },
+                ],
+            });
+        });
+
+        it('sanity: remove series endpoints match static renders', async () => {
+            const options = groupedOptions();
+            chart = AgCharts.create(options);
+            await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, options, {
+                ...options,
+                series: options.series!.slice(0, 2),
+            });
+        });
+
+        it('sanity: series re-add endpoints match static renders', async () => {
+            const full = prepareTestOptions({ ...examples.BAR_STACKED_AND_GROUPED_NUMBER_CRT_950 });
+            const reduced = { ...full, series: full.series!.slice(0, 2) };
+            chart = AgCharts.create(reduced);
+            await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, reduced, full);
+        });
+
+        // Meta-tests: the endpoint guard must fail loudly in both comparison directions.
+        describe('endpoint sanity guard validation', () => {
+            it('rejects when a static render diverges from the animated settle', async () => {
+                const options = groupedOptions();
+                chart = AgCharts.create(options);
+                const divergedStart = {
+                    ...options,
+                    data: options.data!.map((d) => ({ ...d, iphone: d.iphone / 2 })),
+                };
+                const grownEnd = {
+                    ...options,
+                    data: [...options.data!, { quarter: 'Q3', iphone: 80, mac: 40, services: 50 }],
+                };
+                await expect(
+                    expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, divergedStart, grownEnd, {
+                        writeDiff: false,
+                    })
+                ).rejects.toThrow(/pixels different/);
+            });
+
+            it('rejects a transition that changes no pixels', async () => {
+                const options = groupedOptions();
+                chart = AgCharts.create(options);
+                await expect(
+                    expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, options, { ...options })
+                ).rejects.toThrow(/pixels different/);
+            });
+        });
     });
+
+    // Legend toggle animations are pinned per-frame by the 'legend hide'/'legend show' trajectory
+    // CASEs in 'animation -test page actions'.
 
     // CRT-1040: Invisible stacked series must still populate nodeData so animation uses the
     // coordinated 'update' phase rather than the out-of-sync 'remove'/'add' phases.
@@ -1456,35 +1495,8 @@ describe('BarSeries', () => {
             }
         });
 
-        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-            it(`should animate coordinated legend toggle at ${ratio * 100}%`, async () => {
-                animate(1200, 1);
-
-                const options: AgChartOptions = {
-                    data: [
-                        { category: 'A', v1: 10, v2: 20, v3: 15 },
-                        { category: 'B', v1: 30, v2: 40, v3: 25 },
-                        { category: 'C', v1: 20, v2: 10, v3: 35 },
-                    ],
-                    series: [
-                        { type: 'bar', xKey: 'category', yKey: 'v1', stacked: true },
-                        { type: 'bar', xKey: 'category', yKey: 'v2', stacked: true },
-                        { type: 'bar', xKey: 'category', yKey: 'v3', stacked: true },
-                    ],
-                };
-                prepareTestOptions(options);
-
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
-
-                animate(1200, ratio);
-                (options.series![0] as AgBarSeriesOptions).visible = false;
-                await chart.update(options);
-                await waitForChartStability(chart);
-
-                await compare();
-            });
-        }
+        // The coordinated-toggle animation itself is pinned per-frame by the 'CRT-1040 stacked
+        // toggle' trajectory CASE in 'animation -test page actions'.
     });
 
     describe('invalid data domain', () => {
@@ -3231,6 +3243,114 @@ describe('BarSeries', () => {
 
             chart = AgCharts.create(options);
             await compare();
+        });
+
+        it.each(directions)('per-series data arrays %s', async (direction) => {
+            const options: AgCartesianChartOptions = {
+                series: [
+                    {
+                        type: 'bar',
+                        direction,
+                        xKey: 'quarter',
+                        yKey: 'value',
+                        data: [
+                            { quarter: "Q1'24", value: 5100 },
+                            { quarter: "Q2'24", value: 5400 },
+                            { quarter: "Q4'24", value: 5700 },
+                        ],
+                    },
+                    {
+                        type: 'bar',
+                        direction,
+                        xKey: 'quarter',
+                        yKey: 'value',
+                        data: [
+                            { quarter: "Q2'24", value: 3400 },
+                            { quarter: "Q3'24", value: 3800 },
+                        ],
+                    },
+                    {
+                        type: 'bar',
+                        direction,
+                        xKey: 'quarter',
+                        yKey: 'value',
+                        data: [
+                            { quarter: "Q1'24", value: 3500 },
+                            { quarter: "Q3'24", value: 2500 },
+                            { quarter: "Q4'24", value: 3100 },
+                        ],
+                    },
+                ],
+                axes: {
+                    [direction === 'horizontal' ? 'y' : 'x']: {
+                        type: 'category',
+                        skipNullBars: true,
+                    },
+                },
+            };
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('per-series data arrays render identically to equivalent shared-data nulls', async () => {
+            const axes: AgCartesianChartOptions['axes'] = {
+                x: { type: 'category', skipNullBars: true },
+                y: { type: 'number' },
+            };
+            const perSeriesData: AgCartesianChartOptions = {
+                legend: { enabled: false },
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'quarter',
+                        yKey: 'value',
+                        data: [
+                            { quarter: "Q1'24", value: 5100 },
+                            { quarter: "Q2'24", value: 5400 },
+                            { quarter: "Q3'24", value: 4900 },
+                            { quarter: "Q4'24", value: 5700 },
+                        ],
+                    },
+                    {
+                        type: 'bar',
+                        xKey: 'quarter',
+                        yKey: 'value',
+                        data: [
+                            { quarter: "Q1'24", value: 3500 },
+                            { quarter: "Q3'24", value: 2500 },
+                        ],
+                    },
+                    {
+                        type: 'bar',
+                        xKey: 'quarter',
+                        yKey: 'value',
+                        data: [
+                            { quarter: "Q2'24", value: 3400 },
+                            { quarter: "Q4'24", value: 3100 },
+                        ],
+                    },
+                ],
+                axes,
+            };
+            const sharedDataNulls: AgCartesianChartOptions = {
+                legend: { enabled: false },
+                data: [
+                    { quarter: "Q1'24", a: 5100, b: 3500, c: null },
+                    { quarter: "Q2'24", a: 5400, b: null, c: 3400 },
+                    { quarter: "Q3'24", a: 4900, b: 2500, c: null },
+                    { quarter: "Q4'24", a: 5700, b: null, c: 3100 },
+                ],
+                series: [
+                    { type: 'bar', xKey: 'quarter', yKey: 'a' },
+                    { type: 'bar', xKey: 'quarter', yKey: 'b' },
+                    { type: 'bar', xKey: 'quarter', yKey: 'c' },
+                ],
+                axes,
+            };
+
+            await expectPixelIdenticalAcrossUpdate(ctx, createChart, perSeriesData, sharedDataNulls);
         });
 
         it.each(directions)('stacked %s', async (direction) => {

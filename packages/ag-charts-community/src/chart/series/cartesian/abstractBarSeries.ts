@@ -304,26 +304,50 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
 
     /**
      * The individual offset for each datum bar when skipping nullish bars. It shifts the bar an accumulated amount
-     * left or right to reduce the space occupied by nullish bars before or after it, respectively.
+     * left or right to reduce the space occupied by categories a series does not draw before or after it, respectively.
+     * The offset is keyed on the category value, so it closes gaps whether a bar is null/missing in a shared data
+     * array or the category is absent from a per-series `data` array.
      */
-    protected getDatumOffset(datumIndex: number) {
+    protected getDatumOffset(datumKey: unknown) {
         const categoryAxis = this.getCategoryAxis();
-        if (
-            !this.processedData?.invalidData ||
-            !this.processedData?.missingData ||
-            !(categoryAxis instanceof CategoryAxis && categoryAxis.options.skipNullBars)
-        ) {
+        if (!(categoryAxis instanceof CategoryAxis && categoryAxis.options.skipNullBars)) {
             return 0;
         }
 
-        const offset = this.ctx.seriesStateManager.getDatumOffset(
-            this,
-            this.processedData.invalidData,
-            this.processedData.missingData,
-            datumIndex
-        );
+        const offset = this.ctx.seriesStateManager.getDatumOffset(this, datumKey);
 
         return this.ctx.domManager.isRtl ? -offset : offset;
+    }
+
+    /**
+     * Records the category keys at which this series draws a bar, so that `skipNullBars` can close the gaps left by the
+     * categories it omits. Must run before any series in the group creates node data, so it is driven from `processData`
+     * (which completes for every series before node-data creation) rather than lazily during the offset calculation.
+     */
+    protected updateDatumValidKeys() {
+        const { dataModel, processedData } = this;
+        const categoryAxis = this.getCategoryAxis();
+
+        if (
+            !dataModel ||
+            !processedData ||
+            !(categoryAxis instanceof CategoryAxis && categoryAxis.options.skipNullBars)
+        ) {
+            this.ctx.seriesStateManager.setSeriesDatumValidKeys(this.internalId, undefined);
+            return;
+        }
+
+        const keys = dataModel.resolveKeysById<unknown>(this, 'xValue', processedData);
+        const invalidData = processedData.invalidData?.get(this.id);
+        const missingData = processedData.missingData?.get(this.id);
+
+        const validKeys: unknown[] = [];
+        for (let i = 0; i < keys.length; i += 1) {
+            if (invalidData?.[i] === true || missingData?.[i] === true) continue;
+            validKeys.push(keys[i]);
+        }
+
+        this.ctx.seriesStateManager.setSeriesDatumValidKeys(this.internalId, validKeys);
     }
 
     override resolveKeyDirection(direction: ChartAxisDirection) {

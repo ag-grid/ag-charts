@@ -8,7 +8,11 @@ import type {
 } from '../../chart/callbackOptions';
 import type { AgChartLabelCollisionPlacement } from '../../chart/collisionAvoidanceOptions';
 import type { AgNumericValue } from '../../chart/dataValues';
-import type { AgChartLabelOptions, AgSeriesLabelPlacementStyleOptions } from '../../chart/labelOptions';
+import type {
+    AgChartLabelFitOptions,
+    AgChartLabelOptions,
+    AgSeriesLabelPlacementStyleOptions,
+} from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault, DatumKey, PixelSize } from '../../chart/types';
 import type { AgSeriesMarkerStyle } from '../markerOptions';
@@ -34,6 +38,7 @@ export type AgBubbleSeriesLabelFormatterParams<TDatum = DatumDefault> = AgBubble
 export interface AgBubbleSeriesLabel<TDatum, TContext = ContextDefault>
     extends
         AgChartLabelOptions<TDatum, AgBubbleSeriesLabelFormatterParams<TDatum>, TContext>,
+        AgChartLabelFitOptions,
         AgSeriesLabelPlacementStyleOptions {
     /**
      * Placement of the label in relation to the marker. Either a single placement or an ordered

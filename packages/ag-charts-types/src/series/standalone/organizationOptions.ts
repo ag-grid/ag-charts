@@ -21,7 +21,7 @@ import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../serie
 
 export interface AgOrganizationSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends
-        AgBaseSeriesOptions<TDatum, TContext>,
+        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'selection'>,
         AgOrganizationSeriesOptionsKeys,
         AgOrganizationSeriesThemeableOptions<TDatum, TContext> {
     /** Configuration for the Organization Series. */
@@ -118,6 +118,11 @@ export interface AgOrganizationSeriesThemeableOptionsNode<
     labels?: AgOrganizationSeriesOptionsNodeText<TDatum, TContext>[];
     subtitle?: AgOrganizationSeriesOptionsNodeSubtitle<TDatum, TContext>;
     title?: AgOrganizationSeriesOptionsNodeTitle<TDatum, TContext>;
+    /**
+     * When set to true, clicking the card will expand/collapse the node. Defaults to `false` when node-clicks are used
+     * for something else (e.g. data selection), otherwise defaults to `true`.
+     */
+    clickToExpand?: boolean;
 }
 
 export interface AgOrganizationSeriesNodeStyle extends FillOptions, LineDashOptions, StrokeOptions {

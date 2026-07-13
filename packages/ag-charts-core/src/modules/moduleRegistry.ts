@@ -12,7 +12,7 @@ import {
 } from './moduleDefinition';
 import { clearRegistryModes } from './registryMode';
 
-export { RegistryMode, isEnterprise, isIntegrated, isUmd, setRegistryMode } from './registryMode';
+export { RegistryMode, clearRegistryModes, isEnterprise, isIntegrated, isUmd, setRegistryMode } from './registryMode';
 
 const registeredModules: Map<string, ModuleDefinition> = new Map();
 

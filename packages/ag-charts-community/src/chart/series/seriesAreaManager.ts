@@ -493,6 +493,14 @@ export class SeriesAreaManager extends BaseManager {
                 position
             );
         } else {
+            // Offer the menu to an overlapping axis first; a claim calls preventDefault, so the series-area
+            // dispatch below then no-ops. Must be emitted before that dispatch (mirrors the hover/drag handoff).
+            this.chart.ctx.eventsHub.emit('series-area:contextmenu', {
+                consumed: false,
+                canvasX,
+                canvasY,
+                widgetEvent: event,
+            });
             this.chart.ctx.contextMenuRegistry?.dispatchContext(
                 'series-area',
                 { widgetEvent: event, canvasX, canvasY },
@@ -727,6 +735,10 @@ export class SeriesAreaManager extends BaseManager {
                 return this.onEnd(widgetEvent);
             case 'submit':
                 return this.onSubmit(widgetEvent);
+            case 'expand':
+                return this.onExpandCollapse('series:keynav-expand');
+            case 'collapse':
+                return this.onExpandCollapse('series:keynav-collapse');
             case 'delete':
                 return;
             default:
@@ -797,6 +809,12 @@ export class SeriesAreaManager extends BaseManager {
                 type: 'click',
                 event: sourceEvent,
             });
+        }
+    }
+
+    private onExpandCollapse(type: 'series:keynav-expand' | 'series:keynav-collapse') {
+        if (this.focus.datum) {
+            this.chart.ctx.eventsHub.emit(type, this.focus.datum);
         }
     }
 

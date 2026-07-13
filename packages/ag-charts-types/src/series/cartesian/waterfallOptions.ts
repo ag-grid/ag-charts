@@ -8,7 +8,11 @@ import type {
 import type { AgChartLabelOrientation } from '../../chart/collisionAvoidanceOptions';
 import type { AgNumericValue } from '../../chart/dataValues';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
-import type { AgChartLabelOptions, AgSeriesLabelPlacementStyleOptions } from '../../chart/labelOptions';
+import type {
+    AgChartLabelFitOptions,
+    AgChartLabelOptions,
+    AgSeriesLabelPlacementStyleOptions,
+} from '../../chart/labelOptions';
 import type { AgCssColorOrRef } from '../../chart/themeParamsOptions';
 import type { AgSeriesTooltip, AgTooltipRendererResult } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault, DatumKey, Opacity, PixelSize, Ratio } from '../../chart/types';
@@ -62,12 +66,14 @@ export interface AgWaterfallSeriesItemTooltip<TDatum = DatumDefault, TContext = 
 }
 
 export interface AgWaterfallSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault>
-    extends AgChartLabelOptions<TDatum, TParams, TContext>, AgSeriesLabelPlacementStyleOptions {
+    extends AgChartLabelOptions<TDatum, TParams, TContext>, AgChartLabelFitOptions, AgSeriesLabelPlacementStyleOptions {
     /**
      * Where to render series labels relative to the bars. Either a single placement or an ordered
      * fallback list tried in turn until one fits.
      */
     placement?: AgWaterfallSeriesLabelPlacement | AgWaterfallSeriesLabelPlacement[];
+    /** Spacing in pixels between the label and the edge of the bar. */
+    spacing?: PixelSize;
     /**
      * Orientation of the label within the bar. `parallel` reads upright; the two `perpendicular`
      * variants rotate it a quarter-turn in opposite directions. Either a single orientation or an
@@ -76,8 +82,6 @@ export interface AgWaterfallSeriesLabelOptions<TDatum, TParams, TContext = Conte
      * Default: `parallel`
      */
     orientation?: AgChartLabelOrientation | AgChartLabelOrientation[];
-    /** Spacing in pixels between the label and the edge of the bar. */
-    spacing?: PixelSize;
 }
 
 export type AgWaterfallSeriesLabelPlacement =

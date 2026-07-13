@@ -564,6 +564,78 @@ describe('Zoom', () => {
                 await compare();
             });
         });
+
+        describe('dragging past the plot edge', () => {
+            // minVisibleItems: 0 removes the item-count floor so the assertion isolates the pointer/anchor
+            // math from the (separate) minimum-visible-items clamp.
+            const stepsPerLeg = 5;
+
+            function plotRect(): { x: number; y: number; width: number; height: number } {
+                return (deproxy(chart) as any).seriesRect;
+            }
+
+            function span(axis: 'x' | 'y'): number {
+                const ratio = axis === 'x' ? chart.getState().zoom?.ratioX : chart.getState().zoom?.ratioY;
+                return (ratio?.end ?? 1) - (ratio?.start ?? 0);
+            }
+
+            async function stepTo(from: { x: number; y: number }, to: { x: number; y: number }): Promise<void> {
+                for (let i = 1; i <= stepsPerLeg; i++) {
+                    const x = from.x + ((to.x - from.x) * i) / stepsPerLeg;
+                    const y = from.y + ((to.y - from.y) * i) / stepsPerLeg;
+                    await mouseMoveAction(x, y)(chart);
+                    await waitForChartStability(chart);
+                }
+            }
+
+            // Drags from the axis grab point to the plot edge, then continues past it, capturing the zoomed
+            // span at each. The bug froze the span at the edge; the fix keeps it shrinking beyond it.
+            async function dragAcrossEdge(
+                axis: 'x' | 'y',
+                grab: { x: number; y: number },
+                edge: { x: number; y: number },
+                past: { x: number; y: number }
+            ): Promise<{ spanAtEdge: number; spanPastEdge: number }> {
+                await mouseDownAction(grab.x, grab.y)(chart);
+                await mouseMoveAction(grab.x, grab.y)(chart);
+                await stepTo(grab, edge);
+                const spanAtEdge = span(axis);
+                await stepTo(edge, past);
+                const spanPastEdge = span(axis);
+                await mouseUpAction(past.x, past.y)(chart);
+                return { spanAtEdge, spanPastEdge };
+            }
+
+            it('keeps zooming the x-axis as the pointer is dragged past the origin', async () => {
+                await prepareChart({ minVisibleItems: 0 });
+                const plotLeft = plotRect().x;
+                const axisY = cy * 2 - 30;
+
+                const { spanAtEdge, spanPastEdge } = await dragAcrossEdge(
+                    'x',
+                    { x: cx * 1.5, y: axisY },
+                    { x: plotLeft, y: axisY },
+                    { x: plotLeft - 100, y: axisY }
+                );
+
+                expect(spanPastEdge).toBeLessThan(spanAtEdge);
+            });
+
+            it('keeps zooming the y-axis as the pointer is dragged past the plot edge', async () => {
+                await prepareChart({ minVisibleItems: 0 });
+                const plotTop = plotRect().y;
+                const axisX = 30;
+
+                const { spanAtEdge, spanPastEdge } = await dragAcrossEdge(
+                    'y',
+                    { x: axisX, y: cy * 1.5 },
+                    { x: axisX, y: plotTop },
+                    { x: axisX, y: plotTop - 100 }
+                );
+
+                expect(spanPastEdge).toBeLessThan(spanAtEdge);
+            });
+        });
     });
 
     describe('axis panning', () => {

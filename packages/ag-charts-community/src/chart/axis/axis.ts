@@ -1189,6 +1189,7 @@ export abstract class Axis<
             getRangeOverflow: (value) => this.getRangeOverflow(value),
             pickBand: (point) => this.pickBand(point),
             measureBand: (value) => this.measureBand(value),
+            getFormatterBoundSeries: () => this.formatterBoundSeries.get(),
         };
     }
 

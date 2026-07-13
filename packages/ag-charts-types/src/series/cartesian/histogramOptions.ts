@@ -10,7 +10,11 @@ import type {
 import type { AgNumericValue } from '../../chart/dataValues';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgNodeClickEvent } from '../../chart/eventOptions';
-import type { AgChartLabelOptions, AgSeriesLabelPlacementStyleOptions } from '../../chart/labelOptions';
+import type {
+    AgChartLabelFitOptions,
+    AgChartLabelOptions,
+    AgSeriesLabelPlacementStyleOptions,
+} from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault, DatumKey, PixelSize } from '../../chart/types';
 import type {
@@ -70,7 +74,7 @@ export type AgHistogramSeriesLabelPlacement =
     | 'outside-end';
 
 export interface AgHistogramSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault>
-    extends AgChartLabelOptions<TDatum, TParams, TContext>, AgSeriesLabelPlacementStyleOptions {
+    extends AgChartLabelOptions<TDatum, TParams, TContext>, AgChartLabelFitOptions, AgSeriesLabelPlacementStyleOptions {
     /**
      * Where to render series labels relative to the bars. Either a single placement or an ordered
      * fallback list tried in turn until one fits.

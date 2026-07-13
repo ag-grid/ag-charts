@@ -1,5 +1,5 @@
 import type { AxisID, BoxBounds, ChartAxisDirection, NormalisedTextOrSegments, Point, Scale } from 'ag-charts-core';
-import type { AgCartesianAxisPosition, FormatterParams } from 'ag-charts-types';
+import type { AgAxisBoundSeries, AgCartesianAxisPosition, FormatterParams } from 'ag-charts-types';
 
 import type { Group } from '../scene/group';
 import type { Node } from '../scene/node';
@@ -84,4 +84,5 @@ export interface AxisContext {
     measureBand(value: string): AxisBandMeasurement | undefined;
     /** Defined only on polar axes; cartesian axes leave it undefined. */
     getPolarLayout?(): PolarAxisLayout;
+    getFormatterBoundSeries(): AgAxisBoundSeries[];
 }

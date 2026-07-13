@@ -117,11 +117,9 @@ export class ChartCaptions {
         const richText = isArray(opts.text);
         const { top, bottom } = caption.boxPadding;
 
-        if (richText && (top !== 0 || bottom !== 0)) {
-            // Segment bboxes aren't grown by the background box (unlike plain text); grow
-            // explicitly so a boxed rich-text caption reserves the same layout as a boxed plain one.
-            bbox.grow(caption.boxPadding);
-        } else if (vAlign === 'bottom' && richText) {
+        // Boxed segment captions self-account in getBBox; only a non-boxed bottom rich-text caption
+        // needs its origin shifted up by its height (its bbox is reported from the text baseline).
+        if (richText && top === 0 && bottom === 0 && vAlign === 'bottom') {
             bbox.y -= bbox.height;
         }
         layoutBox.shrink(

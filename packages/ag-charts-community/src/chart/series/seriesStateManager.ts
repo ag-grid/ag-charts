@@ -1,3 +1,4 @@
+import { dateToNumber } from 'ag-charts-core';
 import type { PlainObject } from 'ag-charts-core';
 
 import type { SeriesGrouping } from '../../module/seriesGrouping';
@@ -31,6 +32,9 @@ export class SeriesStateManager {
 
     private readonly groupScales: Map<string, IrregularBandScale> = new Map();
 
+    /** Canonicalised category keys at which each series has a rendered (non-null, valid) bar, keyed by `internalId`. */
+    private readonly datumValidKeys: Map<string, Set<unknown>> = new Map();
+
     public registerSeries({ internalId, seriesGrouping, visible, width, type }: SeriesLike) {
         if (!seriesGrouping) return;
 
@@ -54,12 +58,38 @@ export class SeriesStateManager {
     }
 
     public deregisterSeries({ internalId, type }: SeriesIdLike) {
+        this.datumValidKeys.delete(internalId);
+
         const group = this.groups.get(type);
         if (group == null) return;
 
         group.delete(internalId);
         if (group.size === 0) {
             this.groups.delete(type);
+        }
+    }
+
+    /**
+     * Record the category keys at which a series has a rendered bar, so that `getDatumOffset` can close the gaps left
+     * by categories a series does not draw — whether the bar is null/missing in a shared data array or the category is
+     * absent from the series' own per-series `data` array. Keys are canonicalised (dates to epoch numbers) to match by
+     * value across series. Pass `undefined` to clear (e.g. when `skipNullBars` is off).
+     */
+    public setSeriesDatumValidKeys(internalId: string, keys: Iterable<unknown> | undefined) {
+        if (keys == null) {
+            this.datumValidKeys.delete(internalId);
+            return;
+        }
+
+        const validKeys = new Set<unknown>();
+        for (const key of keys) {
+            validKeys.add(dateToNumber(key));
+        }
+
+        if (validKeys.size === 0) {
+            this.datumValidKeys.delete(internalId);
+        } else {
+            this.datumValidKeys.set(internalId, validKeys);
         }
     }
 
@@ -191,33 +221,31 @@ export class SeriesStateManager {
         return maxStackWidth / 2 - barWidth / 2;
     }
 
-    public getDatumOffset(
-        series: SeriesLike,
-        invalidData: Map<string, boolean[]>,
-        missingData: Map<string, boolean[]>,
-        datumIndex: number
-    ) {
+    public getDatumOffset(series: SeriesLike, datumKey: unknown) {
         const group = this.groups.get(series.type);
 
         if (!series.visible || !series.seriesGrouping || !group) {
             return 0;
         }
 
-        // If this series has an invalid datum it will not be visible, so skip any further processing.
-        if (invalidData.get(series.internalId)?.[datumIndex] || missingData.get(series.internalId)?.[datumIndex]) {
+        const key = dateToNumber(datumKey);
+
+        // This series draws no bar at this category (null/missing value, or the category is absent from its data), so
+        // it needs no offset of its own.
+        if (!this.datumValidKeys.get(series.internalId)?.has(key)) {
             return 0;
         }
 
-        // The datum only needs to be offset if every datum in a group (visually stacked) is invalid.
+        // A group contributes a bar at this category if any of its series draws one there.
         const partialValidGroups = new Set<number>();
         for (const [seriesId, compareSeries] of group) {
             if (!compareSeries.visible) continue;
-            if (!invalidData.get(seriesId)?.[datumIndex] && !missingData.get(seriesId)?.[datumIndex]) {
+            if (this.datumValidKeys.get(seriesId)?.has(key)) {
                 partialValidGroups.add(compareSeries.grouping.groupIndex);
             }
         }
 
-        // If every datum in the group is valid, there is no offset.
+        // If every group has a bar at this category, there is no gap to close.
         if (partialValidGroups.size === series.seriesGrouping?.groupCount) {
             return 0;
         }

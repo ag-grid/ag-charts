@@ -75,6 +75,12 @@ Use the `showOn` property to specify when the action should be shown.
             },
             'separator',
             {
+                showOn: 'axis',
+                label: 'Say hello to an axis',
+                action: (ev) => console.log(`Hello in axis "${ev.axisId}":"`, ev),
+            },
+            'separator',
+            {
                 showOn: 'caption',
                 label: 'Say hello in a caption',
                 action: ({ captionType, text }) =>
@@ -139,6 +145,11 @@ To add Sub-Menus to the Context Menu, simply use the `items` property recursivel
                         showOn: 'always',
                         label: `On 'always'`,
                         action: () => console.log(`On 'always' clicked.`),
+                    },
+                    {
+                        showOn: 'axis',
+                        label: `On 'axis'`,
+                        action: (ev) => console.log(`On 'axis' clicked -`, ev.axisId, ev),
                     },
                     {
                         showOn: 'caption',
@@ -208,7 +219,7 @@ In this example:
 - The Context Menu on Bar Nodes includes a console `Log Datum` Menu Item,
   whose text is dynamically derived from the Context Menu Event parameters.
 
-### Editing Data
+### Example: Interactive Customisation
 
 The `getItems` callback can be used to change the state or appearance of a data point or series.
 
@@ -224,9 +235,6 @@ The `getItems` callback can be used to change the state or appearance of a data 
                 const yKey = params.yKey;
                 const isEmphasised = emphasisedPoints.has(pointKey(seriesId, year));
                 return [
-                    'defaults',
-                    'separator',
-                    // Point actions
                     {
                         type: 'action',
                         showOn: 'series-node',
@@ -239,30 +247,28 @@ The `getItems` callback can be used to change the state or appearance of a data 
                         label: `Remove "${year}" Point`,
                         action: () => removeDataPoint(year, yKey),
                     },
-                    'separator',
-                    // Series actions
+                ];
+            }
+            if (params.showOn === 'legend-item') {
+                const { seriesId } = params;
+                return [
+                    'toggle-series-visibility',
                     {
-                        showOn: 'series-node',
+                        type: 'action',
+                        showOn: 'legend-item',
+                        label: `Remove "${seriesId}"`,
+                        action: () => removeSeries(seriesId),
+                    },
+                    // A submenu of colour options
+                    {
+                        showOn: 'legend-item',
                         label: `Colour "${seriesId}"`,
-                        // A submenu of color options
                         items: seriesColors.map((color) => ({
                             type: 'action',
-                            showOn: 'series-node',
+                            showOn: 'legend-item',
                             label: color.label,
                             action: () => colorSeries(seriesId, color.value),
                         })),
-                    },
-                    {
-                        type: 'action',
-                        showOn: 'series-node',
-                        label: `Hide "${seriesId}"`,
-                        action: () => hideSeries(seriesId),
-                    },
-                    {
-                        type: 'action',
-                        showOn: 'series-node',
-                        label: `Remove "${seriesId}"`,
-                        action: () => removeSeries(seriesId),
                     },
                 ];
             }
@@ -271,13 +277,16 @@ The `getItems` callback can be used to change the state or appearance of a data 
 }
 ```
 
-The menu includes actions on the clicked point and its series:
+In this example, right-clicking a data point shows custom actions for that point:
 
-- "Emphasise" enlarges the marker and displays the value. The label reads "Remove Emphasis" while the point is emphasised.
+- "Emphasise" enlarges the marker and displays the value; triggering it again removes the emphasis.
 - "Remove Point" sets the point's value to `null`, leaving a gap in the line.
-- "Colour" is a submenu of preset colours; choosing one recolours the series line and its markers.
-- "Hide Series" sets `series.visible` to `false`.
-- "Remove Series" drops the series from `series`.
+
+Right-clicking a legend item shows actions for the whole series:
+
+- The built-in `toggle-series-visibility` item hides or shows the series.
+- "Remove Series" drops the series.
+- "Colour" is a submenu of preset colours; selecting one recolours the series' line and markers.
 
 ## API Reference
 
@@ -288,6 +297,9 @@ The menu includes actions on the clicked point and its series:
 {% /tabItem %}
 {% tabItem id="AgContextMenuItemAlways" label="Always" %}
 {% apiReference id="AgContextMenuItemAlways" /%}
+{% /tabItem %}
+{% tabItem id="AgContextMenuItemAxis" label="Axis" %}
+{% apiReference id="AgContextMenuItemAxis" /%}
 {% /tabItem %}
 {% tabItem id="AgContextMenuItemCaption" label="Caption" %}
 {% apiReference id="AgContextMenuItemCaption" /%}

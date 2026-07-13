@@ -11,6 +11,7 @@ import {
     errorBarOptionsDefs,
     errorBarThemeableOptionsDefs,
     fillOptionsDef,
+    labelFitOptionsDefs,
     labelOrientationDef,
     labelPlacementStyleDefs,
     lineDashOptionsDef,
@@ -52,6 +53,7 @@ export const barSeriesThemeableOptionsDef: OptionsDefs<AgBarSeriesThemeableOptio
     crisp: boolean,
     label: {
         ...seriesLabelOptionsDefs,
+        ...labelFitOptionsDefs,
         ...labelPlacementStyleDefs,
         placement: or(barLabelPlacement, arrayOf(barLabelPlacement)),
         orientation: labelOrientationDef,

@@ -323,9 +323,13 @@ export class Text<D = unknown> extends Shape<D> {
         const { height, lineMetrics } = this.getSegmentMetrics(this.text);
         const offsetTop = Text.calcSegmentedTopOffset(height, lineMetrics, this.textBaseline);
         const y = this.y - offsetTop;
-        if (bbox.y === y) return bbox;
+        if (bbox.y === y && this.boxing == null) return bbox;
 
-        return new BBox(bbox.x, y, bbox.width, bbox.height);
+        const segmentBBox = new BBox(bbox.x, y, bbox.width, bbox.height);
+        // Mirror the plain-text grow (computeTextBBox) so a boxed segment caption's bounds — and the
+        // render layer sized from them — include the box; without it the box top is clipped.
+        if (this.boxing != null) segmentBBox.grow(this.boxPadding);
+        return segmentBBox;
     }
 
     protected override computeBBox(): BBox {

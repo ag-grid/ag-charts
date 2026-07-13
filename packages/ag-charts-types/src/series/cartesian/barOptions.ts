@@ -9,7 +9,11 @@ import type {
 import type { AgChartLabelOrientation } from '../../chart/collisionAvoidanceOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from '../../chart/errorBarOptions';
-import type { AgChartLabelOptions, AgSeriesLabelPlacementStyleOptions } from '../../chart/labelOptions';
+import type {
+    AgChartLabelFitOptions,
+    AgChartLabelOptions,
+    AgSeriesLabelPlacementStyleOptions,
+} from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault, DatumKey, Opacity, PixelSize, Ratio } from '../../chart/types';
 import type {
@@ -30,12 +34,14 @@ export type AgBarSeriesLabelPlacement =
     | 'outside-end';
 
 export interface AgBarSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault>
-    extends AgChartLabelOptions<TDatum, TParams, TContext>, AgSeriesLabelPlacementStyleOptions {
+    extends AgChartLabelOptions<TDatum, TParams, TContext>, AgChartLabelFitOptions, AgSeriesLabelPlacementStyleOptions {
     /**
      * Where to render series labels relative to the segments. Either a single placement or an ordered
      * fallback list tried in turn until one fits.
      */
     placement?: AgBarSeriesLabelPlacement | AgBarSeriesLabelPlacement[];
+    /** Distance between the shape edges and the text. */
+    spacing?: PixelSize;
     /**
      * Orientation of the label within the bar. `parallel` reads upright; the two `perpendicular`
      * variants rotate it a quarter-turn in opposite directions. Either a single orientation or an
@@ -44,8 +50,6 @@ export interface AgBarSeriesLabelOptions<TDatum, TParams, TContext = ContextDefa
      * Default: `parallel`
      */
     orientation?: AgChartLabelOrientation | AgChartLabelOrientation[];
-    /** Distance between the shape edges and the text. */
-    spacing?: PixelSize;
 }
 
 export interface AgBarSeriesItemStylerParams<TDatum, TContext = ContextDefault>
