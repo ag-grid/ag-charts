@@ -735,6 +735,10 @@ export class SeriesAreaManager extends BaseManager {
                 return this.onEnd(widgetEvent);
             case 'submit':
                 return this.onSubmit(widgetEvent);
+            case 'expand':
+                return this.onExpandCollapse('series:keynav-expand');
+            case 'collapse':
+                return this.onExpandCollapse('series:keynav-collapse');
             case 'delete':
                 return;
             default:
@@ -805,6 +809,12 @@ export class SeriesAreaManager extends BaseManager {
                 type: 'click',
                 event: sourceEvent,
             });
+        }
+    }
+
+    private onExpandCollapse(type: 'series:keynav-expand' | 'series:keynav-collapse') {
+        if (this.focus.datum) {
+            this.chart.ctx.eventsHub.emit(type, this.focus.datum);
         }
     }
 

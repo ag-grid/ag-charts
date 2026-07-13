@@ -447,7 +447,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         this.expand(ids);
     }
 
-    expandItem(itemIdOrIndex: string | number, _point: Point) {
+    expandItem(itemIdOrIndex: string | number) {
         const id = this.resolveItemId(itemIdOrIndex);
         if (id == null) return;
 
@@ -456,7 +456,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         }
     }
 
-    collapseItem(itemIdOrIndex: string | number, _point: Point) {
+    collapseItem(itemIdOrIndex: string | number) {
         const id = this.resolveItemId(itemIdOrIndex);
         if (id == null) return;
 
@@ -467,9 +467,10 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
     // Keyboard activations have no pointer target — allow them; pointer clicks must hit the expander.
     override hasBuiltinListener(target: _ModuleSupport.Node<unknown> | undefined): boolean {
+        const { clickToExpand } = this.properties.node;
         const Expander: number = OrganizationNodeTag.Expander;
         const Card: number = OrganizationNodeTag.Card;
-        return target == null || target.tag === Expander || (target.tag === Card && this.properties.node.clickToExpand);
+        return target != null && (target.tag === Expander || (target.tag === Card && clickToExpand));
     }
 
     public override pickFocus(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.PickFocusOutputs | undefined {

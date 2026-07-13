@@ -156,7 +156,7 @@ export abstract class AbstractNetworkSeries<
 
         this.cleanup.register(
             ctx.eventsHub.on('series-area:click', (event) => {
-                const { type, clickedNode, target, sourceEvent } = event;
+                const { type, clickedNode, target } = event;
                 if (
                     type !== 'click' ||
                     clickedNode?.series !== this ||
@@ -165,15 +165,21 @@ export abstract class AbstractNetworkSeries<
                 ) {
                     return;
                 }
-                const point = {
-                    x: 'layerX' in sourceEvent ? sourceEvent.layerX : Number.NaN,
-                    y: 'layerY' in sourceEvent ? sourceEvent.layerY : Number.NaN,
-                };
                 if (this.ctx.collapsedManager.isCollapsed(clickedNode.itemId)) {
-                    this.expandItem(clickedNode.itemId, point);
+                    this.expandItem(clickedNode.itemId);
                 } else {
-                    this.collapseItem(clickedNode.itemId, point);
+                    this.collapseItem(clickedNode.itemId);
                 }
+            }),
+            ctx.eventsHub.on('series:keynav-expand', (event) => {
+                if (event.itemId == null || event.series !== this) return;
+                this.expandItem(event.itemId);
+                this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.PERFORM_LAYOUT });
+            }),
+            ctx.eventsHub.on('series:keynav-collapse', (event) => {
+                if (event.itemId == null || event.series !== this) return;
+                this.collapseItem(event.itemId);
+                this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.PERFORM_LAYOUT });
             })
         );
     }
@@ -203,8 +209,8 @@ export abstract class AbstractNetworkSeries<
     abstract updateOffset(offset: Point): void;
 
     abstract expandNetworkToItem(itemIdOrIndex: string | number): void;
-    abstract expandItem(itemIdOrIndex: string | number, point: Point): void;
-    abstract collapseItem(itemIdOrIndex: string | number, point: Point): void;
+    abstract expandItem(itemIdOrIndex: string | number): void;
+    abstract collapseItem(itemIdOrIndex: string | number): void;
 
     dataCount() {
         return this.datumSelection.length;
