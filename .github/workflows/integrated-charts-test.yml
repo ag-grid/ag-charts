@@ -3,7 +3,7 @@ name: Integrated Charts Test
 on:
     workflow_dispatch: {}
     schedule:
-        - cron: '0 6 * * 1-5' # Weekday mornings UTC
+        - cron: '0 6 * * *' # Every morning UTC, incl. weekends so Fri/weekend breaks are caught next day
 
 env:
     NX_NO_CLOUD: true
@@ -26,9 +26,11 @@ jobs:
                   cache_mode: ro
                   yarn_postinstall: false
 
+            # Skip the nx cache: a cache hit can pack stale type declarations, letting the gate
+            # type-check ag-grid against charts types that differ from current `latest`.
             - name: Build ag-charts packages
               run: |
-                  yarn nx run-many -t build -p ag-charts-types,ag-charts-locale,ag-charts-core,ag-charts-community,ag-charts-enterprise
+                  yarn nx run-many -t build -p ag-charts-types,ag-charts-locale,ag-charts-core,ag-charts-community,ag-charts-enterprise --skip-nx-cache
 
             - name: Pack ag-charts tarballs
               id: pack
