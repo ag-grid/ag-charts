@@ -7,7 +7,7 @@ import { Canvas, DOMMatrix, Image, Path2D } from 'skia-canvas';
 import type { AgChartThemeName } from 'ag-charts-community';
 import { ConfiguredCanvasMixin } from 'ag-charts-core';
 
-import { generateThumbnail } from './generator/thumbnailGenerator';
+import { generateThumbnail, prepareExample } from './generator/thumbnailGenerator';
 
 global.Path2D = Path2D;
 global.DOMMatrix = DOMMatrix as any;
@@ -63,12 +63,14 @@ export async function generateFiles(
     await ensureDirectory(outputPath);
 
     const timesCalled = await consolePrefix(`[${ctx.projectName}] `, async () => {
+        const prepared = prepareExample(example);
+
         for (const theme of Object.keys(THEMES) as AgChartThemeName[]) {
             if (!THEMES[theme]) continue;
 
             for (const dpi of dpiOutputs) {
                 try {
-                    await generateThumbnail({ example, theme, outputPath, dpi, mockText: false });
+                    await generateThumbnail({ prepared, theme, outputPath, dpi, mockText: false });
                 } catch (e) {
                     console.error(`Unable to render example [${name}] with theme [${theme}]`, e);
                     throw e;
@@ -77,7 +79,7 @@ export async function generateFiles(
         }
 
         // Generate a platform agnostic (font-wise) rendering for visual comparison purposes.
-        await generateThumbnail({ example, theme: 'ag-default', outputPath, dpi: 1, mockText: true });
+        await generateThumbnail({ prepared, theme: 'ag-default', outputPath, dpi: 1, mockText: true });
     });
 
     if (timesCalled.error > 0) {

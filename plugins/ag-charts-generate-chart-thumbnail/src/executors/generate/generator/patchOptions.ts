@@ -9,7 +9,7 @@ export function patchOptions(
     theme: AgChartThemeName,
     multiple: boolean,
     api: 'create' | 'createGauge' | 'createFinancialChart'
-) {
+): AgChartOptions {
     delete options.subtitle;
     delete options.footnote;
     delete options.gradientLegend;
@@ -85,7 +85,8 @@ export function patchOptions(
         };
     }
 
-    return maybeApplySubstitutions(options);
+    // maybeApplySubstitutions mutates and returns the same object for object inputs.
+    return maybeApplySubstitutions(options) as AgChartOptions;
 }
 
 const DEFAULT_SUBSTITUTIONS: ExampleSubstitutions = {
