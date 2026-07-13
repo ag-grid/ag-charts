@@ -1253,13 +1253,14 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         const { isHighlight = false } = opts;
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const params: AgBubbleSeriesLabelFormatterParams = this.makeLabelFormatterParams();
+        const labelPadding = expandLabelPadding(this.properties.label);
 
         opts.labelSelection.each((text, datum) => {
             const style = getLabelStyles(this, datum, params, this.properties.label, isHighlight, activeHighlight);
             text.text = datum.label.text;
             text.fill = style.color;
-            text.x = datum.point?.x ?? 0;
-            text.y = datum.point?.y ?? 0;
+            text.x = (datum.point?.x ?? 0) + labelPadding.left;
+            text.y = (datum.point?.y ?? 0) + labelPadding.top;
             text.fontStyle = style.fontStyle;
             text.fontWeight = style.fontWeight;
             text.fontSize = style.fontSize;
