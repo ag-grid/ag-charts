@@ -71,6 +71,7 @@ import { replaceDataSet } from './data/dataSetUtil';
 import { SyncManager, type SyncStatus } from './interaction/syncManager';
 import { type LayoutContext, LayoutElement } from './layout/layoutManager';
 import type { ChartLegend } from './legend/legendDatum';
+import { LegendPaginationOriginator, findCategoryLegend } from './legend/legendPaginationOriginator';
 import { guessInvalidPositions } from './mapping/prepareAxis';
 import { matchSeriesOptions } from './mapping/prepareSeries';
 import { ModulesManager } from './modulesManager';
@@ -1926,6 +1927,13 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         if (initialState?.legend != null) {
             this.updateLegends(initialState.legend);
+        }
+
+        if (initialState?.legendPagination != null) {
+            const categoryLegend = findCategoryLegend(this.modulesManager.legends());
+            if (categoryLegend) {
+                stateManager.setState(new LegendPaginationOriginator(categoryLegend), initialState.legendPagination);
+            }
         }
 
         if (initialState != null) {

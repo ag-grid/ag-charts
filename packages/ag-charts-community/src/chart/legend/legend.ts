@@ -98,6 +98,8 @@ export class Legend {
     private maxPageSize: [number, number] = [0, 0];
     /** Item index to track on re-pagination, so current page updates appropriately. */
     private paginationTrackingIndex: number = 0;
+    /** Page awaiting restore; flushed by the next layout once the real page count is known. */
+    private pendingPage?: number;
 
     private readonly truncatedItems: Set<string | number> = new Set();
 
@@ -342,6 +344,12 @@ export class Legend {
         const oldPages = this.pages;
         this.pages = pages;
         this.maxPageSize = [maxPageWidth - padding.left - padding.right, maxPageHeight - padding.top - padding.bottom];
+
+        if (this.pendingPage != null && this.pages.length > 0) {
+            const page = this.pendingPage;
+            this.pendingPage = undefined;
+            this.pagination.setPage(page);
+        }
 
         const pageNumber = this.pagination.currentPage;
         const page = this.pages[pageNumber];
@@ -751,6 +759,10 @@ export class Legend {
         });
 
         this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
+    }
+
+    restorePage(page: number) {
+        this.pendingPage = page;
     }
 
     update() {

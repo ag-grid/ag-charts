@@ -26,8 +26,10 @@ export interface ChartLegend extends PluginModuleInstance {
     listeners?: AgChartLegendListeners;
     pagination?: {
         currentPage: number;
+        totalPages: number;
         setPage: (pageNumber: number) => void;
     };
+    restorePage?: (page: number) => void;
 }
 
 export type ChartLegendType = 'category' | 'gradient';
