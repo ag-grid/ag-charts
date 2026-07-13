@@ -14,7 +14,7 @@ const { data: metadata } = (await getEntry('metadata', 'metadata')) as Collectio
 const contactPageStructuredData = buildContactPage({
     canonicalUrlBase: metadata.canonicalUrlBase,
     pageUrl: new URL(Astro.url.pathname, metadata.canonicalUrlBase).href,
-    name: 'Contact AG Charts',
+    name: 'Contact AG Grid',
 });
 ---
 
