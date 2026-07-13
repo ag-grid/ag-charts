@@ -1308,9 +1308,9 @@ describe('LineSeries', () => {
         // "Reorder" — the category order is scrambled. The markers snap to their new band positions (line
         // reorder does not tween marker position), so the animation coverage here is that the reshuffle
         // actually LANDED: the settled left-to-right order matches the reordered data and w6 (moved from
-        // last to first) really shifted left. Without this the CASE would pass on a no-op reorder. A line
-        // always draws its stroke in category-axis order, so scrambling the input array cannot change the
-        // drawn shape at all — the path is pinned `constant`, and genuinely holds through every frame.
+        // last to first) really shifted left. Without this the CASE would pass on a no-op reorder. The
+        // stroke reshapes to the new order as a structural snap on the first captured frame rather than
+        // tweening, so the path is pinned `constant` — it holds at its reshaped form through every frame.
         it('category reorder: markers re-map to the reshuffled bands', async () => {
             const reordered = [WEEKS[3], WEEKS[0], WEEKS[5], WEEKS[1], WEEKS[6], WEEKS[2], WEEKS[4]];
             const { before, trajectory, after } = await captureFrom(categoryOptions(WEEKS), () =>
@@ -1344,9 +1344,9 @@ describe('LineSeries', () => {
 
         // "Reverse" (integrated-only) — the data order is reversed, reshuffling the category bands. As with
         // reorder the markers snap to their new bands, so the coverage is that the reversal LANDED: the first
-        // category (w3) is now rightmost and the last (w11) leftmost. A line always draws its stroke in
-        // category-axis order, so reversing the input array cannot change the drawn shape at all — the path
-        // is pinned `constant`, and genuinely holds through every frame.
+        // category (w3) is now rightmost and the last (w11) leftmost. As with reorder the stroke reshapes to
+        // the reversed order as a first-frame structural snap rather than tweening, so the path is pinned
+        // `constant` across the capture.
         it('integrated mode: reverse re-maps markers to the reversed bands', async () => {
             const { before, trajectory, after } = await captureFrom(categoryOptions(WEEKS, 'integrated'), () =>
                 chart.updateDelta({ data: [...WEEKS].reverse() })
@@ -1387,8 +1387,8 @@ describe('LineSeries', () => {
         });
 
         // Integrated reorder mirrors the standalone case: the reshuffle must land (markers re-map to their
-        // new bands) under integrated defaults too, and the path — drawn in category-axis order regardless
-        // of input order — is pinned `constant` for the same reason.
+        // new bands) under integrated defaults too, and the stroke snaps to its reshaped form on the first
+        // frame rather than tweening, so the path is pinned `constant` for the same reason.
         it('integrated mode: reorder re-maps markers to the reshuffled bands', async () => {
             const reordered = [WEEKS[3], WEEKS[0], WEEKS[5], WEEKS[1], WEEKS[6], WEEKS[2], WEEKS[4]];
             const { before, trajectory, after } = await captureFrom(categoryOptions(WEEKS, 'integrated'), () =>
