@@ -632,5 +632,23 @@ describe('Validation utils', () => {
         it('rejects an ontoColor without a mix', () => {
             expect(isValid({ c: { ref: 'accentColor', ontoColor: '#ff5733' } }, { c: colorOrRef })).toBe(false);
         });
+
+        it('accepts a nested var() fallback as ontoColor', () => {
+            expect(
+                isValid(
+                    { c: { ref: 'accentColor', mix: 0.5, ontoColor: 'var(--brand, var(--fallback))' } },
+                    { c: colorOrRef }
+                )
+            ).toBe(true);
+        });
+
+        it('rejects a malformed var() (unclosed or trailing text)', () => {
+            expect(isValid({ c: { ref: 'accentColor', mix: 0.5, ontoColor: 'var(--brand' } }, { c: colorOrRef })).toBe(
+                false
+            );
+            expect(
+                isValid({ c: { ref: 'accentColor', mix: 0.5, ontoColor: 'var(--brand)junk' } }, { c: colorOrRef })
+            ).toBe(false);
+        });
     });
 });

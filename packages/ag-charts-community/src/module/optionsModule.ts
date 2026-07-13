@@ -1521,19 +1521,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         for (const key of Object.keys(optionsNode) as any[]) {
             const value = optionsNode[key];
 
-            // A colour reference blending onto an invalid `ontoColor` var must fall back like a direct-value var:
-            // drop the whole property so its theme default applies. Emptying the ref in place would instead leave a
-            // `{}` that overrides the default. Handled here, at the parent, because the walk cannot delete the key
-            // once it descends into the ref object itself.
-            if (isObjectLike(value) && 'ref' in value && ChartOptions.isExternalColorVar(value.ontoColor)) {
-                const resolved = ChartOptions.resolveColorVar(value.ontoColor, container);
-                if (resolved && !resolved.isValid) {
-                    Logger.warnOnce(`CSS property [${value.ontoColor}] is not a valid color, ignoring.`);
-                    delete optionsNode[key];
-                }
-                continue;
-            }
-
             if (!ChartOptions.isExternalColorVar(value)) continue;
 
             const resolved = ChartOptions.resolveColorVar(value, container);
@@ -1563,13 +1550,16 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const [mainKey, ...fallbackKeys] = propertyKey.split(',');
 
         const computedStyle = getComputedStyle(container);
-        let propertyValue = computedStyle.getPropertyValue(mainKey);
+        let propertyValue = computedStyle.getPropertyValue(mainKey.trim());
         let isValid = Color.validColorString(propertyValue);
 
         if (!isValid && fallbackKeys.length > 0) {
-            const trimmedKey = fallbackKeys.join(',').trim();
-            // Use the fallback if it is a variable or value.
-            propertyValue = computedStyle.getPropertyValue(trimmedKey) || trimmedKey;
+            const fallback = fallbackKeys.join(',').trim();
+            // A nested `var(--…)` fallback needs the same custom-property lookup, not a raw `getPropertyValue`.
+            if (fallback.startsWith('var(--')) {
+                return ChartOptions.resolveColorVar(fallback, container);
+            }
+            propertyValue = computedStyle.getPropertyValue(fallback) || fallback;
             isValid = Color.validColorString(propertyValue);
         }
 
