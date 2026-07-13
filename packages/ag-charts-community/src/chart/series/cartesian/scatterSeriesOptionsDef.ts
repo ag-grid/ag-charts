@@ -10,6 +10,7 @@ import {
     errorBarOptionsDefs,
     errorBarThemeableOptionsDefs,
     labelCollisionPlacementDef,
+    labelPlacementStyleDefs,
     markerOptionsDefs,
     multiSeriesHighlightOptionsDef,
     number,
@@ -33,6 +34,7 @@ export const scatterSeriesThemeableOptionsDef: OptionsDefs<AgScatterSeriesThemea
     label: {
         placement: labelCollisionPlacementDef,
         ...seriesLabelOptionsDefs,
+        ...labelPlacementStyleDefs,
     },
     tooltip: tooltipOptionsDefs,
     errorBar: errorBarThemeableOptionsDefs,

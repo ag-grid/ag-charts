@@ -44,18 +44,8 @@ const themeTemplate: ExtensibleTheme<'bar'> = {
             fontWeight: { $ref: 'fontWeight' },
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },
-            color: {
-                $if: [
-                    {
-                        $or: [
-                            { $eq: [{ $path: './placement' }, 'outside-start'] },
-                            { $eq: [{ $path: './placement' }, 'outside-end'] },
-                        ],
-                    },
-                    { $ref: 'textColor' },
-                    { $ref: 'chartBackgroundColor' },
-                ],
-            },
+            insideStyle: { color: { $ref: 'chartBackgroundColor' } },
+            outsideStyle: { color: { $ref: 'textColor' } },
             placement: 'inside-center',
         },
         shadow: {

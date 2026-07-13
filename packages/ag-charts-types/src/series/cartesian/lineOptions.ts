@@ -7,7 +7,7 @@ import type {
 } from '../../chart/callbackOptions';
 import type { AgChartLabelCollisionPlacement } from '../../chart/collisionAvoidanceOptions';
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from '../../chart/errorBarOptions';
-import type { AgChartLabelOptions } from '../../chart/labelOptions';
+import type { AgChartLabelOptions, AgSeriesLabelPlacementStyleOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault, DatumKey, Opacity } from '../../chart/types';
 import type { AgInterpolationType } from '../interpolationOptions';
@@ -35,11 +35,8 @@ export interface AgLineSeriesTooltipRendererParams<TDatum = DatumDefault, TConte
 export type AgLineSeriesLabelFormatterParams<TDatum = DatumDefault> = AgLineSeriesOptionsKeys<TDatum> &
     AgLineSeriesOptionsNames;
 
-export interface AgLineSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault> extends AgChartLabelOptions<
-    TDatum,
-    TParams,
-    TContext
-> {
+export interface AgLineSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault>
+    extends AgChartLabelOptions<TDatum, TParams, TContext>, AgSeriesLabelPlacementStyleOptions {
     /**
      * Placement of the label in relation to the data point. Either a single placement or an ordered
      * fallback list tried in turn until one fits.

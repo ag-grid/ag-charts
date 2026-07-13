@@ -70,6 +70,7 @@ const {
     valueProperty,
     keyProperty,
     updateLabelNode,
+    pickPlacementStyle,
     fixNumericExtent,
     buildResetPathFn,
     resetLabelFn,
@@ -906,6 +907,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             textAlign: 'center',
             textBaseline: direction === -1 ? 'bottom' : 'top',
             rotation: barLabelRotation(firstCandidate(label.orientation)),
+            placement,
         };
     }
 
@@ -1285,9 +1287,20 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         };
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const { isHighlight = false, labelSelection } = opts;
+        const { label } = this.properties;
         labelSelection.each((textNode, datum) => {
             textNode.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;
-            updateLabelNode(this, textNode, params, this.properties.label, datum, { isHighlight, activeHighlight });
+            const placementStyle = pickPlacementStyle(label, datum.placement);
+            updateLabelNode(
+                this,
+                textNode,
+                params,
+                label,
+                datum,
+                { isHighlight, activeHighlight },
+                undefined,
+                placementStyle
+            );
         });
     }
 

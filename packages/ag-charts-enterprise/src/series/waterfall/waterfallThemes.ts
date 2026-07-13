@@ -37,7 +37,8 @@ function itemTheme(
             fontWeight: { $ref: 'fontWeight' as const },
             fontSize: { $ref: 'fontSize' as const },
             fontFamily: { $ref: 'fontFamily' as const },
-            color: { $ref: 'textColor' as const },
+            insideStyle: { color: { $ref: 'textColor' as const } },
+            outsideStyle: { color: { $ref: 'textColor' as const } },
             formatter: undefined,
             placement: 'outside-end' as const,
             padding: { $isUserOption: ['./spacing', 0, 6] }, // compatibility with old `padding` property (now named `spacing`).

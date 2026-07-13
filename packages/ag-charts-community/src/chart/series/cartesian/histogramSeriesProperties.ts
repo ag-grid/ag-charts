@@ -21,7 +21,8 @@ import type {
 
 import type { BBox } from '../../../scene/bbox';
 import { DropShadow } from '../../../scene/dropShadow';
-import { Label } from '../../label';
+import { Label, LabelPlacementStyle } from '../../label';
+import type { ResolvedLabelPlacement } from '../../labelUtil';
 import { makeSeriesTooltip } from '../seriesTooltip';
 import { CartesianSeriesProperties } from './cartesianSeries';
 import type { CartesianSeriesNodeDatum } from './cartesianSeriesTypes';
@@ -50,6 +51,7 @@ export interface HistogramNodeDatum extends CartesianSeriesNodeDatum {
         readonly y: number;
         readonly textAlign: CanvasTextAlign;
         readonly textBaseline: CanvasTextBaseline;
+        readonly placement: ResolvedLabelPlacement;
     };
     // Required for types
     readonly crisp: boolean;
@@ -63,6 +65,12 @@ class HistogramSeriesLabel extends Label<AgHistogramSeriesLabelFormatterParams> 
 
     @Property
     spacing: PixelSize = 0;
+
+    @Property
+    insideStyle = new LabelPlacementStyle();
+
+    @Property
+    outsideStyle = new LabelPlacementStyle();
 }
 
 export class HistogramSeriesProperties extends CartesianSeriesProperties<AgHistogramSeriesOptions> {

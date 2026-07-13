@@ -5,6 +5,7 @@ import {
     type AgChartAutoSizedBaseLabelOptions,
     type AgChartCaptionOptions,
     type AgChartLabelOptions,
+    type AgChartLabelPlacementStyleOptions,
     type AgChartLabelStyleOptions,
     type AgChartLegendPlacement,
     type AgChartLegendPositionOptions,
@@ -795,9 +796,22 @@ seriesLabelOptionsDefs.wrapping = undocumented(textWrap);
 // @ts-expect-error undocumented option
 seriesLabelOptionsDefs.truncate = undocumented(boolean);
 
+/** Colour overrides applied to a label for its resolved inside/outside placement. */
+export const labelPlacementStyleOptionsDef: OptionsDefs<AgChartLabelPlacementStyleOptions> = {
+    color: colorOrRef,
+    ...fillOptionsDef,
+};
+
+/** `insideStyle`/`outsideStyle` placement-reactive overrides shared by inside/outside-placement labels. */
+export const labelPlacementStyleDefs = {
+    insideStyle: labelPlacementStyleOptionsDef,
+    outsideStyle: labelPlacementStyleOptionsDef,
+};
+
 /** Label defs for point-like series (line, area) that expose a directional placement. */
 export const placedSeriesLabelOptionsDefs: OptionsDefs<AgLineSeriesLabelOptions<any, any>> = {
     ...seriesLabelOptionsDefs,
+    ...labelPlacementStyleDefs,
     placement: labelCollisionPlacementDef,
 };
 

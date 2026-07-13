@@ -62,7 +62,7 @@ import type { DataController } from '../../data/dataController';
 import { DataModel, type ProcessedData, fixNumericExtent } from '../../data/dataModel';
 import { createDatumId, processedDataIsAnimatable, valueProperty } from '../../data/processors';
 import { expandLabelPadding } from '../../label';
-import { fitLabelToContainer, getLabelStyles } from '../../labelUtil';
+import { fitLabelToContainer, getLabelStyles, pickPlacementStyle } from '../../labelUtil';
 import {
     type CategoryLegendDatum,
     type ChartLegendType,
@@ -1201,6 +1201,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         this.labelSelection.update(
             labelData.map((v) => ({
                 ...v.datum,
+                placement: v.placement ?? v.datum.placement,
                 point: {
                     x: v.x,
                     y: v.y,
@@ -1227,6 +1228,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
                       .filter((label) => label.datum.datumIndex === highlightItem.datumIndex)
                       .map((label) => ({
                           ...label.datum,
+                          placement: label.placement ?? label.datum.placement,
                           point: {
                               x: label.x,
                               y: label.y,
@@ -1255,7 +1257,20 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         const params: AgBubbleSeriesLabelFormatterParams = this.makeLabelFormatterParams();
 
         opts.labelSelection.each((text, datum) => {
-            const style = getLabelStyles(this, datum, params, this.properties.label, isHighlight, activeHighlight);
+            const placementStyle = pickPlacementStyle(
+                this.properties.label,
+                datum.placement === 'inside' ? 'inside' : 'outside'
+            );
+            const style = getLabelStyles(
+                this,
+                datum,
+                params,
+                this.properties.label,
+                isHighlight,
+                activeHighlight,
+                undefined,
+                placementStyle
+            );
             text.text = datum.label.text;
             text.fill = style.color;
             text.x = datum.point?.x ?? 0;

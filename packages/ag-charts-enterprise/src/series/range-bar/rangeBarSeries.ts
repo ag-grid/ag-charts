@@ -57,6 +57,7 @@ const {
     checkCrisp,
     fitLabelToContainer,
     updateLabelNode,
+    pickPlacementStyle,
     SMALLEST_KEY_INTERVAL,
     LARGEST_KEY_INTERVAL,
     diff,
@@ -94,6 +95,8 @@ interface RangeBarNodeLabelDatum extends Readonly<Point> {
     /** Flush offset written by the placement engine to keep a rotated label inside its region. */
     offsetX?: number;
     offsetY?: number;
+    /** Resolved inside/outside placement, selecting the `insideStyle`/`outsideStyle` overrides. */
+    placement?: _ModuleSupport.ResolvedLabelPlacement;
     datum: any;
     itemType: 'high' | 'low';
     series: _ModuleSupport.CartesianSeriesNodeDatum['series'];
@@ -1041,6 +1044,9 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
 
         // Ensure labels array has exactly 2 items
         labels.length = 2;
+
+        labels[0].placement = placement;
+        labels[1].placement = placement;
     }
 
     protected override nodeFactory() {
@@ -1310,9 +1316,20 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             legendItemName: this.properties.legendItemName,
         };
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        const { label } = this.properties;
         opts.labelSelection.each((textNode, datum) => {
             textNode.fillOpacity = this.getHighlightStyle(isHighlight, datum?.datumIndex).opacity ?? 1;
-            updateLabelNode(this, textNode, params, this.properties.label, datum, { isHighlight, activeHighlight });
+            const placementStyle = pickPlacementStyle(label, datum.placement);
+            updateLabelNode(
+                this,
+                textNode,
+                params,
+                label,
+                datum,
+                { isHighlight, activeHighlight },
+                undefined,
+                placementStyle
+            );
         });
     }
 

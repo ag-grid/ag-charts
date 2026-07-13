@@ -61,7 +61,7 @@ import {
     rowCountProperty,
     valueProperty,
 } from '../../data/processors';
-import { adjustLabelPlacement, fitLabelToContainer, getLabelStyles } from '../../labelUtil';
+import { adjustLabelPlacement, fitLabelToContainer, getLabelStyles, pickPlacementStyle } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { type TooltipContent, type TooltipContentDataRow } from '../../tooltip/tooltip';
@@ -535,6 +535,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             y: ly,
             textAlign,
             textBaseline,
+            placement: placement.startsWith('inside') ? 'inside' : 'outside',
             text: fitLabelToContainer(
                 this.getLabelText<AgHistogramSeriesLabelFormatterParams>(total, datum, yKey!, 'y', [], label, {
                     ...this.binParams(bin),
@@ -905,7 +906,11 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         const { isHighlight = false } = opts;
 
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-        const { xKey, yKey, xName, yName } = this.properties;
+        const { xKey, yKey, xName, yName, label } = this.properties;
+        // Disabled labels carry no per-datum placement, so fall back to the authored default.
+        const defaultPlacement = (toArray(label.placement)[0] ?? 'inside-center').startsWith('inside')
+            ? 'inside'
+            : 'outside';
         opts.labelSelection.each((text, datum) => {
             const params: AgHistogramSeriesLabelFormatterParams = {
                 datum: undefined,
@@ -920,7 +925,17 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                 xName,
                 yName,
             };
-            const style = getLabelStyles(this, datum, params, this.properties.label, isHighlight, activeHighlight);
+            const placementStyle = pickPlacementStyle(label, datum.label?.placement ?? defaultPlacement);
+            const style = getLabelStyles(
+                this,
+                datum,
+                params,
+                label,
+                isHighlight,
+                activeHighlight,
+                undefined,
+                placementStyle
+            );
             const { enabled, fontStyle, fontWeight, fontSize, fontFamily, color } = style;
             if (enabled && labelEnabled && datum?.label) {
                 text.text = datum.label.text;

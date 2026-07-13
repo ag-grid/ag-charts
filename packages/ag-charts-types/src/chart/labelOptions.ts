@@ -1,4 +1,4 @@
-import type { LabelBoxOptions, TextOptions, Toggleable } from '../series/cartesian/commonOptions';
+import type { FillOptions, LabelBoxOptions, TextOptions, Toggleable } from '../series/cartesian/commonOptions';
 import type {
     AgChartCallbackParams,
     HierarchyHighlightState,
@@ -10,6 +10,25 @@ import type {
 import type { ContextDefault, FontSize, OverflowStrategy, PixelSize, TextWrap } from './types';
 
 export interface AgChartLabelStyleOptions extends Toggleable, TextOptions, LabelBoxOptions {}
+
+/**
+ * Colour overrides applied to a label depending on its resolved inside/outside placement: `color` sets
+ * the text colour, `fill`/`fillOpacity` set the label box fill. An explicit top-level `label` value
+ * always wins, and any property left unset here falls back to the built-in placement default.
+ */
+export interface AgChartLabelPlacementStyleOptions extends Pick<TextOptions, 'color'>, FillOptions {}
+
+/**
+ * Placement-reactive colour overrides for a single label whose inside/outside placement is resolved at
+ * layout time. Applied per property: an explicit top-level `label.<property>` takes precedence,
+ * otherwise the matching `insideStyle`/`outsideStyle` value applies for the resolved placement.
+ */
+export interface AgSeriesLabelPlacementStyleOptions {
+    /** Style overrides applied only when the label's resolved placement is inside the shape. */
+    insideStyle?: AgChartLabelPlacementStyleOptions;
+    /** Style overrides applied only when the label's resolved placement is outside the shape. */
+    outsideStyle?: AgChartLabelPlacementStyleOptions;
+}
 
 export interface AgChartLabelStylerParams<TDatum, TContext>
     extends AgChartCallbackParams<TDatum, TContext>, AgChartLabelStyleOptions {

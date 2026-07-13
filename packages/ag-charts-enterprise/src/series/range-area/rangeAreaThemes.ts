@@ -152,7 +152,8 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },
             fontWeight: { $ref: 'fontWeight' },
-            color: { $ref: 'textColor' },
+            insideStyle: { color: { $ref: 'textColor' } },
+            outsideStyle: { color: { $ref: 'textColor' } },
         },
         interpolation: {
             type: 'linear',

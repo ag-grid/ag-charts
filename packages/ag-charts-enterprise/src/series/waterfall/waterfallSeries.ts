@@ -58,6 +58,7 @@ const {
     createDatumId,
     checkCrisp,
     updateLabelNode,
+    pickPlacementStyle,
     prepareBarAnimationFunctions,
     collapsedStartingBarPosition,
     resetBarSelectionsDirect,
@@ -87,6 +88,8 @@ type WaterfallNodeLabelDatum = Readonly<Point> & {
     /** Flush offset written by the placement engine to keep a rotated label inside its region. */
     offsetX?: number;
     offsetY?: number;
+    /** Resolved inside/outside placement, selecting the `insideStyle`/`outsideStyle` overrides. */
+    placement?: _ModuleSupport.ResolvedLabelPlacement;
 };
 
 type WaterfallNodePointDatum = _ModuleSupport.DataModelSeriesNodeDatum['point'] & {
@@ -727,6 +730,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             mutableNode.label.region = resolvesOrientation ? container : undefined;
             mutableNode.label.offsetX = 0;
             mutableNode.label.offsetY = 0;
+            mutableNode.label.placement = insidePlacement ? 'inside' : 'outside';
         } else {
             // Clear label when disabled
             mutableNode.label.text = '';
@@ -1108,7 +1112,17 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             const label = this.getItemConfig(datum.itemType).label;
             const propertyItemId = datum.itemType === 'subtotal' ? 'total' : datum.itemType;
             const labelPath = ['series', `${this.declarationOrder}`, 'item', propertyItemId, 'label'];
-            updateLabelNode(this, textNode, params, label, datum.label, { isHighlight, activeHighlight }, labelPath);
+            const placementStyle = pickPlacementStyle(label, datum.label.placement);
+            updateLabelNode(
+                this,
+                textNode,
+                params,
+                label,
+                datum.label,
+                { isHighlight, activeHighlight },
+                labelPath,
+                placementStyle
+            );
         });
     }
 

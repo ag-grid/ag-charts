@@ -32,7 +32,8 @@ export const RANGE_BAR_SERIES_THEME: WithThemeParams<
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },
             fontWeight: { $ref: 'fontWeight' },
-            color: { $ref: 'chartBackgroundColor' },
+            insideStyle: { color: { $ref: 'chartBackgroundColor' } },
+            outsideStyle: { color: { $ref: 'chartBackgroundColor' } },
             placement: 'inside',
             padding: { $isUserOption: ['./spacing', 0, 6] }, // compatibility with old `padding` property (now named `spacing`).
         },

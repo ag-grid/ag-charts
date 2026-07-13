@@ -8,6 +8,7 @@ import {
     commonSeriesThemeableOptionsDefs,
     constant,
     fillOptionsDef,
+    labelPlacementStyleDefs,
     lineDashOptionsDef,
     multiSeriesHighlightOptionsDef,
     number,
@@ -44,6 +45,7 @@ export const histogramSeriesThemeableOptionsDef: OptionsDefs<AgHistogramSeriesTh
     itemStyler: histogramStyler,
     label: {
         ...seriesLabelOptionsDefs,
+        ...labelPlacementStyleDefs,
         placement: or(histogramLabelPlacement, arrayOf(histogramLabelPlacement)),
         spacing: positiveNumber,
     },

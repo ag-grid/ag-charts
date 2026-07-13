@@ -52,7 +52,8 @@ const themeTemplate: ExtensibleTheme<'line'> = {
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },
             fontWeight: { $ref: 'fontWeight' },
-            color: { $ref: 'textColor' },
+            insideStyle: { color: { $ref: 'textColor' } },
+            outsideStyle: { color: { $ref: 'textColor' } },
             placement: ['top', 'bottom'],
         },
         tooltip: {

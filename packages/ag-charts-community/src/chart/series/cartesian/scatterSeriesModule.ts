@@ -43,7 +43,8 @@ const themeTemplate: ExtensibleTheme<'scatter'> = {
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },
             fontWeight: { $ref: 'fontWeight' },
-            color: { $ref: 'textColor' },
+            insideStyle: { color: { $ref: 'textColor' } },
+            outsideStyle: { color: { $ref: 'textColor' } },
             ...undocumentedThemeOptions({ collisionAvoidance: { enabled: true } }),
         },
         tooltip: {

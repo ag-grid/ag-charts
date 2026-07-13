@@ -14,6 +14,7 @@ import type {
     AgChartLabelFormatterParams,
     AgChartLabelOptions,
     AgChartLabelOrientation,
+    AgChartLabelPlacementStyleOptions,
     AgChartLabelStyleOptions,
     AgChartLabelStylerParams,
     ContextDefault,
@@ -128,6 +129,18 @@ export class LabelStyle extends BaseProperties implements AgChartLabelStyleOptio
     padding?: Padding;
 }
 
+/** Colour overrides applied to a label for one resolved placement (inside or outside). */
+export class LabelPlacementStyle extends BaseProperties implements AgChartLabelPlacementStyleOptions {
+    @Property
+    color?: string;
+
+    @Property
+    fill?: string;
+
+    @Property
+    fillOpacity?: number;
+}
+
 export class Label<TParams = never, TDatum = any>
     extends LabelStyle
     implements AgChartLabelOptions<TDatum, RequireOptional<TParams>>
@@ -198,6 +211,12 @@ export class Label<TParams = never, TDatum = any>
 export class PlacedSeriesLabel<TParams = never, TDatum = any> extends Label<TParams, TDatum> {
     @Property
     placement?: AgChartLabelCollisionPlacement | AgChartLabelCollisionPlacement[];
+
+    @Property
+    insideStyle = new LabelPlacementStyle();
+
+    @Property
+    outsideStyle = new LabelPlacementStyle();
 }
 
 type LabelBoxingMixin = { border?: { enabled?: boolean; stroke?: string }; fill?: unknown; padding?: Padding };
