@@ -8,7 +8,7 @@ import type {
 } from '../../chart/callbackOptions';
 import type { AgChartLabelCollisionPlacement } from '../../chart/collisionAvoidanceOptions';
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from '../../chart/errorBarOptions';
-import type { AgChartLabelOptions } from '../../chart/labelOptions';
+import type { AgChartLabelFitOptions, AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault, DatumKey } from '../../chart/types';
 import type { AgSeriesMarkerStyle } from '../markerOptions';
@@ -50,14 +50,11 @@ export type AgScatterSeriesItemStylerParams<TDatum = DatumDefault, TContext = Co
     AgScatterSeriesOptionsKeys<TDatum> &
     Required<AgSeriesMarkerStyle>;
 
-export interface AgScatterSeriesLabel<TDatum, TContext = ContextDefault> extends AgChartLabelOptions<
-    TDatum,
-    AgScatterSeriesLabelFormatterParams<TDatum>,
-    TContext
-> {
+export interface AgScatterSeriesLabel<TDatum, TContext = ContextDefault>
+    extends AgChartLabelOptions<TDatum, AgScatterSeriesLabelFormatterParams<TDatum>, TContext>, AgChartLabelFitOptions {
     /**
      * Placement of the label in relation to the marker. Either a single placement or an ordered
-     * fallback list tried in turn until one fits.
+     * fallback list tried in turn until one fits. Use `inside` to centre the label within the marker.
      *
      * Default: `top`
      */

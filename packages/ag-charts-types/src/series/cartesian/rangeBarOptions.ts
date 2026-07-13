@@ -8,7 +8,7 @@ import type {
 } from '../../chart/callbackOptions';
 import type { AgChartLabelOrientation } from '../../chart/collisionAvoidanceOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
-import type { AgChartLabelOptions } from '../../chart/labelOptions';
+import type { AgChartLabelFitOptions, AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault, DatumKey, Opacity, PixelSize, Ratio } from '../../chart/types';
 import type {
@@ -48,16 +48,17 @@ export type AgRangeBarSeriesTooltipRendererParams<
     AgRangeBarSeriesOptionsNames &
     AgRangeBarSeriesStyle;
 
-export interface AgRangeBarSeriesLabelOptions<TDatum, TContext = ContextDefault> extends AgChartLabelOptions<
-    TDatum,
-    AgRangeBarSeriesLabelFormatterParams<TDatum>,
-    TContext
-> {
+export interface AgRangeBarSeriesLabelOptions<TDatum, TContext = ContextDefault>
+    extends
+        AgChartLabelOptions<TDatum, AgRangeBarSeriesLabelFormatterParams<TDatum>, TContext>,
+        AgChartLabelFitOptions {
     /**
      * Where to render series labels relative to the bars. Either a single placement or an ordered
      * fallback list tried in turn until one fits.
      */
     placement?: AgRangeBarSeriesLabelPlacement | AgRangeBarSeriesLabelPlacement[];
+    /** Spacing in pixels between the label and the edge of the bar. */
+    spacing?: PixelSize;
     /**
      * Orientation of the label within the bar. `parallel` reads upright; the two `perpendicular`
      * variants rotate it a quarter-turn in opposite directions. Either a single orientation or an
@@ -66,8 +67,6 @@ export interface AgRangeBarSeriesLabelOptions<TDatum, TContext = ContextDefault>
      * Default: `parallel`
      */
     orientation?: AgChartLabelOrientation | AgChartLabelOrientation[];
-    /** Spacing in pixels between the label and the edge of the bar. */
-    spacing?: PixelSize;
 }
 
 export type AgRangeBarSeriesLabelPlacement = 'inside' | 'outside';

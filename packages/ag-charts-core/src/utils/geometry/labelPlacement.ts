@@ -12,6 +12,7 @@ import { getMinOuterRectSize } from './math/shapeUtils';
 import { SpatialIndex, gridCellSize } from './spatialIndex';
 
 export type LabelPlacement =
+    | 'inside'
     | 'top'
     | 'bottom'
     | 'left'
@@ -74,6 +75,12 @@ export interface PointLabelDatum {
     readonly point: Readonly<SizedPoint>;
     readonly label: MeasuredLabel;
     readonly anchor: Point | undefined;
+    /**
+     * Shifts an `inside` label off the marker centre by this fraction of the marker diameter (x, y
+     * down), so the label sits at the largest rectangle within a non-centred shape. Applied only for
+     * the `inside` placement, leaving directional placements unaffected.
+     */
+    readonly insideOffset?: Readonly<Point>;
     readonly placement: LabelPlacement | undefined;
     /**
      * Ordered fallback placements, tried in turn until one fits; the label is dropped if none do.
@@ -388,6 +395,7 @@ export function buildBarLabelData<T>(
 }
 
 const labelPlacements: Record<LabelPlacement, { x: -1 | 0 | 1; y: -1 | 0 | 1 }> = {
+    inside: { x: 0, y: 0 },
     top: { x: 0, y: -1 },
     bottom: { x: 0, y: 1 },
     left: { x: -1, y: 0 },
@@ -417,6 +425,14 @@ const queryBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
 const inflatedBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
 // The candidate datum's per-category obstacle config, set before each obstacle query.
 let candidateCollideWith: CollideWith | undefined;
+// The placement of the candidate being tested; an `inside` candidate ignores its own marker obstacle
+// because it is centred on that marker by design (and would otherwise always collide with it), while
+// still avoiding every other marker.
+let candidatePlacement: LabelPlacement | undefined;
+// Centre of the candidate datum's own marker, matched against marker obstacles so an `inside` candidate
+// skips only that one. Set per datum before its obstacle queries.
+let candidateOwnMarkerCx = 0;
+let candidateOwnMarkerCy = 0;
 // The label's text/box after the fit step, reused per label to keep the hot path allocation-free.
 const fittedLabel: { text: NormalisedTextOrSegments; width: number; height: number } = {
     text: '',
@@ -450,7 +466,17 @@ function inflateBoxInto(dest: BoxBounds, src: BoxBounds, inflate: number) {
 }
 
 function obstacleOverlapsCandidate(o: LabelObstacle): boolean {
-    const cfg = candidateCollideWith?.[o.category ?? 'seriesItem'];
+    const category = o.category ?? 'seriesItem';
+    if (
+        candidatePlacement === 'inside' &&
+        category === 'marker' &&
+        o.kind === 'circle' &&
+        o.cx === candidateOwnMarkerCx &&
+        o.cy === candidateOwnMarkerCy
+    ) {
+        return false;
+    }
+    const cfg = candidateCollideWith?.[category];
     if (cfg?.enabled === false) return false;
 
     inflateBoxInto(inflatedBox, candidateBox, cfg?.minSpacing ?? 0);
@@ -500,6 +526,19 @@ function obstacleGridCellSize(data: Map<string, PointLabelDatum[]>, obstacles: r
     return gridCellSize(extentSum, extentCount);
 }
 
+// Anchor-adjusted marker centre, written into the shared scratch (allocation-free). Marker-obstacle
+// creation and the `inside` own-marker match both read it, so they cannot drift out of sync.
+const markerCentre = { cx: 0, cy: 0 };
+function markerCentreOf(d: PointLabelDatum) {
+    const { x, y, size } = d.point;
+    markerCentre.cx = x;
+    markerCentre.cy = y;
+    if (d.anchor != null) {
+        markerCentre.cx -= (d.anchor.x - 0.5) * size;
+        markerCentre.cy -= (d.anchor.y - 0.5) * size;
+    }
+}
+
 /** Inserts a pooled circle obstacle for every sized marker into the obstacle index. */
 function insertMarkerObstacles(data: Map<string, PointLabelDatum[]>) {
     let markerCount = 0;
@@ -507,12 +546,8 @@ function insertMarkerObstacles(data: Map<string, PointLabelDatum[]>) {
         for (const d of datums) {
             const { size } = d.point;
             if (size <= 0) continue;
-            let cx = d.point.x;
-            let cy = d.point.y;
-            if (d.anchor != null) {
-                cx -= (d.anchor.x - 0.5) * size;
-                cy -= (d.anchor.y - 0.5) * size;
-            }
+            markerCentreOf(d);
+            const { cx, cy } = markerCentre;
             const r = size / 2;
             let obstacle = markerPool[markerCount];
             if (obstacle == null) {
@@ -650,6 +685,10 @@ function positionLabelBox(
         x -= (anchor.x - 0.5) * point.size;
         y -= (anchor.y - 0.5) * point.size;
     }
+    if (placement === 'inside' && d.insideOffset) {
+        x += d.insideOffset.x * point.size;
+        y += d.insideOffset.y * point.size;
+    }
     out.x = x;
     out.y = y;
 }
@@ -716,6 +755,9 @@ function placeAvoidingLabel(
     const singleOrientation = singleOrientationOf(d);
     const inflate = maxInflation(d.collideWith);
     candidateCollideWith = d.collideWith;
+    markerCentreOf(d);
+    candidateOwnMarkerCx = markerCentre.cx;
+    candidateOwnMarkerCy = markerCentre.cy;
     const candidateCount = candidates?.length ?? 1;
     const orientationCount = orientations?.length ?? 1;
     const region = d.region ?? bounds;
@@ -749,6 +791,7 @@ function placeAvoidingLabel(
                 candidateBox.x = x = nx;
                 candidateBox.y = y = ny;
             }
+            candidatePlacement = placement;
             inflateBoxInto(queryBox, candidateBox, inflate);
             if (boxContains(region, x, y, cw, ch) && !obstacleIndex.query(queryBox, obstacleOverlapsCandidate)) {
                 return {

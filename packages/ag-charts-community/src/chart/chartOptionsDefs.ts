@@ -8,6 +8,7 @@ import {
     defined,
     geoJson,
     htmlElement,
+    nonNegativeInteger,
     number,
     object,
     or,
@@ -63,6 +64,7 @@ export const commonChartOptions = {
             },
             'legend state array'
         ),
+        legendPagination: nonNegativeInteger,
         zoom: defined,
     },
 };

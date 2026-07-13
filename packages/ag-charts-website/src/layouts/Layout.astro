@@ -37,6 +37,7 @@ export interface Props {
     noIndex?: boolean;
     showAnnouncementBanner?: boolean;
     pageStructuredData?: JsonLdObject[];
+    overrideSocialImage?: string;
 }
 
 const { data: metadata } = await getEntry('metadata', 'metadata') as CollectionEntry<'metadata'>;
@@ -56,6 +57,7 @@ const {
     hideFooter,
     noIndex,
     pageStructuredData,
+    overrideSocialImage,
 } = Astro.props;
 
 const path = Astro.url.pathname;
@@ -81,7 +83,7 @@ const apiPaths = apiMenuData.items.flatMap(({ path }) => {
     };
 });
 const canonicalUrl = new URL(Astro.url.pathname, metadata.canonicalUrlBase);
-const socialImage = urlWithBaseUrl('/images/ag-charts-social.png');
+const socialImage = urlWithBaseUrl(overrideSocialImage ?? '/images/ag-charts-social.png');
 
 const isApiLayout = apiMenuItems.some((item) => {
     const removeTrailingSlash = (s: string) => s.replace(/\/$/, '');

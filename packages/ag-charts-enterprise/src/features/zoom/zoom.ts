@@ -527,7 +527,7 @@ export class Zoom extends AbstractModuleInstance {
         const zoom = this.getZoom();
 
         if (dragState === DragState.Pan) {
-            this.panner.update({ currentX: event.offsetX, currentY: event.offsetY });
+            this.panner.update(event);
         } else {
             let anchor = direction === ChartAxisDirection.X ? anchorPointX : anchorPointY;
             if (shouldFlipXY) anchor = direction === ChartAxisDirection.X ? anchorPointY : anchorPointX;
@@ -770,6 +770,7 @@ export class Zoom extends AbstractModuleInstance {
             enableDoubleClick: enableDoubleClickToReset,
             enableDragging: enableAxisDragging,
             enableScrolling: enableAxisScrolling,
+            enableContextMenu: false,
         });
 
         if (!enabled) return;

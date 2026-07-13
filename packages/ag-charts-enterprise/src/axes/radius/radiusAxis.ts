@@ -64,7 +64,7 @@ export abstract class RadiusAxis<
 
         this.headingLabelGroup.appendChild(this.caption.node);
 
-        this.cleanup.register(this.caption.registerInteraction(this.moduleCtx, 'afterend'));
+        this.cleanup.register(this.caption.registerInteraction(this.moduleCtx, this.id));
     }
 
     private getAxisTransform() {

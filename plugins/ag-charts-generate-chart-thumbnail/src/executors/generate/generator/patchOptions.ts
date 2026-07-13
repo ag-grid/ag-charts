@@ -9,7 +9,7 @@ export function patchOptions(
     theme: AgChartThemeName,
     multiple: boolean,
     api: 'create' | 'createGauge' | 'createFinancialChart'
-) {
+): AgChartOptions {
     delete options.subtitle;
     delete options.footnote;
     delete options.gradientLegend;
@@ -85,7 +85,8 @@ export function patchOptions(
         };
     }
 
-    return maybeApplySubstitutions(options);
+    // maybeApplySubstitutions mutates and returns the same object for object inputs.
+    return maybeApplySubstitutions(options) as AgChartOptions;
 }
 
 const DEFAULT_SUBSTITUTIONS: ExampleSubstitutions = {
@@ -109,7 +110,7 @@ const maybeApplySubstitutions = (node: unknown) => {
                 const value = nodes[key];
                 if (typeof value === 'string') {
                     // Inline static string case.
-                    const newValue = applySubstitutions(value, DEFAULT_SUBSTITUTIONS);
+                    const newValue = applySubstitutions(value);
                     safeSet(nodes, key, newValue);
                 } else if (typeof value === 'function') {
                     // Callback function case (apply substitutions to the result).
@@ -119,19 +120,29 @@ const maybeApplySubstitutions = (node: unknown) => {
             }
         });
     } else if (typeof node === 'string') {
-        return applySubstitutions(node, DEFAULT_SUBSTITUTIONS);
+        return applySubstitutions(node);
     }
 
     return node;
 };
 
-const applySubstitutions = (content: string, substitutions?: ExampleSubstitutions) => {
-    if (content == null || substitutions == null || !content.includes('${')) {
+// Caches base64 image inlining, which repeats across the theme x DPI render loop. Safe to key
+// on content alone only while substitutions are always DEFAULT_SUBSTITUTIONS (fixed per process).
+const substitutionCache = new Map<string, string>();
+
+const applySubstitutions = (content: string) => {
+    if (!content.includes('${')) {
         return content;
     }
 
-    Object.keys(substitutions).forEach((key) => {
-        const value = substitutions[key];
+    const cached = substitutionCache.get(content);
+    if (cached != null) {
+        return cached;
+    }
+    const original = content;
+
+    Object.keys(DEFAULT_SUBSTITUTIONS).forEach((key) => {
+        const value = DEFAULT_SUBSTITUTIONS[key];
         if (value == null) {
             throw new Error(`Substitution value is null for key: ${key}`);
         }
@@ -146,5 +157,6 @@ const applySubstitutions = (content: string, substitutions?: ExampleSubstitution
         }
     });
 
+    substitutionCache.set(original, content);
     return content;
 };

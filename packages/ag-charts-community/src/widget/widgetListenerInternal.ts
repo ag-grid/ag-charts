@@ -10,20 +10,30 @@ type EventHandler<T, K extends EventType = EventType> = (event: EventMap[K], cur
 type Targetable = { getElement(): HTMLElement };
 
 type DragEvents = 'drag-start' | 'drag-move' | 'drag-end';
-type DragOrigin = { pageX: number; pageY: number; offsetX: number; offsetY: number };
+type DragOrigin = {
+    pageX: number;
+    pageY: number;
+    currentX: number;
+    currentY: number;
+    offsetX: number;
+    offsetY: number;
+};
 
-function makeMouseDrag<K extends DragEvents>(
-    current: Targetable,
-    type: K,
-    origin: DragOrigin,
-    sourceEvent: MouseEvent
-): DragWidgetEvent<K> {
-    const { currentX, currentY } = WidgetEventUtil.calcCurrentXY(current.getElement(), sourceEvent);
+function makeMouseDrag<K extends DragEvents>(type: K, origin: DragOrigin, sourceEvent: MouseEvent): DragWidgetEvent<K> {
     // [offsetX, offsetY] is relative to the sourceEvent.target, which can be another element
     // such as a legend button. Therefore, calculate [offsetX, offsetY] relative to the axis
     // element that fired the 'mousedown' event.
     const originDeltaX = sourceEvent.pageX - origin.pageX;
     const originDeltaY = sourceEvent.pageY - origin.pageY;
+
+    // FIXME: This is not entirely honest. At the time of writing, there's a weird quirk where dragging an axis can
+    // cause the HTML bounds to change, with change produce a twitch-like animation. The axis bounds change because
+    // the tick labels change/move, which causes the bounds to be recalculated. The ideal solution would be for the
+    // axis element bounds to remain constant when the user drags the mouse, but unfortunately that's very difficult
+    // to achieve. As a workaround, just calculate currentXY relative to the origin (before any resizes happened).
+    const currentX = origin.currentX + originDeltaX;
+    const currentY = origin.currentY + originDeltaY;
+
     return {
         type,
         device: 'mouse',
@@ -54,15 +64,18 @@ export function getTouchOffsets(current: Targetable, touch: Touch): { offsetX: n
 }
 
 function makeTouchDrag<K extends DragEvents>(
-    current: Targetable,
     type: K,
     origin: DragOrigin,
     sourceEvent: TouchEvent,
     touch: Touch
 ): DragWidgetEvent<K> {
-    const { currentX, currentY } = WidgetEventUtil.calcCurrentXY(current.getElement(), touch);
     const originDeltaX = touch.pageX - origin.pageX;
     const originDeltaY = touch.pageY - origin.pageY;
+
+    // FIXME: Same as makeMouseDrag
+    const currentX = origin.currentX + originDeltaX;
+    const currentY = origin.currentY + originDeltaY;
+
     return {
         type,
         device: 'touch',
@@ -160,20 +173,28 @@ export class WidgetListenerInternal {
     }
 
     private startMouseDrag<T extends Targetable>(current: T, initialDownEvent: MouseEvent) {
-        const origin: DragOrigin = { pageX: Number.NaN, pageY: Number.NaN, offsetX: Number.NaN, offsetY: Number.NaN };
+        const { currentX, currentY } = WidgetEventUtil.calcCurrentXY(current.getElement(), initialDownEvent);
+        const origin: DragOrigin = {
+            pageX: Number.NaN,
+            pageY: Number.NaN,
+            offsetX: Number.NaN,
+            offsetY: Number.NaN,
+            currentX,
+            currentY,
+        };
         partialAssign(['pageX', 'pageY', 'offsetX', 'offsetY'], origin, initialDownEvent);
 
         const dragCallbacks: MouseDragCallbacks = {
             mousedown: (downEvent: MouseEvent) => {
-                const dragStartEvent = makeMouseDrag(current, 'drag-start', origin, downEvent);
+                const dragStartEvent = makeMouseDrag('drag-start', origin, downEvent);
                 this.dispatch('drag-start', current, dragStartEvent);
             },
             mousemove: (moveEvent: MouseEvent) => {
-                const dragMoveEvent = makeMouseDrag(current, 'drag-move', origin, moveEvent);
+                const dragMoveEvent = makeMouseDrag('drag-move', origin, moveEvent);
                 this.dispatch('drag-move', current, dragMoveEvent);
             },
             mouseup: (upEvent: MouseEvent) => {
-                const dragEndEvent = makeMouseDrag(current, 'drag-end', origin, upEvent);
+                const dragEndEvent = makeMouseDrag('drag-end', origin, upEvent);
                 this.dispatch('drag-end', current, dragEndEvent);
                 this.endDrag(current, dragEndEvent);
             },
@@ -199,16 +220,23 @@ export class WidgetListenerInternal {
     }
 
     private startOneFingerTouch<T extends Targetable>(current: T, initialEvent: TouchEvent, initialTouch: Touch) {
-        const origin: DragOrigin = { pageX: Number.NaN, pageY: Number.NaN, ...getTouchOffsets(current, initialTouch) };
+        const { currentX, currentY } = WidgetEventUtil.calcCurrentXY(current.getElement(), initialTouch);
+        const origin: DragOrigin = {
+            pageX: Number.NaN,
+            pageY: Number.NaN,
+            currentX,
+            currentY,
+            ...getTouchOffsets(current, initialTouch),
+        };
         partialAssign(['pageX', 'pageY'], origin, initialTouch);
 
         const dragCallbacks: TouchDragCallbacks = {
             touchmove: (moveEvent: TouchEvent, touch: Touch) => {
-                const dragMoveEvent = makeTouchDrag(current, 'drag-move', origin, moveEvent, touch);
+                const dragMoveEvent = makeTouchDrag('drag-move', origin, moveEvent, touch);
                 this.dispatch('drag-move', current, dragMoveEvent);
             },
             touchend: (cancelEvent: TouchEvent, touch: Touch) => {
-                const dragMoveEvent = makeTouchDrag(current, 'drag-end', origin, cancelEvent, touch);
+                const dragMoveEvent = makeTouchDrag('drag-end', origin, cancelEvent, touch);
                 this.dispatch('drag-end', current, dragMoveEvent);
             },
         };
@@ -216,7 +244,7 @@ export class WidgetListenerInternal {
         const target = current.getElement();
         this.touchDragger = startOneFingerTouch(GlobalCallbacks, this, dragCallbacks, initialTouch, target);
 
-        const dragStartEvent = makeTouchDrag(current, 'drag-start', origin, initialEvent, initialTouch);
+        const dragStartEvent = makeTouchDrag('drag-start', origin, initialEvent, initialTouch);
         this.dispatch('drag-start', current, dragStartEvent);
     }
 

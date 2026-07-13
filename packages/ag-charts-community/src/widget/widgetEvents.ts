@@ -96,6 +96,8 @@ export type WheelWidgetEvent = {
     readonly offsetY: number;
     readonly clientX: number;
     readonly clientY: number;
+    readonly currentX: number;
+    readonly currentY: number;
     readonly deltaX: number;
     readonly deltaY: number;
     readonly sourceEvent: WheelEvent;
@@ -233,8 +235,9 @@ const WIDGET_META = {
     // WheelEvent
     wheel: {
         isNative: true,
-        allocator(sourceEvent: WheelEvent, _current: HTMLElement): WheelWidgetEvent {
+        allocator(sourceEvent: WheelEvent, current: HTMLElement): WheelWidgetEvent {
             const { offsetX, offsetY, clientX, clientY } = sourceEvent;
+            const { currentX, currentY } = WidgetEventUtil.calcCurrentXY(current, sourceEvent);
 
             // AG-10475 On Chrome (Windows), wheel clicks send deltaMode: 0 events with deltaY: -100 or +100.
             // So we divide this by 100 to give us the desired step.
@@ -249,7 +252,18 @@ const WIDGET_META = {
                 [deltaX, deltaY] = [deltaY, deltaX];
             }
 
-            return { type: 'wheel', offsetX, offsetY, clientX, clientY, deltaX, deltaY, sourceEvent };
+            return {
+                type: 'wheel',
+                offsetX,
+                offsetY,
+                clientX,
+                clientY,
+                currentX,
+                currentY,
+                deltaX,
+                deltaY,
+                sourceEvent,
+            };
         },
     },
 

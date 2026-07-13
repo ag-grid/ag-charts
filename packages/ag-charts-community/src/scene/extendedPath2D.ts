@@ -666,4 +666,59 @@ export class ExtendedPath2D {
 
         return new BBox(left, top, right - left, bot - top);
     }
+
+    /**
+     * Approximates the path as one polygon (array of points) per subpath, sampling each cubic into
+     * `curveSamples` segments. Pure geometry — no canvas — for containment/area analysis.
+     */
+    flatten(curveSamples: number = 16): { x: number; y: number }[][] {
+        const { commands, params } = this;
+        const polygons: { x: number; y: number }[][] = [];
+        let current: { x: number; y: number }[] = [];
+        let cx = Number.NaN;
+        let cy = Number.NaN;
+        let sx = Number.NaN;
+        let sy = Number.NaN;
+
+        const push = (x: number, y: number) => {
+            current.push({ x, y });
+            cx = x;
+            cy = y;
+        };
+
+        let pi = 0;
+        for (let ci = 0; ci < this.commandsLength; ci++) {
+            switch (commands[ci]) {
+                case Command.Move:
+                    if (current.length > 0) polygons.push(current);
+                    current = [];
+                    push(params[pi++], params[pi++]);
+                    sx = cx;
+                    sy = cy;
+                    break;
+                case Command.Line:
+                    push(params[pi++], params[pi++]);
+                    break;
+                case Command.Curve: {
+                    const [c0x, c0y] = [cx, cy];
+                    const c1x = params[pi++];
+                    const c1y = params[pi++];
+                    const c2x = params[pi++];
+                    const c2y = params[pi++];
+                    const c3x = params[pi++];
+                    const c3y = params[pi++];
+                    for (let i = 1; i <= curveSamples; i++) {
+                        const t = i / curveSamples;
+                        push(evaluateBezier(c0x, c1x, c2x, c3x, t), evaluateBezier(c0y, c1y, c2y, c3y, t));
+                    }
+                    break;
+                }
+                case Command.ClosePath:
+                    if (!Number.isNaN(sx)) push(sx, sy);
+                    break;
+            }
+        }
+        if (current.length > 0) polygons.push(current);
+        return polygons;
+    }
 }

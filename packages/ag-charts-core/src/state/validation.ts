@@ -557,6 +557,10 @@ export const numberRange = (min: number, max: number) =>
 
 export const positiveNumber = numberMin(0);
 export const positiveNumberNonZero = numberMin(0, false);
+export const nonNegativeInteger = attachDescription(
+    (value) => isFiniteNumber(value) && Number.isInteger(value) && value >= 0,
+    'a non-negative integer'
+);
 // For fields that opt into bigint; do NOT widen positiveNumber/positiveNumberNonZero instead.
 export const positiveNumericValue = attachDescription(
     (value) => isFiniteNumericValue(value) && value >= 0,

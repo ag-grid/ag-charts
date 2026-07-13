@@ -16,6 +16,7 @@ import {
     highlightOptionsDef,
     interpolationOptionsDefs,
     labelCollisionPlacementDef,
+    labelFitOptionsDefs,
     labelOrientationDef,
     lessThanOrEqual,
     lineDashOptionsDef,
@@ -198,8 +199,8 @@ export const chordSeriesThemeableOptionsDef: OptionsDefs<AgChordSeriesThemeableO
     strokes: arrayOf(colorOrRef),
     label: {
         spacing: positiveNumber,
-        maxWidth: positiveNumber,
         ...seriesLabelOptionsDefs,
+        ...labelFitOptionsDefs,
     },
     link: {
         tension: ratio,
@@ -329,7 +330,10 @@ export const mapLineSeriesThemeableOptionsDef: OptionsDefs<AgMapLineSeriesThemea
         ...lineDashOptionsDef,
     }),
     sizeDomain: and(arrayOf(positiveNumericValue), arrayLength(2, 2)),
-    label: seriesLabelOptionsDefs,
+    label: {
+        ...seriesLabelOptionsDefs,
+        ...labelFitOptionsDefs,
+    },
     tooltip: tooltipOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
     ...strokeOptionsDef,
@@ -350,6 +354,7 @@ export const mapMarkerSeriesThemeableOptionsDef: OptionsDefs<AgMapMarkerSeriesTh
     label: {
         placement: labelCollisionPlacementDef,
         ...seriesLabelOptionsDefs,
+        ...labelFitOptionsDefs,
     },
     tooltip: tooltipOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
@@ -448,7 +453,10 @@ export const radarAreaSeriesThemeableOptionsDef: OptionsDefs<AgRadarAreaSeriesTh
         ...strokeOptionsDef,
         ...lineDashOptionsDef,
     }),
-    label: seriesLabelOptionsDefs,
+    label: {
+        ...seriesLabelOptionsDefs,
+        ...labelFitOptionsDefs,
+    },
     tooltip: tooltipOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
     ...fillOptionsDef,
@@ -465,7 +473,10 @@ export const radarLineSeriesThemeableOptionsDef: OptionsDefs<AgRadarSeriesThemea
         ...strokeOptionsDef,
         ...lineDashOptionsDef,
     }),
-    label: seriesLabelOptionsDefs,
+    label: {
+        ...seriesLabelOptionsDefs,
+        ...labelFitOptionsDefs,
+    },
     tooltip: tooltipOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
     ...strokeOptionsDef,
@@ -535,6 +546,7 @@ export const rangeAreaSeriesThemeableOptionsDef: OptionsDefs<AgRangeAreaSeriesTh
     interpolation: interpolationOptionsDefs,
     label: {
         ...seriesLabelOptionsDefs,
+        ...labelFitOptionsDefs,
         placement: rangeInsideOutsidePlacementDef,
         orientation: labelOrientationDef,
         spacing: positiveNumber,
@@ -579,6 +591,7 @@ export const rangeBarSeriesThemeableOptionsDef: OptionsDefs<AgRangeBarSeriesThem
     itemStyler: rangeBarStyleCallback,
     label: {
         ...seriesLabelOptionsDefs,
+        ...labelFitOptionsDefs,
         placement: rangeInsideOutsidePlacementDef,
         orientation: labelOrientationDef,
         spacing: positiveNumber,
@@ -600,6 +613,7 @@ export const sankeySeriesThemeableOptionsDef: OptionsDefs<AgSankeySeriesThemeabl
     strokes: arrayOf(colorOrRef),
     label: {
         ...seriesLabelOptionsDefs,
+        ...labelFitOptionsDefs,
         spacing: positiveNumber,
         placement: union('left', 'right', 'center'),
         edgePlacement: union('inside', 'outside'),
@@ -726,6 +740,7 @@ const waterfallSeriesItemOptionsDef: OptionsDefs<AgWaterfallSeriesItemOptions<an
     }),
     label: {
         ...seriesLabelOptionsDefs,
+        ...labelFitOptionsDefs,
         placement: waterfallPlacementDef,
         orientation: labelOrientationDef,
         spacing: positiveNumber,

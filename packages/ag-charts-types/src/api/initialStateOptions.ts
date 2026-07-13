@@ -30,6 +30,8 @@ export interface AgInitialStateOptions {
     collapsed?: (string | number)[];
     /** The initial legend series visibility state. */
     legend?: AgInitialStateLegendOptions[];
+    /** The initial legend pagination page as a zero-based index, restored on a best-effort like-for-like basis as the page count depends on the render size. */
+    legendPagination?: number;
     /** The initial zoom state. */
     zoom?: AgInitialStateZoomOptions;
 }

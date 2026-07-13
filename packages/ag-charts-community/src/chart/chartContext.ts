@@ -119,7 +119,7 @@ export function createChartContext(chart: ChartHost, vars: ChartContextVars): Dy
         .service('interactionManager', () => new InteractionManager())
         .service('optionsGraphService', () => new OptionsGraphService())
         .service('chartTypeOriginator', () => new ChartTypeOriginator(chart))
-        .service('widgets', (c) => new WidgetSet(c.domManager, { withDragInterpretation: vars.withDragInterpretation }))
+        .service('widgets', (c) => new WidgetSet(c, { withDragInterpretation: vars.withDragInterpretation }))
         .service('axisManager', (c) => new AxisManager(c.eventsHub, vars.root))
         .service('highlightManager', (c) => new HighlightManager(c))
         .service('layoutManager', (c) => new LayoutManager(c.eventsHub))

@@ -216,6 +216,84 @@ describe('label collision avoidance', () => {
         }
     });
 
+    // `inside` centres the label on the marker and fits its text to the marker, hiding text that
+    // cannot fit — distinct from the directional placements, which offset the label off the marker.
+    describe('inside placement (centre in marker, fit to marker)', () => {
+        const sparseData = Array.from({ length: 5 }, (_, i) => ({ x: i, y: 50 }));
+
+        const placedLabels = () => {
+            const series = deproxy(chart as any).series[0] as unknown as {
+                placedLabelData: {
+                    x: number;
+                    y: number;
+                    width: number;
+                    height: number;
+                    placement?: string;
+                    datum: { point: { x: number; y: number } };
+                }[];
+            };
+            return series.placedLabelData;
+        };
+
+        const render = async (
+            type: 'line' | 'area',
+            opts: { markerSize?: number; markerEnabled?: boolean; placement?: string | string[] } = {}
+        ) => {
+            const { markerSize = 40, markerEnabled = true, placement = 'inside' } = opts;
+            const options: any = {
+                data: sparseData,
+                legend: { enabled: false },
+                axes: cartesianAxes,
+                series: [
+                    {
+                        type,
+                        xKey: 'x',
+                        yKey: 'y',
+                        marker: { enabled: markerEnabled, size: markerSize },
+                        label: {
+                            enabled: true,
+                            placement,
+                            formatter: ({ value }: any) => String(value),
+                        },
+                    },
+                ],
+            };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            return placedLabels();
+        };
+
+        for (const type of ['line', 'area'] as const) {
+            it(`${type}: centres each label on its point when it fits the marker`, async () => {
+                const placed = await render(type, { markerSize: 40 });
+                expect(placed.length).toBe(sparseData.length);
+                for (const label of placed) {
+                    expect(label.placement).toBe('inside');
+                    expect(label.x + label.width / 2).toBeCloseTo(label.datum.point.x, 0);
+                    expect(label.y + label.height / 2).toBeCloseTo(label.datum.point.y, 0);
+                }
+            });
+
+            it(`${type}: hides labels whose text overflows a small marker`, async () => {
+                const placed = await render(type, { markerSize: 4 });
+                expect(placed.length).toBe(0);
+            });
+
+            it(`${type}: hides inside labels when the marker is disabled`, async () => {
+                const placed = await render(type, { markerEnabled: false, markerSize: 40 });
+                expect(placed.length).toBe(0);
+            });
+
+            it(`${type}: a mixed placement list keeps full text for the directional fallback`, async () => {
+                // A small marker hides a pure `inside` label, but mixing `inside` with a directional
+                // fallback must not constrain the text to the marker, so the labels still render.
+                const placed = await render(type, { markerSize: 4, placement: ['inside', 'top'] });
+                expect(placed.length).toBe(sparseData.length);
+            });
+        }
+    });
+
     describe('scatter series', () => {
         const data = markerData;
 

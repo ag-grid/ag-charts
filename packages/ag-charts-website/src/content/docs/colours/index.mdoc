@@ -73,10 +73,12 @@ The reference forms are:
 - `{ ref: 'accentColor' }` - resolve to another theme parameter.
 - `{ ref: 'accentColor', mix: 0.5 }` - the referenced parameter at `mix` opacity (`0` fully transparent, `1` fully opaque).
 - `{ ref: 'accentColor', mix: 0.85, onto: 'backgroundColor' }` - blend one parameter onto another.
+- `{ ref: 'accentColor', mix: 0.85, ontoColor: '#ff5733' }` - blend a parameter onto a literal colour.
+- `{ ref: 'accentColor', mix: 0.85, ontoColor: 'var(--brand)' }` - blend a parameter onto a CSS variable.
 
 {% note %}
 
-A reference can be used anywhere a colour is accepted, but can only point to a theme parameter.
+A reference can be used anywhere a colour is accepted. `ref` and `onto` point to theme parameters; `ontoColor` instead takes a literal colour or a CSS variable, and is mutually exclusive with `onto`.
 
 {% /note %}
 

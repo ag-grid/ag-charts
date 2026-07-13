@@ -15,6 +15,10 @@ import type {
     TextWrap,
 } from './types';
 
+export type AgAxisDomain = number[] | bigint[] | string[] | Date[];
+
+export type AgAxisDirection = 'x' | 'y' | 'angle' | 'radius';
+
 export interface AgAxisBoundSeries {
     /** ID of the series for values on the related axis. */
     seriesId: string;
@@ -28,7 +32,7 @@ export interface AgAxisCaptionFormatterParams {
     /** Default value to be used for the axis title (as specified in chart options or theme). */
     defaultValue?: string;
     /** Direction of the axis the title belongs to. */
-    direction: 'x' | 'y' | 'angle' | 'radius';
+    direction: AgAxisDirection;
     /** Metadata about series bound to the axis the title belongs to. */
     boundSeries: AgAxisBoundSeries[];
     /** Computed domain of the axis */

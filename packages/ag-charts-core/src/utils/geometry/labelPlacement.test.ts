@@ -248,6 +248,63 @@ describe('placeLabels', () => {
         expect(placed.x).toBeCloseTo(200 - 40 / 2);
     });
 
+    it('centres an inside label on the point, applying no directional offset', () => {
+        const datum: PointLabelDatum = {
+            point: { x: 200, y: 200, size: 30 },
+            label: { text: 'L', width: 40, height: 12 },
+            anchor: { x: 0.5, y: 0.5 },
+            placement: 'inside',
+        };
+        const result = placeLabels(new Map([['s', [datum]]]), bounds, 5);
+        const placed = result.get('s')![0];
+        expect(placed).toBeDefined();
+        expect(placed.placement).toBe('inside');
+        // No offset despite the 30px marker and 5px padding: the box is centred on the point.
+        expect(placed.x).toBeCloseTo(200 - 40 / 2);
+        expect(placed.y).toBeCloseTo(200 - 12 / 2);
+    });
+
+    it('recentres an inside label into the marker body for an offset anchor', () => {
+        const datum: PointLabelDatum = {
+            point: { x: 100, y: 100, size: 20 },
+            label: { text: 'L', width: 10, height: 8 },
+            anchor: { x: 0.5, y: 1 },
+            placement: 'inside',
+        };
+        const result = placeLabels(new Map([['s', [datum]]]), bounds, 5);
+        const placed = result.get('s')![0];
+        expect(placed).toBeDefined();
+        // A pin anchor (y=1) puts the point at the tip; the label centres on the body, half a diameter up.
+        expect(placed.x).toBeCloseTo(100 - 10 / 2);
+        expect(placed.y).toBeCloseTo(100 - 8 / 2 - (1 - 0.5) * 20);
+    });
+
+    it('lets an inside avoiding label sit over its own marker but not another', () => {
+        const own: PointLabelDatum = {
+            point: { x: 100, y: 100, size: 20 },
+            label: { text: 'I', width: 16, height: 10 },
+            anchor: { x: 0.5, y: 0.5 },
+            placement: 'inside',
+            placements: ['inside'],
+            gap: 0,
+            avoid: true,
+        };
+        // Its own marker is the only obstacle: the centred inside label ignores it and is placed.
+        const alone = placeLabels(new Map([['s', [own]]]), bounds, 5).get('s')!;
+        expect(alone.some((l) => l.datum === own)).toBe(true);
+
+        // A second marker overlapping the centred box is a real obstacle; with no room to move, the
+        // inside label drops rather than overlapping a marker that isn't its own.
+        const neighbour: PointLabelDatum = {
+            point: { x: 108, y: 100, size: 20 },
+            label: { text: '', width: 0, height: 0 },
+            anchor: undefined,
+            placement: undefined,
+        };
+        const withNeighbour = placeLabels(new Map([['s', [own, neighbour]]]), bounds, 5).get('s')!;
+        expect(withNeighbour.some((l) => l.datum === own)).toBe(false);
+    });
+
     it('drops an avoiding label when no candidate placement fits', () => {
         // A large marker covers every candidate position; the avoiding label has nowhere to go.
         const blocker: PointLabelDatum = {

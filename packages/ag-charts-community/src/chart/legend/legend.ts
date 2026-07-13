@@ -98,6 +98,8 @@ export class Legend {
     private maxPageSize: [number, number] = [0, 0];
     /** Item index to track on re-pagination, so current page updates appropriately. */
     private paginationTrackingIndex: number = 0;
+    /** Page awaiting restore; flushed by the next layout once the real page count is known. */
+    private pendingPage?: number;
 
     private readonly truncatedItems: Set<string | number> = new Set();
 
@@ -241,6 +243,13 @@ export class Legend {
         return toggleSeries || legendItemDoubleClick != null || legendItemClick != null || hasExplicitTooltip;
     }
 
+    private hasEnabledContextMenu(): boolean {
+        return (
+            this.ctx.contextMenuRegistry != null &&
+            (this.ctx.chartState.getValue('options', 'contextMenu')?.enabled ?? true)
+        );
+    }
+
     private checkInteractionState(): boolean {
         return this.ctx.interactionManager.isState(InteractionState.Frozen);
     }
@@ -335,6 +344,12 @@ export class Legend {
         const oldPages = this.pages;
         this.pages = pages;
         this.maxPageSize = [maxPageWidth - padding.left - padding.right, maxPageHeight - padding.top - padding.bottom];
+
+        if (this.pendingPage != null && this.pages.length > 0) {
+            const page = this.pendingPage;
+            this.pendingPage = undefined;
+            this.pagination.setPage(page);
+        }
 
         const pageNumber = this.pagination.currentPage;
         const page = this.pages[pageNumber];
@@ -735,9 +750,19 @@ export class Legend {
         this.pagination.updateMarkers(paginationOpts);
 
         this.updatePositions(pageNumber);
-        this.domProxy.onPageChange({ itemSelection, group, pagination, interactive: this.isInteractive() });
+        this.domProxy.onPageChange({
+            itemSelection,
+            group,
+            pagination,
+            interactive: this.isInteractive(),
+            contextMenuAvailable: this.hasEnabledContextMenu(),
+        });
 
         this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
+    }
+
+    restorePage(page: number) {
+        this.pendingPage = page;
     }
 
     update() {
@@ -1328,6 +1353,7 @@ export class Legend {
         this.domProxy.update({
             visible,
             interactive,
+            contextMenuAvailable: this.hasEnabledContextMenu(),
             ctx,
             itemSelection,
             group,

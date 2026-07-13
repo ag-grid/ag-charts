@@ -1,6 +1,7 @@
 import type {
     AgBarHighlightStyleOptions,
     AgColorRefMixOnto,
+    AgColorRefMixOntoColor,
     AgColorScale,
     AgColorScaleColorStop,
     AgColorType,
@@ -57,6 +58,7 @@ import type {
     InternalAgImageFill,
     InternalAgPatternColor,
 } from '../types/normalised-options/normalisedCommonOptions';
+import { Color } from '../utils/format/color';
 import { isObject } from '../utils/types/typeGuards';
 
 // Validator for internal theme operators.
@@ -111,17 +113,35 @@ const themeParams = [
     'groupedCategoryLineColor',
 ];
 const themeParamsValidator = union(...themeParams);
+// A complete `var(--…)` expression: `var(` … balanced parens … `)` with no trailing text, so a prefix-only match like
+// `var(--brand` or `var(--brand)junk` (which the resolver would mis-parse via a fixed first/last-character strip) fails.
+function isColorVar(value: string): boolean {
+    if (!value.startsWith('var(--') || !value.endsWith(')')) return false;
+    let depth = 0;
+    for (let i = 3; i < value.length; i++) {
+        if (value[i] === '(') depth++;
+        else if (value[i] === ')' && --depth === 0) return i === value.length - 1;
+    }
+    return false;
+}
+// `ontoColor` accepts only what the blend engine (`Color.fromString`) can render, plus a `var(--…)`; the browser-backed
+// `color` validator would admit `oklch()`/`lab()` etc. that `Color.fromString` then throws on, silently mis-colouring.
+const ontoColorValidator = attachDescription(
+    (value: unknown) => typeof value === 'string' && (isColorVar(value) || Color.validColorString(value)),
+    'a literal color or var()'
+);
 const colorRefDef = attachDescription(
-    optionsDefs<AgColorRefMixOnto>({
+    optionsDefs<AgColorRefMixOnto & AgColorRefMixOntoColor>({
         ref: themeParamsValidator,
         mix: positiveNumber, // mix is silently clamped to 0-1 ratio to match Grid
         onto: themeParamsValidator,
+        ontoColor: ontoColorValidator,
     }),
     'a color ref'
 );
 const colorRefMixOnto = attachDescription((value: unknown) => {
-    return !isObject(value) || !('onto' in value) || 'mix' in value;
-}, 'where a color ref with [onto] must also have [mix]');
+    return !isObject(value) || !('onto' in value || 'ontoColor' in value) || 'mix' in value;
+}, 'where a color ref with [onto] or [ontoColor] must also have [mix]');
 const colorRef = and(colorRefDef, colorRefMixOnto);
 
 // `themeOperator` validator is required by the preset modules which perform a validation of the overrides before
@@ -359,7 +379,6 @@ export function selectionOptionsDef<T>(itemSelectionOptionsDef: T) {
         selectedItem: itemSelectionOptionsDef,
         unselectedItem: itemSelectionOptionsDef,
         unselectedSeries: itemSelectionOptionsDef,
-        clickModifier: undocumented(union('none', 'alt')),
     };
 }
 
