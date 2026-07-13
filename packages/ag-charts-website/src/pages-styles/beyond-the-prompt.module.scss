@@ -119,14 +119,29 @@ $btp-card: #ffffff;
     // affected; the menu pills are the only descendants using this token.
     --color-util-brand-100: rgba(0, 0, 0, 0.05);
 
+    // This page is permanently light (#f2f2f2), but the shared CommunityMenu
+    // reads the global design-system colour tokens, which flip under
+    // `html[data-dark-mode='true']`. Pin the tokens the menu uses to their
+    // constant light-theme (grey-scale) values so the menu text renders
+    // identically in light and dark modes.
     --color-fg-primary: var(--color-gray-900);
-    --color-bg-primary: var(--color-white);
     --color-fg-secondary: var(--color-gray-700);
+    --color-bg-primary: var(--color-white);
 
     // The page's `ul` reset above strips the community menu's own vertical
     // padding; restore it so the menu matches the standard /community pages.
     ul {
         padding: 16px 0;
+    }
+
+    // In dark mode the shared CommunityMenu overrides the active/hover pill to a
+    // bg/fg colour-mix; force it back to the light tint so the pill is identical
+    // in both modes.
+    :global(html[data-dark-mode='true']) & {
+        li:hover,
+        li[class*='selected'] {
+            background-color: var(--color-util-brand-100);
+        }
     }
 }
 
