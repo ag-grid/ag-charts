@@ -109,7 +109,7 @@ const maybeApplySubstitutions = (node: unknown) => {
                 const value = nodes[key];
                 if (typeof value === 'string') {
                     // Inline static string case.
-                    const newValue = applySubstitutions(value, DEFAULT_SUBSTITUTIONS);
+                    const newValue = applySubstitutions(value);
                     safeSet(nodes, key, newValue);
                 } else if (typeof value === 'function') {
                     // Callback function case (apply substitutions to the result).
@@ -119,7 +119,7 @@ const maybeApplySubstitutions = (node: unknown) => {
             }
         });
     } else if (typeof node === 'string') {
-        return applySubstitutions(node, DEFAULT_SUBSTITUTIONS);
+        return applySubstitutions(node);
     }
 
     return node;
@@ -127,10 +127,13 @@ const maybeApplySubstitutions = (node: unknown) => {
 
 // Substituted strings (including base64-inlined images) are identical across the theme x DPI
 // render loop, so cache per original string to avoid re-reading and re-encoding per render.
+// The cache is only safe because substitutions are always DEFAULT_SUBSTITUTIONS (fixed per
+// process) — do not reintroduce a caller-supplied substitutions parameter without keying on it.
 const substitutionCache = new Map<string, string>();
 
-const applySubstitutions = (content: string, substitutions?: ExampleSubstitutions) => {
-    if (content == null || substitutions == null || !content.includes('${')) {
+const applySubstitutions = (content: string) => {
+    const substitutions = DEFAULT_SUBSTITUTIONS;
+    if (content == null || !content.includes('${')) {
         return content;
     }
 
