@@ -1,3 +1,4 @@
+import { promises as fs } from 'fs';
 import { JSDOM } from 'jsdom';
 import path from 'path';
 import sharp from 'sharp';
@@ -139,19 +140,14 @@ export async function generateThumbnail({ example, theme, outputPath, dpi, mockT
 
     const buffer = output.multiple === true ? output.canvas.toBufferSync('png') : output.buffer;
 
-    const sharpBuffer = sharp(buffer);
-
     const dpiExt = dpi === 1 ? '' : `@${dpi}x`;
     const fontExt = mockText ? '-platform-agnostic' : '';
     const baseFilename = `${theme}${fontExt}${dpiExt}`;
 
+    // The canvas buffer is already PNG-encoded; only the webp output needs a sharp re-encode.
     await Promise.all([
-        sharpBuffer
-            .clone()
-            .png()
-            .toFile(path.join(outputPath, `${baseFilename}.png`)),
-        sharpBuffer
-            .clone()
+        fs.writeFile(path.join(outputPath, `${baseFilename}.png`), buffer),
+        sharp(buffer)
             .webp({ quality: 90 })
             .toFile(path.join(outputPath, `${baseFilename}.webp`)),
     ]);
