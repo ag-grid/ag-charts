@@ -650,7 +650,6 @@ describe('ChartOptions', () => {
                     "key": "x",
                   },
                   "selection": {
-                    "clickModifier": "none",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -731,7 +730,6 @@ describe('ChartOptions', () => {
                     "key": "x",
                   },
                   "selection": {
-                    "clickModifier": "none",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -812,7 +810,6 @@ describe('ChartOptions', () => {
                     "key": "x",
                   },
                   "selection": {
-                    "clickModifier": "none",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -893,7 +890,6 @@ describe('ChartOptions', () => {
                     "key": "x",
                   },
                   "selection": {
-                    "clickModifier": "none",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -981,7 +977,6 @@ describe('ChartOptions', () => {
                     "key": "x",
                   },
                   "selection": {
-                    "clickModifier": "none",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1055,7 +1050,6 @@ describe('ChartOptions', () => {
                     "key": "x",
                   },
                   "selection": {
-                    "clickModifier": "none",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1133,7 +1127,6 @@ describe('ChartOptions', () => {
                     "key": "x",
                   },
                   "selection": {
-                    "clickModifier": "none",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1214,7 +1207,6 @@ describe('ChartOptions', () => {
                     "key": "x",
                   },
                   "selection": {
-                    "clickModifier": "none",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1295,7 +1287,6 @@ describe('ChartOptions', () => {
                     "key": "x",
                   },
                   "selection": {
-                    "clickModifier": "none",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1376,7 +1367,6 @@ describe('ChartOptions', () => {
                     "key": "x",
                   },
                   "selection": {
-                    "clickModifier": "none",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1464,7 +1454,6 @@ describe('ChartOptions', () => {
                     "key": "x",
                   },
                   "selection": {
-                    "clickModifier": "none",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1538,7 +1527,6 @@ describe('ChartOptions', () => {
                     "key": "x",
                   },
                   "selection": {
-                    "clickModifier": "none",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1616,7 +1604,6 @@ describe('ChartOptions', () => {
                     "key": "x",
                   },
                   "selection": {
-                    "clickModifier": "none",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1697,7 +1684,6 @@ describe('ChartOptions', () => {
                     "key": "x",
                   },
                   "selection": {
-                    "clickModifier": "none",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1778,7 +1764,6 @@ describe('ChartOptions', () => {
                     "key": "x",
                   },
                   "selection": {
-                    "clickModifier": "none",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1859,7 +1844,6 @@ describe('ChartOptions', () => {
                     "key": "x",
                   },
                   "selection": {
-                    "clickModifier": "none",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -1947,7 +1931,6 @@ describe('ChartOptions', () => {
                     "key": "x",
                   },
                   "selection": {
-                    "clickModifier": "none",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,
@@ -2021,7 +2004,6 @@ describe('ChartOptions', () => {
                     "key": "x",
                   },
                   "selection": {
-                    "clickModifier": "none",
                     "enabled": false,
                     "selectedItem": {
                       "strokeWidth": 2,

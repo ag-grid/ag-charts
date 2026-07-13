@@ -138,6 +138,7 @@ const node: OptionsDefs<AgOrganizationSeriesOptionsNode> = {
     title: nodeText,
     subtitle: nodeText,
     width: number,
+    clickToExpand: boolean,
 };
 
 export const organizationSeriesOptionsDef: OptionsDefs<AgOrganizationSeriesOptions> = {

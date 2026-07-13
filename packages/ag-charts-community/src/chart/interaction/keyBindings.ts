@@ -1,30 +1,27 @@
 import { entries } from 'ag-charts-core';
 
-type KeyBinding = Readonly<{ key: string; ctrlOrMeta?: boolean; shift?: boolean } | { code: string }>;
-type KeyActionConfig = Readonly<{ bindings: KeyBinding[]; activatesFocusIndicator?: boolean }>;
-type KeyAction = { name: KeyActionName; activatesFocusIndicator: boolean };
+type KeyModifiers = {
+    readonly ctrlOrMeta?: boolean;
+    readonly shift?: boolean;
+    readonly alt?: boolean;
+};
+type KeyBinding = ({ readonly key: string } & KeyModifiers) | ({ readonly code: string } & KeyModifiers);
+type KeyActionConfig = {
+    readonly bindings: readonly KeyBinding[];
+    readonly activatesFocusIndicator?: boolean;
+};
+type KeyAction = {
+    readonly name: keyof typeof KEY_BINDINGS;
+    readonly activatesFocusIndicator: boolean;
+};
 
-type KeyActionName =
-    | 'arrowdown'
-    | 'arrowleft'
-    | 'arrowright'
-    | 'arrowup'
-    | 'home'
-    | 'end'
-    | 'delete'
-    | 'undo'
-    | 'redo'
-    | 'submit'
-    | 'zoomin'
-    | 'zoomout'
-    | 'panxleft'
-    | 'panxright';
-
-const KEY_BINDINGS: { [K in KeyActionName]: KeyActionConfig } = {
-    arrowdown: { bindings: [{ code: 'ArrowDown' }] },
-    arrowleft: { bindings: [{ code: 'ArrowLeft' }] },
-    arrowright: { bindings: [{ code: 'ArrowRight' }] },
-    arrowup: { bindings: [{ code: 'ArrowUp' }] },
+const KEY_BINDING_LITERALS = {
+    arrowdown: { bindings: [{ code: 'ArrowDown', alt: false, ctrlOrMeta: false, shift: false }] },
+    arrowleft: { bindings: [{ code: 'ArrowLeft', alt: false, ctrlOrMeta: false, shift: false }] },
+    arrowright: { bindings: [{ code: 'ArrowRight', alt: false, ctrlOrMeta: false, shift: false }] },
+    arrowup: { bindings: [{ code: 'ArrowUp', alt: false, ctrlOrMeta: false, shift: false }] },
+    expand: { bindings: [{ code: 'ArrowDown', alt: true, ctrlOrMeta: false, shift: false }] },
+    collapse: { bindings: [{ code: 'ArrowUp', alt: true, ctrlOrMeta: false, shift: false }] },
     home: { bindings: [{ code: 'Home' }] },
     end: { bindings: [{ code: 'End' }] },
     delete: { bindings: [{ key: 'Backspace' }, { key: 'Delete' }], activatesFocusIndicator: false },
@@ -41,18 +38,29 @@ const KEY_BINDINGS: { [K in KeyActionName]: KeyActionConfig } = {
     zoomout: { bindings: [{ key: '-' }, { code: 'ZoomOut' }, { code: 'Substract' }], activatesFocusIndicator: false },
     panxleft: { bindings: [{ key: 'PageUp' }, { code: 'PageUp' }], activatesFocusIndicator: true },
     panxright: { bindings: [{ key: 'PageDown' }, { code: 'PageDown' }], activatesFocusIndicator: true },
-};
+} as const satisfies { [K in string]: KeyActionConfig };
 
-function matchesKeyBinding(e: KeyboardEvent, bindings: Readonly<KeyBinding>[]) {
+// Type-safe conversion from const-types (e.g. `{bindings:[{code:'ArrowDown'}]}`) to `KeyActionConfig`:
+const KEY_BINDINGS: { [K in keyof typeof KEY_BINDING_LITERALS]: KeyActionConfig } = KEY_BINDING_LITERALS;
+
+function matchesState(eventModifier: boolean, bindingModifier: boolean | undefined): boolean {
+    return bindingModifier === undefined || bindingModifier === eventModifier;
+}
+
+function matchesModifiers(e: KeyboardEvent, bindings: KeyModifiers) {
+    return (
+        matchesState(e.ctrlKey || e.metaKey, bindings.ctrlOrMeta) &&
+        matchesState(e.altKey, bindings.alt) &&
+        matchesState(e.shiftKey, bindings.shift)
+    );
+}
+function matchesKeyBinding(e: KeyboardEvent, bindings: readonly KeyBinding[]) {
     for (const kb of bindings) {
         if ('code' in kb) {
-            if (kb.code === e.code) return true;
-        } else {
-            const matches =
-                kb.key === e.key &&
-                (kb.shift === undefined || kb.shift === e.shiftKey) &&
-                (kb.ctrlOrMeta === undefined || kb.ctrlOrMeta === e.ctrlKey || kb.ctrlOrMeta === e.metaKey);
-            if (matches) return true;
+            if (kb.code === e.code && matchesModifiers(e, kb)) return true;
+        }
+        if ('key' in kb) {
+            if (kb.key === e.key && matchesModifiers(e, kb)) return true;
         }
     }
     return false;

@@ -59,3 +59,29 @@ What to test:
 - Click outside the sectors to clear selection.
 
 {% chartExampleRunner title="Pie Selection" name="pie-selection" type="generated" /%}
+
+## Org Chart
+
+What to test:
+
+- Collapse/expand operations do not change the selection state, and vice-versa.
+- The "Get Selection" button logs the nodes that are selected, whether shown or hidden (collapsed).
+- When something is selected
+    - Selected cards have a slightly thicker stroke-width.
+    - Unselected cards are dimmed.
+- Mouse:
+    - Clicking on Cards updates selection.
+    - Clicking on Expander collapses/expands tree.
+    - Dragging with containment "any" selects Cards that intersect with the drag-rect.
+    - Dragging with containment "all" selects Cards that are contained within the drag-rect.
+- Keyboard:
+    - ArrowLeft: Navigate to sibling on the left.
+    - ArrowRight: Navigate to sibling on the right.
+    - ArrowUp: Navigate to parent node.
+    - ArrowDown: Navigate to 1st child node.
+    - Alt+ArrowUp: Collapse focused node.
+    - Alt+ArrowDown: Expand focused node.
+    - Space / Enter: Select focused node (deselect everything else).
+    - Ctrl+Space / Ctrl+Enter: Add focused node to selection.
+
+{% chartExampleRunner title="Org Chart Selection" name="org-chart-selection" type="generated"/%}
