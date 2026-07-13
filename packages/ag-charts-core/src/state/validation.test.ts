@@ -2,6 +2,7 @@ import type { Mock } from 'vitest';
 import { afterEach, beforeEach, describe, expect, vi } from 'vitest';
 
 import { textOrSegments } from '../config/chartDefaults';
+import { colorOrRef } from '../config/optionsDefaults';
 import { reset as resetLogger } from '../logging/logger';
 import { RegistryMode, reset as resetRegistry, setRegistryMode } from '../modules/moduleRegistry';
 import {
@@ -606,6 +607,48 @@ describe('Validation utils', () => {
             expect(validate(validOptions, complexOptionsDef)).toMatchSnapshot();
             expect(validate(invalidOptions, complexOptionsDef)).toMatchSnapshot();
             expect(validate({ employees: [] }, complexOptionsDef)).toMatchSnapshot();
+        });
+    });
+
+    describe('colorOrRef ontoColor', () => {
+        it('accepts a literal color as ontoColor', () => {
+            expect(isValid({ c: { ref: 'accentColor', mix: 0.5, ontoColor: '#ff5733' } }, { c: colorOrRef })).toBe(
+                true
+            );
+        });
+
+        it('accepts a var() as ontoColor', () => {
+            expect(isValid({ c: { ref: 'accentColor', mix: 0.5, ontoColor: 'var(--brand)' } }, { c: colorOrRef })).toBe(
+                true
+            );
+        });
+
+        it('rejects an ontoColor the blend engine cannot render (e.g. oklch)', () => {
+            expect(
+                isValid({ c: { ref: 'accentColor', mix: 0.5, ontoColor: 'oklch(0.7 0.15 200)' } }, { c: colorOrRef })
+            ).toBe(false);
+        });
+
+        it('rejects an ontoColor without a mix', () => {
+            expect(isValid({ c: { ref: 'accentColor', ontoColor: '#ff5733' } }, { c: colorOrRef })).toBe(false);
+        });
+
+        it('accepts a nested var() fallback as ontoColor', () => {
+            expect(
+                isValid(
+                    { c: { ref: 'accentColor', mix: 0.5, ontoColor: 'var(--brand, var(--fallback))' } },
+                    { c: colorOrRef }
+                )
+            ).toBe(true);
+        });
+
+        it('rejects a malformed var() (unclosed or trailing text)', () => {
+            expect(isValid({ c: { ref: 'accentColor', mix: 0.5, ontoColor: 'var(--brand' } }, { c: colorOrRef })).toBe(
+                false
+            );
+            expect(
+                isValid({ c: { ref: 'accentColor', mix: 0.5, ontoColor: 'var(--brand)junk' } }, { c: colorOrRef })
+            ).toBe(false);
         });
     });
 });

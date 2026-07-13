@@ -1,7 +1,7 @@
-import type { AgColorRef, AgColorRefMixOnto } from 'ag-charts-types';
+import type { AgColorRef, AgColorRefMixOnto, AgColorRefMixOntoColor } from 'ag-charts-types';
 
 /** Theme colour-reference object members of the public colour unions. Always resolved away at render time. */
-type ColorRef = AgColorRef | AgColorRefMixOnto;
+type ColorRef = AgColorRef | AgColorRefMixOnto | AgColorRefMixOntoColor;
 
 type Primitive = string | number | boolean | bigint | symbol | null | undefined;
 

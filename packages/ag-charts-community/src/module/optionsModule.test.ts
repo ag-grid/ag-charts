@@ -3435,4 +3435,55 @@ describe('ChartOptions', () => {
             expect(updated.fonts).toContain('900 16px "Font Awesome 6 Free"');
         });
     });
+
+    describe('invalid `ontoColor` var fallback (AG-17816 AC4)', () => {
+        const mockComputedStyle = (container: HTMLElement, values: Record<string, string>) => {
+            vi.spyOn(container.ownerDocument.defaultView!, 'getComputedStyle').mockReturnValue({
+                getPropertyValue: (key: string) => values[key] ?? '',
+            } as any);
+        };
+
+        it('drops the invalid ontoColor, leaving ref + mix (transparency)', () => {
+            const container = document.createElement('div');
+            mockComputedStyle(container, { '--bad': 'not-a-color' });
+            const chartOptions = new ChartOptions({}, {} as AgChartOptions, {}, {}, {});
+
+            const node: any = { foregroundColor: { ref: 'accentColor', mix: 0.5, ontoColor: 'var(--bad)' } };
+            chartOptions.processCSSVariablesPartial(node, container);
+
+            expect(node).toEqual({ foregroundColor: { ref: 'accentColor', mix: 0.5 } });
+            expect((console.warn as Mock).mock.calls.some(([m]) => String(m).includes('is not a valid color'))).toBe(
+                true
+            );
+        });
+
+        it('resolves a nested var() fallback in ontoColor', () => {
+            const container = document.createElement('div');
+            mockComputedStyle(container, { '--fallback': '#00ff00' });
+            const chartOptions = new ChartOptions({}, {} as AgChartOptions, {}, {}, {});
+
+            const node: any = {
+                foregroundColor: { ref: 'accentColor', mix: 0.5, ontoColor: 'var(--onto, var(--fallback))' },
+            };
+            const cssVariables = chartOptions.processCSSVariablesPartial(node, container);
+
+            expect(cssVariables).toEqual({ 'var(--onto, var(--fallback))': '#00ff00' });
+            expect(node.foregroundColor).toEqual({
+                ref: 'accentColor',
+                mix: 0.5,
+                ontoColor: 'var(--onto, var(--fallback))',
+            });
+        });
+
+        it('deletes only the offending key for a direct-value invalid var', () => {
+            const container = document.createElement('div');
+            mockComputedStyle(container, { '--bad': 'not-a-color' });
+            const chartOptions = new ChartOptions({}, {} as AgChartOptions, {}, {}, {});
+
+            const node: any = { foregroundColor: 'var(--bad)', backgroundColor: 'red' };
+            chartOptions.processCSSVariablesPartial(node, container);
+
+            expect(node).toEqual({ backgroundColor: 'red' });
+        });
+    });
 });
