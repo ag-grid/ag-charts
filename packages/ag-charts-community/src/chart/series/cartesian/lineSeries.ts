@@ -485,6 +485,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             ? boundLabelFit(resolveLabelFit(label, true), insideMarkerContainer(markerSize, marker.shape))
             : resolveLabelFit(label, collisionAvoidance.avoid);
         const labelInsideOffset = insideOnly ? insideMarkerOffset(marker.shape) : undefined;
+        const labelAnchor = Marker.anchor(marker.shape);
 
         return {
             xAxis,
@@ -516,6 +517,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             labelCollideWith: collisionAvoidance.resolveCollideWith(),
             labelFit,
             labelInsideOffset,
+            labelAnchor,
             animationEnabled: !this.ctx.animationManager.isSkipped(),
             canIncrementallyUpdate,
             dataAggregationFilter,
@@ -616,7 +618,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                     capDefaults: ctx.capDefaults,
                     labelText,
                     label,
-                    anchor: undefined,
+                    anchor: ctx.labelAnchor,
                     insideOffset: ctx.labelInsideOffset,
                     placement: 'top',
                     placements: ctx.labelPlacements,

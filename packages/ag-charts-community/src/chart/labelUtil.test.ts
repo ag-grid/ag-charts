@@ -109,10 +109,12 @@ describe('insideMarkerContainer', () => {
         expect(large.width).toBeGreaterThan(90);
     });
 
-    it('gives a heart a wide, short box and a diamond a smaller near-square one', () => {
+    it('gives a heart a wider-than-tall hull box and a diamond a smaller near-square one', () => {
         const heart = insideMarkerContainer(100, 'heart');
         const diamond = insideMarkerContainer(100, 'diamond');
-        expect(heart.width).toBeGreaterThan(heart.height * 2);
+        // The hull drops the heart's top notch, so its box is wider than tall but no longer a thin strip.
+        expect(heart.width).toBeGreaterThan(heart.height);
+        expect(heart.height).toBeGreaterThan(40);
         expect(diamond.width).toBeGreaterThan(40);
         expect(diamond.width).toBeLessThan(60);
     });

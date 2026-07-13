@@ -24,10 +24,23 @@ describe('markerLabelRect', () => {
         expect(circle.width).toBeGreaterThan(diamond.width);
     });
 
-    it('finds a wide, short rectangle for a heart', () => {
+    it('inscribes against the convex hull, so a concave star is not penalised for its spikes', () => {
+        // The hull ignores the concave notches between spikes, so the star holds a box comparable to a
+        // circle rather than the much smaller rectangle its raw outline would allow.
+        const star = markerLabelRect('star');
+        const circle = markerLabelRect('circle');
+        expect(star.width).toBeGreaterThan(0.5);
+        expect(star.height).toBeGreaterThan(0.5);
+        // Its usable height is on par with a circle of the same diameter.
+        expect(star.height).toBeCloseTo(circle.height, 1);
+    });
+
+    it('gives a heart a hull-based box that its top notch no longer caps', () => {
         const { width, height } = markerLabelRect('heart');
         expect(width).toBeGreaterThan(0.7);
-        expect(width).toBeGreaterThan(height * 2);
+        // Wider than tall, but the hull lifts the height well above the thin strip the raw notch left.
+        expect(width).toBeGreaterThan(height);
+        expect(height).toBeGreaterThan(0.4);
     });
 
     it('offsets the rectangle into the wide part of an asymmetric shape', () => {

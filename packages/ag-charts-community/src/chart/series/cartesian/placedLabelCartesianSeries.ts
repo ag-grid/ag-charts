@@ -37,6 +37,8 @@ export interface PlacedLabelContext {
     readonly labelFit: LabelFit | undefined;
     /** Marker-shape rectangle offset for `inside` labels; set only when fitting inside the marker. */
     readonly labelInsideOffset: Point | undefined;
+    /** Marker anchor, so a label placed on an anchored/off-centre shape (e.g. pin) tracks its drawn centre. */
+    readonly labelAnchor: Point | undefined;
 }
 
 /**

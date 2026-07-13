@@ -1003,6 +1003,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
             ? boundLabelFit(resolveLabelFit(label, true), insideMarkerContainer(markerSize, marker.shape))
             : resolveLabelFit(label, label.collisionAvoidance.avoid);
         const labelInsideOffset = insideOnly ? insideMarkerOffset(marker.shape) : undefined;
+        const labelAnchor = Marker.anchor(marker.shape);
 
         return {
             // Axes (from template method parameters)
@@ -1042,6 +1043,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
             labelCollideWith: label.collisionAvoidance.resolveCollideWith(),
             labelFit,
             labelInsideOffset,
+            labelAnchor,
             normalizedTo,
             canIncrementallyUpdate,
             animationEnabled: !this.ctx.animationManager.isSkipped(),
@@ -1185,7 +1187,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
                 labelText,
                 point: { x: scratch.x, y: scratch.y, size: ctx.markerSize },
                 label: this.measureLabel(ctx, labelText),
-                anchor: undefined,
+                anchor: ctx.labelAnchor,
                 insideOffset: ctx.labelInsideOffset,
                 placement: 'top',
                 placements: ctx.labelPlacements,

@@ -369,6 +369,55 @@ describe('series label fit', () => {
         expect(labelTexts(0).some((text) => typeof text === 'string' && text.length > 0)).toBe(true);
     });
 
+    it('centres a boxed inside label on an anchored (pin) marker across line and area', async () => {
+        // A pin is drawn anchored at its tip, so its label must ride up into the head. Line and area
+        // apply the marker anchor the way bubble/scatter do — without it the label strands at the tip.
+        await renderAndSnapshot({
+            data: lineData,
+            legend: { enabled: false },
+            axes: insideAxes,
+            series: [
+                {
+                    type: 'line',
+                    xKey: 'x',
+                    yKey: 'y',
+                    marker: { enabled: true, shape: 'pin', size: 200 },
+                    label: boxedInsideLabel,
+                },
+                {
+                    data: lineData.map((d) => ({ x: d.x, y2: d.y - 25 })),
+                    type: 'area',
+                    xKey: 'x',
+                    yKey: 'y2',
+                    marker: { enabled: true, shape: 'pin', size: 200 },
+                    label: boxedInsideLabel,
+                },
+            ],
+        });
+        expect(labelTexts(0).some((text) => typeof text === 'string' && text.length > 0)).toBe(true);
+        expect(labelTexts(1).some((text) => typeof text === 'string' && text.length > 0)).toBe(true);
+    });
+
+    it('holds an inside label a concave star marker would otherwise drop', async () => {
+        // The star's convex-hull box is wide enough to keep this label; its raw concave outline (a
+        // narrower box) would have hidden it at this diameter, so the label appearing proves the hull fit.
+        await renderAndSnapshot({
+            data: lineData,
+            legend: { enabled: false },
+            axes: insideAxes,
+            series: [
+                {
+                    type: 'line',
+                    xKey: 'x',
+                    yKey: 'y',
+                    marker: { enabled: true, shape: 'star', size: 140 },
+                    label: boxedInsideLabel,
+                },
+            ],
+        });
+        expect(labelTexts().some((text) => typeof text === 'string' && text.length > 0)).toBe(true);
+    });
+
     it('scales an inside label to a complex (heart) marker across data-driven sizes', async () => {
         // Bubble derives each marker's diameter from the size scale, so this exercises the per-datum fit:
         // a heart uses a conservative central box, and the same label survives in big hearts but is

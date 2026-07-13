@@ -45,7 +45,10 @@ function computeLabelRect(shape: AgMarkerShape): MarkerLabelRect | undefined {
         return undefined;
     }
 
-    const polygons = path.flatten();
+    // Inscribe against the convex hull, so a concave shape's notches (star spikes, cross arms) don't
+    // shrink the label box below its visible extent. Convex shapes are their own hull, so unaffected.
+    const hull = convexHull(path.flatten().flat());
+    const polygons = hull.length >= 3 ? [hull] : path.flatten();
     const cellW = bbox.width / GRID;
     const cellH = bbox.height / GRID;
     const inside: boolean[] = new Array(GRID * GRID);
@@ -72,6 +75,28 @@ function computeLabelRect(shape: AgMarkerShape): MarkerLabelRect | undefined {
     const cx = bbox.x + ((best.c0 + best.c1) / 2 + 0.5) * cellW;
     const cy = bbox.y + ((best.r0 + best.r1) / 2 + 0.5) * cellH;
     return { width, height, cx, cy };
+}
+
+type Vertex = { x: number; y: number };
+
+// Convex hull (Andrew's monotone chain) of a point set, returned counter-clockwise. Fewer than three
+// distinct points have no hull, so the caller falls back to the raw outline.
+function convexHull(points: Vertex[]): Vertex[] {
+    if (points.length < 3) return points;
+    const sorted = points.slice().sort((a, b) => a.x - b.x || a.y - b.y);
+    const cross = (o: Vertex, a: Vertex, b: Vertex) => (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
+    const half = (pts: Vertex[]) => {
+        const chain: Vertex[] = [];
+        for (const p of pts) {
+            while (chain.length >= 2 && cross(chain.at(-2)!, chain.at(-1)!, p) <= 0) {
+                chain.pop();
+            }
+            chain.push(p);
+        }
+        chain.pop();
+        return chain;
+    };
+    return half(sorted).concat(half(sorted.toReversed()));
 }
 
 // Even-odd point-in-polygon across all subpaths, with the half-open edge convention so shared vertices
