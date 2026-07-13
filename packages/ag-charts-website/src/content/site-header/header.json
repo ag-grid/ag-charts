@@ -32,6 +32,10 @@
                 "path": "/license-pricing"
             },
             {
+                "title": "Contact Us",
+                "path": "/contact"
+            },
+            {
                 "title": "GitHub",
                 "url": "https://github.com/ag-grid/ag-charts",
                 "icon": "github"
