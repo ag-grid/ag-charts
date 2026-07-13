@@ -258,6 +258,19 @@ const landingPages = defineCollection({
     }),
 });
 
+const contactResults = defineCollection({
+    loader: glob({ base: '../../external/ag-website-shared/src/content/contact', pattern: 'result.json' }),
+    schema: z.record(
+        z.string(),
+        z.object({
+            title: z.string(),
+            description: z.string(),
+            heroTag: z.string(),
+            heroHeading: z.string(),
+        })
+    ),
+});
+
 export const collections = {
     docs,
     apiMenu,
@@ -272,4 +285,5 @@ export const collections = {
     homepageGallery,
     moduleMappings,
     landingPages,
+    contactResults,
 };
