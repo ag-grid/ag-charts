@@ -1,9 +1,11 @@
+import { promises as fs } from 'fs';
 import { JSDOM } from 'jsdom';
 import path from 'path';
 import sharp from 'sharp';
 import { Canvas, type CanvasRenderingContext2D } from 'skia-canvas';
 
-import { type AgChartThemeName, AgCharts } from 'ag-charts-community';
+import { type AgChartOptions, type AgChartThemeName, AgCharts } from 'ag-charts-community';
+import { deepClone } from 'ag-charts-core';
 import { AllEnterpriseModule, ModuleRegistry } from 'ag-charts-enterprise';
 import { type GeneratedContents, transformPlainEntryFile } from 'ag-charts-generate-example-files';
 import { mockCanvas } from 'ag-charts-test';
@@ -22,17 +24,26 @@ import { patchOptions } from './patchOptions';
 
 ModuleRegistry.registerModules(AllEnterpriseModule);
 
+type ChartApi = 'create' | 'createGauge' | 'createFinancialChart';
+
+export interface PreparedExample {
+    optionsById: Map<string, AgChartOptions>;
+    api: ChartApi;
+    layout: ReturnType<typeof getChartLayout>;
+}
+
 interface Params {
-    example: GeneratedContents;
+    prepared: PreparedExample;
     theme: AgChartThemeName;
     outputPath: string;
     dpi: number;
     mockText: boolean;
 }
 
-export async function generateThumbnail({ example, theme, outputPath, dpi, mockText }: Params) {
+// The entry-file transform and layout parse depend only on the example, not on the theme/DPI
+// render variant, so they are computed once per example rather than per render.
+export function prepareExample(example: GeneratedContents): PreparedExample {
     const { entryFileName, files = {} } = example;
-
     const entryFile: string = files[entryFileName];
 
     const preamble = Object.entries(files).map(([fileName, contents]) => {
@@ -43,9 +54,14 @@ export async function generateThumbnail({ example, theme, outputPath, dpi, mockT
         }
     });
     const { optionsById } = transformPlainEntryFile(entryFile, preamble);
-    const api = entryFile.match(/AgCharts.(create[\w]*)/)![1] as 'create' | 'createGauge' | 'createFinancialChart';
+    const api = entryFile.match(/AgCharts.(create[\w]*)/)![1] as ChartApi;
 
-    const { rows, columns, charts } = getChartLayout(files['index.html']);
+    return { optionsById, api, layout: getChartLayout(files['index.html']) };
+}
+
+export async function generateThumbnail({ prepared, theme, outputPath, dpi, mockText }: Params) {
+    const { optionsById, api } = prepared;
+    const { rows, columns, charts } = prepared.layout;
 
     let output: { multiple: true; canvas: Canvas; ctx: CanvasRenderingContext2D } | { multiple: false; buffer: Buffer };
     if (charts.length > 1) {
@@ -61,14 +77,13 @@ export async function generateThumbnail({ example, theme, outputPath, dpi, mockT
     }
 
     for (const { id, row, column } of charts) {
-        /* TODO: Initialize these once */
         const {
             window,
             window: { document },
         } = new JSDOM(`<html><head><style></style></head><body></body></html>`, { url: 'http://localhost/' });
         window.requestAnimationFrame = (cb) => setTimeout(cb, 0);
 
-        // Note - we'll need one instance per DPI setting
+        // One instance per DPI setting.
         const mockCtx = new mockCanvas.MockContext(
             DEFAULT_THUMBNAIL_WIDTH * dpi,
             DEFAULT_THUMBNAIL_HEIGHT * dpi,
@@ -76,13 +91,13 @@ export async function generateThumbnail({ example, theme, outputPath, dpi, mockT
         );
         mockCtx.mockText = mockText;
         mockCanvas.setup(mockCtx);
-        /* End TODO */
 
-        let options = optionsById.get(id);
-        if (options == null) {
+        const baseOptions = optionsById.get(id);
+        if (baseOptions == null) {
             throw new Error(`No options found for container with id "${id}"`);
         }
-        options = patchOptions(options, theme, output.multiple, api);
+        // patchOptions mutates its input; clone per render so the shared prepared options are untouched.
+        const options = patchOptions(deepClone(baseOptions), theme, output.multiple, api);
 
         const containerWidth = (DEFAULT_THUMBNAIL_WIDTH / columns) | 0;
         const containerHeight = (DEFAULT_THUMBNAIL_HEIGHT / rows) | 0;
@@ -118,40 +133,44 @@ export async function generateThumbnail({ example, theme, outputPath, dpi, mockT
             overrideDevicePixelRatio: dpi,
         } as any);
 
-        await chartProxy.waitForUpdate();
+        try {
+            await chartProxy.waitForUpdate();
 
-        if (output.multiple === true) {
-            output.ctx.drawImage(
-                mockCtx.ctx.nodeCanvas,
-                0,
-                0,
-                width * dpi,
-                height * dpi,
-                x0 * dpi,
-                y0 * dpi,
-                width * dpi,
-                height * dpi
-            );
-        } else {
-            output.buffer = mockCtx.ctx.nodeCanvas.toBufferSync('png');
+            if (output.multiple === true) {
+                output.ctx.drawImage(
+                    mockCtx.ctx.nodeCanvas,
+                    0,
+                    0,
+                    width * dpi,
+                    height * dpi,
+                    x0 * dpi,
+                    y0 * dpi,
+                    width * dpi,
+                    height * dpi
+                );
+            } else {
+                output.buffer = mockCtx.ctx.nodeCanvas.toBufferSync('png');
+            }
+        } finally {
+            // Release per-render resources promptly and restore the global document.createElement /
+            // OffscreenCanvas overrides installed by mockCanvas.setup, keeping live garbage down
+            // across the theme x DPI loop. Runs on the render-error path too.
+            chartProxy.destroy();
+            mockCanvas.teardown(mockCtx);
+            window.close();
         }
     }
 
     const buffer = output.multiple === true ? output.canvas.toBufferSync('png') : output.buffer;
 
-    const sharpBuffer = sharp(buffer);
-
     const dpiExt = dpi === 1 ? '' : `@${dpi}x`;
     const fontExt = mockText ? '-platform-agnostic' : '';
     const baseFilename = `${theme}${fontExt}${dpiExt}`;
 
+    // The canvas buffer is already PNG-encoded; only the webp output needs a sharp re-encode.
     await Promise.all([
-        sharpBuffer
-            .clone()
-            .png()
-            .toFile(path.join(outputPath, `${baseFilename}.png`)),
-        sharpBuffer
-            .clone()
+        fs.writeFile(path.join(outputPath, `${baseFilename}.png`), buffer),
+        sharp(buffer)
             .webp({ quality: 90 })
             .toFile(path.join(outputPath, `${baseFilename}.webp`)),
     ]);

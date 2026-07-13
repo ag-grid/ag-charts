@@ -13,10 +13,26 @@ export interface AgColorRef {
 export interface AgColorRefMixOnto {
     ref: AgThemeColorParam;
     mix: number;
+    /**
+     * The name of a theme parameter to blend `ref` onto, weighted by `mix`.
+     *
+     * Mutually exclusive with `ontoColor`; if both are set, `onto` takes precedence.
+     */
     onto: AgThemeColorParam;
 }
+export interface AgColorRefMixOntoColor {
+    ref: AgThemeColorParam;
+    mix: number;
+    /**
+     * A literal CSS colour or a `var(--css-variable)` to blend `ref` onto, weighted by `mix`. Unlike `onto`, the
+     * colour does not need to be registered as a theme parameter first.
+     *
+     * Mutually exclusive with `onto`; if both are set, `onto` takes precedence.
+     */
+    ontoColor: CssColor;
+}
 
-export type AgCssColorOrRef = CssColor | AgColorRef | AgColorRefMixOnto;
+export type AgCssColorOrRef = CssColor | AgColorRef | AgColorRefMixOnto | AgColorRefMixOntoColor;
 
 export interface AgBorderThemeParam {
     /** Colour of the border. A colour string, or a theme-colour reference object. */

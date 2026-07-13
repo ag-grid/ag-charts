@@ -1294,6 +1294,55 @@ describe('OptionsGraph', () => {
                 });
             });
 
+            it('should resolve public `ref` operation with `mix` and a literal `ontoColor`', () => {
+                const themeConfig = { line: { fill: { ref: 'accentColor', mix: 0.25, ontoColor: '#00ff00' } } };
+                const params = { accentColor: '#ff0000' };
+                const options = new OptionsGraph(themeConfig, prepareOptions({}), params).resolve();
+                expect(options).toStrictEqual({
+                    fill: '#40bf00',
+                    axes: expect.any(Object),
+                });
+            });
+
+            it('should resolve public `ref` operation with `mix` and a `var()` `ontoColor`', () => {
+                const themeConfig = { line: { fill: { ref: 'accentColor', mix: 0.25, ontoColor: 'var(--brand)' } } };
+                const params = { accentColor: '#ff0000' };
+                const cssVariables = { 'var(--brand)': '#00ff00' };
+                const options = new OptionsGraph(
+                    themeConfig,
+                    prepareOptions({}),
+                    params,
+                    {},
+                    {},
+                    undefined,
+                    new Map(),
+                    cssVariables
+                ).resolve();
+                expect(options).toStrictEqual({
+                    fill: '#40bf00',
+                    axes: expect.any(Object),
+                });
+            });
+
+            it('should warn and use `onto` when both `onto` and `ontoColor` are set', () => {
+                const themeConfig = {
+                    line: { fill: { ref: 'accentColor', mix: 0.25, onto: 'backgroundColor', ontoColor: '#0000ff' } },
+                };
+                const params = { accentColor: '#ff0000', backgroundColor: '#00ff00' };
+                const options = new OptionsGraph(themeConfig, prepareOptions({}), params).resolve();
+                expect(options).toStrictEqual({
+                    fill: '#40bf00',
+                    axes: expect.any(Object),
+                });
+                expectWarningsCalls().toMatchInlineSnapshot(`
+                  [
+                    [
+                      "AG Charts - \`onto\` and \`ontoColor\` are mutually exclusive, ignoring \`ontoColor\`.",
+                    ],
+                  ]
+                `);
+            });
+
             it('should resolve public `ref` operation on params', () => {
                 const themeConfig = { line: { fill: { $ref: 'accentColor' } } };
                 const params = {

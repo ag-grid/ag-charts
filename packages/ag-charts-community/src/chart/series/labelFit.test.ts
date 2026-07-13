@@ -243,6 +243,63 @@ describe('series label fit', () => {
         expect(texts.some((text) => typeof text === 'string' && text.length > 0)).toBe(true);
     });
 
+    // A boxed inside label must sit centred on the marker. The placement engine centres the padded box, so
+    // the text has to be inset by the label padding — this only surfaces for boxed labels (unboxed padding is
+    // 0, which is why it went unnoticed). Bubble/scatter render their own label nodes, so these guard that they
+    // apply the inset like the shared line/area path, including on a non-centred (pin) marker whose inscribed
+    // label rectangle sits away from the marker centre.
+    const boxedInsideLabel = {
+        enabled: true,
+        placement: 'inside',
+        fill: '#ffffff',
+        padding: 8,
+        formatter: () => 'Revenue',
+    };
+    const singlePointAxes = {
+        x: { type: 'number', position: 'bottom', min: 0, max: 2 },
+        y: { type: 'number', position: 'left', min: 0, max: 100 },
+    };
+
+    it('centres a boxed inside label on a bubble marker', async () => {
+        await renderAndSnapshot({
+            data: [{ x: 1, y: 50, size: 100 }],
+            legend: { enabled: false },
+            axes: singlePointAxes,
+            series: [
+                {
+                    type: 'bubble',
+                    xKey: 'x',
+                    yKey: 'y',
+                    sizeKey: 'size',
+                    minSize: 120,
+                    maxSize: 120,
+                    label: boxedInsideLabel,
+                },
+            ],
+        });
+        expect(labelTexts()).toContain('Revenue');
+    });
+
+    it('centres a boxed inside label on a scatter marker', async () => {
+        await renderAndSnapshot({
+            data: [{ x: 1, y: 50 }],
+            legend: { enabled: false },
+            axes: singlePointAxes,
+            series: [{ type: 'scatter', xKey: 'x', yKey: 'y', size: 120, label: boxedInsideLabel }],
+        });
+        expect(labelTexts()).toContain('Revenue');
+    });
+
+    it('centres a boxed inside label on a non-centred (pin) marker shape', async () => {
+        await renderAndSnapshot({
+            data: [{ x: 1, y: 50 }],
+            legend: { enabled: false },
+            axes: singlePointAxes,
+            series: [{ type: 'scatter', xKey: 'x', yKey: 'y', shape: 'pin', size: 220, label: boxedInsideLabel }],
+        });
+        expect(labelTexts().some((text) => typeof text === 'string' && text.length > 0)).toBe(true);
+    });
+
     // Line feeds `marker.size` straight into the inside-marker container, so it isolates the shape
     // factor with a fully-controlled marker diameter (bubble/scatter derive size from the size scale).
     const insideLineSeries = (shape: string, size: number) => ({

@@ -108,11 +108,27 @@ function getPublicOperation(
                 return { operation: ColorOperation.Opacity, values: [{ $ref: value.ref }, clamp(0, value.mix, 1)] };
             }
 
+            const ratio = 1 - clamp(0, value.mix, 1);
+
+            if (
+                'onto' in value &&
+                typeof value.onto === 'string' &&
+                'ontoColor' in value &&
+                typeof value.ontoColor === 'string' &&
+                keys.length === 4 + privateOperation
+            ) {
+                Logger.warnOnce('`onto` and `ontoColor` are mutually exclusive, ignoring `ontoColor`.');
+                return { operation: ColorOperation.Mix, values: [{ $ref: value.ref }, { $ref: value.onto }, ratio] };
+            }
+
             if ('onto' in value && typeof value.onto === 'string' && keys.length === 3 + privateOperation) {
-                return {
-                    operation: ColorOperation.Mix,
-                    values: [{ $ref: value.ref }, { $ref: value.onto }, 1 - clamp(0, value.mix, 1)],
-                };
+                return { operation: ColorOperation.Mix, values: [{ $ref: value.ref }, { $ref: value.onto }, ratio] };
+            }
+
+            // Pass the raw `ontoColor` (not `{ $ref }`) so a literal reaches `Color.fromString` and a `var(--…)` is
+            // substituted for its computed colour by `resolveValueOrSymbol`.
+            if ('ontoColor' in value && typeof value.ontoColor === 'string' && keys.length === 3 + privateOperation) {
+                return { operation: ColorOperation.Mix, values: [{ $ref: value.ref }, value.ontoColor, ratio] };
             }
         }
     }

@@ -1,0 +1,1659 @@
+// Beyond the Prompt — fully isolated stylesheet for the conference landing page.
+// Intentionally does NOT import the design system; the page owns its own visual language.
+// Fonts (Geist + Geist Mono) are loaded via <link> tags in the page frontmatter so that
+// only this page pays the cost of importing them.
+
+// ─── Brand tokens ────────────────────────────────────────────────────────────
+$btp-orange: #f43800;
+$btp-orange-dark: #c02c00;
+$btp-bg: #f2f2f2;
+$btp-bg-alt: #e9e9e9;
+// All copy uses brand orange. Hierarchy comes from size/weight, not colour.
+$btp-ink: #f43800;
+$btp-ink-muted: rgba(244, 56, 0, 0.75);
+$btp-border: rgba(244, 56, 0, 0.2);
+$btp-card: #ffffff;
+
+// ─── Page wrapper ────────────────────────────────────────────────────────────
+.page {
+    --btp-orange: #{$btp-orange};
+    --btp-orange-dark: #{$btp-orange-dark};
+    --btp-bg: #{$btp-bg};
+    --btp-bg-alt: #{$btp-bg-alt};
+    --btp-ink: #{$btp-ink};
+    --btp-ink-muted: #{$btp-ink-muted};
+    --btp-border: #{$btp-border};
+    --btp-card: #{$btp-card};
+
+    background: var(--btp-bg);
+    color: var(--btp-ink);
+    font-family:
+        'Geist',
+        system-ui,
+        -apple-system,
+        'Segoe UI',
+        sans-serif;
+    font-feature-settings: 'cv11', 'ss01';
+    line-height: 1.55;
+    min-height: 100vh;
+    width: 100%;
+    overflow: hidden;
+
+    // Reset link colour expectations from the global design system.
+    a {
+        color: inherit;
+        text-decoration: none;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4 {
+        font-family:
+            'Geist',
+            system-ui,
+            -apple-system,
+            'Segoe UI',
+            sans-serif;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        color: var(--btp-ink);
+        margin: 0;
+    }
+
+    p {
+        margin: 0;
+        color: var(--btp-ink);
+    }
+
+    ul,
+    ol {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+}
+
+// ─── Eyebrows (Geist Mono UPPERCASE) ─────────────────────────────────────────
+.eyebrow {
+    display: inline-flex;
+    align-items: center;
+    font-family: 'Geist Mono', ui-monospace, 'SFMono-Regular', monospace;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--btp-ink);
+}
+
+.eyebrowPill {
+    composes: eyebrow;
+    padding: 6px 14px;
+    border: 1px solid var(--btp-ink);
+    border-radius: 999px;
+    background: transparent;
+}
+
+.eyebrowAccent {
+    composes: eyebrow;
+    color: var(--btp-orange);
+}
+
+// ─── Layout primitives ───────────────────────────────────────────────────────
+.container {
+    width: 100%;
+    max-width: 1320px;
+    margin: 0 auto;
+    padding-left: 24px;
+    padding-right: 24px;
+
+    @media (min-width: 768px) {
+        padding-left: 40px;
+        padding-right: 40px;
+    }
+}
+
+.communityNav {
+    // Tint the active/hover menu pill black at 0.05 instead of the shared brand
+    // blue, to suit this page's palette. Scoped to the nav so nothing else is
+    // affected; the menu pills are the only descendants using this token.
+    --color-util-brand-100: rgba(0, 0, 0, 0.05);
+
+    // This page is permanently light (#f2f2f2), but the shared CommunityMenu
+    // reads the global design-system colour tokens, which flip under
+    // `html[data-dark-mode='true']`. Pin the tokens the menu uses to their
+    // constant light-theme (grey-scale) values so the menu text renders
+    // identically in light and dark modes.
+    --color-fg-primary: var(--color-gray-900);
+    --color-fg-secondary: var(--color-gray-700);
+    --color-bg-primary: var(--color-white);
+
+    // The page's `ul` reset above strips the community menu's own vertical
+    // padding; restore it so the menu matches the standard /community pages.
+    ul {
+        padding: 16px 0;
+    }
+
+    // In dark mode the shared CommunityMenu overrides the active/hover pill to a
+    // bg/fg colour-mix; force it back to the light tint so the pill is identical
+    // in both modes.
+    :global(html[data-dark-mode='true']) & {
+        li:hover,
+        li[class*='selected'] {
+            background-color: var(--color-util-brand-100);
+        }
+    }
+}
+
+// ─── Hero ────────────────────────────────────────────────────────────────────
+.hero {
+    position: relative;
+    background: var(--btp-bg);
+    border-bottom: 1px solid var(--btp-border);
+    padding: 48px 0 64px;
+    overflow: hidden;
+
+    @media (min-width: 900px) {
+        padding: 72px 0 96px;
+    }
+
+    // Page-scoped widening: only the hero's container gets the extra room so
+    // the logomark and the speaker portraits can spread out comfortably across
+    // wide screens. All other sections keep the standard 1320px page width.
+    // Both classes live in this CSS module so the selector is hashed locally.
+    .container {
+        max-width: 1480px;
+    }
+}
+
+.heroInner {
+    display: flex;
+    flex-direction: column;
+    gap: 48px;
+
+    // The first hero face (Maggie) is rendered at `scale(1.3)` with
+    // `transform-origin: top right`, so its rendered box overflows ~30% of
+    // its column-width to the LEFT, into the corridor between this flex
+    // column and the heroContent text. We need this gap to be wider than
+    // that overflow so the text never sits beneath the SVG. 64–96px clears
+    // it comfortably on every desktop width.
+    @media (min-width: 900px) {
+        flex-direction: row;
+        align-items: center;
+        gap: 64px;
+    }
+
+    @media (min-width: 1200px) {
+        gap: 96px;
+    }
+}
+
+.heroContent {
+    flex: 1 1 540px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 24px;
+
+    @media (min-width: 900px) {
+        flex: 1 1 50%;
+    }
+}
+
+.heroLogos {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+// Recolour brand logos to match the page's brand orange (#f43800).
+// Filter chain via https://codepen.io/sosuke/pen/Pjoqqp.
+$btp-logo-orange-filter: brightness(0) saturate(100%) invert(31%) sepia(87%) saturate(3924%) hue-rotate(7deg)
+    brightness(99%) contrast(108%);
+
+.heroLogoAg {
+    height: 40px;
+    width: auto;
+    filter: $btp-logo-orange-filter;
+}
+
+.heroLogoX {
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: 18px;
+    font-weight: 400;
+    color: var(--btp-ink-muted);
+}
+
+.heroLogoBryntum {
+    height: 22px;
+    width: auto;
+    filter: $btp-logo-orange-filter;
+}
+
+// The hero title is rendered as an SVG logomark wrapped in an <h1> for SEO/a11y.
+// We zero out the typographic chrome that would otherwise add space around the
+// inline image, and let `.heroTitleLogo` control the visual size.
+.page .heroTitle {
+    margin: 0;
+    padding: 0;
+    line-height: 0;
+    color: inherit;
+}
+
+.heroTitleLogo {
+    display: block;
+    width: 100%;
+    max-width: 420px;
+    // Fixed mobile height so the logomark renders at a consistent size
+    // regardless of the SVG's intrinsic aspect ratio at narrow widths.
+    height: 172px;
+
+    @media (min-width: 900px) {
+        max-width: 480px;
+        height: auto;
+    }
+}
+
+// Nested under `.page` so the weight wins over the generic `.page h2` reset.
+.page .heroTagline {
+    font-family:
+        'Geist',
+        system-ui,
+        -apple-system,
+        'Segoe UI',
+        sans-serif;
+    font-size: clamp(18px, 1.6vw, 22px);
+    line-height: 1.4;
+    font-weight: 400;
+    letter-spacing: -0.005em;
+    color: var(--btp-ink-muted);
+    max-width: 42ch;
+}
+
+.noWrap {
+    white-space: nowrap;
+}
+
+.heroVideo {
+    padding: 48px 0;
+    background: var(--btp-bg);
+
+    @media (min-width: 900px) {
+        padding: 64px 0;
+    }
+}
+
+.heroVideoFrame {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border-radius: 8px;
+    background: #000;
+
+    iframe {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        border: 0;
+    }
+}
+
+// Custom thumbnail + play button shown until the keynote is clicked, when the
+// script swaps in the autoplay embed.
+.page .heroVideoPlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    // Backdrop behind the (transparent/letterboxed) PNG thumbnail: a little lighter
+    // than the page bg (#f2f2f2) so the keynote frame lifts off the page slightly.
+    background: #fbfbfb;
+    box-shadow: none;
+    cursor: pointer;
+}
+
+.heroVideoThumb {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.heroVideoPlayIcon {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: var(--btp-orange);
+    transition:
+        transform 0.2s ease,
+        background-color 0.2s ease;
+
+    // White play triangle.
+    &::after {
+        content: '';
+        width: 0;
+        height: 0;
+        border-style: solid;
+        border-width: 11px 0 11px 18px;
+        border-color: transparent transparent transparent #fff;
+        margin-left: 4px;
+    }
+}
+
+.page .heroVideoPlay:hover .heroVideoPlayIcon {
+    transform: scale(1.08);
+    background: var(--btp-orange-dark);
+}
+
+.heroMeta {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 8px 24px;
+    margin-top: 8px;
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: 13px;
+    // Tight line-height so the uppercase caps sit on the same optical centre as
+    // the icons (a tall line-box pushes the caps above the icon centre).
+    line-height: 1;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+
+    li {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        // Reset the global `li:not(:last-child)` bottom margin, which would
+        // otherwise offset the first item and break vertical centring.
+        margin-bottom: 0;
+        color: var(--btp-ink);
+
+        :global(.icon) {
+            --icon-size: 16px;
+            --icon-color: var(--btp-orange);
+        }
+    }
+}
+
+// ─── Hero faces (right side) ─────────────────────────────────────────────────
+// Three same-sized portraits laid out with a clear gap. They share a single
+// `max-height` so the heads read at a uniform scale; the only variation is
+// vertical start position — the middle slot drops down a touch to create a
+// gentle zigzag (up / down / up) rather than a flat baseline.
+.heroFaces {
+    flex: 1 1 50%;
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    align-items: start;
+
+    @media (min-width: 900px) {
+        gap: 28px;
+    }
+}
+
+.heroFace {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: contain;
+    object-position: top;
+    filter: drop-shadow(0 12px 24px rgba(244, 56, 0, 0.08));
+    transition: transform 0.4s ease;
+
+    &:hover {
+        transform: translateY(-4px);
+    }
+}
+
+// Per-face calibration. The three SVG canvases were exported at very
+// different head-to-frame ratios:
+//   • Maggie  (322 × 361) — head + shoulders, head only ~40% of canvas
+//   • Mats    (193 × 352) — head-only crop, head ~75% of canvas
+//   • John    (232 × 388) — head-only crop, head ~75% of canvas
+// A single `max-height` therefore renders the heads at very different
+// visible scales. To equalise:
+//   1. Give all three the same `max-height` budget for a consistent baseline.
+//   2. Up-scale Maggie via `transform: scale()` to compensate for her
+//      surrounding whitespace (the parent `.heroFaces` has no overflow
+//      clipping so the visual overflow into adjacent columns is fine).
+//   3. Drop the middle face down to create the alternating zigzag.
+
+.heroFace:nth-child(1) {
+    max-height: 220px;
+    // Origin `top right` means Maggie scales leftward into the gap between
+    // the hero copy and the faces grid, instead of rightward into Mats's
+    // column where she'd otherwise occlude him.
+    transform: scale(1.15);
+    transform-origin: top right;
+
+    @media (min-width: 900px) {
+        max-height: 260px;
+    }
+
+    &:hover {
+        transform: scale(1.15) translateY(-4px);
+    }
+}
+
+.heroFace:nth-child(2) {
+    max-height: 220px;
+    // Slot 2 is dropped well below the bookend portraits to make the zigzag
+    // read as a deliberate compositional move rather than a small offset.
+    // Mobile uses a much smaller drop (100px) than desktop (238px) — at
+    // narrow viewports the portrait was sliding past the hero's bottom
+    // edge into the section nav, getting clipped.
+    transform: translateY(100px);
+
+    @media (min-width: 900px) {
+        max-height: 323px;
+        transform: translateY(238px);
+    }
+
+    &:hover {
+        transform: translateY(96px);
+
+        @media (min-width: 900px) {
+            transform: translateY(234px);
+        }
+    }
+}
+
+.heroFace:nth-child(3) {
+    max-height: 220px;
+
+    @media (min-width: 900px) {
+        max-height: 260px;
+    }
+
+    &:hover {
+        transform: translateY(-4px);
+    }
+}
+
+// ─── Hero entrance animation ─────────────────────────────────────────────────
+// A blur-rise stagger plays once on page load:
+//   • Left group  — `.heroContent > *` rise + un-blur sequentially.
+//   • Right group — the three `.heroFace` SVGs un-blur in place, slightly
+//     offset from the left so the eye finishes reading the copy as the
+//     portraits resolve. We only animate `opacity` and `filter` for the
+//     faces because each one already owns a bespoke `transform` (Maggie's
+//     `scale(1.15)`, Mats's `translateY(211px)` etc.) that we must not
+//     clobber. The existing `drop-shadow` is preserved in both keyframe
+//     stages so the filter function chain stays consistent and CSS can
+//     interpolate cleanly.
+//
+// `animation-fill-mode: both` is critical: it keeps each element in the
+// `from` state during its individual `animation-delay`, otherwise the
+// not-yet-started elements would flash visible before their turn.
+@keyframes btp-hero-rise {
+    from {
+        opacity: 0;
+        filter: blur(14px);
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        filter: blur(0);
+        transform: translateY(0);
+    }
+}
+
+@keyframes btp-hero-face-in {
+    from {
+        opacity: 0;
+        filter: drop-shadow(0 12px 24px rgba(244, 56, 0, 0.08)) blur(18px);
+    }
+    to {
+        opacity: 1;
+        filter: drop-shadow(0 12px 24px rgba(244, 56, 0, 0.08)) blur(0);
+    }
+}
+
+.heroContent > * {
+    animation: btp-hero-rise 720ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.heroContent > *:nth-child(1) {
+    animation-delay: 0ms;
+}
+.heroContent > *:nth-child(2) {
+    animation-delay: 90ms;
+}
+.heroContent > *:nth-child(3) {
+    animation-delay: 180ms;
+}
+.heroContent > *:nth-child(4) {
+    animation-delay: 270ms;
+}
+.heroContent > *:nth-child(5) {
+    animation-delay: 360ms;
+}
+
+.heroFace {
+    animation: btp-hero-face-in 820ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+// Right group lags the left group by a beat so the faces feel like they
+// resolve _into_ a finished hero, rather than racing the copy.
+.heroFace:nth-child(1) {
+    animation-delay: 220ms;
+}
+.heroFace:nth-child(2) {
+    animation-delay: 320ms;
+}
+.heroFace:nth-child(3) {
+    animation-delay: 420ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .heroContent > *,
+    .heroFace {
+        animation: none;
+    }
+}
+
+// ─── Buttons (brand) ─────────────────────────────────────────────────────────
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 22px;
+    border-radius: 999px;
+    font-family: 'Geist', system-ui, sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    line-height: 1;
+    border: 1.5px solid transparent;
+    cursor: pointer;
+    transition:
+        background 0.2s ease,
+        color 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease;
+    white-space: nowrap;
+
+    :global(.icon) {
+        --icon-size: 16px;
+        transition: transform 0.2s ease;
+    }
+
+    &:hover :global(.icon) {
+        transform: translateX(2px);
+    }
+}
+
+.btnPrimary {
+    composes: btn;
+    background: var(--btp-orange);
+    color: #fff !important;
+    border-color: var(--btp-orange);
+
+    :global(.icon) {
+        --icon-color: #fff;
+    }
+
+    &:hover {
+        background: var(--btp-orange-dark);
+        border-color: var(--btp-orange-dark);
+    }
+}
+
+.btnSecondary {
+    composes: btn;
+    background: transparent;
+    color: var(--btp-ink) !important;
+    border-color: var(--btp-ink);
+
+    :global(.icon) {
+        --icon-color: var(--btp-ink);
+    }
+
+    &:hover {
+        background: var(--btp-ink);
+        color: #fff !important;
+
+        :global(.icon) {
+            --icon-color: #fff;
+        }
+    }
+}
+
+// ─── Roll-up text animation ──────────────────────────────────────────────────
+// Wraps a button label in two stacked copies of the same text. On hover both
+// layers translate up by exactly one row with a per-character stagger so the
+// front text rolls out the top while an identical copy rolls in from below —
+// the classic editorial-style "filmstrip" hover.
+.btnRoll {
+    position: relative;
+    display: inline-flex;
+    overflow: hidden;
+    line-height: 1;
+    vertical-align: middle;
+}
+
+.btnRollLayer {
+    display: inline-flex;
+}
+
+// Stack the second layer directly on top of the first so the two rows occupy
+// the same horizontal slot; the per-char `translateY(100%)` below pushes its
+// glyphs out of the visible row, ready to roll up on hover.
+.btnRollLayer + .btnRollLayer {
+    position: absolute;
+    inset: 0;
+}
+
+.btnRollChar {
+    display: inline-block;
+    transition: transform 0.45s cubic-bezier(0.7, 0, 0.2, 1);
+    transition-delay: calc(var(--btn-roll-i, 0) * 22ms);
+    will-change: transform;
+}
+
+// Back layer starts one row below the visible area.
+.btnRollLayer + .btnRollLayer .btnRollChar {
+    transform: translateY(100%);
+}
+
+// On hover the whole filmstrip advances by exactly one row, in both
+// directions, so unhover plays the animation in reverse for free.
+.btn:hover .btnRollLayer:first-child .btnRollChar,
+.btn:focus-visible .btnRollLayer:first-child .btnRollChar {
+    transform: translateY(-100%);
+}
+
+.btn:hover .btnRollLayer + .btnRollLayer .btnRollChar,
+.btn:focus-visible .btnRollLayer + .btnRollLayer .btnRollChar {
+    transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .btnRollChar {
+        transition: none;
+    }
+}
+
+// ─── Section nav ─────────────────────────────────────────────────────────────
+// Full-width jump nav. Lives outside `.container` in the markup (matching the
+// `.sectionRule` blocks) so the top/bottom rules span the viewport edge to
+// edge. Padding/spacing is kept in sync with `.sectionRule` so the rhythm of
+// horizontal lines down the page reads as one consistent system.
+.sectionNav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    padding: 18px 0;
+    border-top: 1px solid var(--btp-border);
+    border-bottom: 1px solid var(--btp-border);
+    margin-bottom: 80px;
+
+    @media (min-width: 900px) {
+        padding: 22px 0;
+    }
+
+    a {
+        font-family: 'Geist Mono', ui-monospace, monospace;
+        font-size: 12px;
+        font-weight: 500;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--btp-ink);
+        transition: color 0.2s ease;
+
+        &:hover {
+            color: var(--btp-orange);
+        }
+    }
+}
+
+// ─── Generic section ─────────────────────────────────────────────────────────
+.section {
+    padding: 64px 0;
+    scroll-margin-top: 32px;
+
+    @media (min-width: 900px) {
+        padding: 96px 0;
+    }
+}
+
+.sectionHeader {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 48px;
+    max-width: 720px;
+}
+
+// Nested under `.page` to win specificity over the generic `.page h2` reset.
+.page .sectionTitle {
+    font-size: 56px;
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+    font-weight: 500;
+}
+
+.sectionLead {
+    font-size: 18px;
+    line-height: 1.55;
+    color: var(--btp-ink-muted);
+    max-width: 720px;
+}
+
+.agendaDownloads {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding: 16px 0;
+}
+
+// ─── Full-width section title rule ───────────────────────────────────────────
+// Editorial banner that replaces the large `.sectionTitle` heading on the
+// At a glance / Speakers / Full schedule / The venue sections. Top + bottom
+// borders span the full viewport width; the label uses Geist Mono uppercase
+// to echo the section nav at the top of the page.
+.sectionRule {
+    border-top: 1px solid var(--btp-border);
+    border-bottom: 1px solid var(--btp-border);
+    padding: 18px 0;
+    margin-bottom: 48px;
+
+    @media (min-width: 900px) {
+        padding: 22px 0;
+        margin-bottom: 64px;
+    }
+}
+
+.page .sectionRuleTitle {
+    font-family: 'Geist Mono', ui-monospace, 'SFMono-Regular', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--btp-ink);
+    text-align: center;
+    margin: 0;
+}
+
+// When a `.sectionLead` follows the full-width rule, it lives inside the
+// container directly and needs its own bottom spacing before the section grid.
+.sectionLead + * {
+    margin-top: 32px;
+
+    @media (min-width: 900px) {
+        margin-top: 48px;
+    }
+}
+
+// On the Agenda section, `.sectionLead` lives in its own `.container` div
+// (separate from the cards), so the adjacent-sibling `+` rule above can't
+// reach across the wrapping containers. Mirror the same gap by pushing the
+// `.container` that immediately follows the lead's container down instead.
+// Speakers and Venue keep `.sectionLead` and their grids inside a single
+// `.container`, so that pattern continues to use the rule above.
+.container:has(> .sectionLead) + .container {
+    margin-top: 32px;
+
+    @media (min-width: 900px) {
+        margin-top: 48px;
+    }
+}
+
+// ─── Intro ───────────────────────────────────────────────────────────────────
+.intro {
+    composes: section;
+    background: var(--btp-bg);
+}
+
+// Two-column intro: copy on the left, event photo on the right (stacks on mobile).
+.introGrid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 32px;
+    align-items: center;
+
+    @media (min-width: 720px) {
+        grid-template-columns: 1fr 1fr;
+        gap: 48px;
+    }
+}
+
+.introText {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    min-width: 0;
+}
+
+.introImage {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    filter: grayscale(1);
+}
+
+.introBody {
+    display: grid;
+    gap: 24px;
+    max-width: 70ch;
+
+    p {
+        font-size: 18px;
+        line-height: 1.65;
+        color: var(--btp-ink-muted);
+    }
+}
+
+// ─── Speakers ────────────────────────────────────────────────────────────────
+.programmeSection {
+    composes: section;
+}
+
+.programmeTabs {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+}
+
+// Tabs read like the section-rule titles elsewhere on the page (centered mono
+// caps), not filled buttons: the active tab carries a subtle orange underline,
+// inactive tabs are muted and brighten on hover.
+.page .programmeTab {
+    appearance: none;
+    background: none;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 4px 0;
+    position: relative;
+    cursor: pointer;
+    font-family: 'Geist Mono', ui-monospace, 'SFMono-Regular', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--btp-ink-muted);
+    transition: color 0.2s ease;
+
+    &:hover {
+        color: var(--btp-ink);
+    }
+
+    &[aria-selected='true'] {
+        color: var(--btp-orange);
+    }
+
+    // Active indicator: a 2px orange bar pinned to the section rule's bottom
+    // hairline. The label stays vertically centred in the bar, so the marker is
+    // offset down past the rule's bottom padding (18px; 22px on desktop) to land
+    // on the border.
+    &[aria-selected='true']::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: -18px;
+        height: 2px;
+        background: var(--btp-orange);
+    }
+
+    @media (min-width: 900px) {
+        &[aria-selected='true']::after {
+            bottom: -22px;
+        }
+    }
+}
+
+.speakerGrid {
+    display: grid;
+    gap: 32px 16px;
+    grid-template-columns: 1fr;
+
+    @media (min-width: 600px) {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    @media (min-width: 960px) {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.speakerCard {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+// Fixed-size portrait box — every speaker gets the same 250×312 frame
+// (4:5 ratio) so the row reads at a consistent rhythm regardless of how
+// the underlying SVG was cropped. The image fills the box top-to-bottom
+// via `object-fit: cover`, anchored to the top so faces are never clipped.
+//
+// On hover the wrap paints orange and the orange-bg portrait crossfades
+// in on top — see `.speakerImageOrange` and the hover rule below.
+.speakerImageWrap {
+    position: relative;
+    width: 250px;
+    aspect-ratio: 4 / 5;
+    border-radius: 12px;
+    overflow: hidden;
+    transition:
+        background-color 0.32s ease,
+        border-radius 0.32s ease;
+}
+
+.speakerImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+    display: block;
+}
+
+// Re-shaded portrait used only on hover. Stacks directly on top of the
+// default illustration, sharing all sizing rules so swapping is a pure
+// opacity crossfade with no layout reflow. The dither pattern in this
+// variant is tuned for the #F43800 hover background.
+.speakerImageOrange {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.32s ease;
+}
+
+// Mats and John have unusually narrow/tall SVG viewBoxes (~0.55 / 0.60
+// aspect ratio vs. the 0.8 portrait box). With the default `cover` rule
+// above, the bottom ~140px of their figure clips off the frame. Switching
+// to `contain` and anchoring to the bottom keeps the whole figure visible
+// while maintaining a matching baseline with the other portraits. Applied
+// to both the default and orange-bg images so the swap stays in register.
+.speakerImageContain {
+    object-fit: contain;
+    object-position: center bottom;
+}
+
+// Hover-driven crossfade. Gated on `(hover: hover)` so touch devices
+// (where there's no pointer to leave the card) don't latch into the
+// orange state with no obvious way to undo it.
+@media (hover: hover) {
+    .speakerCard:hover .speakerImageWrap {
+        background-color: var(--btp-orange);
+        // Square off the corners on hover so the orange-bg illustration
+        // reads as a hard editorial block rather than a soft avatar tile
+        // — matches the agenda hover treatment, which has no rounding.
+        border-radius: 0;
+    }
+
+    .speakerCard:hover .speakerImageOrange {
+        opacity: 1;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .speakerImageWrap,
+    .speakerImageOrange {
+        transition: none;
+    }
+}
+
+.speakerName {
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--btp-ink);
+    margin-top: 4px;
+}
+
+.speakerTitle {
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--btp-orange);
+}
+
+.speakerBio {
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--btp-ink-muted);
+}
+
+// ─── Agenda ──────────────────────────────────────────────────────────────────
+// The schedule table: a white card with hard corners and a hairline border
+// separating its column-header row from the session rows below.
+.agenda {
+    border: 1px solid var(--btp-border);
+    overflow: hidden;
+    background: var(--btp-card);
+}
+
+.agendaList {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+// Two-column grid per row: [title + description] [speakers]. On mobile the two
+// columns stack; from 720px they sit side by side, mirroring the `.agendaHead`
+// column headers above the list.
+.agendaRow {
+    position: relative;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 20px 24px;
+    margin-bottom: 0;
+    border-bottom: 1px solid var(--btp-border);
+    transition:
+        background-color 0.32s ease,
+        border-bottom-color 0.32s ease;
+
+    &:last-child {
+        border-bottom: 0;
+    }
+
+    @media (min-width: 720px) {
+        grid-template-columns: 1.6fr 1fr;
+        align-items: start;
+        gap: 32px;
+        padding: 20px 32px;
+    }
+}
+
+.agendaBody {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 16px;
+    min-width: 0;
+}
+
+// Session thumbnail (16:9) to the left of the title. The whole row is clickable
+// via the title link's stretched ::after, so this is purely decorative.
+.agendaThumbWrap {
+    position: relative;
+    flex: 0 0 auto;
+    width: 160px;
+    aspect-ratio: 16 / 9;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: var(--btp-bg-alt);
+}
+
+.agendaThumb {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+// Play affordance: a semi-transparent black disc with a white triangle.
+.agendaThumbPlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.6);
+    transition: background-color 0.32s ease;
+
+    &::after {
+        content: '';
+        width: 0;
+        height: 0;
+        margin-left: 3px;
+        border-style: solid;
+        border-width: 7px 0 7px 12px;
+        border-color: transparent transparent transparent #ffffff;
+    }
+}
+
+.agendaText {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+// Talk runtime above the title, mono caps to match the eyebrows.
+.agendaDuration {
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--btp-ink-muted);
+    transition: color 0.32s ease;
+}
+
+.agendaTitle {
+    font-size: 24px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    color: var(--btp-ink);
+    line-height: 1.3;
+    transition: color 0.32s ease;
+}
+
+// Session titles with a recording become a link that opens the video modal. The
+// ::after stretches over the whole (position: relative) row so a click anywhere
+// in the row opens it, not just the title text.
+.agendaTitleLink {
+    display: inline-block;
+    color: inherit;
+    text-decoration: none;
+    cursor: pointer;
+
+    &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+    }
+}
+
+.agendaSpeakerName {
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--btp-ink-muted);
+    line-height: 1.35;
+    transition: color 0.32s ease;
+}
+
+// Column headers above the list (Title | Speakers), mono caps like the section
+// rule titles. Mirrors the `.agendaRow` grid so each label sits over its column.
+// Hidden on mobile where the row collapses to a single column.
+.agendaHead {
+    display: none;
+
+    @media (min-width: 720px) {
+        display: grid;
+        grid-template-columns: 1.6fr 1fr;
+        gap: 32px;
+        padding: 14px 32px;
+        border-bottom: 1px solid var(--btp-border);
+        font-family: 'Geist Mono', ui-monospace, monospace;
+        font-size: 12px;
+        font-weight: 500;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--btp-ink-muted);
+    }
+}
+
+// One row per speaker (avatar + name/role), stacked vertically.
+.agendaSpeakersCol {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+// Sessions with 3+ speakers (the panel) lay their speakers out in two columns
+// from 720px so the row doesn't get too tall.
+.agendaSpeakersColWide {
+    @media (min-width: 720px) {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px 20px;
+    }
+}
+
+.agendaSpeaker {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+}
+
+// Rotating-head video, shown in place of the avatar + name on row hover. For a
+// single speaker it sits at 200px, absolutely positioned so it overflows (and is
+// clipped by) the row rather than growing the cell. Multi-speaker rows override
+// this to a scaled, in-flow row layout below.
+.agendaSpeakerRotating {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 80px;
+    width: 200px;
+    height: 200px;
+    object-fit: cover;
+    pointer-events: none;
+}
+
+// Hover affordance pinned to the bottom-right of the session row.
+.agendaWatch {
+    position: absolute;
+    right: 24px;
+    bottom: 14px;
+    z-index: 2;
+    font-family: 'Geist Mono', ui-monospace, monospace;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--btp-bg);
+    opacity: 0;
+    transform: translateY(6px);
+    transition:
+        opacity 0.3s ease,
+        transform 0.3s ease;
+    pointer-events: none;
+}
+
+// Round avatar: the 30x30 speaker head (beyond-cream), crossfading to the
+// beyond-orange variant when the row turns orange on hover.
+.agendaAvatar {
+    position: relative;
+    display: inline-block;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex: 0 0 auto;
+}
+
+.agendaAvatarImg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top;
+    transition: opacity 0.32s ease;
+}
+
+.agendaAvatarImgOrange {
+    opacity: 0;
+}
+
+.agendaDescription {
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--btp-ink-muted);
+    max-width: 500px;
+    transition: color 0.32s ease;
+}
+
+// Row hover, only on hover-capable devices so a touch tap doesn't latch the
+// orange state with no easy way to undo it.
+@media (hover: hover) {
+    .agendaRow:hover {
+        background-color: var(--btp-orange);
+        // Hide this row's bottom hairline (and the previous row's, below) so the
+        // orange block sits flush against its neighbours with no cream sliver.
+        border-bottom-color: transparent;
+    }
+
+    // `:has(+ X)` approximates a previous-sibling selector: drop the border of
+    // the row directly above the hovered one so the orange block meets it.
+    .agendaRow:has(+ .agendaRow:hover) {
+        border-bottom-color: transparent;
+    }
+
+    .agendaRow:hover .agendaDuration,
+    .agendaRow:hover .agendaTitle,
+    .agendaRow:hover .agendaSpeakerName,
+    .agendaRow:hover .agendaDescription {
+        color: var(--btp-bg);
+    }
+
+    // Crossfade each avatar to its orange-bg illustration on the orange row.
+    .agendaRow:hover .agendaAvatarImgOrange {
+        opacity: 1;
+    }
+
+    // On hover, swap each speaker's avatar + name for their rotating-head video.
+    // visibility (not display) so the line keeps its height and the row doesn't
+    // jump as the clipped 200px head appears.
+    .agendaRow:hover .agendaAvatar,
+    .agendaRow:hover .agendaSpeakerName {
+        visibility: hidden;
+    }
+
+    .agendaRow:hover .agendaSpeakerRotating {
+        display: block;
+    }
+
+    // Multi-speaker rows: overlay the heads side by side, absolutely positioned
+    // over the speakers column. The column keeps its (hidden) avatar/name boxes
+    // via the visibility rule above, and the heads are taken out of flow, so the
+    // row height is unchanged on hover.
+    .agendaRow:hover .agendaSpeakersColMulti {
+        position: relative;
+    }
+
+    .agendaRow:hover .agendaSpeakersColMulti .agendaSpeaker {
+        position: static;
+    }
+
+    .agendaRow:hover .agendaSpeakersColMulti .agendaSpeakerRotating {
+        position: absolute;
+        top: 0;
+        width: 200px;
+        height: 200px;
+        max-width: none;
+    }
+
+    // Two speakers (keynote, roadmap): full-size heads with a bit of space. The
+    // 387px column plus the row's right padding fits both 200px heads.
+    .agendaRow:hover
+        .agendaSpeakersColMulti:not(.agendaSpeakersColWide)
+        .agendaSpeaker:first-child
+        .agendaSpeakerRotating {
+        left: 0;
+    }
+    .agendaRow:hover
+        .agendaSpeakersColMulti:not(.agendaSpeakersColWide)
+        .agendaSpeaker:last-child
+        .agendaSpeakerRotating {
+        left: 210px;
+    }
+
+    // Three speakers (the panel): bigger than before but not full size, spread
+    // across the column so they overlap and clip rather than shrink to fit.
+    .agendaRow:hover .agendaSpeakersColWide .agendaSpeakerRotating {
+        width: 150px;
+        height: 150px;
+    }
+    .agendaRow:hover .agendaSpeakersColWide .agendaSpeaker:nth-child(1) .agendaSpeakerRotating {
+        left: 0;
+    }
+    .agendaRow:hover .agendaSpeakersColWide .agendaSpeaker:nth-child(2) .agendaSpeakerRotating {
+        left: 120px;
+    }
+    .agendaRow:hover .agendaSpeakersColWide .agendaSpeaker:nth-child(3) .agendaSpeakerRotating {
+        left: 240px;
+    }
+
+    // Some heads sit low in their frame; nudge them up so the face is centred in
+    // the clipped row. Placed after the size rules so it wins on equal specificity.
+    .agendaRow:hover .agendaSpeakerRotating[data-head='bernie-sumption'],
+    .agendaRow:hover .agendaSpeakerRotating[data-head='david-khourshid'],
+    .agendaRow:hover .agendaSpeakerRotating[data-head='mats-bryntse'],
+    .agendaRow:hover .agendaSpeakerRotating[data-head='adam-wang'],
+    .agendaRow:hover .agendaSpeakerRotating[data-head='johan-isaksson'],
+    .agendaRow:hover .agendaSpeakerRotating[data-head='josh-hobson'],
+    .agendaRow:hover .agendaSpeakerRotating[data-head='john-masterson'] {
+        top: -24px;
+    }
+
+    // John's head fills more of its frame than the others; scale it down so it
+    // sits at a similar size to Mats beside it.
+    .agendaRow:hover .agendaSpeakerRotating[data-head='john-masterson'] {
+        width: 160px;
+        height: 160px;
+    }
+
+    // Johan reads a little small in his frame; size him up next to Adam.
+    .agendaRow:hover .agendaSpeakerRotating[data-head='johan-isaksson'] {
+        width: 230px;
+        height: 230px;
+    }
+
+    // Reveal the "Watch talk" affordance as the row turns orange.
+    .agendaRow:hover .agendaWatch {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    // The play disc picks up the brand orange while the row is hovered.
+    .agendaRow:hover .agendaThumbPlay {
+        background-color: var(--btp-orange);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .agendaRow,
+    .agendaTitle,
+    .agendaSpeakers,
+    .agendaDescription,
+    .agendaAvatarImg {
+        transition: none;
+    }
+}
+
+// ─── Venue ───────────────────────────────────────────────────────────────────
+.venueSection {
+    composes: section;
+
+    // Page-scoped container override (mirrors the same pattern used by `.hero`).
+    // The Savoy line drawing reads better at a generous size, so on wide
+    // screens we let the venue's `.container` stretch wider than the standard
+    // 1320px page container. Both class names live in this CSS module so the
+    // selector is hashed locally — no other section/page is affected.
+    .container {
+        max-width: 1480px;
+    }
+}
+
+// Single hero image of the venue. No card chrome — we want the line drawing
+// to read as a piece of editorial illustration sitting directly on the page.
+.venueGrid {
+    display: flex;
+    justify-content: center;
+}
+
+.venueSlide {
+    position: relative;
+    margin: 0;
+    width: 100%;
+    // Allow the figure to fill the (now wider) venue container all the way
+    // out to the section's max width. Previously capped at 960px, which
+    // looked dwarfed inside the page container.
+    max-width: 100%;
+}
+
+.venueImage {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+// The "IET London" CTA sits directly under the illustration and links out to
+// Google Maps. Centred and given breathing room so it reads as a deliberate
+// closing beat for the section rather than a footer afterthought.
+.venueCta {
+    display: flex;
+    justify-content: center;
+    margin-top: 32px;
+
+    @media (min-width: 900px) {
+        margin-top: 40px;
+    }
+}
+
+// ─── Photo gallery (continuous marquee) ──────────────────────────────────────
+.gallerySection {
+    composes: section;
+}
+
+.galleryViewport {
+    position: relative;
+    overflow: hidden;
+}
+
+// The track holds two copies of the gallery; translating it left by half its
+// width and looping gives a seamless, continuous scroll. Each slide owns its
+// trailing gap (margin-right) so the -50% offset lands exactly one set over.
+.galleryTrack {
+    display: flex;
+    width: max-content;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    animation: btp-marquee 60s linear infinite;
+}
+
+@keyframes btp-marquee {
+    from {
+        transform: translateX(0);
+    }
+
+    to {
+        transform: translateX(-50%);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .galleryTrack {
+        animation: none;
+    }
+}
+
+.gallerySlide {
+    flex: 0 0 auto;
+    width: min(82vw, 680px);
+    margin-right: 16px;
+    aspect-ratio: 3 / 2;
+    overflow: hidden;
+    background: var(--btp-card);
+}
+
+// Portrait slide: narrower and a bit taller than the 3:2 landscape frames.
+.gallerySlidePortrait {
+    width: min(70vw, 380px);
+    aspect-ratio: 3 / 4;
+}
+
+.galleryImage {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    // Black-and-white by default; restore colour on hover (the marquee also
+    // pauses on hover, so the photo holds still while it's in colour).
+    filter: grayscale(1);
+    transition: filter 0.3s ease;
+}
+
+.gallerySlide:hover .galleryImage {
+    filter: grayscale(0);
+}
+
+// gallery-02 is a taller frame; anchor the crop to the top so heads aren't cut.
+.galleryImageTop {
+    object-position: top;
+}
+
+// ─── Session recording modal ─────────────────────────────────────────────────
+.sessionModal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+// `display: flex` above would otherwise beat the browser's `[hidden]` rule and
+// leave the modal permanently on screen, so hide it explicitly when closed.
+.sessionModal[hidden] {
+    display: none;
+}
+
+// White wash over the page (per spec: white background at 0.8 opacity). Scoped
+// with `.page` and with explicit hover/focus states so it never picks up the
+// global button styling's blue highlight.
+.page .sessionModalBackdrop {
+    position: absolute;
+    inset: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    appearance: none;
+    background: rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+
+    &:hover,
+    &:focus,
+    &:focus-visible,
+    &:active {
+        background: rgba(255, 255, 255, 0.8);
+        box-shadow: none;
+        outline: none;
+    }
+}
+
+.sessionModalDialog {
+    position: relative;
+    z-index: 1;
+    width: min(960px, 100%);
+    background: #fff;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.24);
+}
+
+.page .sessionModalClose {
+    position: absolute;
+    top: -44px;
+    right: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    color: var(--btp-ink);
+    font-size: 30px;
+    line-height: 1;
+    cursor: pointer;
+
+    @media (max-width: 719px) {
+        top: 6px;
+        right: 6px;
+        z-index: 2;
+        color: #fff;
+    }
+}
+
+.sessionModalVideo {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+
+    iframe {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        border: 0;
+    }
+}

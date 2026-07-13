@@ -1,5 +1,10 @@
 import type { AgNumericValue } from '../../chart/dataValues';
-import type { AgColorRef, AgColorRefMixOnto, AgCssColorOrRef } from '../../chart/themeParamsOptions';
+import type {
+    AgColorRef,
+    AgColorRefMixOnto,
+    AgColorRefMixOntoColor,
+    AgCssColorOrRef,
+} from '../../chart/themeParamsOptions';
 import type {
     CssColor,
     DatumKey,
@@ -58,7 +63,14 @@ export interface FillCssOptions {
     fillOpacity?: Opacity;
 }
 
-export type AgColorType = CssColor | AgColorRef | AgColorRefMixOnto | AgGradientColor | AgPatternColor | AgImageFill;
+export type AgColorType =
+    | CssColor
+    | AgColorRef
+    | AgColorRefMixOnto
+    | AgColorRefMixOntoColor
+    | AgGradientColor
+    | AgPatternColor
+    | AgImageFill;
 export type AgColorTypeStrict = CssColor | AgGradientColorStrict;
 
 export type AgGradientColorMode = 'continuous' | 'discrete';
