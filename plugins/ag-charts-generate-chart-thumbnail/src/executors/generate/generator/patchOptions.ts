@@ -125,15 +125,12 @@ const maybeApplySubstitutions = (node: unknown) => {
     return node;
 };
 
-// Substituted strings (including base64-inlined images) are identical across the theme x DPI
-// render loop, so cache per original string to avoid re-reading and re-encoding per render.
-// The cache is only safe because substitutions are always DEFAULT_SUBSTITUTIONS (fixed per
-// process) — do not reintroduce a caller-supplied substitutions parameter without keying on it.
+// Caches base64 image inlining, which repeats across the theme x DPI render loop. Safe to key
+// on content alone only while substitutions are always DEFAULT_SUBSTITUTIONS (fixed per process).
 const substitutionCache = new Map<string, string>();
 
 const applySubstitutions = (content: string) => {
-    const substitutions = DEFAULT_SUBSTITUTIONS;
-    if (content == null || !content.includes('${')) {
+    if (!content.includes('${')) {
         return content;
     }
 
@@ -143,8 +140,8 @@ const applySubstitutions = (content: string) => {
     }
     const original = content;
 
-    Object.keys(substitutions).forEach((key) => {
-        const value = substitutions[key];
+    Object.keys(DEFAULT_SUBSTITUTIONS).forEach((key) => {
+        const value = DEFAULT_SUBSTITUTIONS[key];
         if (value == null) {
             throw new Error(`Substitution value is null for key: ${key}`);
         }
