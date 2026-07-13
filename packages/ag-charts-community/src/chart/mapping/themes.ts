@@ -90,19 +90,32 @@ export const themes: ThemeMap = {
     'ag-financial': memoizeByRegistry(() => new FinancialLight()),
 };
 
-const chartThemeCache = new Map<unknown, ChartTheme>();
+// Primitive keys (stock theme names) are bounded and held strongly. Object keys (inline theme
+// option objects) are held weakly: a fresh options object per chart would otherwise pin its
+// resolved ChartTheme — and the deep config tree it owns — for the lifetime of the process,
+// leaking memory for consumers that render many charts with distinct inline themes.
+const chartThemeCache = new Map<string | null | undefined, ChartTheme>();
+let chartThemeObjectCache = new WeakMap<object, ChartTheme>();
 let chartThemeCacheRevision = -1;
 const themeCacheDebug = Debug.create(true, 'perf', 'theme');
 
 export const getChartTheme: typeof createChartTheme = (value) => {
     chartThemeCacheRevision = ModuleRegistry.ifRegistryChanged(chartThemeCacheRevision, () => {
         chartThemeCache.clear();
+        chartThemeObjectCache = new WeakMap();
     });
-    let theme = chartThemeCache.get(value);
+    const objectKey = typeof value === 'object' && value !== null ? value : undefined;
+    let theme = objectKey
+        ? chartThemeObjectCache.get(objectKey)
+        : chartThemeCache.get(value as string | null | undefined);
     if (theme == null) {
         themeCacheDebug('[CACHE] ChartTheme', 'miss', createChartTheme.name, [value]);
         theme = createChartTheme(value);
-        chartThemeCache.set(value, theme);
+        if (objectKey) {
+            chartThemeObjectCache.set(objectKey, theme);
+        } else {
+            chartThemeCache.set(value as string | null | undefined, theme);
+        }
     } else {
         themeCacheDebug('[CACHE] ChartTheme', 'hit', createChartTheme.name, [value]);
     }
@@ -112,6 +125,7 @@ export const getChartTheme: typeof createChartTheme = (value) => {
 /** Test-only: drop all cached entries so cases start from a known cold state. */
 export function __clearChartThemeCacheForTests() {
     chartThemeCache.clear();
+    chartThemeObjectCache = new WeakMap();
     chartThemeCacheRevision = -1;
 }
 
