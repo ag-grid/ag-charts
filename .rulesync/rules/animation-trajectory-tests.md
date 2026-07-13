@@ -38,11 +38,24 @@ covers day-to-day usage.
 
 -   Unnamed nodes and properties default to `constant`. `constant` is the STRICTEST expectation;
     `'any'` disables checking (but still fails on non-finite values).
+-   `constant` means the property holds across the CAPTURED FRAMES — it does NOT mean `before`
+    equals `after`. A change that lands as a first-frame structural snap (a category reorder/reverse
+    reshapes the whole stroke by frame 0) reads `constant` even though its start and end scenes
+    differ, and the pin is non-vacuous: a regression that tweened the change instead of snapping
+    would break it. Never read `constant` as "nothing changed".
 -   A constant trajectory vacuously satisfies `increases`/`decreases`/`monotonic`/`bounded`/
     `settlesAt`. A fade spec is only non-vacuous alongside a frame-0 collapsed guard (assert the
     node starts at opacity ~0) or an explicit start-value assertion.
 -   `bounded` bounds intermediate values by the trajectory's OWN endpoints — it cannot distinguish
-    a snap from a tween. Use `progresses` to force real intermediate motion.
+    a snap from a tween. `progresses` forces real intermediate motion but proves ONLY that: it
+    asserts no direction, no bounds, and not that a value overshoots or dips outside the endpoint
+    range. Use it for an edge or station that legitimately leaves the endpoint interval (overshoots,
+    or dips and recovers) where `bounded` would wrongly reject. Never let a helper name or comment
+    imply `progresses` verifies the overshoot — describe the observed motion separately from what
+    the expectation enforces.
+-   `degenerate` is for a value that legitimately goes non-finite for part of the trajectory — a
+    per-station crossing that vanishes as a point enters or leaves at that edge. Pin those stations
+    `degenerate`, not `any`, so the non-finite window is expected rather than silently swallowed.
 -   `during: '<phase>'` windows (`remove`/`update`/`add`/`trailing`/`initial`) also enforce
     constancy OUTSIDE the window — they are the detector for desynchronised-phase regressions.
 -   **Negative-test every new spec**: flip a direction or phase, confirm the CASE fails loudly,
@@ -56,11 +69,19 @@ whole-scene start anchor. Hand-roll the capture in those CASEs (settle → sampl
 `captureAnimationFrames` → `runToEnd` → assert only the end anchor) — see `captureFrom` in
 `lineSeries.test.ts` and `captureToggle` in `barSeries.test.ts`.
 
+A property that snaps this way is pinned `constant` — it sits at its settled value from the first
+captured frame — not `any`. See the `constant`-across-frames note in the vocabulary above.
+
 ## Probe before pinning
 
 Never guess what a series animates. Add a temporary probe test that dumps the sampled trajectory
 (`process.stdout.write`) for the scenario, read the actual per-frame values and phases, then write
 the spec from evidence and delete the probe.
+
+To tell a snap from a tween, dump `before`, `trajectory[0]`, and `after` for the node. If
+`trajectory[0]` already equals `after` while both differ from `before`, the change snapped on the
+first frame — pin `constant`. If the samples interpolate between the endpoints, pin a direction or
+`progresses`.
 
 ## Related contracts
 
