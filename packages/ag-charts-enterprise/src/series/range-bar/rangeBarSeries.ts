@@ -459,6 +459,10 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
 
         // Array placement is accepted, but only its first candidate is honoured here.
         const labelPlacement = toArray(this.properties.label.placement)[0];
+        const labelProps = this.properties.label;
+        const placementPadding =
+            labelProps.padding ??
+            (labelPlacement === 'outside' ? labelProps.outsideStyle : labelProps.insideStyle).padding;
 
         return {
             xAxis,
@@ -485,8 +489,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             labelResolvesOrientation: barLabelResolvesOrientation(this.properties.label.orientation),
             labelFit: resolveLabelFit(this.properties.label, this.properties.label.collisionAvoidance.avoid),
             labelPadding:
-                (this.properties.label.spacing +
-                    (typeof this.properties.label.padding === 'number' ? this.properties.label.padding : 0)) *
+                (labelProps.spacing + (typeof placementPadding === 'number' ? placementPadding : 0)) *
                 (labelPlacement === 'outside' ? 1 : -1),
             canIncrementallyUpdate,
             nodes: canIncrementallyUpdate ? this.contextNodeData.nodeData : [],

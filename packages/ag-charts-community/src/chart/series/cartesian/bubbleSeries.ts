@@ -61,7 +61,7 @@ import type { ChartAxis } from '../../chartAxis';
 import type { DataController } from '../../data/dataController';
 import { DataModel, type ProcessedData, fixNumericExtent } from '../../data/dataModel';
 import { createDatumId, processedDataIsAnimatable, valueProperty } from '../../data/processors';
-import { expandLabelPadding } from '../../label';
+import { expandLabelPadding, expandPlacementLabelPadding, resolvePlacementLabelStyle } from '../../label';
 import { fitLabelToContainer, getLabelStyles, pickPlacementStyle } from '../../labelUtil';
 import {
     type CategoryLegendDatum,
@@ -648,7 +648,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             labelInsideOffset: insideRect ? { x: insideRect.cx, y: insideRect.cy } : undefined,
             labelInsideRect: insideRect,
             labelTextDomain,
-            labelPadding: expandLabelPadding(label),
+            labelPadding: expandPlacementLabelPadding(label),
             labelTextMeasurer: cachedTextMeasurer(label),
             // `inside` labels always fit to the marker, hiding (or truncating) text that overflows it.
             labelFit: resolveLabelFit(label, label.collisionAvoidance.avoid || labelPlacement === 'inside'),
@@ -1255,7 +1255,6 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         const { isHighlight = false } = opts;
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const params: AgBubbleSeriesLabelFormatterParams = this.makeLabelFormatterParams();
-        const labelPadding = expandLabelPadding(this.properties.label);
 
         opts.labelSelection.each((text, datum) => {
             const placementStyle = pickPlacementStyle(
@@ -1272,6 +1271,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
                 undefined,
                 placementStyle
             );
+            const labelPadding = expandLabelPadding(resolvePlacementLabelStyle(this.properties.label, placementStyle));
             text.text = datum.label.text;
             text.fill = style.color;
             text.x = (datum.point?.x ?? 0) + labelPadding.left;

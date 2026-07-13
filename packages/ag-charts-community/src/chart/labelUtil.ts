@@ -24,7 +24,7 @@ import type { HighlightNodeDatum } from '../core/eventsHub';
 import type { ChartRegistry } from '../module/moduleContext';
 import type { Text } from '../scene/shape/text';
 import { isRotatable } from '../scene/transformable';
-import type { Label, LabelPlacementStyle } from './label';
+import { type Label, type LabelPlacementStyle, resolvePlacementLabelStyle } from './label';
 import { markerLabelRect } from './marker/markerLabelRect';
 import { getItemId } from './series/pickManager';
 import type { DatumIndex, SeriesNodeDatum } from './series/seriesTypes';
@@ -141,9 +141,7 @@ export function getLabelStyles<TParams>(
     labelPath: string[] = ['series', `${series.declarationOrder}`, 'label'],
     placementStyle?: LabelPlacementStyle
 ): NormalisedChartLabelStyleOptions & { fontSize: number } {
-    // Overlay placement overrides beneath the top-level label so an explicit `label.<prop>` wins and
-    // any unset property falls back to the resolved placement's `insideStyle`/`outsideStyle` value.
-    const resolvedLabel = placementStyle == null ? label : mergeDefaults(label, placementStyle);
+    const resolvedLabel = resolvePlacementLabelStyle(label, placementStyle);
     if (series.visible && label.itemStyler) {
         const highlightState = series.getHighlightStateString(
             activeHighlight,

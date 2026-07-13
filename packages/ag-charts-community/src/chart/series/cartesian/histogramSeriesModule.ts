@@ -7,8 +7,9 @@ import {
     FILL_GRADIENT_LINEAR_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
-    LABEL_BOXING_DEFAULTS,
+    LABEL_BOXING_TOP_LEVEL_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
+    PLACEMENT_LABEL_BOXING_DEFAULTS,
 } from 'ag-charts-core';
 import type { AgHistogramSeriesOptions, ExtensibleTheme } from 'ag-charts-types';
 
@@ -37,15 +38,22 @@ const themeTemplate: ExtensibleTheme<'histogram'> = {
         lineDash: [0],
         lineDashOffset: 0,
         label: {
-            ...LABEL_BOXING_DEFAULTS,
-            // Default 8px gap between the bar and edge-anchored labels; a user-set `spacing` replaces it.
-            padding: { $isUserOption: ['./spacing', 0, 8] } as any,
+            ...LABEL_BOXING_TOP_LEVEL_DEFAULTS,
             enabled: false,
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },
             fontWeight: { $ref: 'fontWeight' },
-            insideStyle: { color: { $ref: 'chartBackgroundColor' } },
-            outsideStyle: { color: { $ref: 'textColor' } },
+            insideStyle: {
+                color: { $ref: 'chartBackgroundColor' },
+                // Default 8px gap between the bar and edge-anchored labels; a user-set `spacing` replaces it.
+                padding: { $isUserOption: ['../spacing', 0, 8] } as any,
+                ...PLACEMENT_LABEL_BOXING_DEFAULTS,
+            },
+            outsideStyle: {
+                color: { $ref: 'textColor' },
+                padding: { $isUserOption: ['../spacing', 0, 8] } as any,
+                ...PLACEMENT_LABEL_BOXING_DEFAULTS,
+            },
             placement: 'inside-center',
         },
         shadow: {

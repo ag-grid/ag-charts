@@ -63,7 +63,7 @@ import {
     processedDataIsAnimatable,
     valueProperty,
 } from '../../data/processors';
-import { expandLabelPadding } from '../../label';
+import { expandPlacementLabelPadding } from '../../label';
 import { boundLabelFit, insideMarkerContainer, insideMarkerOffset } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
@@ -1034,7 +1034,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
             // Pre-computed flags
             isContinuousY,
             labelsEnabled: label.enabled,
-            labelPadding: expandLabelPadding(label),
+            labelPadding: expandPlacementLabelPadding(label),
             labelTextMeasurer: cachedTextMeasurer(label),
             labelAvoid: label.collisionAvoidance.avoid,
             labelPlacements: toArray(label.placement),

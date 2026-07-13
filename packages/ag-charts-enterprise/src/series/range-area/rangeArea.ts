@@ -859,7 +859,9 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         const { xKey, yLowKey, yHighKey, xName, yName, yLowName, yHighName, legendItemName, label } = this.properties;
         // Array placement is accepted, but only its first candidate is honoured here.
         const placement = firstCandidate(label.placement);
-        const spacing = label.spacing + (typeof label.padding === 'number' ? label.padding : 0);
+        const labelPadding =
+            label.padding ?? (placement === 'outside' ? label.outsideStyle : label.insideStyle).padding;
+        const spacing = label.spacing + (typeof labelPadding === 'number' ? labelPadding : 0);
 
         let actualItemId = itemType;
         if (inverted) {

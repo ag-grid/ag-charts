@@ -3,7 +3,8 @@ import {
     FILL_GRADIENT_LINEAR_KEYED_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_KEYED_DEFAULTS,
-    LABEL_BOXING_DEFAULTS,
+    LABEL_BOXING_TOP_LEVEL_DEFAULTS,
+    PLACEMENT_LABEL_BOXING_DEFAULTS,
     SINGLE_SERIES_HIGHLIGHT_STYLE,
 } from 'ag-charts-core';
 import type { ExtensibleTheme } from 'ag-charts-types';
@@ -11,7 +12,7 @@ import type { ExtensibleTheme } from 'ag-charts-types';
 function itemTheme(
     key: 'altUp' | 'altDown' | 'neutral',
     index: number
-): WithThemeParams<AgWaterfallSeriesItemOptions<any> & { label: { padding: number } }> {
+): WithThemeParams<AgWaterfallSeriesItemOptions<any>> {
     return {
         fill: {
             $applySwitch: [
@@ -31,17 +32,25 @@ function itemTheme(
         stroke: { $palette: `${key}.stroke` },
         strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
         label: {
-            ...LABEL_BOXING_DEFAULTS,
+            ...LABEL_BOXING_TOP_LEVEL_DEFAULTS,
             enabled: false,
             fontStyle: undefined,
             fontWeight: { $ref: 'fontWeight' as const },
             fontSize: { $ref: 'fontSize' as const },
             fontFamily: { $ref: 'fontFamily' as const },
-            insideStyle: { color: { $ref: 'textColor' as const } },
-            outsideStyle: { color: { $ref: 'textColor' as const } },
+            // compatibility with old `padding` property (now named `spacing`).
+            insideStyle: {
+                color: { $ref: 'textColor' as const },
+                padding: { $isUserOption: ['../spacing', 0, 6] } as any,
+                ...PLACEMENT_LABEL_BOXING_DEFAULTS,
+            },
+            outsideStyle: {
+                color: { $ref: 'textColor' as const },
+                padding: { $isUserOption: ['../spacing', 0, 6] } as any,
+                ...PLACEMENT_LABEL_BOXING_DEFAULTS,
+            },
             formatter: undefined,
             placement: 'outside-end' as const,
-            padding: { $isUserOption: ['./spacing', 0, 6] }, // compatibility with old `padding` property (now named `spacing`).
         },
     };
 }

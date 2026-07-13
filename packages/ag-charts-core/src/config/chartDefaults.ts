@@ -799,9 +799,12 @@ export const labelFitOptionsDefs: OptionsDefs<AgChartLabelFitOptions> = {
     truncate: boolean,
 };
 
-/** Colour overrides applied to a label for its resolved inside/outside placement. */
+/** Style overrides applied to a label for its resolved inside/outside placement. */
 export const labelPlacementStyleOptionsDef: OptionsDefs<AgChartLabelPlacementStyleOptions> = {
     color: colorOrRef,
+    cornerRadius: number,
+    padding,
+    border: strokeOptionsDef,
     ...fillOptionsDef,
 };
 

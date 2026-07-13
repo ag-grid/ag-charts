@@ -629,21 +629,29 @@ describe('ChartOptions', () => {
                   "label": {
                     "border": {
                       "enabled": false,
-                      "stroke": "rgba(24, 29, 31, 0.08)",
-                      "strokeWidth": 1,
                     },
-                    "cornerRadius": 4,
                     "enabled": false,
                     "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
                     "fontSize": 12,
                     "fontWeight": 400,
                     "insideStyle": {
+                      "border": {
+                        "stroke": "rgba(24, 29, 31, 0.08)",
+                        "strokeWidth": 1,
+                      },
                       "color": "#ffffff",
+                      "cornerRadius": 4,
+                      "padding": 8,
                     },
                     "outsideStyle": {
+                      "border": {
+                        "stroke": "rgba(24, 29, 31, 0.08)",
+                        "strokeWidth": 1,
+                      },
                       "color": "#181d1f",
+                      "cornerRadius": 4,
+                      "padding": 8,
                     },
-                    "padding": 8,
                     "placement": "inside-center",
                   },
                   "lineDash": [
@@ -714,21 +722,29 @@ describe('ChartOptions', () => {
                   "label": {
                     "border": {
                       "enabled": false,
-                      "stroke": "rgba(24, 29, 31, 0.08)",
-                      "strokeWidth": 1,
                     },
-                    "cornerRadius": 4,
                     "enabled": false,
                     "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
                     "fontSize": 12,
                     "fontWeight": 400,
                     "insideStyle": {
+                      "border": {
+                        "stroke": "rgba(24, 29, 31, 0.08)",
+                        "strokeWidth": 1,
+                      },
                       "color": "#ffffff",
+                      "cornerRadius": 4,
+                      "padding": 8,
                     },
                     "outsideStyle": {
+                      "border": {
+                        "stroke": "rgba(24, 29, 31, 0.08)",
+                        "strokeWidth": 1,
+                      },
                       "color": "#181d1f",
+                      "cornerRadius": 4,
+                      "padding": 8,
                     },
-                    "padding": 8,
                     "placement": "inside-center",
                   },
                   "lineDash": [
@@ -799,21 +815,29 @@ describe('ChartOptions', () => {
                   "label": {
                     "border": {
                       "enabled": false,
-                      "stroke": "rgba(24, 29, 31, 0.08)",
-                      "strokeWidth": 1,
                     },
-                    "cornerRadius": 4,
                     "enabled": false,
                     "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
                     "fontSize": 12,
                     "fontWeight": 400,
                     "insideStyle": {
+                      "border": {
+                        "stroke": "rgba(24, 29, 31, 0.08)",
+                        "strokeWidth": 1,
+                      },
                       "color": "#ffffff",
+                      "cornerRadius": 4,
+                      "padding": 8,
                     },
                     "outsideStyle": {
+                      "border": {
+                        "stroke": "rgba(24, 29, 31, 0.08)",
+                        "strokeWidth": 1,
+                      },
                       "color": "#181d1f",
+                      "cornerRadius": 4,
+                      "padding": 8,
                     },
-                    "padding": 8,
                     "placement": "inside-center",
                   },
                   "lineDash": [
@@ -884,21 +908,29 @@ describe('ChartOptions', () => {
                   "label": {
                     "border": {
                       "enabled": false,
-                      "stroke": "rgba(24, 29, 31, 0.08)",
-                      "strokeWidth": 1,
                     },
-                    "cornerRadius": 4,
                     "enabled": false,
                     "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
                     "fontSize": 12,
                     "fontWeight": 400,
                     "insideStyle": {
+                      "border": {
+                        "stroke": "rgba(24, 29, 31, 0.08)",
+                        "strokeWidth": 1,
+                      },
                       "color": "#ffffff",
+                      "cornerRadius": 4,
+                      "padding": 8,
                     },
                     "outsideStyle": {
+                      "border": {
+                        "stroke": "rgba(24, 29, 31, 0.08)",
+                        "strokeWidth": 1,
+                      },
                       "color": "#181d1f",
+                      "cornerRadius": 4,
+                      "padding": 8,
                     },
-                    "padding": 8,
                     "placement": "inside-center",
                   },
                   "lineDash": [
@@ -966,21 +998,29 @@ describe('ChartOptions', () => {
                   "label": {
                     "border": {
                       "enabled": false,
-                      "stroke": "rgba(24, 29, 31, 0.08)",
-                      "strokeWidth": 1,
                     },
-                    "cornerRadius": 4,
                     "enabled": false,
                     "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
                     "fontSize": 12,
                     "fontWeight": 400,
                     "insideStyle": {
+                      "border": {
+                        "stroke": "rgba(24, 29, 31, 0.08)",
+                        "strokeWidth": 1,
+                      },
                       "color": "#181d1f",
+                      "cornerRadius": 4,
+                      "padding": 8,
                     },
                     "outsideStyle": {
+                      "border": {
+                        "stroke": "rgba(24, 29, 31, 0.08)",
+                        "strokeWidth": 1,
+                      },
                       "color": "#181d1f",
+                      "cornerRadius": 4,
+                      "padding": 8,
                     },
-                    "padding": 8,
                     "placement": [
                       "top",
                       "bottom",
@@ -1044,21 +1084,29 @@ describe('ChartOptions', () => {
                   "label": {
                     "border": {
                       "enabled": false,
-                      "stroke": "rgba(24, 29, 31, 0.08)",
-                      "strokeWidth": 1,
                     },
-                    "cornerRadius": 4,
                     "enabled": false,
                     "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
                     "fontSize": 12,
                     "fontWeight": 400,
                     "insideStyle": {
+                      "border": {
+                        "stroke": "rgba(24, 29, 31, 0.08)",
+                        "strokeWidth": 1,
+                      },
                       "color": "#181d1f",
+                      "cornerRadius": 4,
+                      "padding": 8,
                     },
                     "outsideStyle": {
+                      "border": {
+                        "stroke": "rgba(24, 29, 31, 0.08)",
+                        "strokeWidth": 1,
+                      },
                       "color": "#181d1f",
+                      "cornerRadius": 4,
+                      "padding": 8,
                     },
-                    "padding": 8,
                     "placement": [
                       "top",
                       "bottom",
@@ -1136,21 +1184,29 @@ describe('ChartOptions', () => {
                   "label": {
                     "border": {
                       "enabled": false,
-                      "stroke": "rgba(24, 29, 31, 0.08)",
-                      "strokeWidth": 1,
                     },
-                    "cornerRadius": 4,
                     "enabled": false,
                     "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
                     "fontSize": 12,
                     "fontWeight": 400,
                     "insideStyle": {
+                      "border": {
+                        "stroke": "rgba(24, 29, 31, 0.08)",
+                        "strokeWidth": 1,
+                      },
                       "color": "#ffffff",
+                      "cornerRadius": 4,
+                      "padding": 8,
                     },
                     "outsideStyle": {
+                      "border": {
+                        "stroke": "rgba(24, 29, 31, 0.08)",
+                        "strokeWidth": 1,
+                      },
                       "color": "#181d1f",
+                      "cornerRadius": 4,
+                      "padding": 8,
                     },
-                    "padding": 8,
                     "placement": "inside-center",
                   },
                   "lineDash": [
@@ -1221,21 +1277,29 @@ describe('ChartOptions', () => {
                   "label": {
                     "border": {
                       "enabled": false,
-                      "stroke": "rgba(24, 29, 31, 0.08)",
-                      "strokeWidth": 1,
                     },
-                    "cornerRadius": 4,
                     "enabled": false,
                     "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
                     "fontSize": 12,
                     "fontWeight": 400,
                     "insideStyle": {
+                      "border": {
+                        "stroke": "rgba(24, 29, 31, 0.08)",
+                        "strokeWidth": 1,
+                      },
                       "color": "#ffffff",
+                      "cornerRadius": 4,
+                      "padding": 8,
                     },
                     "outsideStyle": {
+                      "border": {
+                        "stroke": "rgba(24, 29, 31, 0.08)",
+                        "strokeWidth": 1,
+                      },
                       "color": "#181d1f",
+                      "cornerRadius": 4,
+                      "padding": 8,
                     },
-                    "padding": 8,
                     "placement": "inside-center",
                   },
                   "lineDash": [
@@ -1306,21 +1370,29 @@ describe('ChartOptions', () => {
                   "label": {
                     "border": {
                       "enabled": false,
-                      "stroke": "rgba(24, 29, 31, 0.08)",
-                      "strokeWidth": 1,
                     },
-                    "cornerRadius": 4,
                     "enabled": false,
                     "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
                     "fontSize": 12,
                     "fontWeight": 400,
                     "insideStyle": {
+                      "border": {
+                        "stroke": "rgba(24, 29, 31, 0.08)",
+                        "strokeWidth": 1,
+                      },
                       "color": "#ffffff",
+                      "cornerRadius": 4,
+                      "padding": 8,
                     },
                     "outsideStyle": {
+                      "border": {
+                        "stroke": "rgba(24, 29, 31, 0.08)",
+                        "strokeWidth": 1,
+                      },
                       "color": "#181d1f",
+                      "cornerRadius": 4,
+                      "padding": 8,
                     },
-                    "padding": 8,
                     "placement": "inside-center",
                   },
                   "lineDash": [
@@ -1391,21 +1463,29 @@ describe('ChartOptions', () => {
                   "label": {
                     "border": {
                       "enabled": false,
-                      "stroke": "rgba(24, 29, 31, 0.08)",
-                      "strokeWidth": 1,
                     },
-                    "cornerRadius": 4,
                     "enabled": false,
                     "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
                     "fontSize": 12,
                     "fontWeight": 400,
                     "insideStyle": {
+                      "border": {
+                        "stroke": "rgba(24, 29, 31, 0.08)",
+                        "strokeWidth": 1,
+                      },
                       "color": "#ffffff",
+                      "cornerRadius": 4,
+                      "padding": 8,
                     },
                     "outsideStyle": {
+                      "border": {
+                        "stroke": "rgba(24, 29, 31, 0.08)",
+                        "strokeWidth": 1,
+                      },
                       "color": "#181d1f",
+                      "cornerRadius": 4,
+                      "padding": 8,
                     },
-                    "padding": 8,
                     "placement": "inside-center",
                   },
                   "lineDash": [
@@ -1473,21 +1553,29 @@ describe('ChartOptions', () => {
                   "label": {
                     "border": {
                       "enabled": false,
-                      "stroke": "rgba(24, 29, 31, 0.08)",
-                      "strokeWidth": 1,
                     },
-                    "cornerRadius": 4,
                     "enabled": false,
                     "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
                     "fontSize": 12,
                     "fontWeight": 400,
                     "insideStyle": {
+                      "border": {
+                        "stroke": "rgba(24, 29, 31, 0.08)",
+                        "strokeWidth": 1,
+                      },
                       "color": "#181d1f",
+                      "cornerRadius": 4,
+                      "padding": 8,
                     },
                     "outsideStyle": {
+                      "border": {
+                        "stroke": "rgba(24, 29, 31, 0.08)",
+                        "strokeWidth": 1,
+                      },
                       "color": "#181d1f",
+                      "cornerRadius": 4,
+                      "padding": 8,
                     },
-                    "padding": 8,
                     "placement": [
                       "top",
                       "bottom",
@@ -1551,21 +1639,29 @@ describe('ChartOptions', () => {
                   "label": {
                     "border": {
                       "enabled": false,
-                      "stroke": "rgba(24, 29, 31, 0.08)",
-                      "strokeWidth": 1,
                     },
-                    "cornerRadius": 4,
                     "enabled": false,
                     "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
                     "fontSize": 12,
                     "fontWeight": 400,
                     "insideStyle": {
+                      "border": {
+                        "stroke": "rgba(24, 29, 31, 0.08)",
+                        "strokeWidth": 1,
+                      },
                       "color": "#181d1f",
+                      "cornerRadius": 4,
+                      "padding": 8,
                     },
                     "outsideStyle": {
+                      "border": {
+                        "stroke": "rgba(24, 29, 31, 0.08)",
+                        "strokeWidth": 1,
+                      },
                       "color": "#181d1f",
+                      "cornerRadius": 4,
+                      "padding": 8,
                     },
-                    "padding": 8,
                     "placement": [
                       "top",
                       "bottom",
@@ -1643,21 +1739,29 @@ describe('ChartOptions', () => {
                   "label": {
                     "border": {
                       "enabled": false,
-                      "stroke": "rgba(24, 29, 31, 0.08)",
-                      "strokeWidth": 1,
                     },
-                    "cornerRadius": 4,
                     "enabled": false,
                     "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
                     "fontSize": 12,
                     "fontWeight": 400,
                     "insideStyle": {
+                      "border": {
+                        "stroke": "rgba(24, 29, 31, 0.08)",
+                        "strokeWidth": 1,
+                      },
                       "color": "#ffffff",
+                      "cornerRadius": 4,
+                      "padding": 8,
                     },
                     "outsideStyle": {
+                      "border": {
+                        "stroke": "rgba(24, 29, 31, 0.08)",
+                        "strokeWidth": 1,
+                      },
                       "color": "#181d1f",
+                      "cornerRadius": 4,
+                      "padding": 8,
                     },
-                    "padding": 8,
                     "placement": "inside-center",
                   },
                   "lineDash": [
@@ -1728,21 +1832,29 @@ describe('ChartOptions', () => {
                   "label": {
                     "border": {
                       "enabled": false,
-                      "stroke": "rgba(24, 29, 31, 0.08)",
-                      "strokeWidth": 1,
                     },
-                    "cornerRadius": 4,
                     "enabled": false,
                     "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
                     "fontSize": 12,
                     "fontWeight": 400,
                     "insideStyle": {
+                      "border": {
+                        "stroke": "rgba(24, 29, 31, 0.08)",
+                        "strokeWidth": 1,
+                      },
                       "color": "#ffffff",
+                      "cornerRadius": 4,
+                      "padding": 8,
                     },
                     "outsideStyle": {
+                      "border": {
+                        "stroke": "rgba(24, 29, 31, 0.08)",
+                        "strokeWidth": 1,
+                      },
                       "color": "#181d1f",
+                      "cornerRadius": 4,
+                      "padding": 8,
                     },
-                    "padding": 8,
                     "placement": "inside-center",
                   },
                   "lineDash": [
@@ -1813,21 +1925,29 @@ describe('ChartOptions', () => {
                   "label": {
                     "border": {
                       "enabled": false,
-                      "stroke": "rgba(24, 29, 31, 0.08)",
-                      "strokeWidth": 1,
                     },
-                    "cornerRadius": 4,
                     "enabled": false,
                     "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
                     "fontSize": 12,
                     "fontWeight": 400,
                     "insideStyle": {
+                      "border": {
+                        "stroke": "rgba(24, 29, 31, 0.08)",
+                        "strokeWidth": 1,
+                      },
                       "color": "#ffffff",
+                      "cornerRadius": 4,
+                      "padding": 8,
                     },
                     "outsideStyle": {
+                      "border": {
+                        "stroke": "rgba(24, 29, 31, 0.08)",
+                        "strokeWidth": 1,
+                      },
                       "color": "#181d1f",
+                      "cornerRadius": 4,
+                      "padding": 8,
                     },
-                    "padding": 8,
                     "placement": "inside-center",
                   },
                   "lineDash": [
@@ -1898,21 +2018,29 @@ describe('ChartOptions', () => {
                   "label": {
                     "border": {
                       "enabled": false,
-                      "stroke": "rgba(24, 29, 31, 0.08)",
-                      "strokeWidth": 1,
                     },
-                    "cornerRadius": 4,
                     "enabled": false,
                     "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
                     "fontSize": 12,
                     "fontWeight": 400,
                     "insideStyle": {
+                      "border": {
+                        "stroke": "rgba(24, 29, 31, 0.08)",
+                        "strokeWidth": 1,
+                      },
                       "color": "#ffffff",
+                      "cornerRadius": 4,
+                      "padding": 8,
                     },
                     "outsideStyle": {
+                      "border": {
+                        "stroke": "rgba(24, 29, 31, 0.08)",
+                        "strokeWidth": 1,
+                      },
                       "color": "#181d1f",
+                      "cornerRadius": 4,
+                      "padding": 8,
                     },
-                    "padding": 8,
                     "placement": "inside-center",
                   },
                   "lineDash": [
@@ -1980,21 +2108,29 @@ describe('ChartOptions', () => {
                   "label": {
                     "border": {
                       "enabled": false,
-                      "stroke": "rgba(24, 29, 31, 0.08)",
-                      "strokeWidth": 1,
                     },
-                    "cornerRadius": 4,
                     "enabled": false,
                     "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
                     "fontSize": 12,
                     "fontWeight": 400,
                     "insideStyle": {
+                      "border": {
+                        "stroke": "rgba(24, 29, 31, 0.08)",
+                        "strokeWidth": 1,
+                      },
                       "color": "#181d1f",
+                      "cornerRadius": 4,
+                      "padding": 8,
                     },
                     "outsideStyle": {
+                      "border": {
+                        "stroke": "rgba(24, 29, 31, 0.08)",
+                        "strokeWidth": 1,
+                      },
                       "color": "#181d1f",
+                      "cornerRadius": 4,
+                      "padding": 8,
                     },
-                    "padding": 8,
                     "placement": [
                       "top",
                       "bottom",
@@ -2058,21 +2194,29 @@ describe('ChartOptions', () => {
                   "label": {
                     "border": {
                       "enabled": false,
-                      "stroke": "rgba(24, 29, 31, 0.08)",
-                      "strokeWidth": 1,
                     },
-                    "cornerRadius": 4,
                     "enabled": false,
                     "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
                     "fontSize": 12,
                     "fontWeight": 400,
                     "insideStyle": {
+                      "border": {
+                        "stroke": "rgba(24, 29, 31, 0.08)",
+                        "strokeWidth": 1,
+                      },
                       "color": "#181d1f",
+                      "cornerRadius": 4,
+                      "padding": 8,
                     },
                     "outsideStyle": {
+                      "border": {
+                        "stroke": "rgba(24, 29, 31, 0.08)",
+                        "strokeWidth": 1,
+                      },
                       "color": "#181d1f",
+                      "cornerRadius": 4,
+                      "padding": 8,
                     },
-                    "padding": 8,
                     "placement": [
                       "top",
                       "bottom",

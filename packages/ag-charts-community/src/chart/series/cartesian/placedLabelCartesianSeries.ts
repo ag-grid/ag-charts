@@ -14,7 +14,7 @@ import { fitLabelText, isArray, measureTextSegments } from 'ag-charts-core';
 import { PointerEvents } from '../../../scene/node';
 import type { Text } from '../../../scene/shape/text';
 import type { PlacedSeriesLabel } from '../../label';
-import { expandLabelPadding } from '../../label';
+import { expandLabelPadding, resolvePlacementLabelStyle } from '../../label';
 import { getLabelStyles, pickPlacementStyle } from '../../labelUtil';
 import type { SeriesNodeDatum } from '../seriesTypes';
 import { CartesianSeries } from './cartesianSeries';
@@ -148,7 +148,6 @@ export abstract class PlacedLabelCartesianSeries<
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const params = this.makeLabelFormatterParams();
         const label = this.labelProperty;
-        const labelPadding = expandLabelPadding(label);
 
         opts.labelSelection.each((text, datum) => {
             const placementStyle = pickPlacementStyle(label, datum.placement === 'inside' ? 'inside' : 'outside');
@@ -165,6 +164,7 @@ export abstract class PlacedLabelCartesianSeries<
             const { enabled, fontStyle, fontWeight, fontSize, fontFamily, color } = style;
             if (enabled && datum?.labelText) {
                 const point = this.readLabelPoint(datum);
+                const labelPadding = expandLabelPadding(resolvePlacementLabelStyle(label, placementStyle));
                 text.fontStyle = fontStyle;
                 text.fontWeight = fontWeight;
                 text.fontSize = fontSize;

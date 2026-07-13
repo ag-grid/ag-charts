@@ -618,6 +618,9 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         const filteredValueExceedUnfiltered = processedData.reduced?.filteredValueExceedUnfiltered ?? false;
         const isStacked = dataModel.hasColumnById(this, 'yValue-start');
         const { label } = this.properties;
+        const labelPlacement = toArray(label.placement)[0];
+        const labelPadding =
+            label.padding ?? (labelPlacement?.startsWith('inside') ? label.insideStyle : label.outsideStyle).padding;
         const canIncrementallyUpdate = this.canIncrementallyUpdateNodes(dataAggregationFilter != null);
 
         const { groupOffset, barOffset, barWidth } = this.getBarDimensions();
@@ -662,7 +665,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             yReversed: yAxis.isReversed(),
             // 0n keeps a bigint y-domain on the full-precision convert() path (a numeric 0 narrows to Number).
             bboxBottom: yScale.convert(0n),
-            labelSpacing: label.spacing + (typeof label.padding === 'number' ? label.padding : 0),
+            labelSpacing: label.spacing + (typeof labelPadding === 'number' ? labelPadding : 0),
             crisp:
                 dataAggregationFilter == null &&
                 (this.properties.crisp ??
@@ -685,7 +688,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             yName: this.properties.yName,
             legendItemName: this.properties.legendItemName,
             label,
-            labelPlacement: toArray(label.placement)[0],
+            labelPlacement,
             labelRotation: barLabelRotation(toArray(label.orientation)[0]),
             labelResolvesOrientation: barLabelResolvesOrientation(label.orientation),
             labelFit: resolveLabelFit(label, label.collisionAvoidance.avoid),

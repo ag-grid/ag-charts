@@ -39,12 +39,30 @@ describe('label placement style (insideStyle/outsideStyle)', () => {
     const firstVisibleLabelStyle = (seriesIndex = 0) => {
         const series = deproxy(chart as any).series[seriesIndex] as unknown as {
             labelSelection: {
-                nodes(): { visible: boolean; fill?: string; getBoxingProperties(): { fill?: string } }[];
+                nodes(): {
+                    visible: boolean;
+                    fill?: string;
+                    // `boxing` is the label's box Rect; `Rect.cornerRadius` is write-only, so read the
+                    // resolved value back off `topLeftCornerRadius`.
+                    boxing?: { topLeftCornerRadius: number };
+                    getBoxingProperties(): {
+                        fill?: string;
+                        padding?: number;
+                        border: { stroke?: string; strokeWidth?: number };
+                    };
+                }[];
             };
         };
         const label = series.labelSelection.nodes().find((node) => node.visible);
         expect(label).toBeDefined();
-        return { color: label!.fill, boxFill: label!.getBoxingProperties().fill };
+        const boxing = label!.getBoxingProperties();
+        return {
+            color: label!.fill,
+            boxFill: boxing.fill,
+            cornerRadius: label!.boxing?.topLeftCornerRadius,
+            padding: boxing.padding,
+            boxStroke: boxing.border.stroke,
+        };
     };
 
     describe('bar-family (column)', () => {
@@ -130,6 +148,42 @@ describe('label placement style (insideStyle/outsideStyle)', () => {
             const style = firstVisibleLabelStyle();
             expect(style.color).toBe('#ffffff');
             expect(style.boxFill).toBe('#0000ff');
+        });
+
+        it('resolves cornerRadius and padding independently per placement', async () => {
+            await renderAndSnapshot(
+                barOptions({
+                    placement: 'inside-center',
+                    insideStyle: { fill: '#ff0000', cornerRadius: 12, padding: 20 },
+                    outsideStyle: { fill: '#0000ff', cornerRadius: 3, padding: 4 },
+                })
+            );
+            const style = firstVisibleLabelStyle();
+            expect(style.cornerRadius).toBe(12);
+            expect(style.padding).toBe(20);
+        });
+
+        it('lets an explicit top-level label.cornerRadius win over insideStyle.cornerRadius', async () => {
+            await renderAndSnapshot(
+                barOptions({
+                    placement: 'inside-center',
+                    cornerRadius: 5,
+                    insideStyle: { fill: '#ff0000', cornerRadius: 12 },
+                })
+            );
+            expect(firstVisibleLabelStyle().cornerRadius).toBe(5);
+        });
+
+        it('resolves the border stroke per placement while the top-level border governs enablement', async () => {
+            await renderAndSnapshot(
+                barOptions({
+                    placement: 'inside-center',
+                    border: { enabled: true },
+                    insideStyle: { border: { stroke: '#ff0000' } },
+                    outsideStyle: { border: { stroke: '#0000ff' } },
+                })
+            );
+            expect(firstVisibleLabelStyle().boxStroke).toBe('#ff0000');
         });
     });
 
