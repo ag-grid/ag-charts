@@ -76,9 +76,10 @@ interface PyramidNodeDataContext extends _ModuleSupport.DataModelSeriesNodeDataC
     bounds: _ModuleSupport.BBox;
 }
 
-type PyramidAnimationState = 'empty' | 'ready';
+type PyramidAnimationState = 'empty' | 'ready' | 'waiting';
 type PyramidAnimationEvent = {
     update: undefined;
+    updateData: undefined;
     clear: undefined;
     reset: undefined;
     skip: undefined;
@@ -130,7 +131,16 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                 skip: 'ready',
             },
             ready: {
+                updateData: 'waiting',
                 clear: 'empty',
+                reset: 'empty',
+                skip: 'ready',
+            },
+            waiting: {
+                update: {
+                    target: 'ready',
+                    action: () => this.animateWaitingUpdateReady(),
+                },
                 reset: 'empty',
                 skip: 'ready',
             },
@@ -815,9 +825,27 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
     }
 
+    override updatedDomains(): void {
+        // Pyramid has a bespoke state machine; fire the data-change transition here (mirrors
+        // CartesianSeries.updatedDomains) so a data update animates rather than snapping. On initial
+        // load the series is still in `empty`, where `updateData` is unhandled and is a no-op.
+        this.animationState.transition('updateData');
+    }
+
     private animateEmptyUpdateReady() {
         const { datumSelection, labelSelection, properties } = this;
 
+        const fns = preparePyramidAnimationFunctions(properties.direction);
+        fromToMotion(this.id, 'nodes', this.ctx.animationManager, [datumSelection], fns);
+        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
+    }
+
+    private animateWaitingUpdateReady() {
+        const { datumSelection, labelSelection, properties } = this;
+
+        // Pyramid has no per-datum diff machinery, so this is a collapse-and-regrow tween (parity
+        // with the initial-load animation), not an old->new reshape.
+        this.ctx.animationManager.stopByAnimationGroupId(this.id);
         const fns = preparePyramidAnimationFunctions(properties.direction);
         fromToMotion(this.id, 'nodes', this.ctx.animationManager, [datumSelection], fns);
         seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);

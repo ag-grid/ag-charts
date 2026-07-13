@@ -1278,6 +1278,32 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         }
     }
 
+    override animateWaitingUpdateReady(opts: WaterfallAnimationData) {
+        const { datumSelection, labelSelection, contextData, previousContextData } = opts;
+
+        // Waterfall does not populate a per-datum diff (no diff() processor), so the bars collapse-start
+        // and grow into their new positions ('added') rather than reshaping per node.
+        this.ctx.animationManager.stopByAnimationGroupId(this.id);
+
+        const mode = previousContextData == null ? 'fade' : 'normal';
+        const fns = prepareBarAnimationFunctions(
+            collapsedStartingBarPosition(this.isVertical(), this.axes, mode),
+            'added'
+        );
+        motion.fromToMotion(this.id, 'datums', this.ctx.animationManager, [datumSelection], fns);
+
+        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
+
+        const { pointData } = contextData;
+        if (!pointData) return;
+
+        if (this.isVertical()) {
+            this.animateConnectorLinesVertical(opts);
+        } else {
+            this.animateConnectorLinesHorizontal(opts);
+        }
+    }
+
     protected animateConnectorLinesHorizontal(opts: WaterfallAnimationData) {
         const { pointData = [] } = opts.contextData;
         const [lineNode] = opts.paths;

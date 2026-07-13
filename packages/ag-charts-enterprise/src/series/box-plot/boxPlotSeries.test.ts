@@ -308,6 +308,68 @@ describe('BoxPlotSeries', () => {
         }
     });
 
+    describe('update animation', () => {
+        const animate = spyOnAnimationManager();
+
+        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
+            it(`for BOX_PLOT_BAR_OPTIONS should animate at ${ratio * 100}%`, async () => {
+                animate(1200, 1);
+
+                const options: AgChartOptions = { ...BOX_PLOT_BAR_OPTIONS };
+                prepareEnterpriseTestOptions(options);
+
+                const chart = AgCharts.create(options);
+                await waitForChartStability(chart);
+
+                animate(1200, ratio);
+                await chart.updateDelta({
+                    data: options.data!.map((d: any) => ({
+                        ...d,
+                        min: d.min * 2,
+                        q1: d.q1 * 2,
+                        median: d.median * 2,
+                        q3: d.q3 * 2,
+                        max: d.max * 2,
+                    })),
+                });
+                await waitForChartStability(chart);
+
+                await compareSnapshot(chart);
+            });
+        }
+
+        it('mid-animation frame differs from final frame for BOX_PLOT_BAR_OPTIONS', async () => {
+            const scaled = (multiplier: number) =>
+                BOX_PLOT_BAR_OPTIONS.data!.map((d: any) => ({
+                    ...d,
+                    min: d.min * multiplier,
+                    q1: d.q1 * multiplier,
+                    median: d.median * multiplier,
+                    q3: d.q3 * multiplier,
+                    max: d.max * multiplier,
+                }));
+
+            animate(1200, 1);
+            const options: AgChartOptions = { ...BOX_PLOT_BAR_OPTIONS };
+            prepareEnterpriseTestOptions(options);
+            const chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            await chart.updateDelta({ data: scaled(2) });
+            animate(1200, 0.5);
+            await waitForChartStability(chart);
+            const midFrame = extractImageData(ctx);
+
+            await chart.updateDelta({ data: scaled(2) });
+            animate(1200, 1);
+            await waitForChartStability(chart);
+            const finalFrame = extractImageData(ctx);
+
+            chart.destroy();
+            expect(midFrame.equals(finalFrame)).toBe(false);
+        });
+    });
+
     describe('gradient fill', () => {
         it('should render box plot series with a default gradient fill', async () => {
             const options = {

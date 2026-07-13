@@ -7,6 +7,7 @@ import {
     extractImageData,
     setupMockCanvas,
     setupMockConsole,
+    spyOnAnimationManager,
     waitForChartStability,
 } from 'ag-charts-community-test';
 
@@ -181,6 +182,66 @@ describe('CandlestickSeries', () => {
             };
             prepareEnterpriseTestOptions(options as any);
             await compareSnapshot(AgCharts.create(options as AgChartOptions));
+        });
+    });
+
+    describe('update animation', () => {
+        const animate = spyOnAnimationManager();
+
+        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
+            it(`for CANDLESTICK_OPTIONS should animate at ${ratio * 100}%`, async () => {
+                animate(1200, 1);
+
+                const options: AgChartOptions = { ...CANDLESTICK_OPTIONS };
+                prepareEnterpriseTestOptions(options as any);
+
+                const chart = AgCharts.create(options);
+                await waitForChartStability(chart);
+
+                animate(1200, ratio);
+                await chart.updateDelta({
+                    data: options.data!.map((d: any) => ({
+                        ...d,
+                        low: d.low * 2,
+                        open: d.open * 2,
+                        close: d.close * 2,
+                        high: d.high * 2,
+                    })),
+                });
+                await waitForChartStability(chart);
+
+                await compareSnapshot(chart);
+            });
+        }
+
+        it('mid-animation frame differs from final frame for CANDLESTICK_OPTIONS', async () => {
+            const scaled = () =>
+                CANDLESTICK_OPTIONS.data!.map((d: any) => ({
+                    ...d,
+                    low: d.low * 2,
+                    open: d.open * 2,
+                    close: d.close * 2,
+                    high: d.high * 2,
+                }));
+
+            animate(1200, 1);
+            const options: AgChartOptions = { ...CANDLESTICK_OPTIONS };
+            prepareEnterpriseTestOptions(options as any);
+            const chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            await chart.updateDelta({ data: scaled() });
+            animate(1200, 0.5);
+            await waitForChartStability(chart);
+            const midFrame = extractImageData(ctx);
+
+            await chart.updateDelta({ data: scaled() });
+            animate(1200, 1);
+            await waitForChartStability(chart);
+            const finalFrame = extractImageData(ctx);
+
+            chart.destroy();
+            expect(midFrame.equals(finalFrame)).toBe(false);
         });
     });
 

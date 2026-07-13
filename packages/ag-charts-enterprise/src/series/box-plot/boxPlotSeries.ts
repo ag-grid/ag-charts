@@ -683,6 +683,18 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         });
     }
 
+    protected override animateWaitingUpdateReady({
+        datumSelection,
+    }: _ModuleSupport.CartesianAnimationData<BoxPlotNodeDatum, BoxPlotNode>) {
+        const isVertical = this.isVertical();
+        const { from, to } = prepareBoxPlotFromTo(isVertical);
+        this.ctx.animationManager.stopByAnimationGroupId(this.id);
+        motion.resetMotion([datumSelection], resetBoxPlotSelectionsScalingCenterFn(isVertical));
+        motion.staticFromToMotion(this.id, 'datums', this.ctx.animationManager, [datumSelection], from, to, {
+            phase: 'update',
+        });
+    }
+
     protected isLabelEnabled(): boolean {
         return false;
     }
