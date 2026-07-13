@@ -22,4 +22,8 @@ export class DropShadow extends ChangeDetectableProperties {
     @Property
     @SceneChangeDetection()
     blur: number = 5;
+
+    @Property
+    @SceneChangeDetection()
+    spread: number = 0;
 }

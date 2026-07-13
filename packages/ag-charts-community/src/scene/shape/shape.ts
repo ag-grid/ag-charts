@@ -9,6 +9,7 @@ import {
     boxesEqual,
     clamp,
     generateUUID,
+    getOffscreenCanvas,
     isGradientFill,
     isImageFill,
     isPatternFill,
@@ -55,6 +56,15 @@ export type ShapeGradientColor = Omit<InternalAgGradientColor, 'bounds'> & { col
 export type ShapeColor = CssColor | ShapeGradientColor | AgPatternColor | AgImageFill;
 
 type SvgAttributes = StrokeOptions & LineDashOptions;
+
+type SilhouetteContext = CanvasContext & { setLineDash(lineDash: readonly number[]): void };
+type ShadowLayerContext = CanvasContext & CanvasDrawImage & { canvas: { width: number; height: number } };
+
+/**
+ * Distance the shadow-casting silhouette is drawn off-canvas so only its shadow — offset back
+ * by the same amount — lands on the canvas. Kept far outside any realistic canvas extent.
+ */
+const SPREAD_SHADOW_OFFSET = 100_000;
 
 export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     @DeclaredSceneChangeDetection()
@@ -208,6 +218,10 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     fillShadow: DropShadow | undefined;
     declare __fillShadow: DropShadow | undefined; // optimised field accessor
 
+    @SceneObjectChangeDetection({ equals: TRIPLE_EQ, checkDirtyOnAssignment: true })
+    strokeShadow: DropShadow | undefined;
+    declare __strokeShadow: DropShadow | undefined; // optimised field accessor
+
     @DeclaredSceneObjectChangeDetection({ equals: boxesEqual, changeCb: (s) => s.onFillChange() })
     fillBBox?: BBox;
     declare __fillBBox: BBox | undefined; // optimised field accessor
@@ -235,7 +249,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     }
 
     protected renderFill(ctx: CanvasContext, path?: Path2D, bboxOverride?: BBox, fillBBoxOverride?: BBox) {
-        const { __fill: fill, __fillOpacity: fillOpacity = 1, fillImage } = this;
+        const { __fill: fill, __fillOpacity: fillOpacity = 1, fillImage, __fillShadow: fillShadow } = this;
         if (fill != null && fill !== 'none' && fillOpacity > 0) {
             const globalAlpha = ctx.globalAlpha;
             if (fillImage) {
@@ -247,11 +261,20 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             }
 
             this.applyFillAndAlpha(ctx, bboxOverride, fillBBoxOverride);
-            this.applyShadow(ctx);
-            this.executeFill(ctx, path);
-            ctx.globalAlpha = globalAlpha;
-            if (this.fillShadow?.enabled) {
-                ctx.shadowColor = 'rgba(0, 0, 0, 0)';
+
+            if (fillShadow?.enabled && fillShadow.spread !== 0) {
+                this.castSpreadShadow(ctx, fillShadow, (silhouetteCtx) =>
+                    this.drawSpreadFillSilhouette(silhouetteCtx, path, fillShadow.spread)
+                );
+                this.executeFill(ctx, path);
+                ctx.globalAlpha = globalAlpha;
+            } else {
+                this.applyShadow(ctx);
+                this.executeFill(ctx, path);
+                ctx.globalAlpha = globalAlpha;
+                if (fillShadow?.enabled) {
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0)';
+                }
             }
         }
     }
@@ -337,6 +360,83 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         }
     }
 
+    /**
+     * Casts a shadow from a dilated silhouette without that silhouette painting on-canvas.
+     * Canvas 2D has no `shadowSpread`, so the silhouette is drawn opaque into an off-screen
+     * layer, then a single shadow is cast from it far off-canvas and offset back into place.
+     */
+    protected castSpreadShadow(
+        ctx: CanvasContext,
+        shadow: DropShadow,
+        drawSilhouette: (silhouetteCtx: SilhouetteContext) => void
+    ) {
+        const shadowCtx = ctx as ShadowLayerContext;
+        const { canvas } = shadowCtx;
+        const OffscreenCanvasCtor = getOffscreenCanvas();
+        const layer = new OffscreenCanvasCtor(canvas.width, canvas.height);
+        const layerCtx = layer.getContext('2d') as SilhouetteContext | null;
+        if (layerCtx == null) return;
+
+        layerCtx.setTransform(shadowCtx.getTransform());
+        layerCtx.fillStyle = 'black';
+        layerCtx.strokeStyle = 'black';
+        drawSilhouette(layerCtx);
+
+        const pixelRatio = this.layerManager?.canvas.pixelRatio ?? 1;
+        shadowCtx.save();
+        shadowCtx.setTransform(1, 0, 0, 1, 0, 0);
+        shadowCtx.shadowColor = shadow.color;
+        shadowCtx.shadowBlur = shadow.blur * pixelRatio;
+        shadowCtx.shadowOffsetX = shadow.xOffset * pixelRatio + SPREAD_SHADOW_OFFSET;
+        shadowCtx.shadowOffsetY = shadow.yOffset * pixelRatio + SPREAD_SHADOW_OFFSET;
+        shadowCtx.drawImage(layer, -SPREAD_SHADOW_OFFSET, -SPREAD_SHADOW_OFFSET);
+        shadowCtx.restore();
+    }
+
+    /**
+     * Draws the dilated fill silhouette (opaque) whose shadow becomes the `spread` shadow. The
+     * generic implementation fattens the outline with a round-joined stroke; primitives with
+     * parametric geometry (e.g. `Rect`) override this for an exact silhouette that also contracts
+     * on negative spread.
+     */
+    protected drawSpreadFillSilhouette(ctx: SilhouetteContext, path: Path2D | undefined, spread: number) {
+        if (path == null) return;
+        ctx.fill(path);
+        if (spread > 0) {
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            ctx.lineWidth = 2 * spread;
+            ctx.stroke(path);
+        }
+    }
+
+    /** Silhouette path for casting a stroke shadow when the caller supplies no explicit path
+     *  (e.g. `Line`, which strokes an inline context path). */
+    protected strokeSilhouettePath(): Path2D | undefined {
+        return undefined;
+    }
+
+    protected castStrokeShadow(
+        ctx: SilhouetteContext,
+        shadow: DropShadow,
+        path: Path2D | undefined,
+        strokeWidth: number,
+        lineDash: readonly number[] | undefined,
+        lineCap: ShapeLineCap | undefined,
+        lineJoin: ShapeLineJoin | undefined
+    ) {
+        if (path == null) return;
+        const shadowStrokeWidth = Math.max(strokeWidth + 2 * shadow.spread, 0);
+        if (shadowStrokeWidth <= 0) return;
+        this.castSpreadShadow(ctx, shadow, (silhouetteCtx) => {
+            silhouetteCtx.lineWidth = shadowStrokeWidth;
+            if (lineDash) silhouetteCtx.setLineDash(lineDash);
+            if (lineCap) silhouetteCtx.lineCap = lineCap;
+            if (lineJoin) silhouetteCtx.lineJoin = lineJoin;
+            silhouetteCtx.stroke(path);
+        });
+    }
+
     protected renderStroke(
         ctx: CanvasContext & { setLineDash(lineDash: readonly number[]): void },
         path?: Path2D,
@@ -351,6 +451,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             __lineCap: lineCap,
             __lineJoin: lineJoin,
             __miterLimit: miterLimit,
+            __strokeShadow: strokeShadow,
         } = this;
         if (stroke != null && stroke !== 'none' && strokeWidth > 0 && strokeOpacity > 0) {
             const { globalAlpha } = ctx;
@@ -371,6 +472,18 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             }
             if (miterLimit != null) {
                 ctx.miterLimit = miterLimit;
+            }
+
+            if (strokeShadow?.enabled) {
+                this.castStrokeShadow(
+                    ctx,
+                    strokeShadow,
+                    path ?? this.strokeSilhouettePath(),
+                    strokeWidth,
+                    lineDash,
+                    lineCap,
+                    lineJoin
+                );
             }
 
             this.executeStroke(ctx, path);

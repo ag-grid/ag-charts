@@ -273,6 +273,87 @@ describe('Sector', () => {
         });
     });
 
+    describe('spread and stroke shadow rendering', () => {
+        const canvasCtx = setupMockCanvas({ width: 760, height: 260 });
+
+        const shadow = (props: Partial<DropShadow>) => new DropShadow().set(props);
+
+        const CASES: Partial<Sector>[] = [
+            // Positive-spread fill shadow on a solid sector.
+            {
+                fill: 'blue',
+                innerRadius: 0,
+                outerRadius: 45,
+                startAngle: 0,
+                endAngle: Math.PI * 1.5,
+                fillShadow: shadow({ xOffset: 6, yOffset: 6, spread: 10 }),
+            },
+            // Positive-spread fill shadow on a donut sector.
+            {
+                fill: 'blue',
+                innerRadius: 22,
+                outerRadius: 45,
+                startAngle: 0,
+                endAngle: Math.PI * 1.5,
+                fillShadow: shadow({ xOffset: 6, yOffset: 6, spread: 10 }),
+            },
+            // Stroke shadow, no spread.
+            {
+                fill: 'none',
+                stroke: 'blue',
+                strokeWidth: 5,
+                innerRadius: 18,
+                outerRadius: 45,
+                startAngle: 0,
+                endAngle: Math.PI * 1.5,
+                strokeShadow: shadow({ xOffset: 6, yOffset: 6 }),
+            },
+            // Stroke shadow with spread.
+            {
+                fill: 'none',
+                stroke: 'blue',
+                strokeWidth: 5,
+                innerRadius: 18,
+                outerRadius: 45,
+                startAngle: 0,
+                endAngle: Math.PI * 1.5,
+                strokeShadow: shadow({ xOffset: 6, yOffset: 6, spread: 6 }),
+            },
+        ];
+
+        it('should render as expected', () => {
+            const ctx = canvasCtx.getRenderContext2D();
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvasCtx.nodeCanvas.width ?? 0, canvasCtx.nodeCanvas.height ?? 0);
+
+            const GAP = 40;
+            let currX = 70;
+            for (const testCase of CASES) {
+                const sector = Object.assign(new Sector(), testCase);
+                sector.centerX = currX;
+                sector.centerY = 120;
+
+                const renderCtx = {
+                    ctx,
+                    direction: 'ltr' as const,
+                    width: canvasCtx.nodeCanvas.width,
+                    height: canvasCtx.nodeCanvas.height,
+                    devicePixelRatio: 1,
+                    debugNodes: {},
+                };
+                ctx.save();
+                sector.preRender(renderCtx);
+                sector.render(renderCtx);
+                ctx.restore();
+
+                currX += sector.outerRadius * 2 + GAP;
+            }
+
+            const imageData = extractImageData(canvasCtx);
+            expect(imageData).toMatchImageSnapshot();
+        });
+    });
+
     describe('clipping', () => {
         const canvasCtx = setupMockCanvas({ width: 1250, height: 1250 });
 

@@ -552,6 +552,40 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
         ctx.globalAlpha *= this.microPixelEffectOpacity;
     }
 
+    protected override drawSpreadFillSilhouette(ctx: CanvasContext, _path: Path2D | undefined, spread: number) {
+        const {
+            __x: x,
+            __y: y,
+            __width: w,
+            __height: h,
+            __topLeftCornerRadius: topLeft,
+            __topRightCornerRadius: topRight,
+            __bottomRightCornerRadius: bottomRight,
+            __bottomLeftCornerRadius: bottomLeft,
+        } = this;
+        const width = Math.max(w + 2 * spread, 0);
+        const height = Math.max(h + 2 * spread, 0);
+        if (width <= 0 || height <= 0) return;
+
+        const growCorner = (radius: number) => (radius > 0 ? Math.max(radius + spread, 0) : 0);
+        const silhouette = new ExtendedPath2D();
+        clippedRoundRect(
+            silhouette,
+            x - spread,
+            y - spread,
+            width,
+            height,
+            {
+                topLeft: growCorner(topLeft),
+                topRight: growCorner(topRight),
+                bottomRight: growCorner(bottomRight),
+                bottomLeft: growCorner(bottomLeft),
+            },
+            undefined
+        );
+        ctx.fill(silhouette.getPath2D());
+    }
+
     protected override renderStroke(
         ctx: CanvasRenderingContext2D & { setLineDash(lineDash: readonly number[]): void }
     ) {
@@ -559,7 +593,27 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
 
         if (stroke && effectiveStrokeWidth) {
             const { globalAlpha } = ctx;
-            const { lineDash, lineDashOffset, lineCap, lineJoin, borderPath, borderClipPath } = this;
+            const {
+                lineDash,
+                lineDashOffset,
+                lineCap,
+                lineJoin,
+                borderPath,
+                borderClipPath,
+                __strokeShadow: strokeShadow,
+            } = this;
+
+            if (strokeShadow?.enabled) {
+                this.castStrokeShadow(
+                    ctx,
+                    strokeShadow,
+                    borderPath.getPath2D(),
+                    effectiveStrokeWidth,
+                    lineDash,
+                    lineCap,
+                    lineJoin
+                );
+            }
 
             if (borderClipPath) {
                 ctx.clip(borderClipPath.getPath2D());
