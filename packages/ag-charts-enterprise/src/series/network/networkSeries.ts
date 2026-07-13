@@ -11,7 +11,6 @@ import {
     Vertex,
 } from 'ag-charts-core';
 
-import { hasClickSelectionModifier } from '../../features/data-selection/dataSelectionUtil';
 import { NetworkGraph } from './networkGraph';
 import type { NetworkLayout, NetworkLayoutUpdateOptions } from './networkLayout';
 import { NetworkLinkNode } from './networkLinkNode';
@@ -158,12 +157,10 @@ export abstract class AbstractNetworkSeries<
         this.cleanup.register(
             ctx.eventsHub.on('series-area:click', (event) => {
                 const { type, clickedNode, target, sourceEvent } = event;
-                const clickModifier = clickedNode?.series.properties.selection.clickModifier;
                 if (
                     type !== 'click' ||
                     clickedNode?.series !== this ||
                     clickedNode.itemId == null ||
-                    hasClickSelectionModifier(event, clickModifier) ||
                     !this.hasBuiltinListener(target)
                 ) {
                     return;

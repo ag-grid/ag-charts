@@ -29,7 +29,6 @@ import {
     type SelectionChanges,
     clearAllSelections,
     hasAddToSelectionModifier,
-    hasClickSelectionModifier,
     isAgSelectionItem,
     isUnknownIterable,
     rollbackChanges,
@@ -217,12 +216,10 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         const { type, clickedNode } = event;
         if (type !== 'click') return;
 
-        const clickModifier = clickedNode?.series.properties.selection.clickModifier;
-        const clickModifierPressed = hasClickSelectionModifier(event, clickModifier);
-        const unionModifierPressed = hasAddToSelectionModifier(event);
+        const modifierPressed = hasAddToSelectionModifier(event);
         const clickMiss = clickedNode === undefined || (!clickedNode.series.isSelectionEnabled() satisfies boolean);
 
-        if (clickMiss && (unionModifierPressed || !enableClickAwayToClear)) {
+        if (clickMiss && (modifierPressed || !enableClickAwayToClear)) {
             // Ctrl+Click only toggles selection; it shouldn't clear the selection.
             // Click-missing with enableClickAwayToClear:false should also do nothing.
             return;
@@ -233,9 +230,9 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         if (clickMiss) {
             clearAllSelections(changes, this.service);
             internalRefreshTargets = this.ctx.chartService.series;
-        } else if (clickModifierPressed) {
+        } else {
             const { series, datumIndex } = clickedNode;
-            if (clickMode === 'multiple' || unionModifierPressed) {
+            if (clickMode === 'multiple' || modifierPressed) {
                 toggleSelection(changes, series, this.service, datumIndex);
                 internalRefreshTargets = [series];
             } else {
@@ -244,11 +241,6 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
                 setSelected(changes, series, this.service, datumIndex);
                 internalRefreshTargets = this.ctx.chartService.series;
             }
-        } else {
-            // If clickMiss and clickModifierPressed are both false, then we should do nothing because the click event
-            // is being used for something else. This can happen in org-charts, for example, where you can click on a
-            // node to expand/collapse it.
-            return;
         }
         // AG-17445 Use `finally` to cleanup if the `selectionChange` user-callback throws an error
         try {
