@@ -33,8 +33,14 @@ import { testLegendItemName } from '../../test/legendItemName';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     PATTERN_SNAPSHOT_DEFAULTS,
+    type SceneGeometrySample,
     createChart,
+    createSceneGeometrySampler,
     deproxy,
+    expectAnimatedEndpointsMatchStatic,
+    expectNoAnimation,
+    expectSceneSamplesMatch,
+    expectSceneTrajectory,
     expectWarningsCalls,
     extractImageData,
     getSeriesAggregationInternals,
@@ -43,7 +49,7 @@ import {
     repeat,
     setupMockCanvas,
     setupMockConsole,
-    spyOnAnimationManager,
+    spyOnAnimationFrames,
     waitForChartStability,
 } from '../../test/utils';
 
@@ -534,22 +540,216 @@ describe('BubbleSeries', () => {
         });
     });
 
-    describe('initial animation', () => {
-        const animate = spyOnAnimationManager();
+    // Initial-load reveal is covered structurally by the 'animation -test page actions' CASEs below.
+    // One CASE per control on the scatter-series-test page's bubble example (Randomise / Add / Remove),
+    // plus the initial-load reveal. Bubble is marker-only — no path/stroke node — and additionally maps
+    // each datum's sizeKey to a marker radius, so the initial reveal scales every marker to its OWN size.
+    describe('animation -test page actions', () => {
+        const frames = spyOnAnimationFrames();
 
-        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-            it(`for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE should animate at ${ratio * 100}%`, async () => {
-                animate(1200, ratio);
-
-                const options: AgChartOptions = examples.BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE;
-                prepareTestOptions(options);
-
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
-                await compare();
+        // Pinned x/y domains make every data mutation below provably non-scale-affecting: within
+        // [0,6] x [0,200] the markers reposition, resize, or enter/leave without moving the axes.
+        const bubbleOptions = (data: Array<{ x: number; y: number; s: number }>): AgCartesianChartOptions =>
+            prepareTestOptions({
+                data,
+                series: [{ type: 'bubble', xKey: 'x', yKey: 'y', sizeKey: 's', minSize: 10, maxSize: 40 }],
+                axes: {
+                    x: { type: 'number', position: 'bottom', min: 0, max: 6 },
+                    y: { type: 'number', position: 'left', min: 0, max: 200 },
+                },
             });
-        }
+
+        const DATA = [
+            { x: 1, y: 40, s: 5 },
+            { x: 2, y: 120, s: 20 },
+            { x: 3, y: 80, s: 10 },
+            { x: 4, y: 160, s: 30 },
+            { x: 5, y: 60, s: 15 },
+        ];
+        // Randomise moves every position AND resizes every marker (min/max sizeKey swap ends).
+        const MOVED = [
+            { x: 1, y: 150, s: 30 },
+            { x: 2, y: 50, s: 5 },
+            { x: 3, y: 170, s: 25 },
+            { x: 4, y: 30, s: 8 },
+            { x: 5, y: 110, s: 20 },
+        ];
+
+        const markerKeys = (sample: SceneGeometrySample) =>
+            [...sample.keys()].filter((k) => /^series\[\d+\]\/marker\[/.test(k));
+        const markerCount = (sample: SceneGeometrySample) => markerKeys(sample).length;
+        const sortedWidths = (sample: SceneGeometrySample) =>
+            markerKeys(sample)
+                .map((k) => Math.round(sample.get(k)!.width))
+                .sort((a, b) => a - b);
+
+        // Bubble skips the animation batch on every data update (only the initial load animates), so an
+        // update SNAPS: the first captured frame already sits at the settled after-state, which trips
+        // captureUpdate's whole-scene start anchor. The update CASEs hand-roll the capture and assert
+        // only the end anchor (as line's captureFrom does), then prove the whole scene held constant.
+        // A data update also re-creates the marker nodes, so the sampler re-keys them (marker[1#2]);
+        // that is why the constancy assertion runs over the trajectory (stable keys) not before->after.
+        const captureSnap = async (options: AgCartesianChartOptions, action: () => void | Promise<void>) => {
+            chart = AgCharts.create(options);
+            await frames.runToEnd(chart);
+            const sampleScene = createSceneGeometrySampler(chart);
+            const before = sampleScene();
+            await action();
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
+            await frames.runToEnd(chart);
+            const after = sampleScene();
+            expectSceneSamplesMatch(trajectory.at(-1)!, after);
+            return { before, trajectory, after };
+        };
+
+        // Negative-spanning domain: the retired snapshot suite revealed bubbles on a domain straddling
+        // the origin (BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE). The scale-in interpolation is
+        // sign-agnostic, but the settled positions must still map negative data below/left of the
+        // origin — a clamp-to-zero or NaN in the negative-domain mapping would survive the positive-only
+        // reveal CASE above. Data straddles both axes; markers are x-value keyed (marker[-4] … marker[5]).
+        it('initial load: markers reveal correctly across a negative-spanning domain', async () => {
+            const NEG = [
+                { x: -4, y: -80, s: 10 },
+                { x: -1, y: 60, s: 20 },
+                { x: 2, y: -40, s: 15 },
+                { x: 5, y: 90, s: 25 },
+            ];
+            const options = prepareTestOptions({
+                data: NEG,
+                series: [{ type: 'bubble', xKey: 'x', yKey: 'y', sizeKey: 's', minSize: 10, maxSize: 40 }],
+                axes: {
+                    x: { type: 'number', position: 'bottom', min: -6, max: 6 },
+                    y: { type: 'number', position: 'left', min: -100, max: 100 },
+                },
+            });
+            chart = AgCharts.create(options);
+            const sampleScene = createSceneGeometrySampler(chart);
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
+            await frames.runToEnd(chart);
+            // Anti-vacuity: every marker scales in from zero, fully opaque, exactly as the positive reveal.
+            for (const key of markerKeys(trajectory[0])) {
+                expect(trajectory[0].get(key)!.width, `${key} width @ frame 0`).toBeLessThanOrEqual(0.001);
+                expect(trajectory[0].get(key)!.opacity, `${key} opacity @ frame 0`).toBeGreaterThanOrEqual(0.99);
+            }
+            expectSceneTrajectory(trajectory, {
+                'series[0]/marker[*]': {
+                    width: { during: 'initial', expect: ['increases', 'progresses', 'bounded'] },
+                    height: { during: 'initial', expect: ['increases', 'progresses', 'bounded'] },
+                    x: { during: 'initial', expect: ['decreases', 'bounded'] },
+                    y: { during: 'initial', expect: ['decreases', 'bounded'] },
+                    opacity: 'constant',
+                },
+            });
+            // Settled positions honour the signed domain: a higher y-value sits higher on screen (smaller
+            // pixel centre-y) and a higher x-value sits further right, with every marker at a finite
+            // coordinate. Compared by bbox centre so differing radii cannot confound the ordering.
+            const end = sampleScene();
+            const centreY = (x: number) =>
+                end.get(`series[0]/marker[${x}]`)!.y + end.get(`series[0]/marker[${x}]`)!.height / 2;
+            const centreX = (x: number) =>
+                end.get(`series[0]/marker[${x}]`)!.x + end.get(`series[0]/marker[${x}]`)!.width / 2;
+            expect(centreY(5)).toBeLessThan(centreY(-1)); // y=90 above y=60
+            expect(centreY(-1)).toBeLessThan(centreY(2)); // y=60 above y=-40
+            expect(centreY(2)).toBeLessThan(centreY(-4)); // y=-40 above y=-80
+            expect(centreX(-4)).toBeLessThan(centreX(-1));
+            expect(centreX(-1)).toBeLessThan(centreX(2));
+            expect(centreX(2)).toBeLessThan(centreX(5));
+            for (const key of markerKeys(end)) {
+                expect(Number.isFinite(end.get(key)!.y), `${key} y finite`).toBe(true);
+            }
+        });
+
+        // Initial load: every marker scales in from zero size during the `initial` phase to its OWN
+        // sizeKey-mapped radius (a bbox scale-in, so x/y ride down within their endpoints). The markers'
+        // opacity holds at 1 — the reveal is a scale-in, not a fade.
+        it('initial load: markers scale in to their sizeKey-mapped radii', async () => {
+            chart = AgCharts.create(bubbleOptions(DATA));
+            const sampleScene = createSceneGeometrySampler(chart);
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
+            // Anti-vacuity: every marker starts collapsed (width ~0) yet already fully opaque on frame 0
+            // — the reveal is a scale-in, not a fade — so the width `increases` grew from nothing while
+            // `opacity: constant` is anchored to 1 (not vacuously stuck at 0).
+            for (const key of markerKeys(trajectory[0])) {
+                expect(trajectory[0].get(key)!.width, `${key} width @ frame 0`).toBeLessThanOrEqual(0.001);
+                expect(trajectory[0].get(key)!.opacity, `${key} opacity @ frame 0`).toBeGreaterThanOrEqual(0.99);
+            }
+            expectSceneTrajectory(trajectory, {
+                'series[0]/marker[*]': {
+                    width: { during: 'initial', expect: ['increases', 'progresses', 'bounded'] },
+                    height: { during: 'initial', expect: ['increases', 'progresses', 'bounded'] },
+                    x: { during: 'initial', expect: ['decreases', 'bounded'] },
+                    y: { during: 'initial', expect: ['decreases', 'bounded'] },
+                    opacity: 'constant',
+                },
+            });
+            // The reveal lands each marker at its own radius: the largest sizeKey (maxSize) settles far
+            // wider than the smallest (minSize), proving the size mapping is preserved through the tween.
+            const end = trajectory.at(-1)!;
+            expect(end.get('series[0]/marker[4]')!.width).toBeGreaterThan(end.get('series[0]/marker[1]')!.width + 20);
+        });
+
+        // "Randomise" — every position and radius changes. Bubble skips the batch, so the markers snap
+        // to their new positions and sizes; the captured trajectory is constant from the first frame.
+        it('update data: markers snap to their new positions and radii without tweening', async () => {
+            const { before, trajectory, after } = await captureSnap(bubbleOptions(DATA), () =>
+                chart.updateDelta({ data: MOVED })
+            );
+            // Anti-vacuity: the radii genuinely changed (constancy would pass vacuously if nothing did).
+            expect(sortedWidths(after), 'settled radii differ from the pre-update radii').not.toEqual(
+                sortedWidths(before)
+            );
+            expectNoAnimation(trajectory);
+        });
+
+        // "Add" — a new datum. Bubble skips the batch, so the entrant appears at full size on the first
+        // captured frame (no scale-in) and the survivors are untouched.
+        it('add point: the new marker appears at full size without animating', async () => {
+            const { before, trajectory, after } = await captureSnap(bubbleOptions(DATA), () =>
+                chart.updateDelta({ data: [...DATA, { x: 0.5, y: 100, s: 12 }] })
+            );
+            expect(markerCount(before)).toBe(5);
+            expect(markerCount(after)).toBe(6);
+            // Anti-vacuity: the entrant is already at full size on frame 0 — contrast the initial load,
+            // where a marker scales in from zero — proving add does not animate.
+            expect(trajectory[0].get('series[0]/marker[0.5]')!.width, 'entrant width @ frame 0').toBeGreaterThan(5);
+            expectNoAnimation(trajectory);
+        });
+
+        // "Remove" — drop two data points. Bubble skips the batch, so the dropped markers leave the
+        // scene at once (no fade-out) and the survivors are untouched.
+        it('remove points: dropped markers leave the scene at once', async () => {
+            const { before, trajectory, after } = await captureSnap(bubbleOptions(DATA), () =>
+                chart.updateDelta({ data: DATA.slice(0, 3) })
+            );
+            expect(markerCount(before)).toBe(5);
+            expect(markerCount(after)).toBe(3);
+            // Anti-vacuity: the dropped markers are already gone on frame 0 (a fade-out would keep them
+            // present, collapsing over the trajectory) — proving remove does not animate.
+            expect(markerCount(trajectory[0])).toBe(3);
+            expectNoAnimation(trajectory);
+        });
+
+        // Endpoint sanity guards: the animated route must settle at exactly the pixels a snapped render
+        // of the same options produces. One chart per test — the mock canvas only snapshots the first.
+        it('sanity: update data endpoints match static renders', async () => {
+            const options = bubbleOptions(DATA);
+            chart = AgCharts.create(options);
+            await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, options, {
+                ...options,
+                data: MOVED,
+            });
+        });
+
+        it('sanity: remove points endpoints match static renders', async () => {
+            const options = bubbleOptions(DATA);
+            chart = AgCharts.create(options);
+            await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, options, {
+                ...options,
+                data: DATA.slice(0, 3),
+            });
+        });
     });
+
     describe('AG-11673 styler', () => {
         type D = { height: number; weight: number; age: number; name: string };
         type C = unknown;

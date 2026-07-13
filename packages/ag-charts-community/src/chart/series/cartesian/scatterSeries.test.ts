@@ -26,7 +26,13 @@ import { testLegendItemName } from '../../test/legendItemName';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     PATTERN_SNAPSHOT_DEFAULTS,
+    type SceneGeometrySample,
     createChart,
+    createSceneGeometrySampler,
+    expectAnimatedEndpointsMatchStatic,
+    expectNoAnimation,
+    expectSceneSamplesMatch,
+    expectSceneTrajectory,
     expectWarningsCalls,
     extractImageData,
     hoverAction,
@@ -35,7 +41,7 @@ import {
     repeat,
     setupMockCanvas,
     setupMockConsole,
-    spyOnAnimationManager,
+    spyOnAnimationFrames,
     waitForChartStability,
 } from '../../test/utils';
 
@@ -544,21 +550,162 @@ describe('ScatterSeries', () => {
         await compare(PATTERN_SNAPSHOT_DEFAULTS);
     });
 
-    describe('initial animation', () => {
-        const animate = spyOnAnimationManager();
+    // Initial-load reveal is covered structurally by the 'animation -test page actions' CASEs below.
+    // One CASE per control on the scatter-series-test page (Randomise / Add / Remove), plus the
+    // initial-load reveal. Scatter is marker-only — there is no path/stroke node — so every CASE
+    // asserts over `series[0]/marker[*]` and its labels alone.
+    describe('animation -test page actions', () => {
+        const frames = spyOnAnimationFrames();
 
-        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-            it(`for SIMPLE_SCATTER_CHART_EXAMPLE should animate at ${ratio * 100}%`, async () => {
-                animate(1200, ratio);
-
-                const options: AgChartOptions = examples.SIMPLE_SCATTER_CHART_EXAMPLE;
-                prepareTestOptions(options);
-
-                chart = AgCharts.create(options);
-                await compare(looserSnapshotDefaults(0.05, 5));
+        // Pinned x/y domains make every data mutation below provably non-scale-affecting: within
+        // [0,6] x [0,200] the markers reposition or enter/leave without moving the axes, so a data
+        // update's only scene change is the markers themselves.
+        const scatterOptions = (
+            data: Array<{ x: number; y: number }>,
+            seriesOverrides: object = {}
+        ): AgCartesianChartOptions =>
+            prepareTestOptions({
+                data,
+                series: [{ type: 'scatter', xKey: 'x', yKey: 'y', size: 20, ...seriesOverrides }],
+                axes: {
+                    x: { type: 'number', position: 'bottom', min: 0, max: 6 },
+                    y: { type: 'number', position: 'left', min: 0, max: 200 },
+                },
             });
-        }
+
+        const DATA = [
+            { x: 1, y: 40 },
+            { x: 2, y: 120 },
+            { x: 3, y: 80 },
+            { x: 4, y: 160 },
+            { x: 5, y: 60 },
+        ];
+        const MOVED = [
+            { x: 1, y: 150 },
+            { x: 2, y: 50 },
+            { x: 3, y: 170 },
+            { x: 4, y: 30 },
+            { x: 5, y: 110 },
+        ];
+
+        const markerKeys = (sample: SceneGeometrySample) =>
+            [...sample.keys()].filter((k) => /^series\[\d+\]\/marker\[/.test(k));
+        const markerCount = (sample: SceneGeometrySample) => markerKeys(sample).length;
+
+        // Scatter/bubble skip the animation batch on every data update (only the initial load
+        // animates), so an update SNAPS: the first captured frame already sits at the settled
+        // after-state, which trips captureUpdate's whole-scene start anchor (it expects frame 0 to
+        // equal the before-scene). The update CASEs therefore hand-roll the capture and assert only
+        // the end anchor — as line's captureFrom does — then prove the whole scene held constant.
+        const captureSnap = async (options: AgCartesianChartOptions, action: () => void | Promise<void>) => {
+            chart = AgCharts.create(options);
+            await frames.runToEnd(chart);
+            const sampleScene = createSceneGeometrySampler(chart);
+            const before = sampleScene();
+            await action();
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
+            await frames.runToEnd(chart);
+            const after = sampleScene();
+            expectSceneSamplesMatch(trajectory.at(-1)!, after);
+            return { before, trajectory, after };
+        };
+
+        // Initial load: markers scale in from zero size during the `initial` phase — their bbox
+        // left/top edges slide out from the fixed scaling centre as the shape grows, so x/y ride down
+        // within their endpoints — while the labels fade in during the `trailing` phase. The markers'
+        // own opacity holds at 1: the reveal is a scale-in, not a fade.
+        it('initial load: markers scale in and labels fade in', async () => {
+            chart = AgCharts.create(scatterOptions(DATA, { labelKey: 'x', label: { enabled: true } }));
+            const sampleScene = createSceneGeometrySampler(chart);
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
+            // Anti-vacuity: every marker starts collapsed (width ~0) yet already fully opaque on frame 0
+            // — the reveal is a scale-in, not a fade — so the width `increases` grows from nothing while
+            // `opacity: constant` is anchored to 1 (not vacuously stuck at 0). Every label starts hidden,
+            // so the label `increases` cannot pass without a real fade-in.
+            for (const key of markerKeys(trajectory[0])) {
+                expect(trajectory[0].get(key)!.width, `${key} width @ frame 0`).toBeLessThanOrEqual(0.001);
+                expect(trajectory[0].get(key)!.opacity, `${key} opacity @ frame 0`).toBeGreaterThanOrEqual(0.99);
+            }
+            for (const key of [...trajectory[0].keys()].filter((k) => /^series\[0\]\/labels\/text\[.+\]$/.test(k))) {
+                expect(trajectory[0].get(key)!.opacity, `${key} opacity @ frame 0`).toBeLessThanOrEqual(0.001);
+            }
+            expectSceneTrajectory(trajectory, {
+                'series[0]/marker[*]': {
+                    width: { during: 'initial', expect: ['increases', 'progresses', 'bounded'] },
+                    height: { during: 'initial', expect: ['increases', 'progresses', 'bounded'] },
+                    x: { during: 'initial', expect: ['decreases', 'bounded'] },
+                    y: { during: 'initial', expect: ['decreases', 'bounded'] },
+                    opacity: 'constant',
+                },
+                'series[0]/labels/text[*]': {
+                    opacity: { during: 'trailing', expect: ['increases', 'bounded'], settlesAt: 1 },
+                },
+            });
+        });
+
+        // "Randomise" — every y-value changes. Scatter skips the batch, so the markers snap to their
+        // new heights; the captured trajectory is constant from the first frame.
+        it('update data: markers snap to their new positions without tweening', async () => {
+            const { before, trajectory, after } = await captureSnap(scatterOptions(DATA), () =>
+                chart.updateDelta({ data: MOVED })
+            );
+            // Anti-vacuity: the update genuinely moved the markers (constancy would pass vacuously if
+            // nothing changed) — a marker's settled y differs from its pre-update y by a wide margin.
+            const dy = Math.abs(after.get('series[0]/marker[1]')!.y - before.get('series[0]/marker[1]')!.y);
+            expect(dy, 'marker[1] y shift').toBeGreaterThan(50);
+            expectNoAnimation(trajectory);
+        });
+
+        // "Add" — a new datum. Scatter skips the batch, so the entrant appears at full size on the
+        // first captured frame (no scale-in) and the survivors are untouched.
+        it('add point: the new marker appears at full size without animating', async () => {
+            const { before, trajectory, after } = await captureSnap(scatterOptions(DATA), () =>
+                chart.updateDelta({ data: [...DATA, { x: 0.5, y: 100 }] })
+            );
+            expect(markerCount(before)).toBe(5);
+            expect(markerCount(after)).toBe(6);
+            // Anti-vacuity: the entrant is already at full size on frame 0 — contrast the initial load,
+            // where a marker scales in from zero — proving add does not animate.
+            expect(trajectory[0].get('series[0]/marker[0.5]')!.width, 'entrant width @ frame 0').toBeGreaterThan(15);
+            expectNoAnimation(trajectory);
+        });
+
+        // "Remove" — drop two data points. Scatter skips the batch, so the dropped markers leave the
+        // scene at once (no fade-out) and the survivors are untouched.
+        it('remove points: dropped markers leave the scene at once', async () => {
+            const { before, trajectory, after } = await captureSnap(scatterOptions(DATA), () =>
+                chart.updateDelta({ data: DATA.slice(0, 3) })
+            );
+            expect(markerCount(before)).toBe(5);
+            expect(markerCount(after)).toBe(3);
+            // Anti-vacuity: the dropped markers are already gone on frame 0 (a fade-out would keep them
+            // present, collapsing over the trajectory) — proving remove does not animate.
+            expect(markerCount(trajectory[0])).toBe(3);
+            expectNoAnimation(trajectory);
+        });
+
+        // Endpoint sanity guards: the animated route must settle at exactly the pixels a snapped render
+        // of the same options produces (see expectAnimatedEndpointsMatchStatic). One chart per test —
+        // the mock canvas only snapshots the first chart created.
+        it('sanity: update data endpoints match static renders', async () => {
+            const options = scatterOptions(DATA);
+            chart = AgCharts.create(options);
+            await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, options, {
+                ...options,
+                data: MOVED,
+            });
+        });
+
+        it('sanity: add point endpoints match static renders', async () => {
+            const options = scatterOptions(DATA);
+            chart = AgCharts.create(options);
+            await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, options, {
+                ...options,
+                data: [...DATA, { x: 0.5, y: 100 }],
+            });
+        });
     });
+
     describe('AG-11673 styler', () => {
         type D = { height: number; weight: number; age: number; name: string };
         type C = unknown;
