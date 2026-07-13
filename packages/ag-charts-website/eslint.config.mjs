@@ -20,6 +20,9 @@ export default [
             // not part of any tsconfig project, so excluded from type-aware
             // linting (as with public/example-runner below).
             'public/scripts/**',
+            // Downloadable calendar files served verbatim from public/; the
+            // non-standard .ics extension is not part of any tsconfig project.
+            '**/*.ics',
             '**/.angular',
             '**/benchmarkHarness.ts',
             '**/benchmarkUtils.ts',
