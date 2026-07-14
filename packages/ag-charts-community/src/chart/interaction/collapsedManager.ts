@@ -27,12 +27,12 @@ export class CollapsedManager implements MementoOriginator<CollapsedMemento> {
 
     restoreMemento(_version: string, _mementoVersion: string, blob: CollapsedMemento | undefined) {
         if (blob) {
-            this.collapse(blob, 'api-call');
+            this.collapse(blob, 'api-call', () => null);
         }
         this.eventsHub.emit('collapsed:restore', { collapsed: this.createMemento() });
     }
 
-    collapse(ids: (string | number)[], source: AgCollapsedChangeEventSource) {
+    collapse(ids: (string | number)[], source: AgCollapsedChangeEventSource, getDatum: (id: string) => unknown) {
         let changed = false;
         const after: Record<string, boolean> = {};
         for (const id of ids) {
@@ -53,13 +53,13 @@ export class CollapsedManager implements MementoOriginator<CollapsedMemento> {
 
         const change = { collapsedIds: after, changed };
 
-        const defaultPrevented = this.callListener(change, source);
+        const defaultPrevented = this.callListener(change, source, getDatum);
         if (defaultPrevented) return false;
 
         return this.applyChange(change);
     }
 
-    collapseAppend(ids: (string | number)[], source: AgCollapsedChangeEventSource) {
+    collapseAppend(ids: (string | number)[], source: AgCollapsedChangeEventSource, getDatum: (id: string) => unknown) {
         let changed = false;
         const after = { ...this.collapsedIds };
         for (const id of ids) {
@@ -70,13 +70,13 @@ export class CollapsedManager implements MementoOriginator<CollapsedMemento> {
 
         const change = { collapsedIds: after, changed };
 
-        const defaultPrevented = this.callListener(change, source);
+        const defaultPrevented = this.callListener(change, source, getDatum);
         if (defaultPrevented) return false;
 
         return this.applyChange(change);
     }
 
-    expand(ids: (string | number)[], source: AgCollapsedChangeEventSource) {
+    expand(ids: (string | number)[], source: AgCollapsedChangeEventSource, getDatum: (id: string) => unknown) {
         let changed = false;
 
         const after = { ...this.collapsedIds };
@@ -88,7 +88,7 @@ export class CollapsedManager implements MementoOriginator<CollapsedMemento> {
 
         const change = { collapsedIds: after, changed };
 
-        const defaultPrevented = this.callListener(change, source);
+        const defaultPrevented = this.callListener(change, source, getDatum);
         if (defaultPrevented) return false;
 
         return this.applyChange(change);
@@ -100,7 +100,8 @@ export class CollapsedManager implements MementoOriginator<CollapsedMemento> {
 
     private callListener(
         { collapsedIds, changed }: { collapsedIds: Record<string, boolean>; changed: boolean },
-        source: AgCollapsedChangeEventSource
+        source: AgCollapsedChangeEventSource,
+        getDatum: (id: string) => unknown
     ) {
         if (!changed) return;
 
@@ -115,7 +116,7 @@ export class CollapsedManager implements MementoOriginator<CollapsedMemento> {
             preventDefault,
             collapsed: Object.keys(collapsedIds).map((id) => ({
                 itemId: id,
-                datum: null,
+                datum: getDatum(id),
             })),
         });
 

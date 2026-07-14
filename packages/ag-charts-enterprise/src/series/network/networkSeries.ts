@@ -238,13 +238,13 @@ export abstract class AbstractNetworkSeries<
 
     processPendingCollapse() {
         if (this.pendingCollapsedIds) {
-            this.ctx.collapsedManager.collapse(this.pendingCollapsedIds, 'api-call');
+            this.ctx.collapsedManager.collapse(this.pendingCollapsedIds, 'api-call', this.getDatumById.bind(this));
             this.pendingCollapsedIds = undefined;
         }
     }
 
     protected expand(ids: (string | number)[], source: AgCollapsedChangeEventSource) {
-        const changed = this.ctx.collapsedManager.expand(ids, source);
+        const changed = this.ctx.collapsedManager.expand(ids, source, this.getDatumById.bind(this));
         if (changed) {
             this.markNodeDataDirty();
         }
@@ -269,6 +269,10 @@ export abstract class AbstractNetworkSeries<
     /** Bbox used for layout-sizing; subclasses can override to exclude decorations. */
     protected measureDatumNode(node: TNode): _ModuleSupport.BBox | undefined {
         return node.getBBox();
+    }
+
+    protected getDatumById(id: string) {
+        return this.datumSelection.at(this.vertexDatumIndex[id])?.datum?.datum;
     }
 
     private linkFactory(): NetworkLinkNode<NetworkLinkDatum<TVertex, TEdge>> {
