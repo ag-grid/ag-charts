@@ -482,7 +482,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
         const insideOnly = placements.length > 0 && placements.every((placement) => placement === 'inside');
         const markerSize = marker.enabled ? marker.size : 0;
         const labelFit = insideOnly
-            ? boundLabelFit(resolveLabelFit(label, true), insideMarkerContainer(markerSize, marker.shape))
+            ? boundLabelFit(resolveLabelFit(label, false, true), insideMarkerContainer(markerSize, marker.shape))
             : resolveLabelFit(label, collisionAvoidance.avoid);
         const labelInsideOffset = insideOnly ? insideMarkerOffset(marker.shape) : undefined;
         const labelAnchor = Marker.anchor(marker.shape);

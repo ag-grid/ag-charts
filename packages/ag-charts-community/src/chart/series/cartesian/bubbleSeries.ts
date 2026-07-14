@@ -650,8 +650,8 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             labelTextDomain,
             labelPadding: expandPlacementLabelPadding(label),
             labelTextMeasurer: cachedTextMeasurer(label),
-            // `inside` labels always fit to the marker, hiding (or truncating) text that overflows it.
-            labelFit: resolveLabelFit(label, label.collisionAvoidance.avoid || labelPlacement === 'inside'),
+            // `inside` labels always fit to the marker, truncating text that overflows it.
+            labelFit: resolveLabelFit(label, label.collisionAvoidance.avoid, labelPlacement === 'inside'),
             label,
 
             // Other state
