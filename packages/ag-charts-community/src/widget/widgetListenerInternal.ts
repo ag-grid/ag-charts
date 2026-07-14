@@ -2,7 +2,7 @@ import { type AnyFn, CleanupRegistry, attachListener, boxContains, partialAssign
 
 import { type MouseDragCallbacks, type MouseDragger, startMouseDrag } from './mouseDragger';
 import { type TouchDragCallbacks, type TouchDragger, startOneFingerTouch } from './touchDragger';
-import { type DragWidgetEvent, type WidgetEventMap_Internal, WidgetEventUtil } from './widgetEvents';
+import { type DragWidgetEvent, type WidgetEventMap_Internal, WidgetEventUtil, type MouseContextMenuWidgetEvent, type KeyboardContextMenuWidgetEvent } from './widgetEvents';
 
 type EventMap = WidgetEventMap_Internal;
 type EventType = keyof WidgetEventMap_Internal;
@@ -105,6 +105,7 @@ const GlobalCallbacks: {
 export class WidgetListenerInternal {
     public dragTouchEnabled = true;
     private dragTriggerRemover?: () => void;
+    private contextMenuTriggerRemover?: () => void;
     private listeners?: Map<EventType, Set<AnyFn>>;
     public mouseDragger?: MouseDragger;
     public touchDragger?: TouchDragger;
@@ -114,9 +115,14 @@ export class WidgetListenerInternal {
     destroy(): void {
         this.dragTriggerRemover?.();
         this.dragTriggerRemover = undefined;
+        this.contextMenuTriggerRemover?.();
+        this.contextMenuTriggerRemover = undefined;
         this.listeners?.clear();
+        this.listeners = undefined;
         this.mouseDragger?.destroy();
+        this.mouseDragger = undefined;
         this.touchDragger?.destroy();
+        this.touchDragger = undefined;
     }
 
     private getListenerSet<T extends Targetable, K extends EventType>(type: K): Set<EventHandler<T, K>> {
@@ -139,6 +145,9 @@ export class WidgetListenerInternal {
                 this.registerDragTrigger(target);
                 break;
             }
+            case 'open-contextmenu': {
+                this.registerContextMenuTrigger(target);
+            }
         }
     }
 
@@ -156,6 +165,18 @@ export class WidgetListenerInternal {
                 attachListener(element, 'touchstart', (event: TouchEvent) => this.triggerTouchDrag(target, event), {
                     passive: false,
                 })
+            );
+            this.dragTriggerRemover = () => cleanup.flush();
+        }
+    }
+
+    private registerContextMenuTrigger<T extends Targetable>(target: T) {
+        if (this.contextMenuTriggerRemover == null) {
+            const element = target.getElement();
+            const cleanup = new CleanupRegistry();
+            cleanup.register(
+                attachListener(element, 'contextmenu', (event: MouseEvent) => this.triggerMouseContextMenu(target, event)),
+                attachListener(element, 'keydown', (event: KeyboardEvent) => this.triggerKeyboardContextMenu(target, event))
             );
             this.dragTriggerRemover = () => cleanup.flush();
         }
@@ -246,6 +267,35 @@ export class WidgetListenerInternal {
 
         const dragStartEvent = makeTouchDrag('drag-start', origin, initialEvent, initialTouch);
         this.dispatch('drag-start', current, dragStartEvent);
+    }
+
+    private triggerMouseContextMenu<T extends Targetable>(current: T, contextMenuEvent: MouseEvent) {
+        const { currentX, currentY } = WidgetEventUtil.calcCurrentXY(current.getElement(),contextMenuEvent);
+        const { clientX,clientY} = contextMenuEvent;
+        const event: MouseContextMenuWidgetEvent = {
+            type: 'open-contextmenu',
+            device: 'mouse',
+            clientX,
+            clientY,
+            currentX,
+            currentY,
+            sourceEvent: contextMenuEvent
+        };
+        this.dispatch('open-contextmenu', current, event);
+    }
+
+    private triggerKeyboardContextMenu<T extends Targetable>(current: T, contextMenuEvent: KeyboardEvent) {
+        const {altKey, shiftKey, ctrlKey, metaKey, code } = contextMenuEvent;
+        const {clientX,clientY,currentX,currentY} = WidgetEventUtil.calcCenterXY(current.getElement());
+        if (altKey && !shiftKey && !ctrlKey && !metaKey && (code === 'Enter' || code === 'Space')) {
+            const event: KeyboardContextMenuWidgetEvent = {
+                type: 'open-contextmenu',
+                device: 'keyboard',
+                clientX,clientY,currentX,currentY,
+                sourceEvent: contextMenuEvent,
+            };
+            this.dispatch('open-contextmenu', current, event);
+        }
     }
 
     public dispatch<T extends Targetable, K extends EventType>(type: K, current: T, event: EventMap[K]): void {

@@ -3,7 +3,7 @@ import type { AgContextMenuItemLiteral, AgContextMenuItemShowOn } from 'ag-chart
 
 import type { ContextMenuEvent } from '../../core/eventsHub';
 import type { ChartRegistry } from '../../module/moduleContext';
-import type { MouseWidgetEvent } from '../../widget/widgetEvents';
+import type { OpenContextMenuWidgetEvent } from '../../widget/widgetEvents';
 import type { ContextMenuCallback, ContextShowOnMap } from './contextMenuTypes';
 import { ContextMenuBuiltins } from './contextMenuTypes';
 
@@ -34,7 +34,7 @@ export class ContextMenuRegistry {
 
     public dispatchContext<T extends AgContextMenuItemShowOn>(
         showOn: T,
-        pointerEvent: { widgetEvent: MouseWidgetEvent<'contextmenu'>; canvasX: number; canvasY: number },
+        pointerEvent: { widgetEvent: OpenContextMenuWidgetEvent; canvasX: number; canvasY: number },
         context: ContextShowOnMap[T]['context'],
         position?: { x: number; y: number }
     ) {

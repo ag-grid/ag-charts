@@ -32,6 +32,7 @@ import type {
     KeyboardSyntheticMouseWidgetEvent,
     KeyboardWidgetEvent,
     MouseWidgetEvent,
+    OpenContextMenuWidgetEvent,
     WheelWidgetEvent,
 } from '../../widget/widgetEvents';
 import type { ChartHighlight } from '../chartHighlight';
@@ -244,8 +245,8 @@ export class SeriesAreaManager extends BaseManager {
             seriesWidget.addListener('wheel', (event) => this.onWheel(event)),
             seriesWidget.addListener('mouseleave', (event) => this.onLeave(event)),
             seriesWidget.addListener('keydown', (event) => this.onKeyDown(event)),
-            seriesWidget.addListener('contextmenu', (event, current) => this.onContextMenu(event, current)),
-            containerWidget.addListener('contextmenu', (event, current) => this.onContextMenu(event, current)),
+            seriesWidget.addListener('open-contextmenu', (event, current) => this.onContextMenu(event, current)),
+            containerWidget.addListener('open-contextmenu', (event, current) => this.onContextMenu(event, current)),
             containerWidget.addListener('click', (event, current) => this.onClick(event, current)),
             containerWidget.addListener('dblclick', (event, current) => this.onClick(event, current)),
             chart.ctx.animationManager.addListener('animation-start', () => this.onAnimationStart()),
@@ -442,7 +443,7 @@ export class SeriesAreaManager extends BaseManager {
         this.focus.pendingViewportFocus = computePendingViewportFocus(event);
     }
 
-    private onContextMenu(event: MouseWidgetEvent<'contextmenu'>, current: Widget): void {
+    private onContextMenu(event: OpenContextMenuWidgetEvent, current: Widget): void {
         const { sourceEvent } = event;
         if (sourceEvent.currentTarget != current.getElement()) return;
 

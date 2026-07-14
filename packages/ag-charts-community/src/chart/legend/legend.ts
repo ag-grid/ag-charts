@@ -39,7 +39,7 @@ import { Selection } from '../../scene/selection';
 import { Rect } from '../../scene/shape/rect';
 import { Transformable } from '../../scene/transformable';
 import type { SwitchWidget } from '../../widget/switchWidget';
-import type { MouseWidgetEvent } from '../../widget/widgetEvents';
+import type { OpenContextMenuWidgetEvent } from '../../widget/widgetEvents';
 import type { ChartService } from '../chartService';
 import type { Page } from '../gridLayout';
 import { gridLayout } from '../gridLayout';
@@ -893,9 +893,8 @@ export class Legend {
         this.clearHighlight();
     }
 
-    onContextClick(widgetEvent: MouseWidgetEvent<'contextmenu'>, node: LegendMarkerLabel) {
+    onContextClick(widgetEvent: OpenContextMenuWidgetEvent, node: LegendMarkerLabel) {
         if (this.checkInteractionState()) return;
-        const { sourceEvent } = widgetEvent;
         const legendItem: CategoryLegendDatum = node.unsafeNonNullDatum;
 
         this.clearHighlight();
@@ -915,8 +914,8 @@ export class Legend {
         const action = toggleOtherSeriesVisible ? 'show' : 'hide';
         this.ctx.contextMenuRegistry?.toggle('toggle-other-series', action);
 
-        const { offsetX, offsetY } = sourceEvent;
-        const { x: canvasX, y: canvasY } = Transformable.toCanvasPoint(node, offsetX, offsetY);
+        const { currentX, currentY } = widgetEvent;
+        const { x: canvasX, y: canvasY } = Transformable.toCanvasPoint(node, currentX, currentY);
         this.ctx.contextMenuRegistry?.dispatchContext('legend-item', { widgetEvent, canvasX, canvasY }, { legendItem });
     }
 

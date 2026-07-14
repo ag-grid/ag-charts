@@ -85,6 +85,7 @@ export class TouchDragger {
 
             // Fire context menu
             const { clientX, clientY } = initialTouch;
+            // TODO: this should be part of `TouchSyntheticMouseWidgetEventType`
             const contextMenuEvent = new PointerEvent('contextmenu', {
                 bubbles: true,
                 cancelable: true,

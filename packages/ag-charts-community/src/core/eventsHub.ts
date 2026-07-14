@@ -33,7 +33,7 @@ import type { ISeries, SeriesNodeDatum } from '../chart/series/seriesTypes';
 import type { BBox } from '../scene/bbox';
 import type { Node } from '../scene/node';
 import type { SelectionInterface } from '../scene/selection';
-import type { DragWidgetEvent, KeyboardWidgetEvent, MouseWidgetEvent, WheelWidgetEvent } from '../widget/widgetEvents';
+import type { DragWidgetEvent, KeyboardWidgetEvent, MouseWidgetEvent, OpenContextMenuWidgetEvent, WheelWidgetEvent } from '../widget/widgetEvents';
 
 export type EventsHub = EventEmitter<EventsHubMap>;
 
@@ -89,7 +89,7 @@ export interface SeriesAreaContextMenuEvent {
     readonly consumed: boolean;
     readonly canvasX: number;
     readonly canvasY: number;
-    readonly widgetEvent: MouseWidgetEvent<'contextmenu'>;
+    readonly widgetEvent: OpenContextMenuWidgetEvent;
 }
 
 export interface DataModelSeriesDiff {
@@ -250,7 +250,7 @@ export type ContextMenuEvent<K extends AgContextMenuItemShowOn = AgContextMenuIt
     readonly x: number;
     readonly y: number;
     readonly context: Readonly<ContextShowOnMap[K]['context']>;
-    readonly widgetEvent: MouseWidgetEvent<'contextmenu'> & { sourceEvent: Partial<Pick<PointerEvent, 'pointerType'>> };
+    readonly widgetEvent:  OpenContextMenuWidgetEvent;
 };
 
 export interface HighlightChangeEvent {

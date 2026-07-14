@@ -29,6 +29,7 @@ type ContextShowOnMap = _ModuleSupport.ContextShowOnMap;
 type ContextMenuEvent<K extends AgContextMenuItemShowOn = AgContextMenuItemShowOn> = _ModuleSupport.ContextMenuEvent<K>;
 type ContextMenuCallback<K extends AgContextMenuItemShowOn = AgContextMenuItemShowOn> =
     _ModuleSupport.ContextMenuCallback<K>;
+type ShowEvent = _Widget.OpenContextMenuWidgetEvent['sourceEvent'];
 
 const { getItemId, ContextMenuRegistry } = _ModuleSupport;
 type UnknownSeries = _ModuleSupport.ISeries<
@@ -272,7 +273,7 @@ export class ContextMenu extends AbstractModuleInstance {
         this.interactionManager.pushState(_ModuleSupport.InteractionState.ContextMenu);
         this.element.style.display = 'block';
 
-        const overrideFocusVisible = sourceEvent.pointerType === 'touch' ? false : undefined;
+        const overrideFocusVisible = widgetEvent.device === 'touch' ? false : undefined;
         if (overrideFocusVisible !== undefined) {
             this.ctx.chartService.overrideFocusVisible(overrideFocusVisible);
         }
@@ -342,14 +343,14 @@ export class ContextMenu extends AbstractModuleInstance {
         this.collapsingSubMenus--;
     }
 
-    private createMenu(showEvent: MouseEvent, expandedItems: ContextMenuItem[]) {
+    private createMenu(showEvent: ShowEvent, expandedItems: ContextMenuItem[]) {
         const { menuWidget } = this;
         menuWidget.clear();
         menuWidget.setTabIndex(-1);
         this.createMenuItems(showEvent, menuWidget, expandedItems);
     }
 
-    private createMenuItems(showEvent: MouseEvent, menuWidget: _Widget.MenuWidget, expandedItems: ContextMenuItem[]) {
+    private createMenuItems(showEvent: ShowEvent, menuWidget: _Widget.MenuWidget, expandedItems: ContextMenuItem[]) {
         for (const item of expandedItems) {
             switch (item.type) {
                 case 'separator': {
@@ -378,7 +379,7 @@ export class ContextMenu extends AbstractModuleInstance {
         }
     }
     private createButtonOnClick(
-        showEvent: MouseEvent,
+        showEvent: ShowEvent,
         showOn: AgContextMenuItemShowOn,
         callback: ContextMenuCallback
     ): (event: _Widget.WidgetEvent) => void {
@@ -487,7 +488,7 @@ export class ContextMenu extends AbstractModuleInstance {
         return { cellIcon, cellLabel, cellArrow };
     }
 
-    private initButtonElement(showEvent: MouseEvent, button: _Widget.MenuItemWidget, item: ContextMenuItem) {
+    private initButtonElement(showEvent: ShowEvent, button: _Widget.MenuItemWidget, item: ContextMenuItem) {
         button.addClass(`${DEFAULT_CONTEXT_MENU_CLASS}__item`);
         button.setEnabled(item.enabled);
         const label = this.ctx.localeManager.t(item.label);

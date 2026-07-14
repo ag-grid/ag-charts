@@ -27,7 +27,7 @@ export type BeforeWidget<T extends IWidget<HTMLElement>> = T & { domIndex: numbe
 
 abstract class WidgetBounds<TElement extends HTMLElement> {
     protected elemContainer?: HTMLDivElement;
-    constructor(protected readonly elem: TElement) {}
+    constructor(protected readonly elem: TElement) {    }
 
     setBounds(bounds: Partial<BoxBounds>): void {
         setElementBBox(this.elemContainer ?? this.elem, bounds);

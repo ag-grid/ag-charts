@@ -31,8 +31,12 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
         '${description}, level ${level}[number], ${posInSet}[number] of ${setSize}[number], ${collapsedState}, 1 child, press Enter or Space to toggle',
     ariaOrgChartCollapsed: 'collapsed',
     ariaOrgChartExpanded: 'expanded',
+    // Screen reader delimiter for joining sentences.
+    ariaDelimiter: ' ',
+    // Screen reader description for context menu
+    ariaDescriptionContextMenu: 'Press ALT SPACE to open context menu.',
     // Screen reader description for legend items
-    ariaDescriptionLegendItem: 'Press Space or Enter to toggle visibility',
+    ariaDescriptionLegendItem: 'Press SPACE or ENTER to toggle visibility.',
     // Screen reader for the '+' horizontal line button on the Y-axis
     ariaLabelAddHorizontalLine: 'Add Horizontal Line',
     // Screen reader text for annotations toolbar

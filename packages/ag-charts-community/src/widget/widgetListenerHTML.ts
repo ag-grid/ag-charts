@@ -68,4 +68,27 @@ export class WidgetListenerHTML {
             widgetListener(event, target);
         }
     }
+
+    // private addKeyboardSynthetics<T extends Targetable, K extends EventType>(type: K, target: T, listeners: Handler<T, K>[]): void {
+    //     if (type !== 'contextmenu' || listeners.length > 0) return;
+
+    //     const elem = target.getElement();
+    //     this.keydownContextMenu = (ev: KeyboardEvent) => {
+    //         const {altKey, shiftKey, ctrlKey, metaKey, code } = ev;
+    //         if (altKey && !shiftKey && !ctrlKey && !metaKey && (code === 'Enter' || code === 'Space')) {
+    //             const bounds = elem.getBoundingClientRect();
+    //             // TODO: this should be part of `KeyboardSyntheticMouseWidgetEventType`
+    //             const contextMenuEvent = new PointerEvent('contextmenu', {
+    //                 bubbles: true,
+    //                 cancelable: true,
+    //                 view: elem.ownerDocument.defaultView,
+    //                 clientX: (bounds.left + bounds.right) / 2,
+    //                 clientY: (bounds.top + bounds.bottom) / 2,
+    //                 pointerType: 'keyboard',
+    //             });
+    //             elem.dispatchEvent(contextMenuEvent);
+    //         }
+    //     }
+    //     elem.addEventListener('keydown', this.keydownContextMenu);
+    // }
 }

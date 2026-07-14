@@ -5,13 +5,14 @@ import type { CollapseWidgetEvent, ExpandControlledWidgetEvent, ExpandWidgetEven
 // These types cannot be derived from `WIDGET_META`, because that would cause cyclical-referencing:
 type FocusWidgetEventType = 'blur' | 'focus';
 type KeyboardWidgetEventType = 'keyup' | 'keydown';
-type MouseWidgetEventType = 'contextmenu' | 'click' | 'dblclick' | 'mouseenter' | 'mousemove' | 'mouseleave';
+type MouseWidgetEventType = 'click' | 'dblclick' | 'mouseenter' | 'mousemove' | 'mouseleave';
 type TouchWidgetEventType = 'touchstart' | 'touchmove' | 'touchend' | 'touchcancel';
 type DragWidgetEventType = 'drag-start' | 'drag-move' | 'drag-end';
 type WidgetEventType =
     /* Union of all allowed `type` values for widget events: */
     | 'change'
     | 'wheel'
+    | 'open-contextmenu'
     | FocusWidgetEventType
     | KeyboardWidgetEventType
     | MouseWidgetEventType
@@ -53,6 +54,38 @@ export type KeyboardSyntheticMouseWidgetEvent<
     readonly device: 'keyboard';
     readonly sourceEvent: KeyboardEvent;
 };
+
+export type MouseContextMenuWidgetEvent = {
+    readonly type: 'open-contextmenu';
+    readonly device: 'mouse';
+    readonly clientX: number;
+    readonly clientY: number;
+    readonly currentX: number;
+    readonly currentY: number;
+    readonly sourceEvent: MouseEvent;
+};
+
+export type TouchContextMenuWidgetEvent = {
+    readonly type: 'open-contextmenu';
+    readonly device: 'touch';
+    readonly clientX: number;
+    readonly clientY: number;
+    readonly currentX: number;
+    readonly currentY: number;
+    readonly sourceEvent: TouchEvent;
+};
+
+export type KeyboardContextMenuWidgetEvent = {
+    readonly type: 'open-contextmenu';
+    readonly device: 'keyboard';
+    readonly clientX: number;
+    readonly clientY: number;
+    readonly currentX: number;
+    readonly currentY: number;
+    readonly sourceEvent: KeyboardEvent;
+};
+
+export type OpenContextMenuWidgetEvent = MouseContextMenuWidgetEvent | TouchContextMenuWidgetEvent | KeyboardContextMenuWidgetEvent;
 
 export type TouchWidgetEvent<T extends TouchWidgetEventType = TouchWidgetEventType> = {
     readonly type: T;
@@ -195,12 +228,6 @@ const WIDGET_META = {
     },
 
     // MouseEvent
-    contextmenu: {
-        isNative: true,
-        allocator(sourceEvent: MouseEvent, current: HTMLElement): MouseWidgetEvent<'contextmenu'> {
-            return allocMouseEvent('contextmenu', sourceEvent, current);
-        },
-    },
     click: {
         isNative: true,
         allocator(sourceEvent: MouseEvent, current: HTMLElement): MouseWidgetEvent<'click'> {
@@ -300,6 +327,7 @@ const WIDGET_META = {
     'collapse-widget': declareInternalEntry<CollapseWidgetEvent>(),
     'expand-widget': declareInternalEntry<ExpandWidgetEvent>(),
     'expand-controlled-widget': declareInternalEntry<ExpandControlledWidgetEvent>(),
+    'open-contextmenu': declareInternalEntry<OpenContextMenuWidgetEvent>(),
 } as const satisfies {
     readonly [K in string]:
         | {
@@ -395,6 +423,18 @@ export class WidgetEventUtil {
         return {
             currentX: (event.clientX - currentRect.x) * scaleX,
             currentY: (event.clientY - currentRect.y) * scaleY,
+        };
+    }
+    static calcCenterXY(        current: HTMLElement    ): { clientX: number, clientY: number,currentX: number; currentY: number } {
+        const currentRect = current.getBoundingClientRect();
+        const currentX = currentRect.width / 2;
+        const currentY = currentRect.height / 2;
+
+        return {
+            clientX: currentX + currentX,
+            clientY: currentY + currentY,
+            currentX,
+            currentY,
         };
     }
 }

@@ -19,7 +19,7 @@ import { PointerEvents } from '../scene/node';
 import { RotatableText } from '../scene/shape/text';
 import { Transformable } from '../scene/transformable';
 import type { BoundedTextWidget } from '../widget/boundedTextWidget';
-import type { MouseWidgetEvent } from '../widget/widgetEvents';
+import type { MouseWidgetEvent, OpenContextMenuWidgetEvent } from '../widget/widgetEvents';
 import type { CaptionLike } from './captionLike';
 import { expandLabelPadding } from './label';
 import type { TooltipContent } from './tooltip/tooltipContent';
@@ -172,7 +172,7 @@ export class ChartCaption implements CaptionLike {
         if (this.proxyText == null) {
             this.proxyText = proxyInteractionService.createProxyElement({ type: 'text', domManagerId, where });
             this.proxyTextListeners = [
-                this.proxyText.addListener('contextmenu', (ev) => this.handleContextMenu(moduleCtx, ev)),
+                this.proxyText.addListener('open-contextmenu', (ev) => this.handleContextMenu(moduleCtx, ev)),
                 this.proxyText.addListener('mousemove', (ev) => this.handleMouseMove(moduleCtx, ev)),
                 this.proxyText.addListener('mouseleave', () => this.handleTooltipHide(moduleCtx)),
                 this.proxyText.addListener('focus', () => this.handleFocus(moduleCtx)),
@@ -232,11 +232,11 @@ export class ChartCaption implements CaptionLike {
         moduleCtx.tooltipManager.updateTooltip(this.id, { canvasX, canvasY, showArrow: false }, [content]);
     }
 
-    private eventToCanvas(event: MouseWidgetEvent<'mousemove' | 'contextmenu'>): { canvasX: number; canvasY: number } {
+    private eventToCanvas(event: { currentX: number, currentY: number }): { canvasX: number; canvasY: number } {
         const bbox = Transformable.toCanvas(this.node);
         return {
-            canvasX: event.sourceEvent.offsetX + bbox.x,
-            canvasY: event.sourceEvent.offsetY + bbox.y,
+            canvasX: event.currentX + bbox.x,
+            canvasY: event.currentY + bbox.y,
         };
     }
 
@@ -255,7 +255,7 @@ export class ChartCaption implements CaptionLike {
         moduleCtx.tooltipManager.removeTooltip(this.id, undefined, true);
     }
 
-    private handleContextMenu(moduleCtx: DynamicContext<ChartRegistry>, event: MouseWidgetEvent<'contextmenu'>) {
+    private handleContextMenu(moduleCtx: DynamicContext<ChartRegistry>, event: OpenContextMenuWidgetEvent) {
         const { canvasX, canvasY } = this.eventToCanvas(event);
         moduleCtx.contextMenuRegistry?.dispatchContext(
             'caption',

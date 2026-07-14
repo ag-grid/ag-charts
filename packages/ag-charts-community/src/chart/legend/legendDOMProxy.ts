@@ -7,6 +7,7 @@ import {
     toPlainText,
 } from 'ag-charts-core';
 
+import { joinLocaleText } from '../../locale/localeUtil';
 import type { ChartRegistry } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
 import type { Node } from '../../scene/node';
@@ -16,7 +17,7 @@ import type { ButtonWidget } from '../../widget/buttonWidget';
 import type { GroupWidget } from '../../widget/groupWidget';
 import type { ListWidget } from '../../widget/listWidget';
 import type { SwitchWidget } from '../../widget/switchWidget';
-import type { MouseWidgetEvent } from '../../widget/widgetEvents';
+import type { MouseWidgetEvent, OpenContextMenuWidgetEvent } from '../../widget/widgetEvents';
 import type { Page } from '../gridLayout';
 import type { Pagination } from '../pagination/pagination';
 import type { CategoryLegendDatum } from './legendDatum';
@@ -30,7 +31,7 @@ interface ButtonListener {
     onDoubleClick(event: Event, datum: CategoryLegendDatum): void;
     onHover(event: FocusEvent | MouseEvent, node: LegendMarkerLabel, fromKeyboardFocus?: boolean): void;
     onLeave(fromKeyboardFocus?: boolean): void;
-    onContextClick(widgetEvent: MouseWidgetEvent<'contextmenu'>, node: LegendMarkerLabel): void;
+    onContextClick(widgetEvent: OpenContextMenuWidgetEvent, node: LegendMarkerLabel): void;
 }
 
 interface LegendDOMProxyUpdateParams {
@@ -114,7 +115,7 @@ export class LegendDOMProxy {
             button.addListener('dblclick', (ev) => itemListener.onDoubleClick(ev.sourceEvent, markerLabel.datum!));
             button.addListener('mouseenter', (ev) => itemListener.onHover(ev.sourceEvent, markerLabel));
             button.addListener('mouseleave', () => itemListener.onLeave());
-            button.addListener('contextmenu', (ev) => itemListener.onContextClick(ev, markerLabel));
+            button.addListener('open-contextmenu', (ev) => itemListener.onContextClick(ev, markerLabel));
             // Keyboard focus/blur must take effect immediately, interrupting any in-progress animation,
             // so they pass fromKeyboardFocus=true. A focus that is not keyboard-driven (no :focus-visible)
             // is treated as a leave and keeps the default deferred behaviour.
@@ -310,6 +311,10 @@ export class LegendDOMProxy {
     }
 
     private getItemAriaDescription(): string {
-        return this.ctx.localeManager.t('ariaDescriptionLegendItem');
+        const hasContextMenus = !!this.ctx.chartState.getValue('options', 'contextMenu')?.enabled;
+        return joinLocaleText(this.ctx.localeManager, [
+            'ariaDescriptionLegendItem',
+            hasContextMenus ? 'ariaDescriptionContextMenu' : undefined,
+        ]);
     }
 }
