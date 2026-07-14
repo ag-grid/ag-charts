@@ -48,6 +48,7 @@ type NormalisedWaterfallSeriesStyle = Normalised<AgWaterfallSeriesStyle, never, 
 
 const {
     adjustLabelPlacement,
+    placementLabelBoxOffset,
     fitLabelToContainer,
     SeriesNodePickMode,
     fixNumericExtent,
@@ -703,8 +704,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             // Array placement is accepted, but only its first candidate is honoured here.
             const placement = toArray(label.placement)[0];
             const insidePlacement = placement == null || placement.startsWith('inside');
-            const labelPadding = label.padding ?? (insidePlacement ? label.insideStyle : label.outsideStyle).padding;
-            const spacing: number = label.spacing + (typeof labelPadding === 'number' ? labelPadding : 0);
+            const placementStyle = insidePlacement ? label.insideStyle : label.outsideStyle;
+            const spacing: number = label.spacing + placementLabelBoxOffset(label, placementStyle);
             const resolvesOrientation = barLabelResolvesOrientation(label.orientation);
             const labelPlacement = adjustLabelPlacement({
                 isUpward: (value ?? -1) >= 0 !== valueAxisReversed,

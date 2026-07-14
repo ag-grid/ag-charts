@@ -652,7 +652,7 @@ describe('HistogramSeries', () => {
             chart = createChart({ placement: 'inside-end' });
             await waitForChartStability(chart);
             const { node, label } = firstBinLabel(chart);
-            // No explicit spacing: the theme default (padding) pushes the label 8px in from the bar top.
+            // No explicit spacing: the theme's default 8px `spacing` pushes the label in from the bar top.
             expect(label.y).toBeCloseTo(node.y + 8);
         });
     });
@@ -686,7 +686,7 @@ describe('HistogramSeries', () => {
         });
 
         it('lets an explicit spacing override the default gap', async () => {
-            // spacing: 0 replaces the theme's 8px default, pinning the label flush to the bar top.
+            // spacing: 0 replaces the theme's default 8px spacing, pinning the label flush to the bar top.
             chart = createHistogramChart(withPlacement({ placement: 'inside-end', spacing: 0 }));
             await compare();
         });

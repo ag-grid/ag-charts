@@ -975,6 +975,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
           "padding": 8,
         },
         "placement": "inside-center",
+        "spacing": 8,
       },
       "lineDash": [
         0,
@@ -1069,6 +1070,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
           "padding": 8,
         },
         "placement": "inside-center",
+        "spacing": 8,
       },
       "lineDash": [
         0,
@@ -2522,6 +2524,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "padding": 8,
         },
         "placement": "inside-center",
+        "spacing": 8,
       },
       "lineDash": [
         0,
@@ -2617,6 +2620,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "padding": 8,
         },
         "placement": "inside-center",
+        "spacing": 8,
       },
       "lineDash": [
         0,
@@ -2712,6 +2716,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "padding": 8,
         },
         "placement": "inside-center",
+        "spacing": 8,
       },
       "lineDash": [
         0,
@@ -2807,6 +2812,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "padding": 8,
         },
         "placement": "inside-center",
+        "spacing": 8,
       },
       "lineDash": [
         0,
@@ -2902,6 +2908,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "padding": 8,
         },
         "placement": "inside-center",
+        "spacing": 8,
       },
       "lineDash": [
         0,
@@ -2997,6 +3004,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "padding": 8,
         },
         "placement": "inside-center",
+        "spacing": 8,
       },
       "lineDash": [
         0,
@@ -3092,6 +3100,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "padding": 8,
         },
         "placement": "inside-center",
+        "spacing": 8,
       },
       "lineDash": [
         0,
@@ -3187,6 +3196,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "padding": 8,
         },
         "placement": "inside-center",
+        "spacing": 8,
       },
       "lineDash": [
         0,
@@ -5504,6 +5514,7 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_EXAMPLE it should prepar
           "padding": 8,
         },
         "placement": "inside-center",
+        "spacing": 8,
       },
       "lineDash": [
         0,
@@ -5918,6 +5929,7 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_WITH_LABELS_EXAMPLE it s
           "padding": 8,
         },
         "placement": "inside-center",
+        "spacing": 8,
       },
       "lineDash": [
         0,
@@ -7128,6 +7140,7 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
           "padding": 8,
         },
         "placement": "inside-center",
+        "spacing": 8,
       },
       "lineDash": [
         0,
@@ -7220,6 +7233,7 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
           "padding": 8,
         },
         "placement": "inside-center",
+        "spacing": 8,
       },
       "lineDash": [
         0,
@@ -7630,6 +7644,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
           "padding": 8,
         },
         "placement": "inside-center",
+        "spacing": 8,
       },
       "lineDash": [
         0,
@@ -7727,6 +7742,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
           "padding": 8,
         },
         "placement": "inside-center",
+        "spacing": 8,
       },
       "lineDash": [
         0,
@@ -8143,6 +8159,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "padding": 8,
         },
         "placement": "inside-center",
+        "spacing": 8,
       },
       "lineDash": [
         0,
@@ -8242,6 +8259,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "padding": 8,
         },
         "placement": "inside-center",
+        "spacing": 8,
       },
       "lineDash": [
         0,
@@ -8341,6 +8359,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "padding": 8,
         },
         "placement": "inside-center",
+        "spacing": 8,
       },
       "lineDash": [
         0,
@@ -8440,6 +8459,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "padding": 8,
         },
         "placement": "inside-center",
+        "spacing": 8,
       },
       "lineDash": [
         0,
@@ -8539,6 +8559,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "padding": 8,
         },
         "placement": "inside-center",
+        "spacing": 8,
       },
       "lineDash": [
         0,
@@ -8638,6 +8659,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "padding": 8,
         },
         "placement": "inside-center",
+        "spacing": 8,
       },
       "lineDash": [
         0,
@@ -8737,6 +8759,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "padding": 8,
         },
         "placement": "inside-center",
+        "spacing": 8,
       },
       "lineDash": [
         0,
@@ -12425,6 +12448,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
           "padding": 8,
         },
         "placement": "inside-center",
+        "spacing": 8,
       },
       "lineDash": [
         0,
@@ -12523,6 +12547,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
           "padding": 8,
         },
         "placement": "inside-center",
+        "spacing": 8,
       },
       "lineDash": [
         0,
@@ -12621,6 +12646,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
           "padding": 8,
         },
         "placement": "inside-center",
+        "spacing": 8,
       },
       "lineDash": [
         0,
@@ -13032,6 +13058,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
           "padding": 8,
         },
         "placement": "inside-center",
+        "spacing": 8,
       },
       "lineDash": [
         0,
@@ -13127,6 +13154,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
           "padding": 8,
         },
         "placement": "inside-center",
+        "spacing": 8,
       },
       "lineDash": [
         0,
@@ -13222,6 +13250,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
           "padding": 8,
         },
         "placement": "inside-center",
+        "spacing": 8,
       },
       "lineDash": [
         0,
@@ -13317,6 +13346,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
           "padding": 8,
         },
         "placement": "inside-center",
+        "spacing": 8,
       },
       "lineDash": [
         0,
@@ -13412,6 +13442,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
           "padding": 8,
         },
         "placement": "inside-center",
+        "spacing": 8,
       },
       "lineDash": [
         0,
@@ -13507,6 +13538,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
           "padding": 8,
         },
         "placement": "inside-center",
+        "spacing": 8,
       },
       "lineDash": [
         0,
@@ -14660,6 +14692,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_COLUMN_CHART_EXAMPLE it sho
           "padding": 8,
         },
         "placement": "inside-center",
+        "spacing": 8,
       },
       "lineDash": [
         0,
@@ -17649,6 +17682,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
           "padding": 8,
         },
         "placement": "inside-center",
+        "spacing": 8,
       },
       "lineDash": [
         0,
@@ -17746,6 +17780,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
           "padding": 8,
         },
         "placement": "inside-center",
+        "spacing": 8,
       },
       "lineDash": [
         0,
@@ -17843,6 +17878,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
           "padding": 8,
         },
         "placement": "inside-center",
+        "spacing": 8,
       },
       "lineDash": [
         0,
@@ -17940,6 +17976,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
           "padding": 8,
         },
         "placement": "inside-center",
+        "spacing": 8,
       },
       "lineDash": [
         0,
@@ -18354,6 +18391,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
           "padding": 8,
         },
         "placement": "inside-center",
+        "spacing": 8,
       },
       "lineDash": [
         0,
@@ -18451,6 +18489,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
           "padding": 8,
         },
         "placement": "inside-center",
+        "spacing": 8,
       },
       "lineDash": [
         0,
@@ -18548,6 +18587,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
           "padding": 8,
         },
         "placement": "inside-center",
+        "spacing": 8,
       },
       "lineDash": [
         0,
@@ -18645,6 +18685,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
           "padding": 8,
         },
         "placement": "inside-center",
+        "spacing": 8,
       },
       "lineDash": [
         0,
@@ -18742,6 +18783,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
           "padding": 8,
         },
         "placement": "inside-center",
+        "spacing": 8,
       },
       "lineDash": [
         0,

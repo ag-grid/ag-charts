@@ -150,15 +150,15 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['ran
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },
             fontWeight: { $ref: 'fontWeight' },
-            // compatibility with old `padding` property (now named `spacing`).
+            spacing: 10,
             insideStyle: {
                 color: { $ref: 'textColor' },
-                padding: { $isUserOption: ['../spacing', 0, 10] } as any,
+                padding: 10,
                 ...PLACEMENT_LABEL_BOXING_DEFAULTS,
             },
             outsideStyle: {
                 color: { $ref: 'textColor' },
-                padding: { $isUserOption: ['../spacing', 0, 10] } as any,
+                padding: 10,
                 ...PLACEMENT_LABEL_BOXING_DEFAULTS,
             },
         },

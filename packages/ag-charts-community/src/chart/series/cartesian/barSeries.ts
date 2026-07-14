@@ -77,6 +77,7 @@ import {
     processedDataIsAnimatable,
     valueProperty,
 } from '../../data/processors';
+import { placementLabelBoxOffset } from '../../label';
 import type { ResolvedLabelPlacement } from '../../labelUtil';
 import { adjustLabelPlacement, fitLabelToContainer, pickPlacementStyle, updateLabelNode } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
@@ -619,8 +620,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         const isStacked = dataModel.hasColumnById(this, 'yValue-start');
         const { label } = this.properties;
         const labelPlacement = toArray(label.placement)[0];
-        const labelPadding =
-            label.padding ?? (labelPlacement?.startsWith('inside') ? label.insideStyle : label.outsideStyle).padding;
+        const placementStyle = labelPlacement?.startsWith('inside') ? label.insideStyle : label.outsideStyle;
         const canIncrementallyUpdate = this.canIncrementallyUpdateNodes(dataAggregationFilter != null);
 
         const { groupOffset, barOffset, barWidth } = this.getBarDimensions();
@@ -665,7 +665,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             yReversed: yAxis.isReversed(),
             // 0n keeps a bigint y-domain on the full-precision convert() path (a numeric 0 narrows to Number).
             bboxBottom: yScale.convert(0n),
-            labelSpacing: label.spacing + (typeof labelPadding === 'number' ? labelPadding : 0),
+            labelSpacing: label.spacing + placementLabelBoxOffset(label, placementStyle),
             crisp:
                 dataAggregationFilter == null &&
                 (this.properties.crisp ??

@@ -58,6 +58,7 @@ const {
     fitLabelToContainer,
     updateLabelNode,
     pickPlacementStyle,
+    placementLabelBoxOffset,
     SMALLEST_KEY_INTERVAL,
     LARGEST_KEY_INTERVAL,
     diff,
@@ -460,9 +461,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         // Array placement is accepted, but only its first candidate is honoured here.
         const labelPlacement = toArray(this.properties.label.placement)[0];
         const labelProps = this.properties.label;
-        const placementPadding =
-            labelProps.padding ??
-            (labelPlacement === 'outside' ? labelProps.outsideStyle : labelProps.insideStyle).padding;
+        const placementStyle = labelPlacement === 'outside' ? labelProps.outsideStyle : labelProps.insideStyle;
 
         return {
             xAxis,
@@ -489,7 +488,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             labelResolvesOrientation: barLabelResolvesOrientation(this.properties.label.orientation),
             labelFit: resolveLabelFit(this.properties.label, this.properties.label.collisionAvoidance.avoid),
             labelPadding:
-                (labelProps.spacing + (typeof placementPadding === 'number' ? placementPadding : 0)) *
+                (labelProps.spacing + placementLabelBoxOffset(labelProps, placementStyle)) *
                 (labelPlacement === 'outside' ? 1 : -1),
             canIncrementallyUpdate,
             nodes: canIncrementallyUpdate ? this.contextNodeData.nodeData : [],

@@ -31,15 +31,15 @@ export const RANGE_BAR_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['rang
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },
             fontWeight: { $ref: 'fontWeight' },
-            // compatibility with old `padding` property (now named `spacing`).
+            spacing: 6,
             insideStyle: {
                 color: { $ref: 'chartBackgroundColor' },
-                padding: { $isUserOption: ['../spacing', 0, 6] } as any,
+                padding: 6,
                 ...PLACEMENT_LABEL_BOXING_DEFAULTS,
             },
             outsideStyle: {
                 color: { $ref: 'chartBackgroundColor' },
-                padding: { $isUserOption: ['../spacing', 0, 6] } as any,
+                padding: 6,
                 ...PLACEMENT_LABEL_BOXING_DEFAULTS,
             },
             placement: 'inside',
