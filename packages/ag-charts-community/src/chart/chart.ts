@@ -1058,6 +1058,10 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
             case ChartUpdateType.PERFORM_LAYOUT:
                 await this.checkFirstAutoSize();
+
+                // Refresh theme CSS variables whenever resolved options change, independent of the layout shortcut.
+                ctx.domManager.setThemeParameters(this.chartOptions.themeParameters);
+
                 if (this.checkUpdateShortcut(ChartUpdateType.PERFORM_LAYOUT)) break;
 
                 ctx.chartState.flushChanges('legendData');
@@ -1182,7 +1186,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         const { enabled, tabIndex } = this.ctx.chartState.getValue('options', 'keyboard');
         this.ctx.domManager.setTabGuardIndex(enabled ? (tabIndex ?? 0) : -1);
-        this.ctx.domManager.setThemeParameters(this.chartOptions.themeParameters);
     }
 
     private updateAriaLabels() {
@@ -1748,6 +1751,9 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             : newChartOptions.diffOptions(this.chartOptions);
         if (deltaOptions == null || Object.keys(deltaOptions).length === 0) {
             debug('Chart.applyOptions() - no delta, forcing re-layout', deltaOptions);
+            // Theme params resolve into `themeParameters`, not `processedOptions`, so a
+            // params-only change diffs empty here; adopt the resolved options regardless.
+            this.chartOptions = newChartOptions;
             this.update(minimumUpdateType, { apiUpdate: true, newAnimationBatch: true });
             return;
         }
