@@ -291,13 +291,13 @@ export function expandPlacementLabelPadding<TParams>(label: PlacedSeriesLabel<TP
 }
 
 /**
- * Box inset folded into a placement label's anchor offset: the resolved uniform padding when the label
- * draws a box, else 0 — so a boxless label's gap comes solely from `spacing`.
+ * Resolved per-side box padding folded into a placement label's anchor offset. All-zero for a boxless
+ * label, so its gap from the shape comes solely from `spacing`; the caller adds the side facing the
+ * shape (known per datum) to keep the box edge — not the text — at `spacing`.
  */
-export function placementLabelBoxOffset<TParams>(
+export function resolvePlacementLabelPadding<TParams>(
     label: Label<TParams>,
     placementStyle: LabelPlacementStyle | undefined
-): number {
-    const resolved = resolvePlacementLabelStyle(label, placementStyle);
-    return labelHasBox(resolved) && typeof resolved.padding === 'number' ? resolved.padding : 0;
+): Required<PaddingOptions> {
+    return expandLabelPadding(resolvePlacementLabelStyle(label, placementStyle));
 }

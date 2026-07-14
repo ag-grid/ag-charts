@@ -48,7 +48,7 @@ type NormalisedWaterfallSeriesStyle = Normalised<AgWaterfallSeriesStyle, never, 
 
 const {
     adjustLabelPlacement,
-    placementLabelBoxOffset,
+    resolvePlacementLabelPadding,
     fitLabelToContainer,
     SeriesNodePickMode,
     fixNumericExtent,
@@ -705,20 +705,23 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             const placement = toArray(label.placement)[0];
             const insidePlacement = placement == null || placement.startsWith('inside');
             const placementStyle = insidePlacement ? label.insideStyle : label.outsideStyle;
-            const spacing: number = label.spacing + placementLabelBoxOffset(label, placementStyle);
+            const boxPadding = resolvePlacementLabelPadding(label, placementStyle);
+            const insetSpacing: number =
+                label.spacing + Math.max(boxPadding.top, boxPadding.right, boxPadding.bottom, boxPadding.left);
             const resolvesOrientation = barLabelResolvesOrientation(label.orientation);
             const labelPlacement = adjustLabelPlacement({
                 isUpward: (value ?? -1) >= 0 !== valueAxisReversed,
                 isVertical: !barAlongX,
                 placement,
-                spacing,
+                spacing: label.spacing,
+                boxPadding,
                 rect: { x: rectX, y: rectY, width: rectWidth, height: rectHeight },
             });
             // Inside labels fit within the bar rect; outside labels sit beside it. The rect is only
             // needed to bound the fit or to resolve orientation, so skip it otherwise.
             const container =
                 insidePlacement && (labelFit != null || resolvesOrientation)
-                    ? insetBox({ x: rectX, y: rectY, width: rectWidth, height: rectHeight }, spacing)
+                    ? insetBox({ x: rectX, y: rectY, width: rectWidth, height: rectHeight }, insetSpacing)
                     : undefined;
 
             mutableNode.label.text = fitLabelToContainer(labelText, labelFit, label, container);

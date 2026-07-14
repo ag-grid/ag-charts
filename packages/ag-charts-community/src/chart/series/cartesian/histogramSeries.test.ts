@@ -655,6 +655,20 @@ describe('HistogramSeries', () => {
             // No explicit spacing: the theme's default 8px `spacing` pushes the label in from the bar top.
             expect(label.y).toBeCloseTo(node.y + 8);
         });
+
+        it('folds only the facing side of non-uniform box padding into the offset', async () => {
+            // inside-end faces the bar top; only top padding shifts the anchor, not the larger bottom.
+            chart = createChart({
+                placement: 'inside-end',
+                spacing: 0,
+                fill: 'red',
+                padding: { top: 4, right: 6, bottom: 20, left: 2 },
+            });
+            await waitForChartStability(chart);
+            const { node, label } = firstBinLabel(chart);
+            expect(label.y).toBeCloseTo(node.y + 4);
+            expect(label.textBaseline).toBe('top');
+        });
     });
 
     describe('label placement snapshots', () => {

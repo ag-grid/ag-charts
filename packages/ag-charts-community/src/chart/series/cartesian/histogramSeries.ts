@@ -61,7 +61,7 @@ import {
     rowCountProperty,
     valueProperty,
 } from '../../data/processors';
-import { placementLabelBoxOffset } from '../../label';
+import { resolvePlacementLabelPadding } from '../../label';
 import { adjustLabelPlacement, fitLabelToContainer, getLabelStyles, pickPlacementStyle } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
@@ -527,7 +527,8 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             isUpward,
             isVertical: true,
             placement,
-            spacing: label.spacing + placementLabelBoxOffset(label, placementStyle),
+            spacing: label.spacing,
+            boxPadding: resolvePlacementLabelPadding(label, placementStyle),
             rect: { x, y, width: w, height: h },
         });
 

@@ -64,7 +64,7 @@ const {
     valueProperty,
     keyProperty,
     updateLabelNode,
-    placementLabelBoxOffset,
+    resolvePlacementLabelPadding,
     pickPlacementStyle,
     fixNumericExtent,
     buildResetPathFn,
@@ -855,7 +855,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         // Array placement is accepted, but only its first candidate is honoured here.
         const placement = firstCandidate(label.placement);
         const placementStyle = placement === 'outside' ? label.outsideStyle : label.insideStyle;
-        const spacing = label.spacing + placementLabelBoxOffset(label, placementStyle);
+        const boxPadding = resolvePlacementLabelPadding(label, placementStyle);
 
         let actualItemId = itemType;
         if (inverted) {
@@ -865,12 +865,13 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             (placement === 'outside' && actualItemId === 'high') || (placement === 'inside' && actualItemId === 'low')
                 ? -1
                 : 1;
+        const facing = direction === -1 ? 'bottom' : 'top';
 
         const yDomain = this.getSeriesDomain(ChartAxisDirection.Y).domain;
 
         return {
             x: point.x,
-            y: point.y + spacing * direction,
+            y: point.y + (label.spacing + boxPadding[facing]) * direction,
             series,
             itemType,
             datum,
