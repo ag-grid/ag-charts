@@ -312,18 +312,22 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -397,18 +401,22 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -482,18 +490,22 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -945,18 +957,22 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#ffffff",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": "inside-center",
       },
@@ -1035,18 +1051,22 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#ffffff",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": "inside-center",
       },
@@ -1122,18 +1142,22 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -1527,18 +1551,22 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -1614,18 +1642,22 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -1701,18 +1733,22 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -1788,18 +1824,22 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -1875,18 +1915,22 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -1962,18 +2006,22 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -2049,18 +2097,22 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -2452,18 +2504,22 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#ffffff",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": "inside-center",
       },
@@ -2543,18 +2599,22 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#ffffff",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": "inside-center",
       },
@@ -2634,18 +2694,22 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#ffffff",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": "inside-center",
       },
@@ -2725,18 +2789,22 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#ffffff",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": "inside-center",
       },
@@ -2816,18 +2884,22 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#ffffff",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": "inside-center",
       },
@@ -2907,18 +2979,22 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#ffffff",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": "inside-center",
       },
@@ -2998,18 +3074,22 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#ffffff",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": "inside-center",
       },
@@ -3089,18 +3169,22 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#ffffff",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": "inside-center",
       },
@@ -3492,18 +3576,22 @@ exports[`ChartOptions > #prepareOptions > for ADV_PER_MARKER_CUSTOMISATION_EXAMP
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
       },
       "maxRenderedItems": 2000,
@@ -3899,18 +3987,22 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -3984,18 +4076,22 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -4069,18 +4165,22 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -4154,18 +4254,22 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -4559,18 +4663,22 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -4657,18 +4765,22 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -4755,18 +4867,22 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -4853,18 +4969,22 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -4951,18 +5071,22 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -5362,18 +5486,22 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_EXAMPLE it should prepar
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#ffffff",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": "inside-center",
       },
@@ -5772,18 +5900,22 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_WITH_LABELS_EXAMPLE it s
         "fontWeight": "bold",
         "formatter": [Function],
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#ffffff",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": "inside-center",
       },
@@ -6186,18 +6318,22 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMP
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
       },
       "maxRenderedItems": 2000,
@@ -6578,18 +6714,22 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
       },
       "labelKey": "city",
@@ -6970,18 +7110,22 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#ffffff",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": "inside-center",
       },
@@ -7058,18 +7202,22 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#ffffff",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": "inside-center",
       },
@@ -7464,18 +7612,22 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#ffffff",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": "inside-center",
       },
@@ -7557,18 +7709,22 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#ffffff",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": "inside-center",
       },
@@ -7969,18 +8125,22 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#ffffff",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": "inside-center",
       },
@@ -8064,18 +8224,22 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#ffffff",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": "inside-center",
       },
@@ -8159,18 +8323,22 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#ffffff",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": "inside-center",
       },
@@ -8254,18 +8422,22 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#ffffff",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": "inside-center",
       },
@@ -8349,18 +8521,22 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#ffffff",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": "inside-center",
       },
@@ -8444,18 +8620,22 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#ffffff",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": "inside-center",
       },
@@ -8539,18 +8719,22 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#ffffff",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": "inside-center",
       },
@@ -8947,18 +9131,22 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -9035,18 +9223,22 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -9123,18 +9315,22 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -9211,18 +9407,22 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -9299,18 +9499,22 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -9387,18 +9591,22 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -9475,18 +9683,22 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -9563,18 +9775,22 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -9651,18 +9867,22 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -9739,18 +9959,22 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -9827,18 +10051,22 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -9915,18 +10143,22 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -10003,18 +10235,22 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -10091,18 +10327,22 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -10179,18 +10419,22 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -10267,18 +10511,22 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -10663,18 +10911,22 @@ exports[`ChartOptions > #prepareOptions > for LOG_AXIS_EXAMPLE it should prepare
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -11067,18 +11319,22 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -11173,18 +11429,22 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -11279,18 +11539,22 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -11385,18 +11649,22 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -11491,18 +11759,22 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -11597,18 +11869,22 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -11703,18 +11979,22 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -12127,18 +12407,22 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#ffffff",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": "inside-center",
       },
@@ -12221,18 +12505,22 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#ffffff",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": "inside-center",
       },
@@ -12315,18 +12603,22 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#ffffff",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": "inside-center",
       },
@@ -12722,18 +13014,22 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#ffffff",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": "inside-center",
       },
@@ -12813,18 +13109,22 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#ffffff",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": "inside-center",
       },
@@ -12904,18 +13204,22 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#ffffff",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": "inside-center",
       },
@@ -12995,18 +13299,22 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#ffffff",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": "inside-center",
       },
@@ -13086,18 +13394,22 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#ffffff",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": "inside-center",
       },
@@ -13177,18 +13489,22 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#ffffff",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": "inside-center",
       },
@@ -13611,18 +13927,22 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -13706,18 +14026,22 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -13801,18 +14125,22 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -13896,18 +14224,22 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -14310,18 +14642,22 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_COLUMN_CHART_EXAMPLE it sho
         "fontWeight": 400,
         "formatter": [Function],
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#ffffff",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": "inside-center",
       },
@@ -15106,18 +15442,22 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -15192,18 +15532,22 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -15917,18 +16261,22 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_SCATTER_CHART_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
       },
       "maxRenderedItems": 2000,
@@ -16327,18 +16675,22 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -16429,18 +16781,22 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -16531,18 +16887,22 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -16633,18 +16993,22 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -16735,18 +17099,22 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -16837,18 +17205,22 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": [
           "top",
@@ -17259,18 +17631,22 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#ffffff",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": "inside-center",
       },
@@ -17352,18 +17728,22 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#ffffff",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": "inside-center",
       },
@@ -17445,18 +17825,22 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#ffffff",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": "inside-center",
       },
@@ -17538,18 +17922,22 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#ffffff",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": "inside-center",
       },
@@ -17948,18 +18336,22 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#ffffff",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": "inside-center",
       },
@@ -18041,18 +18433,22 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#ffffff",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": "inside-center",
       },
@@ -18134,18 +18530,22 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#ffffff",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": "inside-center",
       },
@@ -18227,18 +18627,22 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#ffffff",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": "inside-center",
       },
@@ -18320,18 +18724,22 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#ffffff",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "outsideStyle": {
+          "border": {
+            "stroke": "rgba(24, 29, 31, 0.08)",
+            "strokeWidth": 1,
+          },
           "color": "#181d1f",
           "cornerRadius": 4,
           "padding": 8,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
         },
         "placement": "inside-center",
       },

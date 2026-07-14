@@ -807,7 +807,7 @@ export const labelPlacementStyleOptionsDef: OptionsDefs<AgChartLabelPlacementSty
     color: colorOrRef,
     cornerRadius: number,
     padding,
-    ...strokeOptionsDef,
+    border: strokeOptionsDef,
     ...fillOptionsDef,
 };
 

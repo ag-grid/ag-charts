@@ -1,6 +1,5 @@
 import type {
     AgCartesianChartOptions,
-    AgChartLabelPlacementStyleOptions,
     AgHighlightOptions,
     AgHighlightStyleOptions,
     AgMultiSeriesHighlightOptions,
@@ -401,10 +400,12 @@ export const LABEL_BOXING_TOP_LEVEL_DEFAULTS: WithThemeParams<LabelBoxOptions> =
 };
 
 /** Box defaults spread into a placement label's `insideStyle`/`outsideStyle` blocks. */
-export const PLACEMENT_LABEL_BOXING_DEFAULTS: WithThemeParams<AgChartLabelPlacementStyleOptions> = {
+export const PLACEMENT_LABEL_BOXING_DEFAULTS: WithThemeParams<LabelBoxOptions> = {
     cornerRadius: 4,
-    strokeWidth: 1,
-    stroke: { $foregroundOpacity: 0.08 },
+    border: {
+        strokeWidth: 1,
+        stroke: { $foregroundOpacity: 0.08 },
+    },
 };
 
 export const MULTI_SERIES_HIGHLIGHT_STYLE: WithThemeParams<AgMultiSeriesHighlightOptions<AgHighlightStyleOptions>> = {
