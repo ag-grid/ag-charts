@@ -111,7 +111,9 @@ export abstract class AbstractNetworkSeries<
         this.graph = this.createNetworkGraph();
         this.layout = this.createNetworkLayout();
 
-        this.ctx.collapsedManager.setSeriesGetDatumCallback(this.id, this.getDatumById.bind(this));
+        this.cleanup.register(
+            this.ctx.collapsedManager.setSeriesGetDatumCallback(this.id, this.getDatumById.bind(this))
+        );
 
         this.cleanup.register(
             ctx.eventsHub.on('layout:complete', (event) => {

@@ -37,6 +37,9 @@ export class CollapsedManager implements MementoOriginator<CollapsedMemento> {
 
     setSeriesGetDatumCallback(seriesId: string, getDatum: (id: string) => unknown) {
         this.getDatum[seriesId] = getDatum;
+        return () => {
+            delete this.getDatum[seriesId];
+        };
     }
 
     collapse(ids: (string | number)[], seriesId: string | undefined, source: AgCollapsedChangeEventSource) {
