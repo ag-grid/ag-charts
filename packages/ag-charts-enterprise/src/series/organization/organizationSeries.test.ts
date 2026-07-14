@@ -1822,8 +1822,8 @@ describe('OrganizationSeries', () => {
         });
     });
 
-    describe.only('collapsedChange event', () => {
-        it('should', async () => {
+    describe('collapsedChange event', () => {
+        it('should trigger the collapsedChange event on setState', async () => {
             let source;
             let collapsed;
 
