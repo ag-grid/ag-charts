@@ -570,7 +570,7 @@ jobs:
               uses: ./.github/actions/snapshot-branch
               with:
                   path: packages/ag-charts-{community,enterprise,server-side}/src/
-                  source_branch: ${{ github.head_ref || 'latest' }}
+                  source_branch: ${{ github.head_ref || github.ref_name }}
                   branch: ${{ needs.init.outputs.snapshot_branch }}
                   type: test (shard ${{matrix.shard}})
 
@@ -672,7 +672,7 @@ jobs:
               uses: ./.github/actions/snapshot-branch
               with:
                   path: packages/ag-charts-website/e2e/
-                  source_branch: ${{ github.head_ref || 'latest' }}
+                  source_branch: ${{ github.head_ref || github.ref_name }}
                   branch: ${{ needs.init.outputs.snapshot_branch }}
                   type: test:e2e (shard ${{matrix.shard}})
 
@@ -728,7 +728,7 @@ jobs:
               uses: ./.github/actions/snapshot-branch
               with:
                   path: tests/*-package-tests/e2e/*-snapshots/
-                  source_branch: ${{ github.head_ref || 'latest' }}
+                  source_branch: ${{ github.head_ref || github.ref_name }}
                   branch: ${{ needs.init.outputs.snapshot_branch }}
                   type: ${{ matrix.framework }}-package-tests:test:package
 
