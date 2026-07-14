@@ -99,6 +99,7 @@ export interface INodeEvent<TEvent extends string = SeriesNodeEventTypes> extend
     readonly dataIdKey: string | undefined;
     readonly defaultPrevented: boolean;
     readonly selectionState: PublicSelectionState | undefined;
+    readonly isCollapsed: boolean;
 }
 
 export interface ISeriesProperties {

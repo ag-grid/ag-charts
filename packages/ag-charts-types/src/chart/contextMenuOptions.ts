@@ -190,6 +190,8 @@ export interface AgContextMenuGetItemsParamsSeriesNode<TDatum = DatumDefault, TC
     showOn: 'series-node';
     /** The current selection state of this datum. Set to `undefined` if the selection module is not enabled. */
     selectionState?: SelectionState;
+    /** Whether this datum is collapsed. */
+    isCollapsed?: boolean;
 }
 
 export interface AgContextMenuGetItemsParamsLegendItem<_TDatumReserved = never, TContext = ContextDefault>
