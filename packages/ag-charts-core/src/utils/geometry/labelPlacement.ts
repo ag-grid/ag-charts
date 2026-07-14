@@ -240,11 +240,11 @@ export function isPointLabelDatum(x: any): x is PointLabelDatum {
 }
 
 // Rotation angle (degrees) each orientation renders at, relative to a horizontal baseline:
-// `parallel` reads upright, the two `perpendicular` variants a quarter-turn in either direction.
+// `horizontal` reads upright, the two `vertical` variants a quarter-turn in either direction.
 const orientationAngles: Record<AgChartLabelOrientation, number> = {
-    parallel: 0,
-    perpendicular: 90,
-    'perpendicular-reversed': -90,
+    horizontal: 0,
+    vertical: 90,
+    'vertical-reversed': -90,
 };
 
 /**

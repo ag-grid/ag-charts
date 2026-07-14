@@ -39,11 +39,11 @@ export interface AgBarSeriesLabelOptions<TDatum, TParams, TContext = ContextDefa
     /** Distance between the shape edges and the text. */
     spacing?: PixelSize;
     /**
-     * Orientation of the label within the bar. `parallel` reads upright; the two `perpendicular`
+     * Orientation of the label within the bar. `horizontal` reads upright; the two `vertical`
      * variants rotate it a quarter-turn in opposite directions. Either a single orientation or an
      * ordered fallback list tried in turn until one fits.
      *
-     * Default: `parallel`
+     * Default: `horizontal`
      */
     orientation?: AgChartLabelOrientation | AgChartLabelOrientation[];
 }
