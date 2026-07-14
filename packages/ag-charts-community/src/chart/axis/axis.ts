@@ -1157,6 +1157,7 @@ export abstract class Axis<
             getCanvasBounds: () => {
                 return Transformable.toCanvas(this.axisGroup);
             },
+            fromCanvasPoint: (point) => Transformable.fromCanvasPoint(this.gridGroup, point.x, point.y),
             seriesKeyProperties: () =>
                 this.boundSeries.reduce((keys, series) => {
                     const seriesKeys = series.getKeyProperties(this.direction);

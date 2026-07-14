@@ -17,6 +17,7 @@ import {
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 import { DEFAULT_CONTEXT_MENU_CLASS } from './contextMenuStyles';
+import { toPublicAxisContext } from './contextMenuUtil';
 
 describe('Context Menu', () => {
     setupMockConsole();
@@ -247,6 +248,53 @@ describe('Context Menu', () => {
 
             expect(labels.some((label) => label?.includes('Legend Item'))).toBe(true);
             expect(labels.some((label) => label?.includes('Always Item'))).toBe(true);
+        });
+    });
+
+    describe('axis getItems value', () => {
+        const AXIS_VALUE_OPTIONS: AgChartOptions = {
+            width: 800,
+            height: 600,
+            data: [
+                { x: 'A', y: 15 },
+                { x: 'B', y: 50 },
+                { x: 'C', y: 25 },
+                { x: 'D', y: 75 },
+            ],
+            series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+            contextMenu: { enabled: true },
+        };
+
+        // The axis DOM-proxy dispatches canvas-space coordinates; resolve the value directly against a
+        // live axis context rather than fighting the JSDOM axis hit-testing.
+        const resolveAxisValueAt = (axisId: string, canvasX: number, canvasY: number) => {
+            const axisCtx = deproxy(chart).ctx.axisManager.getAxisIdContext(axisId)!;
+            const event = { showOn: 'axis', x: canvasX, y: canvasY, context: axisCtx } as any;
+            return toPublicAxisContext(event).value;
+        };
+
+        it('resolves the category under the click on a band axis', async () => {
+            await prepareChart({ enabled: true }, AXIS_VALUE_OPTIONS);
+            const xAxis = deproxy(chart).axes.find((a: any) => a.direction === 'x') as any;
+            const seriesBox = deproxy(chart).seriesAreaBoundingBox;
+
+            for (const category of ['A', 'B', 'C', 'D']) {
+                const scalePos = xAxis.scale.convert(category) + (xAxis.scale.bandwidth ?? 0) / 2;
+                const value = resolveAxisValueAt(xAxis.id, seriesBox.x + scalePos, seriesBox.y + seriesBox.height + 5);
+                expect(value).toBe(category);
+            }
+        });
+
+        it('resolves the value under the click on a continuous axis', async () => {
+            await prepareChart({ enabled: true }, AXIS_VALUE_OPTIONS);
+            const yAxis = deproxy(chart).axes.find((a: any) => a.direction === 'y') as any;
+            const seriesBox = deproxy(chart).seriesAreaBoundingBox;
+
+            for (const target of [10, 40, 60]) {
+                const scalePos = yAxis.scale.convert(target);
+                const value = resolveAxisValueAt(yAxis.id, seriesBox.x - 5, seriesBox.y + scalePos);
+                expect(value as number).toBeCloseTo(target, 6);
+            }
         });
     });
 

@@ -1,4 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { ChartAxisDirection } from 'ag-charts-core';
 import type { AgContextMenuGetItemsParamsAlways, AgContextMenuGetItemsParamsAxis } from 'ag-charts-types';
 
 // Dynamically extract properties of `AgContextMenuGetItemsParamsAxis` that are not present in the base
@@ -16,6 +17,13 @@ export function toPublicAxisContext(event: _ModuleSupport.ContextMenuEvent<'axis
     const { axisId, direction } = axisCtx;
     const { domain } = axisCtx.scale;
     const boundSeries = axisCtx.getFormatterBoundSeries();
-    const value = Number.NaN; // not yet implemented
+    const value = resolveAxisValue(event);
     return { axisId, direction, context: userCtx, boundSeries, domain, value };
+}
+
+function resolveAxisValue(event: _ModuleSupport.ContextMenuEvent<'axis'>): PublicAxisContext['value'] {
+    const axisCtx = event.context;
+    const local = axisCtx.fromCanvasPoint({ x: event.x, y: event.y });
+    const position = axisCtx.direction === ChartAxisDirection.Y ? local.y : local.x;
+    return axisCtx.scaleInvert(position) ?? Number.NaN;
 }

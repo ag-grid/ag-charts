@@ -62,6 +62,8 @@ export interface AxisContext {
     hasDefinedDomain(): boolean;
     hasVisibleSeries(): boolean;
     getCanvasBounds(): BoxBounds | undefined;
+    /** Converts a canvas-space point into the axis scale's coordinate space, ready for {@link scaleInvert} / {@link pickBand}. */
+    fromCanvasPoint(point: Point): Point;
     seriesKeyProperties(): Set<string>;
     seriesIds(): string[];
     scaleInvert(position: number): any;
