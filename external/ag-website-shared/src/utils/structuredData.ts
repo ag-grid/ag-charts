@@ -12,11 +12,29 @@
 
 export type JsonLdObject = Record<string, unknown>;
 
+export interface ContactPoint {
+    /**
+     * schema.org contactType, e.g. `sales` or `technical support`. These line
+     * up with the enquiry-type options offered on the contact page.
+     */
+    contactType: string;
+    url?: string;
+    telephone?: string;
+    email?: string;
+    availableLanguage?: string | string[];
+}
+
 interface OrgInput {
     canonicalUrlBase: string;
     name: string;
     logoUrl: string;
     sameAs: string[];
+    /**
+     * Optional points of contact (sales, technical support, etc.). Emitted as
+     * a `contactPoint` array on the Organization so any page referencing the
+     * Organization by `@id` (e.g. the ContactPage) inherits them.
+     */
+    contactPoints?: ContactPoint[];
 }
 
 interface WebSiteInput {
@@ -57,6 +75,12 @@ interface BreadcrumbListInput {
     items: BreadcrumbItem[];
 }
 
+interface ContactPageInput {
+    canonicalUrlBase: string;
+    pageUrl: string;
+    name: string;
+}
+
 /**
  * Return `canonicalUrlBase` with a trailing slash, so callers can append a
  * site-root-relative path or fragment without worrying about the input form
@@ -78,9 +102,10 @@ export const getSoftwareApplicationId = (canonicalUrlBase: string): string =>
 
 const ARTICLE_ID_FRAGMENT = '#article';
 const BREADCRUMB_ID_FRAGMENT = '#breadcrumb';
+const CONTACT_PAGE_ID_FRAGMENT = '#contact-page';
 
-export function buildOrganization({ canonicalUrlBase, name, logoUrl, sameAs }: OrgInput): JsonLdObject {
-    return {
+export function buildOrganization({ canonicalUrlBase, name, logoUrl, sameAs, contactPoints }: OrgInput): JsonLdObject {
+    const result: JsonLdObject = {
         '@type': 'Organization',
         '@id': getOrganizationId(canonicalUrlBase),
         name,
@@ -88,6 +113,10 @@ export function buildOrganization({ canonicalUrlBase, name, logoUrl, sameAs }: O
         logo: logoUrl,
         sameAs,
     };
+    if (contactPoints && contactPoints.length > 0) {
+        result.contactPoint = contactPoints.map((point) => ({ '@type': 'ContactPoint', ...point }));
+    }
+    return result;
 }
 
 export function buildWebSite({ canonicalUrlBase, name, description }: WebSiteInput): JsonLdObject {
@@ -160,6 +189,22 @@ export function buildBreadcrumbList({ pageUrl, items }: BreadcrumbListInput): Js
             name: item.name,
             item: item.url,
         })),
+    };
+}
+
+/**
+ * Build a `ContactPage` node for the contact page. `mainEntity` references the
+ * `Organization` by `@id` rather than duplicating it, so the contact points
+ * emitted on the Organization (see `buildOrganization`) describe this page.
+ */
+export function buildContactPage({ canonicalUrlBase, pageUrl, name }: ContactPageInput): JsonLdObject {
+    return {
+        '@type': 'ContactPage',
+        '@id': `${pageUrl}${CONTACT_PAGE_ID_FRAGMENT}`,
+        url: pageUrl,
+        name,
+        isPartOf: { '@id': getWebSiteId(canonicalUrlBase) },
+        mainEntity: { '@id': getOrganizationId(canonicalUrlBase) },
     };
 }
 
