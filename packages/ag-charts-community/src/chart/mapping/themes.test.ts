@@ -318,4 +318,35 @@ describe('themes.ts', () => {
             expect(logs[1][1]).toBe('miss');
         });
     });
+
+    // Heap/finalizer timing can be flaky - retry to keep the signal reliable.
+    describe('theme cache memory', { retry: 5 }, () => {
+        async function collectGarbage() {
+            for (let i = 0; i < 10; i++) {
+                globalThis.gc?.();
+                await new Promise((resolve) => setTimeout(resolve, 0));
+            }
+        }
+
+        it('releases resolved themes once their inline theme options object is unreferenced', async () => {
+            const total = 20;
+            const collected = new Set<number>();
+            const registry = new FinalizationRegistry<number>((id) => collected.add(id));
+
+            for (let i = 0; i < total; i++) {
+                // Fresh options object per iteration, mirroring per-chart inline themes; keep no
+                // strong reference to the input or the resolved theme so both are collectable.
+                let themeOptions: AgChartTheme | undefined = {
+                    baseTheme: 'ag-default',
+                    overrides: { line: { series: { strokeWidth: i } } },
+                };
+                registry.register(getChartTheme(themeOptions), i);
+                themeOptions = undefined;
+            }
+
+            await collectGarbage();
+
+            expect(collected.size).toBe(total);
+        });
+    });
 });
