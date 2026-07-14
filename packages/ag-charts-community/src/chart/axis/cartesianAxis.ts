@@ -16,7 +16,12 @@ import {
     findMinMax,
     isPlainObject,
 } from 'ag-charts-core';
-import type { AgCartesianAxisPosition, AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
+import type {
+    AgAxisTitleOrientation,
+    AgCartesianAxisPosition,
+    AgTimeInterval,
+    AgTimeIntervalUnit,
+} from 'ag-charts-types';
 
 import type { AxisContext } from '../../module/axisContext';
 import type { ChartRegistry } from '../../module/moduleContext';
@@ -71,6 +76,58 @@ interface GeneratedTicks {
 }
 
 export type GridLineStyleTickDatum = Pick<TickDatum, 'index' | 'tickId' | 'translation'>;
+
+interface TitleOrientationLayout {
+    rotation: number;
+    textAlign: CanvasTextAlign;
+    textBaseline: CanvasTextBaseline;
+    isPerpendicular: boolean;
+}
+
+const flipTextAlign = (align: CanvasTextAlign): CanvasTextAlign => (align === 'left' ? 'right' : 'left');
+const flipTextBaseline = (baseline: CanvasTextBaseline): CanvasTextBaseline => (baseline === 'top' ? 'bottom' : 'top');
+
+/**
+ * Maps an axis title `orientation` to the rotation, alignment and baseline that place the title
+ * on the outer side of the axis line at its midpoint. `reversed` variants add a 180° rotation and
+ * flip the alignment/baseline so the title stays on the same side while reading the other way.
+ */
+function getTitleOrientationLayout(
+    position: AgCartesianAxisPosition,
+    orientation: AgAxisTitleOrientation
+): TitleOrientationLayout {
+    const isPerpendicular = orientation === 'perpendicular' || orientation === 'perpendicular-reversed';
+    const reversed = orientation === 'parallel-reversed' || orientation === 'perpendicular-reversed';
+    const flip = reversed ? Math.PI : 0;
+
+    if (isPerpendicular) {
+        const base = {
+            top: { rotation: Math.PI / 2, textAlign: 'right' as const },
+            bottom: { rotation: Math.PI / 2, textAlign: 'left' as const },
+            left: { rotation: 0, textAlign: 'right' as const },
+            right: { rotation: 0, textAlign: 'left' as const },
+        }[position];
+        return {
+            rotation: base.rotation + flip,
+            textAlign: reversed ? flipTextAlign(base.textAlign) : base.textAlign,
+            textBaseline: 'middle',
+            isPerpendicular: true,
+        };
+    }
+
+    const base = {
+        top: { rotation: 0, textBaseline: 'bottom' as const },
+        bottom: { rotation: 0, textBaseline: 'top' as const },
+        left: { rotation: -Math.PI / 2, textBaseline: 'bottom' as const },
+        right: { rotation: Math.PI / 2, textBaseline: 'bottom' as const },
+    }[position];
+    return {
+        rotation: base.rotation + flip,
+        textAlign: 'center',
+        textBaseline: reversed ? flipTextBaseline(base.textBaseline) : base.textBaseline,
+        isPerpendicular: false,
+    };
+}
 
 export abstract class CartesianAxis<
     S extends Scale<D, number, any> = Scale<any, number, any>,
@@ -558,10 +615,21 @@ export abstract class CartesianAxis<
 
     protected titleBBox(domain: D[], spacing: number) {
         const { tempCaption } = this;
-        const axisLength = Math.abs(this.range[1] - this.range[0]) || Infinity;
         tempCaption.node.setProperties(this.titleProps(tempCaption, domain, spacing));
-        tempCaption.computeTextWrap(axisLength, this.options.thickness ?? Infinity);
+        this.wrapTitleText(tempCaption);
         return tempCaption.node.getBBox();
+    }
+
+    private wrapTitleText(caption: Caption) {
+        const axisLength = Math.abs(this.range[1] - this.range[0]) || Infinity;
+        const thickness = this.options.thickness ?? Infinity;
+        const orientation = this.options.title.orientation ?? 'parallel';
+        const isPerpendicular = orientation === 'perpendicular' || orientation === 'perpendicular-reversed';
+        if (isPerpendicular) {
+            caption.computeTextWrap(thickness, axisLength);
+        } else {
+            caption.computeTextWrap(axisLength, thickness);
+        }
     }
 
     protected getScrollbarThickness(scrollbar?: ScrollbarLayout): number {
@@ -702,6 +770,7 @@ export abstract class CartesianAxis<
             return {
                 visible: false,
                 text: '',
+                textAlign: 'center' as const,
                 textBaseline: 'bottom' as const,
                 x: 0,
                 y: 0,
@@ -728,35 +797,29 @@ export abstract class CartesianAxis<
 
         let x: number;
         let y: number;
-        let rotation: number;
-        let textBaseline: CanvasTextBaseline;
-
         switch (this.position) {
             case 'top':
                 x = midOffset;
                 y = -padding;
-                rotation = 0;
-                textBaseline = 'bottom';
                 break;
             case 'bottom':
                 x = midOffset;
                 y = padding;
-                rotation = 0;
-                textBaseline = 'top';
                 break;
             case 'left':
                 x = -padding;
                 y = midOffset;
-                rotation = Math.PI / -2;
-                textBaseline = 'bottom';
                 break;
             case 'right':
                 x = padding;
                 y = midOffset;
-                rotation = Math.PI / 2;
-                textBaseline = 'bottom';
                 break;
         }
+
+        const { rotation, textAlign, textBaseline } = getTitleOrientationLayout(
+            this.position,
+            title.orientation ?? 'parallel'
+        );
 
         const { formatter = (p) => p.defaultValue } = title;
         const text = this.cachedCallWithContext(formatter, this.getTitleFormatterParams(domain));
@@ -765,6 +828,7 @@ export abstract class CartesianAxis<
         return {
             visible: true,
             text,
+            textAlign,
             textBaseline,
             x,
             y,
@@ -860,12 +924,12 @@ export abstract class CartesianAxis<
         const titleProps = this.titleProps(caption, domain, spacing);
         caption.node.visible = titleProps.visible;
         caption.node.text = titleProps.text;
+        caption.node.textAlign = titleProps.textAlign;
         caption.node.textBaseline = titleProps.textBaseline;
         caption.node.datum = titleProps;
 
         if (titleProps.visible) {
-            const axisLength = Math.abs(this.range[1] - this.range[0]) || Infinity;
-            caption.computeTextWrap(axisLength, this.options.thickness ?? Infinity);
+            this.wrapTitleText(caption);
         }
     }
 

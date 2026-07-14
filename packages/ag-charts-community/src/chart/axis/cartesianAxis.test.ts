@@ -1098,6 +1098,107 @@ describe('CartesianAxis', () => {
         });
     });
 
+    describe('title orientation', () => {
+        const orientationScenarios: Scenario[] = [
+            {
+                // A vertical y-axis title rendered horizontally.
+                name: 'title-orientation-perpendicular-left',
+                optionsFactory: () => ({
+                    data: NUMERIC_DATA,
+                    axes: {
+                        x: { type: 'number', position: 'bottom' },
+                        y: {
+                            type: 'number',
+                            position: 'left',
+                            title: { enabled: true, text: 'Temperature', orientation: 'perpendicular' },
+                        },
+                    },
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                }),
+            },
+            {
+                name: 'title-orientation-perpendicular-right',
+                optionsFactory: () => ({
+                    data: NUMERIC_DATA,
+                    axes: {
+                        x: { type: 'number', position: 'bottom' },
+                        y: {
+                            type: 'number',
+                            position: 'right',
+                            title: { enabled: true, text: 'Temperature', orientation: 'perpendicular' },
+                        },
+                    },
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                }),
+            },
+            {
+                // The right y-axis title flipped 180°.
+                name: 'title-orientation-parallel-reversed-right',
+                optionsFactory: () => ({
+                    data: NUMERIC_DATA,
+                    axes: {
+                        x: { type: 'number', position: 'bottom' },
+                        y: {
+                            type: 'number',
+                            position: 'right',
+                            title: { enabled: true, text: 'Temperature', orientation: 'parallel-reversed' },
+                        },
+                    },
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                }),
+            },
+            {
+                name: 'title-orientation-perpendicular-reversed-left',
+                optionsFactory: () => ({
+                    data: NUMERIC_DATA,
+                    axes: {
+                        x: { type: 'number', position: 'bottom' },
+                        y: {
+                            type: 'number',
+                            position: 'left',
+                            title: { enabled: true, text: 'Temperature', orientation: 'perpendicular-reversed' },
+                        },
+                    },
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                }),
+            },
+            {
+                name: 'title-orientation-perpendicular-bottom',
+                optionsFactory: () => ({
+                    data: NUMERIC_DATA,
+                    axes: {
+                        x: {
+                            type: 'number',
+                            position: 'bottom',
+                            title: { enabled: true, text: 'Distance', orientation: 'perpendicular' },
+                        },
+                        y: { type: 'number', position: 'left' },
+                    },
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                }),
+            },
+            {
+                name: 'title-orientation-parallel-reversed-top',
+                optionsFactory: () => ({
+                    data: NUMERIC_DATA,
+                    axes: {
+                        x: {
+                            type: 'number',
+                            position: 'top',
+                            title: { enabled: true, text: 'Distance', orientation: 'parallel-reversed' },
+                        },
+                        y: { type: 'number', position: 'left' },
+                    },
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                }),
+            },
+        ];
+
+        it.each(orientationScenarios)('$name', async ({ name, optionsFactory }) => {
+            await renderAndSnapshot(optionsFactory, `cartesian-axis-${name}`);
+        });
+    });
+
     // CRT-1055: Wrapped (multi-line) labels should NOT trigger tooltips. Only truncated labels
     // (with ellipsis) should show tooltips.
     describe('CRT-1055 wrapped label tooltip', () => {
