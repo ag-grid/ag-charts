@@ -21,7 +21,6 @@ import {
     repeat,
     setupMockCanvas,
     setupMockConsole,
-    spyOnAnimationManager,
     waitForChartStability,
 } from '../../test/utils';
 import * as examples from './test/examples';
@@ -141,91 +140,8 @@ describe('PolarSeries', () => {
         );
     });
 
-    describe('initial animation', () => {
-        const animate = spyOnAnimationManager();
-
-        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-            it(`for PIE_SERIES should animate at ${ratio * 100}%`, async () => {
-                animate(1200, ratio);
-
-                const options: AgPolarChartOptions = examples.PIE_SERIES;
-                prepareTestOptions(options);
-
-                chart = AgCharts.create(options);
-                await compare();
-            });
-        }
-    });
-
-    describe('remove animation', () => {
-        const animate = spyOnAnimationManager();
-
-        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-            it(`for PIE_SERIES should animate at ${ratio * 100}%`, async () => {
-                animate(1200, 1);
-
-                const options: AgPolarChartOptions = examples.PIE_SERIES;
-                prepareTestOptions(options);
-
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
-
-                animate(1200, ratio);
-                await chart.update({
-                    ...options,
-                    data: options.data!.slice(0, options.data!.length - 2),
-                });
-                await compare();
-            });
-        }
-    });
-
-    describe('add animation', () => {
-        const animate = spyOnAnimationManager();
-
-        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-            it(`for PIE_SERIES should animate at ${ratio * 100}%`, async () => {
-                animate(1200, 1);
-
-                const options: AgPolarChartOptions = examples.PIE_SERIES;
-                prepareTestOptions(options);
-
-                chart = AgCharts.create({
-                    ...options,
-                    data: options.data!.slice(0, options.data!.length - 2),
-                });
-                await waitForChartStability(chart);
-
-                animate(1200, ratio);
-                await chart.update({ ...options });
-
-                await compare();
-            });
-        }
-    });
-
-    describe('update animation', () => {
-        const animate = spyOnAnimationManager();
-
-        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-            it(`for PIE_SERIES should animate at ${ratio * 100}%`, async () => {
-                animate(1200, 1);
-
-                const options: AgPolarChartOptions = examples.PIE_SERIES;
-                prepareTestOptions(options);
-
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
-
-                animate(1200, ratio);
-                await chart.update({
-                    ...options,
-                    data: options.data!.map((d) => (d.os === 'iOS' ? { ...d, share: d.share * 2 } : d)),
-                });
-                await compare();
-            });
-        }
-    });
+    // Pie initial/remove/add/update animations are covered structurally by the
+    // 'animation -test page actions' trajectory CASEs in pieSeries.test.ts.
 
     describe('no series cases', () => {
         it(`for PIE_SERIES it should render identically after legend toggle`, async () => {
