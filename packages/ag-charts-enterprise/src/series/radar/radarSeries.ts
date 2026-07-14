@@ -123,9 +123,10 @@ class RadarSeriesNodeEvent<
         nativeEvent: Event,
         datum: RadarNodeDatum,
         series: BaseRadarSeries,
-        selectionState: SelectionState | undefined
+        selectionState: SelectionState | undefined,
+        isCollapsed: boolean
     ) {
-        super(type, nativeEvent, datum, series, selectionState);
+        super(type, nativeEvent, datum, series, selectionState, isCollapsed);
         this.angleKey = series.properties.angleKey;
         this.radiusKey = series.properties.radiusKey;
     }

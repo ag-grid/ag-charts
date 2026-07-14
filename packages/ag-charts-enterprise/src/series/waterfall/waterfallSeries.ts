@@ -184,9 +184,10 @@ class WaterfallSeriesNodeEvent<
         nativeEvent: Event,
         datum: WaterfallNodeDatum,
         series: WaterfallSeries,
-        selectionState: SelectionState | undefined
+        selectionState: SelectionState | undefined,
+        isCollapsed: boolean
     ) {
-        super(type, nativeEvent, datum, series, selectionState);
+        super(type, nativeEvent, datum, series, selectionState, isCollapsed);
         this.itemType = datum.itemType;
     }
 }

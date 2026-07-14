@@ -132,9 +132,10 @@ class BoxPlotSeriesNodeEvent<
         nativeEvent: Event,
         datum: BoxPlotNodeDatum,
         series: BoxPlotSeries,
-        selectionState: SelectionState | undefined
+        selectionState: SelectionState | undefined,
+        isCollapsed: boolean
     ) {
-        super(type, nativeEvent, datum, series, selectionState);
+        super(type, nativeEvent, datum, series, selectionState, isCollapsed);
         this.xKey = series.properties.xKey;
         this.minKey = series.properties.minKey;
         this.q1Key = series.properties.q1Key;

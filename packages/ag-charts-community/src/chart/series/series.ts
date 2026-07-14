@@ -166,7 +166,8 @@ export type INodeEventConstructor<
     event: Event,
     nodeDatum: TDatum,
     series: TSeries,
-    selectionState: PublicSelectionState | undefined
+    selectionState: PublicSelectionState | undefined,
+    isCollapsed: boolean
 ) => INodeEvent<T>;
 
 const CROSS_FILTER_MARKER_FILL_OPACITY_FACTOR = 0.25;
@@ -183,6 +184,7 @@ export class SeriesNodeEvent<
     readonly itemId: string | number;
     readonly dataIdKey: string | undefined;
     readonly selectionState: PublicSelectionState | undefined;
+    readonly isCollapsed: boolean;
     defaultPrevented = false;
 
     constructor(
@@ -190,7 +192,8 @@ export class SeriesNodeEvent<
         readonly event: Event,
         nodeDatum: TDatum,
         series: ISeries<TDatum, ISeriesProperties, unknown>,
-        selectionState: PublicSelectionState | undefined
+        selectionState: PublicSelectionState | undefined,
+        isCollapsed: boolean
     ) {
         this.datum = nodeDatum.datum;
         this.datums = nodeDatum.datums;
@@ -199,6 +202,7 @@ export class SeriesNodeEvent<
         this.dataIdKey = series.data?.dataIdKey;
         this.itemId = getItemId(nodeDatum, this.dataIdKey);
         this.selectionState = selectionState;
+        this.isCollapsed = isCollapsed;
     }
 
     public preventDefault() {
@@ -1196,21 +1200,24 @@ export abstract class Series<
 
     fireNodeClickEvent(event: Event, datum: TDatum): boolean {
         const selectionState = this.getSelectionStateString(datum.datumIndex);
-        const clickEvent = new this.NodeEvent('seriesNodeClick', event, datum, this, selectionState);
+        const isCollapsed = datum.itemId != null ? this.ctx.collapsedManager.isCollapsed(datum.itemId) : false;
+        const clickEvent = new this.NodeEvent('seriesNodeClick', event, datum, this, selectionState, isCollapsed);
         this.fireEvent(clickEvent);
         return !clickEvent.defaultPrevented;
     }
 
     fireNodeDoubleClickEvent(event: Event, datum: TDatum): boolean {
         const selectionState = this.getSelectionStateString(datum.datumIndex);
-        const clickEvent = new this.NodeEvent('seriesNodeDoubleClick', event, datum, this, selectionState);
+        const isCollapsed = datum.itemId != null ? this.ctx.collapsedManager.isCollapsed(datum.itemId) : false;
+        const clickEvent = new this.NodeEvent('seriesNodeDoubleClick', event, datum, this, selectionState, isCollapsed);
         this.fireEvent(clickEvent);
         return !clickEvent.defaultPrevented;
     }
 
     createNodeContextMenuActionEvent(event: Event, datum: TDatum): INodeEvent<'nodeContextMenuAction'> {
         const selectionState = this.getSelectionStateString(datum.datumIndex);
-        return new this.NodeEvent('nodeContextMenuAction', event, datum, this, selectionState);
+        const isCollapsed = datum.itemId != null ? this.ctx.collapsedManager.isCollapsed(datum.itemId) : false;
+        return new this.NodeEvent('nodeContextMenuAction', event, datum, this, selectionState, isCollapsed);
     }
 
     onLegendInitialState(legendType: ChartLegendType, initialState: AgInitialStateLegendOptions | undefined) {

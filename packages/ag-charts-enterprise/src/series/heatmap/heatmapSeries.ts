@@ -121,9 +121,10 @@ class HeatmapSeriesNodeEvent<
         nativeEvent: Event,
         datum: HeatmapNodeDatum,
         series: HeatmapSeries,
-        selectionState: SelectionState | undefined
+        selectionState: SelectionState | undefined,
+        isCollapsed: boolean
     ) {
-        super(type, nativeEvent, datum, series, selectionState);
+        super(type, nativeEvent, datum, series, selectionState, isCollapsed);
         this.colorKey = series.properties.colorKey;
     }
 }
