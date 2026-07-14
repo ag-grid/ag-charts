@@ -5,6 +5,7 @@ import type { AgChartLabelOrientation } from 'ag-charts-types';
 import type { Point, SizedPoint } from '../../types/scene';
 import { type BoxBounds, boxCollides, boxContains } from './boxBounds';
 import {
+    type BarLabelTarget,
     type BarPlacedLabelDatum,
     type CollideWith,
     type LabelObstacle,
@@ -12,9 +13,12 @@ import {
     type OrientationAnchor,
     type PlacedLabel,
     type PointLabelDatum,
+    type PositionedLabelCandidate,
     applyBarLabelOrientation,
     barLabelResolvesOrientation,
+    barLabelResolvesPlacement,
     buildBarLabelDatum,
+    buildBarPositionedLabelDatum,
     labelGlyphCentre,
     placeLabels,
     resolveLabelFit,
@@ -696,6 +700,17 @@ describe('bar label placement helpers', () => {
         });
     });
 
+    describe('barLabelResolvesPlacement', () => {
+        it.each([
+            [undefined, false],
+            ['inside-center' as const, false],
+            [['inside-center'] as const, false],
+            [['inside-center', 'outside-end'] as const, true],
+        ])('%o -> %s', (placement, expected) => {
+            expect(barLabelResolvesPlacement(placement as any)).toBe(expected);
+        });
+    });
+
     describe('labelGlyphCentre', () => {
         // The renderer pivots rotation about this centre, so it must be invariant to text alignment:
         // every alignment of the same box maps back to the same rendered centre.
@@ -753,6 +768,153 @@ describe('bar label placement helpers', () => {
             applyBarLabelOrientation(placed);
             // Horizontal (100 wide) overflows the 30-wide region, so it falls through to vertical (90deg).
             expect(target.rotation).toBeCloseTo(Math.PI / 2);
+        });
+    });
+});
+
+describe('placeLabels positioned candidates', () => {
+    const bounds: BoxBounds = { x: 0, y: 0, width: 200, height: 200 };
+    const anchorOf = (x: number, y: number): OrientationAnchor => ({
+        x,
+        y,
+        textAlign: 'center',
+        textBaseline: 'middle',
+    });
+    // A bar-family positioned candidate: the generic engine box plus the anchor/placement written back.
+    type BarCandidate = PositionedLabelCandidate & { anchor: OrientationAnchor; placement: string };
+
+    const place = (candidates: BarCandidate[], obstacles: LabelObstacle[] = []) => {
+        const target: BarLabelTarget = { rotation: 0 };
+        const datum = buildBarPositionedLabelDatum('label', 20, 10, candidates, target);
+        const placed = placeLabels(new Map([['s', [datum]]]), bounds, 5, obstacles).get('s') as PlacedLabel[];
+        return { placed, target };
+    };
+
+    it('returns the first candidate that fits its region', () => {
+        const first: BarCandidate = {
+            box: { x: 10, y: 10, width: 20, height: 10 },
+            region: bounds,
+            anchor: anchorOf(20, 15),
+            placement: 'inside-center',
+        };
+        const second: BarCandidate = {
+            box: { x: 60, y: 60, width: 20, height: 10 },
+            region: bounds,
+            anchor: anchorOf(70, 65),
+            placement: 'outside-end',
+        };
+        const { placed } = place([first, second]);
+        expect(placed).toHaveLength(1);
+        expect(placed[0].candidate).toBe(first);
+        expect(placed[0].x).toBeCloseTo(10);
+        expect(placed[0].y).toBeCloseTo(10);
+    });
+
+    it('skips a candidate that overflows its own region and takes the next that fits', () => {
+        const tooWide: BarCandidate = {
+            box: { x: 10, y: 10, width: 100, height: 10 },
+            region: { x: 0, y: 0, width: 40, height: 200 },
+            anchor: anchorOf(60, 15),
+            placement: 'inside-center',
+        };
+        const fits: BarCandidate = {
+            box: { x: 10, y: 40, width: 20, height: 10 },
+            region: bounds,
+            anchor: anchorOf(20, 45),
+            placement: 'outside-end',
+        };
+        const { placed } = place([tooWide, fits]);
+        expect(placed[0].candidate).toBe(fits);
+    });
+
+    it('skips a candidate an obstacle overlaps and takes the next clear one', () => {
+        const blocked: BarCandidate = {
+            box: { x: 10, y: 10, width: 20, height: 10 },
+            region: bounds,
+            anchor: anchorOf(20, 15),
+            placement: 'inside-center',
+        };
+        const clear: BarCandidate = {
+            box: { x: 100, y: 100, width: 20, height: 10 },
+            region: bounds,
+            anchor: anchorOf(110, 105),
+            placement: 'outside-end',
+        };
+        // Bar labels avoid other labels only, so the obstacle must be a `label` to block them.
+        const obstacle: LabelObstacle = { kind: 'rect', box: { x: 5, y: 5, width: 30, height: 20 }, category: 'label' };
+        const { placed } = place([blocked, clear], [obstacle]);
+        expect(placed[0].candidate).toBe(clear);
+    });
+
+    it('keeps the least region-overflowing candidate when none fits (neverDrop)', () => {
+        const bigOverflow: BarCandidate = {
+            box: { x: 0, y: 0, width: 100, height: 10 },
+            region: { x: 0, y: 0, width: 20, height: 200 },
+            anchor: anchorOf(50, 5),
+            placement: 'inside-center',
+        };
+        const smallOverflow: BarCandidate = {
+            box: { x: 0, y: 0, width: 30, height: 10 },
+            region: { x: 0, y: 0, width: 20, height: 200 },
+            anchor: anchorOf(15, 5),
+            placement: 'outside-end',
+        };
+        const { placed } = place([bigOverflow, smallOverflow]);
+        expect(placed).toHaveLength(1);
+        expect(placed[0].candidate).toBe(smallOverflow);
+    });
+
+    it('slides a region-bound candidate flush and records the offset; a region-less one floats', () => {
+        const inside: BarCandidate = {
+            box: { x: -10, y: 50, width: 20, height: 10 },
+            region: bounds,
+            anchor: anchorOf(0, 55),
+            placement: 'inside-center',
+        };
+        const insideResult = place([inside]);
+        expect(insideResult.placed[0].offsetX).toBeCloseTo(10);
+        expect(insideResult.placed[0].x).toBeCloseTo(0);
+
+        const outside: BarCandidate = {
+            box: { x: -10, y: 50, width: 20, height: 10 },
+            anchor: anchorOf(0, 55),
+            placement: 'outside-end',
+        };
+        const outsideResult = place([outside]);
+        expect(outsideResult.placed[0].offsetX).toBe(0);
+        expect(outsideResult.placed[0].x).toBeCloseTo(-10);
+    });
+
+    it('reports the chosen candidate identity and its rotation in degrees', () => {
+        const rotated: BarCandidate = {
+            box: { x: 10, y: 10, width: 10, height: 20 },
+            region: bounds,
+            rotation: 90,
+            anchor: anchorOf(15, 20),
+            placement: 'inside-center',
+        };
+        const { placed } = place([rotated]);
+        expect(placed[0].candidate).toBe(rotated);
+        expect(placed[0].rotation).toBe(90);
+    });
+
+    it('writes the chosen candidate anchor, placement and rotation (radians) back to the target', () => {
+        const chosen: BarCandidate = {
+            box: { x: 10, y: 10, width: 20, height: 10 },
+            region: bounds,
+            rotation: 90,
+            anchor: { x: 25, y: 40, textAlign: 'left', textBaseline: 'top' },
+            placement: 'outside-end',
+        };
+        const { placed, target } = place([chosen]);
+        applyBarLabelOrientation(placed);
+        expect(target.rotation).toBeCloseTo(Math.PI / 2);
+        expect(target).toMatchObject({
+            x: 25,
+            y: 40,
+            textAlign: 'left',
+            textBaseline: 'top',
+            placement: 'outside-end',
         });
     });
 });

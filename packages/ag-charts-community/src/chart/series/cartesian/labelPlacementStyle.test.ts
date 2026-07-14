@@ -370,6 +370,16 @@ describe('resolved placement/orientation in itemStyler params', () => {
         expect(params.every((p) => p.placement === 'inside-center' && p.fill === '#123456')).toBe(true);
     });
 
+    it('reports the resolved (not first) placement when a bar placement array cascades', async () => {
+        // A label far too long to fit inside any bar forces the cascade off the first candidate
+        // (inside-center) onto the fallback (outside-end), which floats free of the bar rect.
+        const params = await captureLabelParams(
+            barChart({ placement: ['inside-center', 'outside-end'], formatter: () => 'x'.repeat(80) })
+        );
+        expect(params.every((p) => p.placement === 'outside-end')).toBe(true);
+        expect(params.every((p) => p.orientation === 'horizontal')).toBe(true);
+    });
+
     it.each(['bubble', 'scatter', 'line', 'area'])(
         'reflects a single configured placement for %s series (no orientation)',
         async (type) => {

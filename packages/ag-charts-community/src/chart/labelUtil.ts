@@ -7,10 +7,21 @@ import type {
     LabelFit,
     NormalisedColorType,
     NormalisedTextOrSegments,
+    OrientationAnchor,
     Point,
+    PositionedLabelCandidate,
 } from 'ag-charts-core';
-import { type NormalisedChartLabelStyleOptions, fitLabelText, mergeDefaults } from 'ag-charts-core';
+import {
+    type NormalisedChartLabelStyleOptions,
+    fitLabelText,
+    getMinOuterRectSize,
+    insetBox,
+    labelGlyphCentre,
+    mergeDefaults,
+    orientationAngles,
+} from 'ag-charts-core';
 import type {
+    AgChartLabelOrientation,
     AgChartLabelStylerParams,
     AgMarkerShape,
     CssColor,
@@ -65,8 +76,12 @@ type LabelDatum = Point & {
     text: NormalisedTextOrSegments;
     textAlign: CanvasTextAlign;
     textBaseline: CanvasTextBaseline;
-    /** Resolved inside/outside placement, used to pick `insideStyle`/`outsideStyle`; unset applies neither. */
-    placement?: ResolvedLabelPlacement;
+    /**
+     * The label's resolved placement. Bar-family labels carry the granular {@link BarLabelPlacement}
+     * (coarsened to inside/outside via {@link toResolvedPlacement} when selecting placement styles);
+     * other series carry the coarse {@link ResolvedLabelPlacement}. Unset applies neither style.
+     */
+    placement?: ResolvedLabelPlacement | BarLabelPlacement;
     /** Rotation in radians applied to the label node; `undefined`/`0` renders upright. */
     rotation?: number;
     /** Translation (px) sliding a region-bound label flush inside its region; `undefined`/`0` leaves it anchored. */
@@ -132,6 +147,11 @@ export function pickPlacementStyle(
 ): LabelPlacementStyle | undefined {
     if (styles == null || placement == null) return undefined;
     return placement === 'inside' ? styles.insideStyle : styles.outsideStyle;
+}
+
+/** Coarsens a granular bar placement to the inside/outside distinction the placement styles select on. */
+export function toResolvedPlacement(placement: BarLabelPlacement): ResolvedLabelPlacement {
+    return placement.startsWith('inside') ? 'inside' : 'outside';
 }
 
 export function getLabelStyles<TParams>(
@@ -311,4 +331,56 @@ export function adjustLabelPlacement({
     }
 
     return { x, y, textAlign, textBaseline };
+}
+
+/**
+ * A pre-positioned bar label candidate: the generic {@link PositionedLabelCandidate} box the placement
+ * engine cascades over, plus the bar-specific `anchor` and granular `placement` written back onto the
+ * label node when this candidate wins (its coarse inside/outside is derived from `placement`).
+ */
+export interface BarPositionedCandidate extends PositionedLabelCandidate {
+    readonly anchor: OrientationAnchor;
+    readonly placement: BarLabelPlacement;
+}
+
+/**
+ * Builds the ordered candidate list a bar label cascades through, one entry per
+ * `placement` (outer) × `orientation` (inner) — the ordering that yields inside-horizontal →
+ * inside-vertical → outside-horizontal → outside-vertical for the ticket's example. The glyph centre is
+ * orientation-invariant, so it is measured once per placement and shared across that placement's
+ * orientations. Inside placements constrain to the inset bar rect; outside placements float (no region).
+ */
+export function buildBarLabelCandidates({
+    isUpward,
+    isVertical,
+    placements: placementList,
+    orientations,
+    spacing,
+    rect,
+    width,
+    height,
+}: {
+    isUpward: boolean;
+    isVertical: boolean;
+    placements: readonly BarLabelPlacement[];
+    orientations: readonly AgChartLabelOrientation[];
+    spacing: number;
+    rect: Bounds;
+    width: number;
+    height: number;
+}): BarPositionedCandidate[] {
+    const insideRegion = insetBox(rect, spacing);
+    const candidates: BarPositionedCandidate[] = [];
+    for (const placement of placementList) {
+        const anchor = adjustLabelPlacement({ isUpward, isVertical, placement, spacing, rect });
+        const region = placement.startsWith('inside') ? insideRegion : undefined;
+        const centre = labelGlyphCentre(anchor, width, height);
+        for (const orientation of orientations) {
+            const rotationDeg = orientationAngles[orientation];
+            const { width: fw, height: fh } = getMinOuterRectSize(rotationDeg, width, height);
+            const box = { x: centre.x - fw / 2, y: centre.y - fh / 2, width: fw, height: fh };
+            candidates.push({ box, region, rotation: rotationDeg || undefined, anchor, placement });
+        }
+    }
+    return candidates;
 }
