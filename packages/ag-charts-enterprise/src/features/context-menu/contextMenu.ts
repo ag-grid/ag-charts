@@ -2,6 +2,7 @@ import type {
     AgAxisContextMenuActionEvent,
     AgCaptionContextMenuActionEvent,
     AgContextMenuGetItemsParams,
+    AgContextMenuGetItemsParamsAlways,
     AgContextMenuGetItemsParamsAxis,
     AgContextMenuGetItemsParamsSeriesNode,
     AgContextMenuItem,
@@ -23,7 +24,14 @@ import {
 
 import { ContextMenuItem, expandBuiltinLists, expandItems } from './contextMenuItem';
 import { DEFAULT_CONTEXT_MENU_CLASS } from './contextMenuStyles';
-import { type PublicAxisContext, toPublicAxisContext } from './contextMenuUtil';
+
+// Extract properties of `AgContextMenuGetItemsParamsAxis` that are not present in the base
+// `AgContextMenuGetItemsParamsAlways` (except for `context` because we need to broadcast the user option
+// `axes[key].context` if defined).
+type PublicAxisContext = Omit<
+    AgContextMenuGetItemsParamsAxis,
+    Exclude<keyof AgContextMenuGetItemsParamsAlways, 'context'>
+>;
 
 type ContextShowOnMap = _ModuleSupport.ContextShowOnMap;
 type ContextMenuEvent<K extends AgContextMenuItemShowOn = AgContextMenuItemShowOn> = _ModuleSupport.ContextMenuEvent<K>;
@@ -258,13 +266,25 @@ export class ContextMenu extends AbstractModuleInstance {
         } else if (ContextMenuRegistry.check('caption', event)) {
             this.pickedCaptionCtx = event.context;
         } else if (ContextMenuRegistry.check('axis', event)) {
-            this.pickedAxisCtx = toPublicAxisContext(event);
+            this.pickedAxisCtx = this.toPublicAxisContext(event);
         }
 
         const expandedItems = this.expandItemsOptions(event);
         if (expandedItems.length === 0) return;
 
         this.show(event.widgetEvent, expandedItems);
+    }
+
+    private toPublicAxisContext(event: ContextMenuEvent<'axis'>): PublicAxisContext {
+        const axisCtx = event.context;
+        return {
+            axisId: axisCtx.axisId,
+            direction: axisCtx.direction,
+            context: axisCtx.context,
+            boundSeries: axisCtx.getFormatterBoundSeries(),
+            domain: axisCtx.scale.domain,
+            value: axisCtx.pick({ canvasX: event.x, canvasY: event.y }).value,
+        };
     }
 
     private show(widgetEvent: ContextMenuEvent['widgetEvent'], expandedItems: ContextMenuItem[]) {

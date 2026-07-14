@@ -22,6 +22,12 @@ export interface AxisBandMeasurement {
     readonly band: [number, number];
 }
 
+/** The axis state resolved at a canvas-space point (e.g. a click), broadcast to interaction consumers. */
+export interface AxisPick {
+    /** The resolved axis value/category at the point (`NaN` when it falls outside the scale). */
+    value: number | bigint | string | Date;
+}
+
 export interface AxisBandDatum extends AxisBandMeasurement {
     readonly id: string;
     readonly value: any;
@@ -62,8 +68,8 @@ export interface AxisContext {
     hasDefinedDomain(): boolean;
     hasVisibleSeries(): boolean;
     getCanvasBounds(): BoxBounds | undefined;
-    /** Converts a canvas-space point into the axis scale's coordinate space, ready for {@link scaleInvert} / {@link pickBand}. */
-    fromCanvasPoint(point: Point): Point;
+    /** Resolves the axis state at a canvas-space point (e.g. a click), for both band and continuous scales. */
+    pick(point: { canvasX: number; canvasY: number }): AxisPick;
     seriesKeyProperties(): Set<string>;
     seriesIds(): string[];
     scaleInvert(position: number): any;

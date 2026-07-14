@@ -42,7 +42,13 @@ import type {
 } from 'ag-charts-types';
 
 import type { AxisLayout } from '../../core/eventsHub';
-import type { AxisBandDatum, AxisBandMeasurement, AxisContext, AxisFormattableLabel } from '../../module/axisContext';
+import type {
+    AxisBandDatum,
+    AxisBandMeasurement,
+    AxisContext,
+    AxisFormattableLabel,
+    AxisPick,
+} from '../../module/axisContext';
 import type { ChartAxisRegistry, ChartRegistry } from '../../module/moduleContext';
 import { ModuleMap } from '../../module/moduleMap';
 import { BandScale } from '../../scale/bandScale';
@@ -1157,7 +1163,7 @@ export abstract class Axis<
             getCanvasBounds: () => {
                 return Transformable.toCanvas(this.axisGroup);
             },
-            fromCanvasPoint: (point) => Transformable.fromCanvasPoint(this.gridGroup, point.x, point.y),
+            pick: (point) => this.pick(point),
             seriesKeyProperties: () =>
                 this.boundSeries.reduce((keys, series) => {
                     const seriesKeys = series.getKeyProperties(this.direction);
@@ -1192,6 +1198,14 @@ export abstract class Axis<
             measureBand: (value) => this.measureBand(value),
             getFormatterBoundSeries: () => this.formatterBoundSeries.get(),
         };
+    }
+
+    pick(point: { canvasX: number; canvasY: number }): AxisPick {
+        const local = Transformable.fromCanvasPoint(this.gridGroup, point.canvasX, point.canvasY);
+        const position = this.isVertical() ? local.y : local.x;
+        // Scale domain values are always data values (number/bigint/string/Date); the axis generic `D` is unconstrained.
+        const value = this.scale.invert(position, true) as AxisPick['value'] | undefined;
+        return { value: value ?? Number.NaN };
     }
 
     pickBand(point: Point): AxisBandDatum | undefined {

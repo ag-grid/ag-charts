@@ -1274,6 +1274,56 @@ describe('CartesianAxis', () => {
         });
     });
 
+    describe('pick resolves the axis value at a canvas point', () => {
+        const PICK_OPTIONS: AgCartesianChartOptions = {
+            width: 800,
+            height: 600,
+            data: [
+                { x: 'A', y: 15 },
+                { x: 'B', y: 50 },
+                { x: 'C', y: 25 },
+                { x: 'D', y: 75 },
+            ],
+            series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+        };
+
+        const prepare = async () => {
+            const options = { ...PICK_OPTIONS };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            const chartInstance = deproxy(chart) as any;
+            return {
+                seriesBox: chartInstance.seriesAreaBoundingBox,
+                xAxis: chartInstance.axes.find((a: any) => a.direction === 'x'),
+                yAxis: chartInstance.axes.find((a: any) => a.direction === 'y'),
+            };
+        };
+
+        it('returns the category under the click on a band axis', async () => {
+            const { seriesBox, xAxis } = await prepare();
+
+            for (const category of ['A', 'B', 'C', 'D']) {
+                const scalePos = xAxis.scale.convert(category) + (xAxis.scale.bandwidth ?? 0) / 2;
+                const { value } = xAxis.pick({
+                    canvasX: seriesBox.x + scalePos,
+                    canvasY: seriesBox.y + seriesBox.height + 5,
+                });
+                expect(value).toBe(category);
+            }
+        });
+
+        it('returns the value under the click on a continuous axis', async () => {
+            const { seriesBox, yAxis } = await prepare();
+
+            for (const target of [10, 40, 60]) {
+                const scalePos = yAxis.scale.convert(target);
+                const { value } = yAxis.pick({ canvasX: seriesBox.x - 5, canvasY: seriesBox.y + scalePos });
+                expect(value as number).toBeCloseTo(target, 6);
+            }
+        });
+    });
+
     describe('AG-17541 toggling axis labels off removes them', () => {
         const baseOptions = (labelEnabled: boolean): AgCartesianChartOptions => ({
             data: CATEGORY_DATA,
