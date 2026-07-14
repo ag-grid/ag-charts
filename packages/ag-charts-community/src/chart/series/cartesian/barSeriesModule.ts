@@ -6,8 +6,9 @@ import {
     FILL_GRADIENT_LINEAR_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
-    LABEL_BOXING_DEFAULTS,
+    LABEL_BOXING_TOP_LEVEL_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
+    PLACEMENT_LABEL_BOXING_DEFAULTS,
     SEGMENTATION_DEFAULTS,
     SERIES_SELECTION_THEME,
 } from 'ag-charts-core';
@@ -38,23 +39,21 @@ const themeTemplate: ExtensibleTheme<'bar'> = {
         lineDash: [0],
         lineDashOffset: 0,
         label: {
-            ...LABEL_BOXING_DEFAULTS,
-            padding: { $isUserOption: ['./spacing', 0, 8] } as any, // compatibility with old `padding` property (now named `spacing`).
+            ...LABEL_BOXING_TOP_LEVEL_DEFAULTS,
             enabled: false,
             fontWeight: { $ref: 'fontWeight' },
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },
-            color: {
-                $if: [
-                    {
-                        $or: [
-                            { $eq: [{ $path: './placement' }, 'outside-start'] },
-                            { $eq: [{ $path: './placement' }, 'outside-end'] },
-                        ],
-                    },
-                    { $ref: 'textColor' },
-                    { $ref: 'chartBackgroundColor' },
-                ],
+            insideStyle: {
+                color: { $ref: 'chartBackgroundColor' },
+                // compatibility with old `padding` property (now named `spacing`).
+                padding: { $isUserOption: ['../spacing', 0, 8] } as any,
+                ...PLACEMENT_LABEL_BOXING_DEFAULTS,
+            },
+            outsideStyle: {
+                color: { $ref: 'textColor' },
+                padding: { $isUserOption: ['../spacing', 0, 8] } as any,
+                ...PLACEMENT_LABEL_BOXING_DEFAULTS,
             },
             placement: 'inside-center',
         },

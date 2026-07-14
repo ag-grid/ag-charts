@@ -1,4 +1,11 @@
-import type { LabelBoxOptions, TextOptions, Toggleable } from '../series/cartesian/commonOptions';
+import type {
+    FillOptions,
+    LabelBoxOptions,
+    Padding,
+    StrokeOptions,
+    TextOptions,
+    Toggleable,
+} from '../series/cartesian/commonOptions';
 import type {
     AgChartCallbackParams,
     HierarchyHighlightState,
@@ -11,6 +18,34 @@ import type { AgChartLabelCollisionAvoidanceOptions } from './collisionAvoidance
 import type { ContextDefault, FontSize, OverflowStrategy, PixelSize, TextWrap } from './types';
 
 export interface AgChartLabelStyleOptions extends Toggleable, TextOptions, LabelBoxOptions {}
+
+/**
+ * Style overrides applied to a label depending on its resolved inside/outside placement: `color` sets
+ * the text colour, `fill`/`fillOpacity` the box fill, `cornerRadius` and `padding` the box geometry, and
+ * `border` the box stroke. An explicit top-level `label` value always wins, and any property left unset
+ * here falls back to the built-in placement default. Whether a border is shown is controlled once by the
+ * top-level `label.border.enabled`; only the border's stroke, width and opacity are placement-reactive.
+ */
+export interface AgChartLabelPlacementStyleOptions extends Pick<TextOptions, 'color'>, FillOptions {
+    /** Rounded corners applied to the label box for this placement. */
+    cornerRadius?: PixelSize;
+    /** Distance between the label text and the box edge for this placement. */
+    padding?: Padding;
+    /** Border stroke applied to the label box for this placement. */
+    border?: StrokeOptions;
+}
+
+/**
+ * Placement-reactive colour overrides for a single label whose inside/outside placement is resolved at
+ * layout time. Applied per property: an explicit top-level `label.<property>` takes precedence,
+ * otherwise the matching `insideStyle`/`outsideStyle` value applies for the resolved placement.
+ */
+export interface AgSeriesLabelPlacementStyleOptions {
+    /** Style overrides applied only when the label's resolved placement is inside the shape. */
+    insideStyle?: AgChartLabelPlacementStyleOptions;
+    /** Style overrides applied only when the label's resolved placement is outside the shape. */
+    outsideStyle?: AgChartLabelPlacementStyleOptions;
+}
 
 export interface AgChartLabelStylerParams<TDatum, TContext>
     extends AgChartCallbackParams<TDatum, TContext>, AgChartLabelStyleOptions {

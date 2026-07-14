@@ -207,15 +207,15 @@ describe('series label fit', () => {
         expect(someTruncated(texts)).toBe(true);
     });
 
-    it('centres bubble labels inside large markers and hides those overflowing small markers', async () => {
+    it('centres bubble labels inside large markers and truncates those overflowing small markers', async () => {
         // `placement: 'inside'` fits each label to its marker: big bubbles hold their label, small bubbles
-        // hide a label that cannot fit. Sizes and label lengths are mixed so one image shows both outcomes.
+        // ellipsise one that cannot fit. Sizes and label lengths are mixed so one image shows both outcomes.
         const bubbleData = [
             { x: 0, y: 50, size: 100, label: 'Big' },
             { x: 1, y: 55, size: 90, label: 'Large' },
-            { x: 2, y: 45, size: 6, label: 'Tiny bubble label' },
+            { x: 2, y: 45, size: 40, label: 'Tiny bubble label' },
             { x: 3, y: 60, size: 70, label: 'Mid' },
-            { x: 4, y: 40, size: 8, label: 'Another long label' },
+            { x: 4, y: 40, size: 44, label: 'Another long label' },
         ];
         await renderAndSnapshot({
             data: bubbleData,
@@ -231,16 +231,16 @@ describe('series label fit', () => {
                     yKey: 'y',
                     sizeKey: 'size',
                     labelKey: 'label',
-                    minSize: 8,
+                    minSize: 40,
                     maxSize: 100,
                     label: { enabled: true, placement: 'inside', formatter: (p: any) => p.datum.label },
                 },
             ],
         });
         const texts = labelTexts();
-        // Small bubbles hide their label (empty); at least one large bubble keeps its label.
-        expect(texts.some((text) => text === '' || text == null)).toBe(true);
-        expect(texts.some((text) => typeof text === 'string' && text.length > 0)).toBe(true);
+        // No label is dropped; small bubbles ellipsise the overflow while large bubbles keep their label whole.
+        expect(texts.every((text) => typeof text === 'string' && text.length > 0)).toBe(true);
+        expect(someTruncated(texts)).toBe(true);
     });
 
     // A boxed inside label must sit centred on the marker. The placement engine centres the padded box, so
@@ -367,6 +367,80 @@ describe('series label fit', () => {
             ],
         });
         expect(labelTexts(0).some((text) => typeof text === 'string' && text.length > 0)).toBe(true);
+    });
+
+    it('centres a boxed inside label on an anchored (pin) marker across line and area', async () => {
+        // A pin is drawn anchored at its tip, so its label must ride up into the head. Line and area
+        // apply the marker anchor the way bubble/scatter do — without it the label strands at the tip.
+        await renderAndSnapshot({
+            data: lineData,
+            legend: { enabled: false },
+            axes: insideAxes,
+            series: [
+                {
+                    type: 'line',
+                    xKey: 'x',
+                    yKey: 'y',
+                    marker: { enabled: true, shape: 'pin', size: 200 },
+                    label: boxedInsideLabel,
+                },
+                {
+                    data: lineData.map((d) => ({ x: d.x, y2: d.y - 25 })),
+                    type: 'area',
+                    xKey: 'x',
+                    yKey: 'y2',
+                    marker: { enabled: true, shape: 'pin', size: 200 },
+                    label: boxedInsideLabel,
+                },
+            ],
+        });
+        expect(labelTexts(0).some((text) => typeof text === 'string' && text.length > 0)).toBe(true);
+        expect(labelTexts(1).some((text) => typeof text === 'string' && text.length > 0)).toBe(true);
+    });
+
+    it('truncates rather than drops an inside label a concave star marker cannot fully hold', async () => {
+        // The star's narrow raw-outline box cannot hold this label at this diameter. Inside labels
+        // ellipsise on overflow rather than hide, so the label survives truncated instead of vanishing.
+        await renderAndSnapshot({
+            data: lineData,
+            legend: { enabled: false },
+            axes: insideAxes,
+            series: [
+                {
+                    type: 'line',
+                    xKey: 'x',
+                    yKey: 'y',
+                    marker: { enabled: true, shape: 'star', size: 100 },
+                    label: { ...boxedInsideLabel, formatter: () => 'Quarterly revenue growth' },
+                },
+            ],
+        });
+        const texts = labelTexts();
+        expect(texts.every((text) => typeof text === 'string' && text.length > 0)).toBe(true);
+        expect(someTruncated(texts)).toBe(true);
+    });
+
+    it('ellipsises an inside label with truncate unset rather than hiding it when the marker is too small', async () => {
+        // Regression: inside-marker labels resolve their overflow strategy from `avoidCollisions`, which
+        // used to fall to 'hide' when `truncate` was unset — a marker too small for the full text rendered
+        // nothing at all. They now default to ellipsis, so an overflowing label survives truncated.
+        await renderAndSnapshot({
+            data: lineData,
+            legend: { enabled: false },
+            axes: insideAxes,
+            series: [
+                {
+                    type: 'line',
+                    xKey: 'x',
+                    yKey: 'y',
+                    marker: { enabled: true, shape: 'circle', size: 40 },
+                    label: { enabled: true, placement: 'inside', formatter: () => 'Quarterly revenue growth' },
+                },
+            ],
+        });
+        const texts = labelTexts();
+        expect(texts.every((text) => typeof text === 'string' && text.length > 0)).toBe(true);
+        expect(someTruncated(texts)).toBe(true);
     });
 
     it('scales an inside label to a complex (heart) marker across data-driven sizes', async () => {

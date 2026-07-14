@@ -77,7 +77,8 @@ import {
     processedDataIsAnimatable,
     valueProperty,
 } from '../../data/processors';
-import { adjustLabelPlacement, fitLabelToContainer, updateLabelNode } from '../../labelUtil';
+import type { ResolvedLabelPlacement } from '../../labelUtil';
+import { adjustLabelPlacement, fitLabelToContainer, pickPlacementStyle, updateLabelNode } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { type TooltipContent, isTooltipValueMissing } from '../../tooltip/tooltip';
@@ -126,6 +127,8 @@ interface BarNodeLabelDatum extends Readonly<Point> {
     /** Flush offset written by the placement engine to keep a rotated label inside its region. */
     offsetX?: number;
     offsetY?: number;
+    /** Resolved inside/outside placement, selecting the `insideStyle`/`outsideStyle` overrides. */
+    placement?: ResolvedLabelPlacement;
 }
 
 /**
@@ -615,6 +618,9 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         const filteredValueExceedUnfiltered = processedData.reduced?.filteredValueExceedUnfiltered ?? false;
         const isStacked = dataModel.hasColumnById(this, 'yValue-start');
         const { label } = this.properties;
+        const labelPlacement = toArray(label.placement)[0];
+        const labelPadding =
+            label.padding ?? (labelPlacement?.startsWith('inside') ? label.insideStyle : label.outsideStyle).padding;
         const canIncrementallyUpdate = this.canIncrementallyUpdateNodes(dataAggregationFilter != null);
 
         const { groupOffset, barOffset, barWidth } = this.getBarDimensions();
@@ -659,7 +665,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             yReversed: yAxis.isReversed(),
             // 0n keeps a bigint y-domain on the full-precision convert() path (a numeric 0 narrows to Number).
             bboxBottom: yScale.convert(0n),
-            labelSpacing: label.spacing + (typeof label.padding === 'number' ? label.padding : 0),
+            labelSpacing: label.spacing + (typeof labelPadding === 'number' ? labelPadding : 0),
             crisp:
                 dataAggregationFilter == null &&
                 (this.properties.crisp ??
@@ -682,7 +688,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             yName: this.properties.yName,
             legendItemName: this.properties.legendItemName,
             label,
-            labelPlacement: toArray(label.placement)[0],
+            labelPlacement,
             labelRotation: barLabelRotation(toArray(label.orientation)[0]),
             labelResolvesOrientation: barLabelResolvesOrientation(label.orientation),
             labelFit: resolveLabelFit(label, label.collisionAvoidance.avoid),
@@ -978,6 +984,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             const region = ctx.labelResolvesOrientation ? insideBox : undefined;
             const fittedText = fitLabelToContainer(nodeLabelText, ctx.labelFit, ctx.label, insideBox);
 
+            const resolvedPlacement = isInside ? 'inside' : 'outside';
             const existingLabel = mutableNode.label;
             if (existingLabel) {
                 // Update existing label object in place
@@ -990,6 +997,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 existingLabel.region = region;
                 existingLabel.offsetX = 0;
                 existingLabel.offsetY = 0;
+                existingLabel.placement = resolvedPlacement;
             } else {
                 // Create new label object (first time label is added)
                 mutableNode.label = {
@@ -999,6 +1007,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                     region,
                     offsetX: 0,
                     offsetY: 0,
+                    placement: resolvedPlacement,
                 };
             }
         }
@@ -1702,12 +1711,20 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             legendItemName: this.properties.legendItemName ?? this.properties.xName ?? this.properties.xKey,
         };
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        const { label } = this.properties;
         opts.labelSelection.each((textNode, datum) => {
             textNode.fillOpacity = this.getHighlightStyle(isHighlight, datum?.datumIndex).opacity ?? 1;
-            updateLabelNode(this, textNode, params, this.properties.label, datum.label, {
-                isHighlight,
-                activeHighlight,
-            });
+            const placementStyle = pickPlacementStyle(label, datum.label?.placement);
+            updateLabelNode(
+                this,
+                textNode,
+                params,
+                label,
+                datum.label,
+                { isHighlight, activeHighlight },
+                undefined,
+                placementStyle
+            );
         });
     }
 

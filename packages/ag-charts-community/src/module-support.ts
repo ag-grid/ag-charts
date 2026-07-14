@@ -172,7 +172,14 @@ export {
     valueProperty,
 } from './chart/data/processors';
 export type { PreSceneRenderEvent, ProcessDataEvent } from './core/eventsHub';
-export { adjustLabelPlacement, fitLabelToContainer, getLabelStyles, updateLabelNode } from './chart/labelUtil';
+export {
+    adjustLabelPlacement,
+    fitLabelToContainer,
+    getLabelStyles,
+    pickPlacementStyle,
+    updateLabelNode,
+} from './chart/labelUtil';
+export type { ResolvedLabelPlacement } from './chart/labelUtil';
 export { LayoutElement } from './chart/layout/layoutManager';
 export type { LayoutContext } from './chart/layout/layoutManager';
 export { AnnotationManager } from './chart/annotation/annotationManager';
@@ -405,7 +412,7 @@ export { ContinuousScale } from './scale/continuousScale';
 export { OrdinalTimeScale } from './scale/ordinalTimeScale';
 export { ApproximateOrdinalTimeScale } from './scale/approximateOrdinalTimeScale';
 export { APPROXIMATE_THRESHOLD } from './scale/discreteTimeScale';
-export { Label, LabelStyle, PlacedSeriesLabel } from './chart/label';
+export { Label, LabelPlacementStyle, LabelStyle, PlacedSeriesLabel } from './chart/label';
 export { Marker } from './chart/marker/marker';
 export { drawMarkerUnitPolygon } from './chart/marker/shapes';
 export { SectorBox } from './scene/sectorBox';

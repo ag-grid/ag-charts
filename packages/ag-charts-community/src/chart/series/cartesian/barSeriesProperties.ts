@@ -13,7 +13,7 @@ import type {
 } from 'ag-charts-types';
 
 import { DropShadow } from '../../../scene/dropShadow';
-import { Label } from '../../label';
+import { Label, LabelPlacementStyle } from '../../label';
 import { makeSeriesTooltip } from '../seriesTooltip';
 import { AbstractBarSeriesProperties } from './abstractBarSeries';
 
@@ -23,6 +23,12 @@ class BarSeriesLabel extends Label<AgBarSeriesLabelFormatterParams> {
 
     @Property
     spacing: PixelSize = 0;
+
+    @Property
+    insideStyle = new LabelPlacementStyle();
+
+    @Property
+    outsideStyle = new LabelPlacementStyle();
 }
 
 export class BarSeriesProperties extends AbstractBarSeriesProperties<AgBarSeriesOptions> {

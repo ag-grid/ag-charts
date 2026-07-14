@@ -58,6 +58,7 @@ const {
     createDatumId,
     checkCrisp,
     updateLabelNode,
+    pickPlacementStyle,
     prepareBarAnimationFunctions,
     collapsedStartingBarPosition,
     resetBarSelectionsDirect,
@@ -87,6 +88,8 @@ type WaterfallNodeLabelDatum = Readonly<Point> & {
     /** Flush offset written by the placement engine to keep a rotated label inside its region. */
     offsetX?: number;
     offsetY?: number;
+    /** Resolved inside/outside placement, selecting the `insideStyle`/`outsideStyle` overrides. */
+    placement?: _ModuleSupport.ResolvedLabelPlacement;
 };
 
 type WaterfallNodePointDatum = _ModuleSupport.DataModelSeriesNodeDatum['point'] & {
@@ -697,10 +700,11 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
             // Label config is item-type specific, so the fit is resolved per datum rather than hoisted.
             const labelFit = resolveLabelFit(label, label.collisionAvoidance.avoid);
-            const spacing: number = label.spacing + (typeof label.padding === 'number' ? label.padding : 0);
             // Array placement is accepted, but only its first candidate is honoured here.
             const placement = toArray(label.placement)[0];
             const insidePlacement = placement == null || placement.startsWith('inside');
+            const labelPadding = label.padding ?? (insidePlacement ? label.insideStyle : label.outsideStyle).padding;
+            const spacing: number = label.spacing + (typeof labelPadding === 'number' ? labelPadding : 0);
             const resolvesOrientation = barLabelResolvesOrientation(label.orientation);
             const labelPlacement = adjustLabelPlacement({
                 isUpward: (value ?? -1) >= 0 !== valueAxisReversed,
@@ -727,6 +731,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             mutableNode.label.region = resolvesOrientation ? container : undefined;
             mutableNode.label.offsetX = 0;
             mutableNode.label.offsetY = 0;
+            mutableNode.label.placement = insidePlacement ? 'inside' : 'outside';
         } else {
             // Clear label when disabled
             mutableNode.label.text = '';
@@ -1108,7 +1113,17 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             const label = this.getItemConfig(datum.itemType).label;
             const propertyItemId = datum.itemType === 'subtotal' ? 'total' : datum.itemType;
             const labelPath = ['series', `${this.declarationOrder}`, 'item', propertyItemId, 'label'];
-            updateLabelNode(this, textNode, params, label, datum.label, { isHighlight, activeHighlight }, labelPath);
+            const placementStyle = pickPlacementStyle(label, datum.label.placement);
+            updateLabelNode(
+                this,
+                textNode,
+                params,
+                label,
+                datum.label,
+                { isHighlight, activeHighlight },
+                labelPath,
+                placementStyle
+            );
         });
     }
 

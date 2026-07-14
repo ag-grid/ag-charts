@@ -14,7 +14,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 import type { InternalAgColorType } from 'ag-charts-core';
 import { BaseProperties, PropertiesArray, Property } from 'ag-charts-core';
 
-const { AbstractBarSeriesProperties, makeSeriesTooltip, DropShadow, Label } = _ModuleSupport;
+const { AbstractBarSeriesProperties, makeSeriesTooltip, DropShadow, Label, LabelPlacementStyle } = _ModuleSupport;
 export class WaterfallSeriesTotal extends BaseProperties {
     @Property
     totalType!: 'subtotal' | 'total';
@@ -40,6 +40,12 @@ class WaterfallSeriesLabel extends Label<AgWaterfallSeriesLabelFormatterParams> 
 
     @Property
     spacing: PixelSize = 0;
+
+    @Property
+    insideStyle = new LabelPlacementStyle();
+
+    @Property
+    outsideStyle = new LabelPlacementStyle();
 }
 
 export class WaterfallSeriesItem extends BaseProperties {

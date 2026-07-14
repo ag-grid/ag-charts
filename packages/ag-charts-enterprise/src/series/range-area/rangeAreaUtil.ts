@@ -17,6 +17,8 @@ export interface RangeAreaLabelDatum extends Readonly<Point> {
     textAlign: CanvasTextAlign;
     textBaseline: CanvasTextBaseline;
     rotation: number;
+    /** Resolved inside/outside placement, selecting the `insideStyle`/`outsideStyle` overrides. */
+    placement?: _ModuleSupport.ResolvedLabelPlacement;
     datum: any;
     readonly itemId?: never;
     readonly itemType: AgRangeAreaSeriesItemType;

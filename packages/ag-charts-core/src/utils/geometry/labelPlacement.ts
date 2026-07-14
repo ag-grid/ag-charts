@@ -53,14 +53,21 @@ export interface LabelFit {
 /**
  * Resolves the label-surface fit fields to an engine {@link LabelFit}, mapping the public `truncate`
  * boolean onto the internal overflow strategy:
- *  - `truncate: true` → `'ellipsis'`: the bound is applied and overflow truncates with an ellipsis.
+ *  - `truncate: true` or `defaultToTruncate` → `'ellipsis'`: the bound is applied and overflow truncates with an ellipsis.
  *  - `truncate` unset + `avoidCollisions` → `'hide'`: the bound is applied and the label hides if it overflows.
  *  - `truncate` unset + no collision avoidance → `undefined`: no bound is applied and the full text
  *    renders, leaving charts that opt into neither truncation nor collision avoidance unchanged.
+ *
+ * @param defaultToTruncate When `truncate` is unset, ellipsise on overflow rather than hide. Used by
+ * inside-marker labels, which are bound to the marker box and must never vanish when the text overruns it.
  */
-export function resolveLabelFit(fit: LabelFitOptions, avoidCollisions = false): LabelFit | undefined {
+export function resolveLabelFit(
+    fit: LabelFitOptions,
+    avoidCollisions = false,
+    defaultToTruncate = false
+): LabelFit | undefined {
     let overflowStrategy: OverflowStrategy | undefined;
-    if (fit.truncate) {
+    if (fit.truncate || defaultToTruncate) {
         overflowStrategy = 'ellipsis';
     } else if (avoidCollisions) {
         overflowStrategy = 'hide';

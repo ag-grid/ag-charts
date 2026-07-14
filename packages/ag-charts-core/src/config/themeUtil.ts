@@ -360,9 +360,7 @@ export function getSequentialColors(colors: { [key: string]: string }) {
     });
 }
 
-export const LABEL_BOXING_DEFAULTS: WithThemeParams<LabelBoxOptions> = {
-    padding: 8,
-    cornerRadius: 4,
+const LABEL_BOXING_FILL_DEFAULTS: WithThemeParams<LabelBoxOptions> = {
     fill: {
         $if: [
             {
@@ -375,8 +373,36 @@ export const LABEL_BOXING_DEFAULTS: WithThemeParams<LabelBoxOptions> = {
             undefined,
         ],
     },
+};
+
+export const LABEL_BOXING_DEFAULTS: WithThemeParams<LabelBoxOptions> = {
+    ...LABEL_BOXING_FILL_DEFAULTS,
+    padding: 8,
+    cornerRadius: 4,
     border: {
         enabled: { $isUserOption: ['../border', true, false] },
+        strokeWidth: 1,
+        stroke: { $foregroundOpacity: 0.08 },
+    },
+};
+
+/**
+ * Top-level box defaults for placement-reactive labels. Fill stays here (its default is nullish) and
+ * `border.enabled` stays here (the border is enabled once for the whole label); `cornerRadius`,
+ * `padding` and the border stroke geometry live in the placement blocks instead so they can be
+ * overridden per resolved inside/outside placement. Pair with `PLACEMENT_LABEL_BOXING_DEFAULTS`.
+ */
+export const LABEL_BOXING_TOP_LEVEL_DEFAULTS: WithThemeParams<LabelBoxOptions> = {
+    ...LABEL_BOXING_FILL_DEFAULTS,
+    border: {
+        enabled: { $isUserOption: ['../border', true, false] },
+    },
+};
+
+/** Box defaults spread into a placement label's `insideStyle`/`outsideStyle` blocks. */
+export const PLACEMENT_LABEL_BOXING_DEFAULTS: WithThemeParams<LabelBoxOptions> = {
+    cornerRadius: 4,
+    border: {
         strokeWidth: 1,
         stroke: { $foregroundOpacity: 0.08 },
     },

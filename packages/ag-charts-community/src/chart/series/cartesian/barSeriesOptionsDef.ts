@@ -13,6 +13,7 @@ import {
     fillOptionsDef,
     labelFitOptionsDefs,
     labelOrientationDef,
+    labelPlacementStyleDefs,
     lineDashOptionsDef,
     multiSeriesHighlightOptionsDef,
     number,
@@ -53,6 +54,7 @@ export const barSeriesThemeableOptionsDef: OptionsDefs<AgBarSeriesThemeableOptio
     label: {
         ...seriesLabelOptionsDefs,
         ...labelFitOptionsDefs,
+        ...labelPlacementStyleDefs,
         placement: or(barLabelPlacement, arrayOf(barLabelPlacement)),
         orientation: labelOrientationDef,
         spacing: positiveNumber,

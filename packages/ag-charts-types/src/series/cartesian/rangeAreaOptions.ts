@@ -7,7 +7,11 @@ import type {
     Styler,
 } from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
-import type { AgChartLabelFitOptions, AgChartLabelOptions } from '../../chart/labelOptions';
+import type {
+    AgChartLabelFitOptions,
+    AgChartLabelOptions,
+    AgSeriesLabelPlacementStyleOptions,
+} from '../../chart/labelOptions';
 import type { AgCssColorOrRef } from '../../chart/themeParamsOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault, DatumKey, Opacity, PixelSize } from '../../chart/types';
@@ -71,7 +75,7 @@ export interface AgRangeAreaSeriesItemStylerParams<TDatum, TContext>
 }
 
 export interface AgRangeAreaSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault>
-    extends AgChartLabelOptions<TDatum, TParams, TContext>, AgChartLabelFitOptions {
+    extends AgChartLabelOptions<TDatum, TParams, TContext>, AgChartLabelFitOptions, AgSeriesLabelPlacementStyleOptions {
     /**
      * Where to render series labels relative to the area. Either a single placement or an ordered
      * fallback list tried in turn until one fits.

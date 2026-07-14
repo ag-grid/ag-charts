@@ -64,6 +64,7 @@ const {
     valueProperty,
     keyProperty,
     updateLabelNode,
+    pickPlacementStyle,
     fixNumericExtent,
     buildResetPathFn,
     resetLabelFn,
@@ -852,7 +853,9 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         const { xKey, yLowKey, yHighKey, xName, yName, yLowName, yHighName, legendItemName, label } = this.properties;
         // Array placement is accepted, but only its first candidate is honoured here.
         const placement = firstCandidate(label.placement);
-        const spacing = label.spacing + (typeof label.padding === 'number' ? label.padding : 0);
+        const labelPadding =
+            label.padding ?? (placement === 'outside' ? label.outsideStyle : label.insideStyle).padding;
+        const spacing = label.spacing + (typeof labelPadding === 'number' ? labelPadding : 0);
 
         let actualItemId = itemType;
         if (inverted) {
@@ -900,6 +903,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             textAlign: 'center',
             textBaseline: direction === -1 ? 'bottom' : 'top',
             rotation: 0,
+            placement,
         };
     }
 
@@ -1259,9 +1263,20 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         };
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const { isHighlight = false, labelSelection } = opts;
+        const { label } = this.properties;
         labelSelection.each((textNode, datum) => {
             textNode.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;
-            updateLabelNode(this, textNode, params, this.properties.label, datum, { isHighlight, activeHighlight });
+            const placementStyle = pickPlacementStyle(label, datum.placement);
+            updateLabelNode(
+                this,
+                textNode,
+                params,
+                label,
+                datum,
+                { isHighlight, activeHighlight },
+                undefined,
+                placementStyle
+            );
         });
     }
 

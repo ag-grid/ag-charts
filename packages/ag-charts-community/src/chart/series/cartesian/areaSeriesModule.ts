@@ -8,8 +8,9 @@ import {
     FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
-    LABEL_BOXING_DEFAULTS,
+    LABEL_BOXING_TOP_LEVEL_DEFAULTS,
     MARKER_SERIES_HIGHLIGHT_STYLE,
+    PLACEMENT_LABEL_BOXING_DEFAULTS,
     SEGMENTATION_DEFAULTS,
     SERIES_SELECTION_THEME,
 } from 'ag-charts-core';
@@ -66,12 +67,13 @@ const themeTemplate: ExtensibleTheme<'area'> = {
             stroke: { $palette: 'stroke' },
         },
         label: {
-            ...LABEL_BOXING_DEFAULTS,
+            ...LABEL_BOXING_TOP_LEVEL_DEFAULTS,
             enabled: false,
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },
             fontWeight: { $ref: 'fontWeight' },
-            color: { $ref: 'textColor' },
+            insideStyle: { color: { $ref: 'textColor' }, padding: 8, ...PLACEMENT_LABEL_BOXING_DEFAULTS },
+            outsideStyle: { color: { $ref: 'textColor' }, padding: 8, ...PLACEMENT_LABEL_BOXING_DEFAULTS },
             placement: ['top', 'bottom'],
         },
         tooltip: {
