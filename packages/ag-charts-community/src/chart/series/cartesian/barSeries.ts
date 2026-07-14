@@ -27,13 +27,13 @@ import {
     barLabelResolvesOrientation,
     barLabelRotation,
     buildBarLabelData,
-    insetBox,
     isContinuous,
     isFiniteNumber,
     maxValue,
     mergeDefaults,
     minValue,
     resolveLabelFit,
+    resolvePadding,
     toArray,
     toNumber,
     zeroLike,
@@ -979,11 +979,18 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             // The rect is only needed to bound the fit or to resolve orientation, so skip it otherwise.
             const isInside = placement == null || placement.startsWith('inside');
             const needsRect = ctx.labelFit != null || ctx.labelResolvesOrientation;
-            // A uniform inset takes only scalar padding; per-side padding is applied to the label position above.
-            const insetSpacing = ctx.labelSpacing + (typeof ctx.labelPadding === 'number' ? ctx.labelPadding : 0);
+            // Inset each side by the spacing plus its own padding, so the fit region matches the padded
+            // label position rather than a larger box that would accept overlapping asymmetric labels.
+            const { labelSpacing } = ctx;
+            const labelPad = resolvePadding(ctx.labelPadding);
             const insideBox =
                 isInside && needsRect
-                    ? insetBox({ x: rectX, y: rectY, width: rectWidth, height: rectHeight }, insetSpacing)
+                    ? {
+                          x: rectX + labelSpacing + labelPad.left,
+                          y: rectY + labelSpacing + labelPad.top,
+                          width: rectWidth - 2 * labelSpacing - labelPad.left - labelPad.right,
+                          height: rectHeight - 2 * labelSpacing - labelPad.top - labelPad.bottom,
+                      }
                     : undefined;
             // The first orientation is baked into `rotation`; an array resolves against the bar rect for
             // inside placements only (outside labels fall back to the plot bounds via no region).
