@@ -190,9 +190,9 @@ describe('label collision avoidance', () => {
     });
 
     // `label.orientation` rotates bar-family labels along/across the bar's length. Coverage across the
-    // three enterprise bar-family series; the `parallel`/`perpendicular` distinction is what varies.
+    // enterprise bar-family series; the `horizontal`/`vertical` distinction is what varies.
     describe('bar-family label orientation', () => {
-        const orientations = ['parallel', 'perpendicular', 'perpendicular-reversed'];
+        const orientations = ['horizontal', 'vertical', 'vertical-reversed'];
         const rangeData = [
             { x: 'A', low: 2, high: 8 },
             { x: 'B', low: 3, high: 9 },
@@ -241,29 +241,13 @@ describe('label collision avoidance', () => {
                     ],
                 });
             });
-
-            it(`range-area renders labels with orientation '${orientation}'`, async () => {
-                await renderAndSnapshot({
-                    data: rangeData,
-                    axes: rangeAxes,
-                    series: [
-                        {
-                            type: 'range-area',
-                            xKey: 'x',
-                            yLowKey: 'low',
-                            yHighKey: 'high',
-                            label: { enabled: true, orientation },
-                        },
-                    ],
-                });
-            });
         }
 
         // Orientation array fall-through for waterfall (inside-center, so the fit region is the bar rect):
-        // tall, thin bars whose long upright (parallel) label overflows the bar width fall through to
-        // perpendicular for every bar, matching a fixed perpendicular orientation. Alternating deltas keep
-        // the bars tall so the perpendicular candidate fits the bar height.
-        it('waterfall falls through to perpendicular when the parallel label overflows a thin bar', async () => {
+        // tall, thin bars whose long upright (horizontal) label overflows the bar width fall through to
+        // vertical for every bar, matching a fixed vertical orientation. Alternating deltas keep
+        // the bars tall so the vertical candidate fits the bar height.
+        it('waterfall falls through to vertical when the horizontal label overflows a thin bar', async () => {
             const thinWaterfall = (orientation: string | string[]) => {
                 const label = { enabled: true, placement: 'inside-center', orientation, formatter: () => 'WWWWWWWWWW' };
                 return {
@@ -281,8 +265,8 @@ describe('label collision avoidance', () => {
             await expectPixelIdenticalAcrossUpdate(
                 ctx,
                 createEnterpriseChart,
-                thinWaterfall(['parallel', 'perpendicular']) as any,
-                thinWaterfall('perpendicular') as any
+                thinWaterfall(['horizontal', 'vertical']) as any,
+                thinWaterfall('vertical') as any
             );
         });
 
@@ -302,36 +286,12 @@ describe('label collision avoidance', () => {
                         label: {
                             enabled: true,
                             placement: 'inside',
-                            orientation: ['parallel', 'perpendicular'],
+                            orientation: ['horizontal', 'vertical'],
                             formatter: () => 'WWWWWWWWWW',
                         },
                     },
                 ],
             });
-        });
-
-        // Range-area labels are point-anchored (no bar rect), so fall-through is collision-driven. With
-        // labels spread apart (no collision) the array keeps its first candidate — identical to the scalar.
-        it('range-area keeps the first orientation when no label collides', async () => {
-            const rangeAreaOptions = (orientation: string | string[]) => ({
-                data: rangeData,
-                axes: rangeAxes,
-                series: [
-                    {
-                        type: 'range-area',
-                        xKey: 'x',
-                        yLowKey: 'low',
-                        yHighKey: 'high',
-                        label: { enabled: true, orientation },
-                    },
-                ],
-            });
-            await expectPixelIdenticalAcrossUpdate(
-                ctx,
-                createEnterpriseChart,
-                rangeAreaOptions(['parallel', 'perpendicular']) as any,
-                rangeAreaOptions('parallel') as any
-            );
         });
     });
 });

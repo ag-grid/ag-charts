@@ -566,16 +566,16 @@ describe('placeLabels orientation candidates', () => {
         expect(placed.rotation).toBeUndefined();
     });
 
-    it('rotates a perpendicular label to fit when the parallel box overflows the bounds', () => {
-        // The 100-wide label overflows the 60-wide bounds parallel; perpendicular it becomes a
-        // 10x100 vertical box that clears them. With no orientation it is dropped.
+    it('rotates a vertical label to fit when the horizontal box overflows the bounds', () => {
+        // The 100-wide label overflows the 60-wide bounds when horizontal; when vertical it becomes
+        // a 10x100 box that clears them. With no orientation it is dropped.
         const tall: BoxBounds = { x: 0, y: 0, width: 60, height: 200 };
         const overflowing = { ...wideLabel(), point: { x: 50, y: 100, size: 0 } };
 
         const dropped = placeLabels(new Map([['s', [overflowing]]]), tall, 5).get('s')!;
         expect(dropped.length).toBe(0);
 
-        const rotated = placeLabels(new Map([['s', [{ ...overflowing, orientation: 'perpendicular' }]]]), tall, 5).get(
+        const rotated = placeLabels(new Map([['s', [{ ...overflowing, orientation: 'vertical' }]]]), tall, 5).get(
             's'
         )![0];
         expect(rotated).toBeDefined();
@@ -590,7 +590,7 @@ describe('placeLabels orientation candidates', () => {
             label: { text: 'S', width: 20, height: 10 },
             anchor: undefined,
             placement: undefined,
-            orientation: ['perpendicular', 'parallel'],
+            orientation: ['vertical', 'horizontal'],
             gap: 0,
             avoid: true,
         };
@@ -599,8 +599,8 @@ describe('placeLabels orientation candidates', () => {
     });
 
     it('blocks a later label by the rotated footprint, not the measured box', () => {
-        // A perpendicular 100x10 label occupies a tall 10x100 vertical band; a second label
-        // overlapping that band collides, whereas it would clear the parallel horizontal band.
+        // A vertical 100x10 label occupies a tall 10x100 footprint; a second label overlapping
+        // that footprint collides, whereas it would clear the horizontal 100x10 footprint.
         const second: PointLabelDatum = {
             point: { x: 52, y: 20, size: 0 },
             label: { text: 'B', width: 10, height: 10 },
@@ -610,22 +610,22 @@ describe('placeLabels orientation candidates', () => {
             avoid: true,
         };
 
-        const blocked = placeLabels(new Map([['s', [wideLabel('perpendicular'), second]]]), bounds, 5).get('s')!;
+        const blocked = placeLabels(new Map([['s', [wideLabel('vertical'), second]]]), bounds, 5).get('s')!;
         expect(blocked.some((l) => l.datum === second)).toBe(false);
 
-        const clear = placeLabels(new Map([['s', [wideLabel('parallel'), second]]]), bounds, 5).get('s')!;
+        const clear = placeLabels(new Map([['s', [wideLabel('horizontal'), second]]]), bounds, 5).get('s')!;
         expect(clear.some((l) => l.datum === second)).toBe(true);
     });
 
     it('adopts the first orientation candidate for an avoid:false label', () => {
-        const placed = placeLabels(new Map([['s', [wideLabel('perpendicular', false)]]]), bounds, 5).get('s')![0];
+        const placed = placeLabels(new Map([['s', [wideLabel('vertical', false)]]]), bounds, 5).get('s')![0];
         expect(placed.rotation).toBe(90);
         expect(placed.width).toBe(100);
         expect(placed.height).toBe(10);
     });
 
     it('tests containment against a per-label region, falling through when the first orientation overflows it', () => {
-        // A 100x10 label in a narrow-tall region: parallel overflows the 30-wide region, perpendicular
+        // A 100x10 label in a narrow-tall region: horizontal overflows the 30-wide region, vertical
         // (10x100 footprint) fits. The shared bounds are large enough that only the region forces it.
         const region: BoxBounds = { x: 40, y: 0, width: 30, height: 200 };
         const datum: PointLabelDatum = {
@@ -633,7 +633,7 @@ describe('placeLabels orientation candidates', () => {
             label: { text: 'W', width: 100, height: 10 },
             anchor: undefined,
             placement: undefined,
-            orientation: ['parallel', 'perpendicular'],
+            orientation: ['horizontal', 'vertical'],
             gap: 0,
             avoid: true,
             region,
@@ -642,7 +642,7 @@ describe('placeLabels orientation candidates', () => {
         const constrained = placeLabels(new Map([['s', [datum]]]), bounds, 5).get('s')![0];
         expect(constrained.rotation).toBe(90);
 
-        // Without a region the parallel box fits the shared bounds, so it stays unrotated.
+        // Without a region the horizontal box fits the shared bounds, so it stays unrotated.
         const { region: _omit, ...unconstrained } = datum;
         const free = placeLabels(new Map([['s', [unconstrained]]]), bounds, 5).get('s')![0];
         expect(free.rotation).toBeUndefined();
@@ -654,14 +654,14 @@ describe('placeLabels orientation candidates', () => {
             marker: { enabled: false },
             seriesItem: { enabled: false },
         };
-        // A occupies a wide horizontal band. B's parallel box reaches into it, but B's perpendicular
+        // A occupies a wide flat band. B's horizontal box reaches into it, but B's vertical
         // (narrow-tall) footprint sits clear to the left, so B rotates to avoid A.
         const a: PointLabelDatum = {
             point: { x: 100, y: 100, size: 0 },
             label: { text: 'A', width: 100, height: 10 },
             anchor: undefined,
             placement: undefined,
-            orientation: 'parallel',
+            orientation: 'horizontal',
             gap: 0,
             avoid: true,
             collideWith: labelOnly,
@@ -671,7 +671,7 @@ describe('placeLabels orientation candidates', () => {
             label: { text: 'B', width: 60, height: 10 },
             anchor: undefined,
             placement: undefined,
-            orientation: ['parallel', 'perpendicular'],
+            orientation: ['horizontal', 'vertical'],
             gap: 0,
             avoid: true,
             collideWith: labelOnly,
@@ -688,9 +688,9 @@ describe('bar label placement helpers', () => {
     describe('barLabelResolvesOrientation', () => {
         it.each([
             [undefined, false],
-            ['parallel' as const, false],
-            [['parallel'] as const, false],
-            [['parallel', 'perpendicular'] as const, true],
+            ['horizontal' as const, false],
+            [['horizontal'] as const, false],
+            [['horizontal', 'vertical'] as const, true],
         ])('%o -> %s', (orientation, expected) => {
             expect(barLabelResolvesOrientation(orientation as any)).toBe(expected);
         });
@@ -727,12 +727,12 @@ describe('bar label placement helpers', () => {
 
         it('centres the candidate box, constrains it to the region, and avoids other labels only', () => {
             const target = { rotation: 0 };
-            const datum = buildBarLabelDatum(anchor, 'label', 100, 10, ['parallel', 'perpendicular'], region, target);
+            const datum = buildBarLabelDatum(anchor, 'label', 100, 10, ['horizontal', 'vertical'], region, target);
             expect(datum.point).toEqual({ x: 15, y: 100, size: 0 });
             expect(datum.region).toBe(region);
             expect(datum.avoid).toBe(true);
             expect(datum.placement).toBeUndefined();
-            expect(datum.orientation).toEqual(['parallel', 'perpendicular']);
+            expect(datum.orientation).toEqual(['horizontal', 'vertical']);
             expect(datum.collideWith).toEqual({
                 label: { enabled: true },
                 marker: { enabled: false },
@@ -743,7 +743,7 @@ describe('bar label placement helpers', () => {
 
         it('resolves the orientation through the engine and writes the rotation (radians) back to the target', () => {
             const target = { rotation: 0 };
-            const datum = buildBarLabelDatum(anchor, 'label', 100, 10, ['parallel', 'perpendicular'], region, target);
+            const datum = buildBarLabelDatum(anchor, 'label', 100, 10, ['horizontal', 'vertical'], region, target);
             const placed = placeLabels(
                 new Map<string, BarPlacedLabelDatum[]>([['s', [datum]]]),
                 { x: 0, y: 0, width: 200, height: 200 },
@@ -751,7 +751,7 @@ describe('bar label placement helpers', () => {
             ).get('s') as PlacedLabel<BarPlacedLabelDatum>[];
 
             applyBarLabelOrientation(placed);
-            // Parallel (100 wide) overflows the 30-wide region, so it falls through to perpendicular (90deg).
+            // Horizontal (100 wide) overflows the 30-wide region, so it falls through to vertical (90deg).
             expect(target.rotation).toBeCloseTo(Math.PI / 2);
         });
     });
