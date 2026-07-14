@@ -126,7 +126,7 @@ export function createChartContext(chart: ChartHost, vars: ChartContextVars): Dy
         .service('layoutManager', (c) => new LayoutManager(c.eventsHub))
         .service('localeManager', (c) => new LocaleManager(c.eventsHub))
         .service('historyManager', (c) => new HistoryManager(c))
-        .service('collapsedManager', (c) => new CollapsedManager(c.eventsHub))
+        .service('collapsedManager', (c) => new CollapsedManager(c.eventsHub, c.chartService))
         .service('animationManager', (c) => new AnimationManager(c.agDocument, c.interactionManager, vars.updateMutex))
         .service('activeManager', (c) => new ActiveManager(c))
         .service('proxyInteractionService', (c) => new ProxyInteractionService(c))

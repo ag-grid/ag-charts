@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type AgCollapsedChangeEventSource, _ModuleSupport } from 'ag-charts-community';
 import {
     type BoxBounds,
     type ChartAnimationPhase,
@@ -139,7 +139,7 @@ export abstract class AbstractNetworkSeries<
             ctx.chartState.observe((get) => {
                 const activeItem = get('activeItem');
                 if (activeItem?.seriesId === this.id) {
-                    this.expandNetworkToItem(activeItem.itemId);
+                    this.expandNetworkToItem(activeItem.itemId, 'api-call');
                 }
             })
         );
@@ -166,19 +166,19 @@ export abstract class AbstractNetworkSeries<
                     return;
                 }
                 if (this.ctx.collapsedManager.isCollapsed(clickedNode.itemId)) {
-                    this.expandItem(clickedNode.itemId);
+                    this.expandItem(clickedNode.itemId, 'user-interaction');
                 } else {
-                    this.collapseItem(clickedNode.itemId);
+                    this.collapseItem(clickedNode.itemId, 'user-interaction');
                 }
             }),
             ctx.eventsHub.on('series:keynav-expand', (event) => {
                 if (event.itemId == null || event.series !== this) return;
-                this.expandItem(event.itemId);
+                this.expandItem(event.itemId, 'user-interaction');
                 this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.PERFORM_LAYOUT });
             }),
             ctx.eventsHub.on('series:keynav-collapse', (event) => {
                 if (event.itemId == null || event.series !== this) return;
-                this.collapseItem(event.itemId);
+                this.collapseItem(event.itemId, 'user-interaction');
                 this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.PERFORM_LAYOUT });
             })
         );
@@ -208,9 +208,9 @@ export abstract class AbstractNetworkSeries<
     ): _ModuleSupport.BBox | undefined;
     abstract updateOffset(offset: Point): void;
 
-    abstract expandNetworkToItem(itemIdOrIndex: string | number): void;
-    abstract expandItem(itemIdOrIndex: string | number): void;
-    abstract collapseItem(itemIdOrIndex: string | number): void;
+    abstract expandNetworkToItem(itemIdOrIndex: string | number, source: AgCollapsedChangeEventSource): void;
+    abstract expandItem(itemIdOrIndex: string | number, source: AgCollapsedChangeEventSource): void;
+    abstract collapseItem(itemIdOrIndex: string | number, source: AgCollapsedChangeEventSource): void;
 
     dataCount() {
         return this.datumSelection.length;
@@ -320,13 +320,13 @@ export abstract class AbstractNetworkSeries<
 
     processPendingCollapse() {
         if (this.pendingCollapsedIds) {
-            this.ctx.collapsedManager.collapse(this.pendingCollapsedIds);
+            this.ctx.collapsedManager.collapse(this.pendingCollapsedIds, 'api-call');
             this.pendingCollapsedIds = undefined;
         }
     }
 
-    protected expand(ids: (string | number)[]) {
-        const changed = this.ctx.collapsedManager.expand(ids);
+    protected expand(ids: (string | number)[], source: AgCollapsedChangeEventSource) {
+        const changed = this.ctx.collapsedManager.expand(ids, source);
         if (changed) {
             this.markNodeDataDirty();
         }

@@ -1,5 +1,5 @@
 import type { RequireOptional } from 'ag-charts-core';
-import type { AgChartInstance, AgSelectionChangeEvent } from 'ag-charts-types';
+import type { AgChartInstance, AgCollapsedChangeEvent, AgSelectionChangeEvent } from 'ag-charts-types';
 
 import { Group } from '../scene/group';
 import type { CaptionLike } from './captionLike';
@@ -8,7 +8,9 @@ import type { ChartType } from './chartType';
 import type { SeriesProperties } from './series/seriesProperties';
 import type { ISeries, SeriesNodeDatum } from './series/seriesTypes';
 
-export type ChartServiceEvent = RequireOptional<Omit<AgSelectionChangeEvent<unknown, unknown>, 'context'>>;
+export type ChartServiceEvent =
+    | RequireOptional<Omit<AgSelectionChangeEvent<unknown, unknown>, 'context'>>
+    | RequireOptional<Omit<AgCollapsedChangeEvent<unknown, unknown>, 'context'>>;
 export type ChartServiceEventType = ChartServiceEvent['type'];
 
 type BaseSeries = ISeries<SeriesNodeDatum, SeriesProperties<object>>;
