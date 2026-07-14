@@ -27,14 +27,8 @@ import {
     type Normalised,
     type NormalisedColorType,
     type NormalisedSeriesMarkerStyle,
-    type PlacedLabel,
     type Point,
-    type PointLabelDatum,
     type RequireOptional,
-    applyBarLabelOrientation,
-    barLabelResolvesOrientation,
-    barLabelRotation,
-    buildBarLabelData,
     extent,
     findMinMax,
     firstCandidate,
@@ -908,7 +902,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             ),
             textAlign: 'center',
             textBaseline: direction === -1 ? 'bottom' : 'top',
-            rotation: barLabelRotation(firstCandidate(label.orientation)),
+            rotation: 0,
             placement,
         };
     }
@@ -1240,26 +1234,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             this.properties.item.low.marker.markClean();
             this.properties.item.high.marker.markClean();
         }
-    }
-
-    override getLabelData(): PointLabelDatum[] {
-        if (!this.usesPlacedLabels || !this.properties.label.enabled) return [];
-        const { label } = this.properties;
-        // Point-anchored (no bar rect): the label datum carries no region, so the fit falls back to the
-        // plot bounds and orientation fall-through is driven by collision with other labels.
-        return buildBarLabelData(this.contextNodeData?.labelData, (labelDatum) => ({
-            label: labelDatum,
-            config: label,
-        }));
-    }
-
-    override updatePlacedLabelData(placed: PlacedLabel<RangeAreaLabelDatum>[]) {
-        applyBarLabelOrientation(placed);
-        this.refreshPlacedLabelNodes();
-    }
-
-    protected override resolveUsesPlacedLabels(): boolean {
-        return barLabelResolvesOrientation(this.properties.label.orientation);
     }
 
     protected override updateLabelSelection(opts: {

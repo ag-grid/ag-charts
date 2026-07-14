@@ -550,7 +550,6 @@ export const rangeAreaSeriesThemeableOptionsDef: OptionsDefs<AgRangeAreaSeriesTh
         ...labelFitOptionsDefs,
         ...labelPlacementStyleDefs,
         placement: rangeInsideOutsidePlacementDef,
-        orientation: labelOrientationDef,
         spacing: positiveNumber,
     },
     tooltip: tooltipOptionsDefs,

@@ -756,16 +756,19 @@ const labelCollisionPlacementValidator = union(
     'bottom-left',
     'bottom-right'
 );
-const labelOrientationValidator = union('parallel', 'perpendicular', 'perpendicular-reversed');
+const labelOrientationValidator = union('horizontal', 'vertical', 'vertical-reversed');
 
 /** Directional label placement accepting a single value or an ordered fallback list. */
 export const labelCollisionPlacementDef = or(
     labelCollisionPlacementValidator,
-    arrayOf(labelCollisionPlacementValidator)
+    arrayOf(labelCollisionPlacementValidator, 'an array containing these keywords')
 );
 
 /** Label orientation accepting a single value or an ordered fallback list. */
-export const labelOrientationDef = or(labelOrientationValidator, arrayOf(labelOrientationValidator));
+export const labelOrientationDef = or(
+    labelOrientationValidator,
+    arrayOf(labelOrientationValidator, 'an array containing these keywords')
+);
 
 export const collisionAvoidanceOptionsDef = {
     enabled: boolean,

@@ -501,12 +501,12 @@ describe('label collision avoidance', () => {
         });
     });
 
-    // `label.orientation` rotates bar-family labels: `parallel` reads upright, the two `perpendicular`
+    // `label.orientation` rotates bar-family labels: `horizontal` reads upright, the two `vertical`
     // variants a quarter-turn in either direction. Both a column and a horizontal bar are exercised
     // per orientation.
     describe('bar label orientation', () => {
         const barData = Array.from({ length: 6 }, (_, i) => ({ cat: `Category ${i}`, value: 30 + 10 * Math.sin(i) }));
-        const orientations = ['parallel', 'perpendicular', 'perpendicular-reversed'];
+        const orientations = ['horizontal', 'vertical', 'vertical-reversed'];
         const barOrientationOptions = (orientation: string, direction: 'vertical' | 'horizontal') => ({
             data: barData,
             legend: { enabled: false },
@@ -527,21 +527,21 @@ describe('label collision avoidance', () => {
             });
         }
 
-        // `parallel` maps to 0deg (upright), so it must render identically to an unrotated label —
+        // `horizontal` maps to 0deg (upright), so it must render identically to an unrotated label —
         // pinning the mapping and the unset default.
-        it('renders a parallel label identically to no orientation', async () => {
-            const unset = barOrientationOptions('parallel', 'vertical');
+        it('renders a horizontal label identically to no orientation', async () => {
+            const unset = barOrientationOptions('horizontal', 'vertical');
             delete (unset.series[0].label as { orientation?: string }).orientation;
             await expectPixelIdenticalAcrossUpdate(
                 ctx,
                 createChart,
                 unset as any,
-                barOrientationOptions('parallel', 'vertical') as any
+                barOrientationOptions('horizontal', 'vertical') as any
             );
         });
 
-        // Orientation array fall-through: many thin columns whose long upright (parallel) label
-        // overflows the bar width, forcing every label through to perpendicular.
+        // Orientation array fall-through: many thin columns whose long upright (horizontal) label
+        // overflows the bar width, forcing every label through to vertical.
         const thinColumns = (orientation: string | string[]) => ({
             data: Array.from({ length: 12 }, (_, i) => ({ cat: `Category ${i}`, value: 50 })),
             legend: { enabled: false },
@@ -557,14 +557,14 @@ describe('label collision avoidance', () => {
             ],
         });
 
-        // Every parallel label overflows its thin bar, so the array resolves to perpendicular for all
-        // of them — matching a fixed `perpendicular` orientation exactly.
-        it('falls through to perpendicular when the parallel label overflows a thin bar', async () => {
+        // Every horizontal label overflows its thin bar, so the array resolves to vertical for all
+        // of them — matching a fixed `vertical` orientation exactly.
+        it('falls through to vertical when the horizontal label overflows a thin bar', async () => {
             await expectPixelIdenticalAcrossUpdate(
                 ctx,
                 createChart,
-                thinColumns(['parallel', 'perpendicular']) as any,
-                thinColumns('perpendicular') as any
+                thinColumns(['horizontal', 'vertical']) as any,
+                thinColumns('vertical') as any
             );
         });
 
@@ -574,17 +574,17 @@ describe('label collision avoidance', () => {
             await expectPixelIdenticalAcrossUpdate(
                 ctx,
                 createChart,
-                barOrientationOptions(['perpendicular'] as any, 'vertical') as any,
-                barOrientationOptions('perpendicular', 'vertical') as any
+                barOrientationOptions(['vertical'] as any, 'vertical') as any,
+                barOrientationOptions('vertical', 'vertical') as any
             );
         });
 
-        // Shrinking the chart width must not make a resolved perpendicular label snap back to the wider
-        // parallel bake. Once a bar is too narrow for parallel the engine picks perpendicular; when it
-        // is too narrow for even perpendicular the label must keep the least-overflowing orientation
-        // rather than being dropped and reverting to the first (parallel) orientation baked at node-data
+        // Shrinking the chart width must not make a resolved vertical label snap back to the wider
+        // horizontal bake. Once a bar is too narrow for horizontal the engine picks vertical; when it
+        // is too narrow for even vertical the label must keep the least-overflowing orientation
+        // rather than being dropped and reverting to the first (horizontal) orientation baked at node-data
         // time, which would overflow the bar rect (AG-17782).
-        it('keeps a narrowing bar label perpendicular instead of reverting to parallel', async () => {
+        it('keeps a narrowing bar label vertical instead of reverting to horizontal', async () => {
             const optionsAt = (width: number) => {
                 const options = {
                     data: Array.from({ length: 8 }, (_, i) => ({ cat: `Category ${i}`, value: 100 })),
@@ -601,7 +601,7 @@ describe('label collision avoidance', () => {
                             label: {
                                 enabled: true,
                                 placement: 'inside-center',
-                                orientation: ['parallel', 'perpendicular'],
+                                orientation: ['horizontal', 'vertical'],
                                 formatter: () => 'WWWWWWWWWW',
                             },
                         },
@@ -631,21 +631,21 @@ describe('label collision avoidance', () => {
                 rotations.push(firstLabelRotation());
             }
 
-            // The scenario must actually reach perpendicular at some width, then never revert to the
-            // parallel (0) bake as the bar narrows further.
-            const firstPerpendicular = rotations.findIndex((rotation) => rotation !== 0);
-            expect(firstPerpendicular).toBeGreaterThanOrEqual(0);
-            for (let i = firstPerpendicular; i < rotations.length; i++) {
+            // The scenario must actually reach vertical at some width, then never revert to the
+            // horizontal (0) bake as the bar narrows further.
+            const firstVertical = rotations.findIndex((rotation) => rotation !== 0);
+            expect(firstVertical).toBeGreaterThanOrEqual(0);
+            for (let i = firstVertical; i < rotations.length; i++) {
                 expect(rotations[i]).not.toBe(0);
             }
         });
 
-        // A perpendicular label is rendered by rotating its Text node about the untransformed glyph-box
+        // A vertical label is rendered by rotating its Text node about the untransformed glyph-box
         // centre. If the pivot is re-derived each render from a box that already folds in the previous
         // rotation, it walks a little every resize step — the label orbits the rect centre and drifts
         // out of the bar. Resizing away and back must leave the node's pivot exactly where it started
         // (AG-17782).
-        it('keeps a perpendicular label pivot stable across resizes (no drift)', async () => {
+        it('keeps a vertical label pivot stable across resizes (no drift)', async () => {
             const optionsAt = (width: number) => {
                 const options = {
                     data: Array.from({ length: 12 }, (_, i) => ({ cat: `Category ${i}`, value: 50 })),
@@ -659,7 +659,7 @@ describe('label collision avoidance', () => {
                             label: {
                                 enabled: true,
                                 placement: 'inside-center',
-                                orientation: ['parallel', 'perpendicular'],
+                                orientation: ['horizontal', 'vertical'],
                                 formatter: () => 'WWWWWWWWWW',
                             },
                         },
@@ -688,7 +688,7 @@ describe('label collision avoidance', () => {
             await waitForChartStability(chart);
 
             const initial = firstRotatedLabelPivot();
-            // Anti-vacuous guard: the scenario must actually produce a rotated (perpendicular) label.
+            // Anti-vacuous guard: the scenario must actually produce a rotated (vertical) label.
             expect(initial).toBeDefined();
             const { rotationCenterX, rotationCenterY } = initial!;
 
@@ -704,7 +704,7 @@ describe('label collision avoidance', () => {
         });
 
         // An inside-start/inside-end label is anchored at the bar's start/end edge. When the array
-        // resolves to the along-bar (perpendicular) orientation, the label is rotated about its glyph
+        // resolves to the along-bar (vertical) orientation, the label is rotated about its glyph
         // centre — which sits at that edge — so without a correction it straddles the end and half of
         // it pokes out of the bar. The placement engine must slide it flush inside the rect (AG-17782).
         const thinTallColumns = (placement: string) => ({
@@ -719,7 +719,7 @@ describe('label collision avoidance', () => {
                     label: {
                         enabled: true,
                         placement,
-                        orientation: ['parallel', 'perpendicular'],
+                        orientation: ['horizontal', 'vertical'],
                         formatter: () => 'WWWWWWWWWW',
                     },
                 },

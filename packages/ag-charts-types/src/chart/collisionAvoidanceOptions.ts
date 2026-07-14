@@ -18,10 +18,10 @@ export type AgChartLabelCollisionPlacement =
 
 /**
  * Rotation of a label rendered inside a bounded region (bar, waterfall, range-bar, range-area).
- * `parallel` renders the label upright in the normal reading direction; the two `perpendicular`
+ * `horizontal` renders the label upright in the normal reading direction; the two `vertical`
  * variants rotate it a quarter-turn in opposite directions.
  */
-export type AgChartLabelOrientation = 'parallel' | 'perpendicular' | 'perpendicular-reversed';
+export type AgChartLabelOrientation = 'horizontal' | 'vertical' | 'vertical-reversed';
 
 /** Avoidance configuration for a single category of obstacle. */
 export interface AgChartLabelCollideWithCategoryOptions {
