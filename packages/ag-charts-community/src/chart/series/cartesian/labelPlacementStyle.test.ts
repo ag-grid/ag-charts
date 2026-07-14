@@ -179,8 +179,8 @@ describe('label placement style (insideStyle/outsideStyle)', () => {
                 barOptions({
                     placement: 'inside-center',
                     border: { enabled: true },
-                    insideStyle: { border: { stroke: '#ff0000' } },
-                    outsideStyle: { border: { stroke: '#0000ff' } },
+                    insideStyle: { stroke: '#ff0000' },
+                    outsideStyle: { stroke: '#0000ff' },
                 })
             );
             expect(firstVisibleLabelStyle().boxStroke).toBe('#ff0000');

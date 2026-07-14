@@ -51,18 +51,6 @@ export class LabelBorder {
     strokeOpacity?: number;
 }
 
-/** Placement-reactive border stroke. `enabled` is governed by the top-level `label.border`. */
-export class LabelPlacementBorder {
-    @Property
-    stroke?: string;
-
-    @Property
-    strokeWidth?: number;
-
-    @Property
-    strokeOpacity?: number;
-}
-
 class LabelCollideWithCategory extends BaseProperties implements AgChartLabelCollideWithCategoryOptions {
     @Property
     enabled?: boolean;
@@ -160,7 +148,13 @@ export class LabelPlacementStyle extends BaseProperties implements AgChartLabelP
     padding?: Padding;
 
     @Property
-    border = new LabelPlacementBorder();
+    stroke?: string;
+
+    @Property
+    strokeWidth?: number;
+
+    @Property
+    strokeOpacity?: number;
 }
 
 export class Label<TParams = never, TDatum = any>
@@ -259,9 +253,9 @@ export function expandLabelPadding(label: LabelBoxingMixin | undefined): Require
 
 /**
  * Overlays a placement style beneath the top-level label so an explicit `label.<prop>` wins and any
- * unset property falls back to the placement value. `border` is merged field-wise because it is a
- * class instance `mergeDefaults` would otherwise copy by reference; the top-level `border.enabled`
- * governs whether the border shows, while the stroke geometry falls through to the placement.
+ * unset property falls back to the placement value. The border is rebuilt field-wise from the
+ * placement's flat stroke fields; the top-level `border.enabled` governs whether the border shows,
+ * while the stroke geometry falls through to the placement.
  */
 export function resolvePlacementLabelStyle<TParams>(
     label: Label<TParams>,
@@ -269,7 +263,11 @@ export function resolvePlacementLabelStyle<TParams>(
 ): Label<TParams> {
     if (placementStyle == null) return label;
     const resolved = mergeDefaults(label, placementStyle);
-    resolved.border = mergeDefaults(label.border, placementStyle.border);
+    resolved.border = mergeDefaults(label.border, {
+        stroke: placementStyle.stroke,
+        strokeWidth: placementStyle.strokeWidth,
+        strokeOpacity: placementStyle.strokeOpacity,
+    });
     return resolved;
 }
 
