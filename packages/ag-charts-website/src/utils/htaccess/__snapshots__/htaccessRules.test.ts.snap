@@ -42,7 +42,7 @@ Redirect 301 /charts/javascript/toolbar/ /charts/javascript/financial-charts-too
 Redirect 301 /charts/react/toolbar/ /charts/react/financial-charts-toolbar/
 Redirect 301 /charts/react/line/ /charts/react/line-series/
 RedirectMatch 301 "^/charts/archive/?$" "/charts/documentation-archive/"
-RedirectMatch 301 "^/charts/privacy(/.*)?$" "https://www.ag-grid.com/privacy/"
+RedirectMatch 410 "^/charts/privacy(/.*)?$"
 RedirectMatch 301 "^/charts/javascript-charts/javascript/(.+)$" "/charts/javascript/$1"
 RedirectMatch 301 "^/charts/angular-charts/angular/(.+)$" "/charts/angular/$1"
 RedirectMatch 301 "^/charts/react-charts/react/(.+)$" "/charts/react/$1"
@@ -78,7 +78,7 @@ Redirect 301 /charts/javascript/toolbar/ /charts/javascript/financial-charts-too
 Redirect 301 /charts/react/toolbar/ /charts/react/financial-charts-toolbar/
 Redirect 301 /charts/react/line/ /charts/react/line-series/
 RedirectMatch 301 "^/charts/archive/?$" "/charts/documentation-archive/"
-RedirectMatch 301 "^/charts/privacy(/.*)?$" "https://www.ag-grid.com/privacy/"
+RedirectMatch 410 "^/charts/privacy(/.*)?$"
 RedirectMatch 301 "^/charts/javascript-charts/javascript/(.+)$" "/charts/javascript/$1"
 RedirectMatch 301 "^/charts/angular-charts/angular/(.+)$" "/charts/angular/$1"
 RedirectMatch 301 "^/charts/react-charts/react/(.+)$" "/charts/react/$1"
@@ -136,7 +136,7 @@ Redirect 301 /charts/javascript/toolbar/ /charts/javascript/financial-charts-too
 Redirect 301 /charts/react/toolbar/ /charts/react/financial-charts-toolbar/
 Redirect 301 /charts/react/line/ /charts/react/line-series/
 RedirectMatch 301 "^/charts/archive/?$" "/charts/documentation-archive/"
-RedirectMatch 301 "^/charts/privacy(/.*)?$" "https://www.ag-grid.com/privacy/"
+RedirectMatch 410 "^/charts/privacy(/.*)?$"
 RedirectMatch 301 "^/charts/javascript-charts/javascript/(.+)$" "/charts/javascript/$1"
 RedirectMatch 301 "^/charts/angular-charts/angular/(.+)$" "/charts/angular/$1"
 RedirectMatch 301 "^/charts/react-charts/react/(.+)$" "/charts/react/$1"

@@ -106,8 +106,16 @@ describe('htaccessRules redirects (SE-60/SE-61)', () => {
         expect(bareArchive.test(`${base}/archive/14.0.0/`)).toBe(false);
     });
 
-    it('redirects the legacy privacy path to the canonical apex policy page', () => {
-        expect(rules).toContain(`RedirectMatch 301 "^${base}/privacy(/.*)?$" "https://www.ag-grid.com/privacy/"`);
+    it('returns 410 Gone for the legacy privacy path (no charts-scoped privacy page ever existed)', () => {
+        expect(rules).toContain(`RedirectMatch 410 "^${base}/privacy(/.*)?$"`);
+        // must NOT still 301 to the apex policy page
+        expect(rules).not.toContain(`RedirectMatch 301 "^${base}/privacy(/.*)?$" "https://www.ag-grid.com/privacy/"`);
+    });
+
+    it('410 rules carry no destination', () => {
+        const goneLines = rules.split('\n').filter((l) => l.startsWith('RedirectMatch 410'));
+        expect(goneLines.length).toBe(1); // privacy only — archive is a 301 to the archived-versions landing
+        goneLines.forEach((l) => expect(l.split('"').length).toBe(3)); // only one quoted token (the pattern)
     });
 
     it('rewrites legacy {fw}-charts/{fw}/<page> to the current {fw}/<page> scheme', () => {

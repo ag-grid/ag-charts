@@ -48,8 +48,10 @@ export const SITE_301_REDIRECTS: Redirect[] = [
     // still serve. Mirrors the grid site's `^/archive/?$` → `/documentation-archive`.
     { fromPattern: '^/archive/?$', to: '/documentation-archive/' },
 
-    // No charts-scoped privacy page exists; the canonical policy lives on the apex site.
-    { fromPattern: '^/privacy(/.*)?$', to: 'https://www.ag-grid.com/privacy/' },
+    // SE-61: no charts-scoped privacy page ever existed, so these legacy /charts/privacy* URLs are
+    // permanently gone (410) rather than redirected. (They previously 301'd to the apex policy page,
+    // but a 301 implies an equivalent charts resource moved — there is none.)
+    { fromPattern: '^/privacy(/.*)?$', gone: true },
 
     // Legacy "{fw}-charts/{fw}/<page>" docs scheme → current "{fw}/<page>" (all page slugs verified in content/docs).
     // Require a non-empty page slug ((.+)): an empty slug would target the bare "{fw}/" root, which the
