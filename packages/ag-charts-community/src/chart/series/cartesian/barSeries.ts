@@ -46,6 +46,7 @@ import type {
     AgBarSeriesStylerParams,
     AgErrorBoundSeriesTooltipRendererParams,
     AgNumericValue,
+    Padding,
 } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../../module/moduleContext';
@@ -166,6 +167,7 @@ interface BarSeriesNodeDatumContext {
     readonly yReversed: boolean;
     readonly bboxBottom: number;
     readonly labelSpacing: number;
+    readonly labelPadding: Padding | undefined;
     readonly crisp: boolean;
     readonly isStacked: boolean;
     readonly filteredValueExceedUnfiltered: boolean;
@@ -665,7 +667,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             yReversed: yAxis.isReversed(),
             // 0n keeps a bigint y-domain on the full-precision convert() path (a numeric 0 narrows to Number).
             bboxBottom: yScale.convert(0n),
-            labelSpacing: label.spacing + (typeof labelPadding === 'number' ? labelPadding : 0),
+            labelSpacing: label.spacing,
+            labelPadding,
             crisp:
                 dataAggregationFilter == null &&
                 (this.properties.crisp ??
@@ -969,15 +972,18 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 isVertical: !ctx.barAlongX,
                 placement,
                 spacing: ctx.labelSpacing,
+                padding: ctx.labelPadding,
                 rect: { x: rectX, y: rectY, width: rectWidth, height: rectHeight },
             });
             // Inside labels fit within the bar rect; outside labels sit beside it, so leave them unbound.
             // The rect is only needed to bound the fit or to resolve orientation, so skip it otherwise.
             const isInside = placement == null || placement.startsWith('inside');
             const needsRect = ctx.labelFit != null || ctx.labelResolvesOrientation;
+            // A uniform inset takes only scalar padding; per-side padding is applied to the label position above.
+            const insetSpacing = ctx.labelSpacing + (typeof ctx.labelPadding === 'number' ? ctx.labelPadding : 0);
             const insideBox =
                 isInside && needsRect
-                    ? insetBox({ x: rectX, y: rectY, width: rectWidth, height: rectHeight }, ctx.labelSpacing)
+                    ? insetBox({ x: rectX, y: rectY, width: rectWidth, height: rectHeight }, insetSpacing)
                     : undefined;
             // The first orientation is baked into `rotation`; an array resolves against the bar rect for
             // inside placements only (outside labels fall back to the plot bounds via no region).

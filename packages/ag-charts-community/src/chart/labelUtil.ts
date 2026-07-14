@@ -16,6 +16,8 @@ import type {
     CssColor,
     HighlightState,
     NormalisedCallbackParams,
+    Padding,
+    PaddingOptions,
     PixelSize,
     SelectionState,
 } from 'ag-charts-types';
@@ -269,12 +271,15 @@ export function adjustLabelPlacement({
     isVertical,
     placement,
     spacing = 0,
+    padding,
     rect,
 }: {
     placement: BarLabelPlacement;
     isUpward: boolean;
     isVertical: boolean;
     spacing?: PixelSize;
+    /** Box padding, added to `spacing` on the box side facing the bar so a padded box clears the bar. */
+    padding?: Padding;
     rect: Bounds;
 }): Omit<LabelDatum, 'text'> {
     let x = rect.x + rect.width / 2;
@@ -290,15 +295,24 @@ export function adjustLabelPlacement({
         if (isVertical) {
             const y0 = isUpward ? rect.y + rect.height : rect.y;
             const height = rect.height * barDirection;
-            y = y0 + height * displacementRatio + spacing * textAlignment * barDirection;
             textBaseline = textAlignment === barDirection ? 'top' : 'bottom';
+            const offset = spacing + paddingForSide(padding, textBaseline);
+            y = y0 + height * displacementRatio + offset * textAlignment * barDirection;
         } else {
             const x0 = isUpward ? rect.x : rect.x + rect.width;
             const width = rect.width * barDirection;
-            x = x0 + width * displacementRatio + spacing * textAlignment * barDirection;
             textAlign = textAlignment === barDirection ? 'left' : 'right';
+            const offset = spacing + paddingForSide(padding, textAlign);
+            x = x0 + width * displacementRatio + offset * textAlignment * barDirection;
         }
     }
 
     return { x, y, textAlign, textBaseline };
+}
+
+/** The padding for a single box side; a scalar padding applies to every side, matching its box expansion. */
+function paddingForSide(padding: Padding | undefined, side: keyof PaddingOptions): number {
+    if (padding == null) return 0;
+    if (typeof padding === 'number') return padding;
+    return padding[side] ?? 0;
 }

@@ -528,7 +528,8 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             isVertical: true,
             placement,
             // Matches bar series: the theme feeds an 8px default via `padding`, replaced by a user `spacing`.
-            spacing: label.spacing + (typeof labelPadding === 'number' ? labelPadding : 0),
+            spacing: label.spacing,
+            padding: labelPadding,
             rect: { x, y, width: w, height: h },
         });
 
