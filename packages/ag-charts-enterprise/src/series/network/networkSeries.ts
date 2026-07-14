@@ -111,6 +111,8 @@ export abstract class AbstractNetworkSeries<
         this.graph = this.createNetworkGraph();
         this.layout = this.createNetworkLayout();
 
+        this.ctx.collapsedManager.setSeriesGetDatumCallback(this.id, this.getDatumById.bind(this));
+
         this.cleanup.register(
             ctx.eventsHub.on('layout:complete', (event) => {
                 this.seriesRect = event.series.rect;
@@ -238,13 +240,13 @@ export abstract class AbstractNetworkSeries<
 
     processPendingCollapse() {
         if (this.pendingCollapsedIds) {
-            this.ctx.collapsedManager.collapse(this.pendingCollapsedIds, 'api-call', this.getDatumById.bind(this));
+            this.ctx.collapsedManager.collapse(this.pendingCollapsedIds, this.id, 'api-call');
             this.pendingCollapsedIds = undefined;
         }
     }
 
     protected expand(ids: (string | number)[], source: AgCollapsedChangeEventSource) {
-        const changed = this.ctx.collapsedManager.expand(ids, source, this.getDatumById.bind(this));
+        const changed = this.ctx.collapsedManager.expand(ids, this.id, source);
         if (changed) {
             this.markNodeDataDirty();
         }

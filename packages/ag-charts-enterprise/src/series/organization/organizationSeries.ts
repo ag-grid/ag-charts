@@ -452,7 +452,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const id = this.resolveItemId(itemIdOrIndex);
         if (id == null) return;
 
-        if (this.ctx.collapsedManager.expand([id], source, this.getDatumById.bind(this))) {
+        if (this.ctx.collapsedManager.expand([id], this.id, source)) {
             this.markNodeDataDirty();
         }
     }
@@ -461,7 +461,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const id = this.resolveItemId(itemIdOrIndex);
         if (id == null) return;
 
-        if (this.ctx.collapsedManager.collapseAppend([id], source, this.getDatumById.bind(this))) {
+        if (this.ctx.collapsedManager.collapseAppend([id], this.id, source)) {
             this.markNodeDataDirty();
         }
     }

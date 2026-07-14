@@ -12,6 +12,8 @@ export class CollapsedManager implements MementoOriginator<CollapsedMemento> {
     // Optimised for quick lookup since that will occur more often than mutation.
     private collapsedIds: Record<string, boolean> = {};
 
+    private getDatum: Record<string, (id: string) => unknown> = {};
+
     constructor(
         private readonly eventsHub: EventsHub,
         private readonly chartService: ChartService
@@ -27,12 +29,17 @@ export class CollapsedManager implements MementoOriginator<CollapsedMemento> {
 
     restoreMemento(_version: string, _mementoVersion: string, blob: CollapsedMemento | undefined) {
         if (blob) {
-            this.collapse(blob, 'api-call', () => null);
+            const defaultGetDatumSeriesId = Object.keys(this.getDatum).at(0);
+            this.collapse(blob, defaultGetDatumSeriesId, 'api-call');
         }
         this.eventsHub.emit('collapsed:restore', { collapsed: this.createMemento() });
     }
 
-    collapse(ids: (string | number)[], source: AgCollapsedChangeEventSource, getDatum: (id: string) => unknown) {
+    setSeriesGetDatumCallback(seriesId: string, getDatum: (id: string) => unknown) {
+        this.getDatum[seriesId] = getDatum;
+    }
+
+    collapse(ids: (string | number)[], seriesId: string | undefined, source: AgCollapsedChangeEventSource) {
         let changed = false;
         const after: Record<string, boolean> = {};
         for (const id of ids) {
@@ -53,13 +60,13 @@ export class CollapsedManager implements MementoOriginator<CollapsedMemento> {
 
         const change = { collapsedIds: after, changed };
 
-        const defaultPrevented = this.callListener(change, source, getDatum);
+        const defaultPrevented = this.callListener(change, seriesId, source);
         if (defaultPrevented) return false;
 
         return this.applyChange(change);
     }
 
-    collapseAppend(ids: (string | number)[], source: AgCollapsedChangeEventSource, getDatum: (id: string) => unknown) {
+    collapseAppend(ids: (string | number)[], seriesId: string | undefined, source: AgCollapsedChangeEventSource) {
         let changed = false;
         const after = { ...this.collapsedIds };
         for (const id of ids) {
@@ -70,13 +77,13 @@ export class CollapsedManager implements MementoOriginator<CollapsedMemento> {
 
         const change = { collapsedIds: after, changed };
 
-        const defaultPrevented = this.callListener(change, source, getDatum);
+        const defaultPrevented = this.callListener(change, seriesId, source);
         if (defaultPrevented) return false;
 
         return this.applyChange(change);
     }
 
-    expand(ids: (string | number)[], source: AgCollapsedChangeEventSource, getDatum: (id: string) => unknown) {
+    expand(ids: (string | number)[], seriesId: string | undefined, source: AgCollapsedChangeEventSource) {
         let changed = false;
 
         const after = { ...this.collapsedIds };
@@ -88,7 +95,7 @@ export class CollapsedManager implements MementoOriginator<CollapsedMemento> {
 
         const change = { collapsedIds: after, changed };
 
-        const defaultPrevented = this.callListener(change, source, getDatum);
+        const defaultPrevented = this.callListener(change, seriesId, source);
         if (defaultPrevented) return false;
 
         return this.applyChange(change);
@@ -100,8 +107,8 @@ export class CollapsedManager implements MementoOriginator<CollapsedMemento> {
 
     private callListener(
         { collapsedIds, changed }: { collapsedIds: Record<string, boolean>; changed: boolean },
-        source: AgCollapsedChangeEventSource,
-        getDatum: (id: string) => unknown
+        seriesId: string | undefined,
+        source: AgCollapsedChangeEventSource
     ) {
         if (!changed) return;
 
@@ -110,13 +117,15 @@ export class CollapsedManager implements MementoOriginator<CollapsedMemento> {
             defaultPrevented = true;
         };
 
+        const getDatum = seriesId ? this.getDatum[seriesId] : undefined;
+
         this.chartService.callListener({
             type: 'collapsedChange',
             source,
             preventDefault,
             collapsed: Object.keys(collapsedIds).map((id) => ({
                 itemId: id,
-                datum: getDatum(id),
+                datum: getDatum ? getDatum(id) : null,
             })),
         });
 
