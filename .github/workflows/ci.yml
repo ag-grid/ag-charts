@@ -157,6 +157,12 @@ jobs:
               if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
               run: |
                   yarn nx run-many -t build,docs-resolved-interfaces,generate-example --exclude tag:skip-gha-cache,all
+                  # Populate the (rw-cached) staging example outputs here so the ro website_build
+                  # job restores them instead of regenerating all examples. Only latest builds the
+                  # website with -c staging, so scope the extra generation to that branch.
+                  if [[ "${{ github.ref }}" == "refs/heads/latest" ]]; then
+                      yarn nx run-many -t generate-example -c staging --exclude tag:skip-gha-cache,all
+                  fi
 
             - name: Build tests
               run: yarn nx run-many -t generate-test-files

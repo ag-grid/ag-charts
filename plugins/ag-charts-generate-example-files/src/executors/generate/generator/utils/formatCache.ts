@@ -1,0 +1,29 @@
+import prettier from 'prettier';
+
+type FormatOptions = Parameters<typeof prettier.format>[1];
+
+/**
+ * Memoises prettier formatting for the lifetime of a single example. The same data/topology
+ * source is emitted across every framework variant, so without this the format — which runs to
+ * several seconds on the large map topology files — is repeated once per variant rather than once.
+ * A fresh cache per example bounds retention and is discarded when the example finishes.
+ */
+export type FormatCache = Map<string, Promise<string>>;
+
+export function createFormatCache(): FormatCache {
+    return new Map();
+}
+
+export function formatSource(cache: FormatCache | undefined, source: string, options: FormatOptions): Promise<string> {
+    if (cache == null) {
+        return prettier.format(source, options);
+    }
+
+    const key = `${options?.parser as string}\u0000${source}`;
+    let pending = cache.get(key);
+    if (pending == null) {
+        pending = prettier.format(source, options);
+        cache.set(key, pending);
+    }
+    return pending;
+}
