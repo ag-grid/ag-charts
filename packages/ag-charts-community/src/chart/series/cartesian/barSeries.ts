@@ -24,6 +24,7 @@ import {
     DebugMetrics,
     applyBarLabelOrientation,
     areScalingEqual,
+    barLabelOrientation,
     barLabelResolvesOrientation,
     barLabelRotation,
     buildBarLabelData,
@@ -1723,7 +1724,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 datum.label,
                 { isHighlight, activeHighlight },
                 undefined,
-                placementStyle
+                placementStyle,
+                { placement: toArray(label.placement)[0], orientation: barLabelOrientation(datum.label?.rotation ?? 0) }
             );
         });
     }

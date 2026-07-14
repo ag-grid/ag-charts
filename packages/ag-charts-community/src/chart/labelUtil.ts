@@ -58,6 +58,9 @@ export type BarLabelPlacement = 'inside-center' | 'inside-start' | 'inside-end' 
 /** A label's resolved inside/outside placement, selecting which placement-style overrides apply. */
 export type ResolvedLabelPlacement = 'inside' | 'outside';
 
+/** The final placement/orientation a series chose for a label, surfaced to `itemStyler` params. */
+type ResolvedPlacement = Pick<AgChartLabelStylerParams<unknown, unknown>, 'placement' | 'orientation'>;
+
 type LabelDatum = Point & {
     text: NormalisedTextOrSegments;
     textAlign: CanvasTextAlign;
@@ -139,7 +142,8 @@ export function getLabelStyles<TParams>(
     isHighlight: boolean,
     activeHighlight: HighlightNodeDatum | undefined,
     labelPath: string[] = ['series', `${series.declarationOrder}`, 'label'],
-    placementStyle?: LabelPlacementStyle
+    placementStyle?: LabelPlacementStyle,
+    resolvedPlacement?: ResolvedPlacement
 ): NormalisedChartLabelStyleOptions & { fontSize: number } {
     const resolvedLabel = resolvePlacementLabelStyle(label, placementStyle);
     if (series.visible && label.itemStyler) {
@@ -175,6 +179,9 @@ export function getLabelStyles<TParams>(
             itemType: nodeDatum?.itemType,
             seriesId: series.id,
             padding: resolvedLabel.padding,
+            // Present only for series that resolve them, so an unrelated series' styler params are unchanged.
+            ...(resolvedPlacement?.placement !== undefined && { placement: resolvedPlacement.placement }),
+            ...(resolvedPlacement?.orientation !== undefined && { orientation: resolvedPlacement.orientation }),
             highlightState,
             selectionState: series.getSelectionStateString(nodeDatum?.datumIndex),
             candidateState: series.getCandidateStateString(nodeDatum?.datumIndex),
@@ -201,7 +208,8 @@ export function updateLabelNode<TParams, D extends LabelDatum>(
     labelDatum: D | undefined,
     highlight: { isHighlight: boolean; activeHighlight: HighlightNodeDatum | undefined },
     labelPath?: string[],
-    placementStyle?: LabelPlacementStyle
+    placementStyle?: LabelPlacementStyle,
+    resolvedPlacement?: ResolvedPlacement
 ): void;
 
 export function updateLabelNode<TParams>(
@@ -212,7 +220,8 @@ export function updateLabelNode<TParams>(
     labelDatum: LabelDatum | undefined,
     highlight: { isHighlight: boolean; activeHighlight: HighlightNodeDatum | undefined },
     labelPath?: string[],
-    placementStyle?: LabelPlacementStyle
+    placementStyle?: LabelPlacementStyle,
+    resolvedPlacement?: ResolvedPlacement
 ) {
     const { isHighlight, activeHighlight } = highlight;
     if (series.visible && label.enabled && labelDatum) {
@@ -224,7 +233,8 @@ export function updateLabelNode<TParams>(
             isHighlight,
             activeHighlight,
             labelPath,
-            placementStyle
+            placementStyle,
+            resolvedPlacement
         );
         textNode.visible = true;
         // Offset slides a rotated bar label flush inside its bar rect; the pivot below is re-derived

@@ -23,6 +23,14 @@ export type AgChartLabelCollisionPlacement =
  */
 export type AgChartLabelOrientation = 'horizontal' | 'vertical' | 'vertical-reversed';
 
+/** Where a bar-family label is placed relative to its bar segment. */
+export type AgBarSeriesLabelPlacement =
+    | 'inside-center'
+    | 'inside-start'
+    | 'inside-end'
+    | 'outside-start'
+    | 'outside-end';
+
 /** Avoidance configuration for a single category of obstacle. */
 export interface AgChartLabelCollideWithCategoryOptions {
     /** Whether labels avoid this category of obstacle. */

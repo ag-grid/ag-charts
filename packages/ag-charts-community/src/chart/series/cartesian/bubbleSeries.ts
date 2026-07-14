@@ -1269,7 +1269,8 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
                 isHighlight,
                 activeHighlight,
                 undefined,
-                placementStyle
+                placementStyle,
+                { placement: datum.placement }
             );
             const labelPadding = expandLabelPadding(resolvePlacementLabelStyle(this.properties.label, placementStyle));
             text.text = datum.label.text;

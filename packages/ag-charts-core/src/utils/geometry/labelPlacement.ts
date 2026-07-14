@@ -262,6 +262,13 @@ export function barLabelRotation(orientation: AgChartLabelOrientation | undefine
     return orientation == null ? 0 : toRadians(orientationAngles[orientation]);
 }
 
+/** Recovers a bar label's `orientation` from its render rotation (radians); inverse of {@link barLabelRotation}. */
+export function barLabelOrientation(rotation: number): AgChartLabelOrientation {
+    if (rotation < 0) return 'vertical-reversed';
+    if (rotation > 0) return 'vertical';
+    return 'horizontal';
+}
+
 export interface OrientationAnchor {
     readonly x: number;
     readonly y: number;
