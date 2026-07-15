@@ -108,6 +108,12 @@ const SIMPLE_ORG_CHART_THEMED: AgChartOptions = {
                         subtitle: { color: '#ff7faa', fontStyle: 'italic' },
                         labels: [{ color: '#00994d' }],
                     },
+                    expander: {
+                        text: {
+                            showAllChildren: true,
+                            showDirectChildren: true,
+                        },
+                    },
                 },
             },
         },
@@ -357,6 +363,13 @@ const FORMATTERS: AgChartOptions = {
                     },
                 },
                 labels: [{ key: 'location' }],
+            },
+            expander: {
+                text: {
+                    formatter: ({ allDescendents, directChildren }) => {
+                        return `${allDescendents} (${directChildren})`;
+                    },
+                },
             },
         },
     ],

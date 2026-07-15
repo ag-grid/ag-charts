@@ -73,7 +73,7 @@ export interface AgOrganizationSeriesOptionsExpander<
         AgOrganizationSeriesExpanderItemStylerParams<TDatum, TContext>,
         AgOrganizationSeriesExpanderStyle
     >;
-    text?: AgOrganizationSeriesOptionsExpanderText;
+    text?: AgOrganizationSeriesOptionsExpanderText<TDatum, TContext>;
 }
 
 export interface AgOrganizationSeriesExpanderStyle extends Toggleable, FillOptions, LineDashOptions, StrokeOptions {
@@ -86,11 +86,26 @@ export interface AgOrganizationSeriesExpanderStyle extends Toggleable, FillOptio
 export interface AgOrganizationSeriesExpanderTextStyle extends FontOptions {
     /** The colour to use for the expander text. A colour string, or a theme-colour reference object. */
     color?: AgCssColorOrRef;
+    /**
+     * Whether to include the count of all descendants in the expander text.
+     *
+     * Default: `true`
+     */
+    showAllChildren?: boolean;
+    /**
+     * Whether to include the count of direct children in the expander text.
+     *
+     * Default: `false`
+     */
+    showDirectChildren?: boolean;
     textAlign?: TextAlign;
 }
 
-export interface AgOrganizationSeriesOptionsExpanderText extends AgOrganizationSeriesExpanderTextStyle {
-    // formatter?: RichFormatter<AgOrganizationNodeTextFormatterParams<TDatum, TContext>>;
+export interface AgOrganizationSeriesOptionsExpanderText<
+    TDatum = DatumDefault,
+    TContext = ContextDefault,
+> extends AgOrganizationSeriesExpanderTextStyle {
+    formatter?: RichFormatter<AgOrganizationExpanderTextFormatterParams<TDatum, TContext>>;
 }
 
 export interface AgOrganizationSeriesOptionsLink<
@@ -237,6 +252,14 @@ export interface AgOrganizationNodeTextFormatterParams<TDatum = DatumDefault, TC
     isCollapsed: boolean;
     /** The default label value that would have been used without a formatter. */
     value: any;
+}
+
+export interface AgOrganizationExpanderTextFormatterParams<
+    TDatum = DatumDefault,
+    TContext = ContextDefault,
+> extends AgOrganizationNodeTextFormatterParams<TDatum, TContext> {
+    allDescendents: number;
+    directChildren: number;
 }
 
 export interface AgOrganizationSeriesExpanderItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault>

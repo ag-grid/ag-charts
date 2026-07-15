@@ -113,6 +113,12 @@ class OrganizationSeriesExpanderTextProperties extends BaseProperties {
     formatter?: RichFormatter<AgOrganizationNodeTextFormatterParams<unknown, unknown>>;
 
     @Property
+    showAllChildren!: boolean;
+
+    @Property
+    showDirectChildren!: boolean;
+
+    @Property
     textAlign: TextAlign = 'left';
 }
 

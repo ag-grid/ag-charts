@@ -1,6 +1,7 @@
 import {
     type AgActiveItemState,
     type AgCollapsedChangeEventSource,
+    type AgOrganizationExpanderTextFormatterParams,
     type AgOrganizationNodeTextFormatterParams,
     type AgOrganizationSeriesExpanderItemStylerParams,
     type AgOrganizationSeriesExpanderStyle,
@@ -225,6 +226,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             const datumIndex = this.graph.findNeighbourValue(datum.vertex, 'datumIndex') as number;
             const depth = this.graph.findNeighbourValue(datum.vertex, 'depth') as number;
             const descendantsCount = this.graph.findNeighbourValue(datum.vertex, 'descendants') as number;
+            const childrenCount = this.graph.neighboursWithEdgeValue(datum.vertex, 'child')?.length ?? 0;
 
             const isHighlight = highlightedDatum?.datumIndex === datum.datumIndex;
             const highlightState = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
@@ -248,8 +250,26 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                 this.formatText(label, this.properties.node.labels[index]?.formatter, datumIndex, isCollapsed)
             );
 
+            let defaultExpanderText = '';
+            if (styles.expander.text.showAllChildren && styles.expander.text.showDirectChildren) {
+                defaultExpanderText = `${childrenCount} / ${descendantsCount}`;
+            } else if (styles.expander.text.showAllChildren) {
+                defaultExpanderText = `${descendantsCount}`;
+            } else if (styles.expander.text.showDirectChildren) {
+                defaultExpanderText = `${childrenCount}`;
+            }
+            const expanderText = this.formatExpanderText(
+                defaultExpanderText,
+                this.properties.expander.text.formatter,
+                datumIndex,
+                isCollapsed,
+                descendantsCount,
+                childrenCount
+            );
+
             node.update(
                 { image: fields.image, title, subtitle, labels },
+                expanderText,
                 descendantsCount,
                 styles,
                 isCollapsed,
@@ -775,6 +795,33 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         );
     }
 
+    private formatExpanderText(
+        text: NormalisedTextOrSegments,
+        formatter: RichFormatter<AgOrganizationNodeTextFormatterParams> | undefined,
+        datumIndex: number | undefined,
+        isCollapsed: boolean,
+        descendantsCount: number,
+        childrenCount: number
+    ) {
+        const { dataModel, processedData } = this;
+        if (!formatter || !dataModel || !processedData || datumIndex == null) return text;
+
+        return (
+            this.callWithContext(
+                formatter,
+                this.makeExpanderTextFormatterParams(
+                    dataModel,
+                    processedData,
+                    datumIndex,
+                    isCollapsed,
+                    descendantsCount,
+                    childrenCount,
+                    text
+                )
+            ) ?? text
+        );
+    }
+
     private resolveVertexFields(vertex: Vertex<OrganizationVertex, OrganizationEdge>) {
         return {
             image: this.graph.findNeighbourValue(vertex, 'image') as string | undefined,
@@ -1016,6 +1063,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                 fontSize: text.fontSize,
                 fontStyle: text.fontStyle,
                 fontWeight: text.fontWeight,
+                showAllChildren: text.showAllChildren,
+                showDirectChildren: text.showDirectChildren,
                 textAlign: text.textAlign,
             },
         };
@@ -1302,6 +1351,29 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             seriesId,
             value,
         } satisfies CallbackParamRules<AgOrganizationNodeTextFormatterParams<unknown, unknown>>;
+    }
+
+    private makeExpanderTextFormatterParams(
+        _dataModel: NonNullable<typeof this.dataModel>,
+        processedData: NonNullable<typeof this.processedData>,
+        datumIndex: number,
+        isCollapsed: boolean,
+        descendantsCount: number,
+        childrenCount: number,
+        value: any
+    ): AgOrganizationExpanderTextFormatterParams<unknown, unknown> {
+        const { id: seriesId } = this;
+
+        const datum = processedData.dataSources.get(seriesId)?.data?.[datumIndex];
+
+        return {
+            datum,
+            isCollapsed,
+            seriesId,
+            allDescendents: descendantsCount,
+            directChildren: childrenCount,
+            value,
+        } satisfies CallbackParamRules<AgOrganizationExpanderTextFormatterParams<unknown, unknown>>;
     }
 
     // Resolve as a real vertex id first; only a number matching no vertex is treated as a datumSelection index.

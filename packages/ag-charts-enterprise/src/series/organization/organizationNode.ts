@@ -67,7 +67,8 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
 
     update(
         fields: OrganizationNodeFields,
-        descendantsCount: number,
+        expanderText: NormalisedTextOrSegments,
+        descendentsCount: number,
         styles: NormalisedOrganizationNodeStyle,
         isCollapsed: boolean,
         isRtl: boolean
@@ -79,7 +80,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         this.updateTitleNode(fields.title, styles, textMaxWidth);
         this.updateSubtitleNode(fields.subtitle, styles, textMaxWidth);
         this.updateLabelNodes(fields.labels, styles, textMaxWidth);
-        this.updateExpanderNode(descendantsCount, isCollapsed, isRtl, styles);
+        this.updateExpanderNode(expanderText, descendentsCount, isCollapsed, isRtl, styles);
 
         let rowScenes = [];
         let rowGaps: number[] = [];
@@ -344,6 +345,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
     }
 
     private updateExpanderNode(
+        expanderText: NormalisedTextOrSegments,
         descendantsCount: number,
         isCollapsed: boolean,
         isRtl: boolean,
@@ -356,7 +358,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         }
 
         this.expanderNode ??= this.appendChild(new OrganizationExpanderNode());
-        this.expanderNode.update(descendantsCount, isCollapsed, isRtl, styles);
+        this.expanderNode.update(expanderText, isCollapsed, isRtl, styles);
     }
 }
 
@@ -367,12 +369,18 @@ class OrganizationExpanderNode extends _ModuleSupport.TranslatableGroup {
     private countNode?: _ModuleSupport.Text;
     private chevronNode?: ChevronPath;
 
-    update(descendantsCount: number, isCollapsed: boolean, isRtl: boolean, styles: NormalisedOrganizationNodeStyle) {
+    update(
+        expanderText: NormalisedTextOrSegments,
+        isCollapsed: boolean,
+        isRtl: boolean,
+        styles: NormalisedOrganizationNodeStyle
+    ) {
         this.shapeNode ??= this.appendChild(new _ModuleSupport.Rect({ tag: OrganizationNodeTag.Expander }));
 
         this.countNode ??= this.appendChild(new _ModuleSupport.Text({ tag: OrganizationNodeTag.Expander }));
         this.countNode.y = styles.expander.padding.top;
-        this.countNode.text = `${descendantsCount}`;
+
+        this.countNode.text = expanderText;
         applyTextStyles(this.countNode, styles.expander.text);
 
         this.chevronNode ??= this.appendChild(new ChevronPath({ tag: OrganizationNodeTag.Expander }));
