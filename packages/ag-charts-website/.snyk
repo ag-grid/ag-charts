@@ -2,6 +2,37 @@
 version: v1.25.1
 # ignores vulnerabilities until expiry date; change duration by modifying expiry date
 ignore:
+    SNYK-JS-ESBUILD-17750822:
+        - vitest@2.1.9 > vite@6.3.5 > esbuild@0.25.0:
+              reason: >-
+                  Test dependency - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-07-15T10:44:49.686Z
+        - '@astrojs/react@5.0.4 > vite@7.3.3 > esbuild@0.27.7':
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-07-15T10:44:43.582Z
+        - astro@6.1.9 > vite@7.3.3 > esbuild@0.27.7:
+              reason: >-
+                  The website is a static site, so server-side vulns are not relevant
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-07-15T10:44:38.987Z
+        - astro@6.1.9 > esbuild@0.27.7:
+              reason: >-
+                  The website is a static site, so server-side vulns are not relevant
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-07-15T10:44:38.981Z
+        - '@astrojs/markdoc@1.0.4 > esbuild@0.27.7':
+              reason: >-
+                  The website is a static site, so server-side vulns are not relevant
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-07-15T10:44:35.493Z
+        - vite@5.4.20 > esbuild@0.21.5:
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-07-15T10:44:10.850Z
     SNYK-JS-ASTRO-17356189:
         - astro@6.1.9:
               reason: >-
