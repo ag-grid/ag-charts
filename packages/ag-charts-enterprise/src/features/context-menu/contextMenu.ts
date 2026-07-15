@@ -23,7 +23,6 @@ import {
 
 import { ContextMenuItem, expandBuiltinLists, expandItems } from './contextMenuItem';
 import { DEFAULT_CONTEXT_MENU_CLASS } from './contextMenuStyles';
-import { type PublicAxisContext, toPublicAxisContext } from './contextMenuUtil';
 
 type ContextShowOnMap = _ModuleSupport.ContextShowOnMap;
 type ContextMenuEvent<K extends AgContextMenuItemShowOn = AgContextMenuItemShowOn> = _ModuleSupport.ContextMenuEvent<K>;
@@ -80,7 +79,7 @@ export class ContextMenu extends AbstractModuleInstance {
     private pickedNode: PickedNode | undefined = undefined;
     private pickedLegendItem?: _ModuleSupport.CategoryLegendDatum;
     private pickedCaptionCtx?: ContextShowOnMap['caption']['context'];
-    private pickedAxisCtx?: PublicAxisContext;
+    private pickedAxisCtx?: _ModuleSupport.AxisValuePick;
     private x: number = 0;
     private y: number = 0;
     private collapsingSubMenus = 0;
@@ -260,7 +259,7 @@ export class ContextMenu extends AbstractModuleInstance {
         } else if (ContextMenuRegistry.check('caption', event)) {
             this.pickedCaptionCtx = event.context;
         } else if (ContextMenuRegistry.check('axis', event)) {
-            this.pickedAxisCtx = toPublicAxisContext(event);
+            this.pickedAxisCtx = event.context;
         }
 
         const expandedItems = this.expandItemsOptions(event);

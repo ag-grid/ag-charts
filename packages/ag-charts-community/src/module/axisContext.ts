@@ -1,5 +1,11 @@
 import type { AxisID, BoxBounds, ChartAxisDirection, NormalisedTextOrSegments, Point, Scale } from 'ag-charts-core';
-import type { AgAxisBoundSeries, AgCartesianAxisPosition, FormatterParams } from 'ag-charts-types';
+import type {
+    AgAxisBoundSeries,
+    AgAxisDomain,
+    AgAxisValue,
+    AgCartesianAxisPosition,
+    FormatterParams,
+} from 'ag-charts-types';
 
 import type { Group } from '../scene/group';
 import type { Node } from '../scene/node';
@@ -16,6 +22,15 @@ export interface AxisFormattableLabel<FormatParams extends object, Params extend
         value: any,
         params: Params
     ): NormalisedTextOrSegments | undefined;
+}
+
+export interface AxisValuePick {
+    readonly context: unknown;
+    readonly axisId: string;
+    readonly value: AgAxisValue;
+    readonly direction: ChartAxisDirection;
+    readonly boundSeries: AgAxisBoundSeries[];
+    readonly domain: AgAxisDomain;
 }
 
 export interface AxisBandMeasurement {
@@ -80,9 +95,10 @@ export interface AxisContext {
     attachAxisOverlay(group: Group, slot: 'low' | 'mid' | 'high'): void;
     inRange(value: number, tolerance?: number): boolean;
     getRangeOverflow(value: number): number;
+    /** Pick the scale value at a local-point (click/contextmenu events) */
+    pickValue(point: { currentX: number; currentY: number }): AxisValuePick | undefined;
     pickBand(point: Point): AxisBandDatum | undefined;
     measureBand(value: string): AxisBandMeasurement | undefined;
     /** Defined only on polar axes; cartesian axes leave it undefined. */
     getPolarLayout?(): PolarAxisLayout;
-    getFormatterBoundSeries(): AgAxisBoundSeries[];
 }

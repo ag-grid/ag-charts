@@ -30,7 +30,11 @@ import {
 } from 'ag-charts-core';
 import type {
     AgAxisBoundSeries,
+    AgAxisDomain,
+    AgAxisValue,
     AgBaseAxisLabelStyleOptions,
+    AgContextMenuGetItemsParamsAlways,
+    AgContextMenuGetItemsParamsAxis,
     AgTimeAxisFormattableLabelUnitFormat,
     AgTimeInterval,
     AgTimeIntervalUnit,
@@ -42,7 +46,13 @@ import type {
 } from 'ag-charts-types';
 
 import type { AxisLayout } from '../../core/eventsHub';
-import type { AxisBandDatum, AxisBandMeasurement, AxisContext, AxisFormattableLabel } from '../../module/axisContext';
+import type {
+    AxisBandDatum,
+    AxisBandMeasurement,
+    AxisContext,
+    AxisFormattableLabel,
+    AxisValuePick,
+} from '../../module/axisContext';
 import type { ChartAxisRegistry, ChartRegistry } from '../../module/moduleContext';
 import { ModuleMap } from '../../module/moduleMap';
 import { BandScale } from '../../scale/bandScale';
@@ -159,6 +169,15 @@ function computeBand<D, I>(
     const end = position + bandwidth + offset;
 
     return [position, clampArray(start, range), clampArray(end, range)];
+}
+
+function unsafeInvert(scale: Scale<unknown, unknown, unknown>, value: number): AgAxisValue {
+    const result = scale.invert(value, true);
+    return result as AgAxisValue;
+}
+
+function unsafeDomain(scale: Scale<unknown, unknown, unknown>): AgAxisDomain {
+    return scale.domain as AgAxisDomain;
 }
 
 /**
@@ -1187,10 +1206,37 @@ export abstract class Axis<
             attachAxisOverlay: (group, slot) => this.getOverlayGroup(slot).appendChild(group),
             inRange: (value, tolerance) => this.inRange(value, tolerance),
             getRangeOverflow: (value) => this.getRangeOverflow(value),
+            pickValue: (point) => this.pickValue(point),
             pickBand: (point) => this.pickBand(point),
             measureBand: (value) => this.measureBand(value),
-            getFormatterBoundSeries: () => this.formatterBoundSeries.get(),
         };
+    }
+
+    pickValue(point: { currentX: number; currentY: number }): AxisValuePick | undefined {
+        const position = this.isVertical() ? point.currentY : point.currentX;
+
+        const value = unsafeInvert(this.scale, position);
+        const domain = unsafeDomain(this.scale);
+        if (value == null || domain == null) {
+            return undefined;
+        }
+
+        // Dynamically extract properties of `AgContextMenuGetItemsParamsAxis` that are not present in the base
+        // `AgContextMenuGetItemsParamsAlways` (except for `context` because we need to broadcast the user option
+        // `axes[key].context` if defined).
+        type Rules = Omit<AgContextMenuGetItemsParamsAxis, Exclude<keyof AgContextMenuGetItemsParamsAlways, 'context'>>;
+        this.direction;
+        this.formatterBoundSeries.get;
+        const result: AxisValuePick = {
+            context: this.context,
+            axisId: this.id,
+            value,
+            direction: this.direction,
+            boundSeries: this.formatterBoundSeries.get(),
+            domain,
+        } satisfies Rules;
+
+        return result;
     }
 
     pickBand(point: Point): AxisBandDatum | undefined {
