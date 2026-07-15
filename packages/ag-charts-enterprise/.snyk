@@ -2,6 +2,18 @@
 version: v1.25.1
 # ignores vulnerabilities until expiry date; change duration by modifying expiry date
 ignore:
+    SNYK-JS-ESBUILD-17750822:
+        - vitest@2.1.9 > vite@6.3.5 > esbuild@0.25.0:
+              reason: >-
+                  Test dependency - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-07-15T10:44:49.683Z
+    SNYK-JS-AGCHARTSTEST-17950302:
+        - ag-charts-test@14.0.0-beta.20260712:
+              reason: >-
+                  The package with the issue is not the one we consume, which is an internal only one. The malicious package has been pulled from npm
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-07-15T09:49:06.480Z
     SNYK-JS-VITE-17353904:
         - vitest@2.1.9 > vite-node@2.1.9 > vite@6.3.5:
               reason: >-

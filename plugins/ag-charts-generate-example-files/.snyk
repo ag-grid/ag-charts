@@ -2,6 +2,12 @@
 version: v1.25.1
 
 ignore:
+    SNYK-JS-AGCHARTSTEST-17950302:
+        - ag-charts-test@14.0.0-beta.20260712:
+              reason: >-
+                  The package with the issue is not the one we consume, which is an internal only one. The malicious package has been pulled from npm
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-07-15T09:49:06.487Z
     SNYK-JS-TMP-17315641:
         - '@nx/devkit@18.3.4 > tmp@0.2.1':
               reason: >-
