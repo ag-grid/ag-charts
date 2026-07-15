@@ -5,6 +5,7 @@ import type {
     FontOptions,
     IsAny,
     LabelFit,
+    LabelPlacement,
     NormalisedColorType,
     NormalisedTextOrSegments,
     OrientationAnchor,
@@ -130,17 +131,40 @@ export function boundLabelFit(
 /**
  * Container that keeps an `inside` label within a marker of diameter `markerSize`, sized to the largest
  * rectangle that fits the marker's shape (analysed once per shape by {@link markerLabelRect}). Pair with
- * {@link insideMarkerOffset} to position the label at that rectangle, which need not be marker-centred.
+ * {@link resolveInsidePlacement}'s `offset` to position the label at that rectangle, which need not be
+ * marker-centred.
  */
 export function insideMarkerContainer(markerSize: number, shape?: AgMarkerShape): { width: number; height: number } {
     const rect = markerLabelRect(shape);
     return { width: markerSize * rect.width, height: markerSize * rect.height };
 }
 
-/** The inside-label rectangle's centre offset from the marker centre, as a fraction of the diameter. */
-export function insideMarkerOffset(shape: AgMarkerShape | undefined): Point {
-    const { cx, cy } = markerLabelRect(shape);
-    return { x: cx, y: cy };
+/** Inside-marker label geometry resolved from a series' configured placements and marker shape. */
+export interface InsidePlacement {
+    /** True when every placement is `inside`, so the text is fitted to the marker up front. */
+    readonly insideOnly: boolean;
+    /** Centres an `inside` label on the marker's inscribed rectangle; set whenever `inside` is a placement. */
+    readonly offset: Point | undefined;
+    /** Inscribed-rect size so the engine rejects an oversized `inside` candidate; set only for a mixed list. */
+    readonly size: { width: number; height: number } | undefined;
+}
+
+/**
+ * Resolves the inside-marker geometry for a placement list. A mixed list (e.g. `['inside','top']`) keeps
+ * full-size text and instead supplies `size`, so an `inside` candidate too large for the marker fails and
+ * cascades to the next placement; an inside-only list leaves `size` unset and fits the text to the marker.
+ */
+export function resolveInsidePlacement(
+    placements: readonly LabelPlacement[],
+    shape: AgMarkerShape | undefined
+): InsidePlacement {
+    const insideOnly = placements.length > 0 && placements.every((placement) => placement === 'inside');
+    const rect = placements.includes('inside') ? markerLabelRect(shape) : undefined;
+    return {
+        insideOnly,
+        offset: rect ? { x: rect.cx, y: rect.cy } : undefined,
+        size: !insideOnly && rect ? { width: rect.width, height: rect.height } : undefined,
+    };
 }
 
 /** Selects the style overrides for a label's resolved placement; `undefined` when neither applies. */

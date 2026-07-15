@@ -30,8 +30,10 @@ export interface PlacedLabelContext {
     readonly labelPadding: { left: number; right: number; top: number; bottom: number };
     readonly labelTextMeasurer: { measureLines: (text: string) => { width: number; height: number } };
     readonly labelFit: LabelFit | undefined;
-    /** Marker-shape rectangle offset for `inside` labels; set only when fitting inside the marker. */
+    /** Marker-shape rectangle offset centring an `inside` label; set whenever `inside` is a placement. */
     readonly labelInsideOffset: Point | undefined;
+    /** Marker inscribed-rect size for a mixed `inside`+directional list, so an oversized inside candidate cascades. */
+    readonly labelInsideSize: { width: number; height: number } | undefined;
     /** Marker anchor, so a label placed on an anchored/off-centre shape (e.g. pin) tracks its drawn centre. */
     readonly labelAnchor: Point | undefined;
 }

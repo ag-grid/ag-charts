@@ -237,9 +237,9 @@ describe('label collision avoidance', () => {
 
         const render = async (
             type: 'line' | 'area',
-            opts: { markerSize?: number; markerEnabled?: boolean; placement?: string | string[] } = {}
+            opts: { markerSize?: number; markerEnabled?: boolean; placement?: string | string[]; avoid?: boolean } = {}
         ) => {
-            const { markerSize = 40, markerEnabled = true, placement = 'inside' } = opts;
+            const { markerSize = 40, markerEnabled = true, placement = 'inside', avoid = false } = opts;
             const options: any = {
                 data: sparseData,
                 legend: { enabled: false },
@@ -254,6 +254,7 @@ describe('label collision avoidance', () => {
                             enabled: true,
                             placement,
                             formatter: ({ value }: any) => String(value),
+                            ...(avoid ? { collisionAvoidance: { enabled: true } } : {}),
                         },
                     },
                 ],
@@ -285,13 +286,76 @@ describe('label collision avoidance', () => {
                 expect(placed.length).toBe(0);
             });
 
-            it(`${type}: a mixed placement list keeps full text for the directional fallback`, async () => {
-                // A small marker hides a pure `inside` label, but mixing `inside` with a directional
-                // fallback must not constrain the text to the marker, so the labels still render.
-                const placed = await render(type, { markerSize: 4, placement: ['inside', 'top'] });
+            it(`${type}: cascades an oversized inside label to a directional fallback`, async () => {
+                // A small marker can't contain the full-size text, so a mixed list must reject the `inside`
+                // candidate and cascade to a directional placement rather than leaving it overflowing inside.
+                const placed = await render(type, {
+                    markerSize: 4,
+                    placement: ['inside', 'top', 'bottom'],
+                    avoid: true,
+                });
                 expect(placed.length).toBe(sparseData.length);
+                for (const label of placed) {
+                    expect(['top', 'bottom']).toContain(label.placement);
+                }
+            });
+
+            it(`${type}: keeps a fitting inside label inside for a mixed list`, async () => {
+                // The text fits the large marker, so the first (`inside`) candidate is chosen and the
+                // directional fallback is never reached.
+                const placed = await render(type, { markerSize: 40, placement: ['inside', 'top'], avoid: true });
+                expect(placed.length).toBe(sparseData.length);
+                for (const label of placed) {
+                    expect(label.placement).toBe('inside');
+                }
             });
         }
+    });
+
+    // Reproduces the reported scenario: three close, parallel lines with a `['top','bottom','inside']`
+    // list. The top line resolves up and the bottom line down; the middle line collides on both sides
+    // and falls through to `inside`, where its label fits the 23px marker rather than being dropped.
+    describe('mixed directional/inside cascade (three parallel lines)', () => {
+        const parallelLineData = [
+            { x: 0, top: 58, mid: 50, bottom: 42 },
+            { x: 1, top: 59, mid: 51, bottom: 43 },
+            { x: 2, top: 60, mid: 52, bottom: 44 },
+            { x: 3, top: 61, mid: 53, bottom: 45 },
+            { x: 4, top: 62, mid: 54, bottom: 46 },
+            { x: 5, top: 63, mid: 55, bottom: 47 },
+            { x: 6, top: 64, mid: 56, bottom: 48 },
+            { x: 7, top: 65, mid: 57, bottom: 49 },
+        ];
+
+        const lineSeries = (yKey: string, color: string) => ({
+            type: 'line',
+            xKey: 'x',
+            yKey,
+            stroke: color,
+            marker: { enabled: true, size: 23, fill: color },
+            label: {
+                enabled: true,
+                placement: ['top', 'bottom', 'inside'],
+                collisionAvoidance: { enabled: true },
+            },
+        });
+
+        it('cascades overlapping labels off their markers', async () => {
+            await renderAndSnapshot({
+                data: parallelLineData,
+                legend: { enabled: false },
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    // Wide fixed range compresses the pixel gap between the lines so their labels overlap.
+                    y: { type: 'number', position: 'left', min: 0, max: 150 },
+                },
+                series: [
+                    lineSeries('top', 'seagreen'),
+                    lineSeries('mid', 'dodgerblue'),
+                    lineSeries('bottom', 'tomato'),
+                ],
+            });
+        });
     });
 
     // Marker series enable collision avoidance, so a mixed `inside`+directional list cascades: the

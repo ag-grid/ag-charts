@@ -55,7 +55,7 @@ import {
     valueProperty,
 } from '../../data/processors';
 import { expandPlacementLabelPadding } from '../../label';
-import { boundLabelFit, insideMarkerContainer, insideMarkerOffset } from '../../labelUtil';
+import { boundLabelFit, insideMarkerContainer, resolveInsidePlacement } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import { type LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
@@ -477,14 +477,15 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
         const { label, marker } = this.properties;
         const { collisionAvoidance } = label;
         const placements = toArray(label.placement);
-        // Only fit to the marker when `inside` is the sole placement; a mixed fallback list must keep
-        // full-size text so a directional fallback isn't constrained to the marker.
-        const insideOnly = placements.length > 0 && placements.every((placement) => placement === 'inside');
+        const {
+            insideOnly,
+            offset: labelInsideOffset,
+            size: labelInsideSize,
+        } = resolveInsidePlacement(placements, marker.shape);
         const markerSize = marker.enabled ? marker.size : 0;
         const labelFit = insideOnly
             ? boundLabelFit(resolveLabelFit(label, false, true), insideMarkerContainer(markerSize, marker.shape))
             : resolveLabelFit(label, collisionAvoidance.avoid);
-        const labelInsideOffset = insideOnly ? insideMarkerOffset(marker.shape) : undefined;
         const labelAnchor = Marker.anchor(marker.shape);
 
         return {
@@ -513,6 +514,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             labelTextMeasurer: cachedTextMeasurer(this.properties.label),
             labelFit,
             labelInsideOffset,
+            labelInsideSize,
             labelAnchor,
             animationEnabled: !this.ctx.animationManager.isSkipped(),
             canIncrementallyUpdate,
@@ -612,6 +614,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                     label,
                     anchor: ctx.labelAnchor,
                     insideOffset: ctx.labelInsideOffset,
+                    insideSize: ctx.labelInsideSize,
                     placement: 'top',
                     gap,
                     crossFilterSelected: scratch.crossFilterSelected,
