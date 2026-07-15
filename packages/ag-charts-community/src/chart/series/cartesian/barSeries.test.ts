@@ -3819,10 +3819,10 @@ describe('BarSeries', () => {
             const options: AgCartesianChartOptions = {
                 data: paddingData,
                 legend: { enabled: false },
-                axes: [
-                    { type: 'category', position: vertical ? 'bottom' : 'left' },
-                    { type: 'number', position: vertical ? 'left' : 'bottom' },
-                ],
+                axes: {
+                    x: { type: 'category', position: vertical ? 'bottom' : 'left' },
+                    y: { type: 'number', position: vertical ? 'left' : 'bottom' },
+                },
                 series: [
                     {
                         type: 'bar',
