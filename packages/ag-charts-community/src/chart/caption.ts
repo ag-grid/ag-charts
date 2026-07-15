@@ -35,6 +35,7 @@ import type { TooltipContent } from './tooltip/tooltipContent';
 type CaptionNodeDatum = {
     visible: boolean;
     text: NormalisedTextOrSegments | undefined;
+    textAlign: string;
     textBaseline: string;
     x: number;
     y: number;
