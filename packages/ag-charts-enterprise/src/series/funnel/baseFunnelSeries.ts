@@ -120,9 +120,10 @@ class FunnelSeriesNodeEvent<
         nativeEvent: Event,
         datum: FunnelNodeDatum,
         series: BaseFunnelSeries<BaseFunnelSeriesTypes>,
-        selectionState: SelectionState | undefined
+        selectionState: SelectionState | undefined,
+        isCollapsed: boolean
     ) {
-        super(type, nativeEvent, datum, series, selectionState);
+        super(type, nativeEvent, datum, series, selectionState, isCollapsed);
         this.xKey = series.properties.stageKey;
         this.yKey = series.properties.valueKey;
     }
