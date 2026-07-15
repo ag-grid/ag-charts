@@ -104,6 +104,13 @@ export interface PointLabelDatum {
      * the `inside` placement, leaving directional placements unaffected.
      */
     readonly insideOffset?: Readonly<Point>;
+    /**
+     * Marker inscribed-rectangle size as a fraction of the marker diameter. When set, an `inside`
+     * candidate must fit this rect (scaled by {@link point}.size) to be chosen, so a label too large
+     * for the marker fails inside and cascades to the next {@link placements} entry. Left unset when
+     * `inside` is the sole placement, where the text is instead fitted to the marker up front.
+     */
+    readonly insideSize?: Readonly<{ width: number; height: number }>;
     readonly placement: LabelPlacement | undefined;
     /**
      * Ordered fallback placements, tried in turn until one fits; the label is dropped if none do.
@@ -596,6 +603,8 @@ const markerPool: PooledCircleObstacle[] = [];
 const candidateBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
 // Broad-phase query box: the candidate inflated by the largest active per-category minSpacing.
 const queryBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
+// The marker inscribed rect an `inside` candidate is contained by, co-centred with its label box.
+const insideRegionBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
 const inflatedBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
 // The candidate datum's per-category obstacle config, set before each obstacle query.
 let candidateCollideWith: CollideWith | undefined;
@@ -999,8 +1008,9 @@ function placeAvoidingLabel(
                 candidateBox.y = y = ny;
             }
             candidatePlacement = placement;
+            const containRegion = insideRegionFor(d, placement, x, y, cw, ch) ?? region;
             inflateBoxInto(queryBox, candidateBox, inflate);
-            if (boxContains(region, x, y, cw, ch) && !obstacleIndex.query(queryBox, obstacleOverlapsCandidate)) {
+            if (boxContains(containRegion, x, y, cw, ch) && !obstacleIndex.query(queryBox, obstacleOverlapsCandidate)) {
                 return {
                     index,
                     text,
@@ -1015,7 +1025,7 @@ function placeAvoidingLabel(
                     offsetY,
                 };
             }
-            const overflow = d.neverDrop ? regionOverflow(region, x, y, cw, ch) : Infinity;
+            const overflow = d.neverDrop ? regionOverflow(containRegion, x, y, cw, ch) : Infinity;
             if (overflow < bestOverflow) {
                 bestOverflow = overflow;
                 bestX = x;
@@ -1167,6 +1177,30 @@ function regionOverflow(region: BoxBounds, x: number, y: number, w: number, h: n
 /** The `i`-th candidate: `list[i]` when a candidate list is present, else the lone `single` value. */
 function candidateAt<T>(list: readonly T[] | undefined, single: T | undefined, i: number): T | undefined {
     return list ? list[i] : single;
+}
+
+/**
+ * The marker inscribed rect an `inside` candidate must fit, co-centred with the candidate box (which
+ * `insideOffset` already placed at that rect's centre), written into the shared {@link insideRegionBox}.
+ * Returns `undefined` for directional candidates or when the datum carries no {@link
+ * PointLabelDatum.insideSize}, so the caller falls back to the shared region.
+ */
+function insideRegionFor(
+    d: PointLabelDatum,
+    placement: LabelPlacement | undefined,
+    x: number,
+    y: number,
+    boxWidth: number,
+    boxHeight: number
+): BoxBounds | undefined {
+    if (placement !== 'inside' || d.insideSize == null) return undefined;
+    const rw = d.insideSize.width * d.point.size;
+    const rh = d.insideSize.height * d.point.size;
+    insideRegionBox.x = x + boxWidth / 2 - rw / 2;
+    insideRegionBox.y = y + boxHeight / 2 - rh / 2;
+    insideRegionBox.width = rw;
+    insideRegionBox.height = rh;
+    return insideRegionBox;
 }
 
 /**

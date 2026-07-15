@@ -636,6 +636,113 @@ describe('placeLabels', () => {
         expect(firstPlaced!.placement).toBe('top');
         expect(secondPlaced!.placement).toBe('bottom');
     });
+
+    describe('inside placement with a marker-fit fallback list', () => {
+        const insideThenDirectional: (LabelPlacement | undefined)[] = ['inside', 'top', 'bottom'];
+
+        it('keeps a label inside when it fits the marker inscribed rect', () => {
+            const datum: PointLabelDatum = {
+                point: { x: 200, y: 200, size: 100 },
+                label: { text: 'L', width: 40, height: 12 },
+                anchor: { x: 0.5, y: 0.5 },
+                placement: 'inside',
+                placements: insideThenDirectional,
+                insideSize: { width: 0.7, height: 0.7 },
+                avoid: true,
+            };
+            const result = placeLabels(new Map([['s', seriesLabels([datum])]]), bounds, 5);
+            const placed = result.get('s')![0];
+            expect(placed).toBeDefined();
+            expect(placed.placement).toBe('inside');
+        });
+
+        // A large marker pushes the directional candidates clear of the centred inside box, so an
+        // inside failure is isolated to the insideSize containment test rather than obstacle overlap.
+        it('cascades to top when the label is too large for the marker inscribed rect', () => {
+            const datum: PointLabelDatum = {
+                point: { x: 200, y: 200, size: 100 },
+                label: { text: 'L', width: 40, height: 12 },
+                anchor: { x: 0.5, y: 0.5 },
+                placement: 'inside',
+                placements: insideThenDirectional,
+                insideSize: { width: 0.1, height: 0.1 },
+                avoid: true,
+            };
+            const result = placeLabels(new Map([['s', seriesLabels([datum])]]), bounds, 5);
+            const placed = result.get('s')![0];
+            expect(placed).toBeDefined();
+            expect(placed.placement).toBe('top');
+            // The top box sits entirely above the point.
+            expect(placed.y + placed.height).toBeLessThanOrEqual(200);
+        });
+
+        it('cascades to bottom when inside is too small and top is blocked', () => {
+            const datum: PointLabelDatum = {
+                point: { x: 200, y: 200, size: 100 },
+                label: { text: 'L', width: 40, height: 12 },
+                anchor: { x: 0.5, y: 0.5 },
+                placement: 'inside',
+                placements: insideThenDirectional,
+                insideSize: { width: 0.1, height: 0.1 },
+                avoid: true,
+            };
+            // A marker over the top candidate box only; it clears the centred inside box and bottom box.
+            const blockerAbove: PointLabelDatum = {
+                point: { x: 200, y: 139, size: 20 },
+                label: { text: '', width: 0, height: 0 },
+                anchor: undefined,
+                placement: undefined,
+            };
+            const result = placeLabels(new Map([['s', seriesLabels([datum, blockerAbove])]]), bounds, 5);
+            const placed = result.get('s')!.find((l) => l.datum === datum);
+            expect(placed).toBeDefined();
+            expect(placed!.placement).toBe('bottom');
+            expect(placed!.y).toBeGreaterThanOrEqual(200);
+        });
+
+        it('drops a droppable label when inside is too small and top and bottom are blocked', () => {
+            const datum: PointLabelDatum = {
+                point: { x: 200, y: 200, size: 100 },
+                label: { text: 'L', width: 40, height: 12 },
+                anchor: { x: 0.5, y: 0.5 },
+                placement: 'inside',
+                placements: insideThenDirectional,
+                insideSize: { width: 0.1, height: 0.1 },
+                avoid: true,
+            };
+            const blockerAbove: PointLabelDatum = {
+                point: { x: 200, y: 139, size: 20 },
+                label: { text: '', width: 0, height: 0 },
+                anchor: undefined,
+                placement: undefined,
+            };
+            const blockerBelow: PointLabelDatum = {
+                point: { x: 200, y: 261, size: 20 },
+                label: { text: '', width: 0, height: 0 },
+                anchor: undefined,
+                placement: undefined,
+            };
+            const result = placeLabels(new Map([['s', seriesLabels([datum, blockerAbove, blockerBelow])]]), bounds, 5);
+            const placed = result.get('s')!.find((l) => l.datum === datum);
+            expect(placed).toBeUndefined();
+        });
+
+        it('tests inside against the shared bounds when no insideSize is given (gating regression)', () => {
+            const datum: PointLabelDatum = {
+                point: { x: 200, y: 200, size: 20 },
+                label: { text: 'L', width: 40, height: 12 },
+                anchor: { x: 0.5, y: 0.5 },
+                placement: 'inside',
+                placements: insideThenDirectional,
+                avoid: true,
+            };
+            const result = placeLabels(new Map([['s', seriesLabels([datum])]]), bounds, 5);
+            const placed = result.get('s')![0];
+            expect(placed).toBeDefined();
+            // Without insideSize the marker-fit test is inert, so inside wins as before.
+            expect(placed.placement).toBe('inside');
+        });
+    });
 });
 
 describe('placeLabels orientation candidates', () => {

@@ -294,6 +294,116 @@ describe('label collision avoidance', () => {
         }
     });
 
+    // Marker series enable collision avoidance, so a mixed `inside`+directional list cascades: the
+    // label fits inside the marker when it can, else falls back to a directional placement with full
+    // text rather than vanishing. Scatter shares BubbleSeries' label pipeline, so both are covered.
+    describe('inside placement fallback cascade (marker series)', () => {
+        // Three well-separated mid-height points: no inter-marker or inter-label collisions, so an
+        // inside failure is isolated to the marker-fit test and directional fallbacks stay clear.
+        const sparseData = [
+            { x: 10, y: 50, size: 1, label: 'A' },
+            { x: 50, y: 50, size: 1, label: 'B' },
+            { x: 90, y: 50, size: 1, label: 'C' },
+        ];
+
+        const placedLabels = () => {
+            const series = deproxy(chart as any).series[0] as unknown as {
+                placedLabelData: { placement?: string }[];
+            };
+            return series.placedLabelData;
+        };
+
+        const render = async (
+            type: 'scatter' | 'bubble',
+            opts: { markerSize: number; placement: string | string[] }
+        ) => {
+            const { markerSize, placement } = opts;
+            const options: any = {
+                data: sparseData,
+                legend: { enabled: false },
+                axes: cartesianAxes,
+                series: [
+                    {
+                        type,
+                        xKey: 'x',
+                        yKey: 'y',
+                        labelKey: 'label',
+                        ...(type === 'bubble'
+                            ? { sizeKey: 'size', minSize: markerSize, maxSize: markerSize }
+                            : { size: markerSize }),
+                        label: { enabled: true, placement },
+                    },
+                ],
+            };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            return placedLabels();
+        };
+
+        it('scatter: keeps the label inside when it fits the marker', async () => {
+            const placed = await render('scatter', { markerSize: 100, placement: ['inside', 'top', 'bottom'] });
+            expect(placed.length).toBe(sparseData.length);
+            for (const label of placed) {
+                expect(label.placement).toBe('inside');
+            }
+        });
+
+        it('scatter: cascades to a directional fallback when the marker is too small', async () => {
+            const placed = await render('scatter', { markerSize: 6, placement: ['inside', 'top', 'bottom'] });
+            // No vanishing: every label still renders, now at the directional fallback with full text.
+            expect(placed.length).toBe(sparseData.length);
+            for (const label of placed) {
+                expect(label.placement).toBe('top');
+            }
+        });
+
+        it('scatter: a lone inside placement still hides on a too-small marker (no fallback)', async () => {
+            const placed = await render('scatter', { markerSize: 6, placement: 'inside' });
+            expect(placed.length).toBe(0);
+        });
+
+        it('bubble: cascades to a directional fallback when the marker is too small', async () => {
+            const placed = await render('bubble', { markerSize: 6, placement: ['inside', 'top', 'bottom'] });
+            expect(placed.length).toBe(sparseData.length);
+            for (const label of placed) {
+                expect(label.placement).toBe('top');
+            }
+        });
+
+        // Visual regression guard: with a size range, small bubbles cascade their labels to
+        // top/bottom while large bubbles keep them inside — none vanish.
+        it('bubble: renders a mixed inside/top/bottom cascade across a size range', async () => {
+            await renderAndSnapshot(
+                {
+                    data: [
+                        { x: 1, y: 3, size: 1, label: 'Alpha' },
+                        { x: 2, y: 5, size: 4, label: 'Bravo' },
+                        { x: 3, y: 2, size: 8, label: 'Charlie' },
+                        { x: 4, y: 6, size: 10, label: 'Delta' },
+                        { x: 5, y: 4, size: 2, label: 'Echo' },
+                        { x: 6, y: 7, size: 6, label: 'Foxtrot' },
+                    ],
+                    legend: { enabled: false },
+                    axes: cartesianAxes,
+                    series: [
+                        {
+                            type: 'bubble',
+                            xKey: 'x',
+                            yKey: 'y',
+                            sizeKey: 'size',
+                            labelKey: 'label',
+                            minSize: 6,
+                            maxSize: 60,
+                            label: { enabled: true, placement: ['inside', 'top', 'bottom'] },
+                        },
+                    ],
+                },
+                PATTERN_SNAPSHOT_DEFAULTS
+            );
+        });
+    });
+
     describe('scatter series', () => {
         const data = markerData;
 
