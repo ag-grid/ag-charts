@@ -26,7 +26,6 @@ import {
     markerStyleOptionsDefs,
     multiSeriesHighlightOptionsDef,
     numberFormatValidator,
-    or,
     positiveNumber,
     positiveNumberNonZero,
     positiveNumericValue,
@@ -40,6 +39,7 @@ import {
     strokeOptionsDef,
     tooltipOptionsDefs,
     union,
+    unionOrArray,
     without,
 } from 'ag-charts-core';
 import {
@@ -536,10 +536,14 @@ const rangeAreaSeriesLineStyleDef: OptionsDefs<AgRangeAreaSeriesLineStyle> = {
     ...lineDashOptionsDef,
 };
 
-const insideOutsidePlacement = union('inside', 'outside');
-const rangeInsideOutsidePlacementDef = or(insideOutsidePlacement, arrayOf(insideOutsidePlacement));
-const waterfallPlacement = union('inside-start', 'inside-center', 'inside-end', 'outside-start', 'outside-end');
-const waterfallPlacementDef = or(waterfallPlacement, arrayOf(waterfallPlacement));
+const rangeInsideOutsidePlacementDef = unionOrArray('inside', 'outside');
+const waterfallPlacementDef = unionOrArray(
+    'inside-start',
+    'inside-center',
+    'inside-end',
+    'outside-start',
+    'outside-end'
+);
 
 export const rangeAreaSeriesThemeableOptionsDef: OptionsDefs<AgRangeAreaSeriesThemeableOptions> = {
     showInMiniChart: boolean,

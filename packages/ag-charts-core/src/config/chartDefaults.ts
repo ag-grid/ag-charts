@@ -72,6 +72,7 @@ import {
     typeUnion,
     undocumented,
     union,
+    unionOrArray,
     validate,
 } from '../state/validation';
 import { isValidNumberFormat } from '../utils/format/numberFormat';
@@ -148,7 +149,7 @@ export const shapeValidator = or(
     callback
 );
 
-const tooltipPlacementValidator = union(
+const tooltipPlacementDef = unionOrArray(
     'top',
     'right',
     'bottom',
@@ -517,7 +518,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
         mode: union('single', 'shared', 'compact'),
         position: {
             anchorTo: union('pointer', 'node', 'chart'),
-            placement: or(tooltipPlacementValidator, arrayOf(tooltipPlacementValidator)),
+            placement: tooltipPlacementDef,
             xOffset: number,
             yOffset: number,
             offset: positiveNumber,
@@ -912,7 +913,7 @@ export const tooltipOptionsDefs: OptionsDefs<AgSeriesTooltip<any>> = {
     ),
     position: {
         anchorTo: union('node', 'pointer', 'chart'),
-        placement: or(tooltipPlacementValidator, arrayOf(tooltipPlacementValidator)),
+        placement: tooltipPlacementDef,
         xOffset: number,
         yOffset: number,
         offset: positiveNumber,
