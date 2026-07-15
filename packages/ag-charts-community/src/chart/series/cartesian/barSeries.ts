@@ -1041,14 +1041,6 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             // Single-placement fast path: the placement is baked unconditionally; only an orientation
             // array (if any) is later resolved against the bar rect by the placement engine.
             const { labelPlacement: placement, labelRotation: rotation } = ctx;
-            const labelPlacement = adjustLabelPlacement({
-                isUpward,
-                isVertical: !ctx.barAlongX,
-                placement,
-                spacing: ctx.label.spacing,
-                boxPadding: ctx.boxPadding,
-                rect,
-            });
             // Inside labels fit within the bar rect; outside labels sit beside it, so leave them unbound.
             // The rect is only needed to bound the fit or to resolve orientation, so skip it otherwise.
             const isInside = placement == null || placement.startsWith('inside');
@@ -1058,6 +1050,20 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             // inside placements only (outside labels fall back to the plot bounds via no region).
             const region = ctx.labelResolvesOrientation ? insideBox : undefined;
             const fittedText = fitLabelToContainer(nodeLabelText, ctx.labelFit, ctx.label, insideBox);
+            // A rotated label's gap to the bar depends on its box size; measure only when it rotates.
+            const { width: labelWidth, height: labelHeight } =
+                rotation === 0 ? { width: 0, height: 0 } : measureLabelText(fittedText, ctx.label);
+            const labelPlacement = adjustLabelPlacement({
+                isUpward,
+                isVertical: !ctx.barAlongX,
+                placement,
+                spacing: ctx.label.spacing,
+                boxPadding: ctx.boxPadding,
+                rect,
+                rotation,
+                labelWidth,
+                labelHeight,
+            });
 
             const existingLabel = mutableNode.label;
             if (existingLabel) {

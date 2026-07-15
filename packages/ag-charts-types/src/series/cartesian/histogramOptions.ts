@@ -7,6 +7,7 @@ import type {
     SeriesCallbackParams,
     Styler,
 } from '../../chart/callbackOptions';
+import type { AgChartLabelOrientation } from '../../chart/collisionAvoidanceOptions';
 import type { AgNumericValue } from '../../chart/dataValues';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgNodeClickEvent } from '../../chart/eventOptions';
@@ -82,6 +83,14 @@ export interface AgHistogramSeriesLabelOptions<TDatum, TParams, TContext = Conte
     placement?: AgHistogramSeriesLabelPlacement | AgHistogramSeriesLabelPlacement[];
     /** Distance between the bar edges and the text. */
     spacing?: PixelSize;
+    /**
+     * Orientation of the label within the bar. `horizontal` reads upright; the two `vertical`
+     * variants rotate it a quarter-turn in opposite directions. Either a single orientation or an
+     * ordered fallback list tried in turn until one fits.
+     *
+     * Default: `horizontal`
+     */
+    orientation?: AgChartLabelOrientation | AgChartLabelOrientation[];
 }
 
 export interface AgHistogramSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {

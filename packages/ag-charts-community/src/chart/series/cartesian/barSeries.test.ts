@@ -3933,5 +3933,70 @@ describe('BarSeries', () => {
         it('offsets horizontal outside-end labels by the facing padding, matching scalar padding', async () => {
             await expectPerSideMatchesScalar('outside-end', 'horizontal', { top: 0, bottom: 0, left: 10, right: 10 });
         });
+
+        // A rotated label's box turns a quarter-turn about its own centre, so per-side padding must not
+        // move the rendered text: the box-facing edge stays a constant gap from the bar (along-axis) and
+        // the glyph stays centred on the bar (cross-axis), whatever the per-side padding distribution.
+        // A naive "read the rotated facing side" fix gets both wrong for asymmetric padding.
+        const rotatedLabelGeometry = async (padding: Padding) => {
+            const p =
+                typeof padding === 'number'
+                    ? { top: padding, right: padding, bottom: padding, left: padding }
+                    : padding;
+            const options: AgCartesianChartOptions = {
+                data: [{ cat: 'A', value: 60 }],
+                legend: { enabled: false },
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [
+                    {
+                        type: 'bar',
+                        direction: 'vertical',
+                        xKey: 'cat',
+                        yKey: 'value',
+                        label: {
+                            enabled: true,
+                            placement: 'outside-end',
+                            fill: '#eeeeee',
+                            padding,
+                            orientation: 'vertical',
+                        },
+                    },
+                ],
+            };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            const series = deproxy(chart).series[0] as any;
+            const node = series.labelSelection.nodes().find((n: any) => n.visible);
+            const bar = series.contextNodeData?.nodeData?.[0];
+            const box = node.getTextMeasureBBox();
+            const r = node.rotation;
+            // Box rotates about its centre; at ±90° its bar-facing (vertical) extent is the box width.
+            const boxBottom = box.y + box.height / 2 + Math.abs(box.width / 2);
+            // Final glyph centre = box centre − R(θ)·shift, shift = ((right−left)/2, (bottom−top)/2).
+            const sx = ((p.right ?? 0) - (p.left ?? 0)) / 2;
+            const sy = ((p.bottom ?? 0) - (p.top ?? 0)) / 2;
+            const glyphX = box.x + box.width / 2 - (Math.cos(r) * sx - Math.sin(r) * sy);
+            return { clearance: bar.y - boxBottom, glyphOffset: glyphX - (bar.x + bar.width / 2) };
+        };
+
+        it('keeps a rotated outside-end label clear of and centred on the bar for any per-side padding', async () => {
+            const scalar = await rotatedLabelGeometry(10);
+            chart.destroy();
+            const wideLeft = await rotatedLabelGeometry({ top: 0, bottom: 0, left: 50, right: 10 });
+            chart.destroy();
+            const wideRight = await rotatedLabelGeometry({ top: 0, bottom: 0, left: 10, right: 50 });
+            chart.destroy();
+            const tallAsym = await rotatedLabelGeometry({ top: 40, bottom: 4, left: 50, right: 10 });
+            for (const variant of [scalar, wideLeft, wideRight, tallAsym]) {
+                // Clear of the bar by the same gap as scalar padding...
+                expect(variant.clearance).toBeCloseTo(scalar.clearance, 0);
+                // ...and the glyph stays centred on the bar regardless of padding distribution.
+                expect(variant.glyphOffset).toBeCloseTo(0, 0);
+            }
+        });
     });
 });

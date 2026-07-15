@@ -1,4 +1,4 @@
-import type { AgChartLabelOrientation, OverflowStrategy, TextWrap } from 'ag-charts-types';
+import type { AgChartLabelOrientation, OverflowStrategy, PaddingOptions, TextWrap } from 'ag-charts-types';
 
 import { cachedTextMeasurer, measureTextSegments } from '../../rendering/textMeasurer';
 import type { NormalisedTextOrSegments } from '../../types/normalised-options/normalisedCommonOptions';
@@ -108,7 +108,7 @@ export interface PointLabelDatum {
     /**
      * Ordered fallback placements, tried in turn until one fits; the label is dropped if none do.
      * Takes precedence over {@link placement} when present. A single `placement` is equivalent to a
-     * one-element list.
+     * one-element list. Overrides the series {@link SeriesLabelDefaults.placements} when set.
      */
     readonly placements?: readonly LabelPlacement[];
     /**
@@ -125,16 +125,22 @@ export interface PointLabelDatum {
     readonly gap?: number;
     /**
      * When falsy (the default) the label takes its first placement unconditionally — bounds and
-     * obstacle queries are skipped and it is not inserted as an obstacle, so labels are never moved
-     * or dropped. Set true to opt the label into collision resolution.
+     * obstacle queries are skipped, so it is never moved or dropped. It is still registered as an
+     * obstacle whenever the index is active (some other series avoids), so avoiding series steer
+     * clear of it. Set true to opt the label into collision resolution. Overrides the series
+     * {@link SeriesLabelDefaults.avoid} when set.
      */
     readonly avoid?: boolean;
     /**
-     * Offset/proximity threshold in px added to the directional placement gap. Falls back to the
-     * `padding` argument of {@link placeLabels} when unset.
+     * Offset/proximity threshold in px added to the directional placement gap. Overrides the series
+     * {@link SeriesLabelDefaults.minSpacing} when set, else falls back to the `padding` argument of
+     * {@link placeLabels}.
      */
     readonly minSpacing?: number;
-    /** Resolved per-category obstacle configuration. Only consulted when {@link avoid} is true. */
+    /**
+     * Resolved per-category obstacle configuration. Only consulted when {@link avoid} is true.
+     * Overrides the series {@link SeriesLabelDefaults.collideWith} when set.
+     */
     readonly collideWith?: CollideWith;
     /**
      * Containment rect for this label's fit test, overriding the shared `bounds`. Bar-family labels
@@ -173,28 +179,36 @@ export interface CollideWith {
 }
 
 /**
- * Stamp the `avoid` flag and resolved per-category `collideWith` onto label data in place. Series
- * that opt their labels into collision resolution via theme do so per-render here, rather than
- * baking it into each datum at build time. A `collideWith` of `undefined` makes the label avoid
- * every obstacle category, so series with a resolved config must always pass it.
+ * Series-level collision defaults shared by every label in a series, resolved once per render from
+ * the series' collision-avoidance config. A datum's own field ({@link PointLabelDatum.avoid} etc.)
+ * overrides the matching default; when unset the engine falls back to these.
  */
-export function applyLabelAvoidance(labelData: readonly object[], avoid: boolean, collideWith?: CollideWith) {
-    for (const datum of labelData) {
-        const d = datum as { avoid?: boolean; collideWith?: CollideWith };
-        d.avoid = avoid;
-        d.collideWith = collideWith;
-    }
+export interface SeriesLabelDefaults {
+    readonly avoid?: boolean;
+    readonly minSpacing?: number;
+    readonly collideWith?: CollideWith;
+    readonly placements?: readonly LabelPlacement[];
 }
 
-/**
- * Stamp the ordered fallback `placements` onto label data in place. Series that resolve their
- * candidate placements from the collision-avoidance model (rather than a single baked-in placement)
- * do so per-render here.
- */
-export function applyLabelPlacements(labelData: readonly object[], placements: readonly LabelPlacement[]) {
-    for (const datum of labelData) {
-        (datum as { placements?: readonly LabelPlacement[] }).placements = placements;
-    }
+/** Per-series label placement input: the datums plus the series-level collision defaults. */
+export interface SeriesLabels {
+    readonly datums: readonly PointLabelDatum[];
+    readonly defaults?: SeriesLabelDefaults;
+}
+
+/** Structural source of a series' resolved collision config (community `LabelCollisionAvoidance`). */
+export interface CollisionAvoidanceSource {
+    readonly avoid: boolean;
+    readonly minSpacing?: number;
+    resolveCollideWith(): CollideWith | undefined;
+}
+
+/** Resolves a series' collision-avoidance config into the shared {@link SeriesLabelDefaults}. */
+export function resolveSeriesLabelDefaults(
+    src: CollisionAvoidanceSource,
+    placements?: readonly LabelPlacement[]
+): SeriesLabelDefaults {
+    return { avoid: src.avoid, minSpacing: src.minSpacing, collideWith: src.resolveCollideWith(), placements };
 }
 
 export interface PlacedLabel<PLD = PointLabelDatum> extends MeasuredLabel, Readonly<Point> {
@@ -279,8 +293,8 @@ export function isPointLabelDatum(x: any): x is PointLabelDatum {
 // `horizontal` reads upright, the two `vertical` variants a quarter-turn in either direction.
 export const orientationAngles: Record<AgChartLabelOrientation, number> = {
     horizontal: 0,
-    vertical: 90,
-    'vertical-reversed': -90,
+    vertical: -90,
+    'vertical-reversed': 90,
 };
 
 /**
@@ -293,9 +307,61 @@ export function barLabelRotation(orientation: AgChartLabelOrientation | undefine
 
 /** Recovers a bar label's `orientation` from its render rotation (radians); inverse of {@link barLabelRotation}. */
 export function barLabelOrientation(rotation: number): AgChartLabelOrientation {
-    if (rotation < 0) return 'vertical-reversed';
-    if (rotation > 0) return 'vertical';
+    if (rotation < 0) return 'vertical';
+    if (rotation > 0) return 'vertical-reversed';
     return 'horizontal';
+}
+
+const oppositeSide: Record<keyof Required<PaddingOptions>, keyof Required<PaddingOptions>> = {
+    top: 'bottom',
+    bottom: 'top',
+    left: 'right',
+    right: 'left',
+};
+
+/**
+ * Distance from a bar label's anchor to the bar-facing edge of its (rotated) background box — the gap
+ * the placement must leave, beyond `spacing`, so the box clears the bar.
+ *
+ * The node renders the padded box then rotates it about its own centre. So the reach is the box's
+ * half-extent along the facing axis after rotation, corrected for the anchor sitting on the glyph
+ * edge (not the box centre) and for asymmetric padding shifting the box centre off the glyph centre.
+ * At `rotation === 0` this reduces exactly to `padding[facing]`, leaving unrotated labels unchanged;
+ * a `vertical` label (±90°) instead reaches by the box's cross-axis half-extent.
+ */
+export function rotatedLabelInset(
+    facing: keyof Required<PaddingOptions>,
+    rotation: number,
+    labelWidth: number,
+    labelHeight: number,
+    padding: Required<PaddingOptions>
+): number {
+    const vertical = facing === 'top' || facing === 'bottom';
+    if (rotation === 0) return padding[facing];
+    const boxWidth = labelWidth + padding.left + padding.right;
+    const boxHeight = labelHeight + padding.top + padding.bottom;
+    const sin = Math.abs(Math.sin(rotation));
+    const cos = Math.abs(Math.cos(rotation));
+    const halfExtent = vertical
+        ? (boxWidth / 2) * sin + (boxHeight / 2) * cos
+        : (boxWidth / 2) * cos + (boxHeight / 2) * sin;
+    const glyphHalf = vertical ? labelHeight / 2 : labelWidth / 2;
+    return halfExtent - glyphHalf + (padding[facing] - padding[oppositeSide[facing]]) / 2;
+}
+
+/**
+ * How far a rotated label's glyph centre drifts from where the anchor placed it. The node rotates the
+ * padded box about its own centre, and asymmetric padding offsets that centre from the glyph centre by
+ * `shift = ((right − left)/2, (bottom − top)/2)`; the glyph therefore lands at `glyph + (I − R(θ))·shift`.
+ * Subtract this from the anchor to keep the glyph centred where the caller intended. Zero when
+ * unrotated or when padding is symmetric on the rotating axis.
+ */
+export function rotatedGlyphDrift(rotation: number, padding: Required<PaddingOptions>): Point {
+    const sx = (padding.right - padding.left) / 2;
+    const sy = (padding.bottom - padding.top) / 2;
+    const sin = Math.sin(rotation);
+    const cos = Math.cos(rotation);
+    return { x: sx * (1 - cos) + sy * sin, y: sy * (1 - cos) - sx * sin };
 }
 
 export interface OrientationAnchor {
@@ -614,10 +680,10 @@ function maxInflation(collideWith: CollideWith | undefined): number {
 }
 
 /** Cell size for the obstacle index, derived from the mean extent of every box it will hold. */
-function obstacleGridCellSize(data: Map<string, PointLabelDatum[]>, obstacles: readonly LabelObstacle[]): number {
+function obstacleGridCellSize(data: Map<string, SeriesLabels>, obstacles: readonly LabelObstacle[]): number {
     let extentSum = 0;
     let extentCount = 0;
-    for (const datums of data.values()) {
+    for (const { datums } of data.values()) {
         for (const d of datums) {
             extentSum += d.label.width + d.label.height;
             extentCount += 2;
@@ -648,9 +714,9 @@ function markerCentreOf(d: PointLabelDatum) {
 }
 
 /** Inserts a pooled circle obstacle for every sized marker into the obstacle index. */
-function insertMarkerObstacles(data: Map<string, PointLabelDatum[]>) {
+function insertMarkerObstacles(data: Map<string, SeriesLabels>) {
     let markerCount = 0;
-    for (const datums of data.values()) {
+    for (const { datums } of data.values()) {
         for (const d of datums) {
             const { size } = d.point;
             if (size <= 0) continue;
@@ -682,22 +748,31 @@ function insertMarkerObstacles(data: Map<string, PointLabelDatum[]>) {
     }
 }
 
-/** True as soon as any datum opts into collision resolution; short-circuits without a full scan. */
-function anyLabelAvoids(data: Map<string, PointLabelDatum[]>): boolean {
-    for (const datums of data.values()) {
-        for (const d of datums) {
-            if (d.avoid) return true;
-        }
+/** True as soon as any series opts into collision resolution; short-circuits without a full scan. */
+function anyLabelAvoids(data: Map<string, SeriesLabels>): boolean {
+    for (const entry of data.values()) {
+        if (seriesAvoids(entry)) return true;
     }
     return false;
 }
 
+/**
+ * True if the series opts into collision resolution. Point-series carry `avoid` in their series
+ * {@link SeriesLabels.defaults}; bar-family stamps it per datum, where the first datum is
+ * authoritative (uniform across the series). Used for cross-series ordering only, never correctness.
+ */
+function seriesAvoids(entry: SeriesLabels): boolean {
+    return (entry.defaults?.avoid ?? entry.datums[0]?.avoid) === true;
+}
+
+/** Series entries with all non-avoiding series first (stable), then avoiding ones. */
+function orderNonAvoidingFirst(data: Map<string, SeriesLabels>): [string, SeriesLabels][] {
+    const entries = Array.from(data.entries());
+    return [...entries.filter(([, e]) => !seriesAvoids(e)), ...entries.filter(([, e]) => seriesAvoids(e))];
+}
+
 /** Resets the shared obstacle index and populates it with external obstacles and marker circles. */
-function buildObstacleIndex(
-    data: Map<string, PointLabelDatum[]>,
-    obstacles: readonly LabelObstacle[],
-    bounds: BoxBounds
-) {
+function buildObstacleIndex(data: Map<string, SeriesLabels>, obstacles: readonly LabelObstacle[], bounds: BoxBounds) {
     obstacleIndex.reset(bounds, obstacleGridCellSize(data, obstacles));
     for (const o of obstacles) {
         obstacleIndex.insert(o.box, o);
@@ -714,7 +789,7 @@ function buildObstacleIndex(
  * @returns Placed labels for all series.
  */
 export function placeLabels(
-    data: Map<string, PointLabelDatum[]>,
+    data: Map<string, SeriesLabels>,
     bounds: BoxBounds,
     padding = 5,
     obstacles: readonly LabelObstacle[] = []
@@ -725,14 +800,23 @@ export function placeLabels(
     // label takes its first placement regardless of order, so skip the per-series clone+sort entirely.
     const avoid = anyLabelAvoids(data);
     const placementData = avoid
-        ? new Map(Array.from(data.entries(), ([k, d]) => [k, d.toSorted((a, b) => b.point.size - a.point.size)]))
+        ? new Map(
+              Array.from(data.entries(), ([k, entry]) => [
+                  k,
+                  { datums: entry.datums.toSorted((a, b) => b.point.size - a.point.size), defaults: entry.defaults },
+              ])
+          )
         : data;
 
     if (avoid) {
         buildObstacleIndex(placementData, obstacles, bounds);
     }
 
-    for (const [seriesId, datums] of placementData.entries()) {
+    // Place non-avoiding series first so their fixed boxes are in the index before any avoiding
+    // series resolves against them. With no avoidance the index is never built, so order is moot.
+    const entries = avoid ? orderNonAvoidingFirst(placementData) : placementData.entries();
+
+    for (const [seriesId, { datums, defaults }] of entries) {
         const labels: PlacedLabel[] = [];
         if (!datums[0]?.label) continue;
         for (let index = 0, ln = datums.length; index < ln; index++) {
@@ -740,12 +824,12 @@ export function placeLabels(
             // Series emit a datum per point; unlabelled points measure to an empty box. Skip them so
             // they neither occupy a placement nor act as obstacles against labels that do have text.
             if (d.label.text === '') continue;
-            const placed = tryPlaceLabel(d, index, padding, bounds);
+            const placed = tryPlaceLabel(d, defaults, index, padding, bounds);
             if (placed != null) {
                 labels.push(placed);
-                // Labels that opt out of collision resolution neither query obstacles nor block
-                // other labels, so they are not inserted into the index.
-                if (d.avoid) {
+                // Every placed label is a fixed obstacle for avoiding series, whether or not it
+                // avoids others itself; register it whenever the index is active.
+                if (avoid) {
                     const box = labelObstacleBox(placed);
                     obstacleIndex.insert(box, { kind: 'rect', box, category: 'label' });
                 }
@@ -818,27 +902,37 @@ function fitLabel(d: PointLabelDatum) {
 /**
  * Placement axis of the two-axis model: tries each candidate region for `d` in order — and, within
  * each, each candidate rotation — and returns the first whose fitted label fits within `bounds` and
- * clears every obstacle already in the index, or `undefined` if none do. Candidates come from
- * `d.placements`/`d.rotations` when present, otherwise the single `d.placement` and no rotation (no
- * allocation in that case). The reported box keeps the label's measured `width`/`height`; the rotated
+ * clears every obstacle already in the index, or `undefined` if none do. Candidate placements resolve
+ * from `d.placements`, then the series `defaults.placements`, then the single `d.placement`; orientation
+ * from `d.orientation`. The reported box keeps the label's measured `width`/`height`; the rotated
  * footprint is used only for containment and obstacle tests. Labels that opt out of collision
  * resolution (`avoid` falsy) take their first candidate region unconditionally — never bounds-clipped,
  * never dropped, even with no candidates given.
  */
-function tryPlaceLabel(d: PointLabelDatum, index: number, padding: number, bounds: BoxBounds): PlacedLabel | undefined {
+function tryPlaceLabel(
+    d: PointLabelDatum,
+    defaults: SeriesLabelDefaults | undefined,
+    index: number,
+    padding: number,
+    bounds: BoxBounds
+): PlacedLabel | undefined {
+    // A datum's own field overrides the series default; when neither is set the built-in applies.
+    const avoid = d.avoid ?? defaults?.avoid ?? false;
+    const placements = d.placements ?? defaults?.placements;
+    const collideWith = d.collideWith ?? defaults?.collideWith;
     const gap = d.gap ?? d.point.size / 2;
-    const spacing = d.minSpacing ?? padding;
+    const spacing = d.minSpacing ?? defaults?.minSpacing ?? padding;
     const { text, width, height } = fitLabel(d);
 
-    if (!d.avoid) {
-        const placement = candidateAt(d.placements, d.placement, 0);
+    if (!avoid) {
+        const placement = candidateAt(placements, d.placement, 0);
         const orientation = candidateAt(orientationsOf(d), singleOrientationOf(d), 0);
         const rotation = positionCandidate(d, placement, orientation, width, height, gap, spacing);
         const { x, y } = candidateBox;
         return { index, text, x, y, width, height, datum: d, placement, rotation: rotation || undefined };
     }
 
-    return placeAvoidingLabel(d, index, bounds, text, width, height, gap, spacing);
+    return placeAvoidingLabel(d, placements, collideWith, index, bounds, text, width, height, gap, spacing);
 }
 
 /**
@@ -850,6 +944,8 @@ function tryPlaceLabel(d: PointLabelDatum, index: number, padding: number, bound
  */
 function placeAvoidingLabel(
     d: PointLabelDatum,
+    placements: readonly LabelPlacement[] | undefined,
+    collideWith: CollideWith | undefined,
     index: number,
     bounds: BoxBounds,
     text: NormalisedTextOrSegments,
@@ -859,13 +955,13 @@ function placeAvoidingLabel(
     spacing: number
 ): PlacedLabel | undefined {
     if (d.positionedCandidates != null) {
-        return placeFromPositionedCandidates(d, index, bounds, text, width, height);
+        return placeFromPositionedCandidates(d, collideWith, index, bounds, text, width, height);
     }
-    const candidates = d.placements;
+    const candidates = placements;
     const orientations = orientationsOf(d);
     const singleOrientation = singleOrientationOf(d);
-    const inflate = maxInflation(d.collideWith);
-    candidateCollideWith = d.collideWith;
+    const inflate = maxInflation(collideWith);
+    candidateCollideWith = collideWith;
     markerCentreOf(d);
     candidateOwnMarkerCx = markerCentre.cx;
     candidateOwnMarkerCy = markerCentre.cy;
@@ -957,6 +1053,7 @@ function placeAvoidingLabel(
  */
 function placeFromPositionedCandidates(
     d: PointLabelDatum,
+    collideWith: CollideWith | undefined,
     index: number,
     bounds: BoxBounds,
     text: NormalisedTextOrSegments,
@@ -964,8 +1061,8 @@ function placeFromPositionedCandidates(
     height: number
 ): PlacedLabel | undefined {
     const candidates = d.positionedCandidates!;
-    const inflate = maxInflation(d.collideWith);
-    candidateCollideWith = d.collideWith;
+    const inflate = maxInflation(collideWith);
+    candidateCollideWith = collideWith;
     // No compass placement and no own marker on this path: bars disable marker collisions, so the
     // `inside` own-marker skip in obstacleOverlapsCandidate must stay inert.
     candidatePlacement = undefined;

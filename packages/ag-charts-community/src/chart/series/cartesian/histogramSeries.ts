@@ -1,4 +1,11 @@
-import type { CallbackParamRules, DynamicContext, LabelFit, NormalisedHistogramSeriesStyle } from 'ag-charts-core';
+import type {
+    CallbackParamRules,
+    DynamicContext,
+    LabelFit,
+    NormalisedHistogramSeriesStyle,
+    PlacedLabel,
+    PointLabelDatum,
+} from 'ag-charts-core';
 import {
     ChartAxisDirection,
     type DomainWithMetadata,
@@ -6,16 +13,23 @@ import {
     type Point,
     type RequireOptional,
     addValues,
+    applyBarLabelOrientation,
+    barLabelOrientation,
+    barLabelResolvesOrientation,
+    barLabelRotation,
+    buildBarLabelData,
     createBigIntBins,
     createBigIntTickBins,
     createTicks,
     deepClone,
     findMinMax,
+    insetBox,
     isBigInt,
     isDate,
     isNumber,
     isNumericValue,
     maxValue,
+    measureLabelText,
     mergeDefaults,
     resolveLabelFit,
     tickStep,
@@ -62,7 +76,7 @@ import {
     valueProperty,
 } from '../../data/processors';
 import { resolvePlacementLabelPadding } from '../../label';
-import { adjustLabelPlacement, fitLabelToContainer, getLabelStyles, pickPlacementStyle } from '../../labelUtil';
+import { adjustLabelPlacement, fitLabelToContainer, pickPlacementStyle, updateLabelNode } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { type TooltipContent, type TooltipContentDataRow } from '../../tooltip/tooltip';
@@ -517,7 +531,28 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
 
         // Array placement is accepted, but only its first candidate is honoured.
         const placement = toArray(label.placement)[0] ?? 'inside-center';
-        const placementStyle = placement.startsWith('inside') ? label.insideStyle : label.outsideStyle;
+        const isInside = placement.startsWith('inside');
+        const placementStyle = isInside ? label.insideStyle : label.outsideStyle;
+        // The baked orientation rotates the box, so the edge facing the bar moves with it (see barSeries).
+        const rotation = barLabelRotation(toArray(label.orientation)[0]);
+        const resolvesOrientation = barLabelResolvesOrientation(label.orientation);
+        const rect = { x, y, width: w, height: h };
+        const text = fitLabelToContainer(
+            this.getLabelText<AgHistogramSeriesLabelFormatterParams>(total, datum, yKey!, 'y', [], label, {
+                ...this.binParams(bin),
+                value: total,
+                xKey,
+                yKey,
+                xName,
+                yName,
+            }),
+            labelFit,
+            label,
+            { width: w, height: h }
+        );
+        // A rotated label's gap to the bar depends on its box size; measure only when it rotates.
+        const { width: labelWidth, height: labelHeight } =
+            rotation === 0 ? { width: 0, height: 0 } : measureLabelText(text, label);
         const {
             x: lx,
             y: ly,
@@ -529,7 +564,10 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             placement,
             spacing: label.spacing,
             boxPadding: resolvePlacementLabelPadding(label, placementStyle),
-            rect: { x, y, width: w, height: h },
+            rect,
+            rotation,
+            labelWidth,
+            labelHeight,
         });
 
         return {
@@ -537,20 +575,14 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             y: ly,
             textAlign,
             textBaseline,
-            placement: placement.startsWith('inside') ? 'inside' : 'outside',
-            text: fitLabelToContainer(
-                this.getLabelText<AgHistogramSeriesLabelFormatterParams>(total, datum, yKey!, 'y', [], label, {
-                    ...this.binParams(bin),
-                    value: total,
-                    xKey,
-                    yKey,
-                    xName,
-                    yName,
-                }),
-                labelFit,
-                label,
-                { width: w, height: h }
-            ),
+            placement: isInside ? 'inside' : 'outside',
+            rotation,
+            offsetX: 0,
+            offsetY: 0,
+            // An orientation array resolves against the bar rect for inside placements only; outside
+            // labels fall back to the plot bounds via no region (see barSeries).
+            region: resolvesOrientation && isInside ? insetBox(rect, label.spacing) : undefined,
+            text,
         };
     }
 
@@ -904,15 +936,13 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         labelSelection: Selection<HistogramNodeDatum, Text<HistogramNodeDatum>>;
         isHighlight?: boolean;
     }) {
-        const labelEnabled = this.isLabelEnabled();
         const { isHighlight = false } = opts;
-
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const { xKey, yKey, xName, yName, label } = this.properties;
+        // Only the first placement is honoured; it is bin-invariant, so the granular value is shared.
+        const granularPlacement = toArray(label.placement)[0] ?? 'inside-center';
         // Disabled labels carry no per-datum placement, so fall back to the authored default.
-        const defaultPlacement = (toArray(label.placement)[0] ?? 'inside-center').startsWith('inside')
-            ? 'inside'
-            : 'outside';
+        const defaultPlacement = granularPlacement.startsWith('inside') ? 'inside' : 'outside';
         opts.labelSelection.each((text, datum) => {
             const params: AgHistogramSeriesLabelFormatterParams = {
                 datum: undefined,
@@ -928,35 +958,34 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                 yName,
             };
             const placementStyle = pickPlacementStyle(label, datum.label?.placement ?? defaultPlacement);
-            const style = getLabelStyles(
+            text.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;
+            updateLabelNode(
                 this,
-                datum,
+                text,
                 params,
                 label,
-                isHighlight,
-                activeHighlight,
+                datum.label,
+                { isHighlight, activeHighlight },
                 undefined,
-                placementStyle
+                placementStyle,
+                { placement: granularPlacement, orientation: barLabelOrientation(datum.label?.rotation ?? 0) }
             );
-            const { enabled, fontStyle, fontWeight, fontSize, fontFamily, color } = style;
-            if (enabled && labelEnabled && datum?.label) {
-                text.text = datum.label.text;
-                text.x = datum.label.x;
-                text.y = datum.label.y;
-                text.textAlign = datum.label.textAlign;
-                text.textBaseline = datum.label.textBaseline;
-                text.fontStyle = fontStyle;
-                text.fontWeight = fontWeight;
-                text.fontFamily = fontFamily;
-                text.fontSize = fontSize;
-                text.fill = color;
-                text.visible = true;
-                text.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;
-                text.setBoxing(style);
-            } else {
-                text.visible = false;
-            }
         });
+    }
+
+    protected override resolveUsesPlacedLabels(): boolean {
+        return barLabelResolvesOrientation(this.properties.label.orientation);
+    }
+
+    override getLabelData(): PointLabelDatum[] {
+        if (!this.usesPlacedLabels || !this.isLabelEnabled()) return [];
+        const { label } = this.properties;
+        return buildBarLabelData(this.contextNodeData?.labelData, (node) => ({ label: node.label, config: label }));
+    }
+
+    override updatePlacedLabelData(placed: PlacedLabel<HistogramNodeDatum>[]) {
+        applyBarLabelOrientation(placed);
+        this.refreshPlacedLabelNodes();
     }
 
     protected override initQuadTree(quadtree: QuadtreeNearest<HistogramNodeDatum>) {

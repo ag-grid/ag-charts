@@ -9,11 +9,11 @@ import {
     constant,
     fillOptionsDef,
     labelFitOptionsDefs,
+    labelOrientationDef,
     labelPlacementStyleDefs,
     lineDashOptionsDef,
     multiSeriesHighlightOptionsDef,
     number,
-    or,
     positiveNumber,
     required,
     seriesLabelOptionsDefs,
@@ -23,6 +23,7 @@ import {
     strokeOptionsDef,
     tooltipOptionsDefs,
     union,
+    unionOrArray,
 } from 'ag-charts-core';
 import type {
     AgHistogramSeriesOptions,
@@ -37,8 +38,6 @@ const histogramStyler = callbackDefs<AgHistogramSeriesStyle>({
     cornerRadius: positiveNumber,
 });
 
-const histogramLabelPlacement = union('inside-center', 'inside-start', 'inside-end', 'outside-start', 'outside-end');
-
 export const histogramSeriesThemeableOptionsDef: OptionsDefs<AgHistogramSeriesThemeableOptions> = {
     showInMiniChart: boolean,
     cornerRadius: positiveNumber,
@@ -48,8 +47,9 @@ export const histogramSeriesThemeableOptionsDef: OptionsDefs<AgHistogramSeriesTh
         ...seriesLabelOptionsDefs,
         ...labelFitOptionsDefs,
         ...labelPlacementStyleDefs,
-        placement: or(histogramLabelPlacement, arrayOf(histogramLabelPlacement)),
+        placement: unionOrArray('inside-center', 'inside-start', 'inside-end', 'outside-start', 'outside-end'),
         spacing: positiveNumber,
+        orientation: labelOrientationDef,
     },
     tooltip: tooltipOptionsDefs,
     shadow: shadowOptionsDefs,

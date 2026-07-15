@@ -19,6 +19,8 @@ import {
     labelGlyphCentre,
     mergeDefaults,
     orientationAngles,
+    rotatedGlyphDrift,
+    rotatedLabelInset,
 } from 'ag-charts-core';
 import type {
     AgChartLabelOrientation,
@@ -302,6 +304,9 @@ export function adjustLabelPlacement({
     spacing = 0,
     boxPadding,
     rect,
+    rotation = 0,
+    labelWidth = 0,
+    labelHeight = 0,
 }: {
     placement: BarLabelPlacement;
     isUpward: boolean;
@@ -309,30 +314,47 @@ export function adjustLabelPlacement({
     spacing?: PixelSize;
     boxPadding?: Required<PaddingOptions>;
     rect: Bounds;
+    rotation?: number;
+    labelWidth?: number;
+    labelHeight?: number;
 }): Omit<LabelDatum, 'text'> {
     let x = rect.x + rect.width / 2;
     let y = rect.y + rect.height / 2;
     let textAlign: CanvasTextAlign = 'center';
     let textBaseline: CanvasTextBaseline = 'middle';
 
-    if (placement !== 'inside-center') {
+    // The node rotates the padded box about its own centre; asymmetric padding drifts the glyph off the
+    // anchor. Pre-subtracting the drift keeps the glyph centred on the bar's cross-axis. Zero unrotated.
+    const drift = boxPadding == null ? { x: 0, y: 0 } : rotatedGlyphDrift(rotation, boxPadding);
+
+    if (placement === 'inside-center') {
+        // No bar-facing axis: keep the glyph centred on both axes of the bar rect.
+        x -= drift.x;
+        y -= drift.y;
+    } else {
         const barDirection = (isUpward ? 1 : -1) * (isVertical ? -1 : 1);
         const { direction, textAlignment } = placements[placement];
         const displacementRatio = (direction + 1) * 0.5;
+        // Distance from the anchor to the (rotated) box edge facing the bar; equals boxPadding[facing]
+        // for an unrotated label, but grows with the box's cross-axis when the label is rotated.
+        const insetFor = (facing: keyof Required<PaddingOptions>) =>
+            boxPadding == null ? 0 : rotatedLabelInset(facing, rotation, labelWidth, labelHeight, boxPadding);
 
         if (isVertical) {
             const y0 = isUpward ? rect.y + rect.height : rect.y;
             const height = rect.height * barDirection;
             const facing = textAlignment === barDirection ? 'top' : 'bottom';
-            const inset = boxPadding?.[facing] ?? 0;
+            const inset = insetFor(facing);
             y = y0 + height * displacementRatio + (spacing + inset) * textAlignment * barDirection;
+            x -= drift.x;
             textBaseline = facing;
         } else {
             const x0 = isUpward ? rect.x : rect.x + rect.width;
             const width = rect.width * barDirection;
             const facing = textAlignment === barDirection ? 'left' : 'right';
-            const inset = boxPadding?.[facing] ?? 0;
+            const inset = insetFor(facing);
             x = x0 + width * displacementRatio + (spacing + inset) * textAlignment * barDirection;
+            y -= drift.y;
             textAlign = facing;
         }
     }

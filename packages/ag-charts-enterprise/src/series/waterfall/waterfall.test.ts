@@ -1487,6 +1487,47 @@ describe('WaterfallSeries', () => {
         });
     });
 
+    describe('rotated label per-side padding', () => {
+        // A rotated (vertical) khaki-boxed label must float clear of the bar AND stay centred on it,
+        // whatever the per-side padding. One chart per case keeps the mock-canvas text metrics reliable.
+        const ROTATED_PADDINGS: Record<string, object> = {
+            symmetric: { top: 0, bottom: 0, left: 10, right: 10 },
+            'wide left': { top: 0, bottom: 0, left: 50, right: 10 },
+            'wide right': { top: 0, bottom: 0, left: 10, right: 50 },
+            'tall + asymmetric': { top: 40, bottom: 4, left: 50, right: 10 },
+        };
+        it.each(Object.entries(ROTATED_PADDINGS))(
+            'renders a rotated outside-end label clear of and centred on the bar (%s padding)',
+            async (_name, padding) => {
+                expect(
+                    await renderEnterpriseChartImage(ctx, {
+                        data: [{ year: '2021', spending: 60 }],
+                        legend: { enabled: false },
+                        axes: { x: { type: 'category' }, y: { type: 'number', max: 100 } },
+                        series: [
+                            {
+                                type: 'waterfall',
+                                xKey: 'year',
+                                yKey: 'spending',
+                                item: {
+                                    positive: {
+                                        label: {
+                                            enabled: true,
+                                            placement: 'outside-end',
+                                            orientation: 'vertical',
+                                            fill: 'khaki',
+                                            padding,
+                                        },
+                                    },
+                                },
+                            },
+                        ],
+                    })
+                ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+            }
+        );
+    });
+
     describe('bigint magnitude invariance (AG-16608)', () => {
         const amounts = (values: number[]) => (toValue: (v: number) => number | bigint) =>
             values.map((amount, i) => ({ x: `c${i}`, amount: toValue(amount) }));

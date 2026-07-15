@@ -1,4 +1,5 @@
 import type {
+    BoxBounds,
     InternalAgColorType,
     NormalisedHistogramSeriesStyle,
     NormalisedTextOrSegments,
@@ -51,7 +52,13 @@ export interface HistogramNodeDatum extends CartesianSeriesNodeDatum {
         readonly y: number;
         readonly textAlign: CanvasTextAlign;
         readonly textBaseline: CanvasTextBaseline;
-        readonly placement: ResolvedLabelPlacement;
+        rotation: number;
+        /** Bar rect an orientation candidate must fit within; unset for outside placements. */
+        readonly region?: BoxBounds;
+        /** Flush offset written by the placement engine to keep a rotated label inside its region. */
+        offsetX?: number;
+        offsetY?: number;
+        placement?: ResolvedLabelPlacement;
     };
     // Required for types
     readonly crisp: boolean;
