@@ -19,3 +19,113 @@
 .ag-charts-overlay.ag-charts-dark-overlay .ag-charts-overlay__loading-background {
     background: #192232; /* DEFAULT_DARK_BACKGROUND_FILL */
 }
+
+.ag-charts-validation-overlay {
+    pointer-events: auto;
+    box-sizing: border-box;
+    height: 100%;
+    overflow: auto;
+    padding: 12px;
+    text-align: left;
+    background: rgba(255, 255, 255, 0.96);
+    color: #181d1f;
+    font-family: var(--ag-charts-font-family);
+    font-size: var(--ag-charts-font-size);
+}
+
+.ag-charts-overlay.ag-charts-dark-overlay .ag-charts-validation-overlay {
+    background: rgba(25, 34, 50, 0.96); /* DEFAULT_DARK_BACKGROUND_FILL */
+    color: #ffffff;
+}
+
+.ag-charts-validation-overlay__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.ag-charts-validation-overlay__summary {
+    font-weight: 700;
+}
+
+.ag-charts-validation-overlay__actions {
+    display: flex;
+    flex-shrink: 0;
+    gap: 4px;
+}
+
+.ag-charts-validation-overlay__button {
+    pointer-events: auto;
+    cursor: pointer;
+    padding: 2px 8px;
+    border: 1px solid currentColor;
+    border-radius: 4px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+}
+
+.ag-charts-validation-overlay__section {
+    padding: 8px 0;
+}
+
+.ag-charts-validation-overlay__section + .ag-charts-validation-overlay__section {
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.ag-charts-overlay.ag-charts-dark-overlay
+    .ag-charts-validation-overlay__section
+    + .ag-charts-validation-overlay__section {
+    border-top-color: rgba(255, 255, 255, 0.15);
+}
+
+.ag-charts-validation-overlay__section-heading {
+    margin-bottom: 4px;
+    font-weight: 700;
+}
+
+.ag-charts-validation-overlay__section--error .ag-charts-validation-overlay__section-heading {
+    color: #cc222b;
+}
+
+.ag-charts-validation-overlay__section--warning .ag-charts-validation-overlay__section-heading {
+    color: #e08e0b;
+}
+
+.ag-charts-validation-overlay__section--deprecation .ag-charts-validation-overlay__section-heading {
+    color: #6b6b6b;
+}
+
+.ag-charts-validation-overlay__entry {
+    margin: 4px 0;
+}
+
+.ag-charts-validation-overlay__message {
+    line-height: 1.4;
+}
+
+.ag-charts-validation-overlay__term,
+.ag-charts-validation-overlay__code {
+    font-family: monospace;
+    background: rgba(0, 0, 0, 0.06);
+}
+
+.ag-charts-overlay.ag-charts-dark-overlay .ag-charts-validation-overlay__term,
+.ag-charts-overlay.ag-charts-dark-overlay .ag-charts-validation-overlay__code {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.ag-charts-validation-overlay__term {
+    padding: 0 3px;
+    border-radius: 3px;
+}
+
+.ag-charts-validation-overlay__code {
+    margin: 4px 0 0;
+    padding: 4px 6px;
+    border-radius: 4px;
+    overflow-x: auto;
+    white-space: pre-wrap;
+}

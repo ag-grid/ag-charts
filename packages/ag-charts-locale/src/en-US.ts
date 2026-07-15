@@ -125,6 +125,34 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     overlayNoVisibleSeries: 'No visible series',
     // Default text for the 'unsupported browser' overlay
     overlayUnsupportedBrowser: 'Incompatible browser version. Please upgrade your browser.',
+    // Screen-reader fallback text for the dev-time validation overlay
+    overlayValidation: 'Validation issues',
+    // Header summary line for the validation overlay, where ${summary} lists the issue counts
+    overlayValidationSummary: 'AG Charts found ${summary}',
+    // Validation overlay summary fragment for a single error
+    overlayValidationErrorCountSingular: '${count}[number] error',
+    // Validation overlay summary fragment for multiple errors
+    overlayValidationErrorCount: '${count}[number] errors',
+    // Validation overlay summary fragment for a single warning
+    overlayValidationWarningCountSingular: '${count}[number] warning',
+    // Validation overlay summary fragment for multiple warnings
+    overlayValidationWarningCount: '${count}[number] warnings',
+    // Validation overlay summary fragment for a single deprecation
+    overlayValidationDeprecationCountSingular: '${count}[number] deprecation',
+    // Validation overlay summary fragment for multiple deprecations
+    overlayValidationDeprecationCount: '${count}[number] deprecations',
+    // Heading for the errors section of the validation overlay, with a count
+    overlayValidationErrorsHeading: 'Errors (${count}[number])',
+    // Heading for the warnings section of the validation overlay, with a count
+    overlayValidationWarningsHeading: 'Warnings (${count}[number])',
+    // Heading for the deprecations section of the validation overlay, with a count
+    overlayValidationDeprecationsHeading: 'Deprecations (${count}[number])',
+    // Label for the button that copies the validation overlay diagnostics
+    overlayValidationCopy: 'Copy',
+    // Label shown on the copy button after the diagnostics have been copied
+    overlayValidationCopied: 'Copied',
+    // Label for the button that dismisses the validation overlay
+    overlayValidationDismiss: 'Dismiss',
     // Text for frequency label in Histogram Series tooltip
     seriesHistogramTooltipFrequency: 'Frequency',
     // Text for sum label in Histogram Series tooltip

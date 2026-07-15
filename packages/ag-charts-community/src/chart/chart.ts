@@ -77,6 +77,7 @@ import { matchSeriesOptions } from './mapping/prepareSeries';
 import { ModulesManager } from './modulesManager';
 import { ChartOverlays } from './overlay/chartOverlays';
 import { getLoadingSpinner } from './overlay/loadingSpinner';
+import { getValidationOverlay } from './overlay/validationOverlay';
 import { SeriesArea } from './series-area/seriesArea';
 import { Series, SeriesGroupingChangedEvent, SeriesNodeEvent, type UnknownSeries } from './series/series';
 import { type SeriesAreaChartDependencies, SeriesAreaManager } from './series/seriesAreaManager';
@@ -87,6 +88,7 @@ import { Tooltip, type TooltipContent } from './tooltip/tooltip';
 import { DataWindowProcessor } from './update/dataWindowProcessor';
 import { OverlaysProcessor } from './update/overlaysProcessor';
 import type { UpdateProcessor } from './update/processor';
+import { ValidationIssueCollector } from './validation/validationIssueCollector';
 
 const debug = Debug.create(true, 'opts');
 
@@ -277,6 +279,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
     readonly tooltip: Tooltip;
     readonly overlays: ChartOverlays;
+    readonly validationCollector = new ValidationIssueCollector();
     readonly highlight: ChartHighlight;
     readonly background: Background;
     readonly seriesArea: SeriesArea;
@@ -532,6 +535,13 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 this.overlays.loading.getText(ctx.localeManager),
                 ctx.animationManager.defaultDuration
             );
+        this.overlays.validation.renderer ??= () =>
+            getValidationOverlay({
+                agDocument: ctx.agDocument,
+                localeManager: ctx.localeManager,
+                grouped: this.validationCollector.getVisibleIssues(),
+                onDismiss: () => this.validationCollector.dismiss(),
+            });
 
         this.processors = [
             new DataWindowProcessor(this, ctx),
@@ -542,7 +552,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 ctx.dataService,
                 ctx.localeManager,
                 ctx.animationManager,
-                ctx.domManager
+                ctx.domManager,
+                this.validationCollector
             ),
         ];
 
@@ -579,6 +590,9 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             ctx.chartState.observe((get) => {
                 const opts = get('options', 'overlays');
                 if (opts != null) this.overlays.set(opts);
+            }),
+            ctx.chartState.observe((get) => {
+                this.validationCollector.setOverlayLevel(get('options', 'validations')?.overlayLevel ?? 'none');
             }),
             ctx.layoutManager.registerElement(LayoutElement.Caption, (e) => {
                 e.layoutBox.shrink(ctx.chartState.getValue('options', 'padding'));
@@ -978,6 +992,11 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             });
         } catch (error: any) {
             Logger.error('update error', error, error.stack);
+            this.validationCollector.add({
+                severity: 'error',
+                message: String(error?.message ?? error),
+                code: typeof error?.stack === 'string' ? error.stack : undefined,
+            });
             this.runningUpdateType = ChartUpdateType.NONE;
             this._performUpdateNotify.notify();
         }
@@ -1741,6 +1760,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     }
 
     applyOptions(newChartOptions: ChartOptions) {
+        this.validationCollector.setIssues(newChartOptions.validationIssues);
+
         if (newChartOptions.seriesWithUserVisibility) {
             this.refreshSeriesUserVisibility(this.chartOptions, newChartOptions.seriesWithUserVisibility);
         }

@@ -12,6 +12,7 @@ import {
     ModuleType,
     type PlainObject,
     type ValidateParams,
+    type ValidationError,
     deepClone,
     deepFreeze,
     distribute,
@@ -62,6 +63,7 @@ import {
 import { getChartTheme } from '../chart/mapping/themes';
 import { detectChartType } from '../chart/mapping/types';
 import { ChartTheme } from '../chart/themes/chartTheme';
+import type { ValidationIssue } from '../chart/validation/validationIssueCollector';
 import {
     type OptionsGraphAccessor,
     SHALLOW_OPTION_KEYS,
@@ -233,6 +235,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }; // AG-16360
     userDeltaKeys?: Set<string>; // AG-16389: Track keys the user passed in deltaOptions
     processedCSSVariables?: Record<string, string>;
+    validationIssues: ValidationIssue[] = [];
 
     private static readonly debug = Debug.create(true, 'opts');
 
@@ -322,6 +325,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             annotationThemes = baseChartOptions.annotationThemes;
             // The fast path doesn't re-extract fonts, so carry them forward to keep waiting for them.
             fonts = baseChartOptions.fonts;
+            // The fast path doesn't re-validate, so carry forward the issues from the previous options.
+            this.validationIssues = baseChartOptions.validationIssues;
         } else {
             ChartOptions.perfDebug(`ChartOptions.slowSetup()`);
             ({ activeTheme, processedOptions, themeParameters, annotationThemes, googleFonts, fonts, optionsGraph } =
@@ -404,6 +409,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private slowSetup(processedOverrides: Partial<T>, deltaOptions?: DeepPartial<T> | null, stripSymbols = false) {
+        this.validationIssues = [];
+
         // Minimal-mode structural-output cache fast path.
         const cacheKey = this.computeStructuralCacheKeyForSlowSetup(deltaOptions, stripSymbols);
         if (cacheKey !== undefined) {
@@ -438,9 +445,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 const presetTheme = presetSubType == null ? undefined : activeTheme.presets[presetSubType];
 
                 const { cleared, invalid } = validatePreset(presetParams, presetDef.options, '');
-                for (const error of invalid) {
-                    Logger.warn(error);
-                }
+                this.recordValidationErrors(invalid);
 
                 if (hasRequiredInPath(invalid, '')) {
                     options = {} as any;
@@ -471,9 +476,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         if (!this.chartDef.placeholder) {
             const { validate: validateChart = validate } = this.chartDef;
             const { cleared, invalid } = validateChart(options, this.chartDef.options, '');
-            for (const error of invalid) {
-                Logger.warn(error);
-            }
+            this.recordValidationErrors(invalid);
             options = cleared as T;
         }
 
@@ -605,6 +608,23 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         };
     }
 
+    // Every option-validation error goes to both the console log and the per-chart overlay collector.
+    private recordValidationErrors(invalid: ValidationError[]) {
+        for (const error of invalid) {
+            Logger.warn(error);
+            let path = error.path;
+            if (error.key) {
+                path = path ? `${path}.${error.key}` : error.key;
+            }
+            this.validationIssues.push({ severity: 'warning', message: error.toString(), code: path || undefined });
+        }
+    }
+
+    private recordValidationMessage(message: string) {
+        Logger.warn(message);
+        this.validationIssues.push({ severity: 'warning', message });
+    }
+
     private validatePluginOptions(options: T, params: ValidateParams = {}) {
         for (const pluginDef of ModuleRegistry.listModulesByType(ModuleType.Plugin)) {
             const pluginKey = pluginDef.name as keyof T;
@@ -614,9 +634,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 (!pluginDef.chartType || pluginDef.chartType === this.chartDef?.name)
             ) {
                 const { cleared, invalid } = validate(options[pluginKey], pluginDef.options, pluginDef.name, params);
-                for (const error of invalid) {
-                    Logger.warn(error);
-                }
+                this.recordValidationErrors(invalid);
                 options[pluginKey] = cleared as T[keyof T];
             }
         }
@@ -655,14 +673,14 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                     continue;
                 }
 
-                Logger.warn(
+                this.recordValidationMessage(
                     seriesOptions.type == null
                         ? `Option \`${keyPath}.type\` is required and has not been provided; expecting ${validSeriesTypes}, ignoring.`
                         : `Unknown type \`${seriesOptions.type}\` at \`${keyPath}.type\`; expecting ${validSeriesTypes}, ignoring.`
                 );
                 continue;
             } else if (chartType && seriesDef.chartType !== chartType) {
-                Logger.warn(
+                this.recordValidationMessage(
                     `Series type \`${seriesDef.name}\` at \`${keyPath}.type\` is not supported by chart type \`${chartType}\`, ignoring.`
                 );
                 continue;
@@ -676,9 +694,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             const { validate: validateSeries = validate } = seriesDef;
             const { cleared, invalid } = validateSeries(seriesOptions, seriesDef.options, keyPath, params);
 
-            for (const error of invalid) {
-                Logger.warn(error);
-            }
+            this.recordValidationErrors(invalid);
 
             if (!hasRequiredInPath(invalid, keyPath)) {
                 validatedSeriesOptions.push(cleared);
@@ -735,12 +751,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                     stringFormat
                 );
 
-                Logger.warn(
+                this.recordValidationMessage(
                     `Unknown type \`${axisOptions.type}\` at \`${keyPath}.type\`; expecting one of ${validAxesTypes}, ignoring.`
                 );
                 continue;
             } else if (axisDef.chartType !== chartType) {
-                Logger.warn(
+                this.recordValidationMessage(
                     `Axis type \`${axisDef.name}\` at  \`${keyPath}.type\` is not supported by chart type \`${chartType}\`, ignoring.`
                 );
                 break;
@@ -749,9 +765,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             const { validate: validateAxis = validate } = axisDef;
             const { cleared, invalid } = validateAxis(axisOptions, axisDef.options, keyPath, params);
 
-            for (const error of invalid) {
-                Logger.warn(error);
-            }
+            this.recordValidationErrors(invalid);
 
             if (!hasRequiredInPath(invalid, keyPath)) {
                 validatedAxesOptions[key] = cleared;

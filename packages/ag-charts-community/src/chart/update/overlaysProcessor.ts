@@ -10,17 +10,19 @@ import type { DataService } from '../data/dataService';
 import type { AnimationManager } from '../interaction/animationManager';
 import type { ChartOverlays } from '../overlay/chartOverlays';
 import { DEFAULT_OVERLAY_CLASS, DEFAULT_OVERLAY_DARK_CLASS, type Overlay } from '../overlay/overlay';
+import type { ValidationIssueCollector } from '../validation/validationIssueCollector';
 import type { ChartLike, UpdateProcessor } from './processor';
 
 const visibleIgnoredSeries = new Set(['map-shape-background', 'map-line-background']);
 
-type OverlayState = 'loading' | 'no-data' | 'no-visible-series' | 'unsupported-browser' | undefined;
+type OverlayState = 'validation' | 'loading' | 'no-data' | 'no-visible-series' | 'unsupported-browser' | undefined;
 
 export class OverlaysProcessor<D extends object> implements UpdateProcessor {
     private readonly cleanup = new CleanupRegistry();
     private readonly overlayElem: DOMElementProxy;
 
     private overlayState: OverlayState = undefined;
+    private lastSeriesRect?: BBox;
 
     constructor(
         private readonly chartLike: ChartLike,
@@ -29,14 +31,18 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
         private readonly dataService: DataService<D>,
         private readonly localeManager: LocaleManager,
         private readonly animationManager: AnimationManager,
-        private readonly domManager: DOMManager
+        private readonly domManager: DOMManager,
+        private readonly validationCollector: ValidationIssueCollector
     ) {
         this.overlayElem = this.domManager.addProxyChild('canvas-overlay', 'overlay');
         this.overlayElem.setAttr('role', 'status');
         this.overlayElem.setAttr('aria-atomic', 'false');
         this.overlayElem.setAttr('aria-live', 'polite');
         this.overlayElem.toggleClass(DEFAULT_OVERLAY_CLASS, true);
-        this.cleanup.register(this.eventsHub.on('layout:complete', (e) => this.onLayoutComplete(e)));
+        this.cleanup.register(
+            this.eventsHub.on('layout:complete', (e) => this.onLayoutComplete(e)),
+            this.validationCollector.addListener(() => this.onValidationChange())
+        );
     }
 
     public destroy() {
@@ -45,27 +51,26 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
     }
 
     private onLayoutComplete({ series: { rect } }: LayoutCompleteEvent) {
-        const isLoading = this.dataService.isLoading();
-        const hasData = this.chartLike.series.some((s) => s.hasData);
-        const anySeriesVisible = this.chartLike.series.some((s) => s.visible && !visibleIgnoredSeries.has(s.type));
+        this.lastSeriesRect = rect;
+        this.refresh(rect);
+    }
 
+    // Validation issues arise during option application and in the update catch, off-cycle from
+    // layout, so re-evaluate against the last known series rect when the collection changes.
+    private onValidationChange() {
+        if (this.lastSeriesRect) {
+            this.refresh(this.lastSeriesRect);
+        }
+    }
+
+    private refresh(rect: BBox) {
         this.overlayElem.toggleClass(DEFAULT_OVERLAY_DARK_CLASS, this.overlays.darkTheme);
         this.overlayElem.setProperty('left', `${rect.x}px`);
         this.overlayElem.setProperty('top', `${rect.y}px`);
         this.overlayElem.setProperty('width', `${rect.width}px`);
         this.overlayElem.setProperty('height', `${rect.height}px`);
 
-        let newOverlayState: OverlayState;
-
-        if (isLoading) {
-            newOverlayState = 'loading';
-        } else if (!hasData) {
-            newOverlayState = 'no-data';
-        } else if (!anySeriesVisible) {
-            newOverlayState = 'no-visible-series';
-        } else if (this.overlays.unsupportedBrowser.enabled && isUnsupportedBrowser()) {
-            newOverlayState = 'unsupported-browser';
-        }
+        const newOverlayState = this.selectOverlayState();
 
         // Only remove the existing overlay if the state changes.
         if (newOverlayState !== this.overlayState) {
@@ -88,8 +93,30 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
         this.overlayElem.setAttr('aria-hidden', String(this.overlayState == null));
     }
 
+    // Validation takes strict priority and suppresses the loading/no-data/no-visible-series overlays.
+    private selectOverlayState(): OverlayState {
+        if (this.validationCollector.hasVisibleIssues()) {
+            return 'validation';
+        }
+        if (this.dataService.isLoading()) {
+            return 'loading';
+        }
+        if (!this.chartLike.series.some((s) => s.hasData)) {
+            return 'no-data';
+        }
+        if (!this.chartLike.series.some((s) => s.visible && !visibleIgnoredSeries.has(s.type))) {
+            return 'no-visible-series';
+        }
+        if (this.overlays.unsupportedBrowser.enabled && isUnsupportedBrowser()) {
+            return 'unsupported-browser';
+        }
+        return undefined;
+    }
+
     private getOverlayFromState(state: OverlayState) {
         switch (state) {
+            case 'validation':
+                return this.overlays.validation;
             case 'loading':
                 return this.overlays.loading;
             case 'no-data':
