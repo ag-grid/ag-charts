@@ -11,8 +11,6 @@ import {
     type Point,
     type RequireOptional,
     type SizedPoint,
-    applyLabelAvoidance,
-    applyLabelPlacements,
     cachedTextMeasurer,
     clamp,
     dateToNumber,
@@ -23,6 +21,7 @@ import {
     measureTextSegments,
     rescaleVisibleRange,
     resolveLabelFit,
+    resolveSeriesLabelDefaults,
     toArray,
     toNumber,
     toPlainText,
@@ -1005,12 +1004,12 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
 
     override getLabelData() {
         if (!this.isLabelEnabled()) return [];
-        const labelData = this.contextNodeData?.labelData ?? [];
+        return this.contextNodeData?.labelData ?? [];
+    }
+
+    override getLabelDefaults() {
         const { label } = this.properties;
-        const { collisionAvoidance } = label;
-        applyLabelAvoidance(labelData, collisionAvoidance.avoid, collisionAvoidance.resolveCollideWith());
-        applyLabelPlacements(labelData, toArray(label.placement));
-        return labelData;
+        return resolveSeriesLabelDefaults(label.collisionAvoidance, toArray(label.placement));
     }
 
     protected override updateDatumSelection(opts: {

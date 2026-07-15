@@ -1037,10 +1037,6 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
             labelsEnabled: label.enabled,
             labelPadding: expandPlacementLabelPadding(label),
             labelTextMeasurer: cachedTextMeasurer(label),
-            labelAvoid: label.collisionAvoidance.avoid,
-            labelPlacements: toArray(label.placement),
-            labelMinSpacing: label.collisionAvoidance.minSpacing,
-            labelCollideWith: label.collisionAvoidance.resolveCollideWith(),
             labelFit,
             labelInsideOffset,
             labelAnchor,
@@ -1190,12 +1186,8 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
                 anchor: ctx.labelAnchor,
                 insideOffset: ctx.labelInsideOffset,
                 placement: 'top',
-                placements: ctx.labelPlacements,
                 // Markerless points still nudge their label clear of the area with a small fixed gap.
                 gap: ctx.markerSize > 0 ? ctx.markerSize / 2 : DEFAULT_MARKERLESS_LABEL_GAP,
-                avoid: ctx.labelAvoid,
-                minSpacing: ctx.labelMinSpacing,
-                collideWith: ctx.labelCollideWith,
             });
         }
     }

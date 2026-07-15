@@ -1,15 +1,14 @@
 import type {
-    CollideWith,
     LabelFit,
-    LabelPlacement,
     MeasuredLabel,
     NormalisedTextOrSegments,
     PlacedLabel,
     Point,
     PointLabelDatum,
+    SeriesLabelDefaults,
     Writeable,
 } from 'ag-charts-core';
-import { fitLabelText, isArray, measureTextSegments } from 'ag-charts-core';
+import { fitLabelText, isArray, measureTextSegments, resolveSeriesLabelDefaults, toArray } from 'ag-charts-core';
 
 import { PointerEvents } from '../../../scene/node';
 import type { Text } from '../../../scene/shape/text';
@@ -30,10 +29,6 @@ export const DEFAULT_MARKERLESS_LABEL_GAP = 2;
 export interface PlacedLabelContext {
     readonly labelPadding: { left: number; right: number; top: number; bottom: number };
     readonly labelTextMeasurer: { measureLines: (text: string) => { width: number; height: number } };
-    readonly labelAvoid: boolean;
-    readonly labelPlacements: readonly LabelPlacement[];
-    readonly labelMinSpacing: number | undefined;
-    readonly labelCollideWith: CollideWith | undefined;
     readonly labelFit: LabelFit | undefined;
     /** Marker-shape rectangle offset for `inside` labels; set only when fitting inside the marker. */
     readonly labelInsideOffset: Point | undefined;
@@ -96,6 +91,11 @@ export abstract class PlacedLabelCartesianSeries<
     override getLabelData(): (LabelOf<TTypes> & PointLabelDatum)[] {
         if (!this.isLabelEnabled()) return [];
         return this.contextNodeData?.labelData ?? [];
+    }
+
+    override getLabelDefaults(): SeriesLabelDefaults | undefined {
+        const label = this.labelProperty;
+        return resolveSeriesLabelDefaults(label.collisionAvoidance, toArray(label.placement));
     }
 
     protected override getHighlightLabelData(

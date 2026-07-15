@@ -511,10 +511,6 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             labelsEnabled: this.properties.label.enabled,
             labelPadding: expandPlacementLabelPadding(this.properties.label),
             labelTextMeasurer: cachedTextMeasurer(this.properties.label),
-            labelAvoid: collisionAvoidance.avoid,
-            labelPlacements: toArray(label.placement),
-            labelMinSpacing: collisionAvoidance.minSpacing,
-            labelCollideWith: collisionAvoidance.resolveCollideWith(),
             labelFit,
             labelInsideOffset,
             labelAnchor,
@@ -597,10 +593,6 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                 existingNode.labelText = labelText;
                 existingNode.label = label;
                 existingNode.gap = gap;
-                existingNode.avoid = ctx.labelAvoid;
-                existingNode.placements = ctx.labelPlacements;
-                existingNode.minSpacing = ctx.labelMinSpacing;
-                existingNode.collideWith = ctx.labelCollideWith;
                 existingNode.crossFilterSelected = scratch.crossFilterSelected;
             } else {
                 ctx.nodes.push({
@@ -621,11 +613,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                     anchor: ctx.labelAnchor,
                     insideOffset: ctx.labelInsideOffset,
                     placement: 'top',
-                    placements: ctx.labelPlacements,
                     gap,
-                    avoid: ctx.labelAvoid,
-                    minSpacing: ctx.labelMinSpacing,
-                    collideWith: ctx.labelCollideWith,
                     crossFilterSelected: scratch.crossFilterSelected,
                 });
             }

@@ -14,13 +14,13 @@ import {
     type LabelFit,
     Logger,
     type Point,
-    applyLabelAvoidance,
     cachedTextMeasurer,
     findDiscreteColorBinLabel,
     fitLabelText,
     formatValue,
     mergeDefaults,
     resolveLabelFit,
+    resolveSeriesLabelDefaults,
 } from 'ag-charts-core';
 import type {
     AgDrawingMode,
@@ -671,12 +671,12 @@ export class MapLineSeries
 
     override getLabelData() {
         if (!this.isLabelEnabled()) return [];
-        const labelData = this.contextNodeData?.labelData ?? [];
-        const { label } = this.properties;
-        const { collisionAvoidance } = label;
-        // Labels centre on the line with no directional placement, so they route avoidance only.
-        applyLabelAvoidance(labelData, collisionAvoidance.avoid, collisionAvoidance.resolveCollideWith());
-        return labelData;
+        return this.contextNodeData?.labelData ?? [];
+    }
+
+    // Labels centre on the line with no directional placement, so defaults carry avoidance only.
+    override getLabelDefaults() {
+        return resolveSeriesLabelDefaults(this.properties.label.collisionAvoidance);
     }
 
     override pickNodeClosestDatum({ x, y }: Point): _ModuleSupport.SeriesNodePickMatch | undefined {
