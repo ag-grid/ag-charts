@@ -45,7 +45,7 @@ In the above example:
 
 - `'single'` replaces the current selection with the clicked datum.
 - `'multiple'` toggles the clicked datum in or out of the existing selection. This mode is particularly useful on [touch](./touch/) devices.
-- Holding {% kbd "Ctrl" /%}/{% kbd "Cmd" /%} key while clicking will always add or remove the clicked datum from the selection.
+- Holding {% kbd "^ Ctrl" /%} key while clicking will always add or remove the clicked datum from the selection.
 - When `enableClickAwayToClear` is set to `false`, the selection remains in place when the user clicks an empty area of the chart.
 - Click range is determined by the `nodeClickRange` property on each series type.
 
@@ -68,7 +68,7 @@ Set `enableDrag` to `true` to allow the user draw a rectangle across the chart a
 In the above example:
 
 - Dragging the mouse across the chart draws a rectangle. When the mouse is released, any datums that overlap the rectangle are selected.
-- Holding {% kbd "Ctrl" /%}/{% kbd "Cmd" /%} key while completing a drag adds the newly enclosed datums to the existing selection instead of replacing it.
+- Holding {% kbd "^ Ctrl" /%} key while completing a drag adds the newly enclosed datums to the existing selection instead of replacing it.
 - The `containment` option controls which datums the drag rectangle picks up.
     - `'any'` (default) selects a datum if any part of it overlaps the drag rectangle.
     - `'all'` selects a datum only when it is entirely enclosed by the drag rectangle.
