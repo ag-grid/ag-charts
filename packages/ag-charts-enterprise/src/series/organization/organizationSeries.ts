@@ -121,126 +121,6 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         this.linkGroup.translationY = offset.y;
     }
 
-    // Order matters: `applyNativePixelFloor` reads the post-clamp window mutated in-place by
-    // `applyPanBoundaryClamp`.
-    private onZoomChangeRequest(event: _ModuleSupport.ZoomChangeRequestEvent) {
-        if (event.isReset) return;
-        this.applyPanBoundaryClamp(event);
-        this.applyNativePixelFloor(event);
-    }
-
-    // AG-17204: keep some of the zoom window inside `[0, 1]` so content stays visible.
-    private applyPanBoundaryClamp(event: _ModuleSupport.ZoomChangeRequestEvent) {
-        const clamped: _ModuleSupport.CoreZoomState = {};
-        let didClamp = false;
-
-        for (const id of strictObjectKeys(event.state)) {
-            const entry = event.state[id];
-            if (entry == null) continue;
-
-            const { min, max, direction } = entry;
-            const size = max - min;
-
-            let clampedMin = min;
-            let clampedMax = max;
-
-            if (min >= 1) {
-                clampedMax = 1;
-                clampedMin = 1 - size;
-                didClamp = true;
-            } else if (max <= 0) {
-                clampedMin = 0;
-                clampedMax = size;
-                didClamp = true;
-            }
-
-            // CoreZoomState wants the enum, not 'x'/'y' literals (runtime-equivalent).
-            const coreDirection = direction === 'x' ? ChartAxisDirection.X : ChartAxisDirection.Y;
-            clamped[id] = { min: clampedMin, max: clampedMax, direction: coreDirection };
-        }
-
-        if (didClamp) {
-            event.constrainChanges(clamped);
-        }
-    }
-
-    // Caps scale at native pixels (`s ≤ 1`) and projects off-isotropic states onto the
-    // isotropic line `xRange/fitX = yRange/fitY` — less-zoomed axis wins, preserving content.
-    private applyNativePixelFloor(event: _ModuleSupport.ZoomChangeRequestEvent) {
-        const sMax = 1;
-        const { seriesRect } = this;
-        const contentBBox = this.layout.contentBBox;
-        if (!seriesRect || !contentBBox || contentBBox.width <= 0 || contentBBox.height <= 0) return;
-
-        const fitX = seriesRect.width / contentBBox.width;
-        const fitY = seriesRect.height / contentBBox.height;
-
-        let xId: AxisID | undefined;
-        let yId: AxisID | undefined;
-        for (const id of strictObjectKeys(event.state)) {
-            const entry = event.state[id];
-            if (entry == null) continue;
-            if (entry.direction === 'x') xId = id;
-            else yId = id;
-        }
-        if (!xId || !yId) return;
-
-        const xEntry = event.state[xId]!;
-        const yEntry = event.state[yId]!;
-        const xRange = xEntry.max - xEntry.min;
-        const yRange = yEntry.max - yEntry.min;
-        if (xRange <= 0 || yRange <= 0) return;
-
-        // AG-17239: at the 1:1 floor, further zoom-in is a no-op — otherwise the
-        // cursor-anchored input mid leaks through `clampMid` and reads as a pan.
-        const oldX = event.oldState[xId];
-        const oldY = event.oldState[yId];
-        if (oldX && oldY) {
-            const oldXRange = oldX.max - oldX.min;
-            const oldYRange = oldY.max - oldY.min;
-            const inputT = Math.max(xRange / fitX, yRange / fitY);
-            const oldT = Math.max(oldXRange / fitX, oldYRange / fitY);
-            const wantsShrink = xRange < oldXRange - ISOTROPY_EPSILON || yRange < oldYRange - ISOTROPY_EPSILON;
-            if (wantsShrink && inputT <= 1 + ISOTROPY_EPSILON && oldT <= 1 + ISOTROPY_EPSILON) {
-                const restored: _ModuleSupport.CoreZoomState = {};
-                restored[xId] = { min: oldX.min, max: oldX.max, direction: ChartAxisDirection.X };
-                restored[yId] = { min: oldY.min, max: oldY.max, direction: ChartAxisDirection.Y };
-                event.constrainChanges(restored);
-                return;
-            }
-        }
-
-        // Project to the isotropic line, then floor at sMax (t ≥ 1/sMax).
-        const targetT = Math.max(xRange / fitX, yRange / fitY, 1 / sMax);
-        const targetXRange = Math.min(1, targetT * fitX);
-        const targetYRange = Math.min(1, targetT * fitY);
-
-        const xMid = clampMid((xEntry.min + xEntry.max) / 2, targetXRange);
-        const yMid = clampMid((yEntry.min + yEntry.max) / 2, targetYRange);
-
-        const xChanged =
-            Math.abs(xMid - targetXRange / 2 - xEntry.min) > ISOTROPY_EPSILON ||
-            Math.abs(xMid + targetXRange / 2 - xEntry.max) > ISOTROPY_EPSILON;
-        const yChanged =
-            Math.abs(yMid - targetYRange / 2 - yEntry.min) > ISOTROPY_EPSILON ||
-            Math.abs(yMid + targetYRange / 2 - yEntry.max) > ISOTROPY_EPSILON;
-
-        if (xChanged || yChanged) {
-            const constrained: _ModuleSupport.CoreZoomState = {};
-            constrained[xId] = {
-                min: xMid - targetXRange / 2,
-                max: xMid + targetXRange / 2,
-                direction: ChartAxisDirection.X,
-            };
-            constrained[yId] = {
-                min: yMid - targetYRange / 2,
-                max: yMid + targetYRange / 2,
-                direction: ChartAxisDirection.Y,
-            };
-            event.constrainChanges(constrained);
-        }
-    }
-
     async processData(dataController: _ModuleSupport.DataController) {
         const { data } = this;
         if (data == null) return;
@@ -404,12 +284,6 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         return new _ModuleSupport.BBox(bbox.x, bbox.y, focusBBox.width, focusBBox.height);
     }
 
-    // Exclude the expander pill from measurements — its overhang would compound into
-    // `regularBBox` on each layout pass, growing the card by `expander.height / 2` per toggle.
-    protected override measureDatumNode(node: OrganizationNode): _ModuleSupport.BBox {
-        return node.getCardBBox();
-    }
-
     getLinkInterpolation(
         from: Vertex<OrganizationVertex, OrganizationEdge>,
         to: Vertex<OrganizationVertex, OrganizationEdge>
@@ -474,7 +348,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         return target != null && (target.tag === Expander || (target.tag === Card && clickToExpand));
     }
 
-    public override pickFocus(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.PickFocusOutputs | undefined {
+    override pickFocus(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.PickFocusOutputs | undefined {
         const nodeData = this.contextNodeData?.nodeData;
         if (!nodeData?.length) return;
 
@@ -548,6 +422,181 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         });
     }
 
+    findNodeDatum(itemIdOrIndex: AgActiveItemState['itemId']): OrganizationDatum | undefined {
+        const id = this.resolveItemId(itemIdOrIndex);
+        if (id == null) return undefined;
+
+        const vertex = this.graph.findVertexById(id);
+        if (!vertex) return undefined;
+
+        return this.createNodeDatumFromVertex(vertex);
+    }
+
+    override getTooltipContent(datumIndex: _ModuleSupport.DatumIndex): _ModuleSupport.TooltipContent | undefined {
+        const datum = this.processedData?.dataSources.get(this.id)?.data?.[datumIndex];
+        if (datum == null) return;
+
+        const nodeDatum = this.getDatumByDatumIndex(datumIndex);
+        if (nodeDatum == null) return;
+
+        return this.formatTooltipWithContext(
+            this.properties.tooltip,
+            { heading: this.resolveVertexFields(nodeDatum.vertex).title },
+            {
+                seriesId: this.id,
+                datum: datum,
+            }
+        );
+    }
+
+    // Exclude the expander pill from measurements — its overhang would compound into
+    // `regularBBox` on each layout pass, growing the card by `expander.height / 2` per toggle.
+    protected override measureDatumNode(node: OrganizationNode): _ModuleSupport.BBox {
+        return node.getCardBBox();
+    }
+
+    protected override makeLayoutUpdateOptions(): NetworkTreeLayoutUpdateOptions<OrganizationVertex, OrganizationEdge> {
+        const {
+            properties: { node, expander, innerSpacing, outerSpacing, verticalSpacing },
+        } = this;
+
+        return {
+            ...super.makeLayoutUpdateOptions(),
+            nodeHeight: node.height,
+            nodeWidth: node.width,
+            nodeMaxHeight: node.maxHeight,
+            nodeMaxWidth: node.maxWidth,
+            regularDimensions: true,
+            hiddenOnCollapse: true,
+            innerSpacing: innerSpacing ?? 0,
+            outerSpacing: outerSpacing ?? 0,
+            verticalSpacing: verticalSpacing ?? 0,
+            verticalSpacingExtra: expander.enabled
+                ? (expander.text.fontSize + expander.padding.top + expander.padding.bottom + expander.strokeWidth) / 2
+                : 0,
+        };
+    }
+
+    // Order matters: `applyNativePixelFloor` reads the post-clamp window mutated in-place by
+    // `applyPanBoundaryClamp`.
+    private onZoomChangeRequest(event: _ModuleSupport.ZoomChangeRequestEvent) {
+        if (event.isReset) return;
+        this.applyPanBoundaryClamp(event);
+        this.applyNativePixelFloor(event);
+    }
+
+    // AG-17204: keep some of the zoom window inside `[0, 1]` so content stays visible.
+    private applyPanBoundaryClamp(event: _ModuleSupport.ZoomChangeRequestEvent) {
+        const clamped: _ModuleSupport.CoreZoomState = {};
+        let didClamp = false;
+
+        for (const id of strictObjectKeys(event.state)) {
+            const entry = event.state[id];
+            if (entry == null) continue;
+
+            const { min, max, direction } = entry;
+            const size = max - min;
+
+            let clampedMin = min;
+            let clampedMax = max;
+
+            if (min >= 1) {
+                clampedMax = 1;
+                clampedMin = 1 - size;
+                didClamp = true;
+            } else if (max <= 0) {
+                clampedMin = 0;
+                clampedMax = size;
+                didClamp = true;
+            }
+
+            // CoreZoomState wants the enum, not 'x'/'y' literals (runtime-equivalent).
+            const coreDirection = direction === 'x' ? ChartAxisDirection.X : ChartAxisDirection.Y;
+            clamped[id] = { min: clampedMin, max: clampedMax, direction: coreDirection };
+        }
+
+        if (didClamp) {
+            event.constrainChanges(clamped);
+        }
+    }
+
+    // Caps scale at native pixels (`s ≤ 1`) and projects off-isotropic states onto the
+    // isotropic line `xRange/fitX = yRange/fitY` — less-zoomed axis wins, preserving content.
+    private applyNativePixelFloor(event: _ModuleSupport.ZoomChangeRequestEvent) {
+        const sMax = 1;
+        const { seriesRect } = this;
+        const contentBBox = this.layout.contentBBox;
+        if (!seriesRect || !contentBBox || contentBBox.width <= 0 || contentBBox.height <= 0) return;
+
+        const fitX = seriesRect.width / contentBBox.width;
+        const fitY = seriesRect.height / contentBBox.height;
+
+        let xId: AxisID | undefined;
+        let yId: AxisID | undefined;
+        for (const id of strictObjectKeys(event.state)) {
+            const entry = event.state[id];
+            if (entry == null) continue;
+            if (entry.direction === 'x') xId = id;
+            else yId = id;
+        }
+        if (!xId || !yId) return;
+
+        const xEntry = event.state[xId]!;
+        const yEntry = event.state[yId]!;
+        const xRange = xEntry.max - xEntry.min;
+        const yRange = yEntry.max - yEntry.min;
+        if (xRange <= 0 || yRange <= 0) return;
+
+        // AG-17239: at the 1:1 floor, further zoom-in is a no-op — otherwise the
+        // cursor-anchored input mid leaks through `clampMid` and reads as a pan.
+        const oldX = event.oldState[xId];
+        const oldY = event.oldState[yId];
+        if (oldX && oldY) {
+            const oldXRange = oldX.max - oldX.min;
+            const oldYRange = oldY.max - oldY.min;
+            const inputT = Math.max(xRange / fitX, yRange / fitY);
+            const oldT = Math.max(oldXRange / fitX, oldYRange / fitY);
+            const wantsShrink = xRange < oldXRange - ISOTROPY_EPSILON || yRange < oldYRange - ISOTROPY_EPSILON;
+            if (wantsShrink && inputT <= 1 + ISOTROPY_EPSILON && oldT <= 1 + ISOTROPY_EPSILON) {
+                const restored: _ModuleSupport.CoreZoomState = {};
+                restored[xId] = { min: oldX.min, max: oldX.max, direction: ChartAxisDirection.X };
+                restored[yId] = { min: oldY.min, max: oldY.max, direction: ChartAxisDirection.Y };
+                event.constrainChanges(restored);
+                return;
+            }
+        }
+
+        // Project to the isotropic line, then floor at sMax (t ≥ 1/sMax).
+        const targetT = Math.max(xRange / fitX, yRange / fitY, 1 / sMax);
+        const targetXRange = Math.min(1, targetT * fitX);
+        const targetYRange = Math.min(1, targetT * fitY);
+
+        const xMid = clampMid((xEntry.min + xEntry.max) / 2, targetXRange);
+        const yMid = clampMid((yEntry.min + yEntry.max) / 2, targetYRange);
+
+        const xChanged =
+            Math.abs(xMid - targetXRange / 2 - xEntry.min) > ISOTROPY_EPSILON ||
+            Math.abs(xMid + targetXRange / 2 - xEntry.max) > ISOTROPY_EPSILON;
+        const yChanged =
+            Math.abs(yMid - targetYRange / 2 - yEntry.min) > ISOTROPY_EPSILON ||
+            Math.abs(yMid + targetYRange / 2 - yEntry.max) > ISOTROPY_EPSILON;
+
+        if (xChanged || yChanged) {
+            const constrained: _ModuleSupport.CoreZoomState = {};
+            constrained[xId] = {
+                min: xMid - targetXRange / 2,
+                max: xMid + targetXRange / 2,
+                direction: ChartAxisDirection.X,
+            };
+            constrained[yId] = {
+                min: yMid - targetYRange / 2,
+                max: yMid + targetYRange / 2,
+                direction: ChartAxisDirection.Y,
+            };
+            event.constrainChanges(constrained);
+        }
+    }
+
     private composeDatumDescription(vertex: Vertex<OrganizationVertex, OrganizationEdge>): string {
         const fields = this.resolveVertexFields(vertex);
         const parts: string[] = [];
@@ -615,55 +664,6 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             (this.graph.neighboursWithEdgeValue(vertex, 'child') as Vertex<OrganizationVertex, OrganizationEdge>[]) ??
             []
         );
-    }
-
-    findNodeDatum(itemIdOrIndex: AgActiveItemState['itemId']): OrganizationDatum | undefined {
-        const id = this.resolveItemId(itemIdOrIndex);
-        if (id == null) return undefined;
-
-        const vertex = this.graph.findVertexById(id);
-        if (!vertex) return undefined;
-
-        return this.createNodeDatumFromVertex(vertex);
-    }
-
-    override getTooltipContent(datumIndex: _ModuleSupport.DatumIndex): _ModuleSupport.TooltipContent | undefined {
-        const datum = this.processedData?.dataSources.get(this.id)?.data?.[datumIndex];
-        if (datum == null) return;
-
-        const nodeDatum = this.getDatumByDatumIndex(datumIndex);
-        if (nodeDatum == null) return;
-
-        return this.formatTooltipWithContext(
-            this.properties.tooltip,
-            { heading: this.resolveVertexFields(nodeDatum.vertex).title },
-            {
-                seriesId: this.id,
-                datum: datum,
-            }
-        );
-    }
-
-    protected override makeLayoutUpdateOptions(): NetworkTreeLayoutUpdateOptions<OrganizationVertex, OrganizationEdge> {
-        const {
-            properties: { node, expander, innerSpacing, outerSpacing, verticalSpacing },
-        } = this;
-
-        return {
-            ...super.makeLayoutUpdateOptions(),
-            nodeHeight: node.height,
-            nodeWidth: node.width,
-            nodeMaxHeight: node.maxHeight,
-            nodeMaxWidth: node.maxWidth,
-            regularDimensions: true,
-            hiddenOnCollapse: true,
-            innerSpacing: innerSpacing ?? 0,
-            outerSpacing: outerSpacing ?? 0,
-            verticalSpacing: verticalSpacing ?? 0,
-            verticalSpacingExtra: expander.enabled
-                ? (expander.text.fontSize + expander.padding.top + expander.padding.bottom + expander.strokeWidth) / 2
-                : 0,
-        };
     }
 
     private createGraphData() {
