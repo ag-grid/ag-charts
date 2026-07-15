@@ -17,20 +17,27 @@ import {
     magnitudePair,
 } from '../../test/bigintExamples';
 import { type ChartTestCase, COMMUNITY_AND_ENTERPRISE_EXAMPLES as GALLERY_EXAMPLES } from '../../test/examples-gallery';
-import type { ChartOrProxy } from '../../test/utils';
+import type { ChartOrProxy, SceneGeometrySample, SceneNodeExpectation } from '../../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
     clickAction,
     createChart as createMagnitudeChart,
+    createSceneGeometrySampler,
     deproxy,
     doubleClickAction,
+    expectAnimatedEndpointsMatchStatic,
+    expectMonotonic,
+    expectProgresses,
+    expectSceneSamplesMatch,
+    expectSceneTrajectory,
     expectWarningsCalls,
     extractImageData,
     hoverAction,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
+    spyOnAnimationFrames,
     spyOnAnimationManager,
     waitForChartStability,
 } from '../../test/utils';
@@ -851,109 +858,256 @@ describe('HistogramSeries', () => {
         );
     });
 
-    describe('initial animation', () => {
-        const animate = spyOnAnimationManager();
+    // Initial/remove/add/update animations are covered structurally by the
+    // 'animation -test page actions' trajectory CASEs below.
 
-        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-            it(`for SIMPLE_HISTOGRAM should animate at ${ratio * 100}%`, async () => {
-                animate(1200, ratio);
+    // One CASE per transition the histogram-series-test page exercises (initial load, Randomise,
+    // Remove/binning). Bins are Rects that reveal from the value baseline, so these mirror the bar
+    // suite's revealFromBaseline / height-reflow patterns.
+    describe('animation -test page actions', () => {
+        const frames = spyOnAnimationFrames();
 
-                const options: AgChartOptions = { ...GALLERY_EXAMPLES.SIMPLE_HISTOGRAM_CHART_EXAMPLE.options };
-                prepareTestOptions(options);
+        const BINS_3: [number, number][] = [
+            [0, 10],
+            [10, 20],
+            [20, 30],
+        ];
+        const BINS_5: [number, number][] = [
+            [0, 6],
+            [6, 12],
+            [12, 18],
+            [18, 24],
+            [24, 30],
+        ];
+        // Per-bin frequencies (all < the pinned y-max of 10, so the reflows below never rescale):
+        //   DATA_A over BINS_3 -> [5, 3, 3];  DATA_B over BINS_3 -> [2, 4, 4].
+        const DATA_A = [1, 2, 3, 5, 7, 11, 12, 15, 21, 25, 28];
+        const DATA_B = [1, 2, 11, 12, 15, 18, 21, 22, 25, 28];
 
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
-                await compare();
-            });
-        }
-    });
+        const binnedSeries = (bins: [number, number][]): NonNullable<AgCartesianChartOptions['series']> => [
+            { type: 'histogram', xKey: 'x', bins, label: { enabled: false } },
+        ];
 
-    describe('remove animation', () => {
-        const animate = spyOnAnimationManager();
+        // Pinned x (via the fixed bins) and y (0-10) domains keep every data update provably
+        // non-scale-affecting, so only the bins themselves move.
+        const histogramOptions = (mode?: 'integrated'): AgCartesianChartOptions => {
+            const options: AgCartesianChartOptions = {
+                data: DATA_A.map((x) => ({ x })),
+                series: binnedSeries(BINS_3),
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left', min: 0, max: 10 },
+                },
+            };
+            if (mode != null) {
+                (options as AgChartOptions & { mode: string }).mode = mode;
+            }
+            return prepareTestOptions(options);
+        };
 
-        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-            it(`for SIMPLE_HISTOGRAM should animate at ${ratio * 100}%`, async () => {
-                animate(1200, 1);
+        const rectCount = (sample: SceneGeometrySample) =>
+            [...sample.keys()].filter((k) => /^series\[\d+\]\/rect/.test(k)).length;
 
-                const options: AgChartOptions = { ...GALLERY_EXAMPLES.SIMPLE_HISTOGRAM_CHART_EXAMPLE.options };
-                prepareTestOptions(options);
+        const rectKeys = (sample: SceneGeometrySample) =>
+            [...sample.keys()].filter((k) => /^series\[\d+\]\/rect/.test(k));
 
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
+        const expectStartsCollapsed = (frame: SceneGeometrySample, key: string) => {
+            const node = frame.get(key);
+            expect(node, key).toBeDefined();
+            expect(node!.height).toBeLessThanOrEqual(0.1);
+        };
+        // Anti-vacuity for a reveal: EVERY bin (not just the first) must start collapsed at the
+        // baseline, so the height `increases` cannot pass for a bin that snapped straight to full height.
+        const expectAllBinsStartCollapsed = (frame: SceneGeometrySample) => {
+            const keys = rectKeys(frame);
+            expect(keys.length, 'bins at frame 0').toBeGreaterThan(0);
+            for (const key of keys) {
+                expectStartsCollapsed(frame, key);
+            }
+        };
 
-                animate(1200, ratio);
-                await chart.updateDelta({
-                    data: [
-                        ...options.data!.filter(
-                            (d: any) => d['engine-size'] > 80 && (d['engine-size'] < 100 || d['engine-size'] > 120)
-                        ),
-                    ],
+        // Frequency labels are disabled (invisible), but the series still re-fades their opacity on a
+        // value/structure change. They never paint, so their opacity churn is not a behaviour to pin.
+        const labelsIgnored = { 'series[*]/labels/text[*]': 'any' } as const;
+
+        // Bins grow from the value baseline: height increases and the top edge (y) rises during the
+        // named phase, while the band coordinates only absorb a sub-pixel crisp snap (bounded).
+        const revealFromBaseline = (phase: 'initial' | 'add'): SceneNodeExpectation => {
+            const holds = { during: [phase, 'trailing'], expect: 'bounded' } as const;
+            return {
+                height: { during: phase, expect: ['increases', 'progresses', 'bounded'] },
+                y: { during: phase, expect: ['decreases', 'bounded'] },
+                x: holds,
+                width: holds,
+            };
+        };
+
+        // Auto-binning (no explicit `bins`): a data update that shifts the extent recomputes the bin
+        // set from the data. The bins re-key structurally and snap to their new boundaries at frame 0
+        // (x/width hold — a boundary that tweened horizontally would break `revealFromBaseline`), then
+        // the fresh collapsed set grows from the baseline — the same reveal the explicit binning-change
+        // takes, exercised through the data-driven auto-bin path the retired snapshots covered.
+        it('auto-binning: a data update that shifts the extent re-bins and grows from the baseline', async () => {
+            // The x-axis view is pinned so only the bins (computed from the data, not the axis) move on
+            // the update — an unpinned axis would reflow its ticks as the extent grows and drown the bin
+            // reveal in axis animation. y is pinned to keep the counts provably non-scale-affecting.
+            const autoOptions = (data: number[]): AgCartesianChartOptions =>
+                prepareTestOptions({
+                    data: data.map((x) => ({ x })),
+                    series: [{ type: 'histogram', xKey: 'x', label: { enabled: false } }],
+                    axes: {
+                        x: { type: 'number', position: 'bottom', min: 0, max: 60 },
+                        y: { type: 'number', position: 'left', min: 0, max: 10 },
+                    },
                 });
+            chart = AgCharts.create(autoOptions(DATA_A));
+            await frames.runToEnd(chart);
+            const sampleScene = createSceneGeometrySampler(chart);
 
-                await waitForChartStability(chart);
-                await compare();
+            const before = sampleScene();
+            const beforeBins = rectCount(before);
+            await chart.updateDelta({ data: [...DATA_A, 40, 55, 58].map((x) => ({ x })) });
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
+            await frames.runToEnd(chart);
+            const after = sampleScene();
+            expectSceneSamplesMatch(trajectory.at(-1)!, after);
+
+            // Anti-vacuity: the wider extent genuinely re-binned (a different bin set), and every new
+            // bin starts collapsed at the baseline.
+            expect(rectCount(after)).not.toBe(beforeBins);
+            expectAllBinsStartCollapsed(trajectory[0]);
+            expectSceneTrajectory(trajectory, {
+                'series[*]/rect[*]': {
+                    // Empty auto-bins legitimately stay flat at zero, so the wildcard only bounds the
+                    // reveal; the populated bins' actual growth is asserted below. x/width snap to the
+                    // new boundaries (guarded below) with a sub-pixel crisp-rounding wobble.
+                    height: { during: ['add', 'trailing'], expect: 'bounded' },
+                    y: { during: ['add', 'trailing'], expect: 'bounded' },
+                    x: 'any',
+                    width: 'any',
+                },
+                ...labelsIgnored,
             });
-        }
-    });
+            // The new boundaries snap in: each bin's width is already at its settled value on frame 0
+            // (within crisp-pixel noise), not tweening across the ~13px bin-width change from the old set.
+            for (const key of rectKeys(trajectory[0])) {
+                const snap = Math.abs(trajectory[0].get(key)!.width - after.get(key)!.width);
+                expect(snap, `${key} width snaps to its new boundary`).toBeLessThan(2);
+            }
+            // The populated bins grow gradually from the collapsed baseline (empty bins excluded).
+            const populated = rectKeys(after).filter((k) => after.get(k)!.height > 5);
+            expect(populated.length, 'populated bins').toBeGreaterThan(1);
+            for (const key of populated) {
+                const heights = trajectory.map((f) => f.get(key)?.height).filter((v): v is number => v != null);
+                expect(heights[0], `${key} height @ frame 0`).toBeLessThanOrEqual(0.1);
+                expectMonotonic(heights, 'increasing');
+                expectProgresses(heights);
+            }
+        });
 
-    describe('add animation', () => {
-        const animate = spyOnAnimationManager();
-
-        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-            it(`for SIMPLE_HISTOGRAM should animate at ${ratio * 100}%`, async () => {
-                animate(1200, 1);
-
-                const options: AgChartOptions = { ...GALLERY_EXAMPLES.SIMPLE_HISTOGRAM_CHART_EXAMPLE.options };
-                prepareTestOptions(options);
-
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
-
-                await chart.updateDelta({
-                    data: [
-                        ...options.data!.filter(
-                            (d: any) => d['engine-size'] > 80 && (d['engine-size'] < 100 || d['engine-size'] > 120)
-                        ),
-                    ],
-                });
-                await waitForChartStability(chart);
-
-                animate(1200, ratio);
-                await chart.update(options);
-
-                await waitForChartStability(chart);
-                await compare();
+        // "Reset"/initial render — bins reveal from the baseline.
+        it('initial load: bins reveal from the baseline', async () => {
+            chart = AgCharts.create(histogramOptions());
+            const sampleScene = createSceneGeometrySampler(chart);
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
+            expectAllBinsStartCollapsed(trajectory[0]);
+            expectSceneTrajectory(trajectory, {
+                'series[*]/rect[*]': revealFromBaseline('initial'),
+                ...labelsIgnored,
             });
-        }
-    });
+        });
 
-    describe('update animation', () => {
-        const animate = spyOnAnimationManager();
+        // "Randomise" — same bins, new totals: bar heights reflow (each bin either way) during the
+        // update phase; the bands hold. Hand-rolled (not captureUpdate): the disabled labels re-fade
+        // their opacity from frame 0, tripping captureUpdate's whole-scene start anchor.
+        it('data update: bin heights reflow toward their new totals during the update phase', async () => {
+            const options = histogramOptions();
+            chart = AgCharts.create(options);
+            await frames.runToEnd(chart);
+            const sampleScene = createSceneGeometrySampler(chart);
 
-        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-            it(`for SIMPLE_HISTOGRAM should animate at ${ratio * 100}%`, async () => {
-                animate(1200, 1);
+            const before = sampleScene();
+            await chart.updateDelta({ data: DATA_B.map((x) => ({ x })) });
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
+            await frames.runToEnd(chart);
+            const after = sampleScene();
+            expectSceneSamplesMatch(trajectory.at(-1)!, after);
 
-                const options: AgChartOptions = { ...GALLERY_EXAMPLES.SIMPLE_HISTOGRAM_CHART_EXAMPLE.options };
-                prepareTestOptions(options);
-
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
-
-                animate(1200, ratio);
-                await chart.updateDelta({
-                    data: [
-                        ...options.data!.map((d: any, index: number) => ({
-                            ...d,
-                            'engine-size': d['engine-size'] * (index % 2 === 0 ? 1.1 : 0.9),
-                        })),
-                    ],
-                });
-
-                await waitForChartStability(chart);
-                await compare();
+            expect(rectCount(after)).toBe(3);
+            // Anti-vacuity: the first bin genuinely shrinks and the others genuinely grow.
+            expect(before.get('series[0]/rect[0]')!.height).toBeGreaterThan(
+                after.get('series[0]/rect[0]')!.height + 50
+            );
+            expect(after.get('series[0]/rect[245]')!.height).toBeGreaterThan(
+                before.get('series[0]/rect[245]')!.height + 30
+            );
+            expectSceneTrajectory(trajectory, {
+                'series[*]/rect[*]': {
+                    height: { during: 'update', expect: ['monotonic', 'progresses', 'bounded'] },
+                    y: { during: 'update', expect: ['monotonic', 'progresses', 'bounded'] },
+                },
+                ...labelsIgnored,
             });
-        }
+        });
+
+        // "Remove"/binning change — a new bin set replaces the old one. The old rects are dropped and
+        // a fresh set snaps in collapsed at the baseline (frame 0), then grows during the add phase.
+        // Hand-rolled: the rects re-key structurally at frame 0, so captureUpdate's start anchor trips.
+        it('binning change: a new bin set snaps in collapsed then grows from the baseline', async () => {
+            const options = histogramOptions();
+            chart = AgCharts.create(options);
+            await frames.runToEnd(chart);
+            const sampleScene = createSceneGeometrySampler(chart);
+
+            const before = sampleScene();
+            expect(rectCount(before)).toBe(3);
+            await chart.update({ ...options, series: binnedSeries(BINS_5) });
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
+            await frames.runToEnd(chart);
+            const after = sampleScene();
+            expectSceneSamplesMatch(trajectory.at(-1)!, after);
+
+            // Anti-vacuity: the bin count changes and every new bin starts collapsed at the baseline.
+            expect(rectCount(after)).toBe(5);
+            expect(rectKeys(trajectory[0])).toHaveLength(5);
+            expectAllBinsStartCollapsed(trajectory[0]);
+            expectSceneTrajectory(trajectory, {
+                'series[*]/rect[*]': revealFromBaseline('add'),
+                ...labelsIgnored,
+            });
+        });
+
+        // Integrated mode: the initial load must reveal from the baseline exactly as standalone does.
+        it('integrated mode: initial load reveals bins from the baseline', async () => {
+            chart = AgCharts.create(histogramOptions('integrated'));
+            const sampleScene = createSceneGeometrySampler(chart);
+            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
+            expectAllBinsStartCollapsed(trajectory[0]);
+            expectSceneTrajectory(trajectory, {
+                'series[*]/rect[*]': revealFromBaseline('initial'),
+                ...labelsIgnored,
+            });
+        });
+
+        // Endpoint sanity guards: the animated route must settle at exactly the pixels a snapped
+        // render of the same options produces (see expectAnimatedEndpointsMatchStatic).
+        it('sanity: data update endpoints match static renders', async () => {
+            const options = histogramOptions();
+            chart = AgCharts.create(options);
+            await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, options, {
+                ...options,
+                data: DATA_B.map((x) => ({ x })),
+            });
+        });
+
+        it('sanity: binning change endpoints match static renders', async () => {
+            const options = histogramOptions();
+            chart = AgCharts.create(options);
+            await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, options, {
+                ...options,
+                series: binnedSeries(BINS_5),
+            });
+        });
     });
 
     // See https://ag-grid.atlassian.net/browse/AG-8641
