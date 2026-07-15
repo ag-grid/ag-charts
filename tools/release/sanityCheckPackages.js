@@ -31,8 +31,8 @@ packageNames
     .filter(
         (packageName) =>
             packageName != 'ag-shared' &&
-            packageName !== 'ag-charts-community-examples' &&
-            packageName !== 'ag-charts-website' &&
+            packageName !== '_ag-charts-community-examples' &&
+            packageName !== '_ag-charts-website' &&
             packageName !== '_ag-charts-task-autogen'
     )
     .forEach((packageName) => {

@@ -26,7 +26,7 @@
       "ag-charts-community": [
         "packages/ag-charts-community/src/main.ts"
       ],
-      "ag-charts-community-examples": [
+      "_ag-charts-community-examples": [
         "packages/ag-charts-community-examples/src/index.ts"
       ],
       "ag-charts-community-test": [
