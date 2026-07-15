@@ -3,6 +3,8 @@ import type {
     AgCaptionContextMenuActionEvent,
     AgContextMenuGetItemsParams,
     AgContextMenuGetItemsParamsAxis,
+    AgContextMenuGetItemsParamsCaption,
+    AgContextMenuGetItemsParamsLegendItem,
     AgContextMenuGetItemsParamsSeriesNode,
     AgContextMenuItem,
     AgContextMenuItemShowOn,
@@ -10,7 +12,7 @@ import type {
     DatumDefault,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
-import type { DynamicContext, RequireOptional } from 'ag-charts-core';
+import type { CallbackParamRules, DynamicContext, RequireOptional } from 'ag-charts-core';
 import {
     AbstractModuleInstance,
     Logger,
@@ -155,23 +157,23 @@ export class ContextMenu extends AbstractModuleInstance {
         });
     }
 
-    private makeGetItemsParams(event: ContextMenuEvent): AgContextMenuGetItemsParams {
+    private makeGetItemsParams(event: ContextMenuEvent): [AgContextMenuGetItemsParams, Caller[]] {
         const { showOn } = event;
-        const { context } = this.ctx.chartService; // TODO: callWithContext
+        const chart = this.ctx.chartService;
         const items = this.opts.items ?? ['defaults'];
         const defaultItems: AgContextMenuItem[] = expandBuiltinLists(showOn, items, this.ctx.contextMenuRegistry);
         switch (showOn) {
             case 'always':
             case 'series-area':
-                return { showOn, context, defaultItems };
+                return [{ showOn, defaultItems }, [chart]];
 
             case 'series-node': {
                 if (this.pickedNode == null) throw new Error(`this.pickedNode is null`);
                 // FIXME: Some optional keys like dataIdKey are not set. Is that a concern?
+                // FIXME: params should be of type CallbackParamRules<AgContextMenuGetItemsParamsSeriesNode>
                 const itemId = getItemId(this.pickedNode, this.pickedNode.series.data?.dataIdKey);
                 const params: AgContextMenuGetItemsParamsSeriesNode = {
                     showOn,
-                    context: this.pickedNode.series.properties.context ?? context,
                     seriesId: this.pickedNode.series.id,
                     itemId,
                     datum: this.pickedNode.datum,
@@ -191,15 +193,15 @@ export class ContextMenu extends AbstractModuleInstance {
                     const { datums, binIndex, binRange, aggregatedValue, frequency } = this.pickedNode;
                     Object.assign(params, { datums, binIndex, binRange, aggregatedValue, frequency });
                 }
-                return params;
+                const callers: Caller[] = [this.pickedNode.series.properties, chart];
+                return [params, callers];
             }
 
             case 'axis': {
                 if (this.pickedAxisCtx == null) throw new Error(`this.pickedAxisCtx is null`);
                 const { axisId, boundSeries, direction, domain, value } = this.pickedAxisCtx;
-                const params: RequireOptional<AgContextMenuGetItemsParamsAxis<DatumDefault, ContextDefault>> = {
+                const params: CallbackParamRules<AgContextMenuGetItemsParamsAxis<DatumDefault, ContextDefault>> = {
                     showOn,
-                    context: this.pickedAxisCtx.context ?? context,
                     defaultItems,
                     axisId,
                     boundSeries,
@@ -207,20 +209,31 @@ export class ContextMenu extends AbstractModuleInstance {
                     domain,
                     value,
                 };
-                return params;
+                const callers: Caller[] = [this.pickedAxisCtx.caller, chart];
+                return [params, callers];
             }
 
             case 'caption': {
                 if (this.pickedCaptionCtx == null) throw new Error(`this.pickedCaptionCtx is null`);
                 const { captionType, text } = this.pickedCaptionCtx;
-                return { showOn, context, captionType, text, defaultItems };
+                const params: CallbackParamRules<AgContextMenuGetItemsParamsCaption<DatumDefault, ContextDefault>> = {
+                    showOn,
+                    captionType,
+                    text,
+                    defaultItems,
+                };
+                const callers: Caller[] = [chart];
+                return [params, callers];
             }
 
             case 'legend-item':
                 if (this.pickedLegendItem == null) throw new Error(`this.pickedLegendItem is null`);
                 const { itemId, seriesId, label, enabled } = this.pickedLegendItem;
                 const text = toPlainText(label.text);
-                return { showOn, context, itemId, seriesId, text, visible: enabled, defaultItems };
+                const params: CallbackParamRules<AgContextMenuGetItemsParamsLegendItem<DatumDefault, ContextDefault>> =
+                    { showOn, itemId, seriesId, text, visible: enabled, defaultItems };
+                const callers: Caller[] = [chart];
+                return [params, callers];
 
             default:
                 return showOn satisfies never; // unreachable
@@ -233,8 +246,8 @@ export class ContextMenu extends AbstractModuleInstance {
 
         let items: readonly Readonly<AgContextMenuItem>[] | undefined;
         if (opts.getItems) {
-            const cbParams = this.makeGetItemsParams(event);
-            items = opts.getItems(cbParams);
+            const [params, callers] = this.makeGetItemsParams(event);
+            items = callWithContext(callers, opts.getItems, params);
         }
         items ??= opts.items ?? ['defaults'];
 
@@ -429,7 +442,7 @@ export class ContextMenu extends AbstractModuleInstance {
             return () => {
                 if (this.pickedAxisCtx) {
                     const { axisId, direction, boundSeries, domain, value } = this.pickedAxisCtx;
-                    const callers: Caller[] = [this.pickedAxisCtx, this.ctx.chartService];
+                    const callers: Caller[] = [this.pickedAxisCtx.caller, this.ctx.chartService];
                     const apiEvent: Omit<AgAxisContextMenuActionEvent<never>, 'context'> = {
                         type: 'axisContextMenuAction',
                         event: showEvent,
