@@ -744,13 +744,19 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
             this.restoreRequiredRangeIterations = 0;
         }
 
+        const requiredZoom = Math.min(1, 1 / requiredRangeRatio);
+
         // Prevent infinite loops where an x-axis label with a different height becomes visible, causing a change in
         // the chart height. This triggers the nice algorithm to change the y-axis label widths which changes the
         // width of the chart. This width change then triggers this function again with a different zoom ratio
         // as a proportion of that new chart width. This changes the chart's zoom, making the taller x-axis
         // label hidden again, creating an infinite loop.
+        // A full-range application (the content fits) changes nothing visible and cannot start that loop, so it must
+        // not consume the one-shot budget — otherwise a genuine overflow zoom after an external resize is suppressed.
         // @see AG-16803
-        this.restoreRequiredRangeIterations += 1;
+        if (requiredZoom < 1) {
+            this.restoreRequiredRangeIterations += 1;
+        }
 
         const directionInvalid =
             requiredRangeDirection !== ChartAxisDirection.X && requiredRangeDirection !== ChartAxisDirection.Y;
@@ -774,7 +780,6 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         if (!crossAxisId) return;
 
         const crossAxisZoom = this.state[crossAxisId] ?? { min: 0, max: 1 };
-        const requiredZoom = Math.min(1, 1 / requiredRangeRatio);
 
         let min = 0;
         let max = 1;
