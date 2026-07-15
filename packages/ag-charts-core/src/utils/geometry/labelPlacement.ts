@@ -766,12 +766,14 @@ function anyLabelAvoids(data: Map<string, SeriesLabels>): boolean {
 }
 
 /**
- * True if the series opts into collision resolution. Point-series carry `avoid` in their series
- * {@link SeriesLabels.defaults}; bar-family stamps it per datum, where the first datum is
- * authoritative (uniform across the series). Used for cross-series ordering only, never correctness.
+ * True if the series opts into collision resolution, mirroring {@link tryPlaceLabel}'s per-datum
+ * resolution (`d.avoid ?? defaults?.avoid`): the series default avoids, or any datum opts in. Gates
+ * obstacle-index construction, so a non-first avoiding datum must be seen here or the engine never
+ * builds the index it later queries.
  */
 function seriesAvoids(entry: SeriesLabels): boolean {
-    return (entry.defaults?.avoid ?? entry.datums[0]?.avoid) === true;
+    if (entry.defaults?.avoid === true) return true;
+    return entry.datums.some((d) => d.avoid === true);
 }
 
 /** Series entries with all non-avoiding series first (stable), then avoiding ones. */

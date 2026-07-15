@@ -462,6 +462,38 @@ describe('placeLabels', () => {
         expect(avoidingPlaced!.y).toBeGreaterThan(fixedPlaced!.y);
     });
 
+    it('activates the engine for a non-first avoiding datum when the series default is unset', () => {
+        // Series carries no `defaults`, and the FIRST datum does not avoid; only a later datum opts
+        // in per-datum. The engine-setup check must still build the obstacle index, otherwise the
+        // avoiding datum resolves against an empty/stale index and wrongly keeps its first placement.
+        const first: PointLabelDatum = {
+            point: { x: 200, y: 200, size: 0 },
+            label: { text: 'A', width: 40, height: 12 },
+            anchor: undefined,
+            placement: 'top',
+            placements: ['top'],
+            gap: 10,
+        };
+        const second: PointLabelDatum = {
+            point: { x: 200, y: 200, size: 0 },
+            label: { text: 'B', width: 40, height: 12 },
+            anchor: undefined,
+            placement: 'top',
+            placements: ['top', 'bottom'],
+            gap: 10,
+            avoid: true,
+        };
+        const placed = placeLabels(new Map([['s', seriesLabels([first, second])]]), bounds, 5).get('s')!;
+        const firstPlaced = placed.find((l) => l.datum === first);
+        const secondPlaced = placed.find((l) => l.datum === second);
+        expect(firstPlaced).toBeDefined();
+        expect(secondPlaced).toBeDefined();
+        // The non-avoiding first label keeps 'top'; the avoiding second is pushed below it.
+        expect(firstPlaced!.placement).toBe('top');
+        expect(secondPlaced!.placement).toBe('bottom');
+        expect(secondPlaced!.y).toBeGreaterThan(firstPlaced!.y);
+    });
+
     it('places an avoid:false label with no candidate placements rather than dropping it', () => {
         // An empty `placements` list with avoidance off must still place the label (centred),
         // honouring the "avoid:false is never dropped" contract.
