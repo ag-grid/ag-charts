@@ -20,14 +20,14 @@
     "baseUrl": ".",
     "strictNullChecks": true,
     "paths": {
+      "_ag-charts-community-examples": [
+        "packages/ag-charts-community-examples/src/index.ts"
+      ],
       "_ag-charts-test": [
         "libraries/ag-charts-test/src/index.ts"
       ],
       "ag-charts-community": [
         "packages/ag-charts-community/src/main.ts"
-      ],
-      "_ag-charts-community-examples": [
-        "packages/ag-charts-community-examples/src/index.ts"
       ],
       "ag-charts-community-test": [
         "packages/ag-charts-community/src/main-test.ts"
