@@ -1,3 +1,4 @@
+import { expectWarningsCalls } from '_ag-charts-test';
 import { describe, expect, it, vi } from 'vitest';
 
 import { type AgChartInstance, AgCharts } from 'ag-charts-community';
@@ -9,7 +10,6 @@ import {
     spyOnAnimationManager,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { expectWarningsCalls } from 'ag-charts-test';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 

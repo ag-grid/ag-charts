@@ -1,7 +1,7 @@
+import { classCast } from '_ag-charts-test';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ChartAxisDirection, deepClone } from 'ag-charts-core';
-import { classCast } from 'ag-charts-test';
 import type {
     AgAreaSeriesMarkerItemStylerParams,
     AgAreaSeriesOptions,

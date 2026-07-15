@@ -64,7 +64,6 @@
     "@babel/types": "7.29.0",
     "@types/pixelmatch": "^5.2.4",
     "@types/pngjs": "6.0.5",
-    "ag-charts-test": "14.0.0-beta.20260712",
     "jest-image-snapshot": "^6.0.0",
     "skia-canvas": "^3.0.8",
     "del": "^6.0.0",
@@ -73,7 +72,8 @@
     "pixelmatch": "^5.2.1",
     "rimraf": "3.0.2",
     "typescript": "~5.8.3",
-    "vitest": "2.1.9"
+    "vitest": "2.1.9",
+    "_ag-charts-test": "14.0.0-beta.20260712"
   },
   "dependencies": {
     "ag-charts-community": "14.0.0-beta.20260712",

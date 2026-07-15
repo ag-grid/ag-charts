@@ -1,7 +1,7 @@
+import { setupMockConsole } from '_ag-charts-test';
 import type { Mock } from 'vitest';
 
 import { AllCommunityModule, ModuleRegistry } from 'ag-charts-community';
-import { setupMockConsole } from 'ag-charts-test';
 
 import { AgChartsServerSide } from './agChartsServerSide';
 import type { AgFinancialChartRenderOptions, AgGaugeRenderOptions, AgRenderOptions } from './types';

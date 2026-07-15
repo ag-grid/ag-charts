@@ -1,6 +1,6 @@
+import { expectWarningsCalls } from '_ag-charts-test';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { expectWarningsCalls } from 'ag-charts-test';
 import type { AgChartInstance, AgSparklineOptions } from 'ag-charts-types';
 
 import {

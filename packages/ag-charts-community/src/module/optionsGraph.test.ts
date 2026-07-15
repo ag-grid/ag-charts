@@ -1,7 +1,7 @@
+import { expectWarningsCalls, setupMockConsole } from '_ag-charts-test';
 import { describe, expect, it } from 'vitest';
 
 import type { PlainObject } from 'ag-charts-core';
-import { expectWarningsCalls, setupMockConsole } from 'ag-charts-test';
 
 import { OptionsGraph } from './optionsGraph';
 

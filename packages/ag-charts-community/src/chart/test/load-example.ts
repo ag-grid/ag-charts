@@ -1,5 +1,6 @@
+import * as test from '_ag-charts-test';
+
 import * as time from 'ag-charts-core';
-import * as test from 'ag-charts-test';
 
 import { AgCharts } from '../../api/agCharts';
 // Undocumented APIs used by examples.

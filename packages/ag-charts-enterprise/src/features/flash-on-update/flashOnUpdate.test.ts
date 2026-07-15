@@ -1,3 +1,4 @@
+import { expectWarningsCalls } from '_ag-charts-test';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-community';
@@ -13,7 +14,6 @@ import {
     spyOnAnimationManager,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { expectWarningsCalls } from 'ag-charts-test';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 import type { BandFlashDatum } from './flashOnUpdate';

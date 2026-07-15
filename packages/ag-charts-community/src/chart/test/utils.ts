@@ -1,7 +1,3 @@
-import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
-import { afterEach, beforeEach, expect, vi } from 'vitest';
-
-import { evaluateBezier, fromPairs, getDocument, mapValues } from 'ag-charts-core';
 import {
     CANVAS_HEIGHT,
     CANVAS_WIDTH,
@@ -22,7 +18,11 @@ import {
     touchAverage,
     touchEvent,
     wheelEvent,
-} from 'ag-charts-test';
+} from '_ag-charts-test';
+import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
+import { afterEach, beforeEach, expect, vi } from 'vitest';
+
+import { evaluateBezier, fromPairs, getDocument, mapValues } from 'ag-charts-core';
 import type {
     AgCartesianChartOptions,
     AgChartInstance,
@@ -1978,5 +1978,5 @@ export function withPreventDefault<E>(partial: Omit<E, 'preventDefault'> & { pre
     });
 }
 
-export { toMatchImage } from 'ag-charts-test';
+export { toMatchImage } from '_ag-charts-test';
 export { CANVAS_TO_BUFFER_DEFAULTS, extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';

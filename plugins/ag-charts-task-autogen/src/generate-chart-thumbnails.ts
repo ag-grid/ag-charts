@@ -17,7 +17,7 @@ export function createTask(parentProject: string, srcRelativeInputPath: string) 
                 '{workspaceRoot}/packages/ag-charts-enterprise/dist/package/*.cjs.js',
                 { externalDependencies: ['npm:typescript', 'npm:skia-canvas'] },
             ],
-            executor: 'ag-charts-generate-chart-thumbnail:generate',
+            executor: '_ag-charts-generate-chart-thumbnail:generate',
             outputPath: '{options.outputPath}',
             cache: true,
             options: {
