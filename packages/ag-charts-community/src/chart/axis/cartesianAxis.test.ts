@@ -1102,7 +1102,7 @@ describe('CartesianAxis', () => {
         const orientationScenarios: Scenario[] = [
             {
                 // A vertical y-axis title rendered horizontally.
-                name: 'title-orientation-perpendicular-left',
+                name: 'title-orientation-horizontal-left',
                 optionsFactory: () => ({
                     data: NUMERIC_DATA,
                     axes: {
@@ -1110,14 +1110,14 @@ describe('CartesianAxis', () => {
                         y: {
                             type: 'number',
                             position: 'left',
-                            title: { enabled: true, text: 'Temperature', orientation: 'perpendicular' },
+                            title: { enabled: true, text: 'Temperature', orientation: 'horizontal' },
                         },
                     },
                     series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                 }),
             },
             {
-                name: 'title-orientation-perpendicular-right',
+                name: 'title-orientation-horizontal-right',
                 optionsFactory: () => ({
                     data: NUMERIC_DATA,
                     axes: {
@@ -1125,15 +1125,15 @@ describe('CartesianAxis', () => {
                         y: {
                             type: 'number',
                             position: 'right',
-                            title: { enabled: true, text: 'Temperature', orientation: 'perpendicular' },
+                            title: { enabled: true, text: 'Temperature', orientation: 'horizontal' },
                         },
                     },
                     series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                 }),
             },
             {
-                // The right y-axis title flipped 180°.
-                name: 'title-orientation-parallel-reversed-right',
+                // The right y-axis title flipped from its default vertical direction.
+                name: 'title-orientation-vertical-right',
                 optionsFactory: () => ({
                     data: NUMERIC_DATA,
                     axes: {
@@ -1141,14 +1141,14 @@ describe('CartesianAxis', () => {
                         y: {
                             type: 'number',
                             position: 'right',
-                            title: { enabled: true, text: 'Temperature', orientation: 'parallel-reversed' },
+                            title: { enabled: true, text: 'Temperature', orientation: 'vertical' },
                         },
                     },
                     series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                 }),
             },
             {
-                name: 'title-orientation-perpendicular-reversed-left',
+                name: 'title-orientation-vertical-reversed-left',
                 optionsFactory: () => ({
                     data: NUMERIC_DATA,
                     axes: {
@@ -1156,21 +1156,21 @@ describe('CartesianAxis', () => {
                         y: {
                             type: 'number',
                             position: 'left',
-                            title: { enabled: true, text: 'Temperature', orientation: 'perpendicular-reversed' },
+                            title: { enabled: true, text: 'Temperature', orientation: 'vertical-reversed' },
                         },
                     },
                     series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                 }),
             },
             {
-                name: 'title-orientation-perpendicular-bottom',
+                name: 'title-orientation-vertical-reversed-bottom',
                 optionsFactory: () => ({
                     data: NUMERIC_DATA,
                     axes: {
                         x: {
                             type: 'number',
                             position: 'bottom',
-                            title: { enabled: true, text: 'Distance', orientation: 'perpendicular' },
+                            title: { enabled: true, text: 'Distance', orientation: 'vertical-reversed' },
                         },
                         y: { type: 'number', position: 'left' },
                     },
@@ -1178,14 +1178,14 @@ describe('CartesianAxis', () => {
                 }),
             },
             {
-                name: 'title-orientation-parallel-reversed-top',
+                name: 'title-orientation-vertical-top',
                 optionsFactory: () => ({
                     data: NUMERIC_DATA,
                     axes: {
                         x: {
                             type: 'number',
                             position: 'top',
-                            title: { enabled: true, text: 'Distance', orientation: 'parallel-reversed' },
+                            title: { enabled: true, text: 'Distance', orientation: 'vertical' },
                         },
                         y: { type: 'number', position: 'left' },
                     },

@@ -80,20 +80,17 @@ export interface AgAxisCaptionOptions {
 }
 
 /**
- * Orientation of an axis title, relative to the axis line.
- * - `'parallel'` runs the title along the axis line (the default).
- * - `'perpendicular'` runs the title across the axis line — for example a horizontal title on a vertical axis.
- * - `'parallel-reversed'` and `'perpendicular-reversed'` are the same orientations rotated 180°.
- *
- * Default: `'parallel'`
+ * Orientation of an axis title.
+ * - `'horizontal'` renders the title in the normal left-to-right reading direction.
+ * - `'vertical'` and `'vertical-reversed'` rotate it a quarter-turn in opposite directions.
  */
-export type AgAxisTitleOrientation = 'parallel' | 'perpendicular' | 'perpendicular-reversed' | 'parallel-reversed';
+export type AgAxisTitleOrientation = 'horizontal' | 'vertical' | 'vertical-reversed';
 
 export interface AgCartesianAxisCaptionOptions extends AgAxisCaptionOptions {
     /**
-     * Orientation of the title, relative to the axis line.
+     * Orientation of the title.
      *
-     * Default: `'parallel'`
+     * Default: aligned with the axis line (`'horizontal'` on the x-axis, `'vertical'` on the y-axis).
      */
     orientation?: AgAxisTitleOrientation;
 }

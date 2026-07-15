@@ -259,7 +259,7 @@ export const commonAxisCaptionOptionsDefs: OptionsDefs<AgAxisCaptionOptions> = {
 
 export const cartesianAxisCaptionOptionsDefs: OptionsDefs<AgCartesianAxisCaptionOptions> = {
     ...commonAxisCaptionOptionsDefs,
-    orientation: union('parallel', 'perpendicular', 'perpendicular-reversed', 'parallel-reversed'),
+    orientation: union('horizontal', 'vertical', 'vertical-reversed'),
 };
 
 export const cartesianAxisOptionsDefs: OptionsDefs<

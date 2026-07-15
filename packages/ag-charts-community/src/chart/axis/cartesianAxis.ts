@@ -81,52 +81,73 @@ interface TitleOrientationLayout {
     rotation: number;
     textAlign: CanvasTextAlign;
     textBaseline: CanvasTextBaseline;
-    isPerpendicular: boolean;
 }
 
-const flipTextAlign = (align: CanvasTextAlign): CanvasTextAlign => (align === 'left' ? 'right' : 'left');
-const flipTextBaseline = (baseline: CanvasTextBaseline): CanvasTextBaseline => (baseline === 'top' ? 'bottom' : 'top');
+/** The orientation that reproduces the default title rendering for an axis position. */
+function defaultTitleOrientation(position: AgCartesianAxisPosition): AgAxisTitleOrientation {
+    if (position === 'left') return 'vertical';
+    if (position === 'right') return 'vertical-reversed';
+    return 'horizontal';
+}
+
+/** True when the title text runs across the axis line rather than along it. */
+function isTitleAcrossAxis(position: AgCartesianAxisPosition, orientation: AgAxisTitleOrientation): boolean {
+    const axisVertical = position === 'left' || position === 'right';
+    return (orientation === 'horizontal') === axisVertical;
+}
+
+const titleRotations: Record<AgAxisTitleOrientation, number> = {
+    horizontal: 0,
+    vertical: -Math.PI / 2,
+    'vertical-reversed': Math.PI / 2,
+};
 
 /**
- * Maps an axis title `orientation` to the rotation, alignment and baseline that place the title
- * on the outer side of the axis line at its midpoint. `reversed` variants add a 180° rotation and
- * flip the alignment/baseline so the title stays on the same side while reading the other way.
+ * Maps an axis title `orientation` to the rotation, alignment and baseline that place the title on
+ * the outer side of the axis line at its midpoint. The rotation is screen-relative; the alignment
+ * and baseline keep the title clear of the axis line for the side it sits on.
  */
 function getTitleOrientationLayout(
     position: AgCartesianAxisPosition,
     orientation: AgAxisTitleOrientation
 ): TitleOrientationLayout {
-    const isPerpendicular = orientation === 'perpendicular' || orientation === 'perpendicular-reversed';
-    const reversed = orientation === 'parallel-reversed' || orientation === 'perpendicular-reversed';
-    const flip = reversed ? Math.PI : 0;
+    const rotation = titleRotations[orientation];
 
-    if (isPerpendicular) {
-        const base = {
-            top: { rotation: Math.PI / 2, textAlign: 'right' as const },
-            bottom: { rotation: Math.PI / 2, textAlign: 'left' as const },
-            left: { rotation: 0, textAlign: 'right' as const },
-            right: { rotation: 0, textAlign: 'left' as const },
-        }[position];
-        return {
-            rotation: base.rotation + flip,
-            textAlign: reversed ? flipTextAlign(base.textAlign) : base.textAlign,
-            textBaseline: 'middle',
-            isPerpendicular: true,
-        };
+    if (isTitleAcrossAxis(position, orientation)) {
+        let textAlign: CanvasTextAlign;
+        switch (position) {
+            case 'left':
+                textAlign = 'right';
+                break;
+            case 'right':
+                textAlign = 'left';
+                break;
+            case 'top':
+                textAlign = orientation === 'vertical-reversed' ? 'right' : 'left';
+                break;
+            case 'bottom':
+                textAlign = orientation === 'vertical-reversed' ? 'left' : 'right';
+                break;
+        }
+        return { rotation, textAlign, textBaseline: 'middle' };
     }
 
-    const base = {
-        top: { rotation: 0, textBaseline: 'bottom' as const },
-        bottom: { rotation: 0, textBaseline: 'top' as const },
-        left: { rotation: -Math.PI / 2, textBaseline: 'bottom' as const },
-        right: { rotation: Math.PI / 2, textBaseline: 'bottom' as const },
-    }[position];
-    return {
-        rotation: base.rotation + flip,
-        textAlign: 'center',
-        textBaseline: reversed ? flipTextBaseline(base.textBaseline) : base.textBaseline,
-        isPerpendicular: false,
-    };
+    let textBaseline: CanvasTextBaseline;
+    switch (position) {
+        case 'top':
+            textBaseline = 'bottom';
+            break;
+        case 'bottom':
+            textBaseline = 'top';
+            break;
+        case 'left':
+            textBaseline = orientation === 'vertical' ? 'bottom' : 'top';
+            break;
+        case 'right':
+            textBaseline = orientation === 'vertical-reversed' ? 'bottom' : 'top';
+            break;
+    }
+    return { rotation, textAlign: 'center', textBaseline };
 }
 
 export abstract class CartesianAxis<
@@ -623,9 +644,8 @@ export abstract class CartesianAxis<
     private wrapTitleText(caption: Caption) {
         const axisLength = Math.abs(this.range[1] - this.range[0]) || Infinity;
         const thickness = this.options.thickness ?? Infinity;
-        const orientation = this.options.title.orientation ?? 'parallel';
-        const isPerpendicular = orientation === 'perpendicular' || orientation === 'perpendicular-reversed';
-        if (isPerpendicular) {
+        const orientation = this.options.title.orientation ?? defaultTitleOrientation(this.position);
+        if (isTitleAcrossAxis(this.position, orientation)) {
             caption.computeTextWrap(thickness, axisLength);
         } else {
             caption.computeTextWrap(axisLength, thickness);
@@ -818,7 +838,7 @@ export abstract class CartesianAxis<
 
         const { rotation, textAlign, textBaseline } = getTitleOrientationLayout(
             this.position,
-            title.orientation ?? 'parallel'
+            title.orientation ?? defaultTitleOrientation(this.position)
         );
 
         const { formatter = (p) => p.defaultValue } = title;
