@@ -5,7 +5,7 @@ import type { TextWrap } from 'ag-charts-types';
 
 import { setupMockCanvas } from '../util/test/mockCanvas';
 import { setupMockConsole } from '../util/test/mockConsole';
-import { fitLabelToContainer, insideMarkerContainer } from './labelUtil';
+import { buildBarLabelCandidates, fitLabelToContainer, insideMarkerContainer } from './labelUtil';
 
 const ELLIPSIS = '…';
 const FONT = { fontFamily: 'Verdana', fontSize: 15 };
@@ -130,5 +130,54 @@ describe('insideMarkerContainer', () => {
     it('hides an inside label that overflows a small marker', () => {
         const result = fitToContainer(LONG_TEXT, { avoid: true }, insideMarkerContainer(12));
         expect(result).toBe('');
+    });
+});
+
+describe('buildBarLabelCandidates', () => {
+    // A horizontal bar, upward, spacing 5; a 30×10 label. `getMinOuterRectSize`/`labelGlyphCentre` are
+    // pure, so no canvas is needed here.
+    const rect = { x: 0, y: 0, width: 100, height: 40 };
+    const build = (placements: any[], orientations: any[]) =>
+        buildBarLabelCandidates({
+            isUpward: true,
+            isVertical: false,
+            placements,
+            orientations,
+            spacing: 5,
+            rect,
+            width: 30,
+            height: 10,
+        });
+
+    it('emits one candidate per placement (outer) × orientation (inner), in cascade order', () => {
+        const candidates = build(['inside-center', 'outside-end'], ['horizontal', 'vertical']);
+        expect(candidates.map((c) => [c.placement, c.rotation])).toEqual([
+            ['inside-center', undefined],
+            ['inside-center', 90],
+            ['outside-end', undefined],
+            ['outside-end', 90],
+        ]);
+    });
+
+    it('constrains inside placements to the inset bar rect and floats outside placements', () => {
+        const candidates = build(['inside-center', 'outside-end'], ['horizontal']);
+        expect(candidates[0].region).toEqual({ x: 5, y: 5, width: 90, height: 30 });
+        expect(candidates[1].region).toBeUndefined();
+    });
+
+    it('centres each candidate box on the (orientation-invariant) glyph centre, sized to its footprint', () => {
+        const [horizontal, vertical] = build(['inside-center'], ['horizontal', 'vertical']);
+        const expectBox = (box: (typeof horizontal)['box'], expected: typeof rect) => {
+            expect(box.x).toBeCloseTo(expected.x);
+            expect(box.y).toBeCloseTo(expected.y);
+            expect(box.width).toBeCloseTo(expected.width);
+            expect(box.height).toBeCloseTo(expected.height);
+        };
+        // inside-center anchors at the rect centre (50, 20); horizontal keeps the 30×10 footprint.
+        expectBox(horizontal.box, { x: 35, y: 15, width: 30, height: 10 });
+        // Vertical rotates the footprint to 10×30 about the same centre.
+        expectBox(vertical.box, { x: 45, y: 5, width: 10, height: 30 });
+        expect(vertical.box.x + vertical.box.width / 2).toBeCloseTo(horizontal.box.x + horizontal.box.width / 2);
+        expect(vertical.box.y + vertical.box.height / 2).toBeCloseTo(horizontal.box.y + horizontal.box.height / 2);
     });
 });

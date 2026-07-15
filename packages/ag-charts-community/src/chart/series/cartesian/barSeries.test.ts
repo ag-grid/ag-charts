@@ -1577,6 +1577,44 @@ describe('BarSeries', () => {
         );
     });
 
+    describe('label placement cascade', () => {
+        // A placement array cascades per datum (inside-center-h → inside-center-v → outside-end-h →
+        // outside-end-v). Small bars can't fit the label inside and fall through to outside; large
+        // bars keep it inside — so a single render exercises both the fit and the fallback paths.
+        const cascadeOptions = (direction: 'horizontal' | 'vertical'): AgChartOptions => ({
+            data: [
+                { x: 'a', y: 100 },
+                { x: 'b', y: -100 },
+                { x: 'c', y: 12 },
+                { x: 'd', y: -8 },
+            ],
+            series: [
+                {
+                    type: 'bar',
+                    direction,
+                    xKey: 'x',
+                    yKey: 'y',
+                    label: {
+                        placement: ['inside-center', 'outside-end'],
+                        orientation: ['horizontal', 'vertical'],
+                        formatter: () => 'Category label',
+                        color: 'black',
+                    },
+                },
+            ],
+        });
+
+        it.each(['horizontal', 'vertical'] as const)(
+            'cascades a long label across placement/orientation candidates (%s bars)',
+            async (direction) => {
+                const options = cascadeOptions(direction);
+                prepareTestOptions(options);
+                chart = AgCharts.create(options);
+                await compare();
+            }
+        );
+    });
+
     describe('item styler', () => {
         it('calculates first, last, min, max values', async () => {
             const options: AgChartOptions = {

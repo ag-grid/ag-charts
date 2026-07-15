@@ -161,7 +161,8 @@ export abstract class PlacedLabelCartesianSeries<
                 isHighlight,
                 activeHighlight,
                 undefined,
-                placementStyle
+                placementStyle,
+                { placement: datum.placement }
             );
             const { enabled, fontStyle, fontWeight, fontSize, fontFamily, color } = style;
             if (enabled && datum?.labelText) {

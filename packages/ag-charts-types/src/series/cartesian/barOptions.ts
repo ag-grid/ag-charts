@@ -6,7 +6,7 @@ import type {
     SeriesCallbackParams,
     Styler,
 } from '../../chart/callbackOptions';
-import type { AgChartLabelOrientation } from '../../chart/collisionAvoidanceOptions';
+import type { AgBarSeriesLabelPlacement, AgChartLabelOrientation } from '../../chart/collisionAvoidanceOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from '../../chart/errorBarOptions';
 import type {
@@ -25,13 +25,6 @@ import type {
 } from '../seriesOptions';
 import type { AgErrorBoundSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { AgBaseCartesianSeriesAxisOptions, FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
-
-export type AgBarSeriesLabelPlacement =
-    | 'inside-center'
-    | 'inside-start'
-    | 'inside-end'
-    | 'outside-start'
-    | 'outside-end';
 
 export interface AgBarSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault>
     extends AgChartLabelOptions<TDatum, TParams, TContext>, AgChartLabelFitOptions, AgSeriesLabelPlacementStyleOptions {

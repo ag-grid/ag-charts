@@ -7,10 +7,21 @@ import type {
     LabelFit,
     NormalisedColorType,
     NormalisedTextOrSegments,
+    OrientationAnchor,
     Point,
+    PositionedLabelCandidate,
 } from 'ag-charts-core';
-import { type NormalisedChartLabelStyleOptions, fitLabelText, mergeDefaults } from 'ag-charts-core';
+import {
+    type NormalisedChartLabelStyleOptions,
+    fitLabelText,
+    getMinOuterRectSize,
+    insetBox,
+    labelGlyphCentre,
+    mergeDefaults,
+    orientationAngles,
+} from 'ag-charts-core';
 import type {
+    AgChartLabelOrientation,
     AgChartLabelStylerParams,
     AgMarkerShape,
     CssColor,
@@ -59,12 +70,19 @@ export type BarLabelPlacement = 'inside-center' | 'inside-start' | 'inside-end' 
 /** A label's resolved inside/outside placement, selecting which placement-style overrides apply. */
 export type ResolvedLabelPlacement = 'inside' | 'outside';
 
+/** The final placement/orientation a series chose for a label, surfaced to `itemStyler` params. */
+type ResolvedPlacement = Pick<AgChartLabelStylerParams<unknown, unknown>, 'placement' | 'orientation'>;
+
 type LabelDatum = Point & {
     text: NormalisedTextOrSegments;
     textAlign: CanvasTextAlign;
     textBaseline: CanvasTextBaseline;
-    /** Resolved inside/outside placement, used to pick `insideStyle`/`outsideStyle`; unset applies neither. */
-    placement?: ResolvedLabelPlacement;
+    /**
+     * The label's resolved placement. Bar-family labels carry the granular {@link BarLabelPlacement}
+     * (coarsened to inside/outside via {@link toResolvedPlacement} when selecting placement styles);
+     * other series carry the coarse {@link ResolvedLabelPlacement}. Unset applies neither style.
+     */
+    placement?: ResolvedLabelPlacement | BarLabelPlacement;
     /** Rotation in radians applied to the label node; `undefined`/`0` renders upright. */
     rotation?: number;
     /** Translation (px) sliding a region-bound label flush inside its region; `undefined`/`0` leaves it anchored. */
@@ -132,6 +150,11 @@ export function pickPlacementStyle(
     return placement === 'inside' ? styles.insideStyle : styles.outsideStyle;
 }
 
+/** Coarsens a granular bar placement to the inside/outside distinction the placement styles select on. */
+export function toResolvedPlacement(placement: BarLabelPlacement): ResolvedLabelPlacement {
+    return placement.startsWith('inside') ? 'inside' : 'outside';
+}
+
 export function getLabelStyles<TParams>(
     series: SeriesLike,
     nodeDatum: SeriesNodeDatum | undefined,
@@ -140,7 +163,8 @@ export function getLabelStyles<TParams>(
     isHighlight: boolean,
     activeHighlight: HighlightNodeDatum | undefined,
     labelPath: string[] = ['series', `${series.declarationOrder}`, 'label'],
-    placementStyle?: LabelPlacementStyle
+    placementStyle?: LabelPlacementStyle,
+    resolvedPlacement?: ResolvedPlacement
 ): NormalisedChartLabelStyleOptions & { fontSize: number } {
     const resolvedLabel = resolvePlacementLabelStyle(label, placementStyle);
     if (series.visible && label.itemStyler) {
@@ -176,6 +200,9 @@ export function getLabelStyles<TParams>(
             itemType: nodeDatum?.itemType,
             seriesId: series.id,
             padding: resolvedLabel.padding,
+            // Present only for series that resolve them, so an unrelated series' styler params are unchanged.
+            ...(resolvedPlacement?.placement !== undefined && { placement: resolvedPlacement.placement }),
+            ...(resolvedPlacement?.orientation !== undefined && { orientation: resolvedPlacement.orientation }),
             highlightState,
             selectionState: series.getSelectionStateString(nodeDatum?.datumIndex),
             candidateState: series.getCandidateStateString(nodeDatum?.datumIndex),
@@ -202,7 +229,8 @@ export function updateLabelNode<TParams, D extends LabelDatum>(
     labelDatum: D | undefined,
     highlight: { isHighlight: boolean; activeHighlight: HighlightNodeDatum | undefined },
     labelPath?: string[],
-    placementStyle?: LabelPlacementStyle
+    placementStyle?: LabelPlacementStyle,
+    resolvedPlacement?: ResolvedPlacement
 ): void;
 
 export function updateLabelNode<TParams>(
@@ -213,7 +241,8 @@ export function updateLabelNode<TParams>(
     labelDatum: LabelDatum | undefined,
     highlight: { isHighlight: boolean; activeHighlight: HighlightNodeDatum | undefined },
     labelPath?: string[],
-    placementStyle?: LabelPlacementStyle
+    placementStyle?: LabelPlacementStyle,
+    resolvedPlacement?: ResolvedPlacement
 ) {
     const { isHighlight, activeHighlight } = highlight;
     if (series.visible && label.enabled && labelDatum) {
@@ -225,7 +254,8 @@ export function updateLabelNode<TParams>(
             isHighlight,
             activeHighlight,
             labelPath,
-            placementStyle
+            placementStyle,
+            resolvedPlacement
         );
         textNode.visible = true;
         // Offset slides a rotated bar label flush inside its bar rect; the pivot below is re-derived
@@ -308,4 +338,56 @@ export function adjustLabelPlacement({
     }
 
     return { x, y, textAlign, textBaseline };
+}
+
+/**
+ * A pre-positioned bar label candidate: the generic {@link PositionedLabelCandidate} box the placement
+ * engine cascades over, plus the bar-specific `anchor` and granular `placement` written back onto the
+ * label node when this candidate wins (its coarse inside/outside is derived from `placement`).
+ */
+export interface BarPositionedCandidate extends PositionedLabelCandidate {
+    readonly anchor: OrientationAnchor;
+    readonly placement: BarLabelPlacement;
+}
+
+/**
+ * Builds the ordered candidate list a bar label cascades through, one entry per
+ * `placement` (outer) × `orientation` (inner) — the ordering that yields inside-horizontal →
+ * inside-vertical → outside-horizontal → outside-vertical for the ticket's example. The glyph centre is
+ * orientation-invariant, so it is measured once per placement and shared across that placement's
+ * orientations. Inside placements constrain to the inset bar rect; outside placements float (no region).
+ */
+export function buildBarLabelCandidates({
+    isUpward,
+    isVertical,
+    placements: placementList,
+    orientations,
+    spacing,
+    rect,
+    width,
+    height,
+}: {
+    isUpward: boolean;
+    isVertical: boolean;
+    placements: readonly BarLabelPlacement[];
+    orientations: readonly AgChartLabelOrientation[];
+    spacing: number;
+    rect: Bounds;
+    width: number;
+    height: number;
+}): BarPositionedCandidate[] {
+    const insideRegion = insetBox(rect, spacing);
+    const candidates: BarPositionedCandidate[] = [];
+    for (const placement of placementList) {
+        const anchor = adjustLabelPlacement({ isUpward, isVertical, placement, spacing, rect });
+        const region = placement.startsWith('inside') ? insideRegion : undefined;
+        const centre = labelGlyphCentre(anchor, width, height);
+        for (const orientation of orientations) {
+            const rotationDeg = orientationAngles[orientation];
+            const { width: fw, height: fh } = getMinOuterRectSize(rotationDeg, width, height);
+            const box = { x: centre.x - fw / 2, y: centre.y - fh / 2, width: fw, height: fh };
+            candidates.push({ box, region, rotation: rotationDeg || undefined, anchor, placement });
+        }
+    }
+    return candidates;
 }
