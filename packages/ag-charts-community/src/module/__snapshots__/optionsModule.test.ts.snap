@@ -377,9 +377,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
       "type": "line",
       "visible": true,
       "xKey": "year",
-      "xKeyAxis": "x",
       "yKey": "marriages",
-      "yKeyAxis": "y",
       "yName": "Marriages",
     },
     {
@@ -466,9 +464,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
       "type": "line",
       "visible": true,
       "xKey": "year",
-      "xKeyAxis": "x",
       "yKey": "civilPartnerships",
-      "yKeyAxis": "y",
       "yName": "Civil partnerships",
     },
     {
@@ -555,9 +551,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
       "type": "line",
       "visible": true,
       "xKey": "year",
-      "xKeyAxis": "x",
       "yKey": "divorces",
-      "yKeyAxis": "y",
       "yName": "Divorces",
     },
   ],
@@ -631,7 +625,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
 exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMPLE it should prepare options as expected 1`] = `
 {
   "axes": {
-    "__AXIS_ID_2": {
+    "ySecondary": {
       "gridLine": {
         "enabled": true,
         "style": [
@@ -1025,9 +1019,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
       "type": "bar",
       "visible": true,
       "xKey": "year",
-      "xKeyAxis": "x",
       "yKey": "male",
-      "yKeyAxis": "y",
       "yName": "Male cattle",
     },
     {
@@ -1120,9 +1112,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
       "type": "bar",
       "visible": true,
       "xKey": "year",
-      "xKeyAxis": "x",
       "yKey": "female",
-      "yKeyAxis": "y",
       "yName": "Female cattle",
     },
     {
@@ -1209,9 +1199,8 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
       "type": "line",
       "visible": true,
       "xKey": "year",
-      "xKeyAxis": "x",
       "yKey": "exportedTonnes",
-      "yKeyAxis": "__AXIS_ID_2",
+      "yKeyAxis": "ySecondary",
       "yName": "Beef exports",
     },
   ],
@@ -1618,9 +1607,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
       "type": "line",
       "visible": true,
       "xKey": "year",
-      "xKeyAxis": "x",
       "yKey": "stillWine",
-      "yKeyAxis": "y",
     },
     {
       "highlight": {
@@ -1709,9 +1696,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
       "type": "line",
       "visible": true,
       "xKey": "year",
-      "xKeyAxis": "x",
       "yKey": "sparklingWine",
-      "yKeyAxis": "y",
     },
     {
       "highlight": {
@@ -1800,9 +1785,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
       "type": "line",
       "visible": true,
       "xKey": "year",
-      "xKeyAxis": "x",
       "yKey": "madeWine",
-      "yKeyAxis": "y",
     },
     {
       "highlight": {
@@ -1891,9 +1874,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
       "type": "line",
       "visible": true,
       "xKey": "year",
-      "xKeyAxis": "x",
       "yKey": "whisky",
-      "yKeyAxis": "y",
     },
     {
       "highlight": {
@@ -1982,9 +1963,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
       "type": "line",
       "visible": true,
       "xKey": "year",
-      "xKeyAxis": "x",
       "yKey": "potableSpirits",
-      "yKeyAxis": "y",
     },
     {
       "highlight": {
@@ -2073,9 +2052,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
       "type": "line",
       "visible": true,
       "xKey": "year",
-      "xKeyAxis": "x",
       "yKey": "beer",
-      "yKeyAxis": "y",
     },
     {
       "highlight": {
@@ -2164,9 +2141,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
       "type": "line",
       "visible": true,
       "xKey": "year",
-      "xKeyAxis": "x",
       "yKey": "cider",
-      "yKeyAxis": "y",
     },
   ],
   "seriesArea": {
@@ -2575,9 +2550,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "type": "bar",
       "visible": true,
       "xKey": "quarter",
-      "xKeyAxis": "x",
       "yKey": "largeHousehold",
-      "yKeyAxis": "y",
       "yName": "Large household appliances",
     },
     {
@@ -2671,9 +2644,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "type": "bar",
       "visible": true,
       "xKey": "quarter",
-      "xKeyAxis": "x",
       "yKey": "smallHousehold",
-      "yKeyAxis": "y",
       "yName": "Small household appliances",
     },
     {
@@ -2767,9 +2738,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "type": "bar",
       "visible": true,
       "xKey": "quarter",
-      "xKeyAxis": "x",
       "yKey": "itTelecomms",
-      "yKeyAxis": "y",
       "yName": "IT and telecomms equipment",
     },
     {
@@ -2863,9 +2832,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "type": "bar",
       "visible": true,
       "xKey": "quarter",
-      "xKeyAxis": "x",
       "yKey": "consumer",
-      "yKeyAxis": "y",
       "yName": "Consumer equipment",
     },
     {
@@ -2959,9 +2926,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "type": "bar",
       "visible": true,
       "xKey": "quarter",
-      "xKeyAxis": "x",
       "yKey": "tools",
-      "yKeyAxis": "y",
       "yName": "Electrical and electronic tools",
     },
     {
@@ -3055,9 +3020,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "type": "bar",
       "visible": true,
       "xKey": "quarter",
-      "xKeyAxis": "x",
       "yKey": "displays",
-      "yKeyAxis": "y",
       "yName": "Display equipment",
     },
     {
@@ -3151,9 +3114,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "type": "bar",
       "visible": true,
       "xKey": "quarter",
-      "xKeyAxis": "x",
       "yKey": "cooling",
-      "yKeyAxis": "y",
       "yName": "Cooling appliances containing refrigerants",
     },
     {
@@ -3247,9 +3208,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "type": "bar",
       "visible": true,
       "xKey": "quarter",
-      "xKeyAxis": "x",
       "yKey": "gasLampsLed",
-      "yKeyAxis": "y",
       "yName": "Gas discharge lamps and LED light sources",
     },
   ],
@@ -3637,10 +3596,8 @@ exports[`ChartOptions > #prepareOptions > for ADV_PER_MARKER_CUSTOMISATION_EXAMP
       "type": "bubble",
       "visible": true,
       "xKey": "depth",
-      "xKeyAxis": "x",
       "xName": "Depth",
       "yKey": "minDistance",
-      "yKeyAxis": "y",
       "yName": "Minimum Distance",
     },
   ],
@@ -4063,9 +4020,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
       "type": "line",
       "visible": true,
       "xKey": "time",
-      "xKeyAxis": "x",
       "yKey": "magnitude",
-      "yKeyAxis": "y",
     },
     {
       "highlight": {
@@ -4152,9 +4107,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
       "type": "line",
       "visible": true,
       "xKey": "time",
-      "xKeyAxis": "x",
       "yKey": "magnitude",
-      "yKeyAxis": "y",
     },
     {
       "highlight": {
@@ -4241,9 +4194,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
       "type": "line",
       "visible": true,
       "xKey": "time",
-      "xKeyAxis": "x",
       "yKey": "magnitude",
-      "yKeyAxis": "y",
     },
     {
       "highlight": {
@@ -4330,9 +4281,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
       "type": "line",
       "visible": true,
       "xKey": "time",
-      "xKeyAxis": "x",
       "yKey": "magnitude",
-      "yKeyAxis": "y",
     },
   ],
   "seriesArea": {
@@ -4746,9 +4695,7 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
       "type": "area",
       "visible": true,
       "xKey": "quarter",
-      "xKeyAxis": "x",
       "yKey": "naturalGas",
-      "yKeyAxis": "y",
       "yName": "Natural gas",
     },
     {
@@ -4848,9 +4795,7 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
       "type": "area",
       "visible": true,
       "xKey": "quarter",
-      "xKeyAxis": "x",
       "yKey": "coal",
-      "yKeyAxis": "y",
       "yName": "Coal",
     },
     {
@@ -4950,9 +4895,7 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
       "type": "area",
       "visible": true,
       "xKey": "quarter",
-      "xKeyAxis": "x",
       "yKey": "primaryOil",
-      "yKeyAxis": "y",
       "yName": "Primary oil",
     },
     {
@@ -5052,9 +4995,7 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
       "type": "area",
       "visible": true,
       "xKey": "quarter",
-      "xKeyAxis": "x",
       "yKey": "petroleum",
-      "yKeyAxis": "y",
       "yName": "Petroleum",
     },
     {
@@ -5154,9 +5095,7 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
       "type": "area",
       "visible": true,
       "xKey": "quarter",
-      "xKeyAxis": "x",
       "yKey": "manufacturedFuels",
-      "yKeyAxis": "y",
       "yName": "Manufactured fuels",
     },
   ],
@@ -5564,9 +5503,7 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_EXAMPLE it should prepar
       "type": "bar",
       "visible": true,
       "xKey": "type",
-      "xKeyAxis": "y",
       "yKey": "earnings",
-      "yKeyAxis": "x",
     },
   ],
   "seriesArea": {
@@ -5979,9 +5916,7 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_WITH_LABELS_EXAMPLE it s
       "type": "bar",
       "visible": true,
       "xKey": "job",
-      "xKeyAxis": "y",
       "yKey": "change",
-      "yKeyAxis": "x",
     },
   ],
   "seriesArea": {
@@ -6381,10 +6316,8 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMP
       "type": "bubble",
       "visible": true,
       "xKey": "hour",
-      "xKeyAxis": "x",
       "xName": "Time",
       "yKey": "day",
-      "yKeyAxis": "y",
       "yName": "Day",
     },
   ],
@@ -6779,10 +6712,8 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_
       "type": "bubble",
       "visible": true,
       "xKey": "lon",
-      "xKeyAxis": "x",
       "xName": "Longitude",
       "yKey": "lat",
-      "yKeyAxis": "y",
       "yName": "Latitude",
     },
   ],
@@ -7694,9 +7625,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
       "type": "bar",
       "visible": true,
       "xKey": "type",
-      "xKeyAxis": "y",
       "yKey": "total",
-      "yKeyAxis": "x",
       "yName": "Annual growth in total pay",
     },
     {
@@ -7792,9 +7721,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
       "type": "bar",
       "visible": true,
       "xKey": "type",
-      "xKeyAxis": "y",
       "yKey": "regular",
-      "yKeyAxis": "x",
       "yName": "Annual growth in regular pay",
     },
   ],
@@ -8209,9 +8136,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       "type": "bar",
       "visible": true,
       "xKey": "year",
-      "xKeyAxis": "x",
       "yKey": "16-24",
-      "yKeyAxis": "y",
     },
     {
       "direction": "vertical",
@@ -8309,9 +8234,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       "type": "bar",
       "visible": true,
       "xKey": "year",
-      "xKeyAxis": "x",
       "yKey": "25-34",
-      "yKeyAxis": "y",
     },
     {
       "direction": "vertical",
@@ -8409,9 +8332,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       "type": "bar",
       "visible": true,
       "xKey": "year",
-      "xKeyAxis": "x",
       "yKey": "35-44",
-      "yKeyAxis": "y",
     },
     {
       "direction": "vertical",
@@ -8509,9 +8430,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       "type": "bar",
       "visible": true,
       "xKey": "year",
-      "xKeyAxis": "x",
       "yKey": "45-54",
-      "yKeyAxis": "y",
     },
     {
       "direction": "vertical",
@@ -8609,9 +8528,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       "type": "bar",
       "visible": true,
       "xKey": "year",
-      "xKeyAxis": "x",
       "yKey": "55-64",
-      "yKeyAxis": "y",
     },
     {
       "direction": "vertical",
@@ -8709,9 +8626,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       "type": "bar",
       "visible": true,
       "xKey": "year",
-      "xKeyAxis": "x",
       "yKey": "65-74",
-      "yKeyAxis": "y",
     },
     {
       "direction": "vertical",
@@ -8809,9 +8724,7 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       "type": "bar",
       "visible": true,
       "xKey": "year",
-      "xKeyAxis": "x",
       "yKey": "75+",
-      "yKeyAxis": "y",
     },
   ],
   "seriesArea": {
@@ -9219,9 +9132,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "type": "line",
       "visible": true,
       "xKey": "week",
-      "xKeyAxis": "x",
       "yKey": "belize",
-      "yKeyAxis": "y",
       "yName": "Belize",
     },
     {
@@ -9311,9 +9222,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "type": "line",
       "visible": true,
       "xKey": "week",
-      "xKeyAxis": "x",
       "yKey": "cameroon",
-      "yKeyAxis": "y",
       "yName": "Cameroon",
     },
     {
@@ -9403,9 +9312,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "type": "line",
       "visible": true,
       "xKey": "week",
-      "xKeyAxis": "x",
       "yKey": "columbia",
-      "yKeyAxis": "y",
       "yName": "Columbia",
     },
     {
@@ -9495,9 +9402,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "type": "line",
       "visible": true,
       "xKey": "week",
-      "xKeyAxis": "x",
       "yKey": "costaRica",
-      "yKeyAxis": "y",
       "yName": "Costa Rica",
     },
     {
@@ -9587,9 +9492,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "type": "line",
       "visible": true,
       "xKey": "week",
-      "xKeyAxis": "x",
       "yKey": "dominicanRepublic",
-      "yKeyAxis": "y",
       "yName": "Dominican Republic",
     },
     {
@@ -9679,9 +9582,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "type": "line",
       "visible": true,
       "xKey": "week",
-      "xKeyAxis": "x",
       "yKey": "ecuador",
-      "yKeyAxis": "y",
       "yName": "Ecuador",
     },
     {
@@ -9771,9 +9672,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "type": "line",
       "visible": true,
       "xKey": "week",
-      "xKeyAxis": "x",
       "yKey": "ghana",
-      "yKeyAxis": "y",
       "yName": "Ghana",
     },
     {
@@ -9863,9 +9762,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "type": "line",
       "visible": true,
       "xKey": "week",
-      "xKeyAxis": "x",
       "yKey": "honduras",
-      "yKeyAxis": "y",
       "yName": "Honduras",
     },
     {
@@ -9955,9 +9852,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "type": "line",
       "visible": true,
       "xKey": "week",
-      "xKeyAxis": "x",
       "yKey": "ivoryCoast",
-      "yKeyAxis": "y",
       "yName": "Ivory Coast",
     },
     {
@@ -10047,9 +9942,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "type": "line",
       "visible": true,
       "xKey": "week",
-      "xKeyAxis": "x",
       "yKey": "jamaica",
-      "yKeyAxis": "y",
       "yName": "Jamaica",
     },
     {
@@ -10139,9 +10032,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "type": "line",
       "visible": true,
       "xKey": "week",
-      "xKeyAxis": "x",
       "yKey": "mexico",
-      "yKeyAxis": "y",
       "yName": "Mexico",
     },
     {
@@ -10231,9 +10122,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "type": "line",
       "visible": true,
       "xKey": "week",
-      "xKeyAxis": "x",
       "yKey": "panama",
-      "yKeyAxis": "y",
       "yName": "Panama",
     },
     {
@@ -10323,9 +10212,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "type": "line",
       "visible": true,
       "xKey": "week",
-      "xKeyAxis": "x",
       "yKey": "windwardIsles",
-      "yKeyAxis": "y",
       "yName": "Windward Isles",
     },
     {
@@ -10415,9 +10302,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "type": "line",
       "visible": true,
       "xKey": "week",
-      "xKeyAxis": "x",
       "yKey": "guatemala",
-      "yKeyAxis": "y",
       "yName": "Guatemala",
     },
     {
@@ -10507,9 +10392,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "type": "line",
       "visible": true,
       "xKey": "week",
-      "xKeyAxis": "x",
       "yKey": "nicaragua",
-      "yKeyAxis": "y",
       "yName": "Nicaragua",
     },
     {
@@ -10599,9 +10482,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "type": "line",
       "visible": true,
       "xKey": "week",
-      "xKeyAxis": "x",
       "yKey": "brazil",
-      "yKeyAxis": "y",
       "yName": "Brazil",
     },
   ],
@@ -10998,9 +10879,7 @@ exports[`ChartOptions > #prepareOptions > for LOG_AXIS_EXAMPLE it should prepare
       "type": "line",
       "visible": true,
       "xKey": "year",
-      "xKeyAxis": "x",
       "yKey": "population",
-      "yKeyAxis": "y",
     },
   ],
   "seriesArea": {
@@ -11423,9 +11302,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       "type": "area",
       "visible": true,
       "xKey": "month",
-      "xKeyAxis": "x",
       "yKey": "coal",
-      "yKeyAxis": "y",
       "yName": "Coal",
     },
     {
@@ -11533,9 +11410,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       "type": "area",
       "visible": true,
       "xKey": "month",
-      "xKeyAxis": "x",
       "yKey": "petroleum",
-      "yKeyAxis": "y",
       "yName": "Petroleum",
     },
     {
@@ -11643,9 +11518,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       "type": "area",
       "visible": true,
       "xKey": "month",
-      "xKeyAxis": "x",
       "yKey": "naturalGas",
-      "yKeyAxis": "y",
       "yName": "Natural gas",
     },
     {
@@ -11753,9 +11626,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       "type": "area",
       "visible": true,
       "xKey": "month",
-      "xKeyAxis": "x",
       "yKey": "bioenergyWaste",
-      "yKeyAxis": "y",
       "yName": "Bioenergy & waste",
     },
     {
@@ -11863,9 +11734,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       "type": "area",
       "visible": true,
       "xKey": "month",
-      "xKeyAxis": "x",
       "yKey": "nuclear",
-      "yKeyAxis": "y",
       "yName": "Nuclear",
     },
     {
@@ -11973,9 +11842,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       "type": "area",
       "visible": true,
       "xKey": "month",
-      "xKeyAxis": "x",
       "yKey": "windSolarHydro",
-      "yKeyAxis": "y",
       "yName": "Wind, solar & hydro",
     },
     {
@@ -12083,9 +11950,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       "type": "area",
       "visible": true,
       "xKey": "month",
-      "xKeyAxis": "x",
       "yKey": "imported",
-      "yKeyAxis": "y",
       "yName": "Imported",
     },
   ],
@@ -12499,9 +12364,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
       "type": "bar",
       "visible": true,
       "xKey": "area",
-      "xKeyAxis": "y",
       "yKey": "usedInLast3Months",
-      "yKeyAxis": "x",
       "yName": "Used in last 3 months",
     },
     {
@@ -12598,9 +12461,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
       "type": "bar",
       "visible": true,
       "xKey": "area",
-      "xKeyAxis": "y",
       "yKey": "usedOver3MonthsAgo",
-      "yKeyAxis": "x",
       "yName": "Used over 3 months ago",
     },
     {
@@ -12697,9 +12558,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
       "type": "bar",
       "visible": true,
       "xKey": "area",
-      "xKeyAxis": "y",
       "yKey": "neverUsed",
-      "yKeyAxis": "x",
       "yName": "Never used",
     },
   ],
@@ -13109,9 +12968,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       "type": "bar",
       "visible": true,
       "xKey": "type",
-      "xKeyAxis": "x",
       "yKey": "white",
-      "yKeyAxis": "y",
       "yName": "White",
     },
     {
@@ -13205,9 +13062,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       "type": "bar",
       "visible": true,
       "xKey": "type",
-      "xKeyAxis": "x",
       "yKey": "mixed",
-      "yKeyAxis": "y",
       "yName": "Mixed",
     },
     {
@@ -13301,9 +13156,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       "type": "bar",
       "visible": true,
       "xKey": "type",
-      "xKeyAxis": "x",
       "yKey": "asian",
-      "yKeyAxis": "y",
       "yName": "Asian",
     },
     {
@@ -13397,9 +13250,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       "type": "bar",
       "visible": true,
       "xKey": "type",
-      "xKeyAxis": "x",
       "yKey": "black",
-      "yKeyAxis": "y",
       "yName": "Black",
     },
     {
@@ -13493,9 +13344,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       "type": "bar",
       "visible": true,
       "xKey": "type",
-      "xKeyAxis": "x",
       "yKey": "chinese",
-      "yKeyAxis": "y",
       "yName": "Chinese",
     },
     {
@@ -13589,9 +13438,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       "type": "bar",
       "visible": true,
       "xKey": "type",
-      "xKeyAxis": "x",
       "yKey": "other",
-      "yKeyAxis": "y",
       "yName": "Other",
     },
   ],
@@ -14032,9 +13879,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
       "type": "area",
       "visible": true,
       "xKey": "date",
-      "xKeyAxis": "x",
       "yKey": "Tate Modern",
-      "yKeyAxis": "y",
       "yName": "Tate Modern",
     },
     {
@@ -14131,9 +13976,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
       "type": "area",
       "visible": true,
       "xKey": "date",
-      "xKeyAxis": "x",
       "yKey": "Tate Britain",
-      "yKeyAxis": "y",
       "yName": "Tate Britain",
     },
     {
@@ -14230,9 +14073,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
       "type": "area",
       "visible": true,
       "xKey": "date",
-      "xKeyAxis": "x",
       "yKey": "Tate Liverpool",
-      "yKeyAxis": "y",
       "yName": "Tate Liverpool",
     },
     {
@@ -14329,9 +14170,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
       "type": "area",
       "visible": true,
       "xKey": "date",
-      "xKeyAxis": "x",
       "yKey": "Tate St Ives",
-      "yKeyAxis": "y",
       "yName": "Tate St Ives",
     },
   ],
@@ -14742,9 +14581,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_COLUMN_CHART_EXAMPLE it sho
       "type": "bar",
       "visible": true,
       "xKey": "year",
-      "xKeyAxis": "x",
       "yKey": "visitors",
-      "yKeyAxis": "y",
     },
   ],
   "seriesArea": {
@@ -15539,9 +15376,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
       "type": "line",
       "visible": true,
       "xKey": "date",
-      "xKeyAxis": "x",
       "yKey": "petrol",
-      "yKeyAxis": "y",
     },
     {
       "highlight": {
@@ -15629,9 +15464,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
       "type": "line",
       "visible": true,
       "xKey": "date",
-      "xKeyAxis": "x",
       "yKey": "diesel",
-      "yKeyAxis": "y",
     },
   ],
   "seriesArea": {
@@ -16341,9 +16174,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_SCATTER_CHART_EXAMPLE it sh
       "type": "scatter",
       "visible": true,
       "xKey": "weight",
-      "xKeyAxis": "x",
       "yKey": "height",
-      "yKeyAxis": "y",
     },
   ],
   "seriesArea": {
@@ -16788,9 +16619,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       "type": "area",
       "visible": true,
       "xKey": "date",
-      "xKeyAxis": "x",
       "yKey": "Science Museum",
-      "yKeyAxis": "y",
       "yName": "Science Museum",
     },
     {
@@ -16894,9 +16723,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       "type": "area",
       "visible": true,
       "xKey": "date",
-      "xKeyAxis": "x",
       "yKey": "National Media Museum",
-      "yKeyAxis": "y",
       "yName": "National Media Museum",
     },
     {
@@ -17000,9 +16827,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       "type": "area",
       "visible": true,
       "xKey": "date",
-      "xKeyAxis": "x",
       "yKey": "National Railway Museum",
-      "yKeyAxis": "y",
       "yName": "National Railway Museum",
     },
     {
@@ -17106,9 +16931,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       "type": "area",
       "visible": true,
       "xKey": "date",
-      "xKeyAxis": "x",
       "yKey": "Locomotion",
-      "yKeyAxis": "y",
       "yName": "Locomotion",
     },
     {
@@ -17212,9 +17035,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       "type": "area",
       "visible": true,
       "xKey": "date",
-      "xKeyAxis": "x",
       "yKey": "Museum of Science and Industry, Manchester",
-      "yKeyAxis": "y",
       "yName": "Museum of Science and Industry, Manchester",
     },
     {
@@ -17318,9 +17139,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       "type": "area",
       "visible": true,
       "xKey": "date",
-      "xKeyAxis": "x",
       "yKey": "National Coal Mining Museum for England",
-      "yKeyAxis": "y",
       "yName": "National Coal Mining Museum for England",
     },
   ],
@@ -17732,9 +17551,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
       "type": "bar",
       "visible": true,
       "xKey": "type",
-      "xKeyAxis": "y",
       "yKey": "ownerOccupied",
-      "yKeyAxis": "x",
       "yName": "Owner occupied",
     },
     {
@@ -17830,9 +17647,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
       "type": "bar",
       "visible": true,
       "xKey": "type",
-      "xKeyAxis": "y",
       "yKey": "privateRented",
-      "yKeyAxis": "x",
       "yName": "Private rented",
     },
     {
@@ -17928,9 +17743,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
       "type": "bar",
       "visible": true,
       "xKey": "type",
-      "xKeyAxis": "y",
       "yKey": "localAuthority",
-      "yKeyAxis": "x",
       "yName": "Local authority",
     },
     {
@@ -18026,9 +17839,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
       "type": "bar",
       "visible": true,
       "xKey": "type",
-      "xKeyAxis": "y",
       "yKey": "housingAssociation",
-      "yKeyAxis": "x",
       "yName": "Housing association",
     },
   ],
@@ -18441,9 +18252,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
       "type": "bar",
       "visible": true,
       "xKey": "station",
-      "xKeyAxis": "x",
       "yKey": "early",
-      "yKeyAxis": "y",
       "yName": "Early",
     },
     {
@@ -18539,9 +18348,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
       "type": "bar",
       "visible": true,
       "xKey": "station",
-      "xKeyAxis": "x",
       "yKey": "morningPeak",
-      "yKeyAxis": "y",
       "yName": "Morning peak",
     },
     {
@@ -18637,9 +18444,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
       "type": "bar",
       "visible": true,
       "xKey": "station",
-      "xKeyAxis": "x",
       "yKey": "interPeak",
-      "yKeyAxis": "y",
       "yName": "Between peak",
     },
     {
@@ -18735,9 +18540,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
       "type": "bar",
       "visible": true,
       "xKey": "station",
-      "xKeyAxis": "x",
       "yKey": "afternoonPeak",
-      "yKeyAxis": "y",
       "yName": "Afternoon peak",
     },
     {
@@ -18833,9 +18636,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
       "type": "bar",
       "visible": true,
       "xKey": "station",
-      "xKeyAxis": "x",
       "yKey": "evening",
-      "yKeyAxis": "y",
       "yName": "Evening",
     },
   ],
