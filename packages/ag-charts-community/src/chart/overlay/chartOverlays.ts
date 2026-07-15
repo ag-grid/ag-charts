@@ -20,8 +20,16 @@ export class ChartOverlays extends BaseProperties {
     @Property
     readonly unsupportedBrowser = new Overlay('ag-charts-unsupported-browser', 'overlayUnsupportedBrowser');
 
+    readonly validation = new Overlay('ag-charts-validation-overlay', 'overlayValidation');
+
     getFocusInfo(localeManager: LocaleManager): { text: string; rect: BBox } | undefined {
-        for (const overlay of [this.loading, this.noData, this.noVisibleSeries, this.unsupportedBrowser]) {
+        for (const overlay of [
+            this.validation,
+            this.loading,
+            this.noData,
+            this.noVisibleSeries,
+            this.unsupportedBrowser,
+        ]) {
             if (overlay.focusBox !== undefined) {
                 return { text: overlay.getText(localeManager), rect: overlay.focusBox };
             }
@@ -34,5 +42,6 @@ export class ChartOverlays extends BaseProperties {
         this.noData.removeElement();
         this.noVisibleSeries.removeElement();
         this.unsupportedBrowser.removeElement();
+        this.validation.removeElement();
     }
 }
