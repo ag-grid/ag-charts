@@ -746,7 +746,8 @@ const labelCollideWithCategoryDef = {
     minSpacing: positiveNumber,
 };
 
-const labelCollisionPlacementValidator = union(
+/** Directional label placement accepting a single value or an ordered fallback list. */
+export const labelCollisionPlacementDef = unionOrArray(
     'inside',
     'top',
     'bottom',
@@ -757,29 +758,21 @@ const labelCollisionPlacementValidator = union(
     'bottom-left',
     'bottom-right'
 );
-const labelOrientationValidator = union('horizontal', 'vertical', 'vertical-reversed');
-
-/** Directional label placement accepting a single value or an ordered fallback list. */
-export const labelCollisionPlacementDef = or(
-    labelCollisionPlacementValidator,
-    arrayOf(labelCollisionPlacementValidator, 'an array containing these keywords')
-);
 
 /** Label orientation accepting a single value or an ordered fallback list. */
-export const labelOrientationDef = or(
-    labelOrientationValidator,
-    arrayOf(labelOrientationValidator, 'an array containing these keywords')
-);
+export const labelOrientationDef = unionOrArray('horizontal', 'vertical', 'vertical-reversed');
 
 export const collisionAvoidanceOptionsDef = {
     enabled: boolean,
     minSpacing: positiveNumber,
-    collideWith: {
-        markers: labelCollideWithCategoryDef,
-        labels: labelCollideWithCategoryDef,
-        seriesItems: labelCollideWithCategoryDef,
-    },
 };
+
+// @ts-expect-error undocumented option
+collisionAvoidanceOptionsDef.collideWith = undocumented({
+    markers: labelCollideWithCategoryDef,
+    labels: labelCollideWithCategoryDef,
+    seriesItems: labelCollideWithCategoryDef,
+});
 
 export const seriesLabelOptionsDefs: OptionsDefs<AgChartLabelOptions<any, any>> = {
     enabled: boolean,
