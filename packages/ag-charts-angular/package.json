@@ -1,6 +1,6 @@
 {
   "name": "ag-charts-angular",
-  "version": "14.0.1-beta.20260714",
+  "version": "14.0.1-beta.20260715",
   "scripts": {
     "ng": "ng",
     "build": "ng build",
@@ -33,7 +33,7 @@
   "module": "./dist/ag-charts-angular/fesm2022/ag-charts-angular.mjs",
   "typings": "./dist/ag-charts-angular/index.d.ts",
   "dependencies": {
-    "ag-charts-community": "14.0.1-beta.20260714",
+    "ag-charts-community": "14.0.1-beta.20260715",
     "tslib": "^2.8.1"
   },
   "devDependencies": {
