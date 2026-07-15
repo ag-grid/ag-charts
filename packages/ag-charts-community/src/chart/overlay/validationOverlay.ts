@@ -97,9 +97,14 @@ export function getValidationOverlay({ agDocument, localeManager, grouped, onDis
     copyButton.type = 'button';
     copyButton.textContent = localeManager.t('overlayValidationCopy');
     copyButton.addEventListener('click', () => {
-        void agDocument.navigator?.clipboard?.writeText(diagnosticText(grouped)).then(() => {
-            copyButton.textContent = localeManager.t('overlayValidationCopied');
-        });
+        // writeText rejects when the clipboard is unavailable (denied permission, insecure context,
+        // unfocused document); swallow it and leave the button label unchanged.
+        agDocument.navigator?.clipboard
+            ?.writeText(diagnosticText(grouped))
+            .then(() => {
+                copyButton.textContent = localeManager.t('overlayValidationCopied');
+            })
+            .catch(() => undefined);
     });
     actions.appendChild(copyButton);
 
