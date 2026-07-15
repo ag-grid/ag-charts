@@ -50,6 +50,7 @@ import type {
     AgBarSeriesStylerParams,
     AgErrorBoundSeriesTooltipRendererParams,
     AgNumericValue,
+    PaddingOptions,
 } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../../module/moduleContext';
@@ -81,6 +82,7 @@ import {
     processedDataIsAnimatable,
     valueProperty,
 } from '../../data/processors';
+import { resolvePlacementLabelPadding } from '../../label';
 import type { BarLabelPlacement, BarPositionedCandidate } from '../../labelUtil';
 import {
     adjustLabelPlacement,
@@ -182,6 +184,7 @@ interface BarSeriesNodeDatumContext {
     readonly yReversed: boolean;
     readonly bboxBottom: number;
     readonly labelSpacing: number;
+    readonly boxPadding: Required<PaddingOptions>;
     readonly crisp: boolean;
     readonly isStacked: boolean;
     readonly filteredValueExceedUnfiltered: boolean;
@@ -640,8 +643,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         const labelPlacements = toArray(label.placement);
         if (labelPlacements.length === 0) labelPlacements.push('inside-center');
         const labelPlacement = labelPlacements[0];
-        const labelPadding =
-            label.padding ?? (labelPlacement?.startsWith('inside') ? label.insideStyle : label.outsideStyle).padding;
+        const placementStyle = labelPlacement?.startsWith('inside') ? label.insideStyle : label.outsideStyle;
+        const boxPadding = resolvePlacementLabelPadding(label, placementStyle);
         const canIncrementallyUpdate = this.canIncrementallyUpdateNodes(dataAggregationFilter != null);
 
         const { groupOffset, barOffset, barWidth } = this.getBarDimensions();
@@ -686,7 +689,9 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             yReversed: yAxis.isReversed(),
             // 0n keeps a bigint y-domain on the full-precision convert() path (a numeric 0 narrows to Number).
             bboxBottom: yScale.convert(0n),
-            labelSpacing: label.spacing + (typeof labelPadding === 'number' ? labelPadding : 0),
+            labelSpacing:
+                label.spacing + Math.max(boxPadding.top, boxPadding.right, boxPadding.bottom, boxPadding.left),
+            boxPadding,
             crisp:
                 dataAggregationFilter == null &&
                 (this.properties.crisp ??
@@ -1040,7 +1045,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 isUpward,
                 isVertical: !ctx.barAlongX,
                 placement,
-                spacing: ctx.labelSpacing,
+                spacing: ctx.label.spacing,
+                boxPadding: ctx.boxPadding,
                 rect,
             });
             // Inside labels fit within the bar rect; outside labels sit beside it, so leave them unbound.

@@ -44,15 +44,15 @@ const themeTemplate: ExtensibleTheme<'bar'> = {
             fontWeight: { $ref: 'fontWeight' },
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },
+            spacing: 8,
             insideStyle: {
                 color: { $ref: 'chartBackgroundColor' },
-                // compatibility with old `padding` property (now named `spacing`).
-                padding: { $isUserOption: ['../spacing', 0, 8] } as any,
+                padding: 8,
                 ...PLACEMENT_LABEL_BOXING_DEFAULTS,
             },
             outsideStyle: {
                 color: { $ref: 'textColor' },
-                padding: { $isUserOption: ['../spacing', 0, 8] } as any,
+                padding: 8,
                 ...PLACEMENT_LABEL_BOXING_DEFAULTS,
             },
             placement: 'inside-center',

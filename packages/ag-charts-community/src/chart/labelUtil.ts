@@ -27,6 +27,7 @@ import type {
     CssColor,
     HighlightState,
     NormalisedCallbackParams,
+    PaddingOptions,
     PixelSize,
     SelectionState,
 } from 'ag-charts-types';
@@ -299,12 +300,14 @@ export function adjustLabelPlacement({
     isVertical,
     placement,
     spacing = 0,
+    boxPadding,
     rect,
 }: {
     placement: BarLabelPlacement;
     isUpward: boolean;
     isVertical: boolean;
     spacing?: PixelSize;
+    boxPadding?: Required<PaddingOptions>;
     rect: Bounds;
 }): Omit<LabelDatum, 'text'> {
     let x = rect.x + rect.width / 2;
@@ -320,13 +323,17 @@ export function adjustLabelPlacement({
         if (isVertical) {
             const y0 = isUpward ? rect.y + rect.height : rect.y;
             const height = rect.height * barDirection;
-            y = y0 + height * displacementRatio + spacing * textAlignment * barDirection;
-            textBaseline = textAlignment === barDirection ? 'top' : 'bottom';
+            const facing = textAlignment === barDirection ? 'top' : 'bottom';
+            const inset = boxPadding?.[facing] ?? 0;
+            y = y0 + height * displacementRatio + (spacing + inset) * textAlignment * barDirection;
+            textBaseline = facing;
         } else {
             const x0 = isUpward ? rect.x : rect.x + rect.width;
             const width = rect.width * barDirection;
-            x = x0 + width * displacementRatio + spacing * textAlignment * barDirection;
-            textAlign = textAlignment === barDirection ? 'left' : 'right';
+            const facing = textAlignment === barDirection ? 'left' : 'right';
+            const inset = boxPadding?.[facing] ?? 0;
+            x = x0 + width * displacementRatio + (spacing + inset) * textAlignment * barDirection;
+            textAlign = facing;
         }
     }
 
