@@ -239,15 +239,22 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             node.opacity = this.getNodeOpacity(datumIndex, isHighlight, highlightState);
 
             const fields = this.resolveVertexFields(datum.vertex);
-            const title = this.formatText(fields.title, this.properties.node.title.formatter, datumIndex, isCollapsed);
+            const title = this.formatText(
+                fields.title,
+                this.properties.node.title.formatter,
+                datumIndex,
+                isCollapsed,
+                depth
+            );
             const subtitle = this.formatText(
                 fields.subtitle,
                 this.properties.node.subtitle.formatter,
                 datumIndex,
-                isCollapsed
+                isCollapsed,
+                depth
             );
             const labels = fields.labels?.map((label, index) =>
-                this.formatText(label, this.properties.node.labels[index]?.formatter, datumIndex, isCollapsed)
+                this.formatText(label, this.properties.node.labels[index]?.formatter, datumIndex, isCollapsed, depth)
             );
 
             let defaultExpanderText = '';
@@ -263,6 +270,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                 this.properties.expander.text.formatter,
                 datumIndex,
                 isCollapsed,
+                depth,
                 descendantsCount,
                 childrenCount
             );
@@ -782,7 +790,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         text: NormalisedTextOrSegments | undefined,
         formatter: RichFormatter<AgOrganizationNodeTextFormatterParams> | undefined,
         datumIndex: number | undefined,
-        isCollapsed: boolean
+        isCollapsed: boolean,
+        depth: number
     ) {
         const { dataModel, processedData } = this;
         if (!formatter || !dataModel || !processedData || datumIndex == null) return text;
@@ -790,7 +799,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         return (
             this.callWithContext(
                 formatter,
-                this.makeNodeTextFormatterParams(dataModel, processedData, datumIndex, isCollapsed, text)
+                this.makeNodeTextFormatterParams(dataModel, processedData, datumIndex, isCollapsed, depth, text)
             ) ?? text
         );
     }
@@ -800,6 +809,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         formatter: RichFormatter<AgOrganizationNodeTextFormatterParams> | undefined,
         datumIndex: number | undefined,
         isCollapsed: boolean,
+        depth: number,
         descendantsCount: number,
         childrenCount: number
     ) {
@@ -814,6 +824,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                     processedData,
                     datumIndex,
                     isCollapsed,
+                    depth,
                     descendantsCount,
                     childrenCount,
                     text
@@ -1339,6 +1350,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         processedData: NonNullable<typeof this.processedData>,
         datumIndex: number,
         isCollapsed: boolean,
+        depth: number,
         value: any
     ): AgOrganizationNodeTextFormatterParams<unknown, unknown> {
         const { id: seriesId } = this;
@@ -1347,6 +1359,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
         return {
             datum,
+            depth,
             isCollapsed,
             seriesId,
             value,
@@ -1358,6 +1371,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         processedData: NonNullable<typeof this.processedData>,
         datumIndex: number,
         isCollapsed: boolean,
+        depth: number,
         descendantsCount: number,
         childrenCount: number,
         value: any
@@ -1368,6 +1382,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
         return {
             datum,
+            depth,
             isCollapsed,
             seriesId,
             allDescendents: descendantsCount,

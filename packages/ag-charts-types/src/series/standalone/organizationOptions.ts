@@ -248,6 +248,8 @@ export interface AgOrganizationNodeTextFormatterParams<TDatum = DatumDefault, TC
     seriesId: string;
     /** Context for this callback. */
     context?: TContext;
+    /** The depth of the data point within the organization. */
+    depth: number;
     /** `true` when the node is collapsed (its descendants are hidden); `false` otherwise. */
     isCollapsed: boolean;
     /** The default label value that would have been used without a formatter. */
@@ -258,7 +260,9 @@ export interface AgOrganizationExpanderTextFormatterParams<
     TDatum = DatumDefault,
     TContext = ContextDefault,
 > extends AgOrganizationNodeTextFormatterParams<TDatum, TContext> {
+    /** The number of descendants of this item. */
     allDescendents: number;
+    /** The number of direct children of this item. */
     directChildren: number;
 }
 
