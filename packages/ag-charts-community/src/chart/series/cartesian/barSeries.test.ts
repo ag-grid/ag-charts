@@ -3090,6 +3090,34 @@ describe('BarSeries', () => {
             await chart.update(options);
             await compare();
         });
+
+        it('fits and clips when total fixed width exceeds the plot area', async () => {
+            const fixedWidth = 60;
+            const manyCategories = Array.from({ length: 20 }, (_, i) => ({
+                quarter: `C${i}`,
+                iphone: 10 + (i % 5),
+            }));
+            const options: AgCartesianChartOptions = {
+                data: manyCategories,
+                series: [{ type: 'bar', xKey: 'quarter', yKey: 'iphone', width: fixedWidth }],
+            };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const instance = deproxy(chart);
+            const categoryAxis = instance.axes.find((axis) => axis.type === 'category')!;
+
+            // A narrowed visibleRange is what spreads the bands to their fixed width and clips; [0, 1] means neither happened.
+            expect(categoryAxis.visibleRange[0]).toBe(0);
+            expect(categoryAxis.visibleRange[1]).toBeLessThan(1);
+
+            const nodeData = (instance.series[0] as any).contextNodeData?.nodeData as Array<{ width: number }>;
+            expect(nodeData).toHaveLength(manyCategories.length);
+            for (const datum of nodeData) {
+                expect(datum.width).toBe(fixedWidth);
+            }
+        });
     });
 
     describe('null category key', () => {

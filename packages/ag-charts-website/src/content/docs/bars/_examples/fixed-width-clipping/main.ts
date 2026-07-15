@@ -2,22 +2,15 @@ import {
     AgCartesianChartOptions,
     AgCharts,
     BarSeriesModule,
+    CategoryAxisModule,
     LegendModule,
     ModuleRegistry,
     NumberAxisModule,
-    OrdinalTimeAxisModule,
-    ScrollbarModule,
-} from 'ag-charts-enterprise';
+} from 'ag-charts-community';
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([
-    BarSeriesModule,
-    LegendModule,
-    NumberAxisModule,
-    OrdinalTimeAxisModule,
-    ScrollbarModule,
-]);
+ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, LegendModule, NumberAxisModule]);
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
@@ -25,7 +18,6 @@ const options: AgCartesianChartOptions = {
     title: {
         text: 'Quarterly Revenue by Product Line',
     },
-    scrollbar: { enabled: true },
     series: [
         {
             type: 'bar',
@@ -51,15 +43,7 @@ const options: AgCartesianChartOptions = {
     ],
     axes: {
         x: {
-            type: 'ordinal-time',
-            label: {
-                formatter: ({ value }) => {
-                    const date = new Date(value);
-                    const q = Math.floor(date.getMonth() / 3) + 1;
-                    const year = String(date.getFullYear()).slice(2);
-                    return `Q${q} '${year}`;
-                },
-            },
+            type: 'category',
         },
         y: {
             type: 'number',
