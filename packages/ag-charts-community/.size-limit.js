@@ -16,7 +16,7 @@ const scenarios = [
     {
         name: 'PolarChart only',
         import: '{ PolarChartModule }',
-        srcLimit: '173 kB',
+        srcLimit: '174 kB',
         distLimit: '292 kB',
     },
 ];

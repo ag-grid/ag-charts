@@ -116,6 +116,51 @@ describe('ValidationOverlay', () => {
         });
     });
 
+    describe('#changed issues', () => {
+        // The selected overlay state stays 'validation' across both updates (never dismissed), so this
+        // exercises the content-refresh path independently of any state transition.
+        test('replacing one issue with another re-renders the overlay content while it stays shown', async () => {
+            const options = prepareTestOptions({
+                ...invalidStrokeWidthOptions,
+                validations: { overlayLevel: 'warning' },
+            } as AgChartOptions);
+            const proxy = AgCharts.create(options);
+            chart = deproxy(proxy);
+            await chart.waitForUpdate(5000, true);
+
+            const messagesFor = () =>
+                Array.from(chart.ctx.agDocument.body.querySelectorAll('.ag-charts-validation-overlay__message')).map(
+                    (el) => el.textContent ?? ''
+                );
+
+            expect(messagesFor().some((message) => message.includes('series[0].strokeWidth'))).toBe(true);
+
+            await proxy.update({
+                ...options,
+                series: [{ type: 'line', xKey: 'x', yKey: 'y', lineDashOffset: 'alsobad' as any }],
+            } as AgChartOptions);
+            await chart.waitForUpdate(5000, true);
+
+            expect(chart.ctx.agDocument.body.querySelector('.ag-charts-overlay')?.getAttribute('aria-hidden')).toEqual(
+                'false'
+            );
+            const messages = messagesFor();
+            expect(messages.some((message) => message.includes('series[0].lineDashOffset'))).toBe(true);
+            expect(messages.some((message) => message.includes('series[0].strokeWidth'))).toBe(false);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - Option \`series[0].strokeWidth\` cannot be set to \`"notanumber"\`; expecting a number greater than or equal to 0, ignoring.",
+  ],
+  [
+    "AG Charts - Option \`series[0].lineDashOffset\` cannot be set to \`"alsobad"\`; expecting a number, ignoring.",
+  ],
+]
+`);
+        });
+    });
+
     describe('#dismiss', () => {
         // Assert on `aria-hidden` rather than DOM presence: hideOverlay clears content via
         // `innerText = '\xA0'`, which jsdom does not apply to descendant nodes (real browsers do),
