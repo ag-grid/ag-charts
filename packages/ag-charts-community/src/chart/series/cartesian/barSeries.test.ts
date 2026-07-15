@@ -9,6 +9,7 @@ import type {
     AgCartesianChartOptions,
     AgChartInstance,
     AgChartOptions,
+    Padding,
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
@@ -1561,7 +1562,7 @@ describe('BarSeries', () => {
                                 yKey: 'y',
                                 label: {
                                     placement,
-                                    padding: 10,
+                                    spacing: 10,
                                     color: 'black',
                                 },
                             },
@@ -1680,10 +1681,7 @@ describe('BarSeries', () => {
     });
 
     describe('AG-8290', () => {
-        async function testCase(
-            labelOpts: { placement: AgBarSeriesLabelPlacement; padding?: number; spacing?: number },
-            name: string
-        ) {
+        async function testCase(labelOpts: { placement: AgBarSeriesLabelPlacement; spacing?: number }, name: string) {
             chart = AgCharts.create(
                 prepareTestOptions({
                     data: [
@@ -1697,21 +1695,7 @@ describe('BarSeries', () => {
             );
             await compare({ failureThreshold: 0, failureThresholdType: 'percent', customSnapshotIdentifier: name });
         }
-        describe('padding backward compatibility', () => {
-            test('inside-start', async () => {
-                await testCase({ placement: 'inside-start', padding: 30 }, 'AG-8290-bar-label-spacing-inside-start');
-            });
-            test('inside-end', async () => {
-                await testCase({ placement: 'inside-end', padding: 30 }, 'AG-8290-bar-label-spacing-inside-end');
-            });
-            test('outside-start', async () => {
-                await testCase({ placement: 'outside-start', padding: 30 }, 'AG-8290-bar-label-spacing-outside-start');
-            });
-            test('outside-end', async () => {
-                await testCase({ placement: 'outside-end', padding: 30 }, 'AG-8290-bar-label-spacing-outside-end');
-            });
-        });
-        describe('spacing backward compatibility', () => {
+        describe('spacing sets the gap between the bar and the label', () => {
             test('inside-start', async () => {
                 await testCase({ placement: 'inside-start', spacing: 30 }, 'AG-8290-bar-label-spacing-inside-start');
             });
@@ -3812,6 +3796,76 @@ describe('BarSeries', () => {
                     category: 'seriesItem',
                 }))
             );
+        });
+    });
+
+    // A per-side `label.padding` object must offset a bar label away from the bar by the facing-side
+    // padding, exactly as an equivalent scalar padding does — otherwise the label box overlaps the bar
+    // instead of floating clear of it. The mixed positive/negative data exercises the facing-side flip
+    // between upward and downward bars.
+    describe('per-side padding offset', () => {
+        const paddingData = [
+            { cat: 'A', value: 60 },
+            { cat: 'B', value: -40 },
+            { cat: 'C', value: 70 },
+        ];
+
+        const visibleLabelPositions = async (
+            padding: Padding,
+            placement: 'outside-end' | 'outside-start',
+            direction: 'vertical' | 'horizontal'
+        ) => {
+            const vertical = direction === 'vertical';
+            const options: AgCartesianChartOptions = {
+                data: paddingData,
+                legend: { enabled: false },
+                axes: [
+                    { type: 'category', position: vertical ? 'bottom' : 'left' },
+                    { type: 'number', position: vertical ? 'left' : 'bottom' },
+                ],
+                series: [
+                    {
+                        type: 'bar',
+                        direction,
+                        xKey: 'cat',
+                        yKey: 'value',
+                        label: { enabled: true, placement, fill: '#eeeeee', padding },
+                    },
+                ],
+            };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            const series = deproxy(chart).series[0] as any;
+            const nodes = series.labelSelection.nodes().filter((node: any) => node.visible);
+            expect(nodes.length).toBe(paddingData.length);
+            return nodes.map((node: any) => ({ x: node.x as number, y: node.y as number }));
+        };
+
+        const expectPerSideMatchesScalar = async (
+            placement: 'outside-end' | 'outside-start',
+            direction: 'vertical' | 'horizontal',
+            perSidePadding: Padding
+        ) => {
+            const scalar = await visibleLabelPositions(10, placement, direction);
+            chart.destroy();
+            const perSide = await visibleLabelPositions(perSidePadding, placement, direction);
+            const axis = direction === 'vertical' ? 'y' : 'x';
+            for (let i = 0; i < perSide.length; i++) {
+                expect(perSide[i][axis]).toBeCloseTo(scalar[i][axis]);
+            }
+        };
+
+        it('offsets vertical outside-end labels by the facing padding, matching scalar padding', async () => {
+            await expectPerSideMatchesScalar('outside-end', 'vertical', { top: 10, bottom: 10, left: 0, right: 0 });
+        });
+
+        it('offsets vertical outside-start labels by the facing padding, matching scalar padding', async () => {
+            await expectPerSideMatchesScalar('outside-start', 'vertical', { top: 10, bottom: 10, left: 0, right: 0 });
+        });
+
+        it('offsets horizontal outside-end labels by the facing padding, matching scalar padding', async () => {
+            await expectPerSideMatchesScalar('outside-end', 'horizontal', { top: 0, bottom: 0, left: 10, right: 10 });
         });
     });
 });

@@ -61,6 +61,7 @@ import {
     rowCountProperty,
     valueProperty,
 } from '../../data/processors';
+import { resolvePlacementLabelPadding } from '../../label';
 import { adjustLabelPlacement, fitLabelToContainer, getLabelStyles, pickPlacementStyle } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
@@ -516,8 +517,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
 
         // Array placement is accepted, but only its first candidate is honoured.
         const placement = toArray(label.placement)[0] ?? 'inside-center';
-        const labelPadding =
-            label.padding ?? (placement.startsWith('inside') ? label.insideStyle : label.outsideStyle).padding;
+        const placementStyle = placement.startsWith('inside') ? label.insideStyle : label.outsideStyle;
         const {
             x: lx,
             y: ly,
@@ -527,9 +527,8 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             isUpward,
             isVertical: true,
             placement,
-            // Matches bar series: the theme feeds an 8px default via `padding`, replaced by a user `spacing`.
             spacing: label.spacing,
-            padding: labelPadding,
+            boxPadding: resolvePlacementLabelPadding(label, placementStyle),
             rect: { x, y, width: w, height: h },
         });
 

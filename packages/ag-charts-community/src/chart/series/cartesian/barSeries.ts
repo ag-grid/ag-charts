@@ -27,13 +27,13 @@ import {
     barLabelResolvesOrientation,
     barLabelRotation,
     buildBarLabelData,
+    insetBox,
     isContinuous,
     isFiniteNumber,
     maxValue,
     mergeDefaults,
     minValue,
     resolveLabelFit,
-    resolvePadding,
     toArray,
     toNumber,
     zeroLike,
@@ -46,7 +46,7 @@ import type {
     AgBarSeriesStylerParams,
     AgErrorBoundSeriesTooltipRendererParams,
     AgNumericValue,
-    Padding,
+    PaddingOptions,
 } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../../module/moduleContext';
@@ -78,6 +78,7 @@ import {
     processedDataIsAnimatable,
     valueProperty,
 } from '../../data/processors';
+import { resolvePlacementLabelPadding } from '../../label';
 import type { ResolvedLabelPlacement } from '../../labelUtil';
 import { adjustLabelPlacement, fitLabelToContainer, pickPlacementStyle, updateLabelNode } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
@@ -167,7 +168,7 @@ interface BarSeriesNodeDatumContext {
     readonly yReversed: boolean;
     readonly bboxBottom: number;
     readonly labelSpacing: number;
-    readonly labelPadding: Padding | undefined;
+    readonly boxPadding: Required<PaddingOptions>;
     readonly crisp: boolean;
     readonly isStacked: boolean;
     readonly filteredValueExceedUnfiltered: boolean;
@@ -621,8 +622,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         const isStacked = dataModel.hasColumnById(this, 'yValue-start');
         const { label } = this.properties;
         const labelPlacement = toArray(label.placement)[0];
-        const labelPadding =
-            label.padding ?? (labelPlacement?.startsWith('inside') ? label.insideStyle : label.outsideStyle).padding;
+        const placementStyle = labelPlacement?.startsWith('inside') ? label.insideStyle : label.outsideStyle;
+        const boxPadding = resolvePlacementLabelPadding(label, placementStyle);
         const canIncrementallyUpdate = this.canIncrementallyUpdateNodes(dataAggregationFilter != null);
 
         const { groupOffset, barOffset, barWidth } = this.getBarDimensions();
@@ -667,8 +668,9 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             yReversed: yAxis.isReversed(),
             // 0n keeps a bigint y-domain on the full-precision convert() path (a numeric 0 narrows to Number).
             bboxBottom: yScale.convert(0n),
-            labelSpacing: label.spacing,
-            labelPadding,
+            labelSpacing:
+                label.spacing + Math.max(boxPadding.top, boxPadding.right, boxPadding.bottom, boxPadding.left),
+            boxPadding,
             crisp:
                 dataAggregationFilter == null &&
                 (this.properties.crisp ??
@@ -971,26 +973,17 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 isUpward,
                 isVertical: !ctx.barAlongX,
                 placement,
-                spacing: ctx.labelSpacing,
-                padding: ctx.labelPadding,
+                spacing: ctx.label.spacing,
+                boxPadding: ctx.boxPadding,
                 rect: { x: rectX, y: rectY, width: rectWidth, height: rectHeight },
             });
             // Inside labels fit within the bar rect; outside labels sit beside it, so leave them unbound.
             // The rect is only needed to bound the fit or to resolve orientation, so skip it otherwise.
             const isInside = placement == null || placement.startsWith('inside');
             const needsRect = ctx.labelFit != null || ctx.labelResolvesOrientation;
-            // Inset each side by the spacing plus its own padding, so the fit region matches the padded
-            // label position rather than a larger box that would accept overlapping asymmetric labels.
-            const { labelSpacing } = ctx;
-            const labelPad = resolvePadding(ctx.labelPadding);
             const insideBox =
                 isInside && needsRect
-                    ? {
-                          x: rectX + labelSpacing + labelPad.left,
-                          y: rectY + labelSpacing + labelPad.top,
-                          width: rectWidth - 2 * labelSpacing - labelPad.left - labelPad.right,
-                          height: rectHeight - 2 * labelSpacing - labelPad.top - labelPad.bottom,
-                      }
+                    ? insetBox({ x: rectX, y: rectY, width: rectWidth, height: rectHeight }, ctx.labelSpacing)
                     : undefined;
             // The first orientation is baked into `rotation`; an array resolves against the bar rect for
             // inside placements only (outside labels fall back to the plot bounds via no region).

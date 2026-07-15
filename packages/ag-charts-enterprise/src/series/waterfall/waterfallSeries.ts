@@ -48,6 +48,7 @@ type NormalisedWaterfallSeriesStyle = Normalised<AgWaterfallSeriesStyle, never, 
 
 const {
     adjustLabelPlacement,
+    resolvePlacementLabelPadding,
     fitLabelToContainer,
     SeriesNodePickMode,
     fixNumericExtent,
@@ -703,21 +704,24 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             // Array placement is accepted, but only its first candidate is honoured here.
             const placement = toArray(label.placement)[0];
             const insidePlacement = placement == null || placement.startsWith('inside');
-            const labelPadding = label.padding ?? (insidePlacement ? label.insideStyle : label.outsideStyle).padding;
-            const spacing: number = label.spacing + (typeof labelPadding === 'number' ? labelPadding : 0);
+            const placementStyle = insidePlacement ? label.insideStyle : label.outsideStyle;
+            const boxPadding = resolvePlacementLabelPadding(label, placementStyle);
+            const insetSpacing: number =
+                label.spacing + Math.max(boxPadding.top, boxPadding.right, boxPadding.bottom, boxPadding.left);
             const resolvesOrientation = barLabelResolvesOrientation(label.orientation);
             const labelPlacement = adjustLabelPlacement({
                 isUpward: (value ?? -1) >= 0 !== valueAxisReversed,
                 isVertical: !barAlongX,
                 placement,
-                spacing,
+                spacing: label.spacing,
+                boxPadding,
                 rect: { x: rectX, y: rectY, width: rectWidth, height: rectHeight },
             });
             // Inside labels fit within the bar rect; outside labels sit beside it. The rect is only
             // needed to bound the fit or to resolve orientation, so skip it otherwise.
             const container =
                 insidePlacement && (labelFit != null || resolvesOrientation)
-                    ? insetBox({ x: rectX, y: rectY, width: rectWidth, height: rectHeight }, spacing)
+                    ? insetBox({ x: rectX, y: rectY, width: rectWidth, height: rectHeight }, insetSpacing)
                     : undefined;
 
             mutableNode.label.text = fitLabelToContainer(labelText, labelFit, label, container);
