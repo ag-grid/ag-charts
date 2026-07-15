@@ -13,9 +13,9 @@ import { fitLabelText, isArray, measureTextSegments } from 'ag-charts-core';
 
 import { PointerEvents } from '../../../scene/node';
 import type { Text } from '../../../scene/shape/text';
-import type { Label } from '../../label';
-import { expandLabelPadding } from '../../label';
-import { getLabelStyles } from '../../labelUtil';
+import type { PlacedSeriesLabel } from '../../label';
+import { expandLabelPadding, resolvePlacementLabelStyle } from '../../label';
+import { getLabelStyles, pickPlacementStyle } from '../../labelUtil';
 import type { SeriesNodeDatum } from '../seriesTypes';
 import { CartesianSeries } from './cartesianSeries';
 import type { CartesianSeriesTypes, DatumOf, LabelOf, LabelSelectionOf } from './cartesianSeriesTypes';
@@ -37,6 +37,8 @@ export interface PlacedLabelContext {
     readonly labelFit: LabelFit | undefined;
     /** Marker-shape rectangle offset for `inside` labels; set only when fitting inside the marker. */
     readonly labelInsideOffset: Point | undefined;
+    /** Marker anchor, so a label placed on an anchored/off-centre shape (e.g. pin) tracks its drawn centre. */
+    readonly labelAnchor: Point | undefined;
 }
 
 /**
@@ -64,11 +66,18 @@ export abstract class PlacedLabelCartesianSeries<
 
     /** Returns a copy of `datum` with the placed `(x, y)` written onto its label anchor. */
     protected abstract writeLabelPoint(datum: LabelOf<TTypes>, x: number, y: number): LabelOf<TTypes>;
+
+    /** Writes the placed `(x, y)` and the engine's resolved placement onto a copy of the datum. */
+    private placedLabelDatum(placed: PlacedLabel<LabelOf<TTypes>>): LabelOf<TTypes> {
+        const datum = this.writeLabelPoint(placed.datum, placed.x, placed.y);
+        (datum as MutablePlacedLabelFields).placement = placed.placement ?? datum.placement;
+        return datum;
+    }
     /** Reads the label anchor point from a datum. */
     protected abstract readLabelPoint(datum: LabelOf<TTypes>): Point;
     protected abstract makeLabelFormatterParams(): TTypes['labelParams'];
     /** The series' typed label property; bridges `properties.label` to the shared base generic. */
-    protected abstract get labelProperty(): Label<TTypes['labelParams']>;
+    protected abstract get labelProperty(): PlacedSeriesLabel<TTypes['labelParams']>;
 
     protected measureLabel(ctx: PlacedLabelContext, labelText: NormalisedTextOrSegments | undefined): MeasuredLabel {
         if (labelText == null) {
@@ -97,14 +106,14 @@ export abstract class PlacedLabelCartesianSeries<
         // updates match placement (and don't resurface labels the collision pass dropped).
         const items = this.placedLabelData
             .filter((label) => label.datum.datumIndex === highlightedItem.datumIndex)
-            .map((label) => this.writeLabelPoint(label.datum, label.x, label.y));
+            .map((label) => this.placedLabelDatum(label));
         return items.length === 0 ? undefined : items;
     }
 
     override updatePlacedLabelData(labelData: PlacedLabel<LabelOf<TTypes>>[]) {
         this.placedLabelData = labelData;
         this.labelSelection.update(
-            labelData.map((label) => this.writeLabelPoint(label.datum, label.x, label.y)),
+            labelData.map((label) => this.placedLabelDatum(label)),
             setLabelPointerEvents
         );
         this.updateLabelNodes({ labelSelection: this.labelSelection });
@@ -141,13 +150,23 @@ export abstract class PlacedLabelCartesianSeries<
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const params = this.makeLabelFormatterParams();
         const label = this.labelProperty;
-        const labelPadding = expandLabelPadding(label);
 
         opts.labelSelection.each((text, datum) => {
-            const style = getLabelStyles(this, datum, params, label, isHighlight, activeHighlight);
+            const placementStyle = pickPlacementStyle(label, datum.placement === 'inside' ? 'inside' : 'outside');
+            const style = getLabelStyles(
+                this,
+                datum,
+                params,
+                label,
+                isHighlight,
+                activeHighlight,
+                undefined,
+                placementStyle
+            );
             const { enabled, fontStyle, fontWeight, fontSize, fontFamily, color } = style;
             if (enabled && datum?.labelText) {
                 const point = this.readLabelPoint(datum);
+                const labelPadding = expandLabelPadding(resolvePlacementLabelStyle(label, placementStyle));
                 text.fontStyle = fontStyle;
                 text.fontWeight = fontWeight;
                 text.fontSize = fontSize;

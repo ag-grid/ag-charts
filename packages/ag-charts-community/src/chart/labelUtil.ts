@@ -16,6 +16,7 @@ import type {
     CssColor,
     HighlightState,
     NormalisedCallbackParams,
+    PaddingOptions,
     PixelSize,
     SelectionState,
 } from 'ag-charts-types';
@@ -24,7 +25,7 @@ import type { HighlightNodeDatum } from '../core/eventsHub';
 import type { ChartRegistry } from '../module/moduleContext';
 import type { Text } from '../scene/shape/text';
 import { isRotatable } from '../scene/transformable';
-import type { Label } from './label';
+import { type Label, type LabelPlacementStyle, resolvePlacementLabelStyle } from './label';
 import { markerLabelRect } from './marker/markerLabelRect';
 import { getItemId } from './series/pickManager';
 import type { DatumIndex, SeriesNodeDatum } from './series/seriesTypes';
@@ -55,10 +56,15 @@ type Bounds = {
 
 export type BarLabelPlacement = 'inside-center' | 'inside-start' | 'inside-end' | 'outside-start' | 'outside-end';
 
+/** A label's resolved inside/outside placement, selecting which placement-style overrides apply. */
+export type ResolvedLabelPlacement = 'inside' | 'outside';
+
 type LabelDatum = Point & {
     text: NormalisedTextOrSegments;
     textAlign: CanvasTextAlign;
     textBaseline: CanvasTextBaseline;
+    /** Resolved inside/outside placement, used to pick `insideStyle`/`outsideStyle`; unset applies neither. */
+    placement?: ResolvedLabelPlacement;
     /** Rotation in radians applied to the label node; `undefined`/`0` renders upright. */
     rotation?: number;
     /** Translation (px) sliding a region-bound label flush inside its region; `undefined`/`0` leaves it anchored. */
@@ -117,6 +123,15 @@ export function insideMarkerOffset(shape: AgMarkerShape | undefined): Point {
     return { x: cx, y: cy };
 }
 
+/** Selects the style overrides for a label's resolved placement; `undefined` when neither applies. */
+export function pickPlacementStyle(
+    styles: { insideStyle: LabelPlacementStyle; outsideStyle: LabelPlacementStyle } | undefined,
+    placement: ResolvedLabelPlacement | undefined
+): LabelPlacementStyle | undefined {
+    if (styles == null || placement == null) return undefined;
+    return placement === 'inside' ? styles.insideStyle : styles.outsideStyle;
+}
+
 export function getLabelStyles<TParams>(
     series: SeriesLike,
     nodeDatum: SeriesNodeDatum | undefined,
@@ -124,8 +139,10 @@ export function getLabelStyles<TParams>(
     label: Label<TParams>,
     isHighlight: boolean,
     activeHighlight: HighlightNodeDatum | undefined,
-    labelPath: string[] = ['series', `${series.declarationOrder}`, 'label']
+    labelPath: string[] = ['series', `${series.declarationOrder}`, 'label'],
+    placementStyle?: LabelPlacementStyle
 ): NormalisedChartLabelStyleOptions & { fontSize: number } {
+    const resolvedLabel = resolvePlacementLabelStyle(label, placementStyle);
     if (series.visible && label.itemStyler) {
         const highlightState = series.getHighlightStateString(
             activeHighlight,
@@ -144,21 +161,21 @@ export function getLabelStyles<TParams>(
             AgChartLabelStylerParams<unknown, unknown>,
             { color?: CssColor; fontSize: number; fill?: NormalisedColorType }
         > = {
-            border: label.border,
-            color: label.color,
-            cornerRadius: label.cornerRadius,
+            border: resolvedLabel.border,
+            color: resolvedLabel.color,
+            cornerRadius: resolvedLabel.cornerRadius,
             datum: nodeDatum?.datum,
             enabled: label.enabled,
-            fill: label.fill,
-            fillOpacity: label.fillOpacity,
-            fontFamily: label.fontFamily,
-            fontSize: label.fontSize,
-            fontStyle: label.fontStyle,
-            fontWeight: label.fontWeight,
+            fill: resolvedLabel.fill,
+            fillOpacity: resolvedLabel.fillOpacity,
+            fontFamily: resolvedLabel.fontFamily,
+            fontSize: resolvedLabel.fontSize,
+            fontStyle: resolvedLabel.fontStyle,
+            fontWeight: resolvedLabel.fontWeight,
             itemId,
             itemType: nodeDatum?.itemType,
             seriesId: series.id,
-            padding: label.padding,
+            padding: resolvedLabel.padding,
             highlightState,
             selectionState: series.getSelectionStateString(nodeDatum?.datumIndex),
             candidateState: series.getCandidateStateString(nodeDatum?.datumIndex),
@@ -173,7 +190,7 @@ export function getLabelStyles<TParams>(
         return mergeDefaults(stylerResult, styleParams);
     }
 
-    return label;
+    return resolvedLabel;
 }
 
 // Enforce that D must not be `any`
@@ -184,7 +201,8 @@ export function updateLabelNode<TParams, D extends LabelDatum>(
     label: IsAny<D> extends false ? Label<TParams, unknown> : never,
     labelDatum: D | undefined,
     highlight: { isHighlight: boolean; activeHighlight: HighlightNodeDatum | undefined },
-    labelPath?: string[]
+    labelPath?: string[],
+    placementStyle?: LabelPlacementStyle
 ): void;
 
 export function updateLabelNode<TParams>(
@@ -194,11 +212,21 @@ export function updateLabelNode<TParams>(
     label: Label<TParams, unknown>,
     labelDatum: LabelDatum | undefined,
     highlight: { isHighlight: boolean; activeHighlight: HighlightNodeDatum | undefined },
-    labelPath?: string[]
+    labelPath?: string[],
+    placementStyle?: LabelPlacementStyle
 ) {
     const { isHighlight, activeHighlight } = highlight;
     if (series.visible && label.enabled && labelDatum) {
-        const style = getLabelStyles(series, textNode.datum, params, label, isHighlight, activeHighlight, labelPath);
+        const style = getLabelStyles(
+            series,
+            textNode.datum,
+            params,
+            label,
+            isHighlight,
+            activeHighlight,
+            labelPath,
+            placementStyle
+        );
         textNode.visible = true;
         // Offset slides a rotated bar label flush inside its bar rect; the pivot below is re-derived
         // from the shifted position, so the rotated glyph box moves with it. `0` for every other label.
@@ -242,12 +270,14 @@ export function adjustLabelPlacement({
     isVertical,
     placement,
     spacing = 0,
+    boxPadding,
     rect,
 }: {
     placement: BarLabelPlacement;
     isUpward: boolean;
     isVertical: boolean;
     spacing?: PixelSize;
+    boxPadding?: Required<PaddingOptions>;
     rect: Bounds;
 }): Omit<LabelDatum, 'text'> {
     let x = rect.x + rect.width / 2;
@@ -263,13 +293,17 @@ export function adjustLabelPlacement({
         if (isVertical) {
             const y0 = isUpward ? rect.y + rect.height : rect.y;
             const height = rect.height * barDirection;
-            y = y0 + height * displacementRatio + spacing * textAlignment * barDirection;
-            textBaseline = textAlignment === barDirection ? 'top' : 'bottom';
+            const facing = textAlignment === barDirection ? 'top' : 'bottom';
+            const inset = boxPadding?.[facing] ?? 0;
+            y = y0 + height * displacementRatio + (spacing + inset) * textAlignment * barDirection;
+            textBaseline = facing;
         } else {
             const x0 = isUpward ? rect.x : rect.x + rect.width;
             const width = rect.width * barDirection;
-            x = x0 + width * displacementRatio + spacing * textAlignment * barDirection;
-            textAlign = textAlignment === barDirection ? 'left' : 'right';
+            const facing = textAlignment === barDirection ? 'left' : 'right';
+            const inset = boxPadding?.[facing] ?? 0;
+            x = x0 + width * displacementRatio + (spacing + inset) * textAlignment * barDirection;
+            textAlign = facing;
         }
     }
 

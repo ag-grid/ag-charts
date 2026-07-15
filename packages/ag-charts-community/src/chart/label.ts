@@ -5,6 +5,7 @@ import {
     Property,
     type RequireOptional,
     isArray,
+    mergeDefaults,
 } from 'ag-charts-core';
 import type {
     AgChartLabelCollideWithCategoryOptions,
@@ -14,6 +15,7 @@ import type {
     AgChartLabelFormatterParams,
     AgChartLabelOptions,
     AgChartLabelOrientation,
+    AgChartLabelPlacementStyleOptions,
     AgChartLabelStyleOptions,
     AgChartLabelStylerParams,
     ContextDefault,
@@ -39,6 +41,18 @@ export class LabelBorder {
     @Property
     enabled: boolean = true;
 
+    @Property
+    stroke?: string;
+
+    @Property
+    strokeWidth?: number;
+
+    @Property
+    strokeOpacity?: number;
+}
+
+/** Placement-reactive border stroke. `enabled` is governed by the top-level `label.border`. */
+export class LabelPlacementBorder {
     @Property
     stroke?: string;
 
@@ -128,6 +142,27 @@ export class LabelStyle extends BaseProperties implements AgChartLabelStyleOptio
     padding?: Padding;
 }
 
+/** Style overrides applied to a label for one resolved placement (inside or outside). */
+export class LabelPlacementStyle extends BaseProperties implements AgChartLabelPlacementStyleOptions {
+    @Property
+    color?: string;
+
+    @Property
+    fill?: string;
+
+    @Property
+    fillOpacity?: number;
+
+    @Property
+    cornerRadius?: number;
+
+    @Property
+    padding?: Padding;
+
+    @Property
+    border = new LabelPlacementBorder();
+}
+
 export class Label<TParams = never, TDatum = any>
     extends LabelStyle
     implements AgChartLabelOptions<TDatum, RequireOptional<TParams>>
@@ -198,13 +233,24 @@ export class Label<TParams = never, TDatum = any>
 export class PlacedSeriesLabel<TParams = never, TDatum = any> extends Label<TParams, TDatum> {
     @Property
     placement?: AgChartLabelCollisionPlacement | AgChartLabelCollisionPlacement[];
+
+    @Property
+    insideStyle = new LabelPlacementStyle();
+
+    @Property
+    outsideStyle = new LabelPlacementStyle();
 }
 
 type LabelBoxingMixin = { border?: { enabled?: boolean; stroke?: string }; fill?: unknown; padding?: Padding };
-export function expandLabelPadding(label: LabelBoxingMixin | undefined): Required<PaddingOptions> {
+
+/** Whether the label draws a background box: it has a fill, or an enabled border with a stroke. */
+export function labelHasBox(label: LabelBoxingMixin | undefined): boolean {
     const { enabled: borderEnabled = false, stroke: borderStroke } = label?.border ?? {};
-    const hasBoxing = label?.fill != null || (borderEnabled && borderStroke != null);
-    const padding = hasBoxing ? label?.padding : null;
+    return label?.fill != null || (borderEnabled && borderStroke != null);
+}
+
+export function expandLabelPadding(label: LabelBoxingMixin | undefined): Required<PaddingOptions> {
+    const padding = labelHasBox(label) ? label?.padding : null;
 
     if (padding == null) {
         return { bottom: 0, left: 0, right: 0, top: 0 };
@@ -214,4 +260,44 @@ export function expandLabelPadding(label: LabelBoxingMixin | undefined): Require
         const { bottom = 0, left = 0, right = 0, top = 0 } = padding satisfies PaddingOptions;
         return { bottom, left, right, top };
     }
+}
+
+/**
+ * Overlays a placement style beneath the top-level label so an explicit `label.<prop>` wins and any
+ * unset property falls back to the placement value. `border` is merged field-wise because it is a
+ * class instance `mergeDefaults` would otherwise copy by reference; the top-level `border.enabled`
+ * governs whether the border shows, while the stroke geometry falls through to the placement.
+ */
+export function resolvePlacementLabelStyle<TParams>(
+    label: Label<TParams>,
+    placementStyle: LabelPlacementStyle | undefined
+): Label<TParams> {
+    if (placementStyle == null) return label;
+    const resolved = mergeDefaults(label, placementStyle);
+    resolved.border = mergeDefaults(label.border, placementStyle.border);
+    return resolved;
+}
+
+/** Reserves the larger of the two placements' box padding, as placement is not resolved until layout. */
+export function expandPlacementLabelPadding<TParams>(label: PlacedSeriesLabel<TParams, any>): Required<PaddingOptions> {
+    const inside = expandLabelPadding(resolvePlacementLabelStyle(label, label.insideStyle));
+    const outside = expandLabelPadding(resolvePlacementLabelStyle(label, label.outsideStyle));
+    return {
+        bottom: Math.max(inside.bottom, outside.bottom),
+        left: Math.max(inside.left, outside.left),
+        right: Math.max(inside.right, outside.right),
+        top: Math.max(inside.top, outside.top),
+    };
+}
+
+/**
+ * Resolved per-side box padding folded into a placement label's anchor offset. All-zero for a boxless
+ * label, so its gap from the shape comes solely from `spacing`; the caller adds the side facing the
+ * shape (known per datum) to keep the box edge — not the text — at `spacing`.
+ */
+export function resolvePlacementLabelPadding<TParams>(
+    label: Label<TParams>,
+    placementStyle: LabelPlacementStyle | undefined
+): Required<PaddingOptions> {
+    return expandLabelPadding(resolvePlacementLabelStyle(label, placementStyle));
 }

@@ -14,7 +14,7 @@ on:
                 default: false
                 required: true
     schedule:
-        - cron: '0 0 * * *' # Run daily at midnight UTC
+        - cron: '0 0 * * 0' # Weekly at 00:00 on Sunday
 
 permissions:
     contents: read
@@ -175,14 +175,14 @@ jobs:
                   script: |
                       const fs = require('fs');
                       const path = require('path');
-                      // read all json files nested under ${{ env.OUTPUT_DIR }}/**/${{ env.REPORT_FILE }} 
+                      // read all json files nested under ${{ env.OUTPUT_DIR }}/**/${{ env.REPORT_FILE }}
                       const files = fs.readdirSync('${{ env.OUTPUT_DIR }}', { withFileTypes: true })
                         .flatMap(dir => {
                           if (dir.isDirectory()) {
                             return fs.readdirSync(path.join('${{ env.OUTPUT_DIR }}', dir.name))
                               .filter(file => file === '${{ env.REPORT_FILE }}')
                               .map(file => path.join('${{ env.OUTPUT_DIR }}', dir.name, file));
-                          } 
+                          }
                           if (dir.isFile() && dir.name === '${{ env.REPORT_FILE }}') {
                             return [path.join('${{ env.OUTPUT_DIR }}', dir.name)];
                           }

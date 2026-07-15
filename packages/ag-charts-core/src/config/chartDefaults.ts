@@ -6,6 +6,7 @@ import {
     type AgChartCaptionOptions,
     type AgChartLabelFitOptions,
     type AgChartLabelOptions,
+    type AgChartLabelPlacementStyleOptions,
     type AgChartLabelStyleOptions,
     type AgChartLegendPlacement,
     type AgChartLegendPositionOptions,
@@ -755,16 +756,19 @@ const labelCollisionPlacementValidator = union(
     'bottom-left',
     'bottom-right'
 );
-const labelOrientationValidator = union('parallel', 'perpendicular', 'perpendicular-reversed');
+const labelOrientationValidator = union('horizontal', 'vertical', 'vertical-reversed');
 
 /** Directional label placement accepting a single value or an ordered fallback list. */
 export const labelCollisionPlacementDef = or(
     labelCollisionPlacementValidator,
-    arrayOf(labelCollisionPlacementValidator)
+    arrayOf(labelCollisionPlacementValidator, 'an array containing these keywords')
 );
 
 /** Label orientation accepting a single value or an ordered fallback list. */
-export const labelOrientationDef = or(labelOrientationValidator, arrayOf(labelOrientationValidator));
+export const labelOrientationDef = or(
+    labelOrientationValidator,
+    arrayOf(labelOrientationValidator, 'an array containing these keywords')
+);
 
 export const collisionAvoidanceOptionsDef = {
     enabled: boolean,
@@ -798,10 +802,26 @@ export const labelFitOptionsDefs: OptionsDefs<AgChartLabelFitOptions> = {
     truncate: boolean,
 };
 
+/** Style overrides applied to a label for its resolved inside/outside placement. */
+export const labelPlacementStyleOptionsDef: OptionsDefs<AgChartLabelPlacementStyleOptions> = {
+    color: colorOrRef,
+    cornerRadius: number,
+    padding,
+    border: strokeOptionsDef,
+    ...fillOptionsDef,
+};
+
+/** `insideStyle`/`outsideStyle` placement-reactive overrides shared by inside/outside-placement labels. */
+export const labelPlacementStyleDefs = {
+    insideStyle: labelPlacementStyleOptionsDef,
+    outsideStyle: labelPlacementStyleOptionsDef,
+};
+
 /** Label defs for point-like series (line, area) that expose a directional placement. */
 export const placedSeriesLabelOptionsDefs: OptionsDefs<AgLineSeriesLabelOptions<any, any>> = {
     ...seriesLabelOptionsDefs,
     ...labelFitOptionsDefs,
+    ...labelPlacementStyleDefs,
     placement: labelCollisionPlacementDef,
 };
 

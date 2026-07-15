@@ -37,6 +37,7 @@ import { InteractionManager } from './interaction/interactionManager';
 import type { SyncManager } from './interaction/syncManager';
 import { TooltipManager } from './interaction/tooltipManager';
 import { WidgetSet } from './interaction/widgetSet';
+import { ZoomManager } from './interaction/zoomManager';
 import { LabelManager } from './layout/labelManager';
 import { LayoutManager } from './layout/layoutManager';
 import { OptionsGraphService } from './optionsGraphService';
@@ -131,7 +132,8 @@ export function createChartContext(chart: ChartHost, vars: ChartContextVars): Dy
         .service('proxyInteractionService', (c) => new ProxyInteractionService(c))
         .service('fontManager', (c) => new FontManager(c))
         .service('tooltipManager', (c) => new TooltipManager(c.eventsHub, c.localeManager, c.domManager, chart.tooltip))
-        .service('dataService', (c) => new DataService<any>(c.eventsHub, chart, c.animationManager));
+        .service('dataService', (c) => new DataService<any>(c.eventsHub, chart, c.animationManager))
+        .service('zoomManager', (c) => new ZoomManager(c));
 
     // Plugin modules register their own services (e.g. sharedToolbar) after the
     // core registry is complete but before any consumer reads from the context.

@@ -29,7 +29,8 @@ export interface RangeAreaMarkerDatum extends Omit<_ModuleSupport.CartesianSerie
     style?: AgSeriesMarkerStyle;
 }
 
-const { CartesianSeriesProperties, SeriesMarker, makeSeriesTooltip, DropShadow, Label } = _ModuleSupport;
+const { CartesianSeriesProperties, SeriesMarker, makeSeriesTooltip, DropShadow, Label, LabelPlacementStyle } =
+    _ModuleSupport;
 
 type RangeAreaSeriesItemOptions = NonNullable<AgRangeAreaSeriesOptions['item']>;
 type RangeAreaSeriesLineOptions = NonNullable<RangeAreaSeriesItemOptions[AgRangeAreaSeriesItemType]>;
@@ -45,6 +46,12 @@ class RangeAreaSeriesLabel extends Label<AgRangeAreaSeriesLabelFormatterParams> 
 
     @Property
     spacing: PixelSize = 0;
+
+    @Property
+    insideStyle = new LabelPlacementStyle();
+
+    @Property
+    outsideStyle = new LabelPlacementStyle();
 }
 
 class RangeAreaInvertedStyle {

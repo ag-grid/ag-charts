@@ -4,6 +4,7 @@ import path from 'path';
 
 import { getGeneratedContents } from './generator/examplesGenerator';
 import { FRAMEWORKS } from './generator/types';
+import { createFormatCache } from './generator/utils/formatCache';
 
 export type ExecutorOptions = {
     mode: 'dev' | 'prod';
@@ -27,6 +28,11 @@ export default async function (options: ExecutorOptions) {
 export async function generateFiles(options: ExecutorOptions) {
     const failures: Map<string, [Error, string]> = new Map();
 
+    // Shared for this example only: the same data/topology sources are formatted identically
+    // across every dark-mode x framework variant, so memoise to format each once, not once per
+    // variant. Scoped to this call and discarded when the example finishes.
+    const formatCache = createFormatCache();
+
     for (const ignoreDarkMode of [false, true]) {
         const darkModePath = ignoreDarkMode ? 'plain' : 'dark-mode';
 
@@ -41,6 +47,7 @@ export async function generateFiles(options: ExecutorOptions) {
                     internalFramework,
                     ignoreDarkMode,
                     isDev: options.mode === 'dev',
+                    formatCache,
                 });
                 if (!failures.has(internalFramework)) {
                     await deleteFile(errorsPath);

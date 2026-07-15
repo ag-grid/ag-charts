@@ -4,15 +4,14 @@ import {
     FILL_GRADIENT_LINEAR_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
-    LABEL_BOXING_DEFAULTS,
+    LABEL_BOXING_TOP_LEVEL_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
+    PLACEMENT_LABEL_BOXING_DEFAULTS,
     SEGMENTATION_DEFAULTS,
     SERIES_SELECTION_THEME,
 } from 'ag-charts-core';
 
-export const RANGE_BAR_SERIES_THEME: WithThemeParams<
-    AgChartThemeOverrides['range-bar'] & { series: { label: { padding: number } } }
-> = {
+export const RANGE_BAR_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['range-bar']> = {
     series: {
         direction: 'vertical' as const,
         fill: {
@@ -27,14 +26,23 @@ export const RANGE_BAR_SERIES_THEME: WithThemeParams<
         stroke: { $palette: 'stroke' },
         strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
         label: {
-            ...LABEL_BOXING_DEFAULTS,
+            ...LABEL_BOXING_TOP_LEVEL_DEFAULTS,
             enabled: false,
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },
             fontWeight: { $ref: 'fontWeight' },
-            color: { $ref: 'chartBackgroundColor' },
+            spacing: 6,
+            insideStyle: {
+                color: { $ref: 'chartBackgroundColor' },
+                padding: 6,
+                ...PLACEMENT_LABEL_BOXING_DEFAULTS,
+            },
+            outsideStyle: {
+                color: { $ref: 'chartBackgroundColor' },
+                padding: 6,
+                ...PLACEMENT_LABEL_BOXING_DEFAULTS,
+            },
             placement: 'inside',
-            padding: { $isUserOption: ['./spacing', 0, 6] }, // compatibility with old `padding` property (now named `spacing`).
         },
         highlight: MULTI_SERIES_HIGHLIGHT_STYLE,
         selection: SERIES_SELECTION_THEME,

@@ -57,6 +57,8 @@ const {
     checkCrisp,
     fitLabelToContainer,
     updateLabelNode,
+    pickPlacementStyle,
+    resolvePlacementLabelPadding,
     SMALLEST_KEY_INTERVAL,
     LARGEST_KEY_INTERVAL,
     diff,
@@ -94,6 +96,8 @@ interface RangeBarNodeLabelDatum extends Readonly<Point> {
     /** Flush offset written by the placement engine to keep a rotated label inside its region. */
     offsetX?: number;
     offsetY?: number;
+    /** Resolved inside/outside placement, selecting the `insideStyle`/`outsideStyle` overrides. */
+    placement?: _ModuleSupport.ResolvedLabelPlacement;
     datum: any;
     itemType: 'high' | 'low';
     series: _ModuleSupport.CartesianSeriesNodeDatum['series'];
@@ -130,7 +134,11 @@ interface RangeBarSeriesNodeDatumContext extends _ModuleSupport.CartesianCreateN
     // Label configuration (checked before expensive label text computation)
     readonly labelEnabled: boolean;
     readonly labelPlacement: 'inside' | 'outside';
-    readonly labelPadding: number;
+    // Signed anchor offsets per role: yLow and yHigh face opposite edges, so each folds in its own facing padding.
+    readonly yLowPadding: number;
+    readonly yHighPadding: number;
+    // Unsigned margin for the inside-fit container (box-clear on any side).
+    readonly labelInsetPadding: number;
     // Orientation derived once (series-constant) to keep the per-datum label build allocation-free.
     readonly labelRotation: number;
     readonly labelResolvesOrientation: boolean;
@@ -456,6 +464,15 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
 
         // Array placement is accepted, but only its first candidate is honoured here.
         const labelPlacement = toArray(this.properties.label.placement)[0];
+        const labelProps = this.properties.label;
+        const placementStyle = labelPlacement === 'outside' ? labelProps.outsideStyle : labelProps.insideStyle;
+        const boxPadding = resolvePlacementLabelPadding(labelProps, placementStyle);
+        const isOutside = labelPlacement === 'outside';
+        const sign = isOutside ? 1 : -1;
+        // yLow and yHigh sit on opposite edges of the same axis, so one's outer side is the other's inner side.
+        const [lowOuter, lowInner] = barAlongX ? (['right', 'left'] as const) : (['top', 'bottom'] as const);
+        const yLowFacing = isOutside ? lowOuter : lowInner;
+        const yHighFacing = isOutside ? lowInner : lowOuter;
 
         return {
             xAxis,
@@ -481,10 +498,10 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             labelRotation: barLabelRotation(toArray(this.properties.label.orientation)[0]),
             labelResolvesOrientation: barLabelResolvesOrientation(this.properties.label.orientation),
             labelFit: resolveLabelFit(this.properties.label, this.properties.label.collisionAvoidance.avoid),
-            labelPadding:
-                (this.properties.label.spacing +
-                    (typeof this.properties.label.padding === 'number' ? this.properties.label.padding : 0)) *
-                (labelPlacement === 'outside' ? 1 : -1),
+            yLowPadding: (labelProps.spacing + boxPadding[yLowFacing]) * sign,
+            yHighPadding: (labelProps.spacing + boxPadding[yHighFacing]) * sign,
+            labelInsetPadding:
+                labelProps.spacing + Math.max(boxPadding.top, boxPadding.right, boxPadding.bottom, boxPadding.left),
             canIncrementallyUpdate,
             nodes: canIncrementallyUpdate ? this.contextNodeData.nodeData : [],
             nodeIndex: 0,
@@ -889,7 +906,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const { xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName, legendItemName, label } = this.properties;
         const barAlongX = ctx.barAlongX;
         const placement = ctx.labelPlacement;
-        const labelPadding = ctx.labelPadding;
+        const { yLowPadding, yHighPadding } = ctx;
         // The first orientation is baked into `rotation`; an array resolves against the bar rect for inside placement only.
         const rotation = ctx.labelRotation;
 
@@ -903,12 +920,12 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         // bound the fit or to resolve orientation, so skip it otherwise.
         const container =
             placement === 'inside' && (ctx.labelFit != null || ctx.labelResolvesOrientation)
-                ? insetBox({ x: rectX, y: rectY, width: rectWidth, height: rectHeight }, Math.abs(labelPadding))
+                ? insetBox({ x: rectX, y: rectY, width: rectWidth, height: rectHeight }, ctx.labelInsetPadding)
                 : undefined;
         const region = ctx.labelResolvesOrientation ? container : undefined;
 
-        const yLowX = rectX + (barAlongX ? -labelPadding : rectWidth / 2);
-        const yLowY = rectY + (barAlongX ? rectHeight / 2 : rectHeight + labelPadding);
+        const yLowX = rectX + (barAlongX ? -yLowPadding : rectWidth / 2);
+        const yLowY = rectY + (barAlongX ? rectHeight / 2 : rectHeight + yLowPadding);
 
         let yLowTextAlign: CanvasTextAlign;
         if (placement === 'outside') {
@@ -924,8 +941,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             yLowTextBaseline = barAlongX ? 'middle' : 'bottom';
         }
 
-        const yHighX = rectX + (barAlongX ? rectWidth + labelPadding : rectWidth / 2);
-        const yHighY = rectY + (barAlongX ? rectHeight / 2 : -labelPadding);
+        const yHighX = rectX + (barAlongX ? rectWidth + yHighPadding : rectWidth / 2);
+        const yHighY = rectY + (barAlongX ? rectHeight / 2 : -yHighPadding);
 
         let yHighTextAlign: CanvasTextAlign;
         if (placement === 'outside') {
@@ -1041,6 +1058,9 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
 
         // Ensure labels array has exactly 2 items
         labels.length = 2;
+
+        labels[0].placement = placement;
+        labels[1].placement = placement;
     }
 
     protected override nodeFactory() {
@@ -1310,9 +1330,20 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             legendItemName: this.properties.legendItemName,
         };
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        const { label } = this.properties;
         opts.labelSelection.each((textNode, datum) => {
             textNode.fillOpacity = this.getHighlightStyle(isHighlight, datum?.datumIndex).opacity ?? 1;
-            updateLabelNode(this, textNode, params, this.properties.label, datum, { isHighlight, activeHighlight });
+            const placementStyle = pickPlacementStyle(label, datum.placement);
+            updateLabelNode(
+                this,
+                textNode,
+                params,
+                label,
+                datum,
+                { isHighlight, activeHighlight },
+                undefined,
+                placementStyle
+            );
         });
     }
 

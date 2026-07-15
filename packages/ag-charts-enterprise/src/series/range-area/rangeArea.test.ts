@@ -544,7 +544,7 @@ describe('RangeAreaSeries', () => {
 
     describe('AG-8290', () => {
         async function testCase(
-            labelOpts: { placement: AgRangeAreaSeriesLabelPlacement; padding?: number; spacing?: number },
+            labelOpts: { placement: AgRangeAreaSeriesLabelPlacement; spacing?: number },
             name: string
         ) {
             chart = AgCharts.create(
@@ -560,15 +560,7 @@ describe('RangeAreaSeries', () => {
             );
             await compare({ failureThreshold: 0, failureThresholdType: 'percent', customSnapshotIdentifier: name });
         }
-        describe('padding backward compatibility', () => {
-            test('inside', async () => {
-                await testCase({ placement: 'inside', padding: 30 }, 'AG-8290-range-area-label-spacing-inside');
-            });
-            test('outside', async () => {
-                await testCase({ placement: 'outside', padding: 30 }, 'AG-8290-range-area-label-spacing-outside');
-            });
-        });
-        describe('spacing backward compatibility', () => {
+        describe('spacing sets the gap between the bar and the label', () => {
             test('inside', async () => {
                 await testCase({ placement: 'inside', spacing: 30 }, 'AG-8290-range-area-label-spacing-inside');
             });

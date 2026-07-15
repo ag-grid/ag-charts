@@ -6,9 +6,12 @@ import type {
     SeriesCallbackParams,
     Styler,
 } from '../../chart/callbackOptions';
-import type { AgChartLabelOrientation } from '../../chart/collisionAvoidanceOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
-import type { AgChartLabelFitOptions, AgChartLabelOptions } from '../../chart/labelOptions';
+import type {
+    AgChartLabelFitOptions,
+    AgChartLabelOptions,
+    AgSeriesLabelPlacementStyleOptions,
+} from '../../chart/labelOptions';
 import type { AgCssColorOrRef } from '../../chart/themeParamsOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault, DatumKey, Opacity, PixelSize } from '../../chart/types';
@@ -72,7 +75,7 @@ export interface AgRangeAreaSeriesItemStylerParams<TDatum, TContext>
 }
 
 export interface AgRangeAreaSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault>
-    extends AgChartLabelOptions<TDatum, TParams, TContext>, AgChartLabelFitOptions {
+    extends AgChartLabelOptions<TDatum, TParams, TContext>, AgChartLabelFitOptions, AgSeriesLabelPlacementStyleOptions {
     /**
      * Where to render series labels relative to the area. Either a single placement or an ordered
      * fallback list tried in turn until one fits.
@@ -80,14 +83,6 @@ export interface AgRangeAreaSeriesLabelOptions<TDatum, TParams, TContext = Conte
     placement?: AgRangeAreaSeriesLabelPlacement | AgRangeAreaSeriesLabelPlacement[];
     /** Spacing in pixels between the label and the edge of the marker. */
     spacing?: PixelSize;
-    /**
-     * Orientation of the label within the range. `parallel` reads upright; the two `perpendicular`
-     * variants rotate it a quarter-turn in opposite directions. Either a single orientation or an
-     * ordered fallback list tried in turn until one fits.
-     *
-     * Default: `parallel`
-     */
-    orientation?: AgChartLabelOrientation | AgChartLabelOrientation[];
 }
 
 export type AgRangeAreaSeriesLabelPlacement = 'inside' | 'outside';

@@ -61,8 +61,8 @@ import type { ChartAxis } from '../../chartAxis';
 import type { DataController } from '../../data/dataController';
 import { DataModel, type ProcessedData, fixNumericExtent } from '../../data/dataModel';
 import { createDatumId, processedDataIsAnimatable, valueProperty } from '../../data/processors';
-import { expandLabelPadding } from '../../label';
-import { fitLabelToContainer, getLabelStyles } from '../../labelUtil';
+import { expandLabelPadding, expandPlacementLabelPadding, resolvePlacementLabelStyle } from '../../label';
+import { fitLabelToContainer, getLabelStyles, pickPlacementStyle } from '../../labelUtil';
 import {
     type CategoryLegendDatum,
     type ChartLegendType,
@@ -648,10 +648,10 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             labelInsideOffset: insideRect ? { x: insideRect.cx, y: insideRect.cy } : undefined,
             labelInsideRect: insideRect,
             labelTextDomain,
-            labelPadding: expandLabelPadding(label),
+            labelPadding: expandPlacementLabelPadding(label),
             labelTextMeasurer: cachedTextMeasurer(label),
-            // `inside` labels always fit to the marker, hiding (or truncating) text that overflows it.
-            labelFit: resolveLabelFit(label, label.collisionAvoidance.avoid || labelPlacement === 'inside'),
+            // `inside` labels always fit to the marker, truncating text that overflows it.
+            labelFit: resolveLabelFit(label, label.collisionAvoidance.avoid, labelPlacement === 'inside'),
             label,
 
             // Other state
@@ -1201,6 +1201,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         this.labelSelection.update(
             labelData.map((v) => ({
                 ...v.datum,
+                placement: v.placement ?? v.datum.placement,
                 point: {
                     x: v.x,
                     y: v.y,
@@ -1227,6 +1228,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
                       .filter((label) => label.datum.datumIndex === highlightItem.datumIndex)
                       .map((label) => ({
                           ...label.datum,
+                          placement: label.placement ?? label.datum.placement,
                           point: {
                               x: label.x,
                               y: label.y,
@@ -1255,11 +1257,25 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         const params: AgBubbleSeriesLabelFormatterParams = this.makeLabelFormatterParams();
 
         opts.labelSelection.each((text, datum) => {
-            const style = getLabelStyles(this, datum, params, this.properties.label, isHighlight, activeHighlight);
+            const placementStyle = pickPlacementStyle(
+                this.properties.label,
+                datum.placement === 'inside' ? 'inside' : 'outside'
+            );
+            const style = getLabelStyles(
+                this,
+                datum,
+                params,
+                this.properties.label,
+                isHighlight,
+                activeHighlight,
+                undefined,
+                placementStyle
+            );
+            const labelPadding = expandLabelPadding(resolvePlacementLabelStyle(this.properties.label, placementStyle));
             text.text = datum.label.text;
             text.fill = style.color;
-            text.x = datum.point?.x ?? 0;
-            text.y = datum.point?.y ?? 0;
+            text.x = (datum.point?.x ?? 0) + labelPadding.left;
+            text.y = (datum.point?.y ?? 0) + labelPadding.top;
             text.fontStyle = style.fontStyle;
             text.fontWeight = style.fontWeight;
             text.fontSize = style.fontSize;

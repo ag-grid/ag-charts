@@ -6,8 +6,9 @@ import {
     FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
-    LABEL_BOXING_DEFAULTS,
+    LABEL_BOXING_TOP_LEVEL_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
+    PLACEMENT_LABEL_BOXING_DEFAULTS,
     SERIES_SELECTION_THEME,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
@@ -79,12 +80,13 @@ const themeTemplate: ExtensibleTheme<'bubble'> = {
         fillOpacity: 0.8,
         maxRenderedItems: 2000,
         label: {
-            ...LABEL_BOXING_DEFAULTS,
+            ...LABEL_BOXING_TOP_LEVEL_DEFAULTS,
             enabled: false,
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },
             fontWeight: { $ref: 'fontWeight' },
-            color: { $ref: 'textColor' },
+            insideStyle: { color: { $ref: 'textColor' }, padding: 8, ...PLACEMENT_LABEL_BOXING_DEFAULTS },
+            outsideStyle: { color: { $ref: 'textColor' }, padding: 8, ...PLACEMENT_LABEL_BOXING_DEFAULTS },
             ...undocumentedThemeOptions({ collisionAvoidance: { enabled: true } }),
         },
         tooltip: {

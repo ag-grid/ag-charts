@@ -5,9 +5,10 @@ import {
     FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
-    LABEL_BOXING_DEFAULTS,
+    LABEL_BOXING_TOP_LEVEL_DEFAULTS,
     MARKER_SERIES_HIGHLIGHT_STYLE,
     type NonNullablePath,
+    PLACEMENT_LABEL_BOXING_DEFAULTS,
     SEGMENTATION_DEFAULTS,
     SERIES_SELECTION_THEME,
 } from 'ag-charts-core';
@@ -108,9 +109,7 @@ const RANGE_AREA_ITEM: WithThemeParams<RangeAreaItemOptions[keyof RangeAreaItemO
     },
 };
 
-export const RANGE_AREA_SERIES_THEME: WithThemeParams<
-    AgChartThemeOverrides['range-area'] & { series: { label: { padding: number } } }
-> = {
+export const RANGE_AREA_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['range-area']> = {
     series: {
         fill: {
             $applySwitch: [
@@ -145,14 +144,23 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<
             high: RANGE_AREA_ITEM,
         },
         label: {
-            ...LABEL_BOXING_DEFAULTS,
+            ...LABEL_BOXING_TOP_LEVEL_DEFAULTS,
             enabled: false,
             placement: 'outside',
-            padding: { $isUserOption: ['./spacing', 0, 10] }, // compatibility with old `padding` property (now named `spacing`).
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },
             fontWeight: { $ref: 'fontWeight' },
-            color: { $ref: 'textColor' },
+            spacing: 10,
+            insideStyle: {
+                color: { $ref: 'textColor' },
+                padding: 10,
+                ...PLACEMENT_LABEL_BOXING_DEFAULTS,
+            },
+            outsideStyle: {
+                color: { $ref: 'textColor' },
+                padding: 10,
+                ...PLACEMENT_LABEL_BOXING_DEFAULTS,
+            },
         },
         interpolation: {
             type: 'linear',

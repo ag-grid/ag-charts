@@ -18,6 +18,7 @@ import {
     labelCollisionPlacementDef,
     labelFitOptionsDefs,
     labelOrientationDef,
+    labelPlacementStyleDefs,
     lessThanOrEqual,
     lineDashOptionsDef,
     lineHighlightOptionsDef,
@@ -547,8 +548,8 @@ export const rangeAreaSeriesThemeableOptionsDef: OptionsDefs<AgRangeAreaSeriesTh
     label: {
         ...seriesLabelOptionsDefs,
         ...labelFitOptionsDefs,
+        ...labelPlacementStyleDefs,
         placement: rangeInsideOutsidePlacementDef,
-        orientation: labelOrientationDef,
         spacing: positiveNumber,
     },
     tooltip: tooltipOptionsDefs,
@@ -592,6 +593,7 @@ export const rangeBarSeriesThemeableOptionsDef: OptionsDefs<AgRangeBarSeriesThem
     label: {
         ...seriesLabelOptionsDefs,
         ...labelFitOptionsDefs,
+        ...labelPlacementStyleDefs,
         placement: rangeInsideOutsidePlacementDef,
         orientation: labelOrientationDef,
         spacing: positiveNumber,
@@ -741,6 +743,7 @@ const waterfallSeriesItemOptionsDef: OptionsDefs<AgWaterfallSeriesItemOptions<an
     label: {
         ...seriesLabelOptionsDefs,
         ...labelFitOptionsDefs,
+        ...labelPlacementStyleDefs,
         placement: waterfallPlacementDef,
         orientation: labelOrientationDef,
         spacing: positiveNumber,

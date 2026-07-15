@@ -1,9 +1,8 @@
-import prettier from 'prettier';
-
 import { SOURCE_ENTRY_FILE_NAME } from '../constants';
 import { readAsJsFile } from '../transformation-scripts/parser-utils';
 import type { FileContents, TransformTsFileExt } from '../types';
 import { getFileList, isEmptyOrWhitespaceOnly } from './fileUtils';
+import { type FormatCache, formatSource } from './formatCache';
 
 const getOtherTsGeneratedFiles = async ({
     folderPath,
@@ -63,11 +62,13 @@ export const getOtherScriptFiles = async ({
     sourceFileList,
     transformTsFileExt,
     isDev,
+    formatCache,
 }: {
     folderPath: string;
     sourceFileList: string[];
     transformTsFileExt?: TransformTsFileExt;
     isDev: boolean;
+    formatCache?: FormatCache;
 }) => {
     const otherTsGeneratedFileContents = await getOtherTsGeneratedFiles({
         folderPath,
@@ -91,7 +92,7 @@ export const getOtherScriptFiles = async ({
             continue;
         }
 
-        contents[filename] = await prettier.format(content, {
+        contents[filename] = await formatSource(formatCache, content, {
             parser: 'typescript',
             embeddedLanguageFormatting: 'off',
         });
@@ -108,7 +109,7 @@ export const getOtherScriptFiles = async ({
             continue;
         }
 
-        contents[filename] = await prettier.format(content, {
+        contents[filename] = await formatSource(formatCache, content, {
             parser: 'typescript',
             embeddedLanguageFormatting: 'off',
         });

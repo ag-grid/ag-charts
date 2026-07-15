@@ -63,7 +63,7 @@ import {
     processedDataIsAnimatable,
     valueProperty,
 } from '../../data/processors';
-import { expandLabelPadding } from '../../label';
+import { expandPlacementLabelPadding } from '../../label';
 import { boundLabelFit, insideMarkerContainer, insideMarkerOffset } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
@@ -1000,9 +1000,10 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         const insideOnly = placements.length > 0 && placements.every((placement) => placement === 'inside');
         const markerSize = marker.enabled ? marker.size : 0;
         const labelFit = insideOnly
-            ? boundLabelFit(resolveLabelFit(label, true), insideMarkerContainer(markerSize, marker.shape))
+            ? boundLabelFit(resolveLabelFit(label, false, true), insideMarkerContainer(markerSize, marker.shape))
             : resolveLabelFit(label, label.collisionAvoidance.avoid);
         const labelInsideOffset = insideOnly ? insideMarkerOffset(marker.shape) : undefined;
+        const labelAnchor = Marker.anchor(marker.shape);
 
         return {
             // Axes (from template method parameters)
@@ -1034,7 +1035,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
             // Pre-computed flags
             isContinuousY,
             labelsEnabled: label.enabled,
-            labelPadding: expandLabelPadding(label),
+            labelPadding: expandPlacementLabelPadding(label),
             labelTextMeasurer: cachedTextMeasurer(label),
             labelAvoid: label.collisionAvoidance.avoid,
             labelPlacements: toArray(label.placement),
@@ -1042,6 +1043,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
             labelCollideWith: label.collisionAvoidance.resolveCollideWith(),
             labelFit,
             labelInsideOffset,
+            labelAnchor,
             normalizedTo,
             canIncrementallyUpdate,
             animationEnabled: !this.ctx.animationManager.isSkipped(),
@@ -1185,7 +1187,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
                 labelText,
                 point: { x: scratch.x, y: scratch.y, size: ctx.markerSize },
                 label: this.measureLabel(ctx, labelText),
-                anchor: undefined,
+                anchor: ctx.labelAnchor,
                 insideOffset: ctx.labelInsideOffset,
                 placement: 'top',
                 placements: ctx.labelPlacements,

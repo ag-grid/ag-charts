@@ -27,14 +27,8 @@ import {
     type Normalised,
     type NormalisedColorType,
     type NormalisedSeriesMarkerStyle,
-    type PlacedLabel,
     type Point,
-    type PointLabelDatum,
     type RequireOptional,
-    applyBarLabelOrientation,
-    barLabelResolvesOrientation,
-    barLabelRotation,
-    buildBarLabelData,
     extent,
     findMinMax,
     firstCandidate,
@@ -70,6 +64,8 @@ const {
     valueProperty,
     keyProperty,
     updateLabelNode,
+    resolvePlacementLabelPadding,
+    pickPlacementStyle,
     fixNumericExtent,
     buildResetPathFn,
     resetLabelFn,
@@ -858,7 +854,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         const { xKey, yLowKey, yHighKey, xName, yName, yLowName, yHighName, legendItemName, label } = this.properties;
         // Array placement is accepted, but only its first candidate is honoured here.
         const placement = firstCandidate(label.placement);
-        const spacing = label.spacing + (typeof label.padding === 'number' ? label.padding : 0);
+        const placementStyle = placement === 'outside' ? label.outsideStyle : label.insideStyle;
+        const boxPadding = resolvePlacementLabelPadding(label, placementStyle);
 
         let actualItemId = itemType;
         if (inverted) {
@@ -868,12 +865,13 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             (placement === 'outside' && actualItemId === 'high') || (placement === 'inside' && actualItemId === 'low')
                 ? -1
                 : 1;
+        const facing = direction === -1 ? 'bottom' : 'top';
 
         const yDomain = this.getSeriesDomain(ChartAxisDirection.Y).domain;
 
         return {
             x: point.x,
-            y: point.y + spacing * direction,
+            y: point.y + (label.spacing + boxPadding[facing]) * direction,
             series,
             itemType,
             datum,
@@ -905,7 +903,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             ),
             textAlign: 'center',
             textBaseline: direction === -1 ? 'bottom' : 'top',
-            rotation: barLabelRotation(firstCandidate(label.orientation)),
+            rotation: 0,
+            placement,
         };
     }
 
@@ -1238,26 +1237,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         }
     }
 
-    override getLabelData(): PointLabelDatum[] {
-        if (!this.usesPlacedLabels || !this.properties.label.enabled) return [];
-        const { label } = this.properties;
-        // Point-anchored (no bar rect): the label datum carries no region, so the fit falls back to the
-        // plot bounds and orientation fall-through is driven by collision with other labels.
-        return buildBarLabelData(this.contextNodeData?.labelData, (labelDatum) => ({
-            label: labelDatum,
-            config: label,
-        }));
-    }
-
-    override updatePlacedLabelData(placed: PlacedLabel<RangeAreaLabelDatum>[]) {
-        applyBarLabelOrientation(placed);
-        this.refreshPlacedLabelNodes();
-    }
-
-    protected override resolveUsesPlacedLabels(): boolean {
-        return barLabelResolvesOrientation(this.properties.label.orientation);
-    }
-
     protected override updateLabelSelection(opts: {
         labelData: RangeAreaLabelDatum[];
         labelSelection: _ModuleSupport.Selection<RangeAreaLabelDatum, _ModuleSupport.Text<RangeAreaLabelDatum>>;
@@ -1285,9 +1264,20 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         };
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const { isHighlight = false, labelSelection } = opts;
+        const { label } = this.properties;
         labelSelection.each((textNode, datum) => {
             textNode.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;
-            updateLabelNode(this, textNode, params, this.properties.label, datum, { isHighlight, activeHighlight });
+            const placementStyle = pickPlacementStyle(label, datum.placement);
+            updateLabelNode(
+                this,
+                textNode,
+                params,
+                label,
+                datum,
+                { isHighlight, activeHighlight },
+                undefined,
+                placementStyle
+            );
         });
     }
 

@@ -288,6 +288,37 @@ describe('AgCharts', () => {
             });
         });
 
+        it('should re-resolve theme params on every update() of a reused options object', async () => {
+            const options = {
+                data: [
+                    { month: 'January', min: 2.6 },
+                    { month: 'February', min: 3 },
+                ],
+                series: [{ type: 'line', xKey: 'month', yKey: 'min' }],
+                theme: { params: { accentColor: '#ff0000' } },
+            } satisfies AgChartOptions;
+
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await chart.waitForUpdate();
+            const realChart = deproxy(chart);
+
+            expect(realChart.getChartOptions().themeParameters.accentColor).toBe('#ff0000');
+
+            options.theme.params.accentColor = '#00ff00';
+            await chart.update(options);
+            await chart.waitForUpdate();
+
+            expect(realChart.getChartOptions().themeParameters.accentColor).toBe('#00ff00');
+
+            options.theme.params.accentColor = '#0000ff';
+            await chart.update(options);
+            await chart.waitForUpdate();
+
+            expect(realChart.getChartOptions().themeParameters.accentColor).toBe('#0000ff');
+        });
+
         it('should handle disabled preset nested options', async () => {
             const options: AgSparklineOptions = {
                 type: 'line',

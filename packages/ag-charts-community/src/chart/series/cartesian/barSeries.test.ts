@@ -1561,7 +1561,7 @@ describe('BarSeries', () => {
                                 yKey: 'y',
                                 label: {
                                     placement,
-                                    padding: 10,
+                                    spacing: 10,
                                     color: 'black',
                                 },
                             },
@@ -1680,10 +1680,7 @@ describe('BarSeries', () => {
     });
 
     describe('AG-8290', () => {
-        async function testCase(
-            labelOpts: { placement: AgBarSeriesLabelPlacement; padding?: number; spacing?: number },
-            name: string
-        ) {
+        async function testCase(labelOpts: { placement: AgBarSeriesLabelPlacement; spacing?: number }, name: string) {
             chart = AgCharts.create(
                 prepareTestOptions({
                     data: [
@@ -1697,21 +1694,7 @@ describe('BarSeries', () => {
             );
             await compare({ failureThreshold: 0, failureThresholdType: 'percent', customSnapshotIdentifier: name });
         }
-        describe('padding backward compatibility', () => {
-            test('inside-start', async () => {
-                await testCase({ placement: 'inside-start', padding: 30 }, 'AG-8290-bar-label-spacing-inside-start');
-            });
-            test('inside-end', async () => {
-                await testCase({ placement: 'inside-end', padding: 30 }, 'AG-8290-bar-label-spacing-inside-end');
-            });
-            test('outside-start', async () => {
-                await testCase({ placement: 'outside-start', padding: 30 }, 'AG-8290-bar-label-spacing-outside-start');
-            });
-            test('outside-end', async () => {
-                await testCase({ placement: 'outside-end', padding: 30 }, 'AG-8290-bar-label-spacing-outside-end');
-            });
-        });
-        describe('spacing backward compatibility', () => {
+        describe('spacing sets the gap between the bar and the label', () => {
             test('inside-start', async () => {
                 await testCase({ placement: 'inside-start', spacing: 30 }, 'AG-8290-bar-label-spacing-inside-start');
             });
@@ -3105,6 +3088,34 @@ describe('BarSeries', () => {
             (options.series as any)[0].width = 40;
             await chart.update(options);
             await compare();
+        });
+
+        it('fits and clips when total fixed width exceeds the plot area', async () => {
+            const fixedWidth = 60;
+            const manyCategories = Array.from({ length: 20 }, (_, i) => ({
+                quarter: `C${i}`,
+                iphone: 10 + (i % 5),
+            }));
+            const options: AgCartesianChartOptions = {
+                data: manyCategories,
+                series: [{ type: 'bar', xKey: 'quarter', yKey: 'iphone', width: fixedWidth }],
+            };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const instance = deproxy(chart);
+            const categoryAxis = instance.axes.find((axis) => axis.type === 'category')!;
+
+            // A narrowed visibleRange is what spreads the bands to their fixed width and clips; [0, 1] means neither happened.
+            expect(categoryAxis.visibleRange[0]).toBe(0);
+            expect(categoryAxis.visibleRange[1]).toBeLessThan(1);
+
+            const nodeData = (instance.series[0] as any).contextNodeData?.nodeData as Array<{ width: number }>;
+            expect(nodeData).toHaveLength(manyCategories.length);
+            for (const datum of nodeData) {
+                expect(datum.width).toBe(fixedWidth);
+            }
         });
     });
 

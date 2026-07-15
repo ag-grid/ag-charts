@@ -61,7 +61,8 @@ import {
     rowCountProperty,
     valueProperty,
 } from '../../data/processors';
-import { adjustLabelPlacement, fitLabelToContainer, getLabelStyles } from '../../labelUtil';
+import { resolvePlacementLabelPadding } from '../../label';
+import { adjustLabelPlacement, fitLabelToContainer, getLabelStyles, pickPlacementStyle } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { type TooltipContent, type TooltipContentDataRow } from '../../tooltip/tooltip';
@@ -516,6 +517,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
 
         // Array placement is accepted, but only its first candidate is honoured.
         const placement = toArray(label.placement)[0] ?? 'inside-center';
+        const placementStyle = placement.startsWith('inside') ? label.insideStyle : label.outsideStyle;
         const {
             x: lx,
             y: ly,
@@ -525,8 +527,8 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             isUpward,
             isVertical: true,
             placement,
-            // Matches bar series: the theme feeds an 8px default via `padding`, replaced by a user `spacing`.
-            spacing: label.spacing + (typeof label.padding === 'number' ? label.padding : 0),
+            spacing: label.spacing,
+            boxPadding: resolvePlacementLabelPadding(label, placementStyle),
             rect: { x, y, width: w, height: h },
         });
 
@@ -535,6 +537,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             y: ly,
             textAlign,
             textBaseline,
+            placement: placement.startsWith('inside') ? 'inside' : 'outside',
             text: fitLabelToContainer(
                 this.getLabelText<AgHistogramSeriesLabelFormatterParams>(total, datum, yKey!, 'y', [], label, {
                     ...this.binParams(bin),
@@ -905,7 +908,11 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         const { isHighlight = false } = opts;
 
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-        const { xKey, yKey, xName, yName } = this.properties;
+        const { xKey, yKey, xName, yName, label } = this.properties;
+        // Disabled labels carry no per-datum placement, so fall back to the authored default.
+        const defaultPlacement = (toArray(label.placement)[0] ?? 'inside-center').startsWith('inside')
+            ? 'inside'
+            : 'outside';
         opts.labelSelection.each((text, datum) => {
             const params: AgHistogramSeriesLabelFormatterParams = {
                 datum: undefined,
@@ -920,7 +927,17 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                 xName,
                 yName,
             };
-            const style = getLabelStyles(this, datum, params, this.properties.label, isHighlight, activeHighlight);
+            const placementStyle = pickPlacementStyle(label, datum.label?.placement ?? defaultPlacement);
+            const style = getLabelStyles(
+                this,
+                datum,
+                params,
+                label,
+                isHighlight,
+                activeHighlight,
+                undefined,
+                placementStyle
+            );
             const { enabled, fontStyle, fontWeight, fontSize, fontFamily, color } = style;
             if (enabled && labelEnabled && datum?.label) {
                 text.text = datum.label.text;

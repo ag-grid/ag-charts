@@ -17,6 +17,7 @@ import {
     getProvidedExampleFolder,
     getTransformTsFileExt,
 } from './utils/fileUtils';
+import type { FormatCache } from './utils/formatCache';
 import { type TransformEntryFile, frameworkFilesGenerator } from './utils/frameworkFilesGenerator';
 import { getConsoleLogSnippet } from './utils/getConsoleLogSnippet';
 import { getDarkModeSnippet } from './utils/getDarkModeSnippet';
@@ -97,13 +98,14 @@ type GeneratedContentParams = {
     ignoreDarkMode?: boolean;
     isDev?: boolean;
     extractOptions?: boolean;
+    formatCache?: FormatCache;
 };
 
 /**
  * Get generated contents for an example
  */
 export const getGeneratedContents = async (params: GeneratedContentParams): Promise<GeneratedContents | undefined> => {
-    const { internalFramework, folderPath, ignoreDarkMode, isDev } = params;
+    const { internalFramework, folderPath, ignoreDarkMode, isDev, formatCache } = params;
     let { extractOptions = false } = params;
     const { pageName, exampleName } = getExampleFolderParts({ exampleFolder: folderPath });
 
@@ -169,6 +171,7 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
         sourceFileList,
         transformTsFileExt: getTransformTsFileExt(internalFramework),
         isDev,
+        formatCache,
     });
     const providedExampleFileNames = getProvidedExampleFiles({ folderPath, internalFramework });
 
