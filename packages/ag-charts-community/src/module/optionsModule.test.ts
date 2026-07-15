@@ -3731,5 +3731,34 @@ describe('ChartOptions', () => {
 
             expect(node).toEqual({ backgroundColor: 'red' });
         });
+
+        it('resolves an invalid ontoColor var on a theme param to the ref + mix blend, not undefined', () => {
+            const container = document.createElement('div');
+            mockComputedStyle(container, {});
+
+            const chartOptions = new ChartOptions(
+                {
+                    container,
+                    theme: {
+                        params: {
+                            accentColor: '#ff0000',
+                            foregroundColor: { ref: 'accentColor', mix: 0.5, ontoColor: 'var(--bad)' },
+                        },
+                    },
+                    data: [{ x: 'a', y: 1 }],
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                    axes: { x: { type: 'category' }, y: { type: 'number' } },
+                } as any,
+                {} as AgChartOptions,
+                {},
+                {},
+                {}
+            );
+
+            expect((chartOptions.themeParameters as any).foregroundColor).toBe('rgba(255, 0, 0, 0.5)');
+            expect((console.warn as Mock).mock.calls.some(([m]) => String(m).includes('is not a valid color'))).toBe(
+                true
+            );
+        });
     });
 });
