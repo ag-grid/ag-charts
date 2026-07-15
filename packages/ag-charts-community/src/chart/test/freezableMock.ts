@@ -1,7 +1,7 @@
+import { Caster } from '_ag-charts-test';
 import { expect, vi } from 'vitest';
 
 import type { NonNullablePath } from 'ag-charts-core';
-import { Caster } from 'ag-charts-test';
 import type {
     AgAreaSeriesThemeableOptions,
     AgBarSeriesOptions,

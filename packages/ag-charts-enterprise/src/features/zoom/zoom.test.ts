@@ -1,3 +1,4 @@
+import { WheelDeltaMode, dispatchEvent, wheelEvent } from '_ag-charts-test';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
@@ -30,7 +31,6 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 import { ChartAxisDirection, type DeepReadonly } from 'ag-charts-core';
-import { WheelDeltaMode, dispatchEvent, wheelEvent } from 'ag-charts-test';
 import type { AgNumericValue } from 'ag-charts-types';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';

@@ -59,7 +59,7 @@ export function createTask(
     return {
         'generate-example': {
             dependsOn: [{ projects: 'ag-charts-generate-example-files', target: 'build' }],
-            executor: 'ag-charts-generate-example-files:generate',
+            executor: '_ag-charts-generate-example-files:generate',
             inputs,
             outputs: ['{options.outputPath}'],
             cache: true,

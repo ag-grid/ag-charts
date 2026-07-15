@@ -33,7 +33,7 @@ packageNames
             packageName != 'ag-shared' &&
             packageName !== 'ag-charts-community-examples' &&
             packageName !== 'ag-charts-website' &&
-            packageName !== 'ag-charts-task-autogen'
+            packageName !== '_ag-charts-task-autogen'
     )
     .forEach((packageName) => {
         const agPackage = allPackages[packageName];

@@ -1,3 +1,4 @@
+import { classCast } from '_ag-charts-test';
 import { type Image as SkiaImage, loadImage as skiaLoadImage } from 'skia-canvas';
 import { afterEach, beforeAll, describe, expect, it } from 'vitest';
 
@@ -20,7 +21,6 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { classCast } from 'ag-charts-test';
 
 import { createEnterpriseChart, prepareEnterpriseTestOptions, renderEnterpriseChartImage } from '../../test/utils';
 import { HeatmapSeries } from './heatmapSeries';

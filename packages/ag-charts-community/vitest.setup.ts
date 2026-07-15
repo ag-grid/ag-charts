@@ -1,10 +1,9 @@
+import { mockCanvas, toMatchImage } from '_ag-charts-test';
 import { toMatchImageSnapshot } from 'jest-image-snapshot';
 import { URL } from 'node:url';
 import { TextDecoder, TextEncoder } from 'node:util';
 import { DOMMatrix, Image, Path2D } from 'skia-canvas';
 import { expect } from 'vitest';
-
-import { mockCanvas, toMatchImage } from 'ag-charts-test';
 
 const { ModuleRegistry } = await import('ag-charts-core');
 const { AllCommunityModule } = await import('./src/module-bundles/all');
