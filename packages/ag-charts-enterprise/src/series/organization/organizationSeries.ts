@@ -1385,7 +1385,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             depth,
             isCollapsed,
             seriesId,
-            allDescendents: descendantsCount,
+            allDescendants: descendantsCount,
             directChildren: childrenCount,
             value,
         } satisfies CallbackParamRules<AgOrganizationExpanderTextFormatterParams<unknown, unknown>>;
