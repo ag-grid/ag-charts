@@ -144,8 +144,9 @@ describe('label collision avoidance', () => {
         }
     });
 
-    // Line and area default collision avoidance off; a configured `placement` must still offset each
-    // label from its point, and a user value must override the theme default rather than merge into it.
+    // Line and area default collision avoidance off; the theme default placement `['top', 'bottom']`
+    // is a directional fallback list that must still cascade to fit the bounds, and a user value must
+    // override the theme default rather than merge into it.
     describe('placement without collision avoidance (opt-out default)', () => {
         const sparseData = Array.from({ length: 5 }, (_, i) => ({ x: i, y: 50 }));
 
@@ -187,12 +188,17 @@ describe('label collision avoidance', () => {
         };
 
         for (const type of ['line', 'area'] as const) {
-            it(`${type}: places labels above the point by default`, async () => {
+            // The default placement `['top', 'bottom']` cascades with avoidance off. Line's degenerate
+            // domain centres the point, so 'top' fits and is kept; area's domain includes the zero
+            // baseline, seating y:50 at the top edge, so 'top' overflows and the list falls to 'bottom'.
+            it(`${type}: resolves the default top→bottom fallback list to fit the bounds`, async () => {
+                const expectedPlacement = type === 'area' ? 'bottom' : 'top';
+                const offsetSign = expectedPlacement === 'bottom' ? 1 : -1;
                 const placed = await render(type);
                 expect(placed.length).toBe(sparseData.length);
                 for (const label of placed) {
-                    expect(label.placement).toBe('top');
-                    expect(label.y).toBeLessThan(label.datum.point.y);
+                    expect(label.placement).toBe(expectedPlacement);
+                    expect(Math.sign(label.y - label.datum.point.y)).toBe(offsetSign);
                 }
             });
 

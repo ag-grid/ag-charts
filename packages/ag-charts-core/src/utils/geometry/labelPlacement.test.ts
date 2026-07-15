@@ -513,6 +513,64 @@ describe('placeLabels', () => {
         expect(result!.y).toBeCloseTo(100 - 12 / 2);
     });
 
+    it('cascades a placement fallback list with avoidance off, mirroring line/area', () => {
+        // Line/area emit a `placement:'top'` datum and carry the fallback list on the series
+        // defaults; with `collisionAvoidance.enabled: false` the defaults avoid is false. The list
+        // is a directional fallback set, so 'top' (which overflows the top edge) must fall to
+        // 'bottom' regardless of avoidance.
+        const datum: PointLabelDatum = {
+            point: { x: 100, y: 0, size: 0 },
+            label: { text: 'A', width: 40, height: 12 },
+            anchor: undefined,
+            placement: 'top',
+            gap: 10,
+        };
+        const defaults: SeriesLabelDefaults = { avoid: false, placements: ['top', 'bottom'] };
+        const placed = placeLabels(new Map([['s', seriesLabels([datum], defaults)]]), bounds, 5).get('s')!;
+        const result = placed.find((l) => l.datum === datum);
+        expect(result).toBeDefined();
+        expect(result!.placement).toBe('bottom');
+        expect(result!.y).toBeGreaterThan(0);
+    });
+
+    it('keeps the least-overflowing fallback candidate rather than dropping it when avoidance is off', () => {
+        // Nothing fits the tiny region; with avoidance off the label is never dropped, so the
+        // engine keeps the best candidate instead of returning undefined.
+        const tiny: BoxBounds = { x: 0, y: 0, width: 10, height: 10 };
+        const datum: PointLabelDatum = {
+            point: { x: 5, y: 5, size: 0 },
+            label: { text: 'A', width: 40, height: 12 },
+            anchor: undefined,
+            placement: 'top',
+            placements: ['top', 'bottom'],
+            gap: 10,
+            avoid: false,
+        };
+        const placed = placeLabels(new Map([['s', seriesLabels([datum])]]), tiny, 5).get('s')!;
+        const result = placed.find((l) => l.datum === datum);
+        expect(result).toBeDefined();
+        expect(result!.placement === 'top' || result!.placement === 'bottom').toBe(true);
+    });
+
+    it('takes a single placement unconditionally with avoidance off, even when it overflows', () => {
+        // Single-candidate labels keep the fast path: the first (only) placement is used as-is,
+        // never bounds-clipped and never cascaded.
+        const datum: PointLabelDatum = {
+            point: { x: 100, y: 0, size: 0 },
+            label: { text: 'A', width: 40, height: 12 },
+            anchor: undefined,
+            placement: 'top',
+            placements: ['top'],
+            gap: 10,
+            avoid: false,
+        };
+        const placed = placeLabels(new Map([['s', seriesLabels([datum])]]), bounds, 5).get('s')!;
+        const result = placed.find((l) => l.datum === datum);
+        expect(result).toBeDefined();
+        expect(result!.placement).toBe('top');
+        expect(result!.y).toBeLessThan(bounds.y);
+    });
+
     it('skips obstacle categories disabled via collideWith', () => {
         const marker: PointLabelDatum = {
             point: { x: 100, y: 100, size: 60 },
@@ -862,6 +920,24 @@ describe('placeLabels orientation candidates', () => {
         expect(placed.rotation).toBe(-90);
         expect(placed.width).toBe(100);
         expect(placed.height).toBe(10);
+    });
+
+    it('cascades an orientation fallback list with avoidance off, choosing the first that fits', () => {
+        // A multi-entry orientation list is a fallback set even when avoidance is off: the 100-wide
+        // horizontal box overflows the 60-wide bounds, so the label rotates vertical to fit.
+        const tall: BoxBounds = { x: 0, y: 0, width: 60, height: 200 };
+        const datum: PointLabelDatum = {
+            point: { x: 50, y: 100, size: 0 },
+            label: { text: 'W', width: 100, height: 10 },
+            anchor: undefined,
+            placement: undefined,
+            orientation: ['horizontal', 'vertical'],
+            gap: 0,
+            avoid: false,
+        };
+        const placed = placeLabels(new Map([['s', seriesLabels([datum])]]), tall, 5).get('s')![0];
+        expect(placed).toBeDefined();
+        expect(placed.rotation).toBe(-90);
     });
 
     it('tests containment against a per-label region, falling through when the first orientation overflows it', () => {

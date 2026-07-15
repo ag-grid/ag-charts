@@ -916,9 +916,10 @@ function fitLabel(d: PointLabelDatum) {
  * clears every obstacle already in the index, or `undefined` if none do. Candidate placements resolve
  * from `d.placements`, then the series `defaults.placements`, then the single `d.placement`; orientation
  * from `d.orientation`. The reported box keeps the label's measured `width`/`height`; the rotated
- * footprint is used only for containment and obstacle tests. Labels that opt out of collision
- * resolution (`avoid` falsy) take their first candidate region unconditionally — never bounds-clipped,
- * never dropped, even with no candidates given.
+ * footprint is used only for containment and obstacle tests. A datum with a single candidate and no
+ * collision avoidance takes that candidate region unconditionally — never bounds-clipped, never
+ * dropped. A multi-candidate placement or orientation list is a directional fallback set and always
+ * cascades to fit `bounds`; `avoid` only layers obstacle tests and dropping on top of that cascade.
  */
 function tryPlaceLabel(
     d: PointLabelDatum,
@@ -935,7 +936,8 @@ function tryPlaceLabel(
     const spacing = d.minSpacing ?? defaults?.minSpacing ?? padding;
     const { text, width, height } = fitLabel(d);
 
-    if (!avoid) {
+    const resolvesFallback = (placements?.length ?? 1) > 1 || (orientationsOf(d)?.length ?? 1) > 1;
+    if (!avoid && !resolvesFallback) {
         const placement = candidateAt(placements, d.placement, 0);
         const orientation = candidateAt(orientationsOf(d), singleOrientationOf(d), 0);
         const rotation = positionCandidate(d, placement, orientation, width, height, gap, spacing);
@@ -943,12 +945,15 @@ function tryPlaceLabel(
         return { index, text, x, y, width, height, datum: d, placement, rotation: rotation || undefined };
     }
 
-    return placeAvoidingLabel(d, placements, collideWith, index, bounds, text, width, height, gap, spacing);
+    return placeAvoidingLabel(d, placements, collideWith, avoid, index, bounds, text, width, height, gap, spacing);
 }
 
 /**
- * Tries each `(placement × orientation)` candidate for an avoidance label, returning the first whose
- * rotated box fits `d.region ?? bounds` and clears every obstacle. When none fits: a {@link
+ * Tries each `(placement × orientation)` candidate in order, returning the first whose rotated box
+ * fits `d.region ?? bounds` — and, when `avoid` is set, also clears every obstacle in the index.
+ * With `avoid` false the cascade is a pure bounds-fit: obstacles are not queried and the label is
+ * never dropped (the least region-overflowing candidate is kept), so a fallback list resolves the
+ * same whether or not collision avoidance is enabled. When `avoid` is set and none fits: a {@link
  * PointLabelDatum.neverDrop} label keeps the least region-overflowing candidate (it is always
  * rendered, so dropping it would revert its orientation to the baked first one), otherwise it is
  * dropped (`undefined`).
@@ -957,6 +962,7 @@ function placeAvoidingLabel(
     d: PointLabelDatum,
     placements: readonly LabelPlacement[] | undefined,
     collideWith: CollideWith | undefined,
+    avoid: boolean,
     index: number,
     bounds: BoxBounds,
     text: NormalisedTextOrSegments,
@@ -1012,7 +1018,10 @@ function placeAvoidingLabel(
             candidatePlacement = placement;
             const containRegion = insideRegionFor(d, placement, x, y, cw, ch) ?? region;
             inflateBoxInto(queryBox, candidateBox, inflate);
-            if (boxContains(containRegion, x, y, cw, ch) && !obstacleIndex.query(queryBox, obstacleOverlapsCandidate)) {
+            if (
+                boxContains(containRegion, x, y, cw, ch) &&
+                (!avoid || !obstacleIndex.query(queryBox, obstacleOverlapsCandidate))
+            ) {
                 return {
                     index,
                     text,
@@ -1027,7 +1036,8 @@ function placeAvoidingLabel(
                     offsetY,
                 };
             }
-            const overflow = d.neverDrop ? regionOverflow(containRegion, x, y, cw, ch) : Infinity;
+            const keepBest = d.neverDrop === true || !avoid;
+            const overflow = keepBest ? regionOverflow(containRegion, x, y, cw, ch) : Infinity;
             if (overflow < bestOverflow) {
                 bestOverflow = overflow;
                 bestX = x;
