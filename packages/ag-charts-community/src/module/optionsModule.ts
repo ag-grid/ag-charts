@@ -848,8 +848,30 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         (options as any).axes ??= {};
         this.primaryAxisKeys = this.getPrimaryAxisKeys(options, directions, hasNonDefaultSeriesAxisKeys);
 
+        this.ensureSeriesDefaultAxes(options, directions, defaultAxes);
         this.predictAxesMissingTypesAndPositions(options, directions, defaultAxes);
         this.alternateSecondaryAxisPositions((options as any).axes);
+    }
+
+    /**
+     * Ensure an axis exists for every direction a series binds to. A series with no explicit key-axis for a direction
+     * binds to an axis keyed by the direction, so create a default axis for it when the user has not defined one.
+     */
+    private ensureSeriesDefaultAxes(
+        options: T,
+        directions: ChartAxisDirection[],
+        defaultAxes: Record<string, PlainObject>
+    ) {
+        const axes = (options as any).axes as Record<string, PlainObject>;
+        for (const seriesOptions of options.series ?? []) {
+            for (const direction of directions) {
+                const directionAxisKey = this.getSeriesDirectionAxisKey(seriesOptions, direction);
+                if (!directionAxisKey) continue;
+
+                const boundAxisKey = (seriesOptions as any)[directionAxisKey] ?? direction;
+                axes[boundAxisKey] ??= deepClone(defaultAxes[direction]);
+            }
+        }
     }
 
     /**

@@ -625,63 +625,6 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
 exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMPLE it should prepare options as expected 1`] = `
 {
   "axes": {
-    "ySecondary": {
-      "gridLine": {
-        "enabled": true,
-        "style": [
-          {
-            "fillOpacity": 1,
-            "lineDash": [],
-            "stroke": "#e8e9e9",
-            "strokeWidth": 1,
-          },
-        ],
-        "width": 1,
-      },
-      "label": {
-        "avoidCollisions": true,
-        "border": {
-          "enabled": false,
-          "stroke": "rgba(24, 29, 31, 0.08)",
-          "strokeWidth": 1,
-        },
-        "color": "#181d1f",
-        "cornerRadius": 4,
-        "enabled": true,
-        "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
-        "fontSize": 12,
-        "fontWeight": 400,
-        "formatter": [Function],
-        "padding": 5,
-        "spacing": 11,
-      },
-      "line": {
-        "enabled": false,
-        "stroke": "#dcdddd",
-        "width": 1,
-      },
-      "maxThicknessRatio": 0.3,
-      "position": "right",
-      "reverse": false,
-      "tick": {
-        "enabled": false,
-        "size": 6,
-        "stroke": "#dcdddd",
-        "width": 1,
-      },
-      "title": {
-        "color": "#181d1f",
-        "enabled": true,
-        "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
-        "fontSize": 13,
-        "fontWeight": 400,
-        "spacing": 25,
-        "text": "Exports (tonnes)",
-        "truncate": true,
-        "wrapping": "always",
-      },
-      "type": "number",
-    },
     "x": {
       "gridLine": {
         "enabled": false,
@@ -796,6 +739,63 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
         "fontWeight": 400,
         "spacing": 25,
         "text": "Number of cattle",
+        "truncate": true,
+        "wrapping": "always",
+      },
+      "type": "number",
+    },
+    "ySecondary": {
+      "gridLine": {
+        "enabled": true,
+        "style": [
+          {
+            "fillOpacity": 1,
+            "lineDash": [],
+            "stroke": "#e8e9e9",
+            "strokeWidth": 1,
+          },
+        ],
+        "width": 1,
+      },
+      "label": {
+        "avoidCollisions": true,
+        "border": {
+          "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
+        },
+        "color": "#181d1f",
+        "cornerRadius": 4,
+        "enabled": true,
+        "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+        "fontSize": 12,
+        "fontWeight": 400,
+        "formatter": [Function],
+        "padding": 5,
+        "spacing": 11,
+      },
+      "line": {
+        "enabled": false,
+        "stroke": "#dcdddd",
+        "width": 1,
+      },
+      "maxThicknessRatio": 0.3,
+      "position": "right",
+      "reverse": false,
+      "tick": {
+        "enabled": false,
+        "size": 6,
+        "stroke": "#dcdddd",
+        "width": 1,
+      },
+      "title": {
+        "color": "#181d1f",
+        "enabled": true,
+        "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+        "fontSize": 13,
+        "fontWeight": 400,
+        "spacing": 25,
+        "text": "Exports (tonnes)",
         "truncate": true,
         "wrapping": "always",
       },
