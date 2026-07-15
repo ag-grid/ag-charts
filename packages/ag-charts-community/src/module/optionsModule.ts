@@ -496,7 +496,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const unmappedAxisKeys = this.processAxesOptions(options, chartType);
 
         if (this.optionMetadata.presetType !== 'sparkline') {
-            this.processedCSSVariables = this.processCSSVariables(options);
+            this.processedCSSVariables = this.processCSSVariables(options, activeTheme.params);
         }
 
         const optionsGraph = createOptionsGraphMemoised(activeTheme, options, this.processedCSSVariables);
@@ -1566,10 +1566,16 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         return { isValid, propertyValue };
     }
 
-    private processCSSVariables(options: Partial<T>) {
-        if (options.container == null) return;
+    private processCSSVariables(options: Partial<T>, themeParams?: object) {
+        const { container } = options;
+        if (container == null) return;
 
-        return jsonWalk(options, ChartOptions.processCSSVariablesJSON, new Set(['data']), undefined, options.container);
+        const skip = new Set(['data']);
+        let processed = jsonWalk(options, ChartOptions.processCSSVariablesJSON, skip, undefined, container);
+        // The options graph resolves theme params from `activeTheme.params`, a distinct object from `options`, so an
+        // invalid `var()` colour there must be dropped here too — otherwise it reaches the blend engine unresolved.
+        processed = jsonWalk(themeParams, ChartOptions.processCSSVariablesJSON, skip, undefined, container, processed);
+        return processed;
     }
 
     processCSSVariablesPartial(partialOptions: PlainObject | undefined, container: HTMLElement | null | undefined) {
