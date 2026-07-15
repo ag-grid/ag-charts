@@ -26,9 +26,7 @@ const options: AgCartesianChartOptions = {
             shape: 'square',
             fill: '#e36f6ab5',
             stroke: '#9f4e4a',
-            label: {
-                enabled: true,
-            },
+            label: { enabled: true },
         },
         {
             type: 'scatter',
