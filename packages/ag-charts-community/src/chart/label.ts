@@ -263,18 +263,18 @@ export function expandLabelPadding(label: LabelBoxingMixin | undefined): Require
 }
 
 /**
- * Overlays a placement style beneath the top-level label so an explicit `label.<prop>` wins and any
- * unset property falls back to the placement value. `border` is merged field-wise because it is a
- * class instance `mergeDefaults` would otherwise copy by reference; the top-level `border.enabled`
- * governs whether the border shows, while the stroke geometry falls through to the placement.
+ * Overlays the top-level label beneath a placement style so an explicit placement value wins and any
+ * unset property falls back to the top-level label. `border` is merged field-wise because it is a
+ * class instance `mergeDefaults` would otherwise copy by reference; the placement stroke geometry
+ * wins while `border.enabled` (placement border has none) falls through from the top-level label.
  */
 export function resolvePlacementLabelStyle<TParams>(
     label: Label<TParams>,
     placementStyle: LabelPlacementStyle | undefined
 ): Label<TParams> {
     if (placementStyle == null) return label;
-    const resolved = mergeDefaults(label, placementStyle);
-    resolved.border = mergeDefaults(label.border, placementStyle.border);
+    const resolved = mergeDefaults(placementStyle, label);
+    resolved.border = mergeDefaults(placementStyle.border, label.border);
     return resolved;
 }
 

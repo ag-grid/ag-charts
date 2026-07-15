@@ -8,7 +8,6 @@ import {
     FILL_PATTERN_DEFAULTS,
     LABEL_BOXING_TOP_LEVEL_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
-    PLACEMENT_LABEL_BOXING_DEFAULTS,
     SEGMENTATION_DEFAULTS,
     SERIES_SELECTION_THEME,
 } from 'ag-charts-core';
@@ -33,8 +32,8 @@ const themeTemplate: ExtensibleTheme<'bar'> = {
                 ['pattern', FILL_PATTERN_DEFAULTS],
             ],
         },
-        stroke: { $palette: 'stroke' },
         fillOpacity: 1,
+        stroke: { $palette: 'stroke' },
         strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
         lineDash: [0],
         lineDashOffset: 0,
@@ -45,16 +44,11 @@ const themeTemplate: ExtensibleTheme<'bar'> = {
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },
             spacing: 8,
+            padding: 8,
             insideStyle: {
-                color: { $ref: 'chartBackgroundColor' },
-                padding: 8,
-                ...PLACEMENT_LABEL_BOXING_DEFAULTS,
+                color: { $isUserOption: ['../color', { $path: '../color' }, { $ref: 'chartBackgroundColor' }] },
             },
-            outsideStyle: {
-                color: { $ref: 'textColor' },
-                padding: 8,
-                ...PLACEMENT_LABEL_BOXING_DEFAULTS,
-            },
+            outsideStyle: { color: { $isUserOption: ['../color', { $path: '../color' }, { $ref: 'textColor' }] } },
             placement: 'inside-center',
         },
         shadow: {

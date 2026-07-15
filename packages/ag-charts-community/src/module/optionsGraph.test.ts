@@ -96,6 +96,26 @@ describe('OptionsGraph', () => {
         });
     });
 
+    it('should auto-enable label collisionAvoidance from a user object', () => {
+        const themeConfig = {
+            line: {
+                label: { enabled: false, collisionAvoidance: { enabled: false } },
+            },
+        };
+
+        const autoEnabled = new OptionsGraph(
+            themeConfig,
+            prepareOptions({ label: { collisionAvoidance: { minSpacing: 5 } } })
+        ).resolve() as { label: { collisionAvoidance: { enabled: boolean; minSpacing: number } } };
+        expect(autoEnabled.label.collisionAvoidance).toStrictEqual({ enabled: true, minSpacing: 5 });
+
+        const explicitOff = new OptionsGraph(
+            themeConfig,
+            prepareOptions({ label: { collisionAvoidance: { enabled: false, minSpacing: 5 } } })
+        ).resolve() as { label: { collisionAvoidance: { enabled: boolean; minSpacing: number } } };
+        expect(explicitOff.label.collisionAvoidance).toStrictEqual({ enabled: false, minSpacing: 5 });
+    });
+
     it('should replace default strings with user objects', () => {
         const themeConfig = {
             line: {

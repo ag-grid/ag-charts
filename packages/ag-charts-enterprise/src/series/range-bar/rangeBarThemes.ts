@@ -6,7 +6,6 @@ import {
     FILL_PATTERN_DEFAULTS,
     LABEL_BOXING_TOP_LEVEL_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
-    PLACEMENT_LABEL_BOXING_DEFAULTS,
     SEGMENTATION_DEFAULTS,
     SERIES_SELECTION_THEME,
 } from 'ag-charts-core';
@@ -32,15 +31,12 @@ export const RANGE_BAR_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['rang
             fontFamily: { $ref: 'fontFamily' },
             fontWeight: { $ref: 'fontWeight' },
             spacing: 6,
+            padding: 6,
             insideStyle: {
-                color: { $ref: 'chartBackgroundColor' },
-                padding: 6,
-                ...PLACEMENT_LABEL_BOXING_DEFAULTS,
+                color: { $isUserOption: ['../color', { $path: '../color' }, { $ref: 'chartBackgroundColor' }] },
             },
             outsideStyle: {
-                color: { $ref: 'chartBackgroundColor' },
-                padding: 6,
-                ...PLACEMENT_LABEL_BOXING_DEFAULTS,
+                color: { $isUserOption: ['../color', { $path: '../color' }, { $ref: 'chartBackgroundColor' }] },
             },
             placement: 'inside',
         },

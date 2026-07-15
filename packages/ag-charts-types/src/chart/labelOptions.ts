@@ -27,9 +27,9 @@ export interface AgChartLabelStyleOptions extends Toggleable, TextOptions, Label
 /**
  * Style overrides applied to a label depending on its resolved inside/outside placement: `color` sets
  * the text colour, `fill`/`fillOpacity` the box fill, `cornerRadius` and `padding` the box geometry, and
- * `border` the box stroke. An explicit top-level `label` value always wins, and any property left unset
- * here falls back to the built-in placement default. Whether a border is shown is controlled once by the
- * top-level `label.border.enabled`; only the border's stroke, width and opacity are placement-reactive.
+ * `border` the box stroke. A placement-specific value set here wins over the top-level `label` value, and
+ * both fall back to the theme default. Whether a border is shown is controlled once by the top-level
+ * `label.border.enabled`; only the border's stroke, width and opacity are placement-reactive.
  */
 export interface AgChartLabelPlacementStyleOptions extends Pick<TextOptions, 'color'>, FillOptions {
     /** Rounded corners applied to the label box for this placement. */
@@ -42,8 +42,8 @@ export interface AgChartLabelPlacementStyleOptions extends Pick<TextOptions, 'co
 
 /**
  * Placement-reactive colour overrides for a single label whose inside/outside placement is resolved at
- * layout time. Applied per property: an explicit top-level `label.<property>` takes precedence,
- * otherwise the matching `insideStyle`/`outsideStyle` value applies for the resolved placement.
+ * layout time. Applied per property: the matching `insideStyle`/`outsideStyle` value for the resolved
+ * placement takes precedence, falling back to the top-level `label.<property>` and then the theme default.
  */
 export interface AgSeriesLabelPlacementStyleOptions {
     /** Style overrides applied only when the label's resolved placement is inside the shape. */

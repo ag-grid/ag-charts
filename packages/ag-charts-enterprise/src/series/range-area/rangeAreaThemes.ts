@@ -8,7 +8,6 @@ import {
     LABEL_BOXING_TOP_LEVEL_DEFAULTS,
     MARKER_SERIES_HIGHLIGHT_STYLE,
     type NonNullablePath,
-    PLACEMENT_LABEL_BOXING_DEFAULTS,
     SEGMENTATION_DEFAULTS,
     SERIES_SELECTION_THEME,
 } from 'ag-charts-core';
@@ -151,15 +150,12 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['ran
             fontFamily: { $ref: 'fontFamily' },
             fontWeight: { $ref: 'fontWeight' },
             spacing: 10,
+            padding: 10,
             insideStyle: {
-                color: { $ref: 'textColor' },
-                padding: 10,
-                ...PLACEMENT_LABEL_BOXING_DEFAULTS,
+                color: { $isUserOption: ['../color', { $path: '../color' }, { $ref: 'textColor' }] },
             },
             outsideStyle: {
-                color: { $ref: 'textColor' },
-                padding: 10,
-                ...PLACEMENT_LABEL_BOXING_DEFAULTS,
+                color: { $isUserOption: ['../color', { $path: '../color' }, { $ref: 'textColor' }] },
             },
         },
         interpolation: {
