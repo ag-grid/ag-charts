@@ -653,6 +653,7 @@ describe('ChartOptions', () => {
                       "padding": 8,
                     },
                     "placement": "inside-center",
+                    "spacing": 8,
                   },
                   "lineDash": [
                     0,
@@ -746,6 +747,7 @@ describe('ChartOptions', () => {
                       "padding": 8,
                     },
                     "placement": "inside-center",
+                    "spacing": 8,
                   },
                   "lineDash": [
                     0,
@@ -839,6 +841,7 @@ describe('ChartOptions', () => {
                       "padding": 8,
                     },
                     "placement": "inside-center",
+                    "spacing": 8,
                   },
                   "lineDash": [
                     0,
@@ -932,6 +935,7 @@ describe('ChartOptions', () => {
                       "padding": 8,
                     },
                     "placement": "inside-center",
+                    "spacing": 8,
                   },
                   "lineDash": [
                     0,
@@ -1208,6 +1212,7 @@ describe('ChartOptions', () => {
                       "padding": 8,
                     },
                     "placement": "inside-center",
+                    "spacing": 8,
                   },
                   "lineDash": [
                     0,
@@ -1301,6 +1306,7 @@ describe('ChartOptions', () => {
                       "padding": 8,
                     },
                     "placement": "inside-center",
+                    "spacing": 8,
                   },
                   "lineDash": [
                     0,
@@ -1394,6 +1400,7 @@ describe('ChartOptions', () => {
                       "padding": 8,
                     },
                     "placement": "inside-center",
+                    "spacing": 8,
                   },
                   "lineDash": [
                     0,
@@ -1487,6 +1494,7 @@ describe('ChartOptions', () => {
                       "padding": 8,
                     },
                     "placement": "inside-center",
+                    "spacing": 8,
                   },
                   "lineDash": [
                     0,
@@ -1763,6 +1771,7 @@ describe('ChartOptions', () => {
                       "padding": 8,
                     },
                     "placement": "inside-center",
+                    "spacing": 8,
                   },
                   "lineDash": [
                     0,
@@ -1856,6 +1865,7 @@ describe('ChartOptions', () => {
                       "padding": 8,
                     },
                     "placement": "inside-center",
+                    "spacing": 8,
                   },
                   "lineDash": [
                     0,
@@ -1949,6 +1959,7 @@ describe('ChartOptions', () => {
                       "padding": 8,
                     },
                     "placement": "inside-center",
+                    "spacing": 8,
                   },
                   "lineDash": [
                     0,
@@ -2042,6 +2053,7 @@ describe('ChartOptions', () => {
                       "padding": 8,
                     },
                     "placement": "inside-center",
+                    "spacing": 8,
                   },
                   "lineDash": [
                     0,

@@ -43,15 +43,15 @@ const themeTemplate: ExtensibleTheme<'histogram'> = {
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },
             fontWeight: { $ref: 'fontWeight' },
+            spacing: 8,
             insideStyle: {
                 color: { $ref: 'chartBackgroundColor' },
-                // Default 8px gap between the bar and edge-anchored labels; a user-set `spacing` replaces it.
-                padding: { $isUserOption: ['../spacing', 0, 8] } as any,
+                padding: 8,
                 ...PLACEMENT_LABEL_BOXING_DEFAULTS,
             },
             outsideStyle: {
                 color: { $ref: 'textColor' },
-                padding: { $isUserOption: ['../spacing', 0, 8] } as any,
+                padding: 8,
                 ...PLACEMENT_LABEL_BOXING_DEFAULTS,
             },
             placement: 'inside-center',

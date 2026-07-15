@@ -1561,7 +1561,7 @@ describe('BarSeries', () => {
                                 yKey: 'y',
                                 label: {
                                     placement,
-                                    padding: 10,
+                                    spacing: 10,
                                     color: 'black',
                                 },
                             },
@@ -1680,10 +1680,7 @@ describe('BarSeries', () => {
     });
 
     describe('AG-8290', () => {
-        async function testCase(
-            labelOpts: { placement: AgBarSeriesLabelPlacement; padding?: number; spacing?: number },
-            name: string
-        ) {
+        async function testCase(labelOpts: { placement: AgBarSeriesLabelPlacement; spacing?: number }, name: string) {
             chart = AgCharts.create(
                 prepareTestOptions({
                     data: [
@@ -1697,21 +1694,7 @@ describe('BarSeries', () => {
             );
             await compare({ failureThreshold: 0, failureThresholdType: 'percent', customSnapshotIdentifier: name });
         }
-        describe('padding backward compatibility', () => {
-            test('inside-start', async () => {
-                await testCase({ placement: 'inside-start', padding: 30 }, 'AG-8290-bar-label-spacing-inside-start');
-            });
-            test('inside-end', async () => {
-                await testCase({ placement: 'inside-end', padding: 30 }, 'AG-8290-bar-label-spacing-inside-end');
-            });
-            test('outside-start', async () => {
-                await testCase({ placement: 'outside-start', padding: 30 }, 'AG-8290-bar-label-spacing-outside-start');
-            });
-            test('outside-end', async () => {
-                await testCase({ placement: 'outside-end', padding: 30 }, 'AG-8290-bar-label-spacing-outside-end');
-            });
-        });
-        describe('spacing backward compatibility', () => {
+        describe('spacing sets the gap between the bar and the label', () => {
             test('inside-start', async () => {
                 await testCase({ placement: 'inside-start', spacing: 30 }, 'AG-8290-bar-label-spacing-inside-start');
             });

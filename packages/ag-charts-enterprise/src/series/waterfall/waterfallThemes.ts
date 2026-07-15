@@ -38,15 +38,15 @@ function itemTheme(
             fontWeight: { $ref: 'fontWeight' as const },
             fontSize: { $ref: 'fontSize' as const },
             fontFamily: { $ref: 'fontFamily' as const },
-            // compatibility with old `padding` property (now named `spacing`).
+            spacing: 6,
             insideStyle: {
                 color: { $ref: 'textColor' as const },
-                padding: { $isUserOption: ['../spacing', 0, 6] } as any,
+                padding: 6,
                 ...PLACEMENT_LABEL_BOXING_DEFAULTS,
             },
             outsideStyle: {
                 color: { $ref: 'textColor' as const },
-                padding: { $isUserOption: ['../spacing', 0, 6] } as any,
+                padding: 6,
                 ...PLACEMENT_LABEL_BOXING_DEFAULTS,
             },
             formatter: undefined,

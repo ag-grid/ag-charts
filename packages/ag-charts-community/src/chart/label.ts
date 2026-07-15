@@ -242,10 +242,15 @@ export class PlacedSeriesLabel<TParams = never, TDatum = any> extends Label<TPar
 }
 
 type LabelBoxingMixin = { border?: { enabled?: boolean; stroke?: string }; fill?: unknown; padding?: Padding };
-export function expandLabelPadding(label: LabelBoxingMixin | undefined): Required<PaddingOptions> {
+
+/** Whether the label draws a background box: it has a fill, or an enabled border with a stroke. */
+export function labelHasBox(label: LabelBoxingMixin | undefined): boolean {
     const { enabled: borderEnabled = false, stroke: borderStroke } = label?.border ?? {};
-    const hasBoxing = label?.fill != null || (borderEnabled && borderStroke != null);
-    const padding = hasBoxing ? label?.padding : null;
+    return label?.fill != null || (borderEnabled && borderStroke != null);
+}
+
+export function expandLabelPadding(label: LabelBoxingMixin | undefined): Required<PaddingOptions> {
+    const padding = labelHasBox(label) ? label?.padding : null;
 
     if (padding == null) {
         return { bottom: 0, left: 0, right: 0, top: 0 };
@@ -283,4 +288,16 @@ export function expandPlacementLabelPadding<TParams>(label: PlacedSeriesLabel<TP
         right: Math.max(inside.right, outside.right),
         top: Math.max(inside.top, outside.top),
     };
+}
+
+/**
+ * Resolved per-side box padding folded into a placement label's anchor offset. All-zero for a boxless
+ * label, so its gap from the shape comes solely from `spacing`; the caller adds the side facing the
+ * shape (known per datum) to keep the box edge — not the text — at `spacing`.
+ */
+export function resolvePlacementLabelPadding<TParams>(
+    label: Label<TParams>,
+    placementStyle: LabelPlacementStyle | undefined
+): Required<PaddingOptions> {
+    return expandLabelPadding(resolvePlacementLabelStyle(label, placementStyle));
 }

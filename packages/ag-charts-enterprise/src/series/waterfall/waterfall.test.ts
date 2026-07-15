@@ -685,7 +685,7 @@ describe('WaterfallSeries', () => {
 
     describe('AG-8290', () => {
         async function testCase(
-            labelOpts: { placement: AgWaterfallSeriesLabelPlacement; padding?: number; spacing?: number },
+            labelOpts: { placement: AgWaterfallSeriesLabelPlacement; spacing?: number },
             name: string
         ) {
             chart = AgCharts.create(
@@ -723,30 +723,7 @@ describe('WaterfallSeries', () => {
             );
             await compare({ failureThreshold: 0, failureThresholdType: 'percent', customSnapshotIdentifier: name });
         }
-        describe('padding backward compatibility', () => {
-            test('inside-start', async () => {
-                await testCase(
-                    { placement: 'inside-start', padding: 30 },
-                    'AG-8290-waterfall-label-spacing-inside-start'
-                );
-            });
-            test('inside-end', async () => {
-                await testCase({ placement: 'inside-end', padding: 30 }, 'AG-8290-waterfall-label-spacing-inside-end');
-            });
-            test('outside-start', async () => {
-                await testCase(
-                    { placement: 'outside-start', padding: 30 },
-                    'AG-8290-waterfall-label-spacing-outside-start'
-                );
-            });
-            test('outside-end', async () => {
-                await testCase(
-                    { placement: 'outside-end', padding: 30 },
-                    'AG-8290-waterfall-label-spacing-outside-end'
-                );
-            });
-        });
-        describe('spacing backward compatibility', () => {
+        describe('spacing sets the gap between the bar and the label', () => {
             test('inside-start', async () => {
                 await testCase(
                     { placement: 'inside-start', spacing: 30 },
