@@ -5,7 +5,6 @@ import type {
     AgAngleNumberAxisOptions,
     AgAxisBaseIntervalOptions,
     AgAxisBaseTickOptions,
-    AgAxisCaptionOptions,
     AgAxisCategoryIntervalOptions,
     AgAxisContinuousIntervalOptions,
     AgAxisGridLineOptions,
@@ -18,6 +17,7 @@ import type {
     AgBaseCrossLineLabelOptions,
     AgBaseCrossLineOptions,
     AgBaseCrosshairLabel,
+    AgCartesianAxisCaptionOptions,
     AgCartesianAxisLabelOptions,
     AgCartesianTimeAxisLabelOptions,
     AgCategoryAxisOptions,
@@ -171,7 +171,7 @@ export type NormalisedAxisContinuousIntervalOptions<
 // `ordinal-time`).
 
 export type NormalisedAxisTitleOptions = Normalised<
-    AgAxisCaptionOptions,
+    AgCartesianAxisCaptionOptions,
     'enabled' | 'text' | 'spacing' | 'fontSize' | 'fontFamily' | 'fontWeight' | 'color' | 'wrapping' | 'truncate',
     { color?: CssColor; fontFamily: string }
 >;

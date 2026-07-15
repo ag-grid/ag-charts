@@ -14,7 +14,12 @@ import type {
     SelectionState,
     Styler,
 } from './callbackOptions';
-import type { AgChartLabelCollisionAvoidanceOptions } from './collisionAvoidanceOptions';
+import type {
+    AgBarSeriesLabelPlacement,
+    AgChartLabelCollisionAvoidanceOptions,
+    AgChartLabelCollisionPlacement,
+    AgChartLabelOrientation,
+} from './collisionAvoidanceOptions';
 import type { ContextDefault, FontSize, OverflowStrategy, PixelSize, TextWrap } from './types';
 
 export interface AgChartLabelStyleOptions extends Toggleable, TextOptions, LabelBoxOptions {}
@@ -49,6 +54,10 @@ export interface AgSeriesLabelPlacementStyleOptions {
 
 export interface AgChartLabelStylerParams<TDatum, TContext>
     extends AgChartCallbackParams<TDatum, TContext>, AgChartLabelStyleOptions {
+    /** The resolved placement actually used to render this label. */
+    placement?: AgChartLabelCollisionPlacement | AgBarSeriesLabelPlacement;
+    /** The resolved orientation actually used to render this label (bar series only). */
+    orientation?: AgChartLabelOrientation;
     /** The specific highlight state of the element. */
     highlightState?: HighlightState | HierarchyHighlightState;
     /** The specific selection state of the element. Undefined if the selection module is disabled. */

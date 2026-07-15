@@ -57,6 +57,7 @@ import type {
     AgBaseCrossLineLabelOptions,
     AgBaseCrossLineOptions,
     AgBaseCrosshairLabel,
+    AgCartesianAxisCaptionOptions,
     AgCartesianAxisLabelOptions,
     AgCartesianCrossLineLabelOptions,
     AgCategoryAxisOptions,
@@ -256,11 +257,16 @@ export const commonAxisCaptionOptionsDefs: OptionsDefs<AgAxisCaptionOptions> = {
     ...fontOptionsDef,
 };
 
+export const cartesianAxisCaptionOptionsDefs: OptionsDefs<AgCartesianAxisCaptionOptions> = {
+    ...commonAxisCaptionOptionsDefs,
+    orientation: union('horizontal', 'vertical', 'vertical-reversed'),
+};
+
 export const cartesianAxisOptionsDefs: OptionsDefs<
     Omit<AgBaseCartesianAxisOptions<any>, 'type' | 'label' | 'primaryLabel' | 'crosshair'>
 > = {
     ...commonAxisOptionsDefs,
-    title: commonAxisCaptionOptionsDefs,
+    title: cartesianAxisCaptionOptionsDefs,
     crossAt: {
         value: required(or(number, date, string, arrayOf(string))),
         sticky: boolean,

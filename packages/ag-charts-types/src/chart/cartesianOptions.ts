@@ -3,13 +3,13 @@ import type { AgAnnotationsOptions } from './annotationsOptions';
 import type {
     AgAxisBaseIntervalOptions,
     AgAxisBaseTickOptions,
-    AgAxisCaptionOptions,
     AgAxisContinuousIntervalOptions,
     AgAxisLabelStylerParams,
     AgBaseAxisLabelOptions,
     AgBaseAxisLabelStyleOptions,
     AgBaseAxisOptions,
     AgBaseContinuousAxisOptions,
+    AgCartesianAxisCaptionOptions,
     AgContinuousAxisOptions,
     AgNumericAxisFormattableLabelOptions,
     AgTimeAxisFormattableLabelFormat,
@@ -52,7 +52,7 @@ export interface AgBaseCartesianAxisOptions<
      */
     maxThicknessRatio?: Ratio;
     /** Configuration for the title shown next to the axis. */
-    title?: AgAxisCaptionOptions;
+    title?: AgCartesianAxisCaptionOptions;
     /** Configuration for the axis crosshair. */
     crosshair?: AgCrosshairOptions<CrosshairLabelType>;
 }

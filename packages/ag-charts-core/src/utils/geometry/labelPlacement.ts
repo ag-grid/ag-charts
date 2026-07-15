@@ -78,6 +78,22 @@ export function resolveLabelFit(
     return { maxWidth, maxHeight, wrapping, overflowStrategy };
 }
 
+/**
+ * A pre-positioned label candidate the engine cascades over without computing any geometry itself.
+ * The series that produced it owns the placement maths (bar-family labels use rect-relative geometry
+ * the compass-vector engine can't express); the engine only runs generic containment, obstacle, flush
+ * and least-overflow logic over the opaque list. `box` is in absolute plot coordinates and already
+ * carries the rotated footprint, matching {@link PlacedLabel}'s top-left/`width`/`height` convention.
+ */
+export interface PositionedLabelCandidate {
+    /** Absolute plot coordinates: top-left of the rotated footprint, with `width`/`height` the footprint size. */
+    readonly box: BoxBounds;
+    /** Per-candidate containment rect; falls back to the shared `bounds` when unset. */
+    readonly region?: BoxBounds;
+    /** Render rotation in degrees (engine convention, matching {@link PlacedLabel.rotation}); `0`/unset is upright. */
+    readonly rotation?: number;
+}
+
 export interface PointLabelDatum {
     readonly point: Readonly<SizedPoint>;
     readonly label: MeasuredLabel;
@@ -133,6 +149,13 @@ export interface PointLabelDatum {
      * baked first orientation and overflow the bar. Droppable point labels leave it unset.
      */
     readonly neverDrop?: boolean;
+    /**
+     * Authoritative pre-positioned candidates, tried in order; each carries its own region. When
+     * present the engine cascades over these opaque boxes and never computes a placement itself
+     * (skipping {@link positionLabelBox} and the `placement`/`orientation` candidate loops). Used by
+     * bar-family labels, whose rect-relative candidates the compass-vector engine can't express.
+     */
+    readonly positionedCandidates?: readonly PositionedLabelCandidate[];
 }
 
 export type ObstacleCategory = 'marker' | 'label' | 'seriesItem';
@@ -184,6 +207,12 @@ export interface PlacedLabel<PLD = PointLabelDatum> extends MeasuredLabel, Reado
     /** Translation (px) applied to slide a region-bound label flush inside its region; `0` otherwise. */
     readonly offsetX?: number;
     readonly offsetY?: number;
+    /**
+     * The chosen entry when the datum supplied {@link PointLabelDatum.positionedCandidates}. Carries
+     * the series' own writeback metadata (a bar candidate's anchor and granular placement); `placement`
+     * stays `undefined` on this path since the candidate box, not a compass placement, was resolved.
+     */
+    readonly candidate?: PositionedLabelCandidate;
 }
 
 /**
@@ -248,7 +277,7 @@ export function isPointLabelDatum(x: any): x is PointLabelDatum {
 
 // Rotation angle (degrees) each orientation renders at, relative to a horizontal baseline:
 // `horizontal` reads upright, the two `vertical` variants a quarter-turn in either direction.
-const orientationAngles: Record<AgChartLabelOrientation, number> = {
+export const orientationAngles: Record<AgChartLabelOrientation, number> = {
     horizontal: 0,
     vertical: 90,
     'vertical-reversed': -90,
@@ -260,6 +289,13 @@ const orientationAngles: Record<AgChartLabelOrientation, number> = {
  */
 export function barLabelRotation(orientation: AgChartLabelOrientation | undefined): number {
     return orientation == null ? 0 : toRadians(orientationAngles[orientation]);
+}
+
+/** Recovers a bar label's `orientation` from its render rotation (radians); inverse of {@link barLabelRotation}. */
+export function barLabelOrientation(rotation: number): AgChartLabelOrientation {
+    if (rotation < 0) return 'vertical-reversed';
+    if (rotation > 0) return 'vertical';
+    return 'horizontal';
 }
 
 export interface OrientationAnchor {
@@ -282,6 +318,24 @@ export interface BarLabelTarget {
     rotation: number;
     offsetX?: number;
     offsetY?: number;
+    // Positioned-candidate writeback (placement-cascade path only): the chosen candidate's anchor and
+    // granular placement, copied here so the label renders at the winning candidate rather than the
+    // baked first one. Left untouched on the orientation-only path.
+    x?: number;
+    y?: number;
+    textAlign?: CanvasTextAlign;
+    textBaseline?: CanvasTextBaseline;
+    placement?: string;
+}
+
+/**
+ * The bar-specific metadata a {@link PositionedLabelCandidate} carries when it comes from a bar-family
+ * label: the render anchor and granular placement written back onto the label node when the candidate
+ * wins. Kept string-typed for `placement` so core does not depend on the community `BarLabelPlacement`.
+ */
+interface BarPositionedCandidate extends PositionedLabelCandidate {
+    readonly anchor: OrientationAnchor;
+    readonly placement: string;
 }
 
 // Bar labels sit inside their own bar rect, so avoid other labels only — not markers, and not the
@@ -353,18 +407,65 @@ export function buildBarLabelDatum(
 }
 
 /**
+ * Builds the {@link PointLabelDatum} routing a bar label through the positioned-candidate engine path:
+ * the pre-positioned `candidates` are cascaded in order (each carries its own region), avoiding other
+ * labels, never dropped. Mirrors {@link buildBarLabelDatum}'s avoid/neverDrop/collideWith but hands the
+ * engine opaque boxes instead of an orientation array to resolve.
+ */
+export function buildBarPositionedLabelDatum(
+    text: NormalisedTextOrSegments,
+    width: number,
+    height: number,
+    candidates: readonly PositionedLabelCandidate[],
+    target: BarLabelTarget
+): BarPlacedLabelDatum {
+    return {
+        point: { x: 0, y: 0, size: 0 },
+        label: { text, width, height },
+        anchor: undefined,
+        placement: undefined,
+        gap: 0,
+        avoid: true,
+        neverDrop: true,
+        collideWith: barLabelCollideWith,
+        positionedCandidates: candidates,
+        target,
+    };
+}
+
+/**
  * Writes each placed label's chosen orientation back as a render rotation (radians), plus the flush
  * offset that slid it inside its region, onto its target. Labels the engine dropped are absent here
  * and keep the first-orientation rotation baked at node-data time. Every datum here was produced by
  * {@link buildBarLabelDatum}, so it carries `target`.
  */
 export function applyBarLabelOrientation(placed: readonly PlacedLabel<unknown>[]): void {
-    for (const { datum, rotation, offsetX, offsetY } of placed) {
+    for (const { datum, rotation, offsetX, offsetY, candidate } of placed) {
         const { target } = datum as BarPlacedLabelDatum;
         target.rotation = toRadians(rotation ?? 0);
         target.offsetX = offsetX ?? 0;
         target.offsetY = offsetY ?? 0;
+        // Placement-cascade path: the engine chose a whole candidate (region + rotation may differ per
+        // candidate), so also retarget the label to that candidate's anchor and granular placement. The
+        // orientation-only path leaves `candidate` unset and keeps the baked anchor/placement.
+        if (candidate != null) {
+            const { anchor, placement } = candidate as BarPositionedCandidate;
+            target.x = anchor.x;
+            target.y = anchor.y;
+            target.textAlign = anchor.textAlign;
+            target.textBaseline = anchor.textBaseline;
+            target.placement = placement;
+        }
     }
+}
+
+/**
+ * True when a `placement` array offers more than one candidate to cascade through. A single value (or
+ * unset) has nothing to resolve, so the series keeps its unconditional first-placement bake and never
+ * enters the positioned-candidate engine path — leaving existing charts byte-identical.
+ */
+export function barLabelResolvesPlacement(placement: unknown): boolean {
+    return Array.isArray(placement) && placement.length > 1;
 }
 
 /** Measured size of a label's text or rich-text segments under the given font. */
@@ -757,6 +858,9 @@ function placeAvoidingLabel(
     gap: number,
     spacing: number
 ): PlacedLabel | undefined {
+    if (d.positionedCandidates != null) {
+        return placeFromPositionedCandidates(d, index, bounds, text, width, height);
+    }
     const candidates = d.placements;
     const orientations = orientationsOf(d);
     const singleOrientation = singleOrientationOf(d);
@@ -841,6 +945,101 @@ function placeAvoidingLabel(
         rotation: bestRotation || undefined,
         offsetX: bestOffsetX,
         offsetY: bestOffsetY,
+    };
+}
+
+/**
+ * Cascades over {@link PointLabelDatum.positionedCandidates} in order, returning the first candidate
+ * whose box fits its own `region` (or the shared `bounds`) and clears every obstacle. Runs only the
+ * generic containment/obstacle/flush/least-overflow logic — the series pre-computed each candidate's
+ * geometry, so no placement maths happens here. When none fits, a {@link PointLabelDatum.neverDrop}
+ * datum keeps the least region-overflowing candidate; otherwise it is dropped (`undefined`).
+ */
+function placeFromPositionedCandidates(
+    d: PointLabelDatum,
+    index: number,
+    bounds: BoxBounds,
+    text: NormalisedTextOrSegments,
+    width: number,
+    height: number
+): PlacedLabel | undefined {
+    const candidates = d.positionedCandidates!;
+    const inflate = maxInflation(d.collideWith);
+    candidateCollideWith = d.collideWith;
+    // No compass placement and no own marker on this path: bars disable marker collisions, so the
+    // `inside` own-marker skip in obstacleOverlapsCandidate must stay inert.
+    candidatePlacement = undefined;
+
+    let bestOverflow = Infinity;
+    let bestX = 0;
+    let bestY = 0;
+    let bestOffsetX = 0;
+    let bestOffsetY = 0;
+    let bestCandidate: PositionedLabelCandidate | undefined;
+
+    for (let ci = 0, ln = candidates.length; ci < ln; ci++) {
+        const c = candidates[ci];
+        const region = c.region ?? bounds;
+        candidateBox.x = c.box.x;
+        candidateBox.y = c.box.y;
+        candidateBox.width = c.box.width;
+        candidateBox.height = c.box.height;
+        let { x, y } = candidateBox;
+        const { width: cw, height: ch } = candidateBox;
+        let offsetX = 0;
+        let offsetY = 0;
+        // Slide a region-bound candidate flush inside its own region (matches the orientation path's
+        // clampAxis flush); a region-less (outside) candidate floats.
+        if (c.region != null && d.neverDrop) {
+            const nx = clampAxis(x, cw, region.x, region.width);
+            const ny = clampAxis(y, ch, region.y, region.height);
+            offsetX = nx - x;
+            offsetY = ny - y;
+            candidateBox.x = x = nx;
+            candidateBox.y = y = ny;
+        }
+        inflateBoxInto(queryBox, candidateBox, inflate);
+        if (boxContains(region, x, y, cw, ch) && !obstacleIndex.query(queryBox, obstacleOverlapsCandidate)) {
+            return {
+                index,
+                text,
+                x,
+                y,
+                width,
+                height,
+                datum: d,
+                placement: undefined,
+                rotation: c.rotation,
+                offsetX,
+                offsetY,
+                candidate: c,
+            };
+        }
+        const overflow = d.neverDrop ? regionOverflow(region, x, y, cw, ch) : Infinity;
+        if (overflow < bestOverflow) {
+            bestOverflow = overflow;
+            bestX = x;
+            bestY = y;
+            bestOffsetX = offsetX;
+            bestOffsetY = offsetY;
+            bestCandidate = c;
+        }
+    }
+
+    if (bestCandidate == null) return undefined;
+    return {
+        index,
+        text,
+        x: bestX,
+        y: bestY,
+        width,
+        height,
+        datum: d,
+        placement: undefined,
+        rotation: bestCandidate.rotation,
+        offsetX: bestOffsetX,
+        offsetY: bestOffsetY,
+        candidate: bestCandidate,
     };
 }
 

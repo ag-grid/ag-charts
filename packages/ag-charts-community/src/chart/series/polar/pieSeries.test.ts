@@ -1,7 +1,9 @@
 import { classCast } from '_ag-charts-test';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
-import type { AgChartOptions, AgPieSeriesOptions, AgPolarChartOptions } from 'ag-charts-types';
+import { ChartUpdateType } from 'ag-charts-core';
+import { classCast } from '_ag-charts-test';
+import type { AgChartInstance, AgChartOptions, AgPieSeriesOptions, AgPolarChartOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
 import { OptionsGraph } from '../../../module/optionsGraph';
@@ -14,17 +16,21 @@ import { type MockPieCalloutLineItemStyler, newFreezableMock } from '../../test/
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     PATTERN_SNAPSHOT_DEFAULTS,
+    type SceneFrameInvariant,
+    type SceneGeometrySample,
+    type SceneNodeExpectation,
     clickAction,
     createChart,
     createSceneGeometrySampler,
     deproxy,
     doubleClickAction,
     doubleTapAction,
+    expectAnimatedEndpointsMatchStatic,
     expectMonotonic,
     expectProgresses,
+    expectSceneSamplesMatch,
     expectSceneTrajectory,
     expectWarningsCalls,
-    expectWithinBounds,
     extractImageData,
     looserSnapshotDefaults,
     prepareTestOptions,
@@ -36,6 +42,7 @@ import {
     waitForChartStability,
 } from '../../test/utils';
 import { PieSeries } from './pieSeries';
+import { DATA_MARKET_SHARE } from './test/data';
 
 function* iterPieSectors(myChart: Chart) {
     const pieSeries = classCast(deproxy(myChart).series[0], PieSeries);
@@ -81,66 +88,490 @@ describe('PieSeries', () => {
     const ctx = setupMockCanvas();
     const options: AgPolarChartOptions = prepareTestOptions({});
 
-    // SPIKE: frame-trajectory invariant test for a polar series (CASE 4) — probes angular geometry.
-    // On initial load each sector sweeps its angular span from 0 to target; radii are set to their
-    // final values immediately (pieUtil.ts), so only the angle span animates.
-    describe('animation frame-trajectory (spike)', () => {
+    // The public animation data actions — initial-load, add, remove, update, legend-toggle — each
+    // asserted over the whole animation trajectory (see the animation-trajectory-tests rule). Add and
+    // remove append/truncate at the tail; the pie-series-test page's manual-only reorder, rapid-update,
+    // change-in-place and start/middle add/remove controls exercise the same span/radius/fade code paths
+    // and are not reproduced here. Pie sectors sweep their angular SPAN; the outer radius re-layouts as
+    // the callout labels claim or release room; the callout labels snap to opacity 0 when the data lands
+    // and re-fade during the trailing phase.
+    describe('animation -test page actions', () => {
         const frames = spyOnAnimationFrames();
 
-        it('CASE 4: pie initial load sweeps each sector span monotonically to a full circle', async () => {
-            chart = deproxy(
-                AgCharts.create(
-                    prepareTestOptions({
-                        data: [
-                            { label: 'A', value: 30 },
-                            { label: 'B', value: 20 },
-                            { label: 'C', value: 50 },
-                        ],
-                        series: [{ type: 'pie', angleKey: 'value', calloutLabelKey: 'label' }],
-                    })
-                )
-            );
+        type MarketRow = { os: string; share: number };
 
-            const sampleScene = createSceneGeometrySampler(chart);
-            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
-            await frames.runToEnd(chart);
-            const finalScene = sampleScene();
-            const sectorKeys = [...finalScene.keys()].filter((k) => k.startsWith('series[0]/sector'));
-            expect(sectorKeys).toHaveLength(3);
-
-            // The sweep rotates clockwise from the top: every animated angle increases monotonically,
-            // and the first sector's startAngle (the 12 o'clock anchor) never moves. Radii and sector
-            // opacity are implicitly constant; the callout/sector labels fade in as the sweep completes.
-            const sweepsClockwise = {
-                startAngle: { during: 'initial', expect: 'increases' },
-                endAngle: { during: 'initial', expect: 'increases' },
-            } as const;
-            const fadesIn = { opacity: { during: 'trailing', expect: 'increases' } } as const;
-            expectSceneTrajectory(trajectory, {
-                'series[0]/sector[30]': { endAngle: { during: 'initial', expect: 'increases' } },
-                'series[0]/sector[20]': sweepsClockwise,
-                'series[0]/sector[50]': sweepsClockwise,
-                'series[0]/group[*]': fadesIn, // callout label groups
-                'series[0]/labels/text[*]': fadesIn,
+        const pieOptions = (data: MarketRow[] = DATA_MARKET_SHARE): AgPolarChartOptions =>
+            prepareTestOptions({
+                data: [...data],
+                series: [{ type: 'pie', angleKey: 'share', calloutLabelKey: 'os' }],
+                legend: { enabled: true },
+            });
+        const donutOptions = (data: MarketRow[] = DATA_MARKET_SHARE): AgPolarChartOptions =>
+            prepareTestOptions({
+                data: [...data],
+                series: [{ type: 'donut', angleKey: 'share', calloutLabelKey: 'os', innerRadiusRatio: 0.6 }],
+                legend: { enabled: true },
             });
 
-            // The angular span is a derived quantity the spec can't express: assert each sector's span
-            // grows monotonically from 0 to its target, and the total closes up into a full circle.
+        const dropLastTwo = (data: MarketRow[]) => data.slice(0, data.length - 2);
+        const doubleIos = (data: MarketRow[]) => data.map((d) => (d.os === 'iOS' ? { ...d, share: d.share * 2 } : d));
+
+        const sectorEntries = (sample: SceneGeometrySample) =>
+            [...sample].filter(([key]) => /^series\[0\]\/sector\[/.test(key));
+        const sectorCount = (sample: SceneGeometrySample) => sectorEntries(sample).length;
+        // A sector's angular span across the frames where it is present and finite. `span` is a
+        // derived quantity no per-property expectation can express, so the headline directional and
+        // anti-vacuity contracts are asserted over it manually (as the historic spike CASE did).
+        const spans = (trajectory: SceneGeometrySample[], key: string): number[] =>
+            trajectory
+                .map((f) => {
+                    const s = f.get(key);
+                    return s == null ? undefined : s.endAngle - s.startAngle;
+                })
+                .filter((v): v is number => v != null && Number.isFinite(v));
+        const radii = (trajectory: SceneGeometrySample[], key: string): number[] =>
+            trajectory.map((f) => f.get(key)?.outerRadius).filter((v): v is number => v != null && Number.isFinite(v));
+
+        // Sorted by start angle, each sector ends exactly where the next begins — a collapsed
+        // zero-span sector still satisfies this, so it holds through add/remove/update/legend.
+        const sectorsContiguous: SceneFrameInvariant = {
+            name: 'sectors tile the circle contiguously',
+            check: (frame) => {
+                const sorted = sectorEntries(frame)
+                    .map(([, v]) => v)
+                    .sort((a, b) => a.startAngle - b.startAngle);
+                for (let i = 0; i < sorted.length - 1; i++) {
+                    const gap = Math.abs(sorted[i].endAngle - sorted[i + 1].startAngle);
+                    if (gap > 1e-3) return `gap ${gap.toFixed(4)} between contiguous sectors ${i} and ${i + 1}`;
+                }
+                return undefined;
+            },
+        };
+        // On a full-circle transition the spans always sum to 2π: a shrinking sector is exactly offset
+        // by growing neighbours on every frame (NOT true of the initial reveal, where the total grows).
+        const spanClosesToCircle: SceneFrameInvariant = {
+            name: 'sector spans sum to a full circle',
+            check: (frame) => {
+                const total = sectorEntries(frame).reduce((sum, [, v]) => sum + (v.endAngle - v.startAngle), 0);
+                return Math.abs(total - Math.PI * 2) > 1e-2 ? `total span ${total.toFixed(3)} != 2π` : undefined;
+            },
+        };
+
+        // The callout label containers and per-datum callout label texts re-fade during the trailing
+        // phase, after the sectors have reflowed. The globs also match the non-fading structural groups
+        // (items/phantom) and the persistent inner label `labels/text[]`, which satisfy the spec
+        // vacuously; expectCalloutsStartHidden supplies the anti-vacuity for the nodes that do fade.
+        const calloutRefade: Record<string, SceneNodeExpectation> = {
+            'series[0]/group[*]': { opacity: { during: 'trailing', expect: ['increases', 'bounded'] } },
+            'series[0]/labels/text[*]': {
+                opacity: { during: 'trailing', expect: ['increases', 'bounded'] },
+                x: 'any',
+                y: 'any',
+            },
+        };
+        // Both the callout label containers (unnamed / `#n` groups) AND the per-datum label texts
+        // (`labels/text[<datum>]`) start collapsed at opacity ~0 on the first captured frame, so the
+        // re-fade specs above cannot pass vacuously — a regression that snapped them straight to full
+        // opacity would trip this. The persistent inner label (`labels/text[]`, empty key) never fades
+        // and is excluded.
+        const expectCalloutsStartHidden = (trajectory: SceneGeometrySample[]) => {
+            const faders = [...trajectory[0]].filter(
+                ([key]) => /^series\[0\]\/group\[(#\d+)?\]$/.test(key) || /^series\[0\]\/labels\/text\[.+\]$/.test(key)
+            );
+            expect(faders.length, 'callout label nodes at frame 0').toBeGreaterThan(0);
+            for (const [key, props] of faders) {
+                expect(props.opacity, `${key} opacity at frame 0`).toBeLessThanOrEqual(0.01);
+            }
+        };
+
+        // A data update lands new / re-keyed sector nodes and snaps the callout labels to opacity 0 at
+        // frame 0, tripping captureUpdate's whole-scene start anchor — so the data-action CASEs
+        // hand-roll the capture, keeping only the end anchor (as the line/bar suites do). `setup` runs
+        // an extra settled pre-state (used by legend-show, which must start from a hidden sector).
+        const captureFrom = async (
+            create: AgPolarChartOptions,
+            action: (proxy: AgChartInstance) => void | Promise<void>,
+            setup?: (proxy: AgChartInstance) => void | Promise<void>
+        ) => {
+            const proxy = AgCharts.create(create);
+            chart = deproxy(proxy);
+            await frames.runToEnd(proxy);
+            if (setup != null) {
+                await setup(proxy);
+                await frames.runToEnd(proxy);
+            }
+            const sampleScene = createSceneGeometrySampler(proxy);
+            const before = sampleScene();
+            await action(proxy);
+            const trajectory = await frames.captureAnimationFrames(proxy, sampleScene);
+            await frames.runToEnd(proxy);
+            const after = sampleScene();
+            // End anchor only (the frame-0 start anchor is dropped: labels snap at frame 0).
+            expectSceneSamplesMatch(trajectory.at(-1)!, after);
+            return { proxy, sampleScene, before, trajectory, after };
+        };
+
+        const toggleSector = (proxy: AgChartInstance, index: number, enabled: boolean) => {
+            (deproxy(proxy).series[0] as any).toggleSeriesItem(enabled, 'category', index, undefined);
+            deproxy(proxy).update(ChartUpdateType.FULL);
+        };
+
+        // Initial-load reveal: each sector sweeps its span from 0 to target while the radii hold; the
+        // callouts and labels fade in as the sweep completes.
+        it('standalone: initial load sweeps each sector span to a full circle', async () => {
+            const proxy = AgCharts.create(pieOptions());
+            chart = deproxy(proxy);
+            const sampleScene = createSceneGeometrySampler(proxy);
+            const trajectory = await frames.captureAnimationFrames(proxy, sampleScene);
+            await frames.runToEnd(proxy);
+            const sectorKeys = sectorEntries(sampleScene()).map(([key]) => key);
+            expect(sectorKeys).toHaveLength(6);
+
+            expectSceneTrajectory(
+                trajectory,
+                {
+                    // Every sector's endAngle sweeps during 'initial' and holds thereafter; startAngle is
+                    // mixed (the anchor holds, the rest slide) so it is left to the span checks below.
+                    'series[0]/sector[*]': {
+                        startAngle: 'any',
+                        endAngle: { during: 'initial', expect: ['progresses', 'bounded'] },
+                    },
+                    ...calloutRefade,
+                },
+                { frameInvariants: [sectorsContiguous] }
+            );
+            expectCalloutsStartHidden(trajectory);
+
+            // Anti-vacuity: every span grows from ~0 to its target and the total closes to 2π.
             for (const key of sectorKeys) {
-                const spans = trajectory.map((f) => {
-                    const sector = f.get(key)!;
-                    return sector.endAngle - sector.startAngle;
-                });
-                const finalSector = finalScene.get(key)!;
-                expectProgresses(spans);
-                expectMonotonic(spans, 'increasing');
-                expectWithinBounds(spans, 0, finalSector.endAngle - finalSector.startAngle);
+                const sectorSpans = spans(trajectory, key);
+                expect(sectorSpans[0], `${key} span at frame 0`).toBeLessThanOrEqual(0.02);
+                expectMonotonic(sectorSpans, 'increasing');
+                expectProgresses(sectorSpans);
             }
             const totalSpan = trajectory.map((f) =>
-                sectorKeys.reduce((sum, key) => sum + (f.get(key)!.endAngle - f.get(key)!.startAngle), 0)
+                sectorEntries(f).reduce((sum, [, v]) => sum + (v.endAngle - v.startAngle), 0)
             );
+            expect(totalSpan[0]).toBeLessThanOrEqual(0.05);
             expectMonotonic(totalSpan, 'increasing');
             expect(totalSpan.at(-1)).toBeCloseTo(Math.PI * 2, 1);
+        });
+
+        // "Remove Data" — the two smallest sectors collapse their span to zero and leave, while the
+        // survivors grow to fill the vacated sweep and the pie's outer radius grows into the freed room.
+        it('remove data: dropped sectors collapse while survivors grow to fill the circle', async () => {
+            const { before, trajectory, after } = await captureFrom(pieOptions(), (proxy) =>
+                proxy.update(pieOptions(dropLastTwo(DATA_MARKET_SHARE)))
+            );
+            expect(sectorCount(before)).toBe(6);
+            expect(sectorCount(after)).toBe(4);
+            // The removed sectors are named explicitly (not left to the `sector[*]` wildcard): their
+            // outerRadius must actually tween into the freed-up radius alongside the survivors, not
+            // sit constant at the old (smaller) radius while only their span collapses — a wildcard
+            // 'increases' check alone would pass vacuously on a constant trajectory (AG-8489).
+            const removedRadius: SceneNodeExpectation = {
+                startAngle: 'any',
+                endAngle: 'any',
+                outerRadius: { during: 'update', expect: ['increases', 'progresses', 'bounded'] },
+            };
+            expectSceneTrajectory(
+                trajectory,
+                {
+                    'series[0]/sector[2.6]': removedRadius,
+                    'series[0]/sector[1.9]': removedRadius,
+                    'series[0]/sector[*]': {
+                        startAngle: 'any',
+                        endAngle: 'any',
+                        outerRadius: { during: 'update', expect: ['increases', 'bounded'] },
+                    },
+                    ...calloutRefade,
+                },
+                { frameInvariants: [sectorsContiguous, spanClosesToCircle] }
+            );
+            expectCalloutsStartHidden(trajectory);
+
+            for (const key of ['series[0]/sector[2.6]', 'series[0]/sector[1.9]']) {
+                const removed = spans(trajectory, key);
+                expect(removed[0], `${key} span at frame 0`).toBeGreaterThan(0.1);
+                expectMonotonic(removed, 'decreasing');
+                expect(removed.at(-1), `${key} final span`).toBeLessThanOrEqual(0.02);
+            }
+            const android = spans(trajectory, 'series[0]/sector[56.9]');
+            expectMonotonic(android, 'increasing');
+            expect(android.at(-1)! - android[0], 'Android span growth').toBeGreaterThan(0.1);
+        });
+
+        // "Add Data" — the two restored sectors grow their span from zero while the survivors shrink to
+        // make room and the outer radius contracts as the extra callout labels reclaim their space.
+        it('add data: new sectors grow from zero while survivors shrink to make room', async () => {
+            const { before, trajectory, after } = await captureFrom(
+                pieOptions(dropLastTwo(DATA_MARKET_SHARE)),
+                (proxy) => proxy.update(pieOptions())
+            );
+            expect(sectorCount(before)).toBe(4);
+            expect(sectorCount(after)).toBe(6);
+            // The added sectors are named explicitly (not left to the `sector[*]` wildcard): their
+            // outerRadius must actually tween down from the old (bigger) radius alongside the
+            // survivors, not snap straight to the target radius while only their span grows in — a
+            // wildcard 'decreases' check alone would pass vacuously on a constant trajectory.
+            const addedRadius: SceneNodeExpectation = {
+                startAngle: 'any',
+                endAngle: 'any',
+                outerRadius: { during: 'update', expect: ['decreases', 'progresses', 'bounded'] },
+            };
+            expectSceneTrajectory(
+                trajectory,
+                {
+                    'series[0]/sector[2.6]': addedRadius,
+                    'series[0]/sector[1.9]': addedRadius,
+                    'series[0]/sector[*]': {
+                        startAngle: 'any',
+                        endAngle: 'any',
+                        outerRadius: { during: 'update', expect: ['decreases', 'bounded'] },
+                    },
+                    ...calloutRefade,
+                },
+                { frameInvariants: [sectorsContiguous, spanClosesToCircle] }
+            );
+            expectCalloutsStartHidden(trajectory);
+
+            for (const key of ['series[0]/sector[2.6]', 'series[0]/sector[1.9]']) {
+                const added = spans(trajectory, key);
+                expect(added[0], `${key} span at frame 0`).toBeLessThanOrEqual(0.02);
+                expectMonotonic(added, 'increasing');
+                expectProgresses(added);
+            }
+            const android = spans(trajectory, 'series[0]/sector[56.9]');
+            expectMonotonic(android, 'decreasing');
+            expect(android[0] - android.at(-1)!, 'Android span shrink').toBeGreaterThan(0.1);
+        });
+
+        // "Update Data" — doubling iOS's share grows its sector at the expense of every other sector;
+        // its shared boundary with the Android anchor tweens during the update phase. The trajectory
+        // spec proves the boundary MOVES and WHEN (progresses/during); direction is proven by the span
+        // checks below (per-frame angle steps sit under monotonicTol, so a direction word is vacuous).
+        it('update data: doubling iOS grows its sector while the rest shrink proportionally', async () => {
+            const { trajectory } = await captureFrom(pieOptions(), (proxy) =>
+                proxy.update(pieOptions(doubleIos(DATA_MARKET_SHARE)))
+            );
+            expectSceneTrajectory(
+                trajectory,
+                {
+                    // The iOS/Android boundary is the one angle that moves a whole radian; Android's
+                    // startAngle is the fixed 12 o'clock anchor that must never move.
+                    'series[0]/sector[22.5]': {
+                        startAngle: { during: 'update', expect: ['progresses', 'bounded'] },
+                        endAngle: 'any',
+                        outerRadius: { during: 'update', expect: ['progresses', 'bounded'] },
+                    },
+                    'series[0]/sector[56.9]': {
+                        startAngle: 'constant',
+                        endAngle: { during: 'update', expect: ['progresses', 'bounded'] },
+                        outerRadius: { during: 'update', expect: ['progresses', 'bounded'] },
+                    },
+                    'series[0]/sector[*]': {
+                        startAngle: 'any',
+                        endAngle: 'any',
+                        outerRadius: { during: 'update', expect: ['progresses', 'bounded'] },
+                    },
+                    ...calloutRefade,
+                },
+                { frameInvariants: [sectorsContiguous, spanClosesToCircle] }
+            );
+            expectCalloutsStartHidden(trajectory);
+
+            const ios = spans(trajectory, 'series[0]/sector[22.5]');
+            expectMonotonic(ios, 'increasing');
+            expectProgresses(ios);
+            expect(ios.at(-1)! - ios[0], 'iOS span growth').toBeGreaterThan(0.5);
+            const android = spans(trajectory, 'series[0]/sector[56.9]');
+            expectMonotonic(android, 'decreasing');
+            expect(android[0] - android.at(-1)!, 'Android span shrink').toBeGreaterThan(0.3);
+        });
+
+        // "Legend toggle off" — hiding Android collapses its sector span to zero (its startAngle anchor
+        // holds while its endAngle sweeps back to it) as the survivors grow to reclaim the whole circle.
+        it('legend hide: the toggled-off sector collapses while survivors grow to fill the circle', async () => {
+            const { trajectory } = await captureFrom(pieOptions(), (proxy) => toggleSector(proxy, 0, false));
+            expectSceneTrajectory(
+                trajectory,
+                {
+                    'series[0]/sector[56.9]': {
+                        startAngle: 'constant',
+                        endAngle: { during: 'update', expect: ['progresses', 'bounded'] },
+                        outerRadius: { during: 'update', expect: ['increases', 'progresses', 'bounded'] },
+                    },
+                    'series[0]/sector[*]': {
+                        startAngle: 'any',
+                        endAngle: 'any',
+                        outerRadius: { during: 'update', expect: ['increases', 'bounded'] },
+                    },
+                    ...calloutRefade,
+                },
+                { frameInvariants: [sectorsContiguous, spanClosesToCircle] }
+            );
+            expectCalloutsStartHidden(trajectory);
+
+            const android = spans(trajectory, 'series[0]/sector[56.9]');
+            expect(android[0], 'Android span before hide').toBeGreaterThan(3);
+            expectMonotonic(android, 'decreasing');
+            expect(android.at(-1), 'Android final span').toBeLessThanOrEqual(0.02);
+            const ios = spans(trajectory, 'series[0]/sector[22.5]');
+            expectMonotonic(ios, 'increasing');
+            expect(ios.at(-1)! - ios[0], 'iOS span growth').toBeGreaterThan(0.5);
+            // The freed callout-label room must actually grow the outer radius, not sit constant while
+            // only the spans reflow (a wildcard 'increases' passes vacuously on a held radius).
+            const outerRadius = radii(trajectory, 'series[0]/sector[56.9]');
+            expect(outerRadius.at(-1)! - outerRadius[0], 'outer radius growth on hide').toBeGreaterThan(5);
+        });
+
+        // "Legend toggle on" — the reverse: re-showing a hidden Android grows its span back from zero
+        // while the survivors shrink to make room. Starts from a settled hidden pre-state via `setup`.
+        it('legend show: the re-shown sector grows from zero while survivors shrink', async () => {
+            const { trajectory } = await captureFrom(
+                pieOptions(),
+                (proxy) => toggleSector(proxy, 0, true),
+                (proxy) => toggleSector(proxy, 0, false)
+            );
+            expectSceneTrajectory(
+                trajectory,
+                {
+                    'series[0]/sector[56.9]': {
+                        startAngle: 'constant',
+                        endAngle: { during: 'update', expect: ['progresses', 'bounded'] },
+                        outerRadius: { during: 'update', expect: ['decreases', 'progresses', 'bounded'] },
+                    },
+                    'series[0]/sector[*]': {
+                        startAngle: 'any',
+                        endAngle: 'any',
+                        outerRadius: { during: 'update', expect: ['decreases', 'bounded'] },
+                    },
+                    ...calloutRefade,
+                },
+                { frameInvariants: [sectorsContiguous, spanClosesToCircle] }
+            );
+            expectCalloutsStartHidden(trajectory);
+
+            const android = spans(trajectory, 'series[0]/sector[56.9]');
+            expect(android[0], 'Android span while hidden').toBeLessThanOrEqual(0.02);
+            expectMonotonic(android, 'increasing');
+            expect(android.at(-1), 'Android final span').toBeGreaterThan(3);
+            // The reclaimed callout-label room must actually shrink the outer radius back down.
+            const outerRadius = radii(trajectory, 'series[0]/sector[56.9]');
+            expect(outerRadius[0] - outerRadius.at(-1)!, 'outer radius shrink on show').toBeGreaterThan(5);
+        });
+
+        // Donut initial load: identical span sweep to the pie, but with a persistent cutout — the inner
+        // and outer radii hold at their donut values throughout, so only the angular span animates.
+        it('donut: initial load sweeps spans while the cutout radii hold', async () => {
+            const proxy = AgCharts.create(donutOptions());
+            chart = deproxy(proxy);
+            const sampleScene = createSceneGeometrySampler(proxy);
+            const trajectory = await frames.captureAnimationFrames(proxy, sampleScene);
+            await frames.runToEnd(proxy);
+            const sectorKeys = sectorEntries(sampleScene()).map(([key]) => key);
+            expect(sectorKeys).toHaveLength(6);
+
+            expectSceneTrajectory(
+                trajectory,
+                {
+                    'series[0]/sector[*]': {
+                        startAngle: 'any',
+                        endAngle: { during: 'initial', expect: ['progresses', 'bounded'] },
+                    },
+                    ...calloutRefade,
+                },
+                { frameInvariants: [sectorsContiguous] }
+            );
+            expectCalloutsStartHidden(trajectory);
+
+            // The cutout is real and holds: inner radius stays well above zero on every frame.
+            for (const frame of trajectory) {
+                for (const [key, props] of sectorEntries(frame)) {
+                    expect(props.innerRadius, `${key} innerRadius`).toBeGreaterThan(50);
+                }
+            }
+            for (const key of sectorKeys) {
+                const sectorSpans = spans(trajectory, key);
+                expect(sectorSpans[0], `${key} span at frame 0`).toBeLessThanOrEqual(0.02);
+                expectMonotonic(sectorSpans, 'increasing');
+                expectProgresses(sectorSpans);
+            }
+        });
+
+        // Donut data update: the spans reshape exactly as the pie's, and the cutout survives — the inner
+        // and outer radii tween by a small margin (progresses/bounded) without ever collapsing the hole.
+        it('donut: updating data reshapes spans while the cutout survives', async () => {
+            const { trajectory } = await captureFrom(donutOptions(), (proxy) =>
+                proxy.update(donutOptions(doubleIos(DATA_MARKET_SHARE)))
+            );
+            const cutoutTweens: SceneNodeExpectation = {
+                innerRadius: { during: 'update', expect: ['progresses', 'bounded'] },
+                outerRadius: { during: 'update', expect: ['progresses', 'bounded'] },
+            };
+            expectSceneTrajectory(
+                trajectory,
+                {
+                    'series[0]/sector[22.5]': {
+                        startAngle: { during: 'update', expect: ['progresses', 'bounded'] },
+                        endAngle: 'any',
+                        ...cutoutTweens,
+                    },
+                    'series[0]/sector[56.9]': {
+                        startAngle: 'constant',
+                        endAngle: { during: 'update', expect: ['progresses', 'bounded'] },
+                        ...cutoutTweens,
+                    },
+                    'series[0]/sector[*]': { startAngle: 'any', endAngle: 'any', ...cutoutTweens },
+                    // The donut's inner-circle marker resizes by a couple of pixels with the cutout.
+                    'series[0]/background/marker[*]': 'any',
+                    ...calloutRefade,
+                },
+                { frameInvariants: [sectorsContiguous, spanClosesToCircle] }
+            );
+            expectCalloutsStartHidden(trajectory);
+
+            for (const frame of trajectory) {
+                for (const [key, props] of sectorEntries(frame)) {
+                    expect(props.innerRadius, `${key} innerRadius`).toBeGreaterThan(50);
+                }
+            }
+            const ios = spans(trajectory, 'series[0]/sector[22.5]');
+            expectMonotonic(ios, 'increasing');
+            expectProgresses(ios);
+            expect(ios.at(-1)! - ios[0], 'iOS span growth').toBeGreaterThan(0.5);
+        });
+
+        // Endpoint sanity guards: the animated route must settle at exactly the pixels a snapped
+        // (skipAnimations) render of the same options produces, in both directions.
+        it('sanity: update-data endpoints match static renders', async () => {
+            const before = pieOptions();
+            const proxy = AgCharts.create(before);
+            chart = deproxy(proxy);
+            await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), proxy, before, {
+                ...before,
+                data: doubleIos(DATA_MARKET_SHARE),
+            });
+        });
+
+        it('sanity: remove-data endpoints match static renders', async () => {
+            const before = pieOptions();
+            const proxy = AgCharts.create(before);
+            chart = deproxy(proxy);
+            await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), proxy, before, {
+                ...before,
+                data: dropLastTwo(DATA_MARKET_SHARE),
+            });
+        });
+
+        it('sanity: add-data endpoints match static renders', async () => {
+            const before = pieOptions(dropLastTwo(DATA_MARKET_SHARE));
+            const proxy = AgCharts.create(before);
+            chart = deproxy(proxy);
+            await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), proxy, before, {
+                ...before,
+                data: [...DATA_MARKET_SHARE],
+            });
         });
     });
 
@@ -1245,6 +1676,9 @@ describe('PieSeries', () => {
             { label: 'D', value: 15 },
         ];
 
+        // Intermediate ratios are load-bearing here: this is a paint regression (fills rendering black
+        // mid-interpolation), which the geometry trajectory harness cannot observe — only rendered
+        // pixels catch it, so the full ratio sweep is retained rather than trimmed to endpoints.
         for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
             it(`should render pattern fills (not black) at ${ratio * 100}%`, async () => {
                 animate(1200, ratio);

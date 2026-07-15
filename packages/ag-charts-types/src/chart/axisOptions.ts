@@ -79,6 +79,22 @@ export interface AgAxisCaptionOptions {
     formatter?: RichFormatter<AgAxisCaptionFormatterParams>;
 }
 
+/**
+ * Orientation of an axis title.
+ * - `'horizontal'` renders the title in the normal left-to-right reading direction.
+ * - `'vertical'` and `'vertical-reversed'` rotate it a quarter-turn in opposite directions.
+ */
+export type AgAxisTitleOrientation = 'horizontal' | 'vertical' | 'vertical-reversed';
+
+export interface AgCartesianAxisCaptionOptions extends AgAxisCaptionOptions {
+    /**
+     * Orientation of the title.
+     *
+     * Default: aligned with the axis line (`'horizontal'` on the x-axis, `'vertical'` on the y-axis).
+     */
+    orientation?: AgAxisTitleOrientation;
+}
+
 export interface AgBaseAxisOptions<LabelType = any, TContext = ContextDefault> {
     /** Axis type identifier. */
     type?: string;

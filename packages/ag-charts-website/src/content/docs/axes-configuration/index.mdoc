@@ -42,6 +42,26 @@ In this example:
 - The `x` axis is customised with a larger font size, and the `y` axis is customised with a title.
 - All other axis options use the defaults.
 
+## Axis Title Orientation
+
+The `title.orientation` option controls how an axis title is rendered:
+
+- `'horizontal'` renders the title in the normal left-to-right reading direction.
+- `'vertical'` and `'vertical-reversed'` rotate it a quarter-turn in opposite directions, which is useful for flipping a secondary axis title.
+
+When unset, the title aligns with the axis line — horizontal on the x-axis and vertical on the y-axis.
+
+```js format="snippet"
+{
+    axes: {
+        y: {
+            type: 'number',
+            title: { text: 'Sales (USD)', orientation: 'horizontal' },
+        },
+    },
+}
+```
+
 ## Secondary and Named Axes
 
 While `x` and `y` are the default axis keys for cartesian charts, you can define axes with custom keys.
