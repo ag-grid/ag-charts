@@ -84,6 +84,13 @@ run_cell() {
         git status --short > "$OUT/$cell.status"
     )
 
+    # Kill anything the cell's agent left running (dev servers, watchers reference the
+    # worktree path in argv; playwright e2e containers are named) so later cells start clean.
+    pkill -f "$wt" 2>/dev/null || true
+    if command -v docker >/dev/null 2>&1; then
+        docker ps -aq --filter "name=playwright-e2e-" 2>/dev/null | xargs -r docker rm -f >/dev/null 2>&1 || true
+    fi
+
     # `worktree remove --force` can refuse on stray nested dirs (e.g. browser caches);
     # the worktree is disposable, so fall back to rm + prune rather than aborting the run.
     git -C "$REPO_ROOT" worktree remove --force "$wt" 2>/dev/null || rm -rf "$wt"

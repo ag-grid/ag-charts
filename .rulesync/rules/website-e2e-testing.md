@@ -9,6 +9,8 @@ globs: ['**/ag-charts-website/e2e/**/*.spec.ts']
 
 These patterns apply to the handwritten Playwright specs under `packages/ag-charts-website/e2e`. For JSDOM unit-test contracts (`*.test.ts`) see `test-harness-contracts.md`.
 
+**Run specs via the repo wrapper**: `yarn nx test:e2e ag-charts-website --grep "<test name>"`. It manages the dev server, environment, and browser container for you — do not hand-roll `npx playwright test` against your own astro/dev server, and do not start docker/colima directly.
+
 ## Drive chart mutations through the example's own UI
 
 E2E tests load standalone examples from `_examples/` directories. When a spec needs to trigger chart mutations (option updates, toggles, data changes):
