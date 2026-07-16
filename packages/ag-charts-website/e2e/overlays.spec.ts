@@ -1,12 +1,15 @@
 import { expect, test } from './fixture';
 import {
-    SELECTORS,
     gotoExample,
     setupIntrinsicAssertions,
     toExamplePageUrl,
     toExamplePageUrls,
     waitForAllChartUpdates,
 } from './util';
+
+// Anchor the dialog itself (not the chart wrapper) so the whole card is captured rather than
+// clipped to the plot area, and the pure-DOM panel keeps the baseline free of canvas anti-aliasing.
+const PANEL = '.ag-charts-validation-overlay__panel';
 
 test.describe('overlay textColor', () => {
     setupIntrinsicAssertions(test);
@@ -36,8 +39,7 @@ test.describe('validation overlay', () => {
         await expect(overlay).toBeVisible();
         await expect(overlay.locator('.ag-charts-validation-overlay__summary')).toHaveText('AG Charts found 1 warning');
 
-        // Anchor the rendered card so styling regressions surface in review.
-        await expect(page.locator(SELECTORS.wrapper)).toHaveScreenshot('validation-overlay-warning.png');
+        await expect(overlay.locator(PANEL)).toHaveScreenshot('validation-overlay-warning.png');
 
         const copyButton = overlay.locator('.ag-charts-validation-overlay__copy');
         await expect(copyButton).toBeVisible();
@@ -62,7 +64,7 @@ test.describe('validation overlay', () => {
             'AG Charts found 2 warnings'
         );
 
-        await expect(page.locator(SELECTORS.wrapper)).toHaveScreenshot('validation-overlay-multi.png');
+        await expect(overlay.locator(PANEL)).toHaveScreenshot('validation-overlay-multi.png');
     });
 
     test('renders with dark-theme styling', async ({ page }) => {
@@ -73,6 +75,6 @@ test.describe('validation overlay', () => {
         const overlay = page.locator('.ag-charts-validation-overlay');
         await expect(overlay).toBeVisible();
 
-        await expect(page.locator(SELECTORS.wrapper)).toHaveScreenshot('validation-overlay-dark.png');
+        await expect(overlay.locator(PANEL)).toHaveScreenshot('validation-overlay-dark.png');
     });
 });

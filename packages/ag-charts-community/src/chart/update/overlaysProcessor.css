@@ -62,14 +62,12 @@
     flex: none;
     align-items: center;
     gap: 8px;
-    padding: 8px 12px;
+    padding: 10px 12px;
     color: #cc222b;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.15);
 }
 
 .ag-charts-overlay.ag-charts-dark-overlay .ag-charts-validation-overlay__header {
     color: #ff5c66;
-    border-bottom-color: rgba(255, 255, 255, 0.2);
 }
 
 .ag-charts-validation-overlay__summary {
@@ -106,6 +104,25 @@
 
 .ag-charts-overlay.ag-charts-dark-overlay .ag-charts-validation-overlay__button:hover {
     background: rgba(255, 255, 255, 0.12);
+}
+
+.ag-charts-validation-overlay__dismiss {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border-color: transparent;
+    background: transparent;
+    color: #181d1f;
+    font-size: 18px;
+    line-height: 1;
+}
+
+.ag-charts-overlay.ag-charts-dark-overlay .ag-charts-validation-overlay__dismiss {
+    background: transparent;
+    color: #ffffff;
 }
 
 .ag-charts-validation-overlay__body {
