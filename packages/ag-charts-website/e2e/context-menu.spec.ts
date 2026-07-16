@@ -1,6 +1,12 @@
 import type { Page } from '@playwright/test';
 
-import type { AgCaptionContextMenuActionEvent, AgContextMenuGetItemsParamsCaption } from 'ag-charts-community';
+import type {
+    AgAxisContextMenuActionEvent,
+    AgAxisValue,
+    AgCaptionContextMenuActionEvent,
+    AgContextMenuGetItemsParamsAxis,
+    AgContextMenuGetItemsParamsCaption,
+} from 'ag-charts-types';
 
 import { expect, test } from './fixture';
 import {
@@ -339,6 +345,177 @@ test.describe('context-menu', () => {
                 });
                 test('getItems', async ({ page }) => {
                     expect(await popGetItems(page)).toEqual([getItemsEvent('footnote', TEXT_FOOTNOTE)]);
+                });
+            });
+        });
+    });
+
+    test.describe('AG-17637 showOn axis', () => {
+        const POINT_x_a = { clientX: 198, clientY: 472 } as const; // On 'Jun' tick label
+        const POINT_x_b = { clientX: 621, clientY: 469 } as const; // Near (to the right) of 'Aug' tick label
+        const POINT_yPrimary_a = { clientX: 67, clientY: 347 } as const; // Near '20' tick label
+        const POINT_yPrimary_b = { clientX: 86, clientY: 82 } as const; // Between '60' and '80' tick labels
+        const POINT_ySecondary_a = { clientX: 674, clientY: 349 } as const; // On '20M' tick label
+        const POINT_ySecondary_b = { clientX: 692, clientY: 110 } as const; // Between 60M and 80M tick labels (nearer to 60M).
+
+        type AxisParams = Omit<AgContextMenuGetItemsParamsAxis, 'showOn' | 'defaultItems' | 'value' | 'index'>;
+        type PointParams = { index: number; value: AgAxisValue };
+
+        const PARAMS_x: AxisParams = {
+            axisId: 'x',
+            boundSeries: [
+                { key: 'x', name: undefined, seriesId: 'BarSeries-1' },
+                { key: 'x', name: undefined, seriesId: 'BarSeries-2' },
+            ],
+            direction: 'x',
+            domain: ['Jun', 'Jul', 'Aug'],
+        };
+
+        const PARAMS_yPrimary: AxisParams = {
+            axisId: 'yPrimary',
+            boundSeries: [{ key: 'y1', name: 'Series 1', seriesId: 'BarSeries-1' }],
+            direction: 'y',
+            domain: [0, 80],
+        };
+
+        const PARAMS_ySecondary: AxisParams = {
+            axisId: 'ySecondary',
+            boundSeries: [{ key: 'y2', name: 'Series 2', seriesId: 'BarSeries-2' }],
+            direction: 'y',
+            domain: [0, 80000000],
+        };
+
+        function itemsEvent(commonArg: AxisParams, pointArgs: PointParams): AgContextMenuGetItemsParamsAxis {
+            return {
+                showOn: 'axis',
+                defaultItems: ['download'],
+                ...commonArg,
+                ...pointArgs,
+            };
+        }
+
+        function actionEvent(commonArg: AxisParams, pointArgs: PointParams): AgAxisContextMenuActionEvent {
+            return {
+                type: 'axisContextMenuAction',
+                event: expect.anything() as AgAxisContextMenuActionEvent['event'],
+                ...commonArg,
+                ...pointArgs,
+            };
+        }
+
+        function closeTo(x: number): number {
+            return expect.closeTo(x, 4) as unknown as number;
+        }
+
+        async function contextMenu(page: Page, point: { clientX: number; clientY: number }) {
+            await page.mouse.click(point.clientX, point.clientY, { button: 'right' });
+        }
+
+        async function runAction(page: Page) {
+            const button = page.getByText('Run axis action');
+            await button.click();
+        }
+
+        test.beforeEach(async ({ page }) => {
+            await gotoExample(page, toExamplePageUrl('context-menu-e2e', 'ag-17637-axis', 'vanilla').url);
+        });
+
+        test.describe('axis: x', () => {
+            test.describe('point: a', () => {
+                test.beforeEach('getItems', async ({ page }) => {
+                    await contextMenu(page, POINT_x_a);
+                });
+                test('getItems', async ({ page }) => {
+                    expect(await popGetItems(page)).toEqual([itemsEvent(PARAMS_x, { index: 0, value: 'Jun' })]);
+                });
+                test('actions', async ({ page }) => {
+                    await runAction(page);
+                    expect(await popActions(page)).toEqual([actionEvent(PARAMS_x, { index: 0, value: 'Jun' })]);
+                });
+            });
+
+            test.describe('point: b', () => {
+                test.beforeEach('getItems', async ({ page }) => {
+                    await contextMenu(page, POINT_x_b);
+                });
+                test('getItems', async ({ page }) => {
+                    expect(await popGetItems(page)).toEqual([itemsEvent(PARAMS_x, { index: 2, value: 'Aug' })]);
+                });
+                test('actions', async ({ page }) => {
+                    await runAction(page);
+                    expect(await popActions(page)).toEqual([actionEvent(PARAMS_x, { index: 2, value: 'Aug' })]);
+                });
+            });
+        });
+
+        test.describe('axis: yPrimary', () => {
+            test.describe('point: a', () => {
+                test.beforeEach('getItems', async ({ page }) => {
+                    await contextMenu(page, POINT_yPrimary_a);
+                });
+                test('getItems', async ({ page }) => {
+                    expect(await popGetItems(page)).toEqual([
+                        itemsEvent(PARAMS_yPrimary, { index: 1, value: closeTo(19.0659) }),
+                    ]);
+                });
+                test('actions', async ({ page }) => {
+                    await runAction(page);
+                    expect(await popActions(page)).toEqual([
+                        actionEvent(PARAMS_yPrimary, { index: 1, value: closeTo(19.0659) }),
+                    ]);
+                });
+            });
+
+            test.describe('point: b', () => {
+                test.beforeEach('getItems', async ({ page }) => {
+                    await contextMenu(page, POINT_yPrimary_b);
+                });
+                test('getItems', async ({ page }) => {
+                    expect(await popGetItems(page)).toEqual([
+                        itemsEvent(PARAMS_yPrimary, { index: 3, value: closeTo(69.8443) }),
+                    ]);
+                });
+                test('actions', async ({ page }) => {
+                    await runAction(page);
+                    expect(await popActions(page)).toEqual([
+                        actionEvent(PARAMS_yPrimary, { index: 3, value: closeTo(69.8443) }),
+                    ]);
+                });
+            });
+        });
+
+        test.describe('axis: ySecondary', () => {
+            test.describe('point: a', () => {
+                test.beforeEach('getItems', async ({ page }) => {
+                    await contextMenu(page, POINT_ySecondary_a);
+                });
+                test('getItems', async ({ page }) => {
+                    expect(await popGetItems(page)).toEqual([
+                        itemsEvent(PARAMS_ySecondary, { index: 1, value: closeTo(18682634.7305) }),
+                    ]);
+                });
+                test('actions', async ({ page }) => {
+                    await runAction(page);
+                    expect(await popActions(page)).toEqual([
+                        actionEvent(PARAMS_ySecondary, { index: 1, value: closeTo(18682634.7305) }),
+                    ]);
+                });
+            });
+
+            test.describe('point: b', () => {
+                test.beforeEach('getItems', async ({ page }) => {
+                    await contextMenu(page, POINT_ySecondary_b);
+                });
+                test('getItems', async ({ page }) => {
+                    expect(await popGetItems(page)).toEqual([
+                        itemsEvent(PARAMS_ySecondary, { index: 3, value: closeTo(64479041.9162) }),
+                    ]);
+                });
+                test('actions', async ({ page }) => {
+                    await runAction(page);
+                    expect(await popActions(page)).toEqual([
+                        actionEvent(PARAMS_ySecondary, { index: 3, value: closeTo(64479041.9162) }),
+                    ]);
                 });
             });
         });
