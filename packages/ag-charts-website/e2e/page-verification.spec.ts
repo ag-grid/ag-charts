@@ -165,7 +165,11 @@ test.describe('Page Verification', () => {
     // framework before load, navigate to the matching docs URL, and assert the iframe's own src
     // carries that framework before checking the chart canvas.
     const inlineExampleFrameworks = [
-        { framework: 'react', internalFramework: 'reactFunctional', srcSegment: /\/(reactFunctional|reactFunctionalTs)\// },
+        {
+            framework: 'react',
+            internalFramework: 'reactFunctional',
+            srcSegment: /\/(reactFunctional|reactFunctionalTs)\//,
+        },
         { framework: 'javascript', internalFramework: 'vanilla', srcSegment: /\/(vanilla|typescript)\// },
     ];
     for (const { framework, internalFramework, srcSegment } of inlineExampleFrameworks) {
