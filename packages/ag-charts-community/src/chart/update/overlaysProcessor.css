@@ -21,32 +21,59 @@
 }
 
 .ag-charts-validation-overlay {
-    pointer-events: auto;
+    /* Non-blocking wrapper: centres the card and lets clicks outside it pass through to the chart. */
+    pointer-events: none;
     box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
     height: 100%;
-    overflow: auto;
     padding: 12px;
     text-align: left;
-    background: rgba(255, 255, 255, 0.96);
-    color: #181d1f;
     font-family: var(--ag-charts-font-family);
     font-size: var(--ag-charts-font-size);
 }
 
-.ag-charts-overlay.ag-charts-dark-overlay .ag-charts-validation-overlay {
-    background: rgba(25, 34, 50, 0.96); /* DEFAULT_DARK_BACKGROUND_FILL */
+.ag-charts-validation-overlay__panel {
+    pointer-events: auto;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    max-width: min(640px, 100%);
+    max-height: 100%;
+    overflow: hidden;
+    color: #181d1f;
+    background: #ffffff;
+    border: 2px solid #d36f78;
+    border-radius: 6px;
+    box-shadow: 0 1px 4px 1px rgba(0, 0, 0, 0.25);
+}
+
+.ag-charts-overlay.ag-charts-dark-overlay .ag-charts-validation-overlay__panel {
     color: #ffffff;
+    background: #192232; /* DEFAULT_DARK_BACKGROUND_FILL */
+    border-color: #a94750;
+    box-shadow: 0 1px 4px 1px rgba(0, 0, 0, 0.5);
 }
 
 .ag-charts-validation-overlay__header {
     display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
+    flex: none;
+    align-items: center;
     gap: 8px;
-    margin-bottom: 8px;
+    padding: 8px 12px;
+    color: #cc222b;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+.ag-charts-overlay.ag-charts-dark-overlay .ag-charts-validation-overlay__header {
+    color: #ff5c66;
+    border-bottom-color: rgba(255, 255, 255, 0.2);
 }
 
 .ag-charts-validation-overlay__summary {
+    flex: 1;
     font-weight: 700;
 }
 
@@ -60,50 +87,93 @@
     pointer-events: auto;
     cursor: pointer;
     padding: 2px 8px;
-    border: 1px solid currentColor;
+    border: 1px solid rgba(0, 0, 0, 0.2);
     border-radius: 4px;
-    background: transparent;
-    color: inherit;
+    background: #ffffff;
+    color: #181d1f;
     font: inherit;
 }
 
+.ag-charts-validation-overlay__button:hover {
+    background: rgba(0, 0, 0, 0.06);
+}
+
+.ag-charts-overlay.ag-charts-dark-overlay .ag-charts-validation-overlay__button {
+    border-color: rgba(255, 255, 255, 0.25);
+    background: #192232;
+    color: #ffffff;
+}
+
+.ag-charts-overlay.ag-charts-dark-overlay .ag-charts-validation-overlay__button:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.ag-charts-validation-overlay__body {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 16px;
+    min-height: 0;
+    padding: 12px;
+    overflow: auto;
+}
+
 .ag-charts-validation-overlay__section {
-    padding: 8px 0;
-}
-
-.ag-charts-validation-overlay__section + .ag-charts-validation-overlay__section {
-    border-top: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-.ag-charts-overlay.ag-charts-dark-overlay
-    .ag-charts-validation-overlay__section
-    + .ag-charts-validation-overlay__section {
-    border-top-color: rgba(255, 255, 255, 0.15);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
 .ag-charts-validation-overlay__section-heading {
-    margin-bottom: 4px;
+    margin: 0;
     font-weight: 700;
 }
 
-.ag-charts-validation-overlay__section--error .ag-charts-validation-overlay__section-heading {
-    color: #cc222b;
+.ag-charts-validation-overlay__divider {
+    margin: 0;
+    border: none;
+    border-top: 1px solid rgba(0, 0, 0, 0.15);
 }
 
-.ag-charts-validation-overlay__section--warning .ag-charts-validation-overlay__section-heading {
-    color: #e08e0b;
-}
-
-.ag-charts-validation-overlay__section--deprecation .ag-charts-validation-overlay__section-heading {
-    color: #6b6b6b;
+.ag-charts-overlay.ag-charts-dark-overlay .ag-charts-validation-overlay__divider {
+    border-top-color: rgba(255, 255, 255, 0.2);
 }
 
 .ag-charts-validation-overlay__entry {
-    margin: 4px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-inline-start: 8px;
+    border-inline-start: 3px solid rgba(0, 0, 0, 0.2);
+}
+
+.ag-charts-validation-overlay__entry--error {
+    border-inline-start-color: #cc222b;
+}
+
+.ag-charts-validation-overlay__entry--warning {
+    border-inline-start-color: #d98300;
+}
+
+.ag-charts-validation-overlay__entry--deprecation {
+    border-inline-start-color: #6b6b6b;
+}
+
+.ag-charts-overlay.ag-charts-dark-overlay .ag-charts-validation-overlay__entry--error {
+    border-inline-start-color: #ff5c66;
+}
+
+.ag-charts-overlay.ag-charts-dark-overlay .ag-charts-validation-overlay__entry--warning {
+    border-inline-start-color: #f0a94b;
+}
+
+.ag-charts-overlay.ag-charts-dark-overlay .ag-charts-validation-overlay__entry--deprecation {
+    border-inline-start-color: #9aa0a6;
 }
 
 .ag-charts-validation-overlay__message {
-    line-height: 1.4;
+    margin: 0;
+    line-height: 1.5;
 }
 
 .ag-charts-validation-overlay__term,
@@ -123,9 +193,16 @@
 }
 
 .ag-charts-validation-overlay__code {
-    margin: 4px 0 0;
-    padding: 4px 6px;
+    margin: 0;
+    max-height: 50vh;
+    padding: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.15);
     border-radius: 4px;
-    overflow-x: auto;
+    font-size: 0.85em;
     white-space: pre-wrap;
+    overflow: auto;
+}
+
+.ag-charts-overlay.ag-charts-dark-overlay .ag-charts-validation-overlay__code {
+    border-color: rgba(255, 255, 255, 0.2);
 }
