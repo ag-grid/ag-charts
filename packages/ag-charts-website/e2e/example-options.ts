@@ -51,6 +51,8 @@ export const EXAMPLE_OPTIONS: Record<string, Record<string, ExampleOverrides>> =
     },
     overlays: {
         'validation-overlay': { ignoreConsoleWarnings: true },
+        'validation-overlay-multi': { ignoreConsoleWarnings: true, frameworks: ['vanilla'] },
+        'validation-overlay-dark': { ignoreConsoleWarnings: true, frameworks: ['vanilla'] },
     },
     'range-area-series': {
         'range-area-missing-data': { ignoreConsoleWarnings: true },

@@ -67,8 +67,8 @@ function diagnosticText(grouped: GroupedValidationIssues): string {
     return lines.join('\n');
 }
 
-function createEntry(agDocument: AgDocument, issue: ValidationIssue): HTMLElement {
-    const entry = agDocument.createElement('div', `${BASE}__entry`);
+function createEntry(agDocument: AgDocument, issue: ValidationIssue, severity: ValidationSeverity): HTMLElement {
+    const entry = agDocument.createElement('div', `${BASE}__entry ${BASE}__entry--${severity}`);
 
     const message = agDocument.createElement('div', `${BASE}__message`);
     appendMessage(agDocument, message, issue.message);
@@ -85,6 +85,7 @@ function createEntry(agDocument: AgDocument, issue: ValidationIssue): HTMLElemen
 
 export function getValidationOverlay({ agDocument, localeManager, grouped, onDismiss }: ValidationOverlayParams) {
     const container = agDocument.createElement('div', BASE);
+    const panel = agDocument.createElement('div', `${BASE}__panel`);
 
     const header = agDocument.createElement('div', `${BASE}__header`);
     const summary = agDocument.createElement('div', `${BASE}__summary`);
@@ -115,12 +116,18 @@ export function getValidationOverlay({ agDocument, localeManager, grouped, onDis
     actions.appendChild(dismissButton);
 
     header.appendChild(actions);
-    container.appendChild(header);
+    panel.appendChild(header);
 
     const body = agDocument.createElement('div', `${BASE}__body`);
+    let sectionRendered = false;
     for (const severity of SEVERITY_ORDER) {
         const issues = grouped[severity];
         if (issues.length === 0) continue;
+
+        if (sectionRendered) {
+            body.appendChild(agDocument.createElement('hr', `${BASE}__divider`));
+        }
+        sectionRendered = true;
 
         const section = agDocument.createElement('div', `${BASE}__section ${BASE}__section--${severity}`);
 
@@ -129,11 +136,12 @@ export function getValidationOverlay({ agDocument, localeManager, grouped, onDis
         section.appendChild(heading);
 
         for (const issue of issues) {
-            section.appendChild(createEntry(agDocument, issue));
+            section.appendChild(createEntry(agDocument, issue, severity));
         }
         body.appendChild(section);
     }
-    container.appendChild(body);
+    panel.appendChild(body);
 
+    container.appendChild(panel);
     return container;
 }

@@ -66,6 +66,20 @@ describe('ValidationIssueCollector', () => {
         expect(collector.hasVisibleIssues()).toBe(true);
     });
 
+    it('re-shows a dismissed issue when only its code changes', () => {
+        const collector = new ValidationIssueCollector();
+        collector.setOverlayLevel('warning');
+        collector.setIssues([{ severity: 'warning', message: 'bad option', code: 'series[0].a' }]);
+        expect(collector.hasVisibleIssues()).toBe(true);
+
+        collector.dismiss();
+        expect(collector.hasVisibleIssues()).toBe(false);
+
+        // Same severity and message but a different code must be treated as a changed issue.
+        collector.setIssues([{ severity: 'warning', message: 'bad option', code: 'series[0].b' }]);
+        expect(collector.hasVisibleIssues()).toBe(true);
+    });
+
     it('notifies listeners when the collection or threshold changes', () => {
         const collector = new ValidationIssueCollector();
         const listener = vi.fn();

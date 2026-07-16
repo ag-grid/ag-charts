@@ -22,7 +22,7 @@ const LEVEL_INCLUDES: Record<ValidationOverlayLevel, ValidationSeverity[]> = {
 };
 
 function signatureOf(issues: ValidationIssue[]): string {
-    return issues.map((i) => `${i.severity}:${i.message}`).join('\n');
+    return issues.map((i) => `${i.severity}:${i.message}:${i.code ?? ''}`).join('\n');
 }
 
 /**

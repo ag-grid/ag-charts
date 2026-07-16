@@ -548,6 +548,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 fonts: fonts.size > 0 ? new Set(fonts) : undefined,
                 annotationThemes,
                 chartDef: this.chartDef,
+                validationIssues: this.validationIssues,
             });
         }
 
@@ -568,6 +569,10 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     private slowSetupCached(cached: StructuralCacheEntry) {
         const activeTheme = sanitizeThemeModules(getChartTheme((this.userOptions as any).theme));
         this.chartDef = cached.chartDef;
+
+        // A cache hit skips the validate loops that populate `validationIssues`, so replay the
+        // captured issues — otherwise cached invalid options warn on the console but not the overlay.
+        this.validationIssues = [...cached.validationIssues];
 
         // Re-run the preset's data transform on this chart's data — the cached
         // processedOptions has `data` stripped to prevent aliasing.

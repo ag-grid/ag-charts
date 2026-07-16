@@ -1,6 +1,8 @@
 import { type ChartModuleDefinition, Debug, LRUCache, ModuleRegistry, deepFreeze } from 'ag-charts-core';
 import type { AgChartThemeParams } from 'ag-charts-types';
 
+import type { ValidationIssue } from '../chart/validation/validationIssueCollector';
+
 // Structural-output cache for `ChartOptions.slowSetup`, gated by callers on
 // `domMode: 'minimal'`. Per-instance keys are stripped before caching and
 // re-attached on hit; see `VOLATILE_KEYS`.
@@ -13,6 +15,8 @@ export interface StructuralCacheEntry {
     fonts: Set<string> | undefined;
     annotationThemes: any;
     chartDef: ChartModuleDefinition<any>;
+    /** Option-validation issues gathered during the cached calculation, replayed to the overlay on hit. */
+    validationIssues: ValidationIssue[];
 }
 
 const STRUCTURAL_CACHE_MAX = 8;

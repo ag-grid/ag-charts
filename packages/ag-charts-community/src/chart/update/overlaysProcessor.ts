@@ -4,7 +4,7 @@ import type { EventsHub, LayoutCompleteEvent } from '../../core/eventsHub';
 import type { DOMElementProxy } from '../../dom/domElementProxy';
 import type { DOMManager } from '../../dom/domManager';
 import type { LocaleManager } from '../../locale/localeManager';
-import type { BBox } from '../../scene/bbox';
+import { BBox } from '../../scene/bbox';
 import { isUnsupportedBrowser } from '../../util/browser';
 import type { DataService } from '../data/dataService';
 import type { AnimationManager } from '../interaction/animationManager';
@@ -55,12 +55,18 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
         this.refresh(rect);
     }
 
-    // Validation issues arise during option application and in the update catch, off-cycle from
-    // layout, so re-evaluate against the last known series rect when the collection changes.
+    // Validation issues arise off-cycle from layout, so re-evaluate on collection change. Before the
+    // first layout there is no series rect, so fall back to the full container area.
     private onValidationChange() {
-        if (this.lastSeriesRect) {
-            this.refresh(this.lastSeriesRect);
+        const rect = this.lastSeriesRect ?? this.fullContainerRect();
+        if (rect) {
+            this.refresh(rect);
         }
+    }
+
+    private fullContainerRect(): BBox | undefined {
+        const size = this.domManager.containerSize;
+        return size ? new BBox(0, 0, size.width, size.height) : undefined;
     }
 
     private refresh(rect: BBox) {
