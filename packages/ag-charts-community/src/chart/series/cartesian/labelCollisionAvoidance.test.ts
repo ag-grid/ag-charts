@@ -610,6 +610,69 @@ describe('label collision avoidance', () => {
         });
     });
 
+    // The collision footprint must be the label's drawn box (text + padding), not the bare text, or
+    // a padded/boxed label can visually overlap a neighbour while the engine reports no collision.
+    describe('label box footprint (padding reserved, not just text)', () => {
+        const closeData = [
+            { x: 10, y: 50 },
+            { x: 11, y: 50 },
+            { x: 12, y: 50 },
+        ];
+        const tightAxes = {
+            x: { position: 'bottom', type: 'number', min: 0, max: 24 },
+            y: { position: 'left', type: 'number' },
+        };
+
+        type Box = { x: number; y: number; width: number; height: number };
+        const overlaps = (a: Box, b: Box) =>
+            a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
+
+        const visibleLabelBoxes = async (padding: number) => {
+            const options: any = {
+                data: closeData,
+                legend: { enabled: false },
+                axes: tightAxes,
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'x',
+                        yKey: 'y',
+                        marker: { enabled: true, size: 6 },
+                        label: {
+                            enabled: true,
+                            formatter: ({ value }: any) => String(value),
+                            placement: 'top',
+                            fill: 'white',
+                            padding,
+                            collisionAvoidance: { enabled: true },
+                        },
+                    },
+                ],
+            };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            const series = deproxy(chart as any).series[0] as unknown as {
+                labelSelection: { nodes(): { visible: boolean; computeBBox(): Box | undefined }[] };
+            };
+            return series.labelSelection
+                .nodes()
+                .filter((node) => node.visible)
+                .map((node) => node.computeBBox()!);
+        };
+
+        it('drops a colliding label whose padded box overlaps a neighbour though the bare text would not', async () => {
+            const boxes = await visibleLabelBoxes(20);
+            // Anti-vacuous guard: some labels must actually be dropped for the box footprint to matter.
+            expect(boxes.length).toBeLessThan(closeData.length);
+            for (let i = 0; i < boxes.length; i++) {
+                for (let j = i + 1; j < boxes.length; j++) {
+                    expect(overlaps(boxes[i], boxes[j])).toBe(false);
+                }
+            }
+        });
+    });
+
     // Bar/histogram contribute their rects as `seriesItem` obstacles; a placing series only routes
     // its labels around them when its label opts into that category via collideWith.seriesItems.
     describe('cross-series obstacles (bar + line)', () => {

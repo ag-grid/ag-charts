@@ -241,12 +241,22 @@ export class PlacedSeriesLabel<TParams = never, TDatum = any> extends Label<TPar
     outsideStyle = new LabelPlacementStyle();
 }
 
-type LabelBoxingMixin = { border?: { enabled?: boolean; stroke?: string }; fill?: unknown; padding?: Padding };
+type LabelBoxingMixin = {
+    border?: { enabled?: boolean; stroke?: string; strokeWidth?: number };
+    fill?: unknown;
+    padding?: Padding;
+};
 
 /** Whether the label draws a background box: it has a fill, or an enabled border with a stroke. */
 export function labelHasBox(label: LabelBoxingMixin | undefined): boolean {
     const { enabled: borderEnabled = false, stroke: borderStroke } = label?.border ?? {};
     return label?.fill != null || (borderEnabled && borderStroke != null);
+}
+
+/** How far a drawn border stroke extends beyond the box edge on each side (half its width); `0` when no border is drawn. */
+function labelBorderInset(label: LabelBoxingMixin | undefined): number {
+    const { enabled: borderEnabled = false, stroke: borderStroke, strokeWidth = 0 } = label?.border ?? {};
+    return borderEnabled && borderStroke != null ? strokeWidth / 2 : 0;
 }
 
 export function expandLabelPadding(label: LabelBoxingMixin | undefined): Required<PaddingOptions> {
@@ -278,10 +288,28 @@ export function resolvePlacementLabelStyle<TParams>(
     return resolved;
 }
 
-/** Reserves the larger of the two placements' box padding, as placement is not resolved until layout. */
-export function expandPlacementLabelPadding<TParams>(label: PlacedSeriesLabel<TParams, any>): Required<PaddingOptions> {
-    const inside = expandLabelPadding(resolvePlacementLabelStyle(label, label.insideStyle));
-    const outside = expandLabelPadding(resolvePlacementLabelStyle(label, label.outsideStyle));
+/**
+ * Per-side extent of the label's drawn box beyond its text: box padding plus the outward half of any
+ * border stroke. This is the footprint collisions must reserve so labels avoid the box, not just the text.
+ */
+export function expandLabelBoxExtent(label: LabelBoxingMixin | undefined): Required<PaddingOptions> {
+    const padding = expandLabelPadding(label);
+    const inset = labelBorderInset(label);
+    if (inset === 0) return padding;
+    return {
+        bottom: padding.bottom + inset,
+        left: padding.left + inset,
+        right: padding.right + inset,
+        top: padding.top + inset,
+    };
+}
+
+/** Reserves the larger of the two placements' box extent, as placement is not resolved until layout. */
+export function expandPlacementLabelBoxExtent<TParams>(
+    label: Label<TParams> & { insideStyle: LabelPlacementStyle; outsideStyle: LabelPlacementStyle }
+): Required<PaddingOptions> {
+    const inside = expandLabelBoxExtent(resolvePlacementLabelStyle(label, label.insideStyle));
+    const outside = expandLabelBoxExtent(resolvePlacementLabelStyle(label, label.outsideStyle));
     return {
         bottom: Math.max(inside.bottom, outside.bottom),
         left: Math.max(inside.left, outside.left),

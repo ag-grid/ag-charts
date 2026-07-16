@@ -60,7 +60,7 @@ import type { ChartAxis } from '../../chartAxis';
 import type { DataController } from '../../data/dataController';
 import { DataModel, type ProcessedData, fixNumericExtent } from '../../data/dataModel';
 import { createDatumId, processedDataIsAnimatable, valueProperty } from '../../data/processors';
-import { expandLabelPadding, expandPlacementLabelPadding, resolvePlacementLabelStyle } from '../../label';
+import { expandLabelPadding, expandPlacementLabelBoxExtent, resolvePlacementLabelStyle } from '../../label';
 import { fitLabelToContainer, getLabelStyles, pickPlacementStyle } from '../../labelUtil';
 import {
     type CategoryLegendDatum,
@@ -657,7 +657,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             labelInsideSize:
                 !insideOnly && insideRect ? { width: insideRect.width, height: insideRect.height } : undefined,
             labelTextDomain,
-            labelPadding: expandPlacementLabelPadding(label),
+            labelPadding: expandPlacementLabelBoxExtent(label),
             labelTextMeasurer: cachedTextMeasurer(label),
             labelFit: resolveLabelFit(label, label.collisionAvoidance.avoid, insideOnly),
             label,

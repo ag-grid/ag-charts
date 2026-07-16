@@ -63,6 +63,7 @@ const {
     Text,
     Marker,
     getLabelStyles,
+    expandLabelBoxExtent,
 } = _ModuleSupport;
 
 type NormalisedMapMarkerSeriesStyle = Normalised<AgMapMarkerSeriesStyle, never, FillStrokeMorph>;
@@ -396,7 +397,11 @@ export class MapMarkerSeries
         if (labelText == null) return;
 
         const fittedText = fitLabelText(labelText, labelFit, label);
-        const { width, height } = measurer.measureLines(String(fittedText));
+        const text = measurer.measureLines(String(fittedText));
+        // Inflate the text by the label's drawn box (padding + border stroke) so collisions avoid the box.
+        const box = expandLabelBoxExtent(label);
+        const width = text.width + box.left + box.right;
+        const height = text.height + box.top + box.bottom;
         const anchor = Marker.anchor(shape);
 
         return {

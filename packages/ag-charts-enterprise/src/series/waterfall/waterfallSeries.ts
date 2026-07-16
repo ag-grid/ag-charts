@@ -61,6 +61,7 @@ const {
     checkCrisp,
     updateLabelNode,
     pickPlacementStyle,
+    expandPlacementLabelBoxExtent,
     prepareBarAnimationFunctions,
     collapsedStartingBarPosition,
     resetBarSelectionsDirect,
@@ -1065,10 +1066,19 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
     override getLabelData(): PointLabelDatum[] {
         if (!this.usesPlacedLabels) return [];
-        return buildBarLabelData(this.contextNodeData?.labelData, (node) => ({
-            label: node.label,
-            config: this.getItemConfig(node.itemType).label,
-        }));
+        return buildBarLabelData(this.contextNodeData?.labelData, (node) => {
+            const label = this.getItemConfig(node.itemType).label;
+            if (node.label == null || node.label.text === '') return { label: node.label, config: label };
+            // Inflate the measured text by the label's drawn box (padding + border stroke) so orientation
+            // resolution avoids the box, not just the text.
+            const box = expandPlacementLabelBoxExtent(label);
+            const { width, height } = measureLabelText(node.label.text, label);
+            return {
+                label: node.label,
+                config: label,
+                size: { width: width + box.left + box.right, height: height + box.top + box.bottom },
+            };
+        });
     }
 
     override updatePlacedLabelData(placed: PlacedLabel<WaterfallNodeDatum>[]) {

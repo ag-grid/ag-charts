@@ -412,7 +412,15 @@ export { ContinuousScale } from './scale/continuousScale';
 export { OrdinalTimeScale } from './scale/ordinalTimeScale';
 export { ApproximateOrdinalTimeScale } from './scale/approximateOrdinalTimeScale';
 export { APPROXIMATE_THRESHOLD } from './scale/discreteTimeScale';
-export { Label, LabelPlacementStyle, LabelStyle, PlacedSeriesLabel, resolvePlacementLabelPadding } from './chart/label';
+export {
+    Label,
+    LabelPlacementStyle,
+    LabelStyle,
+    PlacedSeriesLabel,
+    expandLabelBoxExtent,
+    expandPlacementLabelBoxExtent,
+    resolvePlacementLabelPadding,
+} from './chart/label';
 export { Marker } from './chart/marker/marker';
 export { drawMarkerUnitPolygon } from './chart/marker/shapes';
 export { SectorBox } from './scene/sectorBox';

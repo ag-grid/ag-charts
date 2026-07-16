@@ -552,6 +552,8 @@ export interface BarLabelSource {
         | (OrientationAnchor & { text: NormalisedTextOrSegments; region?: BoxBounds } & BarLabelTarget)
         | undefined;
     readonly config: FontOptions & { orientation?: AgChartLabelOrientation | AgChartLabelOrientation[] };
+    /** Pre-measured footprint (text plus box padding/border); falls back to measuring `label.text` with `config`. */
+    readonly size?: { width: number; height: number };
 }
 
 /**
@@ -569,7 +571,7 @@ export function buildBarLabelData<T>(
         const { label, config } = source;
         const orientations = toArray(config.orientation);
         if (orientations.length <= 1) continue;
-        const { width, height } = measureLabelText(label.text, config);
+        const { width, height } = source.size ?? measureLabelText(label.text, config);
         data.push(buildBarLabelDatum(label, label.text, width, height, orientations, label.region, label));
     }
     return data;

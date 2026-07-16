@@ -61,6 +61,7 @@ const {
     fitLabelToContainer,
     updateLabelNode,
     pickPlacementStyle,
+    expandPlacementLabelBoxExtent,
     resolvePlacementLabelPadding,
     SMALLEST_KEY_INTERVAL,
     LARGEST_KEY_INTERVAL,
@@ -1325,10 +1326,18 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
     override getLabelData(): PointLabelDatum[] {
         if (!this.usesPlacedLabels || !this.properties.label.enabled) return [];
         const { label } = this.properties;
-        return buildBarLabelData(this.contextNodeData?.labelData, (labelDatum) => ({
-            label: labelDatum,
-            config: label,
-        }));
+        // Inflate the measured text by the label's drawn box (padding + border stroke) so orientation
+        // resolution avoids the box, not just the text.
+        const box = expandPlacementLabelBoxExtent(label);
+        return buildBarLabelData(this.contextNodeData?.labelData, (labelDatum) => {
+            if (labelDatum.text === '') return { label: labelDatum, config: label };
+            const { width, height } = measureLabelText(labelDatum.text, label);
+            return {
+                label: labelDatum,
+                config: label,
+                size: { width: width + box.left + box.right, height: height + box.top + box.bottom },
+            };
+        });
     }
 
     override updatePlacedLabelData(placed: PlacedLabel<RangeBarNodeLabelDatum>[]) {

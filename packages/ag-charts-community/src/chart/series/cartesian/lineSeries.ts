@@ -54,7 +54,7 @@ import {
     processedDataIsAnimatable,
     valueProperty,
 } from '../../data/processors';
-import { expandPlacementLabelPadding } from '../../label';
+import { expandPlacementLabelBoxExtent } from '../../label';
 import { boundLabelFit, insideMarkerContainer, resolveInsidePlacement } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import { type LegendSymbolOptions } from '../../legend/legendSymbol';
@@ -510,7 +510,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             size: markerSize,
             yDomain: this.getSeriesDomain(ChartAxisDirection.Y).domain,
             labelsEnabled: this.properties.label.enabled,
-            labelPadding: expandPlacementLabelPadding(this.properties.label),
+            labelPadding: expandPlacementLabelBoxExtent(this.properties.label),
             labelTextMeasurer: cachedTextMeasurer(this.properties.label),
             labelFit,
             labelInsideOffset,

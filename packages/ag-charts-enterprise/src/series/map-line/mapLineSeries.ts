@@ -42,6 +42,7 @@ import { type MapLineNodeDatum, type MapLineNodeLabelDatum, MapLineSeriesPropert
 const {
     getMissCount,
     getLabelStyles,
+    expandLabelBoxExtent,
     buildColorCategoryLegendData,
     buildGradientLegendDatum,
     colorScaleLegendFormatterContext,
@@ -295,12 +296,15 @@ export class MapLineSeries
         if (labelText == null) return;
 
         const fittedText = fitLabelText(labelText, labelFit, label);
-        const labelSize = measurer.measureLines(String(fittedText));
         const labelCenter = lineStringCenter(lineString);
         if (labelCenter == null) return;
 
         const [x, y] = labelCenter.point;
-        const { width, height } = labelSize;
+        const text = measurer.measureLines(String(fittedText));
+        // Inflate the text by the label's drawn box (padding + border stroke) so collisions avoid the box.
+        const box = expandLabelBoxExtent(label);
+        const width = text.width + box.left + box.right;
+        const height = text.height + box.top + box.bottom;
 
         return {
             point: { x, y, size: 0 },
