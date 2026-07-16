@@ -39,6 +39,8 @@ export const organizationSeriesTheme: ExtensibleTheme<'organization'> = {
                 fontSize: { $rem: FONT_SIZE_RATIO.SMALL },
                 fontStyle: 'normal',
                 fontWeight: 'normal',
+                showAllChildren: true,
+                showDirectChildren: false,
             },
         },
         highlight: {

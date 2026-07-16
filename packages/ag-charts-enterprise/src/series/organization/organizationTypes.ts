@@ -85,7 +85,7 @@ export type NormalisedOrganizationSeriesExpanderStyle = Normalised<
 
 type NormalisedOrganizationSeriesExpanderTextStyle = Normalised<
     AgOrganizationSeriesExpanderTextStyle,
-    'fontSize' | 'textAlign',
+    'fontSize' | 'showAllChildren' | 'showDirectChildren' | 'textAlign',
     { color: CssColor }
 >;
 

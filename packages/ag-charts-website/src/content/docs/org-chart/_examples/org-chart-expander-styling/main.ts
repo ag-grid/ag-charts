@@ -30,6 +30,8 @@ const options: AgChartOptions = {
                     fontSize: 18,
                     fontWeight: 'bold',
                     color: 'red',
+                    showAllChildren: true,
+                    showDirectChildren: true,
                 },
                 itemStyler: ({ datum }) => {
                     if (datum.department === 'Technology') return { fill: '#e8f5e9', stroke: '#2e7d32' };
