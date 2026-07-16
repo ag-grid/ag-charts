@@ -7,7 +7,16 @@ globs: ['**/ag-charts-website/e2e/**/*.spec.ts']
 
 # Website E2E Test Patterns (Playwright)
 
-These patterns apply to the handwritten Playwright specs under `packages/ag-charts-website/e2e`. For JSDOM unit-test contracts (`*.test.ts`) see `test-harness-contracts.md`; for driving chart mutations from an example see the general testing guidance. This rule covers **asserting that chart callbacks fired as expected** from an e2e spec.
+These patterns apply to the handwritten Playwright specs under `packages/ag-charts-website/e2e`. For JSDOM unit-test contracts (`*.test.ts`) see `test-harness-contracts.md`.
+
+## Drive chart mutations through the example's own UI
+
+E2E tests load standalone examples from `_examples/` directories. When a spec needs to trigger chart mutations (option updates, toggles, data changes):
+
+-   **Add buttons to the example HTML** for every operation the test exercises, wired in `main.ts` via `chart.updateDelta()` / `chart.update()` — the example stays a self-contained reproducer a human can operate.
+-   **Click the buttons from the spec** via `page.getByText('Button Label').click()` rather than calling chart APIs through `page.evaluate()`.
+-   **Don't expose chart internals on `window`** for driving the chart — no `(window as any).chart = chart`. (Read-only observation hooks are the exception; see below.)
+-   **Add `// @ag-skip-fws`** to the top of `main.ts` — direct DOM manipulation (`getElementById`, `addEventListener`) is incompatible with framework generation and fails CI without it.
 
 ## Observe callbacks through an `agE2E` hook, not console logs
 
