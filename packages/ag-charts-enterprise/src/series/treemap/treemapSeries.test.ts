@@ -14,16 +14,24 @@ import {
     GALLERY_EXAMPLES,
     IMAGE_SNAPSHOT_DEFAULTS,
     MIN_TOOLTIP_HIDE_DELAY,
+    type SceneFrameInvariant,
+    type SceneGeometrySample,
     TREEMAP_SERIES_LABELS,
     assertTooltipPresentForAll,
     clickAction,
+    createSceneGeometrySampler,
     deproxy,
+    expectAnimatedEndpointsMatchStatic,
+    expectNoAnimation,
+    expectSceneSamplesMatch,
+    expectSceneTrajectory,
     expectWarningsCalls,
     extractImageData,
     hierarchyChartAssertions,
     hoverAction,
     setupMockCanvas,
     setupMockConsole,
+    spyOnAnimationFrames,
     waitForChartStability,
 } from 'ag-charts-community-test';
 import { deepClone } from 'ag-charts-core';
@@ -1381,6 +1389,230 @@ describe('TreemapSeries', () => {
             chart = deproxy(AgCharts.create(options));
             await compare();
             expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+        });
+    });
+
+    // These model the org-chart reset()/randomise() actions — a deep-shuffle of the hierarchy tree
+    // followed by a re-render. Probing the frame trajectory (see the animation-trajectory-tests
+    // rule) shows the treemap does NOT animate: the animation batch is skipped for both the initial
+    // load and every data update, so tiles snap straight to their laid-out geometry on the first
+    // frame and hold. These CASEs assert that faithfully — a regression that started tweening tile
+    // rects (or failed to lay them out at all) would break them — rather than inventing motion.
+    describe('animation -test page actions', () => {
+        const frames = spyOnAnimationFrames();
+
+        type OrgNode = { title: string; total?: number; children?: OrgNode[] };
+
+        // A fixed three-level tree; `reversed` deep-reverses child order at every level, a
+        // deterministic stand-in for the page's randomise() that reshapes the layout while keeping
+        // the tree shape (so no tile enters or leaves — the reshuffle is a pure re-layout).
+        const ORG_DATA: OrgNode[] = [
+            {
+                title: 'A',
+                children: [
+                    {
+                        title: 'A1',
+                        total: 5,
+                        children: [
+                            { title: 'A1a', total: 3 },
+                            { title: 'A1b', total: 2 },
+                        ],
+                    },
+                    { title: 'A2', total: 4 },
+                ],
+            },
+            {
+                title: 'B',
+                children: [
+                    { title: 'B1', total: 6 },
+                    { title: 'B2', total: 2 },
+                    { title: 'B3', total: 1 },
+                ],
+            },
+        ];
+        const reversed = (nodes: OrgNode[]): OrgNode[] =>
+            [...nodes].reverse().map((n) => ({ ...n, children: n.children ? reversed(n.children) : undefined }));
+
+        const treemapOptions = (data: OrgNode[] = ORG_DATA): AgChartOptions =>
+            prepareEnterpriseTestOptions({
+                data,
+                series: [{ type: 'treemap', labelKey: 'title', sizeKey: 'total' }],
+                animation: { enabled: true },
+            } as AgChartOptions);
+
+        const RECT = /^series\[0\]\/rect\[/;
+        const rectEntries = (sample: SceneGeometrySample) => [...sample].filter(([key]) => RECT.test(key));
+        const laidOutTiles = (sample: SceneGeometrySample) =>
+            rectEntries(sample).filter(([, r]) => r.visible !== 0 && r.width > 10 && r.height > 10);
+
+        // A treemap is a laminar family of tiles: any two tiles are either disjoint or one fully
+        // contains the other — never a partial overlap. This is the containment contract ("children
+        // stay within parent bounds") expressed from geometry alone, so it survives a reshuffle
+        // re-pointing sampler keys at reused rect instances (the key path stops tracking the datum).
+        const tol = 1.5;
+        const encloses = (outer: Record<string, number>, inner: Record<string, number>) =>
+            outer.x - tol <= inner.x &&
+            outer.y - tol <= inner.y &&
+            inner.x + inner.width <= outer.x + outer.width + tol &&
+            inner.y + inner.height <= outer.y + outer.height + tol;
+        const overlaps = (a: Record<string, number>, b: Record<string, number>) => {
+            const w = Math.min(a.x + a.width, b.x + b.width) - Math.max(a.x, b.x);
+            const h = Math.min(a.y + a.height, b.y + b.height) - Math.max(a.y, b.y);
+            return w > tol && h > tol;
+        };
+        const tilesAreLaminar: SceneFrameInvariant = {
+            name: 'tiles are disjoint or fully nested (no partial overlap)',
+            check: (frame) => {
+                const rects = laidOutTiles(frame).map(([, r]) => r);
+                for (let i = 0; i < rects.length; i++) {
+                    for (let j = i + 1; j < rects.length; j++) {
+                        const a = rects[i];
+                        const b = rects[j];
+                        if (!overlaps(a, b)) continue;
+                        if (encloses(a, b) || encloses(b, a)) continue;
+                        return `tiles partially overlap: [${a.x.toFixed(0)},${a.y.toFixed(0)},${a.width.toFixed(0)}x${a.height.toFixed(0)}] and [${b.x.toFixed(0)},${b.y.toFixed(0)},${b.width.toFixed(0)}x${b.height.toFixed(0)}]`;
+                    }
+                }
+                return undefined;
+            },
+        };
+
+        const layoutChanges = (before: SceneGeometrySample, after: SceneGeometrySample): number =>
+            rectEntries(before).filter(([key, b]) => {
+                const a = after.get(key);
+                return (
+                    a != null && (Math.abs(a.x - b.x) > 1 || Math.abs(a.y - b.y) > 1 || Math.abs(a.width - b.width) > 1)
+                );
+            }).length;
+
+        // The update snaps at frame 0: hand-roll the capture (settle -> sample before -> update ->
+        // capture -> settle -> sample after) rather than captureUpdate, whose frame-0 start anchor
+        // assumes surviving nodes do not jump when the update lands.
+        const captureReshuffle = async (create: AgChartOptions, next: AgChartOptions) => {
+            const proxy = AgCharts.create(create);
+            chart = deproxy(proxy);
+            await frames.runToEnd(proxy);
+            const sample = createSceneGeometrySampler(proxy);
+            const before = sample();
+            await proxy.update(next);
+            const trajectory = await frames.captureAnimationFrames(proxy, sample);
+            await frames.runToEnd(proxy);
+            const after = sample();
+            return { proxy, before, trajectory, after };
+        };
+
+        it('standalone: initial load snaps the full tile layout with no reveal animation', async () => {
+            const proxy = AgCharts.create(treemapOptions());
+            chart = deproxy(proxy);
+            const sample = createSceneGeometrySampler(proxy);
+            const trajectory = await frames.captureAnimationFrames(proxy, sample);
+            await frames.runToEnd(proxy);
+
+            // No animation batch ran, and no node moved across the captured frames; the laminar
+            // containment invariant holds on every (already-settled) frame.
+            expect(
+                trajectory.phaseIntervals.every((interval) => interval.length === 0),
+                'no animation phase ran'
+            ).toBe(true);
+            expectNoAnimation(trajectory);
+            expectSceneTrajectory(trajectory, {}, { frameInvariants: [tilesAreLaminar] });
+
+            // Anti-vacuity: the very first frame already carries the complete laid-out treemap (all
+            // eight leaf/group tiles at full size), so "no animation" is asserted against a rendered
+            // layout, not a blank scene that never drew.
+            expect(laidOutTiles(trajectory[0]).length, 'laid-out tiles at frame 0').toBeGreaterThanOrEqual(8);
+        });
+
+        it('reshuffle: tiles snap to the new layout with no per-tile tween', async () => {
+            const { before, trajectory, after } = await captureReshuffle(
+                treemapOptions(),
+                treemapOptions(reversed(ORG_DATA))
+            );
+            expect(laidOutTiles(before).length).toBeGreaterThanOrEqual(8);
+            expect(laidOutTiles(after).length).toBeGreaterThanOrEqual(8);
+
+            expect(
+                trajectory.phaseIntervals.every((interval) => interval.length === 0),
+                'no animation phase ran'
+            ).toBe(true);
+            expectNoAnimation(trajectory);
+            expectSceneTrajectory(trajectory, {}, { frameInvariants: [tilesAreLaminar] });
+
+            // Frame 0 already equals the settled after-state (the snap), and the reshuffle genuinely
+            // re-laid the tiles — otherwise "no animation" would pass vacuously on an unchanged scene.
+            expectSceneSamplesMatch(trajectory[0], after);
+            expect(layoutChanges(before, after), 'tiles whose position/size moved').toBeGreaterThan(4);
+        });
+
+        // The org-chart page also promised highlight state behaves through reshuffles. After a
+        // reshuffle rebuilds the tile tree, highlighting a node from the NEW tree must bind the
+        // highlight to that node and render it at the node's live tile — the reused-instance trap
+        // (datum bindings re-pointed onto recycled rects) would otherwise surface a stale tile at
+        // the wrong position.
+        const withHighlight = (data: OrgNode[]): AgChartOptions =>
+            prepareEnterpriseTestOptions({
+                data,
+                series: [
+                    {
+                        type: 'treemap',
+                        labelKey: 'title',
+                        sizeKey: 'total',
+                        tile: { highlight: { highlightedItem: { fill: 'lime' } } },
+                    },
+                ],
+                animation: { enabled: true },
+            } as AgChartOptions);
+        const findTileNode = (series: TreemapSeries, title: string): any => {
+            const dfs = (node: any): any =>
+                node?.datum?.title === title ? node : (node?.children ?? []).map(dfs).find(Boolean);
+            return dfs((series as any).rootNode);
+        };
+        const highlightTile = (series: TreemapSeries): any => Array.from((series as any).highlightSelection.nodes())[0];
+        const baseTileFor = (series: TreemapSeries, node: any): any =>
+            Array.from((series as any).datumSelection.nodes()).find((r: any) => r.datum === node);
+
+        it('highlight through reshuffle: re-highlighting resolves the pointed node, not a stale tile', async () => {
+            const proxy = AgCharts.create(withHighlight(ORG_DATA));
+            chart = deproxy(proxy);
+            await waitForChartStability(chart);
+            const series = chart.series[0] as TreemapSeries;
+            const highlightManager = (chart as Chart).ctx.highlightManager;
+
+            highlightManager.updateHighlight(chart.id, findTileNode(series, 'A2'));
+            await waitForChartStability(chart);
+            expect(highlightTile(series)?.datum?.datum?.title).toBe('A2');
+
+            await proxy.update(withHighlight(reversed(ORG_DATA)));
+            await waitForChartStability(chart);
+
+            const b1 = findTileNode(series, 'B1');
+            highlightManager.updateHighlight(chart.id, b1);
+            await waitForChartStability(chart);
+            const highlighted = highlightTile(series);
+            expect(highlighted?.datum).toBe(b1);
+            expect(highlighted?.fill).toBe('lime');
+            const base = baseTileFor(series, b1);
+            expect(highlighted?.x).toBeCloseTo(base.x, 5);
+            expect(highlighted?.y).toBeCloseTo(base.y, 5);
+            expect(highlighted?.width).toBeCloseTo(base.width, 5);
+            expect(highlighted?.height).toBeCloseTo(base.height, 5);
+
+            highlightManager.updateHighlight(chart.id);
+            await waitForChartStability(chart);
+            expect(Array.from((series as any).highlightSelection.nodes())).toHaveLength(0);
+        });
+
+        it('sanity: reshuffle endpoints match static renders', async () => {
+            const before = treemapOptions();
+            const proxy = AgCharts.create(before);
+            chart = deproxy(proxy);
+            await expectAnimatedEndpointsMatchStatic(
+                frames,
+                () => ctx.snapshot(),
+                proxy,
+                before,
+                treemapOptions(reversed(ORG_DATA))
+            );
         });
     });
 });

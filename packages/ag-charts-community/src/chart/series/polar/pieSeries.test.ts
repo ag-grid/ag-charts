@@ -801,6 +801,46 @@ describe('PieSeries', () => {
         });
     });
 
+    describe('duplicate labels', () => {
+        it('retains both callout and sector labels when two sectors share a label value', async () => {
+            chart = await createChart({
+                ...options,
+                data: [
+                    { label: 'Android', value: 56.9, value2: 'duplicate' },
+                    { label: 'iOS', value: 56.9, value2: 'duplicate' },
+                ],
+                series: [
+                    {
+                        type: 'pie',
+                        angleKey: 'value',
+                        calloutLabelKey: 'value2',
+                        sectorLabelKey: 'value2',
+                        sectorLabel: { color: 'white', fontWeight: 'bold' },
+                    },
+                ],
+            });
+
+            const pieSeries = classCast(deproxy(chart).series[0], PieSeries);
+            const labels = (pieSeries.getNodeData() ?? []).map((datum) => ({
+                callout: datum.calloutLabel?.text,
+                sector: datum.sectorLabel?.text,
+            }));
+            expect(labels).toEqual([
+                { callout: 'duplicate', sector: 'duplicate' },
+                { callout: 'duplicate', sector: 'duplicate' },
+            ]);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - legend item 'duplicate' has multiple fill colours, this may cause unexpected behaviour.",
+  ],
+]
+`);
+            await compare();
+        });
+    });
+
     describe('pattern fill', () => {
         it('should render pie series with default pattern fills', async () => {
             chart = await createChart({

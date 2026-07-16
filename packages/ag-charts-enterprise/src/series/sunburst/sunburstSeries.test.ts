@@ -16,14 +16,24 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     MIN_TOOLTIP_HIDE_DELAY,
     SUNBURST_SERIES_LABELS,
+    type SceneFrameInvariant,
+    type SceneGeometrySample,
     assertTooltipPresentForAll,
     clickAction,
+    createSceneGeometrySampler,
     deproxy,
+    expectAnimatedEndpointsMatchStatic,
+    expectMonotonic,
+    expectNoAnimation,
+    expectProgresses,
+    expectSceneSamplesMatch,
+    expectSceneTrajectory,
     extractImageData,
     hierarchyChartAssertions,
     hoverAction,
     setupMockCanvas,
     setupMockConsole,
+    spyOnAnimationFrames,
     waitForChartStability,
 } from 'ag-charts-community-test';
 
@@ -1199,6 +1209,221 @@ describe('SunburstSeries', () => {
 
             chart = deproxy(AgCharts.create(options));
             await compare();
+        });
+    });
+
+    // These model the org-chart reset()/randomise() actions — a deep-shuffle of the hierarchy tree
+    // followed by a re-render. Probing the frame trajectory (see the animation-trajectory-tests
+    // rule) shows two distinct behaviours: the initial load scales the whole sector group up from
+    // nothing (scalingX/scalingY 0 -> 1), while a data reshuffle SNAPS — the animation batch is
+    // skipped, so every sector jumps to its new layout on the first frame and holds. These CASEs
+    // assert both faithfully rather than inventing per-sector tweens the series does not perform.
+    describe('animation -test page actions', () => {
+        const frames = spyOnAnimationFrames();
+
+        type OrgNode = { name: string; children: OrgNode[] };
+
+        // A fixed three-level tree; `reversed` deep-reverses child order at every level, a
+        // deterministic stand-in for the page's randomise() that reshapes the layout while keeping
+        // the tree shape (so no sector enters or leaves — the reshuffle is a pure re-layout).
+        const ORG_DATA: OrgNode[] = [
+            {
+                name: 'A',
+                children: [
+                    {
+                        name: 'A1',
+                        children: [
+                            { name: 'A1a', children: [] },
+                            { name: 'A1b', children: [] },
+                        ],
+                    },
+                    { name: 'A2', children: [] },
+                ],
+            },
+            {
+                name: 'B',
+                children: [
+                    { name: 'B1', children: [] },
+                    { name: 'B2', children: [] },
+                    { name: 'B3', children: [] },
+                ],
+            },
+        ];
+        const reversed = (nodes: OrgNode[]): OrgNode[] =>
+            [...nodes].reverse().map((n) => ({ ...n, children: reversed(n.children) }));
+
+        const sunburstOptions = (data: OrgNode[] = ORG_DATA): AgChartOptions =>
+            prepareEnterpriseTestOptions({
+                data,
+                series: [{ type: 'sunburst', labelKey: 'name' }],
+                animation: { enabled: true },
+            } as AgChartOptions);
+
+        const SECTOR = /^series\[0\]\/sector\[/;
+        const sectorEntries = (sample: SceneGeometrySample) => [...sample].filter(([key]) => SECTOR.test(key));
+
+        // Each sub-ring sector must nest inside a parent one ring inward: some sector's outerRadius
+        // equals this sector's innerRadius AND its angular span contains this one's. Derived from
+        // geometry, not the node key, because a reshuffle re-points sampler keys at reused sector
+        // instances — so the key path no longer tracks the datum's tree position. Depth-1 sectors
+        // (innerRadius ~ 0) sit on the invisible full-circle root and are exempt.
+        const sectorsNestWithinParents: SceneFrameInvariant = {
+            name: 'sub-sectors nest within a parent ring sector',
+            check: (frame) => {
+                const sectors = sectorEntries(frame)
+                    .map(([, v]) => v)
+                    .filter((s) => s.visible !== 0 && s.endAngle - s.startAngle > 1e-3);
+                for (const child of sectors) {
+                    if (child.innerRadius < 1) continue;
+                    const parent = sectors.find(
+                        (p) =>
+                            Math.abs(p.outerRadius - child.innerRadius) < 1 &&
+                            p.startAngle - 1e-3 <= child.startAngle &&
+                            child.endAngle <= p.endAngle + 1e-3
+                    );
+                    if (parent == null) {
+                        return `sector [${child.startAngle.toFixed(2)}, ${child.endAngle.toFixed(2)}] at innerRadius ${child.innerRadius.toFixed(1)} has no enclosing parent ring sector`;
+                    }
+                }
+                return undefined;
+            },
+        };
+
+        const layoutChanges = (before: SceneGeometrySample, after: SceneGeometrySample): number =>
+            sectorEntries(before).filter(([key, b]) => {
+                const a = after.get(key);
+                return (
+                    a != null && (Math.abs(a.startAngle - b.startAngle) > 1 || Math.abs(a.endAngle - b.endAngle) > 1)
+                );
+            }).length;
+
+        // Reshuffle snaps at frame 0: hand-roll the capture (settle -> sample before -> update ->
+        // capture -> settle -> sample after) rather than captureUpdate, whose frame-0 start anchor
+        // assumes surviving nodes do not jump when the update lands.
+        const captureReshuffle = async (create: AgChartOptions, next: AgChartOptions) => {
+            const proxy = AgCharts.create(create);
+            chart = deproxy(proxy);
+            await frames.runToEnd(proxy);
+            const sample = createSceneGeometrySampler(proxy);
+            const before = sample();
+            await proxy.update(next);
+            const trajectory = await frames.captureAnimationFrames(proxy, sample);
+            await frames.runToEnd(proxy);
+            const after = sample();
+            return { proxy, before, trajectory, after };
+        };
+
+        it('standalone: initial load scales the sector group up from nothing', async () => {
+            const proxy = AgCharts.create(sunburstOptions());
+            chart = deproxy(proxy);
+            const sample = createSceneGeometrySampler(proxy);
+            const trajectory = await frames.captureAnimationFrames(proxy, sample);
+            await frames.runToEnd(proxy);
+            expect(sectorEntries(sample())).toHaveLength(10);
+
+            // Only the scaling group moves; every sector's own geometry (and everything else) holds
+            // constant, and the nesting invariant is honoured on every frame of the reveal.
+            expectSceneTrajectory(
+                trajectory,
+                { 'series[0]/group[]': { scalingX: 'progresses', scalingY: 'progresses' } },
+                { frameInvariants: [sectorsNestWithinParents] }
+            );
+
+            // Anti-vacuity: the scale sweeps monotonically from ~0 to 1 (a no-op reveal, or one that
+            // jumped straight to full size, would fail here — scalingX is on a 0..1 scale where the
+            // spec's direction words alone are vacuous).
+            const scalingX = trajectory.map((f) => f.get('series[0]/group[]')!.scalingX);
+            expect(scalingX[0], 'scalingX at frame 0').toBeLessThanOrEqual(0.01);
+            expect(scalingX.at(-1)!, 'scalingX at final frame').toBeCloseTo(1, 2);
+            expectMonotonic(scalingX, 'increasing');
+            expectProgresses(scalingX);
+        });
+
+        it('reshuffle: sectors snap to the new layout with no per-sector tween', async () => {
+            const { before, trajectory, after } = await captureReshuffle(
+                sunburstOptions(),
+                sunburstOptions(reversed(ORG_DATA))
+            );
+            expect(sectorEntries(before)).toHaveLength(10);
+            expect(sectorEntries(after)).toHaveLength(10);
+
+            // No animation batch ran, so no node moved across the captured frames — and the nesting
+            // invariant holds on every (already-settled) frame.
+            expect(
+                trajectory.phaseIntervals.every((interval) => interval.length === 0),
+                'no animation phase ran'
+            ).toBe(true);
+            expectNoAnimation(trajectory);
+            expectSceneTrajectory(trajectory, {}, { frameInvariants: [sectorsNestWithinParents] });
+
+            // Frame 0 already equals the settled after-state (the snap), and the reshuffle genuinely
+            // reshaped the layout — otherwise "no animation" would pass vacuously on an unchanged scene.
+            expectSceneSamplesMatch(trajectory[0], after);
+            expect(layoutChanges(before, after), 'sectors whose angular span moved').toBeGreaterThan(4);
+        });
+
+        // The org-chart page also promised highlight state behaves through reshuffles. After a
+        // reshuffle rebuilds the sector tree, highlighting a node from the NEW tree must bind the
+        // highlight to that node and render it at the node's live geometry — the reused-instance
+        // trap (datum bindings re-pointed onto recycled sectors) would otherwise surface a stale
+        // sector at the wrong position.
+        const withHighlight = (data: OrgNode[]): AgChartOptions =>
+            prepareEnterpriseTestOptions({
+                data,
+                series: [{ type: 'sunburst', labelKey: 'name', highlight: { highlightedItem: { fill: 'lime' } } }],
+                animation: { enabled: true },
+            } as AgChartOptions);
+        const findSectorNode = (series: SunburstSeries, name: string): any => {
+            const dfs = (node: any): any =>
+                node?.datum?.name === name ? node : (node?.children ?? []).map(dfs).find(Boolean);
+            return dfs((series as any).rootNode);
+        };
+        const highlightSector = (series: SunburstSeries): any =>
+            Array.from((series as any).highlightSelection.nodes())[0];
+        const baseSectorFor = (series: SunburstSeries, node: any): any =>
+            Array.from((series as any).datumSelection.nodes()).find((s: any) => s.datum === node);
+
+        it('highlight through reshuffle: re-highlighting resolves the pointed node, not a stale sector', async () => {
+            const proxy = AgCharts.create(withHighlight(ORG_DATA));
+            chart = deproxy(proxy);
+            await waitForChartStability(chart);
+            const series = chart.series[0] as SunburstSeries;
+            const highlightManager = (chart as Chart).ctx.highlightManager;
+
+            highlightManager.updateHighlight(chart.id, findSectorNode(series, 'A2'));
+            await waitForChartStability(chart);
+            expect(highlightSector(series)?.datum?.datum?.name).toBe('A2');
+
+            await proxy.update(withHighlight(reversed(ORG_DATA)));
+            await waitForChartStability(chart);
+
+            const b1 = findSectorNode(series, 'B1');
+            highlightManager.updateHighlight(chart.id, b1);
+            await waitForChartStability(chart);
+            const highlighted = highlightSector(series);
+            expect(highlighted?.datum).toBe(b1);
+            expect(highlighted?.fill).toBe('lime');
+            const base = baseSectorFor(series, b1);
+            expect(highlighted?.startAngle).toBeCloseTo(base.startAngle, 5);
+            expect(highlighted?.endAngle).toBeCloseTo(base.endAngle, 5);
+            expect(highlighted?.outerRadius).toBeCloseTo(base.outerRadius, 5);
+
+            highlightManager.updateHighlight(chart.id);
+            await waitForChartStability(chart);
+            expect(Array.from((series as any).highlightSelection.nodes())).toHaveLength(0);
+        });
+
+        it('sanity: reshuffle endpoints match static renders', async () => {
+            const before = sunburstOptions();
+            const proxy = AgCharts.create(before);
+            chart = deproxy(proxy);
+            await expectAnimatedEndpointsMatchStatic(
+                frames,
+                () => ctx.snapshot(),
+                proxy,
+                before,
+                sunburstOptions(reversed(ORG_DATA))
+            );
         });
     });
 });
