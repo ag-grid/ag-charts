@@ -12,7 +12,7 @@ import type {
     DatumDefault,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
-import type { CallbackParamRules, DynamicContext, RequireOptional } from 'ag-charts-core';
+import type { CallbackParamRules, DynamicContext } from 'ag-charts-core';
 import {
     AbstractModuleInstance,
     Logger,
