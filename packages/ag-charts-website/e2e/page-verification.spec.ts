@@ -2,7 +2,7 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 
 import { expect, test } from './fixture';
-import { SELECTORS, gotoExample, gotoUrl, toPageUrl } from './util';
+import { gotoExample, gotoUrl, toExamplePageUrl, toPageUrl } from './util';
 
 // This is a smoke test suite: a page actually failing to load or render (checked via the
 // assertions in each test, plus gotoUrl/gotoExample's own title/canvas checks) is the main
@@ -157,39 +157,22 @@ test.describe('Page Verification', () => {
         await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
     });
 
-    // The docs inline runner resolves its framework from a persistent store
-    // (`documentation:internalFramework`, default React), not from the page URL directly — the
-    // URL only syncs into that store via an effect that runs after the first render, so
-    // navigating alone renders whichever framework the store defaulted to. To deterministically
-    // verify both the React and the JavaScript variants render, seed the store to the target
-    // framework before load, navigate to the matching docs URL, and assert the iframe's own src
-    // carries that framework before checking the chart canvas.
-    const inlineExampleFrameworks = [
-        {
-            framework: 'react',
-            internalFramework: 'reactFunctional',
-            srcSegment: /\/(reactFunctional|reactFunctionalTs)\//,
-        },
-        { framework: 'javascript', internalFramework: 'vanilla', srcSegment: /\/(vanilla|typescript)\// },
+    // Sense-check the standalone example runner across frameworks by loading a couple of
+    // examples directly at their framework-specific URLs and asserting a chart renders. This
+    // exercises each framework's example compiler head-on — in particular the vanilla
+    // (JavaScript) build. The docs-page inline runner defaults to the TypeScript variant, so it
+    // can render while the vanilla compiler is broken; loading the `vanilla` URL directly is what
+    // actually catches that. gotoExample waits for the chart canvas and its render-stable state.
+    const exampleRenderChecks = [
+        { pageSlug: 'quick-start', example: 'basic-example' },
+        { pageSlug: 'bar-series', example: 'simple-bar' },
     ];
-    for (const { framework, internalFramework, srcSegment } of inlineExampleFrameworks) {
-        test(`docs page with inline example renders a chart (${framework})`, async ({ page }) => {
-            await page.addInitScript((fw) => {
-                window.localStorage.setItem('documentation:internalFramework', fw);
-            }, internalFramework);
-
-            await gotoUrl(page, toPageUrl(`${framework}/quick-start`));
-            await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
-            // The iframe src is set lazily by an IntersectionObserver — scroll it into
-            // view to trigger the load, then wait for the chart canvas to appear.
-            const iframeLocator = page.locator('iframe.exampleRunner').first();
-            await iframeLocator.scrollIntoViewIfNeeded();
-            // Confirm the runner resolved to the intended framework (not the store default)
-            // before asserting the rendered chart, so this genuinely covers each variant.
-            await expect(iframeLocator).toHaveAttribute('src', srcSegment, { timeout: 30_000 });
-            const exampleFrame = iframeLocator.contentFrame();
-            await expect(exampleFrame.locator(SELECTORS.canvas).first()).toBeVisible({ timeout: 30_000 });
-        });
+    for (const { pageSlug, example } of exampleRenderChecks) {
+        for (const framework of ['reactFunctional', 'vanilla'] as const) {
+            test(`example runner renders a chart: ${pageSlug}/${example} (${framework})`, async ({ page }) => {
+                await gotoExample(page, toExamplePageUrl(pageSlug, example, framework).url);
+            });
+        }
     }
 
     // --- Navigation ---
