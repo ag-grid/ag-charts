@@ -1,5 +1,6 @@
 ---
 // cspell:ignore vars
+import { createHash } from 'node:crypto';
 import { getEntry, type CollectionEntry } from 'astro:content';
 import { getFavIconsData, getAppleTouchIconsData } from '@utils/favicons';
 import SiteHeader from '@ag-website-shared/components/site-header/SiteHeader.astro';
@@ -46,6 +47,18 @@ const { data: announcementBannerContent } = (await getEntry(
     'announcementBanner',
     'announcement-banner'
 )) as CollectionEntry<'announcementBanner'>;
+
+const { showDate: bannerShowDate, untilDate: bannerUntilDate } = announcementBannerContent;
+
+// Per-banner id so a dismissal only hides THIS banner. A new title/description/date combination
+// yields a new id, so future banners reappear even for visitors who dismissed a previous one.
+// Consumed by the inline show-script and the dismiss script to build the localStorage key.
+const bannerId = createHash('sha256')
+    .update(
+        `${announcementBannerContent.title}|${announcementBannerContent.description ?? ''}|${bannerShowDate ?? ''}|${bannerUntilDate ?? ''}`
+    )
+    .digest('hex')
+    .slice(0, 12);
 
 const {
     title = metadata.title,
@@ -162,7 +175,12 @@ const structuredData: JsonLdObject[] = includeStructuredData
 ---
 
 <!doctype html>
-<html lang="en">
+<html
+    lang="en"
+    data-announcement-id={bannerId}
+    data-announcement-show-date={bannerShowDate ?? undefined}
+    data-announcement-until-date={bannerUntilDate ?? undefined}
+>
     <head>
         <meta charset="UTF-8" />
         <meta name="description" content={description} />
