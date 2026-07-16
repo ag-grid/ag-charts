@@ -244,17 +244,29 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                 this.properties.node.title.formatter,
                 datumIndex,
                 isCollapsed,
-                depth
+                depth,
+                allChildren,
+                directChildren
             );
             const subtitle = this.formatText(
                 fields.subtitle,
                 this.properties.node.subtitle.formatter,
                 datumIndex,
                 isCollapsed,
-                depth
+                depth,
+                allChildren,
+                directChildren
             );
             const labels = fields.labels?.map((label, index) =>
-                this.formatText(label, this.properties.node.labels[index]?.formatter, datumIndex, isCollapsed, depth)
+                this.formatText(
+                    label,
+                    this.properties.node.labels[index]?.formatter,
+                    datumIndex,
+                    isCollapsed,
+                    depth,
+                    allChildren,
+                    directChildren
+                )
             );
 
             let defaultExpanderText = '';
@@ -265,15 +277,16 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             } else if (styles.expander.text.showDirectChildren) {
                 defaultExpanderText = `${directChildren}`;
             }
-            const expanderText = this.formatExpanderText(
-                defaultExpanderText,
-                this.properties.expander.text.formatter,
-                datumIndex,
-                isCollapsed,
-                depth,
-                allChildren,
-                directChildren
-            );
+            const expanderText =
+                this.formatText(
+                    defaultExpanderText,
+                    this.properties.expander.text.formatter,
+                    datumIndex,
+                    isCollapsed,
+                    depth,
+                    allChildren,
+                    directChildren
+                ) ?? defaultExpanderText;
 
             node.update(
                 { image: fields.image, title, subtitle, labels },
@@ -791,24 +804,6 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         formatter: RichFormatter<AgOrganizationNodeTextFormatterParams> | undefined,
         datumIndex: number | undefined,
         isCollapsed: boolean,
-        depth: number
-    ) {
-        const { dataModel, processedData } = this;
-        if (!formatter || !dataModel || !processedData || datumIndex == null) return text;
-
-        return (
-            this.callWithContext(
-                formatter,
-                this.makeNodeTextFormatterParams(dataModel, processedData, datumIndex, isCollapsed, depth, text)
-            ) ?? text
-        );
-    }
-
-    private formatExpanderText(
-        text: NormalisedTextOrSegments,
-        formatter: RichFormatter<AgOrganizationNodeTextFormatterParams> | undefined,
-        datumIndex: number | undefined,
-        isCollapsed: boolean,
         depth: number,
         allChildren: number,
         directChildren: number
@@ -819,7 +814,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         return (
             this.callWithContext(
                 formatter,
-                this.makeExpanderTextFormatterParams(
+                this.makeNodeTextFormatterParams(
                     dataModel,
                     processedData,
                     datumIndex,
@@ -1351,6 +1346,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         datumIndex: number,
         isCollapsed: boolean,
         depth: number,
+        allChildren: number,
+        directChildren: number,
         value: any
     ): AgOrganizationNodeTextFormatterParams<unknown, unknown> {
         const { id: seriesId } = this;
@@ -1358,37 +1355,14 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const datum = processedData.dataSources.get(seriesId)?.data?.[datumIndex];
 
         return {
+            allChildren,
             datum,
             depth,
+            directChildren,
             isCollapsed,
             seriesId,
             value,
         } satisfies CallbackParamRules<AgOrganizationNodeTextFormatterParams<unknown, unknown>>;
-    }
-
-    private makeExpanderTextFormatterParams(
-        _dataModel: NonNullable<typeof this.dataModel>,
-        processedData: NonNullable<typeof this.processedData>,
-        datumIndex: number,
-        isCollapsed: boolean,
-        depth: number,
-        allChildren: number,
-        directChildren: number,
-        value: any
-    ): AgOrganizationExpanderTextFormatterParams<unknown, unknown> {
-        const { id: seriesId } = this;
-
-        const datum = processedData.dataSources.get(seriesId)?.data?.[datumIndex];
-
-        return {
-            datum,
-            depth,
-            isCollapsed,
-            seriesId,
-            allChildren,
-            directChildren,
-            value,
-        } satisfies CallbackParamRules<AgOrganizationExpanderTextFormatterParams<unknown, unknown>>;
     }
 
     // Resolve as a real vertex id first; only a number matching no vertex is treated as a datumSelection index.

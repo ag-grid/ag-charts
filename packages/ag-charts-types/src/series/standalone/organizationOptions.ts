@@ -105,7 +105,7 @@ export interface AgOrganizationSeriesOptionsExpanderText<
     TDatum = DatumDefault,
     TContext = ContextDefault,
 > extends AgOrganizationSeriesExpanderTextStyle {
-    formatter?: RichFormatter<AgOrganizationExpanderTextFormatterParams<TDatum, TContext>>;
+    formatter?: RichFormatter<AgOrganizationNodeTextFormatterParams<TDatum, TContext>>;
 }
 
 export interface AgOrganizationSeriesOptionsLink<
@@ -252,18 +252,12 @@ export interface AgOrganizationNodeTextFormatterParams<TDatum = DatumDefault, TC
     depth: number;
     /** `true` when the node is collapsed (its descendants are hidden); `false` otherwise. */
     isCollapsed: boolean;
-    /** The default label value that would have been used without a formatter. */
-    value: any;
-}
-
-export interface AgOrganizationExpanderTextFormatterParams<
-    TDatum = DatumDefault,
-    TContext = ContextDefault,
-> extends AgOrganizationNodeTextFormatterParams<TDatum, TContext> {
     /** The number of descendants of this item. */
     allChildren: number;
     /** The number of direct children of this item. */
     directChildren: number;
+    /** The default label value that would have been used without a formatter. */
+    value: any;
 }
 
 export interface AgOrganizationSeriesExpanderItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault>
