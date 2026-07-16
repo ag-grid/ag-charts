@@ -202,6 +202,8 @@ export interface AgAxisContextMenuActionEvent<TContext = ContextDefault> extends
     value: AgAxisValue;
     /** Direction of the axis the title belongs to. */
     direction: AgAxisDirection;
+    /** The index of the resolved value */
+    index: number;
     /** Metadata about series bound to the axis the title belongs to. */
     boundSeries: AgAxisBoundSeries[];
     /** Computed domain of the axis */

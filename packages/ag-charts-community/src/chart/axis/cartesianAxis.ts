@@ -328,6 +328,7 @@ export abstract class CartesianAxis<
         ) {
             const { bbox, spacing } = this.measureAxisLayout(domain, [], [], scrollbar, scrollbarThickness);
             // Performance optimization: if ticks have no effect, don't generate them
+            this.setPickTickData([]);
             const layout: GeneratedTicks = {
                 ticks: [],
                 tickLines: [],
@@ -396,6 +397,8 @@ export abstract class CartesianAxis<
         }
 
         const { ticks, tickDomain, rawTicks, rawTickCount, fractionDigits, timeInterval, niceDomain } = tickData;
+
+        this.setPickTickData(ticks);
 
         const labels = ticks.map((d) => this.getTickLabelProps(d, tickGenerationResult, scrollbarThickness));
 
