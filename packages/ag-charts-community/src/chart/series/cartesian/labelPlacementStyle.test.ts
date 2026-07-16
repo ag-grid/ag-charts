@@ -3,10 +3,8 @@ import { afterEach, describe, expect, it } from 'vitest';
 import type { AgChartInstance } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
-import { expectPixelIdenticalAcrossUpdate } from '../../test/bigintExamples';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
-    createChart,
     deproxy,
     extractImageData,
     prepareTestOptions,
@@ -100,7 +98,7 @@ describe('label placement style (insideStyle/outsideStyle)', () => {
             expect(firstVisibleLabelStyle().color).toBe('#00ff00');
         });
 
-        it('lets an explicit top-level label.color win over insideStyle.color', async () => {
+        it('lets insideStyle.color win over an explicit top-level label.color', async () => {
             await renderAndSnapshot(
                 barOptions({
                     placement: 'inside-center',
@@ -108,19 +106,58 @@ describe('label placement style (insideStyle/outsideStyle)', () => {
                     insideStyle: { color: '#ff0000' },
                 })
             );
-            expect(firstVisibleLabelStyle().color).toBe('#0000ff');
+            expect(firstVisibleLabelStyle().color).toBe('#ff0000');
         });
 
-        // With the top-level colour pinned, the render must be pixel-identical whether or not an
-        // insideStyle colour is supplied — proving the override is inert, not matching by coincidence.
-        it('renders identically whether insideStyle.color is set or absent once label.color is pinned', async () => {
-            await expectPixelIdenticalAcrossUpdate(
-                ctx,
-                createChart,
-                barOptions({ placement: 'inside-center', color: '#0000ff' }) as any,
-                barOptions({ placement: 'inside-center', color: '#0000ff', insideStyle: { color: '#ff0000' } }) as any
-            );
+        // The per-placement colour rule, split one chart per placement (the mock canvas only snapshots
+        // the first chart created per test). Inside default is the box-readable chartBackgroundColor,
+        // outside default is the textColor; a top-level label.color beats either default, and a
+        // per-placement colour beats the top-level value only for its own placement.
+        const COLOUR_CASES: Array<[string, object, string]> = [
+            ['inside default resolves chartBackgroundColor', { placement: 'inside-center' }, 'white'],
+            ['outside default resolves textColor', { placement: 'outside-end' }, '#464646'],
+            [
+                'top-level label.color beats the inside default',
+                { placement: 'inside-center', color: '#0000ff' },
+                '#0000ff',
+            ],
+            [
+                'top-level label.color beats the outside default',
+                { placement: 'outside-end', color: '#0000ff' },
+                '#0000ff',
+            ],
+            [
+                'insideStyle.color wins for the inside placement',
+                { placement: 'inside-center', color: '#0000ff', insideStyle: { color: '#ff0000' } },
+                '#ff0000',
+            ],
+            [
+                'outside falls back to the top-level colour when only insideStyle.color is set',
+                { placement: 'outside-end', color: '#0000ff', insideStyle: { color: '#ff0000' } },
+                '#0000ff',
+            ],
+        ];
+        it.each(COLOUR_CASES)('resolves label colour: %s', async (_name, labelOptions, expected) => {
+            await renderAndSnapshot(barOptions(labelOptions));
+            expect(firstVisibleLabelStyle().color).toBe(expected);
         });
+
+        // The repro: a rotated (vertical) khaki-boxed label must float clear of the bar AND stay centred
+        // on it, whatever the per-side padding. Each variant renders its own baseline for eyeballing.
+        const ROTATED_PADDINGS: Record<string, object> = {
+            symmetric: { top: 0, bottom: 0, left: 10, right: 10 },
+            'wide left': { top: 0, bottom: 0, left: 50, right: 10 },
+            'wide right': { top: 0, bottom: 0, left: 10, right: 50 },
+            'tall + asymmetric': { top: 40, bottom: 4, left: 50, right: 10 },
+        };
+        it.each(Object.entries(ROTATED_PADDINGS))(
+            'floats a rotated vertical outside-end label clear of and centred on the bar (%s padding)',
+            async (_name, padding) => {
+                await renderAndSnapshot(
+                    barOptions({ placement: 'outside-end', orientation: 'vertical', fill: 'khaki', padding })
+                );
+            }
+        );
 
         it('resolves fill independently per placement while label.color stays pinned', async () => {
             await renderAndSnapshot(
@@ -163,7 +200,7 @@ describe('label placement style (insideStyle/outsideStyle)', () => {
             expect(style.padding).toBe(20);
         });
 
-        it('lets an explicit top-level label.cornerRadius win over insideStyle.cornerRadius', async () => {
+        it('lets insideStyle.cornerRadius win over an explicit top-level label.cornerRadius', async () => {
             await renderAndSnapshot(
                 barOptions({
                     placement: 'inside-center',
@@ -171,7 +208,7 @@ describe('label placement style (insideStyle/outsideStyle)', () => {
                     insideStyle: { fill: '#ff0000', cornerRadius: 12 },
                 })
             );
-            expect(firstVisibleLabelStyle().cornerRadius).toBe(5);
+            expect(firstVisibleLabelStyle().cornerRadius).toBe(12);
         });
 
         it('resolves the border stroke per placement while the top-level border governs enablement', async () => {
@@ -238,7 +275,7 @@ describe('label placement style (insideStyle/outsideStyle)', () => {
             expect(firstVisibleLabelStyle().color).toBe('#00ff00');
         });
 
-        it('lets an explicit top-level label.color win over outsideStyle.color', async () => {
+        it('lets outsideStyle.color win over an explicit top-level label.color', async () => {
             await renderAndSnapshot(
                 bubbleOptions({
                     placement: 'top',
@@ -246,16 +283,7 @@ describe('label placement style (insideStyle/outsideStyle)', () => {
                     outsideStyle: { color: '#00ff00' },
                 })
             );
-            expect(firstVisibleLabelStyle().color).toBe('#0000ff');
-        });
-
-        it('renders identically whether outsideStyle.color is set or absent once label.color is pinned', async () => {
-            await expectPixelIdenticalAcrossUpdate(
-                ctx,
-                createChart,
-                bubbleOptions({ placement: 'top', color: '#0000ff' }) as any,
-                bubbleOptions({ placement: 'top', color: '#0000ff', outsideStyle: { color: '#00ff00' } }) as any
-            );
+            expect(firstVisibleLabelStyle().color).toBe('#00ff00');
         });
 
         it('resolves fill independently per placement (inside) while label.color stays pinned', async () => {
