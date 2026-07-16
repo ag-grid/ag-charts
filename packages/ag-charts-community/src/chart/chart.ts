@@ -1824,7 +1824,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         if (seriesStatus === 'replaced') {
             this.resetAnimations();
         }
-        if (this.applyAxes(this, newOpts, oldOpts, seriesStatus)) {
+        if (this.applyAxes(this, newOpts, seriesStatus)) {
             forceNodeDataRefresh = true;
         }
 
@@ -2022,7 +2022,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             this.filterMiniChartSeries(oldSeries)
         );
         const derivedOptions = deriveMiniChartOptions(completeOptions);
-        this.applyAxes(miniChart, derivedOptions, oldOpts, miniChartSeriesStatus);
+        this.applyAxes(miniChart, derivedOptions, miniChartSeriesStatus);
 
         const series: UnknownSeries[] = miniChart.series;
         for (const s of series) {
@@ -2163,12 +2163,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         return isUpdated ? 'updated' : 'no-op';
     }
 
-    private applyAxes(
-        chart: { axes: ChartAxes },
-        options: AgChartOptions,
-        _oldOpts: AgChartOptions,
-        seriesStatus: SeriesChangeType
-    ) {
+    private applyAxes(chart: { axes: ChartAxes }, options: AgChartOptions, seriesStatus: SeriesChangeType) {
         if (!('axes' in options) || !options.axes) {
             return false;
         }
@@ -2190,6 +2185,12 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         debug(`Chart.applyAxes() - creating new axes instances; seriesStatus: ${seriesStatus}`);
         chart.axes = this.createAxes(axes);
+        for (const [canonicalKey, userKey] of this.chartOptions.unmappedAxisKeys) {
+            const axis = chart.axes.findById(canonicalKey);
+            if (axis) {
+                axis.userKey = userKey;
+            }
+        }
         return true;
     }
 

@@ -197,7 +197,11 @@ export abstract class Axis<
 > implements ChartAxis<TOptions> {
     static readonly defaultTickMinSpacing = 50;
 
+    // Standardised/Canonical ID (e.g 'x', 'y' for primaries, for '__AXIS_ID_2' for secondaries).
     readonly id: AxisID = 'unknown' as AxisID;
+
+    // Axis ID as specified by the user chart options (i.e. "unmapped key").
+    userKey = '';
 
     /**
      * User pass-through option for callback resolution. Declared via `declare`
@@ -1227,7 +1231,7 @@ export abstract class Axis<
         type Rules = Omit<AgContextMenuGetItemsParamsAxis, Exclude<keyof AgContextMenuGetItemsParamsAlways, 'context'>>;
         const result: AxisValuePick = {
             context: this.context,
-            axisId: this.id,
+            axisId: this.userKey,
             value,
             direction: this.direction,
             boundSeries: this.formatterBoundSeries.get(),
