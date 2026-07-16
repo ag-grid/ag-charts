@@ -15,7 +15,7 @@ test.describe('collapse', () => {
     const consoleLogs = createConsoleLogs();
 
     test.describe('organization-series', () => {
-        for (const { framework, url } of toExamplePageUrls('org-chart-test', 'e2e-org-chart-collapse')) {
+        for (const { framework, url } of toExamplePageUrls('org-chart-e2e', 'e2e-org-chart-collapse')) {
             test.describe(`for ${framework}`, () => {
                 test('collapse only on expander click', async ({ page }) => {
                     await gotoExample(page, url);
@@ -40,7 +40,7 @@ test.describe('collapse', () => {
         }
 
         test('collapsedChange event', async ({ page }) => {
-            const { url } = toExamplePageUrl('org-chart-test', 'e2e-org-chart-collapse', 'vanilla');
+            const { url } = toExamplePageUrl('org-chart-e2e', 'e2e-org-chart-collapse', 'vanilla');
             await gotoExample(page, url);
 
             const point = await canvasToPageTransformer(page);
