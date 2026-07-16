@@ -69,11 +69,12 @@ run_cell() {
             cp -R "$MODIFIED_RULES" .claude/rules
         fi
 
-        # Headless agent run. Worktree is disposable, so skip permission prompts.
+        # Headless agent run. Scoped tool allowlist: file edits plus the build/test
+        # commands the tasks require — no blanket permission bypass.
         claude -p "$(cat "$task_file")" \
             --model "$model" \
             --output-format json \
-            --dangerously-skip-permissions \
+            --allowedTools "Read,Grep,Glob,Edit,Write,MultiEdit,TodoWrite,Bash(yarn:*),Bash(npx vitest:*),Bash(npx playwright:*),Bash(npx prettier:*),Bash(node:*),Bash(ls:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(grep:*),Bash(find:*),Bash(cat:*)" \
             > "$OUT/$cell.result.json" 2> "$OUT/$cell.stderr.log" || true
 
         git add -A
@@ -97,7 +98,7 @@ $(cat "$2")
 \`\`\`diff
 $(head -c 150000 "$OUT/$cell.diff")
 \`\`\`" \
-        --model opus --output-format text --dangerously-skip-permissions \
+        --model opus --output-format text \
         > "$OUT/$cell.judge.json" 2>/dev/null || true
 }
 
