@@ -37,6 +37,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 mkdir -p "$OUT"
+OUT=$(cd "$OUT" && pwd) # absolute — cells cd into worktrees
 echo "results -> $OUT"
 
 # Snapshot the candidate rule set once, so later edits in the main checkout don't skew reps.
