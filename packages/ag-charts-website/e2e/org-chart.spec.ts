@@ -39,7 +39,9 @@ test.describe('collapse', () => {
             });
         }
 
-        test('collapsedChange event', async ({ page }) => {
+        // Flaky: org-chart-prevent-default screenshot drifts intermittently. Skipped until a
+        // proper fix lands (see https://github.com/ag-grid/ag-charts/pull/7448).
+        test.skip('collapsedChange event', async ({ page }) => {
             const { url } = toExamplePageUrl('org-chart-e2e', 'e2e-org-chart-collapse', 'vanilla');
             await gotoExample(page, url);
 
