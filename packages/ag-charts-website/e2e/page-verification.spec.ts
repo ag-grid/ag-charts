@@ -157,16 +157,36 @@ test.describe('Page Verification', () => {
         await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
     });
 
-    test('docs page with inline example renders a chart', async ({ page }) => {
-        await gotoUrl(page, toPageUrl('javascript/quick-start'));
-        await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
-        // The iframe src is set lazily by an IntersectionObserver — scroll it into
-        // view to trigger the load, then wait for the chart canvas to appear.
-        const iframeLocator = page.locator('iframe.exampleRunner').first();
-        await iframeLocator.scrollIntoViewIfNeeded();
-        const exampleFrame = iframeLocator.contentFrame();
-        await expect(exampleFrame.locator(SELECTORS.canvas).first()).toBeVisible({ timeout: 30_000 });
-    });
+    // The docs inline runner resolves its framework from a persistent store
+    // (`documentation:internalFramework`, default React), not from the page URL directly — the
+    // URL only syncs into that store via an effect that runs after the first render, so
+    // navigating alone renders whichever framework the store defaulted to. To deterministically
+    // verify both the React and the JavaScript variants render, seed the store to the target
+    // framework before load, navigate to the matching docs URL, and assert the iframe's own src
+    // carries that framework before checking the chart canvas.
+    const inlineExampleFrameworks = [
+        { framework: 'react', internalFramework: 'reactFunctional', srcSegment: /\/(reactFunctional|reactFunctionalTs)\// },
+        { framework: 'javascript', internalFramework: 'vanilla', srcSegment: /\/(vanilla|typescript)\// },
+    ];
+    for (const { framework, internalFramework, srcSegment } of inlineExampleFrameworks) {
+        test(`docs page with inline example renders a chart (${framework})`, async ({ page }) => {
+            await page.addInitScript((fw) => {
+                window.localStorage.setItem('documentation:internalFramework', fw);
+            }, internalFramework);
+
+            await gotoUrl(page, toPageUrl(`${framework}/quick-start`));
+            await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+            // The iframe src is set lazily by an IntersectionObserver — scroll it into
+            // view to trigger the load, then wait for the chart canvas to appear.
+            const iframeLocator = page.locator('iframe.exampleRunner').first();
+            await iframeLocator.scrollIntoViewIfNeeded();
+            // Confirm the runner resolved to the intended framework (not the store default)
+            // before asserting the rendered chart, so this genuinely covers each variant.
+            await expect(iframeLocator).toHaveAttribute('src', srcSegment, { timeout: 30_000 });
+            const exampleFrame = iframeLocator.contentFrame();
+            await expect(exampleFrame.locator(SELECTORS.canvas).first()).toBeVisible({ timeout: 30_000 });
+        });
+    }
 
     // --- Navigation ---
 
