@@ -261,7 +261,7 @@ export interface AgOrganizationExpanderTextFormatterParams<
     TContext = ContextDefault,
 > extends AgOrganizationNodeTextFormatterParams<TDatum, TContext> {
     /** The number of descendants of this item. */
-    allDescendants: number;
+    allChildren: number;
     /** The number of direct children of this item. */
     directChildren: number;
 }

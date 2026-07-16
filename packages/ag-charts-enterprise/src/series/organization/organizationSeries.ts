@@ -225,8 +225,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         datumSelection.each((node, datum) => {
             const datumIndex = this.graph.findNeighbourValue(datum.vertex, 'datumIndex') as number;
             const depth = this.graph.findNeighbourValue(datum.vertex, 'depth') as number;
-            const descendantsCount = this.graph.findNeighbourValue(datum.vertex, 'descendants') as number;
-            const childrenCount = this.graph.neighboursWithEdgeValue(datum.vertex, 'child')?.length ?? 0;
+            const allChildren = this.graph.findNeighbourValue(datum.vertex, 'descendants') as number;
+            const directChildren = this.graph.neighboursWithEdgeValue(datum.vertex, 'child')?.length ?? 0;
 
             const isHighlight = highlightedDatum?.datumIndex === datum.datumIndex;
             const highlightState = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
@@ -234,7 +234,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             // a leaf id present in `collapsedManager` is a no-op visually and would mislead
             // styler consumers about the rendered tree state.
             const isCollapsed =
-                descendantsCount > 0 && datum.itemId != null && this.ctx.collapsedManager.isCollapsed(datum.itemId);
+                allChildren > 0 && datum.itemId != null && this.ctx.collapsedManager.isCollapsed(datum.itemId);
             const styles = this.getNodeStyle(datumIndex, depth, isHighlight, highlightState, isCollapsed);
             node.opacity = this.getNodeOpacity(datumIndex, isHighlight, highlightState);
 
@@ -259,11 +259,11 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
             let defaultExpanderText = '';
             if (styles.expander.text.showAllChildren && styles.expander.text.showDirectChildren) {
-                defaultExpanderText = `${childrenCount} / ${descendantsCount}`;
+                defaultExpanderText = `${directChildren} / ${allChildren}`;
             } else if (styles.expander.text.showAllChildren) {
-                defaultExpanderText = `${descendantsCount}`;
+                defaultExpanderText = `${allChildren}`;
             } else if (styles.expander.text.showDirectChildren) {
-                defaultExpanderText = `${childrenCount}`;
+                defaultExpanderText = `${directChildren}`;
             }
             const expanderText = this.formatExpanderText(
                 defaultExpanderText,
@@ -271,14 +271,14 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                 datumIndex,
                 isCollapsed,
                 depth,
-                descendantsCount,
-                childrenCount
+                allChildren,
+                directChildren
             );
 
             node.update(
                 { image: fields.image, title, subtitle, labels },
                 expanderText,
-                descendantsCount,
+                allChildren,
                 styles,
                 isCollapsed,
                 this.ctx.domManager.isRtl
@@ -810,8 +810,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         datumIndex: number | undefined,
         isCollapsed: boolean,
         depth: number,
-        descendantsCount: number,
-        childrenCount: number
+        allChildren: number,
+        directChildren: number
     ) {
         const { dataModel, processedData } = this;
         if (!formatter || !dataModel || !processedData || datumIndex == null) return text;
@@ -825,8 +825,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                     datumIndex,
                     isCollapsed,
                     depth,
-                    descendantsCount,
-                    childrenCount,
+                    allChildren,
+                    directChildren,
                     text
                 )
             ) ?? text
@@ -1372,8 +1372,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         datumIndex: number,
         isCollapsed: boolean,
         depth: number,
-        descendantsCount: number,
-        childrenCount: number,
+        allChildren: number,
+        directChildren: number,
         value: any
     ): AgOrganizationExpanderTextFormatterParams<unknown, unknown> {
         const { id: seriesId } = this;
@@ -1385,8 +1385,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             depth,
             isCollapsed,
             seriesId,
-            allDescendants: descendantsCount,
-            directChildren: childrenCount,
+            allChildren,
+            directChildren,
             value,
         } satisfies CallbackParamRules<AgOrganizationExpanderTextFormatterParams<unknown, unknown>>;
     }

@@ -68,7 +68,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
     update(
         fields: OrganizationNodeFields,
         expanderText: NormalisedTextOrSegments,
-        descendentsCount: number,
+        allChildren: number,
         styles: NormalisedOrganizationNodeStyle,
         isCollapsed: boolean,
         isRtl: boolean
@@ -80,7 +80,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         this.updateTitleNode(fields.title, styles, textMaxWidth);
         this.updateSubtitleNode(fields.subtitle, styles, textMaxWidth);
         this.updateLabelNodes(fields.labels, styles, textMaxWidth);
-        this.updateExpanderNode(expanderText, descendentsCount, isCollapsed, isRtl, styles);
+        this.updateExpanderNode(expanderText, allChildren, isCollapsed, isRtl, styles);
 
         let rowScenes = [];
         let rowGaps: number[] = [];
@@ -346,12 +346,12 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
 
     private updateExpanderNode(
         expanderText: NormalisedTextOrSegments,
-        descendantsCount: number,
+        allChildren: number,
         isCollapsed: boolean,
         isRtl: boolean,
         styles: NormalisedOrganizationNodeStyle
     ) {
-        if (descendantsCount === 0 || !styles.expander.enabled) {
+        if (allChildren === 0 || !styles.expander.enabled) {
             this.expanderNode?.remove();
             this.expanderNode = undefined;
             return;

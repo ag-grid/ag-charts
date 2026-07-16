@@ -366,8 +366,8 @@ const FORMATTERS: AgChartOptions = {
             },
             expander: {
                 text: {
-                    formatter: ({ allDescendants, directChildren }) => {
-                        return `${allDescendants} (${directChildren})`;
+                    formatter: ({ allChildren, directChildren }) => {
+                        return `${allChildren} (${directChildren})`;
                     },
                 },
             },
