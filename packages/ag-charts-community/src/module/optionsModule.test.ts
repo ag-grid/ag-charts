@@ -2724,9 +2724,9 @@ describe('ChartOptions', () => {
             expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(4);
             expect(preparedOptions.axes).toMatchObject({
                 x: { type: 'time', title: { enabled: false } },
+                xSecondary: { type: 'time', title: { enabled: true } },
                 y: { type: 'number', title: { enabled: false } },
-                __AXIS_ID_2: { type: 'time', title: { enabled: true } },
-                __AXIS_ID_3: { type: 'number', title: { enabled: true } },
+                ySecondary: { type: 'number', title: { enabled: true } },
             });
             expect(preparedOptions.series?.length).toEqual(4);
             expect(preparedOptions.series?.map((s) => s.type)).toEqual(['line', 'bar', 'area', 'area']);
@@ -2905,7 +2905,7 @@ describe('ChartOptions', () => {
                 expect(preparedOptions.axes).toMatchObject({
                     x: { type: 'category', position: 'bottom' },
                     y: { type: 'number', position: 'left' },
-                    __AXIS_ID_2: { type: 'number', position: 'right' },
+                    myAxis: { type: 'number', position: 'right' },
                 });
                 expect(preparedOptions.series?.[0]).toMatchObject({
                     xKeyAxis: 'x',
@@ -2913,7 +2913,7 @@ describe('ChartOptions', () => {
                 });
             });
 
-            it('should remap axes to the primary axis ids', () => {
+            it('should assign series to custom primary axes', () => {
                 const options: AgCartesianChartOptions = {
                     series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                     axes: {
@@ -2927,17 +2927,17 @@ describe('ChartOptions', () => {
 
                 expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(3);
                 expect(preparedOptions.axes).toMatchObject({
-                    x: { type: 'category', position: 'bottom' },
-                    y: { type: 'number', position: 'left' },
-                    __AXIS_ID_2: { type: 'number', position: 'top' },
+                    myAxis0: { type: 'category', position: 'bottom' },
+                    myAxis1: { type: 'number', position: 'top' },
+                    myAxis2: { type: 'number', position: 'left' },
                 });
                 expect(preparedOptions.series?.[0]).toMatchObject({
-                    xKeyAxis: 'x',
-                    yKeyAxis: 'y',
+                    xKeyAxis: 'myAxis0',
+                    yKeyAxis: 'myAxis2',
                 });
             });
 
-            it('should remap axes to the primary axis ids when given incorrect directional ids', () => {
+            it('should bind series to the primary axis ids when given incorrect directional ids', () => {
                 const options: AgCartesianChartOptions = {
                     series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                     axes: {
@@ -2951,13 +2951,13 @@ describe('ChartOptions', () => {
 
                 expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(3);
                 expect(preparedOptions.axes).toMatchObject({
-                    x: { type: 'category', position: 'bottom' },
-                    y: { type: 'number', position: 'left' },
-                    __AXIS_ID_2: { type: 'number', position: 'right' },
+                    y: { type: 'category', position: 'bottom' },
+                    x: { type: 'number', position: 'left' },
+                    myAxis: { type: 'number', position: 'right' },
                 });
                 expect(preparedOptions.series?.[0]).toMatchObject({
-                    xKeyAxis: 'x',
-                    yKeyAxis: 'y',
+                    xKeyAxis: 'y',
+                    yKeyAxis: 'x',
                 });
             });
 
@@ -2976,10 +2976,10 @@ describe('ChartOptions', () => {
                 expect(preparedOptions.axes).toMatchObject({
                     x: { type: 'category', position: 'bottom' },
                     y: { type: 'number', position: 'left' },
-                    __AXIS_ID_2: { type: 'category', position: 'top' },
+                    myAxis: { type: 'category', position: 'top' },
                 });
                 expect(preparedOptions.series?.[0]).toMatchObject({
-                    xKeyAxis: '__AXIS_ID_2',
+                    xKeyAxis: 'myAxis',
                     yKeyAxis: 'y',
                 });
             });
@@ -3001,8 +3001,8 @@ describe('ChartOptions', () => {
                 expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(3);
                 expect(preparedOptions.axes).toMatchObject({
                     x: { type: 'category', position: 'bottom' },
-                    y: { type: 'number', position: 'left' },
-                    __AXIS_ID_2: { type: 'number' }, // myAxis
+                    y: { type: 'number', position: 'right' },
+                    myAxis: { type: 'number', position: 'left' },
                 });
                 expect(preparedOptions.series?.[0]).toMatchObject({
                     xKeyAxis: 'x',
@@ -3010,7 +3010,7 @@ describe('ChartOptions', () => {
                 });
                 expect(preparedOptions.series?.[1]).toMatchObject({
                     xKeyAxis: 'x',
-                    yKeyAxis: '__AXIS_ID_2', // myAxis
+                    yKeyAxis: 'myAxis',
                 });
             });
 
@@ -3031,8 +3031,8 @@ describe('ChartOptions', () => {
                 expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(3);
                 expect(preparedOptions.axes).toMatchObject({
                     x: { type: 'category', position: 'bottom' },
-                    y: { type: 'number' },
-                    __AXIS_ID_2: { type: 'number' }, // myAxis
+                    y: { type: 'number', position: 'left' },
+                    myAxis: { type: 'number', position: 'right' },
                 });
                 expect(preparedOptions.series?.[0]).toMatchObject({
                     xKeyAxis: 'x',
@@ -3040,7 +3040,7 @@ describe('ChartOptions', () => {
                 });
                 expect(preparedOptions.series?.[1]).toMatchObject({
                     xKeyAxis: 'x',
-                    yKeyAxis: '__AXIS_ID_2', // myAxis
+                    yKeyAxis: 'myAxis',
                 });
             });
 
@@ -3062,16 +3062,16 @@ describe('ChartOptions', () => {
                 expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(3);
                 expect(preparedOptions.axes).toMatchObject({
                     x: { type: 'category', position: 'bottom' },
-                    y: { type: 'number' },
-                    __AXIS_ID_2: { type: 'number' }, // myOtherAxis
+                    myAxis: { type: 'number', position: 'left' },
+                    myOtherAxis: { type: 'number', position: 'right' },
                 });
                 expect(preparedOptions.series?.[0]).toMatchObject({
                     xKeyAxis: 'x',
-                    yKeyAxis: '__AXIS_ID_2', // myOtherAxis
+                    yKeyAxis: 'myOtherAxis',
                 });
                 expect(preparedOptions.series?.[1]).toMatchObject({
                     xKeyAxis: 'x',
-                    yKeyAxis: 'y', // myAxis
+                    yKeyAxis: 'myAxis',
                 });
             });
 
@@ -3090,7 +3090,7 @@ describe('ChartOptions', () => {
                 expect(preparedOptions.axes).toMatchObject({
                     y: { type: 'number', position: 'left' },
                     x: { type: 'category', position: 'bottom' },
-                    __AXIS_ID_1: { type: 'number', position: 'top' }, // myAxis
+                    myAxis: { type: 'number', position: 'top' },
                 });
                 expect(preparedOptions.series?.[0]).toMatchObject({
                     xKeyAxis: 'x',
@@ -3114,7 +3114,7 @@ describe('ChartOptions', () => {
                 expect(preparedOptions.axes).toMatchObject({
                     x: { type: 'time' }, // matched by key
                     y: { type: 'number' }, // matched by key
-                    __AXIS_ID_2: { type: 'number' },
+                    myAxis: { type: 'number' },
                 });
                 expect(preparedOptions.series?.[0]).toMatchObject({
                     xKeyAxis: 'x',
@@ -3122,7 +3122,7 @@ describe('ChartOptions', () => {
                 });
             });
 
-            it('should remap axes when no position is provided and keys are non-standard', () => {
+            it('should bind axes when no position is provided and keys are non-standard', () => {
                 const options: AgCartesianChartOptions = {
                     series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                     axes: {
@@ -3136,13 +3136,13 @@ describe('ChartOptions', () => {
 
                 expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(3);
                 expect(preparedOptions.axes).toMatchObject({
-                    x: { type: 'time' }, // matched by index, myAxis0
-                    y: { type: 'number' }, // matched by index, myAxis1
-                    __AXIS_ID_2: { type: 'number' }, // myAxis2
+                    myAxis0: { type: 'time' },
+                    myAxis1: { type: 'number' },
+                    myAxis2: { type: 'number' },
                 });
                 expect(preparedOptions.series?.[0]).toMatchObject({
-                    xKeyAxis: 'x',
-                    yKeyAxis: 'y',
+                    xKeyAxis: 'myAxis0',
+                    yKeyAxis: 'myAxis1',
                 });
             });
 
@@ -3162,7 +3162,7 @@ describe('ChartOptions', () => {
                 expect(preparedOptions.axes).toMatchObject({
                     x: { type: 'category' },
                     y: { type: 'number' },
-                    __AXIS_ID_2: { type: 'number' },
+                    myAxis: { type: 'number' },
                 });
                 expect(preparedOptions.series?.[0]).toMatchObject({
                     xKeyAxis: 'x',
@@ -3219,12 +3219,12 @@ describe('ChartOptions', () => {
 
                 expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(2);
                 expect(preparedOptions.axes).toMatchObject({
-                    x: { type: 'category', position: 'bottom' },
-                    y: { type: 'number', position: 'left' },
+                    myXAxis: { type: 'category', position: 'bottom' },
+                    myYAxis: { type: 'number', position: 'left' },
                 });
                 expect(preparedOptions.series?.[0]).toMatchObject({
-                    xKeyAxis: 'x',
-                    yKeyAxis: 'y',
+                    xKeyAxis: 'myXAxis',
+                    yKeyAxis: 'myYAxis',
                 });
             });
 
@@ -3241,12 +3241,12 @@ describe('ChartOptions', () => {
                 expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(3);
                 expect(preparedOptions.axes).toMatchObject({
                     x: { type: 'category', position: 'bottom' },
-                    __AXIS_ID_2: { type: 'category', position: 'top' },
-                    y: { type: 'number', position: 'left' },
+                    myXAxis: { type: 'category', position: 'top' },
+                    myYAxis: { type: 'number', position: 'left' },
                 });
                 expect(preparedOptions.series?.[0]).toMatchObject({
-                    xKeyAxis: '__AXIS_ID_2', // user's myXAxis
-                    yKeyAxis: 'y', // user's myYAxis, since no axes.y provided
+                    xKeyAxis: 'myXAxis',
+                    yKeyAxis: 'myYAxis',
                 });
             });
 
@@ -3263,16 +3263,16 @@ describe('ChartOptions', () => {
                 expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(3);
                 expect(preparedOptions.axes).toMatchObject({
                     x: { type: 'category', position: 'bottom' },
-                    y: { type: 'number', position: 'left' },
-                    __AXIS_ID_2: { type: 'number', position: 'right' },
+                    myYAxis: { type: 'number', position: 'left' },
+                    y: { type: 'number', position: 'right' },
                 });
                 expect(preparedOptions.series?.[0]).toMatchObject({
                     xKeyAxis: 'x',
-                    yKeyAxis: 'y', // user's myYAxis becomes the primary y-axis
+                    yKeyAxis: 'myYAxis',
                 });
                 expect(preparedOptions.series?.[1]).toMatchObject({
                     xKeyAxis: 'x',
-                    yKeyAxis: '__AXIS_ID_2', // the implicit `yKeyAxis: 'y'` axis becomes a secondary axis
+                    yKeyAxis: 'y',
                 });
             });
 
@@ -3290,8 +3290,8 @@ describe('ChartOptions', () => {
                 expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(3);
                 expect(preparedOptions.axes).toMatchObject({
                     x: { type: 'category', position: 'bottom' },
-                    y: { type: 'number', position: 'left' },
-                    __AXIS_ID_1: { type: 'number', position: 'top' },
+                    y: { type: 'category', position: 'bottom' },
+                    myAxis: { type: 'number', position: 'top' },
                 });
                 expect(preparedOptions.series?.[0]).toMatchObject({
                     xKeyAxis: 'x',
@@ -3336,7 +3336,7 @@ describe('ChartOptions', () => {
                 expect(preparedOptions.axes).toMatchObject({
                     x: { type: 'category', position: 'bottom' },
                     y: { type: 'number', position: 'left' },
-                    __AXIS_ID_2: { type: 'number', position: 'right' },
+                    myAxis: { type: 'number', position: 'right' },
                 });
             });
 
@@ -3353,8 +3353,12 @@ describe('ChartOptions', () => {
 
                 expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(2);
                 expect(preparedOptions.axes).toMatchObject({
-                    x: { type: 'category', position: 'bottom' },
-                    y: { type: 'number', position: 'left' },
+                    myAxis1: { type: 'number', position: 'left' },
+                    myAxis2: { type: 'category', position: 'bottom' },
+                });
+                expect(preparedOptions.series?.[0]).toMatchObject({
+                    xKeyAxis: 'myAxis2',
+                    yKeyAxis: 'myAxis1',
                 });
             });
 
@@ -3377,7 +3381,7 @@ describe('ChartOptions', () => {
                 expect(preparedOptions.axes).toMatchObject({
                     x: { type: 'category', position: 'bottom' },
                     y: { type: 'number', position: 'left' },
-                    __AXIS_ID_2: { type: 'number', position: 'right' },
+                    myAxis: { type: 'number', position: 'right' },
                 });
             });
 
@@ -3400,7 +3404,7 @@ describe('ChartOptions', () => {
                 expect(preparedOptions.axes).toMatchObject({
                     x: { type: 'category', position: 'bottom' },
                     y: { type: 'number', position: 'left' },
-                    __AXIS_ID_2: { type: 'number', position: 'right' },
+                    myAxis: { type: 'number', position: 'right' },
                 });
             });
 
@@ -3477,12 +3481,12 @@ describe('ChartOptions', () => {
 
                 expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(2);
                 expect(preparedOptions.axes).toMatchObject({
-                    x: { type: 'number', position: 'bottom' },
-                    y: { type: 'category', position: 'left' },
+                    x: { type: 'category', position: 'left' },
+                    y: { type: 'number', position: 'bottom' },
                 });
                 expect(preparedOptions.series?.[0]).toMatchObject({
-                    xKeyAxis: 'y',
-                    yKeyAxis: 'x',
+                    xKeyAxis: 'x',
+                    yKeyAxis: 'y',
                 });
             });
 
@@ -3498,17 +3502,17 @@ describe('ChartOptions', () => {
 
                 expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(3);
                 expect(preparedOptions.axes).toMatchObject({
-                    x: { type: 'number', position: 'bottom' }, // myAxis1
+                    myAxis1: { type: 'number', position: 'bottom' },
                     y: { type: 'category', position: 'left' },
-                    __AXIS_ID_2: { type: 'number', position: 'top' }, // myAxis2
+                    myAxis2: { type: 'number', position: 'top' },
                 });
                 expect(preparedOptions.series?.[0]).toMatchObject({
                     xKeyAxis: 'y',
-                    yKeyAxis: 'x', // myAxis1
+                    yKeyAxis: 'myAxis1',
                 });
                 expect(preparedOptions.series?.[1]).toMatchObject({
                     xKeyAxis: 'y',
-                    yKeyAxis: '__AXIS_ID_2', // myAxis2
+                    yKeyAxis: 'myAxis2',
                 });
             });
 
@@ -3543,9 +3547,9 @@ describe('ChartOptions', () => {
 
                 expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(3);
                 expect(preparedOptions.axes).toMatchObject({
-                    x: { type: 'number', position: 'bottom' }, // myAxis2
-                    y: { type: 'category', position: 'left' }, // myAxis1
-                    __AXIS_ID_2: { type: 'number', position: 'top' }, // myAxis3
+                    myAxis1: { type: 'category', position: 'left' },
+                    myAxis2: { type: 'number', position: 'bottom' },
+                    myAxis3: { type: 'number', position: 'top' },
                 });
             });
 
@@ -3563,10 +3567,10 @@ describe('ChartOptions', () => {
 
                 expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(5);
                 expect(preparedOptions.axes).toMatchObject({
-                    x: { type: 'category', position: 'bottom' },
-                    __AXIS_ID_2: { type: 'category', position: 'top' },
-                    __AXIS_ID_3: { type: 'category', position: 'bottom' },
-                    __AXIS_ID_4: { type: 'category', position: 'bottom' },
+                    myAxis1: { type: 'category', position: 'bottom' },
+                    myAxis2: { type: 'category', position: 'top' },
+                    myAxis3: { type: 'category', position: 'bottom' },
+                    myAxis4: { type: 'category', position: 'bottom' },
                 });
             });
 
@@ -3584,10 +3588,10 @@ describe('ChartOptions', () => {
 
                 expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(5);
                 expect(preparedOptions.axes).toMatchObject({
-                    y: { type: 'number', position: 'left' },
-                    __AXIS_ID_2: { type: 'number', position: 'right' },
-                    __AXIS_ID_3: { type: 'number', position: 'left' },
-                    __AXIS_ID_4: { type: 'number', position: 'left' },
+                    myAxis1: { type: 'number', position: 'left' },
+                    myAxis2: { type: 'number', position: 'right' },
+                    myAxis3: { type: 'number', position: 'left' },
+                    myAxis4: { type: 'number', position: 'left' },
                 });
             });
         });

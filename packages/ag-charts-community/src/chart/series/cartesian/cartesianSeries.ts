@@ -148,10 +148,10 @@ export abstract class CartesianSeriesProperties<T extends object>
     implements CartesianSeriesPropertiesBase<T>
 {
     @Property
-    xKeyAxis?: string;
+    xKeyAxis: string = 'x';
 
     @Property
-    yKeyAxis?: string;
+    yKeyAxis: string = 'y';
 
     @Property
     legendItemName?: string;

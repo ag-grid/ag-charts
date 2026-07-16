@@ -848,27 +848,31 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         (options as any).axes ??= {};
         this.primaryAxisKeys = this.getPrimaryAxisKeys(options, directions, hasNonDefaultSeriesAxisKeys);
 
-        this.ensureSeriesDefaultAxes(options, directions, defaultAxes);
+        this.resolveSeriesAxes(options, directions, defaultAxes);
         this.predictAxesMissingTypesAndPositions(options, directions, defaultAxes);
         this.alternateSecondaryAxisPositions((options as any).axes);
     }
 
     /**
-     * Ensure an axis exists for every direction a series binds to. A series with no explicit key-axis for a direction
-     * binds to an axis keyed by the direction, so create a default axis for it when the user has not defined one.
+     * Bind each series to an axis per direction: resolve the axis key it references (an explicit key, otherwise the
+     * primary axis for that direction, otherwise the direction), write it back to the series, and create a default
+     * axis when the referenced axis is not already defined.
      */
-    private ensureSeriesDefaultAxes(
-        options: T,
-        directions: ChartAxisDirection[],
-        defaultAxes: Record<string, PlainObject>
-    ) {
+    private resolveSeriesAxes(options: T, directions: ChartAxisDirection[], defaultAxes: Record<string, PlainObject>) {
         const axes = (options as any).axes as Record<string, PlainObject>;
+        // Captured before any defaults are created: only a genuinely user-defined primary axis is shared by a series
+        // that does not name its own; an inferred primary must not be adopted by a sibling using the default axis.
+        const userAxisKeys = new Set(Object.keys(axes));
         for (const seriesOptions of options.series ?? []) {
             for (const direction of directions) {
                 const directionAxisKey = this.getSeriesDirectionAxisKey(seriesOptions, direction);
                 if (!directionAxisKey) continue;
 
-                const boundAxisKey = (seriesOptions as any)[directionAxisKey] ?? direction;
+                const primaryAxisKey = this.primaryAxisKeys?.get(direction);
+                const boundAxisKey =
+                    (seriesOptions as any)[directionAxisKey] ??
+                    (primaryAxisKey != null && userAxisKeys.has(primaryAxisKey) ? primaryAxisKey : direction);
+                (seriesOptions as any)[directionAxisKey] = boundAxisKey;
                 axes[boundAxisKey] ??= deepClone(defaultAxes[direction]);
             }
         }

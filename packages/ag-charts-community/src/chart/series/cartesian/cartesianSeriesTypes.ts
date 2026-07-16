@@ -120,8 +120,8 @@ export interface CartesianMarkerLikeContext<
  * CartesianSeriesProperties class implements this interface.
  */
 export interface CartesianSeriesPropertiesBase<T extends object> extends SeriesProperties<T> {
-    xKeyAxis?: string;
-    yKeyAxis?: string;
+    xKeyAxis: string;
+    yKeyAxis: string;
     legendItemName?: string;
     pickOutsideVisibleMinorAxis: boolean;
     segmentation: NormalisedSeriesSegmentation;
