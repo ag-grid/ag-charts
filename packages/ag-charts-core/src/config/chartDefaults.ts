@@ -490,6 +490,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
         seriesVisibilityChange: callback,
         activeChange: callback,
         selectionChange: callback,
+        collapsedChange: callback,
         click: callback,
         doubleClick: callback,
         annotations: callback,

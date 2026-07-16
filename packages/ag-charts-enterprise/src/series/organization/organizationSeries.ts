@@ -1,5 +1,6 @@
 import {
     type AgActiveItemState,
+    type AgCollapsedChangeEventSource,
     type AgOrganizationNodeTextFormatterParams,
     type AgOrganizationSeriesExpanderItemStylerParams,
     type AgOrganizationSeriesExpanderStyle,
@@ -420,7 +421,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         return { type: styles.interpolation.type, cornerRadius: styles.interpolation.cornerRadius };
     }
 
-    expandNetworkToItem(itemIdOrIndex: string | number) {
+    expandNetworkToItem(itemIdOrIndex: string | number, source: AgCollapsedChangeEventSource) {
         const { dataModel, processedData } = this;
         if (!dataModel || !processedData) return;
 
@@ -444,23 +445,23 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             ids.push(idValues[datumIndex]);
         }
 
-        this.expand(ids);
+        this.expand(ids, source);
     }
 
-    expandItem(itemIdOrIndex: string | number) {
+    expandItem(itemIdOrIndex: string | number, source: AgCollapsedChangeEventSource) {
         const id = this.resolveItemId(itemIdOrIndex);
         if (id == null) return;
 
-        if (this.ctx.collapsedManager.expand([id])) {
+        if (this.ctx.collapsedManager.expand([id], this.id, source)) {
             this.markNodeDataDirty();
         }
     }
 
-    collapseItem(itemIdOrIndex: string | number) {
+    collapseItem(itemIdOrIndex: string | number, source: AgCollapsedChangeEventSource) {
         const id = this.resolveItemId(itemIdOrIndex);
         if (id == null) return;
 
-        if (this.ctx.collapsedManager.collapseAppend([id])) {
+        if (this.ctx.collapsedManager.collapseAppend([id], this.id, source)) {
             this.markNodeDataDirty();
         }
     }

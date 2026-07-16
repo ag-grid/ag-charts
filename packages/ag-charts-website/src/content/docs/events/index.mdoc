@@ -104,6 +104,23 @@ In this example:
 
 This is fired when the [Data Selection](./selection/) is updated by either user interaction or an API call. See [Selection Change Event](./selection/#selection-change-event) for full details.
 
+### collapsedChange
+
+This is fired when an item in an [Org Chart](./org-chart/) is expanded or collapsed, by either user interaction or an API call.
+
+The event contains:
+
+- `collapsed` - array of collapsed items each with `itemId` and `datum`:
+    - `itemId` - the unique identifier of the datum.
+    - `datum` - the data from the chart data array for the collapsed item.
+- `source` - the source of the event, either `'user-interaction'` or `'api-call'`.
+
+{% chartExampleRunner title="Annotations" name="collapsed-change-event" type="generated" /%}
+
+In this example:
+
+- Whenever a node is collapsed or expanded, a message is shown in the console.
+
 ### annotations
 
 This is fired when the [annotations](./annotations/) are changed, added or removed in either cartesian charts or with the [financial charts toolbar](./financial-charts-toolbar/).
