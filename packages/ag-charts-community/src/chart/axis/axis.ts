@@ -1225,8 +1225,6 @@ export abstract class Axis<
         // `AgContextMenuGetItemsParamsAlways` (except for `context` because we need to broadcast the user option
         // `axes[key].context` if defined).
         type Rules = Omit<AgContextMenuGetItemsParamsAxis, Exclude<keyof AgContextMenuGetItemsParamsAlways, 'context'>>;
-        this.direction;
-        this.formatterBoundSeries.get;
         const result: AxisValuePick = {
             context: this.context,
             axisId: this.id,
