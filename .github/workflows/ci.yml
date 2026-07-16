@@ -1190,6 +1190,10 @@ jobs:
                   exit 1
 
     sonarqube:
+        # Org-scoped GHA variable kill-switch: set SONARCLOUD_ENABLED=false to
+        # skip the scan (e.g. during a SonarCloud infra outage). Absent/any other
+        # value keeps it running. Sonar is advisory, so a skip is not a failure.
+        if: vars.SONARCLOUD_ENABLED != 'false'
         runs-on: ubuntu-24.04
         steps:
             - uses: actions/checkout@v4
