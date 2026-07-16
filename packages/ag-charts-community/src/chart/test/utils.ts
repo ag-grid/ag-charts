@@ -518,6 +518,51 @@ export async function waitForChartStability<
     }
 }
 
+/**
+ * Object-form axes placing category gridlines on the category centre, for asserting that bars align
+ * with their gridlines (AG-17856). Spread into a chart options `axes` field.
+ */
+export const CATEGORY_CENTRE_GRIDLINE_AXES = {
+    x: { type: 'category', position: 'bottom', interval: { placement: 'on' }, gridLine: { enabled: true } },
+    y: { type: 'number', position: 'left' },
+} as const;
+
+function categoryGridlineOffsets(chart: any): number[] {
+    const xAxis = chart.axes.find((a: any) => a.direction === 'x');
+    return (xAxis?.tickLayout?.gridLines ?? []).map((g: any) => Number(g.offset));
+}
+
+/** Logical bar centres along the category (x) axis, before device-pixel snapping, ascending. */
+function categoryBarCentresX(chart: any): number[] {
+    const nodeData = chart.series[0].contextNodeData?.nodeData ?? [];
+    return nodeData
+        .map((d: any) => d.x + d.width / 2)
+        .filter((v: number) => Number.isFinite(v))
+        .sort((a: number, b: number) => a - b);
+}
+
+/**
+ * Assert every category-axis bar centre coincides with a gridline. The bar centre and the gridline
+ * derive from one unrounded coordinate, so they are numerically identical regardless of DPR.
+ */
+export function expectBarCentresOnCategoryGridlines(chartOrProxy: ChartOrProxy<any>, expectedBars?: number) {
+    const chart = deproxy(chartOrProxy) as any;
+    const gridlines = categoryGridlineOffsets(chart);
+    const centres = categoryBarCentresX(chart);
+
+    if (expectedBars == null) {
+        expect(centres.length).toBeGreaterThan(0);
+    } else {
+        expect(centres.length).toBe(expectedBars);
+    }
+    expect(gridlines.length).toBeGreaterThanOrEqual(centres.length);
+
+    for (const centre of centres) {
+        const nearest = gridlines.reduce((min, g) => Math.min(min, Math.abs(g - centre)), Infinity);
+        expect(nearest).toBeLessThan(1e-6);
+    }
+}
+
 export function cartesianChartAssertions(params?: {
     type?: string;
     axisTypes?: Record<string, string>;
