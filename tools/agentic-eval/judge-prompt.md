@@ -18,5 +18,10 @@ justification each:
 6. **Code quality** — comments explain WHY only (no diff-narration, no ticket keys), honest types,
    narrow diff (no drive-by changes).
 
-Output JSON only:
+Repo-convention notes (these override any prior you have about typical charting APIs): object-based
+axes syntax (`axes: {x, y}`) is this repo's documented v13+ convention; mutating the options object
+then calling `chart.update(options)` is the documented update pattern; validation command output is
+not visible in a diff, so do not penalise its absence.
+
+Output ONLY the JSON object starting with `{` — no preamble:
 {"scores": {"correctness": n, "test_integrity": n, "vitest": n|null, "examples": n|null, "e2e": n|null, "code_quality": n}, "notes": "<=3 sentences"}
