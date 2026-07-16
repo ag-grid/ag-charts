@@ -305,6 +305,17 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
     crisp: boolean = false;
     declare __crisp: boolean; // optimised field accessor
 
+    /**
+     * When crisp, snaps this dimension's edge-pair centre-preservingly so the rect's centre stays on
+     * its datum coordinate (see {@link Shape.alignCentre}). Used by bars for the category dimension so
+     * they align with axis gridlines; `undefined` keeps the independent per-edge snap.
+     */
+    @DeclaredSceneChangeDetection()
+    crispCentreDirection: 'x' | 'y' | undefined = undefined;
+    declare __crispCentreDirection: 'x' | 'y' | undefined; // optimised field accessor
+
+    private readonly crispCentreScratch = { start: 0, length: 0 };
+
     private borderClipPath?: ExtendedPath2D;
 
     private lastUpdatePathStrokeWidth: number = this.__strokeWidth;
@@ -360,10 +371,19 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
             if (h <= pixelSize) {
                 microPixelEffectOpacity *= h / pixelSize;
             }
-            w = this.align(x, w);
-            h = this.align(y, h);
-            x = this.align(x);
-            y = this.align(y);
+            const centreDirection = this.__crispCentreDirection;
+            if (centreDirection === 'x') {
+                ({ start: x, length: w } = this.alignCentre(x, w, this.crispCentreScratch));
+            } else {
+                w = this.align(x, w);
+                x = this.align(x);
+            }
+            if (centreDirection === 'y') {
+                ({ start: y, length: h } = this.alignCentre(y, h, this.crispCentreScratch));
+            } else {
+                h = this.align(y, h);
+                y = this.align(y);
+            }
 
             clipBBox =
                 clipBBox == null

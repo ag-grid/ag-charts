@@ -37,11 +37,16 @@ export class BarShape<D = any> extends Rect<D> {
         crisp: boolean,
         fillShadow: DropShadow | undefined,
         direction?: 'x' | 'y',
-        featherRatio?: number
+        featherRatio?: number,
+        crispCentreDirection?: 'x' | 'y'
     ): void {
         // Direct backing field writes bypass SceneChangeDetection decorators
         this.__direction = direction ?? 'x';
         this.__featherRatio = featherRatio ?? 0;
+        // Centre-preserve the category dimension (only meaningful on band scales; the series resolves
+        // this). Set here so it is available before animation (the settle-snap avoidance in barUtil
+        // reads it).
+        this.__crispCentreDirection = crispCentreDirection;
 
         super.setStaticProperties(
             drawingMode,
