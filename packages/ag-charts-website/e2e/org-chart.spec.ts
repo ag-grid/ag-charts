@@ -2,6 +2,7 @@ import { expect, test } from './fixture';
 import {
     canvasToPageTransformer,
     createConsoleLogs,
+    delay,
     gotoExample,
     setupIntrinsicAssertions,
     toExamplePageUrl,
@@ -50,6 +51,7 @@ test.describe('collapse', () => {
 
             // Should allow default collapse behaviour
             await page.mouse.click(henry7.x, henry7.y);
+            await delay(100); // Small delay to allow focus highlight to update
             await expect(page).toHaveScreenshot('org-chart-allow-default.png', { animations: 'disabled' });
 
             // Should log the event.collapsed items
@@ -72,10 +74,12 @@ test.describe('collapse', () => {
 
             // Expand to reset to initial
             await page.mouse.click(henry7After.x, henry7After.y);
+            await delay(100); // Small delay to allow focus highlight to update
             consoleLogs.clear();
 
             // Should prevent default collapse behaviour
             await page.mouse.click(henry8.x, henry8.y);
+            await delay(100); // Small delay to allow focus highlight to update
             await expect(page).toHaveScreenshot('org-chart-prevent-default.png', { animations: 'disabled' });
 
             // Should log the event.collapsed items
