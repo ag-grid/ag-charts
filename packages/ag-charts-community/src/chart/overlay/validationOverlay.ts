@@ -111,7 +111,9 @@ export function getValidationOverlay({ agDocument, localeManager, grouped, onDis
 
     const dismissButton = agDocument.createElement('button', `${BASE}__button ${BASE}__dismiss`);
     dismissButton.type = 'button';
-    dismissButton.textContent = localeManager.t('overlayValidationDismiss');
+    dismissButton.textContent = '×';
+    dismissButton.setAttribute('aria-label', localeManager.t('overlayValidationDismiss'));
+    dismissButton.setAttribute('title', localeManager.t('overlayValidationDismiss'));
     dismissButton.addEventListener('click', () => onDismiss());
     actions.appendChild(dismissButton);
 

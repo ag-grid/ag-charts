@@ -70,13 +70,17 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
     }
 
     private refresh(rect: BBox) {
-        this.overlayElem.toggleClass(DEFAULT_OVERLAY_DARK_CLASS, this.overlays.darkTheme);
-        this.overlayElem.setProperty('left', `${rect.x}px`);
-        this.overlayElem.setProperty('top', `${rect.y}px`);
-        this.overlayElem.setProperty('width', `${rect.width}px`);
-        this.overlayElem.setProperty('height', `${rect.height}px`);
-
         const newOverlayState = this.selectOverlayState();
+
+        // The validation overlay is a modal dialog that centres over the whole chart, matching AG Grid's
+        // full-grid overlay; the other overlays occupy just the series rect.
+        const overlayRect = newOverlayState === 'validation' ? (this.fullContainerRect() ?? rect) : rect;
+
+        this.overlayElem.toggleClass(DEFAULT_OVERLAY_DARK_CLASS, this.overlays.darkTheme);
+        this.overlayElem.setProperty('left', `${overlayRect.x}px`);
+        this.overlayElem.setProperty('top', `${overlayRect.y}px`);
+        this.overlayElem.setProperty('width', `${overlayRect.width}px`);
+        this.overlayElem.setProperty('height', `${overlayRect.height}px`);
 
         // Only remove the existing overlay if the state changes.
         if (newOverlayState !== this.overlayState) {
@@ -90,7 +94,7 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
         const next = this.getOverlayFromState(this.overlayState);
         if (next) {
             if (next.enabled) {
-                this.showOverlay(next, rect);
+                this.showOverlay(next, overlayRect);
             } else {
                 this.hideOverlay(next);
             }
