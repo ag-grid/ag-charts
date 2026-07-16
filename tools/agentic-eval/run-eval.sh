@@ -40,9 +40,10 @@ mkdir -p "$OUT"
 OUT=$(cd "$OUT" && pwd) # absolute — cells cd into worktrees
 echo "results -> $OUT"
 
-# Snapshot the candidate rule set once, so later edits in the main checkout don't skew reps.
+# Snapshot the candidate rule set once, so later edits in the main checkout don't skew reps
+# (and so a resumed run reuses the same snapshot).
 MODIFIED_RULES="$OUT/rules-modified"
-cp -R "$REPO_ROOT/.claude/rules" "$MODIFIED_RULES"
+[[ -d "$MODIFIED_RULES" ]] || cp -R "$REPO_ROOT/.claude/rules" "$MODIFIED_RULES"
 
 resolve_task_file() {
     local t="$1"
@@ -83,7 +84,9 @@ run_cell() {
         git status --short > "$OUT/$cell.status"
     )
 
-    git -C "$REPO_ROOT" worktree remove --force "$wt"
+    # `worktree remove --force` can refuse on stray nested dirs (e.g. browser caches);
+    # the worktree is disposable, so fall back to rm + prune rather than aborting the run.
+    git -C "$REPO_ROOT" worktree remove --force "$wt" 2>/dev/null || rm -rf "$wt"
     git -C "$REPO_ROOT" worktree prune
 }
 
