@@ -368,10 +368,10 @@ export class Crosshair
             let y = 0;
             if (this.isVertical()) {
                 x = position;
-                line.x = Math.round(x);
+                line.x = x;
             } else {
                 y = position;
-                line.y = Math.round(y);
+                line.y = y;
             }
 
             if (labelEnabled) {
