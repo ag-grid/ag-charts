@@ -1,7 +1,6 @@
 import {
     type AgActiveItemState,
     type AgCollapsedChangeEventSource,
-    type AgOrganizationExpanderTextFormatterParams,
     type AgOrganizationNodeTextFormatterParams,
     type AgOrganizationSeriesExpanderItemStylerParams,
     type AgOrganizationSeriesExpanderStyle,
@@ -61,6 +60,13 @@ function clampMid(mid: number, range: number): number {
     if (mid - half < 0) return half;
     if (mid + half > 1) return 1 - half;
     return mid;
+}
+
+interface DatumCallbackState {
+    allChildren: number;
+    depth: number;
+    directChildren: number;
+    isCollapsed: boolean;
 }
 
 export class OrganizationSeries extends AbstractNetworkSeries<
@@ -235,38 +241,27 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             // styler consumers about the rendered tree state.
             const isCollapsed =
                 allChildren > 0 && datum.itemId != null && this.ctx.collapsedManager.isCollapsed(datum.itemId);
-            const styles = this.getNodeStyle(datumIndex, depth, isHighlight, highlightState, isCollapsed);
+
+            const datumState: DatumCallbackState = {
+                depth,
+                allChildren,
+                directChildren,
+                isCollapsed,
+            };
+
+            const styles = this.getNodeStyle(datumIndex, isHighlight, highlightState, datumState);
             node.opacity = this.getNodeOpacity(datumIndex, isHighlight, highlightState);
 
             const fields = this.resolveVertexFields(datum.vertex);
-            const title = this.formatText(
-                fields.title,
-                this.properties.node.title.formatter,
-                datumIndex,
-                isCollapsed,
-                depth,
-                allChildren,
-                directChildren
-            );
+            const title = this.formatText(fields.title, this.properties.node.title.formatter, datumIndex, datumState);
             const subtitle = this.formatText(
                 fields.subtitle,
                 this.properties.node.subtitle.formatter,
                 datumIndex,
-                isCollapsed,
-                depth,
-                allChildren,
-                directChildren
+                datumState
             );
             const labels = fields.labels?.map((label, index) =>
-                this.formatText(
-                    label,
-                    this.properties.node.labels[index]?.formatter,
-                    datumIndex,
-                    isCollapsed,
-                    depth,
-                    allChildren,
-                    directChildren
-                )
+                this.formatText(label, this.properties.node.labels[index]?.formatter, datumIndex, datumState)
             );
 
             let defaultExpanderText = '';
@@ -278,15 +273,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                 defaultExpanderText = `${directChildren}`;
             }
             const expanderText =
-                this.formatText(
-                    defaultExpanderText,
-                    this.properties.expander.text.formatter,
-                    datumIndex,
-                    isCollapsed,
-                    depth,
-                    allChildren,
-                    directChildren
-                ) ?? defaultExpanderText;
+                this.formatText(defaultExpanderText, this.properties.expander.text.formatter, datumIndex, datumState) ??
+                defaultExpanderText;
 
             node.update(
                 { image: fields.image, title, subtitle, labels },
@@ -803,10 +791,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         text: NormalisedTextOrSegments | undefined,
         formatter: RichFormatter<AgOrganizationNodeTextFormatterParams> | undefined,
         datumIndex: number | undefined,
-        isCollapsed: boolean,
-        depth: number,
-        allChildren: number,
-        directChildren: number
+        datumState: DatumCallbackState
     ) {
         const { dataModel, processedData } = this;
         if (!formatter || !dataModel || !processedData || datumIndex == null) return text;
@@ -814,16 +799,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         return (
             this.callWithContext(
                 formatter,
-                this.makeNodeTextFormatterParams(
-                    dataModel,
-                    processedData,
-                    datumIndex,
-                    isCollapsed,
-                    depth,
-                    allChildren,
-                    directChildren,
-                    text
-                )
+                this.makeNodeTextFormatterParams(dataModel, processedData, datumIndex, datumState, text)
             ) ?? text
         );
     }
@@ -881,11 +857,10 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     }
 
     private getNodeStyle(
-        datumIndex: number | undefined,
-        depth: number,
+        datumIndex: number,
         isHighlight: boolean,
         highlightState: _ModuleSupport.HighlightState | undefined,
-        isCollapsed: boolean
+        datumState: DatumCallbackState
     ): NormalisedOrganizationNodeStyle {
         const { dataModel, processedData } = this;
         const { itemStyler } = this.properties.node;
@@ -909,9 +884,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             dataModel,
             processedData,
             datumIndex,
-            depth,
             highlightState,
-            isCollapsed
+            datumState
         );
 
         style.title = this.getNodeTextItemStylerStyle(
@@ -921,9 +895,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             dataModel,
             processedData,
             datumIndex,
-            depth,
             highlightState,
-            isCollapsed
+            datumState
         );
         style.subtitle = this.getNodeTextItemStylerStyle(
             subtitleStyler,
@@ -932,9 +905,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             dataModel,
             processedData,
             datumIndex,
-            depth,
             highlightState,
-            isCollapsed
+            datumState
         );
 
         style.expander = this.getExpanderItemStylerStyle(
@@ -943,9 +915,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             dataModel,
             processedData,
             datumIndex,
-            depth,
             highlightState,
-            isCollapsed
+            datumState
         );
 
         let labelIndex = 0;
@@ -957,9 +928,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                 dataModel,
                 processedData,
                 datumIndex,
-                depth,
                 highlightState,
-                isCollapsed
+                datumState
             );
             labelIndex++;
         }
@@ -1123,24 +1093,22 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         dataModel: _ModuleSupport.DataModel<any, any, any> | undefined,
         processedData: _ModuleSupport.ProcessedData<any> | undefined,
         datumIndex: number | undefined,
-        depth: number,
         highlightState: _ModuleSupport.HighlightState | undefined,
-        isCollapsed: boolean
+        datumState: DatumCallbackState
     ) {
         if (!styler || !dataModel || !processedData || datumIndex == null) {
             return style;
         }
 
         const overrides = this.cachedDatumCallback(
-            _ModuleSupport.createDatumId(this.id, datumIndex, 'node', isCollapsed),
+            _ModuleSupport.createDatumId(this.id, datumIndex, 'node', datumState.isCollapsed),
             () => {
                 const params = this.makeNodeItemStylerParams(
                     dataModel,
                     processedData,
                     datumIndex,
-                    depth,
                     highlightState,
-                    isCollapsed,
+                    datumState,
                     style
                 );
                 return this.ctx.optionsGraphService.resolvePartial(
@@ -1165,24 +1133,22 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         dataModel: _ModuleSupport.DataModel<any, any, any> | undefined,
         processedData: _ModuleSupport.ProcessedData<any> | undefined,
         datumIndex: number | undefined,
-        depth: number,
         highlightState: _ModuleSupport.HighlightState | undefined,
-        isCollapsed: boolean
+        datumState: DatumCallbackState
     ) {
         if (!styler || !dataModel || !processedData || datumIndex == null) {
             return style;
         }
 
         const overrides = this.cachedDatumCallback(
-            _ModuleSupport.createDatumId(this.id, datumIndex, 'expander', isCollapsed),
+            _ModuleSupport.createDatumId(this.id, datumIndex, 'expander', datumState.isCollapsed),
             () => {
                 const params = this.makeExpanderItemStylerParams(
                     dataModel,
                     processedData,
                     datumIndex,
-                    depth,
                     highlightState,
-                    isCollapsed,
+                    datumState,
                     style
                 );
                 return this.ctx.optionsGraphService.resolvePartial(
@@ -1208,24 +1174,22 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         dataModel: _ModuleSupport.DataModel<any, any, any> | undefined,
         processedData: _ModuleSupport.ProcessedData<any> | undefined,
         datumIndex: number | undefined,
-        depth: number,
         highlightState: _ModuleSupport.HighlightState | undefined,
-        isCollapsed: boolean
+        datumState: DatumCallbackState
     ) {
         if (!styler || !dataModel || !processedData || datumIndex == null) {
             return style;
         }
 
         const overrides = this.cachedDatumCallback(
-            _ModuleSupport.createDatumId(this.id, datumIndex, datumIdSuffix, isCollapsed),
+            _ModuleSupport.createDatumId(this.id, datumIndex, datumIdSuffix, datumState.isCollapsed),
             () => {
                 const params = this.makeNodeTextStylerParams(
                     dataModel,
                     processedData,
                     datumIndex,
-                    depth,
                     highlightState,
-                    isCollapsed,
+                    datumState,
                     style
                 );
                 return this.ctx.optionsGraphService.resolvePartial(
@@ -1269,9 +1233,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         _dataModel: NonNullable<typeof this.dataModel>,
         processedData: NonNullable<typeof this.processedData>,
         datumIndex: number,
-        depth: number,
         highlightState: _ModuleSupport.HighlightState | undefined,
-        isCollapsed: boolean,
+        datumState: DatumCallbackState,
         style: NormalisedOrganizationNodeStyle
     ): AgOrganizationSeriesNodeItemStylerParams<unknown, unknown> {
         const { id: seriesId } = this;
@@ -1280,9 +1243,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
         return {
             ...style,
+            ...datumState,
             datum,
-            depth,
-            isCollapsed,
             seriesId,
             highlightState: highlightState == null ? 'none' : _ModuleSupport.toHighlightString(highlightState),
             selectionState: this.getSelectionStateString(datumIndex),
@@ -1294,9 +1256,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         _dataModel: NonNullable<typeof this.dataModel>,
         processedData: NonNullable<typeof this.processedData>,
         datumIndex: number,
-        depth: number,
         highlightState: _ModuleSupport.HighlightState | undefined,
-        isCollapsed: boolean,
+        datumState: DatumCallbackState,
         style: NormalisedOrganizationSeriesExpanderStyle
     ): AgOrganizationSeriesExpanderItemStylerParams<unknown, unknown> {
         const { id: seriesId } = this;
@@ -1305,9 +1266,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
         return {
             ...style,
+            ...datumState,
             datum,
-            depth,
-            isCollapsed,
             seriesId,
             highlightState: highlightState == null ? 'none' : _ModuleSupport.toHighlightString(highlightState),
             selectionState: this.getSelectionStateString(datumIndex),
@@ -1319,9 +1279,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         _dataModel: NonNullable<typeof this.dataModel>,
         processedData: NonNullable<typeof this.processedData>,
         datumIndex: number,
-        depth: number,
         highlightState: _ModuleSupport.HighlightState | undefined,
-        isCollapsed: boolean,
+        datumState: DatumCallbackState,
         style: NormalisedOrganizationNodeTextStyle
     ): AgOrganizationSeriesNodeTextStylerParams<unknown, unknown> {
         const { id: seriesId } = this;
@@ -1330,9 +1289,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
         return {
             ...style,
+            ...datumState,
             datum,
-            depth,
-            isCollapsed,
             seriesId,
             highlightState: highlightState == null ? 'none' : _ModuleSupport.toHighlightString(highlightState),
             selectionState: this.getSelectionStateString(datumIndex),
@@ -1344,10 +1302,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         _dataModel: NonNullable<typeof this.dataModel>,
         processedData: NonNullable<typeof this.processedData>,
         datumIndex: number,
-        isCollapsed: boolean,
-        depth: number,
-        allChildren: number,
-        directChildren: number,
+        datumState: DatumCallbackState,
         value: any
     ): AgOrganizationNodeTextFormatterParams<unknown, unknown> {
         const { id: seriesId } = this;
@@ -1355,11 +1310,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const datum = processedData.dataSources.get(seriesId)?.data?.[datumIndex];
 
         return {
-            allChildren,
+            ...datumState,
             datum,
-            depth,
-            directChildren,
-            isCollapsed,
             seriesId,
             value,
         } satisfies CallbackParamRules<AgOrganizationNodeTextFormatterParams<unknown, unknown>>;
