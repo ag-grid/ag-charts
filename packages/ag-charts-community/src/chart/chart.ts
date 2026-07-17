@@ -2180,11 +2180,11 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 syncAxisContext(axis, newOpts);
                 this.applyAxisModules(axis, newOpts);
             }
-            return true;
+        } else {
+            debug(`Chart.applyAxes() - creating new axes instances; seriesStatus: ${seriesStatus}`);
+            chart.axes = this.createAxes(axes);
         }
 
-        debug(`Chart.applyAxes() - creating new axes instances; seriesStatus: ${seriesStatus}`);
-        chart.axes = this.createAxes(axes);
         for (const [canonicalKey, userKey] of this.chartOptions.unmappedAxisKeys) {
             const axis = chart.axes.findById(canonicalKey);
             if (axis) {
