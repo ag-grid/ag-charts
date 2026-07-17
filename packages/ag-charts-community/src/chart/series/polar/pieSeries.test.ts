@@ -27,7 +27,6 @@ import {
     expectAnimatedEndpointsMatchStatic,
     expectMonotonic,
     expectProgresses,
-    expectSceneSamplesMatch,
     expectSceneTrajectory,
     expectWarningsCalls,
     extractImageData,
@@ -194,20 +193,11 @@ describe('PieSeries', () => {
         ) => {
             const proxy = AgCharts.create(create);
             chart = deproxy(proxy);
-            await frames.runToEnd(proxy);
             if (setup != null) {
-                await setup(proxy);
                 await frames.runToEnd(proxy);
+                await setup(proxy);
             }
-            const sampleScene = createSceneGeometrySampler(proxy);
-            const before = sampleScene();
-            await action(proxy);
-            const trajectory = await frames.captureAnimationFrames(proxy, sampleScene);
-            await frames.runToEnd(proxy);
-            const after = sampleScene();
-            // End anchor only (the frame-0 start anchor is dropped: labels snap at frame 0).
-            expectSceneSamplesMatch(trajectory.at(-1)!, after);
-            return { proxy, sampleScene, before, trajectory, after };
+            return frames.captureSnap(proxy, createSceneGeometrySampler(proxy), () => action(proxy));
         };
 
         const toggleSector = (proxy: AgChartInstance, index: number, enabled: boolean) => {
@@ -797,6 +787,46 @@ describe('PieSeries', () => {
 
             chart = await createChart(opts);
 
+            await compare();
+        });
+    });
+
+    describe('duplicate labels', () => {
+        it('retains both callout and sector labels when two sectors share a label value', async () => {
+            chart = await createChart({
+                ...options,
+                data: [
+                    { label: 'Android', value: 56.9, value2: 'duplicate' },
+                    { label: 'iOS', value: 56.9, value2: 'duplicate' },
+                ],
+                series: [
+                    {
+                        type: 'pie',
+                        angleKey: 'value',
+                        calloutLabelKey: 'value2',
+                        sectorLabelKey: 'value2',
+                        sectorLabel: { color: 'white', fontWeight: 'bold' },
+                    },
+                ],
+            });
+
+            const pieSeries = classCast(deproxy(chart).series[0], PieSeries);
+            const labels = (pieSeries.getNodeData() ?? []).map((datum) => ({
+                callout: datum.calloutLabel?.text,
+                sector: datum.sectorLabel?.text,
+            }));
+            expect(labels).toEqual([
+                { callout: 'duplicate', sector: 'duplicate' },
+                { callout: 'duplicate', sector: 'duplicate' },
+            ]);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - legend item 'duplicate' has multiple fill colours, this may cause unexpected behaviour.",
+  ],
+]
+`);
             await compare();
         });
     });

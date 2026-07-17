@@ -17,10 +17,19 @@ import {
     MIN_UNHIGHLIGHT_DELAY,
     type MockRangeBarStyler,
     NEG_BIG,
+    type PhasedPropertyExpectation,
     STRIPPED_NUMBER_AXES,
     STRIPPED_UNIT_TIME_AXES,
+    type SceneFrameInvariant,
+    type SceneGeometrySample,
+    type SceneNodeExpectation,
+    type TrajectoryExpectation,
+    createSceneGeometrySampler,
     deproxy,
+    expectAnimatedEndpointsMatchStatic,
     expectPixelIdenticalAcrossMagnitude,
+    expectProgresses,
+    expectSceneTrajectory,
     expectWarningsCalls,
     extractImageData,
     hoverAction,
@@ -30,7 +39,7 @@ import {
     scaleToBigIntFinite,
     setupMockCanvas,
     setupMockConsole,
-    spyOnAnimationManager,
+    spyOnAnimationFrames,
     testLegendItemName,
     waitForChartStability,
 } from 'ag-charts-community-test';
@@ -593,91 +602,381 @@ describe('RangeBarSeries', () => {
         await compare();
     });
 
-    describe('initial animation', () => {
-        const animate = spyOnAnimationManager();
+    // Frame-trajectory coverage for the range-bar animations (initial reveal, update, add, remove,
+    // shuffle) and the CRT-1082 legend-toggle midpoint regression. See the animation-trajectory-tests
+    // rule.
+    describe('animation -test page actions', () => {
+        const frames = spyOnAnimationFrames();
 
-        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-            it(`for RANGE_COLUMN_OPTIONS should animate at ${ratio * 100}%`, async () => {
-                animate(1200, ratio);
+        const DATA = [
+            { date: 'Jan', low: -13.9, high: 5.2 },
+            { date: 'Feb', low: -16.7, high: 10.6 },
+            { date: 'Mar', low: -4.7, high: 11.6 },
+        ];
+        // Grouped low2/high2 midpoints are non-zero (e.g. Jan -3), so a midpoint collapse lands the
+        // near edge well clear of the value-0 baseline — the discriminator for CRT-1082.
+        const GROUPED_DATA = [
+            { date: 'Jan', low1: -13.9, high1: 5.2, low2: -8, high2: 2 },
+            { date: 'Feb', low1: -16.7, high1: 10.6, low2: -5, high2: 8 },
+            { date: 'Mar', low1: -4.7, high1: 11.6, low2: -1, high2: 6 },
+        ];
 
-                const options: AgChartOptions = { ...RANGE_COLUMN_OPTIONS };
-                prepareEnterpriseTestOptions(options);
-
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
-                await compare();
-            });
-
-            it(`for horizontal RANGE_COLUMN_OPTIONS should animate at ${ratio * 100}%`, async () => {
-                animate(1200, ratio);
-
-                const options: AgChartOptions = { ...switchSeriesType(RANGE_COLUMN_OPTIONS, 'horizontal') };
-                prepareEnterpriseTestOptions(options);
-
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
-                await compare();
-            });
-        }
-    });
-
-    // CRT-1082: Range-bar legend toggle should collapse bars to their midpoint,
-    // not to the chart baseline.
-    describe('legend toggle animation (CRT-1082)', () => {
-        const animate = spyOnAnimationManager();
-
-        const RANGE_BAR_SERIES = {
-            type: 'range-bar' as const,
-            xKey: 'date',
-            yLowKey: 'low',
-            yHighKey: 'high',
+        // A pinned value axis makes the data mutations below provably non-scale-affecting: only the
+        // marks move, so a band reflow or a value-extent change is the series animation, never a
+        // rescale.
+        const options = (
+            direction: 'horizontal' | 'vertical',
+            data: object[] = DATA,
+            valueBounds: { min?: number; max?: number } = { min: -20, max: 15 }
+        ): AgCartesianChartOptions => {
+            const valueAxis = { type: 'number' as const, ...valueBounds };
+            const catAxis = { type: 'category' as const };
+            return prepareEnterpriseTestOptions({
+                animation: { enabled: true },
+                data,
+                series: [{ type: 'range-bar', direction, xKey: 'date', yLowKey: 'low', yHighKey: 'high' }],
+                axes:
+                    direction === 'vertical'
+                        ? { x: { ...catAxis, position: 'bottom' }, y: { ...valueAxis, position: 'left' } }
+                        : { y: { ...catAxis, position: 'left' }, x: { ...valueAxis, position: 'bottom' } },
+            }) as AgCartesianChartOptions;
         };
 
-        for (const ratio of [0, 0.1, 0.2, 0.3, 0.5, 0.75, 1]) {
-            it(`should animate legend toggle off at ${ratio * 100}%`, async () => {
-                animate(1200, 1);
+        const groupedOptions = (direction: 'horizontal' | 'vertical'): AgCartesianChartOptions => {
+            const base = options(direction, GROUPED_DATA);
+            base.series = [
+                { type: 'range-bar', direction, xKey: 'date', yLowKey: 'low1', yHighKey: 'high1', yName: 'S1' },
+                { type: 'range-bar', direction, xKey: 'date', yLowKey: 'low2', yHighKey: 'high2', yName: 'S2' },
+            ];
+            return base;
+        };
 
-                const options: AgCartesianChartOptions = {
-                    ...RANGE_COLUMN_OPTIONS,
-                    series: [
-                        { ...RANGE_BAR_SERIES, yName: 'Series 1' },
-                        { ...RANGE_BAR_SERIES, yName: 'Series 2' },
-                    ],
-                };
-                prepareEnterpriseTestOptions(options);
+        const hideSeries = (opts: AgCartesianChartOptions, index: number): AgCartesianChartOptions => ({
+            ...opts,
+            series: opts.series?.map((s, i) => (i === index ? { ...s, visible: false } : s)),
+        });
 
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
+        // A range bar's rect splits into a "value" axis (the low..high extent, growing from the
+        // midpoint) and a "band" axis (the category slot). Naming the four properties per-direction
+        // keeps every spec below orientation-symmetric.
+        type Dims = { value: 'height' | 'width'; near: 'y' | 'x'; band: 'width' | 'height'; bandPos: 'x' | 'y' };
+        const dims = (direction: 'horizontal' | 'vertical'): Dims =>
+            direction === 'vertical'
+                ? { value: 'height', near: 'y', band: 'width', bandPos: 'x' }
+                : { value: 'width', near: 'x', band: 'height', bandPos: 'y' };
 
-                animate(1200, ratio);
-                (options.series![1] as any).visible = false;
-                await chart.update(options);
-                await waitForChartStability(chart);
+        const phased = (
+            during: string | readonly string[],
+            ...expectations: readonly TrajectoryExpectation[]
+        ): PhasedPropertyExpectation => ({
+            during: during as PhasedPropertyExpectation['during'],
+            expect: expectations,
+        });
 
-                await compare();
+        const rectCount = (sample: SceneGeometrySample) =>
+            [...sample.keys()].filter((k) => /^series\[\d+\]\/rect/.test(k)).length;
+        const midpointOf = (node: Record<string, number>, d: Dims) => node[d.near] + node[d.value] / 2;
+        const lastFrameWith = (trajectory: SceneGeometrySample[], key: string) =>
+            trajectory
+                .filter((f) => f.has(key))
+                .at(-1)!
+                .get(key)!;
+
+        // Bars grow/collapse from their midpoint, so the value extent must never invert (low <= high)
+        // on any frame — a per-frame contract no single-node directional check expresses.
+        const nonNegativeExtent = (d: Dims): SceneFrameInvariant => ({
+            name: 'bar value extent stays non-negative (low <= high)',
+            check: (frame) => {
+                for (const [key, node] of frame) {
+                    if (!/^series\[\d+\]\/rect\[/.test(key)) continue;
+                    if (node[d.value] < -0.5) return `${key} ${d.value}=${node[d.value].toFixed(2)} < 0`;
+                }
+                return undefined;
+            },
+        });
+
+        // Bars widening/narrowing to re-share a reflowed band: the band dimension tweens during the
+        // 'update' phase while the value extent and slot position hold.
+        const bandReflow = (d: Dims, band: 'increases' | 'decreases'): SceneNodeExpectation => ({
+            [d.band]: phased('update', band, 'progresses'),
+            [d.value]: phased('update', 'bounded'),
+            [d.near]: phased('update', 'bounded'),
+            [d.bandPos]: phased('update', 'bounded'),
+        });
+
+        for (const direction of ['vertical', 'horizontal'] as const) {
+            const d = dims(direction);
+            const catPos = direction === 'vertical' ? 'bottom' : 'left';
+            // The category axis reflows/reorders as bands are added, removed or shuffled; its
+            // per-tick motion is data-order dependent and incidental to the bar animation under test
+            // (the endpoint guards below cover its settled pixels), so it is left unpinned.
+            const catAxisAny: Record<string, SceneNodeExpectation> = { [`axis[${catPos}]/*`]: 'any' };
+
+            // Initial-load reveal: each bar expands from its midpoint along the value axis (the near
+            // edge slides out) while its band holds. The docs page's rolling "range-bar-animation".
+            it(`initial load (${direction}): bars expand from their midpoint`, async () => {
+                chart = AgCharts.create(options(direction));
+                const sampleScene = createSceneGeometrySampler(chart);
+                const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
+                // Anti-vacuity: the bar genuinely starts collapsed to a zero-extent line.
+                expect(trajectory[0].get('series[0]/rect[Jan]')![d.value]).toBeLessThanOrEqual(0.1);
+                expectSceneTrajectory(trajectory, {
+                    'series[0]/rect[*]': {
+                        [d.value]: phased('initial', 'increases', 'progresses', 'bounded'),
+                        [d.near]: phased('initial', 'decreases', 'bounded'),
+                        [d.band]: 'bounded',
+                        [d.bandPos]: 'bounded',
+                    },
+                });
             });
 
-            it(`should animate horizontal legend toggle off at ${ratio * 100}%`, async () => {
-                animate(1200, 1);
+            // "Update Data": every bar tweens its low/high edges to the new values (the value extent
+            // moves monotonically); the pinned band holds.
+            it(`update data (${direction}): low/high edges tween to the new values`, async () => {
+                chart = AgCharts.create(options(direction));
+                const sampleScene = createSceneGeometrySampler(chart);
+                const { trajectory, before, after } = await frames.captureUpdate(chart, sampleScene, () =>
+                    chart.updateDelta({
+                        data: [
+                            { date: 'Jan', low: -8, high: 12 },
+                            { date: 'Feb', low: -10, high: 4 },
+                            { date: 'Mar', low: -2, high: 14 },
+                        ],
+                    })
+                );
+                // Anti-vacuity: a named bar's value extent genuinely differs end-to-end.
+                const feb = 'series[0]/rect[Feb]';
+                expect(Math.abs(after.get(feb)![d.value] - before.get(feb)![d.value])).toBeGreaterThan(20);
+                expectSceneTrajectory(
+                    trajectory,
+                    {
+                        'series[0]/rect[*]': {
+                            [d.value]: phased('update', 'monotonic', 'progresses', 'bounded'),
+                            [d.near]: phased('update', 'monotonic', 'bounded'),
+                            [d.band]: phased('update', 'bounded'),
+                            [d.bandPos]: phased('update', 'bounded'),
+                        },
+                    },
+                    { frameInvariants: [nonNegativeExtent(d)] }
+                );
+            });
 
-                const options: AgCartesianChartOptions = {
-                    ...switchSeriesType(RANGE_COLUMN_OPTIONS, 'horizontal'),
-                    series: [
-                        { ...RANGE_BAR_SERIES, yName: 'Series 1' },
-                        { ...RANGE_BAR_SERIES, yName: 'Series 2' },
-                    ],
-                };
-                prepareEnterpriseTestOptions(options);
+            // "Add Data": a new trailing category enters. Its bar spawns collapsed at its midpoint and
+            // grows out during the 'add' phase; the existing bars narrow during 'update'. captureSnap
+            // (not captureUpdate) because the category-axis reflow snaps the axis line at frame 0.
+            it(`add data (${direction}): entering bar grows from its midpoint while others narrow`, async () => {
+                chart = AgCharts.create(options(direction, DATA.slice(0, 2)));
+                const sampleScene = createSceneGeometrySampler(chart);
+                const { before, trajectory, after } = await frames.captureSnap(chart, sampleScene, () =>
+                    chart.updateDelta({ data: DATA })
+                );
+                expect(rectCount(before)).toBe(2);
+                expect(rectCount(after)).toBe(3);
+                // Anti-vacuity: the entrant starts collapsed at its midpoint.
+                expect(trajectory[0].get('series[0]/rect[Mar]')![d.value]).toBeLessThanOrEqual(0.1);
+                expectSceneTrajectory(trajectory, {
+                    'series[0]/rect[Mar]': {
+                        [d.value]: phased('add', 'increases', 'progresses', 'bounded'),
+                        [d.near]: phased('add', 'decreases', 'bounded'),
+                        [d.band]: 'bounded',
+                        [d.bandPos]: 'bounded',
+                    },
+                    'series[0]/rect[Jan]': bandReflow(d, 'decreases'),
+                    'series[0]/rect[Feb]': bandReflow(d, 'decreases'),
+                    ...catAxisAny,
+                });
+            });
 
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
+            // "Remove Data": the trailing category leaves — its bar collapses to its midpoint during
+            // 'remove' and is dropped; the survivors widen into the freed space during 'update'.
+            it(`remove data (${direction}): leaving bar collapses to its midpoint while others widen`, async () => {
+                chart = AgCharts.create(options(direction));
+                const sampleScene = createSceneGeometrySampler(chart);
+                const { trajectory, before, after } = await frames.captureUpdate(chart, sampleScene, () =>
+                    chart.updateDelta({ data: DATA.slice(0, 2) })
+                );
+                expect(rectCount(before)).toBe(3);
+                expect(rectCount(after)).toBe(2);
+                // Anti-vacuity + midpoint guard: the leaver starts at full extent, and its last visible
+                // frame sits at ~0 extent centred on its ORIGINAL midpoint (a baseline collapse would
+                // land the near edge on the value-0 pixel, far from this midpoint).
+                const leaver0 = trajectory[0].get('series[0]/rect[Mar]')!;
+                expect(leaver0[d.value]).toBeGreaterThan(100);
+                const leaverLast = lastFrameWith(trajectory, 'series[0]/rect[Mar]');
+                expect(leaverLast[d.value]).toBeLessThanOrEqual(1);
+                expect(Math.abs(leaverLast[d.near] - midpointOf(leaver0, d))).toBeLessThanOrEqual(2);
+                expect(after.get('series[0]/rect[Mar]')).toBeUndefined();
+                expectSceneTrajectory(trajectory, {
+                    'series[0]/rect[Mar]': {
+                        [d.value]: phased('remove', 'decreases', 'bounded'),
+                        [d.near]: phased('remove', 'increases', 'bounded'),
+                        [d.band]: 'bounded',
+                        [d.bandPos]: 'bounded',
+                    },
+                    'series[0]/rect[Jan]': bandReflow(d, 'increases'),
+                    'series[0]/rect[Feb]': bandReflow(d, 'increases'),
+                    ...catAxisAny,
+                });
+            });
 
-                animate(1200, ratio);
-                (options.series![1] as any).visible = false;
-                await chart.update(options);
-                await waitForChartStability(chart);
+            // "Shuffle Data": same values, reordered categories. Bars slide along the band axis to
+            // their new slots (a tween, not a redraw); the value extent holds.
+            it(`shuffle data (${direction}): bars slide to their reordered band positions`, async () => {
+                chart = AgCharts.create(options(direction));
+                const sampleScene = createSceneGeometrySampler(chart);
+                const { trajectory, before, after } = await frames.captureUpdate(chart, sampleScene, () =>
+                    chart.updateDelta({ data: [DATA[2], DATA[0], DATA[1]] })
+                );
+                // Anti-vacuity: a named bar genuinely swaps band position end-to-end.
+                const mar = 'series[0]/rect[Mar]';
+                expect(Math.abs(after.get(mar)![d.bandPos] - before.get(mar)![d.bandPos])).toBeGreaterThan(100);
+                expectSceneTrajectory(trajectory, {
+                    'series[0]/rect[*]': {
+                        [d.bandPos]: phased('update', 'monotonic', 'progresses', 'bounded'),
+                        [d.value]: phased('update', 'bounded'),
+                        [d.near]: phased('update', 'bounded'),
+                        [d.band]: phased('update', 'bounded'),
+                    },
+                    ...catAxisAny,
+                });
+            });
 
-                await compare();
+            // CRT-1082: a range-bar legend toggle must collapse the hidden series' bars to their
+            // MIDPOINT, not the chart baseline. The toggled-off layer collapses during 'remove'; the
+            // survivor widens into the vacated band during 'update'. A baseline-collapse regression
+            // moves the near edge to the value-0 pixel, which the midpoint guard rejects. captureSnap
+            // because a series toggle snaps structurally at frame 0.
+            it(`legend toggle off (${direction}): hidden bars collapse to their midpoint (CRT-1082)`, async () => {
+                const grouped = groupedOptions(direction);
+                chart = AgCharts.create(grouped);
+                const sampleScene = createSceneGeometrySampler(chart);
+                const { trajectory, after } = await frames.captureSnap(chart, sampleScene, () =>
+                    chart.update(hideSeries(grouped, 1))
+                );
+                // Anti-vacuity + CRT-1082 midpoint guard.
+                const hidden0 = trajectory[0].get('series[1]/rect[Jan]')!;
+                expect(hidden0[d.value]).toBeGreaterThan(50);
+                const hiddenLast = lastFrameWith(trajectory, 'series[1]/rect[Jan]');
+                expect(hiddenLast[d.value]).toBeLessThanOrEqual(1);
+                expect(Math.abs(hiddenLast[d.near] - midpointOf(hidden0, d))).toBeLessThanOrEqual(2);
+                expect(after.get('series[1]/rect[Jan]')).toBeUndefined();
+                expectSceneTrajectory(trajectory, {
+                    'series[1]/rect[*]': {
+                        [d.value]: phased('remove', 'decreases', 'bounded'),
+                        [d.near]: phased('remove', 'increases', 'bounded'),
+                        [d.band]: 'bounded',
+                        [d.bandPos]: 'bounded',
+                    },
+                    'series[0]/rect[*]': bandReflow(d, 'increases'),
+                });
+            });
+
+            // The retired rolling "range-bar-animation" fired one update that added, removed,
+            // shuffled AND revalued at once ("animate continuously without snapping"). A single mixed
+            // update must keep the low<=high extent on every frame and settle exactly on the static
+            // scene. captureSnap because the category add/remove snaps the axis line at frame 0.
+            it(`combined mutation (${direction}): mixed add/remove/shuffle/revalue stays coherent`, async () => {
+                chart = AgCharts.create(options(direction));
+                const sampleScene = createSceneGeometrySampler(chart);
+                const { before, trajectory, after } = await frames.captureSnap(chart, sampleScene, () =>
+                    chart.update(
+                        options(direction, [
+                            { date: 'Feb', low: -10, high: 4 },
+                            { date: 'Apr', low: -6, high: 9 },
+                            { date: 'Jan', low: 0, high: 14 },
+                        ])
+                    )
+                );
+                // Anti-vacuity: the structural change genuinely landed (Mar left, Apr entered).
+                expect(before.has('series[0]/rect[Mar]')).toBe(true);
+                expect(after.has('series[0]/rect[Mar]')).toBe(false);
+                expect(before.has('series[0]/rect[Apr]')).toBe(false);
+                expect(after.has('series[0]/rect[Apr]')).toBe(true);
+                // No snapping: the surviving, revalued Jan bar tweens its value extent across frames.
+                expectProgresses(trajectory.map((f) => f.get('series[0]/rect[Jan]')?.[d.value] ?? Number.NaN));
+                // low <= high holds on every frame, throughout the mixed transition.
+                expectSceneTrajectory(trajectory, { '*': 'any' }, { frameInvariants: [nonNegativeExtent(d)] });
+            });
+        }
+
+        // Value axis UNPINNED: removing the low-extreme datum contracts the domain, and the axis must
+        // rescale by tweening its ticks, not snapping. captureSnap because the category reflow snaps
+        // the axis line at frame 0.
+        it('unpinned value axis (vertical): axis rescales by tweening, not snapping', async () => {
+            const d = dims('vertical');
+            const unpinned = (data: object[]) => options('vertical', data, {});
+            chart = AgCharts.create(unpinned(DATA));
+            const sampleScene = createSceneGeometrySampler(chart);
+            const { before, trajectory, after } = await frames.captureSnap(chart, sampleScene, () =>
+                chart.update(unpinned([DATA[0], DATA[2]]))
+            );
+            // The +10 gridline is present throughout; removing the -16.7 low rescales the domain, so
+            // its pixel position must genuinely move — and move progressively, not snap.
+            const tick = 'axis[left]/line[l:10]';
+            expect(Math.abs(after.get(tick)!.y1 - before.get(tick)!.y1)).toBeGreaterThan(20);
+            expectProgresses(trajectory.map((f) => f.get(tick)?.y1 ?? Number.NaN));
+            expectSceneTrajectory(trajectory, { '*': 'any' }, { frameInvariants: [nonNegativeExtent(d)] });
+        });
+
+        // Shuffle: category labels must track their reordered bars ("labels track the reordered
+        // data"). captureUpdate works here — the category set is unchanged, so no axis-line snap.
+        it('shuffle data (vertical): category labels track their reordered bars', async () => {
+            chart = AgCharts.create(options('vertical'));
+            const sampleScene = createSceneGeometrySampler(chart);
+            const { trajectory, before, after } = await frames.captureUpdate(chart, sampleScene, () =>
+                chart.updateDelta({ data: [DATA[2], DATA[0], DATA[1]] })
+            );
+            const label = 'axis[bottom]/text[l:Mar]';
+            // Anti-vacuity: the Mar label genuinely relocates end-to-end ...
+            expect(Math.abs(after.get(label)!.x - before.get(label)!.x)).toBeGreaterThan(100);
+            // ... tweening across frames (no snap) ...
+            expectProgresses(trajectory.map((f) => f.get(label)!.x));
+            // ... and lands centred on its reordered bar's band.
+            const bar = after.get('series[0]/rect[Mar]')!;
+            expect(Math.abs(after.get(label)!.x - (bar.x + bar.width / 2))).toBeLessThanOrEqual(2);
+        });
+
+        // Pixel endpoint guards: the animated routes must settle at exactly the pixels a snapped
+        // render of the same options produces (replacing the deleted 0%/100% image snapshots).
+        for (const direction of ['vertical', 'horizontal'] as const) {
+            it(`endpoints (${direction}): update data settles at the static render`, async () => {
+                const opts = options(direction);
+                chart = AgCharts.create(opts);
+                await expectAnimatedEndpointsMatchStatic(
+                    frames,
+                    () => ctx.snapshot(),
+                    chart,
+                    opts,
+                    options(direction, [
+                        { date: 'Jan', low: -8, high: 12 },
+                        { date: 'Feb', low: -10, high: 4 },
+                        { date: 'Mar', low: -2, high: 14 },
+                    ])
+                );
+            });
+
+            it(`endpoints (${direction}): remove data settles at the static render`, async () => {
+                const opts = options(direction);
+                chart = AgCharts.create(opts);
+                await expectAnimatedEndpointsMatchStatic(
+                    frames,
+                    () => ctx.snapshot(),
+                    chart,
+                    opts,
+                    options(direction, DATA.slice(0, 2))
+                );
+            });
+
+            it(`endpoints (${direction}): legend toggle settles at the static render`, async () => {
+                const grouped = groupedOptions(direction);
+                chart = AgCharts.create(grouped);
+                await expectAnimatedEndpointsMatchStatic(
+                    frames,
+                    () => ctx.snapshot(),
+                    chart,
+                    grouped,
+                    hideSeries(grouped, 1)
+                );
             });
         }
     });
@@ -1143,7 +1442,6 @@ describe('RangeBarSeries', () => {
             });
         });
         describe('highlights', () => {
-            // Manual-test version available at range-bar-series-test#styler-highlight-state
             beforeEach(async () => {
                 chart = AgCharts.create(
                     prepareEnterpriseTestOptions({

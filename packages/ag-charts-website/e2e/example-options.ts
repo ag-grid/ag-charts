@@ -118,7 +118,4 @@ export const EXAMPLE_OPTIONS: Record<string, Record<string, ExampleOverrides>> =
         'layout-inline': { frameworks: [] },
         'layout-matrix': { frameworks: [] },
     },
-    'pie-series-test': {
-        'duplicate-labels': { ignoreConsoleWarnings: true },
-    },
 };

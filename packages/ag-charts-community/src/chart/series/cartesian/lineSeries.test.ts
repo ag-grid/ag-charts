@@ -52,7 +52,6 @@ import {
     expectAnimatedEndpointsMatchStatic,
     expectMonotonic,
     expectNoAnimation,
-    expectSceneSamplesMatch,
     expectSceneTrajectory,
     extractImageData,
     hoverAction,
@@ -364,20 +363,9 @@ describe('LineSeries', () => {
         // the opacity re-fade (number-axis value updates) and the path reshape, while category reorders snap
         // the markers to their new bands. captureUpdate's whole-scene endpoint check trips on that frame-0
         // snap, so line CASEs hand-roll the capture (as spike CASE 3 does) and pin only what genuinely tweens.
-        const captureFrom = async (options: AgCartesianChartOptions, action: () => void | Promise<void>) => {
+        const captureFrom = (options: AgCartesianChartOptions, action: () => void | Promise<void>) => {
             chart = AgCharts.create(options);
-            await frames.runToEnd(chart);
-            const sampleScene = createSceneGeometrySampler(chart);
-            const before = sampleScene();
-            await action();
-            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
-            await frames.runToEnd(chart);
-            const after = sampleScene();
-            // The last captured frame must already be the settled state: this end-anchor (which captureUpdate
-            // also applies, and which the dropped frame-0 start check has no bearing on) guards against a
-            // trajectory that never converged within the capture window.
-            expectSceneSamplesMatch(trajectory.at(-1)!, after);
-            return { sampleScene, before, trajectory, after };
+            return frames.captureSnap(chart, createSceneGeometrySampler(chart), action);
         };
 
         // The anti-vacuous guard for the fade/scale-in specs: a node must be present but visually collapsed

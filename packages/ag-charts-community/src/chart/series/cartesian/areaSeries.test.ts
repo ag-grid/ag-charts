@@ -548,17 +548,9 @@ describe('AreaSeries', () => {
         // category swaps snap them to their new bands. captureUpdate's whole-scene start anchor trips on
         // that frame-0 snap, so the CASEs hand-roll the capture (as the line suite's captureFrom does) and
         // pin only what genuinely tweens.
-        const captureFrom = async (options: AgCartesianChartOptions, action: () => void | Promise<void>) => {
+        const captureFrom = (options: AgCartesianChartOptions, action: () => void | Promise<void>) => {
             chart = AgCharts.create(options);
-            await frames.runToEnd(chart);
-            const sampleScene = createSceneGeometrySampler(chart);
-            const before = sampleScene();
-            await action();
-            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
-            await frames.runToEnd(chart);
-            const after = sampleScene();
-            expectSceneSamplesMatch(trajectory.at(-1)!, after);
-            return { sampleScene, before, trajectory, after };
+            return frames.captureSnap(chart, createSceneGeometrySampler(chart), action);
         };
 
         const expectNodeStartsCollapsed = (

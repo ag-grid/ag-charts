@@ -39,7 +39,6 @@ import {
     deproxy,
     expectAnimatedEndpointsMatchStatic,
     expectNoAnimation,
-    expectSceneSamplesMatch,
     expectSceneTrajectory,
     expectWarningsCalls,
     extractImageData,
@@ -583,23 +582,12 @@ describe('BubbleSeries', () => {
                 .map((k) => Math.round(sample.get(k)!.width))
                 .sort((a, b) => a - b);
 
-        // Bubble skips the animation batch on every data update (only the initial load animates), so an
-        // update SNAPS: the first captured frame already sits at the settled after-state, which trips
-        // captureUpdate's whole-scene start anchor. The update CASEs hand-roll the capture and assert
-        // only the end anchor (as line's captureFrom does), then prove the whole scene held constant.
-        // A data update also re-creates the marker nodes, so the sampler re-keys them (marker[1#2]);
-        // that is why the constancy assertion runs over the trajectory (stable keys) not before->after.
-        const captureSnap = async (options: AgCartesianChartOptions, action: () => void | Promise<void>) => {
+        // Bubble skips the animation batch on every data update (only the initial load animates), so
+        // updates SNAP. A data update also re-creates the marker nodes, re-keying them (marker[1#2]),
+        // so the constancy assertion runs over the trajectory (stable keys) not before->after.
+        const captureSnap = (options: AgCartesianChartOptions, action: () => void | Promise<void>) => {
             chart = AgCharts.create(options);
-            await frames.runToEnd(chart);
-            const sampleScene = createSceneGeometrySampler(chart);
-            const before = sampleScene();
-            await action();
-            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
-            await frames.runToEnd(chart);
-            const after = sampleScene();
-            expectSceneSamplesMatch(trajectory.at(-1)!, after);
-            return { before, trajectory, after };
+            return frames.captureSnap(chart, createSceneGeometrySampler(chart), action);
         };
 
         // Negative-spanning domain: the retired snapshot suite revealed bubbles on a domain straddling

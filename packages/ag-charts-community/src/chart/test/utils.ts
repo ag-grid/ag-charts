@@ -1011,6 +1011,28 @@ export function spyOnAnimationFrames() {
         return Object.assign(samples, { phaseIntervals });
     };
 
+    type Capture = {
+        trajectory: SceneGeometrySample[] & PhasedTrajectory;
+        before: SceneGeometrySample;
+        after: SceneGeometrySample;
+    };
+
+    /** Settle, sample `before`, apply `action`, capture the animation, settle, sample `after`. */
+    const captureAround = async (
+        chartOrProxy: ChartOrProxy<any>,
+        sampler: () => SceneGeometrySample,
+        action: () => void | Promise<void>,
+        options: { frames?: number; duration?: number } = {}
+    ): Promise<Capture> => {
+        await runToEnd(chartOrProxy);
+        const before = sampler();
+        await action();
+        const trajectory = await captureAnimationFrames(chartOrProxy, sampler, options);
+        await runToEnd(chartOrProxy);
+        const after = sampler();
+        return { trajectory, before, after };
+    };
+
     /**
      * The standard single-action capture flow shared by trajectory CASEs: settle, sample the before
      * state, apply `action` (a chart update or API call), capture the resulting animation, run it to
@@ -1022,26 +1044,35 @@ export function spyOnAnimationFrames() {
         sampler: () => SceneGeometrySample,
         action: () => void | Promise<void>,
         options: { frames?: number; duration?: number } = {}
-    ): Promise<{
-        trajectory: SceneGeometrySample[] & PhasedTrajectory;
-        before: SceneGeometrySample;
-        after: SceneGeometrySample;
-    }> => {
-        await runToEnd(chartOrProxy);
-        const before = sampler();
-        await action();
-        const trajectory = await captureAnimationFrames(chartOrProxy, sampler, options);
-        await runToEnd(chartOrProxy);
-        const after = sampler();
+    ): Promise<Capture> => {
+        const capture = await captureAround(chartOrProxy, sampler, action, options);
+        const { trajectory, before, after } = capture;
         // A structural update adds/removes nodes at frame 0, so the start check is scoped to nodes
         // present on both sides: surviving geometry must not jump when the update lands.
         const common = new Map([...before].filter(([key]) => trajectory[0].has(key)));
         expectSceneSamplesMatch(new Map([...trajectory[0]].filter(([key]) => common.has(key))), common);
         expectSceneSamplesMatch(trajectory.at(-1)!, after);
-        return { trajectory, before, after };
+        return capture;
     };
 
-    return { runToEnd, captureAnimationFrames, captureUpdate };
+    /**
+     * The capture flow for actions that SNAP structurally at frame 0 — a series that skips its
+     * animation batch, a category reshuffle, a marker-set swap. The whole layout lands on the first
+     * captured frame, so (unlike {@link captureUpdate}) frame 0 is NOT anchored to the before scene;
+     * only the settled end anchor is asserted. Callers then prove the captured frames held constant.
+     */
+    const captureSnap = async (
+        chartOrProxy: ChartOrProxy<any>,
+        sampler: () => SceneGeometrySample,
+        action: () => void | Promise<void>,
+        options: { frames?: number; duration?: number } = {}
+    ): Promise<Capture> => {
+        const capture = await captureAround(chartOrProxy, sampler, action, options);
+        expectSceneSamplesMatch(capture.trajectory.at(-1)!, capture.after);
+        return capture;
+    };
+
+    return { runToEnd, captureAnimationFrames, captureUpdate, captureSnap };
 }
 
 // Guards against a vacuously-identical comparison: a chart that failed to render leaves the
