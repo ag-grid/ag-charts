@@ -481,7 +481,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     // Exclude the expander pill from measurements — its overhang would compound into
     // `regularBBox` on each layout pass, growing the card by `expander.height / 2` per toggle.
     protected override measureDatumNode(node: OrganizationNode): _ModuleSupport.BBox {
-        return node.getFullBBox();
+        return node.getShapeBBox();
     }
 
     protected override makeLayoutUpdateOptions(): NetworkTreeLayoutUpdateOptions<OrganizationVertex, OrganizationEdge> {

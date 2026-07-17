@@ -1087,7 +1087,7 @@ describe('OrganizationSeries', () => {
                 const captureBBoxes = () => {
                     const bboxes: { itemId: string; width: number; height: number }[] = [];
                     series.datumSelection.each((node: any, datum: any) => {
-                        const card = node.getCardBBox();
+                        const card = node.getShapeBBox();
                         if (card) {
                             bboxes.push({ itemId: datum.itemId, width: card.width, height: card.height });
                         }
