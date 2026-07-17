@@ -205,7 +205,13 @@ The expander is the button displayed on nodes with children, used to
                 cornerRadius: 25,
                 strokeWidth: 2,
                 padding: 15,
-                text: { fontSize: 18, fontWeight: 'bold', color: 'red' },
+                text: {
+                    fontSize: 18,
+                    fontWeight: 'bold',
+                    color: 'red',
+                    showAllChildren: true,
+                    showDirectChildren: true,
+                },
                 itemStyler: ({ datum }) => {
                     if (datum.department === 'Technology') return { fill: '#e8f5e9', stroke: '#2e7d32' };
                     if (datum.department === 'Operations') return { fill: '#fff3e0', stroke: '#e65100' };
@@ -273,6 +279,8 @@ In this example:
 - To read or update the collapsed state at runtime, use `getState()` and `setState()`. The `collapsed` array contains the identifiers of all currently collapsed nodes.
 
 See the [State](./api-state/) page for the full state management API.
+
+Changes in the collapsed items can be listened to with the `collapsedChange` event. See the [Events API](./events#collapsedchange) page for more details.
 
 ### Zoom
 

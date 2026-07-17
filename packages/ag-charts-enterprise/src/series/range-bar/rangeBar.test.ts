@@ -25,6 +25,7 @@ import {
     type SceneNodeExpectation,
     type TrajectoryExpectation,
     createSceneGeometrySampler,
+    deproxy,
     expectAnimatedEndpointsMatchStatic,
     expectPixelIdenticalAcrossMagnitude,
     expectProgresses,
@@ -44,7 +45,12 @@ import {
 } from 'ag-charts-community-test';
 import { roundTo } from 'ag-charts-core';
 
-import { createEnterpriseChart, prepareEnterpriseTestOptions, renderEnterpriseChartImage } from '../../test/utils';
+import {
+    createEnterpriseChart,
+    mockCssVarColorSupport,
+    prepareEnterpriseTestOptions,
+    renderEnterpriseChartImage,
+} from '../../test/utils';
 
 describe('RangeBarSeries', () => {
     setupMockConsole();
@@ -1119,6 +1125,44 @@ describe('RangeBarSeries', () => {
         });
     });
 
+    describe('rotated label per-side padding', () => {
+        // A rotated (vertical) khaki-boxed label must float clear of the bar AND stay centred on it,
+        // whatever the per-side padding. One chart per case keeps the mock-canvas text metrics reliable.
+        const ROTATED_PADDINGS: Record<string, object> = {
+            symmetric: { top: 0, bottom: 0, left: 10, right: 10 },
+            'wide left': { top: 0, bottom: 0, left: 50, right: 10 },
+            'wide right': { top: 0, bottom: 0, left: 10, right: 50 },
+            'tall + asymmetric': { top: 40, bottom: 4, left: 50, right: 10 },
+        };
+        it.each(Object.entries(ROTATED_PADDINGS))(
+            'renders a rotated outside label clear of and centred on the bar (%s padding)',
+            async (_name, padding) => {
+                expect(
+                    await renderEnterpriseChartImage(ctx, {
+                        data: [{ x: '1', yL: 140, yH: 160 }],
+                        legend: { enabled: false },
+                        axes: { x: { type: 'category' }, y: { type: 'number', min: 100, max: 200 } },
+                        series: [
+                            {
+                                type: 'range-bar',
+                                xKey: 'x',
+                                yLowKey: 'yL',
+                                yHighKey: 'yH',
+                                label: {
+                                    enabled: true,
+                                    placement: 'outside',
+                                    orientation: 'vertical',
+                                    fill: 'khaki',
+                                    padding,
+                                },
+                            },
+                        ],
+                    })
+                ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+            }
+        );
+    });
+
     describe('AG-15448', () => {
         const DATA1 = [
             { month: 'Jan', tempLow: 5, tempHigh: 15, status: 1 },
@@ -1163,6 +1207,38 @@ describe('RangeBarSeries', () => {
             await waitForChartStability(chart);
             await chart.updateDelta({ data: DATA2 });
             await compare();
+        });
+    });
+
+    describe('AG-17875 itemStyler CSS variable resolution', () => {
+        it('resolves a CSS variable fill returned from itemStyler to its computed colour', async () => {
+            const container = document.createElement('div');
+            const restoreCssVarColorSupport = mockCssVarColorSupport(container, { '--my-color': 'rgb(0, 128, 0)' });
+            try {
+                const options: AgCartesianChartOptions = {
+                    data: [{ month: 'Jan', low: 5, high: 15 }],
+                    series: [
+                        {
+                            type: 'range-bar',
+                            xKey: 'month',
+                            yLowKey: 'low',
+                            yHighKey: 'high',
+                            itemStyler: () => ({ fill: 'var(--my-color)' }),
+                        },
+                    ],
+                };
+                prepareEnterpriseTestOptions(options, container);
+
+                chart = deproxy(AgCharts.create(options));
+                await waitForChartStability(chart);
+
+                const series = chart.series[0];
+                const [rect] = series.dataNodeGroup.children();
+
+                expect(rect.fill).toBe('rgb(0, 128, 0)');
+            } finally {
+                restoreCssVarColorSupport();
+            }
         });
     });
 

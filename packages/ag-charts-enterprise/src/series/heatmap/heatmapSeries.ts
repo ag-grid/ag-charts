@@ -656,7 +656,10 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         if (itemStyler != null && datumIndex != null) {
             overrides = this.cachedDatumCallback(createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'), () => {
                 const params = this.makeItemStylerParams(datum, datumIndex, isHighlight, style);
-                return this.callWithContext(itemStyler, params);
+                return this.ctx.optionsGraphService.resolvePartial(
+                    ['series', `${this.declarationOrder}`],
+                    this.callWithContext(itemStyler, params)
+                );
             });
         }
 

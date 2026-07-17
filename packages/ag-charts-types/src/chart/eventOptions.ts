@@ -127,6 +127,26 @@ export interface AgSelectionChangeEvent<TDatum, TContext> extends AgPreventableE
     removed: AgSelectionItem<TDatum>[];
 }
 
+export interface AgCollapsedItem<TDatum> {
+    /** The unique identifier of the datum as specified in `dataIdKey` if set (or generated if not specified). */
+    itemId: string | number;
+    /** Datum from the chart or series data array. */
+    datum: TDatum;
+}
+
+export type AgCollapsedChangeEventSource = 'user-interaction' | 'api-call';
+
+export interface AgCollapsedChangeEvent<TDatum, TContext> extends AgPreventableEvent {
+    /** Event type. */
+    type: 'collapsedChange';
+    /** An indication of what triggered this event. */
+    source: AgCollapsedChangeEventSource;
+    /** Callback context for this event. */
+    context?: TContext;
+    /** Items that are collapsed after this change. */
+    collapsed: AgCollapsedItem<TDatum>[];
+}
+
 export interface AgAnnotationsEvent<TContext = ContextDefault> {
     type: 'annotations';
     annotations?: AgAnnotation[];
@@ -226,6 +246,8 @@ export interface AgBaseChartListeners<TDatum, TContext = ContextDefault> {
     activeChange?: Listener<AgActiveChangeEvent<TDatum, TContext>>;
     /** The listener to call when data selection is changed */
     selectionChange?: Listener<AgSelectionChangeEvent<TDatum, TContext>>;
+    /** The listener to call when collapsed items are changed. */
+    collapsedChange?: Listener<AgCollapsedChangeEvent<TDatum, TContext>>;
     /** The listener to call when the chart is clicked. */
     click?: Listener<AgChartClickEvent<TContext>>;
     /** The listener to call when the chart is double-clicked. */

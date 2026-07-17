@@ -31,6 +31,7 @@ import {
     insetBox,
     isContinuous,
     maxValue,
+    measureLabelText,
     mergeDefaults,
     minValue,
     resolveLabelFit,
@@ -60,6 +61,7 @@ const {
     checkCrisp,
     updateLabelNode,
     pickPlacementStyle,
+    expandPlacementLabelBoxExtent,
     prepareBarAnimationFunctions,
     collapsedStartingBarPosition,
     resetBarSelectionsDirect,
@@ -710,6 +712,17 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             const insetSpacing: number =
                 label.spacing + Math.max(boxPadding.top, boxPadding.right, boxPadding.bottom, boxPadding.left);
             const resolvesOrientation = barLabelResolvesOrientation(label.orientation);
+            const labelRotation = barLabelRotation(firstCandidate(label.orientation));
+            // Inside labels fit within the bar rect; outside labels sit beside it. The rect is only
+            // needed to bound the fit or to resolve orientation, so skip it otherwise.
+            const container =
+                insidePlacement && (labelFit != null || resolvesOrientation)
+                    ? insetBox({ x: rectX, y: rectY, width: rectWidth, height: rectHeight }, insetSpacing)
+                    : undefined;
+            const fittedLabelText = fitLabelToContainer(labelText, labelFit, label, container);
+            // A rotated label's gap to the bar depends on its box size; measure only when it rotates.
+            const { width: labelWidth, height: labelHeight } =
+                labelRotation === 0 ? { width: 0, height: 0 } : measureLabelText(fittedLabelText, label);
             const labelPlacement = adjustLabelPlacement({
                 isUpward: (value ?? -1) >= 0 !== valueAxisReversed,
                 isVertical: !barAlongX,
@@ -717,22 +730,19 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                 spacing: label.spacing,
                 boxPadding,
                 rect: { x: rectX, y: rectY, width: rectWidth, height: rectHeight },
+                rotation: labelRotation,
+                labelWidth,
+                labelHeight,
             });
-            // Inside labels fit within the bar rect; outside labels sit beside it. The rect is only
-            // needed to bound the fit or to resolve orientation, so skip it otherwise.
-            const container =
-                insidePlacement && (labelFit != null || resolvesOrientation)
-                    ? insetBox({ x: rectX, y: rectY, width: rectWidth, height: rectHeight }, insetSpacing)
-                    : undefined;
 
-            mutableNode.label.text = fitLabelToContainer(labelText, labelFit, label, container);
+            mutableNode.label.text = fittedLabelText;
             mutableNode.label.x = labelPlacement.x;
             mutableNode.label.y = labelPlacement.y;
             mutableNode.label.textAlign = labelPlacement.textAlign;
             mutableNode.label.textBaseline = labelPlacement.textBaseline;
             // Bake the first orientation; an array resolves against the bar rect for inside placements
             // only (see barSeries).
-            mutableNode.label.rotation = barLabelRotation(firstCandidate(label.orientation));
+            mutableNode.label.rotation = labelRotation;
             mutableNode.label.region = resolvesOrientation ? container : undefined;
             mutableNode.label.offsetX = 0;
             mutableNode.label.offsetY = 0;
@@ -1057,10 +1067,19 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
     override getLabelData(): PointLabelDatum[] {
         if (!this.usesPlacedLabels) return [];
-        return buildBarLabelData(this.contextNodeData?.labelData, (node) => ({
-            label: node.label,
-            config: this.getItemConfig(node.itemType).label,
-        }));
+        return buildBarLabelData(this.contextNodeData?.labelData, (node) => {
+            const label = this.getItemConfig(node.itemType).label;
+            if (node.label == null || node.label.text === '') return { label: node.label, config: label };
+            // Inflate the measured text by the label's drawn box (padding + border stroke) so orientation
+            // resolution avoids the box, not just the text.
+            const box = expandPlacementLabelBoxExtent(label);
+            const { width, height } = measureLabelText(node.label.text, label);
+            return {
+                label: node.label,
+                config: label,
+                size: { width: width + box.left + box.right, height: height + box.top + box.bottom },
+            };
+        });
     }
 
     override updatePlacedLabelData(placed: PlacedLabel<WaterfallNodeDatum>[]) {

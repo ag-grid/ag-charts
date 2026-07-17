@@ -73,7 +73,7 @@ export interface AgOrganizationSeriesOptionsExpander<
         AgOrganizationSeriesExpanderItemStylerParams<TDatum, TContext>,
         AgOrganizationSeriesExpanderStyle
     >;
-    text?: AgOrganizationSeriesOptionsExpanderText;
+    text?: AgOrganizationSeriesOptionsExpanderText<TDatum, TContext>;
 }
 
 export interface AgOrganizationSeriesExpanderStyle extends Toggleable, FillOptions, LineDashOptions, StrokeOptions {
@@ -86,11 +86,26 @@ export interface AgOrganizationSeriesExpanderStyle extends Toggleable, FillOptio
 export interface AgOrganizationSeriesExpanderTextStyle extends FontOptions {
     /** The colour to use for the expander text. A colour string, or a theme-colour reference object. */
     color?: AgCssColorOrRef;
+    /**
+     * Whether to include the count of all descendants in the expander text.
+     *
+     * Default: `true`
+     */
+    showAllChildren?: boolean;
+    /**
+     * Whether to include the count of direct children in the expander text.
+     *
+     * Default: `false`
+     */
+    showDirectChildren?: boolean;
     textAlign?: TextAlign;
 }
 
-export interface AgOrganizationSeriesOptionsExpanderText extends AgOrganizationSeriesExpanderTextStyle {
-    // formatter?: RichFormatter<AgOrganizationNodeTextFormatterParams<TDatum, TContext>>;
+export interface AgOrganizationSeriesOptionsExpanderText<
+    TDatum = DatumDefault,
+    TContext = ContextDefault,
+> extends AgOrganizationSeriesExpanderTextStyle {
+    formatter?: RichFormatter<AgOrganizationNodeTextFormatterParams<TDatum, TContext>>;
 }
 
 export interface AgOrganizationSeriesOptionsLink<
@@ -233,8 +248,14 @@ export interface AgOrganizationNodeTextFormatterParams<TDatum = DatumDefault, TC
     seriesId: string;
     /** Context for this callback. */
     context?: TContext;
+    /** The depth of the data point within the organization. */
+    depth: number;
     /** `true` when the node is collapsed (its descendants are hidden); `false` otherwise. */
     isCollapsed: boolean;
+    /** The number of descendants of this item. */
+    allChildren: number;
+    /** The number of direct children of this item. */
+    directChildren: number;
     /** The default label value that would have been used without a formatter. */
     value: any;
 }

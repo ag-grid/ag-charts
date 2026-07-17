@@ -144,8 +144,9 @@ describe('label collision avoidance', () => {
         }
     });
 
-    // Line and area default collision avoidance off; a configured `placement` must still offset each
-    // label from its point, and a user value must override the theme default rather than merge into it.
+    // Line and area default collision avoidance off; the theme default placement `['top', 'bottom']`
+    // is a directional fallback list that must still cascade to fit the bounds, and a user value must
+    // override the theme default rather than merge into it.
     describe('placement without collision avoidance (opt-out default)', () => {
         const sparseData = Array.from({ length: 5 }, (_, i) => ({ x: i, y: 50 }));
 
@@ -187,12 +188,17 @@ describe('label collision avoidance', () => {
         };
 
         for (const type of ['line', 'area'] as const) {
-            it(`${type}: places labels above the point by default`, async () => {
+            // The default placement `['top', 'bottom']` cascades with avoidance off. Line's degenerate
+            // domain centres the point, so 'top' fits and is kept; area's domain includes the zero
+            // baseline, seating y:50 at the top edge, so 'top' overflows and the list falls to 'bottom'.
+            it(`${type}: resolves the default top→bottom fallback list to fit the bounds`, async () => {
+                const expectedPlacement = type === 'area' ? 'bottom' : 'top';
+                const offsetSign = expectedPlacement === 'bottom' ? 1 : -1;
                 const placed = await render(type);
                 expect(placed.length).toBe(sparseData.length);
                 for (const label of placed) {
-                    expect(label.placement).toBe('top');
-                    expect(label.y).toBeLessThan(label.datum.point.y);
+                    expect(label.placement).toBe(expectedPlacement);
+                    expect(Math.sign(label.y - label.datum.point.y)).toBe(offsetSign);
                 }
             });
 
@@ -237,9 +243,9 @@ describe('label collision avoidance', () => {
 
         const render = async (
             type: 'line' | 'area',
-            opts: { markerSize?: number; markerEnabled?: boolean; placement?: string | string[] } = {}
+            opts: { markerSize?: number; markerEnabled?: boolean; placement?: string | string[]; avoid?: boolean } = {}
         ) => {
-            const { markerSize = 40, markerEnabled = true, placement = 'inside' } = opts;
+            const { markerSize = 40, markerEnabled = true, placement = 'inside', avoid = false } = opts;
             const options: any = {
                 data: sparseData,
                 legend: { enabled: false },
@@ -254,6 +260,7 @@ describe('label collision avoidance', () => {
                             enabled: true,
                             placement,
                             formatter: ({ value }: any) => String(value),
+                            ...(avoid ? { collisionAvoidance: { enabled: true } } : {}),
                         },
                     },
                 ],
@@ -285,13 +292,186 @@ describe('label collision avoidance', () => {
                 expect(placed.length).toBe(0);
             });
 
-            it(`${type}: a mixed placement list keeps full text for the directional fallback`, async () => {
-                // A small marker hides a pure `inside` label, but mixing `inside` with a directional
-                // fallback must not constrain the text to the marker, so the labels still render.
-                const placed = await render(type, { markerSize: 4, placement: ['inside', 'top'] });
+            it(`${type}: cascades an oversized inside label to a directional fallback`, async () => {
+                // A small marker can't contain the full-size text, so a mixed list must reject the `inside`
+                // candidate and cascade to a directional placement rather than leaving it overflowing inside.
+                const placed = await render(type, {
+                    markerSize: 4,
+                    placement: ['inside', 'top', 'bottom'],
+                    avoid: true,
+                });
                 expect(placed.length).toBe(sparseData.length);
+                for (const label of placed) {
+                    expect(['top', 'bottom']).toContain(label.placement);
+                }
+            });
+
+            it(`${type}: keeps a fitting inside label inside for a mixed list`, async () => {
+                // The text fits the large marker, so the first (`inside`) candidate is chosen and the
+                // directional fallback is never reached.
+                const placed = await render(type, { markerSize: 40, placement: ['inside', 'top'], avoid: true });
+                expect(placed.length).toBe(sparseData.length);
+                for (const label of placed) {
+                    expect(label.placement).toBe('inside');
+                }
             });
         }
+    });
+
+    // Reproduces the reported scenario: three close, parallel lines with a `['top','bottom','inside']`
+    // list. The top line resolves up and the bottom line down; the middle line collides on both sides
+    // and falls through to `inside`, where its label fits the 23px marker rather than being dropped.
+    describe('mixed directional/inside cascade (three parallel lines)', () => {
+        const parallelLineData = [
+            { x: 0, top: 58, mid: 50, bottom: 42 },
+            { x: 1, top: 59, mid: 51, bottom: 43 },
+            { x: 2, top: 60, mid: 52, bottom: 44 },
+            { x: 3, top: 61, mid: 53, bottom: 45 },
+            { x: 4, top: 62, mid: 54, bottom: 46 },
+            { x: 5, top: 63, mid: 55, bottom: 47 },
+            { x: 6, top: 64, mid: 56, bottom: 48 },
+            { x: 7, top: 65, mid: 57, bottom: 49 },
+        ];
+
+        const lineSeries = (yKey: string, color: string) => ({
+            type: 'line',
+            xKey: 'x',
+            yKey,
+            stroke: color,
+            marker: { enabled: true, size: 23, fill: color },
+            label: {
+                enabled: true,
+                placement: ['top', 'bottom', 'inside'],
+                collisionAvoidance: { enabled: true },
+            },
+        });
+
+        it('cascades overlapping labels off their markers', async () => {
+            await renderAndSnapshot({
+                data: parallelLineData,
+                legend: { enabled: false },
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    // Wide fixed range compresses the pixel gap between the lines so their labels overlap.
+                    y: { type: 'number', position: 'left', min: 0, max: 150 },
+                },
+                series: [
+                    lineSeries('top', 'seagreen'),
+                    lineSeries('mid', 'dodgerblue'),
+                    lineSeries('bottom', 'tomato'),
+                ],
+            });
+        });
+    });
+
+    // Marker series enable collision avoidance, so a mixed `inside`+directional list cascades: the
+    // label fits inside the marker when it can, else falls back to a directional placement with full
+    // text rather than vanishing. Scatter shares BubbleSeries' label pipeline, so both are covered.
+    describe('inside placement fallback cascade (marker series)', () => {
+        // Three well-separated mid-height points: no inter-marker or inter-label collisions, so an
+        // inside failure is isolated to the marker-fit test and directional fallbacks stay clear.
+        const sparseData = [
+            { x: 10, y: 50, size: 1, label: 'A' },
+            { x: 50, y: 50, size: 1, label: 'B' },
+            { x: 90, y: 50, size: 1, label: 'C' },
+        ];
+
+        const placedLabels = () => {
+            const series = deproxy(chart as any).series[0] as unknown as {
+                placedLabelData: { placement?: string }[];
+            };
+            return series.placedLabelData;
+        };
+
+        const render = async (
+            type: 'scatter' | 'bubble',
+            opts: { markerSize: number; placement: string | string[] }
+        ) => {
+            const { markerSize, placement } = opts;
+            const options: any = {
+                data: sparseData,
+                legend: { enabled: false },
+                axes: cartesianAxes,
+                series: [
+                    {
+                        type,
+                        xKey: 'x',
+                        yKey: 'y',
+                        labelKey: 'label',
+                        ...(type === 'bubble'
+                            ? { sizeKey: 'size', minSize: markerSize, maxSize: markerSize }
+                            : { size: markerSize }),
+                        label: { enabled: true, placement },
+                    },
+                ],
+            };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            return placedLabels();
+        };
+
+        it('scatter: keeps the label inside when it fits the marker', async () => {
+            const placed = await render('scatter', { markerSize: 100, placement: ['inside', 'top', 'bottom'] });
+            expect(placed.length).toBe(sparseData.length);
+            for (const label of placed) {
+                expect(label.placement).toBe('inside');
+            }
+        });
+
+        it('scatter: cascades to a directional fallback when the marker is too small', async () => {
+            const placed = await render('scatter', { markerSize: 6, placement: ['inside', 'top', 'bottom'] });
+            // No vanishing: every label still renders, now at the directional fallback with full text.
+            expect(placed.length).toBe(sparseData.length);
+            for (const label of placed) {
+                expect(label.placement).toBe('top');
+            }
+        });
+
+        it('scatter: a lone inside placement still hides on a too-small marker (no fallback)', async () => {
+            const placed = await render('scatter', { markerSize: 6, placement: 'inside' });
+            expect(placed.length).toBe(0);
+        });
+
+        it('bubble: cascades to a directional fallback when the marker is too small', async () => {
+            const placed = await render('bubble', { markerSize: 6, placement: ['inside', 'top', 'bottom'] });
+            expect(placed.length).toBe(sparseData.length);
+            for (const label of placed) {
+                expect(label.placement).toBe('top');
+            }
+        });
+
+        // Visual regression guard: with a size range, small bubbles cascade their labels to
+        // top/bottom while large bubbles keep them inside — none vanish.
+        it('bubble: renders a mixed inside/top/bottom cascade across a size range', async () => {
+            await renderAndSnapshot(
+                {
+                    data: [
+                        { x: 1, y: 3, size: 1, label: 'Alpha' },
+                        { x: 2, y: 5, size: 4, label: 'Bravo' },
+                        { x: 3, y: 2, size: 8, label: 'Charlie' },
+                        { x: 4, y: 6, size: 10, label: 'Delta' },
+                        { x: 5, y: 4, size: 2, label: 'Echo' },
+                        { x: 6, y: 7, size: 6, label: 'Foxtrot' },
+                    ],
+                    legend: { enabled: false },
+                    axes: cartesianAxes,
+                    series: [
+                        {
+                            type: 'bubble',
+                            xKey: 'x',
+                            yKey: 'y',
+                            sizeKey: 'size',
+                            labelKey: 'label',
+                            minSize: 6,
+                            maxSize: 60,
+                            label: { enabled: true, placement: ['inside', 'top', 'bottom'] },
+                        },
+                    ],
+                },
+                PATTERN_SNAPSHOT_DEFAULTS
+            );
+        });
     });
 
     describe('scatter series', () => {
@@ -427,6 +607,69 @@ describe('label collision avoidance', () => {
                 },
                 PATTERN_SNAPSHOT_DEFAULTS
             );
+        });
+    });
+
+    // The collision footprint must be the label's drawn box (text + padding), not the bare text, or
+    // a padded/boxed label can visually overlap a neighbour while the engine reports no collision.
+    describe('label box footprint (padding reserved, not just text)', () => {
+        const closeData = [
+            { x: 10, y: 50 },
+            { x: 11, y: 50 },
+            { x: 12, y: 50 },
+        ];
+        const tightAxes = {
+            x: { position: 'bottom', type: 'number', min: 0, max: 24 },
+            y: { position: 'left', type: 'number' },
+        };
+
+        type Box = { x: number; y: number; width: number; height: number };
+        const overlaps = (a: Box, b: Box) =>
+            a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
+
+        const visibleLabelBoxes = async (padding: number) => {
+            const options: any = {
+                data: closeData,
+                legend: { enabled: false },
+                axes: tightAxes,
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'x',
+                        yKey: 'y',
+                        marker: { enabled: true, size: 6 },
+                        label: {
+                            enabled: true,
+                            formatter: ({ value }: any) => String(value),
+                            placement: 'top',
+                            fill: 'white',
+                            padding,
+                            collisionAvoidance: { enabled: true },
+                        },
+                    },
+                ],
+            };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            const series = deproxy(chart as any).series[0] as unknown as {
+                labelSelection: { nodes(): { visible: boolean; computeBBox(): Box | undefined }[] };
+            };
+            return series.labelSelection
+                .nodes()
+                .filter((node) => node.visible)
+                .map((node) => node.computeBBox()!);
+        };
+
+        it('drops a colliding label whose padded box overlaps a neighbour though the bare text would not', async () => {
+            const boxes = await visibleLabelBoxes(20);
+            // Anti-vacuous guard: some labels must actually be dropped for the box footprint to matter.
+            expect(boxes.length).toBeLessThan(closeData.length);
+            for (let i = 0; i < boxes.length; i++) {
+                for (let j = i + 1; j < boxes.length; j++) {
+                    expect(overlaps(boxes[i], boxes[j])).toBe(false);
+                }
+            }
         });
     });
 

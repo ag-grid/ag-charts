@@ -14,13 +14,13 @@ import {
     type LabelFit,
     Logger,
     type Point,
-    applyLabelAvoidance,
     cachedTextMeasurer,
     findDiscreteColorBinLabel,
     fitLabelText,
     formatValue,
     mergeDefaults,
     resolveLabelFit,
+    resolveSeriesLabelDefaults,
 } from 'ag-charts-core';
 import type {
     AgDrawingMode,
@@ -42,6 +42,7 @@ import { type MapLineNodeDatum, type MapLineNodeLabelDatum, MapLineSeriesPropert
 const {
     getMissCount,
     getLabelStyles,
+    expandLabelBoxExtent,
     buildColorCategoryLegendData,
     buildGradientLegendDatum,
     colorScaleLegendFormatterContext,
@@ -295,12 +296,15 @@ export class MapLineSeries
         if (labelText == null) return;
 
         const fittedText = fitLabelText(labelText, labelFit, label);
-        const labelSize = measurer.measureLines(String(fittedText));
         const labelCenter = lineStringCenter(lineString);
         if (labelCenter == null) return;
 
         const [x, y] = labelCenter.point;
-        const { width, height } = labelSize;
+        const text = measurer.measureLines(String(fittedText));
+        // Inflate the text by the label's drawn box (padding + border stroke) so collisions avoid the box.
+        const box = expandLabelBoxExtent(label);
+        const width = text.width + box.left + box.right;
+        const height = text.height + box.top + box.bottom;
 
         return {
             point: { x, y, size: 0 },
@@ -530,7 +534,10 @@ export class MapLineSeries
         if (itemStyler != null) {
             overrides = this.cachedDatumCallback(createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'), () => {
                 const params = this.makeItemStylerParams(datum, datumIndex, isHighlight, style);
-                return this.callWithContext(itemStyler, params);
+                return this.ctx.optionsGraphService.resolvePartial(
+                    ['series', `${this.declarationOrder}`],
+                    this.callWithContext(itemStyler, params)
+                );
             });
         }
 
@@ -671,12 +678,12 @@ export class MapLineSeries
 
     override getLabelData() {
         if (!this.isLabelEnabled()) return [];
-        const labelData = this.contextNodeData?.labelData ?? [];
-        const { label } = this.properties;
-        const { collisionAvoidance } = label;
-        // Labels centre on the line with no directional placement, so they route avoidance only.
-        applyLabelAvoidance(labelData, collisionAvoidance.avoid, collisionAvoidance.resolveCollideWith());
-        return labelData;
+        return this.contextNodeData?.labelData ?? [];
+    }
+
+    // Labels centre on the line with no directional placement, so defaults carry avoidance only.
+    override getLabelDefaults() {
+        return resolveSeriesLabelDefaults(this.properties.label.collisionAvoidance);
     }
 
     override pickNodeClosestDatum({ x, y }: Point): _ModuleSupport.SeriesNodePickMatch | undefined {

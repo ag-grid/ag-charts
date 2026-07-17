@@ -5,6 +5,7 @@ import type {
     FontOptions,
     IsAny,
     LabelFit,
+    LabelPlacement,
     NormalisedColorType,
     NormalisedTextOrSegments,
     OrientationAnchor,
@@ -19,6 +20,8 @@ import {
     labelGlyphCentre,
     mergeDefaults,
     orientationAngles,
+    rotatedGlyphDrift,
+    rotatedLabelInset,
 } from 'ag-charts-core';
 import type {
     AgChartLabelOrientation,
@@ -128,17 +131,40 @@ export function boundLabelFit(
 /**
  * Container that keeps an `inside` label within a marker of diameter `markerSize`, sized to the largest
  * rectangle that fits the marker's shape (analysed once per shape by {@link markerLabelRect}). Pair with
- * {@link insideMarkerOffset} to position the label at that rectangle, which need not be marker-centred.
+ * {@link resolveInsidePlacement}'s `offset` to position the label at that rectangle, which need not be
+ * marker-centred.
  */
 export function insideMarkerContainer(markerSize: number, shape?: AgMarkerShape): { width: number; height: number } {
     const rect = markerLabelRect(shape);
     return { width: markerSize * rect.width, height: markerSize * rect.height };
 }
 
-/** The inside-label rectangle's centre offset from the marker centre, as a fraction of the diameter. */
-export function insideMarkerOffset(shape: AgMarkerShape | undefined): Point {
-    const { cx, cy } = markerLabelRect(shape);
-    return { x: cx, y: cy };
+/** Inside-marker label geometry resolved from a series' configured placements and marker shape. */
+export interface InsidePlacement {
+    /** True when every placement is `inside`, so the text is fitted to the marker up front. */
+    readonly insideOnly: boolean;
+    /** Centres an `inside` label on the marker's inscribed rectangle; set whenever `inside` is a placement. */
+    readonly offset: Point | undefined;
+    /** Inscribed-rect size so the engine rejects an oversized `inside` candidate; set only for a mixed list. */
+    readonly size: { width: number; height: number } | undefined;
+}
+
+/**
+ * Resolves the inside-marker geometry for a placement list. A mixed list (e.g. `['inside','top']`) keeps
+ * full-size text and instead supplies `size`, so an `inside` candidate too large for the marker fails and
+ * cascades to the next placement; an inside-only list leaves `size` unset and fits the text to the marker.
+ */
+export function resolveInsidePlacement(
+    placements: readonly LabelPlacement[],
+    shape: AgMarkerShape | undefined
+): InsidePlacement {
+    const insideOnly = placements.length > 0 && placements.every((placement) => placement === 'inside');
+    const rect = placements.includes('inside') ? markerLabelRect(shape) : undefined;
+    return {
+        insideOnly,
+        offset: rect ? { x: rect.cx, y: rect.cy } : undefined,
+        size: !insideOnly && rect ? { width: rect.width, height: rect.height } : undefined,
+    };
 }
 
 /** Selects the style overrides for a label's resolved placement; `undefined` when neither applies. */
@@ -302,6 +328,9 @@ export function adjustLabelPlacement({
     spacing = 0,
     boxPadding,
     rect,
+    rotation = 0,
+    labelWidth = 0,
+    labelHeight = 0,
 }: {
     placement: BarLabelPlacement;
     isUpward: boolean;
@@ -309,30 +338,47 @@ export function adjustLabelPlacement({
     spacing?: PixelSize;
     boxPadding?: Required<PaddingOptions>;
     rect: Bounds;
+    rotation?: number;
+    labelWidth?: number;
+    labelHeight?: number;
 }): Omit<LabelDatum, 'text'> {
     let x = rect.x + rect.width / 2;
     let y = rect.y + rect.height / 2;
     let textAlign: CanvasTextAlign = 'center';
     let textBaseline: CanvasTextBaseline = 'middle';
 
-    if (placement !== 'inside-center') {
+    // The node rotates the padded box about its own centre; asymmetric padding drifts the glyph off the
+    // anchor. Pre-subtracting the drift keeps the glyph centred on the bar's cross-axis. Zero unrotated.
+    const drift = boxPadding == null ? { x: 0, y: 0 } : rotatedGlyphDrift(rotation, boxPadding);
+
+    if (placement === 'inside-center') {
+        // No bar-facing axis: keep the glyph centred on both axes of the bar rect.
+        x -= drift.x;
+        y -= drift.y;
+    } else {
         const barDirection = (isUpward ? 1 : -1) * (isVertical ? -1 : 1);
         const { direction, textAlignment } = placements[placement];
         const displacementRatio = (direction + 1) * 0.5;
+        // Distance from the anchor to the (rotated) box edge facing the bar; equals boxPadding[facing]
+        // for an unrotated label, but grows with the box's cross-axis when the label is rotated.
+        const insetFor = (facing: keyof Required<PaddingOptions>) =>
+            boxPadding == null ? 0 : rotatedLabelInset(facing, rotation, labelWidth, labelHeight, boxPadding);
 
         if (isVertical) {
             const y0 = isUpward ? rect.y + rect.height : rect.y;
             const height = rect.height * barDirection;
             const facing = textAlignment === barDirection ? 'top' : 'bottom';
-            const inset = boxPadding?.[facing] ?? 0;
+            const inset = insetFor(facing);
             y = y0 + height * displacementRatio + (spacing + inset) * textAlignment * barDirection;
+            x -= drift.x;
             textBaseline = facing;
         } else {
             const x0 = isUpward ? rect.x : rect.x + rect.width;
             const width = rect.width * barDirection;
             const facing = textAlignment === barDirection ? 'left' : 'right';
-            const inset = boxPadding?.[facing] ?? 0;
+            const inset = insetFor(facing);
             x = x0 + width * displacementRatio + (spacing + inset) * textAlignment * barDirection;
+            y -= drift.y;
             textAlign = facing;
         }
     }

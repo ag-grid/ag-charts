@@ -25,7 +25,7 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { mockCssVarColorSupport, prepareEnterpriseTestOptions } from '../../test/utils';
 import { FlowProportionDatumType } from '../flow-proportion/flowDatumIndex';
 
 describe('SankeySeries', () => {
@@ -812,5 +812,71 @@ describe('SankeySeries', () => {
 
         chart = deproxy(AgCharts.create(options as AgChartOptions));
         await compare();
+    });
+
+    describe('AG-17875 itemStyler CSS variable resolution', () => {
+        it('resolves a CSS variable fill returned from node.itemStyler to its computed colour', async () => {
+            const container = document.createElement('div');
+            const restoreCssVarColorSupport = mockCssVarColorSupport(container, { '--my-color': 'rgb(0, 128, 0)' });
+            try {
+                const options: AgChartOptions = {
+                    data: [{ from: 'A', to: 'B', size: 5 }],
+                    series: [
+                        {
+                            type: 'sankey',
+                            fromKey: 'from',
+                            toKey: 'to',
+                            sizeKey: 'size',
+                            node: {
+                                itemStyler: () => ({ fill: 'var(--my-color)' }),
+                            },
+                        },
+                    ],
+                } as AgChartOptions;
+                prepareEnterpriseTestOptions(options, container);
+
+                chart = deproxy(AgCharts.create(options));
+                await waitForChartStability(chart);
+
+                const series = chart.series[0];
+                const [nodeRect] = series.nodeGroup.children();
+
+                expect(nodeRect.fill).toBe('rgb(0, 128, 0)');
+            } finally {
+                restoreCssVarColorSupport();
+            }
+        });
+
+        it('resolves a CSS variable fill returned from link.itemStyler to its computed colour', async () => {
+            const container = document.createElement('div');
+            const restoreCssVarColorSupport = mockCssVarColorSupport(container, { '--my-color': 'rgb(0, 128, 0)' });
+            try {
+                const options: AgChartOptions = {
+                    data: [{ from: 'A', to: 'B', size: 5 }],
+                    series: [
+                        {
+                            type: 'sankey',
+                            fromKey: 'from',
+                            toKey: 'to',
+                            sizeKey: 'size',
+                            link: {
+                                itemStyler: () => ({ fill: 'var(--my-color)' }),
+                            },
+                        },
+                    ],
+                } as AgChartOptions;
+                prepareEnterpriseTestOptions(options, container);
+
+                chart = deproxy(AgCharts.create(options));
+                await waitForChartStability(chart);
+
+                const series = chart.series[0];
+                const [linkShape] = series.linkGroup.children();
+
+                expect(linkShape.fill).toBe('rgb(0, 128, 0)');
+            } finally {
+                restoreCssVarColorSupport();
+            }
+        });
     });
 });

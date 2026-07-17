@@ -11,8 +11,6 @@ import {
     type Point,
     type RequireOptional,
     type SizedPoint,
-    applyLabelAvoidance,
-    applyLabelPlacements,
     cachedTextMeasurer,
     clamp,
     dateToNumber,
@@ -23,6 +21,7 @@ import {
     measureTextSegments,
     rescaleVisibleRange,
     resolveLabelFit,
+    resolveSeriesLabelDefaults,
     toArray,
     toNumber,
     toPlainText,
@@ -61,7 +60,7 @@ import type { ChartAxis } from '../../chartAxis';
 import type { DataController } from '../../data/dataController';
 import { DataModel, type ProcessedData, fixNumericExtent } from '../../data/dataModel';
 import { createDatumId, processedDataIsAnimatable, valueProperty } from '../../data/processors';
-import { expandLabelPadding, expandPlacementLabelPadding, resolvePlacementLabelStyle } from '../../label';
+import { expandLabelPadding, expandPlacementLabelBoxExtent, resolvePlacementLabelStyle } from '../../label';
 import { fitLabelToContainer, getLabelStyles, pickPlacementStyle } from '../../labelUtil';
 import {
     type CategoryLegendDatum,
@@ -193,6 +192,7 @@ export interface BubbleScatterNodeDatum extends CartesianSeriesNodeDatum, ErrorB
     readonly placement: LabelPlacement;
     readonly anchor: Point;
     readonly insideOffset: Point | undefined;
+    readonly insideSize: { width: number; height: number } | undefined;
     readonly count: number;
     readonly dilation: number;
     readonly area: number;
@@ -256,6 +256,7 @@ interface BubbleSeriesNodeDatumContext extends CartesianMarkerLikeContext<Bubble
     readonly labelAnchor: Point;
     readonly labelInsideOffset: Point | undefined;
     readonly labelInsideRect: MarkerLabelRect | undefined;
+    readonly labelInsideSize: { width: number; height: number } | undefined;
     readonly labelTextDomain: any[];
     readonly labelPadding: { left: number; right: number; top: number; bottom: number };
     readonly labelTextMeasurer: { measureLines: (text: string) => { width: number; height: number } };
@@ -577,8 +578,12 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             marker,
         } = this.properties;
 
-        const labelPlacement = toArray(label.placement)[0];
-        const insideRect = labelPlacement === 'inside' ? markerLabelRect(marker.shape) : undefined;
+        const placements = toArray(label.placement);
+        // Only fit to the marker when `inside` is the sole placement; a mixed fallback list keeps
+        // full-size text and lets the engine reject an oversized inside candidate (via insideSize)
+        // so a directional fallback isn't constrained to the marker.
+        const insideOnly = placements.length > 0 && placements.every((placement) => placement === 'inside');
+        const insideRect = placements.includes('inside') ? markerLabelRect(marker.shape) : undefined;
 
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
@@ -644,15 +649,18 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
 
             // Label properties
             labelsEnabled: label.enabled,
-            labelPlacement,
+            labelPlacement: placements[0],
             labelAnchor: Marker.anchor(marker.shape),
             labelInsideOffset: insideRect ? { x: insideRect.cx, y: insideRect.cy } : undefined,
-            labelInsideRect: insideRect,
+            // Truncation container applies only when `inside` is the sole placement; a mixed list
+            // measures full text so directional fallbacks aren't constrained to the marker.
+            labelInsideRect: insideOnly ? insideRect : undefined,
+            labelInsideSize:
+                !insideOnly && insideRect ? { width: insideRect.width, height: insideRect.height } : undefined,
             labelTextDomain,
-            labelPadding: expandPlacementLabelPadding(label),
+            labelPadding: expandPlacementLabelBoxExtent(label),
             labelTextMeasurer: cachedTextMeasurer(label),
-            // `inside` labels always fit to the marker, truncating text that overflows it.
-            labelFit: resolveLabelFit(label, label.collisionAvoidance.avoid, labelPlacement === 'inside'),
+            labelFit: resolveLabelFit(label, label.collisionAvoidance.avoid, insideOnly),
             label,
 
             // Other state
@@ -951,6 +959,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             label: { text: '', width: 0, height: 0 },
             anchor: ctx.labelAnchor,
             insideOffset: ctx.labelInsideOffset,
+            insideSize: ctx.labelInsideSize,
             placement: ctx.labelPlacement,
             count: 1,
             dilation: 1,
@@ -986,6 +995,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         mutableNode.label = scratch.nodeLabel;
         mutableNode.anchor = ctx.labelAnchor;
         mutableNode.insideOffset = ctx.labelInsideOffset;
+        mutableNode.insideSize = ctx.labelInsideSize;
         mutableNode.placement = ctx.labelPlacement;
 
         // Update point in-place
@@ -1006,12 +1016,12 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
 
     override getLabelData() {
         if (!this.isLabelEnabled()) return [];
-        const labelData = this.contextNodeData?.labelData ?? [];
+        return this.contextNodeData?.labelData ?? [];
+    }
+
+    override getLabelDefaults() {
         const { label } = this.properties;
-        const { collisionAvoidance } = label;
-        applyLabelAvoidance(labelData, collisionAvoidance.avoid, collisionAvoidance.resolveCollideWith());
-        applyLabelPlacements(labelData, toArray(label.placement));
-        return labelData;
+        return resolveSeriesLabelDefaults(label.collisionAvoidance, toArray(label.placement));
     }
 
     protected override updateDatumSelection(opts: {

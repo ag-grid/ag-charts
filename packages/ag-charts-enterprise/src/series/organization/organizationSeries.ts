@@ -1,5 +1,6 @@
 import {
     type AgActiveItemState,
+    type AgCollapsedChangeEventSource,
     type AgOrganizationNodeTextFormatterParams,
     type AgOrganizationSeriesExpanderItemStylerParams,
     type AgOrganizationSeriesExpanderStyle,
@@ -61,6 +62,13 @@ function clampMid(mid: number, range: number): number {
     return mid;
 }
 
+interface DatumCallbackState {
+    allChildren: number;
+    depth: number;
+    directChildren: number;
+    isCollapsed: boolean;
+}
+
 export class OrganizationSeries extends AbstractNetworkSeries<
     OrganizationVertex,
     OrganizationEdge,
@@ -118,6 +126,384 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
         this.linkGroup.translationX = offset.x;
         this.linkGroup.translationY = offset.y;
+    }
+
+    async processData(dataController: _ModuleSupport.DataController) {
+        const { data } = this;
+        if (data == null) return;
+
+        this.layout.clear();
+
+        const {
+            idKey,
+            parentIdKey,
+            node: {
+                image: { key: imageKey },
+                title: { key: titleKey },
+                subtitle: { key: subtitleKey },
+                labels,
+            },
+        } = this.properties;
+
+        const props = [
+            keyProperty(idKey, undefined, { id: 'idValue' }),
+            valueProperty(parentIdKey, undefined, { id: 'parentIdValue', allowNullKey: true }),
+            valueProperty(imageKey, undefined, { id: 'imageValue', allowNullKey: true, missingValue: undefined }),
+            valueProperty(titleKey, undefined, { id: 'titleValue', allowNullKey: true, missingValue: undefined }),
+            valueProperty(subtitleKey, undefined, {
+                id: 'subtitleValue',
+                allowNullKey: true,
+                missingValue: undefined,
+            }),
+        ];
+
+        let index = 0;
+        for (const label of labels) {
+            // Skip disabled tiers — without a `key` they crash `dataModel`. The slot is
+            // preserved as `undefined` in `createGraphData` so tier indexing stays aligned.
+            if (label.enabled) {
+                props.push(
+                    valueProperty(label.key, undefined, {
+                        id: `labelValue-${index}`,
+                        allowNullKey: true,
+                        missingValue: undefined,
+                    })
+                );
+            }
+            index++;
+        }
+
+        const { dataModel, processedData } = await dataController.request(this.id, data, { props });
+
+        this.dataModel = dataModel;
+        this.processedData = processedData;
+
+        this.createGraphData();
+        this.processPendingCollapse();
+    }
+
+    createNodeData() {
+        const nodeData: OrganizationDatum[] = [];
+        const linkData: OrganizationLinkDatum[] = [];
+
+        this.vertexDatumIndex = {};
+
+        if (this.rootVertex) {
+            const vertices = this.graph.neighboursWithEdgeValue(this.rootVertex, 'child');
+            if (vertices) {
+                for (const vertex of vertices as Vertex<OrganizationVertex, OrganizationEdge>[]) {
+                    linkData.push({ from: this.rootVertex, to: vertex });
+                    this.createNodeDataFromVertex(nodeData, linkData, vertex);
+                }
+            }
+        }
+
+        return { itemId: this.id, nodeData, linkData, labelData: [] };
+    }
+
+    nodeFactory(): OrganizationNode {
+        return new OrganizationNode();
+    }
+
+    hasItemStylers() {
+        const { expander, node, link, selection } = this.properties;
+        return (
+            selection.enabled ||
+            expander.itemStyler != null ||
+            node.itemStyler != null ||
+            link.itemStyler != null ||
+            node.title.itemStyler != null ||
+            node.subtitle.itemStyler != null ||
+            node.labels.some((label) => label.itemStyler != null)
+        );
+    }
+
+    updateDatumSelection(
+        nodeData: OrganizationDatum[],
+        datumSelection: _ModuleSupport.Selection<OrganizationDatum, OrganizationNode>
+    ) {
+        datumSelection.update(nodeData);
+    }
+
+    updateDatumNodes(datumSelection: _ModuleSupport.Selection<OrganizationDatum, OrganizationNode>) {
+        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
+
+        datumSelection.each((node, datum) => {
+            const datumIndex = this.graph.findNeighbourValue(datum.vertex, 'datumIndex') as number;
+            const depth = this.graph.findNeighbourValue(datum.vertex, 'depth') as number;
+            const allChildren = this.graph.findNeighbourValue(datum.vertex, 'descendants') as number;
+            const directChildren = this.graph.neighboursWithEdgeValue(datum.vertex, 'child')?.length ?? 0;
+
+            const isHighlight = highlightedDatum?.datumIndex === datum.datumIndex;
+            const highlightState = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
+            // Only report `isCollapsed` for nodes whose descendants would actually be hidden;
+            // a leaf id present in `collapsedManager` is a no-op visually and would mislead
+            // styler consumers about the rendered tree state.
+            const isCollapsed =
+                allChildren > 0 && datum.itemId != null && this.ctx.collapsedManager.isCollapsed(datum.itemId);
+
+            const datumState: DatumCallbackState = {
+                depth,
+                allChildren,
+                directChildren,
+                isCollapsed,
+            };
+
+            const styles = this.getNodeStyle(datumIndex, isHighlight, highlightState, datumState);
+            node.opacity = this.getNodeOpacity(datumIndex, isHighlight, highlightState);
+
+            const fields = this.resolveVertexFields(datum.vertex);
+            const title = this.formatText(fields.title, this.properties.node.title.formatter, datumIndex, datumState);
+            const subtitle = this.formatText(
+                fields.subtitle,
+                this.properties.node.subtitle.formatter,
+                datumIndex,
+                datumState
+            );
+            const labels = fields.labels?.map((label, index) =>
+                this.formatText(label, this.properties.node.labels[index]?.formatter, datumIndex, datumState)
+            );
+
+            let defaultExpanderText = '';
+            if (styles.expander.text.showAllChildren && styles.expander.text.showDirectChildren) {
+                defaultExpanderText = `${directChildren} / ${allChildren}`;
+            } else if (styles.expander.text.showAllChildren) {
+                defaultExpanderText = `${allChildren}`;
+            } else if (styles.expander.text.showDirectChildren) {
+                defaultExpanderText = `${directChildren}`;
+            }
+            const expanderText =
+                this.formatText(defaultExpanderText, this.properties.expander.text.formatter, datumIndex, datumState) ??
+                defaultExpanderText;
+
+            node.update(
+                { image: fields.image, title, subtitle, labels },
+                expanderText,
+                allChildren,
+                styles,
+                isCollapsed,
+                this.ctx.domManager.isRtl
+            );
+        });
+    }
+
+    updateLinkNodes(
+        linkSelection: _ModuleSupport.Selection<OrganizationLinkDatum, NetworkLinkNode<OrganizationLinkDatum>>
+    ) {
+        linkSelection.each((node, datum) => {
+            const fromIndex = this.graph.findNeighbourValue(datum.from, 'datumIndex') as number;
+            const toIndex = this.graph.findNeighbourValue(datum.to, 'datumIndex') as number;
+            const styles = this.getLinkStyle(fromIndex, toIndex);
+
+            node.update(styles);
+        });
+    }
+
+    positionDatumNode(node: OrganizationNode, bbox: _ModuleSupport.BBox, regularBBox?: _ModuleSupport.BBox) {
+        node.translationX = bbox.x;
+        node.translationY = bbox.y;
+
+        if (regularBBox) {
+            node.updateBBox(regularBBox);
+            node.realign(regularBBox);
+        }
+
+        const focusBBox = node.getFocusBBox();
+
+        return new _ModuleSupport.BBox(bbox.x, bbox.y, focusBBox.width, focusBBox.height);
+    }
+
+    getLinkInterpolation(
+        from: Vertex<OrganizationVertex, OrganizationEdge>,
+        to: Vertex<OrganizationVertex, OrganizationEdge>
+    ): NetworkLinkInterpolation {
+        const fromIndex = this.graph.findNeighbourValue(from, 'datumIndex') as number;
+        const toIndex = this.graph.findNeighbourValue(to, 'datumIndex') as number;
+        const styles = this.getLinkStyle(fromIndex, toIndex);
+
+        return { type: styles.interpolation.type, cornerRadius: styles.interpolation.cornerRadius };
+    }
+
+    expandNetworkToItem(itemIdOrIndex: string | number, source: AgCollapsedChangeEventSource) {
+        const { dataModel, processedData } = this;
+        if (!dataModel || !processedData) return;
+
+        const id = this.resolveItemId(itemIdOrIndex);
+        if (id == null) return;
+
+        let vertex = this.graph.findVertexById(id);
+        if (!vertex) return;
+
+        // Iterate up the parents until we reach the root node, which does not have a datumIndex, and expand the full
+        // ancestry to ensure the active node is visible.
+        const ids = [];
+        const idValues = dataModel.resolveKeysById(this, 'idValue', processedData);
+        while (
+            (vertex = this.graph.findNeighbour(vertex, 'parent') as
+                | Vertex<OrganizationVertex, OrganizationEdge>
+                | undefined) != null
+        ) {
+            const datumIndex = this.graph.findNeighbourValue(vertex, 'datumIndex') as number | undefined;
+            if (datumIndex == null) break;
+            ids.push(idValues[datumIndex]);
+        }
+
+        this.expand(ids, source);
+    }
+
+    expandItem(itemIdOrIndex: string | number, source: AgCollapsedChangeEventSource) {
+        const id = this.resolveItemId(itemIdOrIndex);
+        if (id == null) return;
+
+        if (this.ctx.collapsedManager.expand([id], this.id, source)) {
+            this.markNodeDataDirty();
+        }
+    }
+
+    collapseItem(itemIdOrIndex: string | number, source: AgCollapsedChangeEventSource) {
+        const id = this.resolveItemId(itemIdOrIndex);
+        if (id == null) return;
+
+        if (this.ctx.collapsedManager.collapseAppend([id], this.id, source)) {
+            this.markNodeDataDirty();
+        }
+    }
+
+    // Keyboard activations have no pointer target — allow them; pointer clicks must hit the expander.
+    override hasBuiltinListener(target: _ModuleSupport.Node<unknown> | undefined): boolean {
+        const { clickToExpand } = this.properties.node;
+        const Expander: number = OrganizationNodeTag.Expander;
+        const Card: number = OrganizationNodeTag.Card;
+        return target != null && (target.tag === Expander || (target.tag === Card && clickToExpand));
+    }
+
+    override pickFocus(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.PickFocusOutputs | undefined {
+        const nodeData = this.contextNodeData?.nodeData;
+        if (!nodeData?.length) return;
+
+        const currentNodeIdx = clamp(0, opts.datumIndex - opts.datumIndexDelta, nodeData.length - 1);
+        const currentVertex = nodeData[currentNodeIdx]?.vertex;
+        if (!currentVertex) return;
+
+        const next = this.resolveFocusVertex(currentVertex, opts.datumIndexDelta, opts.otherIndexDelta);
+        if (!next) return;
+
+        const nextDatumIdx = this.vertexDatumIndex[next.value as string];
+        if (nextDatumIdx == null) return;
+
+        const node = this.datumSelection.at(nextDatumIdx);
+        if (!node) return;
+
+        // Card + expander pill so the focus ring shows what `Enter` will toggle.
+        const bounds = _ModuleSupport.Transformable.toCanvas(node, node.getFocusBBox());
+        if (!bounds?.isFinite()) return;
+
+        const depth = this.graph.findNeighbourValue(next, 'depth') as number | undefined;
+
+        const datum = node.datum;
+        if (!datum) return;
+
+        return {
+            datum,
+            datumIndex: nextDatumIdx,
+            otherIndex: depth,
+            bounds,
+            clipFocusBox: true,
+        };
+    }
+
+    getDatumAriaText(datum: OrganizationDatum, _description: string): string | undefined {
+        const { vertex } = datum;
+        const depth = (this.graph.findNeighbourValue(vertex, 'depth') as number | undefined) ?? 1;
+
+        const siblings = this.getSiblings(vertex);
+        const posInSet = siblings.indexOf(vertex) + 1;
+        const setSize = siblings.length;
+
+        const childCount = this.getChildren(vertex).length;
+
+        // Tooltip-derived description carries only the heading; build a fuller one for SR.
+        const description = this.composeDatumDescription(vertex);
+
+        // Leaf vs. parent — a single key with empty `${collapsedState}` would stutter (",,").
+        if (childCount === 0) {
+            return this.ctx.localeManager.t('ariaAnnounceOrgChartLeaf', {
+                description,
+                level: depth,
+                posInSet,
+                setSize,
+            });
+        }
+
+        const itemId = vertex.value as string;
+        const collapsedState = this.ctx.localeManager.t(
+            this.ctx.collapsedManager.isCollapsed(itemId) ? 'ariaOrgChartCollapsed' : 'ariaOrgChartExpanded'
+        );
+        // Locale tooling has no `[plural]` annotation, so split the key by child count.
+        const key = childCount === 1 ? 'ariaAnnounceOrgChartParentSingular' : 'ariaAnnounceOrgChartParent';
+        return this.ctx.localeManager.t(key, {
+            description,
+            level: depth,
+            posInSet,
+            setSize,
+            childCount,
+            collapsedState,
+        });
+    }
+
+    findNodeDatum(itemIdOrIndex: AgActiveItemState['itemId']): OrganizationDatum | undefined {
+        const id = this.resolveItemId(itemIdOrIndex);
+        if (id == null) return undefined;
+
+        const vertex = this.graph.findVertexById(id);
+        if (!vertex) return undefined;
+
+        return this.createNodeDatumFromVertex(vertex);
+    }
+
+    override getTooltipContent(datumIndex: _ModuleSupport.DatumIndex): _ModuleSupport.TooltipContent | undefined {
+        const datum = this.processedData?.dataSources.get(this.id)?.data?.[datumIndex];
+        if (datum == null) return;
+
+        const nodeDatum = this.getDatumByDatumIndex(datumIndex);
+        if (nodeDatum == null) return;
+
+        return this.formatTooltipWithContext(
+            this.properties.tooltip,
+            { heading: this.resolveVertexFields(nodeDatum.vertex).title },
+            {
+                seriesId: this.id,
+                datum: datum,
+            }
+        );
+    }
+
+    // Exclude the expander pill from measurements — its overhang would compound into
+    // `regularBBox` on each layout pass, growing the card by `expander.height / 2` per toggle.
+    protected override measureDatumNode(node: OrganizationNode): _ModuleSupport.BBox {
+        return node.getCardBBox();
+    }
+
+    protected override makeLayoutUpdateOptions(): NetworkTreeLayoutUpdateOptions<OrganizationVertex, OrganizationEdge> {
+        const {
+            properties: { node, expander, innerSpacing, outerSpacing, verticalSpacing },
+        } = this;
+
+        return {
+            ...super.makeLayoutUpdateOptions(),
+            nodeHeight: node.height,
+            nodeWidth: node.width,
+            nodeMaxHeight: node.maxHeight,
+            nodeMaxWidth: node.maxWidth,
+            regularDimensions: true,
+            hiddenOnCollapse: true,
+            innerSpacing: innerSpacing ?? 0,
+            outerSpacing: outerSpacing ?? 0,
+            verticalSpacing: verticalSpacing ?? 0,
+            verticalSpacingExtra: expander.enabled
+                ? (expander.text.fontSize + expander.padding.top + expander.padding.bottom + expander.strokeWidth) / 2
+                : 0,
+        };
     }
 
     // Order matters: `applyNativePixelFloor` reads the post-clamp window mutated in-place by
@@ -240,313 +626,6 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         }
     }
 
-    async processData(dataController: _ModuleSupport.DataController) {
-        const { data } = this;
-        if (data == null) return;
-
-        this.layout.clear();
-
-        const {
-            idKey,
-            parentIdKey,
-            node: {
-                image: { key: imageKey },
-                title: { key: titleKey },
-                subtitle: { key: subtitleKey },
-                labels,
-            },
-        } = this.properties;
-
-        const props = [
-            keyProperty(idKey, undefined, { id: 'idValue' }),
-            valueProperty(parentIdKey, undefined, { id: 'parentIdValue', allowNullKey: true }),
-            valueProperty(imageKey, undefined, { id: 'imageValue', allowNullKey: true, missingValue: undefined }),
-            valueProperty(titleKey, undefined, { id: 'titleValue', allowNullKey: true, missingValue: undefined }),
-            valueProperty(subtitleKey, undefined, {
-                id: 'subtitleValue',
-                allowNullKey: true,
-                missingValue: undefined,
-            }),
-        ];
-
-        let index = 0;
-        for (const label of labels) {
-            // Skip disabled tiers — without a `key` they crash `dataModel`. The slot is
-            // preserved as `undefined` in `createGraphData` so tier indexing stays aligned.
-            if (label.enabled) {
-                props.push(
-                    valueProperty(label.key, undefined, {
-                        id: `labelValue-${index}`,
-                        allowNullKey: true,
-                        missingValue: undefined,
-                    })
-                );
-            }
-            index++;
-        }
-
-        const { dataModel, processedData } = await dataController.request(this.id, data, { props });
-
-        this.dataModel = dataModel;
-        this.processedData = processedData;
-
-        this.createGraphData();
-        this.processPendingCollapse();
-    }
-
-    createNodeData() {
-        const nodeData: OrganizationDatum[] = [];
-        const linkData: OrganizationLinkDatum[] = [];
-
-        this.vertexDatumIndex = {};
-
-        if (this.rootVertex) {
-            const vertices = this.graph.neighboursWithEdgeValue(this.rootVertex, 'child');
-            if (vertices) {
-                for (const vertex of vertices as Vertex<OrganizationVertex, OrganizationEdge>[]) {
-                    linkData.push({ from: this.rootVertex, to: vertex });
-                    this.createNodeDataFromVertex(nodeData, linkData, vertex);
-                }
-            }
-        }
-
-        return { itemId: this.id, nodeData, linkData, labelData: [] };
-    }
-
-    nodeFactory(): OrganizationNode {
-        return new OrganizationNode();
-    }
-
-    hasItemStylers() {
-        const { expander, node, link, selection } = this.properties;
-        return (
-            selection.enabled ||
-            expander.itemStyler != null ||
-            node.itemStyler != null ||
-            link.itemStyler != null ||
-            node.title.itemStyler != null ||
-            node.subtitle.itemStyler != null ||
-            node.labels.some((label) => label.itemStyler != null)
-        );
-    }
-
-    updateDatumSelection(
-        nodeData: OrganizationDatum[],
-        datumSelection: _ModuleSupport.Selection<OrganizationDatum, OrganizationNode>
-    ) {
-        datumSelection.update(nodeData);
-    }
-
-    updateDatumNodes(datumSelection: _ModuleSupport.Selection<OrganizationDatum, OrganizationNode>) {
-        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
-
-        datumSelection.each((node, datum) => {
-            const datumIndex = this.graph.findNeighbourValue(datum.vertex, 'datumIndex') as number;
-            const depth = this.graph.findNeighbourValue(datum.vertex, 'depth') as number;
-            const descendantsCount = this.graph.findNeighbourValue(datum.vertex, 'descendants') as number;
-
-            const isHighlight = highlightedDatum?.datumIndex === datum.datumIndex;
-            const highlightState = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
-            // Only report `isCollapsed` for nodes whose descendants would actually be hidden;
-            // a leaf id present in `collapsedManager` is a no-op visually and would mislead
-            // styler consumers about the rendered tree state.
-            const isCollapsed =
-                descendantsCount > 0 && datum.itemId != null && this.ctx.collapsedManager.isCollapsed(datum.itemId);
-            const styles = this.getNodeStyle(datumIndex, depth, isHighlight, highlightState, isCollapsed);
-            node.opacity = this.getNodeOpacity(datumIndex, isHighlight, highlightState);
-
-            const fields = this.resolveVertexFields(datum.vertex);
-            const title = this.formatText(fields.title, this.properties.node.title.formatter, datumIndex, isCollapsed);
-            const subtitle = this.formatText(
-                fields.subtitle,
-                this.properties.node.subtitle.formatter,
-                datumIndex,
-                isCollapsed
-            );
-            const labels = fields.labels?.map((label, index) =>
-                this.formatText(label, this.properties.node.labels[index]?.formatter, datumIndex, isCollapsed)
-            );
-
-            node.update(
-                { image: fields.image, title, subtitle, labels },
-                descendantsCount,
-                styles,
-                isCollapsed,
-                this.ctx.domManager.isRtl
-            );
-        });
-    }
-
-    updateLinkNodes(
-        linkSelection: _ModuleSupport.Selection<OrganizationLinkDatum, NetworkLinkNode<OrganizationLinkDatum>>
-    ) {
-        linkSelection.each((node, datum) => {
-            const fromIndex = this.graph.findNeighbourValue(datum.from, 'datumIndex') as number;
-            const toIndex = this.graph.findNeighbourValue(datum.to, 'datumIndex') as number;
-            const styles = this.getLinkStyle(fromIndex, toIndex);
-
-            node.update(styles);
-        });
-    }
-
-    positionDatumNode(node: OrganizationNode, bbox: _ModuleSupport.BBox, regularBBox?: _ModuleSupport.BBox) {
-        node.translationX = bbox.x;
-        node.translationY = bbox.y;
-
-        if (regularBBox) {
-            node.updateBBox(regularBBox);
-            node.realign(regularBBox);
-        }
-
-        const focusBBox = node.getFocusBBox();
-
-        return new _ModuleSupport.BBox(bbox.x, bbox.y, focusBBox.width, focusBBox.height);
-    }
-
-    // Exclude the expander pill from measurements — its overhang would compound into
-    // `regularBBox` on each layout pass, growing the card by `expander.height / 2` per toggle.
-    protected override measureDatumNode(node: OrganizationNode): _ModuleSupport.BBox {
-        return node.getCardBBox();
-    }
-
-    getLinkInterpolation(
-        from: Vertex<OrganizationVertex, OrganizationEdge>,
-        to: Vertex<OrganizationVertex, OrganizationEdge>
-    ): NetworkLinkInterpolation {
-        const fromIndex = this.graph.findNeighbourValue(from, 'datumIndex') as number;
-        const toIndex = this.graph.findNeighbourValue(to, 'datumIndex') as number;
-        const styles = this.getLinkStyle(fromIndex, toIndex);
-
-        return { type: styles.interpolation.type, cornerRadius: styles.interpolation.cornerRadius };
-    }
-
-    expandNetworkToItem(itemIdOrIndex: string | number) {
-        const { dataModel, processedData } = this;
-        if (!dataModel || !processedData) return;
-
-        const id = this.resolveItemId(itemIdOrIndex);
-        if (id == null) return;
-
-        let vertex = this.graph.findVertexById(id);
-        if (!vertex) return;
-
-        // Iterate up the parents until we reach the root node, which does not have a datumIndex, and expand the full
-        // ancestry to ensure the active node is visible.
-        const ids = [];
-        const idValues = dataModel.resolveKeysById(this, 'idValue', processedData);
-        while (
-            (vertex = this.graph.findNeighbour(vertex, 'parent') as
-                | Vertex<OrganizationVertex, OrganizationEdge>
-                | undefined) != null
-        ) {
-            const datumIndex = this.graph.findNeighbourValue(vertex, 'datumIndex') as number | undefined;
-            if (datumIndex == null) break;
-            ids.push(idValues[datumIndex]);
-        }
-
-        this.expand(ids);
-    }
-
-    expandItem(itemIdOrIndex: string | number) {
-        const id = this.resolveItemId(itemIdOrIndex);
-        if (id == null) return;
-
-        if (this.ctx.collapsedManager.expand([id])) {
-            this.markNodeDataDirty();
-        }
-    }
-
-    collapseItem(itemIdOrIndex: string | number) {
-        const id = this.resolveItemId(itemIdOrIndex);
-        if (id == null) return;
-
-        if (this.ctx.collapsedManager.collapseAppend([id])) {
-            this.markNodeDataDirty();
-        }
-    }
-
-    // Keyboard activations have no pointer target — allow them; pointer clicks must hit the expander.
-    override hasBuiltinListener(target: _ModuleSupport.Node<unknown> | undefined): boolean {
-        const { clickToExpand } = this.properties.node;
-        const Expander: number = OrganizationNodeTag.Expander;
-        const Card: number = OrganizationNodeTag.Card;
-        return target != null && (target.tag === Expander || (target.tag === Card && clickToExpand));
-    }
-
-    public override pickFocus(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.PickFocusOutputs | undefined {
-        const nodeData = this.contextNodeData?.nodeData;
-        if (!nodeData?.length) return;
-
-        const currentNodeIdx = clamp(0, opts.datumIndex - opts.datumIndexDelta, nodeData.length - 1);
-        const currentVertex = nodeData[currentNodeIdx]?.vertex;
-        if (!currentVertex) return;
-
-        const next = this.resolveFocusVertex(currentVertex, opts.datumIndexDelta, opts.otherIndexDelta);
-        if (!next) return;
-
-        const nextDatumIdx = this.vertexDatumIndex[next.value as string];
-        if (nextDatumIdx == null) return;
-
-        const node = this.datumSelection.at(nextDatumIdx);
-        if (!node) return;
-
-        // Card + expander pill so the focus ring shows what `Enter` will toggle.
-        const bounds = _ModuleSupport.Transformable.toCanvas(node, node.getFocusBBox());
-        if (!bounds?.isFinite()) return;
-
-        const depth = this.graph.findNeighbourValue(next, 'depth') as number | undefined;
-
-        const datum = node.datum;
-        if (!datum) return;
-
-        return {
-            datum,
-            datumIndex: nextDatumIdx,
-            otherIndex: depth,
-            bounds,
-            clipFocusBox: true,
-        };
-    }
-
-    getDatumAriaText(datum: OrganizationDatum, _description: string): string | undefined {
-        const { vertex } = datum;
-        const depth = (this.graph.findNeighbourValue(vertex, 'depth') as number | undefined) ?? 1;
-
-        const siblings = this.getSiblings(vertex);
-        const posInSet = siblings.indexOf(vertex) + 1;
-        const setSize = siblings.length;
-
-        const childCount = this.getChildren(vertex).length;
-
-        // Tooltip-derived description carries only the heading; build a fuller one for SR.
-        const description = this.composeDatumDescription(vertex);
-
-        // Leaf vs. parent — a single key with empty `${collapsedState}` would stutter (",,").
-        if (childCount === 0) {
-            return this.ctx.localeManager.t('ariaAnnounceOrgChartLeaf', {
-                description,
-                level: depth,
-                posInSet,
-                setSize,
-            });
-        }
-
-        const itemId = vertex.value as string;
-        const collapsedState = this.ctx.localeManager.t(
-            this.ctx.collapsedManager.isCollapsed(itemId) ? 'ariaOrgChartCollapsed' : 'ariaOrgChartExpanded'
-        );
-        // Locale tooling has no `[plural]` annotation, so split the key by child count.
-        const key = childCount === 1 ? 'ariaAnnounceOrgChartParentSingular' : 'ariaAnnounceOrgChartParent';
-        return this.ctx.localeManager.t(key, {
-            description,
-            level: depth,
-            posInSet,
-            setSize,
-            childCount,
-            collapsedState,
-        });
-    }
-
     private composeDatumDescription(vertex: Vertex<OrganizationVertex, OrganizationEdge>): string {
         const fields = this.resolveVertexFields(vertex);
         const parts: string[] = [];
@@ -614,55 +693,6 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             (this.graph.neighboursWithEdgeValue(vertex, 'child') as Vertex<OrganizationVertex, OrganizationEdge>[]) ??
             []
         );
-    }
-
-    findNodeDatum(itemIdOrIndex: AgActiveItemState['itemId']): OrganizationDatum | undefined {
-        const id = this.resolveItemId(itemIdOrIndex);
-        if (id == null) return undefined;
-
-        const vertex = this.graph.findVertexById(id);
-        if (!vertex) return undefined;
-
-        return this.createNodeDatumFromVertex(vertex);
-    }
-
-    override getTooltipContent(datumIndex: _ModuleSupport.DatumIndex): _ModuleSupport.TooltipContent | undefined {
-        const datum = this.processedData?.dataSources.get(this.id)?.data?.[datumIndex];
-        if (datum == null) return;
-
-        const nodeDatum = this.getDatumByDatumIndex(datumIndex);
-        if (nodeDatum == null) return;
-
-        return this.formatTooltipWithContext(
-            this.properties.tooltip,
-            { heading: this.resolveVertexFields(nodeDatum.vertex).title },
-            {
-                seriesId: this.id,
-                datum: datum,
-            }
-        );
-    }
-
-    protected override makeLayoutUpdateOptions(): NetworkTreeLayoutUpdateOptions<OrganizationVertex, OrganizationEdge> {
-        const {
-            properties: { node, expander, innerSpacing, outerSpacing, verticalSpacing },
-        } = this;
-
-        return {
-            ...super.makeLayoutUpdateOptions(),
-            nodeHeight: node.height,
-            nodeWidth: node.width,
-            nodeMaxHeight: node.maxHeight,
-            nodeMaxWidth: node.maxWidth,
-            regularDimensions: true,
-            hiddenOnCollapse: true,
-            innerSpacing: innerSpacing ?? 0,
-            outerSpacing: outerSpacing ?? 0,
-            verticalSpacing: verticalSpacing ?? 0,
-            verticalSpacingExtra: expander.enabled
-                ? (expander.text.fontSize + expander.padding.top + expander.padding.bottom + expander.strokeWidth) / 2
-                : 0,
-        };
     }
 
     private createGraphData() {
@@ -761,7 +791,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         text: NormalisedTextOrSegments | undefined,
         formatter: RichFormatter<AgOrganizationNodeTextFormatterParams> | undefined,
         datumIndex: number | undefined,
-        isCollapsed: boolean
+        datumState: DatumCallbackState
     ) {
         const { dataModel, processedData } = this;
         if (!formatter || !dataModel || !processedData || datumIndex == null) return text;
@@ -769,7 +799,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         return (
             this.callWithContext(
                 formatter,
-                this.makeNodeTextFormatterParams(dataModel, processedData, datumIndex, isCollapsed, text)
+                this.makeNodeTextFormatterParams(dataModel, processedData, datumIndex, datumState, text)
             ) ?? text
         );
     }
@@ -827,11 +857,10 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     }
 
     private getNodeStyle(
-        datumIndex: number | undefined,
-        depth: number,
+        datumIndex: number,
         isHighlight: boolean,
         highlightState: _ModuleSupport.HighlightState | undefined,
-        isCollapsed: boolean
+        datumState: DatumCallbackState
     ): NormalisedOrganizationNodeStyle {
         const { dataModel, processedData } = this;
         const { itemStyler } = this.properties.node;
@@ -855,9 +884,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             dataModel,
             processedData,
             datumIndex,
-            depth,
             highlightState,
-            isCollapsed
+            datumState
         );
 
         style.title = this.getNodeTextItemStylerStyle(
@@ -867,9 +895,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             dataModel,
             processedData,
             datumIndex,
-            depth,
             highlightState,
-            isCollapsed
+            datumState
         );
         style.subtitle = this.getNodeTextItemStylerStyle(
             subtitleStyler,
@@ -878,9 +905,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             dataModel,
             processedData,
             datumIndex,
-            depth,
             highlightState,
-            isCollapsed
+            datumState
         );
 
         style.expander = this.getExpanderItemStylerStyle(
@@ -889,9 +915,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             dataModel,
             processedData,
             datumIndex,
-            depth,
             highlightState,
-            isCollapsed
+            datumState
         );
 
         let labelIndex = 0;
@@ -903,9 +928,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                 dataModel,
                 processedData,
                 datumIndex,
-                depth,
                 highlightState,
-                isCollapsed
+                datumState
             );
             labelIndex++;
         }
@@ -1015,6 +1039,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                 fontSize: text.fontSize,
                 fontStyle: text.fontStyle,
                 fontWeight: text.fontWeight,
+                showAllChildren: text.showAllChildren,
+                showDirectChildren: text.showDirectChildren,
                 textAlign: text.textAlign,
             },
         };
@@ -1067,24 +1093,22 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         dataModel: _ModuleSupport.DataModel<any, any, any> | undefined,
         processedData: _ModuleSupport.ProcessedData<any> | undefined,
         datumIndex: number | undefined,
-        depth: number,
         highlightState: _ModuleSupport.HighlightState | undefined,
-        isCollapsed: boolean
+        datumState: DatumCallbackState
     ) {
         if (!styler || !dataModel || !processedData || datumIndex == null) {
             return style;
         }
 
         const overrides = this.cachedDatumCallback(
-            _ModuleSupport.createDatumId(this.id, datumIndex, 'node', isCollapsed),
+            _ModuleSupport.createDatumId(this.id, datumIndex, 'node', datumState.isCollapsed),
             () => {
                 const params = this.makeNodeItemStylerParams(
                     dataModel,
                     processedData,
                     datumIndex,
-                    depth,
                     highlightState,
-                    isCollapsed,
+                    datumState,
                     style
                 );
                 return this.ctx.optionsGraphService.resolvePartial(
@@ -1109,24 +1133,22 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         dataModel: _ModuleSupport.DataModel<any, any, any> | undefined,
         processedData: _ModuleSupport.ProcessedData<any> | undefined,
         datumIndex: number | undefined,
-        depth: number,
         highlightState: _ModuleSupport.HighlightState | undefined,
-        isCollapsed: boolean
+        datumState: DatumCallbackState
     ) {
         if (!styler || !dataModel || !processedData || datumIndex == null) {
             return style;
         }
 
         const overrides = this.cachedDatumCallback(
-            _ModuleSupport.createDatumId(this.id, datumIndex, 'expander', isCollapsed),
+            _ModuleSupport.createDatumId(this.id, datumIndex, 'expander', datumState.isCollapsed),
             () => {
                 const params = this.makeExpanderItemStylerParams(
                     dataModel,
                     processedData,
                     datumIndex,
-                    depth,
                     highlightState,
-                    isCollapsed,
+                    datumState,
                     style
                 );
                 return this.ctx.optionsGraphService.resolvePartial(
@@ -1152,24 +1174,22 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         dataModel: _ModuleSupport.DataModel<any, any, any> | undefined,
         processedData: _ModuleSupport.ProcessedData<any> | undefined,
         datumIndex: number | undefined,
-        depth: number,
         highlightState: _ModuleSupport.HighlightState | undefined,
-        isCollapsed: boolean
+        datumState: DatumCallbackState
     ) {
         if (!styler || !dataModel || !processedData || datumIndex == null) {
             return style;
         }
 
         const overrides = this.cachedDatumCallback(
-            _ModuleSupport.createDatumId(this.id, datumIndex, datumIdSuffix, isCollapsed),
+            _ModuleSupport.createDatumId(this.id, datumIndex, datumIdSuffix, datumState.isCollapsed),
             () => {
                 const params = this.makeNodeTextStylerParams(
                     dataModel,
                     processedData,
                     datumIndex,
-                    depth,
                     highlightState,
-                    isCollapsed,
+                    datumState,
                     style
                 );
                 return this.ctx.optionsGraphService.resolvePartial(
@@ -1213,9 +1233,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         _dataModel: NonNullable<typeof this.dataModel>,
         processedData: NonNullable<typeof this.processedData>,
         datumIndex: number,
-        depth: number,
         highlightState: _ModuleSupport.HighlightState | undefined,
-        isCollapsed: boolean,
+        datumState: DatumCallbackState,
         style: NormalisedOrganizationNodeStyle
     ): AgOrganizationSeriesNodeItemStylerParams<unknown, unknown> {
         const { id: seriesId } = this;
@@ -1224,9 +1243,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
         return {
             ...style,
+            ...datumState,
             datum,
-            depth,
-            isCollapsed,
             seriesId,
             highlightState: highlightState == null ? 'none' : _ModuleSupport.toHighlightString(highlightState),
             selectionState: this.getSelectionStateString(datumIndex),
@@ -1238,9 +1256,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         _dataModel: NonNullable<typeof this.dataModel>,
         processedData: NonNullable<typeof this.processedData>,
         datumIndex: number,
-        depth: number,
         highlightState: _ModuleSupport.HighlightState | undefined,
-        isCollapsed: boolean,
+        datumState: DatumCallbackState,
         style: NormalisedOrganizationSeriesExpanderStyle
     ): AgOrganizationSeriesExpanderItemStylerParams<unknown, unknown> {
         const { id: seriesId } = this;
@@ -1249,9 +1266,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
         return {
             ...style,
+            ...datumState,
             datum,
-            depth,
-            isCollapsed,
             seriesId,
             highlightState: highlightState == null ? 'none' : _ModuleSupport.toHighlightString(highlightState),
             selectionState: this.getSelectionStateString(datumIndex),
@@ -1263,9 +1279,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         _dataModel: NonNullable<typeof this.dataModel>,
         processedData: NonNullable<typeof this.processedData>,
         datumIndex: number,
-        depth: number,
         highlightState: _ModuleSupport.HighlightState | undefined,
-        isCollapsed: boolean,
+        datumState: DatumCallbackState,
         style: NormalisedOrganizationNodeTextStyle
     ): AgOrganizationSeriesNodeTextStylerParams<unknown, unknown> {
         const { id: seriesId } = this;
@@ -1274,9 +1289,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
         return {
             ...style,
+            ...datumState,
             datum,
-            depth,
-            isCollapsed,
             seriesId,
             highlightState: highlightState == null ? 'none' : _ModuleSupport.toHighlightString(highlightState),
             selectionState: this.getSelectionStateString(datumIndex),
@@ -1288,7 +1302,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         _dataModel: NonNullable<typeof this.dataModel>,
         processedData: NonNullable<typeof this.processedData>,
         datumIndex: number,
-        isCollapsed: boolean,
+        datumState: DatumCallbackState,
         value: any
     ): AgOrganizationNodeTextFormatterParams<unknown, unknown> {
         const { id: seriesId } = this;
@@ -1296,8 +1310,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const datum = processedData.dataSources.get(seriesId)?.data?.[datumIndex];
 
         return {
+            ...datumState,
             datum,
-            isCollapsed,
             seriesId,
             value,
         } satisfies CallbackParamRules<AgOrganizationNodeTextFormatterParams<unknown, unknown>>;

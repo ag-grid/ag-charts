@@ -675,6 +675,17 @@ describe('HistogramSeries', () => {
             expect(label.y).toBeCloseTo(node.y + 4);
             expect(label.textBaseline).toBe('top');
         });
+
+        it('rotates the label a quarter-turn for orientation vertical (bar parity)', async () => {
+            chart = createChart({ placement: 'outside-end', orientation: 'vertical', spacing: 0 });
+            await waitForChartStability(chart);
+            const { label } = firstBinLabel(chart);
+            expect(label.rotation).toBeCloseTo(-Math.PI / 2);
+            const series = deproxy(chart).series[0] as any;
+            const textNode = series.labelSelection.nodes().find((n: any) => n.visible);
+            expect(textNode).toBeDefined();
+            expect(textNode.rotation).toBeCloseTo(-Math.PI / 2);
+        });
     });
 
     describe('label placement snapshots', () => {
@@ -708,6 +719,11 @@ describe('HistogramSeries', () => {
         it('lets an explicit spacing override the default gap', async () => {
             // spacing: 0 replaces the theme's default 8px spacing, pinning the label flush to the bar top.
             chart = createHistogramChart(withPlacement({ placement: 'inside-end', spacing: 0 }));
+            await compare();
+        });
+
+        it('renders a rotated (vertical) outside-end label clear of the bar', async () => {
+            chart = createHistogramChart(withPlacement({ placement: 'outside-end', orientation: 'vertical' }));
             await compare();
         });
     });

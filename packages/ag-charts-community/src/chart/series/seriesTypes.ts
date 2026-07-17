@@ -6,6 +6,7 @@ import type {
     PlacedLabel,
     Point,
     PointLabelDatum,
+    SeriesLabelDefaults,
     SizedPoint,
 } from 'ag-charts-core';
 import type { AgActiveItemState, AgNumericValue, SelectionState as PublicSelectionState } from 'ag-charts-types';
@@ -128,6 +129,8 @@ export interface ISeries<TDatum extends SeriesNodeDatum, TProps extends ISeriesP
     getLegendData<T extends ChartLegendType>(legendType: T): ChartLegendDatum<T>[];
     getLegendData(legendType: ChartLegendType): ChartLegendDatum<ChartLegendType>[];
     getLabelData(): PointLabelDatum[];
+    /** Series-level collision defaults applied to every label the engine places for this series. */
+    getLabelDefaults?(): SeriesLabelDefaults | undefined;
     getLabelObstacles?(): LabelObstacle[] | undefined;
     getTooltipContent(datumIndex: DatumIndex, removeThisDatum: TDatum | undefined): TooltipContent | undefined;
     getDatumAriaText?(seriesDatum: TDatum, description: string): string | undefined;

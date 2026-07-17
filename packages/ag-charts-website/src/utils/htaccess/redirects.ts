@@ -19,10 +19,10 @@ export const SITE_301_REDIRECTS: Redirect[] = [
     { from: '/angular/bullet-series', to: '/angular/linear-gauge/#bullet-series' },
     { from: '/react/bullet-series', to: '/react/linear-gauge/#bullet-series' },
     { from: '/vue/bullet-series', to: '/vue/linear-gauge/#bullet-series' },
-    { from: '/javascript/fonts', to: '/javascript/text' },
-    { from: '/angular/fonts', to: '/angular/text' },
-    { from: '/react/fonts', to: '/react/text' },
-    { from: '/vue/fonts', to: '/vue/text' },
+    { from: '/javascript/fonts', to: '/javascript/text/' },
+    { from: '/angular/fonts', to: '/angular/text/' },
+    { from: '/react/fonts', to: '/react/text/' },
+    { from: '/vue/fonts', to: '/vue/text/' },
     { fromPattern: '^/javascript/?$', to: '/javascript/quick-start/' },
     { fromPattern: '^/react/?$', to: '/react/quick-start/' },
     { fromPattern: '^/vue/?$', to: '/vue/quick-start/' },
@@ -48,8 +48,11 @@ export const SITE_301_REDIRECTS: Redirect[] = [
     // still serve. Mirrors the grid site's `^/archive/?$` → `/documentation-archive`.
     { fromPattern: '^/archive/?$', to: '/documentation-archive/' },
 
-    // No charts-scoped privacy page exists; the canonical policy lives on the apex site.
-    { fromPattern: '^/privacy(/.*)?$', to: 'https://www.ag-grid.com/privacy/' },
+    // No charts-scoped privacy page exists and none should be served — it is permanently Gone (410).
+    // Do NOT 301 to the apex /privacy policy: /charts/privacy must return 410 Gone (SE-66). This is
+    // also why /charts/privacy is deliberately NOT mirrored into the grid docroot — the charts subdir
+    // stays its sole authority so the slashed form returns a single 410.
+    { fromPattern: '^/privacy(/.*)?$', gone: true },
 
     // Legacy "{fw}-charts/{fw}/<page>" docs scheme → current "{fw}/<page>" (all page slugs verified in content/docs).
     // Require a non-empty page slug ((.+)): an empty slug would target the bare "{fw}/" root, which the

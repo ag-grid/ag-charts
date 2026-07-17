@@ -55,6 +55,7 @@ export interface AgChartLabelCollisionAvoidanceOptions {
     enabled?: boolean;
     /** Proximity threshold, in pixels, added to each obstacle before testing for overlap. */
     minSpacing?: PixelSize;
-    /** Per-category configuration for the obstacles the label avoids. */
-    collideWith?: AgChartLabelCollideWithOptions;
+    // Undocumented: per-category configuration for the obstacles the label avoids. Accepted at
+    // runtime via the `collideWith` validator but kept off the public type contract.
+    // collideWith?: AgChartLabelCollideWithOptions;
 }

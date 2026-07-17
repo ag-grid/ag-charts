@@ -7,6 +7,10 @@
         "classification": "zone-wrap",
         "reason": "Chart listener; re-entered into the zone by patchChartOptions via patchListeners(options.listeners)."
     },
+    "AgBaseChartListeners.collapsedChange": {
+        "classification": "zone-wrap",
+        "reason": "Chart listener; re-entered into the zone by patchChartOptions via patchListeners(options.listeners)."
+    },
     "AgBaseChartListeners.click": {
         "classification": "zone-wrap",
         "reason": "Chart listener; re-entered into the zone by patchChartOptions via patchListeners(options.listeners)."

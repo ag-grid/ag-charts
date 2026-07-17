@@ -4,7 +4,6 @@ import {
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_KEYED_DEFAULTS,
     LABEL_BOXING_TOP_LEVEL_DEFAULTS,
-    PLACEMENT_LABEL_BOXING_DEFAULTS,
     SINGLE_SERIES_HIGHLIGHT_STYLE,
 } from 'ag-charts-core';
 import type { ExtensibleTheme } from 'ag-charts-types';
@@ -39,15 +38,12 @@ function itemTheme(
             fontSize: { $ref: 'fontSize' as const },
             fontFamily: { $ref: 'fontFamily' as const },
             spacing: 6,
+            padding: 6,
             insideStyle: {
-                color: { $ref: 'textColor' as const },
-                padding: 6,
-                ...PLACEMENT_LABEL_BOXING_DEFAULTS,
+                color: { $isUserOption: ['../color', { $path: '../color' }, { $ref: 'textColor' as const }] },
             },
             outsideStyle: {
-                color: { $ref: 'textColor' as const },
-                padding: 6,
-                ...PLACEMENT_LABEL_BOXING_DEFAULTS,
+                color: { $isUserOption: ['../color', { $path: '../color' }, { $ref: 'textColor' as const }] },
             },
             formatter: undefined,
             placement: 'outside-end' as const,

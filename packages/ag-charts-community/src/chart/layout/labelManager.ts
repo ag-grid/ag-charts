@@ -1,7 +1,7 @@
 import {
     type LabelObstacle,
     type NormalisedPaddingOptions,
-    type PointLabelDatum,
+    type SeriesLabels,
     isPointLabelDatum,
     placeLabels,
 } from 'ag-charts-core';
@@ -10,7 +10,7 @@ import { BBox } from '../../scene/bbox';
 import type { ISeries, ISeriesProperties, SeriesNodeDatum } from '../series/seriesTypes';
 
 export class LabelManager {
-    private readonly labelData: Map<string, PointLabelDatum[]> = new Map();
+    private readonly labelData: Map<string, SeriesLabels> = new Map();
 
     updateLabels(
         visibleSeries: ISeries<SeriesNodeDatum, ISeriesProperties, unknown>[],
@@ -37,7 +37,7 @@ export class LabelManager {
         for (const series of placedLabelSeries) {
             const labelData = series.getLabelData();
             if (labelData.every(isPointLabelDatum)) {
-                this.labelData.set(series.id, labelData);
+                this.labelData.set(series.id, { datums: labelData, defaults: series.getLabelDefaults?.() });
             }
         }
 

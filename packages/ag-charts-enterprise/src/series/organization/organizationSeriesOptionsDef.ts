@@ -55,14 +55,18 @@ const expander: OptionsDefs<AgOrganizationSeriesOptionsExpander> = {
         padding: padding,
         text: {
             ...fontOptionsDef,
+            showAllChildren: boolean,
+            showDirectChildren: boolean,
             textAlign: textAlign,
         },
     }),
     padding: padding,
     text: {
         ...fontOptionsDef,
+        formatter: callbackOf(textOrSegments),
+        showAllChildren: boolean,
+        showDirectChildren: boolean,
         textAlign: textAlign,
-        // formatter: callbackOf(textOrSegments),
     },
 };
 

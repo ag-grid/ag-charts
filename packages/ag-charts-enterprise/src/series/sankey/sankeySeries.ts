@@ -829,7 +829,10 @@ export class SankeySeries extends FlowProportionSeries<
                 createDatumId(nodeDatum.datumIndex, 'node', isHighlight ? 'highlight' : 'node'),
                 () => {
                     const params = this.makeItemStylerParams(nodeDatum, isHighlight, style);
-                    return this.callWithContext(itemStyler, params);
+                    return this.ctx.optionsGraphService.resolvePartial(
+                        ['series', `${this.declarationOrder}`],
+                        this.callWithContext(itemStyler, params)
+                    );
                 }
             );
 
@@ -965,12 +968,15 @@ export class SankeySeries extends FlowProportionSeries<
                     const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
                     const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
 
-                    return this.callWithContext(itemStyler, {
-                        seriesId,
-                        datum,
-                        highlightState,
-                        ...style,
-                    });
+                    return this.ctx.optionsGraphService.resolvePartial(
+                        ['series', `${this.declarationOrder}`],
+                        this.callWithContext(itemStyler, {
+                            seriesId,
+                            datum,
+                            highlightState,
+                            ...style,
+                        })
+                    );
                 }
             );
 

@@ -1,6 +1,5 @@
 import {
     type OptionsDefs,
-    arrayOf,
     barHighlightOptionsDef,
     boolean,
     callback,
@@ -17,7 +16,6 @@ import {
     lineDashOptionsDef,
     multiSeriesHighlightOptionsDef,
     number,
-    or,
     positiveNumber,
     positiveNumberNonZero,
     ratio,
@@ -30,12 +28,11 @@ import {
     tooltipOptionsDefs,
     undocumented,
     union,
+    unionOrArray,
 } from 'ag-charts-core';
 import type { AgBarSeriesOptions, AgBarSeriesStyle, AgBarSeriesThemeableOptions } from 'ag-charts-types';
 
 const highlight = multiSeriesHighlightOptionsDef(barHighlightOptionsDef, barHighlightOptionsDef);
-
-const barLabelPlacement = union('inside-center', 'inside-start', 'inside-end', 'outside-start', 'outside-end');
 
 const barStyler = callbackDefs<AgBarSeriesStyle>({
     ...fillOptionsDef,
@@ -55,7 +52,7 @@ export const barSeriesThemeableOptionsDef: OptionsDefs<AgBarSeriesThemeableOptio
         ...seriesLabelOptionsDefs,
         ...labelFitOptionsDefs,
         ...labelPlacementStyleDefs,
-        placement: or(barLabelPlacement, arrayOf(barLabelPlacement)),
+        placement: unionOrArray('inside-center', 'inside-start', 'inside-end', 'outside-start', 'outside-end'),
         orientation: labelOrientationDef,
         spacing: positiveNumber,
     },

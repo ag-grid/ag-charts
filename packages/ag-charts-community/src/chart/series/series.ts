@@ -8,6 +8,7 @@ import type {
     NormalisedTextOrSegments,
     PlacedLabel,
     PointLabelDatum,
+    SeriesLabelDefaults,
 } from 'ag-charts-core';
 import {
     ActionOnSet,
@@ -1187,6 +1188,9 @@ export abstract class Series<
 
     public getLabelData(): PointLabelDatum[] {
         return [];
+    }
+    public getLabelDefaults(): SeriesLabelDefaults | undefined {
+        return undefined;
     }
     public updatePlacedLabelData(_labels: PlacedLabel<TLabel>[]) {
         return;

@@ -610,6 +610,18 @@ export function union(...allowed: any[]) {
 }
 
 /**
+ * Like `union`, but also accepts an array of the allowed keywords (an ordered fallback list).
+ * @param allowed The allowed keywords, or an object whose values are the allowed keywords.
+ * @returns A validator accepting a single keyword or an array of keywords.
+ */
+export function unionOrArray(allowed: object): Validator;
+export function unionOrArray(...allowed: any[]): Validator;
+export function unionOrArray(...allowed: any[]) {
+    const validator = union(...allowed);
+    return or(validator, arrayOf(validator, 'an array containing these keywords'));
+}
+
+/**
  * A defensive version of `union` that intentionally breaks compilation if a string union type is changed.
  * @example
  * type U = 'a' | 'b';

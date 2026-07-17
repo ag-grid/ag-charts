@@ -15,14 +15,13 @@ import {
     type Point,
     type SizedPoint,
     StateMachine,
-    applyLabelAvoidance,
-    applyLabelPlacements,
     cachedTextMeasurer,
     findDiscreteColorBinLabel,
     fitLabelText,
     formatValue,
     mergeDefaults,
     resolveLabelFit,
+    resolveSeriesLabelDefaults,
     toArray,
 } from 'ag-charts-core';
 import {
@@ -64,6 +63,7 @@ const {
     Text,
     Marker,
     getLabelStyles,
+    expandLabelBoxExtent,
 } = _ModuleSupport;
 
 type NormalisedMapMarkerSeriesStyle = Normalised<AgMapMarkerSeriesStyle, never, FillStrokeMorph>;
@@ -397,7 +397,11 @@ export class MapMarkerSeries
         if (labelText == null) return;
 
         const fittedText = fitLabelText(labelText, labelFit, label);
-        const { width, height } = measurer.measureLines(String(fittedText));
+        const text = measurer.measureLines(String(fittedText));
+        // Inflate the text by the label's drawn box (padding + border stroke) so collisions avoid the box.
+        const box = expandLabelBoxExtent(label);
+        const width = text.width + box.left + box.right;
+        const height = text.height + box.top + box.bottom;
         const anchor = Marker.anchor(shape);
 
         return {
@@ -834,7 +838,10 @@ export class MapMarkerSeries
                 createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'),
                 () => {
                     const params = this.makeItemStylerParams(datum, datumIndex, isHighlight, style);
-                    return this.callWithContext(itemStyler, params);
+                    return this.ctx.optionsGraphService.resolvePartial(
+                        ['series', `${this.declarationOrder}`],
+                        this.callWithContext(itemStyler, params)
+                    );
                 }
             );
 
@@ -941,12 +948,12 @@ export class MapMarkerSeries
 
     override getLabelData() {
         if (!this.isLabelEnabled()) return [];
-        const labelData = this.contextNodeData?.labelData ?? [];
+        return this.contextNodeData?.labelData ?? [];
+    }
+
+    override getLabelDefaults() {
         const { label } = this.properties;
-        const { collisionAvoidance } = label;
-        applyLabelAvoidance(labelData, collisionAvoidance.avoid, collisionAvoidance.resolveCollideWith());
-        applyLabelPlacements(labelData, toArray(label.placement));
-        return labelData;
+        return resolveSeriesLabelDefaults(label.collisionAvoidance, toArray(label.placement));
     }
 
     override pickNodeClosestDatum(p: Point): _ModuleSupport.SeriesNodePickMatch | undefined {

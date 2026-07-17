@@ -8,7 +8,7 @@ import type {
 } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-community';
 import {
-    ChartTestCase,
+    type ChartTestCase,
     IMAGE_SNAPSHOT_DEFAULTS,
     deproxy,
     dragAction,
@@ -107,6 +107,12 @@ const SIMPLE_ORG_CHART_THEMED: AgChartOptions = {
                         title: { color: '#006f9b' },
                         subtitle: { color: '#ff7faa', fontStyle: 'italic' },
                         labels: [{ color: '#00994d' }],
+                    },
+                    expander: {
+                        text: {
+                            showAllChildren: true,
+                            showDirectChildren: true,
+                        },
                     },
                 },
             },
@@ -357,6 +363,13 @@ const FORMATTERS: AgChartOptions = {
                     },
                 },
                 labels: [{ key: 'location' }],
+            },
+            expander: {
+                text: {
+                    formatter: ({ allChildren, directChildren }) => {
+                        return `${allChildren} (${directChildren})`;
+                    },
+                },
             },
         },
     ],
@@ -1819,6 +1832,37 @@ describe('OrganizationSeries', () => {
 
             const imageData = extractImageData(ctx);
             expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        });
+    });
+
+    describe('collapsedChange event', () => {
+        it('should trigger the collapsedChange event on setState', async () => {
+            let source;
+            let collapsed;
+
+            const options: AgChartOptions = {
+                ...SIMPLE_ORG_CHART,
+                listeners: {
+                    collapsedChange: (event) => {
+                        collapsed = event.collapsed;
+                        source = event.source;
+                    },
+                },
+            };
+
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expect(collapsed).toEqual(undefined);
+            expect(source).toEqual(undefined);
+
+            await chart.setState({ version: '14.1.0', collapsed: ['cto'] });
+            await waitForChartStability(chart);
+
+            expect(collapsed).toEqual([{ datum: options.data![1], itemId: 'cto' }]);
+            expect(source).toEqual('api-call');
         });
     });
 });

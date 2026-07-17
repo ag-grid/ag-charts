@@ -153,9 +153,9 @@ describe('buildBarLabelCandidates', () => {
         const candidates = build(['inside-center', 'outside-end'], ['horizontal', 'vertical']);
         expect(candidates.map((c) => [c.placement, c.rotation])).toEqual([
             ['inside-center', undefined],
-            ['inside-center', 90],
+            ['inside-center', -90],
             ['outside-end', undefined],
-            ['outside-end', 90],
+            ['outside-end', -90],
         ]);
     });
 

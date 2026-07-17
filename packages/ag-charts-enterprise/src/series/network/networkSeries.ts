@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type AgCollapsedChangeEventSource, _ModuleSupport } from 'ag-charts-community';
 import {
     type BoxBounds,
     type ChartAnimationPhase,
@@ -112,6 +112,10 @@ export abstract class AbstractNetworkSeries<
         this.layout = this.createNetworkLayout();
 
         this.cleanup.register(
+            this.ctx.collapsedManager.setSeriesGetDatumCallback(this.id, this.getDatumById.bind(this))
+        );
+
+        this.cleanup.register(
             ctx.eventsHub.on('layout:complete', (event) => {
                 this.seriesRect = event.series.rect;
             })
@@ -139,7 +143,7 @@ export abstract class AbstractNetworkSeries<
             ctx.chartState.observe((get) => {
                 const activeItem = get('activeItem');
                 if (activeItem?.seriesId === this.id) {
-                    this.expandNetworkToItem(activeItem.itemId);
+                    this.expandNetworkToItem(activeItem.itemId, 'api-call');
                 }
             })
         );
@@ -166,19 +170,19 @@ export abstract class AbstractNetworkSeries<
                     return;
                 }
                 if (this.ctx.collapsedManager.isCollapsed(clickedNode.itemId)) {
-                    this.expandItem(clickedNode.itemId);
+                    this.expandItem(clickedNode.itemId, 'user-interaction');
                 } else {
-                    this.collapseItem(clickedNode.itemId);
+                    this.collapseItem(clickedNode.itemId, 'user-interaction');
                 }
             }),
             ctx.eventsHub.on('series:keynav-expand', (event) => {
                 if (event.itemId == null || event.series !== this) return;
-                this.expandItem(event.itemId);
+                this.expandItem(event.itemId, 'user-interaction');
                 this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.PERFORM_LAYOUT });
             }),
             ctx.eventsHub.on('series:keynav-collapse', (event) => {
                 if (event.itemId == null || event.series !== this) return;
-                this.collapseItem(event.itemId);
+                this.collapseItem(event.itemId, 'user-interaction');
                 this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.PERFORM_LAYOUT });
             })
         );
@@ -208,12 +212,172 @@ export abstract class AbstractNetworkSeries<
     ): _ModuleSupport.BBox | undefined;
     abstract updateOffset(offset: Point): void;
 
-    abstract expandNetworkToItem(itemIdOrIndex: string | number): void;
-    abstract expandItem(itemIdOrIndex: string | number): void;
-    abstract collapseItem(itemIdOrIndex: string | number): void;
+    abstract expandNetworkToItem(itemIdOrIndex: string | number, source: AgCollapsedChangeEventSource): void;
+    abstract expandItem(itemIdOrIndex: string | number, source: AgCollapsedChangeEventSource): void;
+    abstract collapseItem(itemIdOrIndex: string | number, source: AgCollapsedChangeEventSource): void;
 
     dataCount() {
         return this.datumSelection.length;
+    }
+
+    override update(_opts: { seriesRect?: _ModuleSupport.BBox }) {
+        // TODO: this.contentGroup.batchedUpdate() ?
+        this.updateSelections();
+        this.updateNodes();
+        // Re-apply now that contentBBox is current (the zoom observer early-returned earlier).
+        this.applyViewportTransform();
+        this.maybePanToItem();
+    }
+
+    // FIXME(AG-17179 follow-up): mirror y because `calcPanToBBoxRatios` is y-down and we
+    // render y-up. Remove once the helper is direction-aware.
+    override mapFocusBBoxToPanTarget(seriesRect: BoxBounds, focusBBox: Readonly<_ModuleSupport.BBox>): BoxBounds {
+        return {
+            x: focusBBox.x,
+            y: 2 * seriesRect.y + seriesRect.height - focusBBox.y - focusBBox.height,
+            width: focusBBox.width,
+            height: focusBBox.height,
+        };
+    }
+
+    processPendingCollapse() {
+        if (this.pendingCollapsedIds) {
+            this.ctx.collapsedManager.collapse(this.pendingCollapsedIds, this.id, 'api-call');
+            this.pendingCollapsedIds = undefined;
+        }
+    }
+
+    protected expand(ids: (string | number)[], source: AgCollapsedChangeEventSource) {
+        const changed = this.ctx.collapsedManager.expand(ids, this.id, source);
+        if (changed) {
+            this.markNodeDataDirty();
+        }
+    }
+
+    protected makeLayoutUpdateOptions(): NetworkLayoutUpdateOptions<TVertex, TEdge> {
+        return {
+            height: this.seriesRect?.height ?? 0,
+            width: this.seriesRect?.width ?? 0,
+            graph: this.graph,
+            vertices: this.getRootVertices(),
+            getFocusedVertex: this.getFocusedVertex.bind(this),
+            getDefaultFocusedVertices: this.getDefaultFocusedVertices.bind(this),
+            getDatumNodeBBox: this.getDatumNodeBBox.bind(this),
+            getLinkInterpolation: this.getLinkInterpolation.bind(this),
+            layoutDatumNode: this.layoutDatumNode.bind(this),
+            layoutLinkNode: this.layoutLinkNode.bind(this),
+            updateOffset: this.updateOffset.bind(this),
+        };
+    }
+
+    /** Bbox used for layout-sizing; subclasses can override to exclude decorations. */
+    protected measureDatumNode(node: TNode): _ModuleSupport.BBox | undefined {
+        return node.getBBox();
+    }
+
+    protected getDatumById(id: string) {
+        return this.datumSelection.at(this.vertexDatumIndex[id])?.datum?.datum;
+    }
+
+    private linkFactory(): NetworkLinkNode<NetworkLinkDatum<TVertex, TEdge>> {
+        return new NetworkLinkNode();
+    }
+
+    private updateSelections() {
+        // Without the gate, per-vertex datum objects are re-allocated on every update; that
+        // tricks HighlightManager's `a.datum === b.datum` check into a spurious change → loop.
+        if (!this.nodeDataRefresh) return;
+        this.nodeDataRefresh = false;
+
+        this.contextNodeData = this.createNodeData();
+        if (!this.contextNodeData) return;
+
+        this.updateDatumSelection(this.contextNodeData.nodeData as TDatum[], this.datumSelection);
+        this.updateLinkSelection(this.contextNodeData.linkData as TLinkDatum[], this.linkSelection);
+    }
+
+    private updateLinkSelection(
+        linkData: TLinkDatum[],
+        linkSelection: _ModuleSupport.Selection<
+            NetworkLinkDatum<TVertex, TEdge>,
+            NetworkLinkNode<NetworkLinkDatum<TVertex, TEdge>>
+        >
+    ) {
+        linkSelection.update(linkData);
+    }
+
+    private updateNodes() {
+        this.updateDatumNodes(this.datumSelection);
+        this.updateLinkNodes(this.linkSelection);
+        this.layout.update(this.makeLayoutUpdateOptions());
+    }
+
+    private getDatumNodeBBox(vertex: Vertex<TVertex, TEdge>) {
+        const nodeDatumIndex = this.vertexDatumIndex[vertex.value as string];
+        if (typeof nodeDatumIndex !== 'number') return;
+
+        const node = this.datumSelection.at(nodeDatumIndex);
+        if (!node) return;
+
+        return this.measureDatumNode(node);
+    }
+
+    private layoutDatumNode(
+        vertex: Vertex<TVertex, TEdge>,
+        groupBBox: _ModuleSupport.BBox,
+        regularBBox?: _ModuleSupport.BBox
+    ) {
+        const nodeDatumIndex = this.vertexDatumIndex[vertex.value as string];
+        if (typeof nodeDatumIndex !== 'number') return;
+
+        const node = this.datumSelection.at(nodeDatumIndex);
+        if (!node) return;
+
+        return this.positionDatumNode(node, groupBBox, regularBBox);
+    }
+
+    private layoutLinkNode(vertex: Vertex<TVertex, TEdge>, drawLink: (path: _ModuleSupport.ExtendedPath2D) => void) {
+        const nodeDatumIndex = this.vertexDatumIndex[vertex.value as string];
+        if (typeof nodeDatumIndex !== 'number') return;
+
+        const link = this.linkSelection.at(nodeDatumIndex);
+        if (!link) return;
+
+        const path = link.getPath();
+        if (!path) return;
+
+        drawLink(path.path);
+        path.visible = true;
+    }
+
+    private maybePanToItem() {
+        const { pendingPanToItemId, seriesRect } = this;
+        if (!pendingPanToItemId || !seriesRect) return;
+
+        // Clear unconditionally — never retry on failure.
+        this.pendingPanToItemId = undefined;
+
+        const nodeDatumIndex = this.vertexDatumIndex[pendingPanToItemId];
+        if (typeof nodeDatumIndex !== 'number') return;
+
+        const node = this.datumSelection.at(nodeDatumIndex);
+        if (!node) return;
+
+        const canvasBBox = _ModuleSupport.Transformable.toCanvas(node);
+        if (!canvasBBox?.isFinite()) return;
+
+        // Centre-based check — bbox-based would jitter for nodes near the boundary.
+        const cx = canvasBBox.x + canvasBBox.width / 2;
+        const cy = canvasBBox.y + canvasBBox.height / 2;
+        if (seriesRect.containsPoint(cx, cy)) return;
+
+        const { zoomManager } = this.ctx;
+        if (!zoomManager) return;
+
+        const panSuccess = zoomManager.panToBBox(seriesRect, this.mapFocusBBoxToPanTarget(seriesRect, canvasBBox));
+        if (!panSuccess) {
+            Logger.warnOnce(`${this.id}: panToBBox failed — chart may be too small.`);
+        }
     }
 
     // Y is mirrored (`1 − yMax`) because Zoom publishes y-up ratios but we render y-down.
@@ -263,165 +427,6 @@ export abstract class AbstractNetworkSeries<
         this.viewportGroup.scalingY = s;
         this.viewportGroup.translationX = -(contentBBox.x + xMin * cw + offsetX) * s + centerX;
         this.viewportGroup.translationY = -(contentBBox.y + screenTopFractionY * ch + offsetY) * s + centerY;
-    }
-
-    override update(_opts: { seriesRect?: _ModuleSupport.BBox }) {
-        // TODO: this.contentGroup.batchedUpdate() ?
-        this.updateSelections();
-        this.updateNodes();
-        // Re-apply now that contentBBox is current (the zoom observer early-returned earlier).
-        this.applyViewportTransform();
-        this.maybePanToItem();
-    }
-
-    private maybePanToItem() {
-        const { pendingPanToItemId, seriesRect } = this;
-        if (!pendingPanToItemId || !seriesRect) return;
-
-        // Clear unconditionally — never retry on failure.
-        this.pendingPanToItemId = undefined;
-
-        const nodeDatumIndex = this.vertexDatumIndex[pendingPanToItemId];
-        if (typeof nodeDatumIndex !== 'number') return;
-
-        const node = this.datumSelection.at(nodeDatumIndex);
-        if (!node) return;
-
-        const canvasBBox = _ModuleSupport.Transformable.toCanvas(node);
-        if (!canvasBBox?.isFinite()) return;
-
-        // Centre-based check — bbox-based would jitter for nodes near the boundary.
-        const cx = canvasBBox.x + canvasBBox.width / 2;
-        const cy = canvasBBox.y + canvasBBox.height / 2;
-        if (seriesRect.containsPoint(cx, cy)) return;
-
-        const { zoomManager } = this.ctx;
-        if (!zoomManager) return;
-
-        const panSuccess = zoomManager.panToBBox(seriesRect, this.mapFocusBBoxToPanTarget(seriesRect, canvasBBox));
-        if (!panSuccess) {
-            Logger.warnOnce(`${this.id}: panToBBox failed — chart may be too small.`);
-        }
-    }
-
-    // FIXME(AG-17179 follow-up): mirror y because `calcPanToBBoxRatios` is y-down and we
-    // render y-up. Remove once the helper is direction-aware.
-    public override mapFocusBBoxToPanTarget(
-        seriesRect: BoxBounds,
-        focusBBox: Readonly<_ModuleSupport.BBox>
-    ): BoxBounds {
-        return {
-            x: focusBBox.x,
-            y: 2 * seriesRect.y + seriesRect.height - focusBBox.y - focusBBox.height,
-            width: focusBBox.width,
-            height: focusBBox.height,
-        };
-    }
-
-    processPendingCollapse() {
-        if (this.pendingCollapsedIds) {
-            this.ctx.collapsedManager.collapse(this.pendingCollapsedIds);
-            this.pendingCollapsedIds = undefined;
-        }
-    }
-
-    protected expand(ids: (string | number)[]) {
-        const changed = this.ctx.collapsedManager.expand(ids);
-        if (changed) {
-            this.markNodeDataDirty();
-        }
-    }
-
-    protected makeLayoutUpdateOptions(): NetworkLayoutUpdateOptions<TVertex, TEdge> {
-        return {
-            height: this.seriesRect?.height ?? 0,
-            width: this.seriesRect?.width ?? 0,
-            graph: this.graph,
-            vertices: this.getRootVertices(),
-            getFocusedVertex: this.getFocusedVertex.bind(this),
-            getDefaultFocusedVertices: this.getDefaultFocusedVertices.bind(this),
-            getDatumNodeBBox: this.getDatumNodeBBox.bind(this),
-            getLinkInterpolation: this.getLinkInterpolation.bind(this),
-            layoutDatumNode: this.layoutDatumNode.bind(this),
-            layoutLinkNode: this.layoutLinkNode.bind(this),
-            updateOffset: this.updateOffset.bind(this),
-        };
-    }
-
-    private linkFactory(): NetworkLinkNode<NetworkLinkDatum<TVertex, TEdge>> {
-        return new NetworkLinkNode();
-    }
-
-    private updateSelections() {
-        // Without the gate, per-vertex datum objects are re-allocated on every update; that
-        // tricks HighlightManager's `a.datum === b.datum` check into a spurious change → loop.
-        if (!this.nodeDataRefresh) return;
-        this.nodeDataRefresh = false;
-
-        this.contextNodeData = this.createNodeData();
-        if (!this.contextNodeData) return;
-
-        this.updateDatumSelection(this.contextNodeData.nodeData as TDatum[], this.datumSelection);
-        this.updateLinkSelection(this.contextNodeData.linkData as TLinkDatum[], this.linkSelection);
-    }
-
-    private updateLinkSelection(
-        linkData: TLinkDatum[],
-        linkSelection: _ModuleSupport.Selection<
-            NetworkLinkDatum<TVertex, TEdge>,
-            NetworkLinkNode<NetworkLinkDatum<TVertex, TEdge>>
-        >
-    ) {
-        linkSelection.update(linkData);
-    }
-
-    private updateNodes() {
-        this.updateDatumNodes(this.datumSelection);
-        this.updateLinkNodes(this.linkSelection);
-        this.layout.update(this.makeLayoutUpdateOptions());
-    }
-
-    private getDatumNodeBBox(vertex: Vertex<TVertex, TEdge>) {
-        const nodeDatumIndex = this.vertexDatumIndex[vertex.value as string];
-        if (typeof nodeDatumIndex !== 'number') return;
-
-        const node = this.datumSelection.at(nodeDatumIndex);
-        if (!node) return;
-
-        return this.measureDatumNode(node);
-    }
-
-    /** Bbox used for layout-sizing; subclasses can override to exclude decorations. */
-    protected measureDatumNode(node: TNode): _ModuleSupport.BBox | undefined {
-        return node.getBBox();
-    }
-
-    private layoutDatumNode(
-        vertex: Vertex<TVertex, TEdge>,
-        groupBBox: _ModuleSupport.BBox,
-        regularBBox?: _ModuleSupport.BBox
-    ) {
-        const nodeDatumIndex = this.vertexDatumIndex[vertex.value as string];
-        if (typeof nodeDatumIndex !== 'number') return;
-
-        const node = this.datumSelection.at(nodeDatumIndex);
-        if (!node) return;
-
-        return this.positionDatumNode(node, groupBBox, regularBBox);
-    }
-
-    private layoutLinkNode(vertex: Vertex<TVertex, TEdge>, drawLink: (path: _ModuleSupport.ExtendedPath2D) => void) {
-        const nodeDatumIndex = this.vertexDatumIndex[vertex.value as string];
-        if (typeof nodeDatumIndex !== 'number') return;
-
-        const link = this.linkSelection.at(nodeDatumIndex);
-        if (!link) return;
-
-        const path = link.getPath();
-        if (!path) return;
-
-        drawLink(path.path);
-        path.visible = true;
     }
 
     // ---

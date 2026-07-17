@@ -82,7 +82,7 @@ import {
     processedDataIsAnimatable,
     valueProperty,
 } from '../../data/processors';
-import { resolvePlacementLabelPadding } from '../../label';
+import { expandPlacementLabelBoxExtent, resolvePlacementLabelPadding } from '../../label';
 import type { BarLabelPlacement, BarPositionedCandidate } from '../../labelUtil';
 import {
     adjustLabelPlacement,
@@ -185,6 +185,8 @@ interface BarSeriesNodeDatumContext {
     readonly bboxBottom: number;
     readonly labelSpacing: number;
     readonly boxPadding: Required<PaddingOptions>;
+    /** Per-side extent of the label's drawn box (padding + border stroke) folded into the collision footprint. */
+    readonly labelBoxExtent: Required<PaddingOptions>;
     readonly crisp: boolean;
     readonly isStacked: boolean;
     readonly filteredValueExceedUnfiltered: boolean;
@@ -692,6 +694,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             labelSpacing:
                 label.spacing + Math.max(boxPadding.top, boxPadding.right, boxPadding.bottom, boxPadding.left),
             boxPadding,
+            labelBoxExtent: expandPlacementLabelBoxExtent(label),
             crisp:
                 dataAggregationFilter == null &&
                 (this.properties.crisp ??
@@ -992,10 +995,14 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             mutableNode.label = undefined;
         } else if (ctx.labelResolvesPlacement) {
             // Placement-cascade path: pre-position a candidate per placement × orientation for the engine
-            // to resolve. Full text is measured (no fit) so each candidate's footprint matches what
-            // renders; the engine picks the first that fits its region. The first candidate is baked as a
-            // backward-safe default until the engine writes the chosen one back.
-            const { width, height } = measureLabelText(nodeLabelText, ctx.label);
+            // to resolve. Full text is measured (no fit) then inflated by the box (padding + border stroke)
+            // so each candidate's footprint matches the rendered box; the engine picks the first that fits
+            // its region. The first candidate is baked as a backward-safe default until the engine writes
+            // the chosen one back.
+            const text = measureLabelText(nodeLabelText, ctx.label);
+            const { labelBoxExtent: box } = ctx;
+            const width = text.width + box.left + box.right;
+            const height = text.height + box.top + box.bottom;
             const orientations = toArray(ctx.label.orientation);
             if (orientations.length === 0) orientations.push('horizontal');
             const candidates = buildBarLabelCandidates({
@@ -1041,14 +1048,6 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             // Single-placement fast path: the placement is baked unconditionally; only an orientation
             // array (if any) is later resolved against the bar rect by the placement engine.
             const { labelPlacement: placement, labelRotation: rotation } = ctx;
-            const labelPlacement = adjustLabelPlacement({
-                isUpward,
-                isVertical: !ctx.barAlongX,
-                placement,
-                spacing: ctx.label.spacing,
-                boxPadding: ctx.boxPadding,
-                rect,
-            });
             // Inside labels fit within the bar rect; outside labels sit beside it, so leave them unbound.
             // The rect is only needed to bound the fit or to resolve orientation, so skip it otherwise.
             const isInside = placement == null || placement.startsWith('inside');
@@ -1058,6 +1057,20 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             // inside placements only (outside labels fall back to the plot bounds via no region).
             const region = ctx.labelResolvesOrientation ? insideBox : undefined;
             const fittedText = fitLabelToContainer(nodeLabelText, ctx.labelFit, ctx.label, insideBox);
+            // A rotated label's gap to the bar depends on its box size; measure only when it rotates.
+            const { width: labelWidth, height: labelHeight } =
+                rotation === 0 ? { width: 0, height: 0 } : measureLabelText(fittedText, ctx.label);
+            const labelPlacement = adjustLabelPlacement({
+                isUpward,
+                isVertical: !ctx.barAlongX,
+                placement,
+                spacing: ctx.label.spacing,
+                boxPadding: ctx.boxPadding,
+                rect,
+                rotation,
+                labelWidth,
+                labelHeight,
+            });
 
             const existingLabel = mutableNode.label;
             if (existingLabel) {
@@ -1756,17 +1769,28 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
     override getLabelData(): PointLabelDatum[] {
         if (!this.usesPlacedLabels || !this.isLabelEnabled()) return [];
         const { label } = this.properties;
+        // Inflate the measured text by the label's drawn box (padding + border stroke) so collisions
+        // avoid the box, not just the text.
+        const box = expandPlacementLabelBoxExtent(label);
+        const measureBox = (text: NormalisedTextOrSegments) => {
+            const { width, height } = measureLabelText(text, label);
+            return { width: width + box.left + box.right, height: height + box.top + box.bottom };
+        };
         if (barLabelResolvesPlacement(label.placement)) {
             const data: PointLabelDatum[] = [];
             for (const node of this.contextNodeData?.labelData ?? []) {
                 const nodeLabel = node.label;
                 if (nodeLabel?.candidates == null || nodeLabel.text === '') continue;
-                const { width, height } = measureLabelText(nodeLabel.text, label);
+                const { width, height } = measureBox(nodeLabel.text);
                 data.push(buildBarPositionedLabelDatum(nodeLabel.text, width, height, nodeLabel.candidates, nodeLabel));
             }
             return data;
         }
-        return buildBarLabelData(this.contextNodeData?.labelData, (node) => ({ label: node.label, config: label }));
+        return buildBarLabelData(this.contextNodeData?.labelData, (node) => ({
+            label: node.label,
+            config: label,
+            size: node.label != null && node.label.text !== '' ? measureBox(node.label.text) : undefined,
+        }));
     }
 
     override updatePlacedLabelData(placed: PlacedLabel<BarNodeDatum>[]) {

@@ -36,12 +36,15 @@ import {
     findMinMax,
     insetBox,
     isContinuous,
+    measureLabelText,
     mergeDefaults,
     resolveLabelFit,
+    rotatedGlyphDrift,
+    rotatedLabelInset,
     toArray,
     toNumber,
 } from 'ag-charts-core';
-import type { AgNumericValue } from 'ag-charts-types';
+import type { AgNumericValue, PaddingOptions } from 'ag-charts-types';
 
 import {
     type RangeBarSeriesDataAggregationFilter,
@@ -58,6 +61,7 @@ const {
     fitLabelToContainer,
     updateLabelNode,
     pickPlacementStyle,
+    expandPlacementLabelBoxExtent,
     resolvePlacementLabelPadding,
     SMALLEST_KEY_INTERVAL,
     LARGEST_KEY_INTERVAL,
@@ -135,10 +139,17 @@ interface RangeBarSeriesNodeDatumContext extends _ModuleSupport.CartesianCreateN
     readonly labelEnabled: boolean;
     readonly labelPlacement: 'inside' | 'outside';
     // Signed anchor offsets per role: yLow and yHigh face opposite edges, so each folds in its own facing padding.
+    // Valid only for unrotated labels; a rotated label's reach is per-datum (see labelBoxPadding et al.).
     readonly yLowPadding: number;
     readonly yHighPadding: number;
     // Unsigned margin for the inside-fit container (box-clear on any side).
     readonly labelInsetPadding: number;
+    // Pieces to recompute a rotated label's per-datum reach: reach folds in the box's cross-axis extent.
+    readonly labelSpacing: number;
+    readonly labelSign: number;
+    readonly labelBoxPadding: Required<PaddingOptions>;
+    readonly yLowFacing: keyof Required<PaddingOptions>;
+    readonly yHighFacing: keyof Required<PaddingOptions>;
     // Orientation derived once (series-constant) to keep the per-datum label build allocation-free.
     readonly labelRotation: number;
     readonly labelResolvesOrientation: boolean;
@@ -474,6 +485,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const [lowOuter, lowInner] = barAlongX ? (['right', 'left'] as const) : (['top', 'bottom'] as const);
         const yLowFacing = isOutside ? lowOuter : lowInner;
         const yHighFacing = isOutside ? lowInner : lowOuter;
+        const labelRotation = barLabelRotation(toArray(this.properties.label.orientation)[0]);
 
         return {
             xAxis,
@@ -496,11 +508,16 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             yHighKey: this.properties.yHighKey,
             labelEnabled: this.properties.label.enabled,
             labelPlacement,
-            labelRotation: barLabelRotation(toArray(this.properties.label.orientation)[0]),
+            labelRotation,
             labelResolvesOrientation: barLabelResolvesOrientation(this.properties.label.orientation),
             labelFit: resolveLabelFit(this.properties.label, this.properties.label.collisionAvoidance.avoid),
             yLowPadding: (labelProps.spacing + boxPadding[yLowFacing]) * sign,
             yHighPadding: (labelProps.spacing + boxPadding[yHighFacing]) * sign,
+            labelSpacing: labelProps.spacing,
+            labelSign: sign,
+            labelBoxPadding: boxPadding,
+            yLowFacing,
+            yHighFacing,
             labelInsetPadding:
                 labelProps.spacing + Math.max(boxPadding.top, boxPadding.right, boxPadding.bottom, boxPadding.left),
             canIncrementallyUpdate,
@@ -907,7 +924,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const { xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName, legendItemName, label } = this.properties;
         const barAlongX = ctx.barAlongX;
         const placement = ctx.labelPlacement;
-        const { yLowPadding, yHighPadding } = ctx;
         // The first orientation is baked into `rotation`; an array resolves against the bar rect for inside placement only.
         const rotation = ctx.labelRotation;
 
@@ -924,40 +940,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                 ? insetBox({ x: rectX, y: rectY, width: rectWidth, height: rectHeight }, ctx.labelInsetPadding)
                 : undefined;
         const region = ctx.labelResolvesOrientation ? container : undefined;
-
-        const yLowX = rectX + (barAlongX ? -yLowPadding : rectWidth / 2);
-        const yLowY = rectY + (barAlongX ? rectHeight / 2 : rectHeight + yLowPadding);
-
-        let yLowTextAlign: CanvasTextAlign;
-        if (placement === 'outside') {
-            yLowTextAlign = barAlongX ? 'right' : 'center';
-        } else {
-            yLowTextAlign = barAlongX ? 'left' : 'center';
-        }
-
-        let yLowTextBaseline: CanvasTextBaseline;
-        if (placement === 'outside') {
-            yLowTextBaseline = barAlongX ? 'middle' : 'top';
-        } else {
-            yLowTextBaseline = barAlongX ? 'middle' : 'bottom';
-        }
-
-        const yHighX = rectX + (barAlongX ? rectWidth + yHighPadding : rectWidth / 2);
-        const yHighY = rectY + (barAlongX ? rectHeight / 2 : -yHighPadding);
-
-        let yHighTextAlign: CanvasTextAlign;
-        if (placement === 'outside') {
-            yHighTextAlign = barAlongX ? 'left' : 'center';
-        } else {
-            yHighTextAlign = barAlongX ? 'right' : 'center';
-        }
-
-        let yHighTextBaseline: CanvasTextBaseline;
-        if (placement === 'outside') {
-            yHighTextBaseline = barAlongX ? 'middle' : 'bottom';
-        } else {
-            yHighTextBaseline = barAlongX ? 'middle' : 'top';
-        }
 
         const datum = params.datum;
         const yLowValue = params.yLowValue;
@@ -988,6 +970,61 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             label,
             container
         );
+
+        // Signed reach from the bar edge to the anchor. Unrotated it is the series-constant facing
+        // padding; a rotated label reaches by its box's cross-axis extent, so it is measured per datum.
+        // A rotated box also drifts off its anchor on the cross-axis (asymmetric padding), so both labels
+        // are pulled back by the same drift to stay centred on the bar.
+        let yLowPadding = ctx.yLowPadding;
+        let yHighPadding = ctx.yHighPadding;
+        let crossDrift = 0;
+        if (rotation !== 0) {
+            const low = measureLabelText(yLowText, label);
+            const high = measureLabelText(yHighText, label);
+            const { labelSpacing, labelSign, labelBoxPadding, yLowFacing, yHighFacing } = ctx;
+            yLowPadding =
+                (labelSpacing + rotatedLabelInset(yLowFacing, rotation, low.width, low.height, labelBoxPadding)) *
+                labelSign;
+            yHighPadding =
+                (labelSpacing + rotatedLabelInset(yHighFacing, rotation, high.width, high.height, labelBoxPadding)) *
+                labelSign;
+            const drift = rotatedGlyphDrift(rotation, labelBoxPadding);
+            crossDrift = barAlongX ? drift.y : drift.x;
+        }
+
+        const yLowX = rectX + (barAlongX ? -yLowPadding : rectWidth / 2 - crossDrift);
+        const yLowY = rectY + (barAlongX ? rectHeight / 2 - crossDrift : rectHeight + yLowPadding);
+
+        let yLowTextAlign: CanvasTextAlign;
+        if (placement === 'outside') {
+            yLowTextAlign = barAlongX ? 'right' : 'center';
+        } else {
+            yLowTextAlign = barAlongX ? 'left' : 'center';
+        }
+
+        let yLowTextBaseline: CanvasTextBaseline;
+        if (placement === 'outside') {
+            yLowTextBaseline = barAlongX ? 'middle' : 'top';
+        } else {
+            yLowTextBaseline = barAlongX ? 'middle' : 'bottom';
+        }
+
+        const yHighX = rectX + (barAlongX ? rectWidth + yHighPadding : rectWidth / 2 - crossDrift);
+        const yHighY = rectY + (barAlongX ? rectHeight / 2 - crossDrift : -yHighPadding);
+
+        let yHighTextAlign: CanvasTextAlign;
+        if (placement === 'outside') {
+            yHighTextAlign = barAlongX ? 'left' : 'center';
+        } else {
+            yHighTextAlign = barAlongX ? 'right' : 'center';
+        }
+
+        let yHighTextBaseline: CanvasTextBaseline;
+        if (placement === 'outside') {
+            yHighTextBaseline = barAlongX ? 'middle' : 'bottom';
+        } else {
+            yHighTextBaseline = barAlongX ? 'middle' : 'top';
+        }
 
         // Update or create yLowLabel
         if (labels.length > 0 && labels[0].itemType === 'low') {
@@ -1187,7 +1224,10 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                 createDatumId(this.getDatumId({ xValue }), isHighlight ? 'highlight' : 'node'),
                 () => {
                     const params = this.makeItemStylerParams(datumIndex, isHighlight, style);
-                    return this.callWithContext(itemStyler, params);
+                    return this.ctx.optionsGraphService.resolvePartial(
+                        ['series', `${this.declarationOrder}`],
+                        this.callWithContext(itemStyler, params)
+                    );
                 }
             );
 
@@ -1290,10 +1330,18 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
     override getLabelData(): PointLabelDatum[] {
         if (!this.usesPlacedLabels || !this.properties.label.enabled) return [];
         const { label } = this.properties;
-        return buildBarLabelData(this.contextNodeData?.labelData, (labelDatum) => ({
-            label: labelDatum,
-            config: label,
-        }));
+        // Inflate the measured text by the label's drawn box (padding + border stroke) so orientation
+        // resolution avoids the box, not just the text.
+        const box = expandPlacementLabelBoxExtent(label);
+        return buildBarLabelData(this.contextNodeData?.labelData, (labelDatum) => {
+            if (labelDatum.text === '') return { label: labelDatum, config: label };
+            const { width, height } = measureLabelText(labelDatum.text, label);
+            return {
+                label: labelDatum,
+                config: label,
+                size: { width: width + box.left + box.right, height: height + box.top + box.bottom },
+            };
+        });
     }
 
     override updatePlacedLabelData(placed: PlacedLabel<RangeBarNodeLabelDatum>[]) {

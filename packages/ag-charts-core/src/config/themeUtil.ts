@@ -1,5 +1,6 @@
 import type {
     AgCartesianChartOptions,
+    AgChartLabelCollisionAvoidanceOptions,
     AgHighlightOptions,
     AgHighlightStyleOptions,
     AgMultiSeriesHighlightOptions,
@@ -387,25 +388,23 @@ export const LABEL_BOXING_DEFAULTS: WithThemeParams<LabelBoxOptions> = {
 };
 
 /**
- * Top-level box defaults for placement-reactive labels. Fill stays here (its default is nullish) and
- * `border.enabled` stays here (the border is enabled once for the whole label); `cornerRadius`,
- * `padding` and the border stroke geometry live in the placement blocks instead so they can be
- * overridden per resolved inside/outside placement. Pair with `PLACEMENT_LABEL_BOXING_DEFAULTS`.
+ * Top-level box defaults for placement-reactive labels. Box geometry (`cornerRadius`, `padding`,
+ * fill and the border stroke geometry) lives here so a value set once at the top level applies to
+ * both placements; `border.enabled` governs the border for the whole label. The placement blocks
+ * carry only user overrides plus a conditional `color` default (whose value legitimately differs
+ * per inside/outside placement).
  */
-export const LABEL_BOXING_TOP_LEVEL_DEFAULTS: WithThemeParams<LabelBoxOptions> = {
+export const LABEL_BOXING_TOP_LEVEL_DEFAULTS: WithThemeParams<
+    LabelBoxOptions & { collisionAvoidance: AgChartLabelCollisionAvoidanceOptions }
+> = {
     ...LABEL_BOXING_FILL_DEFAULTS,
-    border: {
-        enabled: { $isUserOption: ['../border', true, false] },
-    },
-};
-
-/** Box defaults spread into a placement label's `insideStyle`/`outsideStyle` blocks. */
-export const PLACEMENT_LABEL_BOXING_DEFAULTS: WithThemeParams<LabelBoxOptions> = {
     cornerRadius: 4,
     border: {
+        enabled: { $isUserOption: ['../border', true, false] },
         strokeWidth: 1,
         stroke: { $foregroundOpacity: 0.08 },
     },
+    collisionAvoidance: { enabled: false },
 };
 
 export const MULTI_SERIES_HIGHLIGHT_STYLE: WithThemeParams<AgMultiSeriesHighlightOptions<AgHighlightStyleOptions>> = {

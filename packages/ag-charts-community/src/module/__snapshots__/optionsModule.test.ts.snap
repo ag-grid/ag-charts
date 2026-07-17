@@ -306,29 +306,24 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -395,29 +390,24 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -484,29 +474,24 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -951,29 +936,24 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#ffffff",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": "inside-center",
         "spacing": 8,
       },
@@ -1046,29 +1026,24 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#ffffff",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": "inside-center",
         "spacing": 8,
       },
@@ -1138,29 +1113,24 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -1547,29 +1517,24 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -1638,29 +1603,24 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -1729,29 +1689,24 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -1820,29 +1775,24 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -1911,29 +1861,24 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -2002,29 +1947,24 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -2093,29 +2033,24 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -2500,29 +2435,24 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#ffffff",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": "inside-center",
         "spacing": 8,
       },
@@ -2596,29 +2526,24 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#ffffff",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": "inside-center",
         "spacing": 8,
       },
@@ -2692,29 +2617,24 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#ffffff",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": "inside-center",
         "spacing": 8,
       },
@@ -2788,29 +2708,24 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#ffffff",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": "inside-center",
         "spacing": 8,
       },
@@ -2884,29 +2799,24 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#ffffff",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": "inside-center",
         "spacing": 8,
       },
@@ -2980,29 +2890,24 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#ffffff",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": "inside-center",
         "spacing": 8,
       },
@@ -3076,29 +2981,24 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#ffffff",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": "inside-center",
         "spacing": 8,
       },
@@ -3172,29 +3072,24 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#ffffff",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": "inside-center",
         "spacing": 8,
       },
@@ -3577,32 +3472,24 @@ exports[`ChartOptions > #prepareOptions > for ADV_PER_MARKER_CUSTOMISATION_EXAMP
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
         "collisionAvoidance": {
           "enabled": true,
         },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
       },
       "maxRenderedItems": 2000,
       "maxSize": 100,
@@ -3991,29 +3878,24 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -4080,29 +3962,24 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -4169,29 +4046,24 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -4258,29 +4130,24 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -4667,29 +4534,24 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -4769,29 +4631,24 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -4871,29 +4728,24 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -4973,29 +4825,24 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -5075,29 +4922,24 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -5490,29 +5332,24 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_EXAMPLE it should prepar
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#ffffff",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": "inside-center",
         "spacing": 8,
       },
@@ -5903,31 +5740,26 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_WITH_LABELS_EXAMPLE it s
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
+        },
+        "collisionAvoidance": {
+          "enabled": false,
         },
         "color": "white",
+        "cornerRadius": 4,
         "enabled": true,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": "bold",
         "formatter": [Function],
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
-          "color": "#ffffff",
-          "cornerRadius": 4,
-          "padding": 8,
+          "color": "white",
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
-          "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
+          "color": "white",
         },
+        "padding": 8,
         "placement": "inside-center",
         "spacing": 8,
       },
@@ -6321,32 +6153,24 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMP
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
         "collisionAvoidance": {
           "enabled": true,
         },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
       },
       "maxRenderedItems": 2000,
       "maxSize": 30,
@@ -6717,32 +6541,24 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
         "collisionAvoidance": {
           "enabled": true,
         },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
       },
       "labelKey": "city",
       "labelName": "City",
@@ -7116,29 +6932,24 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#ffffff",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": "inside-center",
         "spacing": 8,
       },
@@ -7209,29 +7020,24 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#ffffff",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": "inside-center",
         "spacing": 8,
       },
@@ -7620,29 +7426,24 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#ffffff",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": "inside-center",
         "spacing": 8,
       },
@@ -7718,29 +7519,24 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#ffffff",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": "inside-center",
         "spacing": 8,
       },
@@ -8135,29 +7931,24 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#ffffff",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": "inside-center",
         "spacing": 8,
       },
@@ -8235,29 +8026,24 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#ffffff",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": "inside-center",
         "spacing": 8,
       },
@@ -8335,29 +8121,24 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#ffffff",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": "inside-center",
         "spacing": 8,
       },
@@ -8435,29 +8216,24 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#ffffff",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": "inside-center",
         "spacing": 8,
       },
@@ -8535,29 +8311,24 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#ffffff",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": "inside-center",
         "spacing": 8,
       },
@@ -8635,29 +8406,24 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#ffffff",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": "inside-center",
         "spacing": 8,
       },
@@ -8735,29 +8501,24 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#ffffff",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": "inside-center",
         "spacing": 8,
       },
@@ -9148,29 +8909,24 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -9240,29 +8996,24 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -9332,29 +9083,24 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -9424,29 +9170,24 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -9516,29 +9257,24 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -9608,29 +9344,24 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -9700,29 +9431,24 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -9792,29 +9518,24 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -9884,29 +9605,24 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -9976,29 +9692,24 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -10068,29 +9779,24 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -10160,29 +9866,24 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -10252,29 +9953,24 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -10344,29 +10040,24 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -10436,29 +10127,24 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -10528,29 +10214,24 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -10928,29 +10609,24 @@ exports[`ChartOptions > #prepareOptions > for LOG_AXIS_EXAMPLE it should prepare
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -11336,29 +11012,24 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -11446,29 +11117,24 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -11556,29 +11222,24 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -11666,29 +11327,24 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -11776,29 +11432,24 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -11886,29 +11537,24 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -11996,29 +11642,24 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -12424,29 +12065,24 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#ffffff",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": "inside-center",
         "spacing": 8,
       },
@@ -12523,29 +12159,24 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#ffffff",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": "inside-center",
         "spacing": 8,
       },
@@ -12622,29 +12253,24 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#ffffff",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": "inside-center",
         "spacing": 8,
       },
@@ -13034,29 +12660,24 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#ffffff",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": "inside-center",
         "spacing": 8,
       },
@@ -13130,29 +12751,24 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#ffffff",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": "inside-center",
         "spacing": 8,
       },
@@ -13226,29 +12842,24 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#ffffff",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": "inside-center",
         "spacing": 8,
       },
@@ -13322,29 +12933,24 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#ffffff",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": "inside-center",
         "spacing": 8,
       },
@@ -13418,29 +13024,24 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#ffffff",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": "inside-center",
         "spacing": 8,
       },
@@ -13514,29 +13115,24 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#ffffff",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": "inside-center",
         "spacing": 8,
       },
@@ -13953,29 +13549,24 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -14052,29 +13643,24 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -14151,29 +13737,24 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -14250,29 +13831,24 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -14666,31 +14242,26 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_COLUMN_CHART_EXAMPLE it sho
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
+        },
+        "collisionAvoidance": {
+          "enabled": false,
         },
         "color": "#eeeeee",
+        "cornerRadius": 4,
         "enabled": true,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "formatter": [Function],
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
-          "color": "#ffffff",
-          "cornerRadius": 4,
-          "padding": 8,
+          "color": "#eeeeee",
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
-          "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
+          "color": "#eeeeee",
         },
+        "padding": 8,
         "placement": "inside-center",
         "spacing": 8,
       },
@@ -15469,29 +15040,24 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -15559,29 +15125,24 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -16285,32 +15846,24 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_SCATTER_CHART_EXAMPLE it sh
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
         "collisionAvoidance": {
           "enabled": true,
         },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
       },
       "maxRenderedItems": 2000,
       "selection": {
@@ -16702,29 +16255,24 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -16808,29 +16356,24 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -16914,29 +16457,24 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -17020,29 +16558,24 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -17126,29 +16659,24 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -17232,29 +16760,24 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": [
           "top",
           "bottom",
@@ -17658,29 +17181,24 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#ffffff",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": "inside-center",
         "spacing": 8,
       },
@@ -17756,29 +17274,24 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#ffffff",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": "inside-center",
         "spacing": 8,
       },
@@ -17854,29 +17367,24 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#ffffff",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": "inside-center",
         "spacing": 8,
       },
@@ -17952,29 +17460,24 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#ffffff",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": "inside-center",
         "spacing": 8,
       },
@@ -18367,29 +17870,24 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#ffffff",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": "inside-center",
         "spacing": 8,
       },
@@ -18465,29 +17963,24 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#ffffff",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": "inside-center",
         "spacing": 8,
       },
@@ -18563,29 +18056,24 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#ffffff",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": "inside-center",
         "spacing": 8,
       },
@@ -18661,29 +18149,24 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#ffffff",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": "inside-center",
         "spacing": 8,
       },
@@ -18759,29 +18242,24 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
       "label": {
         "border": {
           "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
         },
+        "collisionAvoidance": {
+          "enabled": false,
+        },
+        "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#ffffff",
-          "cornerRadius": 4,
-          "padding": 8,
         },
         "outsideStyle": {
-          "border": {
-            "stroke": "rgba(24, 29, 31, 0.08)",
-            "strokeWidth": 1,
-          },
           "color": "#181d1f",
-          "cornerRadius": 4,
-          "padding": 8,
         },
+        "padding": 8,
         "placement": "inside-center",
         "spacing": 8,
       },

@@ -54,8 +54,8 @@ import {
     processedDataIsAnimatable,
     valueProperty,
 } from '../../data/processors';
-import { expandPlacementLabelPadding } from '../../label';
-import { boundLabelFit, insideMarkerContainer, insideMarkerOffset } from '../../labelUtil';
+import { expandPlacementLabelBoxExtent } from '../../label';
+import { boundLabelFit, insideMarkerContainer, resolveInsidePlacement } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import { type LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
@@ -477,14 +477,15 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
         const { label, marker } = this.properties;
         const { collisionAvoidance } = label;
         const placements = toArray(label.placement);
-        // Only fit to the marker when `inside` is the sole placement; a mixed fallback list must keep
-        // full-size text so a directional fallback isn't constrained to the marker.
-        const insideOnly = placements.length > 0 && placements.every((placement) => placement === 'inside');
+        const {
+            insideOnly,
+            offset: labelInsideOffset,
+            size: labelInsideSize,
+        } = resolveInsidePlacement(placements, marker.shape);
         const markerSize = marker.enabled ? marker.size : 0;
         const labelFit = insideOnly
             ? boundLabelFit(resolveLabelFit(label, false, true), insideMarkerContainer(markerSize, marker.shape))
             : resolveLabelFit(label, collisionAvoidance.avoid);
-        const labelInsideOffset = insideOnly ? insideMarkerOffset(marker.shape) : undefined;
         const labelAnchor = Marker.anchor(marker.shape);
 
         return {
@@ -509,14 +510,11 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             size: markerSize,
             yDomain: this.getSeriesDomain(ChartAxisDirection.Y).domain,
             labelsEnabled: this.properties.label.enabled,
-            labelPadding: expandPlacementLabelPadding(this.properties.label),
+            labelPadding: expandPlacementLabelBoxExtent(this.properties.label),
             labelTextMeasurer: cachedTextMeasurer(this.properties.label),
-            labelAvoid: collisionAvoidance.avoid,
-            labelPlacements: toArray(label.placement),
-            labelMinSpacing: collisionAvoidance.minSpacing,
-            labelCollideWith: collisionAvoidance.resolveCollideWith(),
             labelFit,
             labelInsideOffset,
+            labelInsideSize,
             labelAnchor,
             animationEnabled: !this.ctx.animationManager.isSkipped(),
             canIncrementallyUpdate,
@@ -597,10 +595,6 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                 existingNode.labelText = labelText;
                 existingNode.label = label;
                 existingNode.gap = gap;
-                existingNode.avoid = ctx.labelAvoid;
-                existingNode.placements = ctx.labelPlacements;
-                existingNode.minSpacing = ctx.labelMinSpacing;
-                existingNode.collideWith = ctx.labelCollideWith;
                 existingNode.crossFilterSelected = scratch.crossFilterSelected;
             } else {
                 ctx.nodes.push({
@@ -620,12 +614,9 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                     label,
                     anchor: ctx.labelAnchor,
                     insideOffset: ctx.labelInsideOffset,
+                    insideSize: ctx.labelInsideSize,
                     placement: 'top',
-                    placements: ctx.labelPlacements,
                     gap,
-                    avoid: ctx.labelAvoid,
-                    minSpacing: ctx.labelMinSpacing,
-                    collideWith: ctx.labelCollideWith,
                     crossFilterSelected: scratch.crossFilterSelected,
                 });
             }
