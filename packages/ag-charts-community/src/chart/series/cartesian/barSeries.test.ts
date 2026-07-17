@@ -1261,16 +1261,9 @@ describe('BarSeries', () => {
         // rects arrive from a null-x placeholder), which trips captureUpdate's whole-scene start
         // anchor — so the toggle CASEs hand-roll the capture, keeping only the end anchor (as the
         // line suite's captureFrom does).
-        const captureToggle = async (create: AgCartesianChartOptions, action: () => Promise<void> | void) => {
+        const captureToggle = (create: AgCartesianChartOptions, action: () => Promise<void> | void) => {
             chart = AgCharts.create(create);
-            await frames.runToEnd(chart);
-            const sampleScene = createSceneGeometrySampler(chart);
-            await action();
-            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
-            await frames.runToEnd(chart);
-            const after = sampleScene();
-            expectSceneSamplesMatch(trajectory.at(-1)!, after);
-            return { trajectory, after };
+            return frames.captureSnap(chart, createSceneGeometrySampler(chart), action);
         };
 
         // Survivors of a series toggle re-share the category band: width tweens during update while

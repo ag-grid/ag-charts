@@ -27,7 +27,6 @@ import {
     expectAnimatedEndpointsMatchStatic,
     expectMonotonic,
     expectProgresses,
-    expectSceneSamplesMatch,
     expectSceneTrajectory,
     expectWarningsCalls,
     extractImageData,
@@ -194,20 +193,11 @@ describe('PieSeries', () => {
         ) => {
             const proxy = AgCharts.create(create);
             chart = deproxy(proxy);
-            await frames.runToEnd(proxy);
             if (setup != null) {
-                await setup(proxy);
                 await frames.runToEnd(proxy);
+                await setup(proxy);
             }
-            const sampleScene = createSceneGeometrySampler(proxy);
-            const before = sampleScene();
-            await action(proxy);
-            const trajectory = await frames.captureAnimationFrames(proxy, sampleScene);
-            await frames.runToEnd(proxy);
-            const after = sampleScene();
-            // End anchor only (the frame-0 start anchor is dropped: labels snap at frame 0).
-            expectSceneSamplesMatch(trajectory.at(-1)!, after);
-            return { proxy, sampleScene, before, trajectory, after };
+            return frames.captureSnap(proxy, createSceneGeometrySampler(proxy), () => action(proxy));
         };
 
         const toggleSector = (proxy: AgChartInstance, index: number, enabled: boolean) => {

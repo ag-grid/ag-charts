@@ -512,13 +512,9 @@ describe('RadialColumnSeries', () => {
             const proxy = AgCharts.create(options);
             chart = deproxy(proxy);
             const sampleScene = createSceneGeometrySampler(proxy);
-            await frames.runToEnd(proxy);
-            const before = sampleScene();
-
-            await (proxy as AgChartInstance).update({ ...options, data: grow(RC_DATA) } as AgPolarChartOptions);
-            const trajectory = await frames.captureAnimationFrames(proxy, sampleScene);
-            await frames.runToEnd(proxy);
-            const after = sampleScene();
+            const { before, trajectory, after } = await frames.captureSnap(proxy, sampleScene, () =>
+                (proxy as AgChartInstance).update({ ...options, data: grow(RC_DATA) } as AgPolarChartOptions)
+            );
 
             const key = `series[0]/path[Q1'22]`;
             // The update actually moved the air columns (anti-vacuity for the snap assertion below)...
@@ -536,14 +532,10 @@ describe('RadialColumnSeries', () => {
             const proxy = AgCharts.create({ ...options, data: RC_DATA.slice(0, 3) } as AgPolarChartOptions);
             chart = deproxy(proxy);
             const sampleScene = createSceneGeometrySampler(proxy);
-            await frames.runToEnd(proxy);
-            const before = sampleScene();
+            const { before, trajectory, after } = await frames.captureSnap(proxy, sampleScene, () =>
+                (proxy as AgChartInstance).update({ ...options, data: RC_DATA } as AgPolarChartOptions)
+            );
             expect(pathCount(before)).toBe(6);
-
-            await (proxy as AgChartInstance).update({ ...options, data: RC_DATA } as AgPolarChartOptions);
-            const trajectory = await frames.captureAnimationFrames(proxy, sampleScene);
-            await frames.runToEnd(proxy);
-            const after = sampleScene();
 
             expect(pathCount(after), 'two columns added').toBe(8);
             expect(pathCount(trajectory[0]), 'added columns present from frame 0').toBe(8);
@@ -565,14 +557,10 @@ describe('RadialColumnSeries', () => {
             const proxy = AgCharts.create(options);
             chart = deproxy(proxy);
             const sampleScene = createSceneGeometrySampler(proxy);
-            await frames.runToEnd(proxy);
-            const before = sampleScene();
+            const { before, trajectory, after } = await frames.captureSnap(proxy, sampleScene, () =>
+                (proxy as AgChartInstance).update({ ...options, data: RC_DATA.slice(0, 3) } as AgPolarChartOptions)
+            );
             expect(pathCount(before)).toBe(8);
-
-            await (proxy as AgChartInstance).update({ ...options, data: RC_DATA.slice(0, 3) } as AgPolarChartOptions);
-            const trajectory = await frames.captureAnimationFrames(proxy, sampleScene);
-            await frames.runToEnd(proxy);
-            const after = sampleScene();
 
             expect(pathCount(after), 'two columns removed').toBe(6);
             expect(pathCount(trajectory[0]), 'dropped columns gone from frame 0').toBe(6);
@@ -682,13 +670,13 @@ describe('RadialColumnSeries', () => {
             const proxy = AgCharts.create(before);
             chart = deproxy(proxy);
             const sampleScene = createSceneGeometrySampler(proxy);
-            await frames.runToEnd(proxy);
-            const beforeSample = sampleScene();
-
-            await (proxy as AgChartInstance).update(signedOptions(negativeData));
-            const trajectory = await frames.captureAnimationFrames(proxy, sampleScene);
-            await frames.runToEnd(proxy);
-            const after = sampleScene();
+            const {
+                before: beforeSample,
+                trajectory,
+                after,
+            } = await frames.captureSnap(proxy, sampleScene, () =>
+                (proxy as AgChartInstance).update(signedOptions(negativeData))
+            );
 
             const key = `series[0]/path[Q1'22]`;
             expect(
@@ -718,13 +706,13 @@ describe('RadialColumnSeries', () => {
             const proxy = AgCharts.create(before);
             chart = deproxy(proxy);
             const sampleScene = createSceneGeometrySampler(proxy);
-            await frames.runToEnd(proxy);
-            const beforeSample = sampleScene();
-
-            await (proxy as AgChartInstance).update(reversedRadiusOptions());
-            const trajectory = await frames.captureAnimationFrames(proxy, sampleScene);
-            await frames.runToEnd(proxy);
-            const after = sampleScene();
+            const {
+                before: beforeSample,
+                trajectory,
+                after,
+            } = await frames.captureSnap(proxy, sampleScene, () =>
+                (proxy as AgChartInstance).update(reversedRadiusOptions())
+            );
 
             const key = `series[0]/path[Q1'22]`;
             expect(

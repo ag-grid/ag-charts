@@ -29,7 +29,6 @@ import {
     expectAnimatedEndpointsMatchStatic,
     expectMonotonic,
     expectProgresses,
-    expectSceneSamplesMatch,
     expectSceneTrajectory,
     expectWarningsCalls,
     extractImageData,
@@ -960,17 +959,13 @@ describe('HistogramSeries', () => {
                         y: { type: 'number', position: 'left', min: 0, max: 10 },
                     },
                 });
-            chart = AgCharts.create(autoOptions(DATA_A));
-            await frames.runToEnd(chart);
-            const sampleScene = createSceneGeometrySampler(chart);
-
-            const before = sampleScene();
+            const proxy = AgCharts.create(autoOptions(DATA_A));
+            chart = proxy;
+            const sampleScene = createSceneGeometrySampler(proxy);
+            const { before, trajectory, after } = await frames.captureSnap(proxy, sampleScene, () =>
+                proxy.updateDelta({ data: [...DATA_A, 40, 55, 58].map((x) => ({ x })) })
+            );
             const beforeBins = rectCount(before);
-            await chart.updateDelta({ data: [...DATA_A, 40, 55, 58].map((x) => ({ x })) });
-            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
-            await frames.runToEnd(chart);
-            const after = sampleScene();
-            expectSceneSamplesMatch(trajectory.at(-1)!, after);
 
             // Anti-vacuity: the wider extent genuinely re-binned (a different bin set), and every new
             // bin starts collapsed at the baseline.
@@ -1018,20 +1013,16 @@ describe('HistogramSeries', () => {
         });
 
         // "Randomise" — same bins, new totals: bar heights reflow (each bin either way) during the
-        // update phase; the bands hold. Hand-rolled (not captureUpdate): the disabled labels re-fade
+        // update phase; the bands hold. captureSnap (not captureUpdate): the disabled labels re-fade
         // their opacity from frame 0, tripping captureUpdate's whole-scene start anchor.
         it('data update: bin heights reflow toward their new totals during the update phase', async () => {
             const options = histogramOptions();
-            chart = AgCharts.create(options);
-            await frames.runToEnd(chart);
-            const sampleScene = createSceneGeometrySampler(chart);
-
-            const before = sampleScene();
-            await chart.updateDelta({ data: DATA_B.map((x) => ({ x })) });
-            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
-            await frames.runToEnd(chart);
-            const after = sampleScene();
-            expectSceneSamplesMatch(trajectory.at(-1)!, after);
+            const proxy = AgCharts.create(options);
+            chart = proxy;
+            const sampleScene = createSceneGeometrySampler(proxy);
+            const { before, trajectory, after } = await frames.captureSnap(proxy, sampleScene, () =>
+                proxy.updateDelta({ data: DATA_B.map((x) => ({ x })) })
+            );
 
             expect(rectCount(after)).toBe(3);
             // Anti-vacuity: the first bin genuinely shrinks and the others genuinely grow.
@@ -1052,20 +1043,16 @@ describe('HistogramSeries', () => {
 
         // "Remove"/binning change — a new bin set replaces the old one. The old rects are dropped and
         // a fresh set snaps in collapsed at the baseline (frame 0), then grows during the add phase.
-        // Hand-rolled: the rects re-key structurally at frame 0, so captureUpdate's start anchor trips.
+        // captureSnap: the rects re-key structurally at frame 0, so captureUpdate's start anchor trips.
         it('binning change: a new bin set snaps in collapsed then grows from the baseline', async () => {
             const options = histogramOptions();
-            chart = AgCharts.create(options);
-            await frames.runToEnd(chart);
-            const sampleScene = createSceneGeometrySampler(chart);
-
-            const before = sampleScene();
+            const proxy = AgCharts.create(options);
+            chart = proxy;
+            const sampleScene = createSceneGeometrySampler(proxy);
+            const { before, trajectory, after } = await frames.captureSnap(proxy, sampleScene, () =>
+                proxy.update({ ...options, series: binnedSeries(BINS_5) })
+            );
             expect(rectCount(before)).toBe(3);
-            await chart.update({ ...options, series: binnedSeries(BINS_5) });
-            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
-            await frames.runToEnd(chart);
-            const after = sampleScene();
-            expectSceneSamplesMatch(trajectory.at(-1)!, after);
 
             // Anti-vacuity: the bin count changes and every new bin starts collapsed at the baseline.
             expect(rectCount(after)).toBe(5);

@@ -28,7 +28,6 @@ import {
     expectAnimatedEndpointsMatchStatic,
     expectPixelIdenticalAcrossMagnitude,
     expectProgresses,
-    expectSceneSamplesMatch,
     expectSceneTrajectory,
     expectWarningsCalls,
     extractImageData,
@@ -757,19 +756,14 @@ describe('RangeBarSeries', () => {
             });
 
             // "Add Data": a new trailing category enters. Its bar spawns collapsed at its midpoint and
-            // grows out during the 'add' phase; the existing bars narrow during 'update'. Hand-rolled
-            // because the category-axis reflow snaps the axis line at frame 0 (trips captureUpdate's
-            // whole-scene start anchor).
+            // grows out during the 'add' phase; the existing bars narrow during 'update'. captureSnap
+            // (not captureUpdate) because the category-axis reflow snaps the axis line at frame 0.
             it(`add data (${direction}): entering bar grows from its midpoint while others narrow`, async () => {
                 chart = AgCharts.create(options(direction, DATA.slice(0, 2)));
-                await frames.runToEnd(chart);
                 const sampleScene = createSceneGeometrySampler(chart);
-                const before = sampleScene();
-                await chart.updateDelta({ data: DATA });
-                const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
-                await frames.runToEnd(chart);
-                const after = sampleScene();
-                expectSceneSamplesMatch(trajectory.at(-1)!, after);
+                const { before, trajectory, after } = await frames.captureSnap(chart, sampleScene, () =>
+                    chart.updateDelta({ data: DATA })
+                );
                 expect(rectCount(before)).toBe(2);
                 expect(rectCount(after)).toBe(3);
                 // Anti-vacuity: the entrant starts collapsed at its midpoint.
@@ -844,18 +838,15 @@ describe('RangeBarSeries', () => {
             // CRT-1082: a range-bar legend toggle must collapse the hidden series' bars to their
             // MIDPOINT, not the chart baseline. The toggled-off layer collapses during 'remove'; the
             // survivor widens into the vacated band during 'update'. A baseline-collapse regression
-            // moves the near edge to the value-0 pixel, which the midpoint guard rejects. Hand-rolled
+            // moves the near edge to the value-0 pixel, which the midpoint guard rejects. captureSnap
             // because a series toggle snaps structurally at frame 0.
             it(`legend toggle off (${direction}): hidden bars collapse to their midpoint (CRT-1082)`, async () => {
                 const grouped = groupedOptions(direction);
                 chart = AgCharts.create(grouped);
-                await frames.runToEnd(chart);
                 const sampleScene = createSceneGeometrySampler(chart);
-                await chart.update(hideSeries(grouped, 1));
-                const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
-                await frames.runToEnd(chart);
-                const after = sampleScene();
-                expectSceneSamplesMatch(trajectory.at(-1)!, after);
+                const { trajectory, after } = await frames.captureSnap(chart, sampleScene, () =>
+                    chart.update(hideSeries(grouped, 1))
+                );
                 // Anti-vacuity + CRT-1082 midpoint guard.
                 const hidden0 = trajectory[0].get('series[1]/rect[Jan]')!;
                 expect(hidden0[d.value]).toBeGreaterThan(50);
@@ -877,23 +868,19 @@ describe('RangeBarSeries', () => {
             // The retired rolling "range-bar-animation" fired one update that added, removed,
             // shuffled AND revalued at once ("animate continuously without snapping"). A single mixed
             // update must keep the low<=high extent on every frame and settle exactly on the static
-            // scene. Hand-rolled because the category add/remove snaps the axis line at frame 0.
+            // scene. captureSnap because the category add/remove snaps the axis line at frame 0.
             it(`combined mutation (${direction}): mixed add/remove/shuffle/revalue stays coherent`, async () => {
                 chart = AgCharts.create(options(direction));
-                await frames.runToEnd(chart);
                 const sampleScene = createSceneGeometrySampler(chart);
-                const before = sampleScene();
-                await chart.update(
-                    options(direction, [
-                        { date: 'Feb', low: -10, high: 4 },
-                        { date: 'Apr', low: -6, high: 9 },
-                        { date: 'Jan', low: 0, high: 14 },
-                    ])
+                const { before, trajectory, after } = await frames.captureSnap(chart, sampleScene, () =>
+                    chart.update(
+                        options(direction, [
+                            { date: 'Feb', low: -10, high: 4 },
+                            { date: 'Apr', low: -6, high: 9 },
+                            { date: 'Jan', low: 0, high: 14 },
+                        ])
+                    )
                 );
-                const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
-                await frames.runToEnd(chart);
-                const after = sampleScene();
-                expectSceneSamplesMatch(trajectory.at(-1)!, after);
                 // Anti-vacuity: the structural change genuinely landed (Mar left, Apr entered).
                 expect(before.has('series[0]/rect[Mar]')).toBe(true);
                 expect(after.has('series[0]/rect[Mar]')).toBe(false);
@@ -907,20 +894,16 @@ describe('RangeBarSeries', () => {
         }
 
         // Value axis UNPINNED: removing the low-extreme datum contracts the domain, and the axis must
-        // rescale by tweening its ticks, not snapping. Hand-rolled because the category reflow snaps
+        // rescale by tweening its ticks, not snapping. captureSnap because the category reflow snaps
         // the axis line at frame 0.
         it('unpinned value axis (vertical): axis rescales by tweening, not snapping', async () => {
             const d = dims('vertical');
             const unpinned = (data: object[]) => options('vertical', data, {});
             chart = AgCharts.create(unpinned(DATA));
-            await frames.runToEnd(chart);
             const sampleScene = createSceneGeometrySampler(chart);
-            const before = sampleScene();
-            await chart.update(unpinned([DATA[0], DATA[2]]));
-            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
-            await frames.runToEnd(chart);
-            const after = sampleScene();
-            expectSceneSamplesMatch(trajectory.at(-1)!, after);
+            const { before, trajectory, after } = await frames.captureSnap(chart, sampleScene, () =>
+                chart.update(unpinned([DATA[0], DATA[2]]))
+            );
             // The +10 gridline is present throughout; removing the -16.7 low rescales the domain, so
             // its pixel position must genuinely move — and move progressively, not snap.
             const tick = 'axis[left]/line[l:10]';

@@ -20,7 +20,6 @@ import {
     createSceneGeometrySampler,
     deproxy,
     expectAnimatedEndpointsMatchStatic,
-    expectSceneSamplesMatch,
     expectSceneTrajectory,
     expectWarningsCalls,
     extractImageData,
@@ -352,13 +351,11 @@ describe('RadarLineSeries', () => {
         it('data swap: reshapes to the new categories without tweening', async () => {
             const proxy = AgCharts.create(radarOptions(DATA_1));
             chart = deproxy(proxy);
-            await frames.runToEnd(chart);
-            const before = createSceneGeometrySampler(chart)();
-
-            await proxy.update(radarOptions(DATA_2));
-            const trajectory = await frames.captureAnimationFrames(chart, createSceneGeometrySampler(chart));
-            await frames.runToEnd(chart);
-            const after = createSceneGeometrySampler(chart)();
+            const { before, trajectory, after } = await frames.captureSnap(
+                chart,
+                createSceneGeometrySampler(chart),
+                () => proxy.update(radarOptions(DATA_2))
+            );
 
             expect(markerKeyCount(before, 0), 'series[0] markers before swap').toBe(4);
             expect(markerKeyCount(before, 1), 'series[1] markers before swap').toBe(4);
@@ -366,28 +363,22 @@ describe('RadarLineSeries', () => {
             expect(markerKeyCount(after, 1), 'series[1] markers after swap').toBe(5);
             expect(after.has('series[0]/marker[cat 10]'), 'new cat 10 marker present after swap').toBe(true);
             expectSnapped(trajectory);
-            // End-anchor: the last captured frame is the fully-settled DATA_2 scene, so the snap landed
-            // its marks at their final positions (not a wrong-but-stable layout).
-            expectSceneSamplesMatch(trajectory.at(-1)!, after);
         });
 
         // "Data2 → Data1" — the reverse: the swap drops the `cat 10` category (5 → 4 points). Also a snap.
         it('data swap (remove): drops a category without tweening', async () => {
             const proxy = AgCharts.create(radarOptions(DATA_2));
             chart = deproxy(proxy);
-            await frames.runToEnd(chart);
-            const before = createSceneGeometrySampler(chart)();
-
-            await proxy.update(radarOptions(DATA_1));
-            const trajectory = await frames.captureAnimationFrames(chart, createSceneGeometrySampler(chart));
-            await frames.runToEnd(chart);
-            const after = createSceneGeometrySampler(chart)();
+            const { before, trajectory, after } = await frames.captureSnap(
+                chart,
+                createSceneGeometrySampler(chart),
+                () => proxy.update(radarOptions(DATA_1))
+            );
 
             expect(markerKeyCount(before, 0), 'series[0] markers before remove').toBe(5);
             expect(markerKeyCount(after, 0), 'series[0] markers after remove').toBe(4);
             expect(after.has('series[0]/marker[cat 10]'), 'cat 10 marker gone after remove').toBe(false);
             expectSnapped(trajectory);
-            expectSceneSamplesMatch(trajectory.at(-1)!, after);
         });
 
         // "Toggle a legend item" — clicking a legend entry hides the series. With the radius domain pinned
@@ -399,22 +390,20 @@ describe('RadarLineSeries', () => {
             chart = deproxy(proxy);
             await frames.runToEnd(chart);
             const sampler = createSceneGeometrySampler(chart);
-            const before = sampler();
             const { x, y } = computeLegendBBox(chart);
 
             // Hide series[0] (the first legend item).
-            await clickAction(x, y)(proxy);
-            const hideTrajectory = await frames.captureAnimationFrames(chart, sampler);
-            await frames.runToEnd(chart);
-            const hidden = sampler();
+            const {
+                before,
+                trajectory: hideTrajectory,
+                after: hidden,
+            } = await frames.captureSnap(chart, sampler, () => clickAction(x, y)(proxy));
 
             expect(visibleMarkerCount(before, 0), 'series[0] visible markers before hide').toBe(4);
             expect(hasSeriesPath(before, 0), 'series[0] path before hide').toBe(true);
             expect(visibleMarkerCount(hidden, 0), 'series[0] visible markers after hide').toBe(0);
             expect(hasSeriesPath(hidden, 0), 'series[0] path after hide').toBe(false);
             expectSnapped(hideTrajectory);
-            // End-anchor: the hide settled at the last captured frame (converged, not mid-transition).
-            expectSceneSamplesMatch(hideTrajectory.at(-1)!, hidden);
             // Positional correctness: with the radius domain pinned, hiding series[0] must not disturb the
             // surviving series[1] — every one of its markers stays at the same screen position. Compared by
             // sorted position (not by key), because hiding a sibling re-creates series[1]'s marker nodes and
@@ -436,15 +425,13 @@ describe('RadarLineSeries', () => {
             }
 
             // Show series[0] again.
-            await clickAction(x, y)(proxy);
-            const showTrajectory = await frames.captureAnimationFrames(chart, sampler);
-            await frames.runToEnd(chart);
-            const shown = sampler();
+            const { trajectory: showTrajectory, after: shown } = await frames.captureSnap(chart, sampler, () =>
+                clickAction(x, y)(proxy)
+            );
 
             expect(visibleMarkerCount(shown, 0), 'series[0] visible markers after show').toBe(4);
             expect(hasSeriesPath(shown, 0), 'series[0] path after show').toBe(true);
             expectSnapped(showTrajectory);
-            expectSceneSamplesMatch(showTrajectory.at(-1)!, shown);
         });
 
         // Pixel endpoint guards: the animated reveal of data1 and the data1 → data2 swap must each settle
