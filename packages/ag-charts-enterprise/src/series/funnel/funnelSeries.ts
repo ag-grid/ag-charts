@@ -118,14 +118,17 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
                 createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'),
                 () => {
                     const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
-                    return this.callWithContext(itemStyler, {
-                        seriesId,
-                        datum,
-                        highlightState: highlightStateString,
-                        stageKey,
-                        valueKey,
-                        ...style,
-                    });
+                    return this.ctx.optionsGraphService.resolvePartial(
+                        ['series', `${this.declarationOrder}`],
+                        this.callWithContext(itemStyler, {
+                            seriesId,
+                            datum,
+                            highlightState: highlightStateString,
+                            stageKey,
+                            valueKey,
+                            ...style,
+                        })
+                    );
                 }
             );
 

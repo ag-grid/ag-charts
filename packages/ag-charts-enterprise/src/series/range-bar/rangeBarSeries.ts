@@ -1224,7 +1224,10 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                 createDatumId(this.getDatumId({ xValue }), isHighlight ? 'highlight' : 'node'),
                 () => {
                     const params = this.makeItemStylerParams(datumIndex, isHighlight, style);
-                    return this.callWithContext(itemStyler, params);
+                    return this.ctx.optionsGraphService.resolvePartial(
+                        ['series', `${this.declarationOrder}`],
+                        this.callWithContext(itemStyler, params)
+                    );
                 }
             );
 
