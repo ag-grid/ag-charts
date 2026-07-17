@@ -18,6 +18,7 @@ import type {
     Toggleable,
 } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
+import type { AgNetworkSeriesTreeLayout } from './networkOptions';
 
 export interface AgOrganizationSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends
@@ -31,31 +32,8 @@ export interface AgOrganizationSeriesOptions<TDatum = DatumDefault, TContext = C
     node?: AgOrganizationSeriesOptionsNode<TDatum, TContext>;
 }
 
-export interface AgOrganizationSeriesThemeableOptions<
-    TDatum = DatumDefault,
-    TContext = ContextDefault,
-> extends AgBaseSeriesThemeableOptions<TDatum, TContext> {
-    /**
-     * Gap in pixels between sibling nodes (nodes that share the same parent).
-     *
-     * Default: `20`
-     */
-    innerSpacing?: PixelSize;
-    /**
-     * Gap in pixels between adjacent nodes whose immediate parents differ (cousins). The layout
-     * uses `outerSpacing` for these cross-subtree gaps and `innerSpacing` for gaps between nodes
-     * that share the same parent.
-     *
-     * Default: `40`
-     */
-    outerSpacing?: PixelSize;
-    /**
-     * Vertical gap in pixels between parent and child rows.
-     *
-     * Default: `52`
-     */
-    verticalSpacing?: PixelSize;
-
+export interface AgOrganizationSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
+    extends AgBaseSeriesThemeableOptions<TDatum, TContext>, AgNetworkSeriesTreeLayout {
     expander?: AgOrganizationSeriesOptionsExpander<TDatum, TContext>;
 
     link?: AgOrganizationSeriesOptionsLink<TDatum, TContext>;

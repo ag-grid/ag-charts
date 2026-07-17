@@ -75,6 +75,7 @@ export * from './series/standalone/flowProportionOptions';
 export * from './series/standalone/sankeyOptions';
 export * from './series/standalone/standaloneOptions';
 export * from './series/standalone/hierarchyOptions'; // Legacy
+export * from './series/standalone/networkOptions';
 export * from './series/standalone/organizationOptions';
 export * from './series/standalone/pyramidOptions';
 export * from './series/standalone/sunburstOptions';
