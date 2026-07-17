@@ -19,11 +19,12 @@ import {
 } from '../test/data';
 import * as examples from '../test/examples';
 import * as axesExamples from '../test/examples-axes';
-import type { ChartOrProxy } from '../test/utils';
+import type { ChartOrProxy, SceneGeometrySample } from '../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
     createChart,
+    createSceneGeometrySampler,
     extractImageData,
     prepareTestOptions,
     repeat,
@@ -317,6 +318,36 @@ describe('Grouped Category Axis Examples', () => {
             await waitForChartStability(chart);
 
             await compare();
+        });
+    });
+
+    describe('AG-17795', () => {
+        it('removing the last top-level group drops its grid and separator nodes', async () => {
+            const options = prepareTestOptions({ ...examples.INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_EXAMPLE });
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const sampleScene = createSceneGeometrySampler(chart);
+            const removedGroup = 'Nebulon';
+            const gridRects = (s: SceneGeometrySample) =>
+                [...s.keys()].filter((k) => /^axis\[bottom\]\/grid\/rect\[/.test(k));
+            const gridLines = (s: SceneGeometrySample) =>
+                [...s.keys()].filter((k) => /^axis\[bottom\]\/grid\/line\[/.test(k));
+            const separators = (s: SceneGeometrySample) =>
+                [...s.keys()].filter((k) => /^axis\[bottom\]\/line\[/.test(k));
+
+            const before = sampleScene();
+            // Anti-vacuous: the removed group must own grid/separator nodes before the update.
+            expect(gridRects(before).some((k) => k.includes(removedGroup))).toBe(true);
+
+            const data = examples.INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_EXAMPLE.data!;
+            await chart.updateDelta({ data: data.slice(0, 7) });
+            await waitForChartStability(chart);
+            const after = sampleScene();
+
+            expect(gridRects(after).some((k) => k.includes(removedGroup))).toBe(false);
+            expect(gridLines(after).some((k) => k.includes(removedGroup))).toBe(false);
+            expect(separators(after).some((k) => k.includes(removedGroup))).toBe(false);
         });
     });
 
