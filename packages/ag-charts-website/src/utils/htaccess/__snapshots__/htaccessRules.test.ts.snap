@@ -30,10 +30,10 @@ Redirect 301 /charts/javascript/bullet-series /charts/javascript/linear-gauge/#b
 Redirect 301 /charts/angular/bullet-series /charts/angular/linear-gauge/#bullet-series
 Redirect 301 /charts/react/bullet-series /charts/react/linear-gauge/#bullet-series
 Redirect 301 /charts/vue/bullet-series /charts/vue/linear-gauge/#bullet-series
-Redirect 301 /charts/javascript/fonts /charts/javascript/text
-Redirect 301 /charts/angular/fonts /charts/angular/text
-Redirect 301 /charts/react/fonts /charts/react/text
-Redirect 301 /charts/vue/fonts /charts/vue/text
+Redirect 301 /charts/javascript/fonts /charts/javascript/text/
+Redirect 301 /charts/angular/fonts /charts/angular/text/
+Redirect 301 /charts/react/fonts /charts/react/text/
+Redirect 301 /charts/vue/fonts /charts/vue/text/
 RedirectMatch 301 "^/charts/javascript/?$" "/charts/javascript/quick-start/"
 RedirectMatch 301 "^/charts/react/?$" "/charts/react/quick-start/"
 RedirectMatch 301 "^/charts/vue/?$" "/charts/vue/quick-start/"
@@ -42,7 +42,7 @@ Redirect 301 /charts/javascript/toolbar/ /charts/javascript/financial-charts-too
 Redirect 301 /charts/react/toolbar/ /charts/react/financial-charts-toolbar/
 Redirect 301 /charts/react/line/ /charts/react/line-series/
 RedirectMatch 301 "^/charts/archive/?$" "/charts/documentation-archive/"
-RedirectMatch 301 "^/charts/privacy(/.*)?$" "https://www.ag-grid.com/privacy/"
+RedirectMatch 410 "^/charts/privacy(/.*)?$"
 RedirectMatch 301 "^/charts/javascript-charts/javascript/(.+)$" "/charts/javascript/$1"
 RedirectMatch 301 "^/charts/angular-charts/angular/(.+)$" "/charts/angular/$1"
 RedirectMatch 301 "^/charts/react-charts/react/(.+)$" "/charts/react/$1"
@@ -66,10 +66,10 @@ exports[`generated redirect rules snapshot > redirect rules output is unchanged 
 Redirect 301 /charts/angular/bullet-series /charts/angular/linear-gauge/#bullet-series
 Redirect 301 /charts/react/bullet-series /charts/react/linear-gauge/#bullet-series
 Redirect 301 /charts/vue/bullet-series /charts/vue/linear-gauge/#bullet-series
-Redirect 301 /charts/javascript/fonts /charts/javascript/text
-Redirect 301 /charts/angular/fonts /charts/angular/text
-Redirect 301 /charts/react/fonts /charts/react/text
-Redirect 301 /charts/vue/fonts /charts/vue/text
+Redirect 301 /charts/javascript/fonts /charts/javascript/text/
+Redirect 301 /charts/angular/fonts /charts/angular/text/
+Redirect 301 /charts/react/fonts /charts/react/text/
+Redirect 301 /charts/vue/fonts /charts/vue/text/
 RedirectMatch 301 "^/charts/javascript/?$" "/charts/javascript/quick-start/"
 RedirectMatch 301 "^/charts/react/?$" "/charts/react/quick-start/"
 RedirectMatch 301 "^/charts/vue/?$" "/charts/vue/quick-start/"
@@ -78,7 +78,7 @@ Redirect 301 /charts/javascript/toolbar/ /charts/javascript/financial-charts-too
 Redirect 301 /charts/react/toolbar/ /charts/react/financial-charts-toolbar/
 Redirect 301 /charts/react/line/ /charts/react/line-series/
 RedirectMatch 301 "^/charts/archive/?$" "/charts/documentation-archive/"
-RedirectMatch 301 "^/charts/privacy(/.*)?$" "https://www.ag-grid.com/privacy/"
+RedirectMatch 410 "^/charts/privacy(/.*)?$"
 RedirectMatch 301 "^/charts/javascript-charts/javascript/(.+)$" "/charts/javascript/$1"
 RedirectMatch 301 "^/charts/angular-charts/angular/(.+)$" "/charts/angular/$1"
 RedirectMatch 301 "^/charts/react-charts/react/(.+)$" "/charts/react/$1"
@@ -124,10 +124,10 @@ Redirect 301 /charts/javascript/bullet-series /charts/javascript/linear-gauge/#b
 Redirect 301 /charts/angular/bullet-series /charts/angular/linear-gauge/#bullet-series
 Redirect 301 /charts/react/bullet-series /charts/react/linear-gauge/#bullet-series
 Redirect 301 /charts/vue/bullet-series /charts/vue/linear-gauge/#bullet-series
-Redirect 301 /charts/javascript/fonts /charts/javascript/text
-Redirect 301 /charts/angular/fonts /charts/angular/text
-Redirect 301 /charts/react/fonts /charts/react/text
-Redirect 301 /charts/vue/fonts /charts/vue/text
+Redirect 301 /charts/javascript/fonts /charts/javascript/text/
+Redirect 301 /charts/angular/fonts /charts/angular/text/
+Redirect 301 /charts/react/fonts /charts/react/text/
+Redirect 301 /charts/vue/fonts /charts/vue/text/
 RedirectMatch 301 "^/charts/javascript/?$" "/charts/javascript/quick-start/"
 RedirectMatch 301 "^/charts/react/?$" "/charts/react/quick-start/"
 RedirectMatch 301 "^/charts/vue/?$" "/charts/vue/quick-start/"
@@ -136,7 +136,7 @@ Redirect 301 /charts/javascript/toolbar/ /charts/javascript/financial-charts-too
 Redirect 301 /charts/react/toolbar/ /charts/react/financial-charts-toolbar/
 Redirect 301 /charts/react/line/ /charts/react/line-series/
 RedirectMatch 301 "^/charts/archive/?$" "/charts/documentation-archive/"
-RedirectMatch 301 "^/charts/privacy(/.*)?$" "https://www.ag-grid.com/privacy/"
+RedirectMatch 410 "^/charts/privacy(/.*)?$"
 RedirectMatch 301 "^/charts/javascript-charts/javascript/(.+)$" "/charts/javascript/$1"
 RedirectMatch 301 "^/charts/angular-charts/angular/(.+)$" "/charts/angular/$1"
 RedirectMatch 301 "^/charts/react-charts/react/(.+)$" "/charts/react/$1"
