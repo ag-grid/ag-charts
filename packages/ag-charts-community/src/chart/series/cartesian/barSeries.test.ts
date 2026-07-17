@@ -2012,7 +2012,8 @@ describe('BarSeries', () => {
             describe('sequenced', () => {
                 async function hover(p: { readonly x: number; readonly y: number }) {
                     await hoverAction(p.x, p.y)(chart);
-                    await waitForChartStability(chart);
+                    // Flush pending delayed unhighlights so each captured styler-call set is deterministic.
+                    await waitForChartStability(chart, MIN_UNHIGHLIGHT_DELAY);
                 }
                 function popCalls() {
                     const result = [...styler.mock.mock.calls];
@@ -2045,8 +2046,6 @@ describe('BarSeries', () => {
                     expect(popCalls()).toMatchSnapshot();
 
                     await hover(legendItem1);
-                    // Wait for delayed unhighlights to complete
-                    await waitForChartStability(chart, MIN_UNHIGHLIGHT_DELAY);
                     expect(popCalls()).toMatchSnapshot();
                 });
             });

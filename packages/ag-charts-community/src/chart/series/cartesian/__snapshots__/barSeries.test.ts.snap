@@ -115,7 +115,73 @@ exports[`BarSeries > AG-11673 styler > highlights > sequenced > 1 2`] = `
 ]
 `;
 
-exports[`BarSeries > AG-11673 styler > highlights > sequenced > 1 3`] = `[]`;
+exports[`BarSeries > AG-11673 styler > highlights > sequenced > 1 3`] = `
+[
+  [
+    {
+      "candidateState": undefined,
+      "cornerRadius": 0,
+      "fill": "#f3622d",
+      "fillOpacity": 1,
+      "highlightState": "highlighted-item",
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "selectionState": undefined,
+      "seriesId": "BarSeries-1",
+      "stackGroup": undefined,
+      "stroke": "#aa4520",
+      "strokeOpacity": 1,
+      "strokeWidth": 0,
+      "xKey": "month",
+      "yKey": "sales",
+    },
+  ],
+  [
+    {
+      "candidateState": undefined,
+      "cornerRadius": 0,
+      "fill": "#f3622d",
+      "fillOpacity": 1,
+      "highlightState": "none",
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "selectionState": undefined,
+      "seriesId": "BarSeries-1",
+      "stackGroup": undefined,
+      "stroke": "#aa4520",
+      "strokeOpacity": 1,
+      "strokeWidth": 0,
+      "xKey": "month",
+      "yKey": "sales",
+    },
+  ],
+  [
+    {
+      "candidateState": undefined,
+      "cornerRadius": 0,
+      "fill": "#fba71b",
+      "fillOpacity": 1,
+      "highlightState": "none",
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "selectionState": undefined,
+      "seriesId": "BarSeries-2",
+      "stackGroup": undefined,
+      "stroke": "#b07513",
+      "strokeOpacity": 1,
+      "strokeWidth": 0,
+      "xKey": "month",
+      "yKey": "expenses",
+    },
+  ],
+]
+`;
 
 exports[`BarSeries > AG-11673 styler > highlights > sequenced > 1 4`] = `
 [
@@ -125,48 +191,6 @@ exports[`BarSeries > AG-11673 styler > highlights > sequenced > 1 4`] = `
       "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
-      "highlightState": "none",
-      "lineDash": [
-        0,
-      ],
-      "lineDashOffset": 0,
-      "selectionState": undefined,
-      "seriesId": "BarSeries-1",
-      "stackGroup": undefined,
-      "stroke": "#aa4520",
-      "strokeOpacity": 1,
-      "strokeWidth": 0,
-      "xKey": "month",
-      "yKey": "sales",
-    },
-  ],
-  [
-    {
-      "candidateState": undefined,
-      "cornerRadius": 0,
-      "fill": "#fba71b",
-      "fillOpacity": 1,
-      "highlightState": "none",
-      "lineDash": [
-        0,
-      ],
-      "lineDashOffset": 0,
-      "selectionState": undefined,
-      "seriesId": "BarSeries-2",
-      "stackGroup": undefined,
-      "stroke": "#b07513",
-      "strokeOpacity": 1,
-      "strokeWidth": 0,
-      "xKey": "month",
-      "yKey": "expenses",
-    },
-  ],
-  [
-    {
-      "candidateState": undefined,
-      "cornerRadius": 0,
-      "fill": "#f3622d",
-      "fillOpacity": 1,
       "highlightState": "highlighted-item",
       "lineDash": [
         0,
@@ -203,10 +227,97 @@ exports[`BarSeries > AG-11673 styler > highlights > sequenced > 1 4`] = `
       "yKey": "sales",
     },
   ],
+  [
+    {
+      "candidateState": undefined,
+      "cornerRadius": 0,
+      "fill": "#fba71b",
+      "fillOpacity": 1,
+      "highlightState": "unhighlighted-series",
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "selectionState": undefined,
+      "seriesId": "BarSeries-2",
+      "stackGroup": undefined,
+      "stroke": "#b07513",
+      "strokeOpacity": 1,
+      "strokeWidth": 0,
+      "xKey": "month",
+      "yKey": "expenses",
+    },
+  ],
 ]
 `;
 
-exports[`BarSeries > AG-11673 styler > highlights > sequenced > 1 5`] = `[]`;
+exports[`BarSeries > AG-11673 styler > highlights > sequenced > 1 5`] = `
+[
+  [
+    {
+      "candidateState": undefined,
+      "cornerRadius": 0,
+      "fill": "#f3622d",
+      "fillOpacity": 1,
+      "highlightState": "highlighted-item",
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "selectionState": undefined,
+      "seriesId": "BarSeries-1",
+      "stackGroup": undefined,
+      "stroke": "#aa4520",
+      "strokeOpacity": 1,
+      "strokeWidth": 0,
+      "xKey": "month",
+      "yKey": "sales",
+    },
+  ],
+  [
+    {
+      "candidateState": undefined,
+      "cornerRadius": 0,
+      "fill": "#f3622d",
+      "fillOpacity": 1,
+      "highlightState": "none",
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "selectionState": undefined,
+      "seriesId": "BarSeries-1",
+      "stackGroup": undefined,
+      "stroke": "#aa4520",
+      "strokeOpacity": 1,
+      "strokeWidth": 0,
+      "xKey": "month",
+      "yKey": "sales",
+    },
+  ],
+  [
+    {
+      "candidateState": undefined,
+      "cornerRadius": 0,
+      "fill": "#fba71b",
+      "fillOpacity": 1,
+      "highlightState": "none",
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "selectionState": undefined,
+      "seriesId": "BarSeries-2",
+      "stackGroup": undefined,
+      "stroke": "#b07513",
+      "strokeOpacity": 1,
+      "strokeWidth": 0,
+      "xKey": "month",
+      "yKey": "expenses",
+    },
+  ],
+]
+`;
 
 exports[`BarSeries > AG-11673 styler > highlights > sequenced > 1 6`] = `
 [
@@ -214,48 +325,6 @@ exports[`BarSeries > AG-11673 styler > highlights > sequenced > 1 6`] = `
     {
       "candidateState": undefined,
       "cornerRadius": 0,
-      "fill": "#fba71b",
-      "fillOpacity": 1,
-      "highlightState": "none",
-      "lineDash": [
-        0,
-      ],
-      "lineDashOffset": 0,
-      "selectionState": undefined,
-      "seriesId": "BarSeries-2",
-      "stackGroup": undefined,
-      "stroke": "#b07513",
-      "strokeOpacity": 1,
-      "strokeWidth": 0,
-      "xKey": "month",
-      "yKey": "expenses",
-    },
-  ],
-  [
-    {
-      "candidateState": undefined,
-      "cornerRadius": 0,
-      "fill": "#f3622d",
-      "fillOpacity": 1,
-      "highlightState": "none",
-      "lineDash": [
-        0,
-      ],
-      "lineDashOffset": 0,
-      "selectionState": undefined,
-      "seriesId": "BarSeries-1",
-      "stackGroup": undefined,
-      "stroke": "#aa4520",
-      "strokeOpacity": 1,
-      "strokeWidth": 0,
-      "xKey": "month",
-      "yKey": "sales",
-    },
-  ],
-  [
-    {
-      "candidateState": undefined,
-      "cornerRadius": 0,
       "fill": "#f3622d",
       "fillOpacity": 1,
       "highlightState": "highlighted-item",
@@ -339,10 +408,50 @@ exports[`BarSeries > AG-11673 styler > highlights > sequenced > 1 6`] = `
 ]
 `;
 
-exports[`BarSeries > AG-11673 styler > highlights > sequenced > 1 7`] = `[]`;
-
-exports[`BarSeries > AG-11673 styler > highlights > sequenced > 1 8`] = `
+exports[`BarSeries > AG-11673 styler > highlights > sequenced > 1 7`] = `
 [
+  [
+    {
+      "candidateState": undefined,
+      "cornerRadius": 0,
+      "fill": "#f3622d",
+      "fillOpacity": 1,
+      "highlightState": "highlighted-item",
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "selectionState": undefined,
+      "seriesId": "BarSeries-1",
+      "stackGroup": undefined,
+      "stroke": "#aa4520",
+      "strokeOpacity": 1,
+      "strokeWidth": 0,
+      "xKey": "month",
+      "yKey": "sales",
+    },
+  ],
+  [
+    {
+      "candidateState": undefined,
+      "cornerRadius": 0,
+      "fill": "#f3622d",
+      "fillOpacity": 1,
+      "highlightState": "none",
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "selectionState": undefined,
+      "seriesId": "BarSeries-1",
+      "stackGroup": undefined,
+      "stroke": "#aa4520",
+      "strokeOpacity": 1,
+      "strokeWidth": 0,
+      "xKey": "month",
+      "yKey": "sales",
+    },
+  ],
   [
     {
       "candidateState": undefined,
@@ -370,7 +479,7 @@ exports[`BarSeries > AG-11673 styler > highlights > sequenced > 1 8`] = `
       "cornerRadius": 0,
       "fill": "#fba71b",
       "fillOpacity": 1,
-      "highlightState": "unhighlighted-series",
+      "highlightState": "none",
       "lineDash": [
         0,
       ],
@@ -385,6 +494,11 @@ exports[`BarSeries > AG-11673 styler > highlights > sequenced > 1 8`] = `
       "yKey": "expenses",
     },
   ],
+]
+`;
+
+exports[`BarSeries > AG-11673 styler > highlights > sequenced > 1 8`] = `
+[
   [
     {
       "candidateState": undefined,
@@ -425,6 +539,48 @@ exports[`BarSeries > AG-11673 styler > highlights > sequenced > 1 8`] = `
       "strokeWidth": 0,
       "xKey": "month",
       "yKey": "sales",
+    },
+  ],
+  [
+    {
+      "candidateState": undefined,
+      "cornerRadius": 0,
+      "fill": "#fba71b",
+      "fillOpacity": 1,
+      "highlightState": "highlighted-item",
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "selectionState": undefined,
+      "seriesId": "BarSeries-2",
+      "stackGroup": undefined,
+      "stroke": "#b07513",
+      "strokeOpacity": 1,
+      "strokeWidth": 0,
+      "xKey": "month",
+      "yKey": "expenses",
+    },
+  ],
+  [
+    {
+      "candidateState": undefined,
+      "cornerRadius": 0,
+      "fill": "#fba71b",
+      "fillOpacity": 1,
+      "highlightState": "unhighlighted-series",
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "selectionState": undefined,
+      "seriesId": "BarSeries-2",
+      "stackGroup": undefined,
+      "stroke": "#b07513",
+      "strokeOpacity": 1,
+      "strokeWidth": 0,
+      "xKey": "month",
+      "yKey": "expenses",
     },
   ],
 ]
