@@ -9,7 +9,6 @@ import {
     SERIES_SELECTION_THEME,
     type SeriesModuleDefinition,
     ValidationError,
-    undocumentedThemeOptions,
     validate,
 } from 'ag-charts-core';
 
@@ -65,7 +64,7 @@ export const MapMarkerSeriesModule: SeriesModuleDefinition<AgMapMarkerSeriesOpti
                 fontFamily: { $ref: 'fontFamily' },
                 fontWeight: { $ref: 'fontWeight' },
                 color: { $ref: 'textColor' },
-                ...undocumentedThemeOptions({ collisionAvoidance: { enabled: true } }),
+                collision: { suppressHide: false },
             },
             highlight: applyMapPalette(MULTI_SERIES_HIGHLIGHT_STYLE),
             selection: SERIES_SELECTION_THEME,

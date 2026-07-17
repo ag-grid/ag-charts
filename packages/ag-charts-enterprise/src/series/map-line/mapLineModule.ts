@@ -6,7 +6,6 @@ import {
     SAFE_STROKE_FILL_OPERATION,
     SERIES_SELECTION_THEME,
     type SeriesModuleDefinition,
-    undocumentedThemeOptions,
 } from 'ag-charts-core';
 
 import { TopologyChartModule } from '../../charts/topologyChartModule';
@@ -52,7 +51,7 @@ export const MapLineSeriesModule: SeriesModuleDefinition<AgMapLineSeriesOptions>
                 fontFamily: { $ref: 'fontFamily' },
                 fontWeight: { $ref: 'fontWeight' },
                 color: { $ref: 'textColor' },
-                ...undocumentedThemeOptions({ collisionAvoidance: { enabled: true } }),
+                collision: { suppressHide: false },
             },
             highlight: applyMapPalette(MULTI_SERIES_HIGHLIGHT_STYLE),
             selection: SERIES_SELECTION_THEME,

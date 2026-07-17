@@ -8,7 +8,7 @@ import {
     commonSeriesThemeableOptionsDefs,
     constant,
     fillOptionsDef,
-    labelFitOptionsDefs,
+    labelCollisionFitOptionsDefs,
     labelOrientationDef,
     labelPlacementStyleDefs,
     lineDashOptionsDef,
@@ -45,7 +45,7 @@ export const histogramSeriesThemeableOptionsDef: OptionsDefs<AgHistogramSeriesTh
     itemStyler: histogramStyler,
     label: {
         ...seriesLabelOptionsDefs,
-        ...labelFitOptionsDefs,
+        ...labelCollisionFitOptionsDefs,
         ...labelPlacementStyleDefs,
         placement: unionOrArray('inside-center', 'inside-start', 'inside-end', 'outside-start', 'outside-end'),
         spacing: positiveNumber,

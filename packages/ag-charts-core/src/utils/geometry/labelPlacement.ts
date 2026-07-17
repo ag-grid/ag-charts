@@ -54,27 +54,29 @@ export interface LabelFit {
  * Resolves the label-surface fit fields to an engine {@link LabelFit}, mapping the public `truncate`
  * boolean onto the internal overflow strategy:
  *  - `truncate: true` or `defaultToTruncate` → `'ellipsis'`: the bound is applied and overflow truncates with an ellipsis.
- *  - `truncate` unset + `avoidCollisions` → `'hide'`: the bound is applied and the label hides if it overflows.
- *  - `truncate` unset + no collision avoidance → `undefined`: no bound is applied and the full text
- *    renders, leaving charts that opt into neither truncation nor collision avoidance unchanged.
+ *  - `truncate` unset + `hideOnOverflow` → `'hide'`: the bound is applied and the label hides if it overflows.
+ *  - otherwise → a fit is produced only when `wrapping` is set (so wrap applies on its own); with no
+ *    overflow strategy and no wrapping the full text renders unbounded, as before.
+ *
+ * `maxWidth`/`maxHeight` alone never activate a fit, so series carrying only a `maxWidth` default stay
+ * unbounded exactly as before.
  *
  * @param defaultToTruncate When `truncate` is unset, ellipsise on overflow rather than hide. Used by
  * inside-marker labels, which are bound to the marker box and must never vanish when the text overruns it.
  */
 export function resolveLabelFit(
     fit: LabelFitOptions,
-    avoidCollisions = false,
+    hideOnOverflow = false,
     defaultToTruncate = false
 ): LabelFit | undefined {
+    const { maxWidth, maxHeight, wrapping, truncate } = fit;
     let overflowStrategy: OverflowStrategy | undefined;
-    if (fit.truncate || defaultToTruncate) {
+    if (truncate || defaultToTruncate) {
         overflowStrategy = 'ellipsis';
-    } else if (avoidCollisions) {
+    } else if (hideOnOverflow) {
         overflowStrategy = 'hide';
-    } else {
-        return undefined;
     }
-    const { maxWidth, maxHeight, wrapping } = fit;
+    if (overflowStrategy == null && wrapping == null) return undefined;
     return { maxWidth, maxHeight, wrapping, overflowStrategy };
 }
 
@@ -131,13 +133,11 @@ export interface PointLabelDatum {
      */
     readonly gap?: number;
     /**
-     * When falsy (the default) the label takes its first placement unconditionally — bounds and
-     * obstacle queries are skipped, so it is never moved or dropped. It is still registered as an
-     * obstacle whenever the index is active (some other series avoids), so avoiding series steer
-     * clear of it. Set true to opt the label into collision resolution. Overrides the series
-     * {@link SeriesLabelDefaults.avoid} when set.
+     * When no candidate fits its region and clears every obstacle: keep the label at its
+     * least-overflowing candidate (`true`) or drop it (`false`). Overrides the series
+     * {@link SeriesLabelDefaults.suppressHide} when set; the engine defaults to keeping the label.
      */
-    readonly avoid?: boolean;
+    readonly suppressHide?: boolean;
     /**
      * Offset/proximity threshold in px added to the directional placement gap. Overrides the series
      * {@link SeriesLabelDefaults.minSpacing} when set, else falls back to the `padding` argument of
@@ -145,8 +145,8 @@ export interface PointLabelDatum {
      */
     readonly minSpacing?: number;
     /**
-     * Resolved per-category obstacle configuration. Only consulted when {@link avoid} is true.
-     * Overrides the series {@link SeriesLabelDefaults.collideWith} when set.
+     * Resolved per-category obstacle configuration. Overrides the series
+     * {@link SeriesLabelDefaults.collideWith} when set.
      */
     readonly collideWith?: CollideWith;
     /**
@@ -187,11 +187,11 @@ export interface CollideWith {
 
 /**
  * Series-level collision defaults shared by every label in a series, resolved once per render from
- * the series' collision-avoidance config. A datum's own field ({@link PointLabelDatum.avoid} etc.)
+ * the series' collision config. A datum's own field ({@link PointLabelDatum.suppressHide} etc.)
  * overrides the matching default; when unset the engine falls back to these.
  */
 export interface SeriesLabelDefaults {
-    readonly avoid?: boolean;
+    readonly suppressHide?: boolean;
     readonly minSpacing?: number;
     readonly collideWith?: CollideWith;
     readonly placements?: readonly LabelPlacement[];
@@ -203,19 +203,24 @@ export interface SeriesLabels {
     readonly defaults?: SeriesLabelDefaults;
 }
 
-/** Structural source of a series' resolved collision config (community `LabelCollisionAvoidance`). */
-export interface CollisionAvoidanceSource {
-    readonly avoid: boolean;
+/** Structural source of a series' resolved collision config (community `LabelCollision`). */
+export interface LabelCollisionSource {
+    readonly suppressHide?: boolean;
     readonly minSpacing?: number;
     resolveCollideWith(): CollideWith | undefined;
 }
 
-/** Resolves a series' collision-avoidance config into the shared {@link SeriesLabelDefaults}. */
+/** Resolves a series' collision config into the shared {@link SeriesLabelDefaults}. */
 export function resolveSeriesLabelDefaults(
-    src: CollisionAvoidanceSource,
+    src: LabelCollisionSource,
     placements?: readonly LabelPlacement[]
 ): SeriesLabelDefaults {
-    return { avoid: src.avoid, minSpacing: src.minSpacing, collideWith: src.resolveCollideWith(), placements };
+    return {
+        suppressHide: src.suppressHide,
+        minSpacing: src.minSpacing,
+        collideWith: src.resolveCollideWith(),
+        placements,
+    };
 }
 
 export interface PlacedLabel<PLD = PointLabelDatum> extends MeasuredLabel, Readonly<Point> {
@@ -471,7 +476,6 @@ export function buildBarLabelDatum(
         placement: undefined,
         orientation: orientations,
         gap: 0,
-        avoid: true,
         neverDrop: true,
         collideWith: barLabelCollideWith,
         region,
@@ -482,7 +486,7 @@ export function buildBarLabelDatum(
 /**
  * Builds the {@link PointLabelDatum} routing a bar label through the positioned-candidate engine path:
  * the pre-positioned `candidates` are cascaded in order (each carries its own region), avoiding other
- * labels, never dropped. Mirrors {@link buildBarLabelDatum}'s avoid/neverDrop/collideWith but hands the
+ * labels, never dropped. Mirrors {@link buildBarLabelDatum}'s neverDrop/collideWith but hands the
  * engine opaque boxes instead of an orientation array to resolve.
  */
 export function buildBarPositionedLabelDatum(
@@ -498,7 +502,6 @@ export function buildBarPositionedLabelDatum(
         anchor: undefined,
         placement: undefined,
         gap: 0,
-        avoid: true,
         neverDrop: true,
         collideWith: barLabelCollideWith,
         positionedCandidates: candidates,
@@ -759,31 +762,6 @@ function insertMarkerObstacles(data: Map<string, SeriesLabels>) {
     }
 }
 
-/** True as soon as any series opts into collision resolution; short-circuits without a full scan. */
-function anyLabelAvoids(data: Map<string, SeriesLabels>): boolean {
-    for (const entry of data.values()) {
-        if (seriesAvoids(entry)) return true;
-    }
-    return false;
-}
-
-/**
- * True if the series opts into collision resolution, mirroring {@link tryPlaceLabel}'s per-datum
- * resolution (`d.avoid ?? defaults?.avoid`): the series default avoids, or any datum opts in. Gates
- * obstacle-index construction, so a non-first avoiding datum must be seen here or the engine never
- * builds the index it later queries.
- */
-function seriesAvoids(entry: SeriesLabels): boolean {
-    if (entry.defaults?.avoid === true) return true;
-    return entry.datums.some((d) => d.avoid === true);
-}
-
-/** Series entries with all non-avoiding series first (stable), then avoiding ones. */
-function orderNonAvoidingFirst(data: Map<string, SeriesLabels>): [string, SeriesLabels][] {
-    const entries = Array.from(data.entries());
-    return [...entries.filter(([, e]) => !seriesAvoids(e)), ...entries.filter(([, e]) => seriesAvoids(e))];
-}
-
 /** Resets the shared obstacle index and populates it with external obstacles and marker circles. */
 function buildObstacleIndex(data: Map<string, SeriesLabels>, obstacles: readonly LabelObstacle[], bounds: BoxBounds) {
     obstacleIndex.reset(bounds, obstacleGridCellSize(data, obstacles));
@@ -809,27 +787,20 @@ export function placeLabels(
 ) {
     const result: Map<string, PlacedLabel[]> = new Map();
 
-    // Sorting by size only establishes collision precedence; when no label opts into avoidance every
-    // label takes its first placement regardless of order, so skip the per-series clone+sort entirely.
-    const avoid = anyLabelAvoids(data);
-    const placementData = avoid
-        ? new Map(
-              Array.from(data.entries(), ([k, entry]) => [
-                  k,
-                  { datums: entry.datums.toSorted((a, b) => b.point.size - a.point.size), defaults: entry.defaults },
-              ])
-          )
-        : data;
+    // placeLabels runs on every chart update; a label-free chart must not touch the index.
+    if (data.size === 0) return result;
 
-    if (avoid) {
-        buildObstacleIndex(placementData, obstacles, bounds);
-    }
+    // Larger markers claim their placement first, so smaller ones steer clear of them.
+    const placementData = new Map(
+        Array.from(data.entries(), ([k, entry]) => [
+            k,
+            { datums: entry.datums.toSorted((a, b) => b.point.size - a.point.size), defaults: entry.defaults },
+        ])
+    );
 
-    // Place non-avoiding series first so their fixed boxes are in the index before any avoiding
-    // series resolves against them. With no avoidance the index is never built, so order is moot.
-    const entries = avoid ? orderNonAvoidingFirst(placementData) : placementData.entries();
+    buildObstacleIndex(placementData, obstacles, bounds);
 
-    for (const [seriesId, { datums, defaults }] of entries) {
+    for (const [seriesId, { datums, defaults }] of placementData.entries()) {
         const labels: PlacedLabel[] = [];
         if (!datums[0]?.label) continue;
         for (let index = 0, ln = datums.length; index < ln; index++) {
@@ -840,12 +811,9 @@ export function placeLabels(
             const placed = tryPlaceLabel(d, defaults, index, padding, bounds);
             if (placed != null) {
                 labels.push(placed);
-                // Every placed label is a fixed obstacle for avoiding series, whether or not it
-                // avoids others itself; register it whenever the index is active.
-                if (avoid) {
-                    const box = labelObstacleBox(placed);
-                    obstacleIndex.insert(box, { kind: 'rect', box, category: 'label' });
-                }
+                // Every placed label is a fixed obstacle for the labels resolved after it.
+                const box = labelObstacleBox(placed);
+                obstacleIndex.insert(box, { kind: 'rect', box, category: 'label' });
             }
         }
 
@@ -918,10 +886,10 @@ function fitLabel(d: PointLabelDatum) {
  * clears every obstacle already in the index, or `undefined` if none do. Candidate placements resolve
  * from `d.placements`, then the series `defaults.placements`, then the single `d.placement`; orientation
  * from `d.orientation`. The reported box keeps the label's measured `width`/`height`; the rotated
- * footprint is used only for containment and obstacle tests. A datum with a single candidate and no
- * collision avoidance takes that candidate region unconditionally — never bounds-clipped, never
- * dropped. A multi-candidate placement or orientation list is a directional fallback set and always
- * cascades to fit `bounds`; `avoid` only layers obstacle tests and dropping on top of that cascade.
+ * footprint is used only for containment and obstacle tests. A sole-candidate label kept on overflow
+ * takes its placement unconditionally — never bounds-clipped, never dropped. A multi-candidate
+ * placement or orientation list is a directional fallback set that cascades over obstacles; when none
+ * clears them, `suppressHide` decides whether the least-overflow candidate is kept or the label dropped.
  */
 function tryPlaceLabel(
     d: PointLabelDatum,
@@ -930,8 +898,8 @@ function tryPlaceLabel(
     padding: number,
     bounds: BoxBounds
 ): PlacedLabel | undefined {
-    // A datum's own field overrides the series default; when neither is set the built-in applies.
-    const avoid = d.avoid ?? defaults?.avoid ?? false;
+    // A datum's own field overrides the series default; when neither is set the label is kept.
+    const suppressHide = d.suppressHide ?? defaults?.suppressHide ?? true;
     const placements = d.placements ?? defaults?.placements;
     const collideWith = d.collideWith ?? defaults?.collideWith;
     const gap = d.gap ?? d.point.size / 2;
@@ -939,7 +907,9 @@ function tryPlaceLabel(
     const { text, width, height } = fitLabel(d);
 
     const resolvesFallback = (placements?.length ?? 1) > 1 || (orientationsOf(d)?.length ?? 1) > 1;
-    if (!avoid && !resolvesFallback) {
+    // Sole-candidate keep-forever: one placement, kept on overflow, never dropped. The obstacle query
+    // could only ever return this same placement, so skip it and take the placement unconditionally.
+    if (suppressHide && !resolvesFallback && d.positionedCandidates == null && d.neverDrop !== true) {
         const placement = candidateAt(placements, d.placement, 0);
         const orientation = candidateAt(orientationsOf(d), singleOrientationOf(d), 0);
         const rotation = positionCandidate(d, placement, orientation, width, height, gap, spacing);
@@ -947,24 +917,34 @@ function tryPlaceLabel(
         return { index, text, x, y, width, height, datum: d, placement, rotation: rotation || undefined };
     }
 
-    return placeAvoidingLabel(d, placements, collideWith, avoid, index, bounds, text, width, height, gap, spacing);
+    return placeAvoidingLabel(
+        d,
+        placements,
+        collideWith,
+        suppressHide,
+        index,
+        bounds,
+        text,
+        width,
+        height,
+        gap,
+        spacing
+    );
 }
 
 /**
  * Tries each `(placement × orientation)` candidate in order, returning the first whose rotated box
- * fits `d.region ?? bounds` — and, when `avoid` is set, also clears every obstacle in the index.
- * With `avoid` false the cascade is a pure bounds-fit: obstacles are not queried and the label is
- * never dropped (the least region-overflowing candidate is kept), so a fallback list resolves the
- * same whether or not collision avoidance is enabled. When `avoid` is set and none fits: a {@link
- * PointLabelDatum.neverDrop} label keeps the least region-overflowing candidate (it is always
- * rendered, so dropping it would revert its orientation to the baked first one), otherwise it is
- * dropped (`undefined`).
+ * fits `d.region ?? bounds` and clears every obstacle in the index. When none fits: a {@link
+ * PointLabelDatum.neverDrop} label, or one with `suppressHide` set, keeps the least region-overflowing
+ * candidate; otherwise the label is dropped (`undefined`). A `neverDrop` label is always rendered
+ * (dropping it would revert its orientation to the baked first one), so it is kept regardless of
+ * `suppressHide`.
  */
 function placeAvoidingLabel(
     d: PointLabelDatum,
     placements: readonly LabelPlacement[] | undefined,
     collideWith: CollideWith | undefined,
-    avoid: boolean,
+    suppressHide: boolean,
     index: number,
     bounds: BoxBounds,
     text: NormalisedTextOrSegments,
@@ -1020,10 +1000,7 @@ function placeAvoidingLabel(
             candidatePlacement = placement;
             const containRegion = insideRegionFor(d, placement, x, y, cw, ch) ?? region;
             inflateBoxInto(queryBox, candidateBox, inflate);
-            if (
-                boxContains(containRegion, x, y, cw, ch) &&
-                (!avoid || !obstacleIndex.query(queryBox, obstacleOverlapsCandidate))
-            ) {
+            if (boxContains(containRegion, x, y, cw, ch) && !obstacleIndex.query(queryBox, obstacleOverlapsCandidate)) {
                 return {
                     index,
                     text,
@@ -1038,7 +1015,7 @@ function placeAvoidingLabel(
                     offsetY,
                 };
             }
-            const keepBest = d.neverDrop === true || !avoid;
+            const keepBest = d.neverDrop === true || suppressHide;
             const overflow = keepBest ? regionOverflow(containRegion, x, y, cw, ch) : Infinity;
             if (overflow < bestOverflow) {
                 bestOverflow = overflow;

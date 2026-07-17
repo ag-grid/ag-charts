@@ -660,7 +660,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             labelTextDomain,
             labelPadding: expandPlacementLabelBoxExtent(label),
             labelTextMeasurer: cachedTextMeasurer(label),
-            labelFit: resolveLabelFit(label, label.collisionAvoidance.avoid, insideOnly),
+            labelFit: resolveLabelFit(label, !label.collision.suppressHide, insideOnly),
             label,
 
             // Other state
@@ -1021,7 +1021,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
 
     override getLabelDefaults() {
         const { label } = this.properties;
-        return resolveSeriesLabelDefaults(label.collisionAvoidance, toArray(label.placement));
+        return resolveSeriesLabelDefaults(label.collision, toArray(label.placement));
     }
 
     protected override updateDatumSelection(opts: {

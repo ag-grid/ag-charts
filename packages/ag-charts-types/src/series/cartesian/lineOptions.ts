@@ -8,7 +8,7 @@ import type {
 import type { AgChartLabelCollisionPlacement } from '../../chart/collisionAvoidanceOptions';
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from '../../chart/errorBarOptions';
 import type {
-    AgChartLabelFitOptions,
+    AgChartLabelCollisionFitOptions,
     AgChartLabelOptions,
     AgSeriesLabelPlacementStyleOptions,
 } from '../../chart/labelOptions';
@@ -40,7 +40,10 @@ export type AgLineSeriesLabelFormatterParams<TDatum = DatumDefault> = AgLineSeri
     AgLineSeriesOptionsNames;
 
 export interface AgLineSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault>
-    extends AgChartLabelOptions<TDatum, TParams, TContext>, AgChartLabelFitOptions, AgSeriesLabelPlacementStyleOptions {
+    extends
+        AgChartLabelOptions<TDatum, TParams, TContext>,
+        AgChartLabelCollisionFitOptions,
+        AgSeriesLabelPlacementStyleOptions {
     /**
      * Placement of the label in relation to the data point. Either a single placement or an ordered
      * fallback list tried in turn until one fits.

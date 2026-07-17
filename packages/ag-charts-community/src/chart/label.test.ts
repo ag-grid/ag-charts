@@ -3,7 +3,7 @@ import { vi } from 'vitest';
 import type { AgChartInstance } from 'ag-charts-types';
 
 import { AgCharts } from '../api/agCharts';
-import { Label, LabelCollisionAvoidance, LabelPlacementStyle, resolvePlacementLabelPadding } from './label';
+import { Label, LabelCollision, LabelPlacementStyle, resolvePlacementLabelPadding } from './label';
 import { adjustLabelPlacement } from './labelUtil';
 import {
     extractImageData,
@@ -59,33 +59,15 @@ describe('Labels', () => {
         });
     });
 
-    describe('collisionAvoidance.avoid', () => {
-        test('is false when enabled is unset (opt-in default off)', () => {
-            expect(new LabelCollisionAvoidance().avoid).toBe(false);
-        });
-
-        test('is false when enabled is false', () => {
-            const collisionAvoidance = new LabelCollisionAvoidance();
-            collisionAvoidance.enabled = false;
-            expect(collisionAvoidance.avoid).toBe(false);
-        });
-
-        test('is true only when enabled is true', () => {
-            const collisionAvoidance = new LabelCollisionAvoidance();
-            collisionAvoidance.enabled = true;
-            expect(collisionAvoidance.avoid).toBe(true);
+    describe('collision.suppressHide', () => {
+        test('defaults to true (keep the label rather than hide it)', () => {
+            expect(new LabelCollision().suppressHide).toBe(true);
         });
     });
 
-    describe('collisionAvoidance.resolveCollideWith', () => {
-        test('returns undefined when avoidance is disabled', () => {
-            expect(new LabelCollisionAvoidance().resolveCollideWith()).toBeUndefined();
-        });
-
+    describe('collision.resolveCollideWith', () => {
         test('defaults markers/labels on and seriesItems off', () => {
-            const collisionAvoidance = new LabelCollisionAvoidance();
-            collisionAvoidance.enabled = true;
-            expect(collisionAvoidance.resolveCollideWith()).toEqual({
+            expect(new LabelCollision().resolveCollideWith()).toEqual({
                 marker: { enabled: true, minSpacing: undefined },
                 label: { enabled: true, minSpacing: undefined },
                 seriesItem: { enabled: false, minSpacing: undefined },
@@ -93,10 +75,9 @@ describe('Labels', () => {
         });
 
         test('opts seriesItems in only when explicitly enabled', () => {
-            const collisionAvoidance = new LabelCollisionAvoidance();
-            collisionAvoidance.enabled = true;
-            collisionAvoidance.collideWith.seriesItems.enabled = true;
-            expect(collisionAvoidance.resolveCollideWith()?.seriesItem?.enabled).toBe(true);
+            const collision = new LabelCollision();
+            collision.collideWith.seriesItems.enabled = true;
+            expect(collision.resolveCollideWith().seriesItem?.enabled).toBe(true);
         });
     });
 

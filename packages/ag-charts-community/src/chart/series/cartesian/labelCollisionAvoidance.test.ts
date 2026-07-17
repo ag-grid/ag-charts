@@ -16,47 +16,52 @@ import {
     waitForChartStability,
 } from '../../test/utils';
 
-// `label.placement` is documented for point-like series, but `label.collisionAvoidance` is an
-// undocumented opt-in model (see chartDefaults.ts), so the option objects below are built untyped
-// and cast at the AgCharts.create boundary.
+// `label.placement` is documented for point-like series; `label.collision` is documented too, but
+// `collideWith` within it is an undocumented opt-in model (see chartDefaults.ts), so the option
+// objects below are built untyped and cast at the AgCharts.create boundary.
 type LabelCollisionConfig = {
     placement?: string[];
-    collisionAvoidance?: {
-        enabled?: boolean;
+    collision?: {
         minSpacing?: number;
+        suppressHide?: boolean;
         collideWith?: object;
     };
 };
 
 // Line and area route labels through the collision-placement engine, which honours the configured
 // placements: each candidate-placement set resolves colliding labels into different final positions,
-// so the rendered output diverges per placement.
+// so the rendered output diverges per placement. Collision resolution always runs now, so the axis of
+// variation is the placement candidate list and, for the first case, whether a colliding label is kept
+// (at its least-overflow candidate) rather than hidden.
 const PLACED_LABEL_STRATEGIES: Record<string, LabelCollisionConfig> = {
-    'disabled (place all)': { collisionAvoidance: { enabled: false } },
+    'keep overlapping (suppressHide: true)': {
+        placement: ['top', 'bottom'],
+        collision: { suppressHide: true },
+    },
     'reposition top-bottom': {
         placement: ['top', 'bottom'],
-        collisionAvoidance: { enabled: true },
+        collision: { suppressHide: false },
     },
     'reposition left-right': {
         placement: ['left', 'right'],
-        collisionAvoidance: { enabled: true },
+        collision: { suppressHide: false },
     },
     'reposition all directions': {
         placement: ['top', 'bottom', 'left', 'right', 'top-left', 'top-right', 'bottom-left', 'bottom-right'],
-        collisionAvoidance: { enabled: true },
+        collision: { suppressHide: false },
     },
     'reposition with min spacing': {
         placement: ['top', 'bottom'],
-        collisionAvoidance: { enabled: true, minSpacing: 8 },
+        collision: { suppressHide: false, minSpacing: 8 },
     },
 };
 
-// Scatter (and bubble, which it extends) only consume the `enabled` flag — they position labels at
-// their own fixed `label.placement` and ignore the placement candidates — so the single meaningful
-// axis for marker series is collision avoidance on vs off.
+// Scatter (and bubble, which it extends) position labels at their own fixed `label.placement` and
+// ignore the placement candidates, so collision resolution only ever decides whether an overlapping
+// label is hidden or kept — the single meaningful axis for marker series is `suppressHide`.
 const MARKER_LABEL_STRATEGIES: Record<string, LabelCollisionConfig> = {
-    'disabled (place all)': { collisionAvoidance: { enabled: false } },
-    'enabled (avoid collisions)': { collisionAvoidance: { enabled: true } },
+    'keep overlapping (suppressHide: true)': { collision: { suppressHide: true } },
+    'hide on collision (suppressHide: false, default)': { collision: { suppressHide: false } },
 };
 
 describe('label collision avoidance', () => {
@@ -243,9 +248,9 @@ describe('label collision avoidance', () => {
 
         const render = async (
             type: 'line' | 'area',
-            opts: { markerSize?: number; markerEnabled?: boolean; placement?: string | string[]; avoid?: boolean } = {}
+            opts: { markerSize?: number; markerEnabled?: boolean; placement?: string | string[] } = {}
         ) => {
-            const { markerSize = 40, markerEnabled = true, placement = 'inside', avoid = false } = opts;
+            const { markerSize = 40, markerEnabled = true, placement = 'inside' } = opts;
             const options: any = {
                 data: sparseData,
                 legend: { enabled: false },
@@ -260,7 +265,6 @@ describe('label collision avoidance', () => {
                             enabled: true,
                             placement,
                             formatter: ({ value }: any) => String(value),
-                            ...(avoid ? { collisionAvoidance: { enabled: true } } : {}),
                         },
                     },
                 ],
@@ -298,7 +302,6 @@ describe('label collision avoidance', () => {
                 const placed = await render(type, {
                     markerSize: 4,
                     placement: ['inside', 'top', 'bottom'],
-                    avoid: true,
                 });
                 expect(placed.length).toBe(sparseData.length);
                 for (const label of placed) {
@@ -309,7 +312,7 @@ describe('label collision avoidance', () => {
             it(`${type}: keeps a fitting inside label inside for a mixed list`, async () => {
                 // The text fits the large marker, so the first (`inside`) candidate is chosen and the
                 // directional fallback is never reached.
-                const placed = await render(type, { markerSize: 40, placement: ['inside', 'top'], avoid: true });
+                const placed = await render(type, { markerSize: 40, placement: ['inside', 'top'] });
                 expect(placed.length).toBe(sparseData.length);
                 for (const label of placed) {
                     expect(label.placement).toBe('inside');
@@ -342,7 +345,6 @@ describe('label collision avoidance', () => {
             label: {
                 enabled: true,
                 placement: ['top', 'bottom', 'inside'],
-                collisionAvoidance: { enabled: true },
             },
         });
 
@@ -532,7 +534,7 @@ describe('label collision avoidance', () => {
     describe('with varied label options and stylers', () => {
         const repositionAllDirections: LabelCollisionConfig = {
             placement: ['top', 'bottom', 'left', 'right', 'top-left', 'top-right', 'bottom-left', 'bottom-right'],
-            collisionAvoidance: { enabled: true },
+            collision: { suppressHide: false },
         };
 
         it('line: large labels with padding repositioned around dense markers', async () => {
@@ -577,8 +579,8 @@ describe('label collision avoidance', () => {
                             enabled: true,
                             formatter: ({ value }: any) => value.toFixed(1),
                             placement: ['top', 'bottom'],
-                            collisionAvoidance: {
-                                enabled: true,
+                            collision: {
+                                suppressHide: false,
                                 collideWith: { markers: { enabled: true, minSpacing: 4 } },
                             },
                         },
@@ -587,7 +589,7 @@ describe('label collision avoidance', () => {
             });
         });
 
-        it('bubble: itemStyler varies marker style with avoidance enabled', async () => {
+        it('bubble: itemStyler varies marker style with collision avoidance', async () => {
             await renderAndSnapshot(
                 {
                     data: markerData,
@@ -601,7 +603,7 @@ describe('label collision avoidance', () => {
                             sizeKey: 'size',
                             labelKey: 'label',
                             itemStyler: ({ datum }: any) => ({ fillOpacity: datum.y % 2 === 0 ? 0.4 : 0.9 }),
-                            label: { enabled: true, fontSize: 16, collisionAvoidance: { enabled: true } },
+                            label: { enabled: true, fontSize: 16 },
                         },
                     ],
                 },
@@ -644,7 +646,7 @@ describe('label collision avoidance', () => {
                             placement: 'top',
                             fill: 'white',
                             padding,
-                            collisionAvoidance: { enabled: true },
+                            collision: { suppressHide: false },
                         },
                     },
                 ],
@@ -701,8 +703,8 @@ describe('label collision avoidance', () => {
                 axes: comboAxes,
                 series: series({
                     placement: ['top', 'bottom'],
-                    collisionAvoidance: {
-                        enabled: true,
+                    collision: {
+                        suppressHide: false,
                         collideWith: { seriesItems: { enabled: true } },
                     },
                 }),
@@ -716,7 +718,6 @@ describe('label collision avoidance', () => {
                 axes: comboAxes,
                 series: series({
                     placement: ['top', 'bottom'],
-                    collisionAvoidance: { enabled: true },
                 }),
             });
         });
@@ -1010,5 +1011,88 @@ describe('label collision avoidance', () => {
                 }
             });
         }
+    });
+
+    // `suppressHide` gates only the terminal hide-vs-keep decision once collision resolution has run;
+    // it is orthogonal to fit (wrapping/truncation) and placement cascade, which always apply
+    // regardless of its value.
+    describe('collision.suppressHide (acceptance criteria)', () => {
+        const closeData = [
+            { x: 10, y: 50 },
+            { x: 11, y: 50 },
+            { x: 12, y: 50 },
+        ];
+        const tightAxes = {
+            x: { position: 'bottom', type: 'number', min: 0, max: 24 },
+            y: { position: 'left', type: 'number' },
+        };
+
+        const renderPlaced = async (label: object) => {
+            const options: any = {
+                data: closeData,
+                legend: { enabled: false },
+                axes: tightAxes,
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'x',
+                        yKey: 'y',
+                        marker: { enabled: true, size: 6 },
+                        label: {
+                            enabled: true,
+                            formatter: ({ value }: any) => String(value),
+                            placement: 'top',
+                            // A padded, filled box forces the labels to collide at this tight spacing (as in
+                            // the box-footprint suite above), independent of `collision.suppressHide`.
+                            fill: 'white',
+                            padding: 20,
+                            ...label,
+                        },
+                    },
+                ],
+            };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            const series = deproxy(chart as any).series[0] as unknown as {
+                placedLabelData: { text?: unknown; placement?: string }[];
+            };
+            return series.placedLabelData;
+        };
+
+        it('suppressHide: false hides a label that cannot avoid a collision', async () => {
+            // Anti-vacuous guard: some labels must actually collide for the assertion to be meaningful.
+            const placed = await renderPlaced({ collision: { suppressHide: false } });
+            expect(placed.length).toBeLessThan(closeData.length);
+        });
+
+        it('suppressHide: true keeps every label visible at its least-overflow candidate', async () => {
+            const placed = await renderPlaced({ collision: { suppressHide: true } });
+            expect(placed.length).toBe(closeData.length);
+        });
+
+        it('still cascades a placement fallback for a kept label when suppressHide is true', async () => {
+            const placed = await renderPlaced({
+                collision: { suppressHide: true },
+                placement: ['top', 'bottom'],
+            });
+            expect(placed.length).toBe(closeData.length);
+            // Anti-vacuous guard: at least one label must have been pushed off the default 'top' candidate.
+            expect(placed.some((label) => label.placement === 'bottom')).toBe(true);
+        });
+
+        it('still wraps and truncates a kept label when suppressHide is true', async () => {
+            const placed = await renderPlaced({
+                collision: { suppressHide: true },
+                maxWidth: 20,
+                wrapping: 'on-space',
+                truncate: true,
+                formatter: () => 'A very long label that must wrap and truncate',
+            });
+            expect(placed.length).toBe(closeData.length);
+            const texts = placed.map((label) => String(label.text ?? ''));
+            expect(texts.some((text) => text.includes('\n'))).toBe(true);
+            expect(texts.some((text) => text.includes('…'))).toBe(true);
+        });
     });
 });

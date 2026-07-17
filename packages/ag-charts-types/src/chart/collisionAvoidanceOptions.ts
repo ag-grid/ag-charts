@@ -49,12 +49,15 @@ export interface AgChartLabelCollideWithOptions {
     seriesItems?: AgChartLabelCollideWithCategoryOptions;
 }
 
-/** Configuration controlling how a label is repositioned or dropped to avoid overlapping obstacles. */
-export interface AgChartLabelCollisionAvoidanceOptions {
-    /** Whether collision avoidance runs for this label. */
-    enabled?: boolean;
+/** Configuration controlling how a label behaves when it cannot be placed clear of every obstacle. */
+export interface AgChartLabelCollisionOptions {
     /** Proximity threshold, in pixels, added to each obstacle before testing for overlap. */
     minSpacing?: PixelSize;
+    /**
+     * Whether to keep a label visible when no placement clears every obstacle. When `true` the label
+     * stays at its least-overflowing placement; when `false` it is hidden instead.
+     */
+    suppressHide?: boolean;
     // Undocumented: per-category configuration for the obstacles the label avoids. Accepted at
     // runtime via the `collideWith` validator but kept off the public type contract.
     // collideWith?: AgChartLabelCollideWithOptions;

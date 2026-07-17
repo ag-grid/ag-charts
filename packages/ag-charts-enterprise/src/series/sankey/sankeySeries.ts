@@ -200,7 +200,7 @@ export class SankeySeries extends FlowProportionSeries<
         maxPathLength: number
     ) {
         const { fromKey, toKey, sizeKey, labelKey, label } = this.properties;
-        const labelFit = resolveLabelFit(label, label.collisionAvoidance.avoid);
+        const labelFit = resolveLabelFit(label, false);
 
         for (const graphNode of nodeGraph.values()) {
             const { datum: node, linksBefore, linksAfter } = graphNode;

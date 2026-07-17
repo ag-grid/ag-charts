@@ -722,7 +722,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             labelResolvesPlacement: barLabelResolvesPlacement(label.placement),
             labelRotation: barLabelRotation(toArray(label.orientation)[0]),
             labelResolvesOrientation: barLabelResolvesOrientation(label.orientation),
-            labelFit: resolveLabelFit(label, label.collisionAvoidance.avoid),
+            labelFit: resolveLabelFit(label, !label.collision.suppressHide),
             yDomain: this.getSeriesDomain(ChartAxisDirection.Y).domain,
         };
     }

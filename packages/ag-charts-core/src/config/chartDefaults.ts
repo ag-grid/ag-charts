@@ -4,6 +4,7 @@ import {
     type AgBaseThemeableChartOptions,
     type AgChartAutoSizedBaseLabelOptions,
     type AgChartCaptionOptions,
+    type AgChartLabelCollisionFitOptions,
     type AgChartLabelFitOptions,
     type AgChartLabelOptions,
     type AgChartLabelPlacementStyleOptions,
@@ -763,13 +764,13 @@ export const labelCollisionPlacementDef = unionOrArray(
 /** Label orientation accepting a single value or an ordered fallback list. */
 export const labelOrientationDef = unionOrArray('horizontal', 'vertical', 'vertical-reversed');
 
-export const collisionAvoidanceOptionsDef = {
-    enabled: boolean,
+export const collisionOptionsDef = {
     minSpacing: positiveNumber,
+    suppressHide: boolean,
 };
 
 // @ts-expect-error undocumented option
-collisionAvoidanceOptionsDef.collideWith = undocumented({
+collisionOptionsDef.collideWith = undocumented({
     markers: labelCollideWithCategoryDef,
     labels: labelCollideWithCategoryDef,
     seriesItems: labelCollideWithCategoryDef,
@@ -790,11 +791,16 @@ export const seriesLabelOptionsDefs: OptionsDefs<AgChartLabelOptions<any, any>> 
 
 /** Label-fit defs shared by series that fit their labels to a placement region. */
 export const labelFitOptionsDefs: OptionsDefs<AgChartLabelFitOptions> = {
-    collisionAvoidance: collisionAvoidanceOptionsDef,
     maxWidth: positiveNumber,
     maxHeight: positiveNumber,
     wrapping: textWrap,
     truncate: boolean,
+};
+
+/** Label-fit defs plus the collision object, for series that place their labels against obstacles. */
+export const labelCollisionFitOptionsDefs: OptionsDefs<AgChartLabelCollisionFitOptions> = {
+    ...labelFitOptionsDefs,
+    collision: collisionOptionsDef,
 };
 
 /** Style overrides applied to a label for its resolved inside/outside placement. */
@@ -815,7 +821,7 @@ export const labelPlacementStyleDefs = {
 /** Label defs for point-like series (line, area) that expose a directional placement. */
 export const placedSeriesLabelOptionsDefs: OptionsDefs<AgLineSeriesLabelOptions<any, any>> = {
     ...seriesLabelOptionsDefs,
-    ...labelFitOptionsDefs,
+    ...labelCollisionFitOptionsDefs,
     ...labelPlacementStyleDefs,
     placement: labelCollisionPlacementDef,
 };

@@ -492,7 +492,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             xName,
             yName,
             label,
-            labelFit: resolveLabelFit(label, label.collisionAvoidance.avoid),
+            labelFit: resolveLabelFit(label, !label.collision.suppressHide),
 
             // Animation flag
             animationEnabled: !this.ctx.animationManager.isSkipped(),

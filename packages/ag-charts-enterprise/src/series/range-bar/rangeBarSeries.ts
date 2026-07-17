@@ -510,7 +510,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             labelPlacement,
             labelRotation,
             labelResolvesOrientation: barLabelResolvesOrientation(this.properties.label.orientation),
-            labelFit: resolveLabelFit(this.properties.label, this.properties.label.collisionAvoidance.avoid),
+            labelFit: resolveLabelFit(this.properties.label, !this.properties.label.collision.suppressHide),
             yLowPadding: (labelProps.spacing + boxPadding[yLowFacing]) * sign,
             yHighPadding: (labelProps.spacing + boxPadding[yHighFacing]) * sign,
             labelSpacing: labelProps.spacing,

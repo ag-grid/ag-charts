@@ -503,7 +503,7 @@ export class DonutSeries extends PolarSeries<
         const rawData = processedData.dataSources.get(this.id)?.data ?? [];
         const invalidData = processedData.invalidData?.get(this.id);
         const { calloutLabel } = this.properties;
-        const calloutLabelFit = resolveLabelFit(calloutLabel, calloutLabel.collisionAvoidance.avoid);
+        const calloutLabelFit = resolveLabelFit(calloutLabel, false);
         for (const [datumIndex, datum] of rawData.entries()) {
             if (invalidData?.[datumIndex] === true) continue;
             const currentValue = useFilterAngles ? angleFilterValues![datumIndex] : angleValues[datumIndex];
@@ -1664,12 +1664,7 @@ export class DonutSeries extends PolarSeries<
             text.fontWeight = fontWeight;
             text.fontSize = fontSize;
             text.fontFamily = fontFamily;
-            text.text = fitLabelToContainer(
-                datum.text,
-                resolveLabelFit(datum, datum.collisionAvoidance.avoid),
-                datum,
-                holeBox
-            );
+            text.text = fitLabelToContainer(datum.text, resolveLabelFit(datum, false), datum, holeBox);
             text.x = 0;
             text.y = 0;
             text.fill = color;
@@ -1750,7 +1745,7 @@ export class DonutSeries extends PolarSeries<
         const angleRawValue = angleRawValues[datumIndex];
 
         const { calloutLabel } = this.properties;
-        const calloutLabelFit = resolveLabelFit(calloutLabel, calloutLabel.collisionAvoidance.avoid);
+        const calloutLabelFit = resolveLabelFit(calloutLabel, false);
         const labelValues = this.getLabelContent(datumIndex, datum, processedDataValues, calloutLabelFit);
         const label = labelValues.legendItem ?? labelValues.callout ?? labelValues.sector ?? angleName;
 
@@ -1853,7 +1848,7 @@ export class DonutSeries extends PolarSeries<
         const rawData = processedData.dataSources.get(this.id)?.data;
         const invalidData = processedData.invalidData?.get(this.id);
         const { calloutLabel } = this.properties;
-        const calloutLabelFit = resolveLabelFit(calloutLabel, calloutLabel.collisionAvoidance.avoid);
+        const calloutLabelFit = resolveLabelFit(calloutLabel, false);
         for (let datumIndex = 0; datumIndex < processedData.input.count; datumIndex++) {
             const datum = rawData?.[datumIndex] as any;
             const angleRawValue = angleRawValues[datumIndex];

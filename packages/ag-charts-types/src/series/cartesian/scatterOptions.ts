@@ -9,7 +9,7 @@ import type {
 import type { AgChartLabelCollisionPlacement } from '../../chart/collisionAvoidanceOptions';
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from '../../chart/errorBarOptions';
 import type {
-    AgChartLabelFitOptions,
+    AgChartLabelCollisionFitOptions,
     AgChartLabelOptions,
     AgSeriesLabelPlacementStyleOptions,
 } from '../../chart/labelOptions';
@@ -57,7 +57,7 @@ export type AgScatterSeriesItemStylerParams<TDatum = DatumDefault, TContext = Co
 export interface AgScatterSeriesLabel<TDatum, TContext = ContextDefault>
     extends
         AgChartLabelOptions<TDatum, AgScatterSeriesLabelFormatterParams<TDatum>, TContext>,
-        AgChartLabelFitOptions,
+        AgChartLabelCollisionFitOptions,
         AgSeriesLabelPlacementStyleOptions {
     /**
      * Placement of the label in relation to the marker. Either a single placement or an ordered

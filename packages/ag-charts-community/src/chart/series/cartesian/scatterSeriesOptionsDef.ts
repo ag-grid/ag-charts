@@ -9,8 +9,8 @@ import {
     enterprise,
     errorBarOptionsDefs,
     errorBarThemeableOptionsDefs,
+    labelCollisionFitOptionsDefs,
     labelCollisionPlacementDef,
-    labelFitOptionsDefs,
     labelPlacementStyleDefs,
     markerOptionsDefs,
     multiSeriesHighlightOptionsDef,
@@ -35,7 +35,7 @@ export const scatterSeriesThemeableOptionsDef: OptionsDefs<AgScatterSeriesThemea
     label: {
         placement: labelCollisionPlacementDef,
         ...seriesLabelOptionsDefs,
-        ...labelFitOptionsDefs,
+        ...labelCollisionFitOptionsDefs,
         ...labelPlacementStyleDefs,
     },
     tooltip: tooltipOptionsDefs,

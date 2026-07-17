@@ -133,11 +133,11 @@ describe('series label fit', () => {
             expect(labelTexts()).toEqual(showData.map((d) => d.label));
         });
 
-        it('hides oversized labels when collision avoidance is enabled', async () => {
-            await renderAndSnapshot(barChart({ collisionAvoidance: { enabled: true } }));
+        it('hides oversized labels when suppressHide is false', async () => {
+            await renderAndSnapshot(barChart({ collision: { suppressHide: false } }));
             const texts = labelTexts();
-            // avoid → overflow 'hide': oversized labels are dropped to empty rather than ellipsised, while labels
-            // that already fit their bar survive intact.
+            // suppressHide: false → overflow 'hide': oversized labels are dropped to empty rather than ellipsised,
+            // while labels that already fit their bar survive intact.
             expect(texts.some((text) => text === '' || text == null)).toBe(true);
             expect(someTruncated(texts)).toBe(false);
         });
@@ -421,9 +421,8 @@ describe('series label fit', () => {
     });
 
     it('ellipsises an inside label with truncate unset rather than hiding it when the marker is too small', async () => {
-        // Regression: inside-marker labels resolve their overflow strategy from `avoidCollisions`, which
-        // used to fall to 'hide' when `truncate` was unset — a marker too small for the full text rendered
-        // nothing at all. They now default to ellipsis, so an overflowing label survives truncated.
+        // Inside-marker labels default their overflow strategy to ellipsis, not hide, so a marker too
+        // small for the full text still renders a truncated label rather than nothing at all.
         await renderAndSnapshot({
             data: lineData,
             legend: { enabled: false },

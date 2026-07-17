@@ -10,7 +10,7 @@ import {
 import type {
     AgChartLabelCollideWithCategoryOptions,
     AgChartLabelCollideWithOptions,
-    AgChartLabelCollisionAvoidanceOptions,
+    AgChartLabelCollisionOptions,
     AgChartLabelCollisionPlacement,
     AgChartLabelFormatterParams,
     AgChartLabelOptions,
@@ -82,26 +82,19 @@ class LabelCollideWith extends BaseProperties implements AgChartLabelCollideWith
     seriesItems = new LabelCollideWithCategory();
 }
 
-export class LabelCollisionAvoidance extends BaseProperties implements AgChartLabelCollisionAvoidanceOptions {
-    @Property
-    enabled?: boolean;
-
+export class LabelCollision extends BaseProperties implements AgChartLabelCollisionOptions {
     @Property
     minSpacing?: number;
 
     @Property
+    suppressHide: boolean = true;
+
+    @Property
     collideWith = new LabelCollideWith();
 
-    /** Whether labels should be resolved against obstacles; otherwise placed unconditionally. */
-    get avoid(): boolean {
-        return this.enabled === true;
-    }
-
-    /** Resolved per-category obstacle config, or `undefined` when not avoiding collisions. */
-    resolveCollideWith(): CollideWith | undefined {
-        if (!this.avoid) return undefined;
+    /** Resolved per-category obstacle config. Marker/label avoidance defaults on; seriesItem is opt-in. */
+    resolveCollideWith(): CollideWith {
         const { markers, labels, seriesItems } = this.collideWith;
-        // Marker/label avoidance defaults on; cross-series geometry (seriesItem) is opt-in.
         return {
             marker: { enabled: markers.enabled !== false, minSpacing: markers.minSpacing },
             label: { enabled: labels.enabled !== false, minSpacing: labels.minSpacing },
@@ -171,7 +164,7 @@ export class Label<TParams = never, TDatum = any>
     enabled: boolean = false;
 
     @Property
-    collisionAvoidance = new LabelCollisionAvoidance();
+    collision = new LabelCollision();
 
     @Property
     orientation?: AgChartLabelOrientation | AgChartLabelOrientation[];

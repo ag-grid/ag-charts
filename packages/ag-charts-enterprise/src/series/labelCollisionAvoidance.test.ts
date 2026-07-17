@@ -17,9 +17,9 @@ import { ukRoadData } from './map-test/ukRoadData';
 import ukRoadTopology from './map-test/ukRoadTopology.json';
 import ukTopology from './map-test/ukTopology.json';
 
-// Consolidated placement/collision-avoidance coverage for enterprise series. `collisionAvoidance` is
-// an undocumented opt-in model, so option objects that use it are built untyped and cast at the
-// AgCharts.create boundary.
+// Consolidated placement/collision coverage for enterprise series. Collision resolution always runs;
+// `collideWith` within `label.collision` is undocumented, so option objects that use it are built
+// untyped and cast at the AgCharts.create boundary.
 describe('label collision avoidance', () => {
     setupMockConsole();
 
@@ -42,7 +42,8 @@ describe('label collision avoidance', () => {
     };
 
     // A tight cluster of lat/lon markers (projection fixed by the UK background) forces overlapping
-    // labels, so placement candidates resolve real collisions when enabled and are ignored when off.
+    // labels, so placement candidates always resolve real collisions; `suppressHide` only decides the
+    // terminal outcome for a label that fails every candidate.
     describe('map-marker', () => {
         // 4x4 grid of points within a ~1° box; at the UK-wide projection they land in a small pixel
         // region, so their labels overlap heavily.
@@ -66,17 +67,17 @@ describe('label collision avoidance', () => {
             ],
         });
 
-        it('should reposition overlapping labels via the collisionAvoidance model', async () => {
-            await renderAndSnapshot(markerOptions({ collisionAvoidance: { enabled: true } }));
+        it('reposition overlapping labels around the candidate list (suppressHide: false, default)', async () => {
+            await renderAndSnapshot(markerOptions({}));
         });
 
-        it('places every label at its first placement when disabled', async () => {
-            await renderAndSnapshot(markerOptions({ collisionAvoidance: { enabled: false } }));
+        it('keeps a label that fails every candidate visible when suppressHide is true', async () => {
+            await renderAndSnapshot(markerOptions({ collision: { suppressHide: true } }));
         });
     });
 
-    // Map-line labels centre on the line (no directional placement), so avoidance only drops
-    // colliding labels; disabling it must render every label regardless of overlap.
+    // Map-line labels centre on the line (no directional placement), so collision resolution only ever
+    // decides whether an overlapping label is hidden or kept.
     describe('map-line', () => {
         const lineOptions = (config: object) => ({
             topology: ukRoadTopology,
@@ -87,18 +88,18 @@ describe('label collision avoidance', () => {
                     idKey: 'name',
                     labelKey: 'name',
                     // Large bold labels so neighbouring route names genuinely overlap, forcing the
-                    // avoidance pass to drop some when enabled (and keep them all when disabled).
+                    // collision pass to drop some by default (and keep them all with suppressHide: true).
                     label: { enabled: true, fontSize: 24, fontWeight: 'bold', ...config },
                 },
             ],
         });
 
-        it('resolves overlapping route labels when enabled', async () => {
-            await renderAndSnapshot(lineOptions({ collisionAvoidance: { enabled: true } }));
+        it('drops overlapping route labels (suppressHide: false, default)', async () => {
+            await renderAndSnapshot(lineOptions({}));
         });
 
-        it('places every route label when disabled', async () => {
-            await renderAndSnapshot(lineOptions({ collisionAvoidance: { enabled: false } }));
+        it('keeps every overlapping route label when suppressHide is true', async () => {
+            await renderAndSnapshot(lineOptions({ collision: { suppressHide: true } }));
         });
     });
 

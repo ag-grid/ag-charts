@@ -15,6 +15,7 @@ import {
     fillOptionsDef,
     highlightOptionsDef,
     interpolationOptionsDefs,
+    labelCollisionFitOptionsDefs,
     labelCollisionPlacementDef,
     labelFitOptionsDefs,
     labelOrientationDef,
@@ -333,7 +334,7 @@ export const mapLineSeriesThemeableOptionsDef: OptionsDefs<AgMapLineSeriesThemea
     sizeDomain: and(arrayOf(positiveNumericValue), arrayLength(2, 2)),
     label: {
         ...seriesLabelOptionsDefs,
-        ...labelFitOptionsDefs,
+        ...labelCollisionFitOptionsDefs,
     },
     tooltip: tooltipOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
@@ -355,7 +356,7 @@ export const mapMarkerSeriesThemeableOptionsDef: OptionsDefs<AgMapMarkerSeriesTh
     label: {
         placement: labelCollisionPlacementDef,
         ...seriesLabelOptionsDefs,
-        ...labelFitOptionsDefs,
+        ...labelCollisionFitOptionsDefs,
     },
     tooltip: tooltipOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
@@ -551,7 +552,7 @@ export const rangeAreaSeriesThemeableOptionsDef: OptionsDefs<AgRangeAreaSeriesTh
     interpolation: interpolationOptionsDefs,
     label: {
         ...seriesLabelOptionsDefs,
-        ...labelFitOptionsDefs,
+        ...labelCollisionFitOptionsDefs,
         ...labelPlacementStyleDefs,
         placement: rangeInsideOutsidePlacementDef,
         spacing: positiveNumber,
@@ -596,7 +597,7 @@ export const rangeBarSeriesThemeableOptionsDef: OptionsDefs<AgRangeBarSeriesThem
     itemStyler: rangeBarStyleCallback,
     label: {
         ...seriesLabelOptionsDefs,
-        ...labelFitOptionsDefs,
+        ...labelCollisionFitOptionsDefs,
         ...labelPlacementStyleDefs,
         placement: rangeInsideOutsidePlacementDef,
         orientation: labelOrientationDef,
@@ -746,7 +747,7 @@ const waterfallSeriesItemOptionsDef: OptionsDefs<AgWaterfallSeriesItemOptions<an
     }),
     label: {
         ...seriesLabelOptionsDefs,
-        ...labelFitOptionsDefs,
+        ...labelCollisionFitOptionsDefs,
         ...labelPlacementStyleDefs,
         placement: waterfallPlacementDef,
         orientation: labelOrientationDef,

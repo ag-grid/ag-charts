@@ -10,8 +10,8 @@ import {
     commonSeriesThemeableOptionsDefs,
     constant,
     enterprise,
+    labelCollisionFitOptionsDefs,
     labelCollisionPlacementDef,
-    labelFitOptionsDefs,
     labelPlacementStyleDefs,
     markerOptionsDefs,
     multiSeriesHighlightOptionsDef,
@@ -41,7 +41,7 @@ export const bubbleSeriesThemeableOptionsDef: OptionsDefs<AgBubbleSeriesThemeabl
     label: {
         placement: labelCollisionPlacementDef,
         ...seriesLabelOptionsDefs,
-        ...labelFitOptionsDefs,
+        ...labelCollisionFitOptionsDefs,
         ...labelPlacementStyleDefs,
     },
     tooltip: tooltipOptionsDefs,

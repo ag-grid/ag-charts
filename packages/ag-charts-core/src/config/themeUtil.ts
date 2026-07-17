@@ -1,6 +1,5 @@
 import type {
     AgCartesianChartOptions,
-    AgChartLabelCollisionAvoidanceOptions,
     AgHighlightOptions,
     AgHighlightStyleOptions,
     AgMultiSeriesHighlightOptions,
@@ -394,9 +393,7 @@ export const LABEL_BOXING_DEFAULTS: WithThemeParams<LabelBoxOptions> = {
  * carry only user overrides plus a conditional `color` default (whose value legitimately differs
  * per inside/outside placement).
  */
-export const LABEL_BOXING_TOP_LEVEL_DEFAULTS: WithThemeParams<
-    LabelBoxOptions & { collisionAvoidance: AgChartLabelCollisionAvoidanceOptions }
-> = {
+export const LABEL_BOXING_TOP_LEVEL_DEFAULTS: WithThemeParams<LabelBoxOptions> = {
     ...LABEL_BOXING_FILL_DEFAULTS,
     cornerRadius: 4,
     border: {
@@ -404,7 +401,6 @@ export const LABEL_BOXING_TOP_LEVEL_DEFAULTS: WithThemeParams<
         strokeWidth: 1,
         stroke: { $foregroundOpacity: 0.08 },
     },
-    collisionAvoidance: { enabled: false },
 };
 
 export const MULTI_SERIES_HIGHLIGHT_STYLE: WithThemeParams<AgMultiSeriesHighlightOptions<AgHighlightStyleOptions>> = {
