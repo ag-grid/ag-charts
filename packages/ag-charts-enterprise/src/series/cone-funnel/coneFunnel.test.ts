@@ -18,6 +18,7 @@ import {
     hoverAction,
     setupMockCanvas,
     setupMockConsole,
+    spyOnAnimationFrames,
     waitForChartStability,
 } from 'ag-charts-community-test';
 
@@ -407,6 +408,34 @@ describe('ConeFunnelSeries', () => {
         });
         chart = deproxy(AgCharts.create(options));
         await compare();
+    });
+
+    describe('data-update stage removal', () => {
+        const frames = spyOnAnimationFrames();
+
+        const optionsWithData = (data: unknown[]): AgChartOptions =>
+            prepareEnterpriseTestOptions({ ...CONE_FUNNEL_EXAMPLE, data });
+
+        it('AG-17796 removes a stage node from the scene when a stage is removed from data', async () => {
+            const stages = CONE_FUNNEL_EXAMPLE.data as unknown[];
+
+            const proxy = AgCharts.create(optionsWithData(stages));
+            chart = deproxy(proxy);
+            await frames.runToEnd(chart);
+
+            const series = chart.series[0];
+            const stageNodeCount = () => [...series.dataNodeGroup.children()].length;
+            const connectorNodeCount = () => [...series.connectorNodeGroup.children()].length;
+
+            expect(stageNodeCount()).toBe(4);
+            expect(connectorNodeCount()).toBe(3);
+
+            await proxy.update(optionsWithData(stages.slice(0, 3)));
+            await frames.runToEnd(chart);
+
+            expect(stageNodeCount()).toBe(3);
+            expect(connectorNodeCount()).toBe(2);
+        });
     });
 
     describe('numeric category data', () => {
