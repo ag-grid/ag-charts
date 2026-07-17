@@ -40,24 +40,30 @@ export interface NetworkTreeLayoutUpdateOptions<TVertex, TEdge> extends NetworkL
  * tree.
  */
 export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TEdge> {
-    // Avoids `containerBBox`, whose recursive sibling-merge over-accumulates height to O(N).
-    private readonly contentBoundsAccumulator: ContentBoundsAccumulator = {
-        count: 0,
-        left: 0,
-        top: 0,
-        right: 0,
-        bottom: 0,
-    };
+    private direction?: AgNetworkSeriesTreeLayoutDirection;
+    private directionalLayout?: NetworkTreeDirectionalLayout<TVertex, TEdge>;
 
     update(options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>) {
         this.calculateRegularDimensions(options);
 
-        const acc = this.contentBoundsAccumulator;
+        if (this.direction !== options.direction || this.directionalLayout == null) {
+            this.direction = options.direction;
+
+            if (options.direction === 'left' || options.direction === 'right') {
+                this.directionalLayout = new NetworkTreeHorizontalLayout<TVertex, TEdge>();
+            } else {
+                this.directionalLayout = new NetworkTreeVerticalLayout<TVertex, TEdge>();
+            }
+        }
+
+        const acc = this.directionalLayout.contentBoundsAccumulator;
         acc.count = 0;
-        const { containerBBox } = this.updateNodes(options);
+
+        const { containerBBox } = this.directionalLayout.updateNodes(options, undefined, this.regularBBox);
         this._contentBBox =
             acc.count > 0 ? new BBox(acc.left, acc.top, acc.right - acc.left, acc.bottom - acc.top) : containerBBox;
-        this.updateOffset(options, containerBBox);
+
+        this.directionalLayout.updateOffset(options, containerBBox);
     }
 
     protected override calculateRegularDimensions(options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>) {
@@ -81,10 +87,22 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
             this.regularBBox = new BBox(0, 0, options.nodeWidth, options.nodeHeight);
         }
     }
+}
 
-    private updateNodes(
+class NetworkTreeDirectionalLayout<TVertex, TEdge> {
+    // Avoids `containerBBox`, whose recursive sibling-merge over-accumulates height to O(N).
+    readonly contentBoundsAccumulator: ContentBoundsAccumulator = {
+        count: 0,
+        left: 0,
+        top: 0,
+        right: 0,
+        bottom: 0,
+    };
+
+    updateNodes(
         options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>,
-        groupBBox: TBBox = new BBox(0, 0, 0, 0)
+        groupBBox: TBBox = new BBox(0, 0, 0, 0),
+        regularBBox?: TBBox
     ): {
         containerBBox: TBBox;
         childrenBBoxes: { vertex: Vertex<TVertex, TEdge>; bbox: TBBox }[];
@@ -101,7 +119,7 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
             let nodeBBox = getDatumNodeBBox(vertex);
             if (!nodeBBox && options.hiddenOnCollapse) continue;
 
-            nodeBBox = this.regularBBox ?? nodeBBox;
+            nodeBBox = regularBBox ?? nodeBBox;
             if (!nodeBBox) continue;
 
             // Add spacing to the left if the previous sibling has visible children.
@@ -111,7 +129,14 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
 
             // Layout children before their parent so that the parent can be aligned to match the children.
             const { descendentsContainerBBox, childrenBBoxes, mergedChildrenBBoxes, childrenCount } =
-                this.updateChildren(options, vertex, groupBBox, nodeBBox, prevHasVisibleChildren || index === 0);
+                this.updateChildren(
+                    options,
+                    vertex,
+                    groupBBox,
+                    nodeBBox,
+                    regularBBox,
+                    prevHasVisibleChildren || index === 0
+                );
 
             const hasVisibleChildren =
                 childrenCount > 0 && mergedChildrenBBoxes != null && mergedChildrenBBoxes.width > 0;
@@ -127,7 +152,7 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
 
             // Request the series to layout the node per the calculated bbox. Override the layoutBBox for the accumulator
             // if the node extends outside its default size, e.g. for an expander pill.
-            const overrideAccumulateBBox = layoutDatumNode(vertex, layoutBBox, this.regularBBox);
+            const overrideAccumulateBBox = layoutDatumNode(vertex, layoutBBox, regularBBox);
 
             layoutBBoxes.push({ vertex, bbox: layoutBBox });
             this.accumulateContentBounds(overrideAccumulateBBox ?? layoutBBox);
@@ -168,14 +193,15 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
         options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>,
         vertex: Vertex<TVertex, TEdge>,
         groupBBox: TBBox,
-        datumBBox: TBBox,
+        nodeBBox: TBBox,
+        regularBBox: TBBox | undefined,
         prevHasVisibleChildren: boolean
     ) {
         const { graph } = options;
         const children = graph.neighboursWithEdgeValue(vertex, 'child' as TEdge) as Vertex<TVertex, TEdge>[];
         if (!children || children.length == 0) return { childrenCount: 0 };
 
-        let adjustY = datumBBox.height + options.layerSpacing + options.verticalSpacingExtra;
+        let adjustY = nodeBBox.height + options.layerSpacing + options.verticalSpacingExtra;
         if (options.direction === 'up') adjustY *= -1;
         const childrenGroupBBox = new BBox(groupBBox.x, groupBBox.y + adjustY, groupBBox.width, groupBBox.height);
 
@@ -186,7 +212,8 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
 
         const { containerBBox, childrenBBoxes } = this.updateNodes(
             { ...options, vertices: children },
-            childrenGroupBBox
+            childrenGroupBBox,
+            regularBBox
         );
 
         return {
@@ -266,7 +293,7 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
         path.lineTo(end.x, end.y);
     }
 
-    private updateOffset(options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>, containerBBox: TBBox) {
+    updateOffset(options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>, containerBBox: TBBox, regularBBox?: TBBox) {
         let offset = {
             x: containerBBox.x + containerBBox.width / 2,
             y: 0,
@@ -277,7 +304,7 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
             const focusedBBox = options.getDatumNodeBBox(focusedVertex);
             if (focusedBBox) {
                 offset = {
-                    x: options.width / 2 - focusedBBox.x - (this.regularBBox?.width ?? focusedBBox.width) / 2,
+                    x: options.width / 2 - focusedBBox.x - (regularBBox?.width ?? focusedBBox.width) / 2,
                     y: -focusedBBox.y,
                 };
             }
@@ -287,7 +314,7 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
             if (bboxes && bboxes.length > 0) {
                 const focusedBBox = BBox.merge(bboxes as TBBox[]);
                 offset = {
-                    x: options.width / 2 - focusedBBox.x - (this.regularBBox?.width ?? focusedBBox.width) / 2,
+                    x: options.width / 2 - focusedBBox.x - (regularBBox?.width ?? focusedBBox.width) / 2,
                     y: -focusedBBox.y,
                 };
             }
@@ -314,3 +341,7 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
         acc.count++;
     }
 }
+
+class NetworkTreeVerticalLayout<TVertex, TEdge> extends NetworkTreeDirectionalLayout<TVertex, TEdge> {}
+
+class NetworkTreeHorizontalLayout<TVertex, TEdge> extends NetworkTreeDirectionalLayout<TVertex, TEdge> {}
