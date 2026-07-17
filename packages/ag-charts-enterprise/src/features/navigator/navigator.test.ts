@@ -4,11 +4,10 @@ import { type AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
 import {
     CROSSLINE_EXAMPLES,
     type CartesianTestCase,
-    IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
+    compareImageSnapshot,
     deproxy,
     expectWarningsCalls,
-    extractImageData,
     repeat,
     setupMockCanvas,
     setupMockConsole,
@@ -353,10 +352,7 @@ describe('Navigator', () => {
     const ctx = setupMockCanvas();
 
     const compare = async () => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        await compareImageSnapshot(chart, ctx);
     };
 
     describe('keyboard focus', () => {

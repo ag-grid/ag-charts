@@ -1,15 +1,14 @@
-import { afterEach, describe, expect } from 'vitest';
+import { afterEach, describe } from 'vitest';
 
 import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
-    extractImageData,
+    compareImageSnapshot,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
-    waitForChartStability,
 } from '../test/utils';
 
 const EXAMPLE_GRID_LINE = {
@@ -37,10 +36,7 @@ describe('AxisGridLine', () => {
     const opts: AgCartesianChartOptions = prepareTestOptions({});
 
     const compare = async () => {
-        await waitForChartStability(chart);
-
-        const newImageData = extractImageData(ctx);
-        expect(newImageData).toMatchImageSnapshot({ ...IMAGE_SNAPSHOT_DEFAULTS, failureThreshold: 0 });
+        await compareImageSnapshot(chart, ctx, { ...IMAGE_SNAPSHOT_DEFAULTS, failureThreshold: 0 });
     };
 
     // AG-8777

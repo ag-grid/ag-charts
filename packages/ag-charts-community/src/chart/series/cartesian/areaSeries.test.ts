@@ -58,6 +58,7 @@ import {
     axisReflowSpec,
     cartesianChartAssertions,
     clickAction,
+    compareImageSnapshot,
     createChart,
     createSceneGeometrySampler,
     deproxy,
@@ -70,7 +71,6 @@ import {
     expectSceneSamplesMatch,
     expectSceneTrajectory,
     expectWarningsCalls,
-    extractImageData,
     hoverAction,
     mixinReversedAxesCases,
     prepareTestOptions,
@@ -368,10 +368,7 @@ const INVALID_DATA_EXAMPLES: Record<string, ChartTestCase> = {
 describe('AreaSeries', () => {
     setupMockConsole();
     const compare = async (defaults = IMAGE_SNAPSHOT_DEFAULTS) => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(defaults);
+        await compareImageSnapshot(chart, ctx, defaults);
     };
 
     let chart: AgChartInstance;

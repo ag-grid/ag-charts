@@ -1,14 +1,13 @@
-import { describe, expect, test } from 'vitest';
+import { describe, test } from 'vitest';
 
 import type { AgChartOptions } from 'ag-charts-types';
 
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    compareImageSnapshot,
     createChart,
-    extractImageData,
     setupMockCanvas,
     setupMockConsole,
-    waitForChartStability,
 } from './test/utils';
 
 const HEBREW_CARTESIAN_DATA = [
@@ -35,9 +34,7 @@ describe('RTL', () => {
     const ctx = setupMockCanvas();
 
     const compare = async () => {
-        await waitForChartStability(chart);
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot({ ...IMAGE_SNAPSHOT_DEFAULTS, failureThreshold: 0 });
+        await compareImageSnapshot(chart, ctx, { ...IMAGE_SNAPSHOT_DEFAULTS, failureThreshold: 0 });
     };
 
     const createRtlChart = (options: AgChartOptions) =>

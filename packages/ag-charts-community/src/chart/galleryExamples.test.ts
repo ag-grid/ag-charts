@@ -6,7 +6,7 @@ import { AgCharts } from '../api/agCharts';
 import { EXAMPLES } from './test/examples-gallery';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
-    extractImageData,
+    compareImageSnapshot,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
@@ -46,10 +46,7 @@ describe('Gallery Examples', () => {
             'for %s it should render to canvas as expected',
             async (_exampleName, example) => {
                 const compare = async (defaults = IMAGE_SNAPSHOT_DEFAULTS) => {
-                    await waitForChartStability(chart);
-
-                    const imageData = extractImageData(ctx);
-                    expect(imageData).toMatchImageSnapshot(defaults);
+                    await compareImageSnapshot(chart, ctx, defaults);
                 };
 
                 const options: AgChartOptions = { ...example.options };

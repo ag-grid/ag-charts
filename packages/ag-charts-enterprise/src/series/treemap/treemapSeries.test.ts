@@ -12,13 +12,13 @@ import {
     BIG,
     type Chart,
     GALLERY_EXAMPLES,
-    IMAGE_SNAPSHOT_DEFAULTS,
     MIN_TOOLTIP_HIDE_DELAY,
     type SceneFrameInvariant,
     type SceneGeometrySample,
     TREEMAP_SERIES_LABELS,
     assertTooltipPresentForAll,
     clickAction,
+    compareImageSnapshot,
     createSceneGeometrySampler,
     deproxy,
     expectAnimatedEndpointsMatchStatic,
@@ -26,7 +26,6 @@ import {
     expectSceneSamplesMatch,
     expectSceneTrajectory,
     expectWarningsCalls,
-    extractImageData,
     hierarchyChartAssertions,
     hoverAction,
     setupMockCanvas,
@@ -53,10 +52,7 @@ describe('TreemapSeries', () => {
     const ctx = setupMockCanvas();
 
     const compare = async () => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        await compareImageSnapshot(chart, ctx);
     };
 
     describe('Series Highlighting', () => {

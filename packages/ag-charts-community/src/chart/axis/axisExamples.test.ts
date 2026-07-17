@@ -16,9 +16,9 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     PATTERN_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
+    compareImageSnapshot,
     createChart,
     deproxy,
-    extractImageData,
     repeat,
     reverseAxes,
     setupMockCanvas,
@@ -314,10 +314,7 @@ describe('Axis Examples', () => {
     };
 
     const compare = async (defaults = IMAGE_SNAPSHOT_DEFAULTS) => {
-        await waitForChartStability(chart);
-
-        const newImageData = extractImageData(ctx);
-        expect(newImageData).toMatchImageSnapshot(defaults);
+        await compareImageSnapshot(chart, ctx, defaults);
     };
 
     for (const [exampleName, example] of Object.entries(EXAMPLES)) {
@@ -327,25 +324,23 @@ describe('Axis Examples', () => {
         });
 
         it(`for ${exampleName} it should render to canvas as expected`, async () => {
-            const axisCompare = () => {
+            const axisCompare = async () => {
                 for (const axis of deproxy(chart).axes) {
                     if (example.compare != null && !example.compare.includes(axis.type as AgCartesianAxisType)) {
                         continue;
                     }
 
                     const axesBBox = calculateAxisBBox(axis);
-                    const imageData = extractImageData({ ...ctx, bbox: axesBBox });
-
-                    expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+                    await compareImageSnapshot(chart, { ...ctx, bbox: axesBBox }, IMAGE_SNAPSHOT_DEFAULTS);
                 }
             };
 
             chart = await createChart(example.options);
-            axisCompare();
+            await axisCompare();
 
             if (example.extraScreenshotActions) {
                 await example.extraScreenshotActions(chart);
-                axisCompare();
+                await axisCompare();
             }
         });
     }

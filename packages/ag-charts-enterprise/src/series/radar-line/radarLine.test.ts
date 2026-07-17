@@ -16,13 +16,13 @@ import {
     type PhasedPropertyExpectation,
     type SceneGeometrySample,
     clickAction,
+    compareImageSnapshot,
     computeLegendBBox,
     createSceneGeometrySampler,
     deproxy,
     expectAnimatedEndpointsMatchStatic,
     expectSceneTrajectory,
     expectWarningsCalls,
-    extractImageData,
     hoverAction,
     looserSnapshotDefaults,
     newFreezableMock,
@@ -75,10 +75,7 @@ describe('RadarLineSeries', () => {
     };
 
     const compare = async (options?: MatchImageSnapshotOptions) => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(options);
+        await compareImageSnapshot(chart, ctx, options);
     };
 
     it(`should render polar chart as expected`, async () => {

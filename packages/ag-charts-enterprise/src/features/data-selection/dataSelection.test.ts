@@ -19,10 +19,10 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     MockSelectionChangeListener,
     clickAction,
+    compareImageSnapshot,
     delay,
     deproxy,
     dragAction,
-    extractImageData,
     getSeriesAggregationInternals,
     keyDownAction,
     mouseDownAction,
@@ -786,9 +786,7 @@ describe('DataSelection', () => {
     setupMockConsole();
 
     const compare = async (defaults = IMAGE_SNAPSHOT_DEFAULTS) => {
-        await waitForChartStability(chart);
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(defaults);
+        await compareImageSnapshot(chart, ctx, defaults);
     };
 
     const compareExact = async (name: string) => {

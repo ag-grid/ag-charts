@@ -12,10 +12,10 @@ import type { Chart } from '../chart';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     clickAction,
+    compareImageSnapshot,
     createChart,
     deproxy,
     doubleClickAction,
-    extractImageData,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
@@ -47,9 +47,7 @@ describe('LegendEvent', () => {
     const ctx = setupMockCanvas();
 
     const compare = async () => {
-        await waitForChartStability(chart);
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot({ ...IMAGE_SNAPSHOT_DEFAULTS, failureThreshold: 0 });
+        await compareImageSnapshot(chart, ctx, { ...IMAGE_SNAPSHOT_DEFAULTS, failureThreshold: 0 });
     };
 
     afterEach(() => {

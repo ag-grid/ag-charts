@@ -9,10 +9,10 @@ import type { Chart } from './chart';
 import type { ChartCaption } from './chartCaption';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    compareImageSnapshot,
     createChart,
     deproxy,
     expectWarningsCalls,
-    extractImageData,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
@@ -24,9 +24,7 @@ describe('Caption', () => {
     setupMockConsole();
 
     const compare = async () => {
-        await waitForChartStability(chart);
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot({ ...IMAGE_SNAPSHOT_DEFAULTS, failureThreshold: 0 });
+        await compareImageSnapshot(chart, ctx, { ...IMAGE_SNAPSHOT_DEFAULTS, failureThreshold: 0 });
     };
 
     let chart: Chart;

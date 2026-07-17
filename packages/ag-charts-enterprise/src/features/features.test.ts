@@ -3,9 +3,9 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { type AgChartOptions, AgCharts } from 'ag-charts-community';
 import {
     clickAction,
+    compareImageSnapshot,
     contextMenuAction,
     dragAction,
-    extractImageData,
     hoverAction,
     scrollAction,
     setupMockCanvas,
@@ -30,10 +30,7 @@ describe('Feature Combinations', () => {
     });
 
     const compare = async () => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot({
+        await compareImageSnapshot(chart, ctx, {
             failureThreshold: 0,
             failureThresholdType: 'percent',
         });

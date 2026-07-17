@@ -4,11 +4,11 @@ import { type AgCartesianChartOptions, type AgChartInstance, type AgChartOptions
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     type SceneGeometrySample,
+    compareImageSnapshot,
     createSceneGeometrySampler,
     deproxy,
     expectAnimatedEndpointsMatchStatic,
     expectNoAnimation,
-    extractImageData,
     setupMockCanvas,
     setupMockConsole,
     spyOnAnimationFrames,
@@ -41,10 +41,7 @@ describe('CandlestickSeries', () => {
     const ctx = setupMockCanvas();
 
     const compareSnapshot = async (chart: any) => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
 
         chart.destroy();
     };
@@ -459,8 +456,7 @@ describe('CandlestickSeries', () => {
                 expect(legendDataAfter[0].seriesId).toBe(legendDataBefore[0].seriesId);
 
                 // Verify legend visually
-                const imageData = extractImageData(ctx);
-                expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+                await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
             });
         });
 
@@ -539,8 +535,7 @@ describe('CandlestickSeries', () => {
                 expect(uniqueSeriesIds.size).toBe(2);
 
                 // Verify legend visually shows exactly 2 items
-                const imageData = extractImageData(ctx);
-                expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+                await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
             });
         });
     });

@@ -18,6 +18,7 @@ import {
     type SceneFrameInvariant,
     type SceneGeometrySample,
     type SceneNodeExpectation,
+    compareImageSnapshot,
     createSceneGeometrySampler,
     deproxy,
     expectAnimatedEndpointsMatchStatic,
@@ -26,7 +27,6 @@ import {
     expectProgresses,
     expectSceneTrajectory,
     expectWarningsCalls,
-    extractImageData,
     hoverAction,
     magnitudePair,
     newFreezableMock,
@@ -89,10 +89,7 @@ describe('RadialColumnSeries', () => {
     };
 
     const compare = async () => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        await compareImageSnapshot(chart, ctx);
     };
 
     it(`should render radial column chart as expected`, async () => {

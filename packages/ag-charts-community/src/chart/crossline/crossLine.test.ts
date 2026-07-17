@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, it } from 'vitest';
 
 import { mapValues } from 'ag-charts-core';
 import type {
@@ -14,9 +14,9 @@ import type { CartesianTestCase } from '../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
+    compareImageSnapshot,
     createChart,
     expectWarningMessages,
-    extractImageData,
     prepareTestOptions,
     repeat,
     setupMockCanvas,
@@ -372,10 +372,7 @@ describe('CrossLine', () => {
     const ctx = setupMockCanvas();
 
     const compare = async () => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
     };
 
     describe('#create', () => {

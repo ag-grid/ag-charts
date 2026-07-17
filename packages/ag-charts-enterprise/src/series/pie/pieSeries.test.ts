@@ -1,14 +1,12 @@
 import { expectWarningsCalls } from '_ag-charts-test';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, it, vi } from 'vitest';
 
 import { type AgChartInstance, AgCharts } from 'ag-charts-community';
 import {
-    IMAGE_SNAPSHOT_DEFAULTS,
-    extractImageData,
+    compareImageSnapshot,
     setupMockCanvas,
     setupMockConsole,
     spyOnAnimationManager,
-    waitForChartStability,
 } from 'ag-charts-community-test';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
@@ -20,10 +18,7 @@ describe('PieSeries', () => {
     let chart: AgChartInstance;
 
     const compareSnapshot = async () => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        await compareImageSnapshot(chart, ctx);
     };
 
     afterEach(() => {

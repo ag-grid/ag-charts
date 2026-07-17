@@ -12,11 +12,10 @@ import type {
 import type { ChartAxis } from '../chartAxis';
 import {
     type ChartOrProxy,
-    IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
+    compareImageSnapshot,
     createChart,
     deproxy,
-    extractImageData,
     prepareTestOptions,
     reverseAxes,
     setupMockCanvas,
@@ -502,10 +501,7 @@ describe('Time Axis Examples', () => {
     const ctx = setupMockCanvas();
 
     const compare = async () => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        await compareImageSnapshot(chart, ctx);
     };
 
     afterEach(() => {
@@ -528,12 +524,8 @@ describe('Time Axis Examples', () => {
                         continue;
                     }
 
-                    await waitForChartStability(chart);
                     const axisBbox = calculateAxisBBox(axis);
-
-                    const imageData = extractImageData({ ...ctx, bbox: axisBbox });
-
-                    expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+                    await compareImageSnapshot(chart, { ...ctx, bbox: axisBbox });
                 }
             };
 

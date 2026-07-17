@@ -1,8 +1,8 @@
-import { describe, expect, test } from 'vitest';
+import { describe, test } from 'vitest';
 
 import { type AgCartesianChartOptions, type AgChartOptions, AgCharts } from 'ag-charts-community';
 import {
-    extractImageData,
+    compareImageSnapshot,
     setupMockCanvas,
     setupMockConsole,
     touchDragAction,
@@ -18,9 +18,7 @@ describe('Touch', () => {
     let chart: any;
 
     async function compare(customSnapshotIdentifier?: string) {
-        await waitForChartStability(chart);
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot({
+        await compareImageSnapshot(chart, ctx, {
             failureThreshold: 0,
             failureThresholdType: 'percent',
             customSnapshotIdentifier,

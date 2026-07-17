@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, it } from 'vitest';
 
 import type { AgChartInstance, AgChartOptions } from 'ag-charts-types';
 
@@ -8,7 +8,7 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     PATTERN_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
-    extractImageData,
+    compareImageSnapshot,
     polarChartAssertions,
     prepareTestOptions,
     repeat,
@@ -162,10 +162,7 @@ describe('series labels', () => {
             'for %s it should render to canvas as expected',
             async (_exampleName, example) => {
                 const compare = async (defaults = IMAGE_SNAPSHOT_DEFAULTS) => {
-                    await waitForChartStability(chart);
-
-                    const imageData = extractImageData(ctx);
-                    expect(imageData).toMatchImageSnapshot(defaults);
+                    await compareImageSnapshot(chart, ctx, defaults);
                 };
 
                 const options: AgChartOptions = { ...example.options };

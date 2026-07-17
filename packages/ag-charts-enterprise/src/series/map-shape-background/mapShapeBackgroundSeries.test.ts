@@ -1,15 +1,14 @@
 import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, it } from 'vitest';
 
 import type { AgChartOptions } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    compareImageSnapshot,
     deproxy,
-    extractImageData,
     setupMockCanvas,
     setupMockConsole,
-    waitForChartStability,
 } from 'ag-charts-community-test';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
@@ -38,10 +37,7 @@ describe('MapShapeBackgroundSeries', () => {
     const ctx = setupMockCanvas();
 
     const compare = async (options?: MatchImageSnapshotOptions) => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot({ ...IMAGE_SNAPSHOT_DEFAULTS, ...options });
+        await compareImageSnapshot(chart, ctx, { ...IMAGE_SNAPSHOT_DEFAULTS, ...options });
     };
 
     describe('Simple Chart', () => {

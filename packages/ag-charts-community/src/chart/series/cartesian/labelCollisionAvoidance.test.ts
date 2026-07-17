@@ -7,9 +7,9 @@ import { expectPixelIdenticalAcrossUpdate } from '../../test/bigintExamples';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     PATTERN_SNAPSHOT_DEFAULTS,
+    compareImageSnapshot,
     createChart,
     deproxy,
-    extractImageData,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
@@ -72,8 +72,7 @@ describe('label collision avoidance', () => {
     const renderAndSnapshot = async (options: object, defaults = IMAGE_SNAPSHOT_DEFAULTS) => {
         prepareTestOptions(options as any);
         chart = AgCharts.create(options as any);
-        await waitForChartStability(chart);
-        expect(extractImageData(ctx)).toMatchImageSnapshot(defaults);
+        await compareImageSnapshot(chart, ctx, defaults);
     };
 
     const cartesianAxes = {

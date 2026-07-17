@@ -9,10 +9,9 @@ import type {
 import { AgCharts } from 'ag-charts-community';
 import {
     type ChartTestCase,
-    IMAGE_SNAPSHOT_DEFAULTS,
+    compareImageSnapshot,
     deproxy,
     dragAction,
-    extractImageData,
     hoverAction,
     setupMockCanvas,
     setupMockConsole,
@@ -782,10 +781,7 @@ describe('OrganizationSeries', () => {
     const ctx = setupMockCanvas();
 
     const compare = async () => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        await compareImageSnapshot(chart, ctx);
     };
 
     function getZoomRatios(c: any) {
@@ -1828,10 +1824,8 @@ describe('OrganizationSeries', () => {
 
             // Off-isotropic request (x=0.6 wide, y=0.2 wide) centred at 0.5,0.5.
             setZoom(chart, 0.2, 0.8, 0.4, 0.6);
-            await waitForChartStability(chart);
 
-            const imageData = extractImageData(ctx);
-            expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+            await compareImageSnapshot(chart, ctx);
         });
     });
 

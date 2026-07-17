@@ -6,8 +6,7 @@ import { AgCharts } from '../api/agCharts';
 import './test/_setup-tz-us-pacific';
 import { EXAMPLES } from './test/examples-gallery';
 import {
-    IMAGE_SNAPSHOT_DEFAULTS,
-    extractImageData,
+    compareImageSnapshot,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
@@ -58,10 +57,7 @@ describe('Gallery Examples (US TZ)', () => {
         'for %s it should render to canvas as expected',
         async (_exampleName, example) => {
             const compare = async () => {
-                await waitForChartStability(chart);
-
-                const imageData = extractImageData(ctx);
-                expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+                await compareImageSnapshot(chart, ctx);
             };
 
             const options: AgChartOptions = { ...example.options };

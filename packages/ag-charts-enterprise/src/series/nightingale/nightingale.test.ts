@@ -14,11 +14,11 @@ import {
     MIN_UNHIGHLIGHT_DELAY,
     type MockNightingaleStyler,
     clickAction,
+    compareImageSnapshot,
     deproxy,
     doubleClickAction,
     doubleTapAction,
     expectWarningsCalls,
-    extractImageData,
     hoverAction,
     newFreezableMock,
     setupMockCanvas,
@@ -81,10 +81,7 @@ describe('NightingaleSeries', () => {
     };
 
     const compare = async (customSnapshotIdentifier?: string) => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot({ ...IMAGE_SNAPSHOT_DEFAULTS, customSnapshotIdentifier });
+        await compareImageSnapshot(chart, ctx, { ...IMAGE_SNAPSHOT_DEFAULTS, customSnapshotIdentifier });
     };
 
     it(`should render stacked nightingale chart as expected`, async () => {

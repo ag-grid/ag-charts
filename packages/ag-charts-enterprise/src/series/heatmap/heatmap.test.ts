@@ -10,11 +10,11 @@ import {
     MIN_TOOLTIP_HIDE_DELAY,
     NEG_BIG,
     assertTooltipSuppressedForMissing,
+    compareImageSnapshot,
     computeLegendBBox,
     deproxy,
     expectPixelIdenticalAcrossUpdate,
     expectWarningsCalls,
-    extractImageData,
     hoverAction,
     isTooltipVisible,
     setupMockCanvas,
@@ -80,10 +80,7 @@ describe('HeatmapSeries', () => {
     };
 
     const compare = async () => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        await compareImageSnapshot(chart, ctx);
     };
 
     it(`should render placeholder chart as expected`, async () => {
@@ -164,10 +161,9 @@ describe('HeatmapSeries', () => {
 
             // Clear the data
             await chart.updateDelta({ data: [] });
-            await waitForChartStability(chart);
 
             // Verify chart is cleared
-            expect(extractImageData(ctx)).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+            await compareImageSnapshot(chart, ctx);
         });
     });
 

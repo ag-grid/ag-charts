@@ -19,9 +19,9 @@ import {
 import { type ChartTestCase, COMMUNITY_AND_ENTERPRISE_EXAMPLES as GALLERY_EXAMPLES } from '../../test/examples-gallery';
 import type { ChartOrProxy, SceneGeometrySample, SceneNodeExpectation } from '../../test/utils';
 import {
-    IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
     clickAction,
+    compareImageSnapshot,
     createChart as createMagnitudeChart,
     createSceneGeometrySampler,
     deproxy,
@@ -31,7 +31,6 @@ import {
     expectProgresses,
     expectSceneTrajectory,
     expectWarningsCalls,
-    extractImageData,
     hoverAction,
     prepareTestOptions,
     setupMockCanvas,
@@ -73,10 +72,7 @@ describe('HistogramSeries', () => {
     const ctx = setupMockCanvas();
 
     const compare = async () => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        await compareImageSnapshot(chart, ctx);
     };
 
     const nodeDataOf = (c: any) => (deproxy(c).series[0] as any).getNodeData() as any[];

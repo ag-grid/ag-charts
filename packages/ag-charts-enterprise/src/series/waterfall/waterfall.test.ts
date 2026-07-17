@@ -12,10 +12,10 @@ import {
     BIG,
     IMAGE_SNAPSHOT_DEFAULTS,
     NEG_BIG,
+    compareImageSnapshot,
     deproxy,
     expectPixelIdenticalAcrossMagnitude,
     expectWarningsCalls,
-    extractImageData,
     hoverAction,
     magnitudePair,
     setupMockCanvas,
@@ -121,10 +121,7 @@ describe('WaterfallSeries', () => {
     };
 
     const compare = async (options = IMAGE_SNAPSHOT_DEFAULTS) => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(options);
+        await compareImageSnapshot(chart, ctx, options);
     };
 
     function switchSeriesType<T extends AgChartOptions>(opts: T, direction: 'horizontal' | 'vertical'): T {

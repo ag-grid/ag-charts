@@ -20,6 +20,7 @@ import {
     type SceneGeometrySample,
     assertTooltipPresentForAll,
     clickAction,
+    compareImageSnapshot,
     createSceneGeometrySampler,
     deproxy,
     expectAnimatedEndpointsMatchStatic,
@@ -28,7 +29,6 @@ import {
     expectProgresses,
     expectSceneSamplesMatch,
     expectSceneTrajectory,
-    extractImageData,
     hierarchyChartAssertions,
     hoverAction,
     setupMockCanvas,
@@ -54,10 +54,7 @@ describe('SunburstSeries', () => {
     const ctx = setupMockCanvas();
 
     const compare = async (opts: MatchImageSnapshotOptions = IMAGE_SNAPSHOT_DEFAULTS) => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(opts);
+        await compareImageSnapshot(chart, ctx, opts);
     };
 
     describe('Series Highlighting', () => {

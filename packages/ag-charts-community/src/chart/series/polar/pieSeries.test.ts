@@ -19,6 +19,7 @@ import {
     type SceneGeometrySample,
     type SceneNodeExpectation,
     clickAction,
+    compareImageSnapshot,
     createChart,
     createSceneGeometrySampler,
     deproxy,
@@ -29,7 +30,6 @@ import {
     expectProgresses,
     expectSceneTrajectory,
     expectWarningsCalls,
-    extractImageData,
     looserSnapshotDefaults,
     prepareTestOptions,
     setupMockCanvas,
@@ -73,9 +73,7 @@ describe('PieSeries', () => {
     });
 
     const compare = async (customSnapshotIdentifier?: string, defaults = IMAGE_SNAPSHOT_DEFAULTS) => {
-        await waitForChartStability(chart);
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot({
+        await compareImageSnapshot(chart, ctx, {
             ...defaults,
             failureThreshold: 0,
             customSnapshotIdentifier,

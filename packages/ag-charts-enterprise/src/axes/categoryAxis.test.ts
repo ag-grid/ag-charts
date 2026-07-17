@@ -1,15 +1,13 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, it } from 'vitest';
 
 import {
     type ChartOrProxy,
     DOCS_EXAMPLES,
-    IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
-    extractImageData,
+    compareImageSnapshot,
     repeat,
     setupMockCanvas,
     setupMockConsole,
-    waitForChartStability,
 } from 'ag-charts-community-test';
 import { mapValues } from 'ag-charts-core';
 import type { AgBaseChartOptions, AgCartesianAxisType, AgCartesianChartOptions } from 'ag-charts-types';
@@ -109,10 +107,7 @@ describe('Category Axis', () => {
     const ctx = setupMockCanvas();
 
     const compare = async () => {
-        await waitForChartStability(chart);
-
-        const newImageData = extractImageData(ctx);
-        expect(newImageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        await compareImageSnapshot(chart, ctx);
     };
 
     for (const [exampleName, example] of Object.entries(EXAMPLES)) {

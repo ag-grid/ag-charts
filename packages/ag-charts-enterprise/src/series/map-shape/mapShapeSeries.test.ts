@@ -14,10 +14,10 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     MIN_TOOLTIP_HIDE_DELAY,
     clickAction,
+    compareImageSnapshot,
     deproxy,
     expectWarningMessages,
     expectWarningsCalls,
-    extractImageData,
     hoverAction,
     resetMockConsole,
     setupMockCanvas,
@@ -69,10 +69,7 @@ describe('MapShapeSeries', () => {
     const ctx = setupMockCanvas();
 
     const compare = async (options?: MatchImageSnapshotOptions) => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot({ ...IMAGE_SNAPSHOT_DEFAULTS, ...options });
+        await compareImageSnapshot(chart, ctx, { ...IMAGE_SNAPSHOT_DEFAULTS, ...options });
     };
 
     describe('Simple Chart', () => {

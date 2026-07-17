@@ -5,8 +5,8 @@ import { AgCharts } from 'ag-charts-community';
 import {
     GALLERY_EXAMPLES,
     IMAGE_SNAPSHOT_DEFAULTS,
+    compareImageSnapshot,
     deproxy,
-    extractImageData,
     setupMockCanvas,
     setupMockConsole,
     spyOnAnimationManager,
@@ -37,10 +37,7 @@ describe('RadialGaugeSeries', () => {
     const ctx = setupMockCanvas();
 
     const compare = async () => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        await compareImageSnapshot(chart, ctx);
     };
 
     const snapshot = async () => {

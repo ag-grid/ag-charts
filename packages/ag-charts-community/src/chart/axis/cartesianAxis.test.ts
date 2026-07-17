@@ -6,8 +6,8 @@ import type { AgBaseChartThemeOptions, AgCartesianChartOptions, AgChartInstance 
 import { AgCharts } from '../../api/agCharts';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    compareImageSnapshot,
     deproxy,
-    extractImageData,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
@@ -480,10 +480,7 @@ const invalidValueScenarios: Scenario[] = [
 describe('CartesianAxis', () => {
     setupMockConsole();
     const compare = async (snapshotId: string) => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot({
+        await compareImageSnapshot(chart, ctx, {
             ...IMAGE_SNAPSHOT_DEFAULTS,
             customSnapshotIdentifier: snapshotId,
         });
@@ -923,8 +920,7 @@ describe('CartesianAxis', () => {
                 expect(node.datum.rotation).not.toBe(0);
             }
 
-            const imageData = extractImageData(ctx);
-            expect(imageData).toMatchImageSnapshot({
+            await compareImageSnapshot(chart, ctx, {
                 ...IMAGE_SNAPSHOT_DEFAULTS,
                 customSnapshotIdentifier: 'cartesian-axis-label-auto-rotation-narrow',
             });

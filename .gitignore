@@ -63,6 +63,9 @@ src/env.d.ts
 vite.config.*.timestamp*
 vitest.config.*.timestamp*
 
+# Machine-readable scene-graph captures paired with image snapshots (CI artifacts, never committed)
+__scene_snapshots__/
+
 # Ignore local AI.
 /.context/
 /.claude/

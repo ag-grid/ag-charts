@@ -11,8 +11,8 @@ import type { SeriesNodeDataContext } from './series/series';
 import * as examples from './test/examples';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    compareImageSnapshot,
     deproxy,
-    extractImageData,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
@@ -198,10 +198,7 @@ describe('CartesianChart', () => {
     const ctx = setupMockCanvas();
 
     const compare = async (chartInstance: Chart, options?: MatchImageSnapshotOptions) => {
-        await waitForChartStability(chartInstance);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot({ ...IMAGE_SNAPSHOT_DEFAULTS, ...options });
+        await compareImageSnapshot(chartInstance, ctx, { ...IMAGE_SNAPSHOT_DEFAULTS, ...options });
     };
 
     describe.each([

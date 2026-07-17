@@ -1,12 +1,11 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, it } from 'vitest';
 
 import type { AgCartesianChartOptions, AgChartInstance, AgChartLegendOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../api/agCharts';
 import * as examples from './test/examples';
 import {
-    IMAGE_SNAPSHOT_DEFAULTS,
-    extractImageData,
+    compareImageSnapshot,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
@@ -28,10 +27,7 @@ describe('Scene', () => {
     });
 
     const compare = async () => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        await compareImageSnapshot(chart, ctx);
     };
 
     describe('on translation only change', () => {

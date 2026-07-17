@@ -9,8 +9,8 @@ import { __clearSanitizedThemeCacheForTests } from './factory/processModuleOptio
 import { __clearChartThemeCacheForTests } from './mapping/themes';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    compareImageSnapshot,
     deproxy,
-    extractImageData,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -31,10 +31,7 @@ describe('Sparkline', () => {
     const ctx = setupMockCanvas({ width: 200, height: 100 });
 
     const compare = async (chartInstance: Chart, options?: MatchImageSnapshotOptions) => {
-        await waitForChartStability(chartInstance);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot({ ...IMAGE_SNAPSHOT_DEFAULTS, ...options });
+        await compareImageSnapshot(chartInstance, ctx, { ...IMAGE_SNAPSHOT_DEFAULTS, ...options });
     };
 
     describe('unhighlightDelay', () => {

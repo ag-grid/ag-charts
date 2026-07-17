@@ -14,12 +14,11 @@ import {
 } from 'ag-charts-community';
 import {
     type Chart,
-    IMAGE_SNAPSHOT_DEFAULTS,
     MIN_UNHIGHLIGHT_DELAY,
     type MockErrorBarStyler,
     clickAction,
+    compareImageSnapshot,
     computeLegendBBox,
-    extractImageData,
     getCursor,
     hoverAction,
     newFreezableMock,
@@ -166,10 +165,7 @@ describe('ErrorBars', () => {
     });
 
     const compare = async () => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        await compareImageSnapshot(chart, ctx);
     };
 
     const getItemCoords = (itemIndex: number): { x: number; y: number } => {

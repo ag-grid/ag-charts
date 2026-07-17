@@ -2,9 +2,8 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import { AgCharts, _ModuleSupport } from 'ag-charts-community';
 import {
-    IMAGE_SNAPSHOT_DEFAULTS,
+    compareImageSnapshot,
     deproxy,
-    extractImageData,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -75,9 +74,7 @@ describe('Time Axis Examples', () => {
     const ctx = setupMockCanvas();
 
     const compare = async () => {
-        await waitForChartStability(chart);
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        await compareImageSnapshot(chart, ctx);
     };
 
     const axisCompare = async () => {
@@ -92,8 +89,7 @@ describe('Time Axis Examples', () => {
             const { width, height } = axisBbox;
 
             if (width >= 1 && height >= 1) {
-                const imageData = extractImageData({ ...ctx, bbox: axisBbox });
-                expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+                await compareImageSnapshot(chart, { ...ctx, bbox: axisBbox });
             }
         }
     };

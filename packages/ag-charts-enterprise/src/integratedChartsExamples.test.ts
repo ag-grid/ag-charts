@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
-    extractImageData,
+    compareImageSnapshot,
     setupMockCanvas,
     setupMockConsole,
     spyOnAnimationManager,
@@ -28,10 +28,7 @@ describe('Integrated Charts Examples', () => {
     });
 
     const compare = async () => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
     };
 
     it('should execute with London timezone', () => {

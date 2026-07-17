@@ -13,12 +13,11 @@ import { AgCharts, _ModuleSupport } from 'ag-charts-community';
 import {
     type Chart,
     GALLERY_EXAMPLES,
-    IMAGE_SNAPSHOT_DEFAULTS,
     MIN_TOOLTIP_HIDE_DELAY,
     clickAction,
+    compareImageSnapshot,
     deproxy,
     expectWarningsCalls,
-    extractImageData,
     hoverAction,
     setupMockCanvas,
     setupMockConsole,
@@ -42,10 +41,7 @@ describe('SankeySeries', () => {
     const ctx = setupMockCanvas();
 
     const compare = async () => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        await compareImageSnapshot(chart, ctx);
     };
 
     describe('layout', () => {

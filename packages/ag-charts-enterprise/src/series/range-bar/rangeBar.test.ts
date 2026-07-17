@@ -24,6 +24,7 @@ import {
     type SceneGeometrySample,
     type SceneNodeExpectation,
     type TrajectoryExpectation,
+    compareImageSnapshot,
     createSceneGeometrySampler,
     deproxy,
     expectAnimatedEndpointsMatchStatic,
@@ -31,7 +32,6 @@ import {
     expectProgresses,
     expectSceneTrajectory,
     expectWarningsCalls,
-    extractImageData,
     hoverAction,
     isoEpochPair,
     magnitudePair,
@@ -237,10 +237,7 @@ describe('RangeBarSeries', () => {
     };
 
     const compare = async (options = IMAGE_SNAPSHOT_DEFAULTS) => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(options);
+        await compareImageSnapshot(chart, ctx, options);
     };
 
     function switchSeriesType<T extends AgCartesianChartOptions>(
@@ -1567,10 +1564,7 @@ describe('RangeBarSeries', () => {
             prepareEnterpriseTestOptions(options as any);
 
             chart = AgCharts.create(options);
-            await waitForChartStability(chart);
-
-            const imageData = extractImageData(ctx);
-            expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+            await compareImageSnapshot(chart, ctx);
         });
 
         it('should render range-bar series with segmentation styling on y-axis', async () => {
@@ -1618,10 +1612,7 @@ describe('RangeBarSeries', () => {
             prepareEnterpriseTestOptions(options as any);
 
             chart = AgCharts.create(options);
-            await waitForChartStability(chart);
-
-            const imageData = extractImageData(ctx);
-            expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+            await compareImageSnapshot(chart, ctx);
         });
 
         it('should render horizontal range-bar series with segmentation', async () => {
@@ -1662,10 +1653,7 @@ describe('RangeBarSeries', () => {
             prepareEnterpriseTestOptions(options as any);
 
             chart = AgCharts.create(options);
-            await waitForChartStability(chart);
-
-            const imageData = extractImageData(ctx);
-            expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+            await compareImageSnapshot(chart, ctx);
         });
 
         it('should render grouped range-bar series with segmentation', async () => {
@@ -1731,10 +1719,7 @@ describe('RangeBarSeries', () => {
             prepareEnterpriseTestOptions(options as any);
 
             chart = AgCharts.create(options);
-            await waitForChartStability(chart);
-
-            const imageData = extractImageData(ctx);
-            expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+            await compareImageSnapshot(chart, ctx);
         });
 
         it('should render range-bar series with pattern fill segmentation', async () => {
@@ -1799,10 +1784,7 @@ describe('RangeBarSeries', () => {
             prepareEnterpriseTestOptions(options as any);
 
             chart = AgCharts.create(options);
-            await waitForChartStability(chart);
-
-            const imageData = extractImageData(ctx);
-            expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+            await compareImageSnapshot(chart, ctx);
         });
 
         it('should render range-bar series with gradient fill segmentation', async () => {
@@ -1861,10 +1843,7 @@ describe('RangeBarSeries', () => {
             prepareEnterpriseTestOptions(options as any);
 
             chart = AgCharts.create(options);
-            await waitForChartStability(chart);
-
-            const imageData = extractImageData(ctx);
-            expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+            await compareImageSnapshot(chart, ctx);
         });
 
         it('should render range-bar series with time axis segmentation', async () => {
@@ -1910,10 +1889,7 @@ describe('RangeBarSeries', () => {
             prepareEnterpriseTestOptions(options as any);
 
             chart = AgCharts.create(options);
-            await waitForChartStability(chart);
-
-            const imageData = extractImageData(ctx);
-            expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+            await compareImageSnapshot(chart, ctx);
         });
     });
 

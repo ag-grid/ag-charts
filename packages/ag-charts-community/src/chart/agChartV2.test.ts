@@ -11,7 +11,7 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
     clickAction,
-    extractImageData,
+    compareImageSnapshot,
     prepareTestOptions,
     repeat,
     setupMockCanvas,
@@ -50,10 +50,7 @@ describe('AgChartV2', () => {
     });
 
     const compare = async () => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        await compareImageSnapshot(chart, ctx);
     };
 
     const snapshot = async () => {

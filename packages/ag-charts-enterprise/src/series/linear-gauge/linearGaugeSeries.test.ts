@@ -4,9 +4,8 @@ import type { AgLinearGaugeLabelPlacement, AgLinearGaugeOptions } from 'ag-chart
 import { AgCharts, _ModuleSupport } from 'ag-charts-community';
 import {
     GALLERY_EXAMPLES,
-    IMAGE_SNAPSHOT_DEFAULTS,
+    compareImageSnapshot,
     deproxy,
-    extractImageData,
     hoverAction,
     setupMockCanvas,
     setupMockConsole,
@@ -38,10 +37,7 @@ describe('LinearGaugeSeries', () => {
     const ctx = setupMockCanvas();
 
     const compare = async () => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        await compareImageSnapshot(chart, ctx);
     };
 
     describe('basic chart', () => {

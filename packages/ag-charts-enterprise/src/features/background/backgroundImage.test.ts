@@ -1,14 +1,8 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, it } from 'vitest';
 
 import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-community';
-import {
-    IMAGE_SNAPSHOT_DEFAULTS,
-    extractImageData,
-    setupMockCanvas,
-    setupMockConsole,
-    waitForChartStability,
-} from 'ag-charts-community-test';
+import { compareImageSnapshot, setupMockCanvas, setupMockConsole } from 'ag-charts-community-test';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
@@ -29,10 +23,7 @@ describe('BackgroundImage', () => {
     const ctx = setupMockCanvas();
 
     const compare = async (chartInstance: AgChartInstance) => {
-        await waitForChartStability(chartInstance);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        await compareImageSnapshot(chartInstance, ctx);
     };
 
     it('Image in the center', async () => {

@@ -1,12 +1,11 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, it } from 'vitest';
 
 import { AgCharts } from 'ag-charts-community';
 import {
     type ChartOrProxy,
-    IMAGE_SNAPSHOT_DEFAULTS,
     INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_WITH_MINI_CHART_EXAMPLE,
     cartesianChartAssertions,
-    extractImageData,
+    compareImageSnapshot,
     repeat,
     reverseAxes,
     setupMockCanvas,
@@ -128,8 +127,7 @@ describe('Grouped Category Axis Examples', () => {
         it(`for ${exampleName} it should render to canvas as expected`, async () => {
             const options = prepareEnterpriseTestOptions(example.options);
             chart = AgCharts.create(options);
-            await waitForChartStability(chart);
-            expect(extractImageData(ctx)).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+            await compareImageSnapshot(chart, ctx);
         });
     }
 });

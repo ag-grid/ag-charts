@@ -15,12 +15,12 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     PATTERN_SNAPSHOT_DEFAULTS,
     clickAction,
+    compareImageSnapshot,
     createChart,
     deproxy,
     doubleClickAction,
     doubleTapAction,
     expectWarningsCalls,
-    extractImageData,
     hoverAction,
     prepareTestOptions,
     setupMockCanvas,
@@ -51,9 +51,7 @@ describe('DonutSeries', () => {
     });
 
     const compare = async (customSnapshotIdentifier?: string, defaults = IMAGE_SNAPSHOT_DEFAULTS) => {
-        await waitForChartStability(chart);
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot({
+        await compareImageSnapshot(chart, ctx, {
             ...defaults,
             failureThreshold: 0,
             customSnapshotIdentifier,

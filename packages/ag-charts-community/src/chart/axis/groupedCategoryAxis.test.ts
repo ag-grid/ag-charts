@@ -21,11 +21,10 @@ import * as examples from '../test/examples';
 import * as axesExamples from '../test/examples-axes';
 import type { ChartOrProxy, SceneGeometrySample } from '../test/utils';
 import {
-    IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
+    compareImageSnapshot,
     createChart,
     createSceneGeometrySampler,
-    extractImageData,
     prepareTestOptions,
     repeat,
     reverseAxes,
@@ -230,10 +229,7 @@ describe('Grouped Category Axis Examples', () => {
     const ctx = setupMockCanvas();
 
     const compare = async () => {
-        await waitForChartStability(chart);
-
-        const newImageData = extractImageData(ctx);
-        expect(newImageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        await compareImageSnapshot(chart, ctx);
     };
 
     for (const [exampleName, example] of Object.entries(EXAMPLES)) {
@@ -244,7 +240,7 @@ describe('Grouped Category Axis Examples', () => {
 
         it(`for ${exampleName} it should render to canvas as expected`, async () => {
             chart = await createChart(example.options);
-            expect(extractImageData(ctx)).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+            await compareImageSnapshot(chart, ctx);
         });
     }
 
