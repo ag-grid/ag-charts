@@ -4,7 +4,7 @@ import { createSvgElement, lineDistanceSquared } from 'ag-charts-core';
 import { BBox } from '../bbox';
 import type { NodeOptions, RenderContext } from '../node';
 import { SceneChangeDetection } from '../node';
-import { deviceDimension } from '../util/pixel';
+import { snapDeviceCentre } from '../util/pixel';
 import { Shape } from './shape';
 
 export class Line<D = unknown> extends Shape<D> implements DistantObject {
@@ -82,17 +82,13 @@ export class Line<D = unknown> extends Shape<D> implements DistantObject {
         // Align to the pixel grid if the line is strictly vertical
         // or horizontal (but not both, i.e. a dot).
         if (x1 === x2) {
-            const { strokeWidth } = this;
-            const x =
-                deviceDimension(devicePixelRatio, x1) / devicePixelRatio +
-                (Math.trunc(strokeWidth * devicePixelRatio) % 2) / (devicePixelRatio * 2);
+            const strokeDev = Math.trunc(this.strokeWidth * devicePixelRatio);
+            const x = snapDeviceCentre(x1 * devicePixelRatio, strokeDev) / devicePixelRatio;
             x1 = x;
             x2 = x;
         } else if (y1 === y2) {
-            const { strokeWidth } = this;
-            const y =
-                deviceDimension(devicePixelRatio, y1) / devicePixelRatio +
-                (Math.trunc(strokeWidth * devicePixelRatio) % 2) / (devicePixelRatio * 2);
+            const strokeDev = Math.trunc(this.strokeWidth * devicePixelRatio);
+            const y = snapDeviceCentre(y1 * devicePixelRatio, strokeDev) / devicePixelRatio;
             y1 = y;
             y2 = y;
         }

@@ -63,22 +63,24 @@ describe('alignCentre', () => {
         expect(alignCentre(pixelRatio, 44.60625, 9).length).toBeCloseTo(16 / 1.75, 9);
     });
 
-    it('snaps the centre onto the same device pixel a matching-parity gridline uses', () => {
-        // A gridline is a vertical Line; Line.render snaps a stroke to round(coord) on the device grid
-        // and offsets odd device widths by half a pixel. A bar must resolve to the identical device
-        // coordinate so it sits exactly on its gridline (AG-17856). This fails against a snap that rounds
-        // the near edge instead of the centre, which drifts odd-width bars a whole pixel off the line.
-        const strokeSnapCentreDev = (centreDev: number, deviceWidth: number) =>
-            Math.round(centreDev) + (deviceWidth % 2) / 2;
-
+    it('snaps the centre to the nearest crisp device position, unbiased', () => {
+        // The centre snaps to the nearest position that keeps the edges crisp for the band's parity:
+        // a pixel centre (x.5) for odd device widths, a boundary (integer) for even. "Nearest" is the
+        // load-bearing word — the snap must be symmetric about the true centre (drift <= 0.5 device px),
+        // not biased to one side. A round-to-boundary-then-offset snap (`round(c) + odd/2`) drifts an
+        // already-centred coordinate a whole device pixel, pulling a bar off a datum-aligned marker or
+        // matching-parity gridline (AG-17856); that lands here as a drift > 0.5.
         for (const pixelRatio of [1, 1.75, 2, 2.5]) {
-            for (const centre of [45.5625, 51.5625, 100.3, 233.98726, 640.5, 799.1]) {
+            for (const centre of [45.5625, 51.5625, 88.5, 100.3, 233.98726, 640.5, 799.1]) {
                 for (const length of [8, 9, 9.4, 12, 15]) {
                     const result = alignCentre(pixelRatio, centre - length / 2, length);
                     const deviceWidth = Math.round(result.length * pixelRatio);
                     if (deviceWidth <= 1) continue; // sub-pixel bars edge-snap; covered separately
                     const snappedCentreDev = (result.start + result.length / 2) * pixelRatio;
-                    expect(snappedCentreDev).toBeCloseTo(strokeSnapCentreDev(centre * pixelRatio, deviceWidth), 6);
+                    const parityOffset = (deviceWidth % 2) / 2; // 0.5 for odd, 0 for even
+                    const nearestCrisp = Math.round(snappedCentreDev - parityOffset) + parityOffset;
+                    expect(Math.abs(snappedCentreDev - nearestCrisp)).toBeLessThan(1e-6);
+                    expect(Math.abs(snappedCentreDev - centre * pixelRatio)).toBeLessThanOrEqual(0.5 + 1e-6);
                 }
             }
         }

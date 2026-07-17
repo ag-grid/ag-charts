@@ -15,6 +15,21 @@ function roundToDevicePixel(pixelRatio: number, value: number) {
     return deviceDimension(pixelRatio, value) / pixelRatio;
 }
 
+/**
+ * Snap a device-space centre coordinate to the nearest crisp position for a shape of the given
+ * whole-device-pixel extent (a fill width or a stroke width). Even extents land the centre on a
+ * device-pixel boundary; odd extents land it on a pixel centre. Both pick the *nearest* such
+ * position, so the snap is symmetric about the true centre (max ±0.5 device px) rather than biased.
+ *
+ * A naive `round(centre) + oddExtent/2` is biased: it rounds to a boundary first, so a centre that
+ * already sits on a pixel centre (e.g. 88.5) is pushed a whole pixel to the next one (89.5). Both
+ * bars ({@link alignCentre}) and gridline/crosshair strokes (`Line.render`) share this so a bar and
+ * a matching-parity gridline resolve to the identical device coordinate (AG-17856).
+ */
+export function snapDeviceCentre(centreDev: number, deviceExtent: number): number {
+    return deviceExtent % 2 === 0 ? deviceDimension(1, centreDev) : deviceDimension(1, centreDev - 0.5) + 0.5;
+}
+
 export function align(pixelRatio: number, start: number, length?: number) {
     const alignedStart = roundToDevicePixel(pixelRatio, start);
 
@@ -71,12 +86,12 @@ export function alignCentre(
         return out;
     }
     const centreDev = (start + length / 2) * pixelRatio;
-    // Snap the centre exactly as `Line.render` snaps a stroke of this device width: round the centre to
-    // a device pixel, then offset odd widths by half a pixel. This lands the centre on the identical
-    // device pixel a gridline of matching parity uses, so a bar sits on its gridline (AG-17856). Even
-    // widths keep the centre on a boundary, leaving the unavoidable half-pixel parity gap against an
-    // odd (1px) gridline. deviceDimension keeps the round stable against sub-ULP jitter near a .5 tie.
-    const centreSnapDev = deviceDimension(1, centreDev) + (lengthDev % 2) / 2;
+    // Snap the centre exactly as `Line.render` snaps a stroke of this device width, so a bar lands on
+    // the identical device pixel a matching-parity gridline uses (AG-17856). Odd widths keep the
+    // centre on a pixel centre, even widths on a boundary; both nearest to the true centre, leaving
+    // only the unavoidable half-pixel parity gap against an odd (1px) gridline or a marker at the
+    // exact datum centre.
+    const centreSnapDev = snapDeviceCentre(centreDev, lengthDev);
     const startDev = centreSnapDev - lengthDev / 2;
     out.start = startDev / pixelRatio;
     out.length = lengthDev / pixelRatio;

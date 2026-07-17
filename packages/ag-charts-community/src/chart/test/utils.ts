@@ -45,7 +45,7 @@ import { type AnimationPhase, type IAnimation, PHASE_METADATA, PHASE_ORDER } fro
 import { BBox } from '../../scene/bbox';
 import { Group } from '../../scene/group';
 import type { Node } from '../../scene/node';
-import { alignCentre, deviceDimension } from '../../scene/util/pixel';
+import { alignCentre, snapDeviceCentre } from '../../scene/util/pixel';
 import { extractImageData, type setupMockCanvas } from '../../util/test/mockCanvas';
 import type { Chart } from '../chart';
 import type { AgChartProxy } from '../chartProxy';
@@ -566,7 +566,7 @@ export function expectBarCentresOnCategoryGridlines(chartOrProxy: ChartOrProxy<a
 
 /** Mirror of `Line.render`'s stroke snap — a gridline is a vertical `Line` and has no exported snap. */
 function lineStrokeSnapDev(pixelRatio: number, coord: number, strokeWidth: number): number {
-    return deviceDimension(pixelRatio, coord) + (Math.trunc(strokeWidth * pixelRatio) % 2) / 2;
+    return snapDeviceCentre(coord * pixelRatio, Math.trunc(strokeWidth * pixelRatio));
 }
 
 /**
