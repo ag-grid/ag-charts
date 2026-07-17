@@ -22,7 +22,7 @@ export const organizationSeriesTheme: ExtensibleTheme<'organization'> = {
     series: {
         innerSpacing: 20,
         outerSpacing: 40,
-        verticalSpacing: 52,
+        layerSpacing: 52,
         expander: {
             enabled: true,
             cornerRadius: { $path: '../node/cornerRadius' },

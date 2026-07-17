@@ -158,11 +158,27 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
 
         if (this.expanderNode) {
             const expanderBBox = this.expanderNode.getBBox();
-            this.expanderNode.translationX = bbox.width / 2 - expanderBBox.width / 2;
-            if (direction === 'up') {
-                this.expanderNode.translationY = bbox.y - expanderBBox.height / 2;
-            } else {
-                this.expanderNode.translationY = bbox.height - expanderBBox.height / 2;
+            switch (direction) {
+                case 'up': {
+                    this.expanderNode.translationX = bbox.width / 2 - expanderBBox.width / 2;
+                    this.expanderNode.translationY = bbox.y - expanderBBox.height / 2;
+                    break;
+                }
+                case 'down': {
+                    this.expanderNode.translationX = bbox.width / 2 - expanderBBox.width / 2;
+                    this.expanderNode.translationY = bbox.height - expanderBBox.height / 2;
+                    break;
+                }
+                case 'right': {
+                    this.expanderNode.translationX = bbox.width - expanderBBox.width / 2;
+                    this.expanderNode.translationY = bbox.height / 2 - expanderBBox.height / 2;
+                    break;
+                }
+                case 'left': {
+                    this.expanderNode.translationX = bbox.x - expanderBBox.width / 2;
+                    this.expanderNode.translationY = bbox.height / 2 - expanderBBox.height / 2;
+                    break;
+                }
             }
         }
 
@@ -206,14 +222,17 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
 
         const alignTextNode = (node: _ModuleSupport.Text, textAlign: TextAlign) => {
             switch (textAlign) {
-                case 'right':
+                case 'right': {
                     node.x = textAreaRight;
                     break;
-                case 'center':
+                }
+                case 'center': {
                     node.x = (textAreaLeft + textAreaRight) / 2;
                     break;
-                default:
+                }
+                default: {
                     node.x = textAreaLeft;
+                }
             }
             node.textAlign = textAlign;
         };
@@ -361,25 +380,54 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
 
         const padding = { ...styles.padding };
 
-        let firstElementSpacing = styles.title.spacing;
-        if (this.imageNode && styles.image.position === 'top') {
-            firstElementSpacing = styles.image.spacing;
-        }
+        switch (direction) {
+            case 'up': {
+                const firstElementSpacing =
+                    this.imageNode && styles.image.position === 'top' ? styles.image.spacing : styles.title.spacing;
 
-        let lastElementSpacing = this.subtitleNode ? styles.subtitle.spacing : styles.title.spacing;
-        if (this.imageNode && styles.image.position === 'bottom') {
-            lastElementSpacing = styles.image.spacing;
-        } else if (this.labelNodes && this.labelNodes.length > 0) {
-            lastElementSpacing = styles.labels.at(-1)?.spacing ?? lastElementSpacing;
-        }
+                padding.top = Math.max(
+                    styles.padding.top,
+                    this.expanderNode.getBBox().height / 2 + firstElementSpacing
+                );
+                break;
+            }
 
-        if (direction === 'up') {
-            padding.top = Math.max(styles.padding.top, this.expanderNode.getBBox().height / 2 + firstElementSpacing);
-        } else {
-            padding.bottom = Math.max(
-                styles.padding.bottom,
-                this.expanderNode.getBBox().height / 2 + lastElementSpacing
-            );
+            case 'down': {
+                let lastElementSpacing = this.subtitleNode ? styles.subtitle.spacing : styles.title.spacing;
+                if (this.imageNode && styles.image.position === 'bottom') {
+                    lastElementSpacing = styles.image.spacing;
+                } else if (this.labelNodes && this.labelNodes.length > 0) {
+                    lastElementSpacing = styles.labels.at(-1)?.spacing ?? lastElementSpacing;
+                }
+
+                padding.bottom = Math.max(
+                    styles.padding.bottom,
+                    this.expanderNode.getBBox().height / 2 + lastElementSpacing
+                );
+                break;
+            }
+
+            case 'left': {
+                const leftElementSpacing =
+                    this.imageNode && styles.image.position === 'left' ? styles.image.spacing : styles.title.spacing;
+
+                padding.left = Math.max(
+                    styles.padding.left,
+                    this.expanderNode.getBBox().width / 2 + leftElementSpacing
+                );
+                break;
+            }
+
+            case 'right': {
+                const rightElementSpacing =
+                    this.imageNode && styles.image.position === 'left' ? styles.image.spacing : styles.title.spacing;
+
+                padding.right = Math.max(
+                    styles.padding.right,
+                    this.expanderNode.getBBox().width / 2 + rightElementSpacing
+                );
+                break;
+            }
         }
 
         return padding;
@@ -400,32 +448,74 @@ class OrganizationExpanderNode extends _ModuleSupport.TranslatableGroup {
         direction: AgNetworkSeriesTreeLayoutDirection,
         styles: NormalisedOrganizationNodeStyle
     ) {
+        const horizontalLayout = direction === 'left' || direction === 'right';
+
         this.shapeNode ??= this.appendChild(new _ModuleSupport.Rect({ tag: OrganizationNodeTag.Expander }));
 
         this.countNode ??= this.appendChild(new _ModuleSupport.Text({ tag: OrganizationNodeTag.Expander }));
-        this.countNode.y = styles.expander.padding.top;
+        if (horizontalLayout) {
+            this.countNode.x = styles.expander.padding.left;
+        } else {
+            this.countNode.y = styles.expander.padding.top;
+        }
 
         this.countNode.text = expanderText;
         applyTextStyles(this.countNode, styles.expander.text);
 
         this.chevronNode ??= this.appendChild(new ChevronPath({ tag: OrganizationNodeTag.Expander }));
+
+        let chevronDirection: 'up' | 'down' | 'left' | 'right' = 'down';
+        switch (direction) {
+            case 'up': {
+                chevronDirection = isCollapsed ? 'up' : 'down';
+                break;
+            }
+            case 'down': {
+                chevronDirection = isCollapsed ? 'down' : 'up';
+                break;
+            }
+            case 'right': {
+                chevronDirection = isCollapsed ? 'right' : 'left';
+                break;
+            }
+            case 'left': {
+                chevronDirection = isCollapsed ? 'left' : 'right';
+                break;
+            }
+        }
+
         this.chevronNode.update(
             styles.expander.text.fontSize * (7 / 12),
             styles.expander.text.fontSize * (3.5 / 12),
-            (direction === 'down' && isCollapsed) || (direction === 'up' && !isCollapsed) ? 'down' : 'up',
+            chevronDirection,
             styles
         );
-        this.chevronNode.translationY = styles.expander.padding.top + styles.expander.text.fontSize / 2;
 
-        layoutScenesRow(
-            isRtl ? [this.chevronNode, this.countNode] : [this.countNode, this.chevronNode],
-            styles.expander.padding.left,
-            [styles.expander.text.fontSize]
-        );
+        if (horizontalLayout) {
+            this.chevronNode.translationX =
+                styles.expander.padding.left + this.countNode.getBBox().width / 2 - this.chevronNode.getBBox().width;
+        } else {
+            this.chevronNode.translationY = styles.expander.padding.top + styles.expander.text.fontSize / 2;
+        }
 
-        const bbox = _ModuleSupport.Group.computeChildrenBBox([this.countNode, this.chevronNode]).grow(
-            styles.expander.padding
-        );
+        const padding = { ...styles.expander.padding };
+
+        if (horizontalLayout) {
+            layoutScenesColumn([this.countNode, this.chevronNode], styles.expander.padding.top, [
+                this.chevronNode.getBBox().height,
+            ]);
+
+            // Adjust the padding bottom slightly to account for differences in bounding boxes of the two nodes
+            padding.bottom += 3;
+        } else {
+            layoutScenesRow(
+                isRtl ? [this.chevronNode, this.countNode] : [this.countNode, this.chevronNode],
+                styles.expander.padding.left,
+                [styles.expander.text.fontSize]
+            );
+        }
+
+        const bbox = _ModuleSupport.Group.computeChildrenBBox([this.countNode, this.chevronNode]).grow(padding);
 
         this.shapeNode.x = 0;
         this.shapeNode.y = 0;
@@ -439,7 +529,12 @@ class OrganizationExpanderNode extends _ModuleSupport.TranslatableGroup {
 }
 
 class ChevronPath extends _ModuleSupport.Rotatable(_ModuleSupport.Translatable(_ModuleSupport.Path)) {
-    update(width: number, height: number, direction: 'up' | 'down', styles: NormalisedOrganizationNodeStyle) {
+    update(
+        width: number,
+        height: number,
+        direction: 'up' | 'down' | 'left' | 'right',
+        styles: NormalisedOrganizationNodeStyle
+    ) {
         const { path } = this;
 
         path.clear();
@@ -447,12 +542,32 @@ class ChevronPath extends _ModuleSupport.Rotatable(_ModuleSupport.Translatable(_
         path.lineTo(width / 2, height);
         path.lineTo(width, 0);
 
-        this.translationY = styles.expander.padding.top;
         this.rotationCenterX = width / 2;
         this.rotationCenterY = height / 2;
-        this.rotation = direction === 'down' ? 0 : Math.PI;
         this.stroke = styles.expander.text.color;
         this.strokeWidth = 1;
         this.fill = 'transparent';
+
+        this.translationX = direction === 'left' || direction === 'right' ? styles.expander.padding.left : 0;
+        this.translationY = direction === 'up' || direction === 'down' ? styles.expander.padding.top : 0;
+
+        switch (direction) {
+            case 'down': {
+                this.rotation = 0;
+                break;
+            }
+            case 'up': {
+                this.rotation = Math.PI;
+                break;
+            }
+            case 'left': {
+                this.rotation = Math.PI / 2;
+                break;
+            }
+            case 'right': {
+                this.rotation = -Math.PI / 2;
+                break;
+            }
+        }
     }
 }

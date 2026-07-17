@@ -51,3 +51,10 @@ export interface AgNetworkSeriesTreeLayout {
 
 /** A network series layout where each node is positioned within an ordered grid, ignoring the links connecting nodes. */
 export interface AgNetworkSeriesGridLayout {}
+
+/** A network series layout where each node is positioned with repulsive, attractive and spring forces to other nodes. */
+export interface AgNetworkSeriesForceDirectedLayout {
+    repulsiveForce?: number;
+    attractiveForce?: number;
+    springForce?: number;
+}

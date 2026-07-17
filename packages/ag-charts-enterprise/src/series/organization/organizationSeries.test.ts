@@ -380,6 +380,16 @@ const DIRECTION_UP: AgChartOptions = {
     theme: { overrides: { organization: { series: { direction: 'up' } } } },
 };
 
+const DIRECTION_RIGHT: AgChartOptions = {
+    ...SIMPLE_ORG_CHART,
+    theme: { overrides: { organization: { series: { direction: 'right' } } } },
+};
+
+const DIRECTION_LEFT: AgChartOptions = {
+    ...SIMPLE_ORG_CHART,
+    theme: { overrides: { organization: { series: { direction: 'left' } } } },
+};
+
 const segmentTitleFormatter = ({ value }: { value: any }) => {
     const parts = String(value).split(' ');
     return [
@@ -772,6 +782,14 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
     },
     DIRECTION_UP: {
         options: DIRECTION_UP,
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    DIRECTION_RIGHT: {
+        options: DIRECTION_RIGHT,
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    DIRECTION_LEFT: {
+        options: DIRECTION_LEFT,
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
     },
 };
