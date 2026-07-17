@@ -666,11 +666,16 @@ export class GroupedCategoryAxis extends CategoryAxis<
             })
         );
 
+        const getDatumId = (datum: { tickId: string }) => datum.tickId;
         this.gridLineGroupSelection.update(
-            gridLine.enabled && gridLength ? this.calculateGridLines(gridLineData, p1, p2) : []
+            gridLine.enabled && gridLength ? this.calculateGridLines(gridLineData, p1, p2) : [],
+            undefined,
+            getDatumId
         );
         this.gridFillGroupSelection.update(
-            gridLine.enabled && gridLength ? this.calculateGridFills(gridLineData, p1, p2) : []
+            gridLine.enabled && gridLength ? this.calculateGridFills(gridLineData, p1, p2) : [],
+            undefined,
+            getDatumId
         );
         this.tickLineGroupSelection.update(
             tick.enabled
@@ -691,7 +696,9 @@ export class GroupedCategoryAxis extends CategoryAxis<
                       const lineDash = undefined;
                       return { tickId, offset, x1, y1, x2, y2, stroke, strokeWidth, lineDash };
                   })
-                : []
+                : [],
+            undefined,
+            getDatumId
         );
 
         this.updatePosition();
