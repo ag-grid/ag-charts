@@ -8,7 +8,6 @@ import {
     deproxy,
     expectAnimatedEndpointsMatchStatic,
     expectNoAnimation,
-    expectSceneSamplesMatch,
     extractImageData,
     setupMockCanvas,
     setupMockConsole,
@@ -185,22 +184,12 @@ describe('CandlestickSeries', () => {
             expect(node!.height, `${key} height`).toBeGreaterThan(20);
         };
 
-        // The scatter/histogram snap pattern: candlestick skips its animation batch on every update, so a
-        // data change SNAPS. The whole layout (surviving candles rebanding, axis reflow) already sits at
-        // its settled state on the first captured frame, which trips captureUpdate's whole-scene start
-        // anchor (it expects frame 0 to equal the before-scene). So hand-roll the capture and assert only
-        // the end anchor, then prove the captured trajectory never moved.
-        const captureSnap = async (options: AgCartesianChartOptions, action: () => void | Promise<void>) => {
+        // Candlestick implements no animation hooks and skips its batch on every update, so a data
+        // change SNAPS: the whole layout (surviving candles rebanding, axis reflow) already sits at its
+        // settled state on the first captured frame.
+        const captureSnap = (options: AgCartesianChartOptions, action: () => void | Promise<void>) => {
             chart = AgCharts.create(options);
-            await frames.runToEnd(chart);
-            const sampleScene = createSceneGeometrySampler(chart);
-            const before = sampleScene();
-            await action();
-            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
-            await frames.runToEnd(chart);
-            const after = sampleScene();
-            expectSceneSamplesMatch(trajectory.at(-1)!, after);
-            return { before, trajectory, after };
+            return frames.captureSnap(chart, createSceneGeometrySampler(chart), action);
         };
 
         // "Reset"/initial render — candles appear instantly at their full ranges (no reveal).

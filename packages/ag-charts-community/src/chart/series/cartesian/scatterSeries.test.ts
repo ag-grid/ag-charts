@@ -31,7 +31,6 @@ import {
     createSceneGeometrySampler,
     expectAnimatedEndpointsMatchStatic,
     expectNoAnimation,
-    expectSceneSamplesMatch,
     expectSceneTrajectory,
     expectWarningsCalls,
     extractImageData,
@@ -592,22 +591,11 @@ describe('ScatterSeries', () => {
             [...sample.keys()].filter((k) => /^series\[\d+\]\/marker\[/.test(k));
         const markerCount = (sample: SceneGeometrySample) => markerKeys(sample).length;
 
-        // Scatter/bubble skip the animation batch on every data update (only the initial load
-        // animates), so an update SNAPS: the first captured frame already sits at the settled
-        // after-state, which trips captureUpdate's whole-scene start anchor (it expects frame 0 to
-        // equal the before-scene). The update CASEs therefore hand-roll the capture and assert only
-        // the end anchor — as line's captureFrom does — then prove the whole scene held constant.
-        const captureSnap = async (options: AgCartesianChartOptions, action: () => void | Promise<void>) => {
+        // Scatter skips the animation batch on every data update (only the initial load animates), so
+        // updates SNAP.
+        const captureSnap = (options: AgCartesianChartOptions, action: () => void | Promise<void>) => {
             chart = AgCharts.create(options);
-            await frames.runToEnd(chart);
-            const sampleScene = createSceneGeometrySampler(chart);
-            const before = sampleScene();
-            await action();
-            const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
-            await frames.runToEnd(chart);
-            const after = sampleScene();
-            expectSceneSamplesMatch(trajectory.at(-1)!, after);
-            return { before, trajectory, after };
+            return frames.captureSnap(chart, createSceneGeometrySampler(chart), action);
         };
 
         // Initial load: markers scale in from zero size during the `initial` phase — their bbox

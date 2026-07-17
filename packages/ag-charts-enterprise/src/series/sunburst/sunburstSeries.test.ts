@@ -1297,20 +1297,12 @@ describe('SunburstSeries', () => {
                 );
             }).length;
 
-        // Reshuffle snaps at frame 0: hand-roll the capture (settle -> sample before -> update ->
-        // capture -> settle -> sample after) rather than captureUpdate, whose frame-0 start anchor
-        // assumes surviving nodes do not jump when the update lands.
-        const captureReshuffle = async (create: AgChartOptions, next: AgChartOptions) => {
+        // A hierarchy reshuffle snaps at frame 0 (surviving sectors jump to their new positions), so
+        // capture with captureSnap rather than captureUpdate's before-anchored flow.
+        const captureReshuffle = (create: AgChartOptions, next: AgChartOptions) => {
             const proxy = AgCharts.create(create);
             chart = deproxy(proxy);
-            await frames.runToEnd(proxy);
-            const sample = createSceneGeometrySampler(proxy);
-            const before = sample();
-            await proxy.update(next);
-            const trajectory = await frames.captureAnimationFrames(proxy, sample);
-            await frames.runToEnd(proxy);
-            const after = sample();
-            return { proxy, before, trajectory, after };
+            return frames.captureSnap(proxy, createSceneGeometrySampler(proxy), () => proxy.update(next));
         };
 
         it('standalone: initial load scales the sector group up from nothing', async () => {
