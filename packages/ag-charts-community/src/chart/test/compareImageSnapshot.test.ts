@@ -11,6 +11,7 @@ import {
     type SceneGeometrySample,
     compareImageSnapshot,
     extractImageData,
+    flattenPathPolylines,
     prepareTestOptions,
     sceneSampleToJSON,
     setupMockCanvas,
@@ -33,6 +34,42 @@ describe('sceneSampleToJSON', () => {
         });
         // Key order must mirror the sample's insertion order so repeated captures diff cleanly.
         expect(Object.keys(json)).toEqual(['series[0]', 'axis[bottom]']);
+    });
+});
+
+describe('flattenPathPolylines', () => {
+    it('splits a subpath into one polyline per `M` command', () => {
+        expect(flattenPathPolylines('M 0 0 L 1 1 L 2 2')).toEqual([
+            [
+                { x: 0, y: 0 },
+                { x: 1, y: 1 },
+                { x: 2, y: 2 },
+            ],
+        ]);
+    });
+
+    it('starts a new polyline for finite geometry resuming after a NaN gap', () => {
+        // A rendered gap (missing/invalid data) breaks the line; the geometry after it is a distinct
+        // visible segment, not a continuation — and must not be discarded until the next explicit `M`.
+        expect(flattenPathPolylines('M 0 0 L 1 1 L NaN NaN L 2 2 L 3 3')).toEqual([
+            [
+                { x: 0, y: 0 },
+                { x: 1, y: 1 },
+            ],
+            [
+                { x: 2, y: 2 },
+                { x: 3, y: 3 },
+            ],
+        ]);
+    });
+
+    it('recovers finite geometry when a subpath opens at a NaN `M`', () => {
+        expect(flattenPathPolylines('M NaN NaN L 2 2 L 3 3')).toEqual([
+            [
+                { x: 2, y: 2 },
+                { x: 3, y: 3 },
+            ],
+        ]);
     });
 });
 
@@ -126,6 +163,32 @@ describe('compareImageSnapshot scene capture', () => {
             customSnapshotIdentifier: () => identifier,
         });
 
+        expect(sceneJsonFiles(sceneDir)).toEqual([`${identifier}.json`]);
+    });
+
+    it('evaluates a function customSnapshotIdentifier once, shared by the PNG and its JSON', async () => {
+        const { imageDir, sceneDir } = makeSnapshotDirs();
+        const identifier = 'once-evaluated-bar';
+        await renderBarChart([
+            { c: 'A', v: 2 },
+            { c: 'B', v: 3 },
+        ]);
+        seedBaseline(imageDir, identifier);
+        process.env.AG_SCENE_SNAPSHOTS = 'all';
+
+        // A re-evaluated non-idempotent callback would name the JSON differently from its PNG; assert
+        // the matcher's single evaluation is the only one, and the JSON pairs with it.
+        let calls = 0;
+        await compareImageSnapshot(chart!, ctx, {
+            ...IMAGE_SNAPSHOT_DEFAULTS,
+            customSnapshotsDir: imageDir,
+            customSnapshotIdentifier: () => {
+                calls += 1;
+                return identifier;
+            },
+        });
+
+        expect(calls).toBe(1);
         expect(sceneJsonFiles(sceneDir)).toEqual([`${identifier}.json`]);
     });
 

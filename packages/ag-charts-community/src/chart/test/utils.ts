@@ -143,8 +143,12 @@ export function sceneSampleToJSON(sample: SceneGeometrySample): Record<string, R
 }
 
 /** Rebuild the identifier jest-image-snapshot used for the comparison that just ran, so the scene
- * JSON pairs 1:1 with its PNG. Mirrors `createSnapshotIdentifier` in jest-image-snapshot. */
-function imageSnapshotIdentifier(options: MatchImageSnapshotOptions): string {
+ * JSON pairs 1:1 with its PNG. Mirrors `createSnapshotIdentifier` in jest-image-snapshot.
+ * A `resolvedIdentifier` captured from the matcher takes precedence: a function
+ * `customSnapshotIdentifier` is thereby evaluated only once, so a non-idempotent callback cannot
+ * name the JSON differently from its PNG. */
+function imageSnapshotIdentifier(options: MatchImageSnapshotOptions, resolvedIdentifier?: string): string {
+    if (resolvedIdentifier != null) return resolvedIdentifier;
     const { testPath, currentTestName, snapshotState } = expect.getState();
     const counter = (snapshotState as unknown as ImageSnapshotState)._counters.get(currentTestName ?? '');
     const defaultIdentifier = kebabCase(`${path.basename(testPath ?? '')}-${currentTestName}-${counter}`);
@@ -166,7 +170,11 @@ function imageSnapshotIdentifier(options: MatchImageSnapshotOptions): string {
     return `${defaultIdentifier}-snap`;
 }
 
-function writeSceneSnapshot(chartOrProxy: ChartOrProxy<any>, options: MatchImageSnapshotOptions): void {
+function writeSceneSnapshot(
+    chartOrProxy: ChartOrProxy<any>,
+    options: MatchImageSnapshotOptions,
+    resolvedIdentifier?: string
+): void {
     const { testPath } = expect.getState();
     // Mirror jest-image-snapshot's truthiness fallback (`customSnapshotsDir || default`): an empty
     // string must fall back to the default so the JSON lands beside the PNG, not in the CWD.
@@ -179,7 +187,7 @@ function writeSceneSnapshot(chartOrProxy: ChartOrProxy<any>, options: MatchImage
     const sample = createSceneGeometrySampler(chartOrProxy, { includeChrome: true })();
     mkdirSync(sceneSnapshotsDir, { recursive: true });
     writeFileSync(
-        path.join(sceneSnapshotsDir, `${imageSnapshotIdentifier(options)}.json`),
+        path.join(sceneSnapshotsDir, `${imageSnapshotIdentifier(options, resolvedIdentifier)}.json`),
         JSON.stringify(sceneSampleToJSON(sample), null, 2)
     );
 }
@@ -207,9 +215,26 @@ export async function compareImageSnapshot(
     const mode = sceneSnapshotMode();
     const state = expect.getState().snapshotState as unknown as ImageSnapshotState;
     const before = { updated: state.updated ?? 0, unmatched: state.unmatched ?? 0, added: state.added ?? 0 };
+
+    // A function customSnapshotIdentifier must resolve to the same value for the PNG and its paired
+    // JSON. Rather than re-invoking it (double side effects, divergence if non-idempotent), wrap it so
+    // the matcher's single evaluation is captured and reused for the JSON filename.
+    let resolvedIdentifier: string | undefined;
+    let matcherOptions = options;
+    const { customSnapshotIdentifier } = options;
+    if (typeof customSnapshotIdentifier === 'function') {
+        matcherOptions = {
+            ...options,
+            customSnapshotIdentifier: (parameters) => {
+                resolvedIdentifier = customSnapshotIdentifier(parameters) || parameters.defaultIdentifier;
+                return resolvedIdentifier;
+            },
+        };
+    }
+
     let threw = false;
     try {
-        expect(image).toMatchImageSnapshot(options);
+        expect(image).toMatchImageSnapshot(matcherOptions);
     } catch (error) {
         threw = true;
         throw error;
@@ -221,7 +246,7 @@ export async function compareImageSnapshot(
             (state.added ?? 0) > before.added;
         if (mode === 'all' || (mode === 'diff' && differed)) {
             try {
-                writeSceneSnapshot(chartOrProxy, options);
+                writeSceneSnapshot(chartOrProxy, options, resolvedIdentifier);
             } catch (captureError) {
                 // Scene capture is an auxiliary CI artifact: a failure here must never replace the
                 // image-diff result it accompanies (a `finally` throw would mask the primary error).
@@ -1360,7 +1385,7 @@ function polylineBounds(polylines: PolylinePoint[][]) {
 }
 
 /** Flatten a node's serialised drawn path (SVG form) into one polyline per subpath. */
-function flattenPathPolylines(svgPath: string | undefined): PolylinePoint[][] {
+export function flattenPathPolylines(svgPath: string | undefined): PolylinePoint[][] {
     if (svgPath == null) return [];
     const tokens = svgPath.split(' ').filter((t) => t.length > 0);
     const polylines: PolylinePoint[][] = [];
@@ -1394,7 +1419,14 @@ function flattenPathPolylines(svgPath: string | undefined): PolylinePoint[][] {
             case 'L': {
                 const [x, y] = [num(), num()];
                 if (Number.isFinite(x) && Number.isFinite(y)) {
-                    current?.push({ x, y });
+                    if (current == null) {
+                        // Finite geometry resuming after a NaN gap begins a fresh subpath rather than
+                        // being discarded until the next explicit `M`.
+                        current = [{ x, y }];
+                        polylines.push(current);
+                    } else {
+                        current.push({ x, y });
+                    }
                 } else {
                     current = undefined;
                 }
