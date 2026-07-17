@@ -375,6 +375,11 @@ const FORMATTERS: AgChartOptions = {
     ],
 };
 
+const DIRECTION_UP: AgChartOptions = {
+    ...SIMPLE_ORG_CHART,
+    theme: { overrides: { organization: { series: { direction: 'up' } } } },
+};
+
 const segmentTitleFormatter = ({ value }: { value: any }) => {
     const parts = String(value).split(' ');
     return [
@@ -763,6 +768,10 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
                 },
             ],
         } as any,
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    DIRECTION_UP: {
+        options: DIRECTION_UP,
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
     },
 };

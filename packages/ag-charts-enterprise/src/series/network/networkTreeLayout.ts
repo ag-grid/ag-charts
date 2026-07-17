@@ -1,5 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import { Vec2, type Vertex, clamp } from 'ag-charts-core';
+import type { AgNetworkSeriesTreeLayoutAlignment, AgNetworkSeriesTreeLayoutDirection } from 'ag-charts-types';
 
 import { NetworkLayout, type NetworkLayoutUpdateOptions } from './networkLayout';
 import type { NetworkLinkInterpolation } from './networkTypes';
@@ -20,12 +21,18 @@ export interface NetworkTreeLayoutUpdateOptions<TVertex, TEdge> extends NetworkL
     nodeWidth?: number;
     nodeMaxHeight?: number;
     nodeMaxWidth?: number;
-    regularDimensions: boolean;
+
     hiddenOnCollapse: boolean;
-    verticalSpacing: number;
-    verticalSpacingExtra: number;
-    outerSpacing: number;
+    regularDimensions: boolean;
+
+    alignment: AgNetworkSeriesTreeLayoutAlignment;
+    direction: AgNetworkSeriesTreeLayoutDirection;
+    stackCollapsedChildren: boolean;
     innerSpacing: number;
+    layerSpacing: number;
+    outerSpacing: number;
+
+    verticalSpacingExtra: number;
 }
 
 /**
@@ -127,7 +134,13 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
 
             // Merge the bboxes into the group.
             if (descendentsContainerBBox) {
-                groupBBox = BBox.merge([groupBBox, descendentsContainerBBox, layoutBBox]);
+                const containerBBox = new BBox(
+                    descendentsContainerBBox.x,
+                    options.direction === 'up' ? groupBBox.y : descendentsContainerBBox.y,
+                    descendentsContainerBBox.width,
+                    descendentsContainerBBox.height
+                );
+                groupBBox = BBox.merge([groupBBox, containerBBox, layoutBBox]);
             } else {
                 groupBBox = BBox.merge([groupBBox, layoutBBox]);
             }
@@ -142,7 +155,7 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
                 for (const { vertex: childVertex, bbox } of childrenBBoxes) {
                     const interpolation = getLinkInterpolation(vertex, childVertex);
                     layoutLinkNode(childVertex, (path: _ModuleSupport.ExtendedPath2D) =>
-                        this.drawLink(path, layoutBBox, bbox, interpolation, options.verticalSpacingExtra)
+                        this.drawLink(path, layoutBBox, bbox, interpolation, options)
                     );
                 }
             }
@@ -155,17 +168,16 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
         options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>,
         vertex: Vertex<TVertex, TEdge>,
         groupBBox: TBBox,
-        datumBBox: TBBox | undefined,
+        datumBBox: TBBox,
         prevHasVisibleChildren: boolean
     ) {
         const { graph } = options;
         const children = graph.neighboursWithEdgeValue(vertex, 'child' as TEdge) as Vertex<TVertex, TEdge>[];
         if (!children || children.length == 0) return { childrenCount: 0 };
 
-        const childrenGroupBBox = new BBox(groupBBox.x, groupBBox.y, groupBBox.width, groupBBox.height);
-        if (datumBBox) {
-            childrenGroupBBox.y += datumBBox.height + options.verticalSpacing + options.verticalSpacingExtra;
-        }
+        let adjustY = datumBBox.height + options.layerSpacing + options.verticalSpacingExtra;
+        if (options.direction === 'up') adjustY *= -1;
+        const childrenGroupBBox = new BBox(groupBBox.x, groupBBox.y + adjustY, groupBBox.width, groupBBox.height);
 
         // Add spacing to the left if the parent's previous sibling does not have visible children.
         if (!prevHasVisibleChildren) {
@@ -191,10 +203,18 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
         parentBBox: TBBox,
         childBBox: TBBox,
         interpolation: NetworkLinkInterpolation = { type: 'step' },
-        expanderOffset: number
+        options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>
     ) {
-        const start = Vec2.from(parentBBox.x + parentBBox.width / 2, parentBBox.y + parentBBox.height + expanderOffset);
-        const end = Vec2.from(childBBox.x + childBBox.width / 2, childBBox.y);
+        const start = Vec2.from(
+            parentBBox.x + parentBBox.width / 2,
+            options.direction === 'up'
+                ? parentBBox.y - options.verticalSpacingExtra
+                : parentBBox.y + parentBBox.height + options.verticalSpacingExtra
+        );
+        const end = Vec2.from(
+            childBBox.x + childBBox.width / 2,
+            options.direction === 'up' ? childBBox.y + childBBox.height : childBBox.y
+        );
 
         const elbowDist = (end.y - start.y) / 2;
 
@@ -213,10 +233,32 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
         if (cornerRadius > 0) {
             if (start.x > end.x) {
                 path.lineTo(elbow2.x + cornerRadius, elbow2.y);
-                path.arc(elbow2.x + cornerRadius, elbow2.y + cornerRadius, cornerRadius, -Math.PI / 2, Math.PI, true);
+                if (options.direction === 'up') {
+                    path.arc(
+                        elbow2.x + cornerRadius,
+                        elbow2.y - cornerRadius,
+                        cornerRadius,
+                        Math.PI / 2,
+                        Math.PI,
+                        false
+                    );
+                } else {
+                    path.arc(
+                        elbow2.x + cornerRadius,
+                        elbow2.y + cornerRadius,
+                        cornerRadius,
+                        -Math.PI / 2,
+                        Math.PI,
+                        true
+                    );
+                }
             } else if (start.x < end.x) {
                 path.lineTo(elbow2.x - cornerRadius, elbow2.y);
-                path.arc(elbow2.x - cornerRadius, elbow2.y + cornerRadius, cornerRadius, -Math.PI / 2, 0, false);
+                if (options.direction === 'up') {
+                    path.arc(elbow2.x - cornerRadius, elbow2.y - cornerRadius, cornerRadius, Math.PI / 2, 0, true);
+                } else {
+                    path.arc(elbow2.x - cornerRadius, elbow2.y + cornerRadius, cornerRadius, -Math.PI / 2, 0, false);
+                }
             }
         } else {
             path.lineTo(elbow2.x, elbow2.y);

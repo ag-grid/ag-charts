@@ -21,26 +21,14 @@ import {
 } from 'ag-charts-community';
 import { BaseProperties, Padding, PropertiesArray, Property } from 'ag-charts-core';
 
-import { NetworkSeriesProperties } from '../network/networkSeries';
+import { NetworkSeriesTreeLayoutProperties } from '../network/networkSeriesProperties';
 
-export class OrganizationSeriesProperties extends NetworkSeriesProperties {
+export class OrganizationSeriesProperties extends NetworkSeriesTreeLayoutProperties {
     @Property
     idKey: string = 'id';
 
     @Property
     parentIdKey: string = 'parentId';
-
-    @Property
-    direction = 'vertical' as const;
-
-    @Property
-    innerSpacing?: number;
-
-    @Property
-    outerSpacing?: number;
-
-    @Property
-    verticalSpacing?: number;
 
     @Property
     expander = new OrganizationSeriesExpanderProperties();

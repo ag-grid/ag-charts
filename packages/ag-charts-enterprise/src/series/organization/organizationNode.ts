@@ -1,5 +1,6 @@
-import { type TextAlign, _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 import { type NormalisedTextOrSegments, wrapTextOrSegments } from 'ag-charts-core';
+import type { AgNetworkSeriesTreeLayoutDirection, TextAlign } from 'ag-charts-types';
 
 import { layoutScenesColumn, layoutScenesRow } from '../../utils/sceneLayout';
 import type {
@@ -71,7 +72,8 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         allChildren: number,
         styles: NormalisedOrganizationNodeStyle,
         isCollapsed: boolean,
-        isRtl: boolean
+        isRtl: boolean,
+        direction: AgNetworkSeriesTreeLayoutDirection
     ) {
         this.appliedStyles = styles;
         const textMaxWidth = computeTextMaxWidth(styles);
@@ -80,7 +82,9 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         this.updateTitleNode(fields.title, styles, textMaxWidth);
         this.updateSubtitleNode(fields.subtitle, styles, textMaxWidth);
         this.updateLabelNodes(fields.labels, styles, textMaxWidth);
-        this.updateExpanderNode(expanderText, allChildren, isCollapsed, isRtl, styles);
+        this.updateExpanderNode(expanderText, allChildren, isCollapsed, isRtl, direction, styles);
+
+        const padding = this.getDirectionalPadding(styles, direction);
 
         let rowScenes = [];
         let rowGaps: number[] = [];
@@ -89,7 +93,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         const columnGaps: number[] = [];
 
         if (this.imageNode && styles.image.position === 'top') {
-            this.imageNode.x = styles.padding.left;
+            this.imageNode.x = padding.left;
             columnScenes.push(this.imageNode);
             columnGaps.push(styles.image.spacing);
         }
@@ -116,41 +120,27 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         }
 
         if (this.imageNode && styles.image.position === 'bottom') {
-            this.imageNode.x = styles.padding.left;
+            this.imageNode.x = padding.left;
             columnScenes.push(this.imageNode);
             columnGaps.push(styles.image.spacing);
         }
 
         if (this.imageNode && styles.image.position === 'left') {
-            this.imageNode.y = styles.padding.top;
+            this.imageNode.y = padding.top;
             rowScenes = [this.imageNode, columnScenes];
             rowGaps = [styles.image.spacing];
         } else if (this.imageNode && styles.image.position === 'right') {
-            this.imageNode.y = styles.padding.top;
+            this.imageNode.y = padding.top;
             rowScenes = [columnScenes, this.imageNode];
             rowGaps = [styles.image.spacing];
         } else {
             rowScenes = [columnScenes];
         }
 
-        layoutScenesColumn(columnScenes, styles.padding.top, columnGaps);
-        layoutScenesRow(rowScenes, styles.padding.left, rowGaps);
+        layoutScenesColumn(columnScenes, padding.top, columnGaps);
+        layoutScenesRow(rowScenes, padding.left, rowGaps);
 
-        let lastElementSpacing = this.subtitleNode ? styles.subtitle.spacing : styles.title.spacing;
-        if (this.imageNode && styles.image.position === 'bottom') {
-            lastElementSpacing = styles.image.spacing;
-        } else if (this.labelNodes && this.labelNodes.length > 0) {
-            lastElementSpacing = styles.labels.at(-1)?.spacing ?? lastElementSpacing;
-        }
-
-        const bottomPadding = this.expanderNode
-            ? Math.max(styles.padding.bottom, this.expanderNode.getBBox().height / 2 + lastElementSpacing)
-            : styles.padding.bottom;
-
-        const bbox = _ModuleSupport.Group.computeChildrenBBox(rowScenes.flat()).grow({
-            ...styles.padding,
-            bottom: bottomPadding,
-        }); // TODO: add stroke width by side
+        const bbox = _ModuleSupport.Group.computeChildrenBBox(rowScenes.flat()).grow(padding); // TODO: add stroke width by side
 
         this.shapeNode.x = 0;
         this.shapeNode.y = 0;
@@ -162,14 +152,18 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         this.intrinsicCardSize = { width: bbox.width, height: bbox.height };
     }
 
-    updateBBox(bbox: _ModuleSupport.BBox) {
+    updateBBox(bbox: _ModuleSupport.BBox, direction: AgNetworkSeriesTreeLayoutDirection) {
         this.shapeNode.width = bbox.width;
         this.shapeNode.height = bbox.height;
 
         if (this.expanderNode) {
             const expanderBBox = this.expanderNode.getBBox();
             this.expanderNode.translationX = bbox.width / 2 - expanderBBox.width / 2;
-            this.expanderNode.translationY = bbox.height - expanderBBox.height / 2;
+            if (direction === 'up') {
+                this.expanderNode.translationY = bbox.y - expanderBBox.height / 2;
+            } else {
+                this.expanderNode.translationY = bbox.height - expanderBBox.height / 2;
+            }
         }
 
         // Conditional clip: only when `regularBBox` clamped the card under its intrinsic
@@ -233,17 +227,14 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         }
     }
 
-    // Card-only bbox in node-local coords; excludes the expander pill that hangs below.
-    getCardBBox(): _ModuleSupport.BBox {
+    getShapeBBox(): _ModuleSupport.BBox {
         return new _ModuleSupport.BBox(0, 0, this.shapeNode.width, this.shapeNode.height);
     }
 
-    // Card + expander pill in node-local coords; used by the keyboard focus ring.
-    getFocusBBox(): _ModuleSupport.BBox {
-        const cardBBox = this.getCardBBox();
-        if (!this.expanderNode) return cardBBox;
-        // expanderNode.getBBox() is already in OrganizationNode-local coords (TranslatableGroup).
-        return _ModuleSupport.BBox.merge([cardBBox, this.expanderNode.getBBox()]);
+    getFullBBox(): _ModuleSupport.BBox {
+        const shapeBBox = this.getShapeBBox();
+        if (!this.expanderNode) return shapeBBox;
+        return _ModuleSupport.BBox.merge([shapeBBox, this.expanderNode.getBBox()]);
     }
 
     private updateShapeNode(styles: NormalisedOrganizationNodeStyle) {
@@ -349,6 +340,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         allChildren: number,
         isCollapsed: boolean,
         isRtl: boolean,
+        direction: AgNetworkSeriesTreeLayoutDirection,
         styles: NormalisedOrganizationNodeStyle
     ) {
         if (allChildren === 0 || !styles.expander.enabled) {
@@ -358,7 +350,39 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         }
 
         this.expanderNode ??= this.appendChild(new OrganizationExpanderNode());
-        this.expanderNode.update(expanderText, isCollapsed, isRtl, styles);
+        this.expanderNode.update(expanderText, isCollapsed, isRtl, direction, styles);
+    }
+
+    private getDirectionalPadding(
+        styles: NormalisedOrganizationNodeStyle,
+        direction: AgNetworkSeriesTreeLayoutDirection
+    ) {
+        if (!this.expanderNode) return styles.padding;
+
+        const padding = { ...styles.padding };
+
+        let firstElementSpacing = styles.title.spacing;
+        if (this.imageNode && styles.image.position === 'top') {
+            firstElementSpacing = styles.image.spacing;
+        }
+
+        let lastElementSpacing = this.subtitleNode ? styles.subtitle.spacing : styles.title.spacing;
+        if (this.imageNode && styles.image.position === 'bottom') {
+            lastElementSpacing = styles.image.spacing;
+        } else if (this.labelNodes && this.labelNodes.length > 0) {
+            lastElementSpacing = styles.labels.at(-1)?.spacing ?? lastElementSpacing;
+        }
+
+        if (direction === 'up') {
+            padding.top = Math.max(styles.padding.top, this.expanderNode.getBBox().height / 2 + firstElementSpacing);
+        } else {
+            padding.bottom = Math.max(
+                styles.padding.bottom,
+                this.expanderNode.getBBox().height / 2 + lastElementSpacing
+            );
+        }
+
+        return padding;
     }
 }
 
@@ -373,6 +397,7 @@ class OrganizationExpanderNode extends _ModuleSupport.TranslatableGroup {
         expanderText: NormalisedTextOrSegments,
         isCollapsed: boolean,
         isRtl: boolean,
+        direction: AgNetworkSeriesTreeLayoutDirection,
         styles: NormalisedOrganizationNodeStyle
     ) {
         this.shapeNode ??= this.appendChild(new _ModuleSupport.Rect({ tag: OrganizationNodeTag.Expander }));
@@ -387,7 +412,7 @@ class OrganizationExpanderNode extends _ModuleSupport.TranslatableGroup {
         this.chevronNode.update(
             styles.expander.text.fontSize * (7 / 12),
             styles.expander.text.fontSize * (3.5 / 12),
-            isCollapsed,
+            (direction === 'down' && isCollapsed) || (direction === 'up' && !isCollapsed) ? 'down' : 'up',
             styles
         );
         this.chevronNode.translationY = styles.expander.padding.top + styles.expander.text.fontSize / 2;
@@ -414,7 +439,7 @@ class OrganizationExpanderNode extends _ModuleSupport.TranslatableGroup {
 }
 
 class ChevronPath extends _ModuleSupport.Rotatable(_ModuleSupport.Translatable(_ModuleSupport.Path)) {
-    update(width: number, height: number, isCollapsed: boolean, styles: NormalisedOrganizationNodeStyle) {
+    update(width: number, height: number, direction: 'up' | 'down', styles: NormalisedOrganizationNodeStyle) {
         const { path } = this;
 
         path.clear();
@@ -425,7 +450,7 @@ class ChevronPath extends _ModuleSupport.Rotatable(_ModuleSupport.Translatable(_
         this.translationY = styles.expander.padding.top;
         this.rotationCenterX = width / 2;
         this.rotationCenterY = height / 2;
-        this.rotation = isCollapsed ? 0 : Math.PI;
+        this.rotation = direction === 'down' ? 0 : Math.PI;
         this.stroke = styles.expander.text.color;
         this.strokeWidth = 1;
         this.fill = 'transparent';

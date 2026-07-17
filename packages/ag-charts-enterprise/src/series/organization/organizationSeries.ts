@@ -282,7 +282,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                 allChildren,
                 styles,
                 isCollapsed,
-                this.ctx.domManager.isRtl
+                this.ctx.domManager.isRtl,
+                this.properties.direction
             );
         });
     }
@@ -304,11 +305,11 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         node.translationY = bbox.y;
 
         if (regularBBox) {
-            node.updateBBox(regularBBox);
+            node.updateBBox(regularBBox, this.properties.direction);
             node.realign(regularBBox);
         }
 
-        const focusBBox = node.getFocusBBox();
+        const focusBBox = node.getFullBBox();
 
         return new _ModuleSupport.BBox(bbox.x, bbox.y, focusBBox.width, focusBBox.height);
     }
@@ -394,8 +395,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const node = this.datumSelection.at(nextDatumIdx);
         if (!node) return;
 
-        // Card + expander pill so the focus ring shows what `Enter` will toggle.
-        const bounds = _ModuleSupport.Transformable.toCanvas(node, node.getFocusBBox());
+        const bounds = _ModuleSupport.Transformable.toCanvas(node, node.getFullBBox());
         if (!bounds?.isFinite()) return;
 
         const depth = this.graph.findNeighbourValue(next, 'depth') as number | undefined;
@@ -481,12 +481,12 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     // Exclude the expander pill from measurements — its overhang would compound into
     // `regularBBox` on each layout pass, growing the card by `expander.height / 2` per toggle.
     protected override measureDatumNode(node: OrganizationNode): _ModuleSupport.BBox {
-        return node.getCardBBox();
+        return node.getFullBBox();
     }
 
     protected override makeLayoutUpdateOptions(): NetworkTreeLayoutUpdateOptions<OrganizationVertex, OrganizationEdge> {
         const {
-            properties: { node, expander, innerSpacing, outerSpacing, verticalSpacing },
+            properties: { node, expander, alignment, direction, innerSpacing, outerSpacing, layerSpacing },
         } = this;
 
         return {
@@ -495,11 +495,17 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             nodeWidth: node.width,
             nodeMaxHeight: node.maxHeight,
             nodeMaxWidth: node.maxWidth,
+
             regularDimensions: true,
             hiddenOnCollapse: true,
+
+            alignment: alignment ?? 'center-all-children',
+            direction: direction ?? 'down',
+            stackCollapsedChildren: false,
             innerSpacing: innerSpacing ?? 0,
             outerSpacing: outerSpacing ?? 0,
-            verticalSpacing: verticalSpacing ?? 0,
+            layerSpacing: layerSpacing ?? 0,
+
             verticalSpacingExtra: expander.enabled
                 ? (expander.text.fontSize + expander.padding.top + expander.padding.bottom + expander.strokeWidth) / 2
                 : 0,
