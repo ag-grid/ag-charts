@@ -762,6 +762,30 @@ function insertMarkerObstacles(data: Map<string, SeriesLabels>) {
     }
 }
 
+/** True if any series has labels to place; gates the per-update sort and obstacle-index build. */
+function hasAnyLabels(data: Map<string, SeriesLabels>): boolean {
+    for (const entry of data.values()) {
+        if (entry.datums[0]?.label != null) return true;
+    }
+    return false;
+}
+
+/** True if the series can drop a label on collision: its default hides, or any datum opts in. */
+function seriesHides(entry: SeriesLabels): boolean {
+    if (entry.defaults?.suppressHide === false) return true;
+    return entry.datums.some((d) => d.suppressHide === false);
+}
+
+/**
+ * Series entries with all keep-series (never dropped) first, then droppable ones, both stable. Keep
+ * labels seed the index as fixed obstacles before any droppable label resolves, so cross-series
+ * precedence does not depend on declaration order.
+ */
+function orderKeepFirst(data: Map<string, SeriesLabels>): [string, SeriesLabels][] {
+    const entries = Array.from(data.entries());
+    return [...entries.filter(([, e]) => !seriesHides(e)), ...entries.filter(([, e]) => seriesHides(e))];
+}
+
 /** Resets the shared obstacle index and populates it with external obstacles and marker circles. */
 function buildObstacleIndex(data: Map<string, SeriesLabels>, obstacles: readonly LabelObstacle[], bounds: BoxBounds) {
     obstacleIndex.reset(bounds, obstacleGridCellSize(data, obstacles));
@@ -772,7 +796,8 @@ function buildObstacleIndex(data: Map<string, SeriesLabels>, obstacles: readonly
 }
 
 /**
- * @param data Points and labels for one or more series. The order of series determines label placement precedence.
+ * @param data Points and labels for one or more series. Keep-series (never dropped) resolve first as
+ * fixed obstacles, then droppable series; within each group, larger markers claim their placement first.
  * @param bounds Bounds to fit the labels into. If a label can't be fully contained, it doesn't fit.
  * @param padding
  * @param obstacles External obstacles (e.g. bar rects, pie sectors) every label must avoid, in
@@ -787,8 +812,8 @@ export function placeLabels(
 ) {
     const result: Map<string, PlacedLabel[]> = new Map();
 
-    // placeLabels runs on every chart update; a label-free chart must not touch the index.
-    if (data.size === 0) return result;
+    // placeLabels runs on every chart update; a chart with no labels must not touch the index.
+    if (!hasAnyLabels(data)) return result;
 
     // Larger markers claim their placement first, so smaller ones steer clear of them.
     const placementData = new Map(
@@ -800,7 +825,7 @@ export function placeLabels(
 
     buildObstacleIndex(placementData, obstacles, bounds);
 
-    for (const [seriesId, { datums, defaults }] of placementData.entries()) {
+    for (const [seriesId, { datums, defaults }] of orderKeepFirst(placementData)) {
         const labels: PlacedLabel[] = [];
         if (!datums[0]?.label) continue;
         for (let index = 0, ln = datums.length; index < ln; index++) {

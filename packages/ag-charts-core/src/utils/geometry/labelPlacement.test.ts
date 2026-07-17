@@ -387,11 +387,16 @@ describe('placeLabels', () => {
         expect(result.get('present')?.length).toBe(1);
     });
 
-    it('short-circuits empty input without building the spatial index', () => {
-        // placeLabels runs on every chart update; an empty pass must not touch the index.
+    it('short-circuits a label-free chart without building the spatial index', () => {
+        // placeLabels runs on every chart update; a chart with no labels must not touch the index,
+        // whether the map is empty or its series carry only label-less datums.
         const resetSpy = vi.spyOn(SpatialIndex.prototype, 'reset');
-        const result = placeLabels(new Map(), bounds, 5);
-        expect(result.size).toBe(0);
+
+        expect(placeLabels(new Map(), bounds, 5).size).toBe(0);
+
+        const labelless = new Map<string, SeriesLabels>([['s', seriesLabels([])]]);
+        expect(placeLabels(labelless, bounds, 5).size).toBe(0);
+
         expect(resetSpy).not.toHaveBeenCalled();
         resetSpy.mockRestore();
     });
@@ -426,19 +431,10 @@ describe('placeLabels', () => {
         expect(placed.some((l) => l.datum === b)).toBe(true);
     });
 
-    it('treats an earlier-placed label as a fixed obstacle for a later series in insertion order', () => {
-        // Two series overlapping at the same point. Series resolve in insertion order: the first keeps
-        // its sole placement ('top') and is registered as an obstacle; the second, placed after it,
-        // must fall back to 'bottom' to clear it.
-        const fixed: PointLabelDatum = {
-            point: { x: 200, y: 200, size: 0 },
-            label: { text: 'B', width: 40, height: 12 },
-            anchor: undefined,
-            placement: 'top',
-            placements: ['top'],
-            gap: 10,
-            suppressHide: true,
-        };
+    it('resolves keep-series before droppable series regardless of declaration order', () => {
+        // Two series overlapping at the same point, with the droppable series declared FIRST. The keep
+        // series still resolves first (fixed obstacles seed the index before droppable labels), keeping
+        // its sole placement ('top'); the droppable series, resolved after it, falls back to 'bottom'.
         const avoiding: PointLabelDatum = {
             point: { x: 200, y: 200, size: 0 },
             label: { text: 'A', width: 40, height: 12 },
@@ -448,10 +444,19 @@ describe('placeLabels', () => {
             gap: 10,
             suppressHide: false,
         };
+        const fixed: PointLabelDatum = {
+            point: { x: 200, y: 200, size: 0 },
+            label: { text: 'B', width: 40, height: 12 },
+            anchor: undefined,
+            placement: 'top',
+            placements: ['top'],
+            gap: 10,
+            suppressHide: true,
+        };
         const result = placeLabels(
             new Map([
-                ['fixed', seriesLabels([fixed])],
                 ['avoiding', seriesLabels([avoiding])],
+                ['fixed', seriesLabels([fixed])],
             ]),
             bounds,
             5
