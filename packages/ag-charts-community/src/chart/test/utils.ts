@@ -45,6 +45,7 @@ import { type AnimationPhase, type IAnimation, PHASE_METADATA, PHASE_ORDER } fro
 import { BBox } from '../../scene/bbox';
 import { Group } from '../../scene/group';
 import type { Node } from '../../scene/node';
+import { alignCentre, deviceDimension } from '../../scene/util/pixel';
 import { extractImageData, type setupMockCanvas } from '../../util/test/mockCanvas';
 import type { Chart } from '../chart';
 import type { AgChartProxy } from '../chartProxy';
@@ -560,6 +561,57 @@ export function expectBarCentresOnCategoryGridlines(chartOrProxy: ChartOrProxy<a
     for (const centre of centres) {
         const nearest = gridlines.reduce((min, g) => Math.min(min, Math.abs(g - centre)), Infinity);
         expect(nearest).toBeLessThan(1e-6);
+    }
+}
+
+/** Mirror of `Line.render`'s stroke snap — a gridline is a vertical `Line` and has no exported snap. */
+function lineStrokeSnapDev(pixelRatio: number, coord: number, strokeWidth: number): number {
+    return deviceDimension(pixelRatio, coord) + (Math.trunc(strokeWidth * pixelRatio) % 2) / 2;
+}
+
+/**
+ * Assert every bar renders on its gridline in DEVICE space — the check {@link expectBarCentresOnCategoryGridlines}
+ * cannot make, since equal logical centres can still snap to different device pixels (AG-17856). Applies the
+ * production {@link alignCentre} to each bar and compares against the gridline's snapped position. Bars whose
+ * device width matches the gridline stroke parity land exactly; otherwise they sit within the unavoidable
+ * half-device-pixel parity gap.
+ */
+export function expectBarCentresRenderedOnCategoryGridlines(
+    chartOrProxy: ChartOrProxy<any>,
+    pixelRatio: number,
+    expectedBars?: number
+) {
+    const chart = deproxy(chartOrProxy) as any;
+    const xAxis = chart.axes.find((a: any) => a.direction === 'x');
+
+    // The gridline group and the series content are translated by the same floored origin, so a locally
+    // snapped bar centre and gridline compare directly. A drift here would offset every bar from its grid.
+    expect(chart.seriesRoot.translationX).toBe(xAxis.gridGroup.translationX);
+
+    const gridlines = categoryGridlineOffsets(chart);
+    const gridStrokeWidth = xAxis.gridLine?.style?.[0]?.strokeWidth ?? 1;
+    const nodeData = chart.series[0].contextNodeData?.nodeData ?? [];
+    const bars = nodeData.filter((d: any) => Number.isFinite(d.x) && Number.isFinite(d.width) && d.width > 0);
+
+    if (expectedBars == null) {
+        expect(bars.length).toBeGreaterThan(0);
+    } else {
+        expect(bars.length).toBe(expectedBars);
+    }
+
+    const gridParity = Math.trunc(gridStrokeWidth * pixelRatio) % 2;
+    for (const d of bars) {
+        const logicalCentre = d.x + d.width / 2;
+        const { start, length } = alignCentre(pixelRatio, d.x, d.width);
+        const barCentreDev = (start + length / 2) * pixelRatio;
+        const nearestGrid = gridlines.reduce(
+            (best, g) => (Math.abs(g - logicalCentre) < Math.abs(best - logicalCentre) ? g : best),
+            gridlines[0]
+        );
+        const gridCentreDev = lineStrokeSnapDev(pixelRatio, nearestGrid, gridStrokeWidth);
+        const deviceWidth = Math.round(length * pixelRatio);
+        const parityMatches = deviceWidth % 2 === gridParity;
+        expect(Math.abs(barCentreDev - gridCentreDev)).toBeLessThanOrEqual(parityMatches ? 1e-6 : 0.5 + 1e-6);
     }
 }
 

@@ -4,6 +4,7 @@ import { createSvgElement, lineDistanceSquared } from 'ag-charts-core';
 import { BBox } from '../bbox';
 import type { NodeOptions, RenderContext } from '../node';
 import { SceneChangeDetection } from '../node';
+import { deviceDimension } from '../util/pixel';
 import { Shape } from './shape';
 
 export class Line<D = unknown> extends Shape<D> implements DistantObject {
@@ -83,14 +84,14 @@ export class Line<D = unknown> extends Shape<D> implements DistantObject {
         if (x1 === x2) {
             const { strokeWidth } = this;
             const x =
-                Math.round(x1 * devicePixelRatio) / devicePixelRatio +
+                deviceDimension(devicePixelRatio, x1) / devicePixelRatio +
                 (Math.trunc(strokeWidth * devicePixelRatio) % 2) / (devicePixelRatio * 2);
             x1 = x;
             x2 = x;
         } else if (y1 === y2) {
             const { strokeWidth } = this;
             const y =
-                Math.round(y1 * devicePixelRatio) / devicePixelRatio +
+                deviceDimension(devicePixelRatio, y1) / devicePixelRatio +
                 (Math.trunc(strokeWidth * devicePixelRatio) % 2) / (devicePixelRatio * 2);
             y1 = y;
             y2 = y;

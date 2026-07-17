@@ -63,14 +63,24 @@ describe('alignCentre', () => {
         expect(alignCentre(pixelRatio, 44.60625, 9).length).toBeCloseTo(16 / 1.75, 9);
     });
 
-    it('keeps the centre within half a device pixel of the true centre', () => {
-        const pixelRatio = 1.75;
-        for (const start of [10, 44.60625, 141.98125]) {
-            const length = 9;
-            const trueCentreDev = (start + length / 2) * pixelRatio;
-            const result = alignCentre(pixelRatio, start, length);
-            const snappedCentreDev = (result.start + result.length / 2) * pixelRatio;
-            expect(Math.abs(snappedCentreDev - trueCentreDev)).toBeLessThanOrEqual(0.5 + 1e-9);
+    it('snaps the centre onto the same device pixel a matching-parity gridline uses', () => {
+        // A gridline is a vertical Line; Line.render snaps a stroke to round(coord) on the device grid
+        // and offsets odd device widths by half a pixel. A bar must resolve to the identical device
+        // coordinate so it sits exactly on its gridline (AG-17856). This fails against a snap that rounds
+        // the near edge instead of the centre, which drifts odd-width bars a whole pixel off the line.
+        const strokeSnapCentreDev = (centreDev: number, deviceWidth: number) =>
+            Math.round(centreDev) + (deviceWidth % 2) / 2;
+
+        for (const pixelRatio of [1, 1.75, 2, 2.5]) {
+            for (const centre of [45.5625, 51.5625, 100.3, 233.98726, 640.5, 799.1]) {
+                for (const length of [8, 9, 9.4, 12, 15]) {
+                    const result = alignCentre(pixelRatio, centre - length / 2, length);
+                    const deviceWidth = Math.round(result.length * pixelRatio);
+                    if (deviceWidth <= 1) continue; // sub-pixel bars edge-snap; covered separately
+                    const snappedCentreDev = (result.start + result.length / 2) * pixelRatio;
+                    expect(snappedCentreDev).toBeCloseTo(strokeSnapCentreDev(centre * pixelRatio, deviceWidth), 6);
+                }
+            }
         }
     });
 

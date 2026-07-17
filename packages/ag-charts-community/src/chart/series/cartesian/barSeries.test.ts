@@ -52,6 +52,7 @@ import {
     deproxy,
     expectAnimatedEndpointsMatchStatic,
     expectBarCentresOnCategoryGridlines,
+    expectBarCentresRenderedOnCategoryGridlines,
     expectNoAnimation,
     expectSceneSamplesMatch,
     expectSceneTrajectory,
@@ -4231,24 +4232,37 @@ describe('BarSeries category/gridline pixel alignment', () => {
     const DATA = CATEGORIES.map((c, i) => ({ cat: c, value: 40 + i * 7 }));
     const DPRS = [1, 1.75, 2, 2.5];
     const WIDTHS = [300, 641, 799, 1000];
+    // `undefined` = band-filling width; `9` = a fixed odd-pixel width, which exposes the device-pixel
+    // snap divergence a band-filling (often even) width can mask.
+    const BAR_WIDTHS: Array<number | undefined> = [undefined, 9];
 
     for (const dpr of DPRS) {
         for (const width of WIDTHS) {
-            it(`every bar centre coincides with a gridline (dpr ${dpr}, width ${width})`, async () => {
-                const options: any = prepareTestOptions({
-                    data: DATA,
-                    series: [{ type: 'bar', xKey: 'cat', yKey: 'value' }],
-                    axes: CATEGORY_CENTRE_GRIDLINE_AXES,
-                } as any);
-                options.width = width;
-                options.height = 400;
-                options.overrideDevicePixelRatio = dpr;
+            for (const barWidth of BAR_WIDTHS) {
+                it(`every bar renders on a gridline (dpr ${dpr}, width ${width}, bar ${barWidth ?? 'auto'})`, async () => {
+                    const options: any = prepareTestOptions({
+                        data: DATA,
+                        series: [
+                            {
+                                type: 'bar',
+                                xKey: 'cat',
+                                yKey: 'value',
+                                ...(barWidth == null ? {} : { width: barWidth }),
+                            },
+                        ],
+                        axes: CATEGORY_CENTRE_GRIDLINE_AXES,
+                    } as any);
+                    options.width = width;
+                    options.height = 400;
+                    options.overrideDevicePixelRatio = dpr;
 
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
+                    chart = AgCharts.create(options);
+                    await waitForChartStability(chart);
 
-                expectBarCentresOnCategoryGridlines(chart, CATEGORIES.length);
-            });
+                    expectBarCentresOnCategoryGridlines(chart, CATEGORIES.length);
+                    expectBarCentresRenderedOnCategoryGridlines(chart, dpr, CATEGORIES.length);
+                });
+            }
         }
     }
 });

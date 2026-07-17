@@ -71,10 +71,13 @@ export function alignCentre(
         return out;
     }
     const centreDev = (start + length / 2) * pixelRatio;
-    // Snap the near edge to a whole device pixel via the tie-stable rounder, so both edges land on the
-    // grid and the centre lands on the nearest boundary (even device width) or pixel centre (odd). Using
-    // deviceDimension here keeps the result stable against sub-ULP jitter near a .5 boundary.
-    const startDev = deviceDimension(1, centreDev - lengthDev / 2);
+    // Snap the centre exactly as `Line.render` snaps a stroke of this device width: round the centre to
+    // a device pixel, then offset odd widths by half a pixel. This lands the centre on the identical
+    // device pixel a gridline of matching parity uses, so a bar sits on its gridline (AG-17856). Even
+    // widths keep the centre on a boundary, leaving the unavoidable half-pixel parity gap against an
+    // odd (1px) gridline. deviceDimension keeps the round stable against sub-ULP jitter near a .5 tie.
+    const centreSnapDev = deviceDimension(1, centreDev) + (lengthDev % 2) / 2;
+    const startDev = centreSnapDev - lengthDev / 2;
     out.start = startDev / pixelRatio;
     out.length = lengthDev / pixelRatio;
     return out;
