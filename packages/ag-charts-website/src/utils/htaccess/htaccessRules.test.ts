@@ -106,8 +106,9 @@ describe('htaccessRules redirects (SE-60/SE-61)', () => {
         expect(bareArchive.test(`${base}/archive/14.0.0/`)).toBe(false);
     });
 
-    it('redirects the legacy privacy path to the canonical apex policy page', () => {
-        expect(rules).toContain(`RedirectMatch 301 "^${base}/privacy(/.*)?$" "https://www.ag-grid.com/privacy/"`);
+    it('marks the legacy privacy path as 410 Gone (no charts-scoped privacy page; must not 301 to apex)', () => {
+        expect(rules).toContain(`RedirectMatch 410 "^${base}/privacy(/.*)?$"`);
+        expect(rules).not.toContain(`RedirectMatch 301 "^${base}/privacy(/.*)?$"`);
     });
 
     it('rewrites legacy {fw}-charts/{fw}/<page> to the current {fw}/<page> scheme', () => {
