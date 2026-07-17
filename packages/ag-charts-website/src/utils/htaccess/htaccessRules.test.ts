@@ -109,7 +109,7 @@ describe('htaccessRules redirects (SE-60/SE-61)', () => {
     it('returns 410 Gone for the legacy privacy path (no charts-scoped privacy page ever existed)', () => {
         expect(rules).toContain(`RedirectMatch 410 "^${base}/privacy(/.*)?$"`);
         // must NOT still 301 to the apex policy page
-        expect(rules).not.toContain(`RedirectMatch 301 "^${base}/privacy(/.*)?$" "https://www.ag-grid.com/privacy/"`);
+        expect(rules).not.toContain(`RedirectMatch 301 "^${base}/privacy(/.*)?$"`);
     });
 
     it('410 rules carry no destination', () => {

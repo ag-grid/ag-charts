@@ -19,10 +19,10 @@ export const SITE_301_REDIRECTS: Redirect[] = [
     { from: '/angular/bullet-series', to: '/angular/linear-gauge/#bullet-series' },
     { from: '/react/bullet-series', to: '/react/linear-gauge/#bullet-series' },
     { from: '/vue/bullet-series', to: '/vue/linear-gauge/#bullet-series' },
-    { from: '/javascript/fonts', to: '/javascript/text' },
-    { from: '/angular/fonts', to: '/angular/text' },
-    { from: '/react/fonts', to: '/react/text' },
-    { from: '/vue/fonts', to: '/vue/text' },
+    { from: '/javascript/fonts', to: '/javascript/text/' },
+    { from: '/angular/fonts', to: '/angular/text/' },
+    { from: '/react/fonts', to: '/react/text/' },
+    { from: '/vue/fonts', to: '/vue/text/' },
     { fromPattern: '^/javascript/?$', to: '/javascript/quick-start/' },
     { fromPattern: '^/react/?$', to: '/react/quick-start/' },
     { fromPattern: '^/vue/?$', to: '/vue/quick-start/' },
@@ -48,9 +48,10 @@ export const SITE_301_REDIRECTS: Redirect[] = [
     // still serve. Mirrors the grid site's `^/archive/?$` → `/documentation-archive`.
     { fromPattern: '^/archive/?$', to: '/documentation-archive/' },
 
-    // SE-61: no charts-scoped privacy page ever existed, so these legacy /charts/privacy* URLs are
-    // permanently gone (410) rather than redirected. (They previously 301'd to the apex policy page,
-    // but a 301 implies an equivalent charts resource moved — there is none.)
+    // No charts-scoped privacy page exists and none should be served — it is permanently Gone (410).
+    // Do NOT 301 to the apex /privacy policy: /charts/privacy must return 410 Gone (SE-66). This is
+    // also why /charts/privacy is deliberately NOT mirrored into the grid docroot — the charts subdir
+    // stays its sole authority so the slashed form returns a single 410.
     { fromPattern: '^/privacy(/.*)?$', gone: true },
 
     // Legacy "{fw}-charts/{fw}/<page>" docs scheme → current "{fw}/<page>" (all page slugs verified in content/docs).
