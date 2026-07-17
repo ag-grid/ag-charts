@@ -381,7 +381,10 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
                         style,
                         toHierarchyHighlightString(highlightState)
                     );
-                    return this.callWithContext(itemStyler, params);
+                    return this.ctx.optionsGraphService.resolvePartial(
+                        ['series', `${this.declarationOrder}`],
+                        this.callWithContext(itemStyler, params)
+                    );
                 }
             );
 

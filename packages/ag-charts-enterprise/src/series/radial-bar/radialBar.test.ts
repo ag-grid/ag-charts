@@ -14,6 +14,7 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     MIN_UNHIGHLIGHT_DELAY,
     type MockRadialColumnStyler,
+    deproxy,
     expectWarningsCalls,
     extractImageData,
     hoverAction,
@@ -25,7 +26,7 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { prepareEnterpriseTestOptions, renderEnterpriseChartImage } from '../../test/utils';
+import { mockCssVarColorSupport, prepareEnterpriseTestOptions, renderEnterpriseChartImage } from '../../test/utils';
 
 describe('RadialBarSeries', () => {
     setupMockConsole();
@@ -723,6 +724,37 @@ describe('RadialBarSeries', () => {
             await waitForChartStability(chart);
             await chart.updateDelta({ data: DATA2 });
             await compare();
+        });
+    });
+
+    describe('AG-17875 itemStyler CSS variable resolution', () => {
+        it('resolves a CSS variable fill returned from itemStyler to its computed colour', async () => {
+            const container = document.createElement('div');
+            const restoreCssVarColorSupport = mockCssVarColorSupport(container, { '--my-color': 'rgb(0, 128, 0)' });
+            try {
+                const options: AgChartOptions = {
+                    data: [{ quarter: `Q1'22`, revenue: 4.35 }],
+                    series: [
+                        {
+                            type: 'radial-bar',
+                            radiusKey: 'quarter',
+                            angleKey: 'revenue',
+                            itemStyler: () => ({ fill: 'var(--my-color)' }),
+                        },
+                    ],
+                };
+                prepareEnterpriseTestOptions(options, container);
+
+                chart = deproxy(AgCharts.create(options));
+                await waitForChartStability(chart);
+
+                const series = chart.series[0];
+                const [sector] = series.getItemNodes();
+
+                expect(sector.fill).toBe('rgb(0, 128, 0)');
+            } finally {
+                restoreCssVarColorSupport();
+            }
         });
     });
 

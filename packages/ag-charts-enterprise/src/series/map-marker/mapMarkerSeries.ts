@@ -838,7 +838,10 @@ export class MapMarkerSeries
                 createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'),
                 () => {
                     const params = this.makeItemStylerParams(datum, datumIndex, isHighlight, style);
-                    return this.callWithContext(itemStyler, params);
+                    return this.ctx.optionsGraphService.resolvePartial(
+                        ['series', `${this.declarationOrder}`],
+                        this.callWithContext(itemStyler, params)
+                    );
                 }
             );
 

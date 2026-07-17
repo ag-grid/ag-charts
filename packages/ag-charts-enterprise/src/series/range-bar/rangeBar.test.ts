@@ -19,6 +19,7 @@ import {
     NEG_BIG,
     STRIPPED_NUMBER_AXES,
     STRIPPED_UNIT_TIME_AXES,
+    deproxy,
     expectPixelIdenticalAcrossMagnitude,
     expectWarningsCalls,
     extractImageData,
@@ -35,7 +36,12 @@ import {
 } from 'ag-charts-community-test';
 import { roundTo } from 'ag-charts-core';
 
-import { createEnterpriseChart, prepareEnterpriseTestOptions, renderEnterpriseChartImage } from '../../test/utils';
+import {
+    createEnterpriseChart,
+    mockCssVarColorSupport,
+    prepareEnterpriseTestOptions,
+    renderEnterpriseChartImage,
+} from '../../test/utils';
 
 describe('RangeBarSeries', () => {
     setupMockConsole();
@@ -902,6 +908,38 @@ describe('RangeBarSeries', () => {
             await waitForChartStability(chart);
             await chart.updateDelta({ data: DATA2 });
             await compare();
+        });
+    });
+
+    describe('AG-17875 itemStyler CSS variable resolution', () => {
+        it('resolves a CSS variable fill returned from itemStyler to its computed colour', async () => {
+            const container = document.createElement('div');
+            const restoreCssVarColorSupport = mockCssVarColorSupport(container, { '--my-color': 'rgb(0, 128, 0)' });
+            try {
+                const options: AgCartesianChartOptions = {
+                    data: [{ month: 'Jan', low: 5, high: 15 }],
+                    series: [
+                        {
+                            type: 'range-bar',
+                            xKey: 'month',
+                            yLowKey: 'low',
+                            yHighKey: 'high',
+                            itemStyler: () => ({ fill: 'var(--my-color)' }),
+                        },
+                    ],
+                };
+                prepareEnterpriseTestOptions(options, container);
+
+                chart = deproxy(AgCharts.create(options));
+                await waitForChartStability(chart);
+
+                const series = chart.series[0];
+                const [rect] = series.dataNodeGroup.children();
+
+                expect(rect.fill).toBe('rgb(0, 128, 0)');
+            } finally {
+                restoreCssVarColorSupport();
+            }
         });
     });
 

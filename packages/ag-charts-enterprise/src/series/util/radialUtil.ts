@@ -203,7 +203,10 @@ export function getItemStyle<D extends BaseNodeDatum, S extends RadialSectorSeri
             createDatumId(series.getDatumId(nodeDatum), isHighlight ? 'highlight' : 'node'),
             () => {
                 const params = makeItemStylerParams(series, nodeDatum, isHighlight, style);
-                return series.callWithContext(itemStyler, params);
+                return series.ctx.optionsGraphService.resolvePartial(
+                    ['series', `${series.declarationOrder}`],
+                    series.callWithContext(itemStyler, params)
+                );
             }
         );
 
