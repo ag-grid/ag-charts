@@ -1,6 +1,6 @@
 {
   "name": "ag-charts-angular",
-  "version": "14.0.0-beta.20260716",
+  "version": "14.0.0-beta.20260719",
   "repository": {
     "type": "git",
     "url": "https://github.com/ag-grid/ag-charts.git"
@@ -22,7 +22,7 @@
     "@angular/core": ">= 20.0.0"
   },
   "dependencies": {
-    "ag-charts-community": "14.0.0-beta.20260716",
+    "ag-charts-community": "14.0.0-beta.20260719",
     "tslib": "^2.8.1"
   }
 }

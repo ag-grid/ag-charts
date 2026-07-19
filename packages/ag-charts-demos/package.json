@@ -5,9 +5,9 @@
   "private": true,
   "scripts": {},
   "dependencies": {
-    "ag-charts-community": "14.0.0-beta.20260716",
-    "ag-charts-enterprise": "14.0.0-beta.20260716",
-    "ag-charts-react": "14.0.0-beta.20260716",
+    "ag-charts-community": "14.0.0-beta.20260719",
+    "ag-charts-enterprise": "14.0.0-beta.20260719",
+    "ag-charts-react": "14.0.0-beta.20260719",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
