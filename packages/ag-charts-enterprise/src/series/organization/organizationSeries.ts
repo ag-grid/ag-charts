@@ -375,8 +375,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     override hasBuiltinListener(target: _ModuleSupport.Node<unknown> | undefined): boolean {
         const { clickToExpand } = this.properties.node;
         const Expander: number = OrganizationNodeTag.Expander;
-        const Card: number = OrganizationNodeTag.Card;
-        return target != null && (target.tag === Expander || (target.tag === Card && clickToExpand));
+        return target != null && (target.tag === Expander || clickToExpand);
     }
 
     override pickFocus(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.PickFocusOutputs | undefined {
