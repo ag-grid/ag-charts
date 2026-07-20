@@ -76,7 +76,6 @@ export * from './utils/configuredCanvasMixin';
 export * from './state/caching';
 export * from './utils/time/date';
 export * from './state/cleanupRegistry';
-export * from './utils/deprecation';
 export * from './utils/data/diff';
 export * from './utils/data/epochColumns';
 export * from './utils/geometry/distance';
