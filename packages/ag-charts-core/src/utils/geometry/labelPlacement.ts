@@ -602,9 +602,17 @@ interface PooledCircleObstacle {
     category: ObstacleCategory;
 }
 
+// Mutable placed-label obstacle pooled across passes, mirroring markerPool.
+interface PooledRectObstacle {
+    kind: 'rect';
+    box: BoxBounds;
+    category: ObstacleCategory;
+}
+
 // Scratch state reused across passes (placeLabels is not reentrant in the single-threaded render loop).
 const obstacleIndex = new SpatialIndex<LabelObstacle>();
 const markerPool: PooledCircleObstacle[] = [];
+const labelObstaclePool: PooledRectObstacle[] = [];
 const candidateBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
 // Broad-phase query box: the candidate inflated by the largest active per-category minSpacing.
 const queryBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
@@ -667,15 +675,21 @@ function obstacleOverlapsCandidate(o: LabelObstacle): boolean {
     const cfg = candidateCollideWith?.[category];
     if (cfg?.enabled === false) return false;
 
-    inflateBoxInto(inflatedBox, candidateBox, cfg?.minSpacing ?? 0);
-    const { x, y, width, height } = inflatedBox;
+    const spacing = cfg?.minSpacing ?? 0;
+    // No inflation (the common case, no per-category minSpacing): test the candidate box directly.
+    let testBox = candidateBox;
+    if (spacing !== 0) {
+        inflateBoxInto(inflatedBox, candidateBox, spacing);
+        testBox = inflatedBox;
+    }
+    const { x, y, width, height } = testBox;
     switch (o.kind) {
         case 'circle':
             return circleOverlapsBox(o.cx, o.cy, o.r, x, y, width, height);
         case 'rect':
             return boxCollides(o.box, x, y, width, height);
         case 'custom':
-            return o.overlaps(inflatedBox);
+            return o.overlaps(testBox);
     }
 }
 
@@ -779,11 +793,40 @@ function seriesHides(entry: SeriesLabels): boolean {
 /**
  * Series entries with all keep-series (never dropped) first, then droppable ones, both stable. Keep
  * labels seed the index as fixed obstacles before any droppable label resolves, so cross-series
- * precedence does not depend on declaration order.
+ * precedence does not depend on declaration order. Single pass — `seriesHides` (an O(datums) scan) is
+ * evaluated once per series rather than once per partition.
  */
 function orderKeepFirst(data: Map<string, SeriesLabels>): [string, SeriesLabels][] {
-    const entries = Array.from(data.entries());
-    return [...entries.filter(([, e]) => !seriesHides(e)), ...entries.filter(([, e]) => seriesHides(e))];
+    const keep: [string, SeriesLabels][] = [];
+    const drop: [string, SeriesLabels][] = [];
+    for (const entry of data.entries()) {
+        (seriesHides(entry[1]) ? drop : keep).push(entry);
+    }
+    return keep.concat(drop);
+}
+
+/**
+ * A label with a single kept placement: the obstacle query could only ever return that same placement,
+ * so it takes its placement unconditionally and never touches the index — neither querying it nor
+ * seeding it. When every label across every series is sole-candidate, the index is never consulted and
+ * building it is wasted work (see {@link placeLabels}).
+ */
+function isSoleCandidateKeep(d: PointLabelDatum, defaults: SeriesLabelDefaults | undefined): boolean {
+    const suppressHide = d.suppressHide ?? defaults?.suppressHide ?? true;
+    if (!suppressHide || d.positionedCandidates != null || d.neverDrop === true) return false;
+    const placements = d.placements ?? defaults?.placements;
+    return (placements?.length ?? 1) <= 1 && (orientationsOf(d)?.length ?? 1) <= 1;
+}
+
+/** True when no label anywhere will query the obstacle index, so the index need not be built. */
+function noLabelQueriesIndex(data: Map<string, SeriesLabels>): boolean {
+    for (const { datums, defaults } of data.values()) {
+        for (const d of datums) {
+            if (d.label.text === '') continue;
+            if (!isSoleCandidateKeep(d, defaults)) return false;
+        }
+    }
+    return true;
 }
 
 /** Resets the shared obstacle index and populates it with external obstacles and marker circles. */
@@ -823,8 +866,14 @@ export function placeLabels(
         ])
     );
 
-    buildObstacleIndex(placementData, obstacles, bounds);
+    // Common keep-only case (line/area/bar with a single placement): no label queries the index, so
+    // building it and seeding it with obstacles is wasted work.
+    const useIndex = !noLabelQueriesIndex(placementData);
+    if (useIndex) {
+        buildObstacleIndex(placementData, obstacles, bounds);
+    }
 
+    let labelObstacleCount = 0;
     for (const [seriesId, { datums, defaults }] of orderKeepFirst(placementData)) {
         const labels: PlacedLabel[] = [];
         if (!datums[0]?.label) continue;
@@ -836,9 +885,10 @@ export function placeLabels(
             const placed = tryPlaceLabel(d, defaults, index, padding, bounds);
             if (placed != null) {
                 labels.push(placed);
-                // Every placed label is a fixed obstacle for the labels resolved after it.
-                const box = labelObstacleBox(placed);
-                obstacleIndex.insert(box, { kind: 'rect', box, category: 'label' });
+                if (useIndex) {
+                    // Every placed label is a fixed obstacle for the labels resolved after it.
+                    labelObstacleCount = insertLabelObstacle(placed, labelObstacleCount);
+                }
             }
         }
 
@@ -857,6 +907,20 @@ function labelObstacleBox(placed: PlacedLabel): BoxBounds {
     if (placed.rotation == null) return placed;
     const { width, height } = getMinOuterRectSize(placed.rotation, placed.width, placed.height);
     return { x: placed.x, y: placed.y, width, height };
+}
+
+/** Inserts a placed label as a fixed obstacle via a pooled wrapper; returns the next pool index. */
+function insertLabelObstacle(placed: PlacedLabel, count: number): number {
+    const box = labelObstacleBox(placed);
+    let obstacle = labelObstaclePool[count];
+    if (obstacle == null) {
+        obstacle = { kind: 'rect', box, category: 'label' };
+        labelObstaclePool.push(obstacle);
+    } else {
+        obstacle.box = box;
+    }
+    obstacleIndex.insert(box, obstacle);
+    return count + 1;
 }
 
 /** Writes the label box top-left for `placement` into `out`, offset from the point by gap+spacing. */
@@ -931,10 +995,9 @@ function tryPlaceLabel(
     const spacing = d.minSpacing ?? defaults?.minSpacing ?? padding;
     const { text, width, height } = fitLabel(d);
 
-    const resolvesFallback = (placements?.length ?? 1) > 1 || (orientationsOf(d)?.length ?? 1) > 1;
     // Sole-candidate keep-forever: one placement, kept on overflow, never dropped. The obstacle query
     // could only ever return this same placement, so skip it and take the placement unconditionally.
-    if (suppressHide && !resolvesFallback && d.positionedCandidates == null && d.neverDrop !== true) {
+    if (isSoleCandidateKeep(d, defaults)) {
         const placement = candidateAt(placements, d.placement, 0);
         const orientation = candidateAt(orientationsOf(d), singleOrientationOf(d), 0);
         const rotation = positionCandidate(d, placement, orientation, width, height, gap, spacing);

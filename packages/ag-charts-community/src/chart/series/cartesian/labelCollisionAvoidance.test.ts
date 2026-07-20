@@ -1095,4 +1095,59 @@ describe('label collision avoidance', () => {
             expect(texts.some((text) => text.includes('…'))).toBe(true);
         });
     });
+
+    // Placement runs on every SERIES_UPDATE but is only recomputed when its inputs change; an option
+    // that affects placement must still take effect across an update on the same chart.
+    describe('placement invalidation across updates', () => {
+        const denseData = Array.from({ length: 20 }, (_, i) => ({ x: i, y: 50 }));
+
+        const lineOptions = (placement: string): any => ({
+            data: denseData,
+            legend: { enabled: false },
+            axes: cartesianAxes,
+            series: [
+                {
+                    type: 'line',
+                    xKey: 'x',
+                    yKey: 'y',
+                    marker: { enabled: true, size: 6 },
+                    label: {
+                        enabled: true,
+                        formatter: ({ value }: any) => `label-${value}`,
+                        placement,
+                        collision: { suppressHide: true },
+                    },
+                },
+            ],
+        });
+
+        const visibleLabelYs = () => {
+            const series = deproxy(chart as any).series[0] as unknown as {
+                labelSelection: { nodes(): { visible: boolean; computeBBox(): { y: number } | undefined }[] };
+            };
+            return series.labelSelection
+                .nodes()
+                .filter((node) => node.visible)
+                .map((node) => node.computeBBox()!.y);
+        };
+
+        it('re-places labels when label.placement changes on an existing chart', async () => {
+            const top = lineOptions('top');
+            prepareTestOptions(top);
+            chart = AgCharts.create(top);
+            await waitForChartStability(chart);
+            const topYs = visibleLabelYs();
+            // Anti-vacuous guard: placement is only observable when labels actually render.
+            expect(topYs.length).toBeGreaterThan(0);
+
+            await chart.update(prepareTestOptions(lineOptions('bottom')));
+            await waitForChartStability(chart);
+            const bottomYs = visibleLabelYs();
+
+            expect(bottomYs.length).toBe(topYs.length);
+            // A 'bottom' placement sits the label below each vertex, a 'top' one above it; if the option
+            // change had not re-run placement the label positions would be identical.
+            expect(bottomYs).not.toEqual(topYs);
+        });
+    });
 });
