@@ -3,7 +3,7 @@ import {
     type AgNetworkSeriesTreeLayoutDirection,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { DeprecatedAndRenamedTo, Property } from 'ag-charts-core';
+import { Property, ProxyOnWrite } from 'ag-charts-core';
 
 export class NetworkSeriesProperties extends _ModuleSupport.SeriesProperties<object> {
     @Property
@@ -18,15 +18,15 @@ export class NetworkSeriesTreeLayoutProperties extends NetworkSeriesProperties {
     direction: AgNetworkSeriesTreeLayoutDirection = 'down';
 
     @Property
-    innerSpacing?: number;
+    depthSpacing?: number;
 
     @Property
-    layerSpacing?: number;
+    innerSpacing?: number;
 
     @Property
     outerSpacing?: number;
 
     @Property
-    @DeprecatedAndRenamedTo('layerSpacing')
+    @ProxyOnWrite('depthSpacing')
     verticalSpacing?: number;
 }

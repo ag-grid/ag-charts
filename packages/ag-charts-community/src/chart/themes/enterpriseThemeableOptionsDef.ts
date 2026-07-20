@@ -12,6 +12,7 @@ import {
     colorUnion,
     commonSeriesThemeableOptionsDefs,
     defined,
+    deprecated,
     fillOptionsDef,
     highlightOptionsDef,
     interpolationOptionsDefs,
@@ -414,10 +415,10 @@ const networkSeriesTreeLayoutDef: OptionsDefs<AgNetworkSeriesTreeLayout> = {
     alignment: union('center-direct-children', 'center-all-children', 'start', 'end'),
     direction: union('down', 'left', 'right', 'up'),
     stackCollapsedChildren: boolean,
+    depthSpacing: number,
     innerSpacing: number,
     outerSpacing: number,
-    layerSpacing: number,
-    verticalSpacing: number,
+    verticalSpacing: deprecated(number, 'Use `depthSpacing` instead.'),
 };
 
 export const organizationSeriesThemeableOptionsDef: OptionsDefs<AgOrganizationSeriesThemeableOptions> = {

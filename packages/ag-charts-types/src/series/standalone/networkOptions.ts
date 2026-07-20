@@ -10,6 +10,12 @@ export interface AgNetworkSeriesTreeLayout {
      */
     alignment?: AgNetworkSeriesTreeLayoutAlignment;
     /**
+     * Gap in pixels between parent and child nodes.
+     *
+     * Default: `52`
+     */
+    depthSpacing?: PixelSize;
+    /**
      * The direction child nodes are arranged relative to their parent. Sibling nodes are arranged along the perpendicular axis.
      *
      * Default: 'down'
@@ -21,12 +27,6 @@ export interface AgNetworkSeriesTreeLayout {
      * Default: `20`
      */
     innerSpacing?: PixelSize;
-    /**
-     * Gap in pixels between parent and child layers.
-     *
-     * Default: `52`
-     */
-    layerSpacing?: PixelSize;
     /**
      * Gap in pixels between adjacent nodes whose immediate parents differ (cousins). The layout
      * uses `outerSpacing` for these cross-subtree gaps and `innerSpacing` for gaps between nodes
@@ -46,7 +46,7 @@ export interface AgNetworkSeriesTreeLayout {
      *
      * Default: `52`
      */
-    verticalSpacing?: PixelSize; // @deprecated use `layerSpacing` instead
+    verticalSpacing?: PixelSize;
 }
 
 /** A network series layout where each node is positioned within an ordered grid, ignoring the links connecting nodes. */

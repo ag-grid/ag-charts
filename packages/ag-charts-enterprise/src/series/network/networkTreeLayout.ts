@@ -28,8 +28,8 @@ export interface NetworkTreeLayoutUpdateOptions<TVertex, TEdge> extends NetworkL
     alignment: AgNetworkSeriesTreeLayoutAlignment;
     direction: AgNetworkSeriesTreeLayoutDirection;
     stackCollapsedChildren: boolean;
+    depthSpacing: number;
     innerSpacing: number;
-    layerSpacing: number;
     outerSpacing: number;
 
     verticalSpacingExtra: number;
@@ -268,7 +268,7 @@ class NetworkTreeVerticalLayout<TVertex, TEdge> extends NetworkTreeDirectionalLa
         const children = graph.neighboursWithEdgeValue(vertex, 'child' as TEdge) as Vertex<TVertex, TEdge>[];
         if (!children || children.length == 0) return { childrenCount: 0 };
 
-        let adjustY = nodeBBox.height + options.layerSpacing + options.verticalSpacingExtra;
+        let adjustY = nodeBBox.height + options.depthSpacing + options.verticalSpacingExtra;
         if (options.direction === 'up') adjustY *= -1;
         const childrenGroupBBox = new BBox(groupBBox.x, groupBBox.y + adjustY, groupBBox.width, groupBBox.height);
 
@@ -472,7 +472,7 @@ class NetworkTreeHorizontalLayout<TVertex, TEdge> extends NetworkTreeDirectional
         const children = graph.neighboursWithEdgeValue(vertex, 'child' as TEdge) as Vertex<TVertex, TEdge>[];
         if (!children || children.length == 0) return { childrenCount: 0 };
 
-        let adjustX = nodeBBox.width + options.layerSpacing + options.verticalSpacingExtra;
+        let adjustX = nodeBBox.width + options.depthSpacing + options.verticalSpacingExtra;
         if (options.direction === 'left') adjustX *= -1;
         const childrenGroupBBox = new BBox(groupBBox.x + adjustX, groupBBox.y, groupBBox.width, groupBBox.height);
 
