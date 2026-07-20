@@ -1,6 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import { Vec2, type Vertex, clamp } from 'ag-charts-core';
-import type { AgNetworkSeriesTreeLayoutAlignment, AgNetworkSeriesTreeLayoutDirection } from 'ag-charts-types';
+import type { AgNetworkSeriesTreeLayoutDirection } from 'ag-charts-types';
 
 import { NetworkLayout, type NetworkLayoutUpdateOptions } from './networkLayout';
 import type { NetworkLinkInterpolation } from './networkTypes';
@@ -25,9 +25,7 @@ export interface NetworkTreeLayoutUpdateOptions<TVertex, TEdge> extends NetworkL
     hiddenOnCollapse: boolean;
     regularDimensions: boolean;
 
-    alignment: AgNetworkSeriesTreeLayoutAlignment;
     direction: AgNetworkSeriesTreeLayoutDirection;
-    stackCollapsedChildren: boolean;
     depthSpacing: number;
     innerSpacing: number;
     outerSpacing: number;

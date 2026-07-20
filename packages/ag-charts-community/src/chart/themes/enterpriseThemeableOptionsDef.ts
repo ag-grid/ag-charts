@@ -412,9 +412,7 @@ export const nightingaleSeriesThemeableOptionsDef: OptionsDefs<AgNightingaleSeri
 
 // TODO: duplicate series options defs here?
 const networkSeriesTreeLayoutDef: OptionsDefs<AgNetworkSeriesTreeLayout> = {
-    alignment: union('center-direct-children', 'center-all-children', 'start', 'end'),
     direction: union('down', 'left', 'right', 'up'),
-    stackCollapsedChildren: boolean,
     depthSpacing: number,
     innerSpacing: number,
     outerSpacing: number,

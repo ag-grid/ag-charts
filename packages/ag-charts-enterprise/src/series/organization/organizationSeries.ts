@@ -487,7 +487,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
     protected override makeLayoutUpdateOptions(): NetworkTreeLayoutUpdateOptions<OrganizationVertex, OrganizationEdge> {
         const {
-            properties: { node, expander, alignment, innerSpacing, outerSpacing, depthSpacing },
+            properties: { node, expander, innerSpacing, outerSpacing, depthSpacing },
         } = this;
 
         return {
@@ -500,9 +500,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             regularDimensions: true,
             hiddenOnCollapse: true,
 
-            alignment: alignment ?? 'center-all-children',
             direction: this.getNetworkTreeLayoutDirection(),
-            stackCollapsedChildren: false,
             depthSpacing: depthSpacing ?? 0,
             innerSpacing: innerSpacing ?? 0,
             outerSpacing: outerSpacing ?? 0,
