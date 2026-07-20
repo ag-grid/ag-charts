@@ -236,6 +236,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     userDeltaKeys?: Set<string>; // AG-16389: Track keys the user passed in deltaOptions
     processedCSSVariables?: Record<string, string>;
     validationIssues: ValidationIssue[] = [];
+    // Provide the unmapped axis keys for error logging & callbacks.
+    unmappedAxisKeys: Map<string, string> = new Map();
 
     private static readonly debug = Debug.create(true, 'opts');
 
@@ -496,7 +498,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         // Process series options _before_ passing to the OptionsGraph. This ensures the series themes are applied in
         // the correct order to the re-ordered series.
         this.processSeriesOptions(options);
-        const unmappedAxisKeys = this.processAxesOptions(options, chartType);
+        this.processAxesOptions(options, chartType);
 
         if (this.optionMetadata.presetType !== 'sparkline') {
             this.processedCSSVariables = this.processCSSVariables(options, activeTheme.params);
@@ -522,7 +524,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         // The second pass validation of the axes, after they have been processed and the keys remapped. Any missing
         // `type` properties are now inferred and those axes can be validated.
-        this.validateAxesOptions(processedOptions, unmappedAxisKeys, secondPassParams);
+        this.validateAxesOptions(processedOptions, secondPassParams);
 
         this.validatePluginOptions(processedOptions, secondPassParams);
         this.processMiniChartSeriesOptions(processedOptions);
@@ -710,11 +712,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         return missingModules;
     }
 
-    private validateAxesOptions(
-        options: T,
-        unmappedAxisKeys?: Map<string, string>,
-        params: ValidateParams = {}
-    ): ModulePlaceholder[] {
+    private validateAxesOptions(options: T, params: ValidateParams = {}): ModulePlaceholder[] {
         const missingModules: ModulePlaceholder[] = [];
         if (!('axes' in options) || !options.axes) return missingModules;
 
@@ -732,7 +730,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 continue;
             }
 
-            const keyPath = `axes.${unmappedAxisKeys?.get(key) ?? key}`;
+            const keyPath = `axes.${this.unmappedAxisKeys?.get(key) ?? key}`;
             const axisDef = ModuleRegistry.getAxisModule(axisOptions.type);
 
             if (axisDef == null) {
@@ -887,10 +885,10 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         // Create the new axes from the remapped axis keys.
         const newAxes: Record<string, unknown> = {};
-        const unmappedAxisKeys = new Map<string, string>();
+        this.unmappedAxisKeys.clear();
         for (const [fromAxisKey, toAxisKey] of remappedAxisKeys) {
             newAxes[toAxisKey] = 'axes' in options ? shallowClone(options.axes?.[fromAxisKey]) : undefined;
-            unmappedAxisKeys.set(toAxisKey, fromAxisKey);
+            this.unmappedAxisKeys.set(toAxisKey, fromAxisKey);
         }
 
         this.remapSeriesAxisKeys(
@@ -902,12 +900,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             hasExtraImplicitDefaultSeriesAxisKeys
         );
         this.predictAxesMissingTypesAndPositions(options, directions, newAxes, defaultAxes);
-        this.alternateSecondaryAxisPositions(options, newAxes, unmappedAxisKeys);
+        this.alternateSecondaryAxisPositions(options, newAxes);
 
         (options as any).axes = newAxes as any;
-
-        // Provide the unmapped axis keys for user-facing error logging.
-        return unmappedAxisKeys;
     }
 
     /**
@@ -1297,18 +1292,14 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
      * If the first secondary axis in either direction does not have a specified position, it will be placed in the
      * alternate position to the primary axis (i.e. right or top).
      */
-    private alternateSecondaryAxisPositions(
-        options: T,
-        newAxes: Record<string, unknown>,
-        unmappedAxisKeys: Map<string, string>
-    ) {
+    private alternateSecondaryAxisPositions(options: T, newAxes: Record<string, unknown>) {
         let xAxisCount = 0;
         let yAxisCount = 0;
 
         for (const [axisKey, axis] of entries(newAxes)) {
             if (!isPlainObject(axis) || !('position' in axis)) continue;
 
-            const unmappedAxisKey = unmappedAxisKeys.get(axisKey);
+            const unmappedAxisKey = this.unmappedAxisKeys.get(axisKey);
             const unmappedAxis =
                 'axes' in options && options.axes && unmappedAxisKey && unmappedAxisKey in options.axes
                     ? options.axes[unmappedAxisKey]
