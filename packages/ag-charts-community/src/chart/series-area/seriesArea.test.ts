@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, it } from 'vitest';
 
 import type { AgChartInstance } from 'ag-charts-types';
 
@@ -6,11 +6,10 @@ import { AgCharts } from '../../api/agCharts';
 import { SIMPLE_COLUMN_CHART_EXAMPLE, SIMPLE_PIE_CHART_EXAMPLE } from '../test/examples';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
-    extractImageData,
+    compareImageSnapshot,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
-    waitForChartStability,
 } from '../test/utils';
 
 const SERIES_AREA_OPTIONS = {
@@ -45,10 +44,7 @@ describe('SeriesArea', () => {
     const ctx = setupMockCanvas();
 
     const compare = async (defaults = IMAGE_SNAPSHOT_DEFAULTS) => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(defaults);
+        await compareImageSnapshot(chart, ctx, defaults);
     };
 
     describe('cartesian', () => {

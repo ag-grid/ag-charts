@@ -21,9 +21,9 @@ import { newFreezableMock } from './test/freezableMock';
 import {
     type Chart,
     IMAGE_SNAPSHOT_DEFAULTS,
+    compareImageSnapshot,
     createChart,
     expectWarningsCalls,
-    extractImageData,
     hoverAction,
     prepareTestOptions,
     setupMockCanvas,
@@ -574,9 +574,7 @@ describe('callback cache', () => {
     const ctx = setupMockCanvas();
 
     async function compare(customSnapshotIdentifier: string) {
-        await waitForChartStability(chart);
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot({
+        await compareImageSnapshot(chart, ctx, {
             ...IMAGE_SNAPSHOT_DEFAULTS,
             failureThreshold: 0,
             customSnapshotIdentifier,

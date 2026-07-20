@@ -3,8 +3,8 @@ import { describe, expect, it, vi } from 'vitest';
 import { type AgCartesianChartOptions, type AgChartInstance, AgCharts } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    compareImageSnapshot,
     deproxy,
-    extractImageData,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -27,10 +27,7 @@ describe('BarSeries', () => {
     });
 
     const compare = async (defaults = IMAGE_SNAPSHOT_DEFAULTS) => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(defaults);
+        await compareImageSnapshot(chart, ctx, defaults);
     };
 
     describe('with data-per-series', () => {

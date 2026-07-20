@@ -1,5 +1,5 @@
 import { type Image as SkiaImage, loadImage as skiaLoadImage } from 'skia-canvas';
-import { afterEach, beforeAll, describe, expect, it } from 'vitest';
+import { afterEach, beforeAll, describe, it } from 'vitest';
 
 import { mapValues } from 'ag-charts-core';
 import type { AgBaseChartOptions, AgCartesianAxisType, AgCartesianChartOptions } from 'ag-charts-types';
@@ -9,16 +9,14 @@ import type { Chart } from '../chart';
 import { DOCS_EXAMPLES } from '../test/examples';
 import type { ChartOrProxy } from '../test/utils';
 import {
-    IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
+    compareImageSnapshot,
     createChart,
     deproxy,
-    extractImageData,
     prepareTestOptions,
     repeat,
     setupMockCanvas,
     setupMockConsole,
-    waitForChartStability,
 } from '../test/utils';
 
 const EXAMPLE_GRID_LINE = {
@@ -230,10 +228,7 @@ describe('Category Axis', () => {
     const ctx = setupMockCanvas();
 
     const compare = async () => {
-        await waitForChartStability(chart);
-
-        const newImageData = extractImageData(ctx);
-        expect(newImageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        await compareImageSnapshot(chart, ctx);
     };
 
     for (const [exampleName, example] of Object.entries(EXAMPLES)) {

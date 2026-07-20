@@ -45,6 +45,7 @@ import {
     axisReflowSpec,
     cartesianChartAssertions,
     clickAction,
+    compareImageSnapshot,
     createChart,
     createSceneGeometrySampler,
     deproxy,
@@ -53,7 +54,6 @@ import {
     expectSceneSamplesMatch,
     expectSceneTrajectory,
     expectWarningsCalls,
-    extractImageData,
     hoverAction,
     mixinReversedAxesCases,
     prepareTestOptions,
@@ -376,10 +376,7 @@ describe('BarSeries', () => {
     const ctx = setupMockCanvas();
 
     const compare = async (defaults = IMAGE_SNAPSHOT_DEFAULTS) => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(defaults);
+        await compareImageSnapshot(chart, ctx, defaults);
     };
 
     describe('#create', () => {

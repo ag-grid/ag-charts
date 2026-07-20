@@ -15,10 +15,10 @@ import {
     MIN_UNHIGHLIGHT_DELAY,
     type MockBoxPlotStyler,
     NEG_BIG,
+    compareImageSnapshot,
     deproxy,
     expectPixelIdenticalAcrossMagnitude,
     expectWarningsCalls,
-    extractImageData,
     hoverAction,
     magnitudePair,
     newFreezableMock,
@@ -73,10 +73,7 @@ describe('BoxPlotSeries', () => {
     const ctx = setupMockCanvas();
 
     const compareSnapshot = async (chart: any) => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
 
         chart.destroy();
     };

@@ -1,7 +1,12 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { type AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
-import { extractImageData, setupMockCanvas, setupMockConsole, waitForChartStability } from 'ag-charts-community-test';
+import {
+    compareImageSnapshot,
+    setupMockCanvas,
+    setupMockConsole,
+    waitForChartStability,
+} from 'ag-charts-community-test';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
@@ -47,10 +52,7 @@ describe('Annotations', () => {
     });
 
     const compare = async () => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot({
+        await compareImageSnapshot(chart, ctx, {
             failureThreshold: 0,
             failureThresholdType: 'percent',
         });

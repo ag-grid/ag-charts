@@ -19,12 +19,12 @@ import type { AgChartProxy } from '../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     clickAction,
+    compareImageSnapshot,
     computeLegendBBox,
     createChart,
     deproxy,
     doubleClickAction,
     doubleTapAction,
-    extractImageData,
     getLegendModule,
     getTooltipElement,
     hoverAction,
@@ -139,18 +139,14 @@ describe('Legend', () => {
     const ctx = setupMockCanvas();
 
     const compare = async (chartInstance: Chart, customSnapshotIdentifier?: string, useLooserDefaults = false) => {
-        await waitForChartStability(chartInstance);
-
-        const imageData = extractImageData(ctx);
         // Try tighter threshold: 0.06 per-pixel (closer to default 0.05) and 550 pixel count
         const defaults = useLooserDefaults ? looserSnapshotDefaults(0.06, 550) : IMAGE_SNAPSHOT_DEFAULTS;
-        expect(imageData).toMatchImageSnapshot({ ...defaults, customSnapshotIdentifier });
+        await compareImageSnapshot(chartInstance, ctx, { ...defaults, customSnapshotIdentifier });
     };
 
     const compareSnapshot = async (options: AgChartOptions) => {
         chart = await createChart(options);
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot({ ...IMAGE_SNAPSHOT_DEFAULTS, failureThreshold: 0 });
+        await compareImageSnapshot(chart, ctx, { ...IMAGE_SNAPSHOT_DEFAULTS, failureThreshold: 0 });
     };
 
     describe('Large series count chart', () => {

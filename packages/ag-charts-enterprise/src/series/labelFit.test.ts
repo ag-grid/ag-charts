@@ -2,14 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AgChartOptions } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-community';
-import {
-    IMAGE_SNAPSHOT_DEFAULTS,
-    deproxy,
-    extractImageData,
-    setupMockCanvas,
-    setupMockConsole,
-    waitForChartStability,
-} from 'ag-charts-community-test';
+import { compareImageSnapshot, deproxy, setupMockCanvas, setupMockConsole } from 'ag-charts-community-test';
 
 import { prepareEnterpriseTestOptions } from '../test/utils';
 import ukTopology from './map-test/ukTopology.json';
@@ -37,8 +30,7 @@ describe('series label fit', () => {
     const renderAndSnapshot = async (options: object) => {
         prepareEnterpriseTestOptions(options as AgChartOptions);
         chart = deproxy(AgCharts.create(options as AgChartOptions));
-        await waitForChartStability(chart);
-        expect(extractImageData(ctx)).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        await compareImageSnapshot(chart, ctx);
     };
 
     // Range-bar and range-area carry the fitted text flat on each `labelData` entry; waterfall, radar and map-marker

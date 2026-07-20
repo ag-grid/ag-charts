@@ -39,11 +39,11 @@ import {
     type MockSeriesNodeDblClickListener,
     type MockZoomListener,
     clickAction,
+    compareImageSnapshot,
     contextMenuAction,
     deproxy,
     doubleClickAction,
     expectWarningsCalls,
-    extractImageData,
     hoverAction,
     newFreezableMock,
     scrollAction,
@@ -2687,8 +2687,7 @@ describe('AG-15850 activeChange', () => {
 
     describe('AG-16704 preventDefault', () => {
         const noHighlightImageSnapshot = async () => {
-            await waitForChartStability(chart);
-            expect(extractImageData(ctx)).toMatchImageSnapshot({
+            await compareImageSnapshot(chart, ctx, {
                 ...IMAGE_SNAPSHOT_DEFAULTS,
                 customSnapshotIdentifier: 'AG-16704-noHighlightImageSnapshot',
             });

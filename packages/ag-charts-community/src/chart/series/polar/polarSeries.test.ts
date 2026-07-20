@@ -10,11 +10,10 @@ import { Transformable } from '../../../scene/transformable';
 import type { ChartOrProxy, PolarTestCase } from '../../test/utils';
 import {
     type Chart,
-    IMAGE_SNAPSHOT_DEFAULTS,
     MIN_TOOLTIP_HIDE_DELAY,
     clickAction,
+    compareImageSnapshot,
     deproxy,
-    extractImageData,
     hoverAction,
     polarChartAssertions,
     prepareTestOptions,
@@ -104,10 +103,7 @@ describe('PolarSeries', () => {
     const ctx = setupMockCanvas();
 
     const compare = async () => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        await compareImageSnapshot(chart, ctx);
     };
 
     describe('#create', () => {

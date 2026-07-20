@@ -10,9 +10,8 @@ import type {
 import { _ModuleSupport } from 'ag-charts-community';
 import type { ChartOrProxy } from 'ag-charts-community-test';
 import {
-    IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
-    extractImageData,
+    compareImageSnapshot,
     reverseAxes,
     setupMockCanvas,
     setupMockConsole,
@@ -646,9 +645,7 @@ describe('Ordinal Time Axis Examples', () => {
                     await waitForChartStability(chart);
                     const axisBbox = calculateAxisBBox(axis);
 
-                    const imageData = extractImageData({ ...ctx, bbox: axisBbox });
-
-                    expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+                    await compareImageSnapshot(chart, { ...ctx, bbox: axisBbox });
                 }
             };
 
@@ -694,9 +691,7 @@ describe('Ordinal Time Axis Examples', () => {
 
             const axisBbox = calculateAxisBBox(axis);
 
-            const imageData = extractImageData({ ...ctx, bbox: axisBbox });
-
-            expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+            await compareImageSnapshot(chart, { ...ctx, bbox: axisBbox });
         });
     });
 
@@ -747,21 +742,18 @@ describe('Ordinal Time Axis Examples', () => {
     it('should render interval on as expected', async () => {
         const options = applyIntervalOn(BASIC_ORDINAL_TIME_AXIS_EXAMPLE);
         chart = await createEnterpriseChart(options);
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        await compareImageSnapshot(chart, ctx);
     });
 
     it('should render interval between as expected', async () => {
         const options = applyIntervalBetween(BASIC_ORDINAL_TIME_AXIS_EXAMPLE);
         chart = await createEnterpriseChart(options);
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        await compareImageSnapshot(chart, ctx);
     });
 
     it('should render reversed ordinal-time axis zoomed to end as expected', async () => {
         chart = await createEnterpriseChart(ORDINAL_TIME_AXIS_REVERSED_ZOOM_END);
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        await compareImageSnapshot(chart, ctx);
     });
 
     // AG-17065: deeply zoomed large ordinal-time dataset must not hang in tick generation.

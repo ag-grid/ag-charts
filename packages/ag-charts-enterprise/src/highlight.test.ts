@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, it } from 'vitest';
 
 import type {
     AgCartesianChartOptions,
@@ -10,10 +10,9 @@ import { _ModuleSupport } from 'ag-charts-community';
 import {
     type Chart,
     IMAGE_SNAPSHOT_DEFAULTS,
-    extractImageData,
+    compareImageSnapshot,
     setupMockCanvas,
     setupMockConsole,
-    waitForChartStability,
 } from 'ag-charts-community-test';
 
 import { ukData } from './series/map-test/ukData';
@@ -36,10 +35,7 @@ describe('Enterprise highlight defaults', () => {
     });
 
     const compare = async () => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
     };
 
     type HighlightNodeDatum = _ModuleSupport.HighlightNodeDatum;

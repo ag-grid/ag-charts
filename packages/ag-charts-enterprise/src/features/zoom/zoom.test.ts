@@ -11,12 +11,12 @@ import {
 } from 'ag-charts-community';
 import {
     clickAction,
+    compareImageSnapshot,
     delay,
     deproxy,
     doubleClickAction,
     doubleTapAction,
     dragAction,
-    extractImageData,
     findChartTarget,
     hoverAction,
     mouseDownAction,
@@ -166,10 +166,7 @@ describe('Zoom', () => {
     // Set the customSnapshotIdentifier string to check for behavioural equivalence
     // E.g. double-clicking (mouse) or double-tapping (touch) should generate the same 'reset' image-snapshot.
     const compare = async (customSnapshotIdentifier?: string) => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot({
+        await compareImageSnapshot(chart, ctx, {
             failureThreshold: 0,
             failureThresholdType: 'percent',
             customSnapshotIdentifier,

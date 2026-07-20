@@ -5,9 +5,9 @@ import type { AgCartesianChartOptions, AgChartInstance, AgPolarChartOptions } fr
 import { AgCharts } from '../../api/agCharts';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    compareImageSnapshot,
     deproxy,
     expectWarningsCalls,
-    extractImageData,
     hoverAction,
     prepareTestOptions,
     setupMockCanvas,
@@ -31,10 +31,7 @@ describe('Format Manager', () => {
     });
 
     const compare = async (defaults = IMAGE_SNAPSHOT_DEFAULTS) => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(defaults);
+        await compareImageSnapshot(chart, ctx, defaults);
     };
 
     it('should return the correct sources', async () => {

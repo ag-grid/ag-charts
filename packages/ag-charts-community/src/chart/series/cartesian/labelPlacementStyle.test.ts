@@ -4,9 +4,8 @@ import type { AgChartInstance } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
 import {
-    IMAGE_SNAPSHOT_DEFAULTS,
+    compareImageSnapshot,
     deproxy,
-    extractImageData,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
@@ -28,8 +27,7 @@ describe('label placement style (insideStyle/outsideStyle)', () => {
     const renderAndSnapshot = async (options: object) => {
         prepareTestOptions(options as any);
         chart = AgCharts.create(options as any);
-        await waitForChartStability(chart);
-        expect(extractImageData(ctx)).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        await compareImageSnapshot(chart, ctx);
     };
 
     // Reads the first visible label's text colour and background (boxing) fill off the live scene

@@ -20,6 +20,8 @@ import {
     wheelEvent,
 } from '_ag-charts-test';
 import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
+import { mkdirSync, writeFileSync } from 'node:fs';
+import * as path from 'node:path';
 import { afterEach, beforeEach, expect, vi } from 'vitest';
 
 import { evaluateBezier, fromPairs, getDocument, mapValues } from 'ag-charts-core';
@@ -39,6 +41,7 @@ import { type AnimationPhase, type IAnimation, PHASE_METADATA, PHASE_ORDER } fro
 import { BBox } from '../../scene/bbox';
 import { Group } from '../../scene/group';
 import type { Node, SerializedNodeState } from '../../scene/node';
+import { extractImageData, type setupMockCanvas } from '../../util/test/mockCanvas';
 import type { Chart } from '../chart';
 import type { AgChartProxy } from '../chartProxy';
 import { AnimationManager } from '../interaction/animationManager';
@@ -102,6 +105,131 @@ export function looserSnapshotDefaults(
             threshold: pixelThreshold,
         },
     };
+}
+
+const SCENE_SNAPSHOTS_DIR = '__scene_snapshots__';
+const IMAGE_SNAPSHOTS_DIR = '__image_snapshots__';
+
+/** Counters jest-image-snapshot mutates on the (vitest) snapshot state; used to detect image diffs
+ * in both fail mode and `--update` mode. */
+interface ImageSnapshotState {
+    updated?: number;
+    unmatched?: number;
+    added?: number;
+}
+
+type SceneSnapshotMode = 'diff' | 'all' | 'off';
+
+function sceneSnapshotMode(): SceneSnapshotMode {
+    const mode = process.env.AG_SCENE_SNAPSHOTS;
+    return mode === 'all' || mode === 'off' ? mode : 'diff';
+}
+
+/** Deterministic plain-object form of a {@link SceneGeometrySample}: traversal-ordered keys,
+ * values rounded to 3dp, non-finite values mapped to `null` (JSON cannot represent them). */
+export function sceneSampleToJSON(sample: SceneGeometrySample): Record<string, Record<string, number | null>> {
+    const result: Record<string, Record<string, number | null>> = {};
+    for (const [key, props] of sample) {
+        const outProps: Record<string, number | null> = {};
+        for (const name of Object.keys(props)) {
+            const value = props[name];
+            outProps[name] = Number.isFinite(value) ? Math.round(value * 1000) / 1000 : null;
+        }
+        result[key] = outProps;
+    }
+    return result;
+}
+
+function writeSceneSnapshot(
+    chartOrProxy: ChartOrProxy<any>,
+    options: MatchImageSnapshotOptions,
+    resolvedIdentifier: string
+): void {
+    const { testPath } = expect.getState();
+    // Mirror jest-image-snapshot's truthiness fallback (`customSnapshotsDir || default`): an empty
+    // string must fall back to the default so the JSON lands beside the PNG, not in the CWD.
+    const { customSnapshotsDir } = options;
+    const imageSnapshotsDir =
+        customSnapshotsDir != null && customSnapshotsDir.length > 0
+            ? customSnapshotsDir
+            : path.join(path.dirname(testPath ?? ''), IMAGE_SNAPSHOTS_DIR);
+    const sceneSnapshotsDir = path.join(path.dirname(imageSnapshotsDir), SCENE_SNAPSHOTS_DIR);
+    const sample = createSceneGeometrySampler(chartOrProxy, { includeChrome: true })();
+    mkdirSync(sceneSnapshotsDir, { recursive: true });
+    writeFileSync(
+        path.join(sceneSnapshotsDir, `${resolvedIdentifier}.json`),
+        JSON.stringify(sceneSampleToJSON(sample), null, 2)
+    );
+}
+
+/**
+ * Shared image-snapshot comparison: waits for chart stability, compares the mock canvas against the
+ * image baseline, and captures a machine-readable scene-graph JSON alongside the PNG for CI diff
+ * verification. The JSON is written to a gitignored `__scene_snapshots__` dir (sibling of
+ * `__image_snapshots__`, sharing the PNG's identifier as its filename) when the image differed or a
+ * new baseline was written — detected in both fail mode and `--update` mode. `AG_SCENE_SNAPSHOTS=all`
+ * forces capture for every comparison (set on CI pushes to baseline branches: latest, next, release);
+ * `AG_SCENE_SNAPSHOTS=off` disables capture.
+ *
+ * The JSON always captures the whole scene graph. For bbox-cropped comparisons (`canvasCtx.bbox` set,
+ * e.g. axis suites) the paired PNG shows only the cropped region, so the JSON is a superset of it.
+ */
+export async function compareImageSnapshot(
+    chartOrProxy: ChartOrProxy<any>,
+    canvasCtx: ReturnType<typeof setupMockCanvas> & { bbox?: { x: number; y: number; width: number; height: number } },
+    options: MatchImageSnapshotOptions = IMAGE_SNAPSHOT_DEFAULTS
+): Promise<void> {
+    await waitForChartStability(chartOrProxy);
+    const image = extractImageData(canvasCtx);
+
+    const mode = sceneSnapshotMode();
+    const state = expect.getState().snapshotState as unknown as ImageSnapshotState;
+    const before = { updated: state.updated ?? 0, unmatched: state.unmatched ?? 0, added: state.added ?? 0 };
+
+    // The scene JSON must share the exact identifier jest-image-snapshot resolves for the PNG. Rather
+    // than reconstruct that identifier (which would duplicate its kebab-casing and counter logic, and
+    // re-invoke a caller's customSnapshotIdentifier — doubling side effects, desyncing on a
+    // non-idempotent callback), inject a wrapper that reproduces the matcher's own resolution from the
+    // `defaultIdentifier` it supplies, then captures the single result for the JSON filename.
+    let resolvedIdentifier = '';
+    const { customSnapshotIdentifier } = options;
+    const matcherOptions: MatchImageSnapshotOptions = {
+        ...options,
+        customSnapshotIdentifier: (parameters) => {
+            if (typeof customSnapshotIdentifier === 'function') {
+                resolvedIdentifier = customSnapshotIdentifier(parameters) || parameters.defaultIdentifier;
+            } else if (typeof customSnapshotIdentifier === 'string' && customSnapshotIdentifier.length > 0) {
+                resolvedIdentifier = customSnapshotIdentifier;
+            } else {
+                resolvedIdentifier = `${parameters.defaultIdentifier}-snap`;
+            }
+            return resolvedIdentifier;
+        },
+    };
+
+    let threw = false;
+    try {
+        expect(image).toMatchImageSnapshot(matcherOptions);
+    } catch (error) {
+        threw = true;
+        throw error;
+    } finally {
+        const differed =
+            threw ||
+            (state.updated ?? 0) > before.updated ||
+            (state.unmatched ?? 0) > before.unmatched ||
+            (state.added ?? 0) > before.added;
+        if (mode === 'all' || (mode === 'diff' && differed)) {
+            try {
+                writeSceneSnapshot(chartOrProxy, options, resolvedIdentifier);
+            } catch (captureError) {
+                // Scene capture is an auxiliary CI artifact: a failure here must never replace the
+                // image-diff result it accompanies (a `finally` throw would mask the primary error).
+                // Report via stderr, not console.* — setupMockConsole() fails tests on console output.
+                process.stderr.write(`AG_SCENE_SNAPSHOTS: scene capture failed: ${String(captureError)}\n`);
+            }
+        }
+    }
 }
 
 export async function delay(ms: number): Promise<void> {
@@ -1232,17 +1360,20 @@ function polylineBounds(polylines: PolylinePoint[][]) {
 }
 
 /** Flatten a node's serialised drawn path (SVG form) into one polyline per subpath. */
-function flattenPathPolylines(svgPath: string | undefined): PolylinePoint[][] {
+export function flattenPathPolylines(svgPath: string | undefined): PolylinePoint[][] {
     if (svgPath == null) return [];
     const tokens = svgPath.split(' ').filter((t) => t.length > 0);
     const polylines: PolylinePoint[][] = [];
     let current: PolylinePoint[] | undefined;
     let i = 0;
     const num = () => {
-        const value = Number(tokens[i++]);
-        // A non-numeric coordinate (or a command consuming the wrong argument count) would poison
-        // every downstream geometry assertion with NaN — fail loudly at the source instead.
-        if (!Number.isFinite(value)) {
+        const token = tokens[i++];
+        const value = Number(token);
+        // A literal 'NaN' coordinate is a legitimate rendered gap (series skip missing/invalid points
+        // by emitting NaN segments) and is handled by the callers below as a polyline break. Any other
+        // non-numeric token means the parser desynchronised from the command stream, which would
+        // silently poison every downstream geometry assertion — fail loudly at the source instead.
+        if (!Number.isFinite(value) && token !== 'NaN') {
             throw new Error(`flattenPathPolylines: non-finite coordinate at token ${i - 1} in '${svgPath}'`);
         }
         return value;
@@ -1250,15 +1381,38 @@ function flattenPathPolylines(svgPath: string | undefined): PolylinePoint[][] {
     while (i < tokens.length) {
         const token = tokens[i++];
         switch (token) {
-            case 'M':
-                current = [{ x: num(), y: num() }];
-                polylines.push(current);
+            case 'M': {
+                const [x, y] = [num(), num()];
+                if (Number.isFinite(x) && Number.isFinite(y)) {
+                    current = [{ x, y }];
+                    polylines.push(current);
+                } else {
+                    current = undefined;
+                }
                 break;
-            case 'L':
-                current?.push({ x: num(), y: num() });
+            }
+            case 'L': {
+                const [x, y] = [num(), num()];
+                if (Number.isFinite(x) && Number.isFinite(y)) {
+                    if (current == null) {
+                        // Finite geometry resuming after a NaN gap begins a fresh subpath rather than
+                        // being discarded until the next explicit `M`.
+                        current = [{ x, y }];
+                        polylines.push(current);
+                    } else {
+                        current.push({ x, y });
+                    }
+                } else {
+                    current = undefined;
+                }
                 break;
+            }
             case 'C': {
                 const [x1, y1, x2, y2, x3, y3] = [num(), num(), num(), num(), num(), num()];
+                if (![x1, y1, x2, y2, x3, y3].every(Number.isFinite)) {
+                    current = undefined;
+                    break;
+                }
                 const from = current?.at(-1);
                 if (from == null) break;
                 for (let step = 1; step <= CURVE_FLATTEN_STEPS; step++) {
@@ -1383,7 +1537,10 @@ function datumKeyOf(node: Node<any>, state: SerializedNodeState): string | undef
  * default every unnamed node to "must not move" — the class of regression (axis wobble, label flicker,
  * sibling disturbance) that per-ratio image snapshots caught incidentally.
  */
-export function createSceneGeometrySampler(chartOrProxy: ChartOrProxy<any>): () => SceneGeometrySample {
+export function createSceneGeometrySampler(
+    chartOrProxy: ChartOrProxy<any>,
+    { includeChrome = false }: { includeChrome?: boolean } = {}
+): () => SceneGeometrySample {
     const nodeKeys = new WeakMap<Node<any>, string>();
     const keyCounts = new Map<string, number>();
 
@@ -1426,7 +1583,7 @@ export function createSceneGeometrySampler(chartOrProxy: ChartOrProxy<any>): () 
     return function sampleSceneGeometry(): SceneGeometrySample {
         const chart = deproxy(chartOrProxy);
         const sample: SceneGeometrySample = new Map();
-        for (const [i, series] of (chart.series as any[]).entries()) {
+        for (const [i, series] of ((chart.series ?? []) as any[]).entries()) {
             sampleInto(sample, `series[${i}]`, series.contentGroup);
             sampleInto(sample, `series[${i}]/labels`, series.labelGroup);
             // Some series paint outside contentGroup (e.g. area fills render behind in backgroundGroup).
@@ -1434,10 +1591,24 @@ export function createSceneGeometrySampler(chartOrProxy: ChartOrProxy<any>): () 
                 sampleInto(sample, `series[${i}]/background`, series.backgroundGroup);
             }
         }
-        for (const axis of (chart as any).axes) {
+        for (const axis of (chart as any).axes ?? []) {
             const position = axis.position ?? 'unknown';
             sampleInto(sample, `axis[${position}]`, axis.axisGroup);
             sampleInto(sample, `axis[${position}]/grid`, axis.gridGroup);
+        }
+        if (includeChrome) {
+            // Chart chrome (captions, legends) is excluded by default so frame-trajectory suites keep
+            // their existing "unnamed node must not move" surface; scene-snapshot capture opts in.
+            const titleGroup = (chart as any).titleGroup;
+            if (titleGroup != null) {
+                sampleInto(sample, 'captions', titleGroup);
+            }
+            for (const { legendType, legend } of chart.modulesManager.legends()) {
+                const legendGroup = (legend as any).group;
+                if (legendGroup != null) {
+                    sampleInto(sample, `legend[${legendType}]`, legendGroup);
+                }
+            }
         }
         // Cartesian charts clip the series area to an animated rect (the `clip-rect` motion group).
         const clipRect = (chart as any).lastUpdateClipRect;

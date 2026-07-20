@@ -13,8 +13,8 @@ import {
     BIG,
     MIN_UNHIGHLIGHT_DELAY,
     type MockRadarAreaStyler,
+    compareImageSnapshot,
     expectWarningsCalls,
-    extractImageData,
     hoverAction,
     looserSnapshotDefaults,
     newFreezableMock,
@@ -66,10 +66,7 @@ describe('RadarAreaSeries', () => {
     };
 
     const compare = async (options?: MatchImageSnapshotOptions) => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(options);
+        await compareImageSnapshot(chart, ctx, options);
     };
 
     it(`should render polar chart as expected`, async () => {

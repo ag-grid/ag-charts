@@ -1,16 +1,14 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, it } from 'vitest';
 
 import type { AgChartOptions } from 'ag-charts-types';
 
 import type { Chart } from '../chart';
 import {
-    IMAGE_SNAPSHOT_DEFAULTS,
+    compareImageSnapshot,
     createChart,
-    extractImageData,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
-    waitForChartStability,
 } from '../test/utils';
 
 describe('Marker Shapes', () => {
@@ -26,9 +24,7 @@ describe('Marker Shapes', () => {
     });
 
     const compare = async () => {
-        await waitForChartStability(chart);
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        await compareImageSnapshot(chart, ctx);
     };
 
     // CRT-991: Verify pin marker shape renders correctly with large stroke widths.

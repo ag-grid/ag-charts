@@ -1,11 +1,10 @@
 import { expectWarningsCalls } from '_ag-charts-test';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, it, vi } from 'vitest';
 
 import type { AgChartInstance, AgSparklineOptions } from 'ag-charts-types';
 
 import {
-    IMAGE_SNAPSHOT_DEFAULTS,
-    extractImageData,
+    compareImageSnapshot,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
@@ -29,10 +28,7 @@ describe('Sparkline Preset', () => {
     const ctx = setupMockCanvas({ height: 150 });
 
     const compare = async () => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        await compareImageSnapshot(chart, ctx);
     };
 
     const prepareSparklineOptions = (opts: AgSparklineOptions) => {

@@ -5,13 +5,7 @@ import type { AgChartInstance } from 'ag-charts-types';
 import { AgCharts } from '../api/agCharts';
 import { Label, LabelCollision, LabelPlacementStyle, resolvePlacementLabelPadding } from './label';
 import { adjustLabelPlacement } from './labelUtil';
-import {
-    extractImageData,
-    prepareTestOptions,
-    setupMockCanvas,
-    setupMockConsole,
-    waitForChartStability,
-} from './test/utils';
+import { compareImageSnapshot, prepareTestOptions, setupMockCanvas, setupMockConsole } from './test/utils';
 
 describe('Labels', () => {
     setupMockConsole();
@@ -27,9 +21,7 @@ describe('Labels', () => {
     });
 
     async function compare() {
-        await waitForChartStability(chart);
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot();
+        await compareImageSnapshot(chart, ctx, {});
     }
 
     describe('AG-8917', () => {

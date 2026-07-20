@@ -1,15 +1,8 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, it } from 'vitest';
 
 import type { AgChartOptions } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-community';
-import {
-    IMAGE_SNAPSHOT_DEFAULTS,
-    deproxy,
-    extractImageData,
-    setupMockCanvas,
-    setupMockConsole,
-    waitForChartStability,
-} from 'ag-charts-community-test';
+import { compareImageSnapshot, deproxy, setupMockCanvas, setupMockConsole } from 'ag-charts-community-test';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 import { ukRoadData } from '../map-test/ukRoadData';
@@ -39,10 +32,7 @@ describe('MapLineBackgroundSeries', () => {
     const ctx = setupMockCanvas();
 
     const compare = async () => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        await compareImageSnapshot(chart, ctx);
     };
 
     describe('Simple Chart', () => {

@@ -14,9 +14,9 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     MIN_UNHIGHLIGHT_DELAY,
     type MockRadialColumnStyler,
+    compareImageSnapshot,
     deproxy,
     expectWarningsCalls,
-    extractImageData,
     hoverAction,
     newFreezableMock,
     setupMockCanvas,
@@ -77,10 +77,7 @@ describe('RadialBarSeries', () => {
     };
 
     const compare = async () => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        await compareImageSnapshot(chart, ctx);
     };
 
     it(`should render radial bar chart as expected`, async () => {

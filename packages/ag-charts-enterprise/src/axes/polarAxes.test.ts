@@ -1,14 +1,8 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, it } from 'vitest';
 
 import type { AgChartOptions, AgRadarAreaSeriesOptions, AgRadarLineSeriesOptions } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-community';
-import {
-    IMAGE_SNAPSHOT_DEFAULTS,
-    extractImageData,
-    setupMockCanvas,
-    setupMockConsole,
-    waitForChartStability,
-} from 'ag-charts-community-test';
+import { compareImageSnapshot, setupMockCanvas, setupMockConsole } from 'ag-charts-community-test';
 
 import { prepareEnterpriseTestOptions } from '../test/utils';
 
@@ -72,10 +66,7 @@ describe('Polar Axes', () => {
     };
 
     const compare = async () => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        await compareImageSnapshot(chart, ctx);
     };
 
     it(`should render polar axes as expected`, async () => {

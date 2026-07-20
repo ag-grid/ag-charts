@@ -9,15 +9,14 @@ import type {
 import { AgCharts, _ModuleSupport } from 'ag-charts-community';
 import {
     type Chart,
-    IMAGE_SNAPSHOT_DEFAULTS,
     MIN_TOOLTIP_HIDE_DELAY,
     assertTooltipPresentForAll,
     clickAction,
+    compareImageSnapshot,
     deproxy,
     expectPixelIdenticalAcrossUpdate,
     expectWarningMessages,
     expectWarningsCalls,
-    extractImageData,
     hoverAction,
     resetMockConsole,
     setupMockCanvas,
@@ -77,10 +76,7 @@ describe('MapLineSeries', () => {
     const ctx = setupMockCanvas();
 
     const compare = async () => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        await compareImageSnapshot(chart, ctx);
     };
 
     describe('Simple Chart', () => {

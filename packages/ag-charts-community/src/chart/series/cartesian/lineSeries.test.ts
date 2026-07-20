@@ -37,7 +37,6 @@ import { type MockLineStyler, newFreezableMock } from '../../test/freezableMock'
 import { testLegendItemName } from '../../test/legendItemName';
 import type { CartesianOrPolarTestCase } from '../../test/utils';
 import {
-    IMAGE_SNAPSHOT_DEFAULTS,
     type PhasedPropertyExpectation,
     type SceneFrameInvariant,
     type SceneGeometrySample,
@@ -46,6 +45,7 @@ import {
     type TrajectoryExpectation,
     axisReflowSpec,
     cartesianChartAssertions,
+    compareImageSnapshot,
     createChart,
     createSceneGeometrySampler,
     deproxy,
@@ -53,7 +53,6 @@ import {
     expectMonotonic,
     expectNoAnimation,
     expectSceneTrajectory,
-    extractImageData,
     hoverAction,
     mixinReversedAxesCases,
     prepareTestOptions,
@@ -234,10 +233,7 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
 describe('LineSeries', () => {
     setupMockConsole();
     const compare = async () => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        await compareImageSnapshot(chart, ctx);
     };
 
     let chart: AgChartInstance;
@@ -1879,10 +1875,7 @@ describe('LineSeries', () => {
             chart = AgCharts.create(options);
 
             // TODO: replace with `compare()` with 0 percent threshold
-            await waitForChartStability(chart);
-
-            const imageData = extractImageData(ctx);
-            expect(imageData).toMatchImageSnapshot({
+            await compareImageSnapshot(chart, ctx, {
                 failureThreshold: 0,
                 failureThresholdType: 'percent',
             });
@@ -1921,10 +1914,7 @@ describe('LineSeries', () => {
             chart = AgCharts.create(options);
 
             // TODO: replace with `compare()` with 0 percent threshold
-            await waitForChartStability(chart);
-
-            const imageData = extractImageData(ctx);
-            expect(imageData).toMatchImageSnapshot({
+            await compareImageSnapshot(chart, ctx, {
                 failureThreshold: 0,
                 failureThresholdType: 'percent',
             });
@@ -1956,8 +1946,7 @@ describe('LineSeries', () => {
 
             await chart.setState(state);
 
-            const imageData = extractImageData(ctx);
-            expect(imageData).toMatchImageSnapshot();
+            await compareImageSnapshot(chart, ctx, {});
         });
 
         it('should handle stacked with unconnected missing data case', async () => {
@@ -1973,10 +1962,7 @@ describe('LineSeries', () => {
 
             chart = AgCharts.create(options);
 
-            await waitForChartStability(chart);
-
-            const imageData = extractImageData(ctx);
-            expect(imageData).toMatchImageSnapshot();
+            await compareImageSnapshot(chart, ctx, {});
         });
 
         it('should handle stacked with connected missing data case', async () => {
@@ -1992,10 +1978,7 @@ describe('LineSeries', () => {
 
             chart = AgCharts.create(options);
 
-            await waitForChartStability(chart);
-
-            const imageData = extractImageData(ctx);
-            expect(imageData).toMatchImageSnapshot();
+            await compareImageSnapshot(chart, ctx, {});
         });
     });
 

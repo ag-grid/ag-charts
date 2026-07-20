@@ -19,9 +19,9 @@ import {
     NEG_BIG,
     STRIPPED_NUMBER_AXES,
     STRIPPED_UNIT_TIME_AXES,
+    compareImageSnapshot,
     expectPixelIdenticalAcrossMagnitude,
     expectWarningsCalls,
-    extractImageData,
     hoverAction,
     isoEpochPair,
     magnitudePair,
@@ -159,10 +159,7 @@ describe('RangeAreaSeries', () => {
     };
 
     const compare = async (options = { ...IMAGE_SNAPSHOT_DEFAULTS, failureThreshold: 0 }) => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(options);
+        await compareImageSnapshot(chart, ctx, options);
     };
 
     it(`should render a range-area chart as expected`, async () => {
@@ -605,10 +602,7 @@ describe('RangeAreaSeries', () => {
             prepareEnterpriseTestOptions(options as any);
 
             chart = AgCharts.create(options);
-            await waitForChartStability(chart);
-
-            const imageData = extractImageData(ctx);
-            expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+            await compareImageSnapshot(chart, ctx);
         });
 
         it('should render range-area series with segmentation styling on y-axis', async () => {
@@ -663,10 +657,7 @@ describe('RangeAreaSeries', () => {
             prepareEnterpriseTestOptions(options as any);
 
             chart = AgCharts.create(options);
-            await waitForChartStability(chart);
-
-            const imageData = extractImageData(ctx);
-            expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+            await compareImageSnapshot(chart, ctx);
         });
 
         it('should render multiple range-area series with different segmentation', async () => {
@@ -721,10 +712,7 @@ describe('RangeAreaSeries', () => {
             prepareEnterpriseTestOptions(options as any);
 
             chart = AgCharts.create(options);
-            await waitForChartStability(chart);
-
-            const imageData = extractImageData(ctx);
-            expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+            await compareImageSnapshot(chart, ctx);
         });
 
         it('should render range-area series with pattern fill segmentation', async () => {
@@ -788,10 +776,7 @@ describe('RangeAreaSeries', () => {
             prepareEnterpriseTestOptions(options as any);
 
             chart = AgCharts.create(options);
-            await waitForChartStability(chart);
-
-            const imageData = extractImageData(ctx);
-            expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+            await compareImageSnapshot(chart, ctx);
         });
 
         it('should render range-area series with gradient fill segmentation', async () => {
@@ -842,10 +827,7 @@ describe('RangeAreaSeries', () => {
             prepareEnterpriseTestOptions(options as any);
 
             chart = AgCharts.create(options);
-            await waitForChartStability(chart);
-
-            const imageData = extractImageData(ctx);
-            expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+            await compareImageSnapshot(chart, ctx);
         });
     });
 

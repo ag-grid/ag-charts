@@ -34,6 +34,7 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     PATTERN_SNAPSHOT_DEFAULTS,
     type SceneGeometrySample,
+    compareImageSnapshot,
     createChart,
     createSceneGeometrySampler,
     deproxy,
@@ -41,7 +42,6 @@ import {
     expectNoAnimation,
     expectSceneTrajectory,
     expectWarningsCalls,
-    extractImageData,
     getSeriesAggregationInternals,
     hoverAction,
     prepareTestOptions,
@@ -56,10 +56,7 @@ describe('BubbleSeries', () => {
     setupMockConsole();
 
     const compare = async (defaults = IMAGE_SNAPSHOT_DEFAULTS) => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(defaults);
+        await compareImageSnapshot(chart, ctx, defaults);
     };
 
     let chart: AgChartInstance;

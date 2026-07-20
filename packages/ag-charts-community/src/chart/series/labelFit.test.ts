@@ -4,9 +4,8 @@ import type { AgChartInstance } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
 import {
-    IMAGE_SNAPSHOT_DEFAULTS,
+    compareImageSnapshot,
     deproxy,
-    extractImageData,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
@@ -35,8 +34,7 @@ describe('series label fit', () => {
     const renderAndSnapshot = async (options: object) => {
         prepareTestOptions(options as any);
         chart = AgCharts.create(options as any);
-        await waitForChartStability(chart);
-        expect(extractImageData(ctx)).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        await compareImageSnapshot(chart, ctx);
     };
 
     // Bar, histogram and line all expose their fitted label as `node.label.text` on `contextNodeData.labelData`.

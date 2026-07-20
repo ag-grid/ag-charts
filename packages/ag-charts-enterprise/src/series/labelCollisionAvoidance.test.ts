@@ -1,15 +1,13 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, it } from 'vitest';
 
 import type { AgChartOptions } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-community';
 import {
-    IMAGE_SNAPSHOT_DEFAULTS,
+    compareImageSnapshot,
     deproxy,
     expectPixelIdenticalAcrossUpdate,
-    extractImageData,
     setupMockCanvas,
     setupMockConsole,
-    waitForChartStability,
 } from 'ag-charts-community-test';
 
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../test/utils';
@@ -37,8 +35,7 @@ describe('label collision avoidance', () => {
     const renderAndSnapshot = async (options: object) => {
         prepareEnterpriseTestOptions(options as AgChartOptions);
         chart = deproxy(AgCharts.create(options as AgChartOptions));
-        await waitForChartStability(chart);
-        expect(extractImageData(ctx)).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        await compareImageSnapshot(chart, ctx);
     };
 
     // A tight cluster of lat/lon markers (projection fixed by the UK background) forces overlapping

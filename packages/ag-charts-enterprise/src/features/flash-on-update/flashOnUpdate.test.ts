@@ -4,11 +4,10 @@ import { afterEach, describe, expect, it } from 'vitest';
 import type { AgCartesianChartOptions, AgChartInstance } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-community';
 import {
-    IMAGE_SNAPSHOT_DEFAULTS,
     clickAction,
+    compareImageSnapshot,
     computeLegendBBox,
     deproxy,
-    extractImageData,
     setupMockCanvas,
     setupMockConsole,
     spyOnAnimationManager,
@@ -199,9 +198,7 @@ describe('FlashOnUpdate', () => {
     });
 
     const compareSnapshot = async () => {
-        await waitForChartStability(chart);
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        await compareImageSnapshot(chart, ctx);
     };
 
     describe('chart flash mode', () => {

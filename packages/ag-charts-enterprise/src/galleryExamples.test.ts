@@ -5,7 +5,7 @@ import {
     GALLERY_EXAMPLES,
     IMAGE_SNAPSHOT_DEFAULTS,
     type TestCase,
-    extractImageData,
+    compareImageSnapshot,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
@@ -52,10 +52,7 @@ describe('Gallery Examples', () => {
 
             it(`for ${exampleName} it should render to canvas as expected`, async () => {
                 const compare = async () => {
-                    await waitForChartStability(chart);
-
-                    const imageData = extractImageData(ctx);
-                    expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+                    await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
                 };
 
                 chart =

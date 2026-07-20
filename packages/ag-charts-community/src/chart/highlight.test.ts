@@ -6,8 +6,8 @@ import type { HighlightNodeDatum } from '../core/eventsHub';
 import type { Chart } from './chart';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    compareImageSnapshot,
     createChart,
-    extractImageData,
     hoverAction,
     prepareTestOptions,
     setupMockCanvas,
@@ -29,10 +29,7 @@ describe('Chart highlighting', () => {
     });
 
     const compare = async () => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
     };
 
     it('Handles bringToFront property', async () => {

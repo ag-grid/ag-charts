@@ -5,6 +5,7 @@ import { AgCharts } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     clickAction,
+    compareImageSnapshot,
     deproxy,
     extractImageData,
     scrollAction,
@@ -439,7 +440,7 @@ describe('Scrollbar visibility on barWidth change', () => {
 
         expect(getZoomX()?.max).toBeLessThan(1);
 
-        expect(extractImageData(ctx)).toMatchImageSnapshot({
+        await compareImageSnapshot(proxy, ctx, {
             ...IMAGE_SNAPSHOT_DEFAULTS,
             customSnapshotIdentifier: 'ag-17008-scrollbar-after-barwidth-increase',
         });
@@ -465,7 +466,7 @@ describe('Scrollbar visibility on barWidth change', () => {
         await waitForChartStability(proxy);
         expect(getZoomX()?.max).toBeLessThan(1);
 
-        expect(extractImageData(ctx)).toMatchImageSnapshot({
+        await compareImageSnapshot(proxy, ctx, {
             ...IMAGE_SNAPSHOT_DEFAULTS,
             customSnapshotIdentifier: 'ag-17008-scrollbar-successive-barwidth-changes',
         });

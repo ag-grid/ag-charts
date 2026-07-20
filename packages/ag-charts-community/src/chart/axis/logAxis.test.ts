@@ -13,11 +13,10 @@ import { AgCharts } from '../../api/agCharts';
 import type { Chart } from '../chart';
 import * as axesExamples from '../test/examples-axes';
 import {
-    IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
+    compareImageSnapshot,
     createChart,
     deproxy,
-    extractImageData,
     prepareTestOptions,
     reverseAxes,
     setupMockCanvas,
@@ -131,23 +130,22 @@ describe('Log Axis Examples', () => {
         });
 
         it(`for ${exampleName} it should render to canvas as expected`, async () => {
-            const axisCompare = () => {
+            const axisCompare = async () => {
                 for (const axis of chart.axes) {
                     if (example.compare != null && !example.compare.includes(axis.type as AgCartesianAxisType)) {
                         continue;
                     }
 
-                    const imageData = extractImageData({ ...ctx, bbox: axis.getBBox() });
-                    expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+                    await compareImageSnapshot(chart, { ...ctx, bbox: axis.getBBox() });
                 }
             };
 
             chart = await createChart(example.options);
-            axisCompare();
+            await axisCompare();
 
             if (example.extraScreenshotActions) {
                 await example.extraScreenshotActions(chart);
-                axisCompare();
+                await axisCompare();
             }
         });
     }

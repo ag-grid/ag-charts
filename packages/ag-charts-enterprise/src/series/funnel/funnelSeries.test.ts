@@ -13,9 +13,9 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     MIN_TOOLTIP_HIDE_DELAY,
     clickAction,
+    compareImageSnapshot,
     deproxy,
     expectWarningsCalls,
-    extractImageData,
     hoverAction,
     setupMockCanvas,
     setupMockConsole,
@@ -60,10 +60,7 @@ describe('FunnelSeries', () => {
     const ctx = setupMockCanvas();
 
     const compare = async () => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        await compareImageSnapshot(chart, ctx);
     };
 
     describe('Theme Overrides', () => {

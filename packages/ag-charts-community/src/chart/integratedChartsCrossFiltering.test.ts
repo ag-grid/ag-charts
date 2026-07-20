@@ -1,10 +1,10 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, it } from 'vitest';
 
 import { AgCharts } from '../api/agCharts';
 import type { ChartOrProxy } from './test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
-    extractImageData,
+    compareImageSnapshot,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
@@ -95,10 +95,7 @@ describe('Integrated Charts Cross Filtering', () => {
     });
 
     const compare = async () => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
     };
 
     it('should render pie series as expected', async () => {

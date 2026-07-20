@@ -9,9 +9,9 @@ import {
     NEG_BIG,
     STRIPPED_NUMBER_AXES,
     STRIPPED_UNIT_TIME_AXES,
+    compareImageSnapshot,
     expectPixelIdenticalAcrossMagnitude,
     expectWarningsCalls,
-    extractImageData,
     isoEpochPair,
     magnitudePair,
     scaleToBigIntFinite,
@@ -46,10 +46,7 @@ describe('OhlcSeries', () => {
     const ctx = setupMockCanvas();
 
     const compareSnapshot = async (chart: any) => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        await compareImageSnapshot(chart, ctx);
 
         chart.destroy();
     };

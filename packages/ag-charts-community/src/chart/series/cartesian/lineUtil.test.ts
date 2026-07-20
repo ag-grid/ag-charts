@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, test } from 'vitest';
+import { afterEach, describe, test } from 'vitest';
 
 import type { AgChartInstance, AgChartOptions } from 'ag-charts-types';
 
@@ -6,7 +6,7 @@ import { AgCharts } from '../../../api/agCharts';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     clickAction,
-    extractImageData,
+    compareImageSnapshot,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
@@ -21,9 +21,7 @@ describe('LineUtil', () => {
     });
 
     const compare = async () => {
-        await waitForChartStability(chart);
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot({ ...IMAGE_SNAPSHOT_DEFAULTS, failureThreshold: 0 });
+        await compareImageSnapshot(chart, ctx, { ...IMAGE_SNAPSHOT_DEFAULTS, failureThreshold: 0 });
     };
 
     const click = async (point: { x: number; y: number }) => {

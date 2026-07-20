@@ -3,8 +3,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { AgCharts } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    compareImageSnapshot,
     deproxy,
-    extractImageData,
     prepareFinancialTestOptions,
     setupMockCanvas,
     setupMockConsole,
@@ -57,10 +57,7 @@ describe('priceVolumePreset', () => {
     const ctx = setupMockCanvas();
 
     const compare = async () => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        await compareImageSnapshot(chart, ctx, IMAGE_SNAPSHOT_DEFAULTS);
     };
 
     const snapshot = async () => {

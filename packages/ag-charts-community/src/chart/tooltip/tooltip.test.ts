@@ -5,11 +5,10 @@ import { type AgChartOptions } from 'ag-charts-types';
 import { AgCharts } from '../../api/agCharts';
 import type { AgChartProxy, Chart } from '../test/utils';
 import {
-    IMAGE_SNAPSHOT_DEFAULTS,
+    compareImageSnapshot,
     createChart,
     delay,
     expectWarningsCalls,
-    extractImageData,
     hoverAction,
     mouseDownAction,
     mouseMoveAction,
@@ -33,9 +32,7 @@ describe('Tooltip', () => {
     });
 
     const compare = async () => {
-        await waitForChartStability(chart);
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        await compareImageSnapshot(chart, ctx);
     };
 
     describe('Validation', () => {

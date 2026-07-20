@@ -548,6 +548,10 @@ jobs:
         env:
             NX_PARALLEL: 1
             NX_BASE: ${{ needs.init.outputs.nx_base }}
+            # Scene-graph JSON capture: full dump on pushes to baseline branches (latest, next,
+            # release bX.Y.Z — the only branches the `on.push` filter admits), dump-on-image-diff for
+            # PRs and manual dispatch, for machine-readable snapshot-diff verification.
+            AG_SCENE_SNAPSHOTS: ${{ github.event_name == 'push' && 'all' || 'diff' }}
         steps:
             - name: Checkout
               id: checkout
@@ -600,6 +604,7 @@ jobs:
                   path: |
                       reports/
                       packages/**/__diff_output__/*
+                      packages/**/__scene_snapshots__/*
 
     playwright_image:
         runs-on: ubuntu-latest

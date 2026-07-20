@@ -9,6 +9,7 @@ import {
 } from 'ag-charts-community';
 import {
     clickAction,
+    compareImageSnapshot,
     delay,
     expectWarningsCalls,
     extractImageData,
@@ -151,11 +152,7 @@ describe('DataSource', () => {
     });
 
     const compare = async () => {
-        await waitForChartStability(chart);
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot();
+        await compareImageSnapshot(chart, ctx, {});
     };
 
     // `scrollAction` dispatches a wheel event and then waits only a fixed delay. The zoom it

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, it } from 'vitest';
 
 import type {
     AgAreaSeriesOptions,
@@ -10,8 +10,7 @@ import type {
 } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-community';
 import {
-    IMAGE_SNAPSHOT_DEFAULTS,
-    extractImageData,
+    compareImageSnapshot,
     hoverAction,
     setupMockCanvas,
     setupMockConsole,
@@ -434,10 +433,7 @@ describe('bandHighlight', () => {
     });
 
     const compare = async () => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        await compareImageSnapshot(chart, ctx);
     };
 
     const CASES = [

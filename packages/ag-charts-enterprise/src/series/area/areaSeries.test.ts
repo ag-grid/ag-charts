@@ -1,8 +1,8 @@
-import { describe, expect, it } from 'vitest';
+import { describe, it } from 'vitest';
 
 import { type AgChartInstance, type AgChartOptions, AgCharts } from 'ag-charts-community';
 import {
-    extractImageData,
+    compareImageSnapshot,
     scrollAction,
     setupMockCanvas,
     setupMockConsole,
@@ -25,10 +25,7 @@ describe('BarSeries', () => {
     });
 
     const compare = async (customSnapshotIdentifier?: string) => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot({
+        await compareImageSnapshot(chart, ctx, {
             failureThreshold: 0,
             failureThresholdType: 'percent',
             customSnapshotIdentifier,

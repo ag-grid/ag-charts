@@ -27,13 +27,13 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     PATTERN_SNAPSHOT_DEFAULTS,
     type SceneGeometrySample,
+    compareImageSnapshot,
     createChart,
     createSceneGeometrySampler,
     expectAnimatedEndpointsMatchStatic,
     expectNoAnimation,
     expectSceneTrajectory,
     expectWarningsCalls,
-    extractImageData,
     hoverAction,
     looserSnapshotDefaults,
     prepareTestOptions,
@@ -48,10 +48,7 @@ describe('ScatterSeries', () => {
     setupMockConsole();
 
     const compare = async (defaults = IMAGE_SNAPSHOT_DEFAULTS) => {
-        await waitForChartStability(chart);
-
-        const imageData = extractImageData(ctx);
-        expect(imageData).toMatchImageSnapshot(defaults);
+        await compareImageSnapshot(chart, ctx, defaults);
     };
 
     let chart: AgChartInstance;
