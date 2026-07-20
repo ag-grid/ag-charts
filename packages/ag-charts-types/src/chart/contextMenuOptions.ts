@@ -136,9 +136,36 @@ export type AgContextMenuItem<TDatum = DatumDefault, TContext = ContextDefault> 
 
 type GetItemsParamsOmissions = 'type' | 'event';
 
+/**
+ * The regions under the pointer when the context menu was opened. More than one entry is present where
+ * regions overlap — for example a datum node drawn over an axis positioned with `crossAt` yields both
+ * `series-node` and `axis`. Each entry carries the same data the corresponding single-region params carry.
+ */
+export interface AgContextMenuRegions<TDatum = DatumDefault, TContext = ContextDefault> {
+    /** Set when the pointer is over a datum node. */
+    'series-node'?: Omit<AgNodeContextMenuActionEvent<TDatum, TContext>, GetItemsParamsOmissions>;
+    /** Set when the pointer is within the series area bounds. */
+    'series-area'?: Omit<AgSeriesAreaContextMenuActionEvent<TContext>, GetItemsParamsOmissions>;
+    /** Set when the pointer is over an axis, including where an axis overlaps the series area (e.g. `crossAt`). */
+    axis?: Omit<AgAxisContextMenuActionEvent<TContext>, GetItemsParamsOmissions>;
+    /** Set when the pointer is over a caption (title, subtitle or footnote). */
+    caption?: Omit<AgCaptionContextMenuActionEvent<TContext>, GetItemsParamsOmissions>;
+    /** Set when the pointer is over a legend item. */
+    'legend-item'?: Omit<AgChartLegendContextMenuEvent<TContext>, GetItemsParamsOmissions> & {
+        /** Whether the series of this legend item is visible or hidden. */
+        visible: boolean;
+    };
+}
+
 interface GetItemsParamsMixin<TDatum, TContext> {
     /** The default menu items that would be shown without customisation. */
     defaultItems: AgContextMenuItem<TDatum, TContext>[];
+    /**
+     * All regions under the pointer, keyed by region. When regions overlap, more than one entry is set,
+     * letting the callback build a single combined menu. `showOn` reports the primary region for
+     * backwards compatibility, but `regions` is the complete set.
+     */
+    regions: AgContextMenuRegions<TDatum, TContext>;
 }
 
 // Note: The unused `_TDatumReserved = never` are reserved for future-proofing.

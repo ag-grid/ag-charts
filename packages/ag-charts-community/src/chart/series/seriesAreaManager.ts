@@ -1,6 +1,12 @@
-import type { CallbackParamRules, DynamicContext, Point } from 'ag-charts-core';
+import type { CallbackParamRules, DynamicContext, Point, Writeable } from 'ag-charts-core';
 import { ChartUpdateType, Vec4, clamp, createId } from 'ag-charts-core';
-import type { AgActiveItemState, AgChartClickEvent, AgChartDoubleClickEvent, AgInitialFocus } from 'ag-charts-types';
+import type {
+    AgActiveItemState,
+    AgChartClickEvent,
+    AgChartDoubleClickEvent,
+    AgContextMenuItemShowOn,
+    AgInitialFocus,
+} from 'ag-charts-types';
 
 import type {
     ActiveLoadMementoEvent,
@@ -9,6 +15,7 @@ import type {
     HighlightSelectionUpdatedEvent,
     LayoutCompleteEvent,
     SeriesAreaClickEvent,
+    SeriesAreaContextMenuEvent,
     SeriesAreaHoverEvent,
     SeriesKeyNavPanXEvent,
     UpdateOpts,
@@ -36,6 +43,7 @@ import type {
 } from '../../widget/widgetEvents';
 import type { ChartHighlight } from '../chartHighlight';
 import type { ChartType } from '../chartType';
+import type { ContextMenuRegionContexts } from '../interaction/contextMenuTypes';
 import { InteractionState } from '../interaction/interactionManager';
 import { mapKeyboardEventToAction } from '../interaction/keyBindings';
 import { TooltipManager } from '../interaction/tooltipManager';
@@ -485,29 +493,39 @@ export class SeriesAreaManager extends BaseManager {
         const canvasX = event.currentX + current.cssLeft();
         const canvasY = event.currentY + current.cssTop();
         const { datumIndex } = pickedNode ?? {};
+
+        const regions: AgContextMenuItemShowOn[] = ['series-area'];
+        const contexts: ContextMenuRegionContexts = {};
         if (pickedSeries && pickedNode && datumIndex != null) {
-            this.chart.ctx.contextMenuRegistry?.dispatchContext(
-                'series-node',
-                { widgetEvent: event, canvasX, canvasY },
-                { pickedSeries, pickedNode: { ...pickedNode, datumIndex } },
-                position
-            );
-        } else {
-            // Offer the menu to an overlapping axis first; a claim calls preventDefault, so the series-area
-            // dispatch below then no-ops. Must be emitted before that dispatch (mirrors the hover/drag handoff).
-            this.chart.ctx.eventsHub.emit('series-area:contextmenu', {
-                consumed: false,
-                canvasX,
-                canvasY,
-                widgetEvent: event,
-            });
-            this.chart.ctx.contextMenuRegistry?.dispatchContext(
-                'series-area',
-                { widgetEvent: event, canvasX, canvasY },
-                undefined,
-                position
-            );
+            regions.push('series-node');
+            contexts['series-node'] = { pickedSeries, pickedNode: { ...pickedNode, datumIndex } };
         }
+
+        // Ask axis-owning modules whether an axis overlaps this point (mirrors the hover/drag handoff). They
+        // annotate `axis` rather than dispatching, so a single menu can offer both the series and axis regions.
+        const collectEvent: Writeable<SeriesAreaContextMenuEvent> = { canvasX, canvasY, widgetEvent: event };
+        this.chart.ctx.eventsHub.emit('series-area:contextmenu', collectEvent);
+        if (collectEvent.axis) {
+            regions.push('axis');
+            contexts.axis = collectEvent.axis;
+        }
+
+        // Primary region for backwards-compatible `showOn`: a node wins over an overlapping axis, which wins
+        // over the bare series area (matches the pre-multi-region dispatch precedence).
+        let primary: AgContextMenuItemShowOn = 'series-area';
+        if (contexts['series-node']) {
+            primary = 'series-node';
+        } else if (collectEvent.axis) {
+            primary = 'axis';
+        }
+
+        this.chart.ctx.contextMenuRegistry?.dispatchContextRegions(
+            primary,
+            regions,
+            contexts,
+            { widgetEvent: event, canvasX, canvasY },
+            position
+        );
     }
 
     private onLeave(event: MouseWidgetEvent<'mouseleave'>): void {

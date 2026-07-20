@@ -27,9 +27,10 @@ import type {
 } from 'ag-charts-types';
 
 import { DataSet } from '../chart/data/dataSet';
-import type { ContextShowOnMap } from '../chart/interaction/contextMenuTypes';
+import type { ContextMenuRegionContexts, ContextShowOnMap } from '../chart/interaction/contextMenuTypes';
 import type { ChartLegendType } from '../chart/legend/legendDatum';
 import type { ISeries, SeriesNodeDatum } from '../chart/series/seriesTypes';
+import type { AxisValuePick } from '../module/axisContext';
 import type { BBox } from '../scene/bbox';
 import type { Node } from '../scene/node';
 import type { SelectionInterface } from '../scene/selection';
@@ -86,10 +87,14 @@ export interface SeriesAreaClickEvent {
 }
 
 export interface SeriesAreaContextMenuEvent {
-    readonly consumed: boolean;
     readonly canvasX: number;
     readonly canvasY: number;
     readonly widgetEvent: MouseWidgetEvent<'contextmenu'>;
+    /**
+     * The overlapping axis, if any, at the pointer. Modules that own axes annotate this so the series-area
+     * dispatch can offer the axis region alongside the series region rather than dispatching a competing menu.
+     */
+    axis?: AxisValuePick;
 }
 
 export interface DataModelSeriesDiff {
@@ -246,11 +251,16 @@ export interface AxisDOMProxyUpdateEvent {
 }
 
 export type ContextMenuEvent<K extends AgContextMenuItemShowOn = AgContextMenuItemShowOn> = {
+    /** The primary region of this event, for backwards compatibility; `regions` holds the full set. */
     readonly showOn: K;
     readonly x: number;
     readonly y: number;
     readonly context: Readonly<ContextShowOnMap[K]['context']>;
     readonly widgetEvent: MouseWidgetEvent<'contextmenu'> & { sourceEvent: Partial<Pick<PointerEvent, 'pointerType'>> };
+    /** Every region under the pointer (excluding the implicit `always`). Contains more than one entry where regions overlap. */
+    readonly regions: readonly AgContextMenuItemShowOn[];
+    /** Per-region pick contexts, keyed by region; `context` mirrors the primary region's entry. */
+    readonly contexts: Readonly<ContextMenuRegionContexts>;
 };
 
 export interface HighlightChangeEvent {
