@@ -25,7 +25,7 @@ export interface AxisFormattableLabel<FormatParams extends object, Params extend
 }
 
 export interface AxisValuePick {
-    readonly context: unknown;
+    readonly caller: { context?: unknown };
     readonly axisId: string;
     readonly value: AgAxisValue;
     readonly direction: ChartAxisDirection;

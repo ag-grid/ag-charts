@@ -1226,11 +1226,12 @@ export abstract class Axis<
         }
 
         // Dynamically extract properties of `AgContextMenuGetItemsParamsAxis` that are not present in the base
-        // `AgContextMenuGetItemsParamsAlways` (except for `context` because we need to broadcast the user option
-        // `axes[key].context` if defined).
-        type Rules = Omit<AgContextMenuGetItemsParamsAxis, Exclude<keyof AgContextMenuGetItemsParamsAlways, 'context'>>;
+        // `AgContextMenuGetItemsParamsAlways` (and also add `caller` so that we can run the context-menu callbacks
+        // `callWithContext`).
+        type Rules = Omit<AgContextMenuGetItemsParamsAxis, keyof AgContextMenuGetItemsParamsAlways> &
+            Pick<AxisValuePick, 'caller'>;
         const result: AxisValuePick = {
-            context: this.context,
+            caller: this,
             axisId: this.userKey,
             value,
             direction: this.direction,
