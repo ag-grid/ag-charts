@@ -1,6 +1,5 @@
 import type { ChartAnimationPhase, DynamicContext } from 'ag-charts-core';
 import {
-    Logger,
     type Point,
     StateMachine,
     arraysEqual,
@@ -449,7 +448,7 @@ export abstract class HierarchySeries<
 
     getDatumAriaText(datum: SeriesNodeDatum, description: string): string | undefined {
         if (!(datum instanceof this.NodeClass)) {
-            Logger.error(`datum is not HierarchyNode: ${JSON.stringify(datum)}`);
+            this.ctx.logger.error(`datum is not HierarchyNode: ${JSON.stringify(datum)}`);
             return;
         }
         return this.ctx.localeManager.t('ariaAnnounceHierarchyDatum', {

@@ -9,7 +9,6 @@ import {
     FILL_PATTERN_BLANK_DEFAULTS,
     type ITextMeasurer,
     LineSplitter,
-    Logger,
     type NormalisedLegendOptions,
     type NormalisedLegendPaginationOptions,
     ZIndexMap,
@@ -620,7 +619,7 @@ export class Legend {
 
         do {
             if (count++ > 10) {
-                Logger.warn('unable to find stable legend layout.');
+                this.ctx.logger.warn('unable to find stable legend layout.');
                 break;
             }
 
@@ -1216,11 +1215,11 @@ export class Legend {
         const datum = this.data.find((d) => d.seriesId === activeItem.seriesId && d.itemId === activeItem.itemId);
         const series = this.ctx.chartService.series.find((s) => s.id === activeItem.seriesId);
         if (series === undefined) {
-            Logger.warn(`Cannot find seriesId: "${activeItem.seriesId}"`);
+            this.ctx.logger.warn(`Cannot find seriesId: "${activeItem.seriesId}"`);
             event.reject();
         } else if (datum === undefined) {
             const json = JSON.stringify({ seriesId: activeItem.seriesId, itemId: activeItem.itemId });
-            Logger.warn(`cannot find legend item: ${json}`);
+            this.ctx.logger.warn(`cannot find legend item: ${json}`);
             event.reject();
         } else {
             this.updateHighlight(datum.enabled, datum, series, event);

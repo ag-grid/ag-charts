@@ -1,7 +1,6 @@
 import {
     ActionOnSet,
     ChartAxisDirection,
-    Logger,
     type ModuleInstance,
     type Size,
     clampArray,
@@ -232,7 +231,7 @@ export class CartesianChart extends Chart {
             );
 
             if (iterations++ > maxIterations) {
-                Logger.warn('Max iterations reached. Unable to stabilize axes layout.');
+                this.ctx.logger.warn('Max iterations reached. Unable to stabilize axes layout.');
                 break;
             }
         } while (!this.isLayoutStable(newState, prevState));

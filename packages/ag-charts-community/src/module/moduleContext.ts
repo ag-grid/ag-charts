@@ -1,4 +1,4 @@
-import { AgDocument, type CallbackCache, type ReactiveState } from 'ag-charts-core';
+import { AgDocument, type CallbackCache, type Logger, type ReactiveState } from 'ag-charts-core';
 
 import type { ChartTypeOriginator } from '../api/preset/chartTypeOriginator';
 import type { HistoryManager } from '../api/state/historyManager';
@@ -58,6 +58,7 @@ export interface ChartRegistry {
     readonly agDocument: AgDocument;
     readonly eventsHub: EventsHub;
     readonly callbackCache: CallbackCache;
+    readonly logger: Logger;
     readonly fireEvent: <TEvent extends TypedEvent>(event: TEvent) => void;
 
     readonly chartService: ChartService;

@@ -3,7 +3,6 @@ import {
     ChartAxisDirection,
     Debug,
     DebugMetrics,
-    Logger,
     type Point,
     Property,
     type Scale,
@@ -962,7 +961,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
 
             const pickedFocus = this.pickFocus({ datumIndex: mid, datumIndexDelta: 0, otherIndex, otherIndexDelta: 0 });
             if (pickedFocus === undefined) {
-                Logger.error(`pickFocus (datumIndex: ${mid}) failed`);
+                this.ctx.logger.error(`pickFocus (datumIndex: ${mid}) failed`);
                 return undefined;
             }
 

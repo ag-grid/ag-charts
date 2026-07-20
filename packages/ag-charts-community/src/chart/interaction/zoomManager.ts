@@ -530,7 +530,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
                 (Math.abs(target.width) <= Math.abs(seriesRect.width) &&
                     Math.abs(target.height) <= Math.abs(seriesRect.height)));
         if (!panIsPossible) {
-            Logger.warnOnce(`cannot pan to target BBox - chart too small?`);
+            this.ctx.logger.warnOnce(`cannot pan to target BBox - chart too small?`);
             return false;
         }
 

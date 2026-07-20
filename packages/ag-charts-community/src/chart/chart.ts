@@ -11,7 +11,6 @@ import {
     CleanupRegistry,
     Color,
     Debug,
-    Logger,
     type ModuleInstance,
     ModuleRegistry,
     ModuleType,
@@ -832,7 +831,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         // (e.g. clear `series.chart`) mid-render-cycle.
         this.updateMutex
             .acquire(() => this.performTeardown(!!keepTransferableResources))
-            .catch((e) => Logger.errorOnce(e));
+            .catch((e) => this.ctx.logger.errorOnce(e));
 
         return result;
     }
@@ -882,7 +881,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                     }
                 }
             })
-            .catch((e) => Logger.errorOnce(e));
+            .catch((e) => this.ctx.logger.errorOnce(e));
     }
 
     private clearCallbackCache() {
@@ -907,7 +906,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
     private readonly performUpdateTrigger = debouncedCallback(({ count }) => {
         if (this.destroyed) return;
-        this.updateMutex.acquire(this.tryPerformUpdate.bind(this, count)).catch((e) => Logger.errorOnce(e));
+        this.updateMutex.acquire(this.tryPerformUpdate.bind(this, count)).catch((e) => this.ctx.logger.errorOnce(e));
     });
     public update(type = ChartUpdateType.FULL, opts?: UpdateOpts) {
         if (this.destroyed) return;
@@ -991,7 +990,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 await this.performUpdate(count);
             });
         } catch (error: any) {
-            Logger.error('update error', error, error.stack);
+            this.ctx.logger.error('update error', error, error.stack);
             this.validationCollector.add({
                 severity: 'error',
                 message: String(error?.message ?? error),
@@ -1217,7 +1216,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         if (this.destroyed) return true;
 
         if (this.updateShortcutCount > maxShortcuts) {
-            Logger.warn(
+            this.ctx.logger.warn(
                 `exceeded the maximum number of simultaneous updates (${
                     maxShortcuts + 1
                 }), discarding changes and rendering`,
@@ -1363,7 +1362,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 const seriesAxisId = series.getKeyAxis(direction) ?? direction;
                 const newAxis = this.axes.findById(seriesAxisId);
                 if (!newAxis) {
-                    Logger.warnOnce(
+                    this.ctx.logger.warnOnce(
                         `no matching axis for direction [${direction}] and id [${seriesAxisId}]; check series and axes configuration.`
                     );
                     return;
@@ -1593,7 +1592,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
                 if (markerFill.has(label.text)) {
                     if (markerFill.get(label.text) !== marker.fill) {
-                        Logger.warnOnce(
+                        this.ctx.logger.warnOnce(
                             `legend item '${toPlainText(label.text)}' has multiple fill colours, this may cause unexpected behaviour.`
                         );
                     }
@@ -1740,7 +1739,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 if (failOnTimeout) {
                     throw new Error(message);
                 } else {
-                    Logger.warnOnce(message);
+                    this.ctx.logger.warnOnce(message);
                 }
             }
 
