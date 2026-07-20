@@ -1,5 +1,5 @@
 import type { AxisID, DomainWithMetadata, DynamicContext, NormalisedNumberAxisOptions } from 'ag-charts-core';
-import { Logger, narrowToNumber, normalisedExtentWithMetadata, zeroLike } from 'ag-charts-core';
+import { narrowToNumber, normalisedExtentWithMetadata, zeroLike } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../module/moduleContext';
@@ -52,7 +52,7 @@ export class LogAxis extends NumberAxis {
         );
 
         if ((extent[0] < 0 && extent[1] > 0) || (d.domain[0] < 0 && d.domain[1] > 0)) {
-            Logger.warn(
+            this.moduleCtx.logger.warn(
                 `The log axis domain crosses zero, the chart data cannot be rendered. See log axis documentation for more information.`
             );
             return { domain: [], clipped };
@@ -63,7 +63,7 @@ export class LogAxis extends NumberAxis {
             d.domain[0] === zeroLike(d.domain[0]) ||
             d.domain[1] === zeroLike(d.domain[1])
         ) {
-            Logger.warn(
+            this.moduleCtx.logger.warn(
                 `The log axis domain contains a value of 0, the chart data cannot be rendered. See log axis documentation for more information.`
             );
             return { domain: [], clipped };

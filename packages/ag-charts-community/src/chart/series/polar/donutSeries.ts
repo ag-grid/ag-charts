@@ -12,7 +12,6 @@ import {
     DebugMetrics,
     type Has,
     type InternalAgColorType,
-    Logger,
     type Point,
     PolarZIndexMap,
     type RequireOptional,
@@ -404,7 +403,7 @@ export class DonutSeries extends PolarSeries<
             const { id, missing, property } = valueDef;
             const missCount = getMissCount(this, missing);
             if (id !== 'angleRaw' && missCount > 0) {
-                Logger.warnOnce(
+                this.ctx.logger.warnOnce(
                     `no value was found for the key '${String(property)}' on ${missCount} data element${
                         missCount > 1 ? 's' : ''
                     }`

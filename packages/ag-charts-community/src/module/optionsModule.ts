@@ -239,6 +239,10 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     // Provide the unmapped axis keys for error logging & callbacks.
     unmappedAxisKeys: Map<string, string> = new Map();
 
+    // Validation runs synchronously in this constructor, before the chart's `ctx.logger` exists on
+    // initial create, so console output routes through this instance (the chart's own where one exists).
+    private readonly logger: Logger;
+
     private static readonly debug = Debug.create(true, 'opts');
 
     constructor(
@@ -250,8 +254,10 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         deltaOptions?: DeepPartial<T> | null,
         stripSymbols = false,
         refreshCSSVariables = false,
-        apiStartTime?: number
+        apiStartTime?: number,
+        logger?: Logger
     ) {
+        this.logger = logger ?? new Logger();
         this.optionMetadata = metadata ?? {};
         this.processedOverrides = processedOverrides ?? {};
 
@@ -618,7 +624,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     // Every option-validation error goes to both the console log and the per-chart overlay collector.
     private recordValidationErrors(invalid: ValidationError[]) {
         for (const error of invalid) {
-            Logger.warn(error);
+            this.logger.warn(error);
             let path = error.path;
             if (error.key) {
                 path = path ? `${path}.${error.key}` : error.key;
@@ -628,7 +634,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private recordValidationMessage(message: string) {
-        Logger.warn(message);
+        this.logger.warn(message);
         this.validationIssues.push({ severity: 'warning', message });
     }
 

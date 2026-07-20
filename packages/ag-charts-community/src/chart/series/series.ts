@@ -19,7 +19,6 @@ import {
     type DistantObject,
     EventEmitter,
     LRUCache,
-    Logger,
     type Point,
     type RequireOptional,
     SeriesContentZIndexMap,
@@ -1673,7 +1672,7 @@ export abstract class Series<
             datumCallbackCache.set(id, value);
             return value;
         } catch (error) {
-            Logger.error(String(error));
+            this.ctx.logger.error(String(error));
         }
     }
 

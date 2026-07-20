@@ -24,7 +24,7 @@ export * from './structures/bitfield';
 export * from './structures/eventEmitter';
 export * from './structures/lruCache';
 export * as Debug from './logging/debugLogger';
-export * as Logger from './logging/logger';
+export { Logger } from './logging/logger';
 export * as DebugMetrics from './logging/debugMetrics';
 export * from './modules/enterpriseRegistry';
 export * as ModuleRegistry from './modules/moduleRegistry';

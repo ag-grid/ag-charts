@@ -3,6 +3,7 @@ import {
     CallbackCache,
     type DynamicContext,
     EventEmitter,
+    Logger,
     ModuleRegistry,
     ModuleType,
     ReactiveState,
@@ -112,7 +113,8 @@ export function createChartContext(chart: ChartHost, vars: ChartContextVars): Dy
         // when transferable resources are preserved across chart-type switches.
         .ref('scene', scene);
 
-    ctx.service('callbackCache', () => new CallbackCache())
+    ctx.service('logger', () => new Logger())
+        .service('callbackCache', () => new CallbackCache())
         .service('formatManager', () => new FormatManager())
         .service('seriesStateManager', () => new SeriesStateManager())
         .service('stateManager', () => new StateManager())

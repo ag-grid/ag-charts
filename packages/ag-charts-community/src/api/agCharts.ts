@@ -223,7 +223,8 @@ class AgChartsInternal {
             deltaOptions,
             stripSymbols,
             false,
-            apiStartTime
+            apiStartTime,
+            chart?.ctx.logger
         );
 
         if (
@@ -299,7 +300,8 @@ class AgChartsInternal {
                 deltaOptions,
                 stripSymbols,
                 true,
-                Debug.check('scene:stats', 'scene:stats:verbose') ? performance.now() : undefined
+                Debug.check('scene:stats', 'scene:stats:verbose') ? performance.now() : undefined,
+                chart.ctx.logger
             );
             AgChartsInternal.requestFactoryUpdate(chart, refreshedChartOptions);
         });
