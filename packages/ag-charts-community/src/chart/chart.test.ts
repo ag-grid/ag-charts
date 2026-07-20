@@ -1607,4 +1607,29 @@ describe('Chart destroy() / performUpdate() race condition', () => {
         'does not throw TypeError when destroy() races with a %s series update',
         testDestroyRace
     );
+
+    it('does not throw when updateSplits runs after the chart instance is frozen', async () => {
+        const proxy = AgCharts.create({
+            container: document.body,
+            data,
+            series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+        }) as AgChartProxy;
+        const innerChart = deproxy(proxy);
+        await waitForChartStability(innerChart);
+
+        const chartProto = Object.getPrototypeOf(innerChart);
+        const origUpdateSplits = chartProto.updateSplits;
+        vi.spyOn(chartProto, 'updateSplits').mockImplementationOnce(function (this: any, name: string) {
+            // Mirror performTeardown's terminal state mid-update (Object.freeze(this)).
+            this.destroyed = true;
+            Object.freeze(this);
+            return origUpdateSplits.call(this, name);
+        });
+
+        innerChart.update(ChartUpdateType.FULL);
+        await waitForChartStability(innerChart);
+
+        // setupMockConsole afterEach asserts console.error was not called
+        // (would see: Cannot assign to read only property '_previousSplit').
+    });
 });

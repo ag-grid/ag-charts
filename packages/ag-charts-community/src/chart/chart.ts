@@ -977,6 +977,10 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     private _previousSplit: number = 0;
 
     private updateSplits(splitName: string) {
+        // destroy() sets `destroyed` before teardown is mutex-queued; skip timing
+        // writes if the chart is already gone so a racing performUpdate cannot throw
+        // on a frozen instance (Object.freeze in performTeardown).
+        if (this.destroyed) return;
         const splits = this._performUpdateSplits;
         splits[splitName] ??= 0;
         splits[splitName] += performance.now() - this._previousSplit;
@@ -990,13 +994,17 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 await this.performUpdate(count);
             });
         } catch (error: any) {
-            this.ctx.logger.error('update error', error, error.stack);
-            this.validationCollector.add({
-                severity: 'error',
-                message: String(error?.message ?? error),
-                code: typeof error?.stack === 'string' ? error.stack : undefined,
-            });
-            this.runningUpdateType = ChartUpdateType.NONE;
+            // If destroy() won the race, the instance may already be frozen — avoid
+            // further writes / error noise for an abandoned update.
+            if (!this.destroyed) {
+                this.ctx.logger.error('update error', error, error.stack);
+                this.validationCollector.add({
+                    severity: 'error',
+                    message: String(error?.message ?? error),
+                    code: typeof error?.stack === 'string' ? error.stack : undefined,
+                });
+                this.runningUpdateType = ChartUpdateType.NONE;
+            }
             this._performUpdateNotify.notify();
         }
     }
