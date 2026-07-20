@@ -1,7 +1,7 @@
 import {
-    AgChartOptions,
     AgCharts,
     AgOrganizationSeriesOptions,
+    AgStandaloneChartOptions,
     ContextMenuModule,
     ModuleRegistry,
     OrganizationSeriesModule,
@@ -11,7 +11,7 @@ import { getData } from './data';
 
 ModuleRegistry.registerModules([OrganizationSeriesModule, ContextMenuModule]);
 
-const options: AgChartOptions = {
+const options: AgStandaloneChartOptions = {
     container: document.getElementById('myChart'),
     title: {
         text: 'Company Organisation',
