@@ -20,7 +20,6 @@ import {
     wheelEvent,
 } from '_ag-charts-test';
 import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
-import kebabCase from 'lodash/kebabCase';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import * as path from 'node:path';
 import { afterEach, beforeEach, expect, vi } from 'vitest';
@@ -112,12 +111,11 @@ const SCENE_SNAPSHOTS_DIR = '__scene_snapshots__';
 const IMAGE_SNAPSHOTS_DIR = '__image_snapshots__';
 
 /** Counters jest-image-snapshot mutates on the (vitest) snapshot state; used to detect image diffs
- * in both fail mode and `--update` mode, plus the per-test counter its default naming scheme uses. */
+ * in both fail mode and `--update` mode. */
 interface ImageSnapshotState {
     updated?: number;
     unmatched?: number;
     added?: number;
-    _counters: Map<string, number>;
 }
 
 type SceneSnapshotMode = 'diff' | 'all' | 'off';
@@ -142,38 +140,10 @@ export function sceneSampleToJSON(sample: SceneGeometrySample): Record<string, R
     return result;
 }
 
-/** Rebuild the identifier jest-image-snapshot used for the comparison that just ran, so the scene
- * JSON pairs 1:1 with its PNG. Mirrors `createSnapshotIdentifier` in jest-image-snapshot.
- * A `resolvedIdentifier` captured from the matcher takes precedence: a function
- * `customSnapshotIdentifier` is thereby evaluated only once, so a non-idempotent callback cannot
- * name the JSON differently from its PNG. */
-function imageSnapshotIdentifier(options: MatchImageSnapshotOptions, resolvedIdentifier?: string): string {
-    if (resolvedIdentifier != null) return resolvedIdentifier;
-    const { testPath, currentTestName, snapshotState } = expect.getState();
-    const counter = (snapshotState as unknown as ImageSnapshotState)._counters.get(currentTestName ?? '');
-    const defaultIdentifier = kebabCase(`${path.basename(testPath ?? '')}-${currentTestName}-${counter}`);
-    const { customSnapshotIdentifier } = options;
-    if (typeof customSnapshotIdentifier === 'function') {
-        return (
-            customSnapshotIdentifier({
-                testPath: testPath ?? '',
-                currentTestName: currentTestName ?? '',
-                counter: counter ?? 0,
-                defaultIdentifier,
-            }) || defaultIdentifier
-        );
-    }
-    // An empty-string identifier also falls back, matching jest-image-snapshot's truthiness check.
-    if (typeof customSnapshotIdentifier === 'string' && customSnapshotIdentifier.length > 0) {
-        return customSnapshotIdentifier;
-    }
-    return `${defaultIdentifier}-snap`;
-}
-
 function writeSceneSnapshot(
     chartOrProxy: ChartOrProxy<any>,
     options: MatchImageSnapshotOptions,
-    resolvedIdentifier?: string
+    resolvedIdentifier: string
 ): void {
     const { testPath } = expect.getState();
     // Mirror jest-image-snapshot's truthiness fallback (`customSnapshotsDir || default`): an empty
@@ -187,7 +157,7 @@ function writeSceneSnapshot(
     const sample = createSceneGeometrySampler(chartOrProxy, { includeChrome: true })();
     mkdirSync(sceneSnapshotsDir, { recursive: true });
     writeFileSync(
-        path.join(sceneSnapshotsDir, `${imageSnapshotIdentifier(options, resolvedIdentifier)}.json`),
+        path.join(sceneSnapshotsDir, `${resolvedIdentifier}.json`),
         JSON.stringify(sceneSampleToJSON(sample), null, 2)
     );
 }
@@ -216,21 +186,26 @@ export async function compareImageSnapshot(
     const state = expect.getState().snapshotState as unknown as ImageSnapshotState;
     const before = { updated: state.updated ?? 0, unmatched: state.unmatched ?? 0, added: state.added ?? 0 };
 
-    // A function customSnapshotIdentifier must resolve to the same value for the PNG and its paired
-    // JSON. Rather than re-invoking it (double side effects, divergence if non-idempotent), wrap it so
-    // the matcher's single evaluation is captured and reused for the JSON filename.
-    let resolvedIdentifier: string | undefined;
-    let matcherOptions = options;
+    // The scene JSON must share the exact identifier jest-image-snapshot resolves for the PNG. Rather
+    // than reconstruct that identifier (which would duplicate its kebab-casing and counter logic, and
+    // re-invoke a caller's customSnapshotIdentifier — doubling side effects, desyncing on a
+    // non-idempotent callback), inject a wrapper that reproduces the matcher's own resolution from the
+    // `defaultIdentifier` it supplies, then captures the single result for the JSON filename.
+    let resolvedIdentifier = '';
     const { customSnapshotIdentifier } = options;
-    if (typeof customSnapshotIdentifier === 'function') {
-        matcherOptions = {
-            ...options,
-            customSnapshotIdentifier: (parameters) => {
+    const matcherOptions: MatchImageSnapshotOptions = {
+        ...options,
+        customSnapshotIdentifier: (parameters) => {
+            if (typeof customSnapshotIdentifier === 'function') {
                 resolvedIdentifier = customSnapshotIdentifier(parameters) || parameters.defaultIdentifier;
-                return resolvedIdentifier;
-            },
-        };
-    }
+            } else if (typeof customSnapshotIdentifier === 'string' && customSnapshotIdentifier.length > 0) {
+                resolvedIdentifier = customSnapshotIdentifier;
+            } else {
+                resolvedIdentifier = `${parameters.defaultIdentifier}-snap`;
+            }
+            return resolvedIdentifier;
+        },
+    };
 
     let threw = false;
     try {
