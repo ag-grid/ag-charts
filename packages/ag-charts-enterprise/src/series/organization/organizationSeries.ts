@@ -428,7 +428,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         };
     }
 
-    getDatumAriaText(datum: OrganizationDatum, _description: string): string | undefined {
+    override getDatumAriaMeta(datum: OrganizationDatum, _description: string) {
         const { vertex } = datum;
         const depth = (this.graph.findNeighbourValue(vertex, 'depth') as number | undefined) ?? 1;
 
@@ -443,28 +443,36 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
         // Leaf vs. parent — a single key with empty `${collapsedState}` would stutter (",,").
         if (childCount === 0) {
-            return this.ctx.localeManager.t('ariaAnnounceOrgChartLeaf', {
+            return {
+                text: this.ctx.localeManager.t('ariaAnnounceOrgChartLeaf', {
+                    description,
+                    level: depth,
+                    posInSet,
+                    setSize,
+                }),
+                instructions: undefined,
+            };
+        }
+
+        const itemId = vertex.value as string;
+        const isCollapsed = this.ctx.collapsedManager.isCollapsed(itemId);
+        const collapsedState = this.ctx.localeManager.t(isCollapsed ? 'ariaOrgChartCollapsed' : 'ariaOrgChartExpanded');
+        const instruction = this.ctx.localeManager.t(
+            isCollapsed ? 'ariaDescriptionExpandNode' : 'ariaDescriptionCollapseNode'
+        );
+        // Locale tooling has no `[plural]` annotation, so split the key by child count.
+        const key = childCount === 1 ? 'ariaAnnounceOrgChartParentSingular' : 'ariaAnnounceOrgChartParent';
+        return {
+            text: this.ctx.localeManager.t(key, {
                 description,
                 level: depth,
                 posInSet,
                 setSize,
-            });
-        }
-
-        const itemId = vertex.value as string;
-        const collapsedState = this.ctx.localeManager.t(
-            this.ctx.collapsedManager.isCollapsed(itemId) ? 'ariaOrgChartCollapsed' : 'ariaOrgChartExpanded'
-        );
-        // Locale tooling has no `[plural]` annotation, so split the key by child count.
-        const key = childCount === 1 ? 'ariaAnnounceOrgChartParentSingular' : 'ariaAnnounceOrgChartParent';
-        return this.ctx.localeManager.t(key, {
-            description,
-            level: depth,
-            posInSet,
-            setSize,
-            childCount,
-            collapsedState,
-        });
+                childCount,
+                collapsedState,
+            }),
+            instructions: [instruction],
+        };
     }
 
     findNodeDatum(itemIdOrIndex: AgActiveItemState['itemId']): OrganizationDatum | undefined {

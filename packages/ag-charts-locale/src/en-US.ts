@@ -25,12 +25,16 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     ariaAnnounceOrgChartLeaf: '${description}, level ${level}[number], ${posInSet}[number] of ${setSize}[number]',
     // Screen reader announcement when focusing a parent node in an Organization chart with multiple children
     ariaAnnounceOrgChartParent:
-        '${description}, level ${level}[number], ${posInSet}[number] of ${setSize}[number], ${collapsedState}, ${childCount}[number] children, press Enter or Space to toggle',
+        '${description}, level ${level}[number], ${posInSet}[number] of ${setSize}[number], ${collapsedState}, ${childCount}[number] children',
     // Screen reader announcement when focusing a parent node in an Organization chart with exactly one child
     ariaAnnounceOrgChartParentSingular:
-        '${description}, level ${level}[number], ${posInSet}[number] of ${setSize}[number], ${collapsedState}, 1 child, press Enter or Space to toggle',
+        '${description}, level ${level}[number], ${posInSet}[number] of ${setSize}[number], ${collapsedState}, 1 child',
     ariaOrgChartCollapsed: 'collapsed',
     ariaOrgChartExpanded: 'expanded',
+    // Screen reader description for the keybinding to expand a node (such as in an Organization chart)
+    ariaDescriptionExpandNode: 'Press ALT DOWN to expand this node',
+    // Screen reader description for the keybinding to collapse a node (such as in an Organization chart)
+    ariaDescriptionCollapseNode: 'Press ALT UP to collapse this node',
     // Screen reader description for legend items
     ariaDescriptionLegendItem: 'Press Space or Enter to toggle visibility',
     // Screen reader for the '+' horizontal line button on the Y-axis
