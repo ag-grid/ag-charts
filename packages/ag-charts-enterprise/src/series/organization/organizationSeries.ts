@@ -1,6 +1,7 @@
 import {
     type AgActiveItemState,
     type AgCollapsedChangeEventSource,
+    type AgNetworkSeriesTreeLayoutDirection,
     type AgOrganizationNodeTextFormatterParams,
     type AgOrganizationSeriesExpanderItemStylerParams,
     type AgOrganizationSeriesExpanderStyle,
@@ -283,7 +284,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                 styles,
                 isCollapsed,
                 this.ctx.domManager.isRtl,
-                this.properties.direction
+                this.getNetworkTreeLayoutDirection()
             );
         });
     }
@@ -305,7 +306,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         node.translationY = bbox.y;
 
         if (regularBBox) {
-            node.updateBBox(regularBBox, this.properties.direction);
+            node.updateBBox(regularBBox, this.getNetworkTreeLayoutDirection());
             node.realign(regularBBox);
         }
 
@@ -486,7 +487,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
     protected override makeLayoutUpdateOptions(): NetworkTreeLayoutUpdateOptions<OrganizationVertex, OrganizationEdge> {
         const {
-            properties: { node, expander, alignment, direction, innerSpacing, outerSpacing, depthSpacing },
+            properties: { node, expander, alignment, innerSpacing, outerSpacing, depthSpacing },
         } = this;
 
         return {
@@ -500,7 +501,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             hiddenOnCollapse: true,
 
             alignment: alignment ?? 'center-all-children',
-            direction: direction ?? 'down',
+            direction: this.getNetworkTreeLayoutDirection(),
             stackCollapsedChildren: false,
             depthSpacing: depthSpacing ?? 0,
             innerSpacing: innerSpacing ?? 0,
@@ -1353,5 +1354,13 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         if (nodeDatumIndex == null) return;
 
         return nodeDatumIndex;
+    }
+
+    private getNetworkTreeLayoutDirection(): AgNetworkSeriesTreeLayoutDirection {
+        const { direction, reverse } = this.properties;
+        if (reverse) {
+            return direction === 'horizontal' ? 'left' : 'up';
+        }
+        return direction === 'horizontal' ? 'right' : 'down';
     }
 }

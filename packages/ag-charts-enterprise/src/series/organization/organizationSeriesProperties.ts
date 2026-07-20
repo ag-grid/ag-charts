@@ -1,5 +1,6 @@
 import {
     type AgOrganizationNodeTextFormatterParams,
+    type AgOrganizationSeriesDirection,
     type AgOrganizationSeriesExpanderItemStylerParams,
     type AgOrganizationSeriesExpanderStyle,
     type AgOrganizationSeriesLinkItemStylerParams,
@@ -29,6 +30,12 @@ export class OrganizationSeriesProperties extends NetworkSeriesTreeLayoutPropert
 
     @Property
     parentIdKey: string = 'parentId';
+
+    @Property
+    override direction: AgOrganizationSeriesDirection = 'vertical';
+
+    @Property
+    reverse: boolean = false;
 
     @Property
     expander = new OrganizationSeriesExpanderProperties();

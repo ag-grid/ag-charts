@@ -84,7 +84,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         this.updateLabelNodes(fields.labels, styles, textMaxWidth);
         this.updateExpanderNode(expanderText, allChildren, isCollapsed, isRtl, direction, styles);
 
-        const padding = this.getDirectionalPadding(styles, direction);
+        styles.padding = this.getDirectionalPadding(styles, direction);
 
         let rowScenes = [];
         let rowGaps: number[] = [];
@@ -93,7 +93,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         const columnGaps: number[] = [];
 
         if (this.imageNode && styles.image.position === 'top') {
-            this.imageNode.x = padding.left;
+            this.imageNode.x = styles.padding.left;
             columnScenes.push(this.imageNode);
             columnGaps.push(styles.image.spacing);
         }
@@ -120,27 +120,27 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         }
 
         if (this.imageNode && styles.image.position === 'bottom') {
-            this.imageNode.x = padding.left;
+            this.imageNode.x = styles.padding.left;
             columnScenes.push(this.imageNode);
             columnGaps.push(styles.image.spacing);
         }
 
         if (this.imageNode && styles.image.position === 'left') {
-            this.imageNode.y = padding.top;
+            this.imageNode.y = styles.padding.top;
             rowScenes = [this.imageNode, columnScenes];
             rowGaps = [styles.image.spacing];
         } else if (this.imageNode && styles.image.position === 'right') {
-            this.imageNode.y = padding.top;
+            this.imageNode.y = styles.padding.top;
             rowScenes = [columnScenes, this.imageNode];
             rowGaps = [styles.image.spacing];
         } else {
             rowScenes = [columnScenes];
         }
 
-        layoutScenesColumn(columnScenes, padding.top, columnGaps);
-        layoutScenesRow(rowScenes, padding.left, rowGaps);
+        layoutScenesColumn(columnScenes, styles.padding.top, columnGaps);
+        layoutScenesRow(rowScenes, styles.padding.left, rowGaps);
 
-        const bbox = _ModuleSupport.Group.computeChildrenBBox(rowScenes.flat()).grow(padding); // TODO: add stroke width by side
+        const bbox = _ModuleSupport.Group.computeChildrenBBox(rowScenes.flat()).grow(styles.padding); // TODO: add stroke width by side
 
         this.shapeNode.x = 0;
         this.shapeNode.y = 0;
@@ -420,7 +420,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
 
             case 'right': {
                 const rightElementSpacing =
-                    this.imageNode && styles.image.position === 'left' ? styles.image.spacing : styles.title.spacing;
+                    this.imageNode && styles.image.position === 'right' ? styles.image.spacing : styles.title.spacing;
 
                 padding.right = Math.max(
                     styles.padding.right,

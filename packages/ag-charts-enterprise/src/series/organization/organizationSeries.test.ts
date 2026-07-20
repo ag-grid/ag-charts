@@ -375,21 +375,6 @@ const FORMATTERS: AgChartOptions = {
     ],
 };
 
-const DIRECTION_UP: AgChartOptions = {
-    ...SIMPLE_ORG_CHART,
-    theme: { overrides: { organization: { series: { direction: 'up' } } } },
-};
-
-const DIRECTION_RIGHT: AgChartOptions = {
-    ...SIMPLE_ORG_CHART,
-    theme: { overrides: { organization: { series: { direction: 'right' } } } },
-};
-
-const DIRECTION_LEFT: AgChartOptions = {
-    ...SIMPLE_ORG_CHART,
-    theme: { overrides: { organization: { series: { direction: 'left' } } } },
-};
-
 const segmentTitleFormatter = ({ value }: { value: any }) => {
     const parts = String(value).split(' ');
     return [
@@ -780,16 +765,39 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
         } as any,
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
     },
-    DIRECTION_UP: {
-        options: DIRECTION_UP,
+    DIRECTION_HORIZONTAL: {
+        options: {
+            ...SIMPLE_ORG_CHART,
+            theme: { overrides: { organization: { series: { direction: 'horizontal' } } } },
+        },
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
     },
-    DIRECTION_RIGHT: {
-        options: DIRECTION_RIGHT,
+    DIRECTION_HORIZONTAL_IMAGE_TOP: {
+        options: {
+            ...createTextImageExample('center', 'top'),
+            theme: { overrides: { organization: { series: { direction: 'horizontal' } } } },
+        },
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
     },
-    DIRECTION_LEFT: {
-        options: DIRECTION_LEFT,
+    DIRECTION_HORIZONTAL_IMAGE_RIGHT: {
+        options: {
+            ...createTextImageExample('left', 'right'),
+            theme: { overrides: { organization: { series: { direction: 'horizontal' } } } },
+        },
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    DIRECTION_HORIZONTAL_REVERSE: {
+        options: {
+            ...SIMPLE_ORG_CHART,
+            theme: { overrides: { organization: { series: { direction: 'horizontal', reverse: true } } } },
+        },
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    DIRECTION_VERTICAL_REVERSE: {
+        options: {
+            ...SIMPLE_ORG_CHART,
+            theme: { overrides: { organization: { series: { direction: 'vertical', reverse: true } } } },
+        },
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
     },
 };

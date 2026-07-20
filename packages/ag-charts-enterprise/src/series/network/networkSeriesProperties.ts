@@ -1,8 +1,4 @@
-import {
-    type AgNetworkSeriesTreeLayoutAlignment,
-    type AgNetworkSeriesTreeLayoutDirection,
-    _ModuleSupport,
-} from 'ag-charts-community';
+import { type AgNetworkSeriesTreeLayoutAlignment, _ModuleSupport } from 'ag-charts-community';
 import { Property, ProxyOnWrite } from 'ag-charts-core';
 
 export class NetworkSeriesProperties extends _ModuleSupport.SeriesProperties<object> {
@@ -15,7 +11,7 @@ export class NetworkSeriesTreeLayoutProperties extends NetworkSeriesProperties {
     alignment: AgNetworkSeriesTreeLayoutAlignment = 'center-all-children';
 
     @Property
-    direction: AgNetworkSeriesTreeLayoutDirection = 'down';
+    direction: string = 'down';
 
     @Property
     depthSpacing?: number;

@@ -25,7 +25,7 @@ const options: AgStandaloneChartOptions = {
             type: 'organization',
             idKey: 'id',
             parentIdKey: 'parentId',
-            direction: 'right',
+            direction: 'horizontal',
             node: {
                 clickToExpand: false,
                 image: {
@@ -52,7 +52,13 @@ const options: AgStandaloneChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function changeDirection(direction: 'up' | 'down' | 'left' | 'right') {
+function changeDirection(direction: 'horizontal' | 'vertical') {
     (options.series![0] as AgOrganizationSeriesOptions).direction = direction;
+    chart.update(options);
+}
+
+function toggleReverse() {
+    (options.series![0] as AgOrganizationSeriesOptions).reverse = !(options.series![0] as AgOrganizationSeriesOptions)
+        .reverse;
     chart.update(options);
 }

@@ -424,6 +424,8 @@ const networkSeriesTreeLayoutDef: OptionsDefs<AgNetworkSeriesTreeLayout> = {
 export const organizationSeriesThemeableOptionsDef: OptionsDefs<AgOrganizationSeriesThemeableOptions> = {
     ...commonSeriesThemeableOptionsDefs,
     ...networkSeriesTreeLayoutDef,
+    direction: union('horizontal', 'vertical'),
+    reverse: boolean,
     expander: defined,
     link: defined,
     node: defined,

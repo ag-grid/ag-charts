@@ -32,8 +32,23 @@ export interface AgOrganizationSeriesOptions<TDatum = DatumDefault, TContext = C
     node?: AgOrganizationSeriesOptionsNode<TDatum, TContext>;
 }
 
+export type AgOrganizationSeriesDirection = 'horizontal' | 'vertical';
+
 export interface AgOrganizationSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgBaseSeriesThemeableOptions<TDatum, TContext>, AgNetworkSeriesTreeLayout {
+    extends AgBaseSeriesThemeableOptions<TDatum, TContext>, Omit<AgNetworkSeriesTreeLayout, 'direction'> {
+    /**
+     * The direction child nodes are arranged relative to their parent. Sibling nodes are arranged along the perpendicular axis.
+     *
+     * Default: 'vertical'
+     */
+    direction?: AgOrganizationSeriesDirection;
+    /**
+     * Whether the direction should be reversed.
+     *
+     * Default: false
+     */
+    reverse?: boolean;
+
     expander?: AgOrganizationSeriesOptionsExpander<TDatum, TContext>;
 
     link?: AgOrganizationSeriesOptionsLink<TDatum, TContext>;
