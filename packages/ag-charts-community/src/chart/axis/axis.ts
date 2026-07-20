@@ -232,6 +232,14 @@ export abstract class Axis<
     dataDomain: { domain: D[]; clipped: boolean } = { domain: [], clipped: false };
     private allowNull = false;
 
+    /**
+     * Rendered-tick positions captured by the tick-layout pass, used by {@link pickValue}
+     * to resolve a click position to a tick index. Populated by subclasses that generate
+     * ticks (see `CartesianAxis`); left empty by axes that do not, in which case no tick
+     * index can be resolved.
+     */
+    private pickTickData: { readonly index: number; readonly translation: number }[] = [];
+
     readonly caption = new Caption();
 
     /**
@@ -1225,6 +1233,8 @@ export abstract class Axis<
             return undefined;
         }
 
+        const index = this.resolveTickIndex(position);
+
         // Dynamically extract properties of `AgContextMenuGetItemsParamsAxis` that are not present in the base
         // `AgContextMenuGetItemsParamsAlways` (and also add `caller` so that we can run the context-menu callbacks
         // `callWithContext`).
@@ -1234,12 +1244,38 @@ export abstract class Axis<
             caller: this,
             axisId: this.userKey,
             value,
+            index,
             direction: this.direction,
             boundSeries: this.formatterBoundSeries.get(),
             domain,
         } satisfies Rules;
 
         return result;
+    }
+
+    protected setPickTickData(ticks: readonly { readonly index: number; readonly translation: number }[]): void {
+        this.pickTickData = ticks.map(({ index, translation }) => ({ index, translation }));
+    }
+
+    /**
+     * Resolve a click position to the index of the nearest rendered tick, clamping
+     * out-of-range positions to the closest end tick. Returns -1 when no ticks are
+     * available (e.g. an axis with labels, ticks and grid lines all disabled).
+     */
+    private resolveTickIndex(position: number): number {
+        const ticks = this.pickTickData;
+        if (ticks.length === 0) return -1;
+
+        let nearestIndex = ticks[0].index;
+        let nearestDistance = Math.abs(ticks[0].translation - position);
+        for (let i = 1; i < ticks.length; i++) {
+            const distance = Math.abs(ticks[i].translation - position);
+            if (distance < nearestDistance) {
+                nearestDistance = distance;
+                nearestIndex = ticks[i].index;
+            }
+        }
+        return nearestIndex;
     }
 
     pickBand(point: Point): AxisBandDatum | undefined {

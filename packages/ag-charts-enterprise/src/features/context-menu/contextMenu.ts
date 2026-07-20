@@ -199,7 +199,7 @@ export class ContextMenu extends AbstractModuleInstance {
 
             case 'axis': {
                 if (this.pickedAxisCtx == null) throw new Error(`this.pickedAxisCtx is null`);
-                const { axisId, boundSeries, direction, domain, value } = this.pickedAxisCtx;
+                const { axisId, boundSeries, direction, domain, value, index } = this.pickedAxisCtx;
                 const params: CallbackParamRules<AgContextMenuGetItemsParamsAxis<DatumDefault, ContextDefault>> = {
                     showOn,
                     defaultItems,
@@ -208,6 +208,7 @@ export class ContextMenu extends AbstractModuleInstance {
                     direction,
                     domain,
                     value,
+                    index,
                 };
                 const callers: Caller[] = [this.pickedAxisCtx.caller, chart];
                 return [params, callers];
@@ -441,7 +442,7 @@ export class ContextMenu extends AbstractModuleInstance {
         } else if (ContextMenuRegistry.checkCallback('axis', showOn, callback)) {
             return () => {
                 if (this.pickedAxisCtx) {
-                    const { axisId, direction, boundSeries, domain, value } = this.pickedAxisCtx;
+                    const { axisId, direction, boundSeries, domain, value, index } = this.pickedAxisCtx;
                     const callers: Caller[] = [this.pickedAxisCtx.caller, this.ctx.chartService];
                     const apiEvent: Omit<AgAxisContextMenuActionEvent<never>, 'context'> = {
                         type: 'axisContextMenuAction',
@@ -451,6 +452,7 @@ export class ContextMenu extends AbstractModuleInstance {
                         boundSeries,
                         domain,
                         value,
+                        index,
                     };
                     callWithContext(callers, callback, apiEvent);
                 } else {
