@@ -10,7 +10,7 @@ import type { AgBarSeriesLabelPlacement, AgChartLabelOrientation } from '../../c
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from '../../chart/errorBarOptions';
 import type {
-    AgChartLabelFitOptions,
+    AgChartLabelCollisionFitOptions,
     AgChartLabelOptions,
     AgSeriesLabelPlacementStyleOptions,
 } from '../../chart/labelOptions';
@@ -27,7 +27,10 @@ import type { AgErrorBoundSeriesTooltipRendererParams } from './cartesianSeriesT
 import type { AgBaseCartesianSeriesAxisOptions, FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
 export interface AgBarSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault>
-    extends AgChartLabelOptions<TDatum, TParams, TContext>, AgChartLabelFitOptions, AgSeriesLabelPlacementStyleOptions {
+    extends
+        AgChartLabelOptions<TDatum, TParams, TContext>,
+        AgChartLabelCollisionFitOptions,
+        AgSeriesLabelPlacementStyleOptions {
     /**
      * Where to render series labels relative to the segments. Either a single placement or an ordered
      * fallback list tried in turn until one fits.

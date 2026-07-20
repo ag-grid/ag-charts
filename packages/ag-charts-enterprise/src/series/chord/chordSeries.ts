@@ -153,7 +153,7 @@ export class ChordSeries extends FlowProportionSeries<
             { includeCircularReferences: true }
         );
 
-        const labelFit = resolveLabelFit(properties.label, properties.label.collisionAvoidance.avoid);
+        const labelFit = resolveLabelFit(properties.label, false);
 
         let totalSize = 0;
         for (const [id, { datum: node, linksBefore, linksAfter }] of nodeGraph.entries()) {

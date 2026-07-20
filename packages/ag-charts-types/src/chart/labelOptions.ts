@@ -16,7 +16,7 @@ import type {
 } from './callbackOptions';
 import type {
     AgBarSeriesLabelPlacement,
-    AgChartLabelCollisionAvoidanceOptions,
+    AgChartLabelCollisionOptions,
     AgChartLabelCollisionPlacement,
     AgChartLabelOrientation,
 } from './collisionAvoidanceOptions';
@@ -84,18 +84,11 @@ export interface AgChartLabelOptions<TDatum, TParams, TContext = ContextDefault>
 }
 
 /**
- * Controls how a series label is fitted to the region produced by its placement: bounding its size,
- * wrapping or truncating overflow, and opting into collision avoidance. Only series that reserve a
- * region for their labels honour these options.
+ * Controls how a series label is fitted to the region produced by its placement: bounding its size
+ * and wrapping or truncating overflow. Only series that reserve a region for their labels honour
+ * these options.
  */
 export interface AgChartLabelFitOptions {
-    /**
-     * Configuration controlling how the label is repositioned or dropped to avoid overlapping other
-     * labels, markers or series geometry. The `minSpacing` and `collideWith` sub-options only apply to
-     * point-based series (line, area, scatter, bubble and map markers/lines); elsewhere only whether
-     * avoidance is enabled is honoured.
-     */
-    collisionAvoidance?: AgChartLabelCollisionAvoidanceOptions;
     /** Maximum width, in pixels, the label may occupy before it is wrapped or truncated to fit. */
     maxWidth?: PixelSize;
     /** Maximum height, in pixels, the label may occupy before it is wrapped or truncated to fit. */
@@ -110,6 +103,19 @@ export interface AgChartLabelFitOptions {
     wrapping?: TextWrap;
     /** Whether to truncate the label with an ellipsis when it does not fit within its bounds. */
     truncate?: boolean;
+}
+
+/**
+ * Label-fit options extended with collision handling, for series that place their labels against
+ * obstacles (line, area, scatter, bubble, the bar family and map markers/lines). Collision resolution
+ * always runs; `collision` only governs the spacing and hide-or-keep policy applied to it.
+ */
+export interface AgChartLabelCollisionFitOptions extends AgChartLabelFitOptions {
+    /**
+     * Configuration controlling the spacing kept from obstacles and whether a label that cannot be
+     * placed clear of every obstacle is kept at its least-overflowing placement or hidden.
+     */
+    collision?: AgChartLabelCollisionOptions;
 }
 
 export interface AgChartLabelFormatterParams<TDatum, TContext = ContextDefault> extends AgChartCallbackParams<

@@ -396,7 +396,7 @@ export class MapLineSeries
         const maxStrokeWidth = properties.maxStrokeWidth ?? properties.strokeWidth;
         sizeScale.range = [minStrokeWidth, Math.max(minStrokeWidth, maxStrokeWidth)];
         const measurer = cachedTextMeasurer(label);
-        const labelFit = resolveLabelFit(label, label.collisionAvoidance.avoid);
+        const labelFit = resolveLabelFit(label, !label.collision.suppressHide);
 
         const projectedGeometries = this.prepareProjectedLineGeometries(
             columns.idValues,
@@ -683,7 +683,7 @@ export class MapLineSeries
 
     // Labels centre on the line with no directional placement, so defaults carry avoidance only.
     override getLabelDefaults() {
-        return resolveSeriesLabelDefaults(this.properties.label.collisionAvoidance);
+        return resolveSeriesLabelDefaults(this.properties.label.collision);
     }
 
     override pickNodeClosestDatum({ x, y }: Point): _ModuleSupport.SeriesNodePickMatch | undefined {

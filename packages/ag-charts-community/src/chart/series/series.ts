@@ -400,7 +400,21 @@ export abstract class Series<
     private readonly propertyNames: SeriesDirectionKeysMapping<TProps>;
 
     // Flag to determine if we should recalculate node data.
-    protected nodeDataRefresh = true;
+    private _nodeDataRefresh = true;
+    private _nodeDataVersion = 0;
+    protected get nodeDataRefresh() {
+        return this._nodeDataRefresh;
+    }
+    protected set nodeDataRefresh(value: boolean) {
+        this._nodeDataRefresh = value;
+        // A rebuild request bumps the version so consumers (e.g. label placement) can tell that this
+        // series' node data, and everything derived from it, will differ from the last render.
+        if (value) this._nodeDataVersion++;
+    }
+    /** Increments on every node-data invalidation; lets consumers skip work while it is unchanged. */
+    get nodeDataVersion() {
+        return this._nodeDataVersion;
+    }
     protected processedDataUpdated = true;
 
     protected readonly moduleMap = new ModuleMap<SeriesPluginModuleInstance>();

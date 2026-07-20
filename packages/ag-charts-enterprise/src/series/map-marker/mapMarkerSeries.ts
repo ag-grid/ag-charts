@@ -587,7 +587,7 @@ export class MapMarkerSeries
         const markerMaxSize = properties.maxSize ?? properties.size;
         sizeScale.range = [markerMinSize, Math.max(markerMinSize, markerMaxSize)];
         const measurer = cachedTextMeasurer(label);
-        const labelFit = resolveLabelFit(label, label.collisionAvoidance.avoid);
+        const labelFit = resolveLabelFit(label, !label.collision.suppressHide);
 
         const projectedGeometries = this.prepareProjectedGeometries(
             columns.idValues,
@@ -953,7 +953,7 @@ export class MapMarkerSeries
 
     override getLabelDefaults() {
         const { label } = this.properties;
-        return resolveSeriesLabelDefaults(label.collisionAvoidance, toArray(label.placement));
+        return resolveSeriesLabelDefaults(label.collision, toArray(label.placement));
     }
 
     override pickNodeClosestDatum(p: Point): _ModuleSupport.SeriesNodePickMatch | undefined {

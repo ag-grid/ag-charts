@@ -175,6 +175,8 @@ export interface ISeries<TDatum extends SeriesNodeDatum, TProps extends ISeriesP
     type: string;
     visible: boolean;
     usesPlacedLabels: boolean;
+    /** Increments on every node-data invalidation; lets label placement skip unchanged inputs. */
+    nodeDataVersion: number;
     connectsToYAxis: boolean;
     tooltipEnabled?: boolean;
     // @todo(AG-13777) - Remove this function (see CartesianSeries.ts)

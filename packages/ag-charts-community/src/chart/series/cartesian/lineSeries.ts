@@ -475,7 +475,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
         const canIncrementallyUpdate = this.canIncrementallyUpdateNodes(dataAggregationFilter != null);
 
         const { label, marker } = this.properties;
-        const { collisionAvoidance } = label;
+        const { collision } = label;
         const placements = toArray(label.placement);
         const {
             insideOnly,
@@ -485,7 +485,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
         const markerSize = marker.enabled ? marker.size : 0;
         const labelFit = insideOnly
             ? boundLabelFit(resolveLabelFit(label, false, true), insideMarkerContainer(markerSize, marker.shape))
-            : resolveLabelFit(label, collisionAvoidance.avoid);
+            : resolveLabelFit(label, !collision.suppressHide);
         const labelAnchor = Marker.anchor(marker.shape);
 
         return {

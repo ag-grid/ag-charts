@@ -1,6 +1,6 @@
 import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from '../../chart/callbackOptions';
 import type { AgNumericValue } from '../../chart/dataValues';
-import type { AgChartLabelFitOptions, AgChartLabelOptions } from '../../chart/labelOptions';
+import type { AgChartLabelCollisionFitOptions, AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault, DatumKey, GeoJSON, Opacity, PixelSize } from '../../chart/types';
 import type { AgColorScale, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
@@ -25,7 +25,7 @@ export type AgMapLineSeriesLabel<TDatum, TContext = ContextDefault> = AgChartLab
     AgMapLineSeriesLabelFormatterParams<TDatum>,
     TContext
 > &
-    AgChartLabelFitOptions;
+    AgChartLabelCollisionFitOptions;
 
 export type AgMapLineSeriesLabelFormatterParams<TDatum = DatumDefault> = AgMapLineSeriesOptionsKeys<TDatum> &
     AgMapLineSeriesOptionsNames;

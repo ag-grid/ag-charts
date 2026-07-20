@@ -703,7 +703,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             );
 
             // Label config is item-type specific, so the fit is resolved per datum rather than hoisted.
-            const labelFit = resolveLabelFit(label, label.collisionAvoidance.avoid);
+            const labelFit = resolveLabelFit(label, !label.collision.suppressHide);
             // Array placement is accepted, but only its first candidate is honoured here.
             const placement = toArray(label.placement)[0];
             const insidePlacement = placement == null || placement.startsWith('inside');

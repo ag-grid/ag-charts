@@ -9,7 +9,7 @@ import type {
 import type { AgChartLabelCollisionPlacement } from '../../chart/collisionAvoidanceOptions';
 import type { AgNumericValue } from '../../chart/dataValues';
 import type {
-    AgChartLabelFitOptions,
+    AgChartLabelCollisionFitOptions,
     AgChartLabelOptions,
     AgSeriesLabelPlacementStyleOptions,
 } from '../../chart/labelOptions';
@@ -38,7 +38,7 @@ export type AgBubbleSeriesLabelFormatterParams<TDatum = DatumDefault> = AgBubble
 export interface AgBubbleSeriesLabel<TDatum, TContext = ContextDefault>
     extends
         AgChartLabelOptions<TDatum, AgBubbleSeriesLabelFormatterParams<TDatum>, TContext>,
-        AgChartLabelFitOptions,
+        AgChartLabelCollisionFitOptions,
         AgSeriesLabelPlacementStyleOptions {
     /**
      * Placement of the label in relation to the marker. Either a single placement or an ordered

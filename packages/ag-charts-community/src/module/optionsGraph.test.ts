@@ -96,24 +96,24 @@ describe('OptionsGraph', () => {
         });
     });
 
-    it('should auto-enable label collisionAvoidance from a user object', () => {
+    it('should auto-enable label border from a user object', () => {
         const themeConfig = {
             line: {
-                label: { enabled: false, collisionAvoidance: { enabled: false } },
+                label: { enabled: false, border: { enabled: false } },
             },
         };
 
         const autoEnabled = new OptionsGraph(
             themeConfig,
-            prepareOptions({ label: { collisionAvoidance: { minSpacing: 5 } } })
-        ).resolve() as { label: { collisionAvoidance: { enabled: boolean; minSpacing: number } } };
-        expect(autoEnabled.label.collisionAvoidance).toStrictEqual({ enabled: true, minSpacing: 5 });
+            prepareOptions({ label: { border: { strokeWidth: 5 } } })
+        ).resolve() as { label: { border: { enabled: boolean; strokeWidth: number } } };
+        expect(autoEnabled.label.border).toStrictEqual({ enabled: true, strokeWidth: 5 });
 
         const explicitOff = new OptionsGraph(
             themeConfig,
-            prepareOptions({ label: { collisionAvoidance: { enabled: false, minSpacing: 5 } } })
-        ).resolve() as { label: { collisionAvoidance: { enabled: boolean; minSpacing: number } } };
-        expect(explicitOff.label.collisionAvoidance).toStrictEqual({ enabled: false, minSpacing: 5 });
+            prepareOptions({ label: { border: { enabled: false, strokeWidth: 5 } } })
+        ).resolve() as { label: { border: { enabled: boolean; strokeWidth: number } } };
+        expect(explicitOff.label.border).toStrictEqual({ enabled: false, strokeWidth: 5 });
     });
 
     it('should replace default strings with user objects', () => {

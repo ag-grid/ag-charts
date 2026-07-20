@@ -153,7 +153,7 @@ function makeFixture(seriesCount: number, perSeries: number, bounds: BoxBounds, 
         }
         // The oracle always resolves collisions; opt the whole series in via the series default to
         // match it, exercising the defaults path rather than per-datum stamping.
-        data.set(`series-${s}`, seriesLabels(datums, { avoid: true }));
+        data.set(`series-${s}`, seriesLabels(datums, { suppressHide: false }));
     }
     return data;
 }
@@ -227,7 +227,7 @@ describe('placeLabels', () => {
             label: { text: 'L', width: 40, height: 12 },
             anchor: undefined,
             placement: undefined,
-            avoid: true,
+            suppressHide: false,
         };
         const right: PointLabelDatum = {
             point: { x: 130, y: 100, size: 20 },
@@ -235,7 +235,7 @@ describe('placeLabels', () => {
             anchor: undefined,
             placement: undefined,
             placements: ['left', 'right'],
-            avoid: true,
+            suppressHide: false,
         };
         const result = placeLabels(new Map([['s', seriesLabels([left, right])]]), bounds, 5);
         const placed = result.get('s')!;
@@ -300,7 +300,7 @@ describe('placeLabels', () => {
             placement: 'inside',
             placements: ['inside'],
             gap: 0,
-            avoid: true,
+            suppressHide: false,
         };
         // Its own marker is the only obstacle: the centred inside label ignores it and is placed.
         const alone = placeLabels(new Map([['s', seriesLabels([own])]]), bounds, 5).get('s')!;
@@ -334,7 +334,11 @@ describe('placeLabels', () => {
             placements: ['top'],
             gap: 0,
         };
-        const result = placeLabels(new Map([['s', seriesLabels([blocker, blocked], { avoid: true })]]), bounds, 5);
+        const result = placeLabels(
+            new Map([['s', seriesLabels([blocker, blocked], { suppressHide: false })]]),
+            bounds,
+            5
+        );
         expect(result.get('s')!.some((l) => l.datum === blocked)).toBe(false);
     });
 
@@ -383,18 +387,23 @@ describe('placeLabels', () => {
         expect(result.get('present')?.length).toBe(1);
     });
 
-    it('short-circuits empty input without building the spatial index', () => {
-        // placeLabels runs on every chart update; an empty pass must not touch the index.
+    it('short-circuits a label-free chart without building the spatial index', () => {
+        // placeLabels runs on every chart update; a chart with no labels must not touch the index,
+        // whether the map is empty or its series carry only label-less datums.
         const resetSpy = vi.spyOn(SpatialIndex.prototype, 'reset');
-        const result = placeLabels(new Map(), bounds, 5);
-        expect(result.size).toBe(0);
+
+        expect(placeLabels(new Map(), bounds, 5).size).toBe(0);
+
+        const labelless = new Map<string, SeriesLabels>([['s', seriesLabels([])]]);
+        expect(placeLabels(labelless, bounds, 5).size).toBe(0);
+
         expect(resetSpy).not.toHaveBeenCalled();
         resetSpy.mockRestore();
     });
 
-    it('places avoid:false labels unconditionally, ignoring obstacles and each other', () => {
-        // A huge marker would block any avoiding label, and both labels share one position. With
-        // avoid:false each takes its first placement regardless and is not inserted as an obstacle.
+    it('takes a sole kept placement unconditionally, ignoring obstacles and each other', () => {
+        // A huge marker would block any resolving label, and both labels share one position. Each has
+        // a single placement it is kept at (suppressHide), so it takes it regardless of obstacles.
         const marker: PointLabelDatum = {
             point: { x: 100, y: 100, size: 300 },
             label: { text: '', width: 0, height: 0 },
@@ -407,7 +416,7 @@ describe('placeLabels', () => {
             anchor: undefined,
             placement: 'top',
             placements: ['top'],
-            avoid: false,
+            suppressHide: true,
         };
         const b: PointLabelDatum = {
             point: { x: 100, y: 100, size: 0 },
@@ -415,17 +424,17 @@ describe('placeLabels', () => {
             anchor: undefined,
             placement: 'top',
             placements: ['top'],
-            avoid: false,
+            suppressHide: true,
         };
         const placed = placeLabels(new Map([['s', seriesLabels([marker, a, b])]]), bounds, 5).get('s')!;
         expect(placed.some((l) => l.datum === a)).toBe(true);
         expect(placed.some((l) => l.datum === b)).toBe(true);
     });
 
-    it('treats an avoid:false label as a fixed obstacle for an avoiding series', () => {
-        // Two series overlapping at the same point. The avoid:false series keeps its first
-        // placement ('top') and, since the index is active, is registered as an obstacle. The
-        // avoiding series is placed after it and must fall back to 'bottom' to clear it.
+    it('resolves keep-series before droppable series regardless of declaration order', () => {
+        // Two series overlapping at the same point, with the droppable series declared FIRST. The keep
+        // series still resolves first (fixed obstacles seed the index before droppable labels), keeping
+        // its sole placement ('top'); the droppable series, resolved after it, falls back to 'bottom'.
         const avoiding: PointLabelDatum = {
             point: { x: 200, y: 200, size: 0 },
             label: { text: 'A', width: 40, height: 12 },
@@ -433,7 +442,7 @@ describe('placeLabels', () => {
             placement: 'top',
             placements: ['top', 'bottom'],
             gap: 10,
-            avoid: true,
+            suppressHide: false,
         };
         const fixed: PointLabelDatum = {
             point: { x: 200, y: 200, size: 0 },
@@ -442,7 +451,7 @@ describe('placeLabels', () => {
             placement: 'top',
             placements: ['top'],
             gap: 10,
-            avoid: false,
+            suppressHide: true,
         };
         const result = placeLabels(
             new Map([
@@ -462,10 +471,9 @@ describe('placeLabels', () => {
         expect(avoidingPlaced!.y).toBeGreaterThan(fixedPlaced!.y);
     });
 
-    it('activates the engine for a non-first avoiding datum when the series default is unset', () => {
-        // Series carries no `defaults`, and the FIRST datum does not avoid; only a later datum opts
-        // in per-datum. The engine-setup check must still build the obstacle index, otherwise the
-        // avoiding datum resolves against an empty/stale index and wrongly keeps its first placement.
+    it('resolves a later fallback datum against an earlier one placed in the same series', () => {
+        // The obstacle index is always built, so a first datum kept at its sole placement is a fixed
+        // obstacle the second datum's fallback list must clear, even with no series `defaults`.
         const first: PointLabelDatum = {
             point: { x: 200, y: 200, size: 0 },
             label: { text: 'A', width: 40, height: 12 },
@@ -481,7 +489,7 @@ describe('placeLabels', () => {
             placement: 'top',
             placements: ['top', 'bottom'],
             gap: 10,
-            avoid: true,
+            suppressHide: false,
         };
         const placed = placeLabels(new Map([['s', seriesLabels([first, second])]]), bounds, 5).get('s')!;
         const firstPlaced = placed.find((l) => l.datum === first);
@@ -503,7 +511,7 @@ describe('placeLabels', () => {
             anchor: undefined,
             placement: 'top',
             placements: [],
-            avoid: false,
+            suppressHide: true,
         };
         const placed = placeLabels(new Map([['s', seriesLabels([datum])]]), bounds, 5).get('s')!;
         const result = placed.find((l) => l.datum === datum);
@@ -525,7 +533,7 @@ describe('placeLabels', () => {
             placement: 'top',
             gap: 10,
         };
-        const defaults: SeriesLabelDefaults = { avoid: false, placements: ['top', 'bottom'] };
+        const defaults: SeriesLabelDefaults = { suppressHide: true, placements: ['top', 'bottom'] };
         const placed = placeLabels(new Map([['s', seriesLabels([datum], defaults)]]), bounds, 5).get('s')!;
         const result = placed.find((l) => l.datum === datum);
         expect(result).toBeDefined();
@@ -544,7 +552,7 @@ describe('placeLabels', () => {
             placement: 'top',
             placements: ['top', 'bottom'],
             gap: 10,
-            avoid: false,
+            suppressHide: true,
         };
         const placed = placeLabels(new Map([['s', seriesLabels([datum])]]), tiny, 5).get('s')!;
         const result = placed.find((l) => l.datum === datum);
@@ -562,7 +570,7 @@ describe('placeLabels', () => {
             placement: 'top',
             placements: ['top'],
             gap: 10,
-            avoid: false,
+            suppressHide: true,
         };
         const placed = placeLabels(new Map([['s', seriesLabels([datum])]]), bounds, 5).get('s')!;
         const result = placed.find((l) => l.datum === datum);
@@ -594,7 +602,7 @@ describe('placeLabels', () => {
 
         const enabled = label(true);
         const disabled = label(false);
-        const avoids = { avoid: true };
+        const avoids = { suppressHide: false };
         const enabledResult = placeLabels(new Map([['s', seriesLabels([marker, enabled], avoids)]]), bounds, 5).get(
             's'
         )!;
@@ -629,7 +637,7 @@ describe('placeLabels', () => {
 
         const noInflation = label(undefined);
         const inflated = label(30);
-        const avoids = { avoid: true };
+        const avoids = { suppressHide: false };
         const noInflationResult = placeLabels(
             new Map([['s', seriesLabels([marker, noInflation], avoids)]]),
             bounds,
@@ -656,7 +664,7 @@ describe('placeLabels', () => {
             placement: 'top',
             placements: ['top'],
             gap: 0,
-            avoid: true,
+            suppressHide: false,
             collideWith: {
                 marker: { enabled: true },
                 label: { enabled: true },
@@ -714,7 +722,7 @@ describe('placeLabels', () => {
             gap: 10,
         };
         const result = placeLabels(
-            new Map([['s', seriesLabels([first, second], { avoid: true, placements: ['top', 'bottom'] })]]),
+            new Map([['s', seriesLabels([first, second], { suppressHide: false, placements: ['top', 'bottom'] })]]),
             bounds,
             5
         );
@@ -738,7 +746,7 @@ describe('placeLabels', () => {
                 placement: 'inside',
                 placements: insideThenDirectional,
                 insideSize: { width: 0.7, height: 0.7 },
-                avoid: true,
+                suppressHide: false,
             };
             const result = placeLabels(new Map([['s', seriesLabels([datum])]]), bounds, 5);
             const placed = result.get('s')![0];
@@ -756,7 +764,7 @@ describe('placeLabels', () => {
                 placement: 'inside',
                 placements: insideThenDirectional,
                 insideSize: { width: 0.1, height: 0.1 },
-                avoid: true,
+                suppressHide: false,
             };
             const result = placeLabels(new Map([['s', seriesLabels([datum])]]), bounds, 5);
             const placed = result.get('s')![0];
@@ -774,7 +782,7 @@ describe('placeLabels', () => {
                 placement: 'inside',
                 placements: insideThenDirectional,
                 insideSize: { width: 0.1, height: 0.1 },
-                avoid: true,
+                suppressHide: false,
             };
             // A marker over the top candidate box only; it clears the centred inside box and bottom box.
             const blockerAbove: PointLabelDatum = {
@@ -798,7 +806,7 @@ describe('placeLabels', () => {
                 placement: 'inside',
                 placements: insideThenDirectional,
                 insideSize: { width: 0.1, height: 0.1 },
-                avoid: true,
+                suppressHide: false,
             };
             const blockerAbove: PointLabelDatum = {
                 point: { x: 200, y: 139, size: 20 },
@@ -824,7 +832,7 @@ describe('placeLabels', () => {
                 anchor: { x: 0.5, y: 0.5 },
                 placement: 'inside',
                 placements: insideThenDirectional,
-                avoid: true,
+                suppressHide: false,
             };
             const result = placeLabels(new Map([['s', seriesLabels([datum])]]), bounds, 5);
             const placed = result.get('s')![0];
@@ -840,7 +848,7 @@ describe('placeLabels orientation candidates', () => {
 
     const wideLabel = (
         orientation?: AgChartLabelOrientation | AgChartLabelOrientation[],
-        avoid = true
+        suppressHide = false
     ): PointLabelDatum => ({
         point: { x: 50, y: 50, size: 0 },
         label: { text: 'W', width: 100, height: 10 },
@@ -848,7 +856,7 @@ describe('placeLabels orientation candidates', () => {
         placement: undefined,
         orientation,
         gap: 0,
-        avoid,
+        suppressHide,
     });
 
     it('leaves rotation unset when no orientation is supplied', () => {
@@ -884,7 +892,7 @@ describe('placeLabels orientation candidates', () => {
             placement: undefined,
             orientation: ['vertical', 'horizontal'],
             gap: 0,
-            avoid: true,
+            suppressHide: false,
         };
         const placed = placeLabels(new Map([['s', seriesLabels([small])]]), bounds, 5).get('s')![0];
         expect(placed.rotation).toBe(-90);
@@ -899,7 +907,7 @@ describe('placeLabels orientation candidates', () => {
             anchor: undefined,
             placement: undefined,
             gap: 0,
-            avoid: true,
+            suppressHide: false,
         };
 
         const blocked = placeLabels(new Map([['s', seriesLabels([wideLabel('vertical'), second])]]), bounds, 5).get(
@@ -914,7 +922,7 @@ describe('placeLabels orientation candidates', () => {
     });
 
     it('adopts the first orientation candidate for an avoid:false label', () => {
-        const placed = placeLabels(new Map([['s', seriesLabels([wideLabel('vertical', false)])]]), bounds, 5).get(
+        const placed = placeLabels(new Map([['s', seriesLabels([wideLabel('vertical', true)])]]), bounds, 5).get(
             's'
         )![0];
         expect(placed.rotation).toBe(-90);
@@ -933,7 +941,7 @@ describe('placeLabels orientation candidates', () => {
             placement: undefined,
             orientation: ['horizontal', 'vertical'],
             gap: 0,
-            avoid: false,
+            suppressHide: true,
         };
         const placed = placeLabels(new Map([['s', seriesLabels([datum])]]), tall, 5).get('s')![0];
         expect(placed).toBeDefined();
@@ -951,7 +959,7 @@ describe('placeLabels orientation candidates', () => {
             placement: undefined,
             orientation: ['horizontal', 'vertical'],
             gap: 0,
-            avoid: true,
+            suppressHide: false,
             region,
         };
 
@@ -979,7 +987,7 @@ describe('placeLabels orientation candidates', () => {
             placement: undefined,
             orientation: 'horizontal',
             gap: 0,
-            avoid: true,
+            suppressHide: false,
             collideWith: labelOnly,
         };
         const b: PointLabelDatum = {
@@ -989,7 +997,7 @@ describe('placeLabels orientation candidates', () => {
             placement: undefined,
             orientation: ['horizontal', 'vertical'],
             gap: 0,
-            avoid: true,
+            suppressHide: false,
             collideWith: labelOnly,
         };
 
@@ -1102,7 +1110,7 @@ describe('bar label placement helpers', () => {
             const datum = buildBarLabelDatum(anchor, 'label', 100, 10, ['horizontal', 'vertical'], region, target);
             expect(datum.point).toEqual({ x: 15, y: 100, size: 0 });
             expect(datum.region).toBe(region);
-            expect(datum.avoid).toBe(true);
+            expect(datum.neverDrop).toBe(true);
             expect(datum.placement).toBeUndefined();
             expect(datum.orientation).toEqual(['horizontal', 'vertical']);
             expect(datum.collideWith).toEqual({
@@ -1279,10 +1287,20 @@ describe('placeLabels positioned candidates', () => {
 });
 
 describe('resolveLabelFit', () => {
-    it('returns undefined (show) when neither truncate nor collision avoidance is set', () => {
+    it('returns undefined (show) when there is no overflow strategy and no wrapping', () => {
         expect(resolveLabelFit({})).toBeUndefined();
-        // A bound alone does not opt in: without truncate or avoidance the full text renders.
-        expect(resolveLabelFit({ maxWidth: 120, wrapping: 'on-space' })).toBeUndefined();
+        // A bound alone does not opt in: without truncate, hide or wrapping the full text renders.
+        expect(resolveLabelFit({ maxWidth: 120 })).toBeUndefined();
+        expect(resolveLabelFit({ maxWidth: 120, maxHeight: 40 })).toBeUndefined();
+    });
+
+    it('activates a fit for wrapping alone, decoupled from any overflow strategy', () => {
+        expect(resolveLabelFit({ maxWidth: 120, wrapping: 'on-space' })).toEqual({
+            maxWidth: 120,
+            maxHeight: undefined,
+            wrapping: 'on-space',
+            overflowStrategy: undefined,
+        });
     });
 
     it('resolves truncate:true to an ellipsis overflow, honouring the explicit bound', () => {

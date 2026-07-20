@@ -10,7 +10,7 @@ import {
     errorBarOptionsDefs,
     errorBarThemeableOptionsDefs,
     fillOptionsDef,
-    labelFitOptionsDefs,
+    labelCollisionFitOptionsDefs,
     labelOrientationDef,
     labelPlacementStyleDefs,
     lineDashOptionsDef,
@@ -50,7 +50,7 @@ export const barSeriesThemeableOptionsDef: OptionsDefs<AgBarSeriesThemeableOptio
     crisp: boolean,
     label: {
         ...seriesLabelOptionsDefs,
-        ...labelFitOptionsDefs,
+        ...labelCollisionFitOptionsDefs,
         ...labelPlacementStyleDefs,
         placement: unionOrArray('inside-center', 'inside-start', 'inside-end', 'outside-start', 'outside-end'),
         orientation: labelOrientationDef,
