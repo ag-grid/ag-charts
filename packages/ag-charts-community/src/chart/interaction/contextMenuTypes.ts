@@ -8,7 +8,7 @@ import type {
     AgContextMenuItemShowOn,
 } from 'ag-charts-types';
 
-import type { AxisContext } from '../../module/axisContext';
+import type { AxisValuePick } from '../../module/axisContext';
 import type { CategoryLegendDatum } from '../legend/legendDatum';
 import type { ISeries, SeriesNodeDatum } from '../series/seriesTypes';
 
@@ -34,7 +34,7 @@ export interface ContextShowOnMap extends ContextShowOnMapRule {
     axis: {
         event: InferTEvent<'axis'>;
         callback: (param: InferTEvent<'axis'>) => void;
-        context: AxisContext;
+        context: AxisValuePick;
     };
     caption: {
         event: InferTEvent<'caption'>;

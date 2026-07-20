@@ -15,6 +15,8 @@ import type {
     TextWrap,
 } from './types';
 
+export type AgAxisValue = number | bigint | string | Date;
+
 export type AgAxisDomain = number[] | bigint[] | string[] | Date[];
 
 export type AgAxisDirection = 'x' | 'y' | 'angle' | 'radius';

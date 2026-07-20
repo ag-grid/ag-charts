@@ -287,7 +287,11 @@ export class AxisDOMProxy extends AbstractModuleInstance {
     ) {
         const axisCtx = this.ctx.axisManager.getAxisIdContext(axisId);
         if (!axisCtx) return;
-        this.ctx.contextMenuRegistry?.dispatchContext('axis', { widgetEvent, canvasX, canvasY }, axisCtx);
+
+        const pick = axisCtx.pickValue(widgetEvent);
+        if (!pick) return;
+
+        this.ctx.contextMenuRegistry?.dispatchContext('axis', { widgetEvent, canvasX, canvasY }, pick);
     }
 
     private pickAxisAtPoint(point: { canvasX: number; canvasY: number }): AxisHit | undefined {
