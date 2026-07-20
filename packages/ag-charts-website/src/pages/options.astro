@@ -1,5 +1,6 @@
 ---
 import { ApiReferencePage } from '@components/api-documentation/components/ApiReferencePage';
+import OptionsReferenceFallback from '@components/api-documentation/components/OptionsReferenceFallback.astro';
 import APIViewLayout from '@layouts/APIViewLayout.astro';
 ---
 
@@ -20,5 +21,7 @@ import APIViewLayout from '@layouts/APIViewLayout.astro';
             AgMiniChartSeriesOptions: 'InterfaceArray',
         }}
         noExpand={['theme']}
-    />
+    >
+        <OptionsReferenceFallback slot="fallback" rootInterface="AgChartOptions" />
+    </ApiReferencePage>
 </APIViewLayout>

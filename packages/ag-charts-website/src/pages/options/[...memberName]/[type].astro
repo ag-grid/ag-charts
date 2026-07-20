@@ -1,6 +1,7 @@
 ---
 import { getOptionsStaticPaths } from '@components/api-documentation/apiReferenceHelpers';
 import { ApiReferencePage } from '@components/api-documentation/components/ApiReferencePage';
+import OptionsReferenceFallback from '@components/api-documentation/components/OptionsReferenceFallback.astro';
 import APIViewLayout from '@layouts/APIViewLayout.astro';
 import { getInterfacesReference } from '@utils/server/getInterfacesReference';
 
@@ -33,5 +34,12 @@ const name = capitalizeFirstLetter(Astro.props?.pageTitle?.name);
             AgChartSeriesOptions: 'InterfaceArray',
             AgMiniChartSeriesOptions: 'InterfaceArray',
         }}
-    />
+    >
+        <OptionsReferenceFallback
+            slot="fallback"
+            rootInterface="AgChartOptions"
+            pageInterface={Astro.props.pageInterface}
+            pageTitle={Astro.props.pageTitle}
+        />
+    </ApiReferencePage>
 </APIViewLayout>
