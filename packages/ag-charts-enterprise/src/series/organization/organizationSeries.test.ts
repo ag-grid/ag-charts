@@ -764,6 +764,41 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
         } as any,
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
     },
+    DIRECTION_HORIZONTAL: {
+        options: {
+            ...SIMPLE_ORG_CHART,
+            theme: { overrides: { organization: { series: { direction: 'horizontal' } } } },
+        },
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    DIRECTION_HORIZONTAL_IMAGE_TOP: {
+        options: {
+            ...createTextImageExample('center', 'top'),
+            theme: { overrides: { organization: { series: { direction: 'horizontal' } } } },
+        },
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    DIRECTION_HORIZONTAL_IMAGE_RIGHT: {
+        options: {
+            ...createTextImageExample('left', 'right'),
+            theme: { overrides: { organization: { series: { direction: 'horizontal' } } } },
+        },
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    DIRECTION_HORIZONTAL_REVERSE: {
+        options: {
+            ...SIMPLE_ORG_CHART,
+            theme: { overrides: { organization: { series: { direction: 'horizontal', reverse: true } } } },
+        },
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    DIRECTION_VERTICAL_REVERSE: {
+        options: {
+            ...SIMPLE_ORG_CHART,
+            theme: { overrides: { organization: { series: { direction: 'vertical', reverse: true } } } },
+        },
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
 };
 
 describe('OrganizationSeries', () => {
@@ -1056,7 +1091,7 @@ describe('OrganizationSeries', () => {
                 const captureBBoxes = () => {
                     const bboxes: { itemId: string; width: number; height: number }[] = [];
                     series.datumSelection.each((node: any, datum: any) => {
-                        const card = node.getCardBBox();
+                        const card = node.getShapeBBox();
                         if (card) {
                             bboxes.push({ itemId: datum.itemId, width: card.width, height: card.height });
                         }

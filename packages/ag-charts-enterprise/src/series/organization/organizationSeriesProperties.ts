@@ -1,5 +1,6 @@
 import {
     type AgOrganizationNodeTextFormatterParams,
+    type AgOrganizationSeriesDirection,
     type AgOrganizationSeriesExpanderItemStylerParams,
     type AgOrganizationSeriesExpanderStyle,
     type AgOrganizationSeriesLinkItemStylerParams,
@@ -21,9 +22,9 @@ import {
 } from 'ag-charts-community';
 import { BaseProperties, Padding, PropertiesArray, Property } from 'ag-charts-core';
 
-import { NetworkSeriesProperties } from '../network/networkSeries';
+import { NetworkSeriesTreeLayoutProperties } from '../network/networkSeriesProperties';
 
-export class OrganizationSeriesProperties extends NetworkSeriesProperties {
+export class OrganizationSeriesProperties extends NetworkSeriesTreeLayoutProperties {
     @Property
     idKey: string = 'id';
 
@@ -31,16 +32,10 @@ export class OrganizationSeriesProperties extends NetworkSeriesProperties {
     parentIdKey: string = 'parentId';
 
     @Property
-    direction = 'vertical' as const;
+    override direction: AgOrganizationSeriesDirection = 'vertical';
 
     @Property
-    innerSpacing?: number;
-
-    @Property
-    outerSpacing?: number;
-
-    @Property
-    verticalSpacing?: number;
+    reverse: boolean = false;
 
     @Property
     expander = new OrganizationSeriesExpanderProperties();

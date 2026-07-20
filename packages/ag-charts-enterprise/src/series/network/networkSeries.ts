@@ -7,13 +7,13 @@ import {
     type DynamicContext,
     Logger,
     type Point,
-    Property,
     Vertex,
 } from 'ag-charts-core';
 
 import { NetworkGraph } from './networkGraph';
 import type { NetworkLayout, NetworkLayoutUpdateOptions } from './networkLayout';
 import { NetworkLinkNode } from './networkLinkNode';
+import { NetworkSeriesProperties } from './networkSeriesProperties';
 import type { NetworkLinkInterpolation } from './networkTypes';
 
 export interface NetworkDatum<NetworkVertex, TNetworkEdge> extends _ModuleSupport.SeriesNodeDatum {
@@ -21,11 +21,6 @@ export interface NetworkDatum<NetworkVertex, TNetworkEdge> extends _ModuleSuppor
 }
 
 export interface NetworkSeriesOptions {}
-
-export class NetworkSeriesProperties extends _ModuleSupport.SeriesProperties<object> {
-    @Property
-    readonly tooltip = _ModuleSupport.makeSeriesTooltip<any>();
-}
 
 export interface NetworkSeriesContextNodeData<NetworkVertex, TNetworkEdge> extends _ModuleSupport.SeriesNodeDataContext<
     NetworkDatum<NetworkVertex, TNetworkEdge>

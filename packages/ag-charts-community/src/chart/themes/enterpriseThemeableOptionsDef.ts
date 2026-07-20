@@ -12,6 +12,7 @@ import {
     colorUnion,
     commonSeriesThemeableOptionsDefs,
     defined,
+    deprecated,
     fillOptionsDef,
     highlightOptionsDef,
     interpolationOptionsDefs,
@@ -26,6 +27,7 @@ import {
     markerOptionsDefs,
     markerStyleOptionsDefs,
     multiSeriesHighlightOptionsDef,
+    number,
     numberFormatValidator,
     positiveNumber,
     positiveNumberNonZero,
@@ -65,6 +67,7 @@ import {
     type AgMapShapeBackgroundThemeableOptions,
     type AgMapShapeSeriesStyle,
     type AgMapShapeSeriesThemeableOptions,
+    type AgNetworkSeriesTreeLayout,
     type AgNightingaleSeriesThemeableOptions,
     type AgOhlcSeriesItemOptions,
     type AgOhlcSeriesThemeableOptions,
@@ -409,11 +412,19 @@ export const nightingaleSeriesThemeableOptionsDef: OptionsDefs<AgNightingaleSeri
 };
 
 // TODO: duplicate series options defs here?
+const networkSeriesTreeLayoutDef: OptionsDefs<AgNetworkSeriesTreeLayout> = {
+    direction: union('down', 'left', 'right', 'up'),
+    depthSpacing: number,
+    innerSpacing: number,
+    outerSpacing: number,
+    verticalSpacing: deprecated(number, 'Use `depthSpacing` instead.'),
+};
+
 export const organizationSeriesThemeableOptionsDef: OptionsDefs<AgOrganizationSeriesThemeableOptions> = {
     ...commonSeriesThemeableOptionsDefs,
-    innerSpacing: defined,
-    outerSpacing: defined,
-    verticalSpacing: defined,
+    ...networkSeriesTreeLayoutDef,
+    direction: union('horizontal', 'vertical'),
+    reverse: boolean,
     expander: defined,
     link: defined,
     node: defined,

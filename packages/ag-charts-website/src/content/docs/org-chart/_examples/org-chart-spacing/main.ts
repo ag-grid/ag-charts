@@ -25,7 +25,7 @@ const options: AgStandaloneChartOptions = {
             parentIdKey: 'parentId',
             innerSpacing: 20,
             outerSpacing: 40,
-            verticalSpacing: 52,
+            depthSpacing: 52,
             node: {
                 image: { key: 'avatar', position: 'left', height: 50, width: 50, cornerRadius: 25 },
                 title: { key: 'name' },
@@ -52,9 +52,9 @@ function changeOuterSpacing(event: any) {
     chart.update(options);
 }
 
-function changeVerticalSpacing(event: any) {
+function changeDepthSpacing(event: any) {
     const value = Number(event.target.value);
-    document.getElementById('verticalSpacingValue')!.innerHTML = String(value);
-    (options.series![0] as AgOrganizationSeriesOptions).verticalSpacing = value;
+    document.getElementById('depthSpacing')!.innerHTML = String(value);
+    (options.series![0] as AgOrganizationSeriesOptions).depthSpacing = value;
     chart.update(options);
 }

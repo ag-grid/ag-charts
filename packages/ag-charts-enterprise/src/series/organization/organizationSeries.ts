@@ -1,6 +1,7 @@
 import {
     type AgActiveItemState,
     type AgCollapsedChangeEventSource,
+    type AgNetworkSeriesTreeLayoutDirection,
     type AgOrganizationNodeTextFormatterParams,
     type AgOrganizationSeriesExpanderItemStylerParams,
     type AgOrganizationSeriesExpanderStyle,
@@ -282,7 +283,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                 allChildren,
                 styles,
                 isCollapsed,
-                this.ctx.domManager.isRtl
+                this.ctx.domManager.isRtl,
+                this.getNetworkTreeLayoutDirection()
             );
         });
     }
@@ -304,11 +306,11 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         node.translationY = bbox.y;
 
         if (regularBBox) {
-            node.updateBBox(regularBBox);
+            node.updateBBox(regularBBox, this.getNetworkTreeLayoutDirection());
             node.realign(regularBBox);
         }
 
-        const focusBBox = node.getFocusBBox();
+        const focusBBox = node.getFullBBox();
 
         return new _ModuleSupport.BBox(bbox.x, bbox.y, focusBBox.width, focusBBox.height);
     }
@@ -394,8 +396,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const node = this.datumSelection.at(nextDatumIdx);
         if (!node) return;
 
-        // Card + expander pill so the focus ring shows what `Enter` will toggle.
-        const bounds = _ModuleSupport.Transformable.toCanvas(node, node.getFocusBBox());
+        const bounds = _ModuleSupport.Transformable.toCanvas(node, node.getFullBBox());
         if (!bounds?.isFinite()) return;
 
         const depth = this.graph.findNeighbourValue(next, 'depth') as number | undefined;
@@ -481,12 +482,12 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     // Exclude the expander pill from measurements — its overhang would compound into
     // `regularBBox` on each layout pass, growing the card by `expander.height / 2` per toggle.
     protected override measureDatumNode(node: OrganizationNode): _ModuleSupport.BBox {
-        return node.getCardBBox();
+        return node.getShapeBBox();
     }
 
     protected override makeLayoutUpdateOptions(): NetworkTreeLayoutUpdateOptions<OrganizationVertex, OrganizationEdge> {
         const {
-            properties: { node, expander, innerSpacing, outerSpacing, verticalSpacing },
+            properties: { node, expander, innerSpacing, outerSpacing, depthSpacing },
         } = this;
 
         return {
@@ -495,11 +496,15 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             nodeWidth: node.width,
             nodeMaxHeight: node.maxHeight,
             nodeMaxWidth: node.maxWidth,
+
             regularDimensions: true,
             hiddenOnCollapse: true,
+
+            direction: this.getNetworkTreeLayoutDirection(),
+            depthSpacing: depthSpacing ?? 0,
             innerSpacing: innerSpacing ?? 0,
             outerSpacing: outerSpacing ?? 0,
-            verticalSpacing: verticalSpacing ?? 0,
+
             verticalSpacingExtra: expander.enabled
                 ? (expander.text.fontSize + expander.padding.top + expander.padding.bottom + expander.strokeWidth) / 2
                 : 0,
@@ -1347,5 +1352,13 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         if (nodeDatumIndex == null) return;
 
         return nodeDatumIndex;
+    }
+
+    private getNetworkTreeLayoutDirection(): AgNetworkSeriesTreeLayoutDirection {
+        const { direction, reverse } = this.properties;
+        if (reverse) {
+            return direction === 'horizontal' ? 'left' : 'up';
+        }
+        return direction === 'horizontal' ? 'right' : 'down';
     }
 }

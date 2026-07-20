@@ -524,7 +524,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         // Second-pass validation runs after `removeDisabledOptions`, so disabled nodes have been
         // stripped to `{ enabled: false }`; skip their required-field/discriminant warnings.
-        const secondPassParams: ValidateParams = { skipDisabledNodeValidation: true };
+        const secondPassParams: ValidateParams = { skipDisabledNodeValidation: true, silentAdvisories: true };
 
         this.validateSeriesOptions(processedOptions, secondPassParams);
 

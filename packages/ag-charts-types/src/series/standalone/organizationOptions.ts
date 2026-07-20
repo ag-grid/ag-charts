@@ -18,6 +18,7 @@ import type {
     Toggleable,
 } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
+import type { AgNetworkSeriesTreeLayout } from './networkOptions';
 
 export interface AgOrganizationSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends
@@ -31,30 +32,22 @@ export interface AgOrganizationSeriesOptions<TDatum = DatumDefault, TContext = C
     node?: AgOrganizationSeriesOptionsNode<TDatum, TContext>;
 }
 
-export interface AgOrganizationSeriesThemeableOptions<
-    TDatum = DatumDefault,
-    TContext = ContextDefault,
-> extends AgBaseSeriesThemeableOptions<TDatum, TContext> {
+export type AgOrganizationSeriesDirection = 'horizontal' | 'vertical';
+
+export interface AgOrganizationSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
+    extends AgBaseSeriesThemeableOptions<TDatum, TContext>, Omit<AgNetworkSeriesTreeLayout, 'direction'> {
     /**
-     * Gap in pixels between sibling nodes (nodes that share the same parent).
+     * The direction child nodes are arranged relative to their parent. Sibling nodes are arranged along the perpendicular axis.
      *
-     * Default: `20`
+     * Default: 'vertical'
      */
-    innerSpacing?: PixelSize;
+    direction?: AgOrganizationSeriesDirection;
     /**
-     * Gap in pixels between adjacent nodes whose immediate parents differ (cousins). The layout
-     * uses `outerSpacing` for these cross-subtree gaps and `innerSpacing` for gaps between nodes
-     * that share the same parent.
+     * Whether the direction should be reversed.
      *
-     * Default: `40`
+     * Default: false
      */
-    outerSpacing?: PixelSize;
-    /**
-     * Vertical gap in pixels between parent and child rows.
-     *
-     * Default: `52`
-     */
-    verticalSpacing?: PixelSize;
+    reverse?: boolean;
 
     expander?: AgOrganizationSeriesOptionsExpander<TDatum, TContext>;
 

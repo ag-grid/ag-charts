@@ -20,9 +20,9 @@ export const organizationSeriesTheme: ExtensibleTheme<'organization'> = {
         buttons: { enabled: false },
     },
     series: {
+        depthSpacing: 52,
         innerSpacing: 20,
         outerSpacing: 40,
-        verticalSpacing: 52,
         expander: {
             enabled: true,
             cornerRadius: { $path: '../node/cornerRadius' },
