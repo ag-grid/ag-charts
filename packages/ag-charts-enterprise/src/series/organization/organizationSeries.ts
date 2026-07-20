@@ -502,10 +502,12 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
             alignment: alignment ?? 'center-all-children',
             direction: this.getNetworkTreeLayoutDirection(),
-            stackCollapsedChildren: false,
             depthSpacing: depthSpacing ?? 0,
             innerSpacing: innerSpacing ?? 0,
             outerSpacing: outerSpacing ?? 0,
+            stackChildren,
+            stackCollapsed,
+            stackDepth,
 
             verticalSpacingExtra: expander.enabled
                 ? (expander.text.fontSize + expander.padding.top + expander.padding.bottom + expander.strokeWidth) / 2

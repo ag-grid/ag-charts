@@ -36,11 +36,25 @@ export interface AgNetworkSeriesTreeLayout {
      */
     outerSpacing?: PixelSize;
     /**
-     * Whether collapsed children and child-less children are stacked.
+     * Whether all children of a parent node should also be collapsed when the parent node is collapsed.
      *
      * Default: false
      */
-    stackCollapsedChildren?: boolean;
+    recursiveCollapse?: boolean;
+    /**
+     * Whether children that have no children of their own should be stacked.
+     *
+     * Default: false
+     */
+    stackChildren?: boolean; // TODO: stackLeafChildren?
+    /**
+     * Whether collapsed nodes that have children should be stacked.
+     *
+     * Default: false
+     */
+    stackCollapsed?: boolean;
+    /** Stack all nodes that are at this depth or greater, overrides `stackChildren` and `stackCollapsed`. */
+    stackDepth?: number;
     /**
      * Vertical gap in pixels between parent and child rows.
      *

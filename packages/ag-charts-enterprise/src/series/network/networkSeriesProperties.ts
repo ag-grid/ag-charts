@@ -23,6 +23,18 @@ export class NetworkSeriesTreeLayoutProperties extends NetworkSeriesProperties {
     outerSpacing?: number;
 
     @Property
+    stackChildren?: boolean;
+
+    @Property
+    stackCollapsed?: boolean;
+
+    @Property
+    stackDepth?: number;
+
+    @Property
+    recursiveCollapse?: boolean;
+
+    @Property
     @ProxyOnWrite('depthSpacing')
     verticalSpacing?: number;
 }
