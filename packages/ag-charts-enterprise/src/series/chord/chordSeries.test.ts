@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import type {
     AgCartesianChartOptions,
     AgChartOptions,
+    AgChordSeriesLinkItemStylerParams,
     AgPolarChartOptions,
     InteractionRange,
 } from 'ag-charts-community';
@@ -547,5 +548,50 @@ describe('ChordSeries', () => {
 
         chart = deproxy(AgCharts.create(options));
         await compare();
+    });
+
+    it('AG-17888 - link.itemStyler datum stays the plain datum on highlight', async () => {
+        let highlightedItemDatum: unknown;
+        let sawHighlightedItem = false;
+        const options: AgChartOptions = {
+            data: [
+                { from: 'A', to: 'B', size: 8 },
+                { from: 'A', to: 'C', size: 4 },
+                { from: 'B', to: 'C', size: 3 },
+            ],
+            series: [
+                {
+                    type: 'chord',
+                    fromKey: 'from',
+                    toKey: 'to',
+                    sizeKey: 'size',
+                    link: {
+                        itemStyler: (p: AgChordSeriesLinkItemStylerParams<unknown, unknown>) => {
+                            if (p.highlightState === 'highlighted-item') {
+                                highlightedItemDatum = p.datum;
+                                sawHighlightedItem = true;
+                            }
+                            return {};
+                        },
+                    },
+                },
+            ],
+        } as AgChartOptions;
+        prepareEnterpriseTestOptions(options);
+
+        chart = deproxy(AgCharts.create(options));
+        await waitForChartStability(chart);
+
+        const linkNode = chart.series[0].contextNodeData.nodeData.find(
+            (n: any) => n.type === FlowProportionDatumType.Link
+        );
+        chart.ctx.highlightManager.updateHighlight(chart.id, linkNode);
+        // A leaked (circular) scene datum never settles, so cap the wait: this must fail by assertion, not hang.
+        await Promise.race([waitForChartStability(chart), new Promise((resolve) => setTimeout(resolve, 500))]);
+
+        expect(sawHighlightedItem).toBe(true);
+        expect(highlightedItemDatum).not.toHaveProperty('type');
+        expect(highlightedItemDatum).not.toHaveProperty('datumIndex');
+        expect(highlightedItemDatum).toEqual(linkNode.datum);
     });
 });

@@ -595,7 +595,7 @@ export class ChordSeries extends FlowProportionSeries<
         const fillBBox = this.getShapeFillBBox();
 
         datumSelection.each((link, datum) => {
-            const style = this.getLinkStyle(datum, datum.datumIndex, datum.fromNode.datumIndex, isHighlight);
+            const style = this.getLinkStyle(datum.datum, datum.datumIndex, datum.fromNode.datumIndex, isHighlight);
 
             link.centerX = datum.centerX;
             link.centerY = datum.centerY;
