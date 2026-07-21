@@ -1,5 +1,24 @@
 [
     {
+        "version": "14.1.0",
+        "date": "August 5th, 2026",
+        "highlights": [
+            {
+                "text": "Series Label Collisions",
+                "path": "./series-labels/"
+            },
+            {
+                "text": "Org Chart Improvements",
+                "path": "./org-chart/"
+            },
+            {
+                "text": "Context Menu Improvements",
+                "path": "./context-menu/"
+            }
+        ],
+        "notesPath": "./upgrade-to-ag-charts-14-1"
+    },
+    {
         "version": "14.0.0",
         "date": "June 24th, 2026",
         "highlights": [
