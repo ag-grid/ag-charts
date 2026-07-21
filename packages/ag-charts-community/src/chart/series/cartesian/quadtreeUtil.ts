@@ -16,7 +16,7 @@ export function addHitTestersToQuadtree<TDatum extends SeriesNodeDatum, TNode ex
     for (const node of hitTesters) {
         const datum: TDatum | undefined = node.datum;
         if (datum === undefined) {
-            Logger.error('undefined datum');
+            Logger.default.error('undefined datum');
         } else {
             quadtree.addValue(node, datum);
         }

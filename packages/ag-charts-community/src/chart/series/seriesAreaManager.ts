@@ -1,5 +1,5 @@
 import type { CallbackParamRules, DynamicContext, Point } from 'ag-charts-core';
-import { ChartUpdateType, Logger, Vec4, clamp, createId } from 'ag-charts-core';
+import { ChartUpdateType, Vec4, clamp, createId } from 'ag-charts-core';
 import type { AgActiveItemState, AgChartClickEvent, AgChartDoubleClickEvent, AgInitialFocus } from 'ag-charts-types';
 
 import type {
@@ -1617,7 +1617,7 @@ export class SeriesAreaManager extends BaseManager {
     private findPickedNodes(desiredSeriesId: string, desiredItemId: string | number): FindPickedNodesResult {
         const desiredSeries: PickedNode['series'] | undefined = this.series.find((s) => s.id === desiredSeriesId);
         if (desiredSeries == undefined) {
-            Logger.warn(`Cannot find seriesId: "${desiredSeriesId}"`);
+            this.chart.ctx.logger.warn(`Cannot find seriesId: "${desiredSeriesId}"`);
             return undefined;
         }
 
@@ -1627,7 +1627,7 @@ export class SeriesAreaManager extends BaseManager {
 
         const desiredDatum: PickedNode | undefined = desiredSeries.findNodeDatum(desiredItemId);
         if (desiredDatum == undefined) {
-            Logger.warn(`Cannot find itemId: ${JSON.stringify(desiredItemId)}`);
+            this.chart.ctx.logger.warn(`Cannot find itemId: ${JSON.stringify(desiredItemId)}`);
             return undefined;
         }
 

@@ -835,7 +835,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const minValue = seriesOptions[minKey];
         const maxValue = seriesOptions[maxKey];
         if (isNumericValue(minValue) && isNumericValue(maxValue) && minValue > maxValue) {
-            Logger.warnOnce(
+            this.logger.warnOnce(
                 `series[${index}].${minKey} (${minValue}) cannot be greater than ${maxKey} (${maxValue}), ignoring both.`
             );
             delete seriesOptions[minKey];
@@ -1341,10 +1341,10 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const { groupable, stackable, stackedByDefault = false } = ModuleRegistry.getSeriesModule(series.type)!;
 
         if (series.grouped && !groupable) {
-            Logger.warnOnce(`unsupported grouping of series type "${series.type}".`);
+            this.logger.warnOnce(`unsupported grouping of series type "${series.type}".`);
         }
         if ((series.stacked || series.stackGroup) && !stackable) {
-            Logger.warnOnce(`unsupported stacking of series type "${series.type}".`);
+            this.logger.warnOnce(`unsupported stacking of series type "${series.type}".`);
         }
 
         let { grouped, stacked } = series;
@@ -1446,14 +1446,14 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         if (allSeries && allSeries.length > 1 && allSeries.some((series) => isSolo(series.type))) {
             const mainSeriesType = this.optionsType(options);
             if (isSolo(mainSeriesType)) {
-                Logger.warn(
+                this.logger.warn(
                     `series[0] of type '${mainSeriesType}' is incompatible with other series types. Only processing series[0]`
                 );
                 options.series = allSeries.slice(0, 1) as T['series'];
             } else {
                 const { solo, nonSolo } = groupBy(allSeries, (s) => (isSolo(s.type) ? 'solo' : 'nonSolo'));
                 const rejects = unique(solo!.map((s) => s.type)).join(', ');
-                Logger.warn(`Unable to mix these series types with the lead series type: ${rejects}`);
+                this.logger.warn(`Unable to mix these series types with the lead series type: ${rejects}`);
                 options.series = nonSolo as T['series'];
             }
         }
@@ -1543,7 +1543,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             if (!resolved) continue;
 
             if (!resolved.isValid) {
-                Logger.warnOnce(`CSS property [${value}] is not a valid color, ignoring.`);
+                Logger.default.warnOnce(`CSS property [${value}] is not a valid color, ignoring.`);
                 delete optionsNode[key];
                 continue;
             }

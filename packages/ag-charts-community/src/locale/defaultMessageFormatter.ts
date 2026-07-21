@@ -22,7 +22,7 @@ export const defaultMessageFormatter: Formatter<MessageFormatterParams> = ({ def
         const formatter = format == null ? null : formatters[format];
 
         if (format != null && formatter == null) {
-            Logger.warnOnce(`Format style [${format}] is not supported`);
+            Logger.default.warnOnce(`Format style [${format}] is not supported`);
         }
 
         if (formatter != null) {

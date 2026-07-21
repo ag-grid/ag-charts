@@ -839,29 +839,31 @@ export class DataModel<
 function logProcessedData(processedData: ProcessedData<any>) {
     const logValues = (name: string, data: any[]) => {
         if (data.length > 0) {
-            Logger.log(`DataModel.processData() - ${name}`);
-            Logger.table(data);
+            Logger.default.log(`DataModel.processData() - ${name}`);
+            Logger.default.table(data);
         }
     };
 
-    Logger.log('DataModel.processData() - processedData', processedData);
+    Logger.default.log('DataModel.processData() - processedData', processedData);
     logValues('Key Domains', processedData.domain.keys);
     logValues('Value Domains', processedData.domain.values);
     logValues('Aggregate Domains', processedData.domain.aggValues ?? []);
 
     // Log optimization metadata if present
     if (processedData.optimizations) {
-        Logger.log('DataModel.processData() - Optimization Summary');
+        Logger.default.log('DataModel.processData() - Optimization Summary');
         const opt = processedData.optimizations;
 
         if (opt.performance) {
-            Logger.log(`  Performance: ${opt.performance.processingTime.toFixed(2)}ms (${opt.performance.pathTaken})`);
+            Logger.default.log(
+                `  Performance: ${opt.performance.processingTime.toFixed(2)}ms (${opt.performance.pathTaken})`
+            );
         }
 
         if (opt.reprocessing) {
             const symbol = opt.reprocessing.applied ? '✓' : '✗';
             const reason = opt.reprocessing.reason ? ` (${opt.reprocessing.reason})` : '';
-            Logger.log(`  Reprocessing: ${symbol}${reason}`);
+            Logger.default.log(`  Reprocessing: ${symbol}${reason}`);
         }
 
         if (opt.domainBanding) {
@@ -871,11 +873,11 @@ function logProcessedData(processedData: ProcessedData<any>) {
             const totalDefs = opt.domainBanding.keyDefs.length + opt.domainBanding.valueDefs.length;
 
             if (totalApplied > 0) {
-                Logger.log(`  Domain Banding: ✓ (${totalApplied}/${totalDefs} definitions)`);
+                Logger.default.log(`  Domain Banding: ✓ (${totalApplied}/${totalDefs} definitions)`);
                 for (const def of [...keyStats, ...valueStats]) {
                     if (def.stats) {
                         const pct = (def.stats.scanRatio * 100).toFixed(1);
-                        Logger.log(
+                        Logger.default.log(
                             `    ${def.property}: scanned ${def.stats.dirtyBands}/${def.stats.totalBands} bands (${pct}%)`
                         );
                     }
@@ -886,20 +888,20 @@ function logProcessedData(processedData: ProcessedData<any>) {
                     ...opt.domainBanding.valueDefs.filter((d) => !d.applied).map((d) => d.reason),
                 ];
                 const uniqueReasons = [...new Set(reasons)].join(', ');
-                Logger.log(`  Domain Banding: ✗ (${uniqueReasons})`);
+                Logger.default.log(`  Domain Banding: ✗ (${uniqueReasons})`);
             }
         }
 
         if (opt.sharedDatumIndices) {
             const symbol = opt.sharedDatumIndices.applied ? '✓' : '✗';
             const ratio = `${opt.sharedDatumIndices.sharedGroupCount}/${opt.sharedDatumIndices.totalGroupCount}`;
-            Logger.log(`  Shared DatumIndices: ${symbol} (${ratio} groups)`);
+            Logger.default.log(`  Shared DatumIndices: ${symbol} (${ratio} groups)`);
         }
 
         if (opt.batchMerging) {
             const pct = (opt.batchMerging.mergeRatio * 100).toFixed(0);
             const reduction = `${opt.batchMerging.originalBatchCount} → ${opt.batchMerging.mergedBatchCount}`;
-            Logger.log(`  Batch Merging: ${reduction} (${pct}% reduction)`);
+            Logger.default.log(`  Batch Merging: ${reduction} (${pct}% reduction)`);
         }
     }
 }

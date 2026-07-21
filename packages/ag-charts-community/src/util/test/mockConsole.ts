@@ -7,7 +7,7 @@ export function setupMockConsole(opts?: { debugShowOutput?: boolean; includeAllL
     agChartsTest.setupMockConsole(opts?.debugShowOutput, { includeAllLevels: opts?.includeAllLevels ?? false });
 
     afterEach(() => {
-        Logger.reset();
+        Logger.default.reset();
     });
 }
 

@@ -197,7 +197,7 @@ export class AnimationManager {
     /** Mocking point for tests to capture requestAnimationFrame callbacks. */
     public scheduleAnimationFrame(cb: (time: number) => Promise<void>) {
         this.requestId = this.agDocument.requestAnimationFrame((t) => {
-            cb(t).catch((e) => Logger.error(e));
+            cb(t).catch((e) => Logger.default.error(e));
         });
     }
 
@@ -279,7 +279,7 @@ export class AnimationManager {
     }
 
     private failsafeOnError(error: unknown, cancelAnimation = true) {
-        Logger.error('Error during animation, skipping animations', error);
+        Logger.default.error('Error during animation, skipping animations', error);
         if (cancelAnimation) {
             this.cancelAnimation();
         }

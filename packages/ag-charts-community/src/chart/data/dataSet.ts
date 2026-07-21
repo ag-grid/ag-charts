@@ -683,7 +683,7 @@ export class DataSet<T = unknown> {
         }
 
         if (toRemove.size > 0) {
-            Logger.warnOnce(
+            Logger.default.warnOnce(
                 'applyTransaction() remove includes items not present in current data; ignoring missing items.'
             );
         }
@@ -694,7 +694,9 @@ export class DataSet<T = unknown> {
         for (const item of remove) {
             const id = this.getIdValue(item);
             if (id === undefined) {
-                Logger.warnOnce(`applyTransaction() remove item is missing '${this.dataIdKey}' field; ignoring.`);
+                Logger.default.warnOnce(
+                    `applyTransaction() remove item is missing '${this.dataIdKey}' field; ignoring.`
+                );
             } else {
                 idsToRemove.add(id);
             }
@@ -729,7 +731,7 @@ export class DataSet<T = unknown> {
         }
 
         if (idsToRemove.size > 0) {
-            Logger.warnOnce(
+            Logger.default.warnOnce(
                 'applyTransaction() remove includes items not present in current data; ignoring missing items.'
             );
         }
@@ -766,7 +768,7 @@ export class DataSet<T = unknown> {
         };
 
         if (toUpdate.size > 0) {
-            Logger.warnOnce(
+            Logger.default.warnOnce(
                 'applyTransaction() update includes items not present in current data; ignoring missing items.'
             );
         }
@@ -777,7 +779,9 @@ export class DataSet<T = unknown> {
         for (const item of update) {
             const id = this.getIdValue(item);
             if (id === undefined) {
-                Logger.warnOnce(`applyTransaction() update item is missing '${this.dataIdKey}' field; ignoring.`);
+                Logger.default.warnOnce(
+                    `applyTransaction() update item is missing '${this.dataIdKey}' field; ignoring.`
+                );
             } else {
                 toUpdate.set(id, item);
             }
@@ -802,7 +806,7 @@ export class DataSet<T = unknown> {
         };
 
         if (toUpdate.size > 0) {
-            Logger.warnOnce(
+            Logger.default.warnOnce(
                 'applyTransaction() update includes items not present in current data; ignoring missing items.'
             );
         }
@@ -863,7 +867,7 @@ export class DataSet<T = unknown> {
                 const id = this.getIdValue(this.data[i]);
                 if (id === undefined) continue;
                 if (this.idToIndexCache.has(id)) {
-                    Logger.warnOnce(
+                    Logger.default.warnOnce(
                         `dataIdKey '${this.dataIdKey}' has duplicate value '${id}'; first occurrence used.`
                     );
                 } else {
@@ -871,7 +875,7 @@ export class DataSet<T = unknown> {
                 }
             }
             if (this.idToIndexCache.size === 0 && this.data.length > 0) {
-                Logger.warnOnce(`dataIdKey '${this.dataIdKey}' was not found on any data item.`);
+                Logger.default.warnOnce(`dataIdKey '${this.dataIdKey}' was not found on any data item.`);
             }
         }
         return this.idToIndexCache;

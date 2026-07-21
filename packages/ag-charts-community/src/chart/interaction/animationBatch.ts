@@ -180,7 +180,7 @@ export class AnimationBatch {
                 controller.stop();
                 this.removeAnimation(controller);
             } catch (error: unknown) {
-                Logger.error('Error during animation stop', error);
+                Logger.default.error('Error during animation stop', error);
             }
         }
         this.dispatchStopped();

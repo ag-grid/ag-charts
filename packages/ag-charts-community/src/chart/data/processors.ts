@@ -66,7 +66,7 @@ function basicTimeCheckDatumValidation(value: any, _datum?: any, index?: number)
     if (value == null) return false;
     if (isContinuous(value) || isISO8601(value)) return true;
     if (typeof value === 'string') {
-        Logger.warnOnce(
+        Logger.default.warnOnce(
             `unsupported value [${value}] at row ${index ?? '?'} on a time axis; expected ${TIME_AXIS_ACCEPTED_FORMATS}. The value is ignored.`
         );
     }

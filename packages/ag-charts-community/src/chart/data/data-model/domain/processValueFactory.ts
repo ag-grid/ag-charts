@@ -56,7 +56,7 @@ function handleInvalidValue(meta: ValidationMeta, value: any): void {
     }
 
     if (meta.mode !== 'integrated') {
-        Logger.warnOnce(
+        Logger.default.warnOnce(
             `invalid value of type [${typeof value}] for [${meta.def.scopes} / ${meta.def.id}] ignored:`,
             `[${value}]`
         );

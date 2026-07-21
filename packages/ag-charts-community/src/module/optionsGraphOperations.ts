@@ -117,7 +117,7 @@ function getPublicOperation(
                 typeof value.ontoColor === 'string' &&
                 keys.length === 4 + privateOperation
             ) {
-                Logger.warnOnce('`onto` and `ontoColor` are mutually exclusive, ignoring `ontoColor`.');
+                Logger.default.warnOnce('`onto` and `ontoColor` are mutually exclusive, ignoring `ontoColor`.');
                 return { operation: ColorOperation.Mix, values: [{ $ref: value.ref }, { $ref: value.onto }, ratio] };
             }
 
@@ -299,7 +299,7 @@ function foregroundBackgroundMixOperation(
     }
 
     Debug.inDevelopmentMode(() =>
-        Logger.warnOnce(
+        Logger.default.warnOnce(
             `\`$foregroundBackgroundMix\` json operation failed on [${String(foregroundRatio)}}}] at [${graph.getPathArray(vertex).join('.')}], expecting a number between 0 and 1.`
         )
     );
@@ -320,7 +320,7 @@ function foregroundOpacityOperation(
     }
 
     Debug.inDevelopmentMode(() =>
-        Logger.warnOnce(
+        Logger.default.warnOnce(
             `\`$foregroundOpacity\` json operation failed on [${String(opacity)}}}] at [${graph.getPathArray(vertex).join('.')}], expecting a number between 0 and 1.`
         )
     );
@@ -368,7 +368,7 @@ function mixOperation(graph: OptionsGraphInterface, vertex: VertexInterface, val
     const warningMessage = `${warningPrefix} two colors and a number between 0 and 1.`;
 
     if (typeof colorB !== 'string' || !isRatio(ratio)) {
-        Debug.inDevelopmentMode(() => Logger.warnOnce(warningMessage));
+        Debug.inDevelopmentMode(() => Logger.default.warnOnce(warningMessage));
         return;
     }
 
@@ -376,13 +376,13 @@ function mixOperation(graph: OptionsGraphInterface, vertex: VertexInterface, val
         try {
             return Color.mix(Color.fromString(colorA), Color.fromString(colorB), ratio).toString();
         } catch {
-            Debug.inDevelopmentMode(() => Logger.warnOnce(warningMessage));
+            Debug.inDevelopmentMode(() => Logger.default.warnOnce(warningMessage));
             return;
         }
     }
 
     if (!isGradientFill(colorA)) {
-        Debug.inDevelopmentMode(() => Logger.warnOnce(warningMessage));
+        Debug.inDevelopmentMode(() => Logger.default.warnOnce(warningMessage));
         return;
     }
 
@@ -397,7 +397,7 @@ function mixOperation(graph: OptionsGraphInterface, vertex: VertexInterface, val
         });
     } catch {
         Debug.inDevelopmentMode(() =>
-            Logger.warnOnce(`${warningPrefix} a gradient, a color and a number between 0 and 1.`)
+            Logger.default.warnOnce(`${warningPrefix} a gradient, a color and a number between 0 and 1.`)
         );
         return;
     }
@@ -416,7 +416,7 @@ function opacityOperation(graph: OptionsGraphInterface, vertex: VertexInterface,
     }
 
     Debug.inDevelopmentMode(() =>
-        Logger.warnOnce(
+        Logger.default.warnOnce(
             `\`$opacity\` operation failed on [${String(colorValue)}, ${String(opacity)}}}] at ` +
                 `[${graph.getPathArray(vertex).join('.')}], expecting a color and a number between 0 and 1.`
         )
@@ -444,7 +444,7 @@ function remOperation(graph: OptionsGraphInterface, vertex: VertexInterface, val
     }
 
     Debug.inDevelopmentMode(() =>
-        Logger.warnOnce(
+        Logger.default.warnOnce(
             `\`$rem\` json operation failed on [${String(value)}] at [${graph.getPathArray(vertex).join('.')}], expecting a number.`
         )
     );
