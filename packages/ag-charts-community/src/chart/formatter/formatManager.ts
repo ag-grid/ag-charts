@@ -51,10 +51,17 @@ export class FormatManager extends Listeners<'format-changed', () => void> {
             truncateDate: FormatParams['truncateDate']
         ) => {
             const mergedFormatter = FormatManager.mergeSpecifiers(propertyFormatter, specifier) ?? defaultTimeFormats;
-            return FormatManager.getFormatter('date', mergedFormatter, unit, style, { truncateDate });
+            return FormatManager.getFormatter('date', mergedFormatter, unit, style, {
+                truncateDate,
+                logger: this.logger,
+            });
         }
     );
     formatter: FormatterConfiguration<any> | undefined = undefined;
+
+    constructor(private readonly logger: Logger = Logger.default) {
+        super();
+    }
 
     static mergeSpecifiers(a: Specifier | undefined, ...specifiers: Array<Specifier>): Specifier;
     static mergeSpecifiers(a: Specifier, ...specifiers: Array<Specifier | undefined>): Specifier;
@@ -76,11 +83,14 @@ export class FormatManager extends Listeners<'format-changed', () => void> {
         specifier: string | Partial<Record<AgTimeIntervalUnit, string>>,
         unit?: AgTimeIntervalUnit,
         style: DateFormatterStyle = 'long',
-        { truncateDate }: { truncateDate?: FormatParams['truncateDate'] } = {}
+        {
+            truncateDate,
+            logger = Logger.default,
+        }: { truncateDate?: FormatParams['truncateDate']; logger?: Logger } = {}
     ): ((value: any, fractionDigits?: number) => string) | undefined {
         if (isPlainObject(specifier)) {
             if (type !== 'date') {
-                Logger.default.warn('Date formatter configuration is not supported for non-date types.');
+                logger.warn('Date formatter configuration is not supported for non-date types.');
                 return;
             }
 

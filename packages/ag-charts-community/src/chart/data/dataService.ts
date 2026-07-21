@@ -57,7 +57,8 @@ export class DataService<D extends object> {
     constructor(
         private readonly eventsHub: EventsHub,
         private readonly caller: { readonly context?: unknown },
-        private readonly animationManager: AnimationManager
+        private readonly animationManager: AnimationManager,
+        private readonly logger: Logger = Logger.default
     ) {}
 
     public updateCallback(dataSourceCallback: DataSourceCallback) {
@@ -147,7 +148,7 @@ export class DataService<D extends object> {
     private createThrottledFetch(requestThrottle: number) {
         return throttle(
             (params: AgDataSourceCallbackParams, requestId?: number) =>
-                this.fetch(params, requestId).catch((e) => Logger.default.error('callback failed', e)),
+                this.fetch(params, requestId).catch((e) => this.logger.error('callback failed', e)),
             requestThrottle,
             { leading: false, trailing: true }
         );
@@ -241,7 +242,7 @@ export class DataService<D extends object> {
             this.throttledDispatch(id, response as D[], requestId);
         } else {
             if (!threw && !Array.isArray(response)) {
-                Logger.default.warnOnce(
+                this.logger.warnOnce(
                     `DataService - [dataSource.getData] returned an invalid value \`${stringifyValue(response, 50)}\`; expecting an array, ignoring.`
                 );
             }
@@ -261,7 +262,7 @@ export class DataService<D extends object> {
         } catch (error: any) {
             threw = true;
             this.debug(`DataService - request failed | ${id}`);
-            Logger.default.warnOnce(`DataService - request failed | [${error}]`);
+            this.logger.warnOnce(`DataService - request failed | [${error}]`);
             // Ignore errors in callback and keep chart alive
         }
 

@@ -1,4 +1,4 @@
-import type { Debug } from 'ag-charts-core';
+import type { Debug, Logger } from 'ag-charts-core';
 
 import type { ChartMode } from '../../chartMode';
 import type { BandedDomainConfig } from '../dataDomain';
@@ -57,6 +57,9 @@ export interface DataModelContext<D extends object, K extends keyof D & string> 
     // ===== Configuration =====
     /** Debug logger for development/troubleshooting */
     debug: Debug.DebugLogger;
+
+    /** Chart-scoped logger for data-validation warnings/errors */
+    readonly logger: Logger;
 
     /** Chart operating mode (standalone/integrated) */
     mode: ChartMode;

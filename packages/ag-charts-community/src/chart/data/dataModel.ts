@@ -121,7 +121,8 @@ export class DataModel<
         private readonly opts: DataModelOptions<K, Grouped, true>,
         private readonly mode: ChartMode = 'standalone',
         private readonly suppressFieldDotNotation: boolean = false,
-        private readonly eventsHub?: EventsHub
+        private readonly eventsHub?: EventsHub,
+        private readonly logger: Logger = Logger.default
     ) {
         // Validate that keys appear before values in the definitions, as output ordering depends
         // on configuration ordering, but we process keys before values.
@@ -220,6 +221,7 @@ export class DataModel<
             reducers: this.reducers,
             processors: this.processors,
             debug: this.debug,
+            logger: this.logger,
             mode: this.mode,
             bandingConfig: this.opts.domainBandingConfig,
             suppressFieldDotNotation: this.suppressFieldDotNotation,
@@ -448,7 +450,7 @@ export class DataModel<
         // Collect optimization metadata for testing
         this.collectOptimizationMetadata(processedData, 'full-process');
         if (this.debug.check()) {
-            logProcessedData(processedData);
+            logProcessedData(processedData, this.logger);
         }
 
         this.processScopeCache();
@@ -836,26 +838,26 @@ export class DataModel<
     }
 }
 
-function logProcessedData(processedData: ProcessedData<any>) {
+function logProcessedData(processedData: ProcessedData<any>, logger: Logger) {
     const logValues = (name: string, data: any[]) => {
         if (data.length > 0) {
-            Logger.default.log(`DataModel.processData() - ${name}`);
-            Logger.default.table(data);
+            logger.log(`DataModel.processData() - ${name}`);
+            logger.table(data);
         }
     };
 
-    Logger.default.log('DataModel.processData() - processedData', processedData);
+    logger.log('DataModel.processData() - processedData', processedData);
     logValues('Key Domains', processedData.domain.keys);
     logValues('Value Domains', processedData.domain.values);
     logValues('Aggregate Domains', processedData.domain.aggValues ?? []);
 
     // Log optimization metadata if present
     if (processedData.optimizations) {
-        Logger.default.log('DataModel.processData() - Optimization Summary');
+        logger.log('DataModel.processData() - Optimization Summary');
         const opt = processedData.optimizations;
 
         if (opt.performance) {
-            Logger.default.log(
+            logger.log(
                 `  Performance: ${opt.performance.processingTime.toFixed(2)}ms (${opt.performance.pathTaken})`
             );
         }
@@ -863,7 +865,7 @@ function logProcessedData(processedData: ProcessedData<any>) {
         if (opt.reprocessing) {
             const symbol = opt.reprocessing.applied ? '✓' : '✗';
             const reason = opt.reprocessing.reason ? ` (${opt.reprocessing.reason})` : '';
-            Logger.default.log(`  Reprocessing: ${symbol}${reason}`);
+            logger.log(`  Reprocessing: ${symbol}${reason}`);
         }
 
         if (opt.domainBanding) {
@@ -873,11 +875,11 @@ function logProcessedData(processedData: ProcessedData<any>) {
             const totalDefs = opt.domainBanding.keyDefs.length + opt.domainBanding.valueDefs.length;
 
             if (totalApplied > 0) {
-                Logger.default.log(`  Domain Banding: ✓ (${totalApplied}/${totalDefs} definitions)`);
+                logger.log(`  Domain Banding: ✓ (${totalApplied}/${totalDefs} definitions)`);
                 for (const def of [...keyStats, ...valueStats]) {
                     if (def.stats) {
                         const pct = (def.stats.scanRatio * 100).toFixed(1);
-                        Logger.default.log(
+                        logger.log(
                             `    ${def.property}: scanned ${def.stats.dirtyBands}/${def.stats.totalBands} bands (${pct}%)`
                         );
                     }
@@ -888,20 +890,20 @@ function logProcessedData(processedData: ProcessedData<any>) {
                     ...opt.domainBanding.valueDefs.filter((d) => !d.applied).map((d) => d.reason),
                 ];
                 const uniqueReasons = [...new Set(reasons)].join(', ');
-                Logger.default.log(`  Domain Banding: ✗ (${uniqueReasons})`);
+                logger.log(`  Domain Banding: ✗ (${uniqueReasons})`);
             }
         }
 
         if (opt.sharedDatumIndices) {
             const symbol = opt.sharedDatumIndices.applied ? '✓' : '✗';
             const ratio = `${opt.sharedDatumIndices.sharedGroupCount}/${opt.sharedDatumIndices.totalGroupCount}`;
-            Logger.default.log(`  Shared DatumIndices: ${symbol} (${ratio} groups)`);
+            logger.log(`  Shared DatumIndices: ${symbol} (${ratio} groups)`);
         }
 
         if (opt.batchMerging) {
             const pct = (opt.batchMerging.mergeRatio * 100).toFixed(0);
             const reduction = `${opt.batchMerging.originalBatchCount} → ${opt.batchMerging.mergedBatchCount}`;
-            Logger.default.log(`  Batch Merging: ${reduction} (${pct}% reduction)`);
+            logger.log(`  Batch Merging: ${reduction} (${pct}% reduction)`);
         }
     }
 }

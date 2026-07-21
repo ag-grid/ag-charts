@@ -1461,7 +1461,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         const dataController = new DataController(
             this.ctx.chartState.getValue('options', 'mode'),
             this.ctx.chartState.getValue('options', 'suppressFieldDotNotation'),
-            this.ctx.eventsHub
+            this.ctx.eventsHub,
+            this.ctx.logger
         );
 
         const promises: Promise<void>[] = [];

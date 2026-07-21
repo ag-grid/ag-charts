@@ -1,6 +1,6 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
-import { getEpochColumn } from 'ag-charts-core';
+import { Logger, getEpochColumn, isFiniteNumber } from 'ag-charts-core';
 
 import { DATA_BROWSER_MARKET_SHARE } from '../test/data';
 import * as examples from '../test/examples';
@@ -46,6 +46,39 @@ function scoped<T extends object>(def: T): T & { scopes: string[] } {
 
 describe('DataModel', () => {
     setupMockConsole();
+
+    describe('chart-scoped logger threading (AG-17889)', () => {
+        it('routes data-validation warnings through the provided logger, not the global fallback', () => {
+            const scopedLogger = new Logger();
+            const scopedWarn = vi.spyOn(scopedLogger, 'warnOnce');
+            const defaultWarn = vi.spyOn(Logger.default, 'warnOnce');
+
+            const dataModel = new DataModel<any, any>(
+                { props: [categoryKey('kp'), { ...value('vp'), validation: isFiniteNumber }] },
+                'standalone',
+                false,
+                undefined,
+                scopedLogger
+            );
+            dataModel.processData(
+                basicDataSet([
+                    { kp: 'a', vp: 1 },
+                    { kp: 'b', vp: 'not-a-number' },
+                ])
+            );
+
+            expect(scopedWarn).toHaveBeenCalledWith(
+                expect.stringContaining('invalid value of type [string]'),
+                expect.anything()
+            );
+            expect(defaultWarn).not.toHaveBeenCalled();
+            // The scoped logger still emits byte-identical console output; acknowledge it so the
+            // shared setupMockConsole guard passes.
+            expectWarningsCalls().toEqual([
+                ['AG Charts - invalid value of type [string] for [test / undefined] ignored:', '[not-a-number]'],
+            ]);
+        });
+    });
 
     describe('ungrouped processing', () => {
         it('should generated the expected results', () => {

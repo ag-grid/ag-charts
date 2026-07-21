@@ -115,13 +115,13 @@ export function createChartContext(chart: ChartHost, vars: ChartContextVars): Dy
 
     ctx.service('logger', () => new Logger())
         .service('callbackCache', () => new CallbackCache())
-        .service('formatManager', () => new FormatManager())
+        .service('formatManager', (c) => new FormatManager(c.logger))
         .service('seriesStateManager', () => new SeriesStateManager())
         .service('stateManager', () => new StateManager())
         .service('labelManager', () => new LabelManager())
         .service('interactionManager', () => new InteractionManager())
         .service('optionsGraphService', () => new OptionsGraphService())
-        .service('chartTypeOriginator', () => new ChartTypeOriginator(chart))
+        .service('chartTypeOriginator', (c) => new ChartTypeOriginator(chart, c.logger))
         .service('widgets', (c) => new WidgetSet(c, { withDragInterpretation: vars.withDragInterpretation }))
         .service('axisManager', (c) => new AxisManager(c.eventsHub, vars.root))
         .service('highlightManager', (c) => new HighlightManager(c))
@@ -129,12 +129,15 @@ export function createChartContext(chart: ChartHost, vars: ChartContextVars): Dy
         .service('localeManager', (c) => new LocaleManager(c.eventsHub))
         .service('historyManager', (c) => new HistoryManager(c))
         .service('collapsedManager', (c) => new CollapsedManager(c.eventsHub, c.chartService))
-        .service('animationManager', (c) => new AnimationManager(c.agDocument, c.interactionManager, vars.updateMutex))
+        .service(
+            'animationManager',
+            (c) => new AnimationManager(c.agDocument, c.interactionManager, vars.updateMutex, c.logger)
+        )
         .service('activeManager', (c) => new ActiveManager(c))
         .service('proxyInteractionService', (c) => new ProxyInteractionService(c))
         .service('fontManager', (c) => new FontManager(c))
         .service('tooltipManager', (c) => new TooltipManager(c.eventsHub, c.localeManager, c.domManager, chart.tooltip))
-        .service('dataService', (c) => new DataService<any>(c.eventsHub, chart, c.animationManager))
+        .service('dataService', (c) => new DataService<any>(c.eventsHub, chart, c.animationManager, c.logger))
         .service('zoomManager', (c) => new ZoomManager(c));
 
     // Plugin modules register their own services (e.g. sharedToolbar) after the
