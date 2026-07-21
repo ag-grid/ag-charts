@@ -74,7 +74,7 @@ const themeTemplate: ExtensibleTheme<'area'> = {
             padding: 8,
             insideStyle: { color: { $isUserOption: ['../color', { $path: '../color' }, { $ref: 'textColor' }] } },
             outsideStyle: { color: { $isUserOption: ['../color', { $path: '../color' }, { $ref: 'textColor' }] } },
-            placement: ['top', 'bottom'],
+            placement: 'top',
         },
         tooltip: {
             range: { $path: ['/tooltip/range', 'nearest'] },
