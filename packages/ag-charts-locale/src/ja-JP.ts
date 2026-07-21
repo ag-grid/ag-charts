@@ -18,9 +18,9 @@ export const AG_CHARTS_LOCALE_JA_JP: Record<string, string> = {
     ariaAnnounceOrgChartLeaf: '${description}、レベル ${level}[number]、${posInSet}[number]/${setSize}[number]',
     // Screen reader announcement when focusing a parent node in an Organization chart
     ariaAnnounceOrgChartParent:
-        '${description}、レベル ${level}[number]、${posInSet}[number]/${setSize}[number]、${collapsedState}、${childCount}[number] 人の子、Enter キーまたは Space キーを押して切り替えます',
+        '${description}、レベル ${level}[number]、${posInSet}[number]/${setSize}[number]、${collapsedState}、${childCount}[number] 人の子',
     ariaAnnounceOrgChartParentSingular:
-        '${description}、レベル ${level}[number]、${posInSet}[number]/${setSize}[number]、${collapsedState}、1 人の子、Enter キーまたは Space キーを押して切り替えます',
+        '${description}、レベル ${level}[number]、${posInSet}[number]/${setSize}[number]、${collapsedState}、1 人の子',
     ariaOrgChartCollapsed: '折りたたみ',
     ariaOrgChartExpanded: '展開',
     ariaDescriptionExpandNode: 'Alt + 下矢印キーを押してこのノードを展開します',

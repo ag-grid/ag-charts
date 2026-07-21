@@ -18,9 +18,9 @@ export const AG_CHARTS_LOCALE_ZH_HK: Record<string, string> = {
     ariaAnnounceOrgChartLeaf: '${description}, 層級 ${level}[number], ${posInSet}[number] 之 ${setSize}[number]',
     // Screen reader announcement when focusing a parent node in an Organization chart
     ariaAnnounceOrgChartParent:
-        '${description}, 層級 ${level}[number], ${posInSet}[number] 之 ${setSize}[number], ${collapsedState}, ${childCount}[number] 個子項, 按 Enter 或空格鍵切換',
+        '${description}, 層級 ${level}[number], ${posInSet}[number] 之 ${setSize}[number], ${collapsedState}, ${childCount}[number] 個子項',
     ariaAnnounceOrgChartParentSingular:
-        '${description}, 層級 ${level}[number], ${posInSet}[number] 之 ${setSize}[number], ${collapsedState}, 1 個子項, 按 Enter 或空格鍵切換',
+        '${description}, 層級 ${level}[number], ${posInSet}[number] 之 ${setSize}[number], ${collapsedState}, 1 個子項',
     ariaOrgChartCollapsed: '已收合',
     ariaOrgChartExpanded: '已展開',
     ariaDescriptionExpandNode: '按 Alt + 向下箭嘴展開此節點',

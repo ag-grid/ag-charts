@@ -18,9 +18,9 @@ export const AG_CHARTS_LOCALE_PT_BR: Record<string, string> = {
     ariaAnnounceOrgChartLeaf: '${description}, nível ${level}[number], ${posInSet}[number] de ${setSize}[number]',
     // Screen reader announcement when focusing a parent node in an Organization chart
     ariaAnnounceOrgChartParent:
-        '${description}, nível ${level}[number], ${posInSet}[number] de ${setSize}[number], ${collapsedState}, ${childCount}[number] filhos, pressione Enter ou Espaço para alternar',
+        '${description}, nível ${level}[number], ${posInSet}[number] de ${setSize}[number], ${collapsedState}, ${childCount}[number] filhos',
     ariaAnnounceOrgChartParentSingular:
-        '${description}, nível ${level}[number], ${posInSet}[number] de ${setSize}[number], ${collapsedState}, 1 filho, pressione Enter ou Espaço para alternar',
+        '${description}, nível ${level}[number], ${posInSet}[number] de ${setSize}[number], ${collapsedState}, 1 filho',
     ariaOrgChartCollapsed: 'recolhido',
     ariaOrgChartExpanded: 'expandido',
     ariaDescriptionExpandNode: 'Pressione Alt + Seta para baixo para expandir este nó',

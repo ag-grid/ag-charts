@@ -18,9 +18,9 @@ export const AG_CHARTS_LOCALE_CS_CZ: Record<string, string> = {
     ariaAnnounceOrgChartLeaf: '${description}, úroveň ${level}[number], ${posInSet}[number] z ${setSize}[number]',
     // Screen reader announcement when focusing a parent node in an Organization chart
     ariaAnnounceOrgChartParent:
-        '${description}, úroveň ${level}[number], ${posInSet}[number] z ${setSize}[number], ${collapsedState}, ${childCount}[number] dětí, stiskněte mezerník nebo Enter pro přepnutí',
+        '${description}, úroveň ${level}[number], ${posInSet}[number] z ${setSize}[number], ${collapsedState}, ${childCount}[number] dětí',
     ariaAnnounceOrgChartParentSingular:
-        '${description}, úroveň ${level}[number], ${posInSet}[number] z ${setSize}[number], ${collapsedState}, 1 dítě, stiskněte mezerník nebo Enter pro přepnutí',
+        '${description}, úroveň ${level}[number], ${posInSet}[number] z ${setSize}[number], ${collapsedState}, 1 dítě',
     ariaOrgChartCollapsed: 'sbalený',
     ariaOrgChartExpanded: 'rozbalený',
     ariaDescriptionExpandNode: 'Stiskněte Alt + šipku dolů pro rozbalení tohoto uzlu',

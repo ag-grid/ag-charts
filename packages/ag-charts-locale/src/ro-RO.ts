@@ -18,9 +18,9 @@ export const AG_CHARTS_LOCALE_RO_RO: Record<string, string> = {
     ariaAnnounceOrgChartLeaf: '${description}, nivel ${level}[number], ${posInSet}[number] din ${setSize}[number]',
     // Screen reader announcement when focusing a parent node in an Organization chart
     ariaAnnounceOrgChartParent:
-        '${description}, nivel ${level}[number], ${posInSet}[number] din ${setSize}[number], ${collapsedState}, ${childCount}[number] copii, apăsați Spațiu sau Enter pentru a comuta',
+        '${description}, nivel ${level}[number], ${posInSet}[number] din ${setSize}[number], ${collapsedState}, ${childCount}[number] copii',
     ariaAnnounceOrgChartParentSingular:
-        '${description}, nivel ${level}[number], ${posInSet}[number] din ${setSize}[number], ${collapsedState}, 1 copil, apăsați Spațiu sau Enter pentru a comuta',
+        '${description}, nivel ${level}[number], ${posInSet}[number] din ${setSize}[number], ${collapsedState}, 1 copil',
     ariaOrgChartCollapsed: 'restrâns',
     ariaOrgChartExpanded: 'extins',
     ariaDescriptionExpandNode: 'Apăsați Alt + Săgeată jos pentru a extinde acest nod',
