@@ -68,9 +68,21 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
+let placement: AgScrollbarPlacement = 'inner';
+let ticksEnabled = false;
+
+// tickSpacing only affects the layout when the scrollbar is placed 'inner' and axis ticks are enabled,
+// so disable the control in every other case to make it clear it has no effect.
+function updateTickSpacingEnabled() {
+    const tickSpacingGroup = document.getElementById('tickSpacingGroup') as HTMLFieldSetElement;
+    tickSpacingGroup.disabled = !(placement === 'inner' && ticksEnabled);
+}
+
 function setPlacement(value: AgScrollbarPlacement) {
+    placement = value;
     options.scrollbar!.placement = value;
     chart.update(options);
+    updateTickSpacingEnabled();
 }
 
 function setSpacing(event: any) {
@@ -88,6 +100,10 @@ function setTickSpacing(event: any) {
 }
 
 function setTicksEnabled(enabled: boolean) {
+    ticksEnabled = enabled;
     (options.axes as any).x.tick.enabled = enabled;
     chart.update(options);
+    updateTickSpacingEnabled();
 }
+
+updateTickSpacingEnabled();
