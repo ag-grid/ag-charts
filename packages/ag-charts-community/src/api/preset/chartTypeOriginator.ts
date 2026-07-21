@@ -37,6 +37,8 @@ export class ChartTypeOriginator implements MementoOriginator<ChartTypeMemento> 
         if (memento == null) return;
 
         const options: AgFinancialChartOptions = { chartType: memento };
-        this.chartService.publicApi?.updateDelta(options as any).catch((e) => Logger.error('error restoring state', e));
+        this.chartService.publicApi
+            ?.updateDelta(options as any)
+            .catch((e) => Logger.default.error('error restoring state', e));
     }
 }

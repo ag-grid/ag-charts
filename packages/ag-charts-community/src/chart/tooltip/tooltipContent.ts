@@ -100,7 +100,7 @@ function readTextContent(html: string): string {
     const result: string | undefined = tempDiv.textContent?.trim();
 
     if (result == null) {
-        Logger.warnOnce('cannot retrieve tooltip textContent (required for aria-label)');
+        Logger.default.warnOnce('cannot retrieve tooltip textContent (required for aria-label)');
         return '';
     } else {
         return result;

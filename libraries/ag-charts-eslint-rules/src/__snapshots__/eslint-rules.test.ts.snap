@@ -196,6 +196,23 @@ exports[`aglint/change-detection 1`] = `
 }
 `;
 
+exports[`aglint/no-unscoped-logger 1`] = `
+{
+  "stderr": "",
+  "stdout": "
+<dirname>/lint-no-unscoped-logger.data.ts
+  15:25  error  Do not construct \`new Logger()\` — a chart's Logger is created for you and exposed as \`ctx.logger\`. For genuinely chart-less code use the shared \`Logger.default\` instance. (Add a sanctioned construction site to this rule's \`allowNewIn\` option.)  aglint/no-unscoped-logger
+  19:5   error  Do not call the ambient static \`Logger.warn()\` — route logging through the chart \`ctx.logger\` (or \`this.logger\`) where a chart context is available, or the explicit \`Logger.default.warn()\` fallback for chart-less code                            aglint/no-unscoped-logger
+  20:5   error  Do not call the ambient static \`Logger.warnOnce()\` — route logging through the chart \`ctx.logger\` (or \`this.logger\`) where a chart context is available, or the explicit \`Logger.default.warnOnce()\` fallback for chart-less code                    aglint/no-unscoped-logger
+  21:5   error  Do not call the ambient static \`Logger.error()\` — route logging through the chart \`ctx.logger\` (or \`this.logger\`) where a chart context is available, or the explicit \`Logger.default.error()\` fallback for chart-less code                          aglint/no-unscoped-logger
+  22:5   error  Do not call the ambient static \`Logger.log()\` — route logging through the chart \`ctx.logger\` (or \`this.logger\`) where a chart context is available, or the explicit \`Logger.default.log()\` fallback for chart-less code                              aglint/no-unscoped-logger
+
+✖ 5 problems (5 errors, 0 warnings)
+
+",
+}
+`;
+
 exports[`aglint/require-explicit-generic 1`] = `
 {
   "stderr": "",

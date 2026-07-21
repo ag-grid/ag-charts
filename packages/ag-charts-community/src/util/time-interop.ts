@@ -25,7 +25,7 @@ function createTimeInterval(
 const cachedInstances: Partial<Record<string, TimeIntervalBackwardsCompat>> = {};
 
 function getTimeInterval(unit: AgTimeIntervalUnit, step = 1, epoch?: Date, utc = false): TimeIntervalBackwardsCompat {
-    Logger.warnOnce('time import is deprecated, use object notation instead');
+    Logger.default.warnOnce('time import is deprecated, use object notation instead');
 
     const key = `${unit}:${step}:${epoch?.getTime() ?? 0}:${utc}`;
     let instance = cachedInstances[key];

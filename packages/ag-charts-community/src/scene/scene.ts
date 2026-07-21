@@ -54,7 +54,7 @@ export class Scene extends EventEmitter<EventMap> {
                 this.emit('scene-changed', {});
             }),
             this.imageLoader.on('image-error', ({ uri }) => {
-                Logger.warnOnce(`Unable to load image ${uri}`);
+                Logger.default.warnOnce(`Unable to load image ${uri}`);
             })
         );
     }

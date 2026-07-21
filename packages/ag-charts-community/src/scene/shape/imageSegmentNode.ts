@@ -95,7 +95,7 @@ export class ImageSegmentNode extends Node {
                 }
             }
         } else {
-            Logger.warnOnce(
+            Logger.default.warnOnce(
                 `Image segment has an empty url; rendering background only (${boxWidth}x${boxHeight} box).`
             );
         }

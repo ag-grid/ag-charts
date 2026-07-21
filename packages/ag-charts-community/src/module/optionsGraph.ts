@@ -1009,7 +1009,9 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             if (!vertex) continue;
 
             if (typeof vertex.value === 'string' && visited?.includes(vertex.value)) {
-                Logger.warnOnce(`Infinite loop cycle found in theme params [${visited.join(' -> ')}], ignoring.`);
+                Logger.default.warnOnce(
+                    `Infinite loop cycle found in theme params [${visited.join(' -> ')}], ignoring.`
+                );
                 return true;
             }
 

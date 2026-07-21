@@ -99,7 +99,7 @@ export class ScopeCacheManager<K extends string> {
 
             const components = getPathComponents(def.property);
             if (components == null) {
-                Logger.warnOnce('Invalid property path [%s]', def.property);
+                Logger.default.warnOnce('Invalid property path [%s]', def.property);
                 continue;
             }
             const accessor = createPathAccessor(components);

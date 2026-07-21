@@ -147,7 +147,7 @@ export class DataService<D extends object> {
     private createThrottledFetch(requestThrottle: number) {
         return throttle(
             (params: AgDataSourceCallbackParams, requestId?: number) =>
-                this.fetch(params, requestId).catch((e) => Logger.error('callback failed', e)),
+                this.fetch(params, requestId).catch((e) => Logger.default.error('callback failed', e)),
             requestThrottle,
             { leading: false, trailing: true }
         );
@@ -241,7 +241,7 @@ export class DataService<D extends object> {
             this.throttledDispatch(id, response as D[], requestId);
         } else {
             if (!threw && !Array.isArray(response)) {
-                Logger.warnOnce(
+                Logger.default.warnOnce(
                     `DataService - [dataSource.getData] returned an invalid value \`${stringifyValue(response, 50)}\`; expecting an array, ignoring.`
                 );
             }
@@ -261,7 +261,7 @@ export class DataService<D extends object> {
         } catch (error: any) {
             threw = true;
             this.debug(`DataService - request failed | ${id}`);
-            Logger.warnOnce(`DataService - request failed | [${error}]`);
+            Logger.default.warnOnce(`DataService - request failed | [${error}]`);
             // Ignore errors in callback and keep chart alive
         }
 

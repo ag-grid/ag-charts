@@ -5,6 +5,10 @@
 const SEVERITY = { warn: 1, error: 2 } as const;
 
 export class Logger {
+    // Shared module-default instance backing the `Logger.*` statics and the free functions below, so every
+    // chart-less call path shares one dedup cache and `reset()`. The sanctioned fallback for code with no chart.
+    static readonly default = new Logger();
+
     private readonly doOnceCache = new Set<string>();
 
     constructor(private readonly minSeverity: number = 0) {}
@@ -84,28 +88,28 @@ export class Logger {
     }
 
     static log(...logContent: any[]) {
-        defaultLogger.log(...logContent);
+        Logger.default.log(...logContent);
     }
     static warn(message: any, ...logContent: any[]) {
-        defaultLogger.warn(message, ...logContent);
+        Logger.default.warn(message, ...logContent);
     }
     static error(message: any, ...logContent: any[]) {
-        defaultLogger.error(message, ...logContent);
+        Logger.default.error(message, ...logContent);
     }
     static table(...logContent: any[]) {
-        defaultLogger.table(...logContent);
+        Logger.default.table(...logContent);
     }
     static warnOnce(messageOrError: unknown, ...logContent: any[]) {
-        defaultLogger.warnOnce(messageOrError, ...logContent);
+        Logger.default.warnOnce(messageOrError, ...logContent);
     }
     static errorOnce(messageOrError: unknown, ...logContent: any[]) {
-        defaultLogger.errorOnce(messageOrError, ...logContent);
+        Logger.default.errorOnce(messageOrError, ...logContent);
     }
     static reset() {
-        defaultLogger.reset();
+        Logger.default.reset();
     }
     static logGroup<T>(name: string, cb: () => T): T {
-        return defaultLogger.logGroup(name, cb);
+        return Logger.default.logGroup(name, cb);
     }
 }
 
@@ -113,17 +117,13 @@ function isPromise(value: unknown): value is Promise<unknown> {
     return typeof value === 'object' && value !== null && 'then' in value;
 }
 
-// One module-default instance backs both the `Logger.*` statics and the free functions below, so every
-// chart-less call path shares a single dedup cache and `reset()`.
-const defaultLogger = new Logger();
-
-export const log = (...logContent: any[]) => defaultLogger.log(...logContent);
-export const warn = (message: any, ...logContent: any[]) => defaultLogger.warn(message, ...logContent);
-export const error = (message: any, ...logContent: any[]) => defaultLogger.error(message, ...logContent);
-export const table = (...logContent: any[]) => defaultLogger.table(...logContent);
+export const log = (...logContent: any[]) => Logger.default.log(...logContent);
+export const warn = (message: any, ...logContent: any[]) => Logger.default.warn(message, ...logContent);
+export const error = (message: any, ...logContent: any[]) => Logger.default.error(message, ...logContent);
+export const table = (...logContent: any[]) => Logger.default.table(...logContent);
 export const warnOnce = (messageOrError: unknown, ...logContent: any[]) =>
-    defaultLogger.warnOnce(messageOrError, ...logContent);
+    Logger.default.warnOnce(messageOrError, ...logContent);
 export const errorOnce = (messageOrError: unknown, ...logContent: any[]) =>
-    defaultLogger.errorOnce(messageOrError, ...logContent);
-export const reset = () => defaultLogger.reset();
-export const logGroup = <T>(name: string, cb: () => T): T => defaultLogger.logGroup(name, cb);
+    Logger.default.errorOnce(messageOrError, ...logContent);
+export const reset = () => Logger.default.reset();
+export const logGroup = <T>(name: string, cb: () => T): T => Logger.default.logGroup(name, cb);
