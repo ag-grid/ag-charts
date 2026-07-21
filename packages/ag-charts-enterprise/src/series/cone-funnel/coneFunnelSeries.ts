@@ -11,13 +11,14 @@ import {
     BaseFunnelSeries,
     type BaseFunnelSeriesTypes,
     type Bounds,
+    type FunnelAnimationData,
     type FunnelNodeDatum,
     type FunnelNodeLabelDatum,
 } from '../funnel/baseFunnelSeries';
 import { ConeFunnelProperties } from './coneFunnelProperties';
 import { resetLineSelectionsFn } from './coneFunnelUtil';
 
-const { Line } = _ModuleSupport;
+const { Line, resetMotion } = _ModuleSupport;
 
 /**
  * Consolidated type interface for ConeFunnelSeries.
@@ -41,6 +42,13 @@ export class ConeFunnelSeries extends BaseFunnelSeries<ConeFunnelSeriesTypes> {
                 datum: resetLineSelectionsFn,
             },
         });
+    }
+
+    override animateWaitingUpdateReady(data: FunnelAnimationData<_ModuleSupport.Line<FunnelNodeDatum>>) {
+        super.animateWaitingUpdateReady(data);
+        // The datum selection has garbage collection disabled, so exit nodes are only destroyed when a
+        // motion completes. Cone-funnel Lines snap rather than animate, so reset them to clean up exits.
+        resetMotion([data.datumSelection], resetLineSelectionsFn);
     }
 
     override get hasData(): boolean {
