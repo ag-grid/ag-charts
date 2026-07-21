@@ -13,7 +13,7 @@ import type {
     AgSeriesLabelPlacementStyleOptions,
 } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
-import type { ContextDefault, DatumDefault, DatumKey } from '../../chart/types';
+import type { ContextDefault, DatumDefault, DatumKey, PixelSize } from '../../chart/types';
 import type { AgInterpolationType } from '../interpolationOptions';
 import type { AgSeriesMarkerOptions, AgSeriesMarkerStyle } from '../markerOptions';
 import type {
@@ -42,6 +42,10 @@ export interface AgAreaSeriesLabelOptions<TDatum, TParams, TContext = ContextDef
      * Default: `top`
      */
     placement?: AgChartLabelCollisionPlacement | AgChartLabelCollisionPlacement[];
+    /**
+     * Distance in pixels between the label and its anchor point.
+     */
+    spacing?: PixelSize;
 }
 
 export interface AgAreaSeriesTooltipRendererParams<TDatum = DatumDefault, TContext = ContextDefault>

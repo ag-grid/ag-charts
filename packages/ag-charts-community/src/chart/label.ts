@@ -8,7 +8,6 @@ import {
     mergeDefaults,
 } from 'ag-charts-core';
 import type {
-    AgChartLabelCollideWithCategoryOptions,
     AgChartLabelCollideWithOptions,
     AgChartLabelCollisionOptions,
     AgChartLabelCollisionPlacement,
@@ -63,28 +62,20 @@ export class LabelPlacementBorder {
     strokeOpacity?: number;
 }
 
-class LabelCollideWithCategory extends BaseProperties implements AgChartLabelCollideWithCategoryOptions {
-    @Property
-    enabled?: boolean;
-
-    @Property
-    minSpacing?: number;
-}
-
 class LabelCollideWith extends BaseProperties implements AgChartLabelCollideWithOptions {
     @Property
-    markers = new LabelCollideWithCategory();
+    markers?: boolean;
 
     @Property
-    labels = new LabelCollideWithCategory();
+    labels?: boolean;
 
     @Property
-    seriesItems = new LabelCollideWithCategory();
+    seriesItems?: boolean;
 }
 
 export class LabelCollision extends BaseProperties implements AgChartLabelCollisionOptions {
     @Property
-    minSpacing?: number;
+    threshold?: number;
 
     @Property
     suppressHide: boolean = true;
@@ -92,14 +83,10 @@ export class LabelCollision extends BaseProperties implements AgChartLabelCollis
     @Property
     collideWith = new LabelCollideWith();
 
-    /** Resolved per-category obstacle config. Marker/label avoidance defaults on; seriesItem is opt-in. */
+    /** Resolved per-category obstacle toggles. Marker/label avoidance defaults on; seriesItem is opt-in. */
     resolveCollideWith(): CollideWith {
         const { markers, labels, seriesItems } = this.collideWith;
-        return {
-            marker: { enabled: markers.enabled !== false, minSpacing: markers.minSpacing },
-            label: { enabled: labels.enabled !== false, minSpacing: labels.minSpacing },
-            seriesItem: { enabled: seriesItems.enabled === true, minSpacing: seriesItems.minSpacing },
-        };
+        return { marker: markers !== false, label: labels !== false, seriesItem: seriesItems === true };
     }
 }
 
@@ -226,6 +213,9 @@ export class Label<TParams = never, TDatum = any>
 export class PlacedSeriesLabel<TParams = never, TDatum = any> extends Label<TParams, TDatum> {
     @Property
     placement?: AgChartLabelCollisionPlacement | AgChartLabelCollisionPlacement[];
+
+    @Property
+    spacing?: number;
 
     @Property
     insideStyle = new LabelPlacementStyle();

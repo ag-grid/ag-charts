@@ -81,6 +81,10 @@ export interface AgMapMarkerSeriesLabel<TDatum, TContext = ContextDefault>
      * Default: `bottom`
      */
     placement?: AgChartLabelCollisionPlacement | AgChartLabelCollisionPlacement[];
+    /**
+     * Distance in pixels between the label and its anchor marker.
+     */
+    spacing?: PixelSize;
 }
 
 export interface AgMapMarkerSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>

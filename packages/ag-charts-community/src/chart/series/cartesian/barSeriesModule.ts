@@ -45,6 +45,7 @@ const themeTemplate: ExtensibleTheme<'bar'> = {
             fontFamily: { $ref: 'fontFamily' },
             spacing: 8,
             padding: 8,
+            collision: { threshold: 4 },
             insideStyle: {
                 color: { $isUserOption: ['../color', { $path: '../color' }, { $ref: 'chartBackgroundColor' }] },
             },

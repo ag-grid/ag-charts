@@ -21,6 +21,7 @@ import {
     barLabelResolvesPlacement,
     buildBarLabelDatum,
     buildBarPositionedLabelDatum,
+    insideBarRegion,
     labelGlyphCentre,
     placeLabels,
     resolveLabelFit,
@@ -594,9 +595,9 @@ describe('placeLabels', () => {
             placements: ['top'],
             gap: 0,
             collideWith: {
-                marker: { enabled: markerEnabled },
-                label: { enabled: true },
-                seriesItem: { enabled: true },
+                marker: markerEnabled,
+                label: true,
+                seriesItem: true,
             },
         });
 
@@ -613,41 +614,150 @@ describe('placeLabels', () => {
         expect(disabledResult.some((l) => l.datum === disabled)).toBe(true);
     });
 
-    it('inflates obstacles by per-category minSpacing', () => {
+    // Places `label` (series 's') against `marker` (a separate series) at the given threshold.
+    const placeAgainstOtherMarker = (marker: PointLabelDatum, label: PointLabelDatum, threshold: number) =>
+        placeLabels(
+            new Map([
+                ['markers', seriesLabels([marker], { suppressHide: false })],
+                ['s', seriesLabels([label], { suppressHide: false, threshold })],
+            ]),
+            bounds,
+            5
+        ).get('s')!;
+
+    it('grows the collision box against another series marker by a positive threshold', () => {
         const marker: PointLabelDatum = {
             point: { x: 100, y: 140, size: 20 },
             label: { text: '', width: 0, height: 0 },
             anchor: undefined,
             placement: undefined,
         };
-        // Sits clear of the marker by default, but collides once the marker is inflated by minSpacing.
-        const label = (minSpacing: number | undefined): PointLabelDatum => ({
+        // Sits clear of the other series' marker by default, but collides once the box grows by threshold.
+        const label: PointLabelDatum = {
             point: { x: 100, y: 100, size: 0 },
             label: { text: 'X', width: 30, height: 12 },
             anchor: undefined,
             placement: 'bottom',
             placements: ['bottom'],
             gap: 0,
-            collideWith: {
-                marker: { enabled: true, minSpacing },
-                label: { enabled: true },
-                seriesItem: { enabled: true },
-            },
-        });
+        };
 
-        const noInflation = label(undefined);
-        const inflated = label(30);
-        const avoids = { suppressHide: false };
-        const noInflationResult = placeLabels(
-            new Map([['s', seriesLabels([marker, noInflation], avoids)]]),
+        expect(placeAgainstOtherMarker(marker, label, 0).some((l) => l.datum === label)).toBe(true);
+        expect(placeAgainstOtherMarker(marker, label, 30).some((l) => l.datum === label)).toBe(false);
+    });
+
+    it('inflates the collision box against a neighbouring same-series marker', () => {
+        // A neighbouring point's marker in the same series is a normal obstacle (only the label's own
+        // anchor marker is exempt): the threshold grows the box against it, dropping the label.
+        const marker: PointLabelDatum = {
+            point: { x: 100, y: 140, size: 20 },
+            label: { text: '', width: 0, height: 0 },
+            anchor: undefined,
+            placement: undefined,
+        };
+        const label: PointLabelDatum = {
+            point: { x: 100, y: 100, size: 0 },
+            label: { text: 'X', width: 30, height: 12 },
+            anchor: undefined,
+            placement: 'bottom',
+            placements: ['bottom'],
+            gap: 0,
+        };
+        const result = placeLabels(
+            new Map([['s', seriesLabels([marker, label], { suppressHide: false, threshold: 30 })]]),
             bounds,
             5
         ).get('s')!;
-        const inflatedResult = placeLabels(new Map([['s', seriesLabels([marker, inflated], avoids)]]), bounds, 5).get(
-            's'
-        )!;
-        expect(noInflationResult.some((l) => l.datum === noInflation)).toBe(true);
-        expect(inflatedResult.some((l) => l.datum === inflated)).toBe(false);
+        expect(result.some((l) => l.datum === label)).toBe(false);
+    });
+
+    it('keeps a label clear of its own anchor marker until the threshold exceeds its spacing', () => {
+        // A labelled point that also renders a marker: the label sits `spacing` from that marker's edge,
+        // so it is exempt from threshold inflation until the threshold demands more clearance than spacing.
+        const labelled = (): PointLabelDatum => ({
+            point: { x: 100, y: 100, size: 20 },
+            label: { text: 'X', width: 30, height: 12 },
+            anchor: undefined,
+            placement: 'top',
+            placements: ['top'],
+            spacing: 10,
+        });
+        const place = (threshold: number, d: PointLabelDatum) =>
+            placeLabels(new Map([['s', seriesLabels([d], { suppressHide: false, threshold })]]), bounds, 5).get('s')!;
+
+        const kept = labelled();
+        const dropped = labelled();
+        // threshold == spacing: still clear of its own marker.
+        expect(place(10, kept).some((l) => l.datum === kept)).toBe(true);
+        // threshold > spacing: the box reaches back onto its own marker, so the label is dropped.
+        expect(place(20, dropped).some((l) => l.datum === dropped)).toBe(false);
+    });
+
+    it('tolerates label overlap within a negative threshold', () => {
+        // Two centred labels whose boxes overlap by 5px in x. The second is dropped at threshold 0, but
+        // kept once a negative threshold shrinks the first label's obstacle box past the overlap.
+        const first: PointLabelDatum = {
+            point: { x: 100, y: 100, size: 0 },
+            label: { text: 'A', width: 40, height: 12 },
+            anchor: undefined,
+            placement: undefined,
+        };
+        const second: PointLabelDatum = {
+            point: { x: 135, y: 100, size: 0 },
+            label: { text: 'B', width: 40, height: 12 },
+            anchor: undefined,
+            placement: undefined,
+        };
+        const place = (threshold: number) =>
+            placeLabels(
+                new Map([['s', seriesLabels([first, second], { suppressHide: false, threshold })]]),
+                bounds,
+                5
+            ).get('s')!;
+
+        expect(place(0).some((l) => l.datum === second)).toBe(false);
+        expect(place(-5).some((l) => l.datum === second)).toBe(true);
+    });
+
+    it('never triggers avoidance when a negative threshold exceeds the maximum overlap', () => {
+        // Two labels stacked on the same point overlap completely; a threshold more negative than that
+        // overlap shrinks the obstacle box to nothing, so the second label is always kept.
+        const stacked = (text: string): PointLabelDatum => ({
+            point: { x: 100, y: 100, size: 0 },
+            label: { text, width: 40, height: 12 },
+            anchor: undefined,
+            placement: undefined,
+        });
+        const first = stacked('A');
+        const second = stacked('B');
+        const result = placeLabels(
+            new Map([['s', seriesLabels([first, second], { suppressHide: false, threshold: -50 })]]),
+            bounds,
+            5
+        ).get('s')!;
+
+        expect(result.some((l) => l.datum === second)).toBe(true);
+    });
+
+    it('tolerates marker overlap when a negative threshold collapses the label box', () => {
+        // A label centred on a neighbouring series' marker overlaps it and is dropped at threshold 0. A
+        // negative threshold that shrinks the box past its own extent tolerates the overlap: a collapsed
+        // (non-positive) box must clear the marker circle, not spuriously collide with it.
+        const marker: PointLabelDatum = {
+            point: { x: 100, y: 100, size: 16 },
+            label: { text: '', width: 0, height: 0 },
+            anchor: undefined,
+            placement: undefined,
+        };
+        const label: PointLabelDatum = {
+            point: { x: 100, y: 100, size: 0 },
+            label: { text: 'X', width: 30, height: 12 },
+            anchor: undefined,
+            placement: undefined,
+        };
+
+        expect(placeAgainstOtherMarker(marker, label, 0).some((l) => l.datum === label)).toBe(false);
+        expect(placeAgainstOtherMarker(marker, label, -10).some((l) => l.datum === label)).toBe(true);
     });
 
     it('routes labels around external seriesItem obstacles only when that category is enabled', () => {
@@ -666,9 +776,9 @@ describe('placeLabels', () => {
             gap: 0,
             suppressHide: false,
             collideWith: {
-                marker: { enabled: true },
-                label: { enabled: true },
-                seriesItem: { enabled: seriesItemEnabled },
+                marker: true,
+                label: true,
+                seriesItem: seriesItemEnabled,
             },
         });
 
@@ -687,9 +797,9 @@ describe('placeLabels', () => {
         for (const { datums } of data.values()) {
             for (const d of datums) {
                 (d as { collideWith?: unknown }).collideWith = {
-                    marker: { enabled: true },
-                    label: { enabled: true },
-                    seriesItem: { enabled: false },
+                    marker: true,
+                    label: true,
+                    seriesItem: false,
                 };
             }
         }
@@ -823,6 +933,34 @@ describe('placeLabels', () => {
             const result = placeLabels(new Map([['s', seriesLabels([datum, blockerAbove, blockerBelow])]]), bounds, 5);
             const placed = result.get('s')!.find((l) => l.datum === datum);
             expect(placed).toBeUndefined();
+        });
+
+        it('shrinks the marker-fit region by a positive threshold, cascading a snug label out', () => {
+            const datum: PointLabelDatum = {
+                point: { x: 200, y: 200, size: 100 },
+                label: { text: 'L', width: 40, height: 12 },
+                anchor: { x: 0.5, y: 0.5 },
+                placement: 'inside',
+                placements: insideThenDirectional,
+                // 70×70 rect: the 40×12 label fits at threshold 0.
+                insideSize: { width: 0.7, height: 0.7 },
+                // Spacing ≥ threshold keeps the top fallback clear of its own marker, so the cascade
+                // below is driven by the shrunken inside region, not own-marker inflation.
+                spacing: 20,
+                suppressHide: false,
+            };
+            const inside = placeLabels(new Map([['s', seriesLabels([datum], { suppressHide: false })]]), bounds, 5).get(
+                's'
+            )![0];
+            expect(inside.placement).toBe('inside');
+
+            // threshold 20 shrinks the rect to 30×30; the 40-wide label no longer fits and cascades to top.
+            const clamped = placeLabels(
+                new Map([['s', seriesLabels([datum], { suppressHide: false, threshold: 20 })]]),
+                bounds,
+                5
+            ).get('s')![0];
+            expect(clamped.placement).toBe('top');
         });
 
         it('tests inside against the shared bounds when no insideSize is given (gating regression)', () => {
@@ -974,9 +1112,9 @@ describe('placeLabels orientation candidates', () => {
 
     it('falls through orientations on collision with another label', () => {
         const labelOnly: CollideWith = {
-            label: { enabled: true },
-            marker: { enabled: false },
-            seriesItem: { enabled: false },
+            label: true,
+            marker: false,
+            seriesItem: false,
         };
         // A occupies a wide flat band. B's horizontal box reaches into it, but B's vertical
         // (narrow-tall) footprint sits clear to the left, so B rotates to avoid A.
@@ -1101,6 +1239,23 @@ describe('bar label placement helpers', () => {
         });
     });
 
+    describe('insideBarRegion', () => {
+        const rect: BoxBounds = { x: 10, y: 20, width: 40, height: 200 };
+
+        it('insets a vertical bar by spacing on Y (length) and threshold on X (cross)', () => {
+            expect(insideBarRegion(rect, 5, 2, true)).toEqual({ x: 12, y: 25, width: 36, height: 190 });
+        });
+
+        it('insets a horizontal bar by spacing on X (length) and threshold on Y (cross)', () => {
+            expect(insideBarRegion(rect, 5, 2, false)).toEqual({ x: 15, y: 22, width: 30, height: 196 });
+        });
+
+        it('leaves the cross axis flush when threshold is zero', () => {
+            expect(insideBarRegion(rect, 5, 0, true)).toEqual({ x: 10, y: 25, width: 40, height: 190 });
+            expect(insideBarRegion(rect, 5, 0, false)).toEqual({ x: 15, y: 20, width: 30, height: 200 });
+        });
+    });
+
     describe('buildBarLabelDatum + applyBarLabelOrientation', () => {
         const region: BoxBounds = { x: 0, y: 0, width: 30, height: 200 };
         const anchor: OrientationAnchor = { x: 15, y: 100, textAlign: 'center', textBaseline: 'middle' };
@@ -1114,9 +1269,9 @@ describe('bar label placement helpers', () => {
             expect(datum.placement).toBeUndefined();
             expect(datum.orientation).toEqual(['horizontal', 'vertical']);
             expect(datum.collideWith).toEqual({
-                label: { enabled: true },
-                marker: { enabled: false },
-                seriesItem: { enabled: false },
+                label: true,
+                marker: false,
+                seriesItem: false,
             });
             expect(datum.target).toBe(target);
         });

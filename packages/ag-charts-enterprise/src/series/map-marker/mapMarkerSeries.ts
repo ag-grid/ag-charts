@@ -953,7 +953,7 @@ export class MapMarkerSeries
 
     override getLabelDefaults() {
         const { label } = this.properties;
-        return resolveSeriesLabelDefaults(label.collision, toArray(label.placement));
+        return resolveSeriesLabelDefaults(label.collision, toArray(label.placement), label.spacing);
     }
 
     override pickNodeClosestDatum(p: Point): _ModuleSupport.SeriesNodePickMatch | undefined {

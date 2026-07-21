@@ -23,7 +23,7 @@ import {
     createTicks,
     deepClone,
     findMinMax,
-    insetBox,
+    insideBarRegion,
     isBigInt,
     isDate,
     isNumber,
@@ -582,7 +582,10 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             offsetY: 0,
             // An orientation array resolves against the bar rect for inside placements only; outside
             // labels fall back to the plot bounds via no region (see barSeries).
-            region: resolvesOrientation && isInside ? insetBox(rect, label.spacing) : undefined,
+            region:
+                resolvesOrientation && isInside
+                    ? insideBarRegion(rect, label.spacing, label.collision.threshold ?? 0, true)
+                    : undefined,
             text,
         };
     }

@@ -743,11 +743,6 @@ export const markerOptionsDefs: OptionsDefs<AgSeriesMarkerOptions<any, any>> = {
     ...markerStyleOptionsDefs,
 };
 
-const labelCollideWithCategoryDef = {
-    enabled: boolean,
-    minSpacing: positiveNumber,
-};
-
 /** Directional label placement accepting a single value or an ordered fallback list. */
 export const labelCollisionPlacementDef = unionOrArray(
     'inside',
@@ -765,15 +760,15 @@ export const labelCollisionPlacementDef = unionOrArray(
 export const labelOrientationDef = unionOrArray('horizontal', 'vertical', 'vertical-reversed');
 
 export const collisionOptionsDef = {
-    minSpacing: positiveNumber,
+    threshold: number,
     suppressHide: boolean,
 };
 
 // @ts-expect-error undocumented option
 collisionOptionsDef.collideWith = undocumented({
-    markers: labelCollideWithCategoryDef,
-    labels: labelCollideWithCategoryDef,
-    seriesItems: labelCollideWithCategoryDef,
+    markers: boolean,
+    labels: boolean,
+    seriesItems: boolean,
 });
 
 export const seriesLabelOptionsDefs: OptionsDefs<AgChartLabelOptions<any, any>> = {
@@ -824,6 +819,7 @@ export const placedSeriesLabelOptionsDefs: OptionsDefs<AgLineSeriesLabelOptions<
     ...labelCollisionFitOptionsDefs,
     ...labelPlacementStyleDefs,
     placement: labelCollisionPlacementDef,
+    spacing: positiveNumber,
 };
 
 export const autoSizedLabelOptionsDefs: OptionsDefs<AgChartAutoSizedBaseLabelOptions<any, any>> = {
