@@ -23,12 +23,20 @@ ErrorDocument 404 ${urlWithBaseUrl('/404.html')}
 # add MIME types for serving example files
 AddType text/javascript mjs ts jsx
 
+# serve the per-page LLM markdown files as markdown
+AddType text/markdown md
+# ...as UTF-8, so glyphs like ✓/✗ in generated tables aren't mojibaked by a
+# Latin-1 fallback (the .md endpoint sets this charset; static hosting must too).
+AddCharset utf-8 .md
+
 # Content-Security-Policy — path-scoped. Charts is served from /charts on www.ag-grid.com
 # and inherits the grid root CSP, so this block overrides it for charts pages (see
 # getCspHtaccessBlock). Ordinary pages get the tightened policy (no 'unsafe-eval'); the
 # <If> override re-allows it for example-runner documents. The trial-form origin is
 # env-split, so the policy is generated per environment.
 ${getCspContent(env)}
+
+${getMarkdownNegotiationRules()}
 
 ${getRedirectRules()}
 
@@ -83,6 +91,41 @@ export function getRedirectRules() {
     })
         .filter(Boolean)
         .join('\n')}`;
+}
+
+export function getMarkdownNegotiationRules() {
+    // Charts is deployed under SITE_BASE_URL (`/charts`), and REQUEST_URI carries that prefix
+    // (as with the mod_alias redirects above — Apache does not strip it here either). %1 must be
+    // the document-root-relative path so both the on-disk `-f` test and the rewrite target resolve
+    // to the real .md under /charts, so the base is captured inside %1 (leading slash excluded),
+    // not matched outside it. Charts docs pages live at /<base>/<framework>/<pageName>; the only
+    // top-level .md twin in scope is license-pricing.
+    const basePath = (SITE_BASE_URL ?? '').replace(/\/$/, '');
+    const baseRelative = basePath.replace(/^\//, '');
+    const capturePrefix = baseRelative ? `${baseRelative}/` : '';
+    const negotiatedPath = `^/(${capturePrefix}(?:(?:react|angular|vue|javascript)/[^/]+?|license-pricing))/?$`;
+    const varyScope = `^${basePath}/((react|angular|vue|javascript)/|license-pricing/?$)`;
+
+    // Content-negotiate docs pages to their per-page markdown variant when a client asks
+    // for it via Accept: text/markdown (typically an AI agent — browsers never send this, so HTML
+    // stays the default). The .md files are generated at build time next to the HTML. This is an
+    // internal rewrite (no redirect, URL unchanged), gated by an on-disk check so a path without a
+    // .md twin is left untouched. Charts has no other rewrite context, so negotiation gets its own
+    // minimal mod_rewrite block (identical in both environments).
+    return `<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    RewriteCond %{HTTP_ACCEPT} text/markdown
+    RewriteCond %{REQUEST_URI} ${negotiatedPath}
+    RewriteCond %{DOCUMENT_ROOT}/%1.md -f
+    RewriteRule ^ /%1.md [L]
+</IfModule>
+
+# Docs pages content-negotiate on Accept (see the markdown rewrite), so shared caches must
+# key on it. Scoped to the negotiated paths so the rest of the site keeps its default.
+<If "%{REQUEST_URI} =~ m#${varyScope}#">
+    Header append Vary Accept
+</If>`;
 }
 
 export function getAstroRedirectRules(): AstroUserConfig['redirects'] {

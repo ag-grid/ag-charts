@@ -7,6 +7,12 @@ ErrorDocument 404 /charts/404.html
 # add MIME types for serving example files
 AddType text/javascript mjs ts jsx
 
+# serve the per-page LLM markdown files as markdown
+AddType text/markdown md
+# ...as UTF-8, so glyphs like ✓/✗ in generated tables aren't mojibaked by a
+# Latin-1 fallback (the .md endpoint sets this charset; static hosting must too).
+AddCharset utf-8 .md
+
 # Content-Security-Policy — path-scoped. Charts is served from /charts on www.ag-grid.com
 # and inherits the grid root CSP, so this block overrides it for charts pages (see
 # getCspHtaccessBlock). Ordinary pages get the tightened policy (no 'unsafe-eval'); the
@@ -24,6 +30,21 @@ Header always set Content-Security-Policy "default-src 'self'; script-src 'self'
 <If "%{REQUEST_URI} =~ m#/(examples|archive)/#">
     Header always unset Content-Security-Policy
     Header always set Content-Security-Policy "default-src 'self'; script-src 'self' https://*.ag-grid.com https://plausible.io https://www.googletagmanager.com https://www.google-analytics.com https://cdn.jsdelivr.net https://js.zi-scripts.com https://*.zoominfo.com https://www.google.com https://www.gstatic.com https://www.youtube.com https://cdn.cookielaw.org blob: 'wasm-unsafe-eval' 'unsafe-eval' 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com data:; img-src 'self' data: blob: https:; connect-src 'self' data: https://*.ag-grid.com https://plausible.io https://*.algolia.net https://*.algolianet.com https://*.google-analytics.com https://*.analytics.google.com https://stats.g.doubleclick.net https://www.googletagmanager.com https://cdn.jsdelivr.net https://js.zi-scripts.com https://*.zoominfo.com https://www.google.com https://cdn.cookielaw.org https://*.onetrust.com https://us-central1-aggrid-ecommerce.cloudfunctions.net; frame-src 'self' data: https://www.googletagmanager.com https://www.youtube.com https://www.google.com; media-src 'self' data: blob: https:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self' https://us-central1-aggrid-ecommerce.cloudfunctions.net https://webto.salesforce.com https://codesandbox.io https://plnkr.co https://ag-grid.us11.list-manage.com; frame-ancestors 'self' https://*.ag-grid.com"
+</If>
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    RewriteCond %{HTTP_ACCEPT} text/markdown
+    RewriteCond %{REQUEST_URI} ^/(charts/(?:(?:react|angular|vue|javascript)/[^/]+?|license-pricing))/?$
+    RewriteCond %{DOCUMENT_ROOT}/%1.md -f
+    RewriteRule ^ /%1.md [L]
+</IfModule>
+
+# Docs pages content-negotiate on Accept (see the markdown rewrite), so shared caches must
+# key on it. Scoped to the negotiated paths so the rest of the site keeps its default.
+<If "%{REQUEST_URI} =~ m#^/charts/((react|angular|vue|javascript)/|license-pricing/?$)#">
+    Header append Vary Accept
 </If>
 
 Redirect 301 /charts/javascript/bullet-series /charts/javascript/linear-gauge/#bullet-series
@@ -101,6 +122,12 @@ ErrorDocument 404 /charts/404.html
 # add MIME types for serving example files
 AddType text/javascript mjs ts jsx
 
+# serve the per-page LLM markdown files as markdown
+AddType text/markdown md
+# ...as UTF-8, so glyphs like ✓/✗ in generated tables aren't mojibaked by a
+# Latin-1 fallback (the .md endpoint sets this charset; static hosting must too).
+AddCharset utf-8 .md
+
 # Content-Security-Policy — path-scoped. Charts is served from /charts on www.ag-grid.com
 # and inherits the grid root CSP, so this block overrides it for charts pages (see
 # getCspHtaccessBlock). Ordinary pages get the tightened policy (no 'unsafe-eval'); the
@@ -118,6 +145,21 @@ Header always set Content-Security-Policy "default-src 'self'; script-src 'self'
 <If "%{REQUEST_URI} =~ m#/(examples|archive)/#">
     Header always unset Content-Security-Policy
     Header always set Content-Security-Policy "default-src 'self'; script-src 'self' https://*.ag-grid.com https://plausible.io https://www.googletagmanager.com https://www.google-analytics.com https://cdn.jsdelivr.net https://js.zi-scripts.com https://*.zoominfo.com https://www.google.com https://www.gstatic.com https://www.youtube.com https://cdn.cookielaw.org blob: 'wasm-unsafe-eval' 'unsafe-eval' 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com data:; img-src 'self' data: blob: https:; connect-src 'self' data: https://*.ag-grid.com https://plausible.io https://*.algolia.net https://*.algolianet.com https://*.google-analytics.com https://*.analytics.google.com https://stats.g.doubleclick.net https://www.googletagmanager.com https://cdn.jsdelivr.net https://js.zi-scripts.com https://*.zoominfo.com https://www.google.com https://cdn.cookielaw.org https://*.onetrust.com https://us-central1-stripe-testing-19784.cloudfunctions.net; frame-src 'self' data: https://www.googletagmanager.com https://www.youtube.com https://www.google.com; media-src 'self' data: blob: https:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self' https://us-central1-stripe-testing-19784.cloudfunctions.net https://test.salesforce.com https://codesandbox.io https://plnkr.co https://ag-grid.us11.list-manage.com; frame-ancestors 'self' https://*.ag-grid.com"
+</If>
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    RewriteCond %{HTTP_ACCEPT} text/markdown
+    RewriteCond %{REQUEST_URI} ^/(charts/(?:(?:react|angular|vue|javascript)/[^/]+?|license-pricing))/?$
+    RewriteCond %{DOCUMENT_ROOT}/%1.md -f
+    RewriteRule ^ /%1.md [L]
+</IfModule>
+
+# Docs pages content-negotiate on Accept (see the markdown rewrite), so shared caches must
+# key on it. Scoped to the negotiated paths so the rest of the site keeps its default.
+<If "%{REQUEST_URI} =~ m#^/charts/((react|angular|vue|javascript)/|license-pricing/?$)#">
+    Header append Vary Accept
 </If>
 
 Redirect 301 /charts/javascript/bullet-series /charts/javascript/linear-gauge/#bullet-series

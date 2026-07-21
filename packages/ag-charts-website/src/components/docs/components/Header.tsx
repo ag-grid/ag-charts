@@ -14,6 +14,8 @@ interface Props {
     suppressFrameworkHeader?: boolean;
     path: string;
     menuItems: MenuItem[];
+    version?: string;
+    markdownHref?: string;
 }
 
 export const Header: FunctionComponent<Props> = ({
@@ -23,6 +25,8 @@ export const Header: FunctionComponent<Props> = ({
     suppressFrameworkHeader,
     path,
     menuItems,
+    version,
+    markdownHref,
 }) => {
     // Update framework store so it is in sync with the page
     // Done here, because it's run on all docs pages
@@ -43,6 +47,17 @@ export const Header: FunctionComponent<Props> = ({
                 </div>
                 <FrameworkSelectorInsideDocs path={path} currentFramework={framework} menuItems={menuItems} />
             </div>
+
+            {(version != null || markdownHref != null) && (
+                <div className={styles.pageMeta}>
+                    {version != null && <span className={styles.version}>{`Version ${version}`}</span>}
+                    {markdownHref != null && (
+                        <a className={styles.markdownLink} href={markdownHref} data-markdown-link>
+                            View as Markdown
+                        </a>
+                    )}
+                </div>
+            )}
 
             {isEnterprise && (
                 <span className={styles.enterpriseLabel}>

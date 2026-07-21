@@ -22,6 +22,7 @@ import agAutoRedirect from './plugins/agAutoRedirect';
 import agCssAsString from './plugins/agCssAsString';
 import agDemosStatic from './plugins/agDemosStatic';
 import agDevCsp from './plugins/agDevCsp';
+import agDevMarkdownNegotiation from './plugins/agDevMarkdownNegotiation';
 import agHotModuleReload from './plugins/agHotModuleReload';
 import agHtaccessGen from './plugins/agHtaccessGen';
 import agRedirectsChecker from './plugins/agRedirectsChecker';
@@ -89,6 +90,7 @@ const plugins = [
     agAutoRedirect(['/javascript', '/react', '/vue', '/angular', '/gallery']),
     agDevCsp(),
     agDemosStatic(PUBLIC_BASE_URL),
+    agDevMarkdownNegotiation(),
 ];
 if (NODE_ENV !== 'test') {
     plugins.push(mkcert()); // mkcert is not necessary for tests
