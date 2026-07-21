@@ -332,6 +332,79 @@ describe('Color', () => {
         expect(Color.validColorString('hsl(blah, 100%, 50%)')).toBe(false);
     });
 
+    test('fromOKLCHString', () => {
+        // space-separated
+        expect(Color.fromOKLCHString('oklch(0.7 0.15 200)').toHexString()).toBe('#00b9c3');
+        // comma-separated
+        expect(Color.fromOKLCHString('oklch(0.7, 0.15, 200)').toHexString()).toBe('#00b9c3');
+        // `/ alpha` form, numeric alpha
+        {
+            const color = Color.fromOKLCHString('oklch(0.7 0.15 200 / 0.4)');
+            expect(color.toHexString()).toBe('#00b9c366');
+            expect(color.a).toBe(0.4);
+        }
+        // `/ alpha` form, percentage alpha
+        {
+            const color = Color.fromOKLCHString('oklch(0.7 0.15 200 / 40%)');
+            expect(color.a).toBe(0.4);
+        }
+        // hue with `deg` suffix and in turn / grad / rad
+        {
+            expect(Color.fromOKLCHString('oklch(0.7 0.15 200deg)').toHexString()).toBe('#00b9c3');
+            expect(Color.fromOKLCHString('oklch(0.7 0.15 0.5turn)').toHexString()).toBe('#00bca2');
+            expect(Color.fromOKLCHString('oklch(0.7 0.15 200grad)').toHexString()).toBe('#00bca2');
+            expect(Color.fromOKLCHString(`oklch(0.7 0.15 ${Math.PI}rad)`).toHexString()).toBe('#00bca2');
+        }
+        // percentage lightness matches the equivalent bare number (already in [0, 1])
+        {
+            expect(Color.fromOKLCHString('oklch(70% 0.15 200)').toHexString()).toBe('#00b9c3');
+        }
+        // percentage chroma: 100% maps to 0.4
+        {
+            expect(Color.fromOKLCHString('oklch(0.7 100% 200)').toHexString()).toBe(
+                Color.fromOKLCHString('oklch(0.7 0.4 200)').toHexString()
+            );
+        }
+        // lightness clamps to [0, 1]; negative chroma clamps to 0 (achromatic grey)
+        {
+            expect(Color.fromOKLCHString('oklch(1.5 0.15 200)').toHexString()).toBe('#5dffff');
+            expect(Color.fromOKLCHString('oklch(0.7 -0.1 200)').toHexString()).toBe('#9e9e9e');
+        }
+
+        expect(() => Color.fromOKLCHString('oklch()')).toThrow();
+        expect(() => Color.fromOKLCHString('oklch(0.5 0.1)')).toThrow();
+        expect(() => Color.fromOKLCHString('oklch(blah 0.1 30)')).toThrow();
+    });
+
+    test('fromString routes oklch', () => {
+        expect(Color.fromString('oklch(0.7 0.15 200)').toHexString()).toBe('#00b9c3');
+        // dispatch is case-insensitive
+        expect(Color.fromString('OKLCH(0.7 0.15 200)').toHexString()).toBe('#00b9c3');
+        expect(Color.fromString('oklch(0 0 0)').toHexString()).toBe('#000000');
+        expect(Color.fromString('oklch(1 0 0)').toHexString()).toBe('#ffffff');
+    });
+
+    test('oklch renders identically to equivalent rgb/hex', () => {
+        // Derive channels from a real hex via the trusted RGBtoOKLCH, format an oklch()
+        // string, parse it back and confirm it round-trips to the original hex.
+        const hexes = ['#ff0000', '#00ff00', '#0000ff', '#000000', '#ffffff', '#3366cc', '#e91e63', '#40bf00'];
+        for (const hex of hexes) {
+            const base = Color.fromString(hex);
+            const [l, c, h] = Color.RGBtoOKLCH(base.r, base.g, base.b);
+            expect(Color.fromString(`oklch(${l} ${c} ${h})`).toHexString()).toBe(hex);
+        }
+    });
+
+    test('validColorString accepts oklch', () => {
+        expect(Color.validColorString('oklch(0.7 0.15 200)')).toBe(true);
+        expect(Color.validColorString('oklch(0.7, 0.15, 200)')).toBe(true);
+        expect(Color.validColorString('oklch(0.7 0.15 200 / 0.4)')).toBe(true);
+        expect(Color.validColorString('OKLCH(0.7 0.15 200)')).toBe(true);
+        expect(Color.validColorString('oklch()')).toBe(false);
+        expect(Color.validColorString('oklch(0.5 0.1)')).toBe(false);
+        expect(Color.validColorString('oklch(blah 0.1 30)')).toBe(false);
+    });
+
     test('toHexString', () => {
         {
             const color = new Color(0, 1, 1);

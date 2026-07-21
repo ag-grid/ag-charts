@@ -96,6 +96,18 @@ describe('ColorScale', () => {
         expect(scale.convert(100)).toBe('rgb(0, 128, 0)');
     });
 
+    test('oklch stops interpolate', () => {
+        const scale = new ColorScale();
+
+        scale.domain = [0, 100];
+        scale.range = ['oklch(0.7 0.15 200)', 'oklch(0.5 0.2 30)'];
+        scale.update();
+
+        expect(scale.convert(0)).toBe('oklch(0.7 0.15 200)');
+        expect(scale.convert(50)).toBe('rgb(127, 140, 0)');
+        expect(scale.convert(100)).toBe('oklch(0.5 0.2 30)');
+    });
+
     test('hsl interpolation anti-clockwise starting at red', () => {
         const scale = new ColorScale();
 
