@@ -32,7 +32,7 @@ export function parseSvg(d?: string): SVGPathSegment[] | undefined {
 
         if (commandMatch == null) {
             if (!currentCommand) {
-                Logger.warnOnce(`Invalid SVG path, error at index ${i}: Missing command.`);
+                Logger.default.warnOnce(`Invalid SVG path, error at index ${i}: Missing command.`);
                 return;
             }
             command = currentCommand;
@@ -71,7 +71,7 @@ export function parseSegment(command: SVGCommand, d: string, index: number): [nu
         } else if (pathSeg.params.length === 1) {
             return [index, pathSeg];
         } else {
-            Logger.warnOnce(
+            Logger.default.warnOnce(
                 `Invalid SVG path, error at index ${index}: No path segment parameters for command [${command}]`
             );
             return;

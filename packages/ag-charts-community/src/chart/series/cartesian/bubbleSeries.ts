@@ -923,7 +923,13 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         );
 
         const rect = ctx.labelInsideRect;
-        const container = rect ? { width: markerSize * rect.width, height: markerSize * rect.height } : undefined;
+        const threshold = ctx.label.collision.threshold ?? 0;
+        const container = rect
+            ? {
+                  width: Math.max(0, markerSize * rect.width - 2 * threshold),
+                  height: Math.max(0, markerSize * rect.height - 2 * threshold),
+              }
+            : undefined;
         const fittedText = fitLabelToContainer(labelText, ctx.labelFit, ctx.label, container);
         let { width, height } = isArray(fittedText)
             ? measureTextSegments(fittedText, ctx.label)
@@ -1021,7 +1027,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
 
     override getLabelDefaults() {
         const { label } = this.properties;
-        return resolveSeriesLabelDefaults(label.collision, toArray(label.placement));
+        return resolveSeriesLabelDefaults(label.collision, toArray(label.placement), label.spacing);
     }
 
     protected override updateDatumSelection(opts: {

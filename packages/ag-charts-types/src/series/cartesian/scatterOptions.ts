@@ -14,7 +14,7 @@ import type {
     AgSeriesLabelPlacementStyleOptions,
 } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { ContextDefault, DatumDefault, DatumKey } from '../../chart/types';
+import type { ContextDefault, DatumDefault, DatumKey, PixelSize } from '../../chart/types';
 import type { AgSeriesMarkerStyle } from '../markerOptions';
 import type {
     AgBaseCartesianThemeableOptions,
@@ -66,6 +66,10 @@ export interface AgScatterSeriesLabel<TDatum, TContext = ContextDefault>
      * Default: `top`
      */
     placement?: AgChartLabelCollisionPlacement | AgChartLabelCollisionPlacement[];
+    /**
+     * Distance in pixels between the label and its anchor marker.
+     */
+    spacing?: PixelSize;
 }
 
 export interface AgScatterSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>

@@ -32,6 +32,7 @@ export const RANGE_BAR_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['rang
             fontWeight: { $ref: 'fontWeight' },
             spacing: 6,
             padding: 6,
+            collision: { threshold: 4 },
             insideStyle: {
                 color: { $isUserOption: ['../color', { $path: '../color' }, { $ref: 'chartBackgroundColor' }] },
             },

@@ -67,7 +67,7 @@ export class ColorScale extends AbstractScale<number, string> {
         const { domain, range } = this;
 
         if (domain.length < 2) {
-            Logger.warnOnce('`colorDomain` should have at least 2 values.');
+            Logger.default.warnOnce('`colorDomain` should have at least 2 values.');
             if (domain.length === 0) {
                 domain.push(0, 1);
             } else if (domain.length === 1) {
@@ -79,7 +79,7 @@ export class ColorScale extends AbstractScale<number, string> {
             const a = domain[i - 1];
             const b = domain[i];
             if (a > b) {
-                Logger.warnOnce('`colorDomain` values should be supplied in ascending order.');
+                Logger.default.warnOnce('`colorDomain` values should be supplied in ascending order.');
                 domain.sort((a2, b2) => a2 - b2);
                 break;
             }
@@ -167,7 +167,7 @@ export class ColorScale extends AbstractScale<number, string> {
         this.update();
 
         if (this.invalid) {
-            Logger.warnOnce('Expected update to not invalidate scale');
+            Logger.default.warnOnce('Expected update to not invalidate scale');
         }
     }
 }

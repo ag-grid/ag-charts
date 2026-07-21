@@ -95,7 +95,7 @@ export abstract class BandScale<D, I = number> extends AbstractScale<D, number, 
         this.update();
 
         if (this.invalid) {
-            Logger.warnOnce('Expected update to not invalidate scale');
+            Logger.default.warnOnce('Expected update to not invalidate scale');
         }
     }
 

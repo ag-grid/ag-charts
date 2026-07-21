@@ -1,6 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
+    ChartUpdateType,
     type DynamicContext,
     type GradientColorStop,
     type NormalisedGradientLegendOptions,
@@ -60,6 +61,14 @@ export class GradientLegend extends AbstractModuleInstance {
                 }
             }),
             ctx.layoutManager.registerElement(LayoutElement.Legend, (e) => this.onStartLayout(e)),
+            // When node highlighting is suppressed the series-update path is skipped, so nothing
+            // flushes the highlight observer. Request a render so the arrow tracks the hovered node
+            // regardless of the series' highlight.enabled setting.
+            ctx.eventsHub.on('highlight:change', (event) => {
+                if (event.highlightSuppressed) {
+                    ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
+                }
+            }),
             () => this.legendGroup.remove()
         );
     }
@@ -214,7 +223,6 @@ export class GradientLegend extends AbstractModuleInstance {
             const [dMin, dMax] = data.axisDomain;
             if (
                 highlighted?.colorValue == null ||
-                highlighted.series?.isHighlightEnabled() === false ||
                 (highlightSeriesId != null && data.seriesId !== highlightSeriesId) ||
                 highlighted.colorValue < dMin ||
                 highlighted.colorValue > dMax

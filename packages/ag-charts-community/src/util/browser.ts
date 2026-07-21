@@ -17,7 +17,7 @@ export function isUnsupportedBrowser() {
 
         const supported = Math.floor(version) > 16;
         if (!supported) {
-            Logger.warnOnce(`Unsupported Safari version: ${version}; ${userAgent}`);
+            Logger.default.warnOnce(`Unsupported Safari version: ${version}; ${userAgent}`);
         }
 
         return !supported;
@@ -30,7 +30,7 @@ export function isUnsupportedBrowser() {
         const supported = version > 126;
 
         if (!supported) {
-            Logger.warnOnce(`Unsupported Chrome version: ${version}; ${userAgent}`);
+            Logger.default.warnOnce(`Unsupported Chrome version: ${version}; ${userAgent}`);
         }
 
         return !supported;

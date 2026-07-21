@@ -60,16 +60,22 @@ describe('Labels', () => {
     describe('collision.resolveCollideWith', () => {
         test('defaults markers/labels on and seriesItems off', () => {
             expect(new LabelCollision().resolveCollideWith()).toEqual({
-                marker: { enabled: true, minSpacing: undefined },
-                label: { enabled: true, minSpacing: undefined },
-                seriesItem: { enabled: false, minSpacing: undefined },
+                marker: true,
+                label: true,
+                seriesItem: false,
             });
         });
 
         test('opts seriesItems in only when explicitly enabled', () => {
             const collision = new LabelCollision();
-            collision.collideWith.seriesItems.enabled = true;
-            expect(collision.resolveCollideWith().seriesItem?.enabled).toBe(true);
+            collision.collideWith.seriesItems = true;
+            expect(collision.resolveCollideWith().seriesItem).toBe(true);
+        });
+
+        test('disables a category when its toggle is false', () => {
+            const collision = new LabelCollision();
+            collision.collideWith.markers = false;
+            expect(collision.resolveCollideWith().marker).toBe(false);
         });
     });
 

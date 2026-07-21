@@ -125,7 +125,7 @@ function isColorVar(value: string): boolean {
     return false;
 }
 // `ontoColor` accepts only what the blend engine (`Color.fromString`) can render, plus a `var(--…)`; the browser-backed
-// `color` validator would admit `oklch()`/`lab()` etc. that `Color.fromString` then throws on, silently mis-colouring.
+// `color` validator would admit `lab()` etc. that `Color.fromString` then throws on, silently mis-colouring.
 const ontoColorValidator = attachDescription(
     (value: unknown) => typeof value === 'string' && (isColorVar(value) || Color.validColorString(value)),
     'a literal color or var()'

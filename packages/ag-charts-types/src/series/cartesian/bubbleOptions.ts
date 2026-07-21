@@ -47,6 +47,10 @@ export interface AgBubbleSeriesLabel<TDatum, TContext = ContextDefault>
      * Default: `top`
      */
     placement?: AgChartLabelCollisionPlacement | AgChartLabelCollisionPlacement[];
+    /**
+     * Distance in pixels between the label and its anchor marker.
+     */
+    spacing?: PixelSize;
 }
 
 export interface AgBubbleSeriesStyle extends AgSeriesMarkerStyle {}

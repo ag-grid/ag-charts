@@ -23,6 +23,7 @@
     "ag-grid-community": "~35.0.1",
     "ag-grid-enterprise": "~35.0.1",
     "ag-grid-react": "~35.0.1",
+    "ag-stack": "~36.0.1",
     "algoliasearch": "^5.51.0",
     "astro": "6.1.9",
     "cheerio": "^1.0.0-rc.12",

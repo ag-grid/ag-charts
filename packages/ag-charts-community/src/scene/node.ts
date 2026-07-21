@@ -248,7 +248,7 @@ export abstract class Node<TDatum = unknown> {
                 throw e;
             }
 
-            Logger.warnOnce('Error during rendering', e, e.stack);
+            Logger.default.warnOnce('Error during rendering', e, e.stack);
         } finally {
             renderCtx.ctx.restore();
             renderCtx.currentFont = savedFont;
@@ -461,11 +461,11 @@ export abstract class Node<TDatum = unknown> {
             // Construction cases aren't interesting - we only really care about update cases.
             for (const [property, sources] of this._debugDirtyProperties.entries()) {
                 if (sources.length > 1) {
-                    Logger.logGroup(
+                    Logger.default.logGroup(
                         `Property changed multiple times before render: ${this.constructor.name}.${property} (${sources.length}x)`,
                         () => {
                             for (const source of sources) {
-                                Logger.log(source);
+                                Logger.default.log(source);
                             }
                         }
                     );

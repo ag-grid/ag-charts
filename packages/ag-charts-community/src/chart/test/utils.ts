@@ -369,6 +369,21 @@ export function repeat<T>(value: T, count: number): T[] {
     return new Array(count).fill(value);
 }
 
+/** A series' placed label geometry, enough to measure a label's offset from its marker anchor. */
+export interface PlacedLabelGeometry {
+    placedLabelData: { y: number; height: number; datum: { point: { y: number } } }[];
+}
+
+/**
+ * Vertical gap between a marker anchor and the bottom edge of its first placed label, for a label
+ * placed above the marker ('top'). Asserts a label was actually placed.
+ */
+export function topLabelAnchorGap(series: PlacedLabelGeometry): number {
+    const [label] = series.placedLabelData;
+    expect(label).toBeDefined();
+    return label.datum.point.y - (label.y + label.height);
+}
+
 /**
  * Get the tooltip DOM element rendered for `chart`, or `null` if the tooltip has not been
  * attached. Scoped to the chart's container so concurrent charts in the same test environment

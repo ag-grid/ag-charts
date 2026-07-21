@@ -30,7 +30,7 @@ import {
     barLabelRotation,
     buildBarLabelData,
     buildBarPositionedLabelDatum,
-    insetBox,
+    insideBarRegion,
     isContinuous,
     isFiniteNumber,
     maxValue,
@@ -184,6 +184,8 @@ interface BarSeriesNodeDatumContext {
     readonly yReversed: boolean;
     readonly bboxBottom: number;
     readonly labelSpacing: number;
+    /** Cross-axis wall clearance for inside labels; resolved from `label.collision.threshold`. */
+    readonly labelThreshold: number;
     readonly boxPadding: Required<PaddingOptions>;
     /** Per-side extent of the label's drawn box (padding + border stroke) folded into the collision footprint. */
     readonly labelBoxExtent: Required<PaddingOptions>;
@@ -693,6 +695,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             bboxBottom: yScale.convert(0n),
             labelSpacing:
                 label.spacing + Math.max(boxPadding.top, boxPadding.right, boxPadding.bottom, boxPadding.left),
+            labelThreshold: label.collision.threshold ?? 0,
             boxPadding,
             labelBoxExtent: expandPlacementLabelBoxExtent(label),
             crisp:
@@ -1011,6 +1014,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 placements: ctx.labelPlacements,
                 orientations,
                 spacing: ctx.labelSpacing,
+                threshold: ctx.labelThreshold,
                 rect,
                 width,
                 height,
@@ -1052,7 +1056,10 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             // The rect is only needed to bound the fit or to resolve orientation, so skip it otherwise.
             const isInside = placement == null || placement.startsWith('inside');
             const needsRect = ctx.labelFit != null || ctx.labelResolvesOrientation;
-            const insideBox = isInside && needsRect ? insetBox(rect, ctx.labelSpacing) : undefined;
+            const insideBox =
+                isInside && needsRect
+                    ? insideBarRegion(rect, ctx.labelSpacing, ctx.labelThreshold, !ctx.barAlongX)
+                    : undefined;
             // The first orientation is baked into `rotation`; an array resolves against the bar rect for
             // inside placements only (outside labels fall back to the plot bounds via no region).
             const region = ctx.labelResolvesOrientation ? insideBox : undefined;

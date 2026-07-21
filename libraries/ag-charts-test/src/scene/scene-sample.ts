@@ -162,11 +162,19 @@ function pathStationTopYs(polylines: PolylinePoint[][]): number[] {
  */
 function readPathGeometry(s: Extract<SerializedNodeState, { type: 'path' }>): SceneNodeGeometry {
     const polylines = flattenPathPolylines(s.svgPath);
+    // Scale and rotation exist only on the Scalable/Rotatable mixin variants (e.g. the gauge needle);
+    // a plain stroke/fill path omits them. Read them here, before the empty-path early return, so a path
+    // that is undrawn on some frames still reports its transform consistently across the trajectory.
+    const transform: SceneNodeGeometry = {};
+    const { scalingX, scalingY, rotation } = s.props;
+    if (typeof scalingX === 'number') transform['scalingX'] = scalingX;
+    if (typeof scalingY === 'number') transform['scalingY'] = scalingY;
+    if (typeof rotation === 'number') transform['rotation'] = rotation;
     // An empty drawn path has no meaningful geometry (its bbox is ±Infinity): emit paint props only,
     // so geometry checks span just the frames where something is actually drawn.
-    if (polylines.length === 0) return { opacity: s.props.opacity };
+    if (polylines.length === 0) return { opacity: s.props.opacity, ...transform };
     const { x, y, width, height, opacity } = s.props;
-    const props: SceneNodeGeometry = { x, y, width, height, opacity };
+    const props: SceneNodeGeometry = { x, y, width, height, opacity, ...transform };
     // The reveal (swipe-in) animation masks the fully-drawn path behind a growing clip window, so
     // the clip fields are the only per-frame signal of the sweep.
     props['clip'] = s.props.clip ? 1 : 0;

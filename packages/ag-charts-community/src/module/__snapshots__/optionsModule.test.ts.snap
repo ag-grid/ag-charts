@@ -930,6 +930,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
         },
+        "collision": {
+          "threshold": 4,
+        },
         "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
@@ -1016,6 +1019,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "threshold": 4,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -2399,6 +2405,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
         },
+        "collision": {
+          "threshold": 4,
+        },
         "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
@@ -2486,6 +2495,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "threshold": 4,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -2575,6 +2587,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
         },
+        "collision": {
+          "threshold": 4,
+        },
         "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
@@ -2662,6 +2677,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "threshold": 4,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -2751,6 +2769,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
         },
+        "collision": {
+          "threshold": 4,
+        },
         "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
@@ -2838,6 +2859,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "threshold": 4,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -2927,6 +2951,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
         },
+        "collision": {
+          "threshold": 4,
+        },
         "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
@@ -3014,6 +3041,9 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "threshold": 4,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -5245,6 +5275,9 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_EXAMPLE it should prepar
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
         },
+        "collision": {
+          "threshold": 4,
+        },
         "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
@@ -5649,6 +5682,9 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_WITH_LABELS_EXAMPLE it s
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "threshold": 4,
         },
         "color": "white",
         "cornerRadius": 4,
@@ -6839,6 +6875,9 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
         },
+        "collision": {
+          "threshold": 4,
+        },
         "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
@@ -6923,6 +6962,9 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "threshold": 4,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -7327,6 +7369,9 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
         },
+        "collision": {
+          "threshold": 4,
+        },
         "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
@@ -7416,6 +7461,9 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "threshold": 4,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -7826,6 +7874,9 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
         },
+        "collision": {
+          "threshold": 4,
+        },
         "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
@@ -7917,6 +7968,9 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "threshold": 4,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -8010,6 +8064,9 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
         },
+        "collision": {
+          "threshold": 4,
+        },
         "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
@@ -8101,6 +8158,9 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "threshold": 4,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -8194,6 +8254,9 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
         },
+        "collision": {
+          "threshold": 4,
+        },
         "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
@@ -8286,6 +8349,9 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
         },
+        "collision": {
+          "threshold": 4,
+        },
         "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
@@ -8377,6 +8443,9 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "threshold": 4,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -11867,6 +11936,9 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
         },
+        "collision": {
+          "threshold": 4,
+        },
         "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
@@ -11958,6 +12030,9 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
         },
+        "collision": {
+          "threshold": 4,
+        },
         "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
@@ -12048,6 +12123,9 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "threshold": 4,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -12453,6 +12531,9 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
         },
+        "collision": {
+          "threshold": 4,
+        },
         "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
@@ -12540,6 +12621,9 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "threshold": 4,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -12629,6 +12713,9 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
         },
+        "collision": {
+          "threshold": 4,
+        },
         "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
@@ -12716,6 +12803,9 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "threshold": 4,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -12805,6 +12895,9 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
         },
+        "collision": {
+          "threshold": 4,
+        },
         "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
@@ -12892,6 +12985,9 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "threshold": 4,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -14004,6 +14100,9 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_COLUMN_CHART_EXAMPLE it sho
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "threshold": 4,
         },
         "color": "#eeeeee",
         "cornerRadius": 4,
@@ -16917,6 +17016,9 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
         },
+        "collision": {
+          "threshold": 4,
+        },
         "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
@@ -17006,6 +17108,9 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "threshold": 4,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -17097,6 +17202,9 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
         },
+        "collision": {
+          "threshold": 4,
+        },
         "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
@@ -17186,6 +17294,9 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "threshold": 4,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -17594,6 +17705,9 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
         },
+        "collision": {
+          "threshold": 4,
+        },
         "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
@@ -17683,6 +17797,9 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "threshold": 4,
         },
         "cornerRadius": 4,
         "enabled": false,
@@ -17774,6 +17891,9 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
         },
+        "collision": {
+          "threshold": 4,
+        },
         "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
@@ -17864,6 +17984,9 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
         },
+        "collision": {
+          "threshold": 4,
+        },
         "cornerRadius": 4,
         "enabled": false,
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
@@ -17953,6 +18076,9 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
           "enabled": false,
           "stroke": "rgba(24, 29, 31, 0.08)",
           "strokeWidth": 1,
+        },
+        "collision": {
+          "threshold": 4,
         },
         "cornerRadius": 4,
         "enabled": false,

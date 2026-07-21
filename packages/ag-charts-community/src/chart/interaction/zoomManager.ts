@@ -92,7 +92,7 @@ function validateChanges(changes: UpdateZoomChanges): void {
         const { min, max } = zoom;
 
         if (min < 0 || max > 1) {
-            Logger.warnOnce(
+            Logger.default.warnOnce(
                 `Attempted to update axis (${axisId}) zoom to an invalid ratio of [{ min: ${min}, max: ${max} }], expecting a ratio of 0 to 1. Ignoring.`
             );
 

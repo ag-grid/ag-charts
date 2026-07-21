@@ -804,7 +804,7 @@ export class Text<D = unknown> extends Shape<D> {
         if (isArray(text)) {
             for (const segment of text) {
                 if (segment.type === 'image') {
-                    Logger.warnOnce('SVG export drops inline image segments; text content is preserved.');
+                    Logger.default.warnOnce('SVG export drops inline image segments; text content is preserved.');
                     continue;
                 }
                 const segmentElement = createSvgElement('tspan');

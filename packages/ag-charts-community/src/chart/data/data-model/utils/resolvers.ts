@@ -46,7 +46,7 @@ function assertColumnValueType(
     actualType: ColumnValueType | undefined
 ): void {
     if (actualType == null || isCompatibleColumnType(expectedType, actualType)) return;
-    Logger.warnOnce(
+    Logger.default.warnOnce(
         `column '${searchId}' for scope '${scope.id}' was resolved as '${expectedType}' but holds '${actualType}' values; check the series data types.`
     );
 }

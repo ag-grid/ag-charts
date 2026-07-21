@@ -189,19 +189,19 @@ export class DataController {
                     const diff = jsonDiff(baselineJson, reprocessedJson);
 
                     if (diff) {
-                        Logger.log('⚠️ DATA-MODEL REPROCESS DIFF DETECTED ⚠️');
-                        Logger.log('Difference between incremental update and full reprocess:');
-                        Logger.log('');
-                        Logger.log('BASELINE (full reprocess):');
-                        Logger.log(JSON.stringify(baselineJson, null, 2));
-                        Logger.log('');
-                        Logger.log('REPROCESSED (incremental update):');
-                        Logger.log(JSON.stringify(reprocessedJson, null, 2));
-                        Logger.log('');
-                        Logger.log('DIFF (what changed):');
-                        Logger.log(JSON.stringify(diff, null, 2));
+                        Logger.default.log('⚠️ DATA-MODEL REPROCESS DIFF DETECTED ⚠️');
+                        Logger.default.log('Difference between incremental update and full reprocess:');
+                        Logger.default.log('');
+                        Logger.default.log('BASELINE (full reprocess):');
+                        Logger.default.log(JSON.stringify(baselineJson, null, 2));
+                        Logger.default.log('');
+                        Logger.default.log('REPROCESSED (incremental update):');
+                        Logger.default.log(JSON.stringify(reprocessedJson, null, 2));
+                        Logger.default.log('');
+                        Logger.default.log('DIFF (what changed):');
+                        Logger.default.log(JSON.stringify(diff, null, 2));
                     } else {
-                        Logger.log('✅ Data-model reprocess matches baseline (no diff)');
+                        Logger.default.log('✅ Data-model reprocess matches baseline (no diff)');
                     }
                 }
 

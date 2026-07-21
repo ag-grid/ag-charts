@@ -40,7 +40,7 @@ export class Listeners<EventType extends string, EventHandler extends Handler> {
             try {
                 listener.handler(...params);
             } catch (e) {
-                Logger.errorOnce(e);
+                Logger.default.errorOnce(e);
             }
         }
     }

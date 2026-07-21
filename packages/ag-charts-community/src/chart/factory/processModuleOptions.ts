@@ -190,9 +190,11 @@ export function processModuleOptions<T extends Partial<AgChartOptions>>(
     const missingOptions = groupBy(missingModules, (module) => (module.enterprise ? 'enterprise' : 'community'));
 
     if (ModuleRegistry.isUmd()) {
-        Logger.warnOnce(umdMissingModulesMessage(missingOptions.enterprise ?? []));
+        Logger.default.warnOnce(umdMissingModulesMessage(missingOptions.enterprise ?? []));
     } else {
-        Logger.errorOnce(bundlerMissingModulesMessage(missingModules, missingOptions, installationReferenceUrl));
+        Logger.default.errorOnce(
+            bundlerMissingModulesMessage(missingModules, missingOptions, installationReferenceUrl)
+        );
     }
 }
 

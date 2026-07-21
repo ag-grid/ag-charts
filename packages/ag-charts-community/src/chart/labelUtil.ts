@@ -16,7 +16,7 @@ import {
     type NormalisedChartLabelStyleOptions,
     fitLabelText,
     getMinOuterRectSize,
-    insetBox,
+    insideBarRegion,
     labelGlyphCentre,
     mergeDefaults,
     orientationAngles,
@@ -130,13 +130,21 @@ export function boundLabelFit(
 
 /**
  * Container that keeps an `inside` label within a marker of diameter `markerSize`, sized to the largest
- * rectangle that fits the marker's shape (analysed once per shape by {@link markerLabelRect}). Pair with
- * {@link resolveInsidePlacement}'s `offset` to position the label at that rectangle, which need not be
- * marker-centred.
+ * rectangle that fits the marker's shape (analysed once per shape by {@link markerLabelRect}). `threshold`
+ * shrinks that rectangle on every side so the label clears the marker walls by that many pixels. Pair
+ * with {@link resolveInsidePlacement}'s `offset` to position the label at that rectangle, which need not
+ * be marker-centred.
  */
-export function insideMarkerContainer(markerSize: number, shape?: AgMarkerShape): { width: number; height: number } {
+export function insideMarkerContainer(
+    markerSize: number,
+    shape?: AgMarkerShape,
+    threshold = 0
+): { width: number; height: number } {
     const rect = markerLabelRect(shape);
-    return { width: markerSize * rect.width, height: markerSize * rect.height };
+    return {
+        width: Math.max(0, markerSize * rect.width - 2 * threshold),
+        height: Math.max(0, markerSize * rect.height - 2 * threshold),
+    };
 }
 
 /** Inside-marker label geometry resolved from a series' configured placements and marker shape. */
@@ -409,6 +417,7 @@ export function buildBarLabelCandidates({
     placements: placementList,
     orientations,
     spacing,
+    threshold,
     rect,
     width,
     height,
@@ -418,11 +427,12 @@ export function buildBarLabelCandidates({
     placements: readonly BarLabelPlacement[];
     orientations: readonly AgChartLabelOrientation[];
     spacing: number;
+    threshold: number;
     rect: Bounds;
     width: number;
     height: number;
 }): BarPositionedCandidate[] {
-    const insideRegion = insetBox(rect, spacing);
+    const insideRegion = insideBarRegion(rect, spacing, threshold, isVertical);
     const candidates: BarPositionedCandidate[] = [];
     for (const placement of placementList) {
         const anchor = adjustLabelPlacement({ isUpward, isVertical, placement, spacing, rect });

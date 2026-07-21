@@ -6,8 +6,19 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 import lintChangeDetection from './libraries/ag-charts-eslint-rules/rules/change-detection.mjs';
+import noUnscopedLogger from './libraries/ag-charts-eslint-rules/rules/no-unscoped-logger.mjs';
 import requireExplicitGeneric from './libraries/ag-charts-eslint-rules/rules/require-explicit-generic.mjs';
 import requireSharedRenderer from './libraries/ag-charts-eslint-rules/rules/require-shared-renderer.mjs';
+
+// Path fragments of the files sanctioned to call `new Logger()`; everything else uses `ctx.logger` or
+// the shared `Logger.default`. Tests construct loggers freely.
+const SANCTIONED_LOGGER_CONSTRUCTION = [
+    '/logging/logger.ts',
+    '/chart/chartContext.ts',
+    '/module/optionsModule.ts',
+    '.test.',
+    '.spec.',
+];
 
 let env = 'unknown';
 if (process.env.CI != null) {
@@ -190,6 +201,7 @@ export default [
                     'require-explicit-generic': requireExplicitGeneric,
                     'require-shared-renderer': requireSharedRenderer,
                     'change-detection': lintChangeDetection,
+                    'no-unscoped-logger': noUnscopedLogger,
                 },
             },
             unicorn,
@@ -205,6 +217,9 @@ export default [
             'no-case-declarations': 0,
             'no-duplicate-imports': ['error', { allowSeparateTypeImports: true }],
             'aglint/change-detection': 2,
+            // Ban `new Logger()` everywhere but the sanctioned construction sites; the per-package
+            // static-emitter ban is layered on below.
+            'aglint/no-unscoped-logger': [2, { allowNewIn: SANCTIONED_LOGGER_CONSTRUCTION }],
             '@typescript-eslint/no-explicit-any': 0,
             '@typescript-eslint/consistent-type-imports': 0,
             '@typescript-eslint/no-redundant-type-constituents': 2,
@@ -269,6 +284,15 @@ export default [
         rules: {
             '@typescript-eslint/consistent-type-imports': 0,
             'no-console': 0,
+        },
+    },
+    {
+        // Community source is fully migrated off the ambient static `Logger.*` API, so enable the
+        // static-emitter ban here. Enterprise and core are rolled in as they migrate.
+        files: ['packages/ag-charts-community/src/**/*.{ts,tsx}'],
+        ignores: ['**/*.{test,spec}.ts'],
+        rules: {
+            'aglint/no-unscoped-logger': [2, { allowNewIn: SANCTIONED_LOGGER_CONSTRUCTION, checkStatic: true }],
         },
     },
 ];

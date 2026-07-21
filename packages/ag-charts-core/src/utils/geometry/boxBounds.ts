@@ -15,6 +15,11 @@ export function insetBox(b: BoxBounds, inset: number): BoxBounds {
     return { x: b.x + inset, y: b.y + inset, width: b.width - 2 * inset, height: b.height - 2 * inset };
 }
 
+/** `b` shrunk by `insetX` on left/right and `insetY` on top/bottom. Width/height may go non-positive; callers guard. */
+export function insetBoxXY(b: BoxBounds, insetX: number, insetY: number): BoxBounds {
+    return { x: b.x + insetX, y: b.y + insetY, width: b.width - 2 * insetX, height: b.height - 2 * insetY };
+}
+
 export function boxEmpty(b: BoxBounds | undefined): boolean {
     return b == null || b.height === 0 || b.width === 0 || Number.isNaN(b.height) || Number.isNaN(b.width);
 }

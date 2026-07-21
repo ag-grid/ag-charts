@@ -1,13 +1,15 @@
-import { afterEach, describe, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AgChartOptions } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-community';
 import {
+    type PlacedLabelGeometry,
     compareImageSnapshot,
     deproxy,
     expectPixelIdenticalAcrossUpdate,
     setupMockCanvas,
     setupMockConsole,
+    topLabelAnchorGap,
 } from 'ag-charts-community-test';
 
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../test/utils';
@@ -70,6 +72,38 @@ describe('label collision avoidance', () => {
 
         it('keeps a label that fails every candidate visible when suppressHide is true', async () => {
             await renderAndSnapshot(markerOptions({ collision: { suppressHide: true } }));
+        });
+
+        // `label.spacing` is the gap between a marker-based label and its anchor; a larger value pushes
+        // the label further from the marker. A single isolated marker so its 'top' label never collides.
+        const singleMarker = (spacing: number) =>
+            ({
+                topology: ukTopology,
+                series: [
+                    { type: 'map-shape-background' },
+                    {
+                        type: 'map-marker',
+                        data: [{ name: 'Site', lat: 52, lon: -1.5 }],
+                        latitudeKey: 'lat',
+                        longitudeKey: 'lon',
+                        labelKey: 'name',
+                        label: { enabled: true, placement: 'top', spacing },
+                    },
+                ],
+            }) as AgChartOptions;
+
+        const anchorGap = async (spacing: number) => {
+            chart?.destroy();
+            chart = await createEnterpriseChart(singleMarker(spacing));
+            const series = chart.series.find((s: any) => s.type === 'map-marker') as unknown as PlacedLabelGeometry;
+            return topLabelAnchorGap(series);
+        };
+
+        it('a larger label.spacing widens the gap between a map-marker label and its anchor', async () => {
+            const near = await anchorGap(5);
+            const far = await anchorGap(40);
+            expect(far).toBeGreaterThan(near);
+            expect(far - near).toBeCloseTo(35, 0);
         });
     });
 

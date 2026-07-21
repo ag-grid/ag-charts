@@ -623,9 +623,21 @@ describe('Validation utils', () => {
             );
         });
 
-        it('rejects an ontoColor the blend engine cannot render (e.g. oklch)', () => {
+        it('accepts an oklch() ontoColor the blend engine can render', () => {
             expect(
                 isValid({ c: { ref: 'accentColor', mix: 0.5, ontoColor: 'oklch(0.7 0.15 200)' } }, { c: colorOrRef })
+            ).toBe(true);
+        });
+
+        it('rejects an ontoColor the blend engine cannot render (e.g. lab/color)', () => {
+            expect(
+                isValid({ c: { ref: 'accentColor', mix: 0.5, ontoColor: 'lab(50% 40 59.5)' } }, { c: colorOrRef })
+            ).toBe(false);
+            expect(
+                isValid(
+                    { c: { ref: 'accentColor', mix: 0.5, ontoColor: 'color(display-p3 1 0.5 0)' } },
+                    { c: colorOrRef }
+                )
             ).toBe(false);
         });
 

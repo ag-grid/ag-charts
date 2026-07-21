@@ -619,7 +619,7 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
     }
 
     private warnMixedNumericColumn(seriesId: ScopeId, key: K, atIndex: number) {
-        Logger.warnOnce(
+        Logger.default.warnOnce(
             `Series "${seriesId}": column "${String(key)}" mixes 'number' and 'bigint' values ` +
                 `(first detected at row ${atIndex}); the bigints are narrowed to Number and may lose precision ` +
                 `beyond ±(2^53 - 1) (Number.MAX_SAFE_INTEGER). Use one numeric type per column.`
@@ -627,7 +627,7 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
     }
 
     private warnMixedDateColumn(seriesId: ScopeId, key: K, atIndex: number) {
-        Logger.warnOnce(
+        Logger.default.warnOnce(
             `Series "${seriesId}": column "${String(key)}" mixes date/time values with non-date values ` +
                 `(first detected at row ${atIndex}). Each column must be uniformly typed; the non-date values ` +
                 `cannot be placed on a time axis and may render at invalid positions.`
@@ -644,7 +644,7 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
         // Only a time-domain column interprets ISO strings as instants; on a category axis the same strings are
         // opaque labels, so mixed offsets are not ambiguous and must not warn (value-sniffing alone tags them 'date').
         if (!isTimeDomain || columnType !== 'date' || explicit == null || implicit == null) return;
-        Logger.warnOnce(
+        Logger.default.warnOnce(
             `Time axis: column "${String(key)}" contains both timezone-explicit values (e.g. "${explicit.value}", row ${explicit.index}) and timezone-implicit values (e.g. "${implicit.value}", row ${implicit.index}). Ambiguous timezone semantics may produce unexpected positions — points without an explicit offset are interpreted as local time. Use explicit offsets (Z or ±HH:MM) for cross-environment determinism.`
         );
     }
@@ -656,7 +656,7 @@ export class DataExtractor<D extends object, K extends keyof D & string> {
             for (const [scope, missCount] of def.missing) {
                 if (missCount < (sources.get(scope)?.data.length ?? Infinity)) continue;
                 const scopeHint = scope == null ? '' : ` for ${scope}`;
-                Logger.warnOnce(`the key '${def.property}' was not found in any data element${scopeHint}.`);
+                Logger.default.warnOnce(`the key '${def.property}' was not found in any data element${scopeHint}.`);
             }
         }
     }

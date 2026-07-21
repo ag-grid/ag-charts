@@ -34,7 +34,7 @@ import {
     barLabelRotation,
     buildBarLabelData,
     findMinMax,
-    insetBox,
+    insideBarRegion,
     isContinuous,
     measureLabelText,
     mergeDefaults,
@@ -937,7 +937,12 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         // bound the fit or to resolve orientation, so skip it otherwise.
         const container =
             placement === 'inside' && (ctx.labelFit != null || ctx.labelResolvesOrientation)
-                ? insetBox({ x: rectX, y: rectY, width: rectWidth, height: rectHeight }, ctx.labelInsetPadding)
+                ? insideBarRegion(
+                      { x: rectX, y: rectY, width: rectWidth, height: rectHeight },
+                      ctx.labelInsetPadding,
+                      label.collision.threshold ?? 0,
+                      !barAlongX
+                  )
                 : undefined;
         const region = ctx.labelResolvesOrientation ? container : undefined;
 

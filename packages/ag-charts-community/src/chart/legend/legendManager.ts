@@ -98,7 +98,7 @@ export class LegendManager implements MementoOriginator<LegendDataMemento> {
     }
 
     private warnFixed(seriesId: string, itemId: any) {
-        Logger.warnOnce(
+        Logger.default.warnOnce(
             `The legend item with seriesId [${seriesId}] and itemId [${itemId}] is not configurable, this series item cannot be toggled through the legend.`
         );
     }
