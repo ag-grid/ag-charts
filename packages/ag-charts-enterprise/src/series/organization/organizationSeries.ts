@@ -306,7 +306,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             const fromIndex = this.graph.findNeighbourValue(datum.from, 'datumIndex') as number;
             const toIndex = this.graph.findNeighbourValue(datum.to, 'datumIndex') as number;
 
-            const parentItemId = fromIndex != null ? this.contextNodeData?.nodeData[fromIndex].itemId : undefined;
+            const parentItemId = fromIndex == null ? undefined : this.contextNodeData?.nodeData[fromIndex].itemId;
             const visible = parentItemId == null || !this.ctx.collapsedManager.isCollapsed(parentItemId);
 
             node.visible = visible;
