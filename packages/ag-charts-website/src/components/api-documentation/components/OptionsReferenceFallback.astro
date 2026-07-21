@@ -34,55 +34,112 @@ const members = interfaceRef ? processMembers(interfaceRef, {}) : [];
     signatures remain client-rendered.
 */
 }
-<div class="options-reference-fallback">
-    <header>
-        <h1 class="text-3xl">
-            {
-                title.type ? (
-                    <>
-                        {title.name}
-                        {title.name === 'axes' && <span class="record-alias">.key</span>}[type='
-                        <span class="union-discriminator">{title.type}</span>']
-                    </>
-                ) : (
-                    title.name
-                )
-            }
-        </h1>
-        {description && <p class="text-secondary">{description}</p>}
-    </header>
+<div class="options-reference-fallback layout-grid">
+    {
+        /* Empty column reserving the left-nav width, so the property content lands at the same
+        x-position as the hydrated layout and the navigation tree fills into reserved space
+        without shifting the page horizontally on hydration. */
+    }
+    <div class="nav-placeholder" aria-hidden="true"></div>
 
-    <dl class="reference-list">
-        {
-            members.map((member) => {
-                const memberDocs = parseJsDocs(member.docs);
-                return (
-                    <div class="reference-row" id={`reference-${id}-${member.name}`}>
-                        <dt>
-                            <span class="property-name">{cleanupName(member.name)}</span>
-                            {!member.optional && <span class="required">required</span>}
-                            <code class="property-type">{normalizeType(member.type)}</code>
-                            {member.defaultValue != null && (
-                                <span class="property-default">default: {member.defaultValue}</span>
-                            )}
-                        </dt>
-                        {memberDocs && <dd class="text-secondary">{memberDocs}</dd>}
-                    </div>
-                );
-            })
-        }
-    </dl>
+    <div class="reference-content">
+        <header>
+            <h1 class="text-3xl">
+                {
+                    title.type ? (
+                        <>
+                            {title.name}
+                            {title.name === 'axes' && <span class="record-alias">.key</span>}[type='
+                            <span class="union-discriminator">{title.type}</span>']
+                        </>
+                    ) : (
+                        title.name
+                    )
+                }
+            </h1>
+            {description && <p class="text-secondary">{description}</p>}
+        </header>
+
+        <dl class="reference-list">
+            {
+                members.map((member) => {
+                    const memberDocs = parseJsDocs(member.docs);
+                    return (
+                        <div class="reference-row" id={`reference-${id}-${member.name}`}>
+                            <dt>
+                                <span class="property-name">{cleanupName(member.name)}</span>
+                                {!member.optional && <span class="required">required</span>}
+                                <code class="property-type">{normalizeType(member.type)}</code>
+                                {member.defaultValue != null && (
+                                    <span class="property-default">default: {member.defaultValue}</span>
+                                )}
+                            </dt>
+                            {memberDocs && <dd class="text-secondary">{memberDocs}</dd>}
+                        </div>
+                    );
+                })
+            }
+        </dl>
+    </div>
 </div>
 
 <style lang="scss">
     @use 'design-system' as *;
 
-    .options-reference-fallback {
-        width: 100%;
-        padding-top: $spacing-size-8;
+    /*
+        Mirror the two-column geometry the hydrated <ApiReferencePage> produces (its
+        `.container.layout-grid` + `.objectViewOuter` + `.referenceOuter`) so the swap from this
+        fallback to the React app does not shift the page horizontally.
+    */
+
+    .nav-placeholder {
+        width: calc(100% + var(--layout-horizontal-margins) * 2);
+        margin-left: calc(var(--layout-horizontal-margins) * -1);
+
+        @media screen and (max-width: $breakpoint-options-medium) {
+            /*
+                Below this breakpoint the navigation tree is hidden and the nav stacks above the
+                content as a single search box. Reserve its height so the content does not drop on
+                hydration: the nav's top padding ($spacing-size-5) plus the search box (its text
+                line-box + vertical padding of $spacing-size-3 + 1px border top and bottom).
+            */
+            min-height: calc(#{$spacing-size-5} + var(--text-fs-base) * var(--text-lh-base) + #{$spacing-size-3} + 2px);
+        }
+
+        @media screen and (min-width: $breakpoint-options-medium) {
+            width: calc(var(--layout-width-4-12) + var(--layout-horizontal-margins));
+            box-shadow: -1px 0 0 0 var(--color-border-primary);
+            border-right: 1px solid var(--color-border-primary);
+        }
+
+        @media screen and (min-width: $breakpoint-options-large) {
+            width: calc(var(--layout-width-3-12) + var(--layout-horizontal-margins));
+        }
+    }
+
+    .reference-content {
+        width: calc(100% + var(--layout-gap) * 2);
+        margin-left: calc(var(--layout-gap) * -1);
+
+        @media screen and (max-width: $breakpoint-options-medium) {
+            /* Below this breakpoint the content spans full width with no negative bleed, matching
+               the hydrated `.referenceOuter`; without this the body sits ~32px too far left (and
+               off-screen) until hydration snaps it back. */
+            margin-left: 0;
+        }
+
+        @media screen and (min-width: $breakpoint-options-medium) {
+            width: var(--layout-width-8-12);
+            margin-left: 0;
+        }
+
+        @media screen and (min-width: $breakpoint-options-large) {
+            width: var(--layout-width-9-12);
+        }
     }
 
     header {
+        padding-top: $spacing-size-8;
         padding-bottom: $spacing-size-6;
         margin-bottom: $spacing-size-4;
         border-bottom: 1px solid var(--color-border-secondary);
