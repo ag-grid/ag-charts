@@ -9231,6 +9231,11 @@ ag-grid-react@~35.0.1:
     ag-grid-community "35.0.1"
     prop-types "^15.8.1"
 
+ag-stack@~36.0.1:
+  version "36.0.1"
+  resolved "https://registry.yarnpkg.com/ag-stack/-/ag-stack-36.0.1.tgz#0756b0f972dbbd7af3a1cd4c047ee9dd5b75f992"
+  integrity sha512-FsrO55fl7EDToQVgRDaTF1+QKWpfJK1nxTxTavkkfHeq6Kei4skAeP0MsjXm7zECjfyHczlwmWvp+KN7KHnlYQ==
+
 agent-base@6:
   version "6.0.2"
   resolved "https://registry.yarnpkg.com/agent-base/-/agent-base-6.0.2.tgz#49fff58577cfee3f37176feab4c22e00f86d7f77"
