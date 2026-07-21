@@ -1004,7 +1004,7 @@ export class SankeySeries extends FlowProportionSeries<
         const fillBBox = this.getShapeFillBBox();
 
         datumSelection.each((link, datum) => {
-            const style = this.getLinkStyle(datum, datum.datumIndex, datum.fromNode.datumIndex, isHighlight);
+            const style = this.getLinkStyle(datum.datum, datum.datumIndex, datum.fromNode.datumIndex, isHighlight);
 
             link.x1 = datum.x1;
             link.y1 = datum.y1;
