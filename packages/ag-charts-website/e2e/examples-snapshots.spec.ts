@@ -1,5 +1,6 @@
 import { ExampleOverrides, convertPageUrls, createTestCase } from './examples-util';
-import { expect, test } from './fixture';
+import { test } from './fixture';
+import { expectChartScreenshot } from './scene-capture';
 import { SELECTORS, getExamples, setupIntrinsicAssertions } from './util';
 
 const exampleOptions: Record<string, Record<string, ExampleOverrides>> = {
@@ -68,7 +69,7 @@ test.describe('examples snapshots', () => {
 
             const finalCallback = async (page) => {
                 const canvasCenter = page.locator(SELECTORS.canvasCenter);
-                return await expect(canvasCenter).toHaveScreenshot(`${pagePath}-${example}-${framework}.png`);
+                return await expectChartScreenshot(page, canvasCenter, `${pagePath}-${example}-${framework}.png`);
             };
 
             test.describe(`Framework: ${framework}`, () => {

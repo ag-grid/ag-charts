@@ -1,4 +1,5 @@
-import { expect, test } from './fixture';
+import { test } from './fixture';
+import { expectChartScreenshot } from './scene-capture';
 import { gotoExample, locateCanvas, setupIntrinsicAssertions, toExamplePageUrls, waitForAllChartUpdates } from './util';
 
 const GOOGLE_FONT_FAMILIES = ['Pacifico', 'DM Serif Text', 'Orbitron'];
@@ -30,7 +31,7 @@ test.describe('fonts', () => {
                 );
 
                 const { canvas } = await locateCanvas(page);
-                await expect(canvas).toHaveScreenshot('google-fonts.png');
+                await expectChartScreenshot(page, canvas, 'google-fonts.png');
             });
         });
     }

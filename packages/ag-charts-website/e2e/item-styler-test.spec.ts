@@ -1,4 +1,5 @@
 import { expect, test } from './fixture';
+import { expectChartScreenshot } from './scene-capture';
 import { SELECTORS, gotoExample, setupIntrinsicAssertions, toExamplePageUrl, waitForAllChartUpdates } from './util';
 
 test.describe('item-styler-test', () => {
@@ -89,7 +90,7 @@ test.describe('item-styler-test', () => {
 
             // Take screenshot showing keyboard focus for this chart type
             const screenshotName = `keyboard-navigation-${chartType.toLowerCase().replace(/[^a-z0-9]/g, '-')}.png`;
-            await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(screenshotName);
+            await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), screenshotName);
 
             // Focus on one (or more) legend items to cover series highlight state
             await page.keyboard.press('Tab');

@@ -1,4 +1,5 @@
 import { expect, test } from './fixture';
+import { expectChartScreenshot } from './scene-capture';
 import {
     canvasToPageTransformer,
     createConsoleLogs,
@@ -26,15 +27,15 @@ test.describe('collapse', () => {
                     const node = point(348 + 51, 94 + 24);
                     const expander = point(348 + 51, 94 + 36);
 
-                    await expect(page).toHaveScreenshot('org-chart-initial.png', { animations: 'disabled' });
+                    await expectChartScreenshot(page, page, 'org-chart-initial.png', { animations: 'disabled' });
 
                     // Should not collapse on click node
                     await page.mouse.click(node.x, node.y);
-                    await expect(page).toHaveScreenshot('org-chart-node-click.png', { animations: 'disabled' });
+                    await expectChartScreenshot(page, page, 'org-chart-node-click.png', { animations: 'disabled' });
 
                     // Should collapse on click expander
                     await page.mouse.click(expander.x, expander.y);
-                    await expect(page).toHaveScreenshot('org-chart-expander-click.png', { animations: 'disabled' });
+                    await expectChartScreenshot(page, page, 'org-chart-expander-click.png', { animations: 'disabled' });
                 });
             });
         }
@@ -54,7 +55,7 @@ test.describe('collapse', () => {
             // Should allow default collapse behaviour
             await page.mouse.click(henry7.x, henry7.y);
             await delay(100); // Small delay to allow focus highlight to update
-            await expect(page).toHaveScreenshot('org-chart-allow-default.png', { animations: 'disabled' });
+            await expectChartScreenshot(page, page, 'org-chart-allow-default.png', { animations: 'disabled' });
 
             // Should log the event.collapsed items
             expect(consoleLogs.getLogs()).toEqual(
@@ -82,7 +83,7 @@ test.describe('collapse', () => {
             // Should prevent default collapse behaviour
             await page.mouse.click(henry8.x, henry8.y);
             await delay(100); // Small delay to allow focus highlight to update
-            await expect(page).toHaveScreenshot('org-chart-prevent-default.png', { animations: 'disabled' });
+            await expectChartScreenshot(page, page, 'org-chart-prevent-default.png', { animations: 'disabled' });
 
             // Should log the event.collapsed items
             expect(consoleLogs.getLogs()).toEqual(

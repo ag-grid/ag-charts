@@ -1,4 +1,5 @@
 import { expect, test } from './fixture';
+import { expectChartScreenshot } from './scene-capture';
 import {
     SELECTORS,
     gotoExample,
@@ -17,25 +18,25 @@ test.describe('css variables', () => {
         test.describe(`for ${framework}`, () => {
             test('change value', async ({ page }) => {
                 await gotoExample(page, url);
-                await expect(page.locator(SELECTORS.canvas)).toHaveScreenshot('initial-value.png');
+                await expectChartScreenshot(page, page.locator(SELECTORS.canvas), 'initial-value.png');
 
                 // Expect the colours to change
                 await page.getByText('Change CSS Variable').click();
-                await expect(page.locator(SELECTORS.canvas)).toHaveScreenshot('changed-value.png');
+                await expectChartScreenshot(page, page.locator(SELECTORS.canvas), 'changed-value.png');
 
                 // Expect the theme to change and keep the new colours
                 await page.getByTitle('Change to Default Theme').click();
-                await expect(page.locator(SELECTORS.canvas)).toHaveScreenshot('changed-theme.png');
+                await expectChartScreenshot(page, page.locator(SELECTORS.canvas), 'changed-theme.png');
 
                 // Expect the theme to stay the same and the colours to change
                 await page.getByTitle('Change to Default Theme').click();
                 await page.getByText('Change CSS Variable').click();
-                await expect(page.locator(SELECTORS.canvas)).toHaveScreenshot('change-value-same-theme.png');
+                await expectChartScreenshot(page, page.locator(SELECTORS.canvas), 'change-value-same-theme.png');
 
                 // Expect the theme to change and the colours to change
                 await page.getByTitle('Change to Paper Theme').click();
                 await page.getByText('Change CSS Variable').click();
-                await expect(page.locator(SELECTORS.canvas)).toHaveScreenshot('change-value-and-theme.png');
+                await expectChartScreenshot(page, page.locator(SELECTORS.canvas), 'change-value-and-theme.png');
             });
         });
     }
@@ -48,12 +49,12 @@ test.describe('css variables', () => {
 
         const charts = page.locator('#charts');
         await expect(page.locator('#status')).toContainText('Mode: Light');
-        await expect(charts).toHaveScreenshot('css-variables-dark-mode-light.png');
+        await expectChartScreenshot(page, charts, 'css-variables-dark-mode-light.png');
 
         await page.getByText('Toggle Dark Mode').click();
         await waitForAllChartUpdates(page);
         await expect(page.locator('#status')).toContainText('Mode: Dark');
-        await expect(charts).toHaveScreenshot('css-variables-dark-mode-dark.png');
+        await expectChartScreenshot(page, charts, 'css-variables-dark-mode-dark.png');
 
         // Toggling again must re-resolve the CSS variables and repaint back to the original light
         // appearance (still without an explicit chart.update()) — the reverse of the transition above,
@@ -61,7 +62,7 @@ test.describe('css variables', () => {
         await page.getByText('Toggle Dark Mode').click();
         await waitForAllChartUpdates(page);
         await expect(page.locator('#status')).toContainText('Mode: Light');
-        await expect(charts).toHaveScreenshot('css-variables-dark-mode-light-restored.png');
+        await expectChartScreenshot(page, charts, 'css-variables-dark-mode-light-restored.png');
     });
 
     // A theme param blends `accentColor` onto a `var(--onto-color)` via `ontoColor`. Changing the CSS
@@ -69,10 +70,10 @@ test.describe('css variables', () => {
     test('ontoColor blends onto a CSS variable and reacts to its changes', async ({ page }) => {
         const { url } = toExamplePageUrl('themes-e2e', 'css-variables-onto-color', 'vanilla');
         await gotoExample(page, url);
-        await expect(page.locator(SELECTORS.canvas)).toHaveScreenshot('onto-color-initial.png');
+        await expectChartScreenshot(page, page.locator(SELECTORS.canvas), 'onto-color-initial.png');
 
         await page.getByText('Change CSS Variable').click();
         await waitForAllChartUpdates(page);
-        await expect(page.locator(SELECTORS.canvas)).toHaveScreenshot('onto-color-changed.png');
+        await expectChartScreenshot(page, page.locator(SELECTORS.canvas), 'onto-color-changed.png');
     });
 });

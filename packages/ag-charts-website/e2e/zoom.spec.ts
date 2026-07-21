@@ -1,4 +1,5 @@
 import { expect, test } from './fixture';
+import { expectChartScreenshot } from './scene-capture';
 import {
     SELECTORS,
     delay,
@@ -41,22 +42,22 @@ test.describe('zoom', () => {
         await zoomIn.click();
         await zoomIn.click();
         await zoomIn.click();
-        await expect(page).toHaveScreenshot('zoom-1-before-navigator-zoom-in.png', { animations: 'disabled' });
+        await expectChartScreenshot(page, page, 'zoom-1-before-navigator-zoom-in.png', { animations: 'disabled' });
 
         // 2. Drag the y-axis with the navigator hidden to zoom in
         await dragCanvas(page, withoutNavigatorYAxisBottom, withoutNavigatorYAxisTop);
-        await expect(page).toHaveScreenshot('zoom-2-before-navigator-drag-y-axis.png', { animations: 'disabled' });
+        await expectChartScreenshot(page, page, 'zoom-2-before-navigator-drag-y-axis.png', { animations: 'disabled' });
 
         // Show navigator with minichart
         await page.locator('.example-controls button').getByText('Toggle Navigator').click();
 
         // 3. Drag the y-axis with the navigator visible to zoom in
         await dragCanvas(page, withNavigatorYAxisBottom, withNavigatorYAxisTop);
-        await expect(page).toHaveScreenshot('zoom-3-with-navigator-drag-y-axis.png', { animations: 'disabled' });
+        await expectChartScreenshot(page, page, 'zoom-3-with-navigator-drag-y-axis.png', { animations: 'disabled' });
 
         // 4. Drag the x-axis with the navigator visible to zoom in
         await dragCanvas(page, withNavigatorXAxisLeft, withNavigatorXAxisRight);
-        await expect(page).toHaveScreenshot('zoom-4-with-navigator-drag-x-axis.png', { animations: 'disabled' });
+        await expectChartScreenshot(page, page, 'zoom-4-with-navigator-drag-x-axis.png', { animations: 'disabled' });
 
         // Hide navigator
         await page.locator('.example-controls button').getByText('Toggle Navigator').click();
@@ -64,13 +65,13 @@ test.describe('zoom', () => {
         // 5. Drag the y-axis twice with the navigator hidden again to zoom out
         await dragCanvas(page, withoutNavigatorYAxisTop, withoutNavigatorYAxisBottom);
         await dragCanvas(page, withoutNavigatorYAxisTop, withoutNavigatorYAxisBottom);
-        await expect(page).toHaveScreenshot('zoom-5-after-navigator-drag-y-axis.png', { animations: 'disabled' });
+        await expectChartScreenshot(page, page, 'zoom-5-after-navigator-drag-y-axis.png', { animations: 'disabled' });
 
         // 6. Drag the x-axis twice with the navigator hidden again to zoom out
         await dragCanvas(page, withoutNavigatorXAxisLeft, withoutNavigatorXAxisRight);
         await dragCanvas(page, withoutNavigatorXAxisLeft, withoutNavigatorXAxisRight);
         await delay(300); // Delay due to debounce in ZoomToolbar (ZOOM_VALID_CHECK_DEBOUNCE)
-        await expect(page).toHaveScreenshot('zoom-6-after-navigator-drag-x-axis.png', { animations: 'disabled' });
+        await expectChartScreenshot(page, page, 'zoom-6-after-navigator-drag-x-axis.png', { animations: 'disabled' });
     });
 
     test('crosshairs', async ({ page }) => {
@@ -93,7 +94,7 @@ test.describe('zoom', () => {
         await expect(page.locator(xAxisLabel)).not.toBeVisible();
         await expect(page.locator(yAxisLabel)).not.toBeVisible();
 
-        await expect(page).toHaveScreenshot('zoom-crosshairs-after-wheel-zoom.png', { animations: 'disabled' });
+        await expectChartScreenshot(page, page, 'zoom-crosshairs-after-wheel-zoom.png', { animations: 'disabled' });
 
         // Expect crosshairs to become visible on second hover.
         await canvas.hover({ position: midPoint });
@@ -116,10 +117,12 @@ test.describe('zoom', () => {
         const axisCentre = { x: Math.round(width / 2) + 10, y: Math.round(height / 2) + 45 };
         await canvas.hover({ position: axisCentre });
         await waitForAllChartUpdates(page);
-        await expect(page).toHaveScreenshot('zoom-axis-overlap-axis-hover-highlight.png', { animations: 'disabled' });
+        await expectChartScreenshot(page, page, 'zoom-axis-overlap-axis-hover-highlight.png', {
+            animations: 'disabled',
+        });
 
         await dragCanvas(page, axisCentre, { x: 10, y: axisCentre.y });
-        await expect(page).toHaveScreenshot('zoom-axis-overlap-axis-does-not-drag-with-highlight.png', {
+        await expectChartScreenshot(page, page, 'zoom-axis-overlap-axis-does-not-drag-with-highlight.png', {
             animations: 'disabled',
         });
 
@@ -129,7 +132,7 @@ test.describe('zoom', () => {
         };
         await canvas.hover({ position: axisHoverNoHighlight });
         await waitForAllChartUpdates(page);
-        await expect(page).toHaveScreenshot('zoom-axis-overlap-axis-hover-no-highlight.png', {
+        await expectChartScreenshot(page, page, 'zoom-axis-overlap-axis-hover-no-highlight.png', {
             animations: 'disabled',
         });
 
@@ -139,7 +142,7 @@ test.describe('zoom', () => {
             y: axisHoverNoHighlight.y + 10,
         });
         await waitForAllChartUpdates(page);
-        await expect(page).toHaveScreenshot('zoom-axis-overlap-axis-does-drag-without-highlight.png', {
+        await expectChartScreenshot(page, page, 'zoom-axis-overlap-axis-does-drag-without-highlight.png', {
             animations: 'disabled',
         });
     });
@@ -150,14 +153,14 @@ test.describe('zoom', () => {
         await page.mouse.click(100, 100);
 
         await page.keyboard.type('+');
-        await expect(page).toHaveScreenshot('zoom-pluskey-no-focus-visible.png', { animations: 'disabled' });
+        await expectChartScreenshot(page, page, 'zoom-pluskey-no-focus-visible.png', { animations: 'disabled' });
         await page.keyboard.type('-');
-        await expect(page).toHaveScreenshot('zoom-minuskey-no-focus-visible.png', { animations: 'disabled' });
+        await expectChartScreenshot(page, page, 'zoom-minuskey-no-focus-visible.png', { animations: 'disabled' });
 
         await page.keyboard.press('ArrowLeft');
         await page.keyboard.type('+');
-        await expect(page).toHaveScreenshot('zoom-pluskey-focus-visible.png', { animations: 'disabled' });
+        await expectChartScreenshot(page, page, 'zoom-pluskey-focus-visible.png', { animations: 'disabled' });
         await page.keyboard.type('-');
-        await expect(page).toHaveScreenshot('zoom-minuskey-focus-visible.png', { animations: 'disabled' });
+        await expectChartScreenshot(page, page, 'zoom-minuskey-focus-visible.png', { animations: 'disabled' });
     });
 });

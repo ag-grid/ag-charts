@@ -1,5 +1,6 @@
 import { ExampleOverrides, convertPageUrls, createTestCase, triggerExampleTooltips } from './examples-util';
-import { expect, test } from './fixture';
+import { test } from './fixture';
+import { expectChartScreenshot } from './scene-capture';
 import { getExamples, setupIntrinsicAssertions } from './util';
 
 const exampleOptions: Record<string, Record<string, ExampleOverrides>> = {
@@ -53,7 +54,7 @@ test.describe('gallery examples', () => {
                         await triggerExampleTooltips(page);
                         if (opts.randomData) return;
 
-                        await expect(page).toHaveScreenshot(`gallery-${opts.example}.png`);
+                        await expectChartScreenshot(page, page, `gallery-${opts.example}.png`);
                     });
                 });
             });

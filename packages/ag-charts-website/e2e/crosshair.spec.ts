@@ -1,4 +1,5 @@
-import { expect, test } from './fixture';
+import { test } from './fixture';
+import { expectChartScreenshot } from './scene-capture';
 import { gotoExample, setupIntrinsicAssertions, toExamplePageUrl, toExamplePageUrls } from './util';
 
 test.describe('crosshair', () => {
@@ -13,11 +14,11 @@ test.describe('crosshair', () => {
                 await gotoExample(page, url);
 
                 await page.mouse.click(x, y, { button: 'left' });
-                await expect(page).toHaveScreenshot('snap-enabled-mouse.png');
+                await expectChartScreenshot(page, page, 'snap-enabled-mouse.png');
 
                 await page.keyboard.press('ArrowRight');
                 await page.keyboard.press('ArrowRight');
-                await expect(page).toHaveScreenshot('snap-enabled-keyboard.png');
+                await expectChartScreenshot(page, page, 'snap-enabled-keyboard.png');
             });
         });
     }
@@ -28,11 +29,11 @@ test.describe('crosshair', () => {
                 await gotoExample(page, url);
 
                 await page.mouse.click(x, y, { button: 'left' });
-                await expect(page).toHaveScreenshot('snap-disabled-mouse.png');
+                await expectChartScreenshot(page, page, 'snap-disabled-mouse.png');
 
                 await page.keyboard.press('ArrowRight');
                 await page.keyboard.press('ArrowRight');
-                await expect(page).toHaveScreenshot('snap-disabled-keyboard.png');
+                await expectChartScreenshot(page, page, 'snap-disabled-keyboard.png');
             });
         });
     }
@@ -42,9 +43,9 @@ test.describe('crosshair', () => {
         await gotoExample(page, url);
 
         await page.mouse.move(400, 300);
-        await expect(page).toHaveScreenshot('crosshair-visible.png');
+        await expectChartScreenshot(page, page, 'crosshair-visible.png');
 
         await page.mouse.click(400, 300, { button: 'left' });
-        await expect(page).toHaveScreenshot('crosshair-visible.png');
+        await expectChartScreenshot(page, page, 'crosshair-visible.png');
     });
 });
