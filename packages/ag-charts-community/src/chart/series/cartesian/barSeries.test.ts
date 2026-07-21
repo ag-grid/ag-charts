@@ -1568,6 +1568,142 @@ describe('BarSeries', () => {
         );
     });
 
+    describe('beside label placement', () => {
+        const besideData = [
+            { x: 'a', y: 100 },
+            { x: 'b', y: -100 },
+            { x: 'c', y: 200 },
+            { x: 'd', y: -200 },
+        ];
+
+        // Columns: `before`/`after` sit left/right, `start`/`center`/`end` position along the value axis.
+        describe.each([
+            'beside-before-start',
+            'beside-before-center',
+            'beside-before-end',
+            'beside-after-start',
+            'beside-after-center',
+            'beside-after-end',
+        ] as const)('renders placement %s (vertical bars)', (placement) => {
+            it('places the label beside its segment', async () => {
+                const options: AgChartOptions = {
+                    data: besideData,
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y', label: { placement, spacing: 10, color: 'black' } }],
+                };
+
+                prepareTestOptions(options);
+
+                chart = AgCharts.create(options);
+                await compare();
+            });
+        });
+
+        // Horizontal bars map `before`/`after` to above/below rather than left/right.
+        it.each(['beside-before-center', 'beside-after-center'] as const)(
+            'renders placement %s (horizontal bars)',
+            async (placement) => {
+                const options: AgChartOptions = {
+                    data: besideData,
+                    series: [
+                        {
+                            type: 'bar',
+                            direction: 'horizontal',
+                            xKey: 'x',
+                            yKey: 'y',
+                            label: { placement, spacing: 10, color: 'black' },
+                        },
+                    ],
+                };
+
+                prepareTestOptions(options);
+
+                chart = AgCharts.create(options);
+                await compare();
+            }
+        );
+
+        // A reversed category axis flips a column's left/right, so `before`/`after` keep their physical
+        // meaning relative to the category direction — `after` now sits on the left.
+        it('flips before/after when the category axis is reversed', async () => {
+            const options: AgChartOptions = {
+                data: besideData,
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'y',
+                        label: { placement: 'beside-after-center', spacing: 10, color: 'black' },
+                    },
+                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom', reverse: true },
+                    y: { type: 'number', position: 'left' },
+                } as any,
+            };
+
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        // A reversed value axis continues to govern start/end via `isUpward`, matching inside-* behaviour.
+        it('resolves start/end against a reversed value axis', async () => {
+            const options: AgChartOptions = {
+                data: besideData,
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'y',
+                        label: { placement: 'beside-before-start', spacing: 10, color: 'black' },
+                    },
+                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left', reverse: true },
+                } as any,
+            };
+
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        // Three-segment stack, fallback `[inside, outside, beside]`: base stays inside; the sandwiched tiny
+        // middle has `outside-end` rejected (a stacked neighbour on that side would be mislabelled) so falls
+        // back to beside; the outermost tiny top keeps `outside-end` (nothing stacked beyond it).
+        it.each(['horizontal', 'vertical'] as const)(
+            'rejects outside labels that would point into a stacked neighbour (%s bars)',
+            async (direction) => {
+                const label = {
+                    placement: ['inside-center', 'outside-end', 'beside-after-center'] as AgBarSeriesLabelPlacement[],
+                    spacing: 10,
+                    color: 'black',
+                };
+                const options: AgChartOptions = {
+                    data: [
+                        { x: 'a', bottom: 100, middle: 4, top: 5 },
+                        { x: 'b', bottom: 120, middle: 3, top: 4 },
+                        { x: 'c', bottom: 90, middle: 4, top: 5 },
+                        { x: 'd', bottom: 140, middle: 3, top: 4 },
+                    ],
+                    series: [
+                        { type: 'bar', direction, xKey: 'x', yKey: 'bottom', stacked: true, label },
+                        { type: 'bar', direction, xKey: 'x', yKey: 'middle', stacked: true, label },
+                        { type: 'bar', direction, xKey: 'x', yKey: 'top', stacked: true, label },
+                    ],
+                };
+
+                prepareTestOptions(options);
+
+                chart = AgCharts.create(options);
+                await compare();
+            }
+        );
+    });
+
     describe('label placement cascade', () => {
         // A placement array cascades per datum (inside-center-h → inside-center-v → outside-end-h →
         // outside-end-v). Small bars can't fit the label inside and fall through to outside; large

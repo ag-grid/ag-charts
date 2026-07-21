@@ -23,13 +23,27 @@ export type AgChartLabelCollisionPlacement =
  */
 export type AgChartLabelOrientation = 'horizontal' | 'vertical' | 'vertical-reversed';
 
-/** Where a bar-family label is placed relative to its bar segment. */
+/**
+ * Where a bar-family label is placed relative to its bar segment.
+ *
+ * The `inside-*` and `outside-*` values offset the label along the value axis. The `beside-*` values
+ * offset it perpendicular to the value axis, floating it to the side of the segment: `before`/`after`
+ * choose the side (a column's left/right, a horizontal bar's above/below) and `start`/`center`/`end`
+ * position it along the segment's length. `beside-*` is useful for tiny stacked segments with no room
+ * to place a label along the value axis.
+ */
 export type AgBarSeriesLabelPlacement =
     | 'inside-center'
     | 'inside-start'
     | 'inside-end'
     | 'outside-start'
-    | 'outside-end';
+    | 'outside-end'
+    | 'beside-before-start'
+    | 'beside-before-center'
+    | 'beside-before-end'
+    | 'beside-after-start'
+    | 'beside-after-center'
+    | 'beside-after-end';
 
 /** Per-category toggle for the obstacles a label avoids. */
 export interface AgChartLabelCollideWithOptions {
