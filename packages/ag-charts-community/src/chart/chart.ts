@@ -1140,6 +1140,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 }
 
                 this.ctx.domManager.incrementDataCounter('sceneRenders');
+                this.revealCanvasIfSized();
             // fallthrough
 
             case ChartUpdateType.NONE:
@@ -1256,6 +1257,15 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 // width/height, and we end up never rendering the chart in that scenario.
                 this.debug('Chart.checkFirstAutoSize() - timeout for first size update.');
             }
+        }
+    }
+
+    // Reveal the canvas only once we have painted at a size the container has confirmed (or an
+    // explicit width/height), so an auto-sized chart never flashes a provisional-size first paint.
+    private revealCanvasIfSized() {
+        const sized = this.ctx.domManager.containerSize != null || (this.width != null && this.height != null);
+        if (sized) {
+            this.ctx.domManager.revealCanvas();
         }
     }
 

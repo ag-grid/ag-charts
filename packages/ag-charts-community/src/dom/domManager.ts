@@ -168,6 +168,7 @@ export class DOMManager extends BaseManager {
     private readonly cursorState = new StateTracker('default');
     private _lastCursor: string = 'default';
     private _lastCenterSize: { visibility: string; width: string; height: string } | undefined = undefined;
+    private _canvasRevealed = false;
 
     private readonly deferredProxies = new Map<string, DOMElementProxy>();
     private readonly elementProxy: DOMElementProxy;
@@ -433,8 +434,16 @@ export class DOMManager extends BaseManager {
         this.updateContainerClassName();
     }
 
+    // Keep the canvas hidden until the chart has painted at a confirmed size (revealCanvas), so a
+    // provisional-size first paint never becomes visible for a frame before the real-size render.
+    revealCanvas() {
+        if (this._canvasRevealed) return;
+        this._canvasRevealed = true;
+        this.updateContainerSize();
+    }
+
     private updateContainerSize() {
-        const visibility = this.containerSize == null ? 'hidden' : '';
+        const visibility = this.containerSize != null && this._canvasRevealed ? '' : 'hidden';
         // Floor to the canvas's integer render size; a fractional size ping-pongs the ResizeObserver by 1px.
         const width = this.containerSize ? `${Math.floor(this.containerSize.width ?? 0)}px` : '';
         const height = this.containerSize ? `${Math.floor(this.containerSize.height ?? 0)}px` : '';

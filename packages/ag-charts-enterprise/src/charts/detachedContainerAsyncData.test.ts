@@ -122,4 +122,55 @@ describe('Chart on a detached container with async data and a series-type switch
 
         expect([scene.width, scene.height]).toEqual(sizeBeforeDestroy);
     });
+
+    // Treemap and sunburst position their whole figure from both dimensions (sunburst centres on
+    // height/2; treemap squarifies the box), so a paint at a not-yet-confirmed size is visibly wrong.
+    // The canvas must stay hidden until the chart has rendered at the confirmed container size.
+    const HIERARCHY_DATA = [
+        { label: 'A', children: [{ label: 'A1', value: 3 }, { label: 'A2', value: 5 }] },
+        { label: 'B', value: 4 },
+    ];
+
+    const captureSizeAtReveal = async (seriesType: 'sunburst' | 'treemap') => {
+        const { container, attach } = setupMeasurableContainer();
+        proxy = AgCharts.create({
+            container,
+            animation: { enabled: false },
+            data: HIERARCHY_DATA,
+            series: [{ type: seriesType, labelKey: 'label', sizeKey: 'value', childrenKey: 'children' }],
+        });
+        const chart = deproxy(proxy) as any;
+        const centerStyle = chart.ctx.domManager.getParent('canvas-center').style;
+
+        let sceneAtReveal: [number, number] | undefined;
+        let visibility = centerStyle.visibility;
+        Object.defineProperty(centerStyle, 'visibility', {
+            configurable: true,
+            get: () => visibility,
+            set: (value: string) => {
+                visibility = value;
+                if (value === '' && sceneAtReveal == null) {
+                    sceneAtReveal = [chart.ctx.scene.width, chart.ctx.scene.height];
+                }
+            },
+        });
+
+        attach();
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        await proxy.waitForUpdate();
+
+        return { confirmedSize: [chart.ctx.scene.width, chart.ctx.scene.height], sceneAtReveal };
+    };
+
+    it('reveals a sunburst only after it has rendered at the confirmed container size', async () => {
+        const { confirmedSize, sceneAtReveal } = await captureSizeAtReveal('sunburst');
+        expect(confirmedSize).toEqual([400, 250]);
+        expect(sceneAtReveal).toEqual([400, 250]);
+    });
+
+    it('reveals a treemap only after it has rendered at the confirmed container size', async () => {
+        const { confirmedSize, sceneAtReveal } = await captureSizeAtReveal('treemap');
+        expect(confirmedSize).toEqual([400, 250]);
+        expect(sceneAtReveal).toEqual([400, 250]);
+    });
 });

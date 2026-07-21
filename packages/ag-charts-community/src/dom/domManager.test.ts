@@ -596,6 +596,52 @@ describe('DOMManager', () => {
         });
     });
 
+    describe('canvas-center reveal gating', () => {
+        const centerVisibility = (dm: DOMManager) => dm.getParent('canvas-center').style.visibility;
+
+        it('keeps the canvas hidden once a size is known until the chart reveals it', () => {
+            const container = doc.createElement('div');
+            doc.body.append(container);
+            const dm = new DOMManager(eventsHub, undefined, doc, container);
+
+            // A measured size alone must not reveal the canvas — the provisional-size paint would flash.
+            dm.containerSize = { width: 400, height: 250, pixelRatio: 1 };
+            (dm as any).updateContainerSize();
+            expect(centerVisibility(dm)).toBe('hidden');
+
+            dm.revealCanvas();
+            expect(centerVisibility(dm)).toBe('');
+        });
+
+        it('stays revealed across later size changes and never re-hides', () => {
+            const container = doc.createElement('div');
+            doc.body.append(container);
+            const dm = new DOMManager(eventsHub, undefined, doc, container);
+
+            dm.containerSize = { width: 400, height: 250, pixelRatio: 1 };
+            dm.revealCanvas();
+            expect(centerVisibility(dm)).toBe('');
+
+            for (const size of [
+                { width: 500, height: 300, pixelRatio: 1 },
+                { width: 320, height: 480, pixelRatio: 1 },
+            ]) {
+                dm.containerSize = size;
+                (dm as any).updateContainerSize();
+                expect(centerVisibility(dm)).toBe('');
+            }
+        });
+
+        it('does not reveal a container that never reports a size', () => {
+            const container = doc.createElement('div');
+            doc.body.append(container);
+            const dm = new DOMManager(eventsHub, undefined, doc, container);
+
+            dm.revealCanvas();
+            expect(centerVisibility(dm)).toBe('hidden');
+        });
+    });
+
     describe('destroy()', () => {
         it('removes children it owns but leaves a transferred (re-homed) child intact', () => {
             const container = doc.createElement('div');
