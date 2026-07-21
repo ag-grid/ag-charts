@@ -63,6 +63,8 @@ export class Color implements IColor {
      * - rgba(r, g, b, a)
      * - hsl(h, s%, l%)
      * - hsla(h, s%, l%, a)
+     * - oklch(l c h)
+     * - oklch(l c h / a)
      * - CSS color name such as 'white', 'orange', 'cyan', etc.
      */
     static validColorString(str: string): boolean {
@@ -72,6 +74,10 @@ export class Color implements IColor {
 
         if (str.includes('hsl')) {
             return !!Color.stringToHsla(str);
+        }
+
+        if (str.toLowerCase().includes('oklch')) {
+            return !!Color.stringToOklcha(str);
         }
 
         if (str.includes('rgb')) {
@@ -89,6 +95,8 @@ export class Color implements IColor {
      * - rgba(r, g, b, a)
      * - hsl(h, s%, l%)
      * - hsla(h, s%, l%, a)
+     * - oklch(l c h)
+     * - oklch(l c h / a)
      * - CSS color name such as 'white', 'orange', 'cyan', etc.
      * @param str
      */
@@ -108,6 +116,11 @@ export class Color implements IColor {
         // hsl(a) notation
         if (str.includes('hsl')) {
             return Color.fromHSLString(str);
+        }
+
+        // oklch notation
+        if (str.toLowerCase().includes('oklch')) {
+            return Color.fromOKLCHString(str);
         }
 
         // rgb(a) notation
@@ -245,13 +258,22 @@ export class Color implements IColor {
         return clamp(0, value / 100, 1);
     }
 
-    // Alpha: a bare number is already in [0, 1]; a percentage divides by 100.
-    private static parseAlpha(part: string): number | undefined {
+    // A value in [0, 1] (alpha, or OKLCH lightness): a bare number is already in range; a percentage divides by 100.
+    private static parseUnitInterval(part: string): number | undefined {
         const value = Number.parseFloat(part);
         if (!Number.isFinite(value)) {
             return;
         }
         return clamp(0, part.includes('%') ? value / 100 : value, 1);
+    }
+
+    // OKLCH chroma is an unbounded non-negative value; per CSS Color 4 a percentage maps 100% to 0.4.
+    private static parseOklchChroma(part: string): number | undefined {
+        const value = Number.parseFloat(part);
+        if (!Number.isFinite(value)) {
+            return;
+        }
+        return Math.max(0, part.includes('%') ? (value / 100) * 0.4 : value);
     }
 
     private static stringToHsla(str: string): number[] | undefined {
@@ -282,7 +304,7 @@ export class Color implements IColor {
         const hsla = [h, s, l];
 
         if (parts.length === 4) {
-            const a = Color.parseAlpha(parts[3]);
+            const a = Color.parseUnitInterval(parts[3]);
             if (a === undefined) return;
             hsla.push(a);
         }
@@ -299,6 +321,53 @@ export class Color implements IColor {
         }
 
         throw new Error(`Malformed hsl/hsla color string: '${str}'`);
+    }
+
+    private static stringToOklcha(str: string): number[] | undefined {
+        const po = str.indexOf('(');
+        const pc = str.indexOf(')');
+
+        if (po === -1 || pc === -1 || pc < po) return;
+
+        const contents = str.substring(po + 1, pc);
+
+        // The `/ alpha` form separates the alpha component with a slash; otherwise
+        // components are split on whitespace and/or commas, covering both the
+        // comma-separated and space-separated syntaxes.
+        const slash = contents.indexOf('/');
+        const head = slash === -1 ? contents : contents.substring(0, slash);
+        const parts = head.trim().split(/[\s,]+/);
+        if (slash !== -1) {
+            parts.push(contents.substring(slash + 1).trim());
+        }
+
+        if (parts.length < 3 || parts.length > 4) return;
+
+        const l = Color.parseUnitInterval(parts[0]);
+        const c = Color.parseOklchChroma(parts[1]);
+        const h = Color.parseHueDegrees(parts[2]);
+        if (l === undefined || c === undefined || h === undefined) return;
+
+        const oklcha = [l, c, h];
+
+        if (parts.length === 4) {
+            const a = Color.parseUnitInterval(parts[3]);
+            if (a === undefined) return;
+            oklcha.push(a);
+        }
+
+        return oklcha;
+    }
+
+    static fromOKLCHString(str: string): Color {
+        const oklcha = Color.stringToOklcha(str);
+
+        if (oklcha) {
+            const [l, c, h, a] = oklcha;
+            return Color.fromOKLCH(l, c, h, a ?? 1);
+        }
+
+        throw new Error(`Malformed oklch color string: '${str}'`);
     }
 
     static fromArray(arr: [number, number, number] | [number, number, number, number]): Color {

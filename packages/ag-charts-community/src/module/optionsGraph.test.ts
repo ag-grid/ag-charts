@@ -1344,6 +1344,28 @@ describe('OptionsGraph', () => {
                 });
             });
 
+            it('should resolve public `ref` operation with `mix` and an oklch() `ontoColor`', () => {
+                const themeConfig = {
+                    line: { fill: { ref: 'accentColor', mix: 0.25, ontoColor: 'oklch(0.7 0.15 200)' } },
+                };
+                const params = { accentColor: '#ff0000' };
+                const options = new OptionsGraph(themeConfig, prepareOptions({}), params).resolve();
+                expect(options).toStrictEqual({
+                    fill: '#408b92',
+                    axes: expect.any(Object),
+                });
+            });
+
+            it('should resolve public `ref` operation with `mix` on an oklch() param', () => {
+                const themeConfig = { line: { fill: { ref: 'accentColor', mix: 0.25 } } };
+                const params = { accentColor: 'oklch(0.7 0.15 200)' };
+                const options = new OptionsGraph(themeConfig, prepareOptions({}), params).resolve();
+                expect(options).toStrictEqual({
+                    fill: 'rgba(0, 185, 195, 0.25)',
+                    axes: expect.any(Object),
+                });
+            });
+
             it('should warn and use `onto` when both `onto` and `ontoColor` are set', () => {
                 const themeConfig = {
                     line: { fill: { ref: 'accentColor', mix: 0.25, onto: 'backgroundColor', ontoColor: '#0000ff' } },
