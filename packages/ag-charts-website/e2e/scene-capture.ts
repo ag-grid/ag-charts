@@ -1,6 +1,6 @@
 import type { Locator, Page } from '@playwright/test';
 import { mkdirSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, parse } from 'node:path';
 
 // Import the sampler from its source module directly, not via the `_ag-charts-test` package entry.
 // The barrel eagerly loads skia-canvas (a native addon) through mock-canvas, and the package's built
@@ -23,11 +23,14 @@ function sceneCaptureMode(): SceneCaptureMode {
 
 function writeSceneSnapshots(name: string, roots: SerializedSceneRoots[]): void {
     if (roots.length === 0) return;
-    const dir = join(test.info().snapshotDir, '__scene_snapshots__');
-    const baseId = name.replace(/\.png$/, '');
+    // Mirror Playwright's resolved screenshot path so the scene JSON carries the same project and
+    // platform identity as its screenshot (e.g. `chart-chromium-linux`) and cannot collide when the
+    // same test runs under multiple projects.
+    const screenshot = parse(test.info().snapshotPath(name, { kind: 'screenshot' }));
+    const dir = join(screenshot.dir, '__scene_snapshots__');
     mkdirSync(dir, { recursive: true });
     for (const [i, root] of roots.entries()) {
-        const id = roots.length > 1 ? `${baseId}-chart${i}` : baseId;
+        const id = roots.length > 1 ? `${screenshot.name}-chart${i}` : screenshot.name;
         const json = sceneSampleToJSON(sampleSerializedRoots(root, { includeChrome: true }));
         writeFileSync(join(dir, `${id}.json`), JSON.stringify(json, null, 2));
     }
