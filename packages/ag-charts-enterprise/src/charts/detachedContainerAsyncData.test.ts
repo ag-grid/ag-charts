@@ -127,7 +127,13 @@ describe('Chart on a detached container with async data and a series-type switch
     // height/2; treemap squarifies the box), so a paint at a not-yet-confirmed size is visibly wrong.
     // The canvas must stay hidden until the chart has rendered at the confirmed container size.
     const HIERARCHY_DATA = [
-        { label: 'A', children: [{ label: 'A1', value: 3 }, { label: 'A2', value: 5 }] },
+        {
+            label: 'A',
+            children: [
+                { label: 'A1', value: 3 },
+                { label: 'A2', value: 5 },
+            ],
+        },
         { label: 'B', value: 4 },
     ];
 
