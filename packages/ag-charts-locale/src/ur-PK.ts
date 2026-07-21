@@ -23,6 +23,8 @@ export const AG_CHARTS_LOCALE_UR_PK: Record<string, string> = {
         '${description}, سطح ${level}[number], ${posInSet}[number] کا ${setSize}[number], ${collapsedState}, 1 بچہ, ٹوگل کرنے کے لیے اسپیس یا انٹر دبائیں',
     ariaOrgChartCollapsed: 'سمٹا ہوا',
     ariaOrgChartExpanded: 'پھیلا ہوا',
+    ariaDescriptionExpandNode: 'اس نوڈ کو پھیلانے کے لیے Alt + نیچے تیر دبائیں',
+    ariaDescriptionCollapseNode: 'اس نوڈ کو سمیٹنے کے لیے Alt + اوپر تیر دبائیں',
     ariaAnnounceGaugeChart: 'گیج چارٹ, ${caption}',
     ariaAnnounceHierarchyChart: 'درجہ بندی چارٹ، ${caption}',
     ariaAnnounceHierarchyDatum: 'سطح ${level}[number], ${count}[number] بچے, ${description}',

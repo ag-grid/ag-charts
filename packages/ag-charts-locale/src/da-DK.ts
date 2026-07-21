@@ -23,6 +23,8 @@ export const AG_CHARTS_LOCALE_DA_DK: Record<string, string> = {
         '${description}, niveau ${level}[number], ${posInSet}[number] af ${setSize}[number], ${collapsedState}, 1 underordnet, tryk på Enter eller mellemrumstasten for at skifte',
     ariaOrgChartCollapsed: 'skjult',
     ariaOrgChartExpanded: 'udvidet',
+    ariaDescriptionExpandNode: 'Tryk på Alt + Pil ned for at udvide denne node',
+    ariaDescriptionCollapseNode: 'Tryk på Alt + Pil op for at skjule denne node',
     ariaAnnounceGaugeChart: 'målerdiagram, ${caption}',
     ariaAnnounceHierarchyChart: 'hierarkisk diagram, ${caption}',
     ariaAnnounceHierarchyDatum: 'niveau ${level}[number], ${count}[number] børn, ${description}',

@@ -23,6 +23,8 @@ export const AG_CHARTS_LOCALE_CS_CZ: Record<string, string> = {
         '${description}, úroveň ${level}[number], ${posInSet}[number] z ${setSize}[number], ${collapsedState}, 1 dítě, stiskněte mezerník nebo Enter pro přepnutí',
     ariaOrgChartCollapsed: 'sbalený',
     ariaOrgChartExpanded: 'rozbalený',
+    ariaDescriptionExpandNode: 'Stiskněte Alt + šipku dolů pro rozbalení tohoto uzlu',
+    ariaDescriptionCollapseNode: 'Stiskněte Alt + šipku nahoru pro sbalení tohoto uzlu',
     ariaAnnounceGaugeChart: 'graf měřidla, ${caption}',
     ariaAnnounceHierarchyChart: 'hierarchický graf, ${caption}',
     ariaAnnounceHierarchyDatum: 'úroveň ${level}[number], ${count}[number] děti, ${description}',

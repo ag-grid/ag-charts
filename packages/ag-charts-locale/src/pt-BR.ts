@@ -23,6 +23,8 @@ export const AG_CHARTS_LOCALE_PT_BR: Record<string, string> = {
         '${description}, nível ${level}[number], ${posInSet}[number] de ${setSize}[number], ${collapsedState}, 1 filho, pressione Enter ou Espaço para alternar',
     ariaOrgChartCollapsed: 'recolhido',
     ariaOrgChartExpanded: 'expandido',
+    ariaDescriptionExpandNode: 'Pressione Alt + Seta para baixo para expandir este nó',
+    ariaDescriptionCollapseNode: 'Pressione Alt + Seta para cima para recolher este nó',
     ariaAnnounceGaugeChart: 'gráfico de medidor, ${caption}',
     ariaAnnounceHierarchyChart: 'gráfico de hierarquia, ${caption}',
     ariaAnnounceHierarchyDatum: 'nível ${level}[number], ${count}[number] filhos, ${description}',

@@ -23,6 +23,8 @@ export const AG_CHARTS_LOCALE_NL_NL: Record<string, string> = {
         '${description}, niveau ${level}[number], ${posInSet}[number] van ${setSize}[number], ${collapsedState}, 1 onderliggend item, druk op Enter of Spatie om te wisselen',
     ariaOrgChartCollapsed: 'ingeklapt',
     ariaOrgChartExpanded: 'uitgeklapt',
+    ariaDescriptionExpandNode: 'Druk op Alt + Pijl omlaag om dit knooppunt uit te vouwen',
+    ariaDescriptionCollapseNode: 'Druk op Alt + Pijl omhoog om dit knooppunt samen te vouwen',
     ariaAnnounceGaugeChart: 'meterdiagram, ${caption}',
     ariaAnnounceHierarchyChart: 'hiërarchie diagram, ${caption}',
     ariaAnnounceHierarchyDatum: 'niveau ${level}[number], ${count}[number] kinderen, ${description}',

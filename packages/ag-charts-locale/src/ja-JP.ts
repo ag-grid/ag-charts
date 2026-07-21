@@ -23,6 +23,8 @@ export const AG_CHARTS_LOCALE_JA_JP: Record<string, string> = {
         '${description}、レベル ${level}[number]、${posInSet}[number]/${setSize}[number]、${collapsedState}、1 人の子、Enter キーまたは Space キーを押して切り替えます',
     ariaOrgChartCollapsed: '折りたたみ',
     ariaOrgChartExpanded: '展開',
+    ariaDescriptionExpandNode: 'Alt + 下矢印キーを押してこのノードを展開します',
+    ariaDescriptionCollapseNode: 'Alt + 上矢印キーを押してこのノードを折りたたみます',
     ariaAnnounceGaugeChart: 'ゲージチャート、${caption}',
     ariaAnnounceHierarchyChart: '階層チャート, ${caption}',
     ariaAnnounceHierarchyDatum: 'レベル ${level}[number]、${count}[number] の子供、${description}',

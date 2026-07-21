@@ -23,6 +23,8 @@ export const AG_CHARTS_LOCALE_VI_VN: Record<string, string> = {
         '${description}, cấp độ ${level}[number], ${posInSet}[number] trong ${setSize}[number], ${collapsedState}, 1 con, nhấn Enter hoặc Phím Cách để chuyển đổi',
     ariaOrgChartCollapsed: 'đã thu gọn',
     ariaOrgChartExpanded: 'đã mở rộng',
+    ariaDescriptionExpandNode: 'Nhấn Alt + Mũi tên xuống để mở rộng nút này',
+    ariaDescriptionCollapseNode: 'Nhấn Alt + Mũi tên lên để thu gọn nút này',
     ariaAnnounceGaugeChart: 'biểu đồ đồng hồ đo, ${caption}',
     ariaAnnounceHierarchyChart: 'biểu đồ phân cấp, ${caption}',
     ariaAnnounceHierarchyDatum: 'cấp độ ${level}[number], ${count}[number] con, ${description}',

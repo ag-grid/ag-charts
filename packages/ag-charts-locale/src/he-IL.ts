@@ -23,6 +23,8 @@ export const AG_CHARTS_LOCALE_HE_IL: Record<string, string> = {
         '${description}, רמה ${level}[number], ${posInSet}[number] מתוך ${setSize}[number], ${collapsedState}, ילד 1, לחץ על מקש הרווח או אנטר כדי להחליף',
     ariaOrgChartCollapsed: 'מכווץ',
     ariaOrgChartExpanded: 'מורחב',
+    ariaDescriptionExpandNode: 'לחץ על Alt + חץ למטה כדי להרחיב את הצומת הזה',
+    ariaDescriptionCollapseNode: 'לחץ על Alt + חץ למעלה כדי לכווץ את הצומת הזה',
     ariaAnnounceGaugeChart: 'תרשים מד, ${caption}',
     ariaAnnounceHierarchyChart: 'תרשים היררכי, ${caption}',
     ariaAnnounceHierarchyDatum: 'רמה ${level}[number], ${count}[number] ילדים, ${description}',

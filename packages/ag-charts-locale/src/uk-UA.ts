@@ -23,6 +23,8 @@ export const AG_CHARTS_LOCALE_UK_UA: Record<string, string> = {
         '${description}, рівень ${level}[number], ${posInSet}[number] з ${setSize}[number], ${collapsedState}, 1 дочірній, натисніть Enter або пробіл, щоб перемкнути',
     ariaOrgChartCollapsed: 'згорнуто',
     ariaOrgChartExpanded: 'розгорнуто',
+    ariaDescriptionExpandNode: 'Натисніть Alt + стрілку вниз, щоб розгорнути цей вузол',
+    ariaDescriptionCollapseNode: 'Натисніть Alt + стрілку вгору, щоб згорнути цей вузол',
     ariaAnnounceGaugeChart: 'діаграма циферблата, ${caption}',
     ariaAnnounceHierarchyChart: 'ієрархічна діаграма, ${caption}',
     ariaAnnounceHierarchyDatum: 'рівень ${level}[number], ${count}[number] дочірні, ${description}',

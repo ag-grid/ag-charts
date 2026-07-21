@@ -23,6 +23,8 @@ export const AG_CHARTS_LOCALE_BG_BG: Record<string, string> = {
         '${description}, ниво ${level}[number], ${posInSet}[number] от ${setSize}[number], ${collapsedState}, 1 дете, натиснете Enter или Space за превключване',
     ariaOrgChartCollapsed: 'свито',
     ariaOrgChartExpanded: 'разгънато',
+    ariaDescriptionExpandNode: 'Натиснете Alt + стрелка надолу, за да разгънете този възел',
+    ariaDescriptionCollapseNode: 'Натиснете Alt + стрелка нагоре, за да свиете този възел',
     ariaAnnounceGaugeChart: 'графика тип манометър, ${caption}',
     ariaAnnounceHierarchyChart: 'йерархична диаграма, ${caption}',
     ariaAnnounceHierarchyDatum: 'ниво ${level}[number], ${count}[number] деца, ${description}',

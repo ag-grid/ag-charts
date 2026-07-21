@@ -23,6 +23,8 @@ export const AG_CHARTS_LOCALE_AR_EG: Record<string, string> = {
         '${description}, المستوى ${level}[number], ${posInSet}[number] من ${setSize}[number], ${collapsedState}, طفل واحد, اضغط على المسافة أو الإدخال للتبديل',
     ariaOrgChartCollapsed: 'مطوي',
     ariaOrgChartExpanded: 'موسع',
+    ariaDescriptionExpandNode: 'اضغط على Alt + السهم لأسفل لتوسيع هذه العقدة',
+    ariaDescriptionCollapseNode: 'اضغط على Alt + السهم لأعلى لطي هذه العقدة',
     ariaAnnounceGaugeChart: 'مخطط المقياس، ${caption}',
     ariaAnnounceHierarchyChart: 'مخطط هرمي، ${caption}',
     ariaAnnounceHierarchyDatum: 'المستوى ${level}[number]، ${count}[number] أطفال، ${description}',

@@ -23,6 +23,8 @@ export const AG_CHARTS_LOCALE_TR_TR: Record<string, string> = {
         '${description}, seviye ${level}[number], ${posInSet}[number] / ${setSize}[number], ${collapsedState}, 1 çocuk, değiştirmek için Boşluk veya Enter tuşuna basın',
     ariaOrgChartCollapsed: 'daraltılmış',
     ariaOrgChartExpanded: 'genişletilmiş',
+    ariaDescriptionExpandNode: 'Bu düğümü genişletmek için Alt + Aşağı Ok tuşuna basın',
+    ariaDescriptionCollapseNode: 'Bu düğümü daraltmak için Alt + Yukarı Ok tuşuna basın',
     ariaAnnounceGaugeChart: 'gösterge grafik, ${caption}',
     ariaAnnounceHierarchyChart: 'hiyerarşi grafiği, ${caption}',
     ariaAnnounceHierarchyDatum: 'seviye ${level}[number], ${count}[number] çocuk, ${description}',

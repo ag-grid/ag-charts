@@ -23,6 +23,8 @@ export const AG_CHARTS_LOCALE_HR_HR: Record<string, string> = {
         '${description}, razina ${level}[number], ${posInSet}[number] od ${setSize}[number], ${collapsedState}, 1 dijete, pritisnite razmaknicu ili Enter za uključivanje/isključivanje',
     ariaOrgChartCollapsed: 'sažeto',
     ariaOrgChartExpanded: 'prošireno',
+    ariaDescriptionExpandNode: 'Pritisnite Alt + strelicu dolje za proširenje ovog čvora',
+    ariaDescriptionCollapseNode: 'Pritisnite Alt + strelicu gore za sažimanje ovog čvora',
     ariaAnnounceGaugeChart: 'mjerna ljestvica, ${caption}',
     ariaAnnounceHierarchyChart: 'hijerarhijski grafikon, ${caption}',
     ariaAnnounceHierarchyDatum: 'razina ${level}[number], ${count}[number] djece, ${description}',

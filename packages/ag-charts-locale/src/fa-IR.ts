@@ -23,6 +23,8 @@ export const AG_CHARTS_LOCALE_FA_IR: Record<string, string> = {
         '${description}, سطح ${level}[number], ${posInSet}[number] از ${setSize}[number], ${collapsedState}, 1 فرزند, برای تغییر وضعیت، اسپیس یا اینتر را فشار دهید',
     ariaOrgChartCollapsed: 'جمع‌شده',
     ariaOrgChartExpanded: 'بازشده',
+    ariaDescriptionExpandNode: 'برای گسترش این گره، Alt + پیکان پایین را فشار دهید',
+    ariaDescriptionCollapseNode: 'برای جمع کردن این گره، Alt + پیکان بالا را فشار دهید',
     ariaAnnounceGaugeChart: 'چارت سنجشی، ${caption}',
     ariaAnnounceHierarchyChart: 'نمودار سلسله مراتبی، ${caption}',
     ariaAnnounceHierarchyDatum: 'سطح ${level}[number]، ${count}[number] فرزند، ${description}',

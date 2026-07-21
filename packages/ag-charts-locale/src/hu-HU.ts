@@ -24,6 +24,8 @@ export const AG_CHARTS_LOCALE_HU_HU: Record<string, string> = {
         '${description}, szint ${level}[number], ${posInSet}[number] / ${setSize}[number], ${collapsedState}, 1 gyermek, nyomja meg a Szóközt vagy az Entert a váltáshoz',
     ariaOrgChartCollapsed: 'összezárt',
     ariaOrgChartExpanded: 'kinyitott',
+    ariaDescriptionExpandNode: 'Nyomja meg az Alt + Lefelé nyilat a csomópont kibontásához',
+    ariaDescriptionCollapseNode: 'Nyomja meg az Alt + Felfelé nyilat a csomópont összecsukásához',
     ariaAnnounceGaugeChart: 'mérőműszer diagram, ${caption}',
     ariaAnnounceHierarchyChart: 'hierarchia diagram, ${caption}',
     ariaAnnounceHierarchyDatum: 'szint ${level}[number], ${count}[number] gyermek, ${description}',

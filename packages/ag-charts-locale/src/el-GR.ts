@@ -23,6 +23,8 @@ export const AG_CHARTS_LOCALE_EL_GR: Record<string, string> = {
         '${description}, επίπεδο ${level}[number], ${posInSet}[number] από ${setSize}[number], ${collapsedState}, 1 παιδί, πατήστε Enter ή Space για εναλλαγή',
     ariaOrgChartCollapsed: 'συμπτυγμένο',
     ariaOrgChartExpanded: 'αναπτυγμένο',
+    ariaDescriptionExpandNode: 'Πατήστε Alt + Κάτω βέλος για ανάπτυξη αυτού του κόμβου',
+    ariaDescriptionCollapseNode: 'Πατήστε Alt + Πάνω βέλος για σύμπτυξη αυτού του κόμβου',
     ariaAnnounceGaugeChart: 'διάγραμμα δείκτη, ${caption}',
     ariaAnnounceHierarchyChart: 'διάγραμμα ιεραρχίας, ${caption}',
     ariaAnnounceHierarchyDatum: 'επίπεδο ${level}[number], ${count}[number] παιδιά, ${description}',

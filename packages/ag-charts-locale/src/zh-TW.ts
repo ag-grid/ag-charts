@@ -23,6 +23,8 @@ export const AG_CHARTS_LOCALE_ZH_TW: Record<string, string> = {
         '${description}, 層級 ${level}[number], ${posInSet}[number] 之 ${setSize}[number], ${collapsedState}, 1 個子項目, 按回車鍵或空格鍵切換',
     ariaOrgChartCollapsed: '已收合',
     ariaOrgChartExpanded: '已展開',
+    ariaDescriptionExpandNode: '按 Alt + 向下箭頭展開此節點',
+    ariaDescriptionCollapseNode: '按 Alt + 向上箭頭收合此節點',
     ariaAnnounceGaugeChart: '儀表板圖表, ${caption}',
     ariaAnnounceHierarchyChart: '階層圖表, ${caption}',
     ariaAnnounceHierarchyDatum: '層級 ${level}[number]，${count}[number] 個子項目，${description}',
