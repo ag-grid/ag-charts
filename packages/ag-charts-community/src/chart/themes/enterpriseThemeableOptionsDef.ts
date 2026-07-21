@@ -355,6 +355,7 @@ export const mapMarkerSeriesThemeableOptionsDef: OptionsDefs<AgMapMarkerSeriesTh
     sizeDomain: and(arrayOf(positiveNumericValue), arrayLength(2, 2)),
     label: {
         placement: labelCollisionPlacementDef,
+        spacing: positiveNumber,
         ...seriesLabelOptionsDefs,
         ...labelCollisionFitOptionsDefs,
     },

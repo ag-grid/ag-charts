@@ -15,6 +15,7 @@ import {
     markerOptionsDefs,
     multiSeriesHighlightOptionsDef,
     number,
+    positiveNumber,
     required,
     seriesLabelOptionsDefs,
     shapeHighlightOptionsDef,
@@ -34,6 +35,7 @@ export const scatterSeriesThemeableOptionsDef: OptionsDefs<AgScatterSeriesThemea
     showInMiniChart: boolean,
     label: {
         placement: labelCollisionPlacementDef,
+        spacing: positiveNumber,
         ...seriesLabelOptionsDefs,
         ...labelCollisionFitOptionsDefs,
         ...labelPlacementStyleDefs,

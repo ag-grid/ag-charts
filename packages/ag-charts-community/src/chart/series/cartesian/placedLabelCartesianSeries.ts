@@ -97,7 +97,7 @@ export abstract class PlacedLabelCartesianSeries<
 
     override getLabelDefaults(): SeriesLabelDefaults | undefined {
         const label = this.labelProperty;
-        return resolveSeriesLabelDefaults(label.collision, toArray(label.placement));
+        return resolveSeriesLabelDefaults(label.collision, toArray(label.placement), label.spacing);
     }
 
     protected override getHighlightLabelData(

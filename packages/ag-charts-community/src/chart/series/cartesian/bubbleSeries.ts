@@ -1021,7 +1021,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
 
     override getLabelDefaults() {
         const { label } = this.properties;
-        return resolveSeriesLabelDefaults(label.collision, toArray(label.placement));
+        return resolveSeriesLabelDefaults(label.collision, toArray(label.placement), label.spacing);
     }
 
     protected override updateDatumSelection(opts: {

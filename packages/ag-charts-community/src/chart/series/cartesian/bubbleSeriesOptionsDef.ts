@@ -40,6 +40,7 @@ export const bubbleSeriesThemeableOptionsDef: OptionsDefs<AgBubbleSeriesThemeabl
     showInMiniChart: boolean,
     label: {
         placement: labelCollisionPlacementDef,
+        spacing: positiveNumber,
         ...seriesLabelOptionsDefs,
         ...labelCollisionFitOptionsDefs,
         ...labelPlacementStyleDefs,

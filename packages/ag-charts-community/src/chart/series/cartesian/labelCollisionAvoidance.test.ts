@@ -7,12 +7,14 @@ import { expectPixelIdenticalAcrossUpdate } from '../../test/bigintExamples';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     PATTERN_SNAPSHOT_DEFAULTS,
+    type PlacedLabelGeometry,
     compareImageSnapshot,
     createChart,
     deproxy,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
+    topLabelAnchorGap,
     waitForChartStability,
 } from '../../test/utils';
 
@@ -22,10 +24,11 @@ import {
 type LabelCollisionConfig = {
     placement?: string[];
     collision?: {
-        minSpacing?: number;
+        threshold?: number;
         suppressHide?: boolean;
         collideWith?: object;
     };
+    spacing?: number;
 };
 
 // Line and area route labels through the collision-placement engine, which honours the configured
@@ -52,7 +55,7 @@ const PLACED_LABEL_STRATEGIES: Record<string, LabelCollisionConfig> = {
     },
     'reposition with min spacing': {
         placement: ['top', 'bottom'],
-        collision: { suppressHide: false, minSpacing: 8 },
+        collision: { suppressHide: false, threshold: 3 },
     },
 };
 
@@ -93,6 +96,51 @@ describe('label collision avoidance', () => {
         size: 4 + (i % 4),
         label: `Point ${i}`,
     }));
+
+    // Three points close enough that their padded label boxes overlap; used by the suppressHide and
+    // threshold acceptance suites to force a collision at a known, tight spacing.
+    const closeData = [
+        { x: 10, y: 50 },
+        { x: 11, y: 50 },
+        { x: 12, y: 50 },
+    ];
+    const tightAxes = {
+        x: { position: 'bottom', type: 'number', min: 0, max: 24 },
+        y: { position: 'left', type: 'number' },
+    };
+
+    const renderPlaced = async (label: object) => {
+        const options: any = {
+            data: closeData,
+            legend: { enabled: false },
+            axes: tightAxes,
+            series: [
+                {
+                    type: 'line',
+                    xKey: 'x',
+                    yKey: 'y',
+                    marker: { enabled: true, size: 6 },
+                    label: {
+                        enabled: true,
+                        formatter: ({ value }: any) => String(value),
+                        placement: 'top',
+                        // A padded, filled box forces the labels to collide at this tight spacing (as in
+                        // the box-footprint suite above), independent of `collision.suppressHide`.
+                        fill: 'white',
+                        padding: 20,
+                        ...label,
+                    },
+                },
+            ],
+        };
+        prepareTestOptions(options);
+        chart = AgCharts.create(options);
+        await waitForChartStability(chart);
+        const series = deproxy(chart as any).series[0] as unknown as {
+            placedLabelData: { text?: unknown; placement?: string }[];
+        };
+        return series.placedLabelData;
+    };
 
     describe('line series', () => {
         const data = lineData;
@@ -528,8 +576,8 @@ describe('label collision avoidance', () => {
         }
     });
 
-    // Label box dimensions and per-datum marker sizes feed the collision engine, so placement must
-    // stay correct as font size, padding and stylers vary the geometry it resolves against.
+    // Label box dimensions and marker size feed the collision engine, so placement must stay correct as
+    // font size, padding and marker size vary the geometry it resolves against.
     describe('with varied label options and stylers', () => {
         const repositionAllDirections: LabelCollisionConfig = {
             placement: ['top', 'bottom', 'left', 'right', 'top-left', 'top-right', 'bottom-left', 'bottom-right'],
@@ -560,7 +608,7 @@ describe('label collision avoidance', () => {
             });
         });
 
-        it('line: marker itemStyler varies size with collideWith markers', async () => {
+        it('line: large markers widen the placement gap', async () => {
             await renderAndSnapshot({
                 data: lineData,
                 legend: { enabled: false },
@@ -570,18 +618,14 @@ describe('label collision avoidance', () => {
                         type: 'line',
                         xKey: 'x',
                         yKey: 'y',
-                        marker: {
-                            enabled: true,
-                            itemStyler: ({ xValue }: any) => ({ size: 4 + (xValue % 5) * 4 }),
-                        },
+                        // Marker size (the marker option, not an itemStyler result) is what the collision
+                        // engine reserves, so a large marker widens the placement gap and shifts labels clear.
+                        marker: { enabled: true, size: 20 },
                         label: {
                             enabled: true,
                             formatter: ({ value }: any) => value.toFixed(1),
                             placement: ['top', 'bottom'],
-                            collision: {
-                                suppressHide: false,
-                                collideWith: { markers: { enabled: true, minSpacing: 4 } },
-                            },
+                            collision: { suppressHide: false },
                         },
                     },
                 ],
@@ -614,16 +658,6 @@ describe('label collision avoidance', () => {
     // The collision footprint must be the label's drawn box (text + padding), not the bare text, or
     // a padded/boxed label can visually overlap a neighbour while the engine reports no collision.
     describe('label box footprint (padding reserved, not just text)', () => {
-        const closeData = [
-            { x: 10, y: 50 },
-            { x: 11, y: 50 },
-            { x: 12, y: 50 },
-        ];
-        const tightAxes = {
-            x: { position: 'bottom', type: 'number', min: 0, max: 24 },
-            y: { position: 'left', type: 'number' },
-        };
-
         type Box = { x: number; y: number; width: number; height: number };
         const overlaps = (a: Box, b: Box) =>
             a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
@@ -704,7 +738,7 @@ describe('label collision avoidance', () => {
                     placement: ['top', 'bottom'],
                     collision: {
                         suppressHide: false,
-                        collideWith: { seriesItems: { enabled: true } },
+                        collideWith: { seriesItems: true },
                     },
                 }),
             });
@@ -1016,49 +1050,6 @@ describe('label collision avoidance', () => {
     // it is orthogonal to fit (wrapping/truncation) and placement cascade, which always apply
     // regardless of its value.
     describe('collision.suppressHide (acceptance criteria)', () => {
-        const closeData = [
-            { x: 10, y: 50 },
-            { x: 11, y: 50 },
-            { x: 12, y: 50 },
-        ];
-        const tightAxes = {
-            x: { position: 'bottom', type: 'number', min: 0, max: 24 },
-            y: { position: 'left', type: 'number' },
-        };
-
-        const renderPlaced = async (label: object) => {
-            const options: any = {
-                data: closeData,
-                legend: { enabled: false },
-                axes: tightAxes,
-                series: [
-                    {
-                        type: 'line',
-                        xKey: 'x',
-                        yKey: 'y',
-                        marker: { enabled: true, size: 6 },
-                        label: {
-                            enabled: true,
-                            formatter: ({ value }: any) => String(value),
-                            placement: 'top',
-                            // A padded, filled box forces the labels to collide at this tight spacing (as in
-                            // the box-footprint suite above), independent of `collision.suppressHide`.
-                            fill: 'white',
-                            padding: 20,
-                            ...label,
-                        },
-                    },
-                ],
-            };
-            prepareTestOptions(options);
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
-            const series = deproxy(chart as any).series[0] as unknown as {
-                placedLabelData: { text?: unknown; placement?: string }[];
-            };
-            return series.placedLabelData;
-        };
-
         it('suppressHide: false hides a label that cannot avoid a collision', async () => {
             // Anti-vacuous guard: some labels must actually collide for the assertion to be meaningful.
             const placed = await renderPlaced({ collision: { suppressHide: false } });
@@ -1092,6 +1083,64 @@ describe('label collision avoidance', () => {
             const texts = placed.map((label) => String(label.text ?? ''));
             expect(texts.some((text) => text.includes('\n'))).toBe(true);
             expect(texts.some((text) => text.includes('…'))).toBe(true);
+        });
+    });
+
+    // `collision.threshold` is the collision-detection threshold applied to the label's own box: 0 is a
+    // no-op, a negative value tolerates overlap up to `|threshold|` px. A negative value must also pass
+    // validation (setupMockConsole fails the test on any validation warning).
+    describe('collision.threshold (acceptance criteria)', () => {
+        it('threshold: 0 keeps the label box unchanged, hiding a colliding label', async () => {
+            const placed = await renderPlaced({ collision: { suppressHide: false, threshold: 0 } });
+            // Anti-vacuous guard: labels must actually collide for the tolerance assertions to be meaningful.
+            expect(placed.length).toBeLessThan(closeData.length);
+        });
+
+        it('a negative threshold tolerates overlap and keeps every label', async () => {
+            const placed = await renderPlaced({ collision: { suppressHide: false, threshold: -1000 } });
+            expect(placed.length).toBe(closeData.length);
+        });
+    });
+
+    // `label.spacing` is the gap in px between a marker-based label and its anchor point; a larger value
+    // pushes the label further from the marker along its placement direction.
+    describe('label.spacing (acceptance criteria)', () => {
+        // A single isolated point, so the label always takes its 'top' candidate with no collision.
+        const spacingData = [{ x: 12, y: 50 }];
+
+        const anchorGap = async (spacing: number) => {
+            chart?.destroy();
+            const options: any = {
+                data: spacingData,
+                legend: { enabled: false },
+                axes: tightAxes,
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'x',
+                        yKey: 'y',
+                        marker: { enabled: true, size: 6 },
+                        label: {
+                            enabled: true,
+                            formatter: ({ value }: any) => String(value),
+                            placement: 'top',
+                            spacing,
+                        },
+                    },
+                ],
+            };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            return topLabelAnchorGap(deproxy(chart as any).series[0] as unknown as PlacedLabelGeometry);
+        };
+
+        it('measures spacing from the marker edge, so the anchor gap is marker radius + spacing', async () => {
+            // marker size 6 => radius 3; the label box edge sits radius + spacing from the marker centre.
+            const near = await anchorGap(5);
+            const far = await anchorGap(40);
+            expect(near).toBeCloseTo(3 + 5, 0);
+            expect(far).toBeCloseTo(3 + 40, 0);
         });
     });
 

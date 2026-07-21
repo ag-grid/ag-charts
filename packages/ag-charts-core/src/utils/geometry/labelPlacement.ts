@@ -139,11 +139,11 @@ export interface PointLabelDatum {
      */
     readonly suppressHide?: boolean;
     /**
-     * Offset/proximity threshold in px added to the directional placement gap. Overrides the series
-     * {@link SeriesLabelDefaults.minSpacing} when set, else falls back to the `padding` argument of
+     * Distance in px between the label and its anchor point. Overrides the series
+     * {@link SeriesLabelDefaults.spacing} when set, else falls back to the `padding` argument of
      * {@link placeLabels}.
      */
-    readonly minSpacing?: number;
+    readonly spacing?: number;
     /**
      * Resolved per-category obstacle configuration. Overrides the series
      * {@link SeriesLabelDefaults.collideWith} when set.
@@ -173,16 +173,11 @@ export interface PointLabelDatum {
 
 export type ObstacleCategory = 'marker' | 'label' | 'seriesItem';
 
-export interface CollideWithCategory {
-    readonly enabled: boolean;
-    /** Extra px the obstacle is inflated by before testing. `undefined` means no inflation. */
-    readonly minSpacing?: number;
-}
-
+/** Per-category toggle: `false` disables avoidance of that obstacle category. */
 export interface CollideWith {
-    readonly marker?: CollideWithCategory;
-    readonly label?: CollideWithCategory;
-    readonly seriesItem?: CollideWithCategory;
+    readonly marker?: boolean;
+    readonly label?: boolean;
+    readonly seriesItem?: boolean;
 }
 
 /**
@@ -192,7 +187,10 @@ export interface CollideWith {
  */
 export interface SeriesLabelDefaults {
     readonly suppressHide?: boolean;
-    readonly minSpacing?: number;
+    /** Distance in px between each label and its anchor; a datum's own {@link PointLabelDatum.spacing} overrides it. */
+    readonly spacing?: number;
+    /** Collision-detection threshold applied to the label's own box: positive grows it, negative shrinks it. */
+    readonly threshold?: number;
     readonly collideWith?: CollideWith;
     readonly placements?: readonly LabelPlacement[];
 }
@@ -206,18 +204,20 @@ export interface SeriesLabels {
 /** Structural source of a series' resolved collision config (community `LabelCollision`). */
 export interface LabelCollisionSource {
     readonly suppressHide?: boolean;
-    readonly minSpacing?: number;
+    readonly threshold?: number;
     resolveCollideWith(): CollideWith | undefined;
 }
 
 /** Resolves a series' collision config into the shared {@link SeriesLabelDefaults}. */
 export function resolveSeriesLabelDefaults(
     src: LabelCollisionSource,
-    placements?: readonly LabelPlacement[]
+    placements?: readonly LabelPlacement[],
+    spacing?: number
 ): SeriesLabelDefaults {
     return {
         suppressHide: src.suppressHide,
-        minSpacing: src.minSpacing,
+        spacing,
+        threshold: src.threshold,
         collideWith: src.resolveCollideWith(),
         placements,
     };
@@ -419,9 +419,9 @@ interface BarPositionedCandidate extends PositionedLabelCandidate {
 // Bar labels sit inside their own bar rect, so avoid other labels only — not markers, and not the
 // bar rects themselves (a bar label would otherwise always collide with its own `seriesItem` box).
 const barLabelCollideWith: CollideWith = {
-    label: { enabled: true },
-    marker: { enabled: false },
-    seriesItem: { enabled: false },
+    label: true,
+    marker: false,
+    seriesItem: false,
 };
 
 /**
@@ -614,21 +614,29 @@ const obstacleIndex = new SpatialIndex<LabelObstacle>();
 const markerPool: PooledCircleObstacle[] = [];
 const labelObstaclePool: PooledRectObstacle[] = [];
 const candidateBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
-// Broad-phase query box: the candidate inflated by the largest active per-category minSpacing.
+// Broad-phase query box: the candidate inflated by the positive part of the collision threshold, a
+// superset of the narrow-phase test box even when the threshold is negative (a shrunk box).
 const queryBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
 // The marker inscribed rect an `inside` candidate is contained by, co-centred with its label box.
 const insideRegionBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
 const inflatedBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
 // The candidate datum's per-category obstacle config, set before each obstacle query.
 let candidateCollideWith: CollideWith | undefined;
-// The placement of the candidate being tested; an `inside` candidate ignores its own marker obstacle
-// because it is centred on that marker by design (and would otherwise always collide with it), while
-// still avoiding every other marker.
+// Collision-detection threshold applied to the candidate's own box: positive grows it (more clearance),
+// negative shrinks it (tolerates overlap). Set per label before its obstacle queries.
+let candidateThreshold = 0;
+// The directional gap between the label and its anchor marker's edge. The label collides with its own
+// anchor marker only when the threshold demands more clearance than this gap. Set per label.
+let candidateSpacing = 0;
+// The placement of the candidate being tested.
 let candidatePlacement: LabelPlacement | undefined;
-// Centre of the candidate datum's own marker, matched against marker obstacles so an `inside` candidate
-// skips only that one. Set per datum before its obstacle queries.
+// Centre and radius of the candidate datum's own anchor marker; the label is placed a fixed gap from
+// it, so it is handled by the spacing gate rather than normal collision. The radius disambiguates it
+// from a coincident marker of a different size (e.g. stacked bubbles). Set per datum before its
+// obstacle queries; centre is NaN and radius -1 (never matches) for candidates with no own marker.
 let candidateOwnMarkerCx = 0;
 let candidateOwnMarkerCy = 0;
+let candidateOwnMarkerR = -1;
 // The label's text/box after the fit step, reused per label to keep the hot path allocation-free.
 const fittedLabel: { text: NormalisedTextOrSegments; width: number; height: number } = {
     text: '',
@@ -663,23 +671,32 @@ function inflateBoxInto(dest: BoxBounds, src: BoxBounds, inflate: number) {
 
 function obstacleOverlapsCandidate(o: LabelObstacle): boolean {
     const category = o.category ?? 'seriesItem';
+    // The label's own anchor marker, when the label is offset from it (a directional or `inside`
+    // placement — not the centred default, which genuinely sits over the marker): an `inside` label is
+    // centred on it and never avoids it; a directional label sits a fixed `spacing` gap from it and
+    // avoids it only when the threshold demands more clearance than that gap (`threshold > spacing`),
+    // never at the default threshold of 0.
     if (
-        candidatePlacement === 'inside' &&
+        candidatePlacement != null &&
         category === 'marker' &&
         o.kind === 'circle' &&
         o.cx === candidateOwnMarkerCx &&
-        o.cy === candidateOwnMarkerCy
+        o.cy === candidateOwnMarkerCy &&
+        o.r === candidateOwnMarkerR
     ) {
-        return false;
+        return candidatePlacement !== 'inside' && candidateThreshold > candidateSpacing;
     }
-    const cfg = candidateCollideWith?.[category];
-    if (cfg?.enabled === false) return false;
 
-    const spacing = cfg?.minSpacing ?? 0;
-    // No inflation (the common case, no per-category minSpacing): test the candidate box directly.
+    if (candidateCollideWith?.[category] === false) return false;
+
+    // Grow (positive) or shrink (negative) the candidate box by the collision threshold before testing.
+    // No inflation (the common case, threshold 0): test the candidate box directly.
     let testBox = candidateBox;
-    if (spacing !== 0) {
-        inflateBoxInto(inflatedBox, candidateBox, spacing);
+    if (candidateThreshold !== 0) {
+        inflateBoxInto(inflatedBox, candidateBox, candidateThreshold);
+        // A negative threshold that shrinks the box past its own extent means the label tolerates any
+        // overlap on that axis; a collapsed box clears every obstacle rather than testing an inverted one.
+        if (inflatedBox.width <= 0 || inflatedBox.height <= 0) return false;
         testBox = inflatedBox;
     }
     const { x, y, width, height } = testBox;
@@ -691,20 +708,6 @@ function obstacleOverlapsCandidate(o: LabelObstacle): boolean {
         case 'custom':
             return o.overlaps(testBox);
     }
-}
-
-const obstacleCategories = ['marker', 'label', 'seriesItem'] as const;
-
-function maxInflation(collideWith: CollideWith | undefined): number {
-    if (collideWith == null) return 0;
-    let max = 0;
-    for (const key of obstacleCategories) {
-        const cfg = collideWith[key];
-        if (cfg?.enabled !== false && cfg?.minSpacing != null && cfg.minSpacing > max) {
-            max = cfg.minSpacing;
-        }
-    }
-    return max;
 }
 
 /** Cell size for the obstacle index, derived from the mean extent of every box it will hold. */
@@ -992,7 +995,8 @@ function tryPlaceLabel(
     const placements = d.placements ?? defaults?.placements;
     const collideWith = d.collideWith ?? defaults?.collideWith;
     const gap = d.gap ?? d.point.size / 2;
-    const spacing = d.minSpacing ?? defaults?.minSpacing ?? padding;
+    const spacing = d.spacing ?? defaults?.spacing ?? padding;
+    const threshold = defaults?.threshold ?? 0;
     const { text, width, height } = fitLabel(d);
 
     // Sole-candidate keep-forever: one placement, kept on overflow, never dropped. The obstacle query
@@ -1016,7 +1020,8 @@ function tryPlaceLabel(
         width,
         height,
         gap,
-        spacing
+        spacing,
+        threshold
     );
 }
 
@@ -1039,19 +1044,23 @@ function placeAvoidingLabel(
     width: number,
     height: number,
     gap: number,
-    spacing: number
+    spacing: number,
+    threshold: number
 ): PlacedLabel | undefined {
     if (d.positionedCandidates != null) {
-        return placeFromPositionedCandidates(d, collideWith, index, bounds, text, width, height);
+        return placeFromPositionedCandidates(d, collideWith, threshold, index, bounds, text, width, height);
     }
     const candidates = placements;
     const orientations = orientationsOf(d);
     const singleOrientation = singleOrientationOf(d);
-    const inflate = maxInflation(collideWith);
+    const inflate = Math.max(threshold, 0);
     candidateCollideWith = collideWith;
+    candidateThreshold = threshold;
+    candidateSpacing = spacing;
     markerCentreOf(d);
     candidateOwnMarkerCx = markerCentre.cx;
     candidateOwnMarkerCy = markerCentre.cy;
+    candidateOwnMarkerR = d.point.size / 2;
     const candidateCount = candidates?.length ?? 1;
     const orientationCount = orientations?.length ?? 1;
     const region = d.region ?? bounds;
@@ -1143,6 +1152,7 @@ function placeAvoidingLabel(
 function placeFromPositionedCandidates(
     d: PointLabelDatum,
     collideWith: CollideWith | undefined,
+    threshold: number,
     index: number,
     bounds: BoxBounds,
     text: NormalisedTextOrSegments,
@@ -1150,11 +1160,16 @@ function placeFromPositionedCandidates(
     height: number
 ): PlacedLabel | undefined {
     const candidates = d.positionedCandidates!;
-    const inflate = maxInflation(collideWith);
+    const inflate = Math.max(threshold, 0);
     candidateCollideWith = collideWith;
-    // No compass placement and no own marker on this path: bars disable marker collisions, so the
-    // `inside` own-marker skip in obstacleOverlapsCandidate must stay inert.
+    candidateThreshold = threshold;
+    candidateSpacing = 0;
+    // No compass placement and no own marker on this path (bars): the own-marker gate in
+    // obstacleOverlapsCandidate must stay inert, so no obstacle centre can match.
     candidatePlacement = undefined;
+    candidateOwnMarkerCx = Number.NaN;
+    candidateOwnMarkerCy = Number.NaN;
+    candidateOwnMarkerR = -1;
 
     let bestOverflow = Infinity;
     let bestX = 0;
