@@ -140,6 +140,8 @@ export function createChartContext(chart: ChartHost, vars: ChartContextVars): Dy
         .service('dataService', (c) => new DataService<any>(c.eventsHub, chart, c.animationManager, c.logger))
         .service('zoomManager', (c) => new ZoomManager(c));
 
+    scene.setLogger(ctx.logger);
+
     // Plugin modules register their own services (e.g. sharedToolbar) after the
     // core registry is complete but before any consumer reads from the context.
     for (const module of ModuleRegistry.listModulesByType(ModuleType.Plugin)) {
