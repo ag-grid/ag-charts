@@ -1,9 +1,9 @@
-import type { DistantObject } from 'ag-charts-core';
+import type { DistantObject, SerializedNodeState, SerializedPathProps } from 'ag-charts-core';
 import { SceneChangeDetection, createSvgElement } from 'ag-charts-core';
 
 import type { BBox } from '../bbox';
 import { ExtendedPath2D } from '../extendedPath2D';
-import type { ChildNodeCounts, RenderContext, SerializedNodeState, SerializedPathProps } from '../node';
+import type { ChildNodeCounts, RenderContext } from '../node';
 import { Shape } from './shape';
 
 export class Path<D = unknown> extends Shape<D> implements DistantObject {

@@ -1,8 +1,7 @@
-import type { Point } from 'ag-charts-core';
+import type { Point, SerializedNodeState, SerializedSectorProps } from 'ag-charts-core';
 import { SceneChangeDetection, SceneObjectChangeDetection } from 'ag-charts-core';
 
 import type { BBox } from '../bbox';
-import type { SerializedNodeState, SerializedSectorProps } from '../node';
 import { SectorBox } from '../sectorBox';
 import {
     arcCircleIntersectionAngle,

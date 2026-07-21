@@ -24,11 +24,12 @@ import {
     toPlainText,
     toTextString,
 } from 'ag-charts-core';
+import type { SerializedNodeState, SerializedTextProps } from 'ag-charts-core';
 import type { FontStyle, FontWeight, Opacity, Padding, PixelSize } from 'ag-charts-types';
 
 import { BBox } from '../bbox';
 import { Group } from '../group';
-import type { IScene, Node, NodeOptions, RenderContext, SerializedNodeState, SerializedTextProps } from '../node';
+import type { IScene, Node, NodeOptions, RenderContext } from '../node';
 import { SceneChangeDetection } from '../node';
 import { DebugSelectors } from '../sceneDebug';
 import { Rotatable, type RotatableType, Translatable, type TranslatableType } from '../transformable';

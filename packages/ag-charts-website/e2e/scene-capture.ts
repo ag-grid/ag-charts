@@ -54,22 +54,35 @@ export async function expectChartScreenshot(
         await expect(target).toHaveScreenshot(name, options);
         return;
     }
-    // Capture in `finally` so the JSON is written even on an image diff — it is what explains the
-    // pixel change, mirroring the unit compareImageSnapshot.
+    // Capture whatever the screenshot outcome — the JSON explains a pixel change and must be written
+    // even on an image diff, mirroring the unit compareImageSnapshot.
+    let screenshotError: unknown;
+    let screenshotFailed = false;
     try {
         await expect(target).toHaveScreenshot(name, options);
-    } finally {
-        try {
-            const roots = await page.evaluate(
-                () =>
-                    (
-                        window as unknown as { agE2E?: { captureScenes?: () => SerializedSceneRoots[] } }
-                    ).agE2E?.captureScenes?.() ?? []
-            );
-            writeSceneSnapshots(name, roots);
-        } catch (captureError) {
-            // Auxiliary artifact: a capture failure must never mask the image-diff result it accompanies.
-            process.stderr.write(`AG_SCENE_SNAPSHOTS: e2e scene capture failed: ${String(captureError)}\n`);
+    } catch (error) {
+        screenshotFailed = true;
+        screenshotError = error;
+    }
+
+    try {
+        const roots = await page.evaluate(
+            () =>
+                (
+                    window as unknown as { agE2E?: { captureScenes?: () => SerializedSceneRoots[] } }
+                ).agE2E?.captureScenes?.() ?? []
+        );
+        writeSceneSnapshots(name, roots);
+    } catch (captureError) {
+        // A missing scene artifact must not hide behind a passing screenshot, so fail the test on a
+        // capture error. When the screenshot also failed, that is the more actionable error — keep it.
+        if (!screenshotFailed) {
+            throw captureError;
         }
+        process.stderr.write(`AG_SCENE_SNAPSHOTS: e2e scene capture failed: ${String(captureError)}\n`);
+    }
+
+    if (screenshotFailed) {
+        throw screenshotError;
     }
 }

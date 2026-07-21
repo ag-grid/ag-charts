@@ -1,7 +1,7 @@
 import { DeclaredSceneChangeDetection, Logger, createId, createSvgElement, objectsEqual } from 'ag-charts-core';
-// The serialised-state type family is defined in ag-charts-core so the Node-portable scene sampler
+// The serialised-state type family lives in ag-charts-core so the Node-portable scene sampler
 // (in _ag-charts-test, used by both unit and e2e capture) can type against it without depending on
-// this package. Re-exported here so scene shape files keep importing it from `./node`.
+// this package.
 import type { SerializedNodeProps, SerializedNodeState } from 'ag-charts-core';
 
 import { BBox } from './bbox';
@@ -46,17 +46,6 @@ export interface NodeOptions {
 }
 
 export type NodeWithOpacity<D> = Node<D> & { opacity: number };
-
-export type {
-    SerializedNodeProps,
-    SerializedGroupProps,
-    SerializedShapeProps,
-    SerializedPathProps,
-    SerializedSectorProps,
-    SerializedLineProps,
-    SerializedTextProps,
-    SerializedNodeState,
-} from 'ag-charts-core';
 
 export type ChildNodeCounts = {
     groups: number;
