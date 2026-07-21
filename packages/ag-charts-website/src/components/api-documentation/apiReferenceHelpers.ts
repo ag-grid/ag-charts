@@ -401,19 +401,51 @@ function buildGenericsMap(interfaceRef: InterfaceNode, typeArguments?: string[])
 }
 
 function applyGenericsToMember(member: MemberNode, genericsMap: Map<string, unknown>) {
+    let baseType: TypeNode = member.type;
     let omit: string | undefined;
-    let memberType: string | TypeNode;
 
     if (isTypeReferenceNode(member.type) && member.type.type === 'Omit') {
         const omitType = extractOmitType(member.type);
-        memberType = omitType?.type ?? normalizeType(member.type);
-        omit = omitType?.omit;
-    } else {
-        memberType = normalizeType(member.type);
+        if (omitType) {
+            baseType = omitType.type;
+            omit = omitType.omit;
+        }
     }
 
-    const genericType = typeof memberType === 'string' ? resolveGenericType(memberType, genericsMap) : null;
-    return genericType ? { ...member, type: genericType, omit } : member;
+    const substituted = substituteGenerics(baseType, genericsMap);
+    return substituted === baseType ? member : { ...member, type: substituted, omit };
+}
+
+// Substitutes generic parameter names with their bound types, keeping node structure intact so
+// wrapped generics (`SegmentOptions[]`) resolve. Normalising first would flatten the array to a
+// string the parameter-keyed map cannot match. Returns the original node when nothing binds.
+function substituteGenerics(type: TypeNode, genericsMap: Map<unknown, unknown>): TypeNode {
+    if (typeof type === 'string') {
+        return resolveGenericType(type, genericsMap) ?? type;
+    }
+    if (isArrayNode(type)) {
+        const inner = substituteGenerics(type.type, genericsMap);
+        return inner === type.type ? type : { ...type, type: inner };
+    }
+    if (isUnionNode(type) || isIntersectionNode(type) || isTupleNode(type)) {
+        let changed = false;
+        const subTypes = type.type.map((subType) => {
+            const resolved = substituteGenerics(subType, genericsMap);
+            changed ||= resolved !== subType;
+            return resolved;
+        });
+        return changed ? { ...type, type: subTypes } : type;
+    }
+    if (isTypeReferenceNode(type) && type.typeArguments?.length) {
+        let changed = false;
+        const typeArguments = type.typeArguments.map((arg) => {
+            const resolved = typeof arg === 'string' ? resolveGenericType(arg, genericsMap) : null;
+            changed ||= resolved != null;
+            return resolved ?? arg;
+        });
+        return changed ? { ...type, typeArguments } : type;
+    }
+    return type;
 }
 
 function extractOmitType(memberType: TypeNode) {
@@ -911,21 +943,11 @@ function resolveMemberReference(
     reference?: ApiReferenceType,
     genericsMap?: Record<string, TypeNode>
 ) {
-    const resolveTypeName = (type: TypeNode | string | undefined): string | undefined => {
-        if (!type) return;
-        if (isArrayNode(type)) {
-            return resolveTypeName(type.type);
-        }
-        if (typeof type === 'string') {
-            const mappedType = genericsMap?.[type] ?? type;
-            return typeof mappedType === 'string' ? mappedType : undefined;
-        }
-        if (isTypeReferenceNode(type) && typeof type.type === 'string') {
-            return type.type;
-        }
-    };
-
-    const resolvedType = resolveTypeName(member.type);
+    let element = genericsMap ? substituteGenerics(member.type, new Map(entries(genericsMap))) : member.type;
+    while (isArrayNode(element)) {
+        element = element.type;
+    }
+    const resolvedType = getReferencedTypeName(element);
     return resolvedType && reference?.get(resolvedType);
 }
 
