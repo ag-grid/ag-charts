@@ -7,7 +7,7 @@ import type { FontOptions } from '../../types/text';
 import { toArray } from '../data/arrays';
 import { isArray } from '../types/typeGuards';
 import { toRadians } from './angle';
-import { type BoxBounds, boxCollides, boxContains } from './boxBounds';
+import { type BoxBounds, boxCollides, boxContains, insetBoxXY } from './boxBounds';
 import { getMinOuterRectSize } from './math/shapeUtils';
 import { SpatialIndex, gridCellSize } from './spatialIndex';
 
@@ -322,6 +322,16 @@ export function barLabelOrientation(rotation: number): AgChartLabelOrientation {
     if (rotation < 0) return 'vertical';
     if (rotation > 0) return 'vertical-reversed';
     return 'horizontal';
+}
+
+/**
+ * Inside-label containment region, inset per-axis: by `spacing` along the bar-length axis (the value
+ * direction — Y for vertical bars, X for horizontal) and by `threshold` along the cross axis. The
+ * cross-axis `threshold` is a small wall-clearance so the label doesn't touch the bar's side edges,
+ * without reserving the full directional `spacing` there.
+ */
+export function insideBarRegion(rect: BoxBounds, spacing: number, threshold: number, isVertical: boolean): BoxBounds {
+    return isVertical ? insetBoxXY(rect, threshold, spacing) : insetBoxXY(rect, spacing, threshold);
 }
 
 const oppositeSide: Record<keyof Required<PaddingOptions>, keyof Required<PaddingOptions>> = {
@@ -1095,7 +1105,7 @@ function placeAvoidingLabel(
                 candidateBox.y = y = ny;
             }
             candidatePlacement = placement;
-            const containRegion = insideRegionFor(d, placement, x, y, cw, ch) ?? region;
+            const containRegion = insideRegionFor(d, placement, x, y, cw, ch, threshold) ?? region;
             inflateBoxInto(queryBox, candidateBox, inflate);
             if (boxContains(containRegion, x, y, cw, ch) && !obstacleIndex.query(queryBox, obstacleOverlapsCandidate)) {
                 return {
@@ -1276,8 +1286,10 @@ function candidateAt<T>(list: readonly T[] | undefined, single: T | undefined, i
 /**
  * The marker inscribed rect an `inside` candidate must fit, co-centred with the candidate box (which
  * `insideOffset` already placed at that rect's centre), written into the shared {@link insideRegionBox}.
- * Returns `undefined` for directional candidates or when the datum carries no {@link
- * PointLabelDatum.insideSize}, so the caller falls back to the shared region.
+ * `threshold` shrinks the rect on every side (a positive value demands wall clearance; a negative one
+ * lets the label bleed past the marker edge), mirroring its obstacle-avoidance sense. Returns
+ * `undefined` for directional candidates or when the datum carries no {@link PointLabelDatum.insideSize},
+ * so the caller falls back to the shared region.
  */
 function insideRegionFor(
     d: PointLabelDatum,
@@ -1285,11 +1297,12 @@ function insideRegionFor(
     x: number,
     y: number,
     boxWidth: number,
-    boxHeight: number
+    boxHeight: number,
+    threshold: number
 ): BoxBounds | undefined {
     if (placement !== 'inside' || d.insideSize == null) return undefined;
-    const rw = d.insideSize.width * d.point.size;
-    const rh = d.insideSize.height * d.point.size;
+    const rw = Math.max(0, d.insideSize.width * d.point.size - 2 * threshold);
+    const rh = Math.max(0, d.insideSize.height * d.point.size - 2 * threshold);
     insideRegionBox.x = x + boxWidth / 2 - rw / 2;
     insideRegionBox.y = y + boxHeight / 2 - rh / 2;
     insideRegionBox.width = rw;

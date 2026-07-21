@@ -28,7 +28,7 @@ import {
     buildBarLabelData,
     easeOut,
     firstCandidate,
-    insetBox,
+    insideBarRegion,
     isContinuous,
     maxValue,
     measureLabelText,
@@ -717,7 +717,12 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             // needed to bound the fit or to resolve orientation, so skip it otherwise.
             const container =
                 insidePlacement && (labelFit != null || resolvesOrientation)
-                    ? insetBox({ x: rectX, y: rectY, width: rectWidth, height: rectHeight }, insetSpacing)
+                    ? insideBarRegion(
+                          { x: rectX, y: rectY, width: rectWidth, height: rectHeight },
+                          insetSpacing,
+                          label.collision.threshold ?? 0,
+                          !barAlongX
+                      )
                     : undefined;
             const fittedLabelText = fitLabelToContainer(labelText, labelFit, label, container);
             // A rotated label's gap to the bar depends on its box size; measure only when it rotates.

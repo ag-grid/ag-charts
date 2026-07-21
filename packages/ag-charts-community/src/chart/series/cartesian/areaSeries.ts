@@ -1002,7 +1002,10 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         } = resolveInsidePlacement(placements, marker.shape);
         const markerSize = marker.enabled ? marker.size : 0;
         const labelFit = insideOnly
-            ? boundLabelFit(resolveLabelFit(label, false, true), insideMarkerContainer(markerSize, marker.shape))
+            ? boundLabelFit(
+                  resolveLabelFit(label, false, true),
+                  insideMarkerContainer(markerSize, marker.shape, label.collision.threshold ?? 0)
+              )
             : resolveLabelFit(label, !label.collision.suppressHide);
         const labelAnchor = Marker.anchor(marker.shape);
 

@@ -144,6 +144,7 @@ describe('buildBarLabelCandidates', () => {
             placements,
             orientations,
             spacing: 5,
+            threshold: 2,
             rect,
             width: 30,
             height: 10,
@@ -159,9 +160,10 @@ describe('buildBarLabelCandidates', () => {
         ]);
     });
 
-    it('constrains inside placements to the inset bar rect and floats outside placements', () => {
+    it('constrains inside placements to the per-axis inset bar rect and floats outside placements', () => {
+        // Horizontal bar: spacing (5) insets left/right (length axis); threshold (2) insets top/bottom (cross).
         const candidates = build(['inside-center', 'outside-end'], ['horizontal']);
-        expect(candidates[0].region).toEqual({ x: 5, y: 5, width: 90, height: 30 });
+        expect(candidates[0].region).toEqual({ x: 5, y: 2, width: 90, height: 36 });
         expect(candidates[1].region).toBeUndefined();
     });
 

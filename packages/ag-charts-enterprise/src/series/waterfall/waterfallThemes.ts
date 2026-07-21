@@ -39,6 +39,7 @@ function itemTheme(
             fontFamily: { $ref: 'fontFamily' as const },
             spacing: 6,
             padding: 6,
+            collision: { threshold: 4 },
             insideStyle: {
                 color: { $isUserOption: ['../color', { $path: '../color' }, { $ref: 'textColor' as const }] },
             },

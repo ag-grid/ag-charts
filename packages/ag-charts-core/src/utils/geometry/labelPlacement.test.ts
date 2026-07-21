@@ -21,6 +21,7 @@ import {
     barLabelResolvesPlacement,
     buildBarLabelDatum,
     buildBarPositionedLabelDatum,
+    insideBarRegion,
     labelGlyphCentre,
     placeLabels,
     resolveLabelFit,
@@ -934,6 +935,34 @@ describe('placeLabels', () => {
             expect(placed).toBeUndefined();
         });
 
+        it('shrinks the marker-fit region by a positive threshold, cascading a snug label out', () => {
+            const datum: PointLabelDatum = {
+                point: { x: 200, y: 200, size: 100 },
+                label: { text: 'L', width: 40, height: 12 },
+                anchor: { x: 0.5, y: 0.5 },
+                placement: 'inside',
+                placements: insideThenDirectional,
+                // 70×70 rect: the 40×12 label fits at threshold 0.
+                insideSize: { width: 0.7, height: 0.7 },
+                // Spacing ≥ threshold keeps the top fallback clear of its own marker, so the cascade
+                // below is driven by the shrunken inside region, not own-marker inflation.
+                spacing: 20,
+                suppressHide: false,
+            };
+            const inside = placeLabels(new Map([['s', seriesLabels([datum], { suppressHide: false })]]), bounds, 5).get(
+                's'
+            )![0];
+            expect(inside.placement).toBe('inside');
+
+            // threshold 20 shrinks the rect to 30×30; the 40-wide label no longer fits and cascades to top.
+            const clamped = placeLabels(
+                new Map([['s', seriesLabels([datum], { suppressHide: false, threshold: 20 })]]),
+                bounds,
+                5
+            ).get('s')![0];
+            expect(clamped.placement).toBe('top');
+        });
+
         it('tests inside against the shared bounds when no insideSize is given (gating regression)', () => {
             const datum: PointLabelDatum = {
                 point: { x: 200, y: 200, size: 20 },
@@ -1207,6 +1236,23 @@ describe('bar label placement helpers', () => {
         ])('recovers the box centre from a %s/%s anchor', (textAlign, textBaseline) => {
             const centre = labelGlyphCentre(anchorAt(textAlign, textBaseline), 40, 10);
             expect(centre).toEqual({ x: 100, y: 50 });
+        });
+    });
+
+    describe('insideBarRegion', () => {
+        const rect: BoxBounds = { x: 10, y: 20, width: 40, height: 200 };
+
+        it('insets a vertical bar by spacing on Y (length) and threshold on X (cross)', () => {
+            expect(insideBarRegion(rect, 5, 2, true)).toEqual({ x: 12, y: 25, width: 36, height: 190 });
+        });
+
+        it('insets a horizontal bar by spacing on X (length) and threshold on Y (cross)', () => {
+            expect(insideBarRegion(rect, 5, 2, false)).toEqual({ x: 15, y: 22, width: 30, height: 196 });
+        });
+
+        it('leaves the cross axis flush when threshold is zero', () => {
+            expect(insideBarRegion(rect, 5, 0, true)).toEqual({ x: 10, y: 25, width: 40, height: 190 });
+            expect(insideBarRegion(rect, 5, 0, false)).toEqual({ x: 15, y: 20, width: 30, height: 200 });
         });
     });
 

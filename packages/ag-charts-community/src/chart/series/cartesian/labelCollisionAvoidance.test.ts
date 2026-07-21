@@ -1046,6 +1046,127 @@ describe('label collision avoidance', () => {
         }
     });
 
+    // An inside label's spacing is a gap from the bar's value end, so it applies only along the bar's
+    // length axis. On the cross axis the label may span the full bar width/height and must not be
+    // rejected as a collision, letting a candidate that overflows the old all-sides inset be kept.
+    describe('inside-label spacing applies only along the bar-length axis', () => {
+        const labelNodes = () => {
+            const series = deproxy(chart as any).series[0] as unknown as {
+                contextNodeData?: { nodeData?: { x: number; y: number; width: number; height: number }[] };
+                labelSelection: {
+                    nodes(): {
+                        visible: boolean;
+                        rotation: number;
+                        computeBBox(): { x: number; y: number; width: number; height: number } | undefined;
+                    }[];
+                };
+            };
+            const bars = series.contextNodeData?.nodeData ?? [];
+            const labels = series.labelSelection.nodes().filter((node) => node.visible);
+            return { bars, labels };
+        };
+
+        it('vertical bar: keeps the horizontal label spanning the bar width instead of rotating it', async () => {
+            const spacing = 35;
+            const options = {
+                data: Array.from({ length: 8 }, (_, i) => ({ cat: `Category ${i}`, value: 100 })),
+                legend: { enabled: false },
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left', max: 100 },
+                },
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'cat',
+                        yKey: 'value',
+                        label: {
+                            enabled: true,
+                            placement: 'inside-center',
+                            orientation: ['horizontal', 'vertical'],
+                            spacing,
+                            formatter: () => 'Hello',
+                        },
+                    },
+                ],
+            };
+            prepareTestOptions(options as any);
+            // Thin columns (each narrower than twice the spacing) so the old all-sides inset region
+            // would reject the horizontal label, while it still fits the bar's full width.
+            (options as any).width = 500;
+            (options as any).height = 400;
+            chart = AgCharts.create(options as any);
+            await waitForChartStability(chart);
+
+            const { bars, labels } = labelNodes();
+            expect(labels.length).toBe(bars.length);
+            for (const node of labels) {
+                const bbox = node.computeBBox();
+                expect(bbox).toBeDefined();
+                const bar = bars.find(
+                    (b) => bbox!.x + bbox!.width / 2 >= b.x && bbox!.x + bbox!.width / 2 <= b.x + b.width
+                );
+                expect(bar).toBeDefined();
+                // The label stayed horizontal: it fits the bar's full width with no cross-axis spacing.
+                expect(node.rotation).toBe(0);
+                expect(bbox!.width).toBeLessThanOrEqual(bar!.width + 0.5);
+                // Anti-vacuous: the label is wider than the old all-sides inset region, so the previous
+                // behaviour would have rejected the horizontal candidate and rotated it to vertical.
+                expect(bbox!.width).toBeGreaterThan(bar!.width - 2 * spacing);
+            }
+        });
+
+        it('horizontal bar: keeps the vertical label spanning the bar height instead of rotating it', async () => {
+            const spacing = 35;
+            const options = {
+                data: Array.from({ length: 8 }, (_, i) => ({ cat: `Category ${i}`, value: 100 })),
+                legend: { enabled: false },
+                axes: {
+                    x: { type: 'number', position: 'bottom', max: 100 },
+                    y: { type: 'category', position: 'left' },
+                },
+                series: [
+                    {
+                        type: 'bar',
+                        direction: 'horizontal',
+                        xKey: 'cat',
+                        yKey: 'value',
+                        label: {
+                            enabled: true,
+                            placement: 'inside-center',
+                            orientation: ['vertical', 'horizontal'],
+                            spacing,
+                            formatter: () => 'Hello',
+                        },
+                    },
+                ],
+            };
+            prepareTestOptions(options as any);
+            // Thin bars (each shorter than twice the spacing) so the old all-sides inset region would
+            // reject the vertical label, while it still fits the bar's full height.
+            (options as any).width = 400;
+            (options as any).height = 500;
+            chart = AgCharts.create(options as any);
+            await waitForChartStability(chart);
+
+            const { bars, labels } = labelNodes();
+            expect(labels.length).toBe(bars.length);
+            for (const node of labels) {
+                const bbox = node.computeBBox();
+                expect(bbox).toBeDefined();
+                const bar = bars.find(
+                    (b) => bbox!.y + bbox!.height / 2 >= b.y && bbox!.y + bbox!.height / 2 <= b.y + b.height
+                );
+                expect(bar).toBeDefined();
+                // The label stayed vertical: it fits the bar's full height with no cross-axis spacing.
+                expect(node.rotation).not.toBe(0);
+                expect(bbox!.height).toBeLessThanOrEqual(bar!.height + 0.5);
+                // Anti-vacuous: the label is taller than the old all-sides inset region.
+                expect(bbox!.height).toBeGreaterThan(bar!.height - 2 * spacing);
+            }
+        });
+    });
+
     // `suppressHide` gates only the terminal hide-vs-keep decision once collision resolution has run;
     // it is orthogonal to fit (wrapping/truncation) and placement cascade, which always apply
     // regardless of its value.

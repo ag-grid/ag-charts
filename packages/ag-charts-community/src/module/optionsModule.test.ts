@@ -663,6 +663,9 @@ describe('ChartOptions', () => {
                       "stroke": "rgba(24, 29, 31, 0.08)",
                       "strokeWidth": 1,
                     },
+                    "collision": {
+                      "threshold": 4,
+                    },
                     "cornerRadius": 4,
                     "enabled": false,
                     "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
@@ -748,6 +751,9 @@ describe('ChartOptions', () => {
                       "enabled": false,
                       "stroke": "rgba(24, 29, 31, 0.08)",
                       "strokeWidth": 1,
+                    },
+                    "collision": {
+                      "threshold": 4,
                     },
                     "cornerRadius": 4,
                     "enabled": false,
@@ -835,6 +841,9 @@ describe('ChartOptions', () => {
                       "stroke": "rgba(24, 29, 31, 0.08)",
                       "strokeWidth": 1,
                     },
+                    "collision": {
+                      "threshold": 4,
+                    },
                     "cornerRadius": 4,
                     "enabled": false,
                     "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
@@ -920,6 +929,9 @@ describe('ChartOptions', () => {
                       "enabled": false,
                       "stroke": "rgba(24, 29, 31, 0.08)",
                       "strokeWidth": 1,
+                    },
+                    "collision": {
+                      "threshold": 4,
                     },
                     "cornerRadius": 4,
                     "enabled": false,
@@ -1174,6 +1186,9 @@ describe('ChartOptions', () => {
                       "stroke": "rgba(24, 29, 31, 0.08)",
                       "strokeWidth": 1,
                     },
+                    "collision": {
+                      "threshold": 4,
+                    },
                     "cornerRadius": 4,
                     "enabled": false,
                     "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
@@ -1259,6 +1274,9 @@ describe('ChartOptions', () => {
                       "enabled": false,
                       "stroke": "rgba(24, 29, 31, 0.08)",
                       "strokeWidth": 1,
+                    },
+                    "collision": {
+                      "threshold": 4,
                     },
                     "cornerRadius": 4,
                     "enabled": false,
@@ -1346,6 +1364,9 @@ describe('ChartOptions', () => {
                       "stroke": "rgba(24, 29, 31, 0.08)",
                       "strokeWidth": 1,
                     },
+                    "collision": {
+                      "threshold": 4,
+                    },
                     "cornerRadius": 4,
                     "enabled": false,
                     "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
@@ -1431,6 +1452,9 @@ describe('ChartOptions', () => {
                       "enabled": false,
                       "stroke": "rgba(24, 29, 31, 0.08)",
                       "strokeWidth": 1,
+                    },
+                    "collision": {
+                      "threshold": 4,
                     },
                     "cornerRadius": 4,
                     "enabled": false,
@@ -1685,6 +1709,9 @@ describe('ChartOptions', () => {
                       "stroke": "rgba(24, 29, 31, 0.08)",
                       "strokeWidth": 1,
                     },
+                    "collision": {
+                      "threshold": 4,
+                    },
                     "cornerRadius": 4,
                     "enabled": false,
                     "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
@@ -1770,6 +1797,9 @@ describe('ChartOptions', () => {
                       "enabled": false,
                       "stroke": "rgba(24, 29, 31, 0.08)",
                       "strokeWidth": 1,
+                    },
+                    "collision": {
+                      "threshold": 4,
                     },
                     "cornerRadius": 4,
                     "enabled": false,
@@ -1857,6 +1887,9 @@ describe('ChartOptions', () => {
                       "stroke": "rgba(24, 29, 31, 0.08)",
                       "strokeWidth": 1,
                     },
+                    "collision": {
+                      "threshold": 4,
+                    },
                     "cornerRadius": 4,
                     "enabled": false,
                     "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
@@ -1942,6 +1975,9 @@ describe('ChartOptions', () => {
                       "enabled": false,
                       "stroke": "rgba(24, 29, 31, 0.08)",
                       "strokeWidth": 1,
+                    },
+                    "collision": {
+                      "threshold": 4,
                     },
                     "cornerRadius": 4,
                     "enabled": false,
