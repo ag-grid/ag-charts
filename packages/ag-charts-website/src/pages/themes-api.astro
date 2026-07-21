@@ -1,4 +1,5 @@
 ---
+import ApiReferenceFallback from '@components/api-documentation/components/ApiReferenceFallback.astro';
 import { ApiReferencePage } from '@components/api-documentation/components/ApiReferencePage';
 import APIViewLayout from '@layouts/APIViewLayout.astro';
 ---
@@ -17,5 +18,7 @@ import APIViewLayout from '@layouts/APIViewLayout.astro';
         specialTypes={{
             AgBaseChartThemeOverrides: 'NestedPage',
         }}
-    />
+    >
+        <ApiReferenceFallback slot="fallback" rootInterface="AgChartTheme" />
+    </ApiReferencePage>
 </APIViewLayout>

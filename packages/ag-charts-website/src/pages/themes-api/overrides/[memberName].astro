@@ -1,5 +1,6 @@
 ---
 import { getThemesApiStaticPaths } from '@components/api-documentation/apiReferenceHelpers';
+import ApiReferenceFallback from '@components/api-documentation/components/ApiReferenceFallback.astro';
 import { ApiReferencePage } from '@components/api-documentation/components/ApiReferencePage';
 import APIViewLayout from '@layouts/APIViewLayout.astro';
 import { getInterfacesReference } from '@utils/server/getInterfacesReference';
@@ -21,5 +22,12 @@ export async function getStaticPaths() {
         specialTypes={{
             AgBaseChartThemeOverrides: 'NestedPage',
         }}
-    />
+    >
+        <ApiReferenceFallback
+            slot="fallback"
+            rootInterface="AgChartTheme"
+            pageInterface={Astro.props.pageInterface}
+            pageTitle={Astro.props.pageTitle}
+        />
+    </ApiReferencePage>
 </APIViewLayout>
