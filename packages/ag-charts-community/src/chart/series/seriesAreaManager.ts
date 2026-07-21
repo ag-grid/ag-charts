@@ -1148,7 +1148,7 @@ export class SeriesAreaManager extends BaseManager {
         // TODO: We may want to use the 'aria-describedby' attribute for interaction instructions (similar to how we do
         // it with legend items).
         const withInstructions = (text: string): string => {
-            return ariaMeta?.instructions ? [text, ariaMeta.instructions].join('. ') : text;
+            return ariaMeta?.instructions ? [text, ...ariaMeta.instructions].join('. ') : text;
         };
 
         const dataSelectionStateText = this.getSelectedStateAriaText(datum);
