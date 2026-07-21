@@ -149,8 +149,8 @@ export interface EventsHubMap {
     'series:focus-change': null;
     'series:keynav-zoom': SeriesKeyNavZoomEvent;
     'series:keynav-panx': SeriesKeyNavPanXEvent;
-    'series:keynav-expand': SeriesNodeDatum;
-    'series:keynav-collapse': SeriesNodeDatum;
+    'series:keynav-expand': SeriesKeyNavExpandEvent;
+    'series:keynav-collapse': SeriesKeyNavCollapseEvent;
     'series-area:hover': SeriesAreaHoverEvent;
     'series-area:click': SeriesAreaClickEvent;
     'series-area:contextmenu': SeriesAreaContextMenuEvent;
@@ -303,6 +303,16 @@ export interface SeriesKeyNavZoomEvent {
 export interface SeriesKeyNavPanXEvent {
     readonly delta: 'home' | 'end' | -1 | 1;
     readonly reverse: boolean;
+    readonly widgetEvent: KeyboardWidgetEvent<'keydown'>;
+}
+
+export interface SeriesKeyNavExpandEvent {
+    readonly nodeDatum: SeriesNodeDatum;
+    readonly widgetEvent: KeyboardWidgetEvent<'keydown'>;
+}
+
+export interface SeriesKeyNavCollapseEvent {
+    readonly nodeDatum: SeriesNodeDatum;
     readonly widgetEvent: KeyboardWidgetEvent<'keydown'>;
 }
 

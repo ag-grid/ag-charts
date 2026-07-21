@@ -736,9 +736,9 @@ export class SeriesAreaManager extends BaseManager {
             case 'submit':
                 return this.onSubmit(widgetEvent);
             case 'expand':
-                return this.onExpandCollapse('series:keynav-expand');
+                return this.onExpandCollapse('series:keynav-expand', widgetEvent);
             case 'collapse':
-                return this.onExpandCollapse('series:keynav-collapse');
+                return this.onExpandCollapse('series:keynav-collapse', widgetEvent);
             case 'delete':
                 return;
             default:
@@ -812,9 +812,13 @@ export class SeriesAreaManager extends BaseManager {
         }
     }
 
-    private onExpandCollapse(type: 'series:keynav-expand' | 'series:keynav-collapse') {
-        if (this.focus.datum) {
-            this.chart.ctx.eventsHub.emit(type, this.focus.datum);
+    private onExpandCollapse(
+        type: 'series:keynav-expand' | 'series:keynav-collapse',
+        widgetEvent: KeyboardWidgetEvent<'keydown'>
+    ) {
+        const nodeDatum = this.focus.datum;
+        if (nodeDatum) {
+            this.chart.ctx.eventsHub.emit(type, { nodeDatum, widgetEvent });
         }
     }
 

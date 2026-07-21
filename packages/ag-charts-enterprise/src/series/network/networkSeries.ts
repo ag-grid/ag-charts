@@ -171,13 +171,17 @@ export abstract class AbstractNetworkSeries<
                 }
             }),
             ctx.eventsHub.on('series:keynav-expand', (event) => {
-                if (event.itemId == null || event.series !== this) return;
-                this.expandItem(event.itemId, 'user-interaction');
+                const { nodeDatum, widgetEvent } = event;
+                if (nodeDatum.itemId == null || nodeDatum.series !== this) return;
+                widgetEvent.sourceEvent.preventDefault();
+                this.expandItem(nodeDatum.itemId, 'user-interaction');
                 this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.PERFORM_LAYOUT });
             }),
             ctx.eventsHub.on('series:keynav-collapse', (event) => {
-                if (event.itemId == null || event.series !== this) return;
-                this.collapseItem(event.itemId, 'user-interaction');
+                const { nodeDatum, widgetEvent } = event;
+                if (nodeDatum.itemId == null || nodeDatum.series !== this) return;
+                widgetEvent.sourceEvent.preventDefault();
+                this.collapseItem(nodeDatum.itemId, 'user-interaction');
                 this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.PERFORM_LAYOUT });
             })
         );
