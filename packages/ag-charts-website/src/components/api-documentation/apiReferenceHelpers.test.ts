@@ -5,6 +5,9 @@ import {
     formatTypeToCode,
     formatUnionSignature,
     getAliasedUnionVariants,
+    getMemberType,
+    normalizeType,
+    processMembers,
 } from './apiReferenceHelpers';
 
 const union = (...types: any[]) => ({ kind: 'union' as const, type: types });
@@ -157,6 +160,86 @@ describe('formatTypeToCode', () => {
         expect(code).toContain('context?: ContextDefault;');
         expect(code).not.toContain('type: T;');
         expect(code).not.toContain('context?: TContext;');
+    });
+
+    // Mirrors `AgSeriesSegmentation<SegmentOptions = AgSeriesShapeSegmentOptions>` with a
+    // `segments: SegmentOptions[]` member: the generic is wrapped in an array, so it must resolve
+    // to the default's element type rather than the raw parameter name.
+    it('substitutes an array-wrapped generic parameter using its default', () => {
+        const segmentationNode = {
+            kind: 'interface' as const,
+            name: 'AgSeriesSegmentation',
+            typeParams: [{ kind: 'typeParam', name: 'SegmentOptions', default: 'AgSeriesShapeSegmentOptions' }],
+            members: [{ kind: 'member', name: 'segments', type: { kind: 'array', type: 'SegmentOptions' } }],
+            genericsMap: { SegmentOptions: 'AgSeriesShapeSegmentOptions' },
+        };
+        const segmentationMember = {
+            kind: 'member',
+            name: 'segmentation',
+            type: 'AgSeriesSegmentation',
+            optional: true,
+        } as any;
+
+        const code = formatTypeToCode(segmentationNode as any, segmentationMember, new Map() as any, new Set());
+
+        expect(code).toContain('segments: AgSeriesShapeSegmentOptions[];');
+        expect(code).not.toContain('segments: SegmentOptions[]');
+    });
+});
+
+describe('processMembers generic substitution', () => {
+    const segmentationNode = {
+        kind: 'interface' as const,
+        name: 'AgSeriesSegmentation',
+        typeParams: [{ kind: 'typeParam', name: 'SegmentOptions', default: 'AgSeriesShapeSegmentOptions' }],
+        members: [{ kind: 'member', name: 'segments', type: { kind: 'array', type: 'SegmentOptions' } }],
+        genericsMap: { SegmentOptions: 'AgSeriesShapeSegmentOptions' },
+    };
+
+    // The default binding stands in when a reference site provides no explicit type argument.
+    it('resolves an array-wrapped generic to its default binding', () => {
+        const [member] = processMembers(segmentationNode as any, {});
+
+        expect(normalizeType(member.type)).toBe('AgSeriesShapeSegmentOptions[]');
+        // getMemberType feeds the drill-in lookup, so the element must be the concrete interface name.
+        expect(getMemberType(member)).toBe('AgSeriesShapeSegmentOptions');
+    });
+
+    // Line series references it as `AgSeriesSegmentation<AgSeriesLineSegmentOptions>`.
+    it('resolves an array-wrapped generic to an explicit type argument', () => {
+        const [member] = processMembers(segmentationNode as any, {}, ['AgSeriesLineSegmentOptions']);
+
+        expect(normalizeType(member.type)).toBe('AgSeriesLineSegmentOptions[]');
+        expect(getMemberType(member)).toBe('AgSeriesLineSegmentOptions');
+    });
+
+    // A generic nested inside another type argument (`Wrapper<SegmentOptions[]>`) must still resolve.
+    it('recurses into structured type arguments', () => {
+        const holderNode = {
+            kind: 'interface' as const,
+            name: 'Holder',
+            typeParams: [{ kind: 'typeParam', name: 'SegmentOptions', default: 'AgSeriesShapeSegmentOptions' }],
+            members: [
+                {
+                    kind: 'member',
+                    name: 'wrapped',
+                    type: {
+                        kind: 'typeRef',
+                        type: 'Wrapper',
+                        typeArguments: [{ kind: 'array', type: 'SegmentOptions' }],
+                    },
+                },
+            ],
+            genericsMap: { SegmentOptions: 'AgSeriesShapeSegmentOptions' },
+        };
+
+        const [member] = processMembers(holderNode as any, {});
+
+        expect(member.type).toEqual({
+            kind: 'typeRef',
+            type: 'Wrapper',
+            typeArguments: [{ kind: 'array', type: 'AgSeriesShapeSegmentOptions' }],
+        });
     });
 });
 
