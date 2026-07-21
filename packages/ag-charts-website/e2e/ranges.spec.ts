@@ -83,10 +83,17 @@ test.describe('range buttons', () => {
         await page.getByText('3 Months (calendar)').click();
         await expectChartScreenshot(page, canvas, 'range-buttons-actions-calendar.png');
 
+        // Value Pair and All Domain Function animate the zoom to a new x/y-domain.
+        // Move the mouse off the chart and wait for the animation to settle before
+        // each capture, otherwise the screenshot can land mid-transition.
         await page.getByText('Value Pair').click();
+        await page.mouse.move(0, 0);
+        await waitForChartUpdate(wrapper);
         await expectChartScreenshot(page, canvas, 'range-buttons-actions-value-pair.png');
 
         await page.getByText('All Domain Function').click();
+        await page.mouse.move(0, 0);
+        await waitForChartUpdate(wrapper);
         await expectChartScreenshot(page, canvas, 'range-buttons-actions-all-domain-function.png');
 
         // Zoom in a few times so the visible window does not end at the end of the domain.
