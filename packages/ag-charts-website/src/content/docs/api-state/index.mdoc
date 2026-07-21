@@ -80,7 +80,7 @@ In this example:
 
 - `zoom` - This object contains start and end ranges of the zoom.
 - `legend` - This array contains the current visibility of each series or item in the legend.
-- `legendPagination` - This number is the current legend page, present only when the legend is enabled and paginated.
+- `legendPagination` - This number is the current legend page of a [paginated legend](./legend/#pagination).
 - `active` - This object contains the currently active item, which is the series node or legend item that is highlighted/showing a tooltip.
 - `annotations` - This object contains the position and style of any displayed drawings or text annotations.
 - `chartType` - This string is one of the [Chart Types](./financial-charts-configuration/#chart-types).
@@ -117,9 +117,9 @@ A `legendItemName` can be added to the legend initial state and series options, 
 
 ### Legend Pagination
 
-The `legendPagination` state stores the current legend page as a zero-based index, so `0` is the first page. It is only present when the legend is enabled and spans more than one page.
+The `legendPagination` state stores the current legend page as a zero-based index.
 
-The number of pages depends on the render size, so the page is restored on a best-effort, like-for-like basis. If the saved page does not exist at the current size, it is clamped to the last available page.
+If the saved page does not exist due to a change in chart size or legend configuration, it is clamped to the last available page.
 
 ### Active
 
