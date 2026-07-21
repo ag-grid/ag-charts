@@ -166,7 +166,7 @@ describe('GradientLegend', () => {
         await compare();
     });
 
-    it('AG-16729 should not show arrow when highlight.enabled is false', async () => {
+    it('AG-17925 shows arrow when highlight.enabled is false (supersedes AG-16729 arrow gating)', async () => {
         const options: AgChartOptions = {
             ...EXAMPLE_OPTIONS,
             series: [
@@ -202,8 +202,56 @@ describe('GradientLegend', () => {
         await hoverAction(300, 200)(chart);
         await waitForChartStability(chart);
 
-        // After hover - arrow should still be hidden because highlight.enabled is false
+        // After hover - arrow shows even though highlight.enabled is false: the
+        // gradient-legend indicator is independent of node-highlight rendering.
+        expect(gradientLegend?.arrowSelection.at(0)?.visible).toBe(true);
+    });
+
+    it('AG-17925 indicates a hovered sunburst node on the gradient legend when highlight.enabled is false', async () => {
+        const options: AgChartOptions = {
+            data: [
+                {
+                    name: 'Group A',
+                    children: [
+                        { name: 'A1', size: 6, temp: 15 },
+                        { name: 'A2', size: 4, temp: 35 },
+                    ],
+                },
+                { name: 'Group B', children: [{ name: 'B1', size: 5, temp: 25 }] },
+            ],
+            series: [
+                {
+                    type: 'sunburst',
+                    labelKey: 'name',
+                    sizeKey: 'size',
+                    colorKey: 'temp',
+                    colorScale: { fills: [{ color: 'blue' }, { color: 'yellow' }, { color: 'red' }] },
+                    highlight: { enabled: false },
+                },
+            ],
+            gradientLegend: { gradient: { preferredLength: 200 } },
+        };
+        prepareEnterpriseTestOptions(options);
+        chart = AgCharts.create(options);
+        await waitForChartStability(chart);
+
+        const chartInstance = deproxy(chart);
+        const gradientLegend: any = chartInstance.modulesManager.getModule('gradientLegend');
+        const series: any = chartInstance.series[0];
+
+        // Arrow hidden before any node is highlighted.
         expect(gradientLegend?.arrowSelection.at(0)?.visible).toBe(false);
+
+        // Sunburst sectors do not hit-test in jsdom, so drive the highlight
+        // directly with a real node datum (carrying series + colorValue), exactly
+        // as a hover would.
+        const datum = series.rootNode.children[0].children[0];
+        expect(datum?.colorValue).not.toBeNull();
+        chartInstance.ctx.highlightManager.updateHighlight(chartInstance.id, datum);
+        await waitForChartStability(chart);
+
+        // Arrow now indicates the hovered node, matching treemap.
+        expect(gradientLegend?.arrowSelection.at(0)?.visible).toBe(true);
     });
 
     describe('AG-16045 named stop labels', () => {
