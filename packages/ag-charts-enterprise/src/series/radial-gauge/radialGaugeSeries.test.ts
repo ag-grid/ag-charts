@@ -6,10 +6,12 @@ import {
     GALLERY_EXAMPLES,
     IMAGE_SNAPSHOT_DEFAULTS,
     compareImageSnapshot,
+    createSceneGeometrySampler,
     deproxy,
+    expectSceneTrajectory,
     setupMockCanvas,
     setupMockConsole,
-    spyOnAnimationManager,
+    spyOnAnimationFrames,
     waitForChartStability,
 } from 'ag-charts-community-test';
 import type { AgNumericValue } from 'ag-charts-types';
@@ -68,21 +70,61 @@ describe('RadialGaugeSeries', () => {
         });
     });
 
+    // The initial-load reveal, asserted over the whole animation trajectory (see the
+    // animation-trajectory-tests rule) rather than as per-ratio image snapshots. Only the needle moves:
+    // its rotation tweens from the scale's start angle to the value's angle during the initial phase,
+    // while its scale and every other node hold constant. This exercises the shared harness' path-node
+    // scalingX/scalingY/rotation readers — the needle is the transform-carrying path they report on.
     describe('initial animation', () => {
-        const animate = spyOnAnimationManager();
+        const frames = spyOnAnimationFrames();
 
-        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-            it(`for EXAMPLE_OPTIONS should animate at ${ratio * 100}%`, async () => {
-                animate(1200, ratio);
+        const NEEDLE = 'series[0]/path[]';
 
-                const options: AgRadialGaugeOptions = { ...EXAMPLE_OPTIONS };
-                prepareEnterpriseTestOptions(options);
+        it('needle rotates from the scale start angle to the value angle with a constant scale', async () => {
+            const options: AgRadialGaugeOptions = { ...EXAMPLE_OPTIONS, needle: { enabled: true } };
+            prepareEnterpriseTestOptions(options);
 
-                chart = AgCharts.createGauge(options);
-                await waitForChartStability(chart);
-                await compare();
-            });
-        }
+            const proxy = AgCharts.createGauge(options);
+            chart = deproxy(proxy);
+            const sampler = createSceneGeometrySampler(proxy);
+            // Capture immediately (the internal settle only waits for layout) so the reveal is preserved;
+            // captureUpdate/captureFrom runToEnd first and would consume the needle rotation before sampling.
+            const trajectory = await frames.captureAnimationFrames(proxy, sampler);
+            await frames.runToEnd(proxy);
+
+            const start = trajectory[0].get(NEEDLE);
+            const end = trajectory.at(-1)!.get(NEEDLE);
+            expect(start, 'needle sampled at frame 0').toBeDefined();
+            expect(end, 'needle sampled at final frame').toBeDefined();
+
+            // Anti-vacuity for the rotation tween: it starts at the scale's start angle and genuinely
+            // advances to the value angle, so the directional spec below cannot pass flat.
+            expect(start!.rotation).toBeCloseTo(Math.PI, 5);
+            expect(end!.rotation).toBeGreaterThan(start!.rotation + 0.5);
+
+            // Anti-vacuity for the new scale readers: the needle carries a real, non-neutral scale
+            // (radius-derived, far from the neutral 1) that the path-node scalingX/scalingY readers report.
+            expect(start!.scalingX).toBeGreaterThan(1);
+            expect(start!.scalingX).toBeCloseTo(start!.scalingY, 6);
+
+            expectSceneTrajectory(
+                trajectory,
+                {
+                    [NEEDLE]: {
+                        rotation: { during: 'initial', expect: ['increases', 'progresses', 'bounded'] },
+                        // The asymmetric needle's axis-aligned bbox bakes in the rotation matrix, so
+                        // x/y/width/height move every frame even though its scale and translation are fixed.
+                        x: 'any',
+                        y: 'any',
+                        width: 'any',
+                        height: 'any',
+                    },
+                },
+                // The needle rotation is measured in radians, whose per-frame steps sit under the default
+                // pixel-scaled monotonicTol — tighten it so the `increases` direction is enforced, not vacuous.
+                { monotonicTol: 0.05 }
+            );
+        });
     });
 
     describe('series labels', () => {
