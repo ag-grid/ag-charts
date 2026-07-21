@@ -74,7 +74,9 @@ const members = interfaceRef ? processMembers(interfaceRef, {}) : [];
                                     <span class="property-default">default: {member.defaultValue}</span>
                                 )}
                             </dt>
-                            {memberDocs && <dd class="text-secondary">{memberDocs}</dd>}
+                            {/* Always render the <dd> so every definition-list group has both a
+                                term and a description, even for undocumented members. */}
+                            <dd class="text-secondary">{memberDocs}</dd>
                         </div>
                     );
                 })
@@ -162,6 +164,10 @@ const members = interfaceRef ? processMembers(interfaceRef, {}) : [];
 
         dd {
             margin: $spacing-size-2 0 0;
+
+            &:empty {
+                margin: 0;
+            }
         }
     }
 
