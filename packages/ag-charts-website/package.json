@@ -60,6 +60,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.59.1",
+    "_ag-charts-test": "14.0.0-beta.20260719",
     "algoliasearch": "^5.51.0",
     "puppeteer-core": "24.42.0"
   }
