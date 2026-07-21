@@ -439,11 +439,13 @@ function substituteGenerics(type: TypeNode, genericsMap: Map<unknown, unknown>):
     if (isTypeReferenceNode(type) && type.typeArguments?.length) {
         let changed = false;
         const typeArguments = type.typeArguments.map((arg) => {
-            const resolved = typeof arg === 'string' ? resolveGenericType(arg, genericsMap) : null;
-            changed ||= resolved != null;
-            return resolved ?? arg;
+            const resolved = substituteGenerics(arg, genericsMap);
+            changed ||= resolved !== arg;
+            return resolved;
         });
-        return changed ? { ...type, typeArguments } : type;
+        // typeArguments is declared as (string | TypeReferenceNode)[] but the generator stores any
+        // TypeNode, so a resolved argument (e.g. within Wrapper<T[]>) may be an array or union node.
+        return changed ? { ...type, typeArguments: typeArguments as TypeReferenceNode['typeArguments'] } : type;
     }
     return type;
 }

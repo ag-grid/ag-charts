@@ -212,6 +212,35 @@ describe('processMembers generic substitution', () => {
         expect(normalizeType(member.type)).toBe('AgSeriesLineSegmentOptions[]');
         expect(getMemberType(member)).toBe('AgSeriesLineSegmentOptions');
     });
+
+    // A generic nested inside another type argument (`Wrapper<SegmentOptions[]>`) must still resolve.
+    it('recurses into structured type arguments', () => {
+        const holderNode = {
+            kind: 'interface' as const,
+            name: 'Holder',
+            typeParams: [{ kind: 'typeParam', name: 'SegmentOptions', default: 'AgSeriesShapeSegmentOptions' }],
+            members: [
+                {
+                    kind: 'member',
+                    name: 'wrapped',
+                    type: {
+                        kind: 'typeRef',
+                        type: 'Wrapper',
+                        typeArguments: [{ kind: 'array', type: 'SegmentOptions' }],
+                    },
+                },
+            ],
+            genericsMap: { SegmentOptions: 'AgSeriesShapeSegmentOptions' },
+        };
+
+        const [member] = processMembers(holderNode as any, {});
+
+        expect(member.type).toEqual({
+            kind: 'typeRef',
+            type: 'Wrapper',
+            typeArguments: [{ kind: 'array', type: 'AgSeriesShapeSegmentOptions' }],
+        });
+    });
 });
 
 describe('getAliasedUnionVariants', () => {
