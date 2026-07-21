@@ -8,7 +8,7 @@ import type {
     AgContextMenuGetItemsParamsSeriesNode,
     AgContextMenuItem,
     AgContextMenuItemShowOn,
-    AgContextMenuRegions,
+    AgContextMenuShowOnParams,
     ContextDefault,
     DatumDefault,
 } from 'ag-charts-community';
@@ -70,11 +70,11 @@ type PickedNode = _ModuleSupport.SeriesNodeDatum & {
     frequency?: number;
 };
 
-type Regions = AgContextMenuRegions<DatumDefault, ContextDefault>;
-type SeriesNodeRegion = NonNullable<Regions['series-node']>;
-type AxisRegion = NonNullable<Regions['axis']>;
-type CaptionRegion = NonNullable<Regions['caption']>;
-type LegendItemRegion = NonNullable<Regions['legend-item']>;
+type ShowOnParams = AgContextMenuShowOnParams<DatumDefault, ContextDefault>;
+type SeriesNodeParams = Extract<ShowOnParams, { showOn: 'series-node' }>;
+type AxisParams = Extract<ShowOnParams, { showOn: 'axis' }>;
+type CaptionParams = Extract<ShowOnParams, { showOn: 'caption' }>;
+type LegendItemParams = Extract<ShowOnParams, { showOn: 'legend-item' }>;
 
 export class ContextMenu extends AbstractModuleInstance {
     private get opts() {
@@ -164,18 +164,18 @@ export class ContextMenu extends AbstractModuleInstance {
         });
     }
 
-    private axisRegion(pick: _ModuleSupport.AxisValuePick): AxisRegion {
+    private axisRegion(pick: _ModuleSupport.AxisValuePick): AxisParams {
         const { axisId, boundSeries, direction, domain, value, index } = pick;
-        return { axisId, boundSeries, direction, domain, value, index };
+        return { showOn: 'axis', axisId, boundSeries, direction, domain, value, index };
     }
 
-    // Regions that can overlap the series area: the area itself, and an axis positioned inside it (e.g. `crossAt`).
-    // `axis` is the only region that appears both as a primary and as a non-primary overlap, so it lives here.
-    private plotOverlapRegions(active: ReadonlySet<AgContextMenuItemShowOn>): Regions {
-        const regions: Regions = {};
-        if (active.has('series-area')) regions['series-area'] = {};
-        if (active.has('axis') && this.pickedAxisCtx != null) regions.axis = this.axisRegion(this.pickedAxisCtx);
-        return regions;
+    // Scopes that can overlap the series area: the area itself, and an axis positioned inside it (e.g. `crossAt`).
+    // `axis` is the only scope that appears both as a primary and as a non-primary overlap, so it lives here.
+    private plotOverlapRegions(active: ReadonlySet<AgContextMenuItemShowOn>): ShowOnParams[] {
+        const params: ShowOnParams[] = [];
+        if (active.has('series-area')) params.push({ showOn: 'series-area' });
+        if (active.has('axis') && this.pickedAxisCtx != null) params.push(this.axisRegion(this.pickedAxisCtx));
+        return params;
     }
 
     private makeGetItemsParams(
@@ -189,13 +189,14 @@ export class ContextMenu extends AbstractModuleInstance {
         switch (showOn) {
             case 'always':
             case 'series-area':
-                return [{ showOn, defaultItems, regions: this.plotOverlapRegions(active) }, [chart]];
+                return [{ showOn, defaultItems, allShowOnParams: this.plotOverlapRegions(active) }, [chart]];
 
             case 'series-node': {
                 if (this.pickedNode == null) throw new Error(`this.pickedNode is null`);
                 // FIXME: Some optional keys like dataIdKey are not set. Is that a concern?
                 const itemId = getItemId(this.pickedNode, this.pickedNode.series.data?.dataIdKey);
-                const region: SeriesNodeRegion = {
+                const region: SeriesNodeParams = {
+                    showOn: 'series-node',
                     seriesId: this.pickedNode.series.id,
                     itemId,
                     datum: this.pickedNode.datum,
@@ -214,9 +215,8 @@ export class ContextMenu extends AbstractModuleInstance {
                     const { datums, binIndex, binRange, aggregatedValue, frequency } = this.pickedNode;
                     Object.assign(region, { datums, binIndex, binRange, aggregatedValue, frequency });
                 }
-                const regions: Regions = { ...this.plotOverlapRegions(active), 'series-node': region };
-                // FIXME: params should be of type CallbackParamRules<AgContextMenuGetItemsParamsSeriesNode>
-                const params: AgContextMenuGetItemsParamsSeriesNode = { ...region, showOn, defaultItems, regions };
+                const allShowOnParams: ShowOnParams[] = [...this.plotOverlapRegions(active), region];
+                const params: AgContextMenuGetItemsParamsSeriesNode = { ...region, defaultItems, allShowOnParams };
                 const callers: Caller[] = [this.pickedNode.series.properties, chart];
                 return [params, callers];
             }
@@ -224,13 +224,12 @@ export class ContextMenu extends AbstractModuleInstance {
             case 'axis': {
                 if (this.pickedAxisCtx == null) throw new Error(`this.pickedAxisCtx is null`);
                 const region = this.axisRegion(this.pickedAxisCtx);
-                const regions: Regions = { axis: region };
-                if (active.has('series-area')) regions['series-area'] = {};
+                const allShowOnParams: ShowOnParams[] = [region];
+                if (active.has('series-area')) allShowOnParams.push({ showOn: 'series-area' });
                 const params: AgContextMenuGetItemsParamsAxis<DatumDefault, ContextDefault> = {
                     ...region,
-                    showOn,
                     defaultItems,
-                    regions,
+                    allShowOnParams,
                 };
                 const callers: Caller[] = [this.pickedAxisCtx.caller, chart];
                 return [params, callers];
@@ -239,12 +238,11 @@ export class ContextMenu extends AbstractModuleInstance {
             case 'caption': {
                 const ctx = this.pickedCaptionCtx;
                 if (ctx == null) throw new Error(`this.pickedCaptionCtx is null`);
-                const region: CaptionRegion = { captionType: ctx.captionType, text: ctx.text };
+                const region: CaptionParams = { showOn: 'caption', captionType: ctx.captionType, text: ctx.text };
                 const params: AgContextMenuGetItemsParamsCaption<DatumDefault, ContextDefault> = {
                     ...region,
-                    showOn,
                     defaultItems,
-                    regions: { caption: region },
+                    allShowOnParams: [region],
                 };
                 const callers: Caller[] = [chart];
                 return [params, callers];
@@ -254,7 +252,8 @@ export class ContextMenu extends AbstractModuleInstance {
                 if (this.pickedLegendItem == null) throw new Error(`this.pickedLegendItem is null`);
                 const { itemId, seriesId, label, enabled } = this.pickedLegendItem;
                 const text = toPlainText(label.text);
-                const region: LegendItemRegion = {
+                const region: LegendItemParams = {
+                    showOn: 'legend-item',
                     itemId,
                     seriesId,
                     text,
@@ -262,9 +261,8 @@ export class ContextMenu extends AbstractModuleInstance {
                 };
                 const params: AgContextMenuGetItemsParamsLegendItem<DatumDefault, ContextDefault> = {
                     ...region,
-                    showOn,
                     defaultItems,
-                    regions: { 'legend-item': region },
+                    allShowOnParams: [region],
                 };
                 const callers: Caller[] = [chart];
                 return [params, callers];

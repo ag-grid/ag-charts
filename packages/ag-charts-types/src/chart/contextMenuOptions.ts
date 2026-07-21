@@ -136,38 +136,6 @@ export type AgContextMenuItem<TDatum = DatumDefault, TContext = ContextDefault> 
 
 type GetItemsParamsOmissions = 'type' | 'event';
 
-/**
- * The regions under the pointer when the context menu was opened. More than one entry is present where
- * regions overlap — for example a datum node drawn over an axis positioned with `crossAt` yields both
- * `series-node` and `axis`. Each entry carries the same data the corresponding single-region params carry.
- */
-export interface AgContextMenuRegions<TDatum = DatumDefault, TContext = ContextDefault> {
-    /** Set when the pointer is over a datum node. */
-    'series-node'?: Omit<AgNodeContextMenuActionEvent<TDatum, TContext>, GetItemsParamsOmissions>;
-    /** Set when the pointer is within the series area bounds. */
-    'series-area'?: Omit<AgSeriesAreaContextMenuActionEvent<TContext>, GetItemsParamsOmissions>;
-    /** Set when the pointer is over an axis, including where an axis overlaps the series area (e.g. `crossAt`). */
-    axis?: Omit<AgAxisContextMenuActionEvent<TContext>, GetItemsParamsOmissions>;
-    /** Set when the pointer is over a caption (title, subtitle or footnote). */
-    caption?: Omit<AgCaptionContextMenuActionEvent<TContext>, GetItemsParamsOmissions>;
-    /** Set when the pointer is over a legend item. */
-    'legend-item'?: Omit<AgChartLegendContextMenuEvent<TContext>, GetItemsParamsOmissions> & {
-        /** Whether the series of this legend item is visible or hidden. */
-        visible: boolean;
-    };
-}
-
-interface GetItemsParamsMixin<TDatum, TContext> {
-    /** The default menu items that would be shown without customisation. */
-    defaultItems: AgContextMenuItem<TDatum, TContext>[];
-    /**
-     * All regions under the pointer, keyed by region. When regions overlap, more than one entry is set,
-     * letting the callback build a single combined menu. `showOn` reports the primary region for
-     * backwards compatibility, but `regions` is the complete set.
-     */
-    regions: AgContextMenuRegions<TDatum, TContext>;
-}
-
 // Note: The unused `_TDatumReserved = never` are reserved for future-proofing.
 //
 // Using <TContext> instead of <_TDatum, TContext> would make the API very susceptible to breaking changes and/or inconsistency.
@@ -177,42 +145,42 @@ interface GetItemsParamsMixin<TDatum, TContext> {
 // one position to the right. A workaround could be to change <TContext> to <TContext, TDatum = DatumDefault>, but this
 // is inconsistent with the ordering of other generic types in our API.
 
-export interface AgContextMenuGetItemsParamsAlways<_TDatumReserved = never, TContext = ContextDefault>
-    extends
-        Omit<AgChartContextMenuEvent<TContext>, GetItemsParamsOmissions>,
-        GetItemsParamsMixin<_TDatumReserved, TContext> {
+export interface AgContextMenuShowOnParamsAlways<_TDatumReserved = never, TContext = ContextDefault> extends Omit<
+    AgChartContextMenuEvent<TContext>,
+    GetItemsParamsOmissions
+> {
     /** Which clicked element this menu item should be shown for. */
     showOn: 'always';
 }
 
-export interface AgContextMenuGetItemsParamsAxis<_TDatumReserved = never, TContext = ContextDefault>
-    extends
-        Omit<AgAxisContextMenuActionEvent<TContext>, GetItemsParamsOmissions>,
-        GetItemsParamsMixin<_TDatumReserved, TContext> {
+export interface AgContextMenuShowOnParamsAxis<_TDatumReserved = never, TContext = ContextDefault> extends Omit<
+    AgAxisContextMenuActionEvent<TContext>,
+    GetItemsParamsOmissions
+> {
     /** Which clicked element this menu item should be shown for. */
     showOn: 'axis';
 }
 
-export interface AgContextMenuGetItemsParamsCaption<_TDatumReserved = never, TContext = ContextDefault>
-    extends
-        Omit<AgCaptionContextMenuActionEvent<TContext>, GetItemsParamsOmissions>,
-        GetItemsParamsMixin<_TDatumReserved, TContext> {
+export interface AgContextMenuShowOnParamsCaption<_TDatumReserved = never, TContext = ContextDefault> extends Omit<
+    AgCaptionContextMenuActionEvent<TContext>,
+    GetItemsParamsOmissions
+> {
     /** Which clicked element this menu item should be shown for. */
     showOn: 'caption';
 }
 
-export interface AgContextMenuGetItemsParamsSeriesArea<_TDatumReserved = never, TContext = ContextDefault>
-    extends
-        Omit<AgSeriesAreaContextMenuActionEvent<TContext>, GetItemsParamsOmissions>,
-        GetItemsParamsMixin<_TDatumReserved, TContext> {
+export interface AgContextMenuShowOnParamsSeriesArea<_TDatumReserved = never, TContext = ContextDefault> extends Omit<
+    AgSeriesAreaContextMenuActionEvent<TContext>,
+    GetItemsParamsOmissions
+> {
     /** Which clicked element this menu item should be shown for. */
     showOn: 'series-area';
 }
 
-export interface AgContextMenuGetItemsParamsSeriesNode<TDatum = DatumDefault, TContext = ContextDefault>
-    extends
-        Omit<AgNodeContextMenuActionEvent<TDatum, TContext>, GetItemsParamsOmissions>,
-        GetItemsParamsMixin<TDatum, TContext> {
+export interface AgContextMenuShowOnParamsSeriesNode<TDatum = DatumDefault, TContext = ContextDefault> extends Omit<
+    AgNodeContextMenuActionEvent<TDatum, TContext>,
+    GetItemsParamsOmissions
+> {
     /** Which clicked element this menu item should be shown for. */
     showOn: 'series-node';
     /** The current selection state of this datum. Set to `undefined` if the selection module is not enabled. */
@@ -221,15 +189,69 @@ export interface AgContextMenuGetItemsParamsSeriesNode<TDatum = DatumDefault, TC
     isCollapsed: boolean;
 }
 
-export interface AgContextMenuGetItemsParamsLegendItem<_TDatumReserved = never, TContext = ContextDefault>
-    extends
-        Omit<AgChartLegendContextMenuEvent<TContext>, GetItemsParamsOmissions>,
-        GetItemsParamsMixin<_TDatumReserved, TContext> {
+export interface AgContextMenuShowOnParamsLegendItem<_TDatumReserved = never, TContext = ContextDefault> extends Omit<
+    AgChartLegendContextMenuEvent<TContext>,
+    GetItemsParamsOmissions
+> {
     /** Which clicked element this menu item should be shown for. */
     showOn: 'legend-item';
     /** Whether the series of this legend item is visible or hidden. */
     visible: boolean;
 }
+
+/**
+ * One matched `showOn` scope's params, discriminated by its `showOn` field. This is the element type of
+ * `allShowOnParams` — the same shape a scope passes as its top-level params when it wins outright, without the
+ * callback-level `defaultItems`.
+ *
+ * Keyed by array position rather than by scope so that a future release can surface more than one context for
+ * the same scope — e.g. overlapping markers (multiple `series-node`) or an x/y crossover (multiple `axis`) —
+ * without an API change. Emitting multiple entries per scope is not yet implemented.
+ */
+export type AgContextMenuShowOnParams<TDatum = DatumDefault, TContext = ContextDefault> =
+    | AgContextMenuShowOnParamsAlways<TDatum, TContext>
+    | AgContextMenuShowOnParamsAxis<TDatum, TContext>
+    | AgContextMenuShowOnParamsCaption<TDatum, TContext>
+    | AgContextMenuShowOnParamsSeriesArea<TDatum, TContext>
+    | AgContextMenuShowOnParamsSeriesNode<TDatum, TContext>
+    | AgContextMenuShowOnParamsLegendItem<TDatum, TContext>;
+
+interface GetItemsParamsMixin<TDatum, TContext> {
+    /** The default menu items that would be shown without customisation. */
+    defaultItems: AgContextMenuItem<TDatum, TContext>[];
+    /**
+     * Every `showOn` scope that matched at the click point, including the winning scope carried by these root
+     * params. Lets the callback build one combined menu when scopes overlap — for example a datum node drawn
+     * over an axis positioned with `crossAt`. Scopes that did not match are absent from the array.
+     */
+    allShowOnParams: AgContextMenuShowOnParams<TDatum, TContext>[];
+}
+
+export interface AgContextMenuGetItemsParamsAlways<_TDatumReserved = never, TContext = ContextDefault>
+    extends
+        AgContextMenuShowOnParamsAlways<_TDatumReserved, TContext>,
+        GetItemsParamsMixin<_TDatumReserved, TContext> {}
+
+export interface AgContextMenuGetItemsParamsAxis<_TDatumReserved = never, TContext = ContextDefault>
+    extends AgContextMenuShowOnParamsAxis<_TDatumReserved, TContext>, GetItemsParamsMixin<_TDatumReserved, TContext> {}
+
+export interface AgContextMenuGetItemsParamsCaption<_TDatumReserved = never, TContext = ContextDefault>
+    extends
+        AgContextMenuShowOnParamsCaption<_TDatumReserved, TContext>,
+        GetItemsParamsMixin<_TDatumReserved, TContext> {}
+
+export interface AgContextMenuGetItemsParamsSeriesArea<_TDatumReserved = never, TContext = ContextDefault>
+    extends
+        AgContextMenuShowOnParamsSeriesArea<_TDatumReserved, TContext>,
+        GetItemsParamsMixin<_TDatumReserved, TContext> {}
+
+export interface AgContextMenuGetItemsParamsSeriesNode<TDatum = DatumDefault, TContext = ContextDefault>
+    extends AgContextMenuShowOnParamsSeriesNode<TDatum, TContext>, GetItemsParamsMixin<TDatum, TContext> {}
+
+export interface AgContextMenuGetItemsParamsLegendItem<_TDatumReserved = never, TContext = ContextDefault>
+    extends
+        AgContextMenuShowOnParamsLegendItem<_TDatumReserved, TContext>,
+        GetItemsParamsMixin<_TDatumReserved, TContext> {}
 
 export type AgContextMenuGetItemsParams<TDatum = DatumDefault, TContext = ContextDefault> =
     | AgContextMenuGetItemsParamsAlways<TDatum, TContext>
