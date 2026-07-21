@@ -35,7 +35,7 @@ export class AnimationManager {
     public defaultDuration = 1000;
     public maxAnimatableItems = MAX_ANIMATABLE_NODES;
 
-    private batch = new AnimationBatch(this.defaultDuration * 1.5);
+    private batch = new AnimationBatch(this.defaultDuration * 1.5, this.logger);
 
     private readonly debug = Debug.create(true, 'animation');
     private readonly events = new EventEmitter<AnimationEventMap>();
@@ -51,7 +51,8 @@ export class AnimationManager {
     constructor(
         private readonly agDocument: AgDocument,
         private readonly interactionManager: InteractionManager,
-        private readonly chartUpdateMutex: Mutex
+        private readonly chartUpdateMutex: Mutex,
+        private readonly logger: Logger = Logger.default
     ) {}
 
     public addListener<K extends keyof AnimationEventMap>(eventName: K, listener: EventListener<AnimationEventMap[K]>) {
@@ -197,7 +198,7 @@ export class AnimationManager {
     /** Mocking point for tests to capture requestAnimationFrame callbacks. */
     public scheduleAnimationFrame(cb: (time: number) => Promise<void>) {
         this.requestId = this.agDocument.requestAnimationFrame((t) => {
-            cb(t).catch((e) => Logger.default.error(e));
+            cb(t).catch((e) => this.logger.error(e));
         });
     }
 
@@ -279,7 +280,7 @@ export class AnimationManager {
     }
 
     private failsafeOnError(error: unknown, cancelAnimation = true) {
-        Logger.default.error('Error during animation, skipping animations', error);
+        this.logger.error('Error during animation, skipping animations', error);
         if (cancelAnimation) {
             this.cancelAnimation();
         }
@@ -289,7 +290,7 @@ export class AnimationManager {
         this.debug(`AnimationManager - startBatch() with skipAnimations=${skipAnimations}.`);
         this.reset();
         this.batch.destroy();
-        this.batch = new AnimationBatch(this.defaultDuration * 1.5);
+        this.batch = new AnimationBatch(this.defaultDuration * 1.5, this.logger);
         if (skipAnimations === true) {
             this.batch.skip();
         }

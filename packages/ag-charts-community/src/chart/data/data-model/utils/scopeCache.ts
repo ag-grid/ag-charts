@@ -1,4 +1,4 @@
-import { Logger, iterate } from 'ag-charts-core';
+import { iterate } from 'ag-charts-core';
 
 import type { InternalDatumPropertyDefinition, PropertyId, PropertySelectors } from '../../dataModelTypes';
 import type { DataModelContext } from '../dataModelContext';
@@ -99,7 +99,7 @@ export class ScopeCacheManager<K extends string> {
 
             const components = getPathComponents(def.property);
             if (components == null) {
-                Logger.default.warnOnce('Invalid property path [%s]', def.property);
+                this.ctx.logger.warnOnce('Invalid property path [%s]', def.property);
                 continue;
             }
             const accessor = createPathAccessor(components);
