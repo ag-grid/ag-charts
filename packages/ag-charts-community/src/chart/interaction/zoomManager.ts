@@ -346,6 +346,9 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
     }
 
     public restoreMemento(version: string, mementoVersion: string, memento: ZoomMemento | undefined) {
+        // Do not reset the zoom if the memento is undefined. Only reset if an empty object is provided.
+        if (memento == null) return;
+
         if (!this.axes || !this.didLayoutAxes) {
             this.pendingMemento = { version, mementoVersion, memento };
             return;

@@ -112,6 +112,23 @@ test.describe('state', () => {
         await expect(page).toHaveScreenshot('state-legend-zoom-1-restored.png', { animations: 'disabled' });
     });
 
+    test('empty zoom', async ({ page }) => {
+        const { url } = toExamplePageUrl('api-state-e2e', 'empty-zoom', 'vanilla');
+
+        await gotoExample(page, url);
+
+        const { width, height } = await locateCanvas(page);
+
+        await page.mouse.move(width / 2, height / 2);
+        await page.mouse.wheel(0, -400);
+
+        await page.locator('.example-controls button').getByText('Restore undefined').click();
+        await expect(page).toHaveScreenshot('state-empty-zoom-1-restored-undefined.png', { animations: 'disabled' });
+
+        await page.locator('.example-controls button').getByText('Restore {}').click();
+        await expect(page).toHaveScreenshot('state-empty-zoom-2-restored-empty-object.png', { animations: 'disabled' });
+    });
+
     test('initial-state category zoom loads pre-zoomed', async ({ page }) => {
         const { url } = toExamplePageUrl('api-state-e2e', 'initial-state-zoom-category', 'vanilla');
         await gotoExample(page, url);
