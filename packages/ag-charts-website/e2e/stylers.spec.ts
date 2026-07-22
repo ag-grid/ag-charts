@@ -1,6 +1,7 @@
 import type { Page } from '@playwright/test';
 
 import { expect, test } from './fixture';
+import { expectChartScreenshot } from './scene-capture';
 import {
     SELECTORS,
     canvasToPageTransformer,
@@ -134,7 +135,7 @@ test.describe('stylers', () => {
         test(`renders ${example}`, async ({ page }) => {
             const { url } = toExamplePageUrl('stylers-e2e', example, 'vanilla');
             await gotoExample(page, url);
-            await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(`${example}.png`);
+            await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), `${example}.png`);
         });
     }
 
@@ -172,10 +173,10 @@ test.describe('stylers', () => {
 
             test('highlight visuals', async ({ page }) => {
                 await highlightItem(page);
-                await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(`${name}-item.png`);
+                await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), `${name}-item.png`);
 
                 await highlightSeries(page);
-                await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(`${name}-series.png`);
+                await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), `${name}-series.png`);
             });
 
             test('pointer over node1 highlights exactly one item', async ({ page }) => {
@@ -197,7 +198,7 @@ test.describe('stylers', () => {
                     `${name}: hovering an item should not highlight a series`
                 ).toBe(0);
 
-                await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(`${name}-node1.png`);
+                await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), `${name}-node1.png`);
             });
         });
     }

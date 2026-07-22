@@ -1,4 +1,5 @@
-import { expect, test } from './fixture';
+import { test } from './fixture';
+import { expectChartScreenshot } from './scene-capture';
 import { SELECTORS, gotoExample, setupIntrinsicAssertions, toExamplePageUrl } from './util';
 
 test.describe('range-area', () => {
@@ -20,7 +21,7 @@ test.describe('range-area', () => {
             });
             test.afterEach(async ({ page }) => {
                 const canvas = page.locator(SELECTORS.canvasCenter);
-                await expect(canvas).toHaveScreenshot('AG-9002-share-low-high-match-init.png');
+                await expectChartScreenshot(page, canvas, 'AG-9002-share-low-high-match-init.png');
             });
         });
     });

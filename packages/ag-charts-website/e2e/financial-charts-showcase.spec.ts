@@ -1,4 +1,5 @@
 import { expect, test } from './fixture';
+import { expectChartScreenshot } from './scene-capture';
 import { dragCanvas, gotoExample, locateCanvas, setupIntrinsicAssertions, toExamplePageUrls } from './util';
 
 test.describe('financial-charts-showcase', () => {
@@ -27,7 +28,7 @@ test.describe('financial-charts-showcase', () => {
                 await expect(
                     page.locator('.ag-charts-crosshair-label-content', { hasText: /[0-9]{2,3}\.[0-9]{2}/ })
                 ).toBeVisible();
-                await expect(canvas).toHaveScreenshot('zoom-and-hover-on-out-of-y-range-prices.png');
+                await expectChartScreenshot(page, canvas, 'zoom-and-hover-on-out-of-y-range-prices.png');
             });
         });
     }

@@ -30,7 +30,7 @@ for (const app of DEMO_APPS) {
 
         // Assert the selected demo resolved, not App's unknown-id fallback.
         await expect(page.locator(`[data-demo-id="${app.id}"]`)).toBeVisible();
-        await expect(page.locator('.ag-charts-wrapper')).toBeVisible();
+        await expect(page.locator('.ag-charts-wrapper').first()).toBeVisible();
         await expect(page.locator('canvas').first()).toBeVisible();
         expect(consoleIssues).toEqual([]);
     });

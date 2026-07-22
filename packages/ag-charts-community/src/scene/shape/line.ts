@@ -1,8 +1,8 @@
-import type { DistantObject } from 'ag-charts-core';
+import type { DistantObject, SerializedLineProps, SerializedNodeState } from 'ag-charts-core';
 import { createSvgElement, lineDistanceSquared } from 'ag-charts-core';
 
 import { BBox } from '../bbox';
-import type { NodeOptions, RenderContext, SerializedLineProps, SerializedNodeState } from '../node';
+import type { NodeOptions, RenderContext } from '../node';
 import { SceneChangeDetection } from '../node';
 import { Shape } from './shape';
 

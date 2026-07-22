@@ -1,4 +1,5 @@
 import { expect, test } from './fixture';
+import { expectChartScreenshot } from './scene-capture';
 import { SELECTORS, canvasToPageTransformer, gotoExample, setupIntrinsicAssertions, toExamplePageUrl } from './util';
 
 test.describe('AG-17064 tooltip position offset', () => {
@@ -20,7 +21,7 @@ test.describe('AG-17064 tooltip position offset', () => {
     test('default offset', async ({ page }) => {
         await page.locator('select').nth(1).selectOption('right');
         await hoverDataPoint(page);
-        await expect(page).toHaveScreenshot('tooltip-offset-default.png');
+        await expectChartScreenshot(page, page, 'tooltip-offset-default.png');
     });
 
     test('large offset', async ({ page }) => {
@@ -28,7 +29,7 @@ test.describe('AG-17064 tooltip position offset', () => {
         await page.locator('#offsetSlider').fill('30');
         await page.locator('#offsetSlider').dispatchEvent('input');
         await hoverDataPoint(page);
-        await expect(page).toHaveScreenshot('tooltip-offset-large.png');
+        await expectChartScreenshot(page, page, 'tooltip-offset-large.png');
     });
 
     test('zero offset', async ({ page }) => {
@@ -36,7 +37,7 @@ test.describe('AG-17064 tooltip position offset', () => {
         await page.locator('#offsetSlider').fill('0');
         await page.locator('#offsetSlider').dispatchEvent('input');
         await hoverDataPoint(page);
-        await expect(page).toHaveScreenshot('tooltip-offset-zero.png');
+        await expectChartScreenshot(page, page, 'tooltip-offset-zero.png');
     });
 
     test('offset does not suppress arrow', async ({ page }) => {
@@ -47,6 +48,6 @@ test.describe('AG-17064 tooltip position offset', () => {
         // Arrow should be visible with offset only (no xOffset/yOffset)
         const tooltip = page.locator(SELECTORS.tooltip);
         await expect(tooltip).toBeVisible();
-        await expect(page).toHaveScreenshot('tooltip-offset-arrow-visible.png');
+        await expectChartScreenshot(page, page, 'tooltip-offset-arrow-visible.png');
     });
 });

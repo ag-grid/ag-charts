@@ -127,6 +127,7 @@ if [ "$1" == "--host" ] ; then
     -e NX_PARALLEL \
     -e NX_BASE \
     -e AG_FORCE_ALL_TESTS \
+    -e AG_SCENE_SNAPSHOTS \
     -e AG_SKIP_NATIVE_DEP_VERSION_CHECK \
     ${EXTRA_DOCKER_ARGS} \
     --name ${container_name} \

@@ -1,6 +1,7 @@
 import type { ConsoleMessage, Locator, Page } from '@playwright/test';
 
 import { expect, test } from './fixture';
+import { expectChartScreenshot } from './scene-capture';
 import { SELECTORS, gotoExample, setupIntrinsicAssertions, toExamplePageUrl } from './util';
 
 type LocatorBoundingBox = NonNullable<Awaited<ReturnType<Locator['boundingBox']>>>;
@@ -24,53 +25,53 @@ test.describe('interactive-tooltip', () => {
 
     test.beforeEach(async ({ page }) => {
         await gotoExample(page, toExamplePageUrl('tooltips', 'tooltip-interaction', 'vanilla').url);
-        await expect(page).toHaveScreenshot('interactive-tooltip-hidden.png');
+        await expectChartScreenshot(page, page, 'interactive-tooltip-hidden.png');
     });
 
     test('hover 1 step', async ({ page }) => {
         await page.mouse.move(400, 150);
-        await expect(page).toHaveScreenshot('interactive-tooltip-visible.png');
+        await expectChartScreenshot(page, page, 'interactive-tooltip-visible.png');
         const expectedRenders: string = await getSceneRenders(page);
 
         const bbox = await getBoundingBoxByText(page, 'Click here');
         await page.mouse.move(bbox.x, bbox.y);
-        await expect(page).toHaveScreenshot('interactive-tooltip-visible.png');
+        await expectChartScreenshot(page, page, 'interactive-tooltip-visible.png');
         const actualRenders: string = await getSceneRenders(page);
         expect(actualRenders).toBe(expectedRenders);
 
         await page.mouse.move(400, 400);
-        await expect(page).toHaveScreenshot('interactive-tooltip-moved-down.png');
+        await expectChartScreenshot(page, page, 'interactive-tooltip-moved-down.png');
 
         await page.mouse.move(20, 20);
-        await expect(page).toHaveScreenshot('interactive-tooltip-hidden.png');
+        await expectChartScreenshot(page, page, 'interactive-tooltip-hidden.png');
     });
 
     test('hover 4 steps', async ({ page }) => {
         await page.mouse.move(400, 150);
-        await expect(page).toHaveScreenshot('interactive-tooltip-visible.png');
+        await expectChartScreenshot(page, page, 'interactive-tooltip-visible.png');
         const expectedRenders: string = await getSceneRenders(page);
 
         const bbox = await getBoundingBoxByText(page, 'Click here');
         await page.mouse.move(bbox.x, bbox.y, { steps: 4 });
-        await expect(page).toHaveScreenshot('interactive-tooltip-visible.png');
+        await expectChartScreenshot(page, page, 'interactive-tooltip-visible.png');
         const actualRenders: string = await getSceneRenders(page);
         expect(actualRenders).toBe(expectedRenders);
 
         await page.mouse.move(400, 400);
-        await expect(page).toHaveScreenshot('interactive-tooltip-moved-down.png');
+        await expectChartScreenshot(page, page, 'interactive-tooltip-moved-down.png');
 
         await page.mouse.move(20, 20);
-        await expect(page).toHaveScreenshot('interactive-tooltip-hidden.png');
+        await expectChartScreenshot(page, page, 'interactive-tooltip-hidden.png');
     });
 
     test('tap', async ({ page }) => {
         // There is limited support for touch input in playwright, so just test that the tooltips are shown and hidden
         // correctly from taps.
         await page.touchscreen.tap(400, 150);
-        await expect(page).toHaveScreenshot('interactive-tooltip-visible.png');
+        await expectChartScreenshot(page, page, 'interactive-tooltip-visible.png');
 
         await page.touchscreen.tap(20, 20);
-        await expect(page).toHaveScreenshot('interactive-tooltip-hidden.png');
+        await expectChartScreenshot(page, page, 'interactive-tooltip-hidden.png');
     });
 
     test.describe('AG-14347', () => {
@@ -92,12 +93,12 @@ test.describe('interactive-tooltip', () => {
             });
             test.afterEach(async ({ page }) => {
                 await page.mouse.move(400, 150);
-                await expect(page).toHaveScreenshot('interactive-tooltip-visible.png');
+                await expectChartScreenshot(page, page, 'interactive-tooltip-visible.png');
                 const expectedRenders: string = await getSceneRenders(page);
 
                 const bbox = await getBoundingBoxByText(page, 'Click here');
                 await page.mouse.click(bbox.x, bbox.y);
-                await expect(page).toHaveScreenshot('interactive-tooltip-visible.png');
+                await expectChartScreenshot(page, page, 'interactive-tooltip-visible.png');
                 const actualRenders: string = await getSceneRenders(page);
                 expect(actualRenders).toBe(expectedRenders);
 
@@ -114,12 +115,12 @@ test.describe('interactive-tooltip', () => {
             });
             test.afterEach(async ({ page }) => {
                 await page.mouse.move(400, 150);
-                await expect(page).toHaveScreenshot('interactive-tooltip-visible.png');
+                await expectChartScreenshot(page, page, 'interactive-tooltip-visible.png');
                 const expectedRenders: string = await getSceneRenders(page);
 
                 const bbox = await getBoundingBoxByText(page, ' Jul: 70 ');
                 await page.mouse.click(bbox.x, bbox.y);
-                await expect(page).toHaveScreenshot('interactive-tooltip-visible.png');
+                await expectChartScreenshot(page, page, 'interactive-tooltip-visible.png');
                 const actualRenders: string = await getSceneRenders(page);
                 expect(actualRenders).toBe(expectedRenders);
 

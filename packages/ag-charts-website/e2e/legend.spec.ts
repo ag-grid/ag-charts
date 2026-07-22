@@ -1,6 +1,7 @@
 import { Locator } from '@playwright/test';
 
 import { expect, test } from './fixture';
+import { expectChartScreenshot } from './scene-capture';
 import {
     SELECTORS,
     gotoExample,
@@ -35,16 +36,16 @@ test.describe('legend', () => {
 
                 // Ensure hover highlight is applied before moving away.
                 await legendItem.hover();
-                await expect(canvasCenter).toHaveScreenshot('renewables-onshore-wind-highlighted.png');
+                await expectChartScreenshot(page, canvasCenter, 'renewables-onshore-wind-highlighted.png');
 
                 // Move the pointer away to clear hover highlight.
                 await focusTarget.hover();
-                await expect(canvasCenter).toHaveScreenshot('renewables-nothing-highlighted.png');
+                await expectChartScreenshot(page, canvasCenter, 'renewables-nothing-highlighted.png');
 
                 // Focus replay (e.g. tab switch) should not reapply hover highlight.
                 await focusTarget.focus();
                 await legendItem.focus();
-                await expect(canvasCenter).toHaveScreenshot('renewables-nothing-highlighted.png');
+                await expectChartScreenshot(page, canvasCenter, 'renewables-nothing-highlighted.png');
             });
 
             test('mouse hovering updates highlight', async ({ page }) => {
@@ -53,13 +54,13 @@ test.describe('legend', () => {
                 const legendItems = await page.locator(SELECTORS.legendItems).all();
 
                 await legendItems[0].hover();
-                await expect(canvasCenter).toHaveScreenshot('renewables-onshore-wind-highlighted.png');
+                await expectChartScreenshot(page, canvasCenter, 'renewables-onshore-wind-highlighted.png');
 
                 await legendItems[1].hover();
-                await expect(canvasCenter).toHaveScreenshot('renewables-offshore-wind-highlighted.png');
+                await expectChartScreenshot(page, canvasCenter, 'renewables-offshore-wind-highlighted.png');
 
                 await legendItems[2].hover();
-                await expect(canvasCenter).toHaveScreenshot('renewables-landfill-gas-highlighted.png');
+                await expectChartScreenshot(page, canvasCenter, 'renewables-landfill-gas-highlighted.png');
             });
 
             test('AG-13025 hovering ignored on hidden buttons', async ({ page }) => {
@@ -86,7 +87,7 @@ test.describe('legend', () => {
                     if (dx >= nextDx) i++;
 
                     await page.mouse.move(startX + dx, startY);
-                    await expect(canvasCenter).toHaveScreenshot(expectedChanged[i].file);
+                    await expectChartScreenshot(page, canvasCenter, expectedChanged[i].file);
                 }
             });
         });
@@ -100,16 +101,16 @@ test.describe('legend', () => {
                 const legendItems = await page.locator(SELECTORS.legendItems).all();
 
                 await legendItems[0].hover();
-                await expect(canvasCenter).toHaveScreenshot('shared-legend-items-Q1-highlighted.png');
+                await expectChartScreenshot(page, canvasCenter, 'shared-legend-items-Q1-highlighted.png');
 
                 await legendItems[1].hover();
-                await expect(canvasCenter).toHaveScreenshot('shared-legend-items-Q2-highlighted.png');
+                await expectChartScreenshot(page, canvasCenter, 'shared-legend-items-Q2-highlighted.png');
 
                 await legendItems[2].hover();
-                await expect(canvasCenter).toHaveScreenshot('shared-legend-items-Q3-highlighted.png');
+                await expectChartScreenshot(page, canvasCenter, 'shared-legend-items-Q3-highlighted.png');
 
                 await legendItems[3].hover();
-                await expect(canvasCenter).toHaveScreenshot('shared-legend-items-Q4-highlighted.png');
+                await expectChartScreenshot(page, canvasCenter, 'shared-legend-items-Q4-highlighted.png');
             });
         });
     }
@@ -124,22 +125,22 @@ test.describe('legend', () => {
                 const legendItems = await page.locator(SELECTORS.legendItems).all();
 
                 await legendItems[0].hover();
-                await expect(canvasCenter).toHaveScreenshot('shared-legend-items-android-highlighted.png');
+                await expectChartScreenshot(page, canvasCenter, 'shared-legend-items-android-highlighted.png');
 
                 await legendItems[1].hover();
-                await expect(canvasCenter).toHaveScreenshot('shared-legend-items-ios-highlighted.png');
+                await expectChartScreenshot(page, canvasCenter, 'shared-legend-items-ios-highlighted.png');
 
                 await legendItems[2].hover();
-                await expect(canvasCenter).toHaveScreenshot('shared-legend-items-blackberry-highlighted.png');
+                await expectChartScreenshot(page, canvasCenter, 'shared-legend-items-blackberry-highlighted.png');
 
                 await legendItems[3].hover();
-                await expect(canvasCenter).toHaveScreenshot('shared-legend-items-symbian-highlighted.png');
+                await expectChartScreenshot(page, canvasCenter, 'shared-legend-items-symbian-highlighted.png');
 
                 await legendItems[4].hover();
-                await expect(canvasCenter).toHaveScreenshot('shared-legend-items-bada-highlighted.png');
+                await expectChartScreenshot(page, canvasCenter, 'shared-legend-items-bada-highlighted.png');
 
                 await legendItems[5].hover();
-                await expect(canvasCenter).toHaveScreenshot('shared-legend-items-windows-highlighted.png');
+                await expectChartScreenshot(page, canvasCenter, 'shared-legend-items-windows-highlighted.png');
             });
         });
     }
@@ -174,7 +175,7 @@ test.describe('legend', () => {
                 };
 
                 const expectInteractivePageState = async (screenshot: string, itemIndex: number) => {
-                    await expect(canvasCenter).toHaveScreenshot(screenshot);
+                    await expectChartScreenshot(page, canvasCenter, screenshot);
                     await expectLegendItemInteractive(getInteractiveLegendItem(itemIndex));
                 };
 
@@ -205,7 +206,7 @@ test.describe('legend', () => {
                 await waitForChartUpdate(chartWrapper);
 
                 // Initial state with legend showing page 1
-                await expect(canvasCenter).toHaveScreenshot('ag-16038-initial-page-1.png');
+                await expectChartScreenshot(page, canvasCenter, 'ag-16038-initial-page-1.png');
 
                 // Locate the pagination buttons
                 const previousButton = page.locator('.ag-charts-proxy-legend-pagination button').first();
@@ -214,28 +215,30 @@ test.describe('legend', () => {
                 // Verify pagination is working - advance to page 2
                 await nextButton.click();
                 await waitForChartUpdate(chartWrapper);
-                await expect(canvasCenter).toHaveScreenshot('ag-16038-legend-page-2-after-click.png');
+                await expectChartScreenshot(page, canvasCenter, 'ag-16038-legend-page-2-after-click.png');
 
                 // Verify pagination is working - go back to page 1
                 await previousButton.click();
                 await waitForChartUpdate(chartWrapper);
-                await expect(canvasCenter).toHaveScreenshot('ag-16038-legend-back-to-page-1-after-click.png');
+                await expectChartScreenshot(page, canvasCenter, 'ag-16038-legend-back-to-page-1-after-click.png');
 
                 // Resize to very small width to hide legend
                 await page.setViewportSize({ width: 230, height: 250 });
                 await waitForChartUpdate(chartWrapper);
-                await expect(canvasCenter).toHaveScreenshot('ag-16038-small-size-hidden-legend.png');
+                await expectChartScreenshot(page, canvasCenter, 'ag-16038-small-size-hidden-legend.png');
 
                 // Resize back to normal width - legend should reappear
                 await page.setViewportSize({ width: 400, height: 250 });
                 await waitForChartUpdate(chartWrapper);
-                await expect(canvasCenter).toHaveScreenshot('ag-16038-legend-should-reset-to-page-1.png');
+                await expectChartScreenshot(page, canvasCenter, 'ag-16038-legend-should-reset-to-page-1.png');
 
                 // Verify pagination is working - advance to page 2
                 const next = page.locator('.ag-charts-proxy-legend-pagination button').last();
                 await next.click();
                 await waitForChartUpdate(chartWrapper);
-                await expect(canvasCenter).toHaveScreenshot(
+                await expectChartScreenshot(
+                    page,
+                    canvasCenter,
                     'ag-16038-legend-page-2-after-resize-hide-unhide-click.png'
                 );
             });

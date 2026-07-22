@@ -1,4 +1,5 @@
-import { expect, test } from './fixture';
+import { test } from './fixture';
+import { expectChartScreenshot } from './scene-capture';
 import { SELECTORS, gotoExample, toExamplePageUrl } from './util';
 
 // List of highlight states to test
@@ -88,7 +89,7 @@ test.describe('highlight states', () => {
                     await gotoExample(page, url);
                     await state.trigger(page);
                     const canvasCenter = page.locator(SELECTORS.canvasCenter);
-                    await expect(canvasCenter).toHaveScreenshot(`${example}-${state.name}.png`);
+                    await expectChartScreenshot(page, canvasCenter, `${example}-${state.name}.png`);
                 });
             }
         });

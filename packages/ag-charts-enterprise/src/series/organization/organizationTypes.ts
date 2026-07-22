@@ -14,6 +14,7 @@ import type {
 } from 'ag-charts-types';
 
 import type { NetworkDatum, NetworkLinkDatum } from '../network/networkSeries';
+import type { NetworkSeriesVertexID } from '../network/networkTypes';
 
 export interface OrganizationNodeFields {
     image?: string;
@@ -22,7 +23,9 @@ export interface OrganizationNodeFields {
     labels?: (NormalisedTextOrSegments | undefined)[];
 }
 
-export type OrganizationVertex = string | (string | undefined)[] | number | boolean;
+export type OrganizationVertex = NetworkSeriesVertexID | (string | undefined)[] | boolean;
+
+export type OrganizationVertexID = NetworkSeriesVertexID;
 
 export type OrganizationEdge =
     | 'datumIndex' // The index of the datum within the series' data array.

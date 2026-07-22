@@ -6,3 +6,4 @@ export * from './console/mock-console';
 export * from './benchmarks/timing';
 export * from './benchmarks/size-of';
 export * from './caster';
+export * from './scene/scene-sample';

@@ -127,7 +127,7 @@ export interface AgSelectionChangeEvent<TDatum, TContext> extends AgPreventableE
     removed: AgSelectionItem<TDatum>[];
 }
 
-export interface AgCollapsedItem<TDatum> {
+export interface AgCollapsedChangeItem<TDatum> {
     /** The unique identifier of the datum as specified in `dataIdKey` if set (or generated if not specified). */
     itemId: string | number;
     /** Datum from the chart or series data array. */
@@ -143,8 +143,10 @@ export interface AgCollapsedChangeEvent<TDatum, TContext> extends AgPreventableE
     source: AgCollapsedChangeEventSource;
     /** Callback context for this event. */
     context?: TContext;
-    /** Items that are collapsed after this change. */
-    collapsed: AgCollapsedItem<TDatum>[];
+    /** Items that will be newly collapsed after this change. */
+    collapsed: AgCollapsedChangeItem<TDatum>[];
+    /** Items that will be newly expanded after this change. */
+    expanded: AgCollapsedChangeItem<TDatum>[];
 }
 
 export interface AgAnnotationsEvent<TContext = ContextDefault> {

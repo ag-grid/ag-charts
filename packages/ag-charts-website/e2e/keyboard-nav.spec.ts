@@ -3,6 +3,7 @@ import type { Locator, Page } from '@playwright/test';
 import type { AgInitialFocus } from 'ag-charts-types';
 
 import { expect, test } from './fixture';
+import { expectChartScreenshot } from './scene-capture';
 import { SELECTORS, gotoExample, repeat, setupIntrinsicAssertions, toExamplePageUrl, toExamplePageUrls } from './util';
 
 test.describe('keyboard-nav', () => {
@@ -17,37 +18,45 @@ test.describe('keyboard-nav', () => {
 
                 // Tab into chart, 1st series + 1st datum should be highlighted.
                 await page.keyboard.press('Tab');
-                await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('1st-datum-focus.png');
+                await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), '1st-datum-focus.png');
 
                 // Move to 3rd datum, then 2nd series.
                 await page.keyboard.press('ArrowRight');
                 await page.keyboard.press('ArrowRight');
                 await page.keyboard.press('ArrowDown');
-                await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('3rd-datum-2nd-series-focus.png');
+                await expectChartScreenshot(
+                    page,
+                    page.locator(SELECTORS.canvasCenter),
+                    '3rd-datum-2nd-series-focus.png'
+                );
 
                 // Move to legend items.
                 await page.keyboard.press('Tab');
-                await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('legend-focus.png');
+                await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), 'legend-focus.png');
 
                 // Move to 2nd page of legend items.
                 await page.keyboard.press('ArrowRight');
                 await page.keyboard.press('ArrowRight');
                 await page.keyboard.press('ArrowRight');
                 await page.keyboard.press('ArrowRight');
-                await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('legend-2nd-page-focus.png');
+                await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), 'legend-2nd-page-focus.png');
 
                 // Move to page back control.
                 await page.keyboard.press('Tab');
-                await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('legend-page-control-focus.png');
+                await expectChartScreenshot(
+                    page,
+                    page.locator(SELECTORS.canvasCenter),
+                    'legend-page-control-focus.png'
+                );
 
                 // Tab outside of chart.
                 await page.keyboard.press('Tab');
                 await page.keyboard.press('Tab');
-                await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('tabbed-out-of-chart.png');
+                await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), 'tabbed-out-of-chart.png');
 
                 // Tab back into chart.
                 await page.keyboard.press('Shift+Tab');
-                await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('tabbed-back-into-chart.png');
+                await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), 'tabbed-back-into-chart.png');
             });
         });
     }
@@ -57,13 +66,13 @@ test.describe('keyboard-nav', () => {
 
         await page.locator('input').first().click();
         await page.keyboard.press('Tab');
-        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('1st-datum-focus.png');
+        await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), '1st-datum-focus.png');
 
         await page.keyboard.press('End');
-        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('last-datum-focus.png');
+        await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), 'last-datum-focus.png');
 
         await page.keyboard.press('Home');
-        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('1st-datum-focus.png');
+        await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), '1st-datum-focus.png');
     });
 
     test('Home/End keys (with viewport support)', async ({ page }) => {
@@ -74,10 +83,10 @@ test.describe('keyboard-nav', () => {
         await repeat(20, async () => await page.keyboard.down('+'));
 
         await page.keyboard.press('End');
-        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('large-dataset-end-focus.png');
+        await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), 'large-dataset-end-focus.png');
 
         await page.keyboard.press('Home');
-        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('large-dataset-home-focus.png');
+        await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), 'large-dataset-home-focus.png');
     });
 
     test('keyboard nav ignores highlight-disabled series', async ({ page }) => {
@@ -90,10 +99,10 @@ test.describe('keyboard-nav', () => {
         await page.locator('input').first().click();
 
         await page.keyboard.press('Tab');
-        await expect(canvasCenter).toHaveScreenshot('highlight-disabled-series-focus.png');
+        await expectChartScreenshot(page, canvasCenter, 'highlight-disabled-series-focus.png');
 
         await page.keyboard.press('ArrowDown');
-        await expect(canvasCenter).toHaveScreenshot('highlight-disabled-series-other-series-focus.png');
+        await expectChartScreenshot(page, canvasCenter, 'highlight-disabled-series-other-series-focus.png');
     });
 
     test('AG-13051 kbm hover combo', async ({ page }) => {
@@ -102,7 +111,9 @@ test.describe('keyboard-nav', () => {
         await page.locator('input').first().click();
 
         await page.mouse.move(547, 310);
-        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(
+        await expectChartScreenshot(
+            page,
+            page.locator(SELECTORS.canvasCenter),
             '4th-datum-2nd-series-nofocus-highlight.png'
         );
 
@@ -110,33 +121,47 @@ test.describe('keyboard-nav', () => {
         await page.keyboard.press('ArrowRight');
         await page.keyboard.press('ArrowRight');
         await page.keyboard.press('ArrowDown');
-        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('3rd-datum-2nd-series-focus.png');
+        await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), '3rd-datum-2nd-series-focus.png');
 
         await page.mouse.move(547, 310);
-        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(
+        await expectChartScreenshot(
+            page,
+            page.locator(SELECTORS.canvasCenter),
             '3rd-datum-2nd-series-focus-4th-datum-2nd-series-highlight.png'
         );
 
         await page.mouse.move(613, 217);
-        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(
+        await expectChartScreenshot(
+            page,
+            page.locator(SELECTORS.canvasCenter),
             '3rd-datum-2nd-series-focus-nohighlight.png'
         );
 
         await page.keyboard.press('ArrowDown');
-        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('3rd-datum-3rd-series-focus-highlight.png');
+        await expectChartScreenshot(
+            page,
+            page.locator(SELECTORS.canvasCenter),
+            '3rd-datum-3rd-series-focus-highlight.png'
+        );
 
         await page.mouse.move(547, 310);
         await page.mouse.click(547, 310, { button: 'left' });
-        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(
+        await expectChartScreenshot(
+            page,
+            page.locator(SELECTORS.canvasCenter),
             'nofocus-4th-datum-2nd-series-highlight.png'
         );
 
         await page.keyboard.press('ArrowRight');
         await page.keyboard.press('ArrowLeft');
-        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('3rd-datum-3rd-series-focus-highlight.png');
+        await expectChartScreenshot(
+            page,
+            page.locator(SELECTORS.canvasCenter),
+            '3rd-datum-3rd-series-focus-highlight.png'
+        );
 
         await page.mouse.click(100, 100, { button: 'left' });
-        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('nofocus-nohighlight.png');
+        await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), 'nofocus-nohighlight.png');
     });
 
     test('AG-13643 legend toggling', async ({ page }) => {
@@ -145,21 +170,25 @@ test.describe('keyboard-nav', () => {
         await page.mouse.click(400, 300, { button: 'left' });
 
         await page.keyboard.press('Tab');
-        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('AG-13643-legend-item-1-focused.png');
+        await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), 'AG-13643-legend-item-1-focused.png');
 
         await page.keyboard.press('Space');
-        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('AG-13643-legend-item-1-pressed.png');
+        await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), 'AG-13643-legend-item-1-pressed.png');
 
         await page.keyboard.press('Enter');
-        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('AG-13643-legend-item-1-focused.png');
+        await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), 'AG-13643-legend-item-1-focused.png');
 
         await page.keyboard.press('NumpadEnter');
-        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('AG-13643-legend-item-1-pressed.png');
+        await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), 'AG-13643-legend-item-1-pressed.png');
 
         await page.keyboard.down('Shift');
         await page.keyboard.press('Tab');
         await page.keyboard.up('Shift');
-        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('AG-13643-series-2-datum-1-focused.png');
+        await expectChartScreenshot(
+            page,
+            page.locator(SELECTORS.canvasCenter),
+            'AG-13643-series-2-datum-1-focused.png'
+        );
     });
 
     test('AG-13668 panToBBox', async ({ page }) => {
@@ -168,14 +197,14 @@ test.describe('keyboard-nav', () => {
 
         await repeat(5, async () => await page.keyboard.press('+'));
         await page.keyboard.press('ArrowLeft');
-        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('AG-13668-datum-0-focused.png');
+        await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), 'AG-13668-datum-0-focused.png');
 
         await repeat(4, async () => await page.keyboard.press('ArrowRight'));
-        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('AG-13668-datum-4-focused.png');
+        await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), 'AG-13668-datum-4-focused.png');
 
         await page.keyboard.press('ArrowRight');
         await repeat(3, async () => await page.keyboard.press('ArrowLeft'));
-        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('AG-13668-datum-1-focused.png');
+        await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), 'AG-13668-datum-1-focused.png');
     });
 
     test('AG-13488 mouse dragging hides focus indicator', async ({ page }) => {
@@ -188,7 +217,7 @@ test.describe('keyboard-nav', () => {
         await page.mouse.move(400, 300);
         await page.mouse.down({ button: 'left' });
         await page.mouse.move(100, 300);
-        await expect(page).toHaveScreenshot('AG-13488-mouse-dragging-hides-focus-indicator.png');
+        await expectChartScreenshot(page, page, 'AG-13488-mouse-dragging-hides-focus-indicator.png');
     });
 
     test('AG-13086 series node click / numpad enter', async ({ page }) => {
@@ -223,15 +252,15 @@ test.describe('keyboard-nav', () => {
         await page.locator(SELECTORS.canvasCenter).first().click();
 
         await page.keyboard.press('ArrowLeft');
-        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('pie-1-highlight.png');
+        await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), 'pie-1-highlight.png');
         await page.keyboard.press('ArrowRight');
-        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('pie-2-highlight.png');
+        await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), 'pie-2-highlight.png');
         await page.keyboard.press('ArrowRight');
-        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('pie-3-highlight.png');
+        await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), 'pie-3-highlight.png');
         await page.keyboard.press('ArrowRight');
-        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('pie-4-highlight.png');
+        await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), 'pie-4-highlight.png');
         await page.keyboard.press('ArrowRight');
-        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('pie-5-highlight.png');
+        await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), 'pie-5-highlight.png');
     });
 
     test('topology chart', async ({ page }) => {
@@ -242,15 +271,15 @@ test.describe('keyboard-nav', () => {
         await page.locator(SELECTORS.canvasCenter).first().click();
 
         await page.keyboard.press('ArrowLeft');
-        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('map-shape-1-highlight.png');
+        await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), 'map-shape-1-highlight.png');
         await page.keyboard.press('ArrowRight');
-        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('map-shape-2-highlight.png');
+        await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), 'map-shape-2-highlight.png');
         await page.keyboard.press('ArrowRight');
-        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('map-shape-3-highlight.png');
+        await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), 'map-shape-3-highlight.png');
         await page.keyboard.press('ArrowRight');
-        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('map-shape-4-highlight.png');
+        await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), 'map-shape-4-highlight.png');
         await page.keyboard.press('ArrowRight');
-        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('map-shape-5-highlight.png');
+        await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), 'map-shape-5-highlight.png');
     });
 
     test('pyramid chart', async ({ page }) => {
@@ -261,13 +290,13 @@ test.describe('keyboard-nav', () => {
         await page.locator(SELECTORS.canvasCenter).first().click();
 
         await page.keyboard.press('ArrowLeft');
-        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('pyramid-1-highlight.png');
+        await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), 'pyramid-1-highlight.png');
         await page.keyboard.press('ArrowRight');
-        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('pyramid-2-highlight.png');
+        await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), 'pyramid-2-highlight.png');
         await page.keyboard.press('ArrowRight');
-        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('pyramid-3-highlight.png');
+        await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), 'pyramid-3-highlight.png');
         await page.keyboard.press('ArrowRight');
-        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('pyramid-4-highlight.png');
+        await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), 'pyramid-4-highlight.png');
     });
 
     test('hierarchy chart', async ({ page }) => {
@@ -278,10 +307,10 @@ test.describe('keyboard-nav', () => {
         await page.locator(SELECTORS.canvasCenter).first().click();
 
         await page.keyboard.press('ArrowUp');
-        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(`treemap-group-highlight.png`);
+        await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), `treemap-group-highlight.png`);
 
         await page.keyboard.press('ArrowDown');
-        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(`treemap-tile-highlight.png`);
+        await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), `treemap-tile-highlight.png`);
     });
 
     test('flow proportion chart', async ({ page }) => {
@@ -292,12 +321,12 @@ test.describe('keyboard-nav', () => {
         await page.locator(SELECTORS.canvasCenter).first().click();
 
         await page.keyboard.press('ArrowLeft');
-        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(`sankey-node-highlight.png`);
+        await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), `sankey-node-highlight.png`);
 
         for (let datum = 0; datum < 11; datum += 1) {
             await page.keyboard.press('ArrowRight');
         }
-        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(`sankey-link-highlight.png`);
+        await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), `sankey-link-highlight.png`);
     });
 
     test('gauge chart', async ({ page }) => {
@@ -309,36 +338,36 @@ test.describe('keyboard-nav', () => {
 
         await page.keyboard.press('ArrowUp'); // should make the focus indicator appear
         await page.keyboard.press('ArrowUp'); // should have no effect
-        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(`linear-gauge-bar-highlight.png`);
+        await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), `linear-gauge-bar-highlight.png`);
 
         await page.keyboard.press('ArrowDown');
-        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(`linear-gauge-target0-highlight.png`);
+        await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), `linear-gauge-target0-highlight.png`);
 
         await page.keyboard.press('ArrowRight');
         await page.keyboard.press('ArrowRight');
-        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(`linear-gauge-target2-highlight.png`);
+        await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), `linear-gauge-target2-highlight.png`);
 
         // CRT-1124: ArrowUp directly from a non-first target must return to the main bar
         // (previously got stuck because the carried target index had no valid landing in
         // the single-node main section).
         await page.keyboard.press('ArrowUp');
-        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(`linear-gauge-bar-highlight.png`);
+        await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), `linear-gauge-bar-highlight.png`);
 
         await page.keyboard.press('ArrowDown');
-        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(`linear-gauge-target0-highlight.png`);
+        await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), `linear-gauge-target0-highlight.png`);
 
         await page.keyboard.press('ArrowRight');
         await page.keyboard.press('ArrowRight');
-        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(`linear-gauge-target2-highlight.png`);
+        await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), `linear-gauge-target2-highlight.png`);
 
         await page.keyboard.press('ArrowLeft');
         await page.keyboard.press('ArrowLeft');
         await page.keyboard.press('ArrowLeft'); // should have no effect
-        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(`linear-gauge-target0-highlight.png`);
+        await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), `linear-gauge-target0-highlight.png`);
 
         await page.keyboard.press('ArrowDown'); // should have no effect
         await page.keyboard.press('ArrowUp');
-        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(`linear-gauge-bar-highlight.png`);
+        await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), `linear-gauge-bar-highlight.png`);
     });
 
     test.describe('radial gauge chart with needle', () => {
@@ -355,7 +384,7 @@ test.describe('keyboard-nav', () => {
         test('init', async ({ page }) => {
             await canvas.click();
             await page.keyboard.press('ArrowLeft');
-            await expect(canvas).toHaveScreenshot(`radial-gauge-showNeedle-hideBar.png`);
+            await expectChartScreenshot(page, canvas, `radial-gauge-showNeedle-hideBar.png`);
         });
 
         test('hideNeedle hideBar', async ({ page }) => {
@@ -363,7 +392,7 @@ test.describe('keyboard-nav', () => {
             await hideBar.click();
             await canvas.click();
             await page.keyboard.press('ArrowLeft');
-            await expect(canvas).toHaveScreenshot(`radial-gauge-hideNeedle-hideBar.png`);
+            await expectChartScreenshot(page, canvas, `radial-gauge-hideNeedle-hideBar.png`);
         });
 
         test('hideNeedle showBar', async ({ page }) => {
@@ -371,7 +400,7 @@ test.describe('keyboard-nav', () => {
             await showBar.click();
             await canvas.click();
             await page.keyboard.press('ArrowLeft');
-            await expect(canvas).toHaveScreenshot(`radial-gauge-hideNeedle-showBar.png`);
+            await expectChartScreenshot(page, canvas, `radial-gauge-hideNeedle-showBar.png`);
         });
 
         test('showNeedle hideBar', async ({ page }) => {
@@ -379,7 +408,7 @@ test.describe('keyboard-nav', () => {
             await hideBar.click();
             await canvas.click();
             await page.keyboard.press('ArrowLeft');
-            await expect(canvas).toHaveScreenshot(`radial-gauge-showNeedle-hideBar.png`);
+            await expectChartScreenshot(page, canvas, `radial-gauge-showNeedle-hideBar.png`);
         });
 
         test('showNeedle showBar', async ({ page }) => {
@@ -387,7 +416,7 @@ test.describe('keyboard-nav', () => {
             await showBar.click();
             await canvas.click();
             await page.keyboard.press('ArrowLeft');
-            await expect(canvas).toHaveScreenshot(`radial-gauge-showNeedle-showBar.png`);
+            await expectChartScreenshot(page, canvas, `radial-gauge-showNeedle-showBar.png`);
         });
     });
 
@@ -406,28 +435,28 @@ test.describe('keyboard-nav', () => {
                 await item.click();
                 await page.mouse.click(400, 300);
                 await page.keyboard.press('ArrowLeft');
-                await expect(page).toHaveScreenshot('linear-gauge-corners-item.png');
+                await expectChartScreenshot(page, page, 'linear-gauge-corners-item.png');
             });
             test('container', async ({ page }) => {
                 await disable.click();
                 await container.click();
                 await page.mouse.click(400, 300);
                 await page.keyboard.press('ArrowLeft');
-                await expect(page).toHaveScreenshot('linear-gauge-corners-container.png');
+                await expectChartScreenshot(page, page, 'linear-gauge-corners-container.png');
             });
             test('segmented item', async ({ page }) => {
                 await enable.click();
                 await item.click();
                 await page.mouse.click(400, 300);
                 await page.keyboard.press('ArrowLeft');
-                await expect(page).toHaveScreenshot('linear-gauge-corners-segmented-item.png');
+                await expectChartScreenshot(page, page, 'linear-gauge-corners-segmented-item.png');
             });
             test('segmented container', async ({ page }) => {
                 await enable.click();
                 await container.click();
                 await page.mouse.click(400, 300);
                 await page.keyboard.press('ArrowLeft');
-                await expect(page).toHaveScreenshot('linear-gauge-corners-segmented-container.png');
+                await expectChartScreenshot(page, page, 'linear-gauge-corners-segmented-container.png');
             });
         });
 
@@ -445,28 +474,28 @@ test.describe('keyboard-nav', () => {
                 await item.click();
                 await page.mouse.click(400, 300);
                 await page.keyboard.press('ArrowLeft');
-                await expect(page).toHaveScreenshot('vertical-linear-gauge-corners-item.png');
+                await expectChartScreenshot(page, page, 'vertical-linear-gauge-corners-item.png');
             });
             test('container', async ({ page }) => {
                 await disable.click();
                 await container.click();
                 await page.mouse.click(400, 300);
                 await page.keyboard.press('ArrowLeft');
-                await expect(page).toHaveScreenshot('vertical-linear-gauge-corners-container.png');
+                await expectChartScreenshot(page, page, 'vertical-linear-gauge-corners-container.png');
             });
             test('segmented item', async ({ page }) => {
                 await enable.click();
                 await item.click();
                 await page.mouse.click(400, 300);
                 await page.keyboard.press('ArrowLeft');
-                await expect(page).toHaveScreenshot('vertical-linear-gauge-corners-segmented-item.png');
+                await expectChartScreenshot(page, page, 'vertical-linear-gauge-corners-segmented-item.png');
             });
             test('segmented container', async ({ page }) => {
                 await enable.click();
                 await container.click();
                 await page.mouse.click(400, 300);
                 await page.keyboard.press('ArrowLeft');
-                await expect(page).toHaveScreenshot('vertical-linear-gauge-corners-segmented-container.png');
+                await expectChartScreenshot(page, page, 'vertical-linear-gauge-corners-segmented-container.png');
             });
         });
 
@@ -484,28 +513,28 @@ test.describe('keyboard-nav', () => {
                 await item.click();
                 await page.mouse.click(400, 300);
                 await page.keyboard.press('ArrowLeft');
-                await expect(page).toHaveScreenshot('radial-gauge-corners-item.png');
+                await expectChartScreenshot(page, page, 'radial-gauge-corners-item.png');
             });
             test('container', async ({ page }) => {
                 await disable.click();
                 await container.click();
                 await page.mouse.click(400, 300);
                 await page.keyboard.press('ArrowLeft');
-                await expect(page).toHaveScreenshot('radial-gauge-corners-container.png');
+                await expectChartScreenshot(page, page, 'radial-gauge-corners-container.png');
             });
             test('segmented item', async ({ page }) => {
                 await enable.click();
                 await item.click();
                 await page.mouse.click(400, 300);
                 await page.keyboard.press('ArrowLeft');
-                await expect(page).toHaveScreenshot('radial-gauge-corners-segmented-item.png');
+                await expectChartScreenshot(page, page, 'radial-gauge-corners-segmented-item.png');
             });
             test('segmented container', async ({ page }) => {
                 await enable.click();
                 await container.click();
                 await page.mouse.click(400, 300);
                 await page.keyboard.press('ArrowLeft');
-                await expect(page).toHaveScreenshot('radial-gauge-corners-segmented-container.png');
+                await expectChartScreenshot(page, page, 'radial-gauge-corners-segmented-container.png');
             });
         });
     });
@@ -515,13 +544,13 @@ test.describe('keyboard-nav', () => {
             await gotoExample(page, toExamplePageUrl('linear-gauge-e2e', 'bar-thickness-horizontal', 'vanilla').url);
             await page.mouse.click(400, 300);
             await page.keyboard.press('ArrowLeft');
-            await expect(page).toHaveScreenshot('AG-15607-bar-thickness-horizontal.png');
+            await expectChartScreenshot(page, page, 'AG-15607-bar-thickness-horizontal.png');
         });
         test('vertical', async ({ page }) => {
             await gotoExample(page, toExamplePageUrl('linear-gauge-e2e', 'bar-thickness-vertical', 'vanilla').url);
             await page.mouse.click(400, 300);
             await page.keyboard.press('ArrowLeft');
-            await expect(page).toHaveScreenshot('AG-15607-bar-thickness-vertical.png');
+            await expectChartScreenshot(page, page, 'AG-15607-bar-thickness-vertical.png');
         });
     });
 
@@ -580,28 +609,28 @@ test.describe('keyboard-nav', () => {
             // Focus on chart series-area:
             // (focus-indicator MUST be show, because focus was triggered by keyboard)
             await page.keyboard.press('Tab');
-            await expect(page).toHaveScreenshot('AG-16523-init-focus-visible.png');
+            await expectChartScreenshot(page, page, 'AG-16523-init-focus-visible.png');
 
             // Click chart:
             // (clear focus-indicator, because we entered "pointer-mode")
             await page.mouse.click(400, 300);
-            await expect(page).toHaveScreenshot('AG-16523-init-focus-hidden.png');
+            await expectChartScreenshot(page, page, 'AG-16523-init-focus-hidden.png');
 
             // Blur the chart:
             await page.keyboard.press('Tab');
-            await expect(page).toHaveScreenshot('AG-16523-blurred.png');
+            await expectChartScreenshot(page, page, 'AG-16523-blurred.png');
         });
 
         test('zoom-in', async ({ page }) => {
             // Focus on chart series-area:
             // (focus-indicator MUST be show, because focus was triggered by keyboard)
             await page.keyboard.press('Shift+Tab');
-            await expect(page).toHaveScreenshot('AG-16523-init-focus-visible.png');
+            await expectChartScreenshot(page, page, 'AG-16523-init-focus-visible.png');
 
             // Adjust zoom:
             // (focus-indicator MUST be shown, because we're still in "keyboard-mode")
             await page.keyboard.press('+');
-            await expect(page).toHaveScreenshot('AG-16523-zoomed-focus-visible.png');
+            await expectChartScreenshot(page, page, 'AG-16523-zoomed-focus-visible.png');
         });
 
         test('undo', async ({ page }) => {
@@ -614,12 +643,12 @@ test.describe('keyboard-nav', () => {
             // Focus on chart series-area:
             // (focus-indicator MUST be show, because focus was triggered by keyboard)
             await page.keyboard.press('Shift+Tab');
-            await expect(page).toHaveScreenshot('AG-16523-deleted-focus-visible.png');
+            await expectChartScreenshot(page, page, 'AG-16523-deleted-focus-visible.png');
 
             // Undo zoom:
             // (focus-indicator MUST be shown, because we're still in "keyboard-mode")
             await page.keyboard.press('ControlOrMeta+z');
-            await expect(page).toHaveScreenshot('AG-16523-init-focus-visible.png');
+            await expectChartScreenshot(page, page, 'AG-16523-init-focus-visible.png');
         });
     });
 
@@ -646,7 +675,7 @@ test.describe('keyboard-nav', () => {
 
         // Should already be on the 2nd legend item
 
-        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('CRT-1047-after-change-font.png');
+        await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), 'CRT-1047-after-change-font.png');
     });
 
     test.describe('initial-focus', () => {
@@ -669,32 +698,32 @@ test.describe('keyboard-nav', () => {
 
         test('data-start', async ({ page }) => {
             await selectOption(page, 'data-start');
-            await expect(canvas).toHaveScreenshot('initial-focus-data-start.png');
+            await expectChartScreenshot(page, canvas, 'initial-focus-data-start.png');
         });
 
         test('data-end', async ({ page }) => {
             await selectOption(page, 'data-end');
-            await expect(canvas).toHaveScreenshot('initial-focus-data-end.png');
+            await expectChartScreenshot(page, canvas, 'initial-focus-data-end.png');
         });
 
         test('viewport-start', async ({ page }) => {
             await selectOption(page, 'viewport-start');
-            await expect(canvas).toHaveScreenshot('initial-focus-viewport-start.png');
+            await expectChartScreenshot(page, canvas, 'initial-focus-viewport-start.png');
         });
 
         test('viewport-end', async ({ page }) => {
             await selectOption(page, 'viewport-end');
-            await expect(canvas).toHaveScreenshot('initial-focus-viewport-end.png');
+            await expectChartScreenshot(page, canvas, 'initial-focus-viewport-end.png');
         });
 
         test('only the first focus event reads the initialFocus value', async ({ page }) => {
             await selectMode(page, 'updateDelta');
 
             await selectOption(page, 'viewport-start');
-            await expect(canvas).toHaveScreenshot('initial-focus-viewport-start.png');
+            await expectChartScreenshot(page, canvas, 'initial-focus-viewport-start.png');
 
             await selectOption(page, 'viewport-end');
-            await expect(canvas).toHaveScreenshot('initial-focus-viewport-start.png');
+            await expectChartScreenshot(page, canvas, 'initial-focus-viewport-start.png');
         });
     });
 });

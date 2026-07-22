@@ -1,10 +1,10 @@
+import type { SerializedNodeState, SerializedRectProps } from 'ag-charts-core';
 import { DeclaredSceneChangeDetection, type DistantObject, boxesEqual, isNumberEqual } from 'ag-charts-core';
 import type { AgDrawingMode } from 'ag-charts-types';
 
 import { BBox } from '../bbox';
 import type { DropShadow } from '../dropShadow';
 import { ExtendedPath2D } from '../extendedPath2D';
-import type { SerializedNodeState, SerializedRectProps } from '../node';
 import { type Corner, drawCorner } from '../util/corner';
 import { Path } from './path';
 import { type CanvasContext } from './shape';

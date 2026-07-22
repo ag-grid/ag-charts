@@ -18,4 +18,8 @@ export const DEMO_APPS: DemoAppEntry[] = [
         id: 'pie',
         load: () => import('./demos/pie'),
     },
+    {
+        id: 'financial',
+        load: () => import('./demos/financial'),
+    },
 ];
