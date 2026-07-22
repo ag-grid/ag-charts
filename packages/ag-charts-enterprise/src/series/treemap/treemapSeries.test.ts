@@ -1408,6 +1408,19 @@ describe('TreemapSeries', () => {
             options.height = height;
             return options;
         };
+        // The same layout with only the dominant group — the reference the collapsing groups' space
+        // must be reclaimed to. With the small groups dropped from the partition, the survivor should
+        // occupy exactly what it occupies when they are absent from the data altogether.
+        const bigOnlyAt = (width: number, height: number): AgChartOptions => {
+            const options = prepareEnterpriseTestOptions({
+                data: [{ name: 'Big', children: [{ name: 'b', size: 100000 }] }],
+                series: [{ type: 'treemap', labelKey: 'name', sizeKey: 'size' }],
+                animation: { enabled: false },
+            } as AgChartOptions);
+            options.width = width;
+            options.height = height;
+            return options;
+        };
 
         // A laid-out group with no laid-out child renders only its own padding/background — a
         // content-less tile occupying space no real tile fills. Every rendered group must contain
@@ -1424,6 +1437,15 @@ describe('TreemapSeries', () => {
         };
         const renderedTileCount = (series: TreemapSeries): number =>
             Array.from((series as any).datumSelection.nodes()).filter((rect: any) => rect.visible).length;
+        const leafBbox = (series: TreemapSeries, name: string): _ModuleSupport.BBox | undefined => {
+            let bbox: _ModuleSupport.BBox | undefined;
+            (series as any).rootNode?.walk((node: any) => {
+                if (node.children.length === 0 && node.datum?.name === name) {
+                    bbox = node.bbox;
+                }
+            });
+            return bbox;
+        };
 
         it('renders no content-less group tiles at large scale', async () => {
             const proxy = AgCharts.create(treemapAt(1600, 1200));
@@ -1448,6 +1470,31 @@ describe('TreemapSeries', () => {
 
             expect(renderedTileCount(series)).toBeGreaterThan(0);
             expect(contentlessGroups(series)).toEqual([]);
+        });
+
+        it('reclaims the space of collapsing groups for their surviving siblings', async () => {
+            const proxy = AgCharts.create(treemapAt(1600, 1200));
+            chart = deproxy(proxy);
+            await waitForChartStability(chart);
+            const withSmalls = leafBbox(chart.series[0] as TreemapSeries, 'b');
+
+            const referenceProxy = AgCharts.create(bigOnlyAt(1600, 1200));
+            const reference: any = deproxy(referenceProxy);
+            await waitForChartStability(reference);
+            const withoutSmalls = leafBbox(reference.series[0] as TreemapSeries, 'b');
+            referenceProxy.destroy();
+
+            expect(withSmalls).toBeDefined();
+            expect(withoutSmalls).toBeDefined();
+
+            // Reclaimed layout is the smalls-free layout: leaving the collapsing groups in the
+            // partition (rendering nothing but reserving their slice) shrinks the survivor by ~1.4px
+            // here, so a 0.5px tolerance fails on the hide-only behaviour and passes on reclamation.
+            const tol = 0.5;
+            expect(Math.abs(withSmalls!.x - withoutSmalls!.x)).toBeLessThan(tol);
+            expect(Math.abs(withSmalls!.y - withoutSmalls!.y)).toBeLessThan(tol);
+            expect(Math.abs(withSmalls!.width - withoutSmalls!.width)).toBeLessThan(tol);
+            expect(Math.abs(withSmalls!.height - withoutSmalls!.height)).toBeLessThan(tol);
         });
 
         // Shrinking to where the groups collapse must not leave descendant tiles rendered at their

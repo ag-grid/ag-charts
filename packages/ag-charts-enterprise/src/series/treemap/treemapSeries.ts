@@ -180,16 +180,10 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         };
     }
 
-    private sortChildren({ children }: TreemapNode) {
-        const sortedChildrenIndices: number[] = Array.from(children, (_, i) => i)
+    private sortChildren({ children }: TreemapNode): number[] {
+        return Array.from(children, (_, i) => i)
             .filter((i) => nodeSize(children[i]) > 0)
             .sort((aIndex, bIndex) => nodeSize(children[bIndex]) - nodeSize(children[aIndex]));
-
-        const childAt = (i: number): TreemapNode => {
-            const sortedIndex = sortedChildrenIndices[i];
-            return children[sortedIndex];
-        };
-        return { sortedChildrenIndices, childAt };
     }
 
     // Only nodes with a bbox render, so resetting these fields is what hides the node.
@@ -198,6 +192,15 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         node.padding = undefined;
         node.midPoint.x = Number.NaN;
         node.midPoint.y = Number.NaN;
+    }
+
+    // A group whose allocated box cannot fit its own padding can lay out no child, so it would render
+    // only an empty container. Leaves render at any size, so they never count as collapsed.
+    private collapses(node: TreemapNode, bbox: _ModuleSupport.BBox): boolean {
+        if (node.children.length === 0) return false;
+        if (bbox.width <= 0 || bbox.height <= 0) return true;
+        const padding = node.datum == null ? { top: 0, right: 0, bottom: 0, left: 0 } : this.getNodePadding(node, bbox);
+        return bbox.width - padding.left - padding.right <= 0 || bbox.height - padding.top - padding.bottom <= 0;
     }
 
     /**
@@ -223,11 +226,10 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
             node.midPoint.y = bbox.y;
         }
 
-        const { sortedChildrenIndices, childAt } = this.sortChildren(node);
+        const sortedChildrenIndices = this.sortChildren(node);
 
         const allLeafNodes = sortedChildrenIndices.every((sortedIndex) => children[sortedIndex].children.length === 0);
 
-        const targetTileAspectRatio = 1; // The width and height will tend to this ratio
         const width = bbox.width - padding.left - padding.right;
         const height = bbox.height - padding.top - padding.bottom;
 
@@ -240,12 +242,59 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
             return;
         }
 
-        const numChildren = sortedChildrenIndices.length;
+        const innerBox = new BBox(bbox.x + padding.left, bbox.y + padding.top, width, height);
+
+        // Lay the children out, then drop any group whose allocated box is too small to fit its own
+        // padding: it can render nothing, and leaving it in the partition reserves space no tile fills
+        // (the phantom tiles seen after a resize). Re-lay the survivors so they reclaim the freed area.
+        // Removing a collapsed group only enlarges the rest, so this reaches a fixpoint.
+        let indices = sortedChildrenIndices;
+        const collapsed = new Set<TreemapNode>();
+        let layout = this.layoutChildren(children, indices, innerBox, allLeafNodes);
+        let collapsing = layout.filter(({ child, bbox: box }) => this.collapses(child, box));
+
+        while (collapsing.length > 0) {
+            for (const { child } of collapsing) {
+                collapsed.add(child);
+            }
+            indices = indices.filter((idx) => !collapsed.has(children[idx]));
+            if (indices.length === 0) {
+                // Every child collapses, so render nothing rather than an empty container.
+                node.walk((n) => this.hideNode(n));
+                return;
+            }
+            layout = this.layoutChildren(children, indices, innerBox, allLeafNodes);
+            collapsing = layout.filter(({ child, bbox: box }) => this.collapses(child, box));
+        }
+
+        for (const child of collapsed) {
+            child.walk((n) => this.hideNode(n));
+        }
+        for (const { child, bbox: box } of layout) {
+            this.squarify(child, box);
+        }
+    }
+
+    /**
+     * Allocate a box to each of the given children with the squarified layout, without recursing.
+     * Returning the boxes (rather than laying out subtrees inline) lets the caller detect children
+     * that cannot render and re-run the allocation for the survivors.
+     */
+    private layoutChildren(
+        children: TreemapNode[],
+        indices: number[],
+        innerBox: _ModuleSupport.BBox,
+        allLeafNodes: boolean
+    ): { child: TreemapNode; bbox: _ModuleSupport.BBox }[] {
+        const childAt = (i: number) => children[indices[i]];
+        const numChildren = indices.length;
+        const targetTileAspectRatio = 1; // The width and height will tend to this ratio
+        const result: { child: TreemapNode; bbox: _ModuleSupport.BBox }[] = [];
+
         let stackSum = 0;
         let startIndex = 0;
         let minRatioDiff = Infinity;
-        let partitionSum = sortedChildrenIndices.reduce((sum, sortedIndex) => sum + nodeSize(children[sortedIndex]), 0);
-        const innerBox = new BBox(bbox.x + padding.left, bbox.y + padding.top, width, height);
+        let partitionSum = indices.reduce((sum, idx) => sum + nodeSize(children[idx]), 0);
         const partition = innerBox.clone();
 
         let i = 0;
@@ -284,7 +333,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
 
                 const childBbox = new BBox(x, y, stackWidth, stackHeight);
                 this.applyGap(innerBox, childBbox, allLeafNodes);
-                this.squarify(child, childBbox);
+                result.push({ child, bbox: childBbox });
 
                 partitionSum -= childSize;
                 start += length;
@@ -315,9 +364,11 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
             const childHeight = partition.height * (isVertical ? 1 : part);
             const childBox = new BBox(x, y, childWidth, childHeight);
             this.applyGap(innerBox, childBox, allLeafNodes);
-            this.squarify(child, childBox);
+            result.push({ child, bbox: childBox });
             start += isVertical ? childWidth : childHeight;
         }
+
+        return result;
     }
 
     private applyGap(innerBox: _ModuleSupport.BBox, childBox: _ModuleSupport.BBox, allLeafNodes: boolean) {
