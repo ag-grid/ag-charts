@@ -15,6 +15,7 @@ import {
     isString,
     objectsEqual,
 } from 'ag-charts-core';
+import type { SerializedNodeState, SerializedShapeProps } from 'ag-charts-core';
 import type {
     AgDrawingMode,
     AgImageFill,
@@ -32,7 +33,6 @@ import { LinearGradient } from '../gradient/linearGradient';
 import { RadialGradient } from '../gradient/radialGradient';
 import { getColorStops } from '../gradient/stops';
 import { Image } from '../image/image';
-import type { SerializedNodeState, SerializedShapeProps } from '../node';
 import { Node } from '../node';
 import { Pattern } from '../pattern/pattern';
 import { align } from '../util/pixel';

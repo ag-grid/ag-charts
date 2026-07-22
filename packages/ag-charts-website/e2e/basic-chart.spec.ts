@@ -1,4 +1,5 @@
-import { expect, test } from './fixture';
+import { test } from './fixture';
+import { expectChartScreenshot } from './scene-capture';
 import { gotoExample, setupIntrinsicAssertions, toExamplePageUrls } from './util';
 
 test.describe('basic charts', () => {
@@ -8,7 +9,7 @@ test.describe('basic charts', () => {
         test.describe(`for ${framework}`, () => {
             test('loads basic chart', async ({ page }) => {
                 await gotoExample(page, url);
-                await expect(page).toHaveScreenshot('chart.png');
+                await expectChartScreenshot(page, page, 'chart.png');
             });
         });
     }

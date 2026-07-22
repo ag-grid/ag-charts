@@ -4,6 +4,7 @@ import type { DeepReadonly } from 'ag-charts-core';
 import type { AgChartState } from 'ag-charts-types';
 
 import { expect, test } from './fixture';
+import { expectChartScreenshot } from './scene-capture';
 import {
     SELECTORS,
     createConsoleLogs,
@@ -103,13 +104,13 @@ test.describe('state', () => {
 
         await page.mouse.click(bbox0.x, bbox0.y);
         await page.locator('.example-controls button').getByText('Save').click();
-        await expect(page).toHaveScreenshot('state-legend-zoom-1-saved.png', { animations: 'disabled' });
+        await expectChartScreenshot(page, page, 'state-legend-zoom-1-saved.png', { animations: 'disabled' });
 
         await page.locator('.example-controls button').getByText('Reload').click();
-        await expect(page).toHaveScreenshot('state-legend-zoom-1-reloaded.png', { animations: 'disabled' });
+        await expectChartScreenshot(page, page, 'state-legend-zoom-1-reloaded.png', { animations: 'disabled' });
 
         await page.locator('.example-controls button').getByText('Restore').click();
-        await expect(page).toHaveScreenshot('state-legend-zoom-1-restored.png', { animations: 'disabled' });
+        await expectChartScreenshot(page, page, 'state-legend-zoom-1-restored.png', { animations: 'disabled' });
     });
 
     test('empty zoom', async ({ page }) => {
@@ -123,10 +124,14 @@ test.describe('state', () => {
         await page.mouse.wheel(0, -400);
 
         await page.locator('.example-controls button').getByText('Restore undefined').click();
-        await expect(page).toHaveScreenshot('state-empty-zoom-1-restored-undefined.png', { animations: 'disabled' });
+        await expectChartScreenshot(page, page, 'state-empty-zoom-1-restored-undefined.png', {
+            animations: 'disabled',
+        });
 
         await page.locator('.example-controls button').getByText('Restore {}').click();
-        await expect(page).toHaveScreenshot('state-empty-zoom-2-restored-empty-object.png', { animations: 'disabled' });
+        await expectChartScreenshot(page, page, 'state-empty-zoom-2-restored-empty-object.png', {
+            animations: 'disabled',
+        });
     });
 
     test('initial-state category zoom loads pre-zoomed', async ({ page }) => {
@@ -135,7 +140,7 @@ test.describe('state', () => {
 
         // `initialState.zoom.rangeX` is expressed with category values (Q2'18 to Q3'18); the chart must
         // open zoomed to that sub-range rather than the full domain.
-        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('initial-state-zoom-category.png');
+        await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), 'initial-state-zoom-category.png');
     });
 
     test.describe('active', () => {
@@ -349,16 +354,16 @@ test.describe('state', () => {
 
             test.describe('3 setState calls', () => {
                 test('screenshots', async ({ page }) => {
-                    await expect(canvas).toHaveScreenshot('line-example-canvas-inactive.png');
+                    await expectChartScreenshot(page, canvas, 'line-example-canvas-inactive.png');
 
                     await pickDatum(page, { country: 'Spain', year: '2010' });
-                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-Spain-2010.png');
+                    await expectChartScreenshot(page, canvas, 'line-example-canvas-active-Spain-2010.png');
 
                     await pickDatum(page, { country: 'France', year: '2014' });
-                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-France-2014.png');
+                    await expectChartScreenshot(page, canvas, 'line-example-canvas-active-France-2014.png');
 
                     await pickDatum(page, { country: 'UK', year: '2023' });
-                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-UK-2023.png');
+                    await expectChartScreenshot(page, canvas, 'line-example-canvas-active-UK-2023.png');
                 });
 
                 test('states', async ({ page }) => {
@@ -394,13 +399,13 @@ test.describe('state', () => {
                 test('screenshots', async ({ page }) => {
                     await checkFrozen(page);
                     await pickDatum(page, { country: 'Spain', year: '2010' });
-                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-Spain-2010.png');
+                    await expectChartScreenshot(page, canvas, 'line-example-canvas-active-Spain-2010.png');
 
                     await pickDatum(page, { country: 'France', year: '2014' });
-                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-France-2014.png');
+                    await expectChartScreenshot(page, canvas, 'line-example-canvas-active-France-2014.png');
 
                     await pickDatum(page, { country: 'UK', year: '2023' });
-                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-UK-2023.png');
+                    await expectChartScreenshot(page, canvas, 'line-example-canvas-active-UK-2023.png');
                 });
 
                 test('states', async ({ page }) => {
@@ -432,13 +437,13 @@ test.describe('state', () => {
 
             test.describe('2 duplicate setState calls', () => {
                 test('screenshots', async ({ page }) => {
-                    await expect(canvas).toHaveScreenshot('line-example-canvas-inactive.png');
+                    await expectChartScreenshot(page, canvas, 'line-example-canvas-inactive.png');
 
                     await pickDatum(page, { country: 'France', year: '2014' });
-                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-France-2014.png');
+                    await expectChartScreenshot(page, canvas, 'line-example-canvas-active-France-2014.png');
 
                     await pickDatum(page, { country: 'France', year: '2014' });
-                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-France-2014.png');
+                    await expectChartScreenshot(page, canvas, 'line-example-canvas-active-France-2014.png');
                 });
 
                 test('states', async ({ page }) => {
@@ -466,13 +471,13 @@ test.describe('state', () => {
             test.describe('hover events clear unfrozen setState', () => {
                 test('screenshots', async ({ page }) => {
                     await pickDatum(page, { country: 'UK', year: '2023' });
-                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-UK-2023.png');
+                    await expectChartScreenshot(page, canvas, 'line-example-canvas-active-UK-2023.png');
 
                     await hoverInCenter(page);
-                    await expect(canvas).toHaveScreenshot('line-example-canvas-hover-center.png');
+                    await expectChartScreenshot(page, canvas, 'line-example-canvas-hover-center.png');
 
                     await hoverInTopLeft(page);
-                    await expect(canvas).toHaveScreenshot('line-example-canvas-inactive.png');
+                    await expectChartScreenshot(page, canvas, 'line-example-canvas-inactive.png');
                 });
 
                 test('states', async ({ page }) => {
@@ -501,13 +506,13 @@ test.describe('state', () => {
             test.describe('series-area mouse events clear unfrozen setState from legend', () => {
                 test('screenshots', async ({ page }) => {
                     await pickDatum(page, { country: 'UK', year: 'Legend' });
-                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-UK-Legend.png');
+                    await expectChartScreenshot(page, canvas, 'line-example-canvas-active-UK-Legend.png');
 
                     await hoverInCenter(page);
-                    await expect(canvas).toHaveScreenshot('line-example-canvas-hover-center.png');
+                    await expectChartScreenshot(page, canvas, 'line-example-canvas-hover-center.png');
 
                     await hoverInTopLeft(page);
-                    await expect(canvas).toHaveScreenshot('line-example-canvas-inactive.png');
+                    await expectChartScreenshot(page, canvas, 'line-example-canvas-inactive.png');
                 });
 
                 test('states', async ({ page }) => {
@@ -538,10 +543,10 @@ test.describe('state', () => {
                     const { version } = await getChartState(page);
 
                     await pickDatum(page, { country: 'UK', year: '2023' });
-                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-UK-2023.png');
+                    await expectChartScreenshot(page, canvas, 'line-example-canvas-active-UK-2023.png');
 
                     await setStateInactive(version, page);
-                    await expect(canvas).toHaveScreenshot('line-example-canvas-inactive.png');
+                    await expectChartScreenshot(page, canvas, 'line-example-canvas-inactive.png');
                 });
 
                 test('states', async ({ page }) => {
@@ -568,10 +573,10 @@ test.describe('state', () => {
                     const { version } = await getChartState(page);
 
                     await pickDatum(page, { country: 'UK', year: '2023' });
-                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-UK-2023.png');
+                    await expectChartScreenshot(page, canvas, 'line-example-canvas-active-UK-2023.png');
 
                     await setStateInvalidNodeId(consoleLogs, page, version);
-                    await expect(canvas).toHaveScreenshot('line-example-canvas-inactive.png');
+                    await expectChartScreenshot(page, canvas, 'line-example-canvas-inactive.png');
 
                     await consoleLogs.expectLogs([]);
                 });
@@ -606,10 +611,10 @@ test.describe('state', () => {
                     const { version } = await getChartState(page);
 
                     await pickDatum(page, { country: 'UK', year: '2023' });
-                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-UK-2023.png');
+                    await expectChartScreenshot(page, canvas, 'line-example-canvas-active-UK-2023.png');
 
                     await setStateStringNodeId(consoleLogs, page, version);
-                    await expect(canvas).toHaveScreenshot('line-example-canvas-inactive.png');
+                    await expectChartScreenshot(page, canvas, 'line-example-canvas-inactive.png');
 
                     await consoleLogs.expectLogs([]);
                 });
@@ -640,10 +645,10 @@ test.describe('state', () => {
             test.describe('series-area focus events clear unfrozen setState', () => {
                 test('screenshots', async ({ page }) => {
                     await pickDatum(page, { country: 'UK', year: '2023' });
-                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-UK-2023.png');
+                    await expectChartScreenshot(page, canvas, 'line-example-canvas-active-UK-2023.png');
 
                     await repeat(4, async () => await page.keyboard.press('Tab'));
-                    await expect(canvas).toHaveScreenshot('line-example-canvas-focus-Spain-2010.png');
+                    await expectChartScreenshot(page, canvas, 'line-example-canvas-focus-Spain-2010.png');
                 });
 
                 test('states', async ({ page }) => {
@@ -670,18 +675,18 @@ test.describe('state', () => {
                     const { version } = await getChartState(page);
 
                     await repeat(7, async () => await page.keyboard.press('Tab'));
-                    await expect(canvas).toHaveScreenshot('line-example-canvas-focus-Spain-2010.png');
+                    await expectChartScreenshot(page, canvas, 'line-example-canvas-focus-Spain-2010.png');
 
                     await page.keyboard.press('ArrowDown');
                     await page.keyboard.press('ArrowDown');
                     await page.keyboard.press('ArrowRight');
-                    await expect(canvas).toHaveScreenshot('line-example-canvas-focus-Ireland-2011.png');
+                    await expectChartScreenshot(page, canvas, 'line-example-canvas-focus-Ireland-2011.png');
 
                     await setStateInactive(version, page);
-                    await expect(canvas).toHaveScreenshot('line-example-canvas-focus-Ireland-2011-inactive.png');
+                    await expectChartScreenshot(page, canvas, 'line-example-canvas-focus-Ireland-2011-inactive.png');
 
                     await page.keyboard.press('ArrowRight');
-                    await expect(canvas).toHaveScreenshot('line-example-canvas-focus-Ireland-2012.png');
+                    await expectChartScreenshot(page, canvas, 'line-example-canvas-focus-Ireland-2012.png');
                 });
 
                 test('states', async ({ page }) => {
@@ -720,10 +725,10 @@ test.describe('state', () => {
             test.describe('legend hover clear active state from mouse', () => {
                 test('screenshots', async ({ page }) => {
                     await hoverInCenter(page);
-                    await expect(canvas).toHaveScreenshot('line-example-canvas-hover-center.png');
+                    await expectChartScreenshot(page, canvas, 'line-example-canvas-hover-center.png');
 
                     await hoverOnUKLegend(page);
-                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-UK-Legend.png');
+                    await expectChartScreenshot(page, canvas, 'line-example-canvas-active-UK-Legend.png');
                 });
 
                 test('states', async ({ page }) => {
@@ -748,10 +753,10 @@ test.describe('state', () => {
             test.describe('legend hover clears active active from setState-series-node', () => {
                 test('screenshots', async ({ page }) => {
                     await pickDatum(page, { country: 'UK', year: '2023' });
-                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-UK-2023.png');
+                    await expectChartScreenshot(page, canvas, 'line-example-canvas-active-UK-2023.png');
 
                     await hoverOnUKLegend(page);
-                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-UK-Legend.png');
+                    await expectChartScreenshot(page, canvas, 'line-example-canvas-active-UK-Legend.png');
                 });
 
                 test('states', async ({ page }) => {
@@ -780,20 +785,20 @@ test.describe('state', () => {
                 test('screenshots', async ({ page }) => {
                     await checkFrozen(page);
                     await pickDatum(page, { country: 'France', year: '2014' });
-                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-France-2014.png');
+                    await expectChartScreenshot(page, canvas, 'line-example-canvas-active-France-2014.png');
 
                     await hoverInCenter(page);
-                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-France-2014.png');
+                    await expectChartScreenshot(page, canvas, 'line-example-canvas-active-France-2014.png');
 
                     await clickInCenter(page);
-                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-France-2014.png');
+                    await expectChartScreenshot(page, canvas, 'line-example-canvas-active-France-2014.png');
 
                     await hoverOnUKLegend(page);
-                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-France-2014.png');
+                    await expectChartScreenshot(page, canvas, 'line-example-canvas-active-France-2014.png');
 
                     await hoverInCenter(page);
                     await hoverInTopLeft(page); // test 'mouseleave'
-                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-France-2014.png');
+                    await expectChartScreenshot(page, canvas, 'line-example-canvas-active-France-2014.png');
                 });
 
                 test('states', async ({ page }) => {
@@ -832,10 +837,10 @@ test.describe('state', () => {
                     const { version } = await getChartState(page);
 
                     await hoverInCenter(page);
-                    await expect(canvas).toHaveScreenshot('line-example-canvas-hover-center.png');
+                    await expectChartScreenshot(page, canvas, 'line-example-canvas-hover-center.png');
 
                     await setStateSpain2010(page, version);
-                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-Spain-2010.png');
+                    await expectChartScreenshot(page, canvas, 'line-example-canvas-active-Spain-2010.png');
                 });
 
                 test('states', async ({ page }) => {
@@ -862,16 +867,16 @@ test.describe('state', () => {
                 test('screenshots', async ({ page }) => {
                     await checkFrozen(page);
                     await pickDatum(page, { country: 'UK', year: '2023' });
-                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-UK-2023.png');
+                    await expectChartScreenshot(page, canvas, 'line-example-canvas-active-UK-2023.png');
 
                     await hoverOnUKLegend(page);
-                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-UK-2023.png');
+                    await expectChartScreenshot(page, canvas, 'line-example-canvas-active-UK-2023.png');
 
                     await clickOnUKLegend(page);
-                    await expect(canvas).toHaveScreenshot('line-example-canvas-inactive-UK-hidden.png');
+                    await expectChartScreenshot(page, canvas, 'line-example-canvas-inactive-UK-hidden.png');
 
                     await clickOnUKLegend(page);
-                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-UK-2023.png');
+                    await expectChartScreenshot(page, canvas, 'line-example-canvas-active-UK-2023.png');
                 });
 
                 test('states', async ({ page }) => {
@@ -906,13 +911,13 @@ test.describe('state', () => {
                 test('screenshots', async ({ page }) => {
                     await checkFrozen(page);
                     await pickDatum(page, { country: 'UK', year: '2023' });
-                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-UK-2023.png');
+                    await expectChartScreenshot(page, canvas, 'line-example-canvas-active-UK-2023.png');
 
                     await clickOnGermanyLegend(page);
-                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-UK-2023-Germany-hidden.png');
+                    await expectChartScreenshot(page, canvas, 'line-example-canvas-active-UK-2023-Germany-hidden.png');
 
                     await clickOnGermanyLegend(page);
-                    await expect(canvas).toHaveScreenshot('line-example-canvas-active-UK-2023.png');
+                    await expectChartScreenshot(page, canvas, 'line-example-canvas-active-UK-2023.png');
                 });
 
                 test('states', async ({ page }) => {
@@ -964,10 +969,10 @@ test.describe('state', () => {
                 test.describe('without mousemove', () => {
                     test('screenshots', async ({ page }) => {
                         await tabIntoChart(page);
-                        await expect(canvas).toHaveScreenshot('line-example-canvas-focus-Spain-2010.png');
+                        await expectChartScreenshot(page, canvas, 'line-example-canvas-focus-Spain-2010.png');
 
                         await tabToGermanyLegend(page);
-                        await expect(canvas).toHaveScreenshot('line-example-canvas-focus-Germany-Legend.png');
+                        await expectChartScreenshot(page, canvas, 'line-example-canvas-focus-Germany-Legend.png');
                     });
 
                     test('states', async ({ page }) => {
@@ -1001,15 +1006,17 @@ test.describe('state', () => {
                     test('screenshots', async ({ page }) => {
                         await tabIntoChart(page);
                         await tabToSpainLegend(page);
-                        await expect(canvas).toHaveScreenshot('line-example-canvas-focus-Spain-Legend.png');
+                        await expectChartScreenshot(page, canvas, 'line-example-canvas-focus-Spain-Legend.png');
 
                         await hoverNearGermany2015(page);
-                        await expect(canvas).toHaveScreenshot(
+                        await expectChartScreenshot(
+                            page,
+                            canvas,
                             'line-example-canvas-focus-Spain-Legend-active-Germany-2015.png'
                         );
 
                         await arrowRightToGermanyLegend(page);
-                        await expect(canvas).toHaveScreenshot('line-example-canvas-focus-Germany-Legend.png');
+                        await expectChartScreenshot(page, canvas, 'line-example-canvas-focus-Germany-Legend.png');
                     });
 
                     test('states', async ({ page }) => {
@@ -1133,13 +1140,13 @@ test.describe('state', () => {
 
             test.describe('pick-misses clears active state', () => {
                 test('screenshots', async ({ page }) => {
-                    await expect(canvas).toHaveScreenshot('donut-example-canvas-inactive.png');
+                    await expectChartScreenshot(page, canvas, 'donut-example-canvas-inactive.png');
 
                     await hoverOnCurrentYearBond(page);
-                    await expect(canvas).toHaveScreenshot('donut-example-canvas-active-currentyearbond.png');
+                    await expectChartScreenshot(page, canvas, 'donut-example-canvas-active-currentyearbond.png');
 
                     await hoverSeriesAreaMiss(page);
-                    await expect(canvas).toHaveScreenshot('donut-example-canvas-inactive.png');
+                    await expectChartScreenshot(page, canvas, 'donut-example-canvas-inactive.png');
                 });
 
                 test('states', async ({ page }) => {
@@ -1163,10 +1170,10 @@ test.describe('state', () => {
             test.describe('legend hover events clear active state from series-area mouse events', () => {
                 test('screenshots', async ({ page }) => {
                     await hoverOnCurrentYearBond(page);
-                    await expect(canvas).toHaveScreenshot('donut-example-canvas-active-currentyearbond.png');
+                    await expectChartScreenshot(page, canvas, 'donut-example-canvas-active-currentyearbond.png');
 
                     await hoverOnRealEstateLegendItem(page);
-                    await expect(canvas).toHaveScreenshot('donut-example-canvas-active-realestatelegend.png');
+                    await expectChartScreenshot(page, canvas, 'donut-example-canvas-active-realestatelegend.png');
                 });
 
                 test('states', async ({ page }) => {
@@ -1191,10 +1198,10 @@ test.describe('state', () => {
             test.describe('series-area hover events clear active state from series-area mouse events', () => {
                 test('screenshots', async ({ page }) => {
                     await hoverOnRealEstateLegendItem(page);
-                    await expect(canvas).toHaveScreenshot('donut-example-canvas-active-realestatelegend.png');
+                    await expectChartScreenshot(page, canvas, 'donut-example-canvas-active-realestatelegend.png');
 
                     await hoverOnCurrentYearBond(page);
-                    await expect(canvas).toHaveScreenshot('donut-example-canvas-active-currentyearbond.png');
+                    await expectChartScreenshot(page, canvas, 'donut-example-canvas-active-currentyearbond.png');
                 });
 
                 test('states', async ({ page }) => {
@@ -1221,13 +1228,13 @@ test.describe('state', () => {
                     const { version } = await getChartState(page);
 
                     await hoverOnRealEstateLegendItem(page);
-                    await expect(canvas).toHaveScreenshot('donut-example-canvas-active-realestatelegend.png');
+                    await expectChartScreenshot(page, canvas, 'donut-example-canvas-active-realestatelegend.png');
 
                     await setStateBondsLegend(version, page);
-                    await expect(canvas).toHaveScreenshot('donut-example-canvas-active-bondslegend.png');
+                    await expectChartScreenshot(page, canvas, 'donut-example-canvas-active-bondslegend.png');
 
                     await setStateInactive(version, page);
-                    await expect(canvas).toHaveScreenshot('donut-example-canvas-inactive.png');
+                    await expectChartScreenshot(page, canvas, 'donut-example-canvas-inactive.png');
                 });
 
                 test('states', async ({ page }) => {
@@ -1259,15 +1266,19 @@ test.describe('state', () => {
                     const { version } = await getChartState(page);
 
                     await hoverOnRealEstateLegendItem(page);
-                    await expect(canvas).toHaveScreenshot('donut-example-canvas-active-realestatelegend.png');
+                    await expectChartScreenshot(page, canvas, 'donut-example-canvas-active-realestatelegend.png');
 
                     await setStateCurrentYearBond(version, page);
                     // Same as 'donut-example-canvas-active-currentyearbond-midpoint.png', but with the tooltip is
                     // slightly different point (based on datum.midPoint)
-                    await expect(canvas).toHaveScreenshot('donut-example-canvas-active-currentyearbond-midpoint.png');
+                    await expectChartScreenshot(
+                        page,
+                        canvas,
+                        'donut-example-canvas-active-currentyearbond-midpoint.png'
+                    );
 
                     await setStateInactive(version, page);
-                    await expect(canvas).toHaveScreenshot('donut-example-canvas-inactive.png');
+                    await expectChartScreenshot(page, canvas, 'donut-example-canvas-inactive.png');
                 });
 
                 test('states', async ({ page }) => {
@@ -1299,10 +1310,10 @@ test.describe('state', () => {
                     const { version } = await getChartState(page);
 
                     await hoverOnCurrentYearBond(page);
-                    await expect(canvas).toHaveScreenshot('donut-example-canvas-active-currentyearbond.png');
+                    await expectChartScreenshot(page, canvas, 'donut-example-canvas-active-currentyearbond.png');
 
                     await setStateRealEstateLegend(version, page);
-                    await expect(canvas).toHaveScreenshot('donut-example-canvas-active-realestatelegend.png');
+                    await expectChartScreenshot(page, canvas, 'donut-example-canvas-active-realestatelegend.png');
                 });
 
                 test('states', async ({ page }) => {
@@ -1332,10 +1343,10 @@ test.describe('state', () => {
                     const { version } = await getChartState(page);
 
                     await setStateBondsLegend(version, page);
-                    await expect(canvas).toHaveScreenshot('donut-example-canvas-active-bondslegend.png');
+                    await expectChartScreenshot(page, canvas, 'donut-example-canvas-active-bondslegend.png');
 
                     await setInvalidStateShowInLegend(consoleLogs, version, page);
-                    await expect(canvas).toHaveScreenshot('donut-example-canvas-active-bondslegend.png');
+                    await expectChartScreenshot(page, canvas, 'donut-example-canvas-active-bondslegend.png');
                 });
 
                 test('states', async ({ page }) => {
@@ -1472,19 +1483,19 @@ test.describe('state', () => {
 
             test.describe('activeItem is current tooltip candidate', () => {
                 test('screenshots', async ({ page }) => {
-                    await expect(canvas).toHaveScreenshot('bubble-example-canvas-inactive.png');
+                    await expectChartScreenshot(page, canvas, 'bubble-example-canvas-inactive.png');
 
                     await hoverOnThreeCandidates(page);
-                    await expect(canvas).toHaveScreenshot('bubble-example-canvas-active-candidate0.png');
+                    await expectChartScreenshot(page, canvas, 'bubble-example-canvas-active-candidate0.png');
 
                     await nextCandidate(page);
-                    await expect(canvas).toHaveScreenshot('bubble-example-canvas-active-candidate1.png');
+                    await expectChartScreenshot(page, canvas, 'bubble-example-canvas-active-candidate1.png');
 
                     await nextCandidate(page);
-                    await expect(canvas).toHaveScreenshot('bubble-example-canvas-active-candidate2.png');
+                    await expectChartScreenshot(page, canvas, 'bubble-example-canvas-active-candidate2.png');
 
                     await hoverInTopLeft(page);
-                    await expect(canvas).toHaveScreenshot('bubble-example-canvas-inactive.png');
+                    await expectChartScreenshot(page, canvas, 'bubble-example-canvas-inactive.png');
                 });
 
                 test('states', async ({ page }) => {
@@ -1522,13 +1533,13 @@ test.describe('state', () => {
             test.describe('calling activeChange-preventDefault keep highlight/tooltip unchanged', () => {
                 test('screenshots', async ({ page }) => {
                     await clickPreventDefaultTickbox(page);
-                    await expect(canvas).toHaveScreenshot('bubble-example-canvas-inactive.png');
+                    await expectChartScreenshot(page, canvas, 'bubble-example-canvas-inactive.png');
 
                     await hoverOnAndroidHomeFeed(page);
-                    await expect(canvas).toHaveScreenshot('bubble-example-canvas-active-androidhomefeed.png');
+                    await expectChartScreenshot(page, canvas, 'bubble-example-canvas-active-androidhomefeed.png');
 
                     await clickOnAndroidHomeFeed(page);
-                    await expect(canvas).toHaveScreenshot('bubble-example-canvas-active-androidhomefeed.png');
+                    await expectChartScreenshot(page, canvas, 'bubble-example-canvas-active-androidhomefeed.png');
                 });
 
                 test('states', async ({ page }) => {
@@ -1566,13 +1577,21 @@ test.describe('state', () => {
                 }
                 test('screenshots', async ({ page }) => {
                     await tabIntoChart(page);
-                    await expect(canvas).toHaveScreenshot('bubble-example-canvas-active-focus-iossearch.png');
+                    await expectChartScreenshot(page, canvas, 'bubble-example-canvas-active-focus-iossearch.png');
 
                     await hoverOverAndroidLegend(page);
-                    await expect(canvas).toHaveScreenshot('bubble-example-canvas-active-legend2-focus-iossearch.png');
+                    await expectChartScreenshot(
+                        page,
+                        canvas,
+                        'bubble-example-canvas-active-legend2-focus-iossearch.png'
+                    );
 
                     await hoverOveriOSLegend(page);
-                    await expect(canvas).toHaveScreenshot('bubble-example-canvas-active-legend1-focus-iossearch.png');
+                    await expectChartScreenshot(
+                        page,
+                        canvas,
+                        'bubble-example-canvas-active-legend1-focus-iossearch.png'
+                    );
                 });
 
                 test('states', async ({ page }) => {
@@ -1635,7 +1654,11 @@ test.describe('state', () => {
             test.describe('series-area hover updates state', () => {
                 test('screenshots', async ({ page }) => {
                     await hoverOnChinaRenewable2025(page);
-                    await expect(canvas).toHaveScreenshot('grouped-category-bars-canvas-chinarenewable2025-hover.png');
+                    await expectChartScreenshot(
+                        page,
+                        canvas,
+                        'grouped-category-bars-canvas-chinarenewable2025-hover.png'
+                    );
                 });
 
                 test('states', async ({ page }) => {
@@ -1651,7 +1674,7 @@ test.describe('state', () => {
             test.describe('legend hover updates state', () => {
                 test('screenshots', async ({ page }) => {
                     await hoverOnCoalLegendItem(page);
-                    await expect(canvas).toHaveScreenshot('grouped-category-bars-canvas-coallegend-hover.png');
+                    await expectChartScreenshot(page, canvas, 'grouped-category-bars-canvas-coallegend-hover.png');
                 });
 
                 test('states', async ({ page }) => {
@@ -1667,7 +1690,7 @@ test.describe('state', () => {
             test.describe('series-area keynav updates state', () => {
                 test('screenshots', async ({ page }) => {
                     await keynavToGermanyGas2024(page);
-                    await expect(canvas).toHaveScreenshot('grouped-category-bars-canvas-germangas2024-focused.png');
+                    await expectChartScreenshot(page, canvas, 'grouped-category-bars-canvas-germangas2024-focused.png');
                 });
 
                 test('states', async ({ page }) => {
@@ -1683,7 +1706,7 @@ test.describe('state', () => {
             test.describe('legend keynav updates state', () => {
                 test('screenshots', async ({ page }) => {
                     await keynavToNaturalGasLegendItem(page);
-                    await expect(canvas).toHaveScreenshot('grouped-category-bars-canvas-gaslegend-focused.png');
+                    await expectChartScreenshot(page, canvas, 'grouped-category-bars-canvas-gaslegend-focused.png');
                 });
 
                 test('states', async ({ page }) => {
@@ -1719,17 +1742,17 @@ test.describe('state', () => {
 
             test.describe('getState on link-hover and restore with setState', () => {
                 test('screenshots', async ({ page }) => {
-                    await expect(canvas).toHaveScreenshot('sankey-example-canvas-inactive.png');
+                    await expectChartScreenshot(page, canvas, 'sankey-example-canvas-inactive.png');
 
                     await hoverOnLinkFromBtoE(page);
                     const state: AgChartState = await getChartState(page);
-                    await expect(canvas).toHaveScreenshot('sankey-example-canvas-active-linkBE.png');
+                    await expectChartScreenshot(page, canvas, 'sankey-example-canvas-active-linkBE.png');
 
                     await hoverMiss(page);
-                    await expect(canvas).toHaveScreenshot('sankey-example-canvas-inactive.png');
+                    await expectChartScreenshot(page, canvas, 'sankey-example-canvas-inactive.png');
 
                     await setChartState(page, state);
-                    await expect(canvas).toHaveScreenshot('sankey-example-canvas-active-linkBE-tooltip-moved.png');
+                    await expectChartScreenshot(page, canvas, 'sankey-example-canvas-active-linkBE-tooltip-moved.png');
                 });
 
                 test('states', async ({ page }) => {
@@ -1755,17 +1778,17 @@ test.describe('state', () => {
 
             test.describe('getState on node-hover and restore with setState', () => {
                 test('screenshots', async ({ page }) => {
-                    await expect(canvas).toHaveScreenshot('sankey-example-canvas-inactive.png');
+                    await expectChartScreenshot(page, canvas, 'sankey-example-canvas-inactive.png');
 
                     await hoverOnNodeC(page);
                     const state: AgChartState = await getChartState(page);
-                    await expect(canvas).toHaveScreenshot('sankey-example-canvas-active-nodeC.png');
+                    await expectChartScreenshot(page, canvas, 'sankey-example-canvas-active-nodeC.png');
 
                     await hoverMiss(page);
-                    await expect(canvas).toHaveScreenshot('sankey-example-canvas-inactive.png');
+                    await expectChartScreenshot(page, canvas, 'sankey-example-canvas-inactive.png');
 
                     await setChartState(page, state);
-                    await expect(canvas).toHaveScreenshot('sankey-example-canvas-active-nodeC-tooltip-moved.png');
+                    await expectChartScreenshot(page, canvas, 'sankey-example-canvas-active-nodeC-tooltip-moved.png');
                 });
 
                 test('states', async ({ page }) => {
@@ -1814,13 +1837,13 @@ test.describe('state', () => {
                 });
 
                 test('screenshots', async ({ page }) => {
-                    await expect(canvas).toHaveScreenshot('initial-state-Germany2015-active.png');
+                    await expectChartScreenshot(page, canvas, 'initial-state-Germany2015-active.png');
 
                     await hoverMiss(page);
-                    await expect(canvas).toHaveScreenshot('initial-state-inactive.png');
+                    await expectChartScreenshot(page, canvas, 'initial-state-inactive.png');
 
                     await hoverOnGermany2015(page);
-                    await expect(canvas).toHaveScreenshot('initial-state-Germany2015-active.png');
+                    await expectChartScreenshot(page, canvas, 'initial-state-Germany2015-active.png');
                 });
 
                 test('states', async ({ page }) => {
@@ -1851,13 +1874,13 @@ test.describe('state', () => {
                 });
 
                 test('screenshots', async ({ page }) => {
-                    await expect(canvas).toHaveScreenshot('initial-state-UKLegend-active.png');
+                    await expectChartScreenshot(page, canvas, 'initial-state-UKLegend-active.png');
 
                     await hoverMiss(page);
-                    await expect(canvas).toHaveScreenshot('initial-state-inactive.png');
+                    await expectChartScreenshot(page, canvas, 'initial-state-inactive.png');
 
                     await hoverOnUKLegend(page);
-                    await expect(canvas).toHaveScreenshot('initial-state-UKLegend-active.png');
+                    await expectChartScreenshot(page, canvas, 'initial-state-UKLegend-active.png');
                 });
 
                 test('states', async ({ page }) => {
@@ -1893,10 +1916,10 @@ test.describe('state', () => {
 
             test.describe('updateDelta', () => {
                 test('screenshots', async ({ page }) => {
-                    await expect(canvas).toHaveScreenshot('zoom-and-active-restoration-canvas-inactive.png');
+                    await expectChartScreenshot(page, canvas, 'zoom-and-active-restoration-canvas-inactive.png');
 
                     await page.click('#myUpdateDelta');
-                    await expect(canvas).toHaveScreenshot('zoom-and-active-restoration-canvas-active.png');
+                    await expectChartScreenshot(page, canvas, 'zoom-and-active-restoration-canvas-active.png');
                 });
 
                 test('states', async ({ page }) => {
@@ -1917,10 +1940,10 @@ test.describe('state', () => {
 
             test.describe('setState', () => {
                 test('screenshots', async ({ page }) => {
-                    await expect(canvas).toHaveScreenshot('zoom-and-active-restoration-canvas-inactive.png');
+                    await expectChartScreenshot(page, canvas, 'zoom-and-active-restoration-canvas-inactive.png');
 
                     await page.click('#mySetState');
-                    await expect(canvas).toHaveScreenshot('zoom-and-active-restoration-canvas-active.png');
+                    await expectChartScreenshot(page, canvas, 'zoom-and-active-restoration-canvas-active.png');
                 });
 
                 test('states', async ({ page }) => {
@@ -2005,16 +2028,16 @@ test.describe('state', () => {
 
             test.describe('mouseleave events prevented', () => {
                 test('screenshots', async ({ page }) => {
-                    await expect(canvas).toHaveScreenshot('interactive-tooltip-inactive.png');
+                    await expectChartScreenshot(page, canvas, 'interactive-tooltip-inactive.png');
 
                     await mouseMove2ndBar(page);
-                    await expect(canvas).toHaveScreenshot('interactive-tooltip-2nd-bar-hovered.png');
+                    await expectChartScreenshot(page, canvas, 'interactive-tooltip-2nd-bar-hovered.png');
 
                     await mouseLeave(page);
-                    await expect(canvas).toHaveScreenshot('interactive-tooltip-2nd-bar-hovered.png');
+                    await expectChartScreenshot(page, canvas, 'interactive-tooltip-2nd-bar-hovered.png');
 
                     await mouseMove2ndBar(page);
-                    await expect(canvas).toHaveScreenshot('interactive-tooltip-2nd-bar-hovered.png');
+                    await expectChartScreenshot(page, canvas, 'interactive-tooltip-2nd-bar-hovered.png');
                 });
 
                 test('states', async ({ page }) => {
@@ -2046,16 +2069,16 @@ test.describe('state', () => {
 
             test.describe('button clears highlight', () => {
                 test('screenshots', async ({ page }) => {
-                    await expect(canvas).toHaveScreenshot('interactive-tooltip-inactive.png');
+                    await expectChartScreenshot(page, canvas, 'interactive-tooltip-inactive.png');
 
                     await mouseMove2ndBar(page);
-                    await expect(canvas).toHaveScreenshot('interactive-tooltip-2nd-bar-hovered.png');
+                    await expectChartScreenshot(page, canvas, 'interactive-tooltip-2nd-bar-hovered.png');
 
                     await clickMyButton(page);
-                    await expect(canvas).toHaveScreenshot('interactive-tooltip-inactive.png');
+                    await expectChartScreenshot(page, canvas, 'interactive-tooltip-inactive.png');
 
                     await mouseMove2ndBar(page);
-                    await expect(canvas).toHaveScreenshot('interactive-tooltip-2nd-bar-hovered.png');
+                    await expectChartScreenshot(page, canvas, 'interactive-tooltip-2nd-bar-hovered.png');
                 });
 
                 test('states', async ({ page }) => {
@@ -2090,16 +2113,16 @@ test.describe('state', () => {
                 // image-snapshot comparison fails because it compares in intermediate frame.
                 // See https://ag-grid.atlassian.net/browse/AG-16704?focusedCommentId=103437
                 test.skip('screenshots', async ({ page }) => {
-                    await expect(canvas).toHaveScreenshot('interactive-tooltip-inactive.png');
+                    await expectChartScreenshot(page, canvas, 'interactive-tooltip-inactive.png');
 
                     await mouseMove2ndBar(page);
-                    await expect(canvas).toHaveScreenshot('interactive-tooltip-2nd-bar-hovered.png');
+                    await expectChartScreenshot(page, canvas, 'interactive-tooltip-2nd-bar-hovered.png');
 
                     await mouseLeave(page);
-                    await expect(canvas).toHaveScreenshot('interactive-tooltip-2nd-bar-hovered.png');
+                    await expectChartScreenshot(page, canvas, 'interactive-tooltip-2nd-bar-hovered.png');
 
                     await growTextArea(page);
-                    await expect(canvas).toHaveScreenshot('interactive-tooltip-2nd-bar-resized.png');
+                    await expectChartScreenshot(page, canvas, 'interactive-tooltip-2nd-bar-resized.png');
                 });
 
                 test('states', async ({ page }) => {
@@ -2139,13 +2162,13 @@ test.describe('state', () => {
             test.describe('highlight persists on resize (permitDefault)', () => {
                 test('screenshots', async ({ page }) => {
                     await clickPreventDefaultTickbox(page);
-                    await expect(canvas).toHaveScreenshot('interactive-tooltip-inactive.png');
+                    await expectChartScreenshot(page, canvas, 'interactive-tooltip-inactive.png');
 
                     await mouseMove2ndBar(page);
-                    await expect(canvas).toHaveScreenshot('interactive-tooltip-2nd-bar-hovered.png');
+                    await expectChartScreenshot(page, canvas, 'interactive-tooltip-2nd-bar-hovered.png');
 
                     await growTextArea(page);
-                    await expect(canvas).toHaveScreenshot('interactive-tooltip-inactive-resized.png');
+                    await expectChartScreenshot(page, canvas, 'interactive-tooltip-inactive-resized.png');
                 });
 
                 test('states', async ({ page }) => {
@@ -2277,19 +2300,19 @@ test.describe('state', () => {
 
             test.describe('hovering over country shapes prevents activeChange events', () => {
                 test('screenshots', async ({ page }) => {
-                    await expect(canvas).toHaveScreenshot('map-prevent-default-inactive.png');
+                    await expectChartScreenshot(page, canvas, 'map-prevent-default-inactive.png');
 
                     await hoverFranceShape(page);
-                    await expect(canvas).toHaveScreenshot('map-prevent-default-inactive.png');
+                    await expectChartScreenshot(page, canvas, 'map-prevent-default-inactive.png');
 
                     await hoverMiss(page);
-                    await expect(canvas).toHaveScreenshot('map-prevent-default-inactive.png');
+                    await expectChartScreenshot(page, canvas, 'map-prevent-default-inactive.png');
 
                     await hoverUKShape(page);
-                    await expect(canvas).toHaveScreenshot('map-prevent-default-inactive.png');
+                    await expectChartScreenshot(page, canvas, 'map-prevent-default-inactive.png');
 
                     await hoverIcelandShape(page);
-                    await expect(canvas).toHaveScreenshot('map-prevent-default-inactive.png');
+                    await expectChartScreenshot(page, canvas, 'map-prevent-default-inactive.png');
                 });
 
                 test('states', async ({ page }) => {
@@ -2327,19 +2350,19 @@ test.describe('state', () => {
 
             test.describe('hovering over legend items prevents activeChange events', () => {
                 test('screenshots', async ({ page }) => {
-                    await expect(canvas).toHaveScreenshot('map-prevent-default-inactive.png');
+                    await expectChartScreenshot(page, canvas, 'map-prevent-default-inactive.png');
 
                     await hoverEUNonEurozoneLegendItem(page);
-                    await expect(canvas).toHaveScreenshot('map-prevent-default-inactive.png');
+                    await expectChartScreenshot(page, canvas, 'map-prevent-default-inactive.png');
 
                     await hoverMiss(page);
-                    await expect(canvas).toHaveScreenshot('map-prevent-default-inactive.png');
+                    await expectChartScreenshot(page, canvas, 'map-prevent-default-inactive.png');
 
                     await hoverEUNonEurozoneLegendItem(page);
-                    await expect(canvas).toHaveScreenshot('map-prevent-default-inactive.png');
+                    await expectChartScreenshot(page, canvas, 'map-prevent-default-inactive.png');
 
                     await hoverOtherLegendItem(page);
-                    await expect(canvas).toHaveScreenshot('map-prevent-default-inactive.png');
+                    await expectChartScreenshot(page, canvas, 'map-prevent-default-inactive.png');
                 });
 
                 test('states', async ({ page }) => {
@@ -2478,16 +2501,16 @@ test.describe('state', () => {
 
             test.describe('clicking 2024q2 toggles frozen state', () => {
                 test('screenshots', async ({ page }) => {
-                    await expect(canvas).toHaveScreenshot('click-to-freeze-canvas-inactive.png');
+                    await expectChartScreenshot(page, canvas, 'click-to-freeze-canvas-inactive.png');
 
                     await hover2024q2(page);
-                    await expect(page).toHaveScreenshot('click-to-freeze-page-2024q2-hover.png');
+                    await expectChartScreenshot(page, page, 'click-to-freeze-page-2024q2-hover.png');
 
                     await click2024q2(page);
-                    await expect(page).toHaveScreenshot('click-to-freeze-page-2024q2-frozen.png');
+                    await expectChartScreenshot(page, page, 'click-to-freeze-page-2024q2-frozen.png');
 
                     await click2024q2(page);
-                    await expect(page).toHaveScreenshot('click-to-freeze-page-2024q2-thawed.png');
+                    await expectChartScreenshot(page, page, 'click-to-freeze-page-2024q2-thawed.png');
                 });
                 test('states', async ({ page }) => {
                     expect((await getChartState(page)).active?.activeItem).toBeUndefined();
@@ -2523,20 +2546,20 @@ test.describe('state', () => {
 
             test.describe('clicking 2024q4 on frozen chart updates frozen state', () => {
                 test('screenshots', async ({ page }) => {
-                    await expect(canvas).toHaveScreenshot('click-to-freeze-canvas-inactive.png');
+                    await expectChartScreenshot(page, canvas, 'click-to-freeze-canvas-inactive.png');
 
                     await hover2024q4(page);
-                    await expect(page).toHaveScreenshot('click-to-freeze-page-2024q4-hover.png');
+                    await expectChartScreenshot(page, page, 'click-to-freeze-page-2024q4-hover.png');
 
                     await hover2024q2(page);
                     await click2024q2(page);
-                    await expect(page).toHaveScreenshot('click-to-freeze-page-2024q2-frozen.png');
+                    await expectChartScreenshot(page, page, 'click-to-freeze-page-2024q2-frozen.png');
 
                     await click2024q4(page);
-                    await expect(page).toHaveScreenshot('click-to-freeze-page-2024q4-frozen.png');
+                    await expectChartScreenshot(page, page, 'click-to-freeze-page-2024q4-frozen.png');
 
                     await click2024q4(page);
-                    await expect(page).toHaveScreenshot('click-to-freeze-page-2024q4-thawed.png');
+                    await expectChartScreenshot(page, page, 'click-to-freeze-page-2024q4-thawed.png');
                 });
                 test('states', async ({ page }) => {
                     expect((await getChartState(page)).active?.activeItem).toBeUndefined();
@@ -2583,19 +2606,19 @@ test.describe('state', () => {
 
             test.describe('clicking 2024q2 blocks keyboard activation but not keyboard input', () => {
                 test('screenshots', async ({ page }) => {
-                    await expect(canvas).toHaveScreenshot('click-to-freeze-canvas-inactive.png');
+                    await expectChartScreenshot(page, canvas, 'click-to-freeze-canvas-inactive.png');
 
                     await click2024q4(page);
-                    await expect(page).toHaveScreenshot('click-to-freeze-page-2024q4-frozen.png');
+                    await expectChartScreenshot(page, page, 'click-to-freeze-page-2024q4-frozen.png');
 
                     await tabIntoChart(page);
-                    await expect(page).toHaveScreenshot('click-to-freeze-page-2024q4-frozen-2024q1-focused.png');
+                    await expectChartScreenshot(page, page, 'click-to-freeze-page-2024q4-frozen-2024q1-focused.png');
 
                     await twoArrowRight(page);
-                    await expect(page).toHaveScreenshot('click-to-freeze-page-2024q4-frozen-2024q3-focused.png');
+                    await expectChartScreenshot(page, page, 'click-to-freeze-page-2024q4-frozen-2024q3-focused.png');
 
                     await keyboardClick(page);
-                    await expect(page).toHaveScreenshot('click-to-freeze-page-2024q3-frozen-and-focused.png');
+                    await expectChartScreenshot(page, page, 'click-to-freeze-page-2024q3-frozen-and-focused.png');
                 });
                 test('states', async ({ page }) => {
                     expect((await getChartState(page)).active?.activeItem).toBeUndefined();
@@ -2657,13 +2680,13 @@ test.describe('state', () => {
 
             test.describe('keyboard-clicking 2024q3 blocks keyboard activation but not keyboard input', () => {
                 test('screenshots', async ({ page }) => {
-                    await expect(canvas).toHaveScreenshot('click-to-freeze-canvas-inactive.png');
+                    await expectChartScreenshot(page, canvas, 'click-to-freeze-canvas-inactive.png');
 
                     await tabInTwoArrowRightAndKeyboardClick(page);
-                    await expect(page).toHaveScreenshot('click-to-freeze-page-2024q3-frozen-and-focused.png');
+                    await expectChartScreenshot(page, page, 'click-to-freeze-page-2024q3-frozen-and-focused.png');
 
                     await twoArrowRight(page);
-                    await expect(page).toHaveScreenshot('click-to-freeze-page-2024q3-frozen-2025q1-focused.png');
+                    await expectChartScreenshot(page, page, 'click-to-freeze-page-2024q3-frozen-2025q1-focused.png');
                 });
                 test('states', async ({ page }) => {
                     expect((await getChartState(page)).active?.activeItem).toBeUndefined();
@@ -2701,13 +2724,13 @@ test.describe('state', () => {
 
             test.describe('keyboard-clicking 2024q1 updates mouse-click frozen chart', () => {
                 test('screenshots', async ({ page }) => {
-                    await expect(canvas).toHaveScreenshot('click-to-freeze-canvas-inactive.png');
+                    await expectChartScreenshot(page, canvas, 'click-to-freeze-canvas-inactive.png');
 
                     await click2024q4(page);
-                    await expect(page).toHaveScreenshot('click-to-freeze-page-2024q4-frozen.png');
+                    await expectChartScreenshot(page, page, 'click-to-freeze-page-2024q4-frozen.png');
 
                     await keyboardClick(page);
-                    await expect(page).toHaveScreenshot('click-to-freeze-page-2024q1-frozen-and-focused.png');
+                    await expectChartScreenshot(page, page, 'click-to-freeze-page-2024q1-frozen-and-focused.png');
                 });
                 test('states', async ({ page }) => {
                     expect((await getChartState(page)).active?.activeItem).toBeUndefined();
@@ -2785,19 +2808,19 @@ test.describe('state', () => {
 
             test.describe('non-snap Y crosshairs respond to mousemove on frozen charts', () => {
                 test('screenshots', async ({ page }) => {
-                    await expect(canvas).toHaveScreenshot('crosshairs-inactive.png');
+                    await expectChartScreenshot(page, canvas, 'crosshairs-inactive.png');
 
                     await hoverOnCandlestick7(page);
-                    await expect(canvas).toHaveScreenshot('crosshairs-candlestick7-hover.png');
+                    await expectChartScreenshot(page, canvas, 'crosshairs-candlestick7-hover.png');
 
                     await clickOnCandlestick7(page);
-                    await expect(canvas).toHaveScreenshot('crosshairs-candlestick7-frozen.png');
+                    await expectChartScreenshot(page, canvas, 'crosshairs-candlestick7-frozen.png');
 
                     await hoverElsewhereInSeriesArea(page);
-                    await expect(canvas).toHaveScreenshot('crosshairs-candlestick7-y-crosshair-updated.png');
+                    await expectChartScreenshot(page, canvas, 'crosshairs-candlestick7-y-crosshair-updated.png');
 
                     await leaveSeriesArea(page);
-                    await expect(canvas).toHaveScreenshot('crosshairs-candlestick7-y-crosshair-dismissed.png');
+                    await expectChartScreenshot(page, canvas, 'crosshairs-candlestick7-y-crosshair-dismissed.png');
                 });
                 test('states', async ({ page }) => {
                     expect((await getChartState(page)).active?.activeItem).toBeUndefined();
@@ -2893,16 +2916,16 @@ test.describe('state', () => {
 
             test.describe('adding and removing datums at start keeps frozen datum active', () => {
                 test('screenshots', async ({ page }) => {
-                    await expect(page).toHaveScreenshot('data-mutation-initial.png');
+                    await expectChartScreenshot(page, page, 'data-mutation-initial.png');
 
                     await clickMarchBar(page);
-                    await expect(page).toHaveScreenshot('data-mutation-marchbar-clicked.png');
+                    await expectChartScreenshot(page, page, 'data-mutation-marchbar-clicked.png');
 
                     await clickAddStart2Times(page);
-                    await expect(page).toHaveScreenshot('data-mutation-marchbar-2-addstart.png');
+                    await expectChartScreenshot(page, page, 'data-mutation-marchbar-2-addstart.png');
 
                     await clickRemoveStart3Times(page);
-                    await expect(page).toHaveScreenshot('data-mutation-marchbar-3-removestart.png');
+                    await expectChartScreenshot(page, page, 'data-mutation-marchbar-3-removestart.png');
                 });
                 test('states', async ({ page }) => {
                     expect((await getChartState(page)).active?.activeItem).toBeUndefined();
@@ -3008,19 +3031,19 @@ test.describe('state', () => {
 
             test.describe('frozen series-node survives navigator mouse dragging', () => {
                 test('screenshots', async ({ page }) => {
-                    await expect(canvas).toHaveScreenshot('frozen-zoompan-initial.png');
+                    await expectChartScreenshot(page, canvas, 'frozen-zoompan-initial.png');
 
                     await clickFreezeOnApril(page);
-                    await expect(canvas).toHaveScreenshot('frozen-zoompan-initial-frozen.png');
+                    await expectChartScreenshot(page, canvas, 'frozen-zoompan-initial-frozen.png');
 
                     await slideNavigatorMaxLeft(page);
-                    await expect(canvas).toHaveScreenshot('frozen-zoompan-navigator-on-left.png');
+                    await expectChartScreenshot(page, canvas, 'frozen-zoompan-navigator-on-left.png');
 
                     await slideNavigatorPanRight(page);
-                    await expect(canvas).toHaveScreenshot('frozen-zoompan-navigator-on-right.png');
+                    await expectChartScreenshot(page, canvas, 'frozen-zoompan-navigator-on-right.png');
 
                     await slideNavigatorPanLeft(page);
-                    await expect(canvas).toHaveScreenshot('frozen-zoompan-navigator-on-left.png');
+                    await expectChartScreenshot(page, canvas, 'frozen-zoompan-navigator-on-left.png');
                 });
                 test('states', async ({ page }) => {
                     expect((await getChartState(page)).active?.activeItem).toBeUndefined();
@@ -3056,22 +3079,22 @@ test.describe('state', () => {
 
             test.describe('frozen series-node survives keyboard navigation', () => {
                 test('screenshots', async ({ page }) => {
-                    await expect(canvas).toHaveScreenshot('frozen-zoompan-initial.png');
+                    await expectChartScreenshot(page, canvas, 'frozen-zoompan-initial.png');
 
                     await clickFreezeOnApril(page);
-                    await expect(canvas).toHaveScreenshot('frozen-zoompan-initial-frozen.png');
+                    await expectChartScreenshot(page, canvas, 'frozen-zoompan-initial-frozen.png');
 
                     await tabIntoChart(page);
-                    await expect(canvas).toHaveScreenshot('frozen-zoompan-initial-focus.png');
+                    await expectChartScreenshot(page, canvas, 'frozen-zoompan-initial-focus.png');
 
                     await keyPlus4Times(page);
-                    await expect(canvas).toHaveScreenshot('frozen-zoompan-plus4times.png');
+                    await expectChartScreenshot(page, canvas, 'frozen-zoompan-plus4times.png');
 
                     await keyArrowRight(page);
-                    await expect(canvas).toHaveScreenshot('frozen-zoompan-datum2-focus.png');
+                    await expectChartScreenshot(page, canvas, 'frozen-zoompan-datum2-focus.png');
 
                     await keyEnd(page);
-                    await expect(canvas).toHaveScreenshot('frozen-zoompan-end-focus.png');
+                    await expectChartScreenshot(page, canvas, 'frozen-zoompan-end-focus.png');
                 });
                 test('states', async ({ page }) => {
                     expect((await getChartState(page)).active?.activeItem).toBeUndefined();
@@ -3215,16 +3238,16 @@ test.describe('state', () => {
 
             test.describe('1. valid itemId thawed', () => {
                 test('screenshots', async ({ page }) => {
-                    await expect(canvas).toHaveScreenshot('frozen-legendtoggle-inactive.png');
+                    await expectChartScreenshot(page, canvas, 'frozen-legendtoggle-inactive.png');
 
                     await clickLegendItemPrivateCar(page);
-                    await expect(canvas).toHaveScreenshot('frozen-legendtoggle-series2-hidden.png');
+                    await expectChartScreenshot(page, canvas, 'frozen-legendtoggle-series2-hidden.png');
 
                     await clickButtonRestoreValidThawed(page);
-                    await expect(canvas).toHaveScreenshot('frozen-legendtoggle-series2-hidden.png');
+                    await expectChartScreenshot(page, canvas, 'frozen-legendtoggle-series2-hidden.png');
 
                     await clickLegendItemPrivateCar(page);
-                    await expect(canvas).toHaveScreenshot('frozen-legendtoggle-series2-active.png');
+                    await expectChartScreenshot(page, canvas, 'frozen-legendtoggle-series2-active.png');
                 });
                 test('states', async ({ page }) => {
                     expect((await getChartState(page)).active?.activeItem).toBeUndefined();
@@ -3257,16 +3280,16 @@ test.describe('state', () => {
 
             test.describe('2. invalid itemId thawed', () => {
                 test('screenshots', async ({ page }) => {
-                    await expect(canvas).toHaveScreenshot('frozen-legendtoggle-inactive.png');
+                    await expectChartScreenshot(page, canvas, 'frozen-legendtoggle-inactive.png');
 
                     await clickLegendItemPrivateCar(page);
-                    await expect(canvas).toHaveScreenshot('frozen-legendtoggle-series2-hidden.png');
+                    await expectChartScreenshot(page, canvas, 'frozen-legendtoggle-series2-hidden.png');
 
                     await clickButtonRestoreInvalidThawed(page);
-                    await expect(canvas).toHaveScreenshot('frozen-legendtoggle-series2-hidden.png');
+                    await expectChartScreenshot(page, canvas, 'frozen-legendtoggle-series2-hidden.png');
 
                     await clickLegendItemPrivateCar(page);
-                    await expect(canvas).toHaveScreenshot('frozen-legendtoggle-series2-active.png');
+                    await expectChartScreenshot(page, canvas, 'frozen-legendtoggle-series2-active.png');
                 });
                 test('states', async ({ page }) => {
                     expect((await getChartState(page)).active?.activeItem).toBeUndefined();
@@ -3299,16 +3322,16 @@ test.describe('state', () => {
 
             test.describe('3. valid itemId frozen', () => {
                 test('screenshots', async ({ page }) => {
-                    await expect(canvas).toHaveScreenshot('frozen-legendtoggle-inactive.png');
+                    await expectChartScreenshot(page, canvas, 'frozen-legendtoggle-inactive.png');
 
                     await clickLegendItemPrivateCar(page);
-                    await expect(canvas).toHaveScreenshot('frozen-legendtoggle-series2-hidden.png');
+                    await expectChartScreenshot(page, canvas, 'frozen-legendtoggle-series2-hidden.png');
 
                     await clickButtonRestoreValidFrozen(page);
-                    await expect(canvas).toHaveScreenshot('frozen-legendtoggle-series2-hidden.png');
+                    await expectChartScreenshot(page, canvas, 'frozen-legendtoggle-series2-hidden.png');
 
                     await clickLegendItemPrivateCar(page);
-                    await expect(canvas).toHaveScreenshot('frozen-legendtoggle-series2-datum0-active.png');
+                    await expectChartScreenshot(page, canvas, 'frozen-legendtoggle-series2-datum0-active.png');
                 });
                 test('states', async ({ page }) => {
                     expect((await getChartState(page)).active?.activeItem).toBeUndefined();
@@ -3338,16 +3361,16 @@ test.describe('state', () => {
 
             test.describe('[ignoreConsoleWarnings] 4. invalid itemId frozen', () => {
                 test('screenshots', async ({ page }) => {
-                    await expect(canvas).toHaveScreenshot('frozen-legendtoggle-inactive.png');
+                    await expectChartScreenshot(page, canvas, 'frozen-legendtoggle-inactive.png');
 
                     await clickLegendItemPrivateCar(page);
-                    await expect(canvas).toHaveScreenshot('frozen-legendtoggle-series2-hidden.png');
+                    await expectChartScreenshot(page, canvas, 'frozen-legendtoggle-series2-hidden.png');
 
                     await clickButtonRestoreInvalidFrozen(page);
-                    await expect(canvas).toHaveScreenshot('frozen-legendtoggle-series2-hidden.png');
+                    await expectChartScreenshot(page, canvas, 'frozen-legendtoggle-series2-hidden.png');
 
                     await clickLegendItemPrivateCar(page);
-                    await expect(canvas).toHaveScreenshot('frozen-legendtoggle-inactive.png');
+                    await expectChartScreenshot(page, canvas, 'frozen-legendtoggle-inactive.png');
                 });
                 test('states', async ({ page }) => {
                     expect((await getChartState(page)).active?.activeItem).toBeUndefined();
@@ -3454,13 +3477,13 @@ test.describe('state', () => {
 
             test.describe('check that legend.enabled toggling updates correctly', () => {
                 test('screenshots', async ({ page }) => {
-                    await expect(canvas).toHaveScreenshot('external-legend-canvas-inactive.png');
+                    await expectChartScreenshot(page, canvas, 'external-legend-canvas-inactive.png');
 
                     await clickLegendCheckbox(page);
-                    await expect(canvas).toHaveScreenshot('external-legend-canvas-inactive-legend-enabled.png');
+                    await expectChartScreenshot(page, canvas, 'external-legend-canvas-inactive-legend-enabled.png');
 
                     await clickLegendCheckbox(page);
-                    await expect(canvas).toHaveScreenshot('external-legend-canvas-inactive.png');
+                    await expectChartScreenshot(page, canvas, 'external-legend-canvas-inactive.png');
                 });
                 test('states', async ({ page }) => {
                     expect((await getChartState(page)).active?.activeItem).toBeUndefined();
@@ -3484,16 +3507,16 @@ test.describe('state', () => {
 
             test.describe('external legend works with internal legend disabled', () => {
                 test('screenshots', async ({ page }) => {
-                    await expect(canvas).toHaveScreenshot('external-legend-canvas-inactive.png');
+                    await expectChartScreenshot(page, canvas, 'external-legend-canvas-inactive.png');
 
                     await hoverOverExternalLegendItemPublicTransit(page);
-                    await expect(page).toHaveScreenshot('external-legend-page-publictransit-active.png');
+                    await expectChartScreenshot(page, page, 'external-legend-page-publictransit-active.png');
 
                     await hoverOverExternalLegendItemCycle(page);
-                    await expect(page).toHaveScreenshot('external-legend-page-cycle-active.png');
+                    await expectChartScreenshot(page, page, 'external-legend-page-cycle-active.png');
 
                     await hoverMiss(page);
-                    await expect(canvas).toHaveScreenshot('external-legend-canvas-inactive.png');
+                    await expectChartScreenshot(page, canvas, 'external-legend-canvas-inactive.png');
                 });
                 test('states', async ({ page }) => {
                     expect((await getChartState(page)).active?.activeItem).toBeUndefined();

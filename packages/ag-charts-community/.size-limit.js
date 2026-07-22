@@ -4,20 +4,20 @@ const scenarios = [
     {
         name: 'Full package',
         import: '*',
-        srcLimit: '315 kB',
-        distLimit: '315 kB',
+        srcLimit: '331 kB',
+        distLimit: '331 kB',
     },
     {
         name: 'CartesianChart only',
         import: '{ CartesianChartModule }',
-        srcLimit: '188 kB',
-        distLimit: '292 kB',
+        srcLimit: '196 kB',
+        distLimit: '307 kB',
     },
     {
         name: 'PolarChart only',
         import: '{ PolarChartModule }',
-        srcLimit: '176 kB',
-        distLimit: '292 kB',
+        srcLimit: '185 kB',
+        distLimit: '307 kB',
     },
 ];
 

@@ -654,6 +654,9 @@ jobs:
         env:
             NX_BASE: ${{ needs.init.outputs.nx_base }}
             AG_FORCE_ALL_TESTS: 1
+            # Scene-graph JSON capture alongside E2E screenshots: full dump on baseline-branch pushes,
+            # dump-on-diff for PRs (for E2E, both capture — see expectChartScreenshot).
+            AG_SCENE_SNAPSHOTS: ${{ github.event_name == 'push' && 'all' || 'diff' }}
         steps:
             - name: Checkout
               id: checkout
@@ -706,6 +709,7 @@ jobs:
                   name: test-results-e2e-shard-${{matrix.shard}}
                   path: |
                       reports/
+                      packages/ag-charts-website/**/__scene_snapshots__/*
 
     demos_e2e:
         runs-on: ubuntu-24.04

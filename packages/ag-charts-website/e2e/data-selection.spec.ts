@@ -3,6 +3,7 @@ import type { Page } from '@playwright/test';
 import type { AgSelectionChangeEvent, AgSelectionChangeEventSource, AgSelectionItem } from 'ag-charts-types';
 
 import { expect, test } from './fixture';
+import { expectChartScreenshot } from './scene-capture';
 import {
     SELECTORS,
     gotoExample,
@@ -105,7 +106,7 @@ test.describe('data-selection', () => {
         // Focus is on the first datum (London, unselected); New York stays selected from initChartSelection.
         test.describe('checks', () => {
             test('screenshot', async ({ page }) => {
-                await expect(page).toHaveScreenshot('selection-initial-focus.png', { animations: 'disabled' });
+                await expectChartScreenshot(page, page, 'selection-initial-focus.png', { animations: 'disabled' });
             });
             test('aria-label', async ({ page }) => {
                 expect(await readSwapchainText(page)).toBe('London; population; 9.1, unselected');
@@ -127,7 +128,7 @@ test.describe('data-selection', () => {
             // Focus is on the second datum (New York, selected).
             test.describe('checks', () => {
                 test('screenshot', async ({ page }) => {
-                    await expect(page).toHaveScreenshot('selection-focus-new-york-selected.png', {
+                    await expectChartScreenshot(page, page, 'selection-focus-new-york-selected.png', {
                         animations: 'disabled',
                     });
                 });
@@ -151,7 +152,7 @@ test.describe('data-selection', () => {
                 // Focus is on the last datum (Dubai, unselected).
                 test.describe('checks', () => {
                     test('screenshot', async ({ page }) => {
-                        await expect(page).toHaveScreenshot('selection-focus-dubai-unselected.png', {
+                        await expectChartScreenshot(page, page, 'selection-focus-dubai-unselected.png', {
                             animations: 'disabled',
                         });
                     });
@@ -174,7 +175,7 @@ test.describe('data-selection', () => {
                     // Dubai becomes the only selected datum; the new state is announced first.
                     test.describe('checks', () => {
                         test('screenshot', async ({ page }) => {
-                            await expect(page).toHaveScreenshot('selection-single-dubai-selected.png', {
+                            await expectChartScreenshot(page, page, 'selection-single-dubai-selected.png', {
                                 animations: 'disabled',
                             });
                         });
@@ -200,7 +201,7 @@ test.describe('data-selection', () => {
                         // No change: Dubai stays selected and no new event is emitted.
                         test.describe('checks', () => {
                             test('screenshot', async ({ page }) => {
-                                await expect(page).toHaveScreenshot('selection-single-dubai-selected.png', {
+                                await expectChartScreenshot(page, page, 'selection-single-dubai-selected.png', {
                                     animations: 'disabled',
                                 });
                             });
@@ -229,7 +230,7 @@ test.describe('data-selection', () => {
         // Focus is on the first datum (London, unselected); New York stays selected from initChartSelection.
         test.describe('checks', () => {
             test('screenshot', async ({ page }) => {
-                await expect(page).toHaveScreenshot('selection-initial-focus.png', { animations: 'disabled' });
+                await expectChartScreenshot(page, page, 'selection-initial-focus.png', { animations: 'disabled' });
             });
             test('aria-label', async ({ page }) => {
                 expect(await readSwapchainText(page)).toBe('London; population; 9.1, unselected');
@@ -251,7 +252,7 @@ test.describe('data-selection', () => {
             // Focus is on the second datum (New York, selected).
             test.describe('checks', () => {
                 test('screenshot', async ({ page }) => {
-                    await expect(page).toHaveScreenshot('selection-focus-new-york-selected.png', {
+                    await expectChartScreenshot(page, page, 'selection-focus-new-york-selected.png', {
                         animations: 'disabled',
                     });
                 });
@@ -275,7 +276,7 @@ test.describe('data-selection', () => {
                 // Focus is on the last datum (Dubai, unselected).
                 test.describe('checks', () => {
                     test('screenshot', async ({ page }) => {
-                        await expect(page).toHaveScreenshot('selection-focus-dubai-unselected.png', {
+                        await expectChartScreenshot(page, page, 'selection-focus-dubai-unselected.png', {
                             animations: 'disabled',
                         });
                     });
@@ -298,7 +299,7 @@ test.describe('data-selection', () => {
                     // Dubai is added alongside New York; the new state is announced first.
                     test.describe('checks', () => {
                         test('screenshot', async ({ page }) => {
-                            await expect(page).toHaveScreenshot('selection-multi-new-york-and-dubai-selected.png', {
+                            await expectChartScreenshot(page, page, 'selection-multi-new-york-and-dubai-selected.png', {
                                 animations: 'disabled',
                             });
                         });
@@ -322,7 +323,7 @@ test.describe('data-selection', () => {
                         // Back to how it was before the click: Dubai is unselected, announced first.
                         test.describe('checks', () => {
                             test('screenshot', async ({ page }) => {
-                                await expect(page).toHaveScreenshot('selection-focus-dubai-unselected.png', {
+                                await expectChartScreenshot(page, page, 'selection-focus-dubai-unselected.png', {
                                     animations: 'disabled',
                                 });
                             });

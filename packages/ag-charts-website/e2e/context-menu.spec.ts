@@ -9,6 +9,7 @@ import type {
 } from 'ag-charts-types';
 
 import { expect, test } from './fixture';
+import { expectChartScreenshot } from './scene-capture';
 import {
     SELECTORS,
     canvasToPageTransformer,
@@ -64,22 +65,22 @@ test.describe('context-menu', () => {
 
                 p = point(width * (2 / 3), height / 2);
                 await page.mouse.click(p.x, p.y, { button: 'right' });
-                await expect(page).toHaveScreenshot('zoom-contextmenu.png', { animations: 'disabled' });
+                await expectChartScreenshot(page, page, 'zoom-contextmenu.png', { animations: 'disabled' });
 
                 await page.locator('.ag-charts-context-menu__item').filter({ hasText: 'Zoom to here' }).click();
-                await expect(page).toHaveScreenshot('zoom-to-here.png', { animations: 'disabled' });
+                await expectChartScreenshot(page, page, 'zoom-to-here.png', { animations: 'disabled' });
 
                 p = point(width / 10, height / 2);
                 await page.mouse.click(p.x, p.y, { button: 'right' });
 
                 await page.locator('.ag-charts-context-menu__item').filter({ hasText: 'Pan to here' }).click();
-                await expect(page).toHaveScreenshot('pan-to-here.png', { animations: 'disabled' });
+                await expectChartScreenshot(page, page, 'pan-to-here.png', { animations: 'disabled' });
 
                 p = point(width / 10, height / 2);
                 await page.mouse.click(p.x, p.y, { button: 'right' });
 
                 await page.locator('.ag-charts-context-menu__item').filter({ hasText: 'Reset zoom' }).click();
-                await expect(page).toHaveScreenshot('reset-zoom.png', { animations: 'disabled' });
+                await expectChartScreenshot(page, page, 'reset-zoom.png', { animations: 'disabled' });
             });
         });
     }
@@ -96,22 +97,24 @@ test.describe('context-menu', () => {
                 const legendItem2 = point(460, 540);
 
                 await page.mouse.click(title.x, title.y, { button: 'left' });
-                await expect(page).toHaveScreenshot('contextmenu-left-click.png', { animations: 'disabled' });
+                await expectChartScreenshot(page, page, 'contextmenu-left-click.png', { animations: 'disabled' });
 
                 await page.mouse.click(seriesNodesHit.x, seriesNodesHit.y, { button: 'right' });
-                await expect(page).toHaveScreenshot('contextmenu-series-blue-node.png', { animations: 'disabled' });
+                await expectChartScreenshot(page, page, 'contextmenu-series-blue-node.png', { animations: 'disabled' });
 
                 await page.mouse.click(legendItem2.x, legendItem2.y, { button: 'right' });
-                await expect(page).toHaveScreenshot('contextmenu-legend-orange-node.png', { animations: 'disabled' });
+                await expectChartScreenshot(page, page, 'contextmenu-legend-orange-node.png', {
+                    animations: 'disabled',
+                });
 
                 await page.mouse.click(title.x, title.y, { button: 'right' });
-                await expect(page).toHaveScreenshot('contextmenu-title.png', { animations: 'disabled' });
+                await expectChartScreenshot(page, page, 'contextmenu-title.png', { animations: 'disabled' });
 
                 await page.mouse.click(seriesNodesMiss.x, seriesNodesMiss.y, { button: 'right' });
-                await expect(page).toHaveScreenshot('contextmenu-series-no-node.png', { animations: 'disabled' });
+                await expectChartScreenshot(page, page, 'contextmenu-series-no-node.png', { animations: 'disabled' });
 
                 await page.mouse.click(legendItem2.x, legendItem2.y, { button: 'left' });
-                await expect(page).toHaveScreenshot('contextmenu-legend-click.png', { animations: 'disabled' });
+                await expectChartScreenshot(page, page, 'contextmenu-legend-click.png', { animations: 'disabled' });
             });
         });
     }
@@ -121,14 +124,18 @@ test.describe('context-menu', () => {
         await gotoExample(page, url);
 
         await page.mouse.click(360, 570, { button: 'right' });
-        await expect(page).toHaveScreenshot('AG-13359-context-menu-chart1-legend-item.png', { animations: 'disabled' });
+        await expectChartScreenshot(page, page, 'AG-13359-context-menu-chart1-legend-item.png', {
+            animations: 'disabled',
+        });
 
         await page.keyboard.press('PageDown');
         await page.keyboard.press('PageDown');
         await page.keyboard.press('PageDown');
 
         await page.locator(SELECTORS.wrapper).nth(1).click({ button: 'right' });
-        await expect(page).toHaveScreenshot('AG-13359-context-menu-chart2-series-area.png', { animations: 'disabled' });
+        await expectChartScreenshot(page, page, 'AG-13359-context-menu-chart2-series-area.png', {
+            animations: 'disabled',
+        });
     });
 
     test('no context menu items for waterfall legend', async ({ page }) => {
@@ -136,7 +143,7 @@ test.describe('context-menu', () => {
         await gotoExample(page, url);
 
         await page.mouse.click(360, 570, { button: 'right' });
-        await expect(page).toHaveScreenshot('no-context-menu-items-for-waterfall-legend.png', {
+        await expectChartScreenshot(page, page, 'no-context-menu-items-for-waterfall-legend.png', {
             animations: 'disabled',
         });
     });
@@ -149,13 +156,13 @@ test.describe('context-menu', () => {
         const sayHello = page.getByText('Say hello', { exact: true });
 
         await sayHello.hover();
-        await expect(page).toHaveScreenshot('AG-16178-say-hello-hovered.png');
+        await expectChartScreenshot(page, page, 'AG-16178-say-hello-hovered.png');
 
         await page.mouse.move(0, 0);
-        await expect(page).toHaveScreenshot('AG-16178-say-hello-not-hovered.png');
+        await expectChartScreenshot(page, page, 'AG-16178-say-hello-not-hovered.png');
 
         await sayHello.hover();
-        await expect(page).toHaveScreenshot('AG-16178-say-hello-hovered.png');
+        await expectChartScreenshot(page, page, 'AG-16178-say-hello-hovered.png');
     });
 
     test.describe('AG-16259 showsOn', () => {
@@ -200,7 +207,7 @@ test.describe('context-menu', () => {
 
         await page.mouse.move(404, 265);
         await page.mouse.click(404, 265, { button: 'right' });
-        await expect(page).toHaveScreenshot('context-menu-shown-on-highlighted-datum.png');
+        await expectChartScreenshot(page, page, 'context-menu-shown-on-highlighted-datum.png');
     });
 
     test.describe('AG-17706 showOn caption', () => {
@@ -259,7 +266,7 @@ test.describe('context-menu', () => {
                     await rightClick(page, POINT_TITLE);
                 });
                 test('screenshot', async ({ page }) => {
-                    await expect(page).toHaveScreenshot('AG-17706-title-menu.png', { animations: 'disabled' });
+                    await expectChartScreenshot(page, page, 'AG-17706-title-menu.png', { animations: 'disabled' });
                 });
                 test('action', async ({ page }) => {
                     await runCaptionAction(page);
@@ -272,7 +279,7 @@ test.describe('context-menu', () => {
                     await rightClick(page, POINT_SUBTITLE);
                 });
                 test('screenshot', async ({ page }) => {
-                    await expect(page).toHaveScreenshot('AG-17706-subtitle-menu.png', { animations: 'disabled' });
+                    await expectChartScreenshot(page, page, 'AG-17706-subtitle-menu.png', { animations: 'disabled' });
                 });
                 test('action', async ({ page }) => {
                     await runCaptionAction(page);
@@ -285,7 +292,7 @@ test.describe('context-menu', () => {
                     await rightClick(page, POINT_FOOTNOTE);
                 });
                 test('screenshot', async ({ page }) => {
-                    await expect(page).toHaveScreenshot('AG-17706-footnote-menu.png', { animations: 'disabled' });
+                    await expectChartScreenshot(page, page, 'AG-17706-footnote-menu.png', { animations: 'disabled' });
                 });
                 test('action', async ({ page }) => {
                     await runCaptionAction(page);
@@ -305,7 +312,7 @@ test.describe('context-menu', () => {
                     await rightClick(page, POINT_TITLE);
                 });
                 test('screenshot', async ({ page }) => {
-                    await expect(page).toHaveScreenshot('AG-17706-title-menu.png', { animations: 'disabled' });
+                    await expectChartScreenshot(page, page, 'AG-17706-title-menu.png', { animations: 'disabled' });
                 });
                 test('action', async ({ page }) => {
                     await runCaptionAction(page);
@@ -321,7 +328,7 @@ test.describe('context-menu', () => {
                     await rightClick(page, POINT_SUBTITLE);
                 });
                 test('screenshot', async ({ page }) => {
-                    await expect(page).toHaveScreenshot('AG-17706-subtitle-menu.png', { animations: 'disabled' });
+                    await expectChartScreenshot(page, page, 'AG-17706-subtitle-menu.png', { animations: 'disabled' });
                 });
                 test('action', async ({ page }) => {
                     await runCaptionAction(page);
@@ -337,7 +344,7 @@ test.describe('context-menu', () => {
                     await rightClick(page, POINT_FOOTNOTE);
                 });
                 test('screenshot', async ({ page }) => {
-                    await expect(page).toHaveScreenshot('AG-17706-footnote-menu.png', { animations: 'disabled' });
+                    await expectChartScreenshot(page, page, 'AG-17706-footnote-menu.png', { animations: 'disabled' });
                 });
                 test('action', async ({ page }) => {
                     await runCaptionAction(page);
