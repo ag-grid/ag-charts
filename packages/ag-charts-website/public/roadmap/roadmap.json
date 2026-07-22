@@ -112,15 +112,6 @@
             "link": null
         },
         {
-            "id": "AG-16575",
-            "title": "Timeline Series",
-            "q": 3,
-            "status": "planned",
-            "why": "Expands AG Charts into time-based and analytical use cases.",
-            "desc": "A new timeline series for visualising events over time.",
-            "link": null
-        },
-        {
             "id": "AG-16576",
             "title": "Quadrant Chart",
             "q": 3,
@@ -130,12 +121,21 @@
             "link": null
         },
         {
-            "id": "AG-16577",
-            "title": "Expanded Synchronisation Options",
+            "id": "AG-17826",
+            "title": "Accessibility Improvements",
             "q": 3,
             "status": "planned",
-            "why": "Supports more flexible and precise synchronisation across multiple charts within a single application.",
-            "desc": "Greater control over synchronising state across multiple charts.",
+            "why": "Supports compliance and inclusive design for enterprise and public-sector applications.",
+            "desc": "Improved keyboard navigation and screen reader support, with greater control over accessibility behaviour.",
+            "link": null
+        },
+        {
+            "id": "AG-17827",
+            "title": "Validation Feedback",
+            "q": 3,
+            "status": "planned",
+            "why": "Helps developers configure charts correctly from the outset, including when working with AI coding assistants.",
+            "desc": "Stronger dev-time validation of chart options, with clearer errors and control of warning levels.",
             "link": null
         },
         {
@@ -149,16 +149,16 @@
         },
         {
             "id": "AG-16581",
-            "title": "More Powerful Annotation Tools",
+            "title": "New Annotation Tools",
             "q": 4,
             "status": "planned",
             "why": "Enables more precise and expressive annotation for end users in trading and analytical applications.",
-            "desc": "More annotation types with precise placement, axis labels, and magnet snapping.",
+            "desc": "New annotation types with precise placement, axis labels, and magnet snapping.",
             "link": null
         },
         {
             "id": "AG-16582",
-            "title": "Greater Financial Chart Customisation",
+            "title": "Financial Chart Customisation",
             "q": 4,
             "status": "planned",
             "why": "Gives developers greater control to build bespoke financial and trading applications.",
@@ -172,6 +172,15 @@
             "status": "planned",
             "why": "Supports professional trading and analytical workflows with a range of technical indicators.",
             "desc": "A range of technical indicators for financial charts.",
+            "link": null
+        },
+        {
+            "id": "AG-17948",
+            "title": "AI Coding Skill",
+            "q": 4,
+            "status": "planned",
+            "why": "Supports developers using AI coding assistants, keeping generated code aligned with the latest AG Charts APIs.",
+            "desc": "A lightweight, installable skill that gives AI coding assistants up-to-date guidance for building with AG Charts.",
             "link": null
         }
     ]
