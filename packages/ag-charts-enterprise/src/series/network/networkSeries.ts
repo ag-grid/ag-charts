@@ -206,6 +206,7 @@ export abstract class AbstractNetworkSeries<
         regularBBox?: _ModuleSupport.BBox
     ): _ModuleSupport.BBox | undefined;
     abstract updateOffset(offset: Point): void;
+    abstract isVertexCollapsed(vertex: Vertex<TVertex, TEdge>): boolean;
 
     abstract expandNetworkToItem(itemIdOrIndex: string | number, source: AgCollapsedChangeEventSource): void;
     abstract expandItem(itemIdOrIndex: string | number, source: AgCollapsedChangeEventSource): void;
@@ -262,6 +263,7 @@ export abstract class AbstractNetworkSeries<
             layoutDatumNode: this.layoutDatumNode.bind(this),
             layoutLinkNode: this.layoutLinkNode.bind(this),
             updateOffset: this.updateOffset.bind(this),
+            isVertexCollapsed: this.isVertexCollapsed.bind(this),
         };
     }
 

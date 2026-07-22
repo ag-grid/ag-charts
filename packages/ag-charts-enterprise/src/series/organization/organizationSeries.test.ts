@@ -900,7 +900,9 @@ describe('OrganizationSeries', () => {
         const renderedItemIds = (c: any): number[] => {
             const ids: number[] = [];
             (deproxy(c).series[0] as any).datumSelection.each((_node: any, datum: any) => {
-                ids.push(datum.itemId);
+                if (!datum.collapsedByAncestor) {
+                    ids.push(datum.itemId);
+                }
             });
             return ids.sort((a, b) => a - b);
         };
@@ -1066,7 +1068,13 @@ describe('OrganizationSeries', () => {
                     frances: undefined,
                     jane: undefined,
                 };
+                const collapsedNodeIds = series.datumSelection
+                    .nodes()
+                    .filter((node: any) => node.datum.collapsedByAncestor)
+                    .map((node: any) => node.datum.itemId);
+                expect(collapsedNodeIds).toEqual(['mary1', 'elizabeth1']);
                 series.datumSelection.each((node: any, datum: any) => {
+                    if (datum.collapsedByAncestor) return;
                     const renderedTexts: string[] = (node.labelNodes ?? [])
                         .filter((n: any) => n != null)
                         .map((n: any) => n.text);
@@ -1732,14 +1740,14 @@ describe('OrganizationSeries', () => {
             expect(pick?.datum.itemId).toBe('qa');
         });
 
-        it('ArrowDown into a collapsed node is a no-op', async () => {
+        it('ArrowDown into a collapsed node auto-expands to first child', async () => {
             const options: AgChartOptions = { ...SIMPLE_ORG_CHART, initialState: { collapsed: ['cto'] } };
             prepareEnterpriseTestOptions(options);
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
             const series = deproxy(chart).series[0] as any;
-            // With cto collapsed, nodeData is [ceo, cto, cfo, acc]; cto sits at index 1, depth 2.
-            expect(press(series, ARROW_DOWN, 1, 2)).toBeUndefined();
+            const pick = press(series, ARROW_DOWN, 1, 2);
+            expect(pick?.datum.itemId).toBe('dev');
         });
 
         // Follows the same DOM chain a screen reader would: the visible swap-chain announcer

@@ -264,7 +264,8 @@ class NetworkTreeVerticalLayout<TVertex, TEdge> extends NetworkTreeDirectionalLa
     ) {
         const { graph } = options;
         const children = graph.neighboursWithEdgeValue(vertex, 'child' as TEdge) as Vertex<TVertex, TEdge>[];
-        if (!children || children.length == 0) return { childrenCount: 0 };
+        const isCollapsed = options.isVertexCollapsed(vertex);
+        if (!children || children.length == 0 || isCollapsed) return { childrenCount: 0 };
 
         let adjustY = nodeBBox.height + options.depthSpacing + options.verticalSpacingExtra;
         if (options.direction === 'up') adjustY *= -1;

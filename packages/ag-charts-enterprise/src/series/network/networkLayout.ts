@@ -20,6 +20,7 @@ export interface NetworkLayoutUpdateOptions<TVertex, TEdge> {
     ) => _ModuleSupport.BBox | undefined;
     layoutLinkNode: (vertex: Vertex<TVertex, TEdge>, drawLink: (path: _ModuleSupport.ExtendedPath2D) => void) => void;
     updateOffset: (offset: Point) => void;
+    isVertexCollapsed: (vertex: Vertex<TVertex, TEdge>) => boolean;
 }
 
 export abstract class NetworkLayout<TVertex, TEdge> {

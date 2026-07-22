@@ -39,6 +39,8 @@ export interface OrganizationDatum extends NetworkDatum<OrganizationVertex, Orga
     // The user's source data row — stable across renders so reference-equality
     // (e.g. HighlightManager) works correctly.
     datum: unknown;
+    // True if this node is hidden because it's in a collapsed branch.
+    collapsedByAncestor: boolean;
 }
 
 export type OrganizationLinkDatum = NetworkLinkDatum<OrganizationVertex, OrganizationEdge>;
