@@ -251,7 +251,7 @@ jobs:
 
             - name: Mint ag-dev-prompts read token
               id: prompts-token
-              uses: actions/create-github-app-token@v1
+              uses: actions/create-github-app-token@d72941d797fd3113feb6b93fd0dec494b13a2547  # v1
               with:
                   app-id: ${{ vars.JIRA_AGENT_APP_ID }}
                   private-key: ${{ secrets.JIRA_AGENT_APP_PRIVATE_KEY }}
@@ -384,7 +384,7 @@ jobs:
             # (inside jira-pr-plnkr) verifies. No repo build runs in the agent.
             - name: Mint ag-dev-prompts read token
               id: prompts-token
-              uses: actions/create-github-app-token@v1
+              uses: actions/create-github-app-token@d72941d797fd3113feb6b93fd0dec494b13a2547  # v1
               with:
                   app-id: ${{ vars.JIRA_AGENT_APP_ID }}
                   private-key: ${{ secrets.JIRA_AGENT_APP_PRIVATE_KEY }}

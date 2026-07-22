@@ -62,7 +62,7 @@ jobs:
             run_full_ci: ${{ steps.decide.outputs.run_full_ci }}
         steps:
             - name: Checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
               with:
                   fetch-depth: 1
 
@@ -141,7 +141,7 @@ jobs:
         steps:
             - name: Checkout
               id: checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
               with:
                   fetch-depth: 1
 
@@ -229,7 +229,7 @@ jobs:
 
             - name: Persist build outputs
               if: always()
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
               with:
                   name: e2e-init-outputs
                   path: |
@@ -248,7 +248,7 @@ jobs:
         steps:
             - name: Checkout
               id: checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
               with:
                   fetch-depth: 1
 
@@ -294,7 +294,7 @@ jobs:
         steps:
             - name: Checkout
               id: checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
               with:
                   fetch-depth: 1
 
@@ -329,7 +329,7 @@ jobs:
         steps:
             - name: Checkout
               id: checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
               with:
                   fetch-depth: 1
 
@@ -360,7 +360,7 @@ jobs:
 
             - name: Upload UMD bundles for PR preview
               if: github.event_name == 'pull_request' && steps.build_umd.outcome == 'success'
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
               with:
                   name: pr-preview-umd
                   if-no-files-found: ignore
@@ -381,7 +381,7 @@ jobs:
         steps:
             - name: Checkout
               id: checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
               with:
                   fetch-depth: 1
 
@@ -425,13 +425,13 @@ jobs:
         steps:
             # Needed for the local shared action below; same-repo gate (job if) is the guard.
             - name: Checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
               with:
                   fetch-depth: 1
 
             - name: Download UMD artifact
               id: download
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093  # v4
               continue-on-error: true
               with:
                   name: pr-preview-umd
@@ -498,7 +498,7 @@ jobs:
         steps:
             - name: Checkout
               id: checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
               with:
                   fetch-depth: 1
 
@@ -526,7 +526,7 @@ jobs:
 
             - name: Persist website build for staging deploy
               if: github.ref == 'refs/heads/latest' && steps.build.outcome == 'success'
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
               with:
                   name: website-staging-dist
                   path: dist/packages/ag-charts-website/
@@ -555,7 +555,7 @@ jobs:
         steps:
             - name: Checkout
               id: checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
               with:
                   fetch-depth: 1
 
@@ -598,7 +598,7 @@ jobs:
 
             - name: Persist test results
               if: always()
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
               with:
                   name: test-results-${{matrix.shard}}
                   path: |
@@ -617,7 +617,7 @@ jobs:
         steps:
             - name: Restore Playwright Image Cache
               id: pw_cache
-              uses: actions/cache@v4
+              uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830  # v4
               with:
                   path: /tmp/playwright-docker-image.tar
                   key: ${{ env.PLAYWRIGHT_CACHE_KEY }}
@@ -660,10 +660,10 @@ jobs:
         steps:
             - name: Checkout
               id: checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
 
             - name: Restore Init Build Outputs
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093  # v4
               with:
                   name: e2e-init-outputs
 
@@ -704,7 +704,7 @@ jobs:
 
             - name: Persist test results
               if: always()
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
               with:
                   name: test-results-e2e-shard-${{matrix.shard}}
                   path: |
@@ -721,12 +721,12 @@ jobs:
         steps:
             - name: Checkout
               id: checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
               with:
                   fetch-depth: 1
 
             - name: Restore Init Build Outputs
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093  # v4
               with:
                   name: e2e-init-outputs
 
@@ -762,7 +762,7 @@ jobs:
 
             - name: Persist test results
               if: always()
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
               with:
                   name: test-results-demos-e2e
                   path: |
@@ -785,7 +785,7 @@ jobs:
             - name: Checkout
               id: checkout
               if: matrix.framework != 'none'
-              uses: actions/checkout@v4
+              uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
               with:
                   fetch-depth: 1
 
@@ -864,7 +864,7 @@ jobs:
             BUNDLE_TREESHAKE_SHARD: ${{ matrix.treeshake_shard }}
         steps:
             - name: Checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
               with:
                   fetch-depth: 1
 
@@ -917,7 +917,7 @@ jobs:
         steps:
             - name: Checkout
               id: checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
               with:
                   fetch-depth: 1
 
@@ -1020,7 +1020,7 @@ jobs:
 
             - name: Restore Website Build for Staging Deploy
               if: github.ref == 'refs/heads/latest' && needs.website_build.outputs.build == 'success' && steps.lastJobStatus.outputs.workflowStatus != 'failure'
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093  # v4
               with:
                   name: website-staging-dist
                   path: dist/packages/ag-charts-website/
@@ -1186,7 +1186,7 @@ jobs:
 
             - name: Upload CI-failure Slack thread anchor
               if: always() && steps.ci_failure_alert.outcome == 'success' && hashFiles('ci-failure-slack.json') != ''
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
               with:
                   name: ci-failure-slack
                   path: ci-failure-slack.json

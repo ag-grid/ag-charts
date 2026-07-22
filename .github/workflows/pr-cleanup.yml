@@ -16,7 +16,7 @@ jobs:
             contents: write
         steps:
             - name: Check out code
-              uses: actions/checkout@v4
+              uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
 
             - name: Cleanup
               run: |
@@ -61,7 +61,7 @@ jobs:
         steps:
             # Needed for the local shared action below; the action clones gh-pages itself.
             - name: Checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
               with:
                   fetch-depth: 1
 

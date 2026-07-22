@@ -60,7 +60,7 @@ jobs:
             allowed: ${{ steps.check.outputs.allowed }}
         steps:
             - name: Checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
 
             - name: Check user permissions
               id: check
@@ -95,7 +95,7 @@ jobs:
         steps:
             - name: Notify start
               id: notify-start
-              uses: actions/github-script@v7
+              uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b  # v7
               continue-on-error: true
               if: github.event_name == 'issue_comment'
               with:
@@ -110,7 +110,7 @@ jobs:
                       return comment.id;
 
             - name: Checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
 
             - id: 'get-branch'
               run: |
@@ -158,7 +158,7 @@ jobs:
             # The head ref defines the example set; shards must match the pages
             # the head site artifact contains.
             - name: Checkout head ref
-              uses: actions/checkout@v4
+              uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
               with:
                   ref: ${{ steps.get-branch.outputs.branch }}
 
@@ -210,7 +210,7 @@ jobs:
             AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
         steps:
             - name: Checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
               with:
                   ref: ${{ matrix.role == 'head' && needs.resolve.outputs.branch || needs.resolve.outputs.base }}
 
@@ -262,7 +262,7 @@ jobs:
                   ls -lh "${RUNNER_TEMP}/site-${{ matrix.role }}.tar.gz"
 
             - name: Upload site artifact
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
               with:
                   name: site-${{ matrix.role }}
                   path: ${{ runner.temp }}/site-${{ matrix.role }}.tar.gz
@@ -283,7 +283,7 @@ jobs:
             AG_BENCHMARK_SOFT_FAIL: 'true'
         steps:
             - name: Checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
               with:
                   ref: ${{ needs.resolve.outputs.branch }}
 
@@ -297,7 +297,7 @@ jobs:
               run: npx playwright install chromium
 
             - name: Download site artifacts
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093  # v4
               with:
                   pattern: site-*
                   path: ${{ runner.temp }}/sites
@@ -351,7 +351,7 @@ jobs:
 
             - name: Upload shard results
               if: always()
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
               with:
                   name: bench-results-${{ strategy.job-index }}
                   path: reports/browser-benchmarks/shards/*
@@ -370,7 +370,7 @@ jobs:
             JOB_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         steps:
             - name: Checkout
-              uses: actions/checkout@v4
+              uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
               with:
                   ref: ${{ needs.resolve.outputs.branch }}
 
@@ -381,7 +381,7 @@ jobs:
                   fetch_base: skip
 
             - name: Download shard results
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093  # v4
               with:
                   pattern: bench-results-*
                   path: reports/browser-benchmarks/shards
@@ -449,7 +449,7 @@ jobs:
                   echo "EOF" >> $GITHUB_OUTPUT
 
             - name: Notify Success
-              uses: actions/github-script@v7
+              uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b  # v7
               continue-on-error: true
               if: success() && github.event_name == 'issue_comment'
               env:
@@ -465,7 +465,7 @@ jobs:
                       })
 
             - name: Notify Failure
-              uses: actions/github-script@v7
+              uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b  # v7
               continue-on-error: true
               if: failure() && github.event_name == 'issue_comment'
               with:
@@ -544,7 +544,7 @@ jobs:
 
             - name: Persist benchmark results
               if: always()
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
               with:
                   name: benchmark-results
                   path: |
