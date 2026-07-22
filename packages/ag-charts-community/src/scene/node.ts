@@ -79,6 +79,13 @@ export interface SerializedPathProps extends SerializedShapeProps {
     clipY: number;
 }
 
+export interface SerializedRectProps extends SerializedPathProps {
+    clipX0?: number;
+    clipY0?: number;
+    clipX1?: number;
+    clipY1?: number;
+}
+
 export interface SerializedSectorProps extends SerializedPathProps {
     startAngle: number;
     endAngle: number;
@@ -111,7 +118,7 @@ export type SerializedNodeState =
     | { type: 'group'; props: SerializedGroupProps }
     | { type: 'path'; props: SerializedPathProps; svgPath?: string }
     | { type: 'marker'; props: SerializedPathProps; svgPath?: string }
-    | { type: 'rect'; props: SerializedPathProps; svgPath?: string }
+    | { type: 'rect'; props: SerializedRectProps; svgPath?: string }
     | { type: 'sector'; props: SerializedSectorProps; svgPath?: string }
     | { type: 'line'; props: SerializedLineProps }
     | { type: 'range'; props: SerializedLineProps }

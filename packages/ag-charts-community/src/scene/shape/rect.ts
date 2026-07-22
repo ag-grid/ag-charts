@@ -4,7 +4,7 @@ import type { AgDrawingMode } from 'ag-charts-types';
 import { BBox } from '../bbox';
 import type { DropShadow } from '../dropShadow';
 import { ExtendedPath2D } from '../extendedPath2D';
-import type { SerializedNodeState, SerializedPathProps } from '../node';
+import type { SerializedNodeState, SerializedRectProps } from '../node';
 import { type Corner, drawCorner } from '../util/corner';
 import { Path } from './path';
 import { type CanvasContext } from './shape';
@@ -281,8 +281,19 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
         return { type: 'rect', props: this.serializeProps(), svgPath: this.serializeSvgPath() };
     }
 
-    protected override serializeProps(): SerializedPathProps {
-        return { ...super.serializeProps(), x: this.x, y: this.y, width: this.width, height: this.height };
+    protected override serializeProps(): SerializedRectProps {
+        const { x, y, width, height, clipBBox } = this;
+        const props: SerializedRectProps = { ...super.serializeProps(), x, y, width, height };
+        // The clip window is the only per-frame signal of a reveal: while the rect is partially
+        // clipped its drawn path collapses, so bounds-of-path cannot represent the sweep. Emit the
+        // window only when a clipBBox is set, leaving static rects' serialized state byte-identical.
+        if (clipBBox != null) {
+            props.clipX0 = clipBBox.x;
+            props.clipY0 = clipBBox.y;
+            props.clipX1 = clipBBox.x + clipBBox.width;
+            props.clipY1 = clipBBox.y + clipBBox.height;
+        }
+        return props;
     }
 
     set cornerRadius(cornerRadius: number) {

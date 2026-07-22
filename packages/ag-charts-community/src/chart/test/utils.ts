@@ -1328,11 +1328,24 @@ function buildGeometry(state: SerializedNodeState): SceneNodeGeometry | null {
         // Specialised rects (e.g. stacked BarShape) keep nominal extents in the fields and derive
         // the painted segment in updatePath — only the drawn path reflects the screen.
         case 'rect': {
-            const { x, y, width, height, opacity } = state.props;
+            const { x, y, width, height, opacity, clipX0, clipY0, clipX1, clipY1 } = state.props;
             const drawn = flattenPathPolylines(state.svgPath);
-            if (drawn.length === 0) return { x, y, width, height, opacity };
-            const { minX, minY, maxX, maxY } = polylineBounds(drawn);
-            return { x: minX, y: minY, width: maxX - minX, height: maxY - minY, opacity };
+            let geometry: SceneNodeGeometry;
+            if (drawn.length === 0) {
+                geometry = { x, y, width, height, opacity };
+            } else {
+                const { minX, minY, maxX, maxY } = polylineBounds(drawn);
+                geometry = { x: minX, y: minY, width: maxX - minX, height: maxY - minY, opacity };
+            }
+            // A clip window is the only per-frame signal of a rect reveal (e.g. the gauge bar sweep):
+            // while partially clipped the drawn path collapses, so the path bounds above read the
+            // fully-drawn rect and miss the sweep. Present only when serialized, so non-revealing rects
+            // gain no keys and existing suites see no churn.
+            if (clipX0 != null) geometry.clipX0 = clipX0;
+            if (clipY0 != null) geometry.clipY0 = clipY0;
+            if (clipX1 != null) geometry.clipX1 = clipX1;
+            if (clipY1 != null) geometry.clipY1 = clipY1;
+            return geometry;
         }
         case 'text': {
             const { x, y, opacity, rotation } = state.props;
