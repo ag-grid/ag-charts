@@ -1337,10 +1337,8 @@ function buildGeometry(state: SerializedNodeState): SceneNodeGeometry | null {
                 const { minX, minY, maxX, maxY } = polylineBounds(drawn);
                 geometry = { x: minX, y: minY, width: maxX - minX, height: maxY - minY, opacity };
             }
-            // A clip window is the only per-frame signal of a rect reveal (e.g. the gauge bar sweep):
-            // while partially clipped the drawn path collapses, so the path bounds above read the
-            // fully-drawn rect and miss the sweep. Present only when serialized, so non-revealing rects
-            // gain no keys and existing suites see no churn.
+            // Surface the rect's clip window so reveal animations can be asserted (see OPT_IN_PROPS);
+            // present only when the rect serialized one, so non-revealing rects gain no keys.
             if (clipX0 != null) geometry.clipX0 = clipX0;
             if (clipY0 != null) geometry.clipY0 = clipY0;
             if (clipX1 != null) geometry.clipX1 = clipX1;

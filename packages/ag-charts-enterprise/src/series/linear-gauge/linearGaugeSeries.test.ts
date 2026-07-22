@@ -57,8 +57,7 @@ describe('LinearGaugeSeries', () => {
     // animation-trajectory-tests rule) rather than as per-ratio image snapshots. The value bar sweeps
     // open by growing its clip window along the gauge's main axis during the initial phase; every other
     // node (the background scale bar, ticks, labels) holds constant. This exercises the shared harness'
-    // Rect clip reader (clipX0/clipY0/clipX1/clipY1) — the only per-frame signal of the sweep, since the
-    // drawn path collapses while the rect is clipped.
+    // Rect clip reader (clipX0/clipY0/clipX1/clipY1).
     describe('initial animation', () => {
         const frames = spyOnAnimationFrames();
 

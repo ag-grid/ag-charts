@@ -284,9 +284,8 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
     protected override serializeProps(): SerializedRectProps {
         const { x, y, width, height, clipBBox } = this;
         const props: SerializedRectProps = { ...super.serializeProps(), x, y, width, height };
-        // The clip window is the only per-frame signal of a reveal: while the rect is partially
-        // clipped its drawn path collapses, so bounds-of-path cannot represent the sweep. Emit the
-        // window only when a clipBBox is set, leaving static rects' serialized state byte-identical.
+        // Expose the clip window (a rect's reveal mask) so trajectory tests can read the sweep; emit it
+        // only when a clipBBox is set, leaving static rects' serialized state unchanged.
         if (clipBBox != null) {
             props.clipX0 = clipBBox.x;
             props.clipY0 = clipBBox.y;
