@@ -104,7 +104,10 @@ export function getMarkdownNegotiationRules() {
     const baseRelative = basePath.replace(/^\//, '');
     const capturePrefix = baseRelative ? `${baseRelative}/` : '';
     const negotiatedPath = `^/(${capturePrefix}(?:(?:react|angular|vue|javascript)/[^/]+?|license-pricing))/?$`;
-    const varyScope = `^${basePath}/((react|angular|vue|javascript)/|license-pricing/?$)`;
+    // Match the same single-page shape as negotiatedPath so Vary: Accept is only appended to the
+    // pages that actually content-negotiate — not every nested URL under /<base>/<framework>/
+    // (framework landing pages, example routes, assets), which would fragment shared caches.
+    const varyScope = `^${basePath}/(?:(?:react|angular|vue|javascript)/[^/]+|license-pricing)/?$`;
 
     // Content-negotiate docs pages to their per-page markdown variant when a client asks
     // for it via Accept: text/markdown (typically an AI agent — browsers never send this, so HTML

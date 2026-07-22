@@ -222,7 +222,7 @@ describe('htaccessRules markdown content negotiation', () => {
     it('adds Vary: Accept for negotiated paths (both envs) so shared caches key on the negotiated representation', () => {
         for (const content of [production, staging]) {
             expect(content).toContain(
-                '<If "%{REQUEST_URI} =~ m#^/charts/((react|angular|vue|javascript)/|license-pricing/?$)#">'
+                '<If "%{REQUEST_URI} =~ m#^/charts/(?:(?:react|angular|vue|javascript)/[^/]+|license-pricing)/?$#">'
             );
             expect(content).toContain('Header append Vary Accept');
         }

@@ -43,7 +43,7 @@ Header always set Content-Security-Policy "default-src 'self'; script-src 'self'
 
 # Docs pages content-negotiate on Accept (see the markdown rewrite), so shared caches must
 # key on it. Scoped to the negotiated paths so the rest of the site keeps its default.
-<If "%{REQUEST_URI} =~ m#^/charts/((react|angular|vue|javascript)/|license-pricing/?$)#">
+<If "%{REQUEST_URI} =~ m#^/charts/(?:(?:react|angular|vue|javascript)/[^/]+|license-pricing)/?$#">
     Header append Vary Accept
 </If>
 
@@ -158,7 +158,7 @@ Header always set Content-Security-Policy "default-src 'self'; script-src 'self'
 
 # Docs pages content-negotiate on Accept (see the markdown rewrite), so shared caches must
 # key on it. Scoped to the negotiated paths so the rest of the site keeps its default.
-<If "%{REQUEST_URI} =~ m#^/charts/((react|angular|vue|javascript)/|license-pricing/?$)#">
+<If "%{REQUEST_URI} =~ m#^/charts/(?:(?:react|angular|vue|javascript)/[^/]+|license-pricing)/?$#">
     Header append Vary Accept
 </If>
 
