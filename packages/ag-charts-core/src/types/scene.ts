@@ -54,6 +54,18 @@ export interface SerializedPathProps extends SerializedShapeProps {
     clipY: number;
 }
 
+/**
+ * A rect additionally exposes its clip window (the reveal mask used by e.g. the gauge bar sweep) as
+ * an axis-aligned box, so trajectory tests can read the reveal directly. Emitted only when a clipBBox
+ * is set, so static rects' serialised state is unchanged (see {@link Rect.serializeProps}).
+ */
+export interface SerializedRectProps extends SerializedPathProps {
+    clipX0?: number;
+    clipY0?: number;
+    clipX1?: number;
+    clipY1?: number;
+}
+
 export interface SerializedSectorProps extends SerializedPathProps {
     startAngle: number;
     endAngle: number;
@@ -85,7 +97,7 @@ export type SerializedNodeState =
     | { type: 'group'; props: SerializedGroupProps }
     | { type: 'path'; props: SerializedPathProps; svgPath?: string }
     | { type: 'marker'; props: SerializedPathProps; svgPath?: string }
-    | { type: 'rect'; props: SerializedPathProps; svgPath?: string }
+    | { type: 'rect'; props: SerializedRectProps; svgPath?: string }
     | { type: 'sector'; props: SerializedSectorProps; svgPath?: string }
     | { type: 'line'; props: SerializedLineProps }
     | { type: 'range'; props: SerializedLineProps }

@@ -1504,6 +1504,12 @@ export function expectNoAnimation(trajectory: SceneGeometrySample[]): void {
 
 // Flag/range properties whose whole domain fits inside a 1px geometry tolerance — compare exactly.
 const EXACT_MATCH_PROPS = new Set(['opacity', 'visible', 'clip', 'cutout', 'subpaths']);
+// The Rect clip window duplicates the painted bounds it is intersected with (clipX0/clipY0 track
+// x/y, clipX1/clipY1 track x+width/y+height), so on a revealing rect it moves in lock-step with the
+// already-checked geometry. Treating it as default-`constant` would make every rect-reveal suite fail
+// on a redundant signal, so it is opt-in: asserted only when a node's spec names it (as the gauge
+// bar-reveal CASE does to exercise this reader), and otherwise left unchecked.
+const OPT_IN_PROPS = new Set(['clipX0', 'clipY0', 'clipX1', 'clipY1']);
 // These props live on a 0..1 (or 0/1) scale, so the pixel-scaled constant tolerance would let a value
 // drift halfway across its whole range unnoticed. Judge their constancy/bounds against a scale-honest
 // epsilon instead — loose enough to absorb interpolation float noise, tight enough to catch a stalled
@@ -1798,6 +1804,10 @@ export function expectSceneTrajectory(
         }
 
         for (const prop of props) {
+            const explicitlyNamed = typeof expectation === 'object' && (expectation as any)[prop] != null;
+            // Opt-in props (the clip window) are only asserted when a node's spec names them; otherwise
+            // they are left unchecked rather than defaulting to constant (see OPT_IN_PROPS).
+            if (OPT_IN_PROPS.has(prop) && !explicitlyNamed) continue;
             const raw = expectation === 'constant' ? 'constant' : ((expectation as any)[prop] ?? 'constant');
             // Flag/range props must be judged on their native 0..1 scale for constancy AND direction:
             // at the pixel-scaled monotonic tolerance every per-frame opacity step fits both
