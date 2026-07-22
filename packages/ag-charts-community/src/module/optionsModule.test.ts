@@ -1028,10 +1028,7 @@ describe('ChartOptions', () => {
                       "color": "#181d1f",
                     },
                     "padding": 8,
-                    "placement": [
-                      "top",
-                      "bottom",
-                    ],
+                    "placement": "top",
                   },
                   "lineDash": [
                     0,
@@ -1106,10 +1103,7 @@ describe('ChartOptions', () => {
                       "color": "#181d1f",
                     },
                     "padding": 8,
-                    "placement": [
-                      "top",
-                      "bottom",
-                    ],
+                    "placement": "top",
                   },
                   "lineDash": [
                     0,
@@ -1551,10 +1545,7 @@ describe('ChartOptions', () => {
                       "color": "#181d1f",
                     },
                     "padding": 8,
-                    "placement": [
-                      "top",
-                      "bottom",
-                    ],
+                    "placement": "top",
                   },
                   "lineDash": [
                     0,
@@ -1629,10 +1620,7 @@ describe('ChartOptions', () => {
                       "color": "#181d1f",
                     },
                     "padding": 8,
-                    "placement": [
-                      "top",
-                      "bottom",
-                    ],
+                    "placement": "top",
                   },
                   "lineDash": [
                     0,
@@ -2074,10 +2062,7 @@ describe('ChartOptions', () => {
                       "color": "#181d1f",
                     },
                     "padding": 8,
-                    "placement": [
-                      "top",
-                      "bottom",
-                    ],
+                    "placement": "top",
                   },
                   "lineDash": [
                     0,
@@ -2152,10 +2137,7 @@ describe('ChartOptions', () => {
                       "color": "#181d1f",
                     },
                     "padding": 8,
-                    "placement": [
-                      "top",
-                      "bottom",
-                    ],
+                    "placement": "top",
                   },
                   "lineDash": [
                     0,
