@@ -1740,6 +1740,95 @@ describe('BarSeries', () => {
                 await compare();
             }
         );
+
+        // A value-axis min that opens a band beyond the bars' origin lets an `outside-start` label point
+        // off the plot into the axis-label zone. With a fallback available the cascade must reject it and
+        // drop the base label inside, the same way an over-tall `outside-end` falls back at the far edge.
+        it('rejects an outside label that would overflow the plot into the axis-label area', async () => {
+            const data = [
+                { x: 'Q1', base: 90, mid: 30, top: 20 },
+                { x: 'Q2', base: 100, mid: 35, top: 22 },
+                { x: 'Q3', base: 95, mid: 28, top: 18 },
+                { x: 'Q4', base: 110, mid: 32, top: 25 },
+            ];
+            const options: AgChartOptions = {
+                data,
+                axes: { y: { type: 'number', min: -1 }, x: { type: 'category' } } as any,
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'base',
+                        stacked: true,
+                        label: { placement: ['outside-start', 'inside-center'], color: 'black' },
+                    },
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'mid',
+                        stacked: true,
+                        label: { placement: ['outside-end', 'inside-center'], color: 'black' },
+                    },
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'top',
+                        stacked: true,
+                        label: { placement: ['outside-end', 'inside-center'], color: 'black' },
+                    },
+                ],
+            };
+
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        // seriesArea padding is legitimate label space, so the collision boundary grows with it: given
+        // enough bottom padding the same `outside-start` label now fits below the bars (in the padding,
+        // clear of the axis labels) and is kept outside rather than falling back to inside-center.
+        it('keeps an outside label that fits within the seriesArea padding', async () => {
+            const data = [
+                { x: 'Q1', base: 90, mid: 30, top: 20 },
+                { x: 'Q2', base: 100, mid: 35, top: 22 },
+                { x: 'Q3', base: 95, mid: 28, top: 18 },
+                { x: 'Q4', base: 110, mid: 32, top: 25 },
+            ];
+            const options: AgChartOptions = {
+                data,
+                seriesArea: { padding: { bottom: 60 } },
+                axes: { y: { type: 'number', min: -1 }, x: { type: 'category' } } as any,
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'base',
+                        stacked: true,
+                        label: { placement: ['outside-start', 'inside-center'], color: 'black' },
+                    },
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'mid',
+                        stacked: true,
+                        label: { placement: ['outside-end', 'inside-center'], color: 'black' },
+                    },
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'top',
+                        stacked: true,
+                        label: { placement: ['outside-end', 'inside-center'], color: 'black' },
+                    },
+                ],
+            };
+
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
     });
 
     describe('item styler', () => {

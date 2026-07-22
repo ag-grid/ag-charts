@@ -188,6 +188,11 @@ interface BarSeriesNodeDatumContext {
     readonly stackedTowardStart: boolean;
     /** True when a stacked series sits toward the far side, so `outside-end` would point into it. */
     readonly stackedTowardEnd: boolean;
+    /**
+     * Series padded rect (plot rect grown by `seriesArea.padding`) in plot-local coordinates — the
+     * collision boundary for cascade outside/beside labels. `undefined` during early-layout races.
+     */
+    readonly plotRegion: { x: number; y: number; width: number; height: number } | undefined;
     readonly bboxBottom: number;
     readonly labelSpacing: number;
     /** Cross-axis wall clearance for inside labels; resolved from `label.collision.threshold`. */
@@ -651,6 +656,17 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         const isStacked = dataModel.hasColumnById(this, 'yValue-start');
         const stackIndex = this.seriesGrouping?.stackIndex ?? 0;
         const stackCount = this.seriesGrouping?.stackCount ?? 0;
+        // Plot-local coordinates, so the seriesArea padding extends the rect into a negative origin.
+        const seriesRect = this.chart?.seriesRect;
+        const seriesAreaPadding = this.chart?.seriesAreaPadding;
+        const plotRegion = seriesRect
+            ? {
+                  x: -(seriesAreaPadding?.left ?? 0),
+                  y: -(seriesAreaPadding?.top ?? 0),
+                  width: seriesRect.width + (seriesAreaPadding?.left ?? 0) + (seriesAreaPadding?.right ?? 0),
+                  height: seriesRect.height + (seriesAreaPadding?.top ?? 0) + (seriesAreaPadding?.bottom ?? 0),
+              }
+            : undefined;
         const { label } = this.properties;
         const labelPlacements = toArray(label.placement);
         if (labelPlacements.length === 0) labelPlacements.push('inside-center');
@@ -702,6 +718,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             crossReversed: this.getCategoryAxis()?.isReversed() ?? false,
             stackedTowardStart: isStacked && stackIndex > 0,
             stackedTowardEnd: isStacked && stackIndex < stackCount - 1,
+            plotRegion,
             // 0n keeps a bigint y-domain on the full-precision convert() path (a numeric 0 narrows to Number).
             bboxBottom: yScale.convert(0n),
             labelSpacing:
@@ -1032,6 +1049,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 crossReversed: ctx.crossReversed,
                 rejectOutsideStart: ctx.stackedTowardStart,
                 rejectOutsideEnd: ctx.stackedTowardEnd,
+                plotRegion: ctx.plotRegion,
             });
             const { anchor, region, placement } = candidates[0];
             const existingLabel = mutableNode.label;

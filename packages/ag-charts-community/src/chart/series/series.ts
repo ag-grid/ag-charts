@@ -390,6 +390,7 @@ export abstract class Series<
         isMiniChart: boolean;
         flashOnUpdateEnabled: boolean;
         seriesRect?: BBox;
+        seriesAreaPadding?: { top: number; right: number; bottom: number; left: number };
     };
 
     axes: { [K in ChartAxisDirection]?: ChartAxis } = {};

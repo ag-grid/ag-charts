@@ -92,6 +92,12 @@ export interface PositionedLabelCandidate {
     readonly box: BoxBounds;
     /** Per-candidate containment rect; falls back to the shared `bounds` when unset. */
     readonly region?: BoxBounds;
+    /**
+     * When `false`, {@link region} is a collision boundary only: a box overflowing it is rejected so the
+     * cascade falls through to the next candidate, rather than being slid flush inside it. Defaults to
+     * flushing (a region-bound `neverDrop` label is clamped into its region).
+     */
+    readonly flushToRegion?: boolean;
     /** Render rotation in degrees (engine convention, matching {@link PlacedLabel.rotation}); `0`/unset is upright. */
     readonly rotation?: number;
 }
@@ -1200,8 +1206,9 @@ function placeFromPositionedCandidates(
         let offsetX = 0;
         let offsetY = 0;
         // Slide a region-bound candidate flush inside its own region (matches the orientation path's
-        // clampAxis flush); a region-less (outside) candidate floats.
-        if (c.region != null && d.neverDrop) {
+        // clampAxis flush); a region-less (outside) candidate floats. A collision-only region
+        // (flushToRegion === false) is not flushed — an overflowing box is left to fail containment below.
+        if (c.region != null && d.neverDrop && c.flushToRegion !== false) {
             const nx = clampAxis(x, cw, region.x, region.width);
             const ny = clampAxis(y, ch, region.y, region.height);
             offsetX = nx - x;

@@ -482,6 +482,7 @@ export function buildBarLabelCandidates({
     crossReversed = false,
     rejectOutsideStart = false,
     rejectOutsideEnd = false,
+    plotRegion,
 }: {
     isUpward: boolean;
     isVertical: boolean;
@@ -495,6 +496,7 @@ export function buildBarLabelCandidates({
     crossReversed?: boolean;
     rejectOutsideStart?: boolean;
     rejectOutsideEnd?: boolean;
+    plotRegion?: Bounds;
 }): BarPositionedCandidate[] {
     // Drop the outside placements that would point into an adjacent stacked segment on that side, so the
     // cascade falls through to a beside/inside candidate rather than mislabelling the neighbour. Keep the
@@ -513,16 +515,27 @@ export function buildBarLabelCandidates({
     }
 
     const insideRegion = insideBarRegion(rect, spacing, threshold, isVertical);
+    // `plotRegion` is a collision-only boundary for outside/beside candidates (flushToRegion: false): a
+    // label overflowing it (e.g. into the axis-label zone) fails containment so the cascade falls through
+    // to the next placement, rather than being clamped into it or floating into the engine's wider bounds.
     const candidates: BarPositionedCandidate[] = [];
     for (const placement of effectivePlacements) {
         const anchor = adjustLabelPlacement({ isUpward, isVertical, placement, spacing, rect, crossReversed });
-        const region = placement.startsWith('inside') ? insideRegion : undefined;
+        const isInside = placement.startsWith('inside');
+        const region = isInside ? insideRegion : plotRegion;
         const centre = labelGlyphCentre(anchor, width, height);
         for (const orientation of orientations) {
             const rotationDeg = orientationAngles[orientation];
             const { width: fw, height: fh } = getMinOuterRectSize(rotationDeg, width, height);
             const box = { x: centre.x - fw / 2, y: centre.y - fh / 2, width: fw, height: fh };
-            candidates.push({ box, region, rotation: rotationDeg || undefined, anchor, placement });
+            candidates.push({
+                box,
+                region,
+                flushToRegion: isInside ? undefined : false,
+                rotation: rotationDeg || undefined,
+                anchor,
+                placement,
+            });
         }
     }
     return candidates;
