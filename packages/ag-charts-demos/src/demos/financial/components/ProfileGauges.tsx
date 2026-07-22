@@ -40,12 +40,6 @@ function linearGauge(
         direction: 'horizontal',
         value,
         thickness: 14,
-        padding: {
-            right: 12,
-            left: 12,
-            bottom: 0,
-            top: 0,
-        },
         scale: {
             min,
             max,
@@ -76,6 +70,12 @@ function linearGauge(
                 spacing: 0,
             },
         ],
+        padding: {
+            right: 12,
+            left: 12,
+            bottom: 0,
+            top: 0,
+        },
     };
 }
 

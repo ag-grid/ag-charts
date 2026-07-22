@@ -21,7 +21,6 @@ export const THEME = {
         },
     },
     params: {
-        chartPadding: 4,
         chartBackgroundColor: 'var(--fin-panel-2)',
         fontFamily: ['ui-monospace', 'SFMono-Regular', 'SF Mono', 'Menlo', 'Consolas', 'monospace'],
         fontWeight: 300,
@@ -41,12 +40,6 @@ export const THEME = {
         common: {
             highlight: {
                 enabled: false,
-            },
-            padding: {
-                top: 8,
-                right: 2,
-                bottom: 2,
-                left: 2,
             },
             axes: {
                 number: {

@@ -83,6 +83,12 @@ export function PeerSpreadHeatmap({ instrument, peerFeed, peerTick, windowMinute
                 scale: { padding: 4 },
                 spacing: 12,
             },
+            padding: {
+                top: 8,
+                right: 2,
+                bottom: 2,
+                left: 2,
+            },
         } as AgCartesianChartOptions;
     }, [data]);
 

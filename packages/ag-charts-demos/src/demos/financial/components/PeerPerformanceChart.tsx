@@ -57,7 +57,6 @@ export function PeerPerformanceChart({ instrument, peerFeed, peerTick, windowMin
             axes: {
                 x: {
                     type: 'ordinal-time',
-                    nice: false,
                     label: { format: '%H:%M' },
                     line: { enabled: false },
                     gridLine: { enabled: true },
@@ -95,6 +94,12 @@ export function PeerPerformanceChart({ instrument, peerFeed, peerTick, windowMin
             },
             legend: { enabled: true, position: 'bottom', spacing: 12, maxHeight: 24 },
             animation: { enabled: false },
+            padding: {
+                top: 8,
+                right: 2,
+                bottom: 2,
+                left: 2,
+            },
         } as AgCartesianChartOptions;
     }, [data, peers, instrument.ticker]);
 

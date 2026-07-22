@@ -6,19 +6,6 @@ import { AgFinancialCharts } from 'ag-charts-react';
 import { THEME } from '../chartTheme';
 import { type ChartDatum } from '../types';
 
-// Widen only the right padding for this chart; a financial preset takes padding
-// through the theme's common overrides, not a top-level `padding` option.
-const CHART_THEME = {
-    ...THEME,
-    overrides: {
-        ...THEME.overrides,
-        common: {
-            ...THEME.overrides.common,
-            padding: { ...THEME.overrides.common.padding, right: 10 },
-        },
-    },
-};
-
 function createFinancialOptions(
     data: ChartDatum[],
     chartType: AgFinancialChartOptions['chartType']
@@ -27,6 +14,7 @@ function createFinancialOptions(
     // zoom state, so the view streams with the trailing window and no initialState is
     // re-applied on each update (which would otherwise reset zoom/chart type).
     return {
+        theme: THEME,
         data,
         chartType,
         dateKey: 'date',
@@ -37,7 +25,6 @@ function createFinancialOptions(
         volumeKey: 'volume',
         volume: true,
         rangeButtons: false,
-        theme: CHART_THEME,
     } as AgFinancialChartOptions;
 }
 
