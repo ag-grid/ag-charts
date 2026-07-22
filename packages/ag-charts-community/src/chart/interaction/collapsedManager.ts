@@ -5,6 +5,7 @@ import type { EventsHub } from '../../core/eventsHub';
 import type { ChartService } from '../chartService';
 
 type CollapsedMemento = string[];
+type CollapsedItemID = string | number;
 
 export class CollapsedManager implements MementoOriginator<CollapsedMemento> {
     mementoOriginatorKey: string = 'collapsed';
@@ -12,7 +13,7 @@ export class CollapsedManager implements MementoOriginator<CollapsedMemento> {
     // Optimised for quick lookup since that will occur more often than mutation.
     private collapsedIds: Record<string, boolean> = {};
 
-    private getDatum: Record<string, (id: string) => unknown> = {};
+    private getDatum: Record<string, (id: CollapsedItemID) => unknown> = {};
 
     constructor(
         private readonly eventsHub: EventsHub,
@@ -35,14 +36,14 @@ export class CollapsedManager implements MementoOriginator<CollapsedMemento> {
         this.eventsHub.emit('collapsed:restore', { collapsed: this.createMemento() });
     }
 
-    setSeriesGetDatumCallback(seriesId: string, getDatum: (id: string) => unknown) {
+    setSeriesGetDatumCallback(seriesId: string, getDatum: (id: CollapsedItemID) => unknown) {
         this.getDatum[seriesId] = getDatum;
         return () => {
             delete this.getDatum[seriesId];
         };
     }
 
-    collapse(ids: (string | number)[], seriesId: string | undefined, source: AgCollapsedChangeEventSource) {
+    collapse(ids: CollapsedItemID[], seriesId: string | undefined, source: AgCollapsedChangeEventSource) {
         let changed = false;
         const after: Record<string, boolean> = {};
         for (const id of ids) {
@@ -69,7 +70,7 @@ export class CollapsedManager implements MementoOriginator<CollapsedMemento> {
         return this.applyChange(change);
     }
 
-    collapseAppend(ids: (string | number)[], seriesId: string | undefined, source: AgCollapsedChangeEventSource) {
+    collapseAppend(ids: CollapsedItemID[], seriesId: string | undefined, source: AgCollapsedChangeEventSource) {
         let changed = false;
         const after = { ...this.collapsedIds };
         for (const id of ids) {
@@ -86,7 +87,7 @@ export class CollapsedManager implements MementoOriginator<CollapsedMemento> {
         return this.applyChange(change);
     }
 
-    expand(ids: (string | number)[], seriesId: string | undefined, source: AgCollapsedChangeEventSource) {
+    expand(ids: CollapsedItemID[], seriesId: string | undefined, source: AgCollapsedChangeEventSource) {
         let changed = false;
 
         const after = { ...this.collapsedIds };
@@ -104,7 +105,7 @@ export class CollapsedManager implements MementoOriginator<CollapsedMemento> {
         return this.applyChange(change);
     }
 
-    isCollapsed(id: string | number) {
+    isCollapsed(id: CollapsedItemID) {
         return Boolean(this.collapsedIds[String(id)]);
     }
 
