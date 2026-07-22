@@ -18,11 +18,13 @@ export const AG_CHARTS_LOCALE_ZH_TW: Record<string, string> = {
     ariaAnnounceOrgChartLeaf: '${description}, 層級 ${level}[number], ${posInSet}[number] 之 ${setSize}[number]',
     // Screen reader announcement when focusing a parent node in an Organization chart
     ariaAnnounceOrgChartParent:
-        '${description}, 層級 ${level}[number], ${posInSet}[number] 之 ${setSize}[number], ${collapsedState}, ${childCount}[number] 個子項目, 按回車鍵或空格鍵切換',
+        '${description}, 層級 ${level}[number], ${posInSet}[number] 之 ${setSize}[number], ${collapsedState}, ${childCount}[number] 個子項目',
     ariaAnnounceOrgChartParentSingular:
-        '${description}, 層級 ${level}[number], ${posInSet}[number] 之 ${setSize}[number], ${collapsedState}, 1 個子項目, 按回車鍵或空格鍵切換',
+        '${description}, 層級 ${level}[number], ${posInSet}[number] 之 ${setSize}[number], ${collapsedState}, 1 個子項目',
     ariaOrgChartCollapsed: '已收合',
     ariaOrgChartExpanded: '已展開',
+    ariaDescriptionExpandNode: '按 Alt + 向下箭頭展開此節點',
+    ariaDescriptionCollapseNode: '按 Alt + 向上箭頭收合此節點',
     ariaAnnounceGaugeChart: '儀表板圖表, ${caption}',
     ariaAnnounceHierarchyChart: '階層圖表, ${caption}',
     ariaAnnounceHierarchyDatum: '層級 ${level}[number]，${count}[number] 個子項目，${description}',

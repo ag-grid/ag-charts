@@ -720,22 +720,26 @@ export abstract class FlowProportionSeries<
             : { datum: minDatum, distance: Math.sqrt(minDistanceSquared), target: minNode };
     }
 
-    getDatumAriaText(datum: TDatum<TNodeDatum, TLinkDatum>, description: string) {
+    override getDatumAriaMeta(datum: TDatum<TNodeDatum, TLinkDatum>, description: string) {
         if (datum.type === FlowProportionDatumType.Link) {
-            return this.ctx.localeManager.t('ariaAnnounceFlowProportionLink', {
-                index: toFlowLinkAriaIndex(datum.datumIndex),
-                count: this.linkCount,
-                from: datum.fromNode.id,
-                to: datum.toNode.id,
-                size: datum.size,
-                sizeName: this.properties.sizeName ?? this.properties.sizeKey,
-            });
+            return {
+                text: this.ctx.localeManager.t('ariaAnnounceFlowProportionLink', {
+                    index: toFlowLinkAriaIndex(datum.datumIndex),
+                    count: this.linkCount,
+                    from: datum.fromNode.id,
+                    to: datum.toNode.id,
+                    size: datum.size,
+                    sizeName: this.properties.sizeName ?? this.properties.sizeKey,
+                }),
+            };
         } else if (datum.type === FlowProportionDatumType.Node) {
-            return this.ctx.localeManager.t('ariaAnnounceFlowProportionNode', {
-                index: toFlowNodeAriaIndex(datum.datumIndex),
-                count: this.nodeCount,
-                description,
-            });
+            return {
+                text: this.ctx.localeManager.t('ariaAnnounceFlowProportionNode', {
+                    index: toFlowNodeAriaIndex(datum.datumIndex),
+                    count: this.nodeCount,
+                    description,
+                }),
+            };
         }
     }
 

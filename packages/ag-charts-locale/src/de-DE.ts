@@ -18,11 +18,13 @@ export const AG_CHARTS_LOCALE_DE_DE: Record<string, string> = {
     ariaAnnounceOrgChartLeaf: '${description}, Ebene ${level}[number], ${posInSet}[number] von ${setSize}[number]',
     // Screen reader announcement when focusing a parent node in an Organization chart
     ariaAnnounceOrgChartParent:
-        '${description}, Ebene ${level}[number], ${posInSet}[number] von ${setSize}[number], ${collapsedState}, ${childCount}[number] untergeordnete Elemente, drücken Sie die Eingabetaste oder die Leertaste zum Umschalten',
+        '${description}, Ebene ${level}[number], ${posInSet}[number] von ${setSize}[number], ${collapsedState}, ${childCount}[number] untergeordnete Elemente',
     ariaAnnounceOrgChartParentSingular:
-        '${description}, Ebene ${level}[number], ${posInSet}[number] von ${setSize}[number], ${collapsedState}, 1 untergeordnetes Element, drücken Sie die Eingabetaste oder die Leertaste zum Umschalten',
+        '${description}, Ebene ${level}[number], ${posInSet}[number] von ${setSize}[number], ${collapsedState}, 1 untergeordnetes Element',
     ariaOrgChartCollapsed: 'eingeklappt',
     ariaOrgChartExpanded: 'ausgeklappt',
+    ariaDescriptionExpandNode: 'Drücken Sie Alt + Pfeil nach unten, um diesen Knoten zu erweitern',
+    ariaDescriptionCollapseNode: 'Drücken Sie Alt + Pfeil nach oben, um diesen Knoten zu reduzieren',
     ariaAnnounceGaugeChart: 'Tachometerdiagramm, ${caption}',
     ariaAnnounceHierarchyChart: 'Hierarchiediagramm, ${caption}',
     ariaAnnounceHierarchyDatum: 'Ebene ${level}[number], ${count}[number] Kinder, ${description}',

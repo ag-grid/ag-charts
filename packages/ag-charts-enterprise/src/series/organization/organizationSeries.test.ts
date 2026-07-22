@@ -1772,7 +1772,7 @@ describe('OrganizationSeries', () => {
             await waitForChartStability(chart);
             // Identity-first ordering matches WAI-ARIA tree conventions: name before metadata.
             expect(readLiveAnnouncement()).toBe(
-                'Bob Smith, Chief Technology Officer, London, level 2, 1 of 2, expanded, 2 children, press Enter or Space to toggle'
+                'Bob Smith, Chief Technology Officer, London, level 2, 1 of 2, expanded, 2 children. Press ALT UP to collapse this node'
             );
         });
 
@@ -1799,7 +1799,7 @@ describe('OrganizationSeries', () => {
             pressArrowOnSeriesArea('ArrowRight');
             await waitForChartStability(chart);
             expect(readLiveAnnouncement()).toBe(
-                'Carol Wu, Chief Financial Officer, London, level 2, 2 of 2, expanded, 1 child, press Enter or Space to toggle'
+                'Carol Wu, Chief Financial Officer, London, level 2, 2 of 2, expanded, 1 child. Press ALT UP to collapse this node'
             );
         });
 
@@ -1811,7 +1811,7 @@ describe('OrganizationSeries', () => {
             pressArrowOnSeriesArea('ArrowDown');
             await waitForChartStability(chart);
             expect(readLiveAnnouncement()).toBe(
-                'Bob Smith, Chief Technology Officer, London, level 2, 1 of 2, collapsed, 2 children, press Enter or Space to toggle'
+                'Bob Smith, Chief Technology Officer, London, level 2, 1 of 2, collapsed, 2 children. Press ALT DOWN to expand this node'
             );
         });
     });

@@ -18,11 +18,13 @@ export const AG_CHARTS_LOCALE_NB_NO: Record<string, string> = {
     ariaAnnounceOrgChartLeaf: '${description}, nivå ${level}[number], ${posInSet}[number] av ${setSize}[number]',
     // Screen reader announcement when focusing a parent node in an Organization chart
     ariaAnnounceOrgChartParent:
-        '${description}, nivå ${level}[number], ${posInSet}[number] av ${setSize}[number], ${collapsedState}, ${childCount}[number] underordnede, trykk Enter eller mellomromstasten for å bytte',
+        '${description}, nivå ${level}[number], ${posInSet}[number] av ${setSize}[number], ${collapsedState}, ${childCount}[number] underordnede',
     ariaAnnounceOrgChartParentSingular:
-        '${description}, nivå ${level}[number], ${posInSet}[number] av ${setSize}[number], ${collapsedState}, 1 underordnet, trykk Enter eller mellomromstasten for å bytte',
+        '${description}, nivå ${level}[number], ${posInSet}[number] av ${setSize}[number], ${collapsedState}, 1 underordnet',
     ariaOrgChartCollapsed: 'skjult',
     ariaOrgChartExpanded: 'utvidet',
+    ariaDescriptionExpandNode: 'Trykk på Alt + Pil ned for å utvide denne noden',
+    ariaDescriptionCollapseNode: 'Trykk på Alt + Pil opp for å skjule denne noden',
     ariaAnnounceGaugeChart: 'målerdiagram, ${caption}',
     ariaAnnounceHierarchyChart: 'hierarkidiagram, ${caption}',
     ariaAnnounceHierarchyDatum: 'nivå ${level}[number], ${count}[number] barn, ${description}',

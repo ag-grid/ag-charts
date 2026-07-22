@@ -1140,13 +1140,20 @@ export class SeriesAreaManager extends BaseManager {
         tooltipContent: TooltipContent[]
     ): string {
         const description = tooltipContent == null ? '' : tooltipContentAriaLabel(tooltipContent);
+        const ariaMeta = datum.series.getDatumAriaMeta(datum, description);
         const datumText = this.chart.ctx.localeManager.t('ariaAnnounceHoverDatum', {
-            datum: datum.series.getDatumAriaText?.(datum, description) ?? description,
+            datum: ariaMeta?.text ?? description,
         });
+
+        // TODO: We may want to use the 'aria-describedby' attribute for interaction instructions (similar to how we do
+        // it with legend items).
+        const withInstructions = (text: string): string => {
+            return ariaMeta?.instructions ? [text, ...ariaMeta.instructions].join('. ') : text;
+        };
 
         const dataSelectionStateText = this.getSelectedStateAriaText(datum);
         if (dataSelectionStateText === undefined) {
-            return datumText;
+            return withInstructions(datumText);
         } else {
             // When using the Arrow/Tab keys, announce the 'selected/unselected' state at the end.
             //
@@ -1155,9 +1162,9 @@ export class SeriesAreaManager extends BaseManager {
             // like a HTML tickbox.
             switch (source) {
                 case 'keynav':
-                    return [datumText, dataSelectionStateText].join(', ');
+                    return withInstructions([datumText, dataSelectionStateText].join(', '));
                 case 'selectionChange':
-                    return [dataSelectionStateText, datumText].join(', ');
+                    return withInstructions([dataSelectionStateText, datumText].join(', '));
                 default:
                     return source satisfies never; // check for exhaustiveness
             }
