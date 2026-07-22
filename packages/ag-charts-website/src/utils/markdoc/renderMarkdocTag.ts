@@ -189,6 +189,6 @@ function renderLicenseSetup(framework: MarkdownFramework, siteRoot?: string): st
 
 // Interactive trial-licence request form; link to the licensing page instead.
 function renderTrialLicenceForm(siteRoot?: string): string {
-    const url = toAbsoluteUrl('/license-pricing/', siteRoot);
+    const url = toAbsoluteUrl(urlWithBaseUrl('/license-pricing/'), siteRoot);
     return `[Request a 30-day Enterprise Bundle trial licence](${url})`;
 }
