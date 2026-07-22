@@ -192,6 +192,14 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         return { sortedChildrenIndices, childAt };
     }
 
+    // Only nodes with a bbox render, so resetting these fields is what hides the node.
+    private hideNode(node: TreemapNode) {
+        node.bbox = undefined;
+        node.padding = undefined;
+        node.midPoint.x = Number.NaN;
+        node.midPoint.y = Number.NaN;
+    }
+
     /**
      * Squarified Treemap algorithm
      * https://www.win.tue.nl/~vanwijk/stm.pdf
@@ -200,20 +208,14 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         const { datum, children } = node;
 
         if (bbox.width <= 0 || bbox.height <= 0) {
-            node.bbox = undefined;
-            node.padding = undefined;
-            node.midPoint.x = Number.NaN;
-            node.midPoint.y = Number.NaN;
+            node.walk((n) => this.hideNode(n));
             return;
         }
 
         const padding = datum == null ? { top: 0, right: 0, bottom: 0, left: 0 } : this.getNodePadding(node, bbox);
 
         if (node.parent == null) {
-            node.bbox = undefined;
-            node.padding = undefined;
-            node.midPoint.x = Number.NaN;
-            node.midPoint.y = Number.NaN;
+            this.hideNode(node);
         } else {
             node.bbox = bbox;
             node.padding = padding;
@@ -229,7 +231,14 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         const width = bbox.width - padding.left - padding.right;
         const height = bbox.height - padding.top - padding.bottom;
 
-        if (width <= 0 || height <= 0) return;
+        // A group whose inner box collapses under its own padding can lay out no child, so hide the
+        // whole subtree — otherwise it renders as an empty container tile in space no real tile fills.
+        if (width <= 0 || height <= 0) {
+            if (children.length > 0) {
+                node.walk((n) => this.hideNode(n));
+            }
+            return;
+        }
 
         const numChildren = sortedChildrenIndices.length;
         let stackSum = 0;

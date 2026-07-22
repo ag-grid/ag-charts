@@ -1388,6 +1388,117 @@ describe('TreemapSeries', () => {
         });
     });
 
+    describe('AG-17926 zero-area tiles do not consume layout space', () => {
+        // One large group dwarfs many small groups so each small group's box shrinks below its own
+        // padding and can lay out no child — the content-less group tile this suite must not render.
+        const skewedGroups = () => {
+            const groups: any[] = [{ name: 'Big', children: [{ name: 'b', size: 100000 }] }];
+            for (let i = 0; i < 120; i++) {
+                groups.push({ name: `S${i}`, children: [{ name: 'c', size: 1 }] });
+            }
+            return groups;
+        };
+        const treemapAt = (width: number, height: number): AgChartOptions => {
+            const options = prepareEnterpriseTestOptions({
+                data: skewedGroups(),
+                series: [{ type: 'treemap', labelKey: 'name', sizeKey: 'size' }],
+                animation: { enabled: false },
+            } as AgChartOptions);
+            options.width = width;
+            options.height = height;
+            return options;
+        };
+
+        // A laid-out group with no laid-out child renders only its own padding/background — a
+        // content-less tile occupying space no real tile fills. Every rendered group must contain
+        // at least one rendered child.
+        const contentlessGroups = (series: TreemapSeries): string[] => {
+            const result: string[] = [];
+            (series as any).rootNode?.walk((node: any) => {
+                const isRenderedGroup = node.datum != null && node.children.length > 0 && node.bbox != null;
+                if (isRenderedGroup && !node.children.some((child: any) => child.bbox != null)) {
+                    result.push(node.datum.name);
+                }
+            });
+            return result;
+        };
+        const renderedTileCount = (series: TreemapSeries): number =>
+            Array.from((series as any).datumSelection.nodes()).filter((rect: any) => rect.visible).length;
+
+        it('renders no content-less group tiles at large scale', async () => {
+            const proxy = AgCharts.create(treemapAt(1600, 1200));
+            chart = deproxy(proxy);
+            await waitForChartStability(chart);
+            const series = chart.series[0] as TreemapSeries;
+
+            // Anti-vacuity: the treemap actually rendered its dominant tile, so the assertion runs
+            // against a laid-out chart rather than a blank scene.
+            expect(renderedTileCount(series)).toBeGreaterThan(0);
+            expect(contentlessGroups(series)).toEqual([]);
+        });
+
+        it('renders no content-less group tiles after the container grows', async () => {
+            const proxy = AgCharts.create(treemapAt(200, 150));
+            chart = deproxy(proxy);
+            await waitForChartStability(chart);
+
+            await proxy.update(treemapAt(1600, 1200));
+            await waitForChartStability(chart);
+            const series = chart.series[0] as TreemapSeries;
+
+            expect(renderedTileCount(series)).toBeGreaterThan(0);
+            expect(contentlessGroups(series)).toEqual([]);
+        });
+
+        // Shrinking to where the groups collapse must not leave descendant tiles rendered at their
+        // stale large-layout positions (a tile outside the current, smaller series rect).
+        const nestedGroups = () =>
+            Array.from({ length: 6 }, (_, g) => ({
+                name: `G${g}`,
+                children: Array.from({ length: 4 }, (_child, c) => ({ name: `G${g}-${c}`, size: c + 1 })),
+            }));
+        const nestedAt = (width: number, height: number): AgChartOptions => {
+            const options = prepareEnterpriseTestOptions({
+                data: nestedGroups(),
+                series: [{ type: 'treemap', labelKey: 'name', sizeKey: 'size' }],
+                animation: { enabled: false },
+            } as AgChartOptions);
+            options.width = width;
+            options.height = height;
+            return options;
+        };
+        const tilesOutsideSeriesRect = (series: TreemapSeries, rect: { width: number; height: number }): number => {
+            const tol = 1;
+            let count = 0;
+            (series as any).rootNode?.walk((node: any) => {
+                const bbox = node.bbox;
+                if (
+                    bbox != null &&
+                    (bbox.x < -tol ||
+                        bbox.y < -tol ||
+                        bbox.x + bbox.width > rect.width + tol ||
+                        bbox.y + bbox.height > rect.height + tol)
+                ) {
+                    count++;
+                }
+            });
+            return count;
+        };
+
+        it('leaves no stale tiles outside the series rect after the container shrinks', async () => {
+            const proxy = AgCharts.create(nestedAt(1200, 900));
+            chart = deproxy(proxy);
+            await waitForChartStability(chart);
+
+            await proxy.update(nestedAt(48, 36));
+            await waitForChartStability(chart);
+            const series = chart.series[0] as TreemapSeries;
+
+            expect(tilesOutsideSeriesRect(series, chart.seriesRect)).toBe(0);
+            expect(contentlessGroups(series)).toEqual([]);
+        });
+    });
+
     // These model the org-chart reset()/randomise() actions — a deep-shuffle of the hierarchy tree
     // followed by a re-render. Probing the frame trajectory (see the animation-trajectory-tests
     // rule) shows the treemap does NOT animate: the animation batch is skipped for both the initial
