@@ -50,6 +50,7 @@ import type {
     OrganizationEdge,
     OrganizationLinkDatum,
     OrganizationVertex,
+    OrganizationVertexID,
 } from './organizationTypes';
 
 const { keyProperty, valueProperty } = _ModuleSupport;
@@ -342,11 +343,11 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         return { type: styles.interpolation.type, cornerRadius: styles.interpolation.cornerRadius };
     }
 
-    expandNetworkToItem(itemIdOrIndex: string | number, source: AgCollapsedChangeEventSource) {
+    expandNetworkToItem(itemId: OrganizationVertexID, source: AgCollapsedChangeEventSource) {
         const { dataModel, processedData } = this;
         if (!dataModel || !processedData) return;
 
-        const id = this.resolveItemId(itemIdOrIndex);
+        const id = this.resolveItemId(itemId);
         if (id == null) return;
 
         let vertex = this.graph.findVertexById(id);
@@ -354,7 +355,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
         // Iterate up the parents until we reach the root node, which does not have a datumIndex, and expand the full
         // ancestry to ensure the active node is visible.
-        const ids = [];
+        const ids: OrganizationVertexID[] = [];
         const idValues = dataModel.resolveKeysById(this, 'idValue', processedData);
         while (
             (vertex = this.graph.findNeighbour(vertex, 'parent') as
@@ -369,8 +370,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         this.expand(ids, source);
     }
 
-    expandItem(itemIdOrIndex: string | number, source: AgCollapsedChangeEventSource) {
-        const id = this.resolveItemId(itemIdOrIndex);
+    expandItem(itemId: OrganizationVertexID, source: AgCollapsedChangeEventSource) {
+        const id = this.resolveItemId(itemId);
         if (id == null) return;
 
         if (this.ctx.collapsedManager.expand([id], this.id, source)) {
@@ -378,8 +379,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         }
     }
 
-    collapseItem(itemIdOrIndex: string | number, source: AgCollapsedChangeEventSource) {
-        const id = this.resolveItemId(itemIdOrIndex);
+    collapseItem(itemId: OrganizationVertexID, source: AgCollapsedChangeEventSource) {
+        const id = this.resolveItemId(itemId);
         if (id == null) return;
 
         if (this.ctx.collapsedManager.collapseAppend([id], this.id, source)) {
@@ -475,8 +476,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         };
     }
 
-    findNodeDatum(itemIdOrIndex: AgActiveItemState['itemId']): OrganizationDatum | undefined {
-        const id = this.resolveItemId(itemIdOrIndex);
+    findNodeDatum(itemId: AgActiveItemState['itemId']): OrganizationDatum | undefined {
+        const id = this.resolveItemId(itemId);
         if (id == null) return undefined;
 
         const vertex = this.graph.findVertexById(id);
@@ -1353,7 +1354,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     }
 
     // Resolve as a real vertex id first; only a number matching no vertex is treated as a datumSelection index.
-    private resolveItemId(itemIdOrIndex: string | number): string | number | undefined {
+    private resolveItemId(itemIdOrIndex: string | number): OrganizationVertexID | undefined {
         if (this.graph.findVertexById(itemIdOrIndex) != null) {
             return itemIdOrIndex;
         }

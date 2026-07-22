@@ -4,15 +4,16 @@ import type { AgCollapsedChangeEventSource } from 'ag-charts-types';
 import type { EventsHub } from '../../core/eventsHub';
 import type { ChartService } from '../chartService';
 
-type CollapsedMemento = string[];
+type CollapsedItemID = string | number;
+type CollapsedMemento = CollapsedItemID[];
 
 export class CollapsedManager implements MementoOriginator<CollapsedMemento> {
     mementoOriginatorKey: string = 'collapsed';
 
     // Optimised for quick lookup since that will occur more often than mutation.
-    private collapsedIds: Record<string, boolean> = {};
+    private collapsedIds: Set<CollapsedItemID> = new Set();
 
-    private getDatum: Record<string, (id: string) => unknown> = {};
+    private getDatum: Record<string, (id: CollapsedItemID) => unknown> = {};
 
     constructor(
         private readonly eventsHub: EventsHub,
@@ -20,7 +21,7 @@ export class CollapsedManager implements MementoOriginator<CollapsedMemento> {
     ) {}
 
     createMemento(): CollapsedMemento {
-        return Object.keys(this.collapsedIds);
+        return Array.from(this.collapsedIds);
     }
 
     guardMemento(blob: unknown): blob is CollapsedMemento | undefined {
@@ -35,85 +36,89 @@ export class CollapsedManager implements MementoOriginator<CollapsedMemento> {
         this.eventsHub.emit('collapsed:restore', { collapsed: this.createMemento() });
     }
 
-    setSeriesGetDatumCallback(seriesId: string, getDatum: (id: string) => unknown) {
+    setSeriesGetDatumCallback(seriesId: string, getDatum: (id: CollapsedItemID) => unknown) {
         this.getDatum[seriesId] = getDatum;
         return () => {
             delete this.getDatum[seriesId];
         };
     }
 
-    collapse(ids: (string | number)[], seriesId: string | undefined, source: AgCollapsedChangeEventSource) {
+    collapse(ids: CollapsedItemID[], seriesId: string | undefined, source: AgCollapsedChangeEventSource) {
         let changed = false;
-        const after: Record<string, boolean> = {};
+
+        const after: Set<CollapsedItemID> = new Set();
+        const justCollapsed: CollapsedItemID[] = [];
+        const justExpanded: CollapsedItemID[] = [];
+
         for (const id of ids) {
-            const key = String(id);
-            changed ||= !this.collapsedIds[key];
-            after[key] = true;
+            const just = !this.collapsedIds.has(id);
+            if (just) justCollapsed.push(id);
+            changed ||= just;
+            after.add(id);
         }
 
         // Detect implicit expansions: previous map ids missing from `after` are now expanded.
-        if (!changed) {
-            for (const prevId of Object.keys(this.collapsedIds)) {
-                if (!after[prevId]) {
-                    changed = true;
-                    break;
-                }
-            }
+        for (const prevId of this.collapsedIds) {
+            const just = !after.has(prevId);
+            if (just) justExpanded.push(prevId);
+            changed ||= just;
         }
 
-        const change = { collapsedIds: after, changed };
-
-        const defaultPrevented = this.callListener(change, seriesId, source);
+        const defaultPrevented = this.callListener(justCollapsed, justExpanded, seriesId, source);
         if (defaultPrevented) return false;
 
-        return this.applyChange(change);
+        return this.applyChange(after, changed);
     }
 
-    collapseAppend(ids: (string | number)[], seriesId: string | undefined, source: AgCollapsedChangeEventSource) {
-        let changed = false;
-        const after = { ...this.collapsedIds };
-        for (const id of ids) {
-            const key = String(id);
-            changed ||= !after[key];
-            after[key] = true;
-        }
-
-        const change = { collapsedIds: after, changed };
-
-        const defaultPrevented = this.callListener(change, seriesId, source);
-        if (defaultPrevented) return false;
-
-        return this.applyChange(change);
-    }
-
-    expand(ids: (string | number)[], seriesId: string | undefined, source: AgCollapsedChangeEventSource) {
+    collapseAppend(ids: CollapsedItemID[], seriesId: string | undefined, source: AgCollapsedChangeEventSource) {
         let changed = false;
 
-        const after = { ...this.collapsedIds };
+        const after = new Set(this.collapsedIds);
+        const justCollapsed: CollapsedItemID[] = [];
+
         for (const id of ids) {
-            const key = String(id);
-            changed ||= Boolean(after[key]);
-            delete after[key];
+            const just = !after.has(id);
+            if (just) justCollapsed.push(id);
+            changed ||= just;
+            after.add(id);
         }
 
-        const change = { collapsedIds: after, changed };
-
-        const defaultPrevented = this.callListener(change, seriesId, source);
+        const defaultPrevented = this.callListener(justCollapsed, [], seriesId, source);
         if (defaultPrevented) return false;
 
-        return this.applyChange(change);
+        return this.applyChange(after, changed);
     }
 
-    isCollapsed(id: string | number) {
-        return Boolean(this.collapsedIds[String(id)]);
+    expand(ids: CollapsedItemID[], seriesId: string | undefined, source: AgCollapsedChangeEventSource) {
+        let changed = false;
+
+        const after = new Set(this.collapsedIds);
+        const justExpanded: CollapsedItemID[] = [];
+
+        for (const id of ids) {
+            const just = after.has(id);
+            if (just) justExpanded.push(id);
+            changed ||= just;
+            after.delete(id);
+        }
+
+        const defaultPrevented = this.callListener([], justExpanded, seriesId, source);
+        if (defaultPrevented) return false;
+
+        return this.applyChange(after, changed);
+    }
+
+    isCollapsed(id: CollapsedItemID) {
+        return this.collapsedIds.has(id);
     }
 
     private callListener(
-        { collapsedIds, changed }: { collapsedIds: Record<string, boolean>; changed: boolean },
+        justCollapsed: CollapsedItemID[],
+        justExpanded: CollapsedItemID[],
         seriesId: string | undefined,
         source: AgCollapsedChangeEventSource
     ) {
-        if (!changed) return;
+        if (justCollapsed.length === 0 && justExpanded.length === 0) return;
 
         let defaultPrevented = false;
         const preventDefault = () => {
@@ -126,7 +131,11 @@ export class CollapsedManager implements MementoOriginator<CollapsedMemento> {
             type: 'collapsedChange',
             source,
             preventDefault,
-            collapsed: Object.keys(collapsedIds).map((id) => ({
+            collapsed: justCollapsed.map((id) => ({
+                itemId: id,
+                datum: getDatum ? getDatum(id) : null,
+            })),
+            expanded: justExpanded.map((id) => ({
                 itemId: id,
                 datum: getDatum ? getDatum(id) : null,
             })),
@@ -135,7 +144,7 @@ export class CollapsedManager implements MementoOriginator<CollapsedMemento> {
         return defaultPrevented;
     }
 
-    private applyChange({ collapsedIds, changed }: { collapsedIds: Record<string, boolean>; changed: boolean }) {
+    private applyChange(collapsedIds: Set<CollapsedItemID>, changed: boolean) {
         if (!changed) return false;
 
         this.collapsedIds = collapsedIds;
