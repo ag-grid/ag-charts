@@ -88,6 +88,11 @@ export interface BucketLookupFeature {
     setActiveFilter(processedData: ProcessedData<any>, filter: AggregationFilterBase | undefined): void;
 }
 
+export interface ISeriesAriaMeta {
+    readonly text: string;
+    readonly instructions?: string[];
+}
+
 export interface INodeEvent<TEvent extends string = SeriesNodeEventTypes> extends TypedEvent {
     readonly type: TEvent;
     // Note: this is typically a MouseEvent, but it can be a TouchEvent or KeyboardEvent too.
@@ -133,7 +138,7 @@ export interface ISeries<TDatum extends SeriesNodeDatum, TProps extends ISeriesP
     getLabelDefaults?(): SeriesLabelDefaults | undefined;
     getLabelObstacles?(): LabelObstacle[] | undefined;
     getTooltipContent(datumIndex: DatumIndex, removeThisDatum: TDatum | undefined): TooltipContent | undefined;
-    getDatumAriaText?(seriesDatum: TDatum, description: string): string | undefined;
+    getDatumAriaMeta(seriesDatum: TDatum, description: string): ISeriesAriaMeta | undefined;
     getCategoryValue(datumIndex: number): any;
     datumIndexForCategoryValue(categoryValue: any): DatumIndex | undefined;
     isHighlightEnabled(): boolean;

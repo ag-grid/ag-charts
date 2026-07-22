@@ -446,16 +446,18 @@ export abstract class HierarchySeries<
         };
     }
 
-    getDatumAriaText(datum: SeriesNodeDatum, description: string): string | undefined {
+    override getDatumAriaMeta(datum: SeriesNodeDatum, description: string) {
         if (!(datum instanceof this.NodeClass)) {
             this.ctx.logger.error(`datum is not HierarchyNode: ${JSON.stringify(datum)}`);
-            return;
+            return undefined;
         }
-        return this.ctx.localeManager.t('ariaAnnounceHierarchyDatum', {
-            level: (datum.depth ?? -1) + 1,
-            count: datum.children.length,
-            description,
-        });
+        return {
+            text: this.ctx.localeManager.t('ariaAnnounceHierarchyDatum', {
+                level: (datum.depth ?? -1) + 1,
+                count: datum.children.length,
+                description,
+            }),
+        };
     }
 
     getCategoryValue(_datumIndex: DatumIndex) {

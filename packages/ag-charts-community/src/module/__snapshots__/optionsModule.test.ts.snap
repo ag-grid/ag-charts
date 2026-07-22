@@ -321,10 +321,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -402,10 +399,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -483,10 +477,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -1119,10 +1110,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -1520,10 +1508,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -1603,10 +1588,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -1686,10 +1668,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -1769,10 +1748,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -1852,10 +1828,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -1935,10 +1908,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -2018,10 +1988,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -3860,10 +3827,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -3941,10 +3905,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -4022,10 +3983,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -4103,10 +4061,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -4504,10 +4459,7 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -4598,10 +4550,7 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -4692,10 +4641,7 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -4786,10 +4732,7 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -4880,10 +4823,7 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -8864,10 +8804,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -8948,10 +8885,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -9032,10 +8966,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -9116,10 +9047,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -9200,10 +9128,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -9284,10 +9209,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -9368,10 +9290,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -9452,10 +9371,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -9536,10 +9452,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -9620,10 +9533,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -9704,10 +9614,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -9788,10 +9695,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -9872,10 +9776,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -9956,10 +9857,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -10040,10 +9938,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -10124,10 +10019,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -10516,10 +10408,7 @@ exports[`ChartOptions > #prepareOptions > for LOG_AXIS_EXAMPLE it should prepare
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -10916,10 +10805,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -11018,10 +10904,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -11120,10 +11003,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -11222,10 +11102,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -11324,10 +11201,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -11426,10 +11300,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -11528,10 +11399,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -13432,10 +13300,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -13523,10 +13388,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -13614,10 +13476,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -13705,10 +13564,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -14911,10 +14767,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -14993,10 +14846,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -16120,10 +15970,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -16218,10 +16065,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -16316,10 +16160,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -16414,10 +16255,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -16512,10 +16350,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,
@@ -16610,10 +16445,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
           "color": "#181d1f",
         },
         "padding": 8,
-        "placement": [
-          "top",
-          "bottom",
-        ],
+        "placement": "top",
       },
       "lineDash": [
         0,

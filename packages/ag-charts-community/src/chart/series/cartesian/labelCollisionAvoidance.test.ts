@@ -196,9 +196,8 @@ describe('label collision avoidance', () => {
         }
     });
 
-    // Line and area default collision avoidance off; the theme default placement `['top', 'bottom']`
-    // is a directional fallback list that must still cascade to fit the bounds, and a user value must
-    // override the theme default rather than merge into it.
+    // Line and area default collision avoidance off; the theme default placement `'top'` is a scalar
+    // that seats every label above its point, and a user value must override the theme default.
     describe('placement without collision avoidance (opt-out default)', () => {
         const sparseData = Array.from({ length: 5 }, (_, i) => ({ x: i, y: 50 }));
 
@@ -240,17 +239,14 @@ describe('label collision avoidance', () => {
         };
 
         for (const type of ['line', 'area'] as const) {
-            // The default placement `['top', 'bottom']` cascades with avoidance off. Line's degenerate
-            // domain centres the point, so 'top' fits and is kept; area's domain includes the zero
-            // baseline, seating y:50 at the top edge, so 'top' overflows and the list falls to 'bottom'.
-            it(`${type}: resolves the default top→bottom fallback list to fit the bounds`, async () => {
-                const expectedPlacement = type === 'area' ? 'bottom' : 'top';
-                const offsetSign = expectedPlacement === 'bottom' ? 1 : -1;
+            // The scalar default placement `'top'` seats every label above its point with avoidance
+            // off, regardless of whether 'top' fits the bounds.
+            it(`${type}: seats labels above the point by default`, async () => {
                 const placed = await render(type);
                 expect(placed.length).toBe(sparseData.length);
                 for (const label of placed) {
-                    expect(label.placement).toBe(expectedPlacement);
-                    expect(Math.sign(label.y - label.datum.point.y)).toBe(offsetSign);
+                    expect(label.placement).toBe('top');
+                    expect(Math.sign(label.y - label.datum.point.y)).toBe(-1);
                 }
             });
 

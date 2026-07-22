@@ -68,7 +68,16 @@ type Bounds = {
     height: number;
 };
 
-export type BarLabelPlacement = 'inside-center' | 'inside-start' | 'inside-end' | 'outside-start' | 'outside-end';
+/** Bar `beside-*` placements offset a label perpendicular to the value axis, to the side of its segment. */
+export type BesideBarLabelPlacement = `beside-${'before' | 'after'}-${'start' | 'center' | 'end'}`;
+
+export type BarLabelPlacement =
+    | 'inside-center'
+    | 'inside-start'
+    | 'inside-end'
+    | 'outside-start'
+    | 'outside-end'
+    | BesideBarLabelPlacement;
 
 /** A label's resolved inside/outside placement, selecting which placement-style overrides apply. */
 export type ResolvedLabelPlacement = 'inside' | 'outside';
@@ -322,12 +331,34 @@ interface PlacementConfig {
     textAlignment: -1 | 1;
 }
 
-const placements: Record<Exclude<BarLabelPlacement, 'inside-center'>, PlacementConfig> = {
+const placements: Record<Exclude<BarLabelPlacement, 'inside-center' | BesideBarLabelPlacement>, PlacementConfig> = {
     'inside-start': { inside: true, direction: -1, textAlignment: 1 },
     'inside-end': { inside: true, direction: 1, textAlignment: -1 },
     'outside-start': { inside: false, direction: -1, textAlignment: -1 },
     'outside-end': { inside: false, direction: 1, textAlignment: 1 },
 };
+
+function isBesidePlacement(placement: BarLabelPlacement): placement is BesideBarLabelPlacement {
+    return placement.startsWith('beside-');
+}
+
+/**
+ * Resolves a `beside-*` placement into the side it sits on (`after` = the far side of the cross axis
+ * before any reversal) and the along-value-axis anchor it reuses from the matching `inside-*` placement.
+ */
+function besideValuePlacement(placement: BesideBarLabelPlacement): {
+    after: boolean;
+    valuePlacement: Exclude<BarLabelPlacement, BesideBarLabelPlacement>;
+} {
+    const after = placement.includes('-after-');
+    let align: 'start' | 'center' | 'end' = 'center';
+    if (placement.endsWith('-start')) {
+        align = 'start';
+    } else if (placement.endsWith('-end')) {
+        align = 'end';
+    }
+    return { after, valuePlacement: `inside-${align}` };
+}
 
 export function adjustLabelPlacement({
     isUpward,
@@ -339,6 +370,7 @@ export function adjustLabelPlacement({
     rotation = 0,
     labelWidth = 0,
     labelHeight = 0,
+    crossReversed = false,
 }: {
     placement: BarLabelPlacement;
     isUpward: boolean;
@@ -349,6 +381,7 @@ export function adjustLabelPlacement({
     rotation?: number;
     labelWidth?: number;
     labelHeight?: number;
+    crossReversed?: boolean;
 }): Omit<LabelDatum, 'text'> {
     let x = rect.x + rect.width / 2;
     let y = rect.y + rect.height / 2;
@@ -359,13 +392,25 @@ export function adjustLabelPlacement({
     // anchor. Pre-subtracting the drift keeps the glyph centred on the bar's cross-axis. Zero unrotated.
     const drift = boxPadding == null ? { x: 0, y: 0 } : rotatedGlyphDrift(rotation, boxPadding);
 
-    if (placement === 'inside-center') {
+    // `beside-*` reuses the matching `inside-*` anchor for the value axis, then floats the label off the
+    // segment on the cross axis (overriding that axis's coordinate and text anchor below).
+    let beside: { after: boolean } | undefined;
+    let valuePlacement: Exclude<BarLabelPlacement, BesideBarLabelPlacement>;
+    if (isBesidePlacement(placement)) {
+        const resolved = besideValuePlacement(placement);
+        beside = { after: resolved.after };
+        valuePlacement = resolved.valuePlacement;
+    } else {
+        valuePlacement = placement;
+    }
+
+    if (valuePlacement === 'inside-center') {
         // No bar-facing axis: keep the glyph centred on both axes of the bar rect.
         x -= drift.x;
         y -= drift.y;
     } else {
         const barDirection = (isUpward ? 1 : -1) * (isVertical ? -1 : 1);
-        const { direction, textAlignment } = placements[placement];
+        const { direction, textAlignment } = placements[valuePlacement];
         const displacementRatio = (direction + 1) * 0.5;
         // Distance from the anchor to the (rotated) box edge facing the bar; equals boxPadding[facing]
         // for an unrotated label, but grows with the box's cross-axis when the label is rotated.
@@ -388,6 +433,19 @@ export function adjustLabelPlacement({
             x = x0 + width * displacementRatio + (spacing + inset) * textAlignment * barDirection;
             y -= drift.y;
             textAlign = facing;
+        }
+    }
+
+    if (beside) {
+        // Flip the side with a reversed category axis so `before`/`after` keep their physical meaning
+        // (column: before → left, after → right; horizontal bar: before → above, after → below).
+        const after = beside.after !== crossReversed;
+        if (isVertical) {
+            x = after ? rect.x + rect.width + spacing : rect.x - spacing;
+            textAlign = after ? 'left' : 'right';
+        } else {
+            y = after ? rect.y + rect.height + spacing : rect.y - spacing;
+            textBaseline = after ? 'top' : 'bottom';
         }
     }
 
@@ -421,6 +479,10 @@ export function buildBarLabelCandidates({
     rect,
     width,
     height,
+    crossReversed = false,
+    rejectOutsideStart = false,
+    rejectOutsideEnd = false,
+    plotRegion,
 }: {
     isUpward: boolean;
     isVertical: boolean;
@@ -431,18 +493,49 @@ export function buildBarLabelCandidates({
     rect: Bounds;
     width: number;
     height: number;
+    crossReversed?: boolean;
+    rejectOutsideStart?: boolean;
+    rejectOutsideEnd?: boolean;
+    plotRegion?: Bounds;
 }): BarPositionedCandidate[] {
+    // Drop the outside placements that would point into an adjacent stacked segment on that side, so the
+    // cascade falls through to a beside/inside candidate rather than mislabelling the neighbour. Keep the
+    // original list if every placement is dropped, so a label is still produced.
+    const rejectsOutside = rejectOutsideStart || rejectOutsideEnd;
+    let effectivePlacements = placementList;
+    if (rejectsOutside) {
+        effectivePlacements = placementList.filter(
+            (placement) =>
+                !(placement === 'outside-start' && rejectOutsideStart) &&
+                !(placement === 'outside-end' && rejectOutsideEnd)
+        );
+        if (effectivePlacements.length === 0) {
+            effectivePlacements = placementList;
+        }
+    }
+
     const insideRegion = insideBarRegion(rect, spacing, threshold, isVertical);
+    // `plotRegion` is a collision-only boundary for outside/beside candidates (flushToRegion: false): a
+    // label overflowing it (e.g. into the axis-label zone) fails containment so the cascade falls through
+    // to the next placement, rather than being clamped into it or floating into the engine's wider bounds.
     const candidates: BarPositionedCandidate[] = [];
-    for (const placement of placementList) {
-        const anchor = adjustLabelPlacement({ isUpward, isVertical, placement, spacing, rect });
-        const region = placement.startsWith('inside') ? insideRegion : undefined;
+    for (const placement of effectivePlacements) {
+        const anchor = adjustLabelPlacement({ isUpward, isVertical, placement, spacing, rect, crossReversed });
+        const isInside = placement.startsWith('inside');
+        const region = isInside ? insideRegion : plotRegion;
         const centre = labelGlyphCentre(anchor, width, height);
         for (const orientation of orientations) {
             const rotationDeg = orientationAngles[orientation];
             const { width: fw, height: fh } = getMinOuterRectSize(rotationDeg, width, height);
             const box = { x: centre.x - fw / 2, y: centre.y - fh / 2, width: fw, height: fh };
-            candidates.push({ box, region, rotation: rotationDeg || undefined, anchor, placement });
+            candidates.push({
+                box,
+                region,
+                flushToRegion: isInside ? undefined : false,
+                rotation: rotationDeg || undefined,
+                anchor,
+                placement,
+            });
         }
     }
     return candidates;

@@ -18,11 +18,13 @@ export const AG_CHARTS_LOCALE_AR_EG: Record<string, string> = {
     ariaAnnounceOrgChartLeaf: '${description}, المستوى ${level}[number], ${posInSet}[number] من ${setSize}[number]',
     // Screen reader announcement when focusing a parent node in an Organization chart
     ariaAnnounceOrgChartParent:
-        '${description}, المستوى ${level}[number], ${posInSet}[number] من ${setSize}[number], ${collapsedState}, ${childCount}[number] أطفال, اضغط على المسافة أو الإدخال للتبديل',
+        '${description}, المستوى ${level}[number], ${posInSet}[number] من ${setSize}[number], ${collapsedState}, ${childCount}[number] أطفال',
     ariaAnnounceOrgChartParentSingular:
-        '${description}, المستوى ${level}[number], ${posInSet}[number] من ${setSize}[number], ${collapsedState}, طفل واحد, اضغط على المسافة أو الإدخال للتبديل',
+        '${description}, المستوى ${level}[number], ${posInSet}[number] من ${setSize}[number], ${collapsedState}, طفل واحد',
     ariaOrgChartCollapsed: 'مطوي',
     ariaOrgChartExpanded: 'موسع',
+    ariaDescriptionExpandNode: 'اضغط على Alt + السهم لأسفل لتوسيع هذه العقدة',
+    ariaDescriptionCollapseNode: 'اضغط على Alt + السهم لأعلى لطي هذه العقدة',
     ariaAnnounceGaugeChart: 'مخطط المقياس، ${caption}',
     ariaAnnounceHierarchyChart: 'مخطط هرمي، ${caption}',
     ariaAnnounceHierarchyDatum: 'المستوى ${level}[number]، ${count}[number] أطفال، ${description}',
