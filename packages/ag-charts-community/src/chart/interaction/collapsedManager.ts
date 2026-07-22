@@ -45,64 +45,70 @@ export class CollapsedManager implements MementoOriginator<CollapsedMemento> {
 
     collapse(ids: CollapsedItemID[], seriesId: string | undefined, source: AgCollapsedChangeEventSource) {
         let changed = false;
+
         const after: Record<string, boolean> = {};
+        const justCollapsed: CollapsedItemID[] = [];
+        const justExpanded: CollapsedItemID[] = [];
+
         for (const id of ids) {
             const key = String(id);
-            changed ||= !this.collapsedIds[key];
+            const just = !this.collapsedIds[key];
+            if (just) justCollapsed.push(id);
+            changed ||= just;
             after[key] = true;
         }
 
         // Detect implicit expansions: previous map ids missing from `after` are now expanded.
-        if (!changed) {
-            for (const prevId of Object.keys(this.collapsedIds)) {
-                if (!after[prevId]) {
-                    changed = true;
-                    break;
-                }
-            }
+        for (const prevId of Object.keys(this.collapsedIds)) {
+            const just = !after[prevId];
+            if (just) justExpanded.push(prevId);
+            changed ||= just;
         }
 
-        const change = { collapsedIds: after, changed };
-
-        const defaultPrevented = this.callListener(change, seriesId, source);
+        const defaultPrevented = this.callListener(justCollapsed, justExpanded, seriesId, source);
         if (defaultPrevented) return false;
 
-        return this.applyChange(change);
+        return this.applyChange(after, changed);
     }
 
     collapseAppend(ids: CollapsedItemID[], seriesId: string | undefined, source: AgCollapsedChangeEventSource) {
         let changed = false;
+
         const after = { ...this.collapsedIds };
+        const justCollapsed: CollapsedItemID[] = [];
+
         for (const id of ids) {
             const key = String(id);
-            changed ||= !after[key];
+            const just = !after[key];
+            if (just) justCollapsed.push(id);
+            changed ||= just;
             after[key] = true;
         }
 
-        const change = { collapsedIds: after, changed };
-
-        const defaultPrevented = this.callListener(change, seriesId, source);
+        const defaultPrevented = this.callListener(justCollapsed, [], seriesId, source);
         if (defaultPrevented) return false;
 
-        return this.applyChange(change);
+        return this.applyChange(after, changed);
     }
 
     expand(ids: CollapsedItemID[], seriesId: string | undefined, source: AgCollapsedChangeEventSource) {
         let changed = false;
 
         const after = { ...this.collapsedIds };
+        const justExpanded: CollapsedItemID[] = [];
+
         for (const id of ids) {
             const key = String(id);
-            changed ||= Boolean(after[key]);
+            const just = Boolean(after[key]);
+            if (just) justExpanded.push(id);
+            changed ||= just;
             delete after[key];
         }
 
-        const change = { collapsedIds: after, changed };
-
-        const defaultPrevented = this.callListener(change, seriesId, source);
+        const defaultPrevented = this.callListener([], justExpanded, seriesId, source);
         if (defaultPrevented) return false;
 
-        return this.applyChange(change);
+        return this.applyChange(after, changed);
     }
 
     isCollapsed(id: CollapsedItemID) {
@@ -110,11 +116,12 @@ export class CollapsedManager implements MementoOriginator<CollapsedMemento> {
     }
 
     private callListener(
-        { collapsedIds, changed }: { collapsedIds: Record<string, boolean>; changed: boolean },
+        justCollapsed: CollapsedItemID[],
+        justExpanded: CollapsedItemID[],
         seriesId: string | undefined,
         source: AgCollapsedChangeEventSource
     ) {
-        if (!changed) return;
+        if (justCollapsed.length === 0 && justExpanded.length === 0) return;
 
         let defaultPrevented = false;
         const preventDefault = () => {
@@ -127,7 +134,11 @@ export class CollapsedManager implements MementoOriginator<CollapsedMemento> {
             type: 'collapsedChange',
             source,
             preventDefault,
-            collapsed: Object.keys(collapsedIds).map((id) => ({
+            collapsed: justCollapsed.map((id) => ({
+                itemId: id,
+                datum: getDatum ? getDatum(id) : null,
+            })),
+            expanded: justExpanded.map((id) => ({
                 itemId: id,
                 datum: getDatum ? getDatum(id) : null,
             })),
@@ -136,7 +147,7 @@ export class CollapsedManager implements MementoOriginator<CollapsedMemento> {
         return defaultPrevented;
     }
 
-    private applyChange({ collapsedIds, changed }: { collapsedIds: Record<string, boolean>; changed: boolean }) {
+    private applyChange(collapsedIds: Record<string, boolean>, changed: boolean) {
         if (!changed) return false;
 
         this.collapsedIds = collapsedIds;
