@@ -374,6 +374,81 @@ describe('Rect', () => {
         });
     });
 
+    describe('spread and stroke shadow rendering', () => {
+        const canvasCtx = setupMockCanvas({ width: 900, height: 240 });
+
+        const shadow = (props: Partial<DropShadow>) => new DropShadow().set(props);
+
+        const CASES: Partial<Rect>[] = [
+            // Positive-spread fill shadow — dilated halo, shape unmoved.
+            {
+                fill: 'blue',
+                stroke: 'navy',
+                strokeWidth: 2,
+                fillShadow: shadow({ xOffset: 6, yOffset: 6, spread: 12 }),
+            },
+            // Negative-spread fill shadow — contracted halo.
+            {
+                fill: 'blue',
+                stroke: 'navy',
+                strokeWidth: 2,
+                fillShadow: shadow({ xOffset: 6, yOffset: 6, spread: -8 }),
+            },
+            // Positive spread on a rounded rect.
+            { fill: 'blue', cornerRadius: 14, fillShadow: shadow({ xOffset: 6, yOffset: 6, spread: 10 }) },
+            // Stroke shadow, no spread.
+            { fill: 'none', stroke: 'blue', strokeWidth: 6, strokeShadow: shadow({ xOffset: 6, yOffset: 6 }) },
+            // Stroke shadow with spread.
+            {
+                fill: 'none',
+                stroke: 'blue',
+                strokeWidth: 6,
+                strokeShadow: shadow({ xOffset: 6, yOffset: 6, spread: 6 }),
+            },
+            // Fill + stroke shadow together.
+            {
+                fill: 'blue',
+                stroke: 'navy',
+                strokeWidth: 4,
+                fillShadow: shadow({ xOffset: 5, yOffset: 5, spread: 8 }),
+                strokeShadow: shadow({ xOffset: 5, yOffset: 5, spread: 4 }),
+            },
+        ];
+
+        it('should render as expected', () => {
+            const ctx = canvasCtx.getRenderContext2D();
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvasCtx.nodeCanvas.width ?? 0, canvasCtx.nodeCanvas.height ?? 0);
+
+            const GAP = 45;
+            const SIZE = 80;
+            let currX = GAP;
+            for (const testCase of CASES) {
+                const rect = Object.assign(new Rect(), { width: SIZE, height: SIZE }, testCase);
+                rect.x = currX;
+                rect.y = 70;
+
+                const renderCtx = {
+                    ctx,
+                    direction: 'ltr' as const,
+                    width: canvasCtx.nodeCanvas.width,
+                    height: canvasCtx.nodeCanvas.height,
+                    devicePixelRatio: 1,
+                    debugNodes: {},
+                };
+                ctx.save();
+                rect.preRender(renderCtx);
+                rect.render(renderCtx);
+                ctx.restore();
+
+                currX += SIZE + GAP;
+            }
+
+            const imageData = extractImageData(canvasCtx);
+            expect(imageData).toMatchImageSnapshot();
+        });
+    });
+
     describe('bbox cache invalidation', () => {
         it('AG-17249 should invalidate cached bbox on every property change, not just the first', () => {
             const rect = new Rect();

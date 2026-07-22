@@ -1,5 +1,5 @@
 import type { DistantObject } from 'ag-charts-core';
-import { createSvgElement, lineDistanceSquared } from 'ag-charts-core';
+import { createSvgElement, getPath2D, lineDistanceSquared } from 'ag-charts-core';
 
 import { BBox } from '../bbox';
 import type { NodeOptions, RenderContext, SerializedLineProps, SerializedNodeState } from '../node';
@@ -103,7 +103,16 @@ export class Line<D = unknown> extends Shape<D> implements DistantObject {
         this.fillStroke(ctx);
 
         this.fillShadow?.markClean();
+        this.strokeShadow?.markClean();
         super.render(renderCtx);
+    }
+
+    protected override strokeSilhouettePath(): Path2D {
+        const Path2DCtor = getPath2D();
+        const path = new Path2DCtor();
+        path.moveTo(this.x1, this.y1);
+        path.lineTo(this.x2, this.y2);
+        return path;
     }
 
     override toSVG(): { elements: SVGElement[]; defs?: SVGElement[] } | undefined {

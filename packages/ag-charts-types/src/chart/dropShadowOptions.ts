@@ -11,4 +11,6 @@ export interface AgDropShadowOptions {
     yOffset?: PixelSize;
     /** The radius of the shadow's blur, given in pixels. */
     blur?: PixelSize;
+    /** The distance the shadow expands beyond the shape, or contracts within it when negative, given in pixels. */
+    spread?: PixelSize;
 }
