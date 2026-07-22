@@ -88,7 +88,7 @@ export abstract class AbstractNetworkSeries<
     protected contextNodeData?: NetworkSeriesContextNodeData<TVertex, TEdge>;
     protected vertexDatumIndex: Record<string, number> = {};
 
-    private pendingCollapsedIds?: string[];
+    private pendingCollapsedIds?: NetworkSeriesVertexID[];
 
     protected seriesRect?: _ModuleSupport.BBox;
 

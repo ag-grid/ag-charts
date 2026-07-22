@@ -4,14 +4,14 @@ import type { AgCollapsedChangeEventSource } from 'ag-charts-types';
 import type { EventsHub } from '../../core/eventsHub';
 import type { ChartService } from '../chartService';
 
-type CollapsedMemento = string[];
 type CollapsedItemID = string | number;
+type CollapsedMemento = CollapsedItemID[];
 
 export class CollapsedManager implements MementoOriginator<CollapsedMemento> {
     mementoOriginatorKey: string = 'collapsed';
 
     // Optimised for quick lookup since that will occur more often than mutation.
-    private collapsedIds: Record<string, boolean> = {};
+    private collapsedIds: Set<CollapsedItemID> = new Set();
 
     private getDatum: Record<string, (id: CollapsedItemID) => unknown> = {};
 
@@ -21,7 +21,7 @@ export class CollapsedManager implements MementoOriginator<CollapsedMemento> {
     ) {}
 
     createMemento(): CollapsedMemento {
-        return Object.keys(this.collapsedIds);
+        return Array.from(this.collapsedIds);
     }
 
     guardMemento(blob: unknown): blob is CollapsedMemento | undefined {
@@ -46,21 +46,20 @@ export class CollapsedManager implements MementoOriginator<CollapsedMemento> {
     collapse(ids: CollapsedItemID[], seriesId: string | undefined, source: AgCollapsedChangeEventSource) {
         let changed = false;
 
-        const after: Record<string, boolean> = {};
+        const after: Set<CollapsedItemID> = new Set();
         const justCollapsed: CollapsedItemID[] = [];
         const justExpanded: CollapsedItemID[] = [];
 
         for (const id of ids) {
-            const key = String(id);
-            const just = !this.collapsedIds[key];
+            const just = !this.collapsedIds.has(id);
             if (just) justCollapsed.push(id);
             changed ||= just;
-            after[key] = true;
+            after.add(id);
         }
 
         // Detect implicit expansions: previous map ids missing from `after` are now expanded.
-        for (const prevId of Object.keys(this.collapsedIds)) {
-            const just = !after[prevId];
+        for (const prevId of this.collapsedIds) {
+            const just = !after.has(prevId);
             if (just) justExpanded.push(prevId);
             changed ||= just;
         }
@@ -74,15 +73,14 @@ export class CollapsedManager implements MementoOriginator<CollapsedMemento> {
     collapseAppend(ids: CollapsedItemID[], seriesId: string | undefined, source: AgCollapsedChangeEventSource) {
         let changed = false;
 
-        const after = { ...this.collapsedIds };
+        const after = new Set(this.collapsedIds);
         const justCollapsed: CollapsedItemID[] = [];
 
         for (const id of ids) {
-            const key = String(id);
-            const just = !after[key];
+            const just = !after.has(id);
             if (just) justCollapsed.push(id);
             changed ||= just;
-            after[key] = true;
+            after.add(id);
         }
 
         const defaultPrevented = this.callListener(justCollapsed, [], seriesId, source);
@@ -94,15 +92,14 @@ export class CollapsedManager implements MementoOriginator<CollapsedMemento> {
     expand(ids: CollapsedItemID[], seriesId: string | undefined, source: AgCollapsedChangeEventSource) {
         let changed = false;
 
-        const after = { ...this.collapsedIds };
+        const after = new Set(this.collapsedIds);
         const justExpanded: CollapsedItemID[] = [];
 
         for (const id of ids) {
-            const key = String(id);
-            const just = Boolean(after[key]);
+            const just = after.has(id);
             if (just) justExpanded.push(id);
             changed ||= just;
-            delete after[key];
+            after.delete(id);
         }
 
         const defaultPrevented = this.callListener([], justExpanded, seriesId, source);
@@ -112,7 +109,7 @@ export class CollapsedManager implements MementoOriginator<CollapsedMemento> {
     }
 
     isCollapsed(id: CollapsedItemID) {
-        return Boolean(this.collapsedIds[String(id)]);
+        return this.collapsedIds.has(id);
     }
 
     private callListener(
@@ -147,7 +144,7 @@ export class CollapsedManager implements MementoOriginator<CollapsedMemento> {
         return defaultPrevented;
     }
 
-    private applyChange(collapsedIds: Record<string, boolean>, changed: boolean) {
+    private applyChange(collapsedIds: Set<CollapsedItemID>, changed: boolean) {
         if (!changed) return false;
 
         this.collapsedIds = collapsedIds;

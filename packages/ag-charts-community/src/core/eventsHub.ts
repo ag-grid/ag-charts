@@ -123,6 +123,8 @@ export interface EventsHubMap {
     'axis-dom-proxy:wheel': AxisDOMProxyWheelEvent;
     'chart:request-refresh': null;
     'chart:request-update': UpdateRequestEvent;
+    'collapsed:restore': CollapsedRestoreEvent;
+    'collapsed:change': null;
     'context-menu:setup': ContextMenuEvent;
     'context-menu:complete': ContextMenuEvent;
     'data:load': { data: unknown[]; requestId?: number };
@@ -142,8 +144,6 @@ export interface EventsHubMap {
     'legend:item-click': LegendItemClickEvent;
     'legend:item-double-click': LegendItemDoubleClickEvent;
     'locale:change': null;
-    'collapsed:restore': { collapsed?: string[] };
-    'collapsed:change': null;
     'rtl:change': null;
     'scrollbar:wheel': ScrollbarWheelEvent;
     'series:focus-change': null;
@@ -476,4 +476,8 @@ export interface AxisLayout {
     direction: ChartAxisDirection;
     domain: any[];
     scale: Scale<any, any, number | AgTimeInterval | AgTimeIntervalUnit>;
+}
+
+export interface CollapsedRestoreEvent {
+    collapsed?: (string | number)[];
 }

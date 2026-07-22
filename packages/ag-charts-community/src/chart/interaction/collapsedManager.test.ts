@@ -45,6 +45,16 @@ describe('CollapsedManager', () => {
             expect(justCollapsed).toEqual(['three', 'four']);
             expect(justExpanded).toEqual(['one']);
         });
+
+        it('should preserve numeric item ids', () => {
+            collapsedManager.collapse([1, 2], 'Series-1', 'api-call');
+            expect(justCollapsed).toEqual([1, 2]);
+            expect(justExpanded).toEqual([]);
+
+            collapsedManager.collapse([2, 3, 4], 'Series-1', 'api-call');
+            expect(justCollapsed).toEqual([3, 4]);
+            expect(justExpanded).toEqual([1]);
+        });
     });
 
     describe('collapseAppend', () => {
