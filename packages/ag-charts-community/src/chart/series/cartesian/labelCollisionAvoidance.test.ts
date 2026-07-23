@@ -1010,6 +1010,86 @@ describe('label collision avoidance', () => {
         });
     });
 
+    describe('cross-series obstacles (baked histogram inside label vs scatter label)', () => {
+        type Box = { x: number; y: number; width: number; height: number };
+        const overlaps = (a: Box, b: Box) =>
+            a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
+
+        // Six points fall in the first bin [0, 4), so its frequency is 6 and its inside-centre label
+        // sits at y ≈ 3. The HIT scatter point sits just below that centre so its `top` candidate lands
+        // on the baked label (`bottom` clears it); the rest are clear.
+        const histogramData = [{ x: 1 }, { x: 1 }, { x: 2 }, { x: 2 }, { x: 3 }, { x: 3 }, { x: 5 }, { x: 9 }];
+        const scatterData = [
+            { x: 2, y: 2.8, name: 'HIT' },
+            { x: 6, y: 1, name: 'S1' },
+            { x: 10, y: 1, name: 'S2' },
+        ];
+
+        const visibleLabelBoxes = (series: {
+            labelSelection: { nodes(): { visible: boolean; computeBBox(): Box | undefined }[] };
+        }) =>
+            series.labelSelection
+                .nodes()
+                .filter((node) => node.visible)
+                .map((node) => node.computeBBox())
+                .filter((box): box is Box => box != null);
+
+        const options = (): any => ({
+            legend: { enabled: false },
+            axes: { x: { type: 'number' }, y: { type: 'number' } },
+            series: [
+                {
+                    type: 'histogram',
+                    xKey: 'x',
+                    data: histogramData,
+                    bins: [
+                        [0, 4],
+                        [4, 8],
+                        [8, 12],
+                    ],
+                    label: { enabled: true, collision: { suppressHide: true } },
+                },
+                {
+                    type: 'scatter',
+                    xKey: 'x',
+                    yKey: 'y',
+                    labelKey: 'name',
+                    data: scatterData,
+                    label: {
+                        enabled: true,
+                        placement: ['top', 'bottom'],
+                        collision: { suppressHide: false },
+                    },
+                },
+            ],
+        });
+
+        it('renders with the scatter label cleared off the histogram inside label', async () => {
+            await renderAndSnapshot(options());
+        });
+
+        it('drops a hideable scatter label overlapping a histogram inside label', async () => {
+            const opts = options();
+            prepareTestOptions(opts);
+            chart = AgCharts.create(opts);
+            await waitForChartStability(chart);
+            const [histogram, scatter] = deproxy(chart as any).series as unknown as Parameters<
+                typeof visibleLabelBoxes
+            >[0][];
+            const histogramBoxes = visibleLabelBoxes(histogram);
+            const scatterBoxes = visibleLabelBoxes(scatter);
+            // Anti-vacuous guards: both series must render labels for the invariant to mean anything.
+            expect(histogramBoxes.length).toBeGreaterThan(0);
+            expect(scatterBoxes.length).toBeGreaterThan(0);
+            // A hideable scatter label must never remain visible on top of a histogram's inside label.
+            for (const histogramBox of histogramBoxes) {
+                for (const scatterBox of scatterBoxes) {
+                    expect(overlaps(histogramBox, scatterBox)).toBe(false);
+                }
+            }
+        });
+    });
+
     // Bar-family `placement` was widened to accept an ordered array, but the bar candidate-fallback
     // engine is not yet wired (Ticket C). Until then a supplied array must be inert-safe: the first
     // candidate is used, matching the single-value render, with no error raised.

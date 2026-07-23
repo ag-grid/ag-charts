@@ -10,6 +10,7 @@ import {
     setupMockCanvas,
     setupMockConsole,
     topLabelAnchorGap,
+    waitForChartStability,
 } from 'ag-charts-community-test';
 
 import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../test/utils';
@@ -324,6 +325,84 @@ describe('label collision avoidance', () => {
                     },
                 ],
             });
+        });
+    });
+
+    describe('cross-series obstacles (baked range-bar labels vs scatter label)', () => {
+        type Box = { x: number; y: number; width: number; height: number };
+        const overlaps = (a: Box, b: Box) =>
+            a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
+
+        // Range-bar A spans low 2 to high 8, baking a label at each end. The HIT scatter point sits just
+        // below the low label so its `top` candidate lands on it; the rest are clear.
+        const rangeData = [
+            { x: 'A', low: 2, high: 8 },
+            { x: 'B', low: 3, high: 7 },
+            { x: 'C', low: 1, high: 9 },
+        ];
+        const scatterData = [
+            { x: 'A', y: 1.9, name: 'HIT' },
+            { x: 'B', y: 5, name: 'S1' },
+        ];
+
+        const visibleLabelBoxes = (series: {
+            labelSelection: { nodes(): { visible: boolean; computeBBox(): Box | undefined }[] };
+        }) =>
+            series.labelSelection
+                .nodes()
+                .filter((node) => node.visible)
+                .map((node) => node.computeBBox())
+                .filter((box): box is Box => box != null);
+
+        const options = (): any => ({
+            legend: { enabled: false },
+            axes: { x: { type: 'category' }, y: { type: 'number' } },
+            series: [
+                {
+                    type: 'range-bar',
+                    xKey: 'x',
+                    yLowKey: 'low',
+                    yHighKey: 'high',
+                    data: rangeData,
+                    label: { enabled: true, collision: { suppressHide: true } },
+                },
+                {
+                    type: 'scatter',
+                    xKey: 'x',
+                    yKey: 'y',
+                    labelKey: 'name',
+                    data: scatterData,
+                    label: {
+                        enabled: true,
+                        placement: ['top', 'bottom'],
+                        collision: { suppressHide: false },
+                    },
+                },
+            ],
+        });
+
+        it('renders with the scatter label cleared off the range-bar labels', async () => {
+            await renderAndSnapshot(options());
+        });
+
+        it('drops a hideable scatter label overlapping a range-bar baked label', async () => {
+            const opts = options();
+            prepareEnterpriseTestOptions(opts);
+            chart = deproxy(AgCharts.create(opts));
+            await waitForChartStability(chart);
+            const [rangeBar, scatter] = chart.series as unknown as Parameters<typeof visibleLabelBoxes>[0][];
+            const rangeBarBoxes = visibleLabelBoxes(rangeBar);
+            const scatterBoxes = visibleLabelBoxes(scatter);
+            // Anti-vacuous guards: both series must render labels for the invariant to mean anything.
+            expect(rangeBarBoxes.length).toBeGreaterThan(0);
+            expect(scatterBoxes.length).toBeGreaterThan(0);
+            // A hideable scatter label must never remain visible on top of a range-bar's baked label
+            // (this covers both the low and high end labels contributed to the obstacle index).
+            for (const rangeBarBox of rangeBarBoxes) {
+                for (const scatterBox of scatterBoxes) {
+                    expect(overlaps(rangeBarBox, scatterBox)).toBe(false);
+                }
+            }
         });
     });
 });

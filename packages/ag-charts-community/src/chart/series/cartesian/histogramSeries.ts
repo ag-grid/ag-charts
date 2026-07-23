@@ -3,6 +3,7 @@ import type {
     DynamicContext,
     LabelFit,
     NormalisedHistogramSeriesStyle,
+    NormalisedTextOrSegments,
     PlacedLabel,
     PointLabelDatum,
 } from 'ag-charts-core';
@@ -14,6 +15,7 @@ import {
     type RequireOptional,
     addValues,
     applyBarLabelOrientation,
+    bakedLabelObstacles,
     barLabelOrientation,
     barLabelResolvesOrientation,
     barLabelRotation,
@@ -30,6 +32,7 @@ import {
     maxValue,
     measureLabelText,
     mergeDefaults,
+    rectLabelObstacles,
     resolveLabelFit,
     tickStep,
     toArray,
@@ -117,7 +120,6 @@ import type {
 import { upsertNodeDatum } from './cartesianSeriesUtil';
 import { type HistogramNodeDatum, HistogramSeriesProperties } from './histogramSeriesProperties';
 import { addHitTestersToQuadtree, findQuadtreeMatch } from './quadtreeUtil';
-import { rectLabelObstacles } from './util';
 
 const defaultBinCount = 10;
 
@@ -937,7 +939,25 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
     }
 
     getLabelObstacles() {
-        return rectLabelObstacles(this.contextNodeData?.nodeData);
+        const rects = rectLabelObstacles(this.contextNodeData?.nodeData);
+        // Baked labels (single placement, `suppressHide: true`) never route through the placement
+        // engine, so they never enter the obstacle index there. Contribute their drawn footprint as
+        // `label` obstacles so other series' labels avoid them; routed labels are excluded because the
+        // engine already inserts them as it places each one.
+        if (this.usesPlacedLabels || !this.isLabelEnabled()) return rects;
+        const labels = this.getBakedLabelObstacles();
+        if (labels == null) return rects;
+        return rects == null ? labels : rects.concat(labels);
+    }
+
+    private getBakedLabelObstacles() {
+        const { label } = this.properties;
+        const box = expandPlacementLabelBoxExtent(label);
+        return bakedLabelObstacles(this.contextNodeData?.labelData, (node) => ({
+            label: node.label,
+            config: label,
+            box,
+        }));
     }
 
     protected override updateLabelSelection(opts: {
@@ -999,10 +1019,18 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
     override getLabelData(): PointLabelDatum[] {
         if (!this.usesPlacedLabels || !this.isLabelEnabled()) return [];
         const { label } = this.properties;
+        // Inflate the measured text by the label's drawn box (padding + border stroke) so collisions
+        // avoid the box, not just the text.
+        const box = expandPlacementLabelBoxExtent(label);
+        const measureBox = (text: NormalisedTextOrSegments) => {
+            const { width, height } = measureLabelText(text, label);
+            return { width: width + box.left + box.right, height: height + box.top + box.bottom };
+        };
         const collideWith = label.collision.resolveCollideWith();
         return buildBarLabelData(this.contextNodeData?.labelData, (node) => ({
             label: node.label,
             config: label,
+            size: node.label != null && node.label.text !== '' ? measureBox(node.label.text) : undefined,
             collideWith,
         }));
     }

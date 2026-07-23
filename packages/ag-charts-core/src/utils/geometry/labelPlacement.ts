@@ -699,6 +699,61 @@ export function buildBarLabelData<T>(
     return data;
 }
 
+/** A rect-shaped node (bar, histogram bin) contributed to the obstacle index as its drawn footprint. */
+export interface RectObstacleSource {
+    readonly x: number;
+    readonly y: number;
+    readonly width: number;
+    readonly height: number;
+    readonly phantom?: boolean;
+}
+
+/**
+ * Maps rect-shaped node data (bars, histogram bins) to `seriesItem` label obstacles so that labels from
+ * other series route around them. Skips phantom (stacking/feather) nodes and zero-area rects.
+ */
+export function rectLabelObstacles(nodeData: readonly RectObstacleSource[] | undefined): LabelObstacle[] | undefined {
+    if (nodeData == null || nodeData.length === 0) return undefined;
+    const obstacles: LabelObstacle[] = [];
+    for (const { x, y, width, height, phantom } of nodeData) {
+        if (phantom === true || width <= 0 || height <= 0) continue;
+        obstacles.push({ kind: 'rect', box: { x, y, width, height }, category: 'seriesItem' });
+    }
+    return obstacles.length > 0 ? obstacles : undefined;
+}
+
+/** A baked bar-family label paired with the config and per-side box extent that size its footprint. */
+export interface BakedLabelSource {
+    readonly label:
+        | (OrientationAnchor & { text: NormalisedTextOrSegments; rotation: number; hidden?: boolean })
+        | undefined;
+    /** Font config for glyph measurement. */
+    readonly config: FontOptions;
+    /** Per-side drawn-box extent (padding plus any border). */
+    readonly box: Required<PaddingOptions>;
+}
+
+/**
+ * Builds `label` obstacles for a series' baked labels — labels drawn without routing through
+ * {@link placeLabels}, so they never enter the obstacle index there. Contributing their drawn footprint
+ * lets other series' labels avoid them. Skips absent, empty-text and hidden labels.
+ */
+export function bakedLabelObstacles<T>(
+    elements: Iterable<T> | undefined,
+    resolve: (element: T) => BakedLabelSource | undefined
+): LabelObstacle[] | undefined {
+    const obstacles: LabelObstacle[] = [];
+    for (const element of elements ?? []) {
+        const source = resolve(element);
+        const label = source?.label;
+        if (source == null || label == null || label.text === '' || label.hidden === true) continue;
+        const { width, height } = measureLabelText(label.text, source.config);
+        const box = labelFootprintBox(label, width, height, source.box, label.rotation);
+        obstacles.push({ kind: 'rect', box, category: 'label' });
+    }
+    return obstacles.length > 0 ? obstacles : undefined;
+}
+
 const labelPlacements: Record<LabelPlacement, { x: -1 | 0 | 1; y: -1 | 0 | 1 }> = {
     inside: { x: 0, y: 0 },
     top: { x: 0, y: -1 },

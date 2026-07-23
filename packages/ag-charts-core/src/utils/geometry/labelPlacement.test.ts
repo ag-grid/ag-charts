@@ -17,6 +17,7 @@ import {
     type SeriesLabelDefaults,
     type SeriesLabels,
     applyBarLabelOrientation,
+    bakedLabelObstacles,
     barLabelResolvesOrientation,
     barLabelResolvesPlacement,
     buildBarLabelDatum,
@@ -26,12 +27,30 @@ import {
     insideBarValueInsets,
     labelFootprintBox,
     labelGlyphCentre,
+    measureLabelText,
     placeLabels,
+    rectLabelObstacles,
     resolveLabelFit,
     rotatedGlyphDrift,
     rotatedLabelInset,
 } from './labelPlacement';
 import { SpatialIndex } from './spatialIndex';
+
+// jsdom has no canvas, so cachedTextMeasurer's real createCanvasContext throws. This stand-in gives
+// measureLabelText deterministic metrics (CHAR_WIDTH px per codepoint, LINE_HEIGHT px per line).
+const { CHAR_WIDTH } = vi.hoisted(() => ({ CHAR_WIDTH: 10 }));
+vi.mock('../canvas', () => ({
+    createCanvasContext: () => ({
+        font: '',
+        measureText: (text: string) => ({
+            width: [...text].length * CHAR_WIDTH,
+            fontBoundingBoxAscent: 16,
+            fontBoundingBoxDescent: 4,
+            emHeightAscent: 16,
+            emHeightDescent: 4,
+        }),
+    }),
+}));
 
 const PLACEMENTS: (LabelPlacement | undefined)[] = [
     undefined,
@@ -1264,6 +1283,77 @@ describe('bar label placement helpers', () => {
             expect(box.height).toBeCloseTo(48);
             expect(box.x + box.width / 2).toBeCloseTo(100);
             expect(box.y + box.height / 2).toBeCloseTo(50);
+        });
+    });
+
+    describe('bakedLabelObstacles', () => {
+        const config = { fontSize: 12, fontFamily: 'sans-serif' };
+        const box: Required<PaddingOptions> = { top: 3, bottom: 3, left: 4, right: 4 };
+        const anchor: OrientationAnchor = { x: 100, y: 50, textAlign: 'center', textBaseline: 'middle' };
+        const bake = (text: string, rotation = 0, hidden?: boolean) => ({
+            label: { ...anchor, text, rotation, hidden },
+        });
+
+        it('builds one label rect obstacle per element, matching labelFootprintBox', () => {
+            const result = bakedLabelObstacles([bake('Hello')], (e) => ({ label: e.label, config, box }));
+            expect(result).toHaveLength(1);
+            const { width, height } = measureLabelText('Hello', config);
+            expect(result![0]).toEqual({
+                kind: 'rect',
+                box: labelFootprintBox(anchor, width, height, box, 0),
+                category: 'label',
+            });
+        });
+
+        it('skips absent, empty-text and hidden labels', () => {
+            const elements = [bake('kept'), { label: undefined }, bake(''), bake('gone', 0, true)];
+            const result = bakedLabelObstacles(elements, (e) => ({ label: e.label, config, box }));
+            expect(result).toHaveLength(1);
+        });
+
+        it('returns undefined when nothing is contributed', () => {
+            expect(bakedLabelObstacles(undefined, () => undefined)).toBeUndefined();
+            expect(bakedLabelObstacles([bake('')], (e) => ({ label: e.label, config, box }))).toBeUndefined();
+        });
+    });
+
+    describe('rectLabelObstacles', () => {
+        it('maps rect node data to seriesItem rect obstacles', () => {
+            const result = rectLabelObstacles([
+                { x: 0, y: 10, width: 20, height: 30 },
+                { x: 50, y: 5, width: 15, height: 25 },
+            ]);
+            expect(result).toEqual([
+                { kind: 'rect', box: { x: 0, y: 10, width: 20, height: 30 }, category: 'seriesItem' },
+                { kind: 'rect', box: { x: 50, y: 5, width: 15, height: 25 }, category: 'seriesItem' },
+            ]);
+        });
+
+        it('skips phantom nodes', () => {
+            const result = rectLabelObstacles([
+                { x: 0, y: 0, width: 10, height: 10, phantom: true },
+                { x: 0, y: 0, width: 10, height: 10, phantom: false },
+            ]);
+            expect(result).toEqual([
+                { kind: 'rect', box: { x: 0, y: 0, width: 10, height: 10 }, category: 'seriesItem' },
+            ]);
+        });
+
+        it('skips zero-area rects', () => {
+            const result = rectLabelObstacles([
+                { x: 0, y: 0, width: 0, height: 10 },
+                { x: 0, y: 0, width: 10, height: 0 },
+                { x: 0, y: 0, width: 10, height: 10 },
+            ]);
+            expect(result).toEqual([
+                { kind: 'rect', box: { x: 0, y: 0, width: 10, height: 10 }, category: 'seriesItem' },
+            ]);
+        });
+
+        it('returns undefined when there is nothing to contribute', () => {
+            expect(rectLabelObstacles(undefined)).toBeUndefined();
+            expect(rectLabelObstacles([])).toBeUndefined();
+            expect(rectLabelObstacles([{ x: 0, y: 0, width: 0, height: 0, phantom: true }])).toBeUndefined();
         });
     });
 

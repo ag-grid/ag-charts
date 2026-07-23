@@ -22,9 +22,9 @@ import {
     AGGREGATION_SPAN,
     ChartAxisDirection,
     DebugMetrics,
-    type LabelObstacle,
     applyBarLabelOrientation,
     areScalingEqual,
+    bakedLabelObstacles,
     barLabelOrientation,
     barLabelResolvesOrientation,
     barLabelResolvesPlacement,
@@ -33,12 +33,12 @@ import {
     buildBarPositionedLabelDatum,
     isContinuous,
     isFiniteNumber,
-    labelFootprintBox,
     maxValue,
     measureLabelText,
     mergeDefaults,
     minValue,
     placedBarLabelTargets,
+    rectLabelObstacles,
     resolveLabelFit,
     toArray,
     toNumber,
@@ -131,7 +131,7 @@ import {
 } from './cartesianSeries';
 import type { CartesianSeriesNodeDatum } from './cartesianSeriesTypes';
 import { calculateDataDiff } from './diffUtil';
-import { calculateSegments, rectLabelObstacles } from './util';
+import { calculateSegments } from './util';
 
 interface BarNodeLabelDatum {
     readonly text: NormalisedTextOrSegments;
@@ -1852,19 +1852,14 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         return rects == null ? labels : rects.concat(labels);
     }
 
-    private getBakedLabelObstacles(): LabelObstacle[] | undefined {
-        const labelData = this.contextNodeData?.labelData;
-        if (labelData == null) return undefined;
+    private getBakedLabelObstacles() {
         const { label } = this.properties;
         const box = expandPlacementLabelBoxExtent(label);
-        const obstacles: LabelObstacle[] = [];
-        for (const { label: nodeLabel } of labelData) {
-            if (nodeLabel == null || nodeLabel.text === '' || nodeLabel.hidden) continue;
-            const { width, height } = measureLabelText(nodeLabel.text, label);
-            const footprint = labelFootprintBox(nodeLabel, width, height, box, nodeLabel.rotation);
-            obstacles.push({ kind: 'rect', box: footprint, category: 'label' });
-        }
-        return obstacles.length > 0 ? obstacles : undefined;
+        return bakedLabelObstacles(this.contextNodeData?.labelData, (node) => ({
+            label: node.label,
+            config: label,
+            box,
+        }));
     }
 
     override getLabelData(): PointLabelDatum[] {

@@ -2,7 +2,6 @@ import {
     CARTESIAN_AXIS_TYPE,
     CARTESIAN_POSITION,
     ChartAxisDirection,
-    type LabelObstacle,
     type NormalisedSeriesSegmentation,
     type NormalisedSeriesShapeSegmentOptions,
     type Size,
@@ -21,28 +20,6 @@ import type { ChartAxis } from '../../chartAxis';
 
 function isAxisReversed(axis: ChartAxis) {
     return axis.isReversed() !== axis.range[1] < axis.range[0];
-}
-
-interface RectObstacleSource {
-    readonly x: number;
-    readonly y: number;
-    readonly width: number;
-    readonly height: number;
-    readonly phantom?: boolean;
-}
-
-/**
- * Maps rect-shaped node data (bars, histogram bins) to label obstacles so that labels from other
- * series route around them. Skips phantom (stacking/feather) nodes and zero-area rects.
- */
-export function rectLabelObstacles(nodeData: readonly RectObstacleSource[] | undefined): LabelObstacle[] | undefined {
-    if (nodeData == null || nodeData.length === 0) return undefined;
-    const obstacles: LabelObstacle[] = [];
-    for (const { x, y, width, height, phantom } of nodeData) {
-        if (phantom === true || width <= 0 || height <= 0) continue;
-        obstacles.push({ kind: 'rect', box: { x, y, width, height }, category: 'seriesItem' });
-    }
-    return obstacles.length > 0 ? obstacles : undefined;
 }
 
 export function calculateSegments(

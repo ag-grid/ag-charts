@@ -23,6 +23,7 @@ import {
     type PointLabelDatum,
     type RequireOptional,
     applyBarLabelOrientation,
+    bakedLabelObstacles,
     barLabelResolvesOrientation,
     barLabelRotation,
     buildBarLabelData,
@@ -33,6 +34,7 @@ import {
     measureLabelText,
     mergeDefaults,
     minValue,
+    rectLabelObstacles,
     resolveLabelFit,
     subtractValues,
     toArray,
@@ -1071,6 +1073,25 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             rect.cornerRadius = style.cornerRadius ?? 0;
             rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
             rect.crisp = datum.crisp;
+        });
+    }
+
+    getLabelObstacles() {
+        const rects = rectLabelObstacles(this.contextNodeData?.nodeData);
+        // Baked labels (single placement, `suppressHide: true`) never route through the placement
+        // engine, so they never enter the obstacle index there. Contribute their drawn footprint as
+        // `label` obstacles so other series' labels avoid them; routed labels are excluded because the
+        // engine already inserts them as it places each one.
+        if (this.usesPlacedLabels || !this.isLabelEnabled()) return rects;
+        const labels = this.getBakedLabelObstacles();
+        if (labels == null) return rects;
+        return rects == null ? labels : rects.concat(labels);
+    }
+
+    private getBakedLabelObstacles() {
+        return bakedLabelObstacles(this.contextNodeData?.labelData, (node) => {
+            const { label } = this.getItemConfig(node.itemType);
+            return { label: node.label, config: label, box: expandPlacementLabelBoxExtent(label) };
         });
     }
 
