@@ -1327,26 +1327,43 @@ describe('bar label placement helpers', () => {
     describe('buildBarLabelDatum + applyBarLabelOrientation', () => {
         const region: BoxBounds = { x: 0, y: 0, width: 30, height: 200 };
         const anchor: OrientationAnchor = { x: 15, y: 100, textAlign: 'center', textBaseline: 'middle' };
+        const collideWith = { marker: true, label: true, seriesItem: true, seriesArea: true };
 
-        it('centres the candidate box, constrains it to the region, and avoids other labels only', () => {
+        it('centres the candidate box, constrains it to the region, and stamps the resolved collideWith', () => {
             const target = { rotation: 0 };
-            const datum = buildBarLabelDatum(anchor, 'label', 100, 10, ['horizontal', 'vertical'], region, target);
+            const datum = buildBarLabelDatum(
+                anchor,
+                'label',
+                100,
+                10,
+                ['horizontal', 'vertical'],
+                region,
+                collideWith,
+                target
+            );
             expect(datum.point).toEqual({ x: 15, y: 100, size: 0 });
             expect(datum.region).toBe(region);
+            // The region doubles as the own-shape box so an inside label excludes its own bar.
+            expect(datum.ownBox).toBe(region);
             expect(datum.neverDrop).toBe(true);
             expect(datum.placement).toBeUndefined();
             expect(datum.orientation).toEqual(['horizontal', 'vertical']);
-            expect(datum.collideWith).toEqual({
-                label: true,
-                marker: false,
-                seriesItem: false,
-            });
+            expect(datum.collideWith).toBe(collideWith);
             expect(datum.target).toBe(target);
         });
 
         it('resolves the orientation through the engine and writes the rotation (radians) back to the target', () => {
             const target = { rotation: 0 };
-            const datum = buildBarLabelDatum(anchor, 'label', 100, 10, ['horizontal', 'vertical'], region, target);
+            const datum = buildBarLabelDatum(
+                anchor,
+                'label',
+                100,
+                10,
+                ['horizontal', 'vertical'],
+                region,
+                collideWith,
+                target
+            );
             const placed = placeLabels(
                 new Map([['s', seriesLabels([datum])]]),
                 { x: 0, y: 0, width: 200, height: 200 },
@@ -1356,6 +1373,43 @@ describe('bar label placement helpers', () => {
             applyBarLabelOrientation(placed);
             // Horizontal (100 wide) overflows the 30-wide region, so it falls through to vertical (-90deg).
             expect(target.rotation).toBeCloseTo(-Math.PI / 2);
+        });
+
+        it('excludes any-category obstacle overlapping the own box on the compass path', () => {
+            // A wide region the horizontal label fits, so the only thing that could reject it is an
+            // obstacle. A marker obstacle overlapping the label sits within the own box (the region), so
+            // the category-agnostic own-shape exclusion ignores it and the label keeps its first
+            // (horizontal) orientation rather than falling through to vertical.
+            const wideRegion: BoxBounds = { x: 0, y: 0, width: 200, height: 200 };
+            const centred: OrientationAnchor = { x: 100, y: 100, textAlign: 'center', textBaseline: 'middle' };
+            const target = { rotation: 0 };
+            const datum = buildBarLabelDatum(
+                centred,
+                'label',
+                100,
+                10,
+                ['horizontal', 'vertical'],
+                wideRegion,
+                collideWith,
+                target
+            );
+            const marker: LabelObstacle = {
+                kind: 'circle',
+                box: { x: 70, y: 70, width: 60, height: 60 },
+                cx: 100,
+                cy: 100,
+                r: 30,
+                category: 'marker',
+            };
+            const placed = placeLabels(
+                new Map([['s', seriesLabels([datum])]]),
+                { x: 0, y: 0, width: 200, height: 200 },
+                5,
+                [marker]
+            ).get('s') as PlacedLabel<BarPlacedLabelDatum>[];
+
+            applyBarLabelOrientation(placed);
+            expect(target.rotation).toBe(0);
         });
     });
 });
@@ -1377,10 +1431,20 @@ describe('placeLabels positioned candidates', () => {
         candidates: BarCandidate[],
         obstacles: LabelObstacle[] = [],
         ownBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 },
-        suppressHide = true
+        suppressHide = true,
+        collideWith = { marker: true, label: true, seriesItem: true, seriesArea: true }
     ) => {
         const target: BarLabelTarget = { rotation: 0 };
-        const datum = buildBarPositionedLabelDatum('label', 20, 10, candidates, target, ownBox, suppressHide);
+        const datum = buildBarPositionedLabelDatum(
+            'label',
+            20,
+            10,
+            candidates,
+            target,
+            ownBox,
+            suppressHide,
+            collideWith
+        );
         const placed = placeLabels(new Map([['s', seriesLabels([datum])]]), bounds, 5, obstacles).get(
             's'
         ) as PlacedLabel[];

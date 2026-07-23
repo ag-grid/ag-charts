@@ -999,7 +999,12 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
     override getLabelData(): PointLabelDatum[] {
         if (!this.usesPlacedLabels || !this.isLabelEnabled()) return [];
         const { label } = this.properties;
-        return buildBarLabelData(this.contextNodeData?.labelData, (node) => ({ label: node.label, config: label }));
+        const collideWith = label.collision.resolveCollideWith();
+        return buildBarLabelData(this.contextNodeData?.labelData, (node) => ({
+            label: node.label,
+            config: label,
+            collideWith,
+        }));
     }
 
     override updatePlacedLabelData(placed: PlacedLabel<HistogramNodeDatum>[]) {

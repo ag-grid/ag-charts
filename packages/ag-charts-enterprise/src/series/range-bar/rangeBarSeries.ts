@@ -1337,13 +1337,15 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         // Inflate the measured text by the label's drawn box (padding + border stroke) so orientation
         // resolution avoids the box, not just the text.
         const box = expandPlacementLabelBoxExtent(label);
+        const collideWith = label.collision.resolveCollideWith();
         return buildBarLabelData(this.contextNodeData?.labelData, (labelDatum) => {
-            if (labelDatum.text === '') return { label: labelDatum, config: label };
+            if (labelDatum.text === '') return { label: labelDatum, config: label, collideWith };
             const { width, height } = measureLabelText(labelDatum.text, label);
             return {
                 label: labelDatum,
                 config: label,
                 size: { width: width + box.left + box.right, height: height + box.top + box.bottom },
+                collideWith,
             };
         });
     }

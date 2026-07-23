@@ -71,6 +71,9 @@ class LabelCollideWith extends BaseProperties implements AgChartLabelCollideWith
 
     @Property
     seriesItems?: boolean;
+
+    @Property
+    seriesArea?: boolean;
 }
 
 export class LabelCollision extends BaseProperties implements AgChartLabelCollisionOptions {
@@ -83,10 +86,18 @@ export class LabelCollision extends BaseProperties implements AgChartLabelCollis
     @Property
     collideWith = new LabelCollideWith();
 
-    /** Resolved per-category obstacle toggles. Marker/label avoidance defaults on; seriesItem is opt-in. */
+    /**
+     * Resolved per-category obstacle toggles. Applies the global default profile: marker/label avoidance
+     * default on, seriesItem/seriesArea default off; a per-series theme overrides these via `collideWith`.
+     */
     resolveCollideWith(): CollideWith {
-        const { markers, labels, seriesItems } = this.collideWith;
-        return { marker: markers !== false, label: labels !== false, seriesItem: seriesItems === true };
+        const { markers, labels, seriesItems, seriesArea } = this.collideWith;
+        return {
+            marker: markers ?? true,
+            label: labels ?? true,
+            seriesItem: seriesItems ?? false,
+            seriesArea: seriesArea ?? false,
+        };
     }
 }
 

@@ -664,6 +664,10 @@ describe('ChartOptions', () => {
                       "strokeWidth": 1,
                     },
                     "collision": {
+                      "collideWith": {
+                        "seriesArea": true,
+                        "seriesItems": true,
+                      },
                       "threshold": 4,
                     },
                     "cornerRadius": 4,
@@ -753,6 +757,10 @@ describe('ChartOptions', () => {
                       "strokeWidth": 1,
                     },
                     "collision": {
+                      "collideWith": {
+                        "seriesArea": true,
+                        "seriesItems": true,
+                      },
                       "threshold": 4,
                     },
                     "cornerRadius": 4,
@@ -842,6 +850,10 @@ describe('ChartOptions', () => {
                       "strokeWidth": 1,
                     },
                     "collision": {
+                      "collideWith": {
+                        "seriesArea": true,
+                        "seriesItems": true,
+                      },
                       "threshold": 4,
                     },
                     "cornerRadius": 4,
@@ -931,6 +943,10 @@ describe('ChartOptions', () => {
                       "strokeWidth": 1,
                     },
                     "collision": {
+                      "collideWith": {
+                        "seriesArea": true,
+                        "seriesItems": true,
+                      },
                       "threshold": 4,
                     },
                     "cornerRadius": 4,
@@ -1181,6 +1197,10 @@ describe('ChartOptions', () => {
                       "strokeWidth": 1,
                     },
                     "collision": {
+                      "collideWith": {
+                        "seriesArea": true,
+                        "seriesItems": true,
+                      },
                       "threshold": 4,
                     },
                     "cornerRadius": 4,
@@ -1270,6 +1290,10 @@ describe('ChartOptions', () => {
                       "strokeWidth": 1,
                     },
                     "collision": {
+                      "collideWith": {
+                        "seriesArea": true,
+                        "seriesItems": true,
+                      },
                       "threshold": 4,
                     },
                     "cornerRadius": 4,
@@ -1359,6 +1383,10 @@ describe('ChartOptions', () => {
                       "strokeWidth": 1,
                     },
                     "collision": {
+                      "collideWith": {
+                        "seriesArea": true,
+                        "seriesItems": true,
+                      },
                       "threshold": 4,
                     },
                     "cornerRadius": 4,
@@ -1448,6 +1476,10 @@ describe('ChartOptions', () => {
                       "strokeWidth": 1,
                     },
                     "collision": {
+                      "collideWith": {
+                        "seriesArea": true,
+                        "seriesItems": true,
+                      },
                       "threshold": 4,
                     },
                     "cornerRadius": 4,
@@ -1698,6 +1730,10 @@ describe('ChartOptions', () => {
                       "strokeWidth": 1,
                     },
                     "collision": {
+                      "collideWith": {
+                        "seriesArea": true,
+                        "seriesItems": true,
+                      },
                       "threshold": 4,
                     },
                     "cornerRadius": 4,
@@ -1787,6 +1823,10 @@ describe('ChartOptions', () => {
                       "strokeWidth": 1,
                     },
                     "collision": {
+                      "collideWith": {
+                        "seriesArea": true,
+                        "seriesItems": true,
+                      },
                       "threshold": 4,
                     },
                     "cornerRadius": 4,
@@ -1876,6 +1916,10 @@ describe('ChartOptions', () => {
                       "strokeWidth": 1,
                     },
                     "collision": {
+                      "collideWith": {
+                        "seriesArea": true,
+                        "seriesItems": true,
+                      },
                       "threshold": 4,
                     },
                     "cornerRadius": 4,
@@ -1965,6 +2009,10 @@ describe('ChartOptions', () => {
                       "strokeWidth": 1,
                     },
                     "collision": {
+                      "collideWith": {
+                        "seriesArea": true,
+                        "seriesItems": true,
+                      },
                       "threshold": 4,
                     },
                     "cornerRadius": 4,

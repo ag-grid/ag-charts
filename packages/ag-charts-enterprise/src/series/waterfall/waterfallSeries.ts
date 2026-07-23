@@ -1078,7 +1078,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         if (!this.usesPlacedLabels) return [];
         return buildBarLabelData(this.contextNodeData?.labelData, (node) => {
             const label = this.getItemConfig(node.itemType).label;
-            if (node.label == null || node.label.text === '') return { label: node.label, config: label };
+            const collideWith = label.collision.resolveCollideWith();
+            if (node.label == null || node.label.text === '') return { label: node.label, config: label, collideWith };
             // Inflate the measured text by the label's drawn box (padding + border stroke) so orientation
             // resolution avoids the box, not just the text.
             const box = expandPlacementLabelBoxExtent(label);
@@ -1087,6 +1088,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                 label: node.label,
                 config: label,
                 size: { width: width + box.left + box.right, height: height + box.top + box.bottom },
+                collideWith,
             };
         });
     }

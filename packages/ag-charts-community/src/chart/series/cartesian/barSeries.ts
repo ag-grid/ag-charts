@@ -663,18 +663,10 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         const isStacked = dataModel.hasColumnById(this, 'yValue-start');
         const stackIndex = this.seriesGrouping?.stackIndex ?? 0;
         const stackCount = this.seriesGrouping?.stackCount ?? 0;
-        // Plot-local coordinates, so the seriesArea padding extends the rect into a negative origin.
-        const seriesRect = this.chart?.seriesRect;
-        const seriesAreaPadding = this.chart?.seriesAreaPadding;
-        const plotRegion = seriesRect
-            ? {
-                  x: -(seriesAreaPadding?.left ?? 0),
-                  y: -(seriesAreaPadding?.top ?? 0),
-                  width: seriesRect.width + (seriesAreaPadding?.left ?? 0) + (seriesAreaPadding?.right ?? 0),
-                  height: seriesRect.height + (seriesAreaPadding?.top ?? 0) + (seriesAreaPadding?.bottom ?? 0),
-              }
-            : undefined;
         const { label } = this.properties;
+        // The series-area clamp is opt-in via `collideWith.seriesArea`; without it outside/beside
+        // candidates fall back to the engine's plot bounds and may overflow the series area.
+        const plotRegion = label.collision.resolveCollideWith().seriesArea ? this.getSeriesPlotRegion() : undefined;
         const labelPlacements = toArray(label.placement);
         if (labelPlacements.length === 0) labelPlacements.push('inside-center');
         const labelPlacement = labelPlacements[0];
@@ -1887,6 +1879,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         };
         const suppressHide = label.collision.suppressHide;
         const hideable = !suppressHide;
+        const collideWith = label.collision.resolveCollideWith();
         if (barLabelResolvesPlacement(label.placement) || hideable) {
             const data: PointLabelDatum[] = [];
             for (const node of this.contextNodeData?.labelData ?? []) {
@@ -1904,7 +1897,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                         nodeLabel.candidates,
                         nodeLabel,
                         ownBox,
-                        suppressHide
+                        suppressHide,
+                        collideWith
                     )
                 );
             }
@@ -1914,6 +1908,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             label: node.label,
             config: label,
             size: node.label != null && node.label.text !== '' ? measureBox(node.label.text) : undefined,
+            collideWith,
         }));
     }
 

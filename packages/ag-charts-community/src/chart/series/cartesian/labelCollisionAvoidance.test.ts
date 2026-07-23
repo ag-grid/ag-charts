@@ -83,6 +83,13 @@ describe('label collision avoidance', () => {
         await compareImageSnapshot(chart, ctx, defaults);
     };
 
+    const placedLabelPlacements = () => {
+        const series = deproxy(chart as any).series[0] as unknown as {
+            placedLabelData: { placement?: string }[];
+        };
+        return series.placedLabelData;
+    };
+
     const cartesianAxes = {
         x: { position: 'bottom', type: 'number' },
         y: { position: 'left', type: 'number' },
@@ -421,13 +428,6 @@ describe('label collision avoidance', () => {
             { x: 90, y: 50, size: 1, label: 'C' },
         ];
 
-        const placedLabels = () => {
-            const series = deproxy(chart as any).series[0] as unknown as {
-                placedLabelData: { placement?: string }[];
-            };
-            return series.placedLabelData;
-        };
-
         const render = async (
             type: 'scatter' | 'bubble',
             opts: { markerSize: number; placement: string | string[] }
@@ -453,7 +453,7 @@ describe('label collision avoidance', () => {
             prepareTestOptions(options);
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
-            return placedLabels();
+            return placedLabelPlacements();
         };
 
         it('scatter: keeps the label inside when it fits the marker', async () => {
@@ -516,6 +516,184 @@ describe('label collision avoidance', () => {
                 },
                 PATTERN_SNAPSHOT_DEFAULTS
             );
+        });
+    });
+
+    describe('series-area overflow (marker series)', () => {
+        // A single point pinned to the top edge of the plot; a `top` label sits above the series area
+        // but within the chart's outer padding band. Series-area containment is opt-in via
+        // `collideWith.seriesArea`: off by default the label is kept (spilling into the padding band is
+        // allowed); enabling it treats the overflow as a collision so a hideable label is dropped.
+        const topEdgeData = [{ x: 5, y: 10, size: 4, label: 'Edge' }];
+        const edgeAxes = {
+            x: { position: 'bottom', type: 'number', min: 0, max: 10 },
+            y: { position: 'left', type: 'number', min: 0, max: 10 },
+        };
+
+        const render = async (
+            type: 'scatter' | 'bubble',
+            opts: {
+                seriesAreaPaddingTop?: number;
+                placement?: string;
+                markerSize?: number;
+                seriesArea?: boolean;
+            } = {}
+        ) => {
+            const { seriesAreaPaddingTop, placement = 'top', markerSize = 6, seriesArea } = opts;
+            const options: any = {
+                data: topEdgeData,
+                legend: { enabled: false },
+                padding: { top: 80, right: 10, bottom: 10, left: 10 },
+                ...(seriesAreaPaddingTop == null ? {} : { seriesArea: { padding: { top: seriesAreaPaddingTop } } }),
+                axes: edgeAxes,
+                series: [
+                    {
+                        type,
+                        xKey: 'x',
+                        yKey: 'y',
+                        labelKey: 'label',
+                        ...(type === 'bubble'
+                            ? { sizeKey: 'size', minSize: markerSize, maxSize: markerSize }
+                            : { size: markerSize }),
+                        label: {
+                            enabled: true,
+                            placement,
+                            collision: {
+                                suppressHide: false,
+                                ...(seriesArea == null ? {} : { collideWith: { seriesArea } }),
+                            },
+                        },
+                    },
+                ],
+            };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            return placedLabelPlacements();
+        };
+
+        for (const type of ['scatter', 'bubble'] as const) {
+            it(`${type}: keeps a label overflowing the series area by default (seriesArea off)`, async () => {
+                const placed = await render(type);
+                expect(placed.length).toBe(1);
+            });
+
+            it(`${type}: drops a label overflowing the series area when collideWith.seriesArea is on`, async () => {
+                const placed = await render(type, { seriesArea: true });
+                expect(placed.length).toBe(0);
+            });
+
+            it(`${type}: keeps the label when seriesArea padding grows the region to contain it`, async () => {
+                const placed = await render(type, { seriesArea: true, seriesAreaPaddingTop: 80 });
+                expect(placed.length).toBe(1);
+            });
+
+            // An `inside` label is fitted to and centred on its marker, so an edge marker's label
+            // rides with the point; it is exempt from the series-area containment that hides
+            // directional labels spilling into the padding zone.
+            it(`${type}: keeps an inside label centred on an edge marker even with seriesArea on`, async () => {
+                const placed = await render(type, { seriesArea: true, placement: 'inside', markerSize: 60 });
+                expect(placed.length).toBe(1);
+            });
+        }
+    });
+
+    describe('bar collideWith overrides', () => {
+        // Bars resolve collideWith from their theme (seriesItem/seriesArea on; marker/label inherit the
+        // global on) merged with the user's, so a user override must reach the bar label placement path.
+        const barAxes = {
+            x: { position: 'bottom', type: 'category' },
+            y: { position: 'left', type: 'number', min: 0, max: 10 },
+        };
+
+        const visibleBarLabelCount = (seriesIndex = 0) => {
+            const series = deproxy(chart as any).series[seriesIndex] as unknown as {
+                labelSelection: { nodes(): { visible: boolean }[] };
+            };
+            return series.labelSelection.nodes().filter((node) => node.visible).length;
+        };
+
+        describe('seriesArea', () => {
+            // A single bar filling the value axis; its `outside-end` label sits above the bar top,
+            // overflowing the series area into the chart padding band.
+            const topBarData = [{ x: 'A', y: 10 }];
+
+            const render = async (collision: object) => {
+                const options: any = {
+                    data: topBarData,
+                    legend: { enabled: false },
+                    padding: { top: 100, right: 10, bottom: 10, left: 10 },
+                    axes: barAxes,
+                    series: [
+                        {
+                            type: 'bar',
+                            xKey: 'x',
+                            yKey: 'y',
+                            label: { enabled: true, placement: 'outside-end', collision },
+                        },
+                    ],
+                };
+                prepareTestOptions(options);
+                chart = AgCharts.create(options);
+                await waitForChartStability(chart);
+                return visibleBarLabelCount();
+            };
+
+            it('drops an outside label overflowing the series area by default (seriesArea on)', async () => {
+                expect(await render({ suppressHide: false })).toBe(0);
+            });
+
+            it('keeps the outside label when collideWith.seriesArea is disabled', async () => {
+                expect(await render({ suppressHide: false, collideWith: { seriesArea: false } })).toBe(1);
+            });
+        });
+
+        describe('labels', () => {
+            // A line and a bar sharing the same category and top value, so the bar's `outside-end` label
+            // and the line's `top` label stack above the same point; padded, filled boxes force them to
+            // overlap. The line is declared first so its kept label seeds the obstacle before the
+            // hideable bar label resolves and either avoids it (default) or ignores it (labels off).
+            const comboData = [{ x: 'A', line: 10, bar: 10 }];
+            const boxedLabel = { fill: 'white', padding: 20 };
+
+            const render = async (barCollision: object) => {
+                const options: any = {
+                    data: comboData,
+                    legend: { enabled: false },
+                    padding: { top: 100, right: 40, bottom: 10, left: 40 },
+                    axes: barAxes,
+                    series: [
+                        {
+                            type: 'line',
+                            xKey: 'x',
+                            yKey: 'line',
+                            marker: { enabled: true, size: 6 },
+                            label: { enabled: true, placement: 'top', ...boxedLabel },
+                        },
+                        {
+                            type: 'bar',
+                            xKey: 'x',
+                            yKey: 'bar',
+                            label: { enabled: true, placement: 'outside-end', ...boxedLabel, collision: barCollision },
+                        },
+                    ],
+                };
+                prepareTestOptions(options);
+                chart = AgCharts.create(options);
+                await waitForChartStability(chart);
+                return visibleBarLabelCount(1);
+            };
+
+            it('drops the bar label colliding with the line label by default (labels on)', async () => {
+                // seriesArea off so the label is not dropped for overflowing the plot area instead.
+                expect(await render({ suppressHide: false, collideWith: { seriesArea: false } })).toBe(0);
+            });
+
+            it('keeps the bar label when collideWith.labels is disabled', async () => {
+                expect(await render({ suppressHide: false, collideWith: { seriesArea: false, labels: false } })).toBe(
+                    1
+                );
+            });
         });
     });
 

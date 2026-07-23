@@ -192,6 +192,8 @@ export interface CollideWith {
     readonly marker?: boolean;
     readonly label?: boolean;
     readonly seriesItem?: boolean;
+    /** Whether the label must stay inside the series plotting area; a series attaches its plot region when set. */
+    readonly seriesArea?: boolean;
 }
 
 /**
@@ -491,22 +493,6 @@ interface BarPositionedCandidate extends PositionedLabelCandidate {
     readonly placement: string;
 }
 
-// Bar labels sit inside their own bar rect, so avoid other labels only — not markers, and not the
-// bar rects themselves (a bar label would otherwise always collide with its own `seriesItem` box).
-const barLabelCollideWith: CollideWith = {
-    label: true,
-    marker: false,
-    seriesItem: false,
-};
-
-// Placement-cascade bar labels avoid other bars so a candidate overlapping a neighbour falls through;
-// the label's own bar (and any obstacle overlapping it) is excluded via `ownBox`.
-const barPositionedLabelCollideWith: CollideWith = {
-    label: true,
-    marker: false,
-    seriesItem: true,
-};
-
 /**
  * True when an `orientation` array offers more than one candidate to fall through. A single value
  * (or unset) has nothing to resolve, so the series keeps its unconditional first-orientation bake
@@ -562,8 +548,11 @@ export function labelFootprintBox(
 
 /**
  * Builds the {@link PointLabelDatum} routing a bar label through the placement engine: centred on its
- * glyph box, constrained to `region` (its bar rect, or `undefined` for the plot bounds), avoiding
- * other labels, offering the `orientations` candidates.
+ * glyph box, constrained to `region` (its bar rect, or `undefined` for the plot bounds), offering the
+ * `orientations` candidates, avoiding the obstacle categories `collideWith` enables. The `region` doubles
+ * as the label's own-shape box: it lies within the bar rect, so a `seriesItem` obstacle for the label's
+ * own bar (which the region overlaps) is excluded while neighbouring bars — which the region cannot reach
+ * — are still avoided.
  */
 export function buildBarLabelDatum(
     anchor: OrientationAnchor,
@@ -572,6 +561,7 @@ export function buildBarLabelDatum(
     height: number,
     orientations: AgChartLabelOrientation[],
     region: BoxBounds | undefined,
+    collideWith: CollideWith,
     target: BarLabelTarget
 ): BarPlacedLabelDatum {
     const { x, y } = labelGlyphCentre(anchor, width, height);
@@ -583,8 +573,9 @@ export function buildBarLabelDatum(
         orientation: orientations,
         gap: 0,
         neverDrop: true,
-        collideWith: barLabelCollideWith,
+        collideWith,
         region,
+        ownBox: region,
         target,
     };
 }
@@ -602,7 +593,8 @@ export function buildBarPositionedLabelDatum(
     candidates: readonly PositionedLabelCandidate[],
     target: BarLabelTarget,
     ownBox: BoxBounds,
-    suppressHide: boolean
+    suppressHide: boolean,
+    collideWith: CollideWith
 ): BarPlacedLabelDatum {
     return {
         point: { x: 0, y: 0, size: 0 },
@@ -613,7 +605,7 @@ export function buildBarPositionedLabelDatum(
         // When labels are hideable (`suppressHide: false`) a no-fit candidate is dropped so the caller
         // can hide it; otherwise the engine keeps the least-overflowing candidate.
         neverDrop: suppressHide,
-        collideWith: barPositionedLabelCollideWith,
+        collideWith,
         positionedCandidates: candidates,
         ownBox,
         target,
@@ -680,6 +672,8 @@ export interface BarLabelSource {
     readonly config: FontOptions & { orientation?: AgChartLabelOrientation | AgChartLabelOrientation[] };
     /** Pre-measured footprint (text plus box padding/border); falls back to measuring `label.text` with `config`. */
     readonly size?: { width: number; height: number };
+    /** Resolved obstacle-category toggles for this label, stamped onto the datum. */
+    readonly collideWith: CollideWith;
 }
 
 /**
@@ -698,7 +692,9 @@ export function buildBarLabelData<T>(
         const orientations = toArray(config.orientation);
         if (orientations.length <= 1) continue;
         const { width, height } = source.size ?? measureLabelText(label.text, config);
-        data.push(buildBarLabelDatum(label, label.text, width, height, orientations, label.region, label));
+        data.push(
+            buildBarLabelDatum(label, label.text, width, height, orientations, label.region, source.collideWith, label)
+        );
     }
     return data;
 }
@@ -760,9 +756,9 @@ let candidatePlacement: LabelPlacement | undefined;
 let candidateOwnMarkerCx = 0;
 let candidateOwnMarkerCy = 0;
 let candidateOwnMarkerR = -1;
-// The candidate datum's own bar rect (positioned path only): a `seriesItem` obstacle intersecting it
-// is excluded so a bar label never collides with its own bar/stack/behind-bars. `undefined` disables
-// the gate (the orientation path, where `seriesItem` avoidance is off anyway).
+// The candidate datum's own shape rect (bar labels only): any obstacle intersecting it is excluded so
+// an inside label never collides with the shape it sits on. `undefined` disables the gate (marker
+// series, whose own marker is handled by the own-marker circle gate instead).
 let candidateOwnBox: BoxBounds | undefined;
 // The label's text/box after the fit step, reused per label to keep the hot path allocation-free.
 const fittedLabel: { text: NormalisedTextOrSegments; width: number; height: number } = {
@@ -814,12 +810,12 @@ function obstacleOverlapsCandidate(o: LabelObstacle): boolean {
         return candidatePlacement !== 'inside' && candidateThreshold > candidateSpacing;
     }
 
-    // The label's own bar rect (and any bar overlapping it: stacked siblings share the full-column box,
-    // grouped:false bars overlap in the band) is never a collision — only bars in other columns are.
+    // An on-shape (inside) label never collides with the shape it sits on: any obstacle overlapping the
+    // label's own box — its own bar and anything coincident with it (stacked siblings sharing the
+    // full-column box, grouped:false bars overlapping in the band, a marker or label sitting on the bar)
+    // — is excluded, regardless of category. Only obstacles clear of the own shape are avoided.
     if (
         candidateOwnBox != null &&
-        category === 'seriesItem' &&
-        o.kind === 'rect' &&
         boxCollides(o.box, candidateOwnBox.x, candidateOwnBox.y, candidateOwnBox.width, candidateOwnBox.height)
     ) {
         return false;
@@ -1199,7 +1195,9 @@ function placeAvoidingLabel(
     candidateOwnMarkerCx = markerCentre.cx;
     candidateOwnMarkerCy = markerCentre.cy;
     candidateOwnMarkerR = d.point.size / 2;
-    candidateOwnBox = undefined;
+    // Bar labels carry their own bar rect here so an inside label excludes its own shape; marker series
+    // leave it unset (their own marker is handled by the own-marker circle gate above).
+    candidateOwnBox = d.ownBox;
     const candidateCount = candidates?.length ?? 1;
     const orientationCount = orientations?.length ?? 1;
     const region = d.region ?? bounds;

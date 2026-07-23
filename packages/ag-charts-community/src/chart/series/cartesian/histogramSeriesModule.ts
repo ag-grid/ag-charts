@@ -44,7 +44,11 @@ const themeTemplate: ExtensibleTheme<'histogram'> = {
             fontWeight: { $ref: 'fontWeight' },
             spacing: 8,
             padding: 8,
-            collision: { threshold: 4 },
+            collision: {
+                threshold: 4,
+                // @ts-expect-error undocumented option
+                collideWith: { seriesItems: true, seriesArea: true },
+            },
             insideStyle: {
                 color: { $isUserOption: ['../color', { $path: '../color' }, { $ref: 'chartBackgroundColor' }] },
             },

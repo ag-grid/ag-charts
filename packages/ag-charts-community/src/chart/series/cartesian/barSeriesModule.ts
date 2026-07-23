@@ -1,4 +1,4 @@
-import type { DynamicContext, SeriesModuleDefinition } from 'ag-charts-core';
+import { type DynamicContext, type SeriesModuleDefinition, undocumentedThemeOptions } from 'ag-charts-core';
 import {
     ChartAxisDirection,
     DEFAULT_SHADOW_COLOUR,
@@ -45,7 +45,10 @@ const themeTemplate: ExtensibleTheme<'bar'> = {
             fontFamily: { $ref: 'fontFamily' },
             spacing: 8,
             padding: 8,
-            collision: { threshold: 4 },
+            collision: {
+                threshold: 4,
+                ...undocumentedThemeOptions({ collideWith: { seriesItems: true, seriesArea: true } }),
+            },
             insideStyle: {
                 color: { $isUserOption: ['../color', { $path: '../color' }, { $ref: 'chartBackgroundColor' }] },
             },
