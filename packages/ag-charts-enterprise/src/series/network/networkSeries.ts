@@ -5,7 +5,6 @@ import {
     type ChartAxisDirection,
     ChartUpdateType,
     type DynamicContext,
-    Logger,
     type Point,
     Vertex,
 } from 'ag-charts-core';
@@ -377,7 +376,7 @@ export abstract class AbstractNetworkSeries<
 
         const panSuccess = zoomManager.panToBBox(seriesRect, this.mapFocusBBoxToPanTarget(seriesRect, canvasBBox));
         if (!panSuccess) {
-            Logger.warnOnce(`${this.id}: panToBBox failed — chart may be too small.`);
+            this.ctx.logger.warnOnce(`${this.id}: panToBBox failed — chart may be too small.`);
         }
     }
 

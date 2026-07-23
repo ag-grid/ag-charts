@@ -17,7 +17,6 @@ import {
     type DynamicContext,
     type FillStrokeMorph,
     type InternalAgColorType,
-    Logger,
     type Mutable,
     type Normalised,
     type NormalisedTextOrSegments,
@@ -301,7 +300,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
 
         const supportedAxisTypes = ['category', 'grouped-category'];
         if (!supportedAxisTypes.includes(xAxis.type) || !supportedAxisTypes.includes(yAxis.type)) {
-            Logger.warnOnce(
+            this.ctx.logger.warnOnce(
                 `Heatmap series expected axes to have ${joinFormatted(supportedAxisTypes, 'or', JSON.stringify)} type, but received "${xAxis.type}" and "${yAxis.type}" instead.`
             );
             return undefined;

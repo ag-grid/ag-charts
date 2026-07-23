@@ -9,7 +9,6 @@ import {
     type Geometry,
     type ITextMeasurer,
     type LabelFit,
-    Logger,
     type Normalised,
     type PlacedLabel,
     type Point,
@@ -553,7 +552,7 @@ export class MapMarkerSeries
             missingGeometries.push(`(+${excessItems} more)`);
         }
 
-        Logger.warnOnce(`some data items do not have matches in the provided topology`, missingGeometries);
+        this.ctx.logger.warnOnce(`some data items do not have matches in the provided topology`, missingGeometries);
     }
 
     private buildFeatureMap(topologyIdKey: string): Map<string, Feature> {
