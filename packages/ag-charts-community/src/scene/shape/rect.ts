@@ -385,15 +385,30 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
                 y = this.align(y);
             }
 
-            clipBBox =
-                clipBBox == null
-                    ? undefined
-                    : new BBox(
-                          this.align(clipBBox.x),
-                          this.align(clipBBox.y),
-                          this.align(clipBBox.x, clipBBox.width),
-                          this.align(clipBBox.y, clipBBox.height)
-                      );
+            if (clipBBox == null) {
+                clipBBox = undefined;
+            } else if (centreDirection === 'x') {
+                // Snap the clip's category dimension with the same centre-snap the body uses, so the
+                // clip edges land on the body edges regardless of how the clip coordinate arrived
+                // (raw on a static render, pre-snapped from an animation). Mismatched snaps here shift
+                // a clipped edge by a device pixel and make an animated bar settle off a static one.
+                const { start: cx, length: cw } = this.alignCentre(clipBBox.x, clipBBox.width, this.crispCentreScratch);
+                clipBBox = new BBox(cx, this.align(clipBBox.y), cw, this.align(clipBBox.y, clipBBox.height));
+            } else if (centreDirection === 'y') {
+                const { start: cy, length: ch } = this.alignCentre(
+                    clipBBox.y,
+                    clipBBox.height,
+                    this.crispCentreScratch
+                );
+                clipBBox = new BBox(this.align(clipBBox.x), cy, this.align(clipBBox.x, clipBBox.width), ch);
+            } else {
+                clipBBox = new BBox(
+                    this.align(clipBBox.x),
+                    this.align(clipBBox.y),
+                    this.align(clipBBox.x, clipBBox.width),
+                    this.align(clipBBox.y, clipBBox.height)
+                );
+            }
         }
 
         if (strokeWidth) {
