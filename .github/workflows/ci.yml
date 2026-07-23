@@ -1022,7 +1022,12 @@ jobs:
               with:
                   pr_number: ${{ github.event.pull_request.number }}
                   github_token: ${{ secrets.GITHUB_TOKEN }}
-                  remove_sections: ${{ steps.snapshot-notify.outputs.updated != 'true' && 'snapshot-status' || '' }}
+                  # Clear snapshot-status when snapshots weren't regenerated, and clear snapshot-review
+                  # when full CI (hence the snapshot_review job) didn't run — the report job is the
+                  # always-running GC point for sections whose producing job was skipped this build.
+                  remove_sections: >-
+                      ${{ steps.snapshot-notify.outputs.updated != 'true' && 'snapshot-status' || '' }}
+                      ${{ needs.detect-changes.outputs.run_full_ci != 'true' && 'snapshot-review' || '' }}
 
             - name: Merge JUnit Report XMLs
               if: needs.test.result != 'skipped' || needs.e2e.result != 'skipped' || needs.demos_e2e.result != 'skipped'
@@ -1283,6 +1288,78 @@ jobs:
               run: |
                   echo "Workflow failed, failing the build."
                   exit 1
+
+    # Asynchronous, NON-GATING snapshot review. Runs the /snapshot-review reports for the PR and
+    # writes the `snapshot-review` section of the consolidated PR comment. `report` does NOT depend
+    # on this job and it must be excluded from branch-protection required checks — merge never waits
+    # on it. `continue-on-error` + `!cancelled()` keep it off the critical path (the snapshot jobs
+    # deliberately exit 1 when they regenerate baselines, so this must tolerate their failure).
+    snapshot_review:
+        runs-on: ubuntu-24.04
+        name: Snapshot Review
+        continue-on-error: true
+        needs: [detect-changes, init, test, e2e, fw_pkg_test]
+        if: |
+            !cancelled() &&
+            github.event_name == 'pull_request' &&
+            github.event.pull_request.head.repo.full_name == github.repository &&
+            needs.detect-changes.outputs.run_full_ci == 'true'
+        permissions:
+            contents: read
+            pull-requests: write
+            packages: read
+            # scene-graph review (follow-up) downloads CI artifacts via gh — needs actions: read.
+            actions: read
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - name: Install ImageMagick
+              shell: bash
+              run: |
+                  set -euo pipefail
+                  # snapshot-collect.sh drives ImageMagick via the v7-style `magick <subcommand>`
+                  # entrypoint (`magick identify`, `magick compare`). ubuntu-24.04 ships ImageMagick 6,
+                  # which exposes those as standalone `identify`/`compare` and has no `magick` binary.
+                  # Install v6 and provide a thin shim that dispatches `magick <sub> …` -> `<sub> …`
+                  # (self-contained; no fragile AppImage download).
+                  sudo apt-get update -qq
+                  sudo apt-get install -y -qq imagemagick
+                  printf '#!/usr/bin/env bash\nexec "$@"\n' | sudo tee /usr/local/bin/magick >/dev/null
+                  sudo chmod +x /usr/local/bin/magick
+                  magick identify -version | head -1
+
+            - name: Install @ag-grid/dev-prompts
+              uses: ./external/ag-shared/github/actions/install-ag-dev-prompts
+              with:
+                  channel: canary
+
+            - name: Generate snapshot-review reports
+              id: review
+              uses: ./.github/actions/snapshot-review-run
+              with:
+                  snapshot_branch: ${{ needs.init.outputs.snapshot_branch }}
+                  base_branch: ${{ github.base_ref }}
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Upload snapshot-review HTML reports
+              if: steps.review.outputs.produced == 'true'
+              uses: actions/upload-artifact@v4
+              with:
+                  name: snapshot-review-html
+                  path: ${{ steps.review.outputs.html_dir }}/*.html
+                  if-no-files-found: ignore
+
+            # Upsert the snapshot-review section when reports were produced; otherwise clear any
+            # stale section from an earlier push (snapshots since fixed / no longer changed).
+            - name: Upsert snapshot-review section
+              uses: ./.github/actions/pr-report-comment
+              with:
+                  pr_number: ${{ github.event.pull_request.number }}
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
+                  remove_sections: ${{ steps.review.outputs.produced != 'true' && 'snapshot-review' || '' }}
 
     sonarqube:
         # Org-scoped GHA variable kill-switch: set SONARCLOUD_ENABLED=false to
