@@ -96,6 +96,7 @@ export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<
         rawTickCount: undefined,
         timeInterval: undefined,
         fractionDigits: 0,
+        rawFirstTickIndex: 0,
     };
 
     while (labelOverlap && index <= maxIterations) {
@@ -234,6 +235,7 @@ function buildTickData<TScale extends Scale<TDatum, number, TickInterval<TScale>
             rawTickCount,
             fractionDigits,
             timeInterval,
+            rawFirstTickIndex: rawFirstTickIndex ?? 0,
             ticks: formatTicks(options, {
                 niceDomain,
                 rawTicks,
