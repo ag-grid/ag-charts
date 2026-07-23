@@ -1018,7 +1018,7 @@ jobs:
               with:
                   pr_number: ${{ github.event.pull_request.number }}
                   github_token: ${{ secrets.GITHUB_TOKEN }}
-                  remove_sections: ${{ steps.snapshot-notify.outputs.updated == 'true' && '' || 'snapshot-status' }}
+                  remove_sections: ${{ steps.snapshot-notify.outputs.updated != 'true' && 'snapshot-status' || '' }}
 
             - name: Merge JUnit Report XMLs
               if: needs.test.result != 'skipped' || needs.e2e.result != 'skipped' || needs.demos_e2e.result != 'skipped'
