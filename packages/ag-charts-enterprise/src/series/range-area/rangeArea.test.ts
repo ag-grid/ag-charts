@@ -19,8 +19,15 @@ import {
     NEG_BIG,
     STRIPPED_NUMBER_AXES,
     STRIPPED_UNIT_TIME_AXES,
+    type SceneNodeExpectation,
     compareImageSnapshot,
+    createSceneGeometrySampler,
+    deproxy,
+    expectAnimatedEndpointsMatchStatic,
+    expectMonotonic,
     expectPixelIdenticalAcrossMagnitude,
+    expectProgresses,
+    expectSceneTrajectory,
     expectWarningsCalls,
     hoverAction,
     isoEpochPair,
@@ -29,7 +36,7 @@ import {
     scaleToBigIntFinite,
     setupMockCanvas,
     setupMockConsole,
-    spyOnAnimationManager,
+    spyOnAnimationFrames,
     testLegendItemName,
     waitForChartStability,
 } from 'ag-charts-community-test';
@@ -464,21 +471,91 @@ describe('RangeAreaSeries', () => {
         await compare();
     });
 
+    // The initial-load reveal, asserted over the whole animation trajectory (see the
+    // animation-trajectory-tests rule) rather than as per-ratio image snapshots. The band and its
+    // two stroke lines are revealed by a left-to-right clip swipe, the low/high markers scale in
+    // from zero size, and the datum labels fade in.
     describe('initial animation', () => {
-        const animate = spyOnAnimationManager();
+        const frames = spyOnAnimationFrames();
 
-        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-            it(`for RANGE_AREA_OPTIONS should animate at ${ratio * 100}%`, async () => {
-                animate(1200, ratio);
+        // The path geometry is drawn in full from frame 0 while a clip window sweeps across the plot
+        // (clip:x grows); clip drops to 0 once the mask lifts, so clip:x is present only during the sweep.
+        const swipeReveal = (): SceneNodeExpectation => ({
+            'clip:x': ['increases', 'progresses', 'bounded'],
+            clip: 'any',
+        });
 
-                const options: AgChartOptions = { ...RANGE_AREA_OPTIONS };
-                prepareEnterpriseTestOptions(options);
+        it('reveal by a left-to-right swipe with markers scaling in on the initial load', async () => {
+            const options: AgChartOptions = { ...RANGE_AREA_OPTIONS };
+            prepareEnterpriseTestOptions(options);
 
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
-                await compare();
+            const proxy = AgCharts.create(options);
+            chart = deproxy(proxy);
+            const sampler = createSceneGeometrySampler(chart);
+            const trajectory = await frames.captureAnimationFrames(chart, sampler);
+            await frames.runToEnd(chart);
+
+            // path reader: the clip window sweeps from collapsed to the full plot width.
+            const pathKeys = [...trajectory.at(-1)!.keys()].filter((key) => /^series\[0\]\/path\[/.test(key));
+            expect(pathKeys, 'fill + high/low stroke paths').toHaveLength(3);
+            for (const key of pathKeys) {
+                const clipX = trajectory
+                    .map((frame) => frame.get(key)?.['clip:x'])
+                    .filter((v): v is number => v != null);
+                // Anti-vacuity: the clip starts collapsed and sweeps across, so the specs cannot pass flat.
+                expect(clipX[0], `${key} clip:x at frame 0`).toBeLessThanOrEqual(0.01);
+                expectMonotonic(clipX, 'increasing');
+                expectProgresses(clipX);
+            }
+
+            // marker reader: markers scale in from zero size (opacity holds at 1), centre fixed.
+            const markerKeys = [...trajectory.at(-1)!.keys()].filter((key) => /^series\[0\]\/marker\[/.test(key));
+            expect(markerKeys.length, 'one marker per low + high datum').toBe(CATEGORY_DATA.length * 2);
+            for (const key of markerKeys) {
+                const width = trajectory.map((frame) => frame.get(key)!.width);
+                expect(width[0], `${key} width at frame 0`).toBeLessThanOrEqual(0.01);
+                expect(width.at(-1)!, `${key} width settled`).toBeGreaterThan(1);
+                expectMonotonic(width, 'increasing');
+            }
+
+            // Anti-vacuity for the label fade below: each datum label starts hidden and settles opaque.
+            const labelKeys = [...trajectory.at(-1)!.keys()].filter((key) => /\/labels\/text\[/.test(key));
+            expect(labelKeys.length, 'sampled data labels').toBeGreaterThan(0);
+            for (const key of labelKeys) {
+                const opacity = trajectory.map((frame) => frame.get(key)?.opacity).filter((v): v is number => v != null);
+                expect(opacity[0], `${key} opacity at frame 0`).toBeLessThanOrEqual(0.001);
+                expect(opacity.at(-1)!, `${key} opacity settled`).toBeCloseTo(1, 2);
+            }
+
+            expectSceneTrajectory(trajectory, {
+                'series[0]/path[*]': swipeReveal(),
+                'series[0]/marker[*]': {
+                    width: ['increases', 'bounded'],
+                    height: ['increases', 'bounded'],
+                    // Markers scale about their fixed data position: top-left drifts, translation holds.
+                    x: 'any',
+                    y: 'any',
+                    translationX: 'constant',
+                    translationY: 'constant',
+                },
+                'series[0]/labels/text[*]': { opacity: ['increases'] },
             });
-        }
+        });
+
+        // Pixel endpoint guard replacing the deleted 0%/100% ratio snapshots: the animated reveal
+        // must settle at exactly what a snapped render of the same options produces.
+        it('reveal endpoints match a static render', async () => {
+            const options: AgChartOptions = { ...RANGE_AREA_OPTIONS };
+            prepareEnterpriseTestOptions(options);
+            // Widen each band (low stays below high) so the transition reshapes the render with valid data.
+            const widened: AgChartOptions = {
+                ...options,
+                data: CATEGORY_DATA.map((d) => ({ ...d, low: d.low - 1, high: d.high + 1 })),
+            };
+
+            chart = AgCharts.create(options);
+            await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, options, widened);
+        });
     });
 
     describe('gradient fill', () => {
