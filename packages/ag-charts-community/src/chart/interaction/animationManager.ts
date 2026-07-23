@@ -35,7 +35,7 @@ export class AnimationManager {
     public defaultDuration = 1000;
     public maxAnimatableItems = MAX_ANIMATABLE_NODES;
 
-    private batch = new AnimationBatch(this.defaultDuration * 1.5, this.logger);
+    private batch: AnimationBatch;
 
     private readonly debug = Debug.create(true, 'animation');
     private readonly events = new EventEmitter<AnimationEventMap>();
@@ -53,7 +53,9 @@ export class AnimationManager {
         private readonly interactionManager: InteractionManager,
         private readonly chartUpdateMutex: Mutex,
         private readonly logger: Logger = Logger.default
-    ) {}
+    ) {
+        this.batch = new AnimationBatch(this.defaultDuration * 1.5, this.logger);
+    }
 
     public addListener<K extends keyof AnimationEventMap>(eventName: K, listener: EventListener<AnimationEventMap[K]>) {
         return this.events.on(eventName, listener);
