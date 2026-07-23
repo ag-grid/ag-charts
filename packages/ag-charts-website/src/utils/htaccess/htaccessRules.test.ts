@@ -195,7 +195,7 @@ describe('htaccessRules markdown content negotiation', () => {
     // path reused in the -f test and the rewrite target.
     const negotiationRules = [
         'RewriteCond %{HTTP_ACCEPT} text/markdown',
-        'RewriteCond %{REQUEST_URI} ^/(charts/(?:(?:react|angular|vue|javascript)/[^/]+?|license-pricing|community(?:/(?:events|showcase|tools-extensions|media|beyond-the-prompt))?|documentation-archive))/?$',
+        'RewriteCond %{REQUEST_URI} ^/(charts/(?:(?:react|angular|vue|javascript)/[^/]+?|license-pricing|community(?:/(?:events|showcase|tools-extensions|media|beyond-the-prompt))?|documentation-archive|gallery))/?$',
         'RewriteCond %{DOCUMENT_ROOT}/%1.md -f',
         'RewriteRule ^ /%1.md [L]',
     ];
@@ -213,7 +213,7 @@ describe('htaccessRules markdown content negotiation', () => {
     it('negotiates the top-level twins (license-pricing, community + subpages, documentation-archive) alongside framework docs pages', () => {
         for (const content of [production, staging]) {
             expect(content).toContain(
-                '|license-pricing|community(?:/(?:events|showcase|tools-extensions|media|beyond-the-prompt))?|documentation-archive))/?$'
+                '|license-pricing|community(?:/(?:events|showcase|tools-extensions|media|beyond-the-prompt))?|documentation-archive|gallery))/?$'
             );
             // changelog/pipeline are out of scope for this branch — they must not be negotiated.
             expect(content).not.toContain('changelog');
@@ -224,7 +224,7 @@ describe('htaccessRules markdown content negotiation', () => {
     it('adds Vary: Accept for negotiated paths (both envs) so shared caches key on the negotiated representation', () => {
         for (const content of [production, staging]) {
             expect(content).toContain(
-                '<If "%{REQUEST_URI} =~ m#^/charts/(?:(?:react|angular|vue|javascript)/[^/]+|license-pricing|community(?:/(?:events|showcase|tools-extensions|media|beyond-the-prompt))?|documentation-archive)/?$#">'
+                '<If "%{REQUEST_URI} =~ m#^/charts/(?:(?:react|angular|vue|javascript)/[^/]+|license-pricing|community(?:/(?:events|showcase|tools-extensions|media|beyond-the-prompt))?|documentation-archive|gallery)/?$#">'
             );
             expect(content).toContain('Header append Vary Accept');
         }

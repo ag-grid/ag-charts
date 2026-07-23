@@ -11,7 +11,7 @@ const DOCS_PAGE_PATH = new RegExp(`/(?:${FRAMEWORKS.join('|')})/[^/.]+/?$`);
 
 // Top-level (non-docs) pages that also ship a `.md` twin. Kept in sync with the same page
 // list in the htaccess negotiation rule (see htaccessRules.ts).
-const TOP_LEVEL_MD_PATH = /\/(?:license-pricing|documentation-archive)\/?$/;
+const TOP_LEVEL_MD_PATH = /\/(?:license-pricing|documentation-archive|gallery)\/?$/;
 
 // The /community landing page and its subpages, each with a `.md` twin.
 const COMMUNITY_MD_PATH = /\/community(?:\/(?:events|showcase|tools-extensions|media|beyond-the-prompt))?\/?$/;

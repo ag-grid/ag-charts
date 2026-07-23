@@ -36,14 +36,14 @@ Header always set Content-Security-Policy "default-src 'self'; script-src 'self'
     RewriteEngine On
 
     RewriteCond %{HTTP_ACCEPT} text/markdown
-    RewriteCond %{REQUEST_URI} ^/(charts/(?:(?:react|angular|vue|javascript)/[^/]+?|license-pricing|community(?:/(?:events|showcase|tools-extensions|media|beyond-the-prompt))?|documentation-archive))/?$
+    RewriteCond %{REQUEST_URI} ^/(charts/(?:(?:react|angular|vue|javascript)/[^/]+?|license-pricing|community(?:/(?:events|showcase|tools-extensions|media|beyond-the-prompt))?|documentation-archive|gallery))/?$
     RewriteCond %{DOCUMENT_ROOT}/%1.md -f
     RewriteRule ^ /%1.md [L]
 </IfModule>
 
 # Docs pages content-negotiate on Accept (see the markdown rewrite), so shared caches must
 # key on it. Scoped to the negotiated paths so the rest of the site keeps its default.
-<If "%{REQUEST_URI} =~ m#^/charts/(?:(?:react|angular|vue|javascript)/[^/]+|license-pricing|community(?:/(?:events|showcase|tools-extensions|media|beyond-the-prompt))?|documentation-archive)/?$#">
+<If "%{REQUEST_URI} =~ m#^/charts/(?:(?:react|angular|vue|javascript)/[^/]+|license-pricing|community(?:/(?:events|showcase|tools-extensions|media|beyond-the-prompt))?|documentation-archive|gallery)/?$#">
     Header append Vary Accept
 </If>
 
@@ -151,14 +151,14 @@ Header always set Content-Security-Policy "default-src 'self'; script-src 'self'
     RewriteEngine On
 
     RewriteCond %{HTTP_ACCEPT} text/markdown
-    RewriteCond %{REQUEST_URI} ^/(charts/(?:(?:react|angular|vue|javascript)/[^/]+?|license-pricing|community(?:/(?:events|showcase|tools-extensions|media|beyond-the-prompt))?|documentation-archive))/?$
+    RewriteCond %{REQUEST_URI} ^/(charts/(?:(?:react|angular|vue|javascript)/[^/]+?|license-pricing|community(?:/(?:events|showcase|tools-extensions|media|beyond-the-prompt))?|documentation-archive|gallery))/?$
     RewriteCond %{DOCUMENT_ROOT}/%1.md -f
     RewriteRule ^ /%1.md [L]
 </IfModule>
 
 # Docs pages content-negotiate on Accept (see the markdown rewrite), so shared caches must
 # key on it. Scoped to the negotiated paths so the rest of the site keeps its default.
-<If "%{REQUEST_URI} =~ m#^/charts/(?:(?:react|angular|vue|javascript)/[^/]+|license-pricing|community(?:/(?:events|showcase|tools-extensions|media|beyond-the-prompt))?|documentation-archive)/?$#">
+<If "%{REQUEST_URI} =~ m#^/charts/(?:(?:react|angular|vue|javascript)/[^/]+|license-pricing|community(?:/(?:events|showcase|tools-extensions|media|beyond-the-prompt))?|documentation-archive|gallery)/?$#">
     Header append Vary Accept
 </If>
 
