@@ -8,16 +8,23 @@ const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: { text: 'Crossline / Axis / Series-Node Overlap' },
     data: [
-        { category: 'Jan', value: 8 },
+        { category: 'Jan', value: -8 },
         { category: 'Feb', value: 12 },
-        { category: 'Mar', value: 6 },
+        { category: 'Mar', value: -6 },
         { category: 'Apr', value: 15 },
-        { category: 'May', value: 9 },
+        { category: 'May', value: -9 },
         { category: 'Jun', value: 18 },
-        { category: 'Jul', value: 11 },
+        { category: 'Jul', value: -11 },
         { category: 'Aug', value: 14 },
     ],
-    series: [{ type: 'line', xKey: 'category', yKey: 'value', marker: { enabled: true, size: 10 } }],
+    series: [
+        {
+            type: 'bar',
+            xKey: 'category',
+            yKey: 'value',
+            marker: { enabled: true, size: 10 },
+        },
+    ],
     axes: {
         x: {
             type: 'category',
