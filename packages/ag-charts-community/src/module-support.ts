@@ -180,13 +180,15 @@ export {
 export type { PreSceneRenderEvent, ProcessDataEvent } from './core/eventsHub';
 export {
     adjustLabelPlacement,
+    buildBarLabelCandidates,
     fitLabelToContainer,
     getLabelStyles,
     insideBarLabelBounds,
     pickPlacementStyle,
+    toResolvedPlacement,
     updateLabelNode,
 } from './chart/labelUtil';
-export type { ResolvedLabelPlacement } from './chart/labelUtil';
+export type { BarLabelPlacement, BarPositionedCandidate, ResolvedLabelPlacement } from './chart/labelUtil';
 export { LayoutElement } from './chart/layout/layoutManager';
 export type { LayoutContext } from './chart/layout/layoutManager';
 export { AnnotationManager } from './chart/annotation/annotationManager';

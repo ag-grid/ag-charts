@@ -1090,10 +1090,99 @@ describe('label collision avoidance', () => {
         });
     });
 
-    // Bar-family `placement` was widened to accept an ordered array, but the bar candidate-fallback
-    // engine is not yet wired (Ticket C). Until then a supplied array must be inert-safe: the first
-    // candidate is used, matching the single-value render, with no error raised.
-    describe('bar placement (widened type, fallback not yet wired)', () => {
+    describe('histogram placement cascade and own-label hiding', () => {
+        // A single bin filling the value axis; its `outside-end` label overflows the series area into the
+        // padding band, so a hideable single-placement label is dropped when series-area avoidance is on,
+        // while a placement array cascades to an inside candidate that fits.
+        const data = Array.from({ length: 10 }, () => ({ x: 0.5 }));
+        const options = (collision: object, placement: string | string[] = 'outside-end'): any => ({
+            data,
+            legend: { enabled: false },
+            padding: { top: 100, right: 10, bottom: 10, left: 10 },
+            axes: { x: { type: 'number' }, y: { type: 'number', min: 0, max: 10 } },
+            series: [
+                {
+                    type: 'histogram',
+                    xKey: 'x',
+                    bins: [[0, 1]],
+                    label: { enabled: true, placement, collision },
+                },
+            ],
+        });
+        const visibleLabelCount = () => {
+            const series = deproxy(chart as any).series[0] as unknown as {
+                labelSelection: { nodes(): { visible: boolean }[] };
+            };
+            return series.labelSelection.nodes().filter((node) => node.visible).length;
+        };
+        const render = async (collision: object, placement?: string | string[]) => {
+            const opts = options(collision, placement);
+            prepareTestOptions(opts);
+            chart = AgCharts.create(opts);
+            await waitForChartStability(chart);
+            return visibleLabelCount();
+        };
+
+        it('drops a hideable outside label overflowing the series area', async () => {
+            expect(await render({ suppressHide: false, collideWith: { seriesArea: true } })).toBe(0);
+        });
+
+        it('keeps the same label when it is not hideable (suppressHide: true)', async () => {
+            expect(await render({ suppressHide: true, collideWith: { seriesArea: true } })).toBe(1);
+        });
+
+        it('cascades a hideable outside label to an inside placement that fits', async () => {
+            // The single `outside-end` label above hides (0); the array falls through to `inside-center`,
+            // which fits inside the tall bin, so the label is kept even though `suppressHide` is false.
+            expect(
+                await render({ suppressHide: false, collideWith: { seriesArea: true } }, [
+                    'outside-end',
+                    'inside-center',
+                ])
+            ).toBe(1);
+        });
+
+        // One render covering every cascade outcome: the short bins keep the `outside-end` label above
+        // the bar; the full-height bin whose `outside-end` overflows the top series area cascades to
+        // `inside-center`; the full-height bin with a label too wide to fit inside is dropped.
+        it('renders outside, cascaded-inside and dropped labels across a multi-bin chart', async () => {
+            const binData = [
+                ...Array.from({ length: 3 }, () => ({ x: 0.5 })),
+                ...Array.from({ length: 6 }, () => ({ x: 1.5 })),
+                ...Array.from({ length: 10 }, () => ({ x: 2.5 })),
+                ...Array.from({ length: 10 }, () => ({ x: 3.5 })),
+            ];
+            await renderAndSnapshot({
+                data: binData,
+                legend: { enabled: false },
+                padding: { top: 60, right: 10, bottom: 10, left: 10 },
+                axes: { x: { type: 'number' }, y: { type: 'number', min: 0, max: 10 } },
+                series: [
+                    {
+                        type: 'histogram',
+                        xKey: 'x',
+                        bins: [
+                            [0, 1],
+                            [1, 2],
+                            [2, 3],
+                            [3, 4],
+                        ],
+                        label: {
+                            enabled: true,
+                            formatter: ({ binIndex, frequency }: any) =>
+                                binIndex === 3 ? 'WWWWWWWWWWWWWWWWWWWW' : String(frequency),
+                            placement: ['outside-end', 'inside-center'],
+                            collision: { suppressHide: false, collideWith: { seriesArea: true } },
+                        },
+                    },
+                ],
+            });
+        });
+    });
+
+    // A `placement` array is an ordered fallback list: the first candidate that clears its obstacles wins,
+    // so an array whose first candidate already fits renders identically to that single placement.
+    describe('bar-family placement cascade (first fitting candidate wins)', () => {
         const barData = Array.from({ length: 8 }, (_, i) => ({ x: `C${i}`, y: 20 + 10 * Math.sin(i) }));
         const barOptions = (placement: string | string[]) => ({
             data: barData,
@@ -1102,12 +1191,29 @@ describe('label collision avoidance', () => {
             series: [{ type: 'bar', xKey: 'x', yKey: 'y', label: { enabled: true, placement } }],
         });
 
-        it('renders an array placement identically to its first candidate', async () => {
+        it('bar renders an array placement identically to its fitting first candidate', async () => {
             await expectPixelIdenticalAcrossUpdate(
                 ctx,
                 createChart,
                 barOptions('inside-end') as any,
                 barOptions(['inside-end', 'outside-end']) as any
+            );
+        });
+
+        const histData = Array.from({ length: 8 }, (_, i) => ({ x: 20 + 10 * Math.sin(i) }));
+        const histOptions = (placement: string | string[]) => ({
+            data: histData,
+            legend: { enabled: false },
+            axes: { x: { type: 'number', position: 'bottom' }, y: { type: 'number', position: 'left' } },
+            series: [{ type: 'histogram', xKey: 'x', label: { enabled: true, placement } }],
+        });
+
+        it('histogram renders an array placement identically to its fitting first candidate', async () => {
+            await expectPixelIdenticalAcrossUpdate(
+                ctx,
+                createChart,
+                histOptions('inside-center') as any,
+                histOptions(['inside-center', 'outside-end']) as any
             );
         });
     });

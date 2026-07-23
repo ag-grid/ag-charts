@@ -25,8 +25,10 @@ import {
     applyBarLabelOrientation,
     bakedLabelObstacles,
     barLabelResolvesOrientation,
+    barLabelResolvesPlacement,
     barLabelRotation,
     buildBarLabelData,
+    buildBarPositionedLabelDatum,
     easeOut,
     firstCandidate,
     isContinuous,
@@ -34,6 +36,7 @@ import {
     measureLabelText,
     mergeDefaults,
     minValue,
+    placedBarLabelTargets,
     rectLabelObstacles,
     resolveLabelFit,
     subtractValues,
@@ -50,6 +53,8 @@ type NormalisedWaterfallSeriesStyle = Normalised<AgWaterfallSeriesStyle, never, 
 
 const {
     adjustLabelPlacement,
+    buildBarLabelCandidates,
+    toResolvedPlacement,
     insideBarLabelBounds,
     resolvePlacementLabelPadding,
     fitLabelToContainer,
@@ -83,18 +88,23 @@ const {
     upsertNodeDatum,
 } = _ModuleSupport;
 
-type WaterfallNodeLabelDatum = Readonly<Point> & {
+type WaterfallNodeLabelDatum = Point & {
     readonly text: NormalisedTextOrSegments;
-    readonly textAlign: CanvasTextAlign;
-    readonly textBaseline: CanvasTextBaseline;
+    // Mutable so the placement engine can retarget the label to a chosen candidate's anchor.
+    textAlign: CanvasTextAlign;
+    textBaseline: CanvasTextBaseline;
     rotation: number;
     /** Bar rect an orientation candidate must fit within; unset for outside placements. */
     readonly region?: BoxBounds;
     /** Flush offset written by the placement engine to keep a rotated label inside its region. */
     offsetX?: number;
     offsetY?: number;
-    /** Resolved inside/outside placement, selecting the `insideStyle`/`outsideStyle` overrides. */
-    placement?: _ModuleSupport.ResolvedLabelPlacement;
+    /** Granular resolved placement, coarsened to select the `insideStyle`/`outsideStyle` overrides. */
+    placement?: _ModuleSupport.BarLabelPlacement;
+    /** Pre-positioned cascade candidates, present only when the label routes through the engine. */
+    candidates?: readonly _ModuleSupport.BarPositionedCandidate[];
+    /** Engine-routed label the placement engine dropped (no candidate fit); rendered invisible. */
+    hidden?: boolean;
 };
 
 type WaterfallNodePointDatum = _ModuleSupport.DataModelSeriesNodeDatum['point'] & {
@@ -731,36 +741,82 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                       )
                     : undefined;
             const fittedLabelText = fitLabelToContainer(labelText, labelFit, label, bounds?.container);
-            // A rotated label's gap to the bar depends on its box size; measure only when it rotates.
-            const { width: labelWidth, height: labelHeight } =
-                labelRotation === 0 ? { width: 0, height: 0 } : measureLabelText(fittedLabelText, label);
-            const labelPlacement = adjustLabelPlacement({
-                isUpward,
-                isVertical: !barAlongX,
-                placement,
-                spacing: label.spacing,
-                boxPadding,
-                rect,
-                rotation: labelRotation,
-                labelWidth,
-                labelHeight,
-            });
-
-            mutableNode.label.text = fittedLabelText;
-            mutableNode.label.x = labelPlacement.x;
-            mutableNode.label.y = labelPlacement.y;
-            mutableNode.label.textAlign = labelPlacement.textAlign;
-            mutableNode.label.textBaseline = labelPlacement.textBaseline;
-            // Bake the first orientation; an array resolves against the bar rect for inside placements
-            // only (see barSeries).
-            mutableNode.label.rotation = labelRotation;
-            mutableNode.label.region = resolvesOrientation ? bounds?.region : undefined;
-            mutableNode.label.offsetX = 0;
-            mutableNode.label.offsetY = 0;
-            mutableNode.label.placement = insidePlacement ? 'inside' : 'outside';
+            const box = expandPlacementLabelBoxExtent(label);
+            if (!label.collision.suppressHide || barLabelResolvesPlacement(label.placement)) {
+                // A placement/orientation array (or a hideable label) pre-positions a candidate per
+                // placement × orientation the engine cascades through until one fits; a hideable no-fit
+                // label is dropped so it can be hidden.
+                const measured = measureLabelText(fittedLabelText, label);
+                const placements = toArray(label.placement);
+                if (placements.length === 0) placements.push('inside-center');
+                const orientations = toArray(label.orientation);
+                if (orientations.length === 0) orientations.push('horizontal');
+                const plotRegion = label.collision.resolveCollideWith().seriesArea
+                    ? this.getSeriesPlotRegion()
+                    : undefined;
+                const candidates = buildBarLabelCandidates({
+                    isUpward,
+                    isVertical: !barAlongX,
+                    placements,
+                    orientations,
+                    spacing: label.spacing,
+                    threshold,
+                    boxPadding,
+                    rect,
+                    width: measured.width + box.left + box.right,
+                    height: measured.height + box.top + box.bottom,
+                    plotRegion,
+                });
+                // The engine picks the first candidate that fits; the first is baked as a backward-safe
+                // default until the engine writes the chosen one back.
+                const { anchor, region, placement: granular } = candidates[0];
+                mutableNode.label.text = fittedLabelText;
+                mutableNode.label.x = anchor.x;
+                mutableNode.label.y = anchor.y;
+                mutableNode.label.textAlign = anchor.textAlign;
+                mutableNode.label.textBaseline = anchor.textBaseline;
+                mutableNode.label.rotation = labelRotation;
+                mutableNode.label.region = region;
+                mutableNode.label.offsetX = 0;
+                mutableNode.label.offsetY = 0;
+                mutableNode.label.placement = granular;
+                mutableNode.label.candidates = candidates;
+                mutableNode.label.hidden = false;
+            } else {
+                // A rotated label's gap to the bar depends on its box size; measure only when it rotates.
+                const { width: labelWidth, height: labelHeight } =
+                    labelRotation === 0 ? { width: 0, height: 0 } : measureLabelText(fittedLabelText, label);
+                const labelPlacement = adjustLabelPlacement({
+                    isUpward,
+                    isVertical: !barAlongX,
+                    placement,
+                    spacing: label.spacing,
+                    boxPadding,
+                    rect,
+                    rotation: labelRotation,
+                    labelWidth,
+                    labelHeight,
+                });
+                mutableNode.label.text = fittedLabelText;
+                mutableNode.label.x = labelPlacement.x;
+                mutableNode.label.y = labelPlacement.y;
+                mutableNode.label.textAlign = labelPlacement.textAlign;
+                mutableNode.label.textBaseline = labelPlacement.textBaseline;
+                // Bake the first orientation; an array resolves against the bar rect for inside placements
+                // only (see barSeries).
+                mutableNode.label.rotation = labelRotation;
+                mutableNode.label.region = resolvesOrientation ? bounds?.region : undefined;
+                mutableNode.label.offsetX = 0;
+                mutableNode.label.offsetY = 0;
+                mutableNode.label.placement = placement ?? 'inside-center';
+                mutableNode.label.candidates = undefined;
+                mutableNode.label.hidden = false;
+            }
         } else {
             // Clear label when disabled
             mutableNode.label.text = '';
+            mutableNode.label.candidates = undefined;
+            mutableNode.label.hidden = false;
         }
     }
 
@@ -1097,31 +1153,64 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
     override getLabelData(): PointLabelDatum[] {
         if (!this.usesPlacedLabels) return [];
-        return buildBarLabelData(this.contextNodeData?.labelData, (node) => {
+        const data: PointLabelDatum[] = [];
+        for (const node of this.contextNodeData?.labelData ?? []) {
+            const nodeLabel = node.label;
+            if (nodeLabel == null || nodeLabel.text === '') continue;
             const label = this.getItemConfig(node.itemType).label;
             const collideWith = label.collision.resolveCollideWith();
-            if (node.label == null || node.label.text === '') return { label: node.label, config: label, collideWith };
-            // Inflate the measured text by the label's drawn box (padding + border stroke) so orientation
-            // resolution avoids the box, not just the text.
+            // Inflate the measured text by the label's drawn box (padding + border stroke) so collisions
+            // avoid the box, not just the text.
             const box = expandPlacementLabelBoxExtent(label);
-            const { width, height } = measureLabelText(node.label.text, label);
-            return {
-                label: node.label,
-                config: label,
-                size: { width: width + box.left + box.right, height: height + box.top + box.bottom },
-                collideWith,
-            };
-        });
+            const { width, height } = measureLabelText(nodeLabel.text, label);
+            const size = { width: width + box.left + box.right, height: height + box.top + box.bottom };
+            // A cascading item carries pre-positioned candidates (built per item config); others resolve
+            // their orientation array against the bar rect, or stay baked when single-orientation.
+            if (nodeLabel.candidates == null) {
+                data.push(...buildBarLabelData([node], () => ({ label: nodeLabel, config: label, size, collideWith })));
+            } else {
+                const ownBox = { x: node.x, y: node.y, width: node.width, height: node.height };
+                data.push(
+                    buildBarPositionedLabelDatum(
+                        nodeLabel.text,
+                        size.width,
+                        size.height,
+                        nodeLabel.candidates,
+                        nodeLabel,
+                        ownBox,
+                        label.collision.suppressHide,
+                        collideWith
+                    )
+                );
+            }
+        }
+        return data;
     }
 
     override updatePlacedLabelData(placed: PlacedLabel<WaterfallNodeDatum>[]) {
         applyBarLabelOrientation(placed);
+        // Hideable labels (`neverDrop: false`) the engine dropped are absent from `placed`; flag the
+        // routed labels (`candidates != null`) it kept as visible and the rest as hidden.
+        const placedTargets = placedBarLabelTargets(placed);
+        for (const node of this.contextNodeData?.labelData ?? []) {
+            const nodeLabel = node.label;
+            if (nodeLabel?.candidates != null) {
+                nodeLabel.hidden = !placedTargets.has(nodeLabel);
+            }
+        }
         this.refreshPlacedLabelNodes();
     }
 
     protected override resolveUsesPlacedLabels(): boolean {
         const { positive, negative, total } = this.properties.item;
-        return [positive, negative, total].some((item) => barLabelResolvesOrientation(item.label.orientation));
+        // A placement/orientation array cascades through the engine; a hideable label routes even for a
+        // single placement, so a no-fit label can be dropped and hidden.
+        return [positive, negative, total].some(
+            (item) =>
+                barLabelResolvesOrientation(item.label.orientation) ||
+                barLabelResolvesPlacement(item.label.placement) ||
+                !item.label.collision.suppressHide
+        );
     }
 
     protected override updateLabelSelection(opts: {
@@ -1163,13 +1252,20 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             params.itemType = datum.itemType;
             params.itemId = getItemId(datum, this.data?.dataIdKey);
             params.totalValue = datum.totalValue;
+            if (datum.label.hidden) {
+                textNode.visible = false;
+                return;
+            }
             const styleOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex)?.opacity ?? 1;
             textNode.visible = true;
             textNode.fillOpacity = styleOpacity;
             const label = this.getItemConfig(datum.itemType).label;
             const propertyItemId = datum.itemType === 'subtotal' ? 'total' : datum.itemType;
             const labelPath = ['series', `${this.declarationOrder}`, 'item', propertyItemId, 'label'];
-            const placementStyle = pickPlacementStyle(label, datum.label.placement);
+            const placementStyle = pickPlacementStyle(
+                label,
+                datum.label.placement == null ? undefined : toResolvedPlacement(datum.label.placement)
+            );
             updateLabelNode(
                 this,
                 textNode,

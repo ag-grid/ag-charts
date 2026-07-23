@@ -135,10 +135,10 @@ describe('label collision avoidance', () => {
         });
     });
 
-    // Bar-family `placement` was widened to accept an ordered array, but the bar candidate-fallback
-    // engine is not yet wired. Until then a supplied array must be inert-safe: the first candidate is
-    // used, matching the single-value render, with no error raised.
-    describe('bar-family placement (widened type, fallback not yet wired)', () => {
+    // A `placement` array is an ordered fallback list: the first candidate that clears its obstacles wins,
+    // so an array whose first candidate already fits renders identically to that single placement.
+    // (range-area is not yet cascade-wired, so it simply uses the first candidate — same result here.)
+    describe('bar-family placement cascade (first fitting candidate wins)', () => {
         it('waterfall renders an array placement identically to its first candidate', async () => {
             const options = (placement: string | string[]): AgChartOptions => ({
                 data: [
@@ -403,6 +403,172 @@ describe('label collision avoidance', () => {
                     expect(overlaps(rangeBarBox, scatterBox)).toBe(false);
                 }
             }
+        });
+    });
+
+    describe('waterfall placement cascade and own-label hiding', () => {
+        // A single positive bar filling the value axis; its `outside-end` label overflows the series area
+        // into the padding band, so a hideable single-placement label is dropped when series-area
+        // avoidance is on, while a placement array cascades to an inside candidate that fits.
+        const options = (collision: object, placement: string | string[] = 'outside-end'): any => ({
+            data: [{ x: 'A', y: 10 }],
+            legend: { enabled: false },
+            padding: { top: 100, right: 10, bottom: 10, left: 10 },
+            axes: { x: { type: 'category' }, y: { type: 'number', min: 0, max: 10 } },
+            series: [
+                {
+                    type: 'waterfall',
+                    xKey: 'x',
+                    yKey: 'y',
+                    item: { positive: { label: { enabled: true, placement, collision } } },
+                },
+            ],
+        });
+        const visibleLabelCount = () => {
+            const series = chart.series[0] as unknown as { labelSelection: { nodes(): { visible: boolean }[] } };
+            return series.labelSelection.nodes().filter((node) => node.visible).length;
+        };
+        const render = async (collision: object, placement?: string | string[]) => {
+            const opts = options(collision, placement);
+            prepareEnterpriseTestOptions(opts);
+            chart = deproxy(AgCharts.create(opts));
+            await waitForChartStability(chart);
+            return visibleLabelCount();
+        };
+
+        it('drops a hideable outside label overflowing the series area', async () => {
+            expect(await render({ suppressHide: false, collideWith: { seriesArea: true } })).toBe(0);
+        });
+
+        it('keeps the same label when it is not hideable (suppressHide: true)', async () => {
+            expect(await render({ suppressHide: true, collideWith: { seriesArea: true } })).toBe(1);
+        });
+
+        it('cascades a hideable outside label to an inside placement that fits', async () => {
+            // The single `outside-end` label above hides (0); the array falls through to `inside-center`,
+            // which fits inside the tall bar, so the label is kept even though `suppressHide` is false.
+            expect(
+                await render({ suppressHide: false, collideWith: { seriesArea: true } }, [
+                    'outside-end',
+                    'inside-center',
+                ])
+            ).toBe(1);
+        });
+
+        // One render covering every cascade outcome: the short bars keep the `outside-end` label above
+        // the bar; the full-height bar whose `outside-end` overflows the top series area cascades to
+        // `inside-center`; the full-height total bar with a label too wide to fit inside is dropped.
+        it('renders outside, cascaded-inside and dropped labels across a multi-bar chart', async () => {
+            const barLabel = {
+                enabled: true,
+                placement: ['outside-end', 'inside-center'],
+                collision: { suppressHide: false, collideWith: { seriesArea: true } },
+            };
+            await renderAndSnapshot({
+                data: [
+                    { year: 'Y0', spending: 3 },
+                    { year: 'Y1', spending: 3 },
+                    { year: 'Y2', spending: 4 },
+                ],
+                legend: { enabled: false },
+                padding: { top: 60, right: 10, bottom: 10, left: 10 },
+                axes: { x: { type: 'category' }, y: { type: 'number', min: 0, max: 10 } },
+                series: [
+                    {
+                        type: 'waterfall',
+                        xKey: 'year',
+                        yKey: 'spending',
+                        totals: [{ totalType: 'total', index: 2, axisLabel: 'Total' }],
+                        item: {
+                            positive: { label: barLabel },
+                            negative: { label: barLabel },
+                            total: { label: { ...barLabel, formatter: () => 'WWWWWWWWWWWWWWWWWWWW' } },
+                        },
+                    },
+                ],
+            });
+        });
+    });
+
+    // A range bar carries an independent label at each value end (low, high). With a placement array each
+    // end cascades on its own, so only the end whose candidates all collide is hidden or repositioned.
+    describe('range-bar per-label placement cascade and hiding', () => {
+        // The bar's high end sits at the axis max, so its `outside` label overflows the top series-area
+        // padding band; the low end sits mid-plot with room, so its `outside` label clears it.
+        const options = (collision: object, placement: string | string[] = 'outside'): any => ({
+            data: [{ x: 'A', low: 2, high: 10 }],
+            legend: { enabled: false },
+            padding: { top: 100, right: 10, bottom: 10, left: 10 },
+            axes: { x: { type: 'category' }, y: { type: 'number', min: 0, max: 10 } },
+            series: [
+                {
+                    type: 'range-bar',
+                    xKey: 'x',
+                    yLowKey: 'low',
+                    yHighKey: 'high',
+                    label: { enabled: true, placement, collision },
+                },
+            ],
+        });
+        const visibleLabelCount = () => {
+            const series = chart.series[0] as unknown as { labelSelection: { nodes(): { visible: boolean }[] } };
+            return series.labelSelection.nodes().filter((node) => node.visible).length;
+        };
+        const render = async (collision: object, placement?: string | string[]) => {
+            const opts = options(collision, placement);
+            prepareEnterpriseTestOptions(opts);
+            chart = deproxy(AgCharts.create(opts));
+            await waitForChartStability(chart);
+            return visibleLabelCount();
+        };
+
+        it('drops only the colliding high-end label, keeping the low-end label', async () => {
+            expect(await render({ suppressHide: false, collideWith: { seriesArea: true } })).toBe(1);
+        });
+
+        it('keeps both labels when not hideable (suppressHide: true)', async () => {
+            expect(await render({ suppressHide: true, collideWith: { seriesArea: true } })).toBe(2);
+        });
+
+        it('cascades the colliding high-end label to an inside placement, keeping both', async () => {
+            // Only the high end overflows: it falls through to `inside`, while the low end stays outside.
+            expect(
+                await render({ suppressHide: false, collideWith: { seriesArea: true } }, ['outside', 'inside'])
+            ).toBe(2);
+        });
+
+        // Each bar carries an independent low and high label. One render covering every outcome: bar A
+        // keeps both labels `outside` (room above the high end and below the low end); bar B's high end
+        // reaches the axis top so its overflowing `outside` label cascades to `inside`, while its low
+        // label stays outside; bar C's high label is too wide to fit inside and is dropped.
+        it('renders outside, cascaded-inside and dropped labels across a multi-bar chart', async () => {
+            await renderAndSnapshot({
+                data: [
+                    { x: 'A', low: 2, high: 6 },
+                    { x: 'B', low: 1, high: 10 },
+                    { x: 'C', low: 1, high: 10 },
+                ],
+                legend: { enabled: false },
+                padding: { top: 60, right: 10, bottom: 10, left: 10 },
+                axes: { x: { type: 'category' }, y: { type: 'number', min: 0, max: 10 } },
+                series: [
+                    {
+                        type: 'range-bar',
+                        xKey: 'x',
+                        yLowKey: 'low',
+                        yHighKey: 'high',
+                        label: {
+                            enabled: true,
+                            // Range-bar labels default to white (usually drawn inside the bar); force a dark
+                            // colour so the outside labels are legible against the plot background too.
+                            color: 'black',
+                            formatter: ({ datum }: any) => (datum.x === 'C' ? 'WWWWWWWWWWWWWWWWWWWW' : undefined),
+                            placement: ['outside', 'inside'],
+                            collision: { suppressHide: false, collideWith: { seriesArea: true } },
+                        },
+                    },
+                ],
+            });
         });
     });
 });
