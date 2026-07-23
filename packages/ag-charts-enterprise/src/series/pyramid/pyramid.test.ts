@@ -12,17 +12,29 @@ import {
     type Chart,
     IMAGE_SNAPSHOT_DEFAULTS,
     MIN_TOOLTIP_HIDE_DELAY,
+    type PhasedTrajectory,
+    type SceneGeometrySample,
     clickAction,
     compareImageSnapshot,
+    createSceneGeometrySampler,
     deproxy,
+    expectAnimatedEndpointsMatchStatic,
+    expectSceneTrajectory,
     expectWarningsCalls,
     hoverAction,
     setupMockCanvas,
     setupMockConsole,
+    spyOnAnimationFrames,
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { prepareEnterpriseTestOptions, renderEnterpriseChartImage } from '../../test/utils';
+import {
+    funnelLabelFadeIn,
+    funnelLabelOpacities,
+    funnelPathReveal,
+    prepareEnterpriseTestOptions,
+    renderEnterpriseChartImage,
+} from '../../test/utils';
 
 const PYRAMID_EXAMPLE: AgChartOptions = {
     title: {
@@ -679,6 +691,106 @@ describe('PyramidSeries', () => {
                     series: [{ type: 'pyramid', stageKey: 'stage', valueKey: 'value' }],
                 })
             ).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        });
+    });
+
+    describe('animation', () => {
+        const frames = spyOnAnimationFrames();
+
+        const DATA = [
+            { group: 'Qualify', value: 7910 },
+            { group: 'Develop', value: 8170 },
+            { group: 'Propose', value: 7260 },
+            { group: 'Close', value: 4460 },
+        ];
+        const UPDATED = [
+            { group: 'Qualify', value: 9500 },
+            { group: 'Develop', value: 5000 },
+            { group: 'Propose', value: 7260 },
+            { group: 'Close', value: 4460 },
+        ];
+
+        const animated = (data: object[]): AgChartOptions =>
+            prepareEnterpriseTestOptions({
+                animation: { enabled: true },
+                data,
+                series: [{ type: 'pyramid', stageKey: 'group', valueKey: 'value' }],
+                legend: { enabled: true },
+            });
+
+        // Item labels are keyed by their value (numeric); stage labels are keyed by the stage name.
+        // Only the item labels fade — the stage labels are static — so the fade guard/spec targets the
+        // numeric keys.
+        const isItemLabelKey = (key: string) => /^series\[0\]\/text\[\d/.test(key);
+        const expectItemLabelsStartHidden = (frame0: SceneGeometrySample) => {
+            const opacities = funnelLabelOpacities(frame0, isItemLabelKey);
+            expect(opacities.length, 'item labels present at frame 0').toBeGreaterThan(0);
+            expect(Math.max(...opacities), 'item labels hidden at frame 0').toBeLessThanOrEqual(0.01);
+        };
+        const bodyReveal = funnelPathReveal();
+
+        // A structural snap runs no animation batch, so every captured inter-frame interval traversed no
+        // phase — the "did not tween" contract for pyramid's data update.
+        const expectSnapped = (trajectory: PhasedTrajectory) => {
+            expect(
+                trajectory.phaseIntervals.filter((interval) => interval.length > 0),
+                'expected a structural snap: no animation phase ran'
+            ).toEqual([]);
+        };
+
+        // Initial load: each stage body grows out from a collapsed edge (funnelPathReveal) and the item
+        // labels fade in — pyramid reuses only the BaseFunnelSeries label-fade primitive, not being a
+        // BaseFunnelSeries subclass. Its FunnelConnector bodies serialise as `path` with a finite bbox,
+        // so no scene-node reader is needed.
+        it('initial load: stage bodies grow from collapsed and item labels fade in', async () => {
+            chart = deproxy(AgCharts.create(animated(DATA)));
+            const sampler = createSceneGeometrySampler(chart);
+            const trajectory = await frames.captureAnimationFrames(chart, sampler);
+            await frames.runToEnd(chart);
+
+            // Anti-vacuity: every body starts collapsed to a zero-width edge, every item label invisible.
+            for (const [key, props] of trajectory[0]) {
+                if (/^series\[0\]\/path\[/.test(key) && props.width != null) {
+                    expect(props.width, `${key} width at frame 0`).toBeLessThanOrEqual(0.5);
+                }
+            }
+            expectItemLabelsStartHidden(trajectory[0]);
+
+            expectSceneTrajectory(trajectory, {
+                'series[0]/path[Qualify]': bodyReveal,
+                'series[0]/path[Develop]': bodyReveal,
+                'series[0]/path[Propose]': bodyReveal,
+                'series[0]/path[Close]': bodyReveal,
+                'series[0]/text[7910]': { opacity: funnelLabelFadeIn },
+                'series[0]/text[8170]': { opacity: funnelLabelFadeIn },
+                'series[0]/text[7260]': { opacity: funnelLabelFadeIn },
+                'series[0]/text[4460]': { opacity: funnelLabelFadeIn },
+            });
+        });
+
+        // Data update: pyramid only animates its empty→ready reveal, so a data revalue reshapes the
+        // bodies structurally without tweening. captureSnap + expectSnapped is the "did not tween"
+        // contract; the structural delta guards against a vacuously-still trajectory.
+        it('data update: reshapes the bodies to the new values without tweening', async () => {
+            const proxy = AgCharts.create(animated(DATA));
+            chart = deproxy(proxy);
+            const sampler = createSceneGeometrySampler(chart);
+            const { trajectory, before, after } = await frames.captureSnap(chart, sampler, () =>
+                proxy.updateDelta({ data: UPDATED })
+            );
+
+            // Anti-vacuity: a body genuinely reshapes end-to-end, and no animation phase ran.
+            const develop = 'series[0]/path[Develop]';
+            expect(Math.abs(after.get(develop)!.width - before.get(develop)!.width)).toBeGreaterThan(10);
+            expectSnapped(trajectory);
+        });
+
+        // Pixel endpoint guard: the animated reveal and the data update must each settle at exactly the
+        // pixels a snapped render of the same options produces.
+        it('animated endpoints match a static render (initial load + data update)', async () => {
+            const opts = animated(DATA);
+            chart = AgCharts.create(opts);
+            await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, opts, animated(UPDATED));
         });
     });
 });
