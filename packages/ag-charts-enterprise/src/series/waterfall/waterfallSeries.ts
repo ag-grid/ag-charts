@@ -72,6 +72,7 @@ const {
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
     computeBarFocusBounds,
+    BandScale,
     Rect,
     motion,
     getItemId,
@@ -128,6 +129,9 @@ interface WaterfallSeriesNodeDatumContext extends _ModuleSupport.CartesianCreate
     readonly valueAxis: _ModuleSupport.ChartAxis;
     readonly barAlongX: boolean;
     readonly barWidth: number;
+    readonly groupOffset: number;
+    readonly barOffset: number;
+    readonly categoryIsBand: boolean;
     readonly categoryAxisReversed: boolean;
     readonly valueAxisReversed: boolean;
     readonly crisp: boolean;
@@ -496,7 +500,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         const animationEnabled = !this.ctx.animationManager.isSkipped();
         const canIncrementallyUpdate = contextNodeData?.nodeData != null && processedData.changeDescription != null;
 
-        const { barWidth } = this.getBarDimensions();
+        const { barWidth, groupOffset, barOffset } = this.getBarDimensions();
 
         return {
             xAxis,
@@ -507,6 +511,9 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             valueAxis,
             barAlongX: this.getBarDirection() === ChartAxisDirection.X,
             barWidth,
+            groupOffset,
+            barOffset,
+            categoryIsBand: BandScale.is(categoryAxis.scale),
             categoryAxisReversed: categoryAxis.isReversed(),
             valueAxisReversed: valueAxis.isReversed(),
             crisp: checkCrisp(
@@ -631,13 +638,31 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         node: WaterfallNodeDatum,
         params: WaterfallNodeDatumParams
     ): void {
-        const { xScale, yScale, barAlongX, barWidth, valueAxisReversed, xKey, yKey, xName, yName, yDomain, crisp } =
-            ctx;
+        const {
+            xScale,
+            yScale,
+            barAlongX,
+            barWidth,
+            groupOffset,
+            barOffset,
+            categoryIsBand,
+            valueAxisReversed,
+            xKey,
+            yKey,
+            xName,
+            yName,
+            yDomain,
+            crisp,
+        } = ctx;
         const { datumIndex, itemId, datum, xDatum, value, cumulativeValue, trailingValue, datumType } = params;
         const mutableNode = node as Mutable<WaterfallNodeDatum>;
 
-        const x = Math.round(xScale.convert(xDatum));
-        if (!Number.isFinite(x)) return;
+        const converted = xScale.convert(xDatum);
+        if (!Number.isFinite(converted)) return;
+        // Band axes seat the bar within its category slot so the centre lands on the tick/gridline;
+        // a continuous (time/number) axis keeps the bar's edge on the converted point, where centring
+        // would push the extent bars half a width past the axis range and clip them.
+        const x = categoryIsBand ? converted + groupOffset + barOffset : Math.round(converted);
 
         const isPositive = (value ?? 0) >= 0;
         const seriesItemType = this.getSeriesItemType(isPositive, datumType);
@@ -1053,6 +1078,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
+        const crispCentreDirection = this.getCategoryCrispDirection();
         const fillBBox = this.getShapeFillBBox();
 
         datumSelection.each((rect, datum) => {
@@ -1067,6 +1093,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             rect.cornerRadius = style.cornerRadius ?? 0;
             rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
             rect.crisp = datum.crisp;
+            rect.crispCentreDirection = crispCentreDirection;
         });
     }
 

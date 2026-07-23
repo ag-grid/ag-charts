@@ -10,6 +10,7 @@ import {
 } from 'ag-charts-community';
 import {
     BIG,
+    CATEGORY_CENTRE_GRIDLINE_AXES,
     IMAGE_SNAPSHOT_DEFAULTS,
     NEG_BIG,
     type PhasedPropertyExpectation,
@@ -20,6 +21,7 @@ import {
     createSceneGeometrySampler,
     deproxy,
     expectAnimatedEndpointsMatchStatic,
+    expectBarCentresOnCategoryGridlines,
     expectPixelIdenticalAcrossMagnitude,
     expectProgresses,
     expectSceneTrajectory,
@@ -1700,5 +1702,33 @@ describe('WaterfallSeries', () => {
                 )
             );
         });
+    });
+});
+
+describe('WaterfallSeries category/gridline pixel alignment', () => {
+    setupMockCanvas();
+
+    let chart: any;
+
+    afterEach(() => {
+        chart?.destroy();
+        chart = undefined;
+    });
+
+    it('bar centres coincide with gridlines at fractional DPR', async () => {
+        const data = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'].map((c, i) => ({ cat: c, value: 40 + i * 7 }));
+        const options: any = prepareEnterpriseTestOptions({
+            data,
+            series: [{ type: 'waterfall', xKey: 'cat', yKey: 'value' }],
+            axes: CATEGORY_CENTRE_GRIDLINE_AXES,
+        } as any);
+        options.width = 897;
+        options.height = 400;
+        options.overrideDevicePixelRatio = 1.75;
+
+        chart = AgCharts.create(options);
+        await waitForChartStability(chart);
+
+        expectBarCentresOnCategoryGridlines(chart);
     });
 });

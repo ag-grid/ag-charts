@@ -9,16 +9,20 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     MIN_TOOLTIP_HIDE_DELAY,
     NEG_BIG,
+    type SceneGeometrySample,
     assertTooltipSuppressedForMissing,
     compareImageSnapshot,
     computeLegendBBox,
+    createSceneGeometrySampler,
     deproxy,
+    expectNoAnimation,
     expectPixelIdenticalAcrossUpdate,
     expectWarningsCalls,
     hoverAction,
     isTooltipVisible,
     setupMockCanvas,
     setupMockConsole,
+    spyOnAnimationFrames,
     waitForChartStability,
 } from 'ag-charts-community-test';
 
@@ -1310,6 +1314,51 @@ describe('HeatmapSeries', () => {
                     fills: [{ color: 'yellow', stop: 20n }, { color: 'red', stop: 40n }, { color: 'blue' }],
                 })
             );
+        });
+    });
+
+    // Heatmap skips its animation batch (`animationManager.skipCurrentBatch()` in update()), so cells
+    // never tween — a data change lands the new layout on the first frame. Pinned by a minimal guard
+    // rather than a trajectory suite, since there is no motion to describe.
+    describe('does not animate', () => {
+        const frames = spyOnAnimationFrames();
+
+        const cellKeys = (sample: SceneGeometrySample) =>
+            [...sample.keys()].filter((k) => /^series\[0\]\/rect\[/.test(k));
+
+        it('update data: cells snap to their new layout without tweening', async () => {
+            const options = prepareEnterpriseTestOptions({
+                data: [
+                    { year: '2020', person: 'A', spending: 10 },
+                    { year: '2020', person: 'B', spending: 20 },
+                    { year: '2021', person: 'A', spending: 30 },
+                    { year: '2021', person: 'B', spending: 40 },
+                ],
+                series: [{ type: 'heatmap', xKey: 'year', yKey: 'person', colorKey: 'spending' }],
+                legend: { enabled: false },
+            });
+            chart = AgCharts.create(options);
+            const sampler = createSceneGeometrySampler(chart);
+            const { before, trajectory, after } = await frames.captureSnap(chart, sampler, () =>
+                chart.updateDelta({
+                    data: [
+                        { year: '2020', person: 'A', spending: 10 },
+                        { year: '2020', person: 'B', spending: 20 },
+                        { year: '2021', person: 'A', spending: 30 },
+                        { year: '2021', person: 'B', spending: 40 },
+                        { year: '2022', person: 'A', spending: 50 },
+                        { year: '2022', person: 'B', spending: 60 },
+                    ],
+                })
+            );
+
+            // Anti-vacuity: the extra year adds two cells, so the scene genuinely changed — a constant
+            // trajectory over it is a real snap, not a pin over an unchanged scene.
+            expect(cellKeys(before)).toHaveLength(4);
+            expect(cellKeys(after)).toHaveLength(6);
+            // The full new grid is present on the first captured frame (no cells fading/scaling in).
+            expect(cellKeys(trajectory[0])).toHaveLength(6);
+            expectNoAnimation(trajectory);
         });
     });
 });

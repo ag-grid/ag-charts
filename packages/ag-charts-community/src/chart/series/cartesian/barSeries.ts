@@ -1769,6 +1769,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         const fillBBox = this.getShapeFillBBox();
 
         const direction = this.getBarDirection();
+        const crispCentreDirection = this.getCategoryCrispDirection();
         const { drawingMode, isHighlight } = opts;
 
         const series = this;
@@ -1795,7 +1796,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 datum.crisp,
                 shadow,
                 direction,
-                datum.featherRatio
+                datum.featherRatio,
+                crispCentreDirection
             );
         }
 

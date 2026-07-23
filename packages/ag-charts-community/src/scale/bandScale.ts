@@ -166,11 +166,12 @@ export abstract class BandScale<D, I = number> extends AbstractScale<D, number, 
 
         const round = this.round && Math.floor(rawStep) > 0;
         const step = round ? Math.floor(rawStep) : rawStep;
-        let inset = r0 + (rangeDistance - step * (bandCount - paddingInner)) / 2;
+        const inset = r0 + (rangeDistance - step * (bandCount - paddingInner)) / 2;
         let bandwidth = step * (1 - paddingInner);
 
         if (round) {
-            inset = Math.round(inset);
+            // Keep whole-pixel band widths, but leave the inset (band origin) unrounded so bands stay
+            // centred on their true position; the device-pixel snap at render handles crispness.
             bandwidth = Math.round(bandwidth);
         }
 
