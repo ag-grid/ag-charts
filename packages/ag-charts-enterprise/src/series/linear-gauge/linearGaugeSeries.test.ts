@@ -4,12 +4,15 @@ import type { AgLinearGaugeLabelPlacement, AgLinearGaugeOptions } from 'ag-chart
 import { AgCharts, _ModuleSupport } from 'ag-charts-community';
 import {
     GALLERY_EXAMPLES,
+    type SceneNodeGeometry,
     compareImageSnapshot,
+    createSceneGeometrySampler,
     deproxy,
+    expectSceneTrajectory,
     hoverAction,
     setupMockCanvas,
     setupMockConsole,
-    spyOnAnimationManager,
+    spyOnAnimationFrames,
     waitForChartStability,
 } from 'ag-charts-community-test';
 import type { AgNumericValue } from 'ag-charts-types';
@@ -50,21 +53,57 @@ describe('LinearGaugeSeries', () => {
         });
     });
 
+    // The initial-load reveal, asserted over the whole animation trajectory (see the
+    // animation-trajectory-tests rule) rather than as per-ratio image snapshots. The value bar sweeps
+    // open by growing its clip window along the gauge's main axis during the initial phase; every other
+    // node (the background scale bar, ticks, labels) holds constant. This exercises the shared harness'
+    // Rect clip reader (clipX0/clipY0/clipX1/clipY1).
     describe('initial animation', () => {
-        const animate = spyOnAnimationManager();
+        const frames = spyOnAnimationFrames();
 
-        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-            it(`for EXAMPLE_OPTIONS should animate at ${ratio * 100}%`, async () => {
-                animate(1200, ratio);
+        const VALUE_BAR = 'series[0]/rect[value-0]';
 
-                const options: AgLinearGaugeOptions = { ...EXAMPLE_OPTIONS };
+        it.each(['horizontal', 'vertical'] as const)(
+            'value bar reveals by growing its clip window along the %s main axis',
+            async (direction) => {
+                const options: AgLinearGaugeOptions = { ...EXAMPLE_OPTIONS, direction };
                 prepareEnterpriseTestOptions(options);
 
-                chart = AgCharts.createGauge(options);
-                await waitForChartStability(chart);
-                await compare();
-            });
-        }
+                const proxy = AgCharts.createGauge(options);
+                chart = deproxy(proxy);
+                const sampler = createSceneGeometrySampler(proxy);
+                // Capture immediately (the internal settle only waits for layout) so the reveal is
+                // preserved; captureUpdate would runToEnd first and consume the sweep before sampling.
+                const trajectory = await frames.captureAnimationFrames(proxy, sampler);
+                await frames.runToEnd(proxy);
+
+                const start = trajectory[0].get(VALUE_BAR);
+                const end = trajectory.at(-1)!.get(VALUE_BAR);
+                expect(start, 'value bar sampled at frame 0').toBeDefined();
+                expect(end, 'value bar sampled at final frame').toBeDefined();
+
+                // Anti-vacuity: the clip window is collapsed to zero main-axis extent at frame 0 and full
+                // at the end, so the directional clip spec below cannot pass on a flat trajectory.
+                const mainAxisClipExtent = (s: SceneNodeGeometry) =>
+                    direction === 'horizontal' ? s.clipX1 - s.clipX0 : s.clipY1 - s.clipY0;
+                expect(mainAxisClipExtent(start!)).toBeCloseTo(0, 3);
+                expect(mainAxisClipExtent(end!)).toBeGreaterThan(100);
+
+                const grows = { during: 'initial', expect: ['increases', 'progresses', 'bounded'] } as const;
+                const shrinks = { during: 'initial', expect: ['decreases', 'progresses', 'bounded'] } as const;
+
+                // Horizontal grows the right clip edge (clipX1) and the width rightward; vertical grows
+                // upward, so the top clip edge (clipY0) and the bar's y both shrink while height grows.
+                // visible flips 0->1 as the collapsed bar becomes drawable. Every unnamed property (the
+                // static clip edges, x, opacity, and every other node) defaults to constant.
+                const valueBarSpec =
+                    direction === 'horizontal'
+                        ? { clipX1: grows, width: grows, visible: 'any' as const }
+                        : { clipY0: shrinks, y: shrinks, height: grows, visible: 'any' as const };
+
+                expectSceneTrajectory(trajectory, { [VALUE_BAR]: valueBarSpec });
+            }
+        );
     });
 
     describe.each(['horizontal', 'vertical'] as const)('series labels (%s)', (direction) => {

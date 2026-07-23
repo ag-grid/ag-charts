@@ -5,25 +5,24 @@ import { fileURLToPath } from 'node:url';
 // Astro hoists getStaticPaths and runs it in isolation, so it cannot reference
 // component-scope consts — resolve paths from import.meta.url inline instead.
 export function getStaticPaths() {
-    // Dev-only. Returning no paths in a production build keeps the demo apps off
-    // the live site — they are compiled and smoke-tested in CI, never published.
-    if (!import.meta.env.DEV) {
+    // Archive builds are fully noindex and omit the sitemap; there is nothing to
+    // gain from carrying the demos into them.
+    if (import.meta.env.BASE_URL?.includes('archive')) {
         return [];
     }
 
-    const demosDir = fileURLToPath(new URL('../../../../../ag-charts-demos/src/demos', import.meta.url));
+    const demosDir = fileURLToPath(new URL('../../../../ag-charts-demos/src/demos', import.meta.url));
     const ids = readdirSync(demosDir, { withFileTypes: true })
         .filter((entry) => entry.isDirectory())
         .map((entry) => entry.name);
 
-    // `id: undefined` is the index listing (`/debug/demos`); each id is one demo.
+    // `id: undefined` is the index listing (`/demos`); each id is one demo.
     return [{ params: { id: undefined } }, ...ids.map((id) => ({ params: { id } }))];
 }
 
-// Emit the built demos SPA shell verbatim. The entry bundle lives under
-// /internal-demos/assets and is served by the agDemosStatic dev plugin; the demo
-// is selected by the data-demo-id on the root element. Served as a `partial`
-// (like the example-runner docs) so Astro injects no page scaffolding.
+// Emit the built demos SPA shell verbatim. Served as a `partial` (like the
+// example-runner docs) so Astro injects no page scaffolding. The demo is selected
+// by the data-demo-id on the root element.
 export const partial = true;
 
 const { id } = Astro.params;
@@ -33,22 +32,25 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 // Index listing: enumerate the registered demos and link to each shell.
 let demoIds: string[] = [];
 if (!id) {
-    const demosDir = fileURLToPath(new URL('../../../../../ag-charts-demos/src/demos', import.meta.url));
+    const demosDir = fileURLToPath(new URL('../../../../ag-charts-demos/src/demos', import.meta.url));
     demoIds = readdirSync(demosDir, { withFileTypes: true })
         .filter((entry) => entry.isDirectory())
         .map((entry) => entry.name)
         .sort();
 }
 
-const distIndex = fileURLToPath(new URL('../../../../../ag-charts-demos/dist/index.html', import.meta.url));
+const distIndex = fileURLToPath(new URL('../../../../ag-charts-demos/dist/index.html', import.meta.url));
 
-// The build is produced by `nx dev` (vite build --watch); read the entry bundle
-// from it fresh each request so rebuilds (which rehash the filename) are picked
-// up. Missing until the first build completes.
+// The demos are built base-relative (DEMOS_BASE_PATH=./), so their entry bundle
+// is served under this site's base at /internal-demos/assets. Read the hashed
+// entry filename from the built index.html and point at it under the base; the
+// entry's chunks and assets then resolve relative to that URL. Missing until the
+// first build completes.
 let entrySrc: string | undefined;
 if (id) {
     try {
-        entrySrc = readFileSync(distIndex, 'utf8').match(/src="([^"]+\/assets\/[^"]+\.js)"/)?.[1];
+        const entryFile = readFileSync(distIndex, 'utf8').match(/src="[^"]*\/assets\/([^"]+\.js)"/)?.[1];
+        entrySrc = entryFile && `${base}/internal-demos/assets/${entryFile}`;
     } catch {
         entrySrc = undefined;
     }
@@ -75,7 +77,7 @@ if (id) {
                     <ul>
                         {demoIds.map((demoId) => (
                             <li>
-                                <a href={`${base}/debug/demos/${demoId}`}>{demoId}</a>
+                                <a href={`${base}/demos/${demoId}`}>{demoId}</a>
                             </li>
                         ))}
                     </ul>

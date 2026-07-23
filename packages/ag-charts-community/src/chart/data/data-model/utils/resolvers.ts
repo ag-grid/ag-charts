@@ -1,4 +1,4 @@
-import { Logger, getEpochColumn } from 'ag-charts-core';
+import { type Logger, getEpochColumn } from 'ag-charts-core';
 
 import type {
     ColumnValueType,
@@ -43,10 +43,11 @@ function assertColumnValueType(
     scope: ScopeProvider,
     searchId: string,
     expectedType: ColumnValueType,
-    actualType: ColumnValueType | undefined
+    actualType: ColumnValueType | undefined,
+    logger: Logger
 ): void {
     if (actualType == null || isCompatibleColumnType(expectedType, actualType)) return;
-    Logger.default.warnOnce(
+    logger.warnOnce(
         `column '${searchId}' for scope '${scope.id}' was resolved as '${expectedType}' but holds '${actualType}' values; check the series data types.`
     );
 }
@@ -137,7 +138,7 @@ export class DataModelResolvers<D extends object, K extends keyof D & string> {
         if (column == null) {
             throw new Error(`AG Charts - didn't find column for [${searchId}, ${scope.id}]`);
         }
-        assertColumnValueType(scope, searchId, expectedType, processedData.columnValueType?.[index]);
+        assertColumnValueType(scope, searchId, expectedType, processedData.columnValueType?.[index], this.ctx.logger);
         return column as E[];
     }
 

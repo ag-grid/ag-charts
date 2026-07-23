@@ -1,10 +1,45 @@
 import { describe, expect, it } from 'vitest';
 
+import { Logger } from 'ag-charts-core';
+
 import { setupMockCanvas } from '../util/test/mockCanvas';
+import { Group } from './group';
+import { type RenderContext } from './node';
 import { Scene } from './scene';
+
+class CapturingGroup extends Group {
+    captured?: RenderContext;
+    override render(renderCtx: RenderContext): void {
+        this.captured = renderCtx;
+    }
+}
+
+function renderCapturingScene(pixelRatio: number, logger?: Logger): RenderContext | undefined {
+    const canvasElement = document.createElement('canvas');
+    const scene = new Scene({ canvasElement, pixelRatio });
+    if (logger != null) {
+        scene.setLogger(logger);
+    }
+    const root = new CapturingGroup();
+    scene.setRoot(root);
+    root.markDirty('test');
+    scene.render();
+    return root.captured;
+}
 
 describe('Scene', () => {
     setupMockCanvas();
+
+    describe('render-context logger', () => {
+        it('passes the configured logger into the render context', () => {
+            const logger = new Logger();
+            expect(renderCapturingScene(1, logger)?.logger).toBe(logger);
+        });
+
+        it('falls back to Logger.default when no logger is configured (grid sparkline use)', () => {
+            expect(renderCapturingScene(1)?.logger).toBe(Logger.default);
+        });
+    });
 
     // AG-17372: at non-1 DPR, autoSize failed to fill a 600 px container because the first
     // Scene.resize callback matched the HdpiCanvas seeded defaults exactly and the equality

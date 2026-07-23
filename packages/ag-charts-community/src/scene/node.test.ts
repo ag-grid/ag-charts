@@ -1,8 +1,10 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+
+import { Logger } from 'ag-charts-core';
 
 import { BBox } from './bbox';
 import { Group } from './group';
-import { Node } from './node';
+import { Node, type RenderContext } from './node';
 
 class TestNode<D = any> extends Group<D> {
     protected override computeBBox(): BBox | undefined {
@@ -110,5 +112,49 @@ describe('Node', () => {
                 expect(testee.getBBox()).not.toBe(result2);
             });
         });
+    });
+});
+
+class ThrowingNode extends Node {
+    protected override computeBBox(): BBox | undefined {
+        return undefined;
+    }
+    override render(): void {
+        throw new Error('render boom');
+    }
+}
+
+function stubRenderCtx(logger?: Logger): RenderContext {
+    return {
+        ctx: { save() {}, restore() {} } as unknown as CanvasRenderingContext2D,
+        direction: 'ltr',
+        width: 100,
+        height: 100,
+        devicePixelRatio: 1,
+        logger,
+        debugNodes: {},
+    };
+}
+
+describe('isolatedRender logger routing', () => {
+    afterEach(() => vi.restoreAllMocks());
+
+    it('routes render errors to the render-context logger when one is provided', () => {
+        const logger = new Logger();
+        const scoped = vi.spyOn(logger, 'warnOnce').mockImplementation(() => {});
+        const fallback = vi.spyOn(Logger.default, 'warnOnce').mockImplementation(() => {});
+
+        new ThrowingNode().isolatedRender(stubRenderCtx(logger));
+
+        expect(scoped).toHaveBeenCalledOnce();
+        expect(fallback).not.toHaveBeenCalled();
+    });
+
+    it('falls back to Logger.default when the render context carries no logger', () => {
+        const fallback = vi.spyOn(Logger.default, 'warnOnce').mockImplementation(() => {});
+
+        new ThrowingNode().isolatedRender(stubRenderCtx());
+
+        expect(fallback).toHaveBeenCalledOnce();
     });
 });

@@ -1,4 +1,4 @@
-import { Logger, isNegative } from 'ag-charts-core';
+import { type Logger, isNegative } from 'ag-charts-core';
 
 import type { IDataDomain } from '../../dataDomain';
 import type { InternalDatumPropertyDefinition, ProcessedValue, ProcessorFn } from '../../dataModelTypes';
@@ -26,6 +26,7 @@ type ValidationMeta = {
     domain: IDataDomain;
     def: InternalDatumPropertyDefinition<any>;
     mode: string;
+    logger: Logger;
 };
 
 /**
@@ -56,7 +57,7 @@ function handleInvalidValue(meta: ValidationMeta, value: any): void {
     }
 
     if (meta.mode !== 'integrated') {
-        Logger.default.warnOnce(
+        meta.logger.warnOnce(
             `invalid value of type [${typeof value}] for [${meta.def.scopes} / ${meta.def.id}] ignored:`,
             `[${value}]`
         );
@@ -175,6 +176,7 @@ export class ProcessValueFactory<D extends object, K extends keyof D & string> {
             domain,
             def,
             mode,
+            logger: this.ctx.logger,
         };
     }
 

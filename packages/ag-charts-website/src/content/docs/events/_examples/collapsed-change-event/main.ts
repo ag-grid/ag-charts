@@ -20,8 +20,10 @@ const options: AgChartOptions = {
         collapsedChange: (event) => {
             console.log(
                 `source: ${event.source},`,
-                'collapsed itemIds:',
-                event.collapsed.map(({ itemId }) => itemId)
+                'just collapsed:',
+                event.collapsed.map(({ itemId }) => itemId),
+                'just expanded:',
+                event.expanded.map(({ itemId }) => itemId)
             );
         },
     },

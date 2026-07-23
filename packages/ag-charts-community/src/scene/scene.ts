@@ -42,6 +42,9 @@ export class Scene extends EventEmitter<EventMap> {
     private readonly cleanup = new CleanupRegistry();
     private releaseDebugStats?: () => void;
 
+    // Falls back to Logger.default when unset — Scene is used context-less by AG Grid sparklines/mini charts.
+    private logger: Logger = Logger.default;
+
     constructor(canvasOptions: CanvasOptions) {
         super();
 
@@ -54,9 +57,13 @@ export class Scene extends EventEmitter<EventMap> {
                 this.emit('scene-changed', {});
             }),
             this.imageLoader.on('image-error', ({ uri }) => {
-                Logger.default.warnOnce(`Unable to load image ${uri}`);
+                this.logger.warnOnce(`Unable to load image ${uri}`);
             })
         );
+    }
+
+    setLogger(logger: Logger) {
+        this.logger = logger;
     }
 
     waitingForUpdate(): boolean {
@@ -245,6 +252,7 @@ export class Scene extends EventEmitter<EventMap> {
             width,
             height,
             devicePixelRatio,
+            logger: this.logger,
             debugNodes: {},
             currentFont: this._contextFont,
         };

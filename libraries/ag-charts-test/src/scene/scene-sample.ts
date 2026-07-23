@@ -208,11 +208,23 @@ function buildGeometry(state: SerializedNodeState): SceneNodeGeometry | null {
         // Specialised rects (e.g. stacked BarShape) keep nominal extents in the fields and derive
         // the painted segment in updatePath — only the drawn path reflects the screen.
         case 'rect': {
-            const { x, y, width, height, opacity } = state.props;
+            const { x, y, width, height, opacity, clipX0, clipY0, clipX1, clipY1 } = state.props;
             const drawn = flattenPathPolylines(state.svgPath);
-            if (drawn.length === 0) return { x, y, width, height, opacity };
-            const { minX, minY, maxX, maxY } = polylineBounds(drawn);
-            return { x: minX, y: minY, width: maxX - minX, height: maxY - minY, opacity };
+            let props: SceneNodeGeometry;
+            if (drawn.length === 0) {
+                props = { x, y, width, height, opacity };
+            } else {
+                const { minX, minY, maxX, maxY } = polylineBounds(drawn);
+                props = { x: minX, y: minY, width: maxX - minX, height: maxY - minY, opacity };
+            }
+            // Surface the rect's clip window (a rect's reveal mask) so reveal animations can be
+            // asserted (see OPT_IN_PROPS in the trajectory harness); present only when the rect
+            // serialized one, so non-revealing rects gain no keys.
+            if (clipX0 != null) props['clipX0'] = clipX0;
+            if (clipY0 != null) props['clipY0'] = clipY0;
+            if (clipX1 != null) props['clipX1'] = clipX1;
+            if (clipY1 != null) props['clipY1'] = clipY1;
+            return props;
         }
         case 'text': {
             const { x, y, opacity, rotation } = state.props;
