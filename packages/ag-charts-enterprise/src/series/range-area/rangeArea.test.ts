@@ -522,7 +522,9 @@ describe('RangeAreaSeries', () => {
             const labelKeys = [...trajectory.at(-1)!.keys()].filter((key) => /\/labels\/text\[/.test(key));
             expect(labelKeys.length, 'sampled data labels').toBeGreaterThan(0);
             for (const key of labelKeys) {
-                const opacity = trajectory.map((frame) => frame.get(key)?.opacity).filter((v): v is number => v != null);
+                const opacity = trajectory
+                    .map((frame) => frame.get(key)?.opacity)
+                    .filter((v): v is number => v != null);
                 expect(opacity[0], `${key} opacity at frame 0`).toBeLessThanOrEqual(0.001);
                 expect(opacity.at(-1)!, `${key} opacity settled`).toBeCloseTo(1, 2);
             }
