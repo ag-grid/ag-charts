@@ -1,142 +1,133 @@
 # Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
 version: v1.25.1
-# ignores vulnerabilities until expiry date; change duration by modifying expiry date
 ignore:
-    SNYK-JS-ESBUILD-17750822:
-        - vitest@2.1.9 > vite@6.3.5 > esbuild@0.25.0:
-              reason: >-
-                  Test dependency - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-07-15T10:44:49.683Z
-    SNYK-JS-AGCHARTSTEST-17950302:
-        - ag-charts-test@14.0.0-beta.20260712:
-              reason: >-
-                  The package with the issue is not the one we consume, which is an internal only one. The malicious package has been pulled from npm
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-07-15T09:49:06.480Z
-    SNYK-JS-VITE-17353904:
-        - vitest@2.1.9 > vite-node@2.1.9 > vite@6.3.5:
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-06-24T13:44:44.126Z
-        - vitest@2.1.9 > vite@6.3.5:
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-06-24T13:44:44.123Z
-    SNYK-JS-VITEST-17120326:
-        - vitest@2.1.9:
-              reason: >-
-                  Test dependency - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-06-05T10:12:32.314Z
-    SNYK-JS-FOLLOWREDIRECTS-16032162:
-        - skia-canvas@3.0.8 > follow-redirects@1.15.11:
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-05-01T11:18:01.231Z
-    SNYK-JS-LODASH-15869625:
-        - jest-image-snapshot@6.4.0 > lodash@4.17.21:
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-04-15T13:32:58.750Z
-    SNYK-JS-PICOMATCH-15765511:
-        - del@6.1.1 > globby@11.1.0 > fast-glob@3.3.2 > micromatch@4.0.8 > picomatch@2.3.1:
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-27T16:19:14.195Z
-        - vitest@2.1.9 > vite@6.3.5 > picomatch@4.0.2:
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-05-28T00:00:00.000Z
-        - vitest@2.1.9 > vite@6.3.5 > tinyglobby@0.2.14 > picomatch@4.0.2:
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-05-28T00:00:00.000Z
-    SNYK-JS-BRACEEXPANSION-15789759:
-        - del@6.1.1 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.0.2:
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-27T16:17:29.817Z
-        - glob@8.0.3 > minimatch@5.1.6 > brace-expansion@2.0.2:
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-27T16:17:29.808Z
-        - jest-image-snapshot@6.4.0 > rimraf@2.7.1 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.0.2:
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-27T16:17:29.672Z
-        - rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.0.2:
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-27T16:17:29.475Z
-    SNYK-JS-MINIMATCH-15353389:
-        - glob@8.0.3 > minimatch@5.1.6:
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-02T17:26:09.401Z
-        - del@6.1.1 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2:
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-02T17:26:09.395Z
-        - rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2:
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-02T17:26:09.391Z
-        - jest-image-snapshot@6.4.0 > rimraf@2.7.1 > glob@7.2.3 > minimatch@3.1.2:
-              reason: >-
-                  Test dependency - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-02T17:25:58.996Z
-    SNYK-JS-MINIMATCH-15309438:
-        - glob@8.0.3 > minimatch@5.1.6:
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-02T16:56:40.081Z
-        - del@6.1.1 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2:
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-02T16:56:40.074Z
-        - rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2:
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-02T16:56:40.070Z
-        - jest-image-snapshot@6.4.0 > rimraf@2.7.1 > glob@7.2.3 > minimatch@3.1.2:
-              reason: >-
-                  Test dependency - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-03-02T16:56:23.267Z
-    SNYK-JS-ROLLUP-15340920:
-        - vitest@2.1.9 > vite@6.3.5 > rollup@4.42.0:
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-05-28T00:00:00.000Z
-    SNYK-JS-VITE-15922242:
-        - vitest@2.1.9 > vite@6.3.5:
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-05-28T00:00:00.000Z
-        - vitest@2.1.9 > vite-node@2.1.9 > vite@6.3.5:
-              reason: >-
-                  Used in build & dev - not included in final production build
-              expires: 2026-09-06T00:00:00.000Z
-              created: 2026-05-28T00:00:00.000Z
+  SNYK-JS-ESBUILD-17750822:
+    - vitest@2.1.9 > vite@6.3.5 > esbuild@0.25.0:
+        reason: Test dependency - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-07-15T10:44:49.683Z
+  SNYK-JS-AGCHARTSTEST-17950302:
+    - ag-charts-test@14.0.0-beta.20260712:
+        reason: 'The package with the issue is not the one we consume, which is an internal only one. The malicious package has been pulled from npm'
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-07-15T09:49:06.480Z
+  SNYK-JS-VITE-17353904:
+    - vitest@2.1.9 > vite-node@2.1.9 > vite@6.3.5:
+        reason: Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-06-24T13:44:44.126Z
+    - vitest@2.1.9 > vite@6.3.5:
+        reason: Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-06-24T13:44:44.123Z
+  SNYK-JS-VITEST-17120326:
+    - vitest@2.1.9:
+        reason: Test dependency - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-06-05T10:12:32.314Z
+  SNYK-JS-FOLLOWREDIRECTS-16032162:
+    - skia-canvas@3.0.8 > follow-redirects@1.15.11:
+        reason: Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-05-01T11:18:01.231Z
+  SNYK-JS-LODASH-15869625:
+    - jest-image-snapshot@6.4.0 > lodash@4.17.21:
+        reason: Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-04-15T13:32:58.750Z
+  SNYK-JS-PICOMATCH-15765511:
+    - del@6.1.1 > globby@11.1.0 > fast-glob@3.3.2 > micromatch@4.0.8 > picomatch@2.3.1:
+        reason: Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-03-27T16:19:14.195Z
+    - vitest@2.1.9 > vite@6.3.5 > picomatch@4.0.2:
+        reason: Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-05-28T00:00:00.000Z
+    - vitest@2.1.9 > vite@6.3.5 > tinyglobby@0.2.14 > picomatch@4.0.2:
+        reason: Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-05-28T00:00:00.000Z
+  SNYK-JS-BRACEEXPANSION-15789759:
+    - del@6.1.1 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.0.2:
+        reason: Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-03-27T16:17:29.817Z
+    - glob@8.0.3 > minimatch@5.1.6 > brace-expansion@2.0.2:
+        reason: Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-03-27T16:17:29.808Z
+    - jest-image-snapshot@6.4.0 > rimraf@2.7.1 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.0.2:
+        reason: Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-03-27T16:17:29.672Z
+    - rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.0.2:
+        reason: Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-03-27T16:17:29.475Z
+  SNYK-JS-MINIMATCH-15353389:
+    - glob@8.0.3 > minimatch@5.1.6:
+        reason: Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-03-02T17:26:09.401Z
+    - del@6.1.1 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2:
+        reason: Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-03-02T17:26:09.395Z
+    - rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2:
+        reason: Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-03-02T17:26:09.391Z
+    - jest-image-snapshot@6.4.0 > rimraf@2.7.1 > glob@7.2.3 > minimatch@3.1.2:
+        reason: Test dependency - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-03-02T17:25:58.996Z
+  SNYK-JS-MINIMATCH-15309438:
+    - glob@8.0.3 > minimatch@5.1.6:
+        reason: Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-03-02T16:56:40.081Z
+    - del@6.1.1 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2:
+        reason: Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-03-02T16:56:40.074Z
+    - rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2:
+        reason: Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-03-02T16:56:40.070Z
+    - jest-image-snapshot@6.4.0 > rimraf@2.7.1 > glob@7.2.3 > minimatch@3.1.2:
+        reason: Test dependency - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-03-02T16:56:23.267Z
+  SNYK-JS-ROLLUP-15340920:
+    - vitest@2.1.9 > vite@6.3.5 > rollup@4.42.0:
+        reason: Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-05-28T00:00:00.000Z
+  SNYK-JS-VITE-15922242:
+    - vitest@2.1.9 > vite@6.3.5:
+        reason: Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-05-28T00:00:00.000Z
+    - vitest@2.1.9 > vite-node@2.1.9 > vite@6.3.5:
+        reason: Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-05-28T00:00:00.000Z
+  SNYK-JS-BRACEEXPANSION-17706650:
+    - glob@8.0.3 > minimatch@5.1.6 > brace-expansion@2.0.2:
+        reason: Build/dev/test tooling dependency - not shipped in AG Charts runtime bundles (which have zero third-party runtime dependencies)
+        expires: '2026-10-23T00:00:00.000Z'
+        created: '2026-07-23T00:00:00.000Z'
+    - rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.0.2:
+        reason: Build/dev/test tooling dependency - not shipped in AG Charts runtime bundles (which have zero third-party runtime dependencies)
+        expires: '2026-10-23T00:00:00.000Z'
+        created: '2026-07-23T00:00:00.000Z'
+    - jest-image-snapshot@6.4.0 > rimraf@2.7.1 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.0.2:
+        reason: Build/dev/test tooling dependency - not shipped in AG Charts runtime bundles (which have zero third-party runtime dependencies)
+        expires: '2026-10-23T00:00:00.000Z'
+        created: '2026-07-23T00:00:00.000Z'
+    - del@6.1.1 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.0.2:
+        reason: Build/dev/test tooling dependency - not shipped in AG Charts runtime bundles (which have zero third-party runtime dependencies)
+        expires: '2026-10-23T00:00:00.000Z'
+        created: '2026-07-23T00:00:00.000Z'
 patch: {}
