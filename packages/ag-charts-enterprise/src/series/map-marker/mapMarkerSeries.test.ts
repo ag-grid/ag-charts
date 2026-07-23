@@ -10,6 +10,7 @@ import { AgCharts, _ModuleSupport } from 'ag-charts-community';
 import {
     type Chart,
     MIN_TOOLTIP_HIDE_DELAY,
+    type SceneNodeExpectation,
     assertTooltipPresentForAll,
     clickAction,
     compareImageSnapshot,
@@ -22,7 +23,6 @@ import {
     expectSceneTrajectory,
     expectWarningsCalls,
     hoverAction,
-    type SceneNodeExpectation,
     setupMockCanvas,
     setupMockConsole,
     spyOnAnimationFrames,
@@ -934,6 +934,16 @@ describe('MapMarkerSeries', () => {
                 expectProgresses(width);
                 expect(height[0], `${key} height at frame 0`).toBeLessThanOrEqual(0.5);
                 expectMonotonic(height, 'increasing');
+
+                // The marker scales about its fixed geographic position: its top-left (x/y) drifts
+                // inwards as width/height grow, but the centre must not move. A marker that grew while
+                // translating across the map would pass the size checks above yet fail here.
+                const centreX = trajectory.map((frame) => frame.get(key)!.x + frame.get(key)!.width / 2);
+                const centreY = trajectory.map((frame) => frame.get(key)!.y + frame.get(key)!.height / 2);
+                for (const [i, cx] of centreX.entries()) {
+                    expect(cx, `${key} centre x at frame ${i}`).toBeCloseTo(centreX.at(-1)!, 3);
+                    expect(centreY[i], `${key} centre y at frame ${i}`).toBeCloseTo(centreY.at(-1)!, 3);
+                }
             }
 
             const spec: Record<string, SceneNodeExpectation> = {};
@@ -941,7 +951,8 @@ describe('MapMarkerSeries', () => {
                 spec[key] = {
                     width: ['increases', 'progresses'],
                     height: ['increases', 'progresses'],
-                    // The marker's top-left tracks its centre as it grows, so x/y drift.
+                    // x/y drift as the top-left tracks the growing marker; the fixed centre they encode
+                    // is asserted per frame in the loop above.
                     x: 'any',
                     y: 'any',
                 };
