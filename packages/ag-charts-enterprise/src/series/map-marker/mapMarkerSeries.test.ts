@@ -10,16 +10,22 @@ import { AgCharts, _ModuleSupport } from 'ag-charts-community';
 import {
     type Chart,
     MIN_TOOLTIP_HIDE_DELAY,
+    type SceneNodeExpectation,
     assertTooltipPresentForAll,
     clickAction,
     compareImageSnapshot,
     computeLegendBBox,
+    createSceneGeometrySampler,
     deproxy,
+    expectMonotonic,
     expectPixelIdenticalAcrossUpdate,
+    expectProgresses,
+    expectSceneTrajectory,
     expectWarningsCalls,
     hoverAction,
     setupMockCanvas,
     setupMockConsole,
+    spyOnAnimationFrames,
     waitForChartStability,
 } from 'ag-charts-community-test';
 
@@ -886,6 +892,111 @@ describe('MapMarkerSeries', () => {
                 buildOptions([0, 60_000_000]),
                 buildOptions([0n, 60_000_000n])
             );
+        });
+    });
+
+    // Marker enter-scale, asserted over the whole animation trajectory (see the
+    // animation-trajectory-tests rule). Markers grow from a point to full size; the reveal is
+    // observed on the marker's rendered bbox width/height (Marker nodes carry the scale on their
+    // geometry, not as a sampled scalingX/scalingY transform).
+    describe('marker enter animation', () => {
+        const frames = spyOnAnimationFrames();
+
+        const mapOptions = (data: unknown[]): AgChartOptions => ({
+            data,
+            topology: ukTopology,
+            series: [{ type: 'map-shape-background' }, { type: 'map-marker', idKey: 'name' }],
+        });
+
+        const markerKeys = (sample: ReadonlyMap<string, unknown>) =>
+            [...sample.keys()].filter((key) => /^series\[1\]\/marker\[/.test(key));
+
+        it('markers scale in from a point (width/height 0 -> full) on the initial reveal', async () => {
+            const options = mapOptions(ukData);
+            prepareEnterpriseTestOptions(options);
+
+            const proxy = AgCharts.create(options);
+            const sampler = createSceneGeometrySampler(proxy);
+            const trajectory = await frames.captureAnimationFrames(proxy, sampler);
+            await frames.runToEnd(proxy);
+
+            const keys = markerKeys(trajectory.at(-1)!);
+            expect(keys, 'one marker node per datum').toHaveLength(ukData.length);
+
+            for (const key of keys) {
+                const width = trajectory.map((frame) => frame.get(key)!.width);
+                const height = trajectory.map((frame) => frame.get(key)!.height);
+                // Anti-vacuity: the marker is a point at frame 0 and grows to full size, so the
+                // directional spec below cannot pass flat.
+                expect(width[0], `${key} width at frame 0`).toBeLessThanOrEqual(0.5);
+                expect(width.at(-1)!, `${key} width settled`).toBeGreaterThan(1);
+                expectMonotonic(width, 'increasing');
+                expectProgresses(width);
+                expect(height[0], `${key} height at frame 0`).toBeLessThanOrEqual(0.5);
+                expectMonotonic(height, 'increasing');
+
+                // The marker scales about its fixed geographic position: its top-left (x/y) drifts
+                // inwards as width/height grow, but the centre must not move. A marker that grew while
+                // translating across the map would pass the size checks above yet fail here.
+                const centreX = trajectory.map((frame) => frame.get(key)!.x + frame.get(key)!.width / 2);
+                const centreY = trajectory.map((frame) => frame.get(key)!.y + frame.get(key)!.height / 2);
+                for (const [i, cx] of centreX.entries()) {
+                    expect(cx, `${key} centre x at frame ${i}`).toBeCloseTo(centreX.at(-1)!, 3);
+                    expect(centreY[i], `${key} centre y at frame ${i}`).toBeCloseTo(centreY.at(-1)!, 3);
+                }
+            }
+
+            const spec: Record<string, SceneNodeExpectation> = {};
+            for (const key of keys) {
+                spec[key] = {
+                    width: ['increases', 'progresses'],
+                    height: ['increases', 'progresses'],
+                    // x/y drift as the top-left tracks the growing marker; the fixed centre they encode
+                    // is asserted per frame in the loop above.
+                    x: 'any',
+                    y: 'any',
+                };
+            }
+            expectSceneTrajectory(trajectory, spec);
+
+            deproxy(proxy).destroy();
+        });
+
+        // Pins current behaviour: markers entering on a data update appear at full size on their
+        // first frame rather than scaling in — the enter-scale animation only runs on the initial
+        // empty->ready reveal. This pins the quirk; it does not fix it.
+        it('entering markers appear at full size on a data update, no scale-in (AG-17797)', async () => {
+            const options = mapOptions(ukData.slice(0, 1));
+            prepareEnterpriseTestOptions(options);
+
+            const proxy = AgCharts.create(options);
+            const sampler = createSceneGeometrySampler(proxy);
+            const { before, trajectory, after } = await frames.captureSnap(proxy, sampler, () =>
+                proxy.update(prepareEnterpriseTestOptions(mapOptions(ukData)))
+            );
+
+            const beforeKeys = new Set(markerKeys(before));
+            const survivingKey = markerKeys(after).find((key) => beforeKeys.has(key))!;
+            const entering = markerKeys(after).filter((key) => !beforeKeys.has(key));
+            // Non-vacuity guard: the entering set must be exactly the three added markers before any
+            // per-marker assertion, otherwise the loop below would pass by asserting nothing.
+            expect(survivingKey, 'a surviving marker to read the full size from').toBeDefined();
+            expect(entering, 'markers added by the update').toHaveLength(3);
+
+            const fullWidth = after.get(survivingKey)!.width;
+            const fullHeight = after.get(survivingKey)!.height;
+            expect(fullWidth, 'established marker at full width').toBeGreaterThan(1);
+
+            // The deliberate contrast to the initial reveal above: on an update the same markers are
+            // already at full size on every captured frame — they never grow from a point.
+            for (const key of entering) {
+                for (const frame of trajectory) {
+                    expect(frame.get(key)?.width, `${key} width per frame`).toBeCloseTo(fullWidth, 1);
+                    expect(frame.get(key)?.height, `${key} height per frame`).toBeCloseTo(fullHeight, 1);
+                }
+            }
+
+            deproxy(proxy).destroy();
         });
     });
 });
