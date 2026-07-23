@@ -429,7 +429,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
     protected createDataSet(data: unknown[]): DataSet {
         const dataIdKey: string | undefined = this.ctx.chartState.getValue('options', 'dataIdKey');
-        return replaceDataSet(this.ctx.dataSelectionService, this.data, data, dataIdKey);
+        return replaceDataSet(this.ctx.dataSelectionService, this.data, data, dataIdKey, this.ctx.logger);
     }
 
     private resolveDataRetain() {
@@ -2239,7 +2239,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         target.properties.set(seriesOptions);
 
         if ('data' in options) {
-            target.setOptionsData(data == null ? undefined : DataSet.wrap(data));
+            target.setOptionsData(data == null ? undefined : DataSet.wrap(data, undefined, this.ctx.logger));
         }
 
         if ('listeners' in options) {
