@@ -201,6 +201,33 @@ test.describe('context-menu', () => {
         }
     });
 
+    test.describe('AG-17637 overlapping regions', () => {
+        async function popContextMenuText(page: Page): Promise<string | null> {
+            return await page.textContent('.ag-charts-context-menu');
+        }
+
+        test.beforeEach(async ({ page }) => {
+            await gotoExample(page, toExamplePageUrl('context-menu-e2e', 'ag-17637-overlap', 'vanilla').url);
+        });
+
+        test('right-clicking Mar tick label shows axis and series-node contexts', async ({ page }) => {
+            await page.mouse.click(283, 336, { button: 'right' });
+            expect(await popContextMenuText(page)).toEqual('always,axis,series-area,series-node,');
+        });
+
+        test('right-clicking top of Jun bar shows only series-area and series-node contexts', async ({ page }) => {
+            await page.mouse.click(547, 133, { button: 'right' });
+            expect(await popContextMenuText(page)).toEqual('always,series-area,series-node,');
+        });
+
+        test.skip('right-clicking Apr bar on crossline shows only crossline and series-node contexts', async ({
+            page,
+        }) => {
+            await page.mouse.click(371, 224, { button: 'right' });
+            expect(await popContextMenuText(page)).toEqual('always,crossline,series-area,series-node,');
+        });
+    });
+
     test('show context menu on activeChange preventDefault', async ({ page }) => {
         const { url } = toExamplePageUrl('context-menu-e2e', 'activeChange-preventDefault', 'vanilla');
         await gotoExample(page, url);
@@ -252,13 +279,7 @@ test.describe('context-menu', () => {
                 context: undefined,
                 showOn: 'caption',
                 text,
-                allShowOnParams: [
-                    {
-                        captionType,
-                        showOn: 'caption',
-                        text,
-                    },
-                ],
+                allShowOnParams: [{ showOn: 'caption', captionType, text }],
             };
         };
 
@@ -378,7 +399,10 @@ test.describe('context-menu', () => {
         const POINT_ySecondary_a = { clientX: 674, clientY: 349 } as const; // On '20M' tick label
         const POINT_ySecondary_b = { clientX: 692, clientY: 110 } as const; // Between 60M and 80M tick labels (nearer to 60M).
 
-        type AxisParams = Omit<AgContextMenuGetItemsParamsAxis, 'showOn' | 'defaultItems' | 'value' | 'index'>;
+        type AxisParams = Omit<
+            AgContextMenuGetItemsParamsAxis,
+            'showOn' | 'defaultItems' | 'value' | 'index' | 'allShowOnParams'
+        >;
         type PointParams = { index: number; value: AgAxisValue };
 
         const PARAMS_x: AxisParams = {
