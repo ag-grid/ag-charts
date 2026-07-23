@@ -30,6 +30,8 @@ interface AgentReadinessLinks {
     quickStart: string;
     options: string;
     gallery: string;
+    community: string;
+    documentationArchive: string;
     pricing: string;
     changelog: string;
     pipeline: string;
@@ -43,6 +45,8 @@ function buildLinks({ siteRoot, chartsDocsPrefix }: AgentReadinessInput): AgentR
         quickStart: `${docs}quick-start/`,
         options: `${docs}options/`,
         gallery: `${siteRoot}gallery/`,
+        community: `${siteRoot}community/`,
+        documentationArchive: `${siteRoot}documentation-archive/`,
         pricing: `${siteRoot}license-pricing/`,
         changelog: `${siteRoot}changelog/`,
         pipeline: `${siteRoot}pipeline/`,
@@ -61,7 +65,7 @@ export function buildLlmsTxt(input: AgentReadinessInput): string {
     const markdownLine =
         input.includeMarkdownDocs === false
             ? ''
-            : `\n- Markdown versions: append \`.md\` to any Charts docs page URL for a clean, framework-specific Markdown copy (e.g. ${l.quickStart.replace(/\/$/, '')}.md), or send \`Accept: text/markdown\`. The Pricing page also has a \`.md\` version.`;
+            : `\n- Markdown versions: append \`.md\` to any Charts docs page URL for a clean, framework-specific Markdown copy (e.g. ${l.quickStart.replace(/\/$/, '')}.md), or send \`Accept: text/markdown\`. The Community, Documentation Archive and Pricing pages also have \`.md\` versions.`;
     return `# AG Charts
 > High-performance JavaScript Charting library, framework-agnostic with React, Angular and Vue support. Free Community and paid Enterprise editions. Current major version: v${input.majorVersion}.
 
@@ -71,9 +75,11 @@ export function buildLlmsTxt(input: AgentReadinessInput): string {
 - [Gallery](${l.gallery}): live, runnable chart examples${markdownLine}
 
 ## Optional
+- [Community](${l.community}): showcase, events, media and tools & extensions
 - [Pricing](${l.pricing}): Community (free) vs Enterprise
 - [Changelog](${l.changelog}): features and fixes by version
 - [Pipeline](${l.pipeline}): roadmap and backlog of upcoming features and fixes
+- [Documentation Archive](${l.documentationArchive}): docs for previous versions
 - [Sitemap](${l.sitemap}): full list of indexable pages
 `;
 }
@@ -88,7 +94,7 @@ export function buildAgentsMd(input: AgentReadinessInput): string {
     const markdownBullet =
         input.includeMarkdownDocs === false
             ? ''
-            : `\n- **Markdown for LLMs:** append \`.md\` to any Charts docs page URL (e.g. ${l.quickStart.replace(/\/$/, '')}.md), or request the page with \`Accept: text/markdown\`. The [Pricing](${l.pricing}) page also has a \`.md\` version.`;
+            : `\n- **Markdown for LLMs:** append \`.md\` to any Charts docs page URL (e.g. ${l.quickStart.replace(/\/$/, '')}.md), or request the page with \`Accept: text/markdown\`. The [Community](${l.community}), [Documentation Archive](${l.documentationArchive}) and [Pricing](${l.pricing}) pages also have \`.md\` versions.`;
     return `# AG Charts - guide for AI coding assistants
 
 - **What it is:** high-performance JavaScript Charting library. Framework-agnostic, with React, Angular and Vue wrappers. Community (free) and Enterprise (licensed) editions.

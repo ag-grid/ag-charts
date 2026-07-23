@@ -19,13 +19,15 @@ describe('buildLlmsTxt', () => {
     test('links the key charts pages from the canonical base', () => {
         expect(txt).toContain('(https://www.ag-grid.com/charts/javascript/quick-start/)');
         expect(txt).toContain('(https://www.ag-grid.com/charts/license-pricing/)');
+        expect(txt).toContain('(https://www.ag-grid.com/charts/community/)');
+        expect(txt).toContain('(https://www.ag-grid.com/charts/documentation-archive/)');
         expect(txt).toContain('(https://www.ag-grid.com/charts/sitemap-index.xml)');
     });
 
-    test('advertises the per-page markdown (.md) convention and the pricing .md', () => {
+    test('advertises the per-page markdown (.md) convention and the extra .md twins', () => {
         expect(txt).toContain('.md');
         expect(txt).toContain('https://www.ag-grid.com/charts/javascript/quick-start.md');
-        expect(txt).toContain('Pricing page also has a `.md` version');
+        expect(txt).toContain('Community, Documentation Archive and Pricing pages also have `.md` versions');
     });
 
     test('omits the markdown convention when markdown docs are disabled', () => {
@@ -54,6 +56,8 @@ describe('buildAgentsMd', () => {
     test('advertises the markdown (.md) versions', () => {
         expect(md).toContain('Markdown for LLMs');
         expect(md).toContain('https://www.ag-grid.com/charts/javascript/quick-start.md');
+        expect(md).toContain('[Community](https://www.ag-grid.com/charts/community/)');
+        expect(md).toContain('[Documentation Archive](https://www.ag-grid.com/charts/documentation-archive/)');
     });
 
     test('omits the markdown affordance when markdown docs are disabled', () => {
