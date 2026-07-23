@@ -342,13 +342,15 @@ describe('BoxPlotSeries', () => {
         it('reveal endpoints match a static render', async () => {
             const options: AgChartOptions = { ...BOX_PLOT_BAR_OPTIONS };
             prepareEnterpriseTestOptions(options);
-            const moved: AgChartOptions = {
+            // Widen each box's whiskers (still min < q1 < median < q3 < max) so the transition
+            // reshapes the render without producing invalid box-plot data.
+            const widened: AgChartOptions = {
                 ...options,
-                data: BOX_PLOT_BAR_OPTIONS.data!.map((d: any) => ({ ...d, median: d.median + 0.5 })),
+                data: BOX_PLOT_BAR_OPTIONS.data!.map((d: any) => ({ ...d, min: d.min - 0.5, max: d.max + 0.5 })),
             };
 
             const chart = AgCharts.create(options);
-            await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, options, moved);
+            await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, options, widened);
 
             deproxy(chart).destroy();
         });
