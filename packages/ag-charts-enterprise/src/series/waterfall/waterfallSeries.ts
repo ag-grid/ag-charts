@@ -28,7 +28,6 @@ import {
     buildBarLabelData,
     easeOut,
     firstCandidate,
-    insideBarRegion,
     isContinuous,
     maxValue,
     measureLabelText,
@@ -49,6 +48,7 @@ type NormalisedWaterfallSeriesStyle = Normalised<AgWaterfallSeriesStyle, never, 
 
 const {
     adjustLabelPlacement,
+    insideBarLabelBounds,
     resolvePlacementLabelPadding,
     fitLabelToContainer,
     SeriesNodePickMode,
@@ -709,32 +709,36 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             const insidePlacement = placement == null || placement.startsWith('inside');
             const placementStyle = insidePlacement ? label.insideStyle : label.outsideStyle;
             const boxPadding = resolvePlacementLabelPadding(label, placementStyle);
-            const insetSpacing: number =
-                label.spacing + Math.max(boxPadding.top, boxPadding.right, boxPadding.bottom, boxPadding.left);
+            const rect = { x: rectX, y: rectY, width: rectWidth, height: rectHeight };
+            const threshold = label.collision.threshold ?? 0;
+            const isUpward = (value ?? -1) >= 0 !== valueAxisReversed;
             const resolvesOrientation = barLabelResolvesOrientation(label.orientation);
             const labelRotation = barLabelRotation(firstCandidate(label.orientation));
-            // Inside labels fit within the bar rect; outside labels sit beside it. The rect is only
-            // needed to bound the fit or to resolve orientation, so skip it otherwise.
-            const container =
+            // Inside labels fit within the bar region (reserving the anchored-side spacing gap and drawn
+            // box); outside labels sit beside it, so leave them unbound.
+            const bounds =
                 insidePlacement && (labelFit != null || resolvesOrientation)
-                    ? insideBarRegion(
-                          { x: rectX, y: rectY, width: rectWidth, height: rectHeight },
-                          insetSpacing,
-                          label.collision.threshold ?? 0,
-                          !barAlongX
+                    ? insideBarLabelBounds(
+                          rect,
+                          placement ?? 'inside-center',
+                          isUpward,
+                          !barAlongX,
+                          label.spacing,
+                          threshold,
+                          expandPlacementLabelBoxExtent(label)
                       )
                     : undefined;
-            const fittedLabelText = fitLabelToContainer(labelText, labelFit, label, container);
+            const fittedLabelText = fitLabelToContainer(labelText, labelFit, label, bounds?.container);
             // A rotated label's gap to the bar depends on its box size; measure only when it rotates.
             const { width: labelWidth, height: labelHeight } =
                 labelRotation === 0 ? { width: 0, height: 0 } : measureLabelText(fittedLabelText, label);
             const labelPlacement = adjustLabelPlacement({
-                isUpward: (value ?? -1) >= 0 !== valueAxisReversed,
+                isUpward,
                 isVertical: !barAlongX,
                 placement,
                 spacing: label.spacing,
                 boxPadding,
-                rect: { x: rectX, y: rectY, width: rectWidth, height: rectHeight },
+                rect,
                 rotation: labelRotation,
                 labelWidth,
                 labelHeight,
@@ -748,7 +752,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             // Bake the first orientation; an array resolves against the bar rect for inside placements
             // only (see barSeries).
             mutableNode.label.rotation = labelRotation;
-            mutableNode.label.region = resolvesOrientation ? container : undefined;
+            mutableNode.label.region = resolvesOrientation ? bounds?.region : undefined;
             mutableNode.label.offsetX = 0;
             mutableNode.label.offsetY = 0;
             mutableNode.label.placement = insidePlacement ? 'inside' : 'outside';

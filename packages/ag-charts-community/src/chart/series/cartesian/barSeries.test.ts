@@ -1576,6 +1576,94 @@ describe('BarSeries', () => {
             { x: 'd', y: -200 },
         ];
 
+        // A beside label with a drawn box (fill + border + padding) must reserve the whole box beyond
+        // `spacing`, so the box's outer edge — not the text — sits `spacing` clear of the bar. Covered for
+        // both the baked single placement and the resolved cascade (array), which take different paths.
+        const SPACING = 20;
+        it.each(['single', 'array'] as const)('reserves the full box beside the bar (%s placement)', async (mode) => {
+            const placement: AgBarSeriesLabelPlacement | AgBarSeriesLabelPlacement[] =
+                mode === 'array' ? ['beside-after-center', 'inside-center'] : 'beside-after-center';
+            const options: AgChartOptions = {
+                data: [{ x: 'a', y: 100 }],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'y',
+                        label: {
+                            placement,
+                            spacing: SPACING,
+                            color: 'black',
+                            fill: '#ffe08a',
+                            padding: 12,
+                            border: { enabled: true, stroke: 'red', strokeWidth: 8 },
+                        },
+                    },
+                ],
+            };
+
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+
+            // The text anchor clears the bar by more than `spacing`: the extra is the padding + border the
+            // box reserves toward the bar. A bare `spacing` gap (no box reserved) would fail this.
+            const series = deproxy(chart as any).series[0] as unknown as {
+                contextNodeData?: {
+                    nodeData?: { x: number; width: number }[];
+                    labelData?: { label?: { x?: number } }[];
+                };
+            };
+            const barRight = series.contextNodeData!.nodeData![0].x + series.contextNodeData!.nodeData![0].width;
+            const labelX = series.contextNodeData!.labelData![0].label!.x!;
+            expect(labelX - barRight).toBeGreaterThan(SPACING);
+        });
+
+        // A beside label's COLLISION footprint (what decides whether it hides beside a neighbour) must
+        // match its drawn box: the box's bar-facing edge sits exactly `spacing` from the bar, with the
+        // padding/border reserved outward. Regression — the footprint was offset by the box extent toward
+        // the neighbour, so a hideable label collided with the next bar a whole box-extent before its
+        // drawn box actually reached it.
+        it('aligns a beside label collision box with its drawn box (zero threshold)', async () => {
+            const options: AgChartOptions = {
+                data: [{ x: 'a', y: 100 }],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'y',
+                        label: {
+                            placement: 'beside-after-center',
+                            spacing: SPACING,
+                            color: 'black',
+                            fill: '#ffe08a',
+                            padding: 12,
+                            border: { enabled: true, stroke: 'red', strokeWidth: 8 },
+                            collision: { threshold: 0, suppressHide: false },
+                        },
+                    },
+                ],
+            };
+
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+
+            const series = deproxy(chart as any).series[0] as unknown as {
+                contextNodeData?: {
+                    nodeData?: { x: number; width: number }[];
+                    labelData?: { label?: { candidates?: { box: { x: number } }[] } }[];
+                };
+            };
+            const barRight = series.contextNodeData!.nodeData![0].x + series.contextNodeData!.nodeData![0].width;
+            const box = series.contextNodeData!.labelData![0].label!.candidates![0].box;
+            // beside-after sits the label to the right of the bar, so the box's left edge faces it: that
+            // edge is `spacing` clear of the bar, not `spacing + boxExtent` (which the bug produced).
+            expect(box.x - barRight).toBeCloseTo(SPACING);
+        });
+
         // Columns: `before`/`after` sit left/right, `start`/`center`/`end` position along the value axis.
         describe.each([
             'beside-before-start',
@@ -1677,22 +1765,43 @@ describe('BarSeries', () => {
         it.each(['horizontal', 'vertical'] as const)(
             'rejects outside labels that would point into a stacked neighbour (%s bars)',
             async (direction) => {
-                const label = {
+                // A descriptive label per segment, wider than the tiny middle/top segments, so it cannot fit
+                // inside them and the cascade is forced past `inside-center` — the large base still fits inside.
+                const label = (text: string) => ({
                     placement: ['inside-center', 'outside-end', 'beside-after-center'] as AgBarSeriesLabelPlacement[],
                     spacing: 10,
                     color: 'black',
-                };
+                    formatter: () => text,
+                });
+                // Headroom above the stacks (value max well beyond the tallest total) so an outermost
+                // `outside-end` label has room to sit outside the bar without overflowing the plot — that
+                // plot-overflow rejection is a separate concern covered by its own test.
+                const valueAxis = { type: 'number', max: 200 };
+                const categoryAxis = { type: 'category' };
                 const options: AgChartOptions = {
+                    // Room on every side (collision boundary grows with seriesArea padding) so the beside and
+                    // outside labels of edge bars have space, rather than being rejected off the plot.
+                    seriesArea: { padding: { top: 60, bottom: 60, left: 60, right: 60 } },
                     data: [
-                        { x: 'a', bottom: 100, middle: 4, top: 5 },
-                        { x: 'b', bottom: 120, middle: 3, top: 4 },
-                        { x: 'c', bottom: 90, middle: 4, top: 5 },
-                        { x: 'd', bottom: 140, middle: 3, top: 4 },
+                        { x: 'a', bottom: 100, middle: 3, top: 3 },
+                        { x: 'b', bottom: 120, middle: 3, top: 3 },
+                        { x: 'c', bottom: 90, middle: 3, top: 3 },
+                        { x: 'd', bottom: 140, middle: 3, top: 3 },
                     ],
+                    axes:
+                        direction === 'horizontal'
+                            ? ([
+                                  { ...valueAxis, position: 'bottom' },
+                                  { ...categoryAxis, position: 'left' },
+                              ] as any)
+                            : ([
+                                  { ...categoryAxis, position: 'bottom' },
+                                  { ...valueAxis, position: 'left' },
+                              ] as any),
                     series: [
-                        { type: 'bar', direction, xKey: 'x', yKey: 'bottom', stacked: true, label },
-                        { type: 'bar', direction, xKey: 'x', yKey: 'middle', stacked: true, label },
-                        { type: 'bar', direction, xKey: 'x', yKey: 'top', stacked: true, label },
+                        { type: 'bar', direction, xKey: 'x', yKey: 'bottom', stacked: true, label: label('base') },
+                        { type: 'bar', direction, xKey: 'x', yKey: 'middle', stacked: true, label: label('mid') },
+                        { type: 'bar', direction, xKey: 'x', yKey: 'top', stacked: true, label: label('top') },
                     ],
                 };
 
@@ -1704,6 +1813,118 @@ describe('BarSeries', () => {
         );
     });
 
+    // Hideable labels (`collision.suppressHide: false`) route even a single placement through the
+    // placement engine so a label that cannot fit is dropped and rendered invisible, rather than baked
+    // unconditionally by the fast path. The default (`suppressHide: true`) keeps the byte-identical bake.
+    describe('suppressHide single-placement hiding', () => {
+        const visibleLabelCount = async (options: AgChartOptions) => {
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            const series = deproxy(chart).series[0] as any;
+            return series.labelSelection.nodes().filter((node: any) => node.visible).length;
+        };
+
+        // Twelve tall, narrow bars: an inside-center label forced wide by the formatter overflows the
+        // bar on the cross (width) axis while fitting comfortably on the value axis.
+        const wideLabelData = Array.from({ length: 12 }, (_, i) => ({ x: `c${i}`, y: 100 }));
+        const wideLabel = (suppressHide?: boolean): AgChartOptions => ({
+            data: wideLabelData,
+            legend: { enabled: false },
+            series: [
+                {
+                    type: 'bar',
+                    xKey: 'x',
+                    yKey: 'y',
+                    label: {
+                        placement: 'inside-center',
+                        formatter: () => 'WWWWWWWWWW',
+                        color: 'black',
+                        ...(suppressHide == null ? {} : { collision: { suppressHide } }),
+                    },
+                },
+            ],
+        });
+
+        it('hides an inside-center label wider than its bar when suppressHide is false', async () => {
+            const count = await visibleLabelCount(wideLabel(false));
+            expect(count).toBeLessThan(wideLabelData.length);
+        });
+
+        it('keeps the same label under the default suppressHide (fast path)', async () => {
+            const count = await visibleLabelCount(wideLabel(true));
+            expect(count).toBe(wideLabelData.length);
+        });
+
+        it('restores hidden labels when suppressHide is toggled back on', async () => {
+            const hiddenOptions = wideLabel(false);
+            prepareTestOptions(hiddenOptions);
+            chart = AgCharts.create(hiddenOptions);
+            await waitForChartStability(chart);
+            const series = deproxy(chart).series[0] as any;
+            const visible = () => series.labelSelection.nodes().filter((node: any) => node.visible).length;
+            expect(visible()).toBeLessThan(wideLabelData.length);
+
+            const shownOptions = wideLabel(true);
+            prepareTestOptions(shownOptions);
+            await chart.update(shownOptions);
+            await waitForChartStability(chart);
+            expect(visible()).toBe(wideLabelData.length);
+        });
+
+        // A beside-after-center label sits to the right of its bar; with many closely-spaced bars it
+        // lands on the neighbouring bar (a real seriesItem collision) and, being hideable, is dropped.
+        const besideData = Array.from({ length: 10 }, (_, i) => ({ x: `c${i}`, y: 100 }));
+        const beside = (suppressHide: boolean): AgChartOptions => ({
+            data: besideData,
+            legend: { enabled: false },
+            series: [
+                {
+                    type: 'bar',
+                    xKey: 'x',
+                    yKey: 'y',
+                    label: {
+                        placement: 'beside-after-center',
+                        formatter: () => 'WWWW',
+                        spacing: 5,
+                        color: 'black',
+                        collision: { suppressHide },
+                    },
+                },
+            ],
+        });
+
+        it('hides a beside label that lands on a neighbouring bar when suppressHide is false', async () => {
+            const count = await visibleLabelCount(beside(false));
+            expect(count).toBeLessThan(besideData.length);
+        });
+
+        it('keeps beside labels overlapping neighbours under the default suppressHide', async () => {
+            const count = await visibleLabelCount(beside(true));
+            expect(count).toBe(besideData.length);
+        });
+
+        it('is unchanged for a normal chart whose labels fit', async () => {
+            const count = await visibleLabelCount({
+                data: [
+                    { x: 'a', y: 100 },
+                    { x: 'b', y: 200 },
+                    { x: 'c', y: 150 },
+                ],
+                legend: { enabled: false },
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'y',
+                        label: { placement: 'inside-center', color: 'black', collision: { suppressHide: false } },
+                    },
+                ],
+            });
+            expect(count).toBe(3);
+        });
+    });
+
     describe('label placement cascade', () => {
         // A placement array cascades per datum (inside-center-h → inside-center-v → outside-end-h →
         // outside-end-v). Small bars can't fit the label inside and fall through to outside; large
@@ -1712,8 +1933,8 @@ describe('BarSeries', () => {
             data: [
                 { x: 'a', y: 100 },
                 { x: 'b', y: -100 },
-                { x: 'c', y: 12 },
-                { x: 'd', y: -8 },
+                { x: 'c', y: 3 },
+                { x: 'd', y: -2 },
             ],
             series: [
                 {

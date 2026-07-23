@@ -34,6 +34,7 @@ import {
     barLabelRotation,
     buildBarLabelData,
     findMinMax,
+    insideBarContainer,
     insideBarRegion,
     isContinuous,
     measureLabelText,
@@ -142,8 +143,6 @@ interface RangeBarSeriesNodeDatumContext extends _ModuleSupport.CartesianCreateN
     // Valid only for unrotated labels; a rotated label's reach is per-datum (see labelBoxPadding et al.).
     readonly yLowPadding: number;
     readonly yHighPadding: number;
-    // Unsigned margin for the inside-fit container (box-clear on any side).
-    readonly labelInsetPadding: number;
     // Pieces to recompute a rotated label's per-datum reach: reach folds in the box's cross-axis extent.
     readonly labelSpacing: number;
     readonly labelSign: number;
@@ -518,8 +517,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             labelBoxPadding: boxPadding,
             yLowFacing,
             yHighFacing,
-            labelInsetPadding:
-                labelProps.spacing + Math.max(boxPadding.top, boxPadding.right, boxPadding.bottom, boxPadding.left),
             canIncrementallyUpdate,
             nodes: canIncrementallyUpdate ? this.contextNodeData.nodeData : [],
             nodeIndex: 0,
@@ -933,18 +930,20 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const rectWidth = params.rectWidth;
         const rectHeight = params.rectHeight;
 
-        // Inside labels fit within the bar rect; outside labels sit beside it. The rect is only needed to
-        // bound the fit or to resolve orientation, so skip it otherwise.
-        const container =
-            placement === 'inside' && (ctx.labelFit != null || ctx.labelResolvesOrientation)
-                ? insideBarRegion(
-                      { x: rectX, y: rectY, width: rectWidth, height: rectHeight },
-                      ctx.labelInsetPadding,
-                      label.collision.threshold ?? 0,
-                      !barAlongX
-                  )
+        const rect = { x: rectX, y: rectY, width: rectWidth, height: rectHeight };
+        const threshold = label.collision.threshold ?? 0;
+        // Inside labels fit within the bar rect (each end reserves the one-sided spacing and drawn box);
+        // outside labels sit beside it, so leave them unbound.
+        const isInside = placement === 'inside';
+        // A range bar carries a label at each value end (low and high), so the region reserves the
+        // `spacing` gap on both value ends; cross-axis wall-clearance comes from `threshold`.
+        const barRegion =
+            isInside && (ctx.labelFit != null || ctx.labelResolvesOrientation)
+                ? insideBarRegion(rect, label.spacing, label.spacing, threshold, !barAlongX)
                 : undefined;
-        const region = ctx.labelResolvesOrientation ? container : undefined;
+        const container = barRegion ? insideBarContainer(barRegion, expandPlacementLabelBoxExtent(label)) : undefined;
+        // Orientation resolution flushes/contains an inside label against the same region.
+        const region = ctx.labelResolvesOrientation ? barRegion : undefined;
 
         const datum = params.datum;
         const yLowValue = params.yLowValue;

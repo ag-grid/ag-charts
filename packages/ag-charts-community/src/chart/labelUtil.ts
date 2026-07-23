@@ -1,4 +1,6 @@
 import type {
+    BarValueAnchor,
+    BoxBounds,
     Callback,
     CallbackParam,
     DynamicContext,
@@ -16,7 +18,9 @@ import {
     type NormalisedChartLabelStyleOptions,
     fitLabelText,
     getMinOuterRectSize,
+    insideBarContainer,
     insideBarRegion,
+    insideBarValueInsets,
     labelGlyphCentre,
     mergeDefaults,
     orientationAngles,
@@ -342,6 +346,34 @@ function isBesidePlacement(placement: BarLabelPlacement): placement is BesideBar
     return placement.startsWith('beside-');
 }
 
+/** The value-axis end an inside/beside placement anchors against, so `spacing` reserves its gap there. */
+export function barValueAnchor(placement: BarLabelPlacement): BarValueAnchor {
+    const value = isBesidePlacement(placement) ? besideValuePlacement(placement).valuePlacement : placement;
+    if (value.endsWith('-center')) return 'center';
+    return value.endsWith('-start') ? 'start' : 'end';
+}
+
+/**
+ * Containment region and text container for an inside bar label at `placement`: the region reserves the
+ * anchored-side `spacing` gap (nothing for the centred placement) plus `threshold` cross-axis
+ * wall-clearance, so the gap survives the engine's flush/containment; the container is that region minus
+ * the drawn box, bounding how much text fits. Fit and containment share the region so fitted text can
+ * never overflow the bound the engine contains it against.
+ */
+export function insideBarLabelBounds(
+    rect: Bounds,
+    placement: BarLabelPlacement,
+    isUpward: boolean,
+    isVertical: boolean,
+    spacing: number,
+    threshold: number,
+    box: Required<PaddingOptions>
+): { region: BoxBounds; container: { width: number; height: number } } {
+    const insets = insideBarValueInsets(barValueAnchor(placement), isUpward, isVertical, spacing);
+    const region = insideBarRegion(rect, insets.min, insets.max, threshold, isVertical);
+    return { region, container: insideBarContainer(region, box) };
+}
+
 /**
  * Resolves a `beside-*` placement into the side it sits on (`after` = the far side of the cross axis
  * before any reversal) and the along-value-axis anchor it reuses from the matching `inside-*` placement.
@@ -392,6 +424,12 @@ export function adjustLabelPlacement({
     // anchor. Pre-subtracting the drift keeps the glyph centred on the bar's cross-axis. Zero unrotated.
     const drift = boxPadding == null ? { x: 0, y: 0 } : rotatedGlyphDrift(rotation, boxPadding);
 
+    // Distance from the anchor to the (rotated) box edge facing the bar; equals boxPadding[facing] for an
+    // unrotated label, but grows with the box's cross-axis when the label is rotated. Added beyond
+    // `spacing` so the box edge — not the text — sits `spacing` from the bar, on whichever axis faces it.
+    const insetFor = (facing: keyof Required<PaddingOptions>) =>
+        boxPadding == null ? 0 : rotatedLabelInset(facing, rotation, labelWidth, labelHeight, boxPadding);
+
     // `beside-*` reuses the matching `inside-*` anchor for the value axis, then floats the label off the
     // segment on the cross axis (overriding that axis's coordinate and text anchor below).
     let beside: { after: boolean } | undefined;
@@ -404,6 +442,10 @@ export function adjustLabelPlacement({
         valuePlacement = placement;
     }
 
+    // A beside label is pushed off the bar by `spacing` on its cross axis only (below); along the value
+    // axis it just aligns start/center/end to the bar, with no `spacing` gap.
+    const valueSpacing = beside == null ? spacing : 0;
+
     if (valuePlacement === 'inside-center') {
         // No bar-facing axis: keep the glyph centred on both axes of the bar rect.
         x -= drift.x;
@@ -412,17 +454,13 @@ export function adjustLabelPlacement({
         const barDirection = (isUpward ? 1 : -1) * (isVertical ? -1 : 1);
         const { direction, textAlignment } = placements[valuePlacement];
         const displacementRatio = (direction + 1) * 0.5;
-        // Distance from the anchor to the (rotated) box edge facing the bar; equals boxPadding[facing]
-        // for an unrotated label, but grows with the box's cross-axis when the label is rotated.
-        const insetFor = (facing: keyof Required<PaddingOptions>) =>
-            boxPadding == null ? 0 : rotatedLabelInset(facing, rotation, labelWidth, labelHeight, boxPadding);
 
         if (isVertical) {
             const y0 = isUpward ? rect.y + rect.height : rect.y;
             const height = rect.height * barDirection;
             const facing = textAlignment === barDirection ? 'top' : 'bottom';
             const inset = insetFor(facing);
-            y = y0 + height * displacementRatio + (spacing + inset) * textAlignment * barDirection;
+            y = y0 + height * displacementRatio + (valueSpacing + inset) * textAlignment * barDirection;
             x -= drift.x;
             textBaseline = facing;
         } else {
@@ -430,7 +468,7 @@ export function adjustLabelPlacement({
             const width = rect.width * barDirection;
             const facing = textAlignment === barDirection ? 'left' : 'right';
             const inset = insetFor(facing);
-            x = x0 + width * displacementRatio + (spacing + inset) * textAlignment * barDirection;
+            x = x0 + width * displacementRatio + (valueSpacing + inset) * textAlignment * barDirection;
             y -= drift.y;
             textAlign = facing;
         }
@@ -438,14 +476,19 @@ export function adjustLabelPlacement({
 
     if (beside) {
         // Flip the side with a reversed category axis so `before`/`after` keep their physical meaning
-        // (column: before → left, after → right; horizontal bar: before → above, after → below).
+        // (column: before → left, after → right; horizontal bar: before → above, after → below). The
+        // facing box inset keeps the box edge — not the text — `spacing` from the bar.
         const after = beside.after !== crossReversed;
         if (isVertical) {
-            x = after ? rect.x + rect.width + spacing : rect.x - spacing;
-            textAlign = after ? 'left' : 'right';
+            const facing = after ? 'left' : 'right';
+            const offset = spacing + insetFor(facing);
+            x = after ? rect.x + rect.width + offset : rect.x - offset;
+            textAlign = facing;
         } else {
-            y = after ? rect.y + rect.height + spacing : rect.y - spacing;
-            textBaseline = after ? 'top' : 'bottom';
+            const facing = after ? 'top' : 'bottom';
+            const offset = spacing + insetFor(facing);
+            y = after ? rect.y + rect.height + offset : rect.y - offset;
+            textBaseline = facing;
         }
     }
 
@@ -476,6 +519,7 @@ export function buildBarLabelCandidates({
     orientations,
     spacing,
     threshold,
+    boxPadding,
     rect,
     width,
     height,
@@ -490,6 +534,7 @@ export function buildBarLabelCandidates({
     orientations: readonly AgChartLabelOrientation[];
     spacing: number;
     threshold: number;
+    boxPadding?: Required<PaddingOptions>;
     rect: Bounds;
     width: number;
     height: number;
@@ -514,16 +559,42 @@ export function buildBarLabelCandidates({
         }
     }
 
-    const insideRegion = insideBarRegion(rect, spacing, threshold, isVertical);
     // `plotRegion` is a collision-only boundary for outside/beside candidates (flushToRegion: false): a
     // label overflowing it (e.g. into the axis-label zone) fails containment so the cascade falls through
     // to the next placement, rather than being clamped into it or floating into the engine's wider bounds.
     const candidates: BarPositionedCandidate[] = [];
     for (const placement of effectivePlacements) {
-        const anchor = adjustLabelPlacement({ isUpward, isVertical, placement, spacing, rect, crossReversed });
+        const anchor = adjustLabelPlacement({
+            isUpward,
+            isVertical,
+            placement,
+            spacing,
+            boxPadding,
+            rect,
+            crossReversed,
+        });
         const isInside = placement.startsWith('inside');
-        const region = isInside ? insideRegion : plotRegion;
+        // Inside labels reserve `spacing` on the end they anchor against, so the gap survives the engine's
+        // flush/containment (not just the anchor); centred labels reserve nothing.
+        const insets = insideBarValueInsets(barValueAnchor(placement), isUpward, isVertical, spacing);
+        const region = isInside ? insideBarRegion(rect, insets.min, insets.max, threshold, isVertical) : plotRegion;
         const centre = labelGlyphCentre(anchor, width, height);
+        // The anchor sits on the glyph's edge, but the drawn box protrudes `boxPadding[facing]` past it
+        // toward the bar (the offset `adjustLabelPlacement` added so the box clears the bar by `spacing`).
+        // Recentre the collision footprint on that drawn box, else it reaches the box extent further onto
+        // a neighbour than what is rendered and the label collides before its box actually touches.
+        if (boxPadding != null) {
+            if (anchor.textAlign === 'right' || anchor.textAlign === 'end') {
+                centre.x += boxPadding.right;
+            } else if (anchor.textAlign === 'left' || anchor.textAlign === 'start') {
+                centre.x -= boxPadding.left;
+            }
+            if (anchor.textBaseline === 'bottom') {
+                centre.y += boxPadding.bottom;
+            } else if (anchor.textBaseline === 'top') {
+                centre.y -= boxPadding.top;
+            }
+        }
         for (const orientation of orientations) {
             const rotationDeg = orientationAngles[orientation];
             const { width: fw, height: fh } = getMinOuterRectSize(rotationDeg, width, height);

@@ -182,6 +182,7 @@ export {
     adjustLabelPlacement,
     fitLabelToContainer,
     getLabelStyles,
+    insideBarLabelBounds,
     pickPlacementStyle,
     updateLabelNode,
 } from './chart/labelUtil';

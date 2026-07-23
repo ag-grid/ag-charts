@@ -160,10 +160,11 @@ describe('buildBarLabelCandidates', () => {
         ]);
     });
 
-    it('constrains inside placements to the per-axis inset bar rect and floats outside placements', () => {
-        // Horizontal bar: spacing (5) insets left/right (length axis); threshold (2) insets top/bottom (cross).
+    it('constrains inside placements to the threshold-inset bar rect and floats outside placements', () => {
+        // Horizontal bar: only threshold (2) insets top/bottom (cross); the length axis stays flush — the
+        // one-sided spacing is delivered by the anchor offset, not by shrinking the containment region.
         const candidates = build(['inside-center', 'outside-end'], ['horizontal']);
-        expect(candidates[0].region).toEqual({ x: 5, y: 2, width: 90, height: 36 });
+        expect(candidates[0].region).toEqual({ x: 0, y: 2, width: 100, height: 36 });
         expect(candidates[1].region).toBeUndefined();
     });
 

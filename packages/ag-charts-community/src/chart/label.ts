@@ -312,3 +312,15 @@ export function resolvePlacementLabelPadding<TParams>(
 ): Required<PaddingOptions> {
     return expandLabelPadding(resolvePlacementLabelStyle(label, placementStyle));
 }
+
+/**
+ * Resolved per-side extent of a placement label's drawn box (padding plus the outward half of any border
+ * stroke) folded into its anchor offset, so the box's outer edge — not just the padding boundary — sits
+ * `spacing` from the shape. All-zero for a boxless label.
+ */
+export function resolvePlacementLabelBoxExtent<TParams>(
+    label: Label<TParams>,
+    placementStyle: LabelPlacementStyle | undefined
+): Required<PaddingOptions> {
+    return expandLabelBoxExtent(resolvePlacementLabelStyle(label, placementStyle));
+}

@@ -23,7 +23,6 @@ import {
     createTicks,
     deepClone,
     findMinMax,
-    insideBarRegion,
     isBigInt,
     isDate,
     isNumber,
@@ -75,8 +74,14 @@ import {
     rowCountProperty,
     valueProperty,
 } from '../../data/processors';
-import { resolvePlacementLabelPadding } from '../../label';
-import { adjustLabelPlacement, fitLabelToContainer, pickPlacementStyle, updateLabelNode } from '../../labelUtil';
+import { expandPlacementLabelBoxExtent, resolvePlacementLabelPadding } from '../../label';
+import {
+    adjustLabelPlacement,
+    fitLabelToContainer,
+    insideBarLabelBounds,
+    pickPlacementStyle,
+    updateLabelNode,
+} from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { type TooltipContent, type TooltipContentDataRow } from '../../tooltip/tooltip';
@@ -538,6 +543,19 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         const rotation = barLabelRotation(toArray(label.orientation)[0]);
         const resolvesOrientation = barLabelResolvesOrientation(label.orientation);
         const rect = { x, y, width: w, height: h };
+        // Region reserves the anchored-side spacing gap (nothing when centred); container is region minus
+        // the drawn box. Outside labels float free of the bar (no container/region).
+        const bounds = isInside
+            ? insideBarLabelBounds(
+                  rect,
+                  placement,
+                  isUpward,
+                  true,
+                  label.spacing,
+                  label.collision.threshold ?? 0,
+                  expandPlacementLabelBoxExtent(label)
+              )
+            : undefined;
         const text = fitLabelToContainer(
             this.getLabelText<AgHistogramSeriesLabelFormatterParams>(total, datum, yKey!, 'y', [], label, {
                 ...this.binParams(bin),
@@ -549,7 +567,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             }),
             labelFit,
             label,
-            { width: w, height: h }
+            bounds?.container
         );
         // A rotated label's gap to the bar depends on its box size; measure only when it rotates.
         const { width: labelWidth, height: labelHeight } =
@@ -580,12 +598,9 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             rotation,
             offsetX: 0,
             offsetY: 0,
-            // An orientation array resolves against the bar rect for inside placements only; outside
+            // An orientation array resolves against the bar region for inside placements only; outside
             // labels fall back to the plot bounds via no region (see barSeries).
-            region:
-                resolvesOrientation && isInside
-                    ? insideBarRegion(rect, label.spacing, label.collision.threshold ?? 0, true)
-                    : undefined,
+            region: resolvesOrientation ? bounds?.region : undefined,
             text,
         };
     }
