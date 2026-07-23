@@ -60,6 +60,7 @@ jobs:
         name: Detect Changes
         outputs:
             run_full_ci: ${{ steps.decide.outputs.run_full_ci }}
+            locale: ${{ steps.filter.outputs.locale }}
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -97,6 +98,8 @@ jobs:
                         - '**/vitest.setup.ts'
                       ci:
                         - '.github/**'
+                      locale:
+                        - 'packages/ag-charts-locale/src/**'
 
             - name: Decide what to run
               id: decide
@@ -471,22 +474,94 @@ jobs:
                   files: ${{ steps.stage.outputs.files }}
                   github_token: ${{ secrets.GITHUB_TOKEN }}
 
-            - name: Post sticky PR comment
+            - name: Write live-test section
               if: steps.stage.outputs.publish == 'true'
-              uses: marocchino/sticky-pull-request-comment@v2
+              shell: bash
+              run: |
+                  mkdir -p "${RUNNER_TEMP}/pr-sections"
+                  cat > "${RUNNER_TEMP}/pr-sections/10-preview.md" <<EOF
+                  ## Live-test this PR in Plunker
+
+                  Paste these two \`<script>\` tags into a Plunker (or any vanilla-JS host) to load the UMD bundles built from this PR:
+
+                  \`\`\`html
+                  <script src="https://ag-grid.github.io/ag-charts/pr-${PR_NUMBER}/ag-charts-community.min.js"></script>
+                  <script src="https://ag-grid.github.io/ag-charts/pr-${PR_NUMBER}/ag-charts-enterprise.min.js"></script>
+                  \`\`\`
+
+                  Bundles are removed automatically when the PR is closed. Updated on every push.
+                  EOF
+
+            - name: Upsert live-test section
+              if: steps.stage.outputs.publish == 'true'
+              uses: ./.github/actions/pr-report-comment
               with:
-                  header: pr-preview-umd
-                  message: |
-                      ### Live-test this PR in Plunker
+                  pr_number: ${{ env.PR_NUMBER }}
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
 
-                      Paste these two `<script>` tags into a Plunker (or any vanilla-JS host) to load the UMD bundles built from this PR:
+    l10n_review:
+        runs-on: ubuntu-24.04
+        name: L10n Review
+        # Advisory only — a review failure must never gate the build (mirrors the old standalone
+        # workflow, which ran off the critical path).
+        continue-on-error: true
+        needs: [detect-changes]
+        # Advisory semantic review of translation changes, folded into the consolidated PR
+        # comment. Same-repo PRs that touched locale source only — never run repo code with the
+        # API key in scope for a fork PR (mirrors the ci.yml/pr-review.yml fork gate). Deterministic
+        # structural checks live in the package tests; this never gates the build.
+        if: |
+            github.event_name == 'pull_request' &&
+            needs.detect-changes.outputs.locale == 'true' &&
+            github.event.pull_request.head.repo.full_name == github.repository
+        permissions:
+            contents: read
+            pull-requests: write
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
 
-                      ```html
-                      <script src="https://ag-grid.github.io/ag-charts/pr-${{ env.PR_NUMBER }}/ag-charts-community.min.js"></script>
-                      <script src="https://ag-grid.github.io/ag-charts/pr-${{ env.PR_NUMBER }}/ag-charts-enterprise.min.js"></script>
-                      ```
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 22
 
-                      Bundles are removed automatically when the PR is closed. Updated on every push.
+            - name: Review translations
+              env:
+                  LOCALE_SRC_DIR: packages/ag-charts-locale/src
+                  ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+                  BASE_SHA: ${{ github.event.pull_request.base.sha }}
+                  HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+                  REPORT_PATH: l10n-review.md
+              run: |
+                  # Defense-in-depth: execute the review script as it exists at the base ref,
+                  # never the PR head, so PR-controlled code can't run with the API key in scope.
+                  script=external/ag-shared/scripts/l10n/review-translations.mjs
+                  if git cat-file -e "$BASE_SHA:$script" 2>/dev/null; then
+                      git show "$BASE_SHA:$script" > "$RUNNER_TEMP/review-translations.mjs"
+                  else
+                      echo "Script absent at base ref; using checked-out copy (the PR introducing it)."
+                      cp "$script" "$RUNNER_TEMP/review-translations.mjs"
+                  fi
+                  node "$RUNNER_TEMP/review-translations.mjs"
+
+            - name: Build L10n section
+              run: |
+                  mkdir -p "${RUNNER_TEMP}/pr-sections"
+                  out="${RUNNER_TEMP}/pr-sections/30-l10n.md"
+                  if [ -f l10n-review.md ]; then
+                      # Drop the standalone marker the generator prepends (review-translations.mjs);
+                      # the consolidated comment owns the parent marker. Prepend our section heading.
+                      { echo '## Translation review'; echo; sed '/<!-- l10n-translation-review -->/d' l10n-review.md; } > "$out"
+                  else
+                      printf '## Translation review\n\nNo translation issues found.\n' > "$out"
+                  fi
+
+            - name: Upsert L10n section
+              uses: ./.github/actions/pr-report-comment
+              with:
+                  pr_number: ${{ github.event.pull_request.number }}
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
 
     website_build:
         runs-on: ubuntu-24.04
@@ -937,6 +1012,17 @@ jobs:
                   branch: ${{ needs.init.outputs.snapshot_branch }}
                   github_token: ${{ secrets.GITHUB_TOKEN }}
                   slack_webhook: ${{ secrets.SLACK_WEBHOOK }}
+
+            # Upsert or clear the snapshot-status section. When Snapshot Notify wrote a fragment
+            # (snapshots regenerated) it is upserted; otherwise the section is removed so a stale
+            # "snapshots regenerated" note from an earlier push can't linger after a fix.
+            - name: Upsert snapshot-status section
+              if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+              uses: ./.github/actions/pr-report-comment
+              with:
+                  pr_number: ${{ github.event.pull_request.number }}
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
+                  remove_sections: ${{ steps.snapshot-notify.outputs.updated != 'true' && 'snapshot-status' || '' }}
 
             - name: Merge JUnit Report XMLs
               if: needs.test.result != 'skipped' || needs.e2e.result != 'skipped' || needs.demos_e2e.result != 'skipped'
