@@ -120,7 +120,9 @@ export class MapLineBackgroundSeries
         }, undefined);
 
         if (topology == null) {
-            this.ctx.logger.warnOnce(`no topology was provided for [MapShapeBackgroundSeries]; nothing will be rendered.`);
+            this.ctx.logger.warnOnce(
+                `no topology was provided for [MapShapeBackgroundSeries]; nothing will be rendered.`
+            );
         }
     }
 
