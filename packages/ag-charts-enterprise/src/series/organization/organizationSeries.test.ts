@@ -9,12 +9,16 @@ import type {
 import { AgCharts } from 'ag-charts-community';
 import {
     type ChartTestCase,
+    type SceneGeometrySample,
     compareImageSnapshot,
+    createSceneGeometrySampler,
     deproxy,
     dragAction,
+    expectSceneSamplesMatch,
     hoverAction,
     setupMockCanvas,
     setupMockConsole,
+    spyOnAnimationFrames,
     standaloneChartAssertions,
     waitForChartStability,
 } from 'ag-charts-community-test';
@@ -1900,6 +1904,64 @@ describe('OrganizationSeries', () => {
 
             expect(collapsed).toEqual([{ datum: options.data![1], itemId: 'cto' }]);
             expect(source).toEqual('api-call');
+        });
+    });
+
+    // Organization extends the network series base and never drives the animation manager, so node
+    // cards and links never tween. Pinned by a minimal guard rather than a trajectory suite, since
+    // there is no motion to describe.
+    describe('does not animate', () => {
+        const frames = spyOnAnimationFrames();
+
+        const cardKeys = (sample: SceneGeometrySample) =>
+            [...sample.keys()].filter((k) => /^series\[0\]\/(rect|path)\[/.test(k));
+
+        it('update data: node cards snap to their new layout without tweening', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { id: 'ceo', name: 'Alice Chen', job: 'Chief Executive Officer', parentId: null },
+                    { id: 'cto', name: 'Bob Smith', job: 'Chief Technology Officer', parentId: 'ceo' },
+                    { id: 'cfo', name: 'Carol Wu', job: 'Chief Financial Officer', parentId: 'ceo' },
+                ],
+                series: [
+                    {
+                        type: 'organization',
+                        idKey: 'id',
+                        parentIdKey: 'parentId',
+                        node: { title: { key: 'name' }, subtitle: { key: 'job' } },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = AgCharts.create(options);
+            const sampler = createSceneGeometrySampler(chart);
+            const { before, trajectory, after } = await frames.captureSnap(chart, sampler, () =>
+                chart.updateDelta({
+                    data: [
+                        { id: 'ceo', name: 'Alice Chen', job: 'Chief Executive Officer', parentId: null },
+                        { id: 'cto', name: 'Bob Smith', job: 'Chief Technology Officer', parentId: 'ceo' },
+                        { id: 'cfo', name: 'Carol Wu', job: 'Chief Financial Officer', parentId: 'ceo' },
+                        { id: 'dev', name: 'Dave Jones', job: 'Developer', parentId: 'cto' },
+                    ],
+                })
+            );
+
+            // Anti-vacuity: the extra report adds a card (and its link), so the tree genuinely changed —
+            // a constant trajectory over it is a real snap, not a pin over an unchanged scene.
+            const beforeCount = cardKeys(before).length;
+            const afterCount = cardKeys(after).length;
+            expect(beforeCount).toBeGreaterThan(0);
+            expect(afterCount).toBeGreaterThan(beforeCount);
+            // The full new layout is present on the first captured frame (nothing grows/fades in).
+            expect(cardKeys(trajectory[0]).length).toBe(afterCount);
+            // Whole-scene constancy from the first frame proves the snap. expectNoAnimation is unusable
+            // here: the vertical step-connector links have a degenerate x-extent, so their sampled
+            // top-station values are non-finite, which its finiteness check rejects. expectSceneSamplesMatch
+            // compares those NaN stations by identity (NaN matches NaN), so it still fails on any tween
+            // while tolerating the intrinsic degenerate geometry.
+            for (const frame of trajectory) {
+                expectSceneSamplesMatch(frame, trajectory[0]);
+            }
         });
     });
 });

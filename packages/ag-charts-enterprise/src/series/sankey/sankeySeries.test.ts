@@ -14,13 +14,17 @@ import {
     type Chart,
     GALLERY_EXAMPLES,
     MIN_TOOLTIP_HIDE_DELAY,
+    type SceneGeometrySample,
     clickAction,
     compareImageSnapshot,
+    createSceneGeometrySampler,
     deproxy,
+    expectNoAnimation,
     expectWarningsCalls,
     hoverAction,
     setupMockCanvas,
     setupMockConsole,
+    spyOnAnimationFrames,
     waitForChartStability,
 } from 'ag-charts-community-test';
 
@@ -919,5 +923,47 @@ describe('SankeySeries', () => {
         expect(highlightedItemDatum).not.toHaveProperty('type');
         expect(highlightedItemDatum).not.toHaveProperty('datumIndex');
         expect(highlightedItemDatum).toEqual({ from: 'A', to: 'B', size: 8 });
+    });
+
+    // Sankey extends FlowProportionSeries, whose resetAnimation() is a no-op and which never drives the
+    // animation manager, so nodes and links never tween. Pinned by a minimal guard rather than a
+    // trajectory suite, since there is no motion to describe.
+    describe('does not animate', () => {
+        const frames = spyOnAnimationFrames();
+
+        const flowKeys = (sample: SceneGeometrySample) =>
+            [...sample.keys()].filter((k) => /^series\[0\]\/(rect|path|sector)\[/.test(k));
+
+        it('update data: nodes and links snap to their new layout without tweening', async () => {
+            const options: AgStandaloneChartOptions = {
+                data: [
+                    { from: 'A', to: 'B', size: 5 },
+                    { from: 'B', to: 'C', size: 5 },
+                ],
+                series: [{ type: 'sankey', fromKey: 'from', toKey: 'to', sizeKey: 'size' }],
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = AgCharts.create(options);
+            const sampler = createSceneGeometrySampler(chart);
+            const { before, trajectory, after } = await frames.captureSnap(chart, sampler, () =>
+                chart.updateDelta({
+                    data: [
+                        { from: 'A', to: 'B', size: 5 },
+                        { from: 'B', to: 'C', size: 5 },
+                        { from: 'C', to: 'D', size: 5 },
+                    ],
+                })
+            );
+
+            // Anti-vacuity: the extra edge adds a node and a link, so the flow genuinely changed — a
+            // constant trajectory over it is a real snap, not a pin over an unchanged scene.
+            const beforeCount = flowKeys(before).length;
+            const afterCount = flowKeys(after).length;
+            expect(beforeCount).toBeGreaterThan(0);
+            expect(afterCount).toBeGreaterThan(beforeCount);
+            // The full new layout is present on the first captured frame (nothing grows/fades in).
+            expect(flowKeys(trajectory[0]).length).toBe(afterCount);
+            expectNoAnimation(trajectory);
+        });
     });
 });
