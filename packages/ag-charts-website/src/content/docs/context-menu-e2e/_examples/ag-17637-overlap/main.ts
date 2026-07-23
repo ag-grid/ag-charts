@@ -22,13 +22,12 @@ const options: AgCartesianChartOptions = {
             type: 'bar',
             xKey: 'category',
             yKey: 'value',
-            marker: { enabled: true, size: 10 },
         },
     ],
     axes: {
         x: {
             type: 'category',
-            crossAt: { value: 12.4 },
+            crossAt: { value: 0 },
         },
         y: {
             type: 'number',
