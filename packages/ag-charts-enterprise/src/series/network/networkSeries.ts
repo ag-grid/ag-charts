@@ -14,7 +14,7 @@ import { NetworkGraph } from './networkGraph';
 import type { NetworkLayout, NetworkLayoutUpdateOptions } from './networkLayout';
 import { NetworkLinkNode } from './networkLinkNode';
 import { NetworkSeriesProperties } from './networkSeriesProperties';
-import type { NetworkLinkInterpolation } from './networkTypes';
+import type { NetworkLinkInterpolation, NetworkSeriesVertexID } from './networkTypes';
 
 export interface NetworkDatum<NetworkVertex, TNetworkEdge> extends _ModuleSupport.SeriesNodeDatum {
     vertex: Vertex<NetworkVertex, TNetworkEdge>;
@@ -88,7 +88,7 @@ export abstract class AbstractNetworkSeries<
     protected contextNodeData?: NetworkSeriesContextNodeData<TVertex, TEdge>;
     protected vertexDatumIndex: Record<string, number> = {};
 
-    private pendingCollapsedIds?: string[];
+    private pendingCollapsedIds?: NetworkSeriesVertexID[];
 
     protected seriesRect?: _ModuleSupport.BBox;
 
@@ -171,13 +171,17 @@ export abstract class AbstractNetworkSeries<
                 }
             }),
             ctx.eventsHub.on('series:keynav-expand', (event) => {
-                if (event.itemId == null || event.series !== this) return;
-                this.expandItem(event.itemId, 'user-interaction');
+                const { nodeDatum, widgetEvent } = event;
+                if (nodeDatum.itemId == null || nodeDatum.series !== this) return;
+                widgetEvent.sourceEvent.preventDefault();
+                this.expandItem(nodeDatum.itemId, 'user-interaction');
                 this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.PERFORM_LAYOUT });
             }),
             ctx.eventsHub.on('series:keynav-collapse', (event) => {
-                if (event.itemId == null || event.series !== this) return;
-                this.collapseItem(event.itemId, 'user-interaction');
+                const { nodeDatum, widgetEvent } = event;
+                if (nodeDatum.itemId == null || nodeDatum.series !== this) return;
+                widgetEvent.sourceEvent.preventDefault();
+                this.collapseItem(nodeDatum.itemId, 'user-interaction');
                 this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.PERFORM_LAYOUT });
             })
         );
@@ -206,10 +210,11 @@ export abstract class AbstractNetworkSeries<
         regularBBox?: _ModuleSupport.BBox
     ): _ModuleSupport.BBox | undefined;
     abstract updateOffset(offset: Point): void;
+    abstract isVertexCollapsed(vertex: Vertex<TVertex, TEdge>): boolean;
 
-    abstract expandNetworkToItem(itemIdOrIndex: string | number, source: AgCollapsedChangeEventSource): void;
-    abstract expandItem(itemIdOrIndex: string | number, source: AgCollapsedChangeEventSource): void;
-    abstract collapseItem(itemIdOrIndex: string | number, source: AgCollapsedChangeEventSource): void;
+    abstract expandNetworkToItem(itemId: NetworkSeriesVertexID, source: AgCollapsedChangeEventSource): void;
+    abstract expandItem(itemId: NetworkSeriesVertexID, source: AgCollapsedChangeEventSource): void;
+    abstract collapseItem(itemId: NetworkSeriesVertexID, source: AgCollapsedChangeEventSource): void;
 
     dataCount() {
         return this.datumSelection.length;
@@ -242,7 +247,7 @@ export abstract class AbstractNetworkSeries<
         }
     }
 
-    protected expand(ids: (string | number)[], source: AgCollapsedChangeEventSource) {
+    protected expand(ids: NetworkSeriesVertexID[], source: AgCollapsedChangeEventSource) {
         const changed = this.ctx.collapsedManager.expand(ids, this.id, source);
         if (changed) {
             this.markNodeDataDirty();
@@ -262,6 +267,7 @@ export abstract class AbstractNetworkSeries<
             layoutDatumNode: this.layoutDatumNode.bind(this),
             layoutLinkNode: this.layoutLinkNode.bind(this),
             updateOffset: this.updateOffset.bind(this),
+            isVertexCollapsed: this.isVertexCollapsed.bind(this),
         };
     }
 
@@ -270,7 +276,7 @@ export abstract class AbstractNetworkSeries<
         return node.getBBox();
     }
 
-    protected getDatumById(id: string) {
+    protected getDatumById(id: NetworkSeriesVertexID) {
         return this.datumSelection.at(this.vertexDatumIndex[id])?.datum?.datum;
     }
 

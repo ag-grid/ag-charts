@@ -123,6 +123,8 @@ export interface EventsHubMap {
     'axis-dom-proxy:wheel': AxisDOMProxyWheelEvent;
     'chart:request-refresh': null;
     'chart:request-update': UpdateRequestEvent;
+    'collapsed:restore': CollapsedRestoreEvent;
+    'collapsed:change': null;
     'context-menu:setup': ContextMenuEvent;
     'context-menu:complete': ContextMenuEvent;
     'data:load': { data: unknown[]; requestId?: number };
@@ -142,15 +144,13 @@ export interface EventsHubMap {
     'legend:item-click': LegendItemClickEvent;
     'legend:item-double-click': LegendItemDoubleClickEvent;
     'locale:change': null;
-    'collapsed:restore': { collapsed?: string[] };
-    'collapsed:change': null;
     'rtl:change': null;
     'scrollbar:wheel': ScrollbarWheelEvent;
     'series:focus-change': null;
     'series:keynav-zoom': SeriesKeyNavZoomEvent;
     'series:keynav-panx': SeriesKeyNavPanXEvent;
-    'series:keynav-expand': SeriesNodeDatum;
-    'series:keynav-collapse': SeriesNodeDatum;
+    'series:keynav-expand': SeriesKeyNavExpandEvent;
+    'series:keynav-collapse': SeriesKeyNavCollapseEvent;
     'series-area:hover': SeriesAreaHoverEvent;
     'series-area:click': SeriesAreaClickEvent;
     'series-area:contextmenu': SeriesAreaContextMenuEvent;
@@ -303,6 +303,16 @@ export interface SeriesKeyNavZoomEvent {
 export interface SeriesKeyNavPanXEvent {
     readonly delta: 'home' | 'end' | -1 | 1;
     readonly reverse: boolean;
+    readonly widgetEvent: KeyboardWidgetEvent<'keydown'>;
+}
+
+export interface SeriesKeyNavExpandEvent {
+    readonly nodeDatum: SeriesNodeDatum;
+    readonly widgetEvent: KeyboardWidgetEvent<'keydown'>;
+}
+
+export interface SeriesKeyNavCollapseEvent {
+    readonly nodeDatum: SeriesNodeDatum;
     readonly widgetEvent: KeyboardWidgetEvent<'keydown'>;
 }
 
@@ -476,4 +486,8 @@ export interface AxisLayout {
     direction: ChartAxisDirection;
     domain: any[];
     scale: Scale<any, any, number | AgTimeInterval | AgTimeIntervalUnit>;
+}
+
+export interface CollapsedRestoreEvent {
+    collapsed?: (string | number)[];
 }

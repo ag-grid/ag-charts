@@ -1,4 +1,5 @@
 import { expect, test } from './fixture';
+import { expectChartScreenshot } from './scene-capture';
 import {
     SELECTORS,
     canvasToPageTransformer,
@@ -14,13 +15,13 @@ test.describe('rtl', () => {
     test('basic RTL bar chart rendering', async ({ page }) => {
         const { url } = toExamplePageUrl('rtl-e2e', 'rtl-bar-chart', 'vanilla');
         await gotoExample(page, url);
-        await expect(page).toHaveScreenshot('rtl-bar-chart.png', { animations: 'disabled' });
+        await expectChartScreenshot(page, page, 'rtl-bar-chart.png', { animations: 'disabled' });
     });
 
     test('captions and BiDi wrapping', async ({ page }) => {
         const { url } = toExamplePageUrl('rtl-e2e', 'rtl-captions-bidi', 'vanilla');
         await gotoExample(page, url);
-        await expect(page).toHaveScreenshot('rtl-captions-bidi.png', { animations: 'disabled' });
+        await expectChartScreenshot(page, page, 'rtl-captions-bidi.png', { animations: 'disabled' });
     });
 
     test.describe('context menu', () => {
@@ -35,7 +36,7 @@ test.describe('rtl', () => {
 
             const p = point(width / 2, height / 2);
             await page.mouse.click(p.x, p.y, { button: 'right' });
-            await expect(page).toHaveScreenshot('rtl-context-menu-open.png', { animations: 'disabled' });
+            await expectChartScreenshot(page, page, 'rtl-context-menu-open.png', { animations: 'disabled' });
         });
 
         test('submenu level 1 expands leftward', async ({ page }) => {
@@ -49,7 +50,7 @@ test.describe('rtl', () => {
                 .locator('.ag-charts-context-menu__item')
                 .filter({ hasText: 'מכירות Sales מוצרים' });
             await submenuParent.hover();
-            await expect(page).toHaveScreenshot('rtl-submenu-level1.png', { animations: 'disabled' });
+            await expectChartScreenshot(page, page, 'rtl-submenu-level1.png', { animations: 'disabled' });
         });
 
         test('submenu level 2 (3-level cascade)', async ({ page }) => {
@@ -66,7 +67,7 @@ test.describe('rtl', () => {
 
             const level2Parent = page.locator('.ag-charts-context-menu__item').filter({ hasText: 'מכירות Q1 2024' });
             await level2Parent.hover();
-            await expect(page).toHaveScreenshot('rtl-submenu-level2.png', { animations: 'disabled' });
+            await expectChartScreenshot(page, page, 'rtl-submenu-level2.png', { animations: 'disabled' });
         });
 
         test('keyboard: ArrowLeft opens submenu', async ({ page }) => {
@@ -83,7 +84,7 @@ test.describe('rtl', () => {
 
             // ArrowLeft opens submenu in RTL.
             await page.keyboard.press('ArrowLeft');
-            await expect(page).toHaveScreenshot('rtl-keyboard-arrowleft-opens.png', { animations: 'disabled' });
+            await expectChartScreenshot(page, page, 'rtl-keyboard-arrowleft-opens.png', { animations: 'disabled' });
         });
 
         test('keyboard: ArrowRight closes submenu', async ({ page }) => {
@@ -101,7 +102,7 @@ test.describe('rtl', () => {
 
             // ArrowRight closes submenu in RTL.
             await page.keyboard.press('ArrowRight');
-            await expect(page).toHaveScreenshot('rtl-keyboard-arrowright-closes.png', { animations: 'disabled' });
+            await expectChartScreenshot(page, page, 'rtl-keyboard-arrowright-closes.png', { animations: 'disabled' });
         });
 
         test('chevron flipped in RTL', async ({ page }) => {
@@ -116,7 +117,7 @@ test.describe('rtl', () => {
             // scaleX(-1) produces a matrix with -1 in the first position.
             expect(transform).toContain('-1');
 
-            await expect(page).toHaveScreenshot('rtl-chevron-flipped.png', { animations: 'disabled' });
+            await expectChartScreenshot(page, page, 'rtl-chevron-flipped.png', { animations: 'disabled' });
         });
 
         test('legend context menu', async ({ page }) => {
@@ -126,7 +127,7 @@ test.describe('rtl', () => {
             // Click in the legend area (bottom-centre of chart).
             const p = point(width / 2, height - 20);
             await page.mouse.click(p.x, p.y, { button: 'right' });
-            await expect(page).toHaveScreenshot('rtl-legend-context-menu.png', { animations: 'disabled' });
+            await expectChartScreenshot(page, page, 'rtl-legend-context-menu.png', { animations: 'disabled' });
         });
     });
 
@@ -137,12 +138,12 @@ test.describe('rtl', () => {
         });
 
         test('renders RTL financial chart', async ({ page }) => {
-            await expect(page).toHaveScreenshot('rtl-financial-chart.png', { animations: 'disabled' });
+            await expectChartScreenshot(page, page, 'rtl-financial-chart.png', { animations: 'disabled' });
         });
 
         test('toolbar trend line popover', async ({ page }) => {
             await page.getByTitle('Trend Lines').click();
-            await expect(page).toHaveScreenshot('rtl-toolbar-trend-line-popover.png', { animations: 'disabled' });
+            await expectChartScreenshot(page, page, 'rtl-toolbar-trend-line-popover.png', { animations: 'disabled' });
         });
 
         test('toolbar draw trend line', async ({ page }) => {
@@ -153,18 +154,18 @@ test.describe('rtl', () => {
             await page.click(SELECTORS.canvasProxy, { position: { x: 100, y: 100 } });
             await page.hover(SELECTORS.canvasProxy, { position: { x: 200, y: 200 } });
             await page.click(SELECTORS.canvasProxy, { position: { x: 200, y: 200 } });
-            await expect(page).toHaveScreenshot('rtl-toolbar-trend-line-drawn.png', { animations: 'disabled' });
+            await expectChartScreenshot(page, page, 'rtl-toolbar-trend-line-drawn.png', { animations: 'disabled' });
         });
 
         test('toolbar text annotation', async ({ page }) => {
             await page.getByTitle('Text Annotations').click();
-            await expect(page).toHaveScreenshot('rtl-toolbar-text-popover.png', { animations: 'disabled' });
+            await expectChartScreenshot(page, page, 'rtl-toolbar-text-popover.png', { animations: 'disabled' });
 
             await page.getByText('Text').click();
             await page.hover(SELECTORS.canvasProxy, { position: { x: 200, y: 200 } });
             await page.click(SELECTORS.canvasProxy, { position: { x: 200, y: 200 } });
             await page.keyboard.type('Hello RTL');
-            await expect(page).toHaveScreenshot('rtl-toolbar-text-input.png', { animations: 'disabled' });
+            await expectChartScreenshot(page, page, 'rtl-toolbar-text-input.png', { animations: 'disabled' });
         });
     });
 });

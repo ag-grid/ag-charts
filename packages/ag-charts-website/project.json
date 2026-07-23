@@ -193,10 +193,10 @@
       },
       "configurations": {
         "update": {
-          "command": "./playwright.sh --host test -u changed $(grep -lR 'toHaveScreenshot' e2e)"
+          "command": "./playwright.sh --host test -u changed $(grep -lRE 'toHaveScreenshot|expectChartScreenshot' --include='*.spec.ts' e2e)"
         },
         "without-snapshots": {
-          "command": "./playwright.sh --host test $(grep -LR 'toHaveScreenshot' e2e)"
+          "command": "./playwright.sh --host test $(grep -LRE 'toHaveScreenshot|expectChartScreenshot' --include='*.spec.ts' e2e)"
         },
         "ui": {
           "command": "./playwright.sh --host test --ui-port=8080 --ui-host=0.0.0.0"
@@ -309,7 +309,8 @@
     "ag-charts-enterprise",
     "ag-charts-angular",
     "ag-charts-react",
-    "ag-charts-vue3"
+    "ag-charts-vue3",
+    "ag-charts-demos"
   ],
   "tags": ["skip-gha-cache"]
 }

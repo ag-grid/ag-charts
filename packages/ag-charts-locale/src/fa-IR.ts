@@ -18,11 +18,13 @@ export const AG_CHARTS_LOCALE_FA_IR: Record<string, string> = {
     ariaAnnounceOrgChartLeaf: '${description}, سطح ${level}[number], ${posInSet}[number] از ${setSize}[number]',
     // Screen reader announcement when focusing a parent node in an Organization chart
     ariaAnnounceOrgChartParent:
-        '${description}, سطح ${level}[number], ${posInSet}[number] از ${setSize}[number], ${collapsedState}, ${childCount}[number] فرزند, برای تغییر وضعیت، اسپیس یا اینتر را فشار دهید',
+        '${description}, سطح ${level}[number], ${posInSet}[number] از ${setSize}[number], ${collapsedState}, ${childCount}[number] فرزند',
     ariaAnnounceOrgChartParentSingular:
-        '${description}, سطح ${level}[number], ${posInSet}[number] از ${setSize}[number], ${collapsedState}, 1 فرزند, برای تغییر وضعیت، اسپیس یا اینتر را فشار دهید',
+        '${description}, سطح ${level}[number], ${posInSet}[number] از ${setSize}[number], ${collapsedState}, 1 فرزند',
     ariaOrgChartCollapsed: 'جمع‌شده',
     ariaOrgChartExpanded: 'بازشده',
+    ariaDescriptionExpandNode: 'برای گسترش این گره، Alt + پیکان پایین را فشار دهید',
+    ariaDescriptionCollapseNode: 'برای جمع کردن این گره، Alt + پیکان بالا را فشار دهید',
     ariaAnnounceGaugeChart: 'چارت سنجشی، ${caption}',
     ariaAnnounceHierarchyChart: 'نمودار سلسله مراتبی، ${caption}',
     ariaAnnounceHierarchyDatum: 'سطح ${level}[number]، ${count}[number] فرزند، ${description}',

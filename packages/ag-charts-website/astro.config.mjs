@@ -3,7 +3,7 @@ import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
 import { defineConfig } from 'astro/config';
 import dotenvExpand from 'dotenv-expand';
-import { rm } from 'node:fs/promises';
+import { cp, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as sass from 'sass';
@@ -88,7 +88,7 @@ const plugins = [
     agHotModuleReload(),
     agAutoRedirect(['/javascript', '/react', '/vue', '/angular', '/gallery']),
     agDevCsp(),
-    agDemosStatic(),
+    agDemosStatic(PUBLIC_BASE_URL),
 ];
 if (NODE_ENV !== 'test') {
     plugins.push(mkcert()); // mkcert is not necessary for tests
@@ -183,6 +183,18 @@ export default defineConfig({
                   agSitemapFilterNoindex({ enabled: PRODUCTION_SITE_URLS.includes(PUBLIC_SITE_URL) }),
                   agSitemapLastmod(),
                   agCacheSitemap({ cacheFolder: SITEMAP_CACHE_DIR }),
+                  // Publish the built (base-relative) ag-charts-demos SPA alongside the site at
+                  // /internal-demos/. The demos route references these assets under the site base;
+                  // the dev server serves the same output via agDemosStatic instead.
+                  {
+                      name: 'ag-demos-publish',
+                      hooks: {
+                          'astro:build:done': async ({ dir }) => {
+                              const demosDist = fileURLToPath(new URL('../ag-charts-demos/dist', import.meta.url));
+                              await cp(demosDist, join(fileURLToPath(dir), 'internal-demos'), { recursive: true });
+                          },
+                      },
+                  },
               ]
             : [
                   {

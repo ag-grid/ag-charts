@@ -1,6 +1,7 @@
 import type { Page } from '@playwright/test';
 
 import { expect, test } from './fixture';
+import { expectChartScreenshot } from './scene-capture';
 import {
     SELECTORS,
     canvasToPageTransformer,
@@ -47,19 +48,19 @@ test.describe('tooltip', () => {
         test('single', async ({ page }) => {
             await page.getByText('Single').click();
             await page.mouse.move(400, 150);
-            await expect(page).toHaveScreenshot('tooltip-mode-single.png');
+            await expectChartScreenshot(page, page, 'tooltip-mode-single.png');
         });
 
         test('shared', async ({ page }) => {
             await page.getByText('Shared').click();
             await page.mouse.move(400, 150);
-            await expect(page).toHaveScreenshot('tooltip-mode-shared.png');
+            await expectChartScreenshot(page, page, 'tooltip-mode-shared.png');
         });
 
         test('compact', async ({ page }) => {
             await page.getByText('Compact').click();
             await page.mouse.move(400, 150);
-            await expect(page).toHaveScreenshot('tooltip-mode-compact.png');
+            await expectChartScreenshot(page, page, 'tooltip-mode-compact.png');
         });
     });
 
@@ -87,7 +88,7 @@ test.describe('tooltip', () => {
                 await page.keyboard.press('Tab');
             });
             test('screenshot', async ({ page }) => {
-                await expect(page).toHaveScreenshot('tooltip-renderer-initial-focus.png');
+                await expectChartScreenshot(page, page, 'tooltip-renderer-initial-focus.png');
             });
             test('aria-label', async ({ page }) => {
                 expect(await readSwapchainText(page)).toBe('Jan: 50 units sold; Jan; Purchases; 60');
@@ -101,7 +102,7 @@ test.describe('tooltip', () => {
                 await page.keyboard.press('ArrowRight');
             });
             test('screenshot', async ({ page }) => {
-                await expect(page).toHaveScreenshot('tooltip-renderer-basic-keynav.png');
+                await expectChartScreenshot(page, page, 'tooltip-renderer-basic-keynav.png');
             });
             test('aria-label', async ({ page }) => {
                 expect(await readSwapchainText(page)).toBe('Feb: 75 units sold; Feb; Purchases; 70');
@@ -116,7 +117,7 @@ test.describe('tooltip', () => {
                 await page.keyboard.press('ArrowRight');
             });
             test('screenshot', async ({ page }) => {
-                await expect(page).toHaveScreenshot('tooltip-renderer-partial-missing-datum.png');
+                await expectChartScreenshot(page, page, 'tooltip-renderer-partial-missing-datum.png');
             });
             test('aria-label', async ({ page }) => {
                 expect(await readSwapchainText(page)).toBe('Mar; Purchases; 90');
@@ -132,7 +133,7 @@ test.describe('tooltip', () => {
                 await page.keyboard.press('ArrowRight');
             });
             test('screenshot', async ({ page }) => {
-                await expect(page).toHaveScreenshot('tooltip-renderer-completely-missing-datum.png');
+                await expectChartScreenshot(page, page, 'tooltip-renderer-completely-missing-datum.png');
             });
             test('aria-label', async ({ page }) => {
                 expect(await readSwapchainText(page)).toBe('May: 45 units sold; May; Purchases; 100');
@@ -165,13 +166,13 @@ test.describe('tooltip', () => {
 
         test('screenshots', async ({ page }) => {
             await hoverCenter(page);
-            await expect(page).toHaveScreenshot('AG-16619-candidate-1st-series.png');
+            await expectChartScreenshot(page, page, 'AG-16619-candidate-1st-series.png');
 
             await clickCenter(page);
-            await expect(page).toHaveScreenshot('AG-16619-candidate-3rd-series.png');
+            await expectChartScreenshot(page, page, 'AG-16619-candidate-3rd-series.png');
 
             await clickCenter(page);
-            await expect(page).toHaveScreenshot('AG-16619-candidate-1st-series.png');
+            await expectChartScreenshot(page, page, 'AG-16619-candidate-1st-series.png');
         });
 
         test('textContent', async ({ page }) => {

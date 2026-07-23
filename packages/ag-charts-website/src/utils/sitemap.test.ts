@@ -1,4 +1,4 @@
-import { isInternalPage } from './sitemap';
+import { isDemoPage, isInternalPage } from './sitemap';
 
 describe('isInternalPage', () => {
     test.each`
@@ -15,5 +15,19 @@ describe('isInternalPage', () => {
         ${'/javascript/contest/'}         | ${false}
     `('$page -> $expected', ({ page, expected }) => {
         expect(isInternalPage(page)).toBe(expected);
+    });
+});
+
+describe('isDemoPage', () => {
+    test.each`
+        page                     | expected
+        ${'/charts/demos'}       | ${true}
+        ${'/charts/demos/'}      | ${true}
+        ${'/charts/demos/line'}  | ${true}
+        ${'/charts/demos/pie/'}  | ${true}
+        ${'/charts/bar-series/'} | ${false}
+        ${'/charts/gallery/'}    | ${false}
+    `('$page -> $expected', ({ page, expected }) => {
+        expect(isDemoPage(page)).toBe(expected);
     });
 });

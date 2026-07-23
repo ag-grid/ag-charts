@@ -1,10 +1,10 @@
+import type { SerializedNodeState, SerializedRectProps } from 'ag-charts-core';
 import { DeclaredSceneChangeDetection, type DistantObject, boxesEqual, isNumberEqual } from 'ag-charts-core';
 import type { AgDrawingMode } from 'ag-charts-types';
 
 import { BBox } from '../bbox';
 import type { DropShadow } from '../dropShadow';
 import { ExtendedPath2D } from '../extendedPath2D';
-import type { SerializedNodeState, SerializedPathProps } from '../node';
 import { type Corner, drawCorner } from '../util/corner';
 import { Path } from './path';
 import { type CanvasContext } from './shape';
@@ -281,8 +281,18 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
         return { type: 'rect', props: this.serializeProps(), svgPath: this.serializeSvgPath() };
     }
 
-    protected override serializeProps(): SerializedPathProps {
-        return { ...super.serializeProps(), x: this.x, y: this.y, width: this.width, height: this.height };
+    protected override serializeProps(): SerializedRectProps {
+        const { x, y, width, height, clipBBox } = this;
+        const props: SerializedRectProps = { ...super.serializeProps(), x, y, width, height };
+        // Expose the clip window (a rect's reveal mask) so trajectory tests can read the sweep; emit it
+        // only when a clipBBox is set, leaving static rects' serialized state unchanged.
+        if (clipBBox != null) {
+            props.clipX0 = clipBBox.x;
+            props.clipY0 = clipBBox.y;
+            props.clipX1 = clipBBox.x + clipBBox.width;
+            props.clipY1 = clipBBox.y + clipBBox.height;
+        }
+        return props;
     }
 
     set cornerRadius(cornerRadius: number) {

@@ -18,11 +18,13 @@ export const AG_CHARTS_LOCALE_HE_IL: Record<string, string> = {
     ariaAnnounceOrgChartLeaf: '${description}, רמה ${level}[number], ${posInSet}[number] מתוך ${setSize}[number]',
     // Screen reader announcement when focusing a parent node in an Organization chart
     ariaAnnounceOrgChartParent:
-        '${description}, רמה ${level}[number], ${posInSet}[number] מתוך ${setSize}[number], ${collapsedState}, ${childCount}[number] ילדים, לחץ על מקש הרווח או אנטר כדי להחליף',
+        '${description}, רמה ${level}[number], ${posInSet}[number] מתוך ${setSize}[number], ${collapsedState}, ${childCount}[number] ילדים',
     ariaAnnounceOrgChartParentSingular:
-        '${description}, רמה ${level}[number], ${posInSet}[number] מתוך ${setSize}[number], ${collapsedState}, ילד 1, לחץ על מקש הרווח או אנטר כדי להחליף',
+        '${description}, רמה ${level}[number], ${posInSet}[number] מתוך ${setSize}[number], ${collapsedState}, ילד 1',
     ariaOrgChartCollapsed: 'מכווץ',
     ariaOrgChartExpanded: 'מורחב',
+    ariaDescriptionExpandNode: 'לחץ על Alt + חץ למטה כדי להרחיב את הצומת הזה',
+    ariaDescriptionCollapseNode: 'לחץ על Alt + חץ למעלה כדי לכווץ את הצומת הזה',
     ariaAnnounceGaugeChart: 'תרשים מד, ${caption}',
     ariaAnnounceHierarchyChart: 'תרשים היררכי, ${caption}',
     ariaAnnounceHierarchyDatum: 'רמה ${level}[number], ${count}[number] ילדים, ${description}',

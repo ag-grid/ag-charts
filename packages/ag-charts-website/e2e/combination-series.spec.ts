@@ -1,4 +1,5 @@
-import { expect, test } from './fixture';
+import { test } from './fixture';
+import { expectChartScreenshot } from './scene-capture';
 import { gotoExample, setupIntrinsicAssertions, toExamplePageUrls, waitForAllChartUpdates } from './util';
 
 test.describe('Combination charts', () => {
@@ -13,12 +14,12 @@ test.describe('Combination charts', () => {
                 for (let i = 0; i < controlButtons.length; i++) {
                     await controlButtons[i].click();
                     await waitForAllChartUpdates(page);
-                    await expect(page).toHaveScreenshot(`combination-${i}.png`);
+                    await expectChartScreenshot(page, page, `combination-${i}.png`);
                 }
                 for (let i = 0; i < controlButtons.length; i++) {
                     await controlButtons[i].click();
                     await waitForAllChartUpdates(page);
-                    await expect(page).toHaveScreenshot(`combination-${i}.png`);
+                    await expectChartScreenshot(page, page, `combination-${i}.png`);
                 }
             });
         });

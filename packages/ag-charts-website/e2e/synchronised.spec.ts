@@ -1,4 +1,5 @@
 import { expect, test } from './fixture';
+import { expectChartScreenshot } from './scene-capture';
 import {
     SELECTORS,
     expectAnimationOccurred,
@@ -67,7 +68,7 @@ test.describe('synchronised', () => {
                     'b10.0.0 Canvas 0.02KB',
                 ]);
 
-                await expect(page).toHaveScreenshot('single-tooltip-replicated.png');
+                await expectChartScreenshot(page, page, 'single-tooltip-replicated.png');
             });
 
             test('should not replicate tooltip for missing data', async ({ page }) => {
@@ -89,7 +90,7 @@ test.describe('synchronised', () => {
                 await expect(tooltipLocator.nth(2)).not.toBeVisible();
                 expect(await tooltipLocator.nth(0).allTextContents()).toMatchObject(['b11.1.0 Time 33ms']);
 
-                await expect(page).toHaveScreenshot('single-tooltip-missing-data.png');
+                await expectChartScreenshot(page, page, 'single-tooltip-missing-data.png');
             });
         });
 
@@ -125,7 +126,7 @@ test.describe('synchronised', () => {
                     '0.02KB',
                 ]);
 
-                await expect(page).toHaveScreenshot('single-crosshair-replicated.png');
+                await expectChartScreenshot(page, page, 'single-crosshair-replicated.png');
             });
 
             test('should not replicate crosshair for missing data', async ({ page }) => {
@@ -153,7 +154,7 @@ test.describe('synchronised', () => {
                     expect.anything(), // Skip invisible axis.
                     expect.anything(), // Skip invisible axis.
                 ]);
-                await expect(page).toHaveScreenshot('single-crosshair-missing-data-1.png');
+                await expectChartScreenshot(page, page, 'single-crosshair-missing-data-1.png');
             });
         });
     });
@@ -229,7 +230,7 @@ test.describe('synchronised', () => {
                                     expect(animTime2After).toEqual(animTime2Before);
                                 }
 
-                                await expect(page).toHaveScreenshot(`${example}-legend-toggle-${i}.png`);
+                                await expectChartScreenshot(page, page, `${example}-legend-toggle-${i}.png`);
 
                                 // Reset the legend state.
                                 await legendItems[i].click();
@@ -286,7 +287,7 @@ test.describe('synchronised', () => {
                                 'b10.0.0 Canvas 18.31MB',
                             ]);
 
-                            await expect(page).toHaveScreenshot(`${example}-tooltip-replicated.png`);
+                            await expectChartScreenshot(page, page, `${example}-tooltip-replicated.png`);
                         });
 
                         test('should not replicate tooltip for hidden series', async ({ page }) => {
@@ -310,7 +311,7 @@ test.describe('synchronised', () => {
                                 expect.anything(), // Skip invisible tooltip.
                             ]);
 
-                            await expect(page).toHaveScreenshot(`${example}-tooltip-hidden-series.png`);
+                            await expectChartScreenshot(page, page, `${example}-tooltip-hidden-series.png`);
                         });
 
                         test('should not replicate tooltip for missing data', async ({ page }) => {
@@ -331,7 +332,7 @@ test.describe('synchronised', () => {
                             await expect(tooltipLocator.nth(1)).not.toBeVisible();
                             expect(await tooltipLocator.nth(0).allTextContents()).toMatchObject(['b11.1.0 Time 33ms']);
 
-                            await expect(page).toHaveScreenshot(`${example}-tooltip-missing-data.png`);
+                            await expectChartScreenshot(page, page, `${example}-tooltip-missing-data.png`);
                         });
                     });
 
@@ -399,7 +400,7 @@ test.describe('synchronised', () => {
                                 '204.92MB',
                             ]);
 
-                            await expect(page).toHaveScreenshot(`${example}-crosshair-replicated.png`);
+                            await expectChartScreenshot(page, page, `${example}-crosshair-replicated.png`);
                         });
 
                         test('should not replicate crosshair for hidden series', async ({ page }) => {
@@ -430,7 +431,7 @@ test.describe('synchronised', () => {
                                 // No 3rd axis (left axis on 2nd chart) is disabled due to no active series.
                                 expect.anything(), // Skip invisible axis.
                             ]);
-                            await expect(page).toHaveScreenshot(`${example}-crosshair-hidden-data.png`);
+                            await expectChartScreenshot(page, page, `${example}-crosshair-hidden-data.png`);
                         });
 
                         test('should not replicate crosshair for missing data', async ({ page }) => {
@@ -462,7 +463,7 @@ test.describe('synchronised', () => {
                                 expect.anything(), // Skip invisible axis.
                                 expect.anything(), // Skip invisible axis.
                             ]);
-                            await expect(page).toHaveScreenshot(`${example}-crosshair-missing-data-1.png`);
+                            await expectChartScreenshot(page, page, `${example}-crosshair-missing-data-1.png`);
 
                             await page.keyboard.press('ArrowDown'); // 2nd series.
                             await waitForAllChartUpdates(page);
@@ -477,7 +478,7 @@ test.describe('synchronised', () => {
                                 expect.anything(), // Skip invisible axis.
                                 expect.anything(), // Skip invisible axis.
                             ]);
-                            await expect(page).toHaveScreenshot(`${example}-crosshair-missing-data-2.png`);
+                            await expectChartScreenshot(page, page, `${example}-crosshair-missing-data-2.png`);
                         });
                     });
                 });
@@ -587,7 +588,7 @@ test.describe('synchronised', () => {
                     'b9.3.0 Canvas 17',
                 ]);
 
-                await expect(page).toHaveScreenshot('multi-key-tooltip-replicated.png');
+                await expectChartScreenshot(page, page, 'multi-key-tooltip-replicated.png');
             });
 
             test('should not replicate tooltip for hidden series', async ({ page }) => {
@@ -617,7 +618,7 @@ test.describe('synchronised', () => {
                     expect.anything(), // Skip invisible tooltip.
                 ]);
 
-                await expect(page).toHaveScreenshot('multi-key-tooltip-hidden-series.png');
+                await expectChartScreenshot(page, page, 'multi-key-tooltip-hidden-series.png');
             });
 
             test('should not replicate tooltip for missing data', async ({ page }) => {
@@ -639,7 +640,7 @@ test.describe('synchronised', () => {
                 await expect(tooltipLocator.nth(2)).not.toBeVisible();
                 expect(await tooltipLocator.nth(0).allTextContents()).toMatchObject(['b11.1.0 Time 32.8']);
 
-                await expect(page).toHaveScreenshot('multi-key-tooltip-missing-data.png');
+                await expectChartScreenshot(page, page, 'multi-key-tooltip-missing-data.png');
             });
         });
 
@@ -679,7 +680,7 @@ test.describe('synchronised', () => {
                     expect.anything(), // Skip invisible axis.
                 ]);
 
-                await expect(page).toHaveScreenshot('multi-key-crosshair-replicated.png');
+                await expectChartScreenshot(page, page, 'multi-key-crosshair-replicated.png');
             });
 
             test('should not replicate crosshair for hidden series', async ({ page }) => {
@@ -712,7 +713,7 @@ test.describe('synchronised', () => {
                     expect.anything(), // Skip invisible axis.
                     expect.anything(), // Skip invisible axis.
                 ]);
-                await expect(page).toHaveScreenshot('multi-key-crosshair-hidden-data.png');
+                await expectChartScreenshot(page, page, 'multi-key-crosshair-hidden-data.png');
             });
 
             test('should not replicate crosshair for missing data', async ({ page }) => {
@@ -742,7 +743,7 @@ test.describe('synchronised', () => {
                     expect.anything(), // Skip invisible axis.
                     expect.anything(), // Skip invisible axis.
                 ]);
-                await expect(page).toHaveScreenshot('multi-key-crosshair-missing-data-1.png');
+                await expectChartScreenshot(page, page, 'multi-key-crosshair-missing-data-1.png');
 
                 await page.keyboard.press('ArrowDown'); // 2nd series.
                 await waitForAllChartUpdates(page);
@@ -755,7 +756,7 @@ test.describe('synchronised', () => {
                     expect.anything(), // Skip invisible axis.
                     expect.anything(), // Skip invisible axis.
                 ]);
-                await expect(page).toHaveScreenshot('multi-key-crosshair-missing-data-2.png');
+                await expectChartScreenshot(page, page, 'multi-key-crosshair-missing-data-2.png');
             });
         });
     });
@@ -850,7 +851,7 @@ test.describe('synchronised', () => {
                     'b9.3.0 Time 11.2',
                 ]);
 
-                await expect(page).toHaveScreenshot('mixed-key-tooltip-replicated.png');
+                await expectChartScreenshot(page, page, 'mixed-key-tooltip-replicated.png');
             });
 
             test('should not replicate tooltip for hidden series', async ({ page }) => {
@@ -880,7 +881,7 @@ test.describe('synchronised', () => {
                     expect.anything(), // Skip invisible tooltip.
                 ]);
 
-                await expect(page).toHaveScreenshot('mixed-key-tooltip-hidden-series.png');
+                await expectChartScreenshot(page, page, 'mixed-key-tooltip-hidden-series.png');
             });
 
             test('should not replicate tooltip for missing data', async ({ page }) => {
@@ -902,7 +903,7 @@ test.describe('synchronised', () => {
                 await expect(tooltipLocator.nth(2)).not.toBeVisible();
                 expect(await tooltipLocator.nth(0).allTextContents()).toMatchObject(['b11.1.0 Time 32.8']);
 
-                await expect(page).toHaveScreenshot('mixed-key-tooltip-missing-data.png');
+                await expectChartScreenshot(page, page, 'mixed-key-tooltip-missing-data.png');
             });
         });
 
@@ -942,7 +943,7 @@ test.describe('synchronised', () => {
                     expect.anything(), // Skip invisible axis.
                 ]);
 
-                await expect(page).toHaveScreenshot('mixed-key-crosshair-replicated.png');
+                await expectChartScreenshot(page, page, 'mixed-key-crosshair-replicated.png');
             });
 
             test('should not replicate crosshair for hidden series', async ({ page }) => {
@@ -975,7 +976,7 @@ test.describe('synchronised', () => {
                     expect.anything(), // Skip invisible axis.
                     expect.anything(), // Skip invisible axis.
                 ]);
-                await expect(page).toHaveScreenshot('mixed-key-crosshair-hidden-data.png');
+                await expectChartScreenshot(page, page, 'mixed-key-crosshair-hidden-data.png');
             });
 
             test('should not replicate crosshair for missing data', async ({ page }) => {
@@ -1005,7 +1006,7 @@ test.describe('synchronised', () => {
                     expect.anything(), // Skip invisible axis.
                     expect.anything(), // Skip invisible axis.
                 ]);
-                await expect(page).toHaveScreenshot('mixed-key-crosshair-missing-data-1.png');
+                await expectChartScreenshot(page, page, 'mixed-key-crosshair-missing-data-1.png');
 
                 await page.keyboard.press('ArrowDown'); // 2nd series.
                 await waitForAllChartUpdates(page);
@@ -1018,7 +1019,7 @@ test.describe('synchronised', () => {
                     expect.anything(), // Skip invisible axis.
                     expect.anything(), // Skip invisible axis.
                 ]);
-                await expect(page).toHaveScreenshot('mixed-key-crosshair-missing-data-2.png');
+                await expectChartScreenshot(page, page, 'mixed-key-crosshair-missing-data-2.png');
             });
         });
     });
@@ -1041,7 +1042,7 @@ test.describe('synchronised', () => {
                 await expect(tooltipLocator.nth(2)).not.toBeVisible();
                 await expect(tooltipLocator.nth(3)).not.toBeVisible();
 
-                await expect(page).toHaveScreenshot('financial-charts-tooltip-not-replicated.png');
+                await expectChartScreenshot(page, page, 'financial-charts-tooltip-not-replicated.png');
             });
         });
 
@@ -1091,12 +1092,12 @@ test.describe('synchronised', () => {
                     'Jan 2023',
                 ]);
 
-                await expect(page).toHaveScreenshot('financial-charts-crosshair-replicated.png');
+                await expectChartScreenshot(page, page, 'financial-charts-crosshair-replicated.png');
 
                 await page.keyboard.press('ArrowDown');
                 await waitForAllChartUpdates(page);
 
-                await expect(page).toHaveScreenshot('financial-charts-crosshair-replicated-2.png');
+                await expectChartScreenshot(page, page, 'financial-charts-crosshair-replicated-2.png');
             });
         });
 
@@ -1117,7 +1118,7 @@ test.describe('synchronised', () => {
                 await expect(focusBox).toBeVisible();
                 await expect(focusBox.boundingBox().then((b) => b?.height)).resolves.toBeLessThan(250);
 
-                await expect(page).toHaveScreenshot('financial-charts-zoomed-in.png');
+                await expectChartScreenshot(page, page, 'financial-charts-zoomed-in.png');
             });
         });
     });

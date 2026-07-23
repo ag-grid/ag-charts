@@ -1306,6 +1306,9 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             Object.defineProperty(series.chart, 'seriesRect', {
                 get: () => this.seriesRect,
             });
+            Object.defineProperty(series.chart, 'seriesAreaPadding', {
+                get: () => this.seriesArea?.getPadding(),
+            });
 
             series.resetAnimation(this.chartAnimationPhase);
             this.addSeriesListeners(series);

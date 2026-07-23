@@ -18,11 +18,13 @@ export const AG_CHARTS_LOCALE_FI_FI: Record<string, string> = {
     ariaAnnounceOrgChartLeaf: '${description}, taso ${level}[number], ${posInSet}[number] / ${setSize}[number]',
     // Screen reader announcement when focusing a parent node in an Organization chart
     ariaAnnounceOrgChartParent:
-        '${description}, taso ${level}[number], ${posInSet}[number] / ${setSize}[number], ${collapsedState}, ${childCount}[number] alikohdetta, paina Enteriä tai välilyöntiä vaihtaaksesi',
+        '${description}, taso ${level}[number], ${posInSet}[number] / ${setSize}[number], ${collapsedState}, ${childCount}[number] alikohdetta',
     ariaAnnounceOrgChartParentSingular:
-        '${description}, taso ${level}[number], ${posInSet}[number] / ${setSize}[number], ${collapsedState}, 1 alikohde, paina Enteriä tai välilyöntiä vaihtaaksesi',
+        '${description}, taso ${level}[number], ${posInSet}[number] / ${setSize}[number], ${collapsedState}, 1 alikohde',
     ariaOrgChartCollapsed: 'suljettu',
     ariaOrgChartExpanded: 'avattu',
+    ariaDescriptionExpandNode: 'Paina Alt + Nuoli alas laajentaaksesi tämän solmun',
+    ariaDescriptionCollapseNode: 'Paina Alt + Nuoli ylös tiivistääksesi tämän solmun',
     ariaAnnounceGaugeChart: 'mittarikaavio, ${caption}',
     ariaAnnounceHierarchyChart: 'hierarkkinen kaavio, ${caption}',
     ariaAnnounceHierarchyDatum: 'taso ${level}[number], ${count}[number] lasta, ${description}',

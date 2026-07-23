@@ -1,8 +1,9 @@
+import type { SerializedGroupProps, SerializedNodeState } from 'ag-charts-core';
 import { clamp, toIterable } from 'ag-charts-core';
 
 import { BBox } from './bbox';
 import { HdpiOffscreenCanvas } from './canvas/hdpiOffscreenCanvas';
-import type { ChildNodeCounts, IScene, RenderContext, SerializedGroupProps, SerializedNodeState } from './node';
+import type { ChildNodeCounts, IScene, RenderContext } from './node';
 import { Node, PointerEvents, SceneChangeDetection } from './node';
 import { type CanvasContext, Shape } from './shape/shape';
 import {

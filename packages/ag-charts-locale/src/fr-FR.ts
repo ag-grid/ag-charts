@@ -18,11 +18,13 @@ export const AG_CHARTS_LOCALE_FR_FR: Record<string, string> = {
     ariaAnnounceOrgChartLeaf: '${description}, niveau ${level}[number], ${posInSet}[number] de ${setSize}[number]',
     // Screen reader announcement when focusing a parent node in an Organization chart
     ariaAnnounceOrgChartParent:
-        '${description}, niveau ${level}[number], ${posInSet}[number] de ${setSize}[number], ${collapsedState}, ${childCount}[number] enfants, appuyez sur Entrée ou Espace pour basculer',
+        '${description}, niveau ${level}[number], ${posInSet}[number] de ${setSize}[number], ${collapsedState}, ${childCount}[number] enfants',
     ariaAnnounceOrgChartParentSingular:
-        '${description}, niveau ${level}[number], ${posInSet}[number] de ${setSize}[number], ${collapsedState}, 1 enfant, appuyez sur Entrée ou Espace pour basculer',
+        '${description}, niveau ${level}[number], ${posInSet}[number] de ${setSize}[number], ${collapsedState}, 1 enfant',
     ariaOrgChartCollapsed: 'réduit',
     ariaOrgChartExpanded: 'développé',
+    ariaDescriptionExpandNode: 'Appuyez sur Alt + Flèche bas pour développer ce nœud',
+    ariaDescriptionCollapseNode: 'Appuyez sur Alt + Flèche haut pour réduire ce nœud',
     ariaAnnounceGaugeChart: 'graphique en jauge, ${caption}',
     ariaAnnounceHierarchyChart: 'graphique hiérarchique, ${caption}',
     ariaAnnounceHierarchyDatum: 'niveau ${level}[number], ${count}[number] enfants, ${description}',

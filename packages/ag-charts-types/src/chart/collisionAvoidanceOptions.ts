@@ -23,13 +23,27 @@ export type AgChartLabelCollisionPlacement =
  */
 export type AgChartLabelOrientation = 'horizontal' | 'vertical' | 'vertical-reversed';
 
-/** Where a bar-family label is placed relative to its bar segment. */
+/**
+ * Where a bar-family label is placed relative to its bar segment.
+ *
+ * The `inside-*` and `outside-*` values offset the label along the value axis. The `beside-*` values
+ * offset it perpendicular to the value axis, floating it to the side of the segment: `before`/`after`
+ * choose the side (a column's left/right, a horizontal bar's above/below) and `start`/`center`/`end`
+ * position it along the segment's length. `beside-*` is useful for tiny stacked segments with no room
+ * to place a label along the value axis.
+ */
 export type AgBarSeriesLabelPlacement =
     | 'inside-center'
     | 'inside-start'
     | 'inside-end'
     | 'outside-start'
-    | 'outside-end';
+    | 'outside-end'
+    | 'beside-before-start'
+    | 'beside-before-center'
+    | 'beside-before-end'
+    | 'beside-after-start'
+    | 'beside-after-center'
+    | 'beside-after-end';
 
 /** Per-category toggle for the obstacles a label avoids. */
 export interface AgChartLabelCollideWithOptions {
@@ -44,14 +58,14 @@ export interface AgChartLabelCollideWithOptions {
 /** Configuration controlling how a label behaves when it cannot be placed clear of every obstacle. */
 export interface AgChartLabelCollisionOptions {
     /**
-     * Collision-detection threshold, in pixels, applied to the label's own collision box before it is
-     * tested against obstacles. `0` (the default) is a no-op; a positive value grows the box so labels
-     * keep more clearance; a negative value shrinks it so labels tolerate overlap up to `|threshold|` px.
+     * Collision threshold in pixels. A positive value triggers avoidance strategies when labels are further away, a negative value allows labels to overlap without triggering avoidance.
+     *
+     * Default: `0`
      */
     threshold?: PixelSize;
     /**
-     * Whether to keep a label visible when no placement clears every obstacle. When `true` the label
-     * stays at its least-overflowing placement; when `false` it is hidden instead.
+     * Whether to keep a colliding label visible if there is still a collision after applying all strategies . When `true` the label
+     * stays at the best available solution; when `false` it is hidden instead.
      */
     suppressHide?: boolean;
     // Undocumented: per-category toggle for the obstacles the label avoids. Accepted at runtime via

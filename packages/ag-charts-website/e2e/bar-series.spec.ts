@@ -1,4 +1,5 @@
 import { expect, test } from './fixture';
+import { expectChartScreenshot } from './scene-capture';
 import { SELECTORS, gotoExample, setupIntrinsicAssertions, toExamplePageUrl, waitForAllChartUpdates } from './util';
 
 test.describe('bar-series', () => {
@@ -12,7 +13,7 @@ test.describe('bar-series', () => {
         });
 
         test('renders the union of per-series categories', async ({ page }) => {
-            await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('data-per-series-initial.png');
+            await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), 'data-per-series-initial.png');
         });
 
         test('keyboard focus shows a tooltip for the focused series datum', async ({ page }) => {
@@ -20,7 +21,7 @@ test.describe('bar-series', () => {
             await waitForAllChartUpdates(page);
 
             await expect(page.locator(SELECTORS.tooltip)).toHaveCount(1);
-            await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('data-per-series-tooltip.png');
+            await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), 'data-per-series-tooltip.png');
         });
 
         test('legend toggling preserves the category union', async ({ page }) => {
@@ -28,7 +29,11 @@ test.describe('bar-series', () => {
             await legendItems[0].click();
             await waitForAllChartUpdates(page);
 
-            await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('data-per-series-legend-toggled.png');
+            await expectChartScreenshot(
+                page,
+                page.locator(SELECTORS.canvasCenter),
+                'data-per-series-legend-toggled.png'
+            );
         });
 
         // Hovering a legend item highlights that series' stack and dims the rest. Item index 2 is
@@ -38,7 +43,7 @@ test.describe('bar-series', () => {
             await legendItems[2].hover();
             await waitForAllChartUpdates(page);
 
-            await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('data-per-series-legend-hover.png');
+            await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), 'data-per-series-legend-hover.png');
         });
 
         // The same highlight is reachable by keyboard: Tab into the chart, Tab to the legend, then two
@@ -51,7 +56,7 @@ test.describe('bar-series', () => {
             await page.keyboard.press('ArrowRight');
             await waitForAllChartUpdates(page);
 
-            await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('data-per-series-legend-focus.png');
+            await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), 'data-per-series-legend-focus.png');
         });
     });
 });

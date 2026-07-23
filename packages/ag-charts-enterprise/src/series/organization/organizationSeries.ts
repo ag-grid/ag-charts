@@ -21,6 +21,7 @@ import {
     type AxisID,
     type CallbackParamRules,
     ChartAxisDirection,
+    ChartUpdateType,
     type DeepRequired,
     type DynamicContext,
     type Normalised,
@@ -49,6 +50,7 @@ import type {
     OrganizationEdge,
     OrganizationLinkDatum,
     OrganizationVertex,
+    OrganizationVertexID,
 } from './organizationTypes';
 
 const { keyProperty, valueProperty } = _ModuleSupport;
@@ -129,6 +131,11 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         this.linkGroup.translationY = offset.y;
     }
 
+    override isVertexCollapsed(vertex: Vertex<OrganizationVertex, OrganizationEdge>): boolean {
+        const itemId = vertex.value;
+        return typeof itemId === 'string' && this.ctx.collapsedManager.isCollapsed(itemId);
+    }
+
     async processData(dataController: _ModuleSupport.DataController) {
         const { data } = this;
         if (data == null) return;
@@ -194,7 +201,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             if (vertices) {
                 for (const vertex of vertices as Vertex<OrganizationVertex, OrganizationEdge>[]) {
                     linkData.push({ from: this.rootVertex, to: vertex });
-                    this.createNodeDataFromVertex(nodeData, linkData, vertex);
+                    this.createNodeDataFromVertex(nodeData, linkData, vertex, false, 1);
                 }
             }
         }
@@ -230,6 +237,10 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
         datumSelection.each((node, datum) => {
+            const { collapsedByAncestor } = datum;
+            node.visible = !collapsedByAncestor;
+            if (collapsedByAncestor) return;
+
             const datumIndex = this.graph.findNeighbourValue(datum.vertex, 'datumIndex') as number;
             const depth = this.graph.findNeighbourValue(datum.vertex, 'depth') as number;
             const allChildren = this.graph.findNeighbourValue(datum.vertex, 'descendants') as number;
@@ -295,9 +306,15 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         linkSelection.each((node, datum) => {
             const fromIndex = this.graph.findNeighbourValue(datum.from, 'datumIndex') as number;
             const toIndex = this.graph.findNeighbourValue(datum.to, 'datumIndex') as number;
-            const styles = this.getLinkStyle(fromIndex, toIndex);
 
-            node.update(styles);
+            const parentItemId = fromIndex == null ? undefined : this.contextNodeData?.nodeData[fromIndex].itemId;
+            const visible = parentItemId == null || !this.ctx.collapsedManager.isCollapsed(parentItemId);
+
+            node.visible = visible;
+            if (visible) {
+                const styles = this.getLinkStyle(fromIndex, toIndex);
+                node.update(styles);
+            }
         });
     }
 
@@ -326,11 +343,11 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         return { type: styles.interpolation.type, cornerRadius: styles.interpolation.cornerRadius };
     }
 
-    expandNetworkToItem(itemIdOrIndex: string | number, source: AgCollapsedChangeEventSource) {
+    expandNetworkToItem(itemId: OrganizationVertexID, source: AgCollapsedChangeEventSource) {
         const { dataModel, processedData } = this;
         if (!dataModel || !processedData) return;
 
-        const id = this.resolveItemId(itemIdOrIndex);
+        const id = this.resolveItemId(itemId);
         if (id == null) return;
 
         let vertex = this.graph.findVertexById(id);
@@ -338,7 +355,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
         // Iterate up the parents until we reach the root node, which does not have a datumIndex, and expand the full
         // ancestry to ensure the active node is visible.
-        const ids = [];
+        const ids: OrganizationVertexID[] = [];
         const idValues = dataModel.resolveKeysById(this, 'idValue', processedData);
         while (
             (vertex = this.graph.findNeighbour(vertex, 'parent') as
@@ -353,8 +370,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         this.expand(ids, source);
     }
 
-    expandItem(itemIdOrIndex: string | number, source: AgCollapsedChangeEventSource) {
-        const id = this.resolveItemId(itemIdOrIndex);
+    expandItem(itemId: OrganizationVertexID, source: AgCollapsedChangeEventSource) {
+        const id = this.resolveItemId(itemId);
         if (id == null) return;
 
         if (this.ctx.collapsedManager.expand([id], this.id, source)) {
@@ -362,8 +379,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         }
     }
 
-    collapseItem(itemIdOrIndex: string | number, source: AgCollapsedChangeEventSource) {
-        const id = this.resolveItemId(itemIdOrIndex);
+    collapseItem(itemId: OrganizationVertexID, source: AgCollapsedChangeEventSource) {
+        const id = this.resolveItemId(itemId);
         if (id == null) return;
 
         if (this.ctx.collapsedManager.collapseAppend([id], this.id, source)) {
@@ -375,8 +392,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     override hasBuiltinListener(target: _ModuleSupport.Node<unknown> | undefined): boolean {
         const { clickToExpand } = this.properties.node;
         const Expander: number = OrganizationNodeTag.Expander;
-        const Card: number = OrganizationNodeTag.Card;
-        return target != null && (target.tag === Expander || (target.tag === Card && clickToExpand));
+        return target != null && (target.tag === Expander || clickToExpand);
     }
 
     override pickFocus(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.PickFocusOutputs | undefined {
@@ -413,7 +429,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         };
     }
 
-    getDatumAriaText(datum: OrganizationDatum, _description: string): string | undefined {
+    override getDatumAriaMeta(datum: OrganizationDatum, _description: string) {
         const { vertex } = datum;
         const depth = (this.graph.findNeighbourValue(vertex, 'depth') as number | undefined) ?? 1;
 
@@ -428,38 +444,46 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
         // Leaf vs. parent — a single key with empty `${collapsedState}` would stutter (",,").
         if (childCount === 0) {
-            return this.ctx.localeManager.t('ariaAnnounceOrgChartLeaf', {
+            return {
+                text: this.ctx.localeManager.t('ariaAnnounceOrgChartLeaf', {
+                    description,
+                    level: depth,
+                    posInSet,
+                    setSize,
+                }),
+                instructions: undefined,
+            };
+        }
+
+        const itemId = vertex.value as string;
+        const isCollapsed = this.ctx.collapsedManager.isCollapsed(itemId);
+        const collapsedState = this.ctx.localeManager.t(isCollapsed ? 'ariaOrgChartCollapsed' : 'ariaOrgChartExpanded');
+        const instruction = this.ctx.localeManager.t(
+            isCollapsed ? 'ariaDescriptionExpandNode' : 'ariaDescriptionCollapseNode'
+        );
+        // Locale tooling has no `[plural]` annotation, so split the key by child count.
+        const key = childCount === 1 ? 'ariaAnnounceOrgChartParentSingular' : 'ariaAnnounceOrgChartParent';
+        return {
+            text: this.ctx.localeManager.t(key, {
                 description,
                 level: depth,
                 posInSet,
                 setSize,
-            });
-        }
-
-        const itemId = vertex.value as string;
-        const collapsedState = this.ctx.localeManager.t(
-            this.ctx.collapsedManager.isCollapsed(itemId) ? 'ariaOrgChartCollapsed' : 'ariaOrgChartExpanded'
-        );
-        // Locale tooling has no `[plural]` annotation, so split the key by child count.
-        const key = childCount === 1 ? 'ariaAnnounceOrgChartParentSingular' : 'ariaAnnounceOrgChartParent';
-        return this.ctx.localeManager.t(key, {
-            description,
-            level: depth,
-            posInSet,
-            setSize,
-            childCount,
-            collapsedState,
-        });
+                childCount,
+                collapsedState,
+            }),
+            instructions: [instruction],
+        };
     }
 
-    findNodeDatum(itemIdOrIndex: AgActiveItemState['itemId']): OrganizationDatum | undefined {
-        const id = this.resolveItemId(itemIdOrIndex);
+    findNodeDatum(itemId: AgActiveItemState['itemId']): OrganizationDatum | undefined {
+        const id = this.resolveItemId(itemId);
         if (id == null) return undefined;
 
         const vertex = this.graph.findVertexById(id);
         if (!vertex) return undefined;
 
-        return this.createNodeDatumFromVertex(vertex);
+        return this.createNodeDatumFromVertex(vertex, false);
     }
 
     override getTooltipContent(datumIndex: _ModuleSupport.DatumIndex): _ModuleSupport.TooltipContent | undefined {
@@ -646,7 +670,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     }
 
     // Returns the next focus vertex per the spatial model, or `undefined` for a no-op (ArrowUp
-    // at the top tier, ArrowDown into a leaf or collapsed node) so focus stays put.
+    // at the top tier, ArrowDown into a leaf) so focus stays put. ArrowDown on a collapsed node
+    // automatic expands it.
     private resolveFocusVertex(
         current: Vertex<OrganizationVertex, OrganizationEdge>,
         siblingDelta: number,
@@ -654,7 +679,10 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     ): Vertex<OrganizationVertex, OrganizationEdge> | undefined {
         if (depthDelta > 0) {
             const itemId = current.value as string;
-            if (this.ctx.collapsedManager.isCollapsed(itemId)) return;
+            if (this.ctx.collapsedManager.isCollapsed(itemId)) {
+                this.expandItem(itemId, 'user-interaction');
+                this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.PERFORM_LAYOUT });
+            }
             return this.getChildren(current)[0];
         }
         if (depthDelta < 0) {
@@ -761,14 +789,15 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         nodeData: OrganizationDatum[],
         linkData: OrganizationLinkDatum[],
         vertex: Vertex<OrganizationVertex, OrganizationEdge>,
-        depth: number = 1
+        collapsedByAncestor: boolean,
+        depth: number
     ) {
         const nodeDatumIndex = nodeData.length;
         this.vertexDatumIndex[vertex.value as string] = nodeDatumIndex;
 
         this.graph.addEdge(vertex, this.graph.addVertex(depth), 'depth');
 
-        const nodeDatum = this.createNodeDatumFromVertex(vertex);
+        const nodeDatum = this.createNodeDatumFromVertex(vertex, collapsedByAncestor);
         nodeData.push(nodeDatum);
 
         const children = this.graph.neighboursWithEdgeValue(vertex, 'child') as
@@ -776,9 +805,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             | undefined;
         if (!children) return;
 
-        if (this.ctx.collapsedManager.isCollapsed(vertex.value as string)) {
-            return;
-        }
+        collapsedByAncestor ||= this.ctx.collapsedManager.isCollapsed(vertex.value as string);
 
         for (const childVertex of children) {
             const linkDatum: OrganizationLinkDatum = {
@@ -788,7 +815,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
             linkData.push(linkDatum);
 
-            this.createNodeDataFromVertex(nodeData, linkData, childVertex, depth + 1);
+            this.createNodeDataFromVertex(nodeData, linkData, childVertex, collapsedByAncestor, depth + 1);
         }
     }
 
@@ -820,7 +847,10 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         };
     }
 
-    private createNodeDatumFromVertex(vertex: Vertex<OrganizationVertex, OrganizationEdge>): OrganizationDatum {
+    private createNodeDatumFromVertex(
+        vertex: Vertex<OrganizationVertex, OrganizationEdge>,
+        collapsedByAncestor: boolean
+    ): OrganizationDatum {
         const datumIndex = this.graph.findNeighbourValue(vertex, 'datumIndex') as number;
         const userDatum = this.processedData?.dataSources.get(this.id)?.data?.[datumIndex];
         return {
@@ -829,6 +859,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             itemId: vertex.value as string,
             datumIndex,
             vertex,
+            collapsedByAncestor,
         };
     }
 
@@ -1323,7 +1354,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     }
 
     // Resolve as a real vertex id first; only a number matching no vertex is treated as a datumSelection index.
-    private resolveItemId(itemIdOrIndex: string | number): string | number | undefined {
+    private resolveItemId(itemIdOrIndex: string | number): OrganizationVertexID | undefined {
         if (this.graph.findVertexById(itemIdOrIndex) != null) {
             return itemIdOrIndex;
         }

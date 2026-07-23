@@ -88,6 +88,7 @@ import {
     HighlightState,
     type INodeEvent,
     type ISeries,
+    type ISeriesAriaMeta,
     type ISeriesProperties,
     type NodeDataDependencies,
     SelectionState,
@@ -390,6 +391,7 @@ export abstract class Series<
         isMiniChart: boolean;
         flashOnUpdateEnabled: boolean;
         seriesRect?: BBox;
+        seriesAreaPadding?: { top: number; right: number; bottom: number; left: number };
     };
 
     axes: { [K in ChartAxisDirection]?: ChartAxis } = {};
@@ -1038,6 +1040,11 @@ export abstract class Series<
 
     // @todo(AG-7126) - removeThisDatum
     abstract getTooltipContent(datumIndex: DatumIndex, removeThisDatum: TDatum | undefined): TooltipContent | undefined;
+
+    getDatumAriaMeta(_seriesDatum: TDatum, _description: string): ISeriesAriaMeta | undefined {
+        // Override point for subclasses
+        return undefined;
+    }
 
     protected _pickNodeCache = new LRUCache<PickResult | undefined>(5);
     pickNodes(point: Point, intent: SeriesNodePickIntent, exactMatchOnly = false): PickResult | undefined {
