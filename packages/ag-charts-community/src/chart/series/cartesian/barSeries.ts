@@ -22,6 +22,7 @@ import {
     AGGREGATION_SPAN,
     ChartAxisDirection,
     DebugMetrics,
+    type LabelObstacle,
     applyBarLabelOrientation,
     areScalingEqual,
     barLabelOrientation,
@@ -32,6 +33,7 @@ import {
     buildBarPositionedLabelDatum,
     isContinuous,
     isFiniteNumber,
+    labelFootprintBox,
     maxValue,
     measureLabelText,
     mergeDefaults,
@@ -1847,7 +1849,30 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
     }
 
     getLabelObstacles() {
-        return rectLabelObstacles(this.contextNodeData?.nodeData);
+        const rects = rectLabelObstacles(this.contextNodeData?.nodeData);
+        // Baked labels (single placement, `suppressHide: true`) never route through the placement
+        // engine, so they never enter the obstacle index there. Contribute their drawn footprint as
+        // `label` obstacles so other series' labels avoid them; routed labels are excluded because the
+        // engine already inserts them as it places each one.
+        if (this.usesPlacedLabels || !this.isLabelEnabled()) return rects;
+        const labels = this.getBakedLabelObstacles();
+        if (labels == null) return rects;
+        return rects == null ? labels : rects.concat(labels);
+    }
+
+    private getBakedLabelObstacles(): LabelObstacle[] | undefined {
+        const labelData = this.contextNodeData?.labelData;
+        if (labelData == null) return undefined;
+        const { label } = this.properties;
+        const box = expandPlacementLabelBoxExtent(label);
+        const obstacles: LabelObstacle[] = [];
+        for (const { label: nodeLabel } of labelData) {
+            if (nodeLabel == null || nodeLabel.text === '' || nodeLabel.hidden) continue;
+            const { width, height } = measureLabelText(nodeLabel.text, label);
+            const footprint = labelFootprintBox(nodeLabel, width, height, box, nodeLabel.rotation);
+            obstacles.push({ kind: 'rect', box: footprint, category: 'label' });
+        }
+        return obstacles.length > 0 ? obstacles : undefined;
     }
 
     override getLabelData(): PointLabelDatum[] {

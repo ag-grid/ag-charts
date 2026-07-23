@@ -24,6 +24,7 @@ import {
     insideBarContainer,
     insideBarRegion,
     insideBarValueInsets,
+    labelFootprintBox,
     labelGlyphCentre,
     placeLabels,
     resolveLabelFit,
@@ -1238,6 +1239,31 @@ describe('bar label placement helpers', () => {
         ])('recovers the box centre from a %s/%s anchor', (textAlign, textBaseline) => {
             const centre = labelGlyphCentre(anchorAt(textAlign, textBaseline), 40, 10);
             expect(centre).toEqual({ x: 100, y: 50 });
+        });
+    });
+
+    describe('labelFootprintBox', () => {
+        const anchor: OrientationAnchor = { x: 100, y: 50, textAlign: 'center', textBaseline: 'middle' };
+        const padding: Required<PaddingOptions> = { top: 3, bottom: 3, left: 4, right: 4 };
+
+        it('is the exact padded box, centred on the glyph, when unrotated', () => {
+            // Glyph 40x10 centred at (100, 50); box grows by padding to 48x16, still centred.
+            expect(labelFootprintBox(anchor, 40, 10, padding, 0)).toEqual({ x: 76, y: 42, width: 48, height: 16 });
+        });
+
+        it('offsets the centre by asymmetric padding', () => {
+            const asym: Required<PaddingOptions> = { top: 0, bottom: 10, left: 0, right: 20 };
+            // Box 60x20; centre shifts by ((20-0)/2, (10-0)/2) = (10, 5) to (110, 55).
+            expect(labelFootprintBox(anchor, 40, 10, asym, 0)).toEqual({ x: 80, y: 45, width: 60, height: 20 });
+        });
+
+        it('returns the rotated outer AABB, swapping extents at a quarter turn', () => {
+            // 48x16 box rotated -90deg → 16x48 AABB, centred on the glyph.
+            const box = labelFootprintBox(anchor, 40, 10, padding, -Math.PI / 2);
+            expect(box.width).toBeCloseTo(16);
+            expect(box.height).toBeCloseTo(48);
+            expect(box.x + box.width / 2).toBeCloseTo(100);
+            expect(box.y + box.height / 2).toBeCloseTo(50);
         });
     });
 

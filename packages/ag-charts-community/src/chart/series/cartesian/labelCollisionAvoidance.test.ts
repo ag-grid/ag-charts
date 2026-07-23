@@ -752,6 +752,86 @@ describe('label collision avoidance', () => {
         });
     });
 
+    // A bar's inside label with the default `suppressHide: true` and a single placement is baked
+    // directly rather than routed through the placement engine, so it never enters the obstacle index
+    // via placement. It must still act as a `label` obstacle so another series' labels avoid it —
+    // otherwise a scatter label sitting over a bar's inside label goes undetected.
+    describe('cross-series obstacles (baked bar inside label vs scatter label)', () => {
+        type Box = { x: number; y: number; width: number; height: number };
+        const overlaps = (a: Box, b: Box) =>
+            a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
+
+        // The B1 scatter point sits inside the first bar (yB 2.4 within the 0..5 bar), so its label
+        // collides with the bar's baked inside label; the rest are clear.
+        const data = [
+            { x: 1, yA: 5, yB: 2.4, nameB: 'B1' },
+            { x: 2, yA: 5.2, yB: 6.6, nameB: 'B2' },
+            { x: 3, yA: 5.1, yB: 5.5, nameB: 'B3' },
+            { x: 4, yA: 8, yB: 8.4, nameB: 'B4' },
+            { x: 5, yA: 8.2, yB: 8.6, nameB: 'B5' },
+            { x: 6, yA: 8.1, yB: 8.5, nameB: 'B6' },
+            { x: 7, yA: 3, yB: 3.4, nameB: 'B7' },
+            { x: 8, yA: 3.2, yB: 3.6, nameB: 'B8' },
+        ];
+
+        const visibleLabelBoxes = (series: {
+            labelSelection: { nodes(): { visible: boolean; computeBBox(): Box | undefined }[] };
+        }) =>
+            series.labelSelection
+                .nodes()
+                .filter((node) => node.visible)
+                .map((node) => node.computeBBox())
+                .filter((box): box is Box => box != null);
+
+        const options = (): any => ({
+            data,
+            legend: { enabled: false },
+            axes: { x: { type: 'number' }, y: { type: 'number' } },
+            series: [
+                {
+                    type: 'bar',
+                    xKey: 'x',
+                    yKey: 'yA',
+                    label: { enabled: true, collision: { suppressHide: true } },
+                },
+                {
+                    type: 'scatter',
+                    xKey: 'x',
+                    yKey: 'yB',
+                    labelKey: 'nameB',
+                    label: {
+                        enabled: true,
+                        placement: ['top', 'bottom'],
+                        collision: { suppressHide: false },
+                    },
+                },
+            ],
+        });
+
+        it('renders with the scatter label cleared off the bar inside label', async () => {
+            await renderAndSnapshot(options());
+        });
+
+        it('drops a hideable scatter label overlapping a bar inside label', async () => {
+            const opts = options();
+            prepareTestOptions(opts);
+            chart = AgCharts.create(opts);
+            await waitForChartStability(chart);
+            const [bar, scatter] = deproxy(chart as any).series as unknown as Parameters<typeof visibleLabelBoxes>[0][];
+            const barBoxes = visibleLabelBoxes(bar);
+            const scatterBoxes = visibleLabelBoxes(scatter);
+            // Anti-vacuous guards: both series must render labels for the invariant to mean anything.
+            expect(barBoxes.length).toBeGreaterThan(0);
+            expect(scatterBoxes.length).toBeGreaterThan(0);
+            // A hideable scatter label must never remain visible on top of a bar's inside label.
+            for (const barBox of barBoxes) {
+                for (const scatterBox of scatterBoxes) {
+                    expect(overlaps(barBox, scatterBox)).toBe(false);
+                }
+            }
+        });
+    });
+
     // Bar-family `placement` was widened to accept an ordered array, but the bar candidate-fallback
     // engine is not yet wired (Ticket C). Until then a supplied array must be inert-safe: the first
     // candidate is used, matching the single-value render, with no error raised.

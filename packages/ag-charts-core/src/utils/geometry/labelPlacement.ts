@@ -6,7 +6,7 @@ import type { Point, SizedPoint } from '../../types/scene';
 import type { FontOptions } from '../../types/text';
 import { toArray } from '../data/arrays';
 import { isArray } from '../types/typeGuards';
-import { toRadians } from './angle';
+import { toDegrees, toRadians } from './angle';
 import { type BoxBounds, boxCollides, boxContains } from './boxBounds';
 import { getMinOuterRectSize } from './math/shapeUtils';
 import { SpatialIndex, gridCellSize } from './spatialIndex';
@@ -535,6 +535,29 @@ export function labelGlyphCentre(anchor: OrientationAnchor, width: number, heigh
         y -= height / 2;
     }
     return { x, y };
+}
+
+/**
+ * Axis-aligned obstacle footprint of a rendered label: its padded box centred on the glyph — the
+ * renderer pivots rotation about that centre — then the rotated box's outer AABB. `padding` is the
+ * per-side box extent (padding plus any border) and `rotationRad` the render rotation in radians, so
+ * a series can register a baked label (one not routed through {@link placeLabels}) as a `label`
+ * obstacle other series' labels must avoid. At `rotationRad === 0` the box is exact.
+ */
+export function labelFootprintBox(
+    anchor: OrientationAnchor,
+    glyphWidth: number,
+    glyphHeight: number,
+    padding: Required<PaddingOptions>,
+    rotationRad: number
+): BoxBounds {
+    const boxWidth = glyphWidth + padding.left + padding.right;
+    const boxHeight = glyphHeight + padding.top + padding.bottom;
+    const glyph = labelGlyphCentre(anchor, glyphWidth, glyphHeight);
+    const cx = glyph.x + (padding.right - padding.left) / 2;
+    const cy = glyph.y + (padding.bottom - padding.top) / 2;
+    const { width, height } = getMinOuterRectSize(toDegrees(rotationRad), boxWidth, boxHeight);
+    return { x: cx - width / 2, y: cy - height / 2, width, height };
 }
 
 /**
