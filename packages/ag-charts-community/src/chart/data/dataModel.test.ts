@@ -1,6 +1,6 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
-import { getEpochColumn } from 'ag-charts-core';
+import { Logger, getEpochColumn } from 'ag-charts-core';
 
 import { DATA_BROWSER_MARKET_SHARE } from '../test/data';
 import * as examples from '../test/examples';
@@ -3199,6 +3199,35 @@ describe('DataModel', () => {
             )!;
 
             expect(result.domain.keys[0]).toEqual(['2024-01-15', '2024-02-20']);
+        });
+    });
+
+    describe('instance-scoped logger threading', () => {
+        it('routes data-validation warnings through the logger passed to the constructor', () => {
+            const logger = new Logger();
+            const scopedWarnOnce = vi.spyOn(logger, 'warnOnce').mockImplementation(() => {});
+            const fallbackWarnOnce = vi.spyOn(Logger.default, 'warnOnce').mockImplementation(() => {});
+
+            const dataModel = new DataModel<any, any, true>(
+                {
+                    props: [{ ...rangeKey('kp'), validation: (v: unknown) => v instanceof Date }, value('vp')],
+                    groupByKeys: true,
+                },
+                'standalone',
+                false,
+                undefined,
+                logger
+            );
+
+            dataModel.processData(
+                basicDataSet([
+                    { kp: new Date('2023-01-01T00:00:00.000Z'), vp: 5 },
+                    { kp: null, vp: 6 },
+                ])
+            );
+
+            expect(scopedWarnOnce).toHaveBeenCalled();
+            expect(fallbackWarnOnce).not.toHaveBeenCalled();
         });
     });
 });

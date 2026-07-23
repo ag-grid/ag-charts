@@ -1,4 +1,4 @@
-import { Logger, first } from 'ag-charts-core';
+import { first } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
 import { ContinuousDomain, DiscreteDomain } from '../../dataDomain';
@@ -165,7 +165,7 @@ export class Aggregator<D extends object, K extends keyof D & string> {
     private rejectDateStackColumn(processedData: GroupedData<any>, valueIndex: number) {
         const valueDef = this.ctx.values[valueIndex];
         const columnScope = first(processedData.columnScopes[valueIndex]);
-        Logger.default.warnOnce(
+        this.ctx.logger.warnOnce(
             `Series "${String(columnScope)}": column "${String(valueDef.property)}" is date-typed; ` +
                 `stacking is not meaningful for date data. The series renders empty; ` +
                 `other series in this chart are unaffected.`

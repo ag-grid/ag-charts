@@ -1,7 +1,7 @@
 import {
     ChartAxisDirection,
     Debug,
-    Logger,
+    type Logger,
     ScaleAlignment,
     attachDescription,
     clamp,
@@ -84,7 +84,7 @@ const rangeValidator = (axis?: CartesianAxisLike) =>
         return value < options.end;
     }, `to be less than end`);
 
-function validateChanges(changes: UpdateZoomChanges): void {
+function validateChanges(changes: UpdateZoomChanges, logger: Logger): void {
     for (const axisId of strictObjectKeys(changes)) {
         const zoom = changes[axisId];
         if (!zoom) continue;
@@ -92,7 +92,7 @@ function validateChanges(changes: UpdateZoomChanges): void {
         const { min, max } = zoom;
 
         if (min < 0 || max > 1) {
-            Logger.default.warnOnce(
+            logger.warnOnce(
                 `Attempted to update axis (${axisId}) zoom to an invalid ratio of [{ min: ${min}, max: ${max} }], expecting a ratio of 0 to 1. Ignoring.`
             );
 
@@ -477,7 +477,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
 
     public updateChanges(params: UpdateZoomParams): boolean {
         const { source, sourceDetail, isReset, changes } = params;
-        validateChanges(changes);
+        validateChanges(changes, this.ctx.logger);
 
         const changedAxes = this.computeChangedAxesIds(changes);
         const oldState: CoreZoomStateSafeRetrieval = deepClone(this.state);

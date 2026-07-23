@@ -1,4 +1,4 @@
-import { Debug, Logger } from 'ag-charts-core';
+import { Debug, type Logger } from 'ag-charts-core';
 
 import { type AnimationPhase, type IAnimation, PHASE_METADATA, PHASE_ORDER } from '../../motion/animation';
 
@@ -19,7 +19,10 @@ export class AnimationBatch {
     /** Guard against premature animation execution. */
     private isReady = false;
 
-    constructor(private readonly maxAnimationTime: number) {}
+    constructor(
+        private readonly maxAnimationTime: number,
+        private readonly logger: Logger
+    ) {}
 
     get size() {
         return this.controllers.size;
@@ -180,7 +183,7 @@ export class AnimationBatch {
                 controller.stop();
                 this.removeAnimation(controller);
             } catch (error: unknown) {
-                Logger.default.error('Error during animation stop', error);
+                this.logger.error('Error during animation stop', error);
             }
         }
         this.dispatchStopped();
