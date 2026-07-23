@@ -695,9 +695,7 @@ export class DataSet<T = unknown> {
         for (const item of remove) {
             const id = this.getIdValue(item);
             if (id === undefined) {
-                this.logger.warnOnce(
-                    `applyTransaction() remove item is missing '${this.dataIdKey}' field; ignoring.`
-                );
+                this.logger.warnOnce(`applyTransaction() remove item is missing '${this.dataIdKey}' field; ignoring.`);
             } else {
                 idsToRemove.add(id);
             }
@@ -780,9 +778,7 @@ export class DataSet<T = unknown> {
         for (const item of update) {
             const id = this.getIdValue(item);
             if (id === undefined) {
-                this.logger.warnOnce(
-                    `applyTransaction() update item is missing '${this.dataIdKey}' field; ignoring.`
-                );
+                this.logger.warnOnce(`applyTransaction() update item is missing '${this.dataIdKey}' field; ignoring.`);
             } else {
                 toUpdate.set(id, item);
             }
