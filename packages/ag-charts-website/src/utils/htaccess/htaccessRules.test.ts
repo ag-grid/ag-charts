@@ -224,9 +224,19 @@ describe('htaccessRules markdown content negotiation', () => {
     it('adds Vary: Accept for negotiated paths (both envs) so shared caches key on the negotiated representation', () => {
         for (const content of [production, staging]) {
             expect(content).toContain(
-                '<If "%{REQUEST_URI} =~ m#^/charts/(?:(?:react|angular|vue|javascript)/[^/]+|license-pricing|community(?:/(?:events|showcase|tools-extensions|media|beyond-the-prompt))?|documentation-archive|gallery)/?$#">'
+                '<If "%{REQUEST_URI} =~ m#^/charts/(?:(?:react|angular|vue|javascript)/[^/]+|license-pricing|community(?:/(?:events|showcase|tools-extensions|media|beyond-the-prompt))?|documentation-archive|gallery)/?$#'
             );
             expect(content).toContain('Header append Vary Accept');
+        }
+    });
+
+    it('negotiates the homepage (site root) to its index.md twin', () => {
+        for (const content of [production, staging]) {
+            expect(content).toContain('RewriteCond %{REQUEST_URI} ^/charts/?$');
+            expect(content).toContain('RewriteCond %{DOCUMENT_ROOT}/charts/index.md -f');
+            expect(content).toContain('RewriteRule ^ /charts/index.md [L]');
+            // The Vary <If> also keys the site root on Accept.
+            expect(content).toContain('|| %{REQUEST_URI} =~ m#^/charts/?$#');
         }
     });
 

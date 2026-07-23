@@ -125,11 +125,19 @@ export function getMarkdownNegotiationRules() {
     RewriteCond %{REQUEST_URI} ${negotiatedPath}
     RewriteCond %{DOCUMENT_ROOT}/%1.md -f
     RewriteRule ^ /%1.md [L]
+
+    # The homepage twin (${basePath}/ -> ${basePath}/index.md). Handled separately because the
+    # site root has no path segment to capture in %1; the pattern matches only the base root.
+    RewriteCond %{HTTP_ACCEPT} text/markdown
+    RewriteCond %{REQUEST_URI} ^${basePath}/?$
+    RewriteCond %{DOCUMENT_ROOT}${basePath}/index.md -f
+    RewriteRule ^ ${basePath}/index.md [L]
 </IfModule>
 
 # Docs pages content-negotiate on Accept (see the markdown rewrite), so shared caches must
-# key on it. Scoped to the negotiated paths so the rest of the site keeps its default.
-<If "%{REQUEST_URI} =~ m#${varyScope}#">
+# key on it. Scoped to the negotiated paths (incl. the homepage) so the rest of the site keeps
+# its default.
+<If "%{REQUEST_URI} =~ m#${varyScope}# || %{REQUEST_URI} =~ m#^${basePath}/?$#">
     Header append Vary Accept
 </If>`;
 }

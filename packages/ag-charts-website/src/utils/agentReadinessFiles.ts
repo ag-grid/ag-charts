@@ -27,6 +27,7 @@ interface AgentReadinessInput {
 }
 
 interface AgentReadinessLinks {
+    home: string;
     quickStart: string;
     options: string;
     gallery: string;
@@ -42,6 +43,7 @@ interface AgentReadinessLinks {
 function buildLinks({ siteRoot, chartsDocsPrefix }: AgentReadinessInput): AgentReadinessLinks {
     const docs = `${siteRoot}${chartsDocsPrefix}/`;
     return {
+        home: siteRoot,
         quickStart: `${docs}quick-start/`,
         options: `${docs}options/`,
         gallery: `${siteRoot}gallery/`,
@@ -65,7 +67,7 @@ export function buildLlmsTxt(input: AgentReadinessInput): string {
     const markdownLine =
         input.includeMarkdownDocs === false
             ? ''
-            : `\n- Markdown versions: append \`.md\` to any Charts docs page URL for a clean, framework-specific Markdown copy (e.g. ${l.quickStart.replace(/\/$/, '')}.md), or send \`Accept: text/markdown\`. The Gallery, Community, Documentation Archive and Pricing pages also have \`.md\` versions.`;
+            : `\n- Markdown versions: append \`.md\` to any Charts docs page URL for a clean, framework-specific Markdown copy (e.g. ${l.quickStart.replace(/\/$/, '')}.md), or send \`Accept: text/markdown\`. The Home, Gallery, Community, Documentation Archive and Pricing pages also have \`.md\` versions.`;
     return `# AG Charts
 > High-performance JavaScript Charting library, framework-agnostic with React, Angular and Vue support. Free Community and paid Enterprise editions. Current major version: v${input.majorVersion}.
 
@@ -94,7 +96,7 @@ export function buildAgentsMd(input: AgentReadinessInput): string {
     const markdownBullet =
         input.includeMarkdownDocs === false
             ? ''
-            : `\n- **Markdown for LLMs:** append \`.md\` to any Charts docs page URL (e.g. ${l.quickStart.replace(/\/$/, '')}.md), or request the page with \`Accept: text/markdown\`. The [Gallery](${l.gallery}), [Community](${l.community}), [Documentation Archive](${l.documentationArchive}) and [Pricing](${l.pricing}) pages also have \`.md\` versions.`;
+            : `\n- **Markdown for LLMs:** append \`.md\` to any Charts docs page URL (e.g. ${l.quickStart.replace(/\/$/, '')}.md), or request the page with \`Accept: text/markdown\`. The [Home](${l.home}), [Gallery](${l.gallery}), [Community](${l.community}), [Documentation Archive](${l.documentationArchive}) and [Pricing](${l.pricing}) pages also have \`.md\` versions.`;
     return `# AG Charts - guide for AI coding assistants
 
 - **What it is:** high-performance JavaScript Charting library. Framework-agnostic, with React, Angular and Vue wrappers. Community (free) and Enterprise (licensed) editions.

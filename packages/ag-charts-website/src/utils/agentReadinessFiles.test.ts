@@ -27,7 +27,9 @@ describe('buildLlmsTxt', () => {
     test('advertises the per-page markdown (.md) convention and the extra .md twins', () => {
         expect(txt).toContain('.md');
         expect(txt).toContain('https://www.ag-grid.com/charts/javascript/quick-start.md');
-        expect(txt).toContain('Gallery, Community, Documentation Archive and Pricing pages also have `.md` versions');
+        expect(txt).toContain(
+            'Home, Gallery, Community, Documentation Archive and Pricing pages also have `.md` versions'
+        );
     });
 
     test('omits the markdown convention when markdown docs are disabled', () => {

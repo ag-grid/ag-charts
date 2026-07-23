@@ -1,0 +1,67 @@
+{
+    "hero": {
+        "heading": "The Best JavaScript Charts in the World",
+        "subHeading": "The professional choice for developers building enterprise applications",
+        "cta": {
+            "title": "See the charts",
+            "url": "/gallery?utm_source=charts-homepage&utm_medium=hero-section&utm_campaign=homepage-cta"
+        }
+    },
+    "sections": {
+        "gallery": {
+            "tag": "AG Charts JavaScript Charting Library",
+            "heading": "JavaScript Charts Designed for Every Use Case",
+            "ctaTitle": "Get Started For Free",
+            "ctaUrl": "/react/quick-start/?utm_source=charts-homepage&utm_medium=features-section&utm_campaign=homepage-cta",
+            "ctaId": "get-started-for-free"
+        },
+        "financial": {
+            "tag": "JavaScript Financial Charts - Create Trading Views in Minutes",
+            "heading": "Interactive Financial Charts for Trading and Analysis",
+            "subHeading": "Build interactive financial charts featuring advanced annotations with minimal configuration - just provide your data. Use the toolbar in the example below to add annotations, change the chart type, and interact with the data in real-time.",
+            "ctaTitle": "View Financial Charts Features",
+            "ctaUrl": "/react/financial-charts/?utm_source=charts-homepage&utm_medium=financial-charts-section&utm_campaign=homepage-cta",
+            "ctaId": "financial-charts-cta"
+        },
+        "maps": {
+            "tag": "JavaScript Map Charts - Easily Visualise Geographical Data",
+            "heading": "Customisable JavaScript Map Charts for Geographical Data Visualisation",
+            "subHeading": "Visualise Geographical Areas, Overlay Routes & Connections, Add Markers & Points Of Interest.",
+            "ctaTitle": "View Map Charts Features",
+            "ctaUrl": "/react/maps/?utm_source=charts-homepage&utm_medium=maps-section&utm_campaign=homepage-cta",
+            "ctaId": "map-charts-cta",
+            "cards": [
+                {
+                    "heading": "Geographic Areas",
+                    "description": "Visualise data representing geographic areas such as countries, using colours to denote distinct series or the magnitude of the values."
+                },
+                {
+                    "heading": "Routes & Connections",
+                    "description": "Draw geographic lines, such as roads or flight paths, with the ability to vary width and colour to represent data values."
+                },
+                {
+                    "heading": "Markers & POIs",
+                    "description": "Add markers data for geographic points, with the ability to vary the size to represent data values."
+                }
+            ]
+        },
+        "integrated": {
+            "tag": "AG Grid Integrated JavaScript Charts",
+            "heading": "AG Grid Integrated Charts, Powered by AG Charts",
+            "subHeadingHtml": "AG Charts powers the <a href=\"https://www.ag-grid.com/react-data-grid/integrated-charts/\">Integrated Charts</a> feature in <a href=\"https://www.ag-grid.com/\">AG Grid</a> - our market leading data grid library which is used by 90% of the Fortune 500. Purchase an <a href=\"https://www.ag-grid.com/license-pricing\">Enterprise Bundle License</a> to access all of the Enterprise features in both AG Grid and AG Charts."
+        },
+        "releases": {
+            "tag": "Latest JavaScript Charting Releases from AG Charts",
+            "heading": "Regular Releases, Updates, and Enhancements",
+            "subHeading": "Browse the latest updates to AG Charts JavaScript Charting Library, including new features, series types, functionality and more.",
+            "ctaTitle": "See What's New",
+            "ctaUrl": "/whats-new/?utm_source=charts-homepage&utm_medium=whats-new-section&utm_campaign=homepage-cta",
+            "ctaId": "whats-new-cta"
+        },
+        "faqs": {
+            "tag": "JavaScript Charts Frequently Asked Questions",
+            "heading": "FAQs",
+            "subHeading": "Answers to common questions about AG Charts, and JavaScript Charting in general."
+        }
+    }
+}
