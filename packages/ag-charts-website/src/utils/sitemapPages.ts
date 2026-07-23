@@ -20,6 +20,10 @@ const getInternalPages = () => {
         urlWithBaseUrl('/*/*-e2e/'),
         urlWithBaseUrl('/gallery-test'),
         urlWithBaseUrl('/*/benchmarks/'),
+        // Demo app examples: the routes and their built SPA assets are published but
+        // must stay out of search engines and AI crawlers.
+        urlWithBaseUrl('/demos/'),
+        urlWithBaseUrl('/internal-demos/'),
     ];
 };
 

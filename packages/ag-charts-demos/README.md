@@ -12,9 +12,10 @@ exactly as a real consumer app does — so charts render normally.
 
 ## Status
 
-Demo apps are **internal-only** for now: built and type-checked in CI (a broken demo fails CI), and
-runnable locally, but not published or linked from the live website. Surfacing them publicly (a
-"Demo" tab) is separate, later work.
+Demo apps are **published but hidden** for now: built and type-checked in CI (a broken demo fails CI),
+deployed with the website at `/charts/demos/<id>`, but unlinked from navigation, marked `noindex`, and
+excluded from the sitemap and robots (so search engines and AI crawlers do not index them). Surfacing
+them publicly (a "Demo" tab) is separate, later work.
 
 ## Layout
 
@@ -39,18 +40,19 @@ src/
 ### In the website dev server
 
 `yarn nx dev` builds this package once at startup and the website's dev server serves the built output
-same-origin at `/charts/debug/demos/<id>` (e.g. `https://localhost:4600/charts/debug/demos/starter`).
-`/charts/debug/demos` (no id) lists the available demos with a link to each. Serving the build — rather
+same-origin at `/charts/demos/<id>` (e.g. `https://localhost:4600/charts/demos/starter`).
+`/charts/demos` (no id) lists the available demos with a link to each. Serving the build — rather
 than proxying a second dev server — keeps the embed same-origin, which the website's `frame-src` CSP
 requires.
 
 Editing a demo is wired into the shared watch loop: the change triggers the `build:watch` target (via
-`chartsWatch.config.js`), which rebuilds `dist` with the embedded base path, and the dev server reloads
-the browser once the rebuild completes. There is no HMR — it is a gated full reload, so the page only
-refreshes after `dist` is ready (never mid-rebuild).
+`chartsWatch.config.js`), which rebuilds `dist`, and the dev server reloads the browser once the rebuild
+completes. There is no HMR — it is a gated full reload, so the page only refreshes after `dist` is ready
+(never mid-rebuild).
 
-The route is dev-only (see `agDemosStatic` and the `getStaticPaths` production guard), so demos never
-reach the live site.
+The build is base-relative (`DEMOS_BASE_PATH=./`), so the same `dist` works wherever it is mounted: the
+dev server serves it via `agDemosStatic`, and the production website build copies it to `/internal-demos/`
+and serves it under the site base (see `ag-charts-website/astro.config.mjs` and `src/pages/demos/`).
 
 ## Adding a demo app
 
