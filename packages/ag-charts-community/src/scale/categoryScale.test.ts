@@ -117,11 +117,13 @@ describe('CategoryScale', () => {
         scale.paddingOuter = 0.06;
         scale.round = true;
 
-        expect(scale.convert('A')).toBe(8);
-        expect(scale.convert('B')).toBe(105);
-        expect(scale.convert('C')).toBe(202);
-        expect(scale.convert('D')).toBe(299);
-        expect(scale.convert('E')).toBe(396);
+        // `round` yields whole-pixel band widths, but band origins stay exact so bands remain centred
+        // on their true position; device-pixel crispness is applied at render time.
+        expect(scale.convert('A')).toBe(7.5);
+        expect(scale.convert('B')).toBe(104.5);
+        expect(scale.convert('C')).toBe(201.5);
+        expect(scale.convert('D')).toBe(298.5);
+        expect(scale.convert('E')).toBe(395.5);
 
         expect(scale.bandwidth).toBe(97);
     });

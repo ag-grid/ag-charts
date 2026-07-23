@@ -813,7 +813,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const xPosition = (datumIndex: number) => {
             const x = ctx.xScale.convert(ctx.xValues[datumIndex]);
             if (!Number.isFinite(x)) return Number.NaN;
-            return Math.round(x) + ctx.groupOffset + ctx.barOffset;
+            return x + ctx.groupOffset + ctx.barOffset;
         };
 
         // Scratch object for node datum parameters - avoid memory churn whilst minimizing parameter sprawl.
@@ -1308,6 +1308,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
+        const crispCentreDirection = this.getCategoryCrispDirection();
 
         const fillBBox = this.getShapeFillBBox();
 
@@ -1329,6 +1330,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                 datum.crisp,
                 undefined
             );
+            rect.crispCentreDirection = crispCentreDirection;
         });
     }
 

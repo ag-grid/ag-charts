@@ -11,6 +11,7 @@ import {
 } from 'ag-charts-core';
 import type { AgNumericValue, Direction } from 'ag-charts-types';
 
+import { BandScale } from '../../../scale/bandScale';
 import { ContinuousScale } from '../../../scale/continuousScale';
 import { IrregularBandScale } from '../../../scale/irregularBandScale';
 import type { QuadtreeNearest } from '../../../scene/util/quadtree';
@@ -119,6 +120,18 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
     protected getCategoryAxis(): ChartAxis | undefined {
         const direction = this.getCategoryDirection();
         return this.axes[direction];
+    }
+
+    /**
+     * The dimension along which bars should be snapped centre-preservingly to the device grid, or
+     * `undefined` to keep the default independent edge snap. Only band (category) scales get the
+     * centre-preserving snap: there a bar's centre must coincide with its axis tick/gridline. On a
+     * continuous scale (number/time) the edge snap is retained so sub-pixel width jitter — e.g. the
+     * float noise from very large magnitudes (AG-16608) — cannot flip a bar's parity between renders.
+     */
+    protected getCategoryCrispDirection(): 'x' | 'y' | undefined {
+        if (!BandScale.is(this.getCategoryAxis()?.scale)) return undefined;
+        return this.getCategoryDirection() === ChartAxisDirection.X ? 'x' : 'y';
     }
 
     override getMinimumRangeSeries(ranges: number[]) {
@@ -297,9 +310,7 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
     }
 
     private getGroupScaleRangeWidth(groupScale: IrregularBandScale) {
-        let rangeWidth = groupScale.range[1] - groupScale.range[0];
-        if (groupScale.round && rangeWidth > 0) rangeWidth = Math.floor(rangeWidth);
-        return rangeWidth;
+        return groupScale.range[1] - groupScale.range[0];
     }
 
     /**

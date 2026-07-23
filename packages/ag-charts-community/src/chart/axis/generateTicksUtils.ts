@@ -278,7 +278,7 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
                 textMetrics: isSegmented
                     ? measureTextSegments(tickLabel, label)
                     : measurer.measureLines(toTextString(tickLabel)),
-                translation: Math.floor(translation),
+                translation: BandScale.is(scale) ? translation : Math.floor(translation),
             });
         }
     });

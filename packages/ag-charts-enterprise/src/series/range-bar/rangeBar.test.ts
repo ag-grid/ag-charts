@@ -11,6 +11,7 @@ import {
 } from 'ag-charts-community';
 import {
     BIG,
+    CATEGORY_CENTRE_GRIDLINE_AXES,
     HIGH_VOLUME_COUNT,
     HIGH_VOLUME_SIGNALS,
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -28,6 +29,8 @@ import {
     createSceneGeometrySampler,
     deproxy,
     expectAnimatedEndpointsMatchStatic,
+    expectBarCentresOnCategoryGridlines,
+    expectBarCentresRenderedOnCategoryGridlines,
     expectPixelIdenticalAcrossMagnitude,
     expectProgresses,
     expectSceneTrajectory,
@@ -2218,4 +2221,54 @@ describe('RangeBarSeries', () => {
             );
         });
     });
+});
+
+describe('RangeBarSeries category/gridline pixel alignment', () => {
+    setupMockCanvas();
+
+    let chart: any;
+
+    afterEach(() => {
+        chart?.destroy();
+        chart = undefined;
+    });
+
+    const CATEGORIES = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+    const DATA = CATEGORIES.map((c, i) => ({ cat: c, low: 20 + i * 5, high: 60 + i * 8 }));
+    const DPRS = [1, 1.75, 2, 2.5];
+    const WIDTHS = [300, 641, 799, 1000];
+    // `undefined` = band-filling width; `9` = the fixed odd-pixel width from the ticket repro, which
+    // exposes the device-pixel snap divergence a band-filling (often even) width can mask.
+    const BAR_WIDTHS: Array<number | undefined> = [undefined, 9];
+
+    for (const dpr of DPRS) {
+        for (const width of WIDTHS) {
+            for (const barWidth of BAR_WIDTHS) {
+                it(`every bar renders on a gridline (dpr ${dpr}, width ${width}, bar ${barWidth ?? 'auto'})`, async () => {
+                    const options: any = prepareEnterpriseTestOptions({
+                        data: DATA,
+                        series: [
+                            {
+                                type: 'range-bar',
+                                xKey: 'cat',
+                                yLowKey: 'low',
+                                yHighKey: 'high',
+                                ...(barWidth == null ? {} : { width: barWidth }),
+                            },
+                        ],
+                        axes: CATEGORY_CENTRE_GRIDLINE_AXES,
+                    } as any);
+                    options.width = width;
+                    options.height = 400;
+                    options.overrideDevicePixelRatio = dpr;
+
+                    chart = AgCharts.create(options);
+                    await waitForChartStability(chart);
+
+                    expectBarCentresOnCategoryGridlines(chart, CATEGORIES.length);
+                    expectBarCentresRenderedOnCategoryGridlines(chart, dpr, CATEGORIES.length);
+                });
+            }
+        }
+    }
 });
