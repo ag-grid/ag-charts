@@ -1009,14 +1009,16 @@ jobs:
                   github_token: ${{ secrets.GITHUB_TOKEN }}
                   slack_webhook: ${{ secrets.SLACK_WEBHOOK }}
 
-            # Upsert the snapshot-status section (written by Snapshot Notify above) into the
-            # consolidated PR comment. No-ops when the fragment is absent (no snapshot update).
+            # Upsert or clear the snapshot-status section. When Snapshot Notify wrote a fragment
+            # (snapshots regenerated) it is upserted; otherwise the section is removed so a stale
+            # "snapshots regenerated" note from an earlier push can't linger after a fix.
             - name: Upsert snapshot-status section
               if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
               uses: ./.github/actions/pr-report-comment
               with:
                   pr_number: ${{ github.event.pull_request.number }}
                   github_token: ${{ secrets.GITHUB_TOKEN }}
+                  remove_sections: ${{ steps.snapshot-notify.outputs.updated == 'true' && '' || 'snapshot-status' }}
 
             - name: Merge JUnit Report XMLs
               if: needs.test.result != 'skipped' || needs.e2e.result != 'skipped' || needs.demos_e2e.result != 'skipped'

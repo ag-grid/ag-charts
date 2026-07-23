@@ -21,6 +21,14 @@ inputs:
         description: 'PR number to comment on. When empty the action no-ops (logs to the job log).'
         required: false
         default: ''
+    remove_sections:
+        description: >-
+            Space/comma-separated section ids to REMOVE from the comment (for when an aspect that
+            previously wrote a section is no longer relevant on this build — e.g. snapshots were
+            regenerated then fixed). Ids also being written this run (present in sections_dir) take
+            precedence and are kept. If removal empties the comment, the comment is deleted.
+        required: false
+        default: ''
     github_token:
         description: 'Token with pull-requests: write.'
         required: true
@@ -35,6 +43,7 @@ runs:
           env:
               SECTIONS_DIR: ${{ inputs.sections_dir }}
               PR_NUMBER: ${{ inputs.pr_number }}
+              REMOVE_SECTIONS: ${{ inputs.remove_sections }}
           with:
               github-token: ${{ inputs.github_token }}
               script: |
@@ -51,31 +60,39 @@ runs:
                       core.info('No PR number resolved; nothing to upsert. Skipping.');
                       return;
                   }
-                  if (!SECTIONS_DIR || !fs.existsSync(SECTIONS_DIR)) {
-                      core.info(`Sections dir ${SECTIONS_DIR} absent; nothing to upsert.`);
+
+                  // Collect the sections this caller owns: NN-<id>.md (only if the dir exists).
+                  const owned =
+                      SECTIONS_DIR && fs.existsSync(SECTIONS_DIR)
+                          ? fs
+                                .readdirSync(SECTIONS_DIR)
+                                .map((file) => ({ file, match: /^(\d{2})-(.+)\.md$/.exec(file) }))
+                                .filter(({ match }) => match)
+                                .map(({ file, match }) => {
+                                    const [, order, id] = match;
+                                    const raw = fs.readFileSync(path.join(SECTIONS_DIR, file), 'utf8').replace(/\s+$/, '');
+                                    const nl = raw.indexOf('\n');
+                                    const first = (nl === -1 ? raw : raw.slice(0, nl)).trim();
+                                    const title = first.replace(/^#+\s*/, '') || id;
+                                    const rest = (nl === -1 ? '' : raw.slice(nl + 1)).replace(/^\s+/, '');
+                                    return { id, order, title, rest };
+                                })
+                          : [];
+
+                  const ownedIds = new Set(owned.map((s) => s.id));
+                  // Ids to remove — but never remove one we are also writing this run.
+                  const removeIds = (process.env.REMOVE_SECTIONS || '')
+                      .split(/[\s,]+/)
+                      .filter(Boolean)
+                      .filter((id) => !ownedIds.has(id));
+
+                  if (owned.length === 0 && removeIds.length === 0) {
+                      core.info('No section fragments to upsert and nothing to remove; skipping.');
                       return;
                   }
-
-                  // Collect the sections this caller owns: NN-<id>.md.
-                  const owned = fs
-                      .readdirSync(SECTIONS_DIR)
-                      .map((file) => ({ file, match: /^(\d{2})-(.+)\.md$/.exec(file) }))
-                      .filter(({ match }) => match)
-                      .map(({ file, match }) => {
-                          const [, order, id] = match;
-                          const raw = fs.readFileSync(path.join(SECTIONS_DIR, file), 'utf8').replace(/\s+$/, '');
-                          const nl = raw.indexOf('\n');
-                          const first = (nl === -1 ? raw : raw.slice(0, nl)).trim();
-                          const title = first.replace(/^#+\s*/, '') || id;
-                          const rest = (nl === -1 ? '' : raw.slice(nl + 1)).replace(/^\s+/, '');
-                          return { id, order, title, rest };
-                      });
-
-                  if (owned.length === 0) {
-                      core.info('No section fragments found; nothing to upsert.');
-                      return;
-                  }
-                  core.info(`Owned sections: ${owned.map((s) => `${s.order}-${s.id}`).join(', ')}`);
+                  core.info(
+                      `Owned: [${owned.map((s) => `${s.order}-${s.id}`).join(', ')}]  Remove: [${removeIds.join(', ')}]`
+                  );
 
                   const { owner, repo } = context.repo;
 
@@ -100,17 +117,19 @@ runs:
                   }
 
                   // Merge this caller's owned blocks into an existing section list (replace by id,
-                  // else insert at the position dictated by `order`). Other sections are untouched.
+                  // else insert at the position dictated by `order`), and drop any removeIds. Other
+                  // sections are untouched. Returns the ordered section list.
                   function compose(existing) {
                       const byId = new Map(existing.map((s) => [s.id, s]));
+                      for (const id of removeIds) byId.delete(id);
                       for (const s of owned) {
                           byId.set(s.id, { id: s.id, order: s.order, block: renderBlock(s) });
                       }
-                      const ordered = [...byId.values()].sort((a, b) =>
+                      return [...byId.values()].sort((a, b) =>
                           a.order === b.order ? a.id.localeCompare(b.id) : a.order.localeCompare(b.order)
                       );
-                      return [PARENT_MARKER, ...ordered.map((s) => s.block)].join('\n\n') + '\n';
                   }
+                  const bodyOf = (ordered) => [PARENT_MARKER, ...ordered.map((s) => s.block)].join('\n\n') + '\n';
 
                   async function findComment() {
                       const comments = await github.paginate(github.rest.issues.listComments, {
@@ -126,17 +145,34 @@ runs:
                       return mine[0];
                   }
 
-                  // Does the live body contain exactly the blocks we just wrote for our owned ids?
+                  // The live body reflects our intent: every owned block present, every removed id absent.
                   function verify(body) {
                       const live = new Map(parse(body).map((s) => [s.id, s.block]));
-                      return owned.every((s) => live.get(s.id) === renderBlock(s));
+                      return (
+                          owned.every((s) => live.get(s.id) === renderBlock(s)) &&
+                          removeIds.every((id) => !live.has(id))
+                      );
                   }
 
                   const MAX_ATTEMPTS = 5;
                   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
                       const existing = await findComment();
-                      const nextBody = compose(existing ? parse(existing.body) : []);
+                      const ordered = compose(existing ? parse(existing.body) : []);
 
+                      // Removal emptied the comment — delete it rather than leave a blank shell.
+                      if (ordered.length === 0) {
+                          if (existing) {
+                              await github.rest.issues.deleteComment({ owner, repo, comment_id: existing.id });
+                          }
+                          if (!(await findComment())) {
+                              core.info(`Consolidated comment cleared (attempt ${attempt}).`);
+                              return;
+                          }
+                          await new Promise((r) => setTimeout(r, 500 * attempt));
+                          continue;
+                      }
+
+                      const nextBody = bodyOf(ordered);
                       if (!existing) {
                           const created = await github.rest.issues.createComment({
                               owner,
@@ -159,7 +195,7 @@ runs:
                           });
                       }
 
-                      // Verify our sections survived (a concurrent writer editing a different section
+                      // Verify our intent survived (a concurrent writer editing a different section
                       // could have clobbered us between read and write). Retry if so.
                       const check = await findComment();
                       if (check && verify(check.body)) {
