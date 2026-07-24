@@ -76,7 +76,7 @@ export class OrganizationGraph extends NetworkGraph<OrganizationVertex, Organiza
 
             const parentVertex = this.verticesById[parentId];
             if (!parentVertex) {
-                Logger.warnOnce(`Could not find parentId [${parentId}] on node [${childId}], skipping.`);
+                Logger.default.warnOnce(`Could not find parentId [${parentId}] on node [${childId}], skipping.`);
                 return;
             }
 

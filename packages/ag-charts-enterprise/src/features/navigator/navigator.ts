@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { AbstractModuleInstance, type BoxBounds, type DynamicContext, Logger, clamp } from 'ag-charts-core';
+import { AbstractModuleInstance, type BoxBounds, type DynamicContext, clamp } from 'ag-charts-core';
 
 import { MiniChart } from './miniChart';
 import { type NavigatorButtonType, NavigatorDOMProxy } from './navigatorDOMProxy';
@@ -159,7 +159,7 @@ export class Navigator extends AbstractModuleInstance {
         this.x = x;
         this.width = width;
 
-        this.miniChart?.layout(width, height).catch((e) => Logger.error(e));
+        this.miniChart?.layout(width, height).catch((e) => this.ctx.logger.error(e));
     }
 
     private canDrag() {

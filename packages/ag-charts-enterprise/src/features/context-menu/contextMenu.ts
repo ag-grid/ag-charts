@@ -15,7 +15,6 @@ import { _ModuleSupport, _Widget } from 'ag-charts-community';
 import type { CallbackParamRules, DynamicContext } from 'ag-charts-core';
 import {
     AbstractModuleInstance,
-    Logger,
     callWithContext,
     clamp,
     createElement,
@@ -135,7 +134,7 @@ export class ContextMenu extends AbstractModuleInstance {
                 fileName = title.node.getPlainText().replace(/\.+/, '');
             }
             this.ctx.chartService.publicApi?.download({ fileName }).catch((e) => {
-                Logger.error('Unable to download chart', e);
+                this.ctx.logger.error('Unable to download chart', e);
             });
         };
 
@@ -415,7 +414,7 @@ export class ContextMenu extends AbstractModuleInstance {
                     callWithContext(callers, callback, apiEvent);
                     this.hide();
                 } else {
-                    Logger.error('legend item not found');
+                    this.ctx.logger.error('legend item not found');
                 }
             };
         } else if (ContextMenuRegistry.checkCallback('series-area', showOn, callback)) {
@@ -435,7 +434,7 @@ export class ContextMenu extends AbstractModuleInstance {
                 if (apiEvent) {
                     callWithContext(callers, callback, apiEvent);
                 } else {
-                    Logger.error('series node not found');
+                    this.ctx.logger.error('series node not found');
                 }
                 this.hide();
             };
@@ -456,7 +455,7 @@ export class ContextMenu extends AbstractModuleInstance {
                     };
                     callWithContext(callers, callback, apiEvent);
                 } else {
-                    Logger.error('axis item not found');
+                    this.ctx.logger.error('axis item not found');
                 }
                 this.hide();
             };
@@ -473,7 +472,7 @@ export class ContextMenu extends AbstractModuleInstance {
                     };
                     callWithContext(callers, callback, apiEvent);
                 } else {
-                    Logger.error('caption item not found');
+                    this.ctx.logger.error('caption item not found');
                 }
                 this.hide();
             };

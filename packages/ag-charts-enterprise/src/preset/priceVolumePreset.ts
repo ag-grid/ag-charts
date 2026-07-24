@@ -469,7 +469,7 @@ function createPriceSeries(
         case 'hollow-candlestick':
             return createPriceSeriesCandlestick(common, keys);
         default:
-            Logger.warnOnce(`unknown chart type: ${chartType}; expected one of: ${chartTypes.join(', ')}`);
+            Logger.default.warnOnce(`unknown chart type: ${chartType}; expected one of: ${chartTypes.join(', ')}`);
             return createPriceSeriesCandlestick(common, keys);
     }
 }
