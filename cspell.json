@@ -44,7 +44,7 @@
             "dictionaries": ["en-gb", "ag-charts-terms"]
         },
         {
-            "filename": "**/landing-pages/*.json",
+            "filename": "**/content/{homepage,landing-pages}/*.json",
             "words": ["whats"]
         }
     ],

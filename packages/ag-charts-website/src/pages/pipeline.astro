@@ -6,11 +6,19 @@ import { Pipeline } from '@ag-website-shared/components/changelog/Pipeline';
 import { DocsNavFromLocalStorage } from '@ag-website-shared/components/docs-navigation/DocsNavFromLocalStorage';
 import styles from '@ag-website-shared/components/changelog/changelog.module.scss';
 import classnames from 'classnames';
+import { DISABLE_MARKDOWN_DOCS } from '@constants';
+import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
+import { getIsProduction } from '@utils/env';
 
 const path = Astro.url.pathname;
 const framework = getFrameworkFromPath(path);
 
 const { data: docsNavData } = (await getEntry('docsNav', 'nav')) as CollectionEntry<'docsNav'>;
+
+// The pipeline `.md` twin is generated only on production by grid's Jira cron
+// (scripts/jira/production/getChartsPipeline.* in the ag-grid repo), so it doesn't exist in this
+// build — advertise it in production only to avoid pointing at a 404 in dev/staging.
+const markdownUrl = !DISABLE_MARKDOWN_DOCS && getIsProduction() ? urlWithBaseUrl('/pipeline.md') : undefined;
 ---
 
 <Layout
@@ -18,6 +26,7 @@ const { data: docsNavData } = (await getEntry('docsNav', 'nav')) as CollectionEn
     description="Lists feature requests and bugs in our backlog. Find items planned for the next release or check their status. Search by release date, issue number or summary."
     showSearchBar={true}
     showDocsNav={true}
+    markdownUrl={markdownUrl}
 >
     <div class="layout-grid">
         <DocsNavFromLocalStorage client:load menuData={docsNavData} framework={framework} />

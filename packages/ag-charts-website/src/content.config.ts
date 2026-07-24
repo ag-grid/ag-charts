@@ -264,6 +264,72 @@ const landingPages = defineCollection({
     }),
 });
 
+// Homepage marketing copy (index.astro). The bespoke interactive islands stay inline in the
+// page; only the hero and section text lives here so it can be shared with the /index.md twin.
+const homepage = defineCollection({
+    loader: glob({ base: './src/content/homepage', pattern: 'homepage.json' }),
+    schema: z.object({
+        hero: z.object({
+            heading: z.string(),
+            subHeading: z.string(),
+            cta: z.object({
+                title: z.string(),
+                // Raw path (not base-prefixed); index.astro wraps it with urlWithBaseUrl.
+                url: z.string(),
+            }),
+        }),
+        sections: z.object({
+            gallery: z.object({
+                tag: z.string(),
+                heading: z.string(),
+                ctaTitle: z.string(),
+                ctaUrl: z.string(),
+                ctaId: z.string(),
+            }),
+            financial: z.object({
+                tag: z.string(),
+                heading: z.string(),
+                subHeading: z.string(),
+                ctaTitle: z.string(),
+                ctaUrl: z.string(),
+                ctaId: z.string(),
+            }),
+            maps: z.object({
+                tag: z.string(),
+                heading: z.string(),
+                subHeading: z.string(),
+                ctaTitle: z.string(),
+                ctaUrl: z.string(),
+                ctaId: z.string(),
+                cards: z.array(
+                    z.object({
+                        heading: z.string(),
+                        description: z.string(),
+                    })
+                ),
+            }),
+            integrated: z.object({
+                tag: z.string(),
+                heading: z.string(),
+                subHeadingHtml: z.string(),
+            }),
+            releases: z.object({
+                tag: z.string(),
+                heading: z.string(),
+                subHeading: z.string(),
+                ctaTitle: z.string(),
+                ctaUrl: z.string(),
+                ctaId: z.string(),
+            }),
+            faqs: z.object({
+                tag: z.string(),
+                heading: z.string(),
+                subHeading: z.string(),
+            }),
+        }),
+    }),
+});
+
 const contactResults = defineCollection({
     loader: glob({ base: '../../external/ag-website-shared/src/content/contact', pattern: 'result.json' }),
     schema: z.record(
@@ -279,6 +345,7 @@ const contactResults = defineCollection({
 
 export const collections = {
     docs,
+    homepage,
     apiMenu,
     footer,
     announcementBanner,

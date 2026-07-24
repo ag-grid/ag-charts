@@ -39,6 +39,8 @@ export interface Props {
     showAnnouncementBanner?: boolean;
     pageStructuredData?: JsonLdObject[];
     overrideSocialImage?: string;
+    /** URL of a markdown (`.md`) alternate for this page, advertised to LLMs/crawlers. */
+    markdownUrl?: string;
 }
 
 const { data: metadata } = await getEntry('metadata', 'metadata') as CollectionEntry<'metadata'>;
@@ -71,6 +73,7 @@ const {
     noIndex,
     pageStructuredData,
     overrideSocialImage,
+    markdownUrl,
 } = Astro.props;
 
 const path = Astro.url.pathname;
@@ -199,6 +202,7 @@ const structuredData: JsonLdObject[] = includeStructuredData
         <meta name="generator" content={Astro.generator} />
         <title>{title}</title>
         {!isStaging && <link rel="canonical" href={canonicalUrl} />}
+        {markdownUrl && <link rel="alternate" type="text/markdown" href={markdownUrl} />}
         <link rel="sitemap" type="application/xml" title="Sitemap" href={urlWithBaseUrl("/sitemap-index.xml")} />
 
         <!-- Import all global design system CSS -->

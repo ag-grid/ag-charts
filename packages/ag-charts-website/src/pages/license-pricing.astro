@@ -2,6 +2,10 @@
 import { LicensePricing } from '@ag-website-shared/components/license-pricing/LicensePricing';
 import PageHero from '@ag-website-shared/components/page-hero/PageHero.astro';
 import Layout from '@layouts/Layout.astro';
+import { DISABLE_MARKDOWN_DOCS } from '@constants';
+import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
+
+const markdownUrl = DISABLE_MARKDOWN_DOCS ? undefined : urlWithBaseUrl('/license-pricing.md');
 ---
 
 <Layout
@@ -9,6 +13,7 @@ import Layout from '@layouts/Layout.astro';
     description="View license and pricing details for AG Charts. Compare features in AG Charts Community vs. Enterprise. Purchase AG Grid Bundle for a discount Grid & Charts licenses."
     showSearchBar={true}
     showDocsNav={false}
+    markdownUrl={markdownUrl}
 >
     <PageHero
         eyebrow="Licensing and Sales"

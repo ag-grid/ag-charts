@@ -6,8 +6,9 @@ import { getPageHashUrl } from '@components/gallery/utils/urlPaths';
 import type { GalleryData, GalleryExample, GalleryExampleChartType } from '@ag-grid-types';
 import { GalleryExampleLink } from '@components/gallery/components/GalleryExampleLink';
 import { GalleryExampleThemeDropdown } from '@components/gallery/components/GalleryExampleThemeDropdown';
-import { GALLERY_IMAGE_DPR_ENHANCEMENT } from '@constants';
+import { DISABLE_MARKDOWN_DOCS, GALLERY_IMAGE_DPR_ENHANCEMENT } from '@constants';
 import { getModifiedGalleryExamples } from '@components/gallery/utils/modifiedExamples';
+import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import styles from '@pages-styles/gallery.module.scss';
 
 const galleryDataEntry = (await getEntry('gallery', 'data')) as CollectionEntry<'gallery'>;
@@ -15,12 +16,15 @@ const galleryData: GalleryData = galleryDataEntry?.data;
 const { series } = galleryData;
 const enableDprScaling = GALLERY_IMAGE_DPR_ENHANCEMENT;
 const modifiedExamples = getModifiedGalleryExamples();
+
+const markdownUrl = DISABLE_MARKDOWN_DOCS ? undefined : urlWithBaseUrl('/gallery.md');
 ---
 
 <Layout
     title="Gallery | AG Charts"
     description="Gallery of JavaScript Charts and JavaScript Graphs created with AG Charts. View source code and interact with Charts; live edit examples with CodeSandbox and Plunker."
     showSearchBar={true}
+    markdownUrl={markdownUrl}
 >
     <div class="gallery-outer layout-grid text-sm">
         <div class="menu">
