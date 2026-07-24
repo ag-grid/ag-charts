@@ -272,6 +272,25 @@ function applyThemeDefaults(
     return opts;
 }
 
+// Root-level keys a gauge maps onto its single series (see `radialGaugeOptions`/`linearGaugeOptions`),
+// and which therefore only need re-merging onto that series on a streaming update — no preset reprocess.
+export const GAUGE_FAST_UPDATE_KEYS: ReadonlySet<string> = new Set(['value', 'targets']);
+
+export function gaugeFastUpdate(delta: Record<string, unknown>): Record<string, unknown> {
+    const result = { ...delta };
+    const series: Record<string, unknown> = {};
+    for (const key of GAUGE_FAST_UPDATE_KEYS) {
+        if (key in result) {
+            series[key] = result[key];
+            delete result[key];
+        }
+    }
+    if (Object.keys(series).length > 0) {
+        result.series = [series];
+    }
+    return result;
+}
+
 export function createGauge(
     opts: AgGaugeOptions,
     presetTheme: AgRadialGaugeThemeOverrides | AgLinearGaugeThemeOverrides | undefined

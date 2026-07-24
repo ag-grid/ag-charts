@@ -22,6 +22,32 @@ const SPREAD_COLOR_SCALE: AgColorScale = {
 
 const fmtSpread = (value: number) => `${value.toFixed(2)}%`;
 
+// Module-scope so the series (and its tooltip renderer) keep a stable identity across
+// renders; a fresh function identity per tick would force the chart's full slow-path
+// options processing instead of the data-only fast path.
+const HEATMAP_SERIES: AgHeatmapSeriesOptions = {
+    type: 'heatmap',
+    xKey: 'time',
+    xName: 'Time',
+    yKey: 'peer',
+    yName: 'Peer',
+    colorKey: 'value',
+    colorName: 'Spread',
+    colorScale: SPREAD_COLOR_SCALE,
+    label: { enabled: false },
+    stroke: 'var(--fin-panel-2)',
+    strokeWidth: 0.5,
+    tooltip: {
+        renderer: ({ datum }: { datum: PeerHeatmapCell }) => ({
+            heading: datum.time,
+            data: [
+                { label: 'Ticker', value: datum.peer },
+                { label: 'Spread', value: fmtSpread(datum.value) },
+            ],
+        }),
+    },
+};
+
 interface PeerSpreadHeatmapProps {
     instrument: Instrument;
     peerFeed: PeerPerformanceFeed;
@@ -41,32 +67,10 @@ export function PeerSpreadHeatmap({ instrument, peerFeed, peerTick, windowMinute
     );
 
     const options = useMemo<AgCartesianChartOptions>(() => {
-        const series: AgHeatmapSeriesOptions = {
-            type: 'heatmap',
-            xKey: 'time',
-            xName: 'Time',
-            yKey: 'peer',
-            yName: 'Peer',
-            colorKey: 'value',
-            colorName: 'Spread',
-            colorScale: SPREAD_COLOR_SCALE,
-            label: { enabled: false },
-            stroke: 'var(--fin-panel-2)',
-            strokeWidth: 0.5,
-            tooltip: {
-                renderer: ({ datum }: { datum: PeerHeatmapCell }) => ({
-                    heading: datum.time,
-                    data: [
-                        { label: 'Ticker', value: datum.peer },
-                        { label: 'Spread', value: fmtSpread(datum.value) },
-                    ],
-                }),
-            },
-        };
         return {
             theme: THEME,
             data,
-            series: [series],
+            series: [HEATMAP_SERIES],
             axes: {
                 x: {
                     type: 'category',

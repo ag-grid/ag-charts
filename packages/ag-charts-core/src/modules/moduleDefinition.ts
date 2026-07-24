@@ -115,6 +115,14 @@ export interface PresetModuleDefinition<TOptions> extends ModuleDefinition<Modul
     create(this: void, options: unknown, ...args: any[]): any;
     // Used only by sparklines, types should be normalised to support generic cases
     processData?(this: void, data: unknown): { data?: unknown[]; series?: Array<{ xKey: string; yKey: string }> };
+
+    // Root-level delta keys this preset can apply on the fast path without a full reprocess.
+    // These keys are preset-specific (e.g. a gauge's `value`), so declaring them here — rather
+    // than in the community-side allow-list — keeps the fast-path gate free of preset knowledge.
+    fastUpdateKeys?: ReadonlySet<string>;
+    // Maps a fast-path delta's preset-owned root keys (see {@link fastUpdateKeys}) onto the
+    // internal options shape `create` would produce, so the generic merge can apply it directly.
+    processFastUpdate?(this: void, delta: Record<string, unknown>): Record<string, unknown>;
 }
 
 export interface AxisModuleDefinition<
