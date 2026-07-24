@@ -25,6 +25,7 @@ import {
     testLegendItemName,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { Logger } from 'ag-charts-core';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 import { ukData } from '../map-test/ukData';
@@ -776,6 +777,36 @@ describe('MapShapeSeries', () => {
             await compare({
                 failureThreshold: 1,
             });
+        });
+    });
+
+    describe('Logger threading', () => {
+        it('routes the map-shape no-topology warning through the chart-scoped logger, not the module fallback', async () => {
+            const options: AgChartOptions = { ...SIMPLIFIED_EXAMPLE };
+            prepareEnterpriseTestOptions(options);
+            const chartProxy = AgCharts.create(options);
+            chart = deproxy(chartProxy);
+            await waitForChartStability(chart);
+
+            const scopedWarnOnce = vi.spyOn(chart.ctx.logger, 'warnOnce').mockImplementation(() => {});
+            const fallbackWarnOnce = vi.spyOn(Logger.default, 'warnOnce').mockImplementation(() => {});
+
+            // Updating without a topology re-runs processData, whose no-topology guard emits via this.ctx.logger.
+            const noTopologyOptions: AgChartOptions = {
+                data: ukData,
+                series: [{ type: 'map-shape', idKey: 'name' }],
+            };
+            prepareEnterpriseTestOptions(noTopologyOptions);
+            await chartProxy.update(noTopologyOptions);
+            await waitForChartStability(chart);
+
+            expect(scopedWarnOnce).toHaveBeenCalledWith(
+                'no topology was provided for [MapShapeSeries]; nothing will be rendered.'
+            );
+            expect(fallbackWarnOnce).not.toHaveBeenCalled();
+
+            scopedWarnOnce.mockRestore();
+            fallbackWarnOnce.mockRestore();
         });
     });
 });

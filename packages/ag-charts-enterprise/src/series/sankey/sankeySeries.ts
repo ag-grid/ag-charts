@@ -8,7 +8,6 @@ import {
 import {
     type CallbackParamRules,
     type DynamicContext,
-    Logger,
     type NormalisedColorType,
     type RequireOptional,
     TextMeasurer,
@@ -142,7 +141,7 @@ export class SankeySeries extends FlowProportionSeries<
         const { sizeScale, nodeSpacing } = this.getScaleAndSpacing(columns, minSize);
 
         if (sizeScale < 0) {
-            Logger.warnOnce(
+            this.ctx.logger.warnOnce(
                 'There was insufficient space to display the Sankey Series. Reduce [node.spacing], [node.minSpacing], or provide a larger container.'
             );
             return;

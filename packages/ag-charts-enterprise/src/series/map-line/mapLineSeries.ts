@@ -12,7 +12,6 @@ import type {
 import {
     type ITextMeasurer,
     type LabelFit,
-    Logger,
     type Point,
     cachedTextMeasurer,
     findDiscreteColorBinLabel,
@@ -234,7 +233,7 @@ export class MapLineSeries
         }
 
         if (topology == null) {
-            Logger.warnOnce(`no topology was provided for [MapLineSeries]; nothing will be rendered.`);
+            this.ctx.logger.warnOnce(`no topology was provided for [MapLineSeries]; nothing will be rendered.`);
         }
     }
 
@@ -375,7 +374,7 @@ export class MapLineSeries
             missingGeometries.push(`(+${excessItems} more)`);
         }
 
-        Logger.warnOnce(`some data items do not have matches in the provided topology`, missingGeometries);
+        this.ctx.logger.warnOnce(`some data items do not have matches in the provided topology`, missingGeometries);
     }
 
     override createNodeData() {
