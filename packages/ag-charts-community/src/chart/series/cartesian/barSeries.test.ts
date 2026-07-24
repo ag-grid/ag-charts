@@ -1625,9 +1625,8 @@ describe('BarSeries', () => {
 
         // A beside label's COLLISION footprint (what decides whether it hides beside a neighbour) must
         // match its drawn box: the box's bar-facing edge sits exactly `spacing` from the bar, with the
-        // padding/border reserved outward. Regression — the footprint was offset by the box extent toward
-        // the neighbour, so a hideable label collided with the next bar a whole box-extent before its
-        // drawn box actually reached it.
+        // padding/border reserved outward — otherwise a hideable label collides with the next bar a whole
+        // box-extent before its drawn box reaches it.
         it('aligns a beside label collision box with its drawn box (zero threshold)', async () => {
             const options: AgChartOptions = {
                 data: [{ x: 'a', y: 100 }],
