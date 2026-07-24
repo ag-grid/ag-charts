@@ -310,6 +310,7 @@ jobs:
               id: setup
               uses: ./.github/actions/setup-nx
               with:
+                  yarn_postinstall: no-install
                   cache_mode: ro
                   free_disk_space: false
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
@@ -346,6 +347,7 @@ jobs:
               id: setup
               uses: ./.github/actions/setup-nx
               with:
+                  yarn_postinstall: no-install
                   cache_mode: ro
                   free_disk_space: false
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
@@ -588,6 +590,7 @@ jobs:
               id: setup
               uses: ./.github/actions/setup-nx
               with:
+                  yarn_postinstall: no-install
                   cache_mode: ro
                   free_disk_space: false
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
@@ -646,6 +649,7 @@ jobs:
               id: setup
               uses: ./.github/actions/setup-nx
               with:
+                  yarn_postinstall: no-install
                   cache_mode: ro
                   free_disk_space: false
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
@@ -881,6 +885,7 @@ jobs:
               if: matrix.framework != 'none'
               uses: ./.github/actions/setup-nx
               with:
+                  yarn_postinstall: no-install
                   cache_mode: ro
                   free_disk_space: false
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
@@ -959,6 +964,7 @@ jobs:
               id: setup
               uses: ./.github/actions/setup-nx
               with:
+                  yarn_postinstall: no-install
                   cache_mode: ro
                   free_disk_space: false
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
