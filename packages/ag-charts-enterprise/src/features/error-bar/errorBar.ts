@@ -3,7 +3,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
     ChartAxisDirection,
-    Logger,
+    type Logger,
     type PickNodeDatumResult,
     type Point,
     type PropertyDefinitionOpts,
@@ -245,7 +245,8 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
     private static getDatumKey(
         nodeDatum: ErrorBarNodeDatum,
         key: string | undefined,
-        offset: number
+        offset: number,
+        logger: Logger
     ): number | undefined {
         // Check if the user input datum has the error value for `key`:
         if (key == null) {
@@ -259,7 +260,7 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
 
         // The datum has an error value for `key`. TempValidate this user input value:
         if (typeof value !== 'number' && typeof value !== 'bigint') {
-            Logger.warnOnce(`Found [${key}] error value of type ${typeof value}. Expected number type`);
+            logger.warnOnce(`Found [${key}] error value of type ${typeof value}. Expected number type`);
             return;
         }
 
@@ -278,10 +279,10 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
 
         return {
             midPoint: datum.midPoint,
-            xLower: ErrorBars.getDatumKey(datum, xLowerKey, xOffset),
-            xUpper: ErrorBars.getDatumKey(datum, xUpperKey, xOffset),
-            yLower: ErrorBars.getDatumKey(datum, yLowerKey, yOffset),
-            yUpper: ErrorBars.getDatumKey(datum, yUpperKey, yOffset),
+            xLower: ErrorBars.getDatumKey(datum, xLowerKey, xOffset, this.ctx.logger),
+            xUpper: ErrorBars.getDatumKey(datum, xUpperKey, xOffset, this.ctx.logger),
+            yLower: ErrorBars.getDatumKey(datum, yLowerKey, yOffset, this.ctx.logger),
+            yUpper: ErrorBars.getDatumKey(datum, yUpperKey, yOffset, this.ctx.logger),
         };
     }
 

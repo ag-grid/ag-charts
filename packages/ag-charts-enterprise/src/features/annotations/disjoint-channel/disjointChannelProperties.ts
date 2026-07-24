@@ -46,7 +46,7 @@ export class DisjointChannelProperties extends Annotation(
             bottom.start.y = subtractValues(bottom.start.y, this.startHeight);
             bottom.end.y = subtractValues(bottom.end.y, this.endHeight);
         } else {
-            Logger.warnOnce(`Annotation [${this.type}] can only be used with a numeric y-axis.`);
+            Logger.default.warnOnce(`Annotation [${this.type}] can only be used with a numeric y-axis.`);
         }
 
         return bottom;

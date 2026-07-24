@@ -83,7 +83,7 @@ function removeCircularLinks<N extends Node, L extends Link<N>>(links: L[]) {
     }
 
     if (circularLinks.size !== 0) {
-        Logger.warnOnce('Some links formed circular references. These will be removed from the output.');
+        Logger.default.warnOnce('Some links formed circular references. These will be removed from the output.');
     }
 
     return circularLinks.size === 0 ? links : links.filter((link) => !circularLinks.has(link));

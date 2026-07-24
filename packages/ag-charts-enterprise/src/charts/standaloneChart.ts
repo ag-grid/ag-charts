@@ -49,7 +49,7 @@ export class StandaloneChart extends Chart {
         for (const series of this.series) {
             if ('childrenKey' in series.properties && typeof series.properties.childrenKey === 'string') {
                 const dataIdKey = this.ctx.chartState.getValue('options', 'dataIdKey');
-                const ds = new HierarchyDataSet(data, dataIdKey, series.properties.childrenKey);
+                const ds = new HierarchyDataSet(data, dataIdKey, series.properties.childrenKey, this.ctx.logger);
                 if (this.data) this.ctx.dataSelectionService?.transferDataSet(ds, this.data);
                 return ds;
             }

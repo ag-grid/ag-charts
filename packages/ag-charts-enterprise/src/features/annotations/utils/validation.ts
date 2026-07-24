@@ -14,7 +14,7 @@ export function validateDatumPoint(
 ) {
     if (point.x == null || point.y == null) {
         if (warningPrefix) {
-            Logger.warnOnce(`${warningPrefix}requires both an [x] and [y] property, ignoring.`);
+            Logger.default.warnOnce(`${warningPrefix}requires both an [x] and [y] property, ignoring.`);
         }
         return false;
     }
@@ -35,7 +35,7 @@ export function validateDatumPoint(
         if (validY) text = 'x domain';
         const xValue = getGroupingValue(point.x);
         const yValue = getGroupingValue(point.y);
-        Logger.warnOnce(`${warningPrefix}is outside the ${text}, ignoring. - x: [${xValue}], y: ${yValue}]`);
+        Logger.default.warnOnce(`${warningPrefix}is outside the ${text}, ignoring. - x: [${xValue}], y: ${yValue}]`);
     }
 
     return false;
