@@ -3229,5 +3229,27 @@ describe('DataModel', () => {
             expect(scopedWarnOnce).toHaveBeenCalled();
             expect(fallbackWarnOnce).not.toHaveBeenCalled();
         });
+
+        it('routes time-axis datum-validation warnings through the constructor logger', () => {
+            const logger = new Logger();
+            const scopedWarnOnce = vi.spyOn(logger, 'warnOnce').mockImplementation(() => {});
+            const fallbackWarnOnce = vi.spyOn(Logger.default, 'warnOnce').mockImplementation(() => {});
+
+            const dataModel = new DataModel<any, any, true>(
+                {
+                    props: [scoped(keyProperty('kp', 'time')), scoped(valueProperty('vp', 'number'))],
+                    groupByKeys: true,
+                },
+                'standalone',
+                false,
+                undefined,
+                logger
+            );
+
+            dataModel.processData(basicDataSet([{ kp: 'not-a-date', vp: 5 }]));
+
+            expect(scopedWarnOnce).toHaveBeenCalledWith(expect.stringContaining('on a time axis'));
+            expect(fallbackWarnOnce).not.toHaveBeenCalled();
+        });
     });
 });

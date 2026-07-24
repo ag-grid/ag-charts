@@ -1,3 +1,4 @@
+import type { Logger } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
 import type { BandedReducer } from './data-model/reducers/bandedReducer';
@@ -285,6 +286,8 @@ export type PropertySelectors = {
     matchGroupIds?: string[];
 };
 
+export type DatumValidationFn = (value: any, datum: any, index: number, logger?: Logger) => boolean;
+
 export type DatumPropertyDefinition<K> = PropertyIdentifiers & {
     type: 'key' | 'value';
     valueType: DatumPropertyType;
@@ -297,7 +300,7 @@ export type DatumPropertyDefinition<K> = PropertyIdentifiers & {
     missing?: MissMap;
     missingValue?: any;
     separateNegative?: boolean;
-    validation?: (value: any, datum: any, index: number) => boolean;
+    validation?: DatumValidationFn;
     processor?: () => ProcessorFn;
     allowNullKey?: boolean; // When true, null is valid for this key (internal use only)
 };

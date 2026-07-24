@@ -1,7 +1,12 @@
 import { type Logger, isNegative } from 'ag-charts-core';
 
 import type { IDataDomain } from '../../dataDomain';
-import type { InternalDatumPropertyDefinition, ProcessedValue, ProcessorFn } from '../../dataModelTypes';
+import type {
+    DatumValidationFn,
+    InternalDatumPropertyDefinition,
+    ProcessedValue,
+    ProcessorFn,
+} from '../../dataModelTypes';
 import type { DataModelContext } from '../dataModelContext';
 
 /**
@@ -72,14 +77,14 @@ function handleInvalidValue(meta: ValidationMeta, value: any): void {
  * Named function for profiler visibility.
  */
 function processValidationCheck(
-    validation: ((value: any, datum: any, index: number) => boolean) | undefined,
+    validation: DatumValidationFn | undefined,
     valueInDatum: boolean,
     value: any,
     datum: any,
     idx: number,
     meta: ValidationMeta
 ): ProcessedValue | null {
-    if (validation && valueInDatum && validation(value, datum, idx) === false) {
+    if (validation && valueInDatum && validation(value, datum, idx, meta.logger) === false) {
         meta.reusableResult.missing = false;
         handleInvalidValue(meta, value);
         return meta.reusableResult;
@@ -148,7 +153,7 @@ export class ProcessValueFactory<D extends object, K extends keyof D & string> {
 
     private createSpecializedProcessValue(
         context: ProcessValueContext<K>,
-        validation: ((value: any, datum: any, index: number) => boolean) | undefined
+        validation: DatumValidationFn | undefined
     ): SpecializedProcessValueFn | null {
         if (context.def.forceValue != null) {
             return this.createSpecializedProcessValueForceValue(context);
@@ -186,7 +191,7 @@ export class ProcessValueFactory<D extends object, K extends keyof D & string> {
      */
     private createSpecializedProcessValueKeyValidation(
         context: ProcessValueContext<K>,
-        validation: (value: any, datum: any, index: number) => boolean
+        validation: DatumValidationFn
     ): SpecializedProcessValueFn {
         const { def, accessor, domain, reusableResult } = context;
         const property = def.property;
@@ -214,7 +219,7 @@ export class ProcessValueFactory<D extends object, K extends keyof D & string> {
 
                 // Keys cannot be null/undefined unless allowNullKey is set
                 const nullInvalid = !allowNullKey && value == null;
-                if (!valueInDatum || nullInvalid || validation(value, datum, idx) === false) {
+                if (!valueInDatum || nullInvalid || validation(value, datum, idx, validationMeta.logger) === false) {
                     reusableResult.missing = !valueInDatum;
 
                     if (!valueInDatum && !hasMissingValue) {
@@ -244,7 +249,7 @@ export class ProcessValueFactory<D extends object, K extends keyof D & string> {
 
             // Keys cannot be null/undefined unless allowNullKey is set
             const nullInvalid = !allowNullKey && value == null;
-            if (!valueInDatum || nullInvalid || validation(value, datum as any, idx) === false) {
+            if (!valueInDatum || nullInvalid || validation(value, datum as any, idx, validationMeta.logger) === false) {
                 reusableResult.missing = !valueInDatum;
 
                 if (!valueInDatum && !hasMissingValue) {
@@ -269,7 +274,7 @@ export class ProcessValueFactory<D extends object, K extends keyof D & string> {
      */
     private createSpecializedProcessValueValueValidation(
         context: ProcessValueContext<K>,
-        validation: (value: any, datum: any, index: number) => boolean
+        validation: DatumValidationFn
     ): SpecializedProcessValueFn {
         const { def, accessor, domain, reusableResult } = context;
         const property = def.property;
@@ -391,7 +396,7 @@ export class ProcessValueFactory<D extends object, K extends keyof D & string> {
      */
     private createSpecializedProcessValueProcessor(
         context: ProcessValueContext<K>,
-        validation: ((value: any, datum: any, index: number) => boolean) | undefined
+        validation: DatumValidationFn | undefined
     ): SpecializedProcessValueFn {
         const { def, accessor, domain, reusableResult, processorFns } = context;
         const property = def.property;
