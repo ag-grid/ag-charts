@@ -53,14 +53,14 @@ export interface AgChartLabelCollideWithOptions {
     labels?: boolean;
     /** Whether labels avoid rendered series geometry contributed by other series, such as bars. */
     seriesItems?: boolean;
+    /** Whether labels must stay inside the series plotting area, treating an overflow past it as a collision. */
+    seriesArea?: boolean;
 }
 
 /** Configuration controlling how a label behaves when it cannot be placed clear of every obstacle. */
 export interface AgChartLabelCollisionOptions {
     /**
      * Collision threshold in pixels. A positive value triggers avoidance strategies when labels are further away, a negative value allows labels to overlap without triggering avoidance.
-     *
-     * Default: `0`
      */
     threshold?: PixelSize;
     /**

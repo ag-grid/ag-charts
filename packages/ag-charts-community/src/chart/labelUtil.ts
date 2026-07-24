@@ -1,4 +1,6 @@
 import type {
+    BarValueAnchor,
+    BoxBounds,
     Callback,
     CallbackParam,
     DynamicContext,
@@ -16,12 +18,15 @@ import {
     type NormalisedChartLabelStyleOptions,
     fitLabelText,
     getMinOuterRectSize,
+    insideBarContainer,
     insideBarRegion,
+    insideBarValueInsets,
     labelGlyphCentre,
     mergeDefaults,
     orientationAngles,
     rotatedGlyphDrift,
     rotatedLabelInset,
+    sectorLabelContainer,
 } from 'ag-charts-core';
 import type {
     AgChartLabelOrientation,
@@ -39,7 +44,13 @@ import type { HighlightNodeDatum } from '../core/eventsHub';
 import type { ChartRegistry } from '../module/moduleContext';
 import type { Text } from '../scene/shape/text';
 import { isRotatable } from '../scene/transformable';
-import { type Label, type LabelPlacementStyle, resolvePlacementLabelStyle } from './label';
+import { isPointInSector } from '../scene/util/sector';
+import {
+    type Label,
+    type LabelPlacementStyle,
+    resolvePlacementLabelBoxExtent,
+    resolvePlacementLabelStyle,
+} from './label';
 import { markerLabelRect } from './marker/markerLabelRect';
 import { getItemId } from './series/pickManager';
 import type { DatumIndex, SeriesNodeDatum } from './series/seriesTypes';
@@ -154,6 +165,167 @@ export function insideMarkerContainer(
         width: Math.max(0, markerSize * rect.width - 2 * threshold),
         height: Math.max(0, markerSize * rect.height - 2 * threshold),
     };
+}
+
+/** Placement and size of the rectangle a horizontal sector label fits into. */
+export interface SectorLabelRect {
+    /** Centre of the inscribed rectangle — where the horizontal label sits. */
+    readonly centerX: number;
+    readonly centerY: number;
+    /** Size the label text is fitted to. */
+    readonly width: number;
+    readonly height: number;
+}
+
+/**
+ * Rectangle a horizontal label should fill inside an origin-centred annular wedge. {@link sectorLabelContainer}
+ * sizes a box that fits the wedge centred on `anchor`, but a horizontal label is not symmetric about the sector
+ * bisector, so that box hugs one side. Keeping the (safe) size, we slide it to the middle of the room the wedge
+ * actually offers on each axis — probed with {@link isPointInSector} — so the label sits centred both ways
+ * instead of against an edge. `lineHeight` seeds the size search with a single line's height.
+ *
+ * A multi-line box spans a radial band whose width varies with height, so sizing it symmetrically about the
+ * bisector caps its width at the nearer radial edge and the slide above cannot recover the room the far side
+ * offers — the label ends up hugging one edge. Such a box is instead fitted to the wedge's true horizontal
+ * extent across its own band (see {@link centreSectorLabelInBand}); the symmetric slide is kept for
+ * single-line boxes, whose thin band cannot exhibit this.
+ */
+export function fitSectorLabelRect(
+    anchor: Point,
+    sector: { startAngle: number; endAngle: number; innerRadius: number; outerRadius: number },
+    lineHeight: number
+): SectorLabelRect {
+    const { width, height } = sectorLabelContainer(anchor, sector, lineHeight);
+    const halfWidth = width / 2;
+    const halfHeight = height / 2;
+    if (halfWidth <= 0 || halfHeight <= 0 || !isPointInSector(anchor.x, anchor.y, sector)) {
+        return { centerX: anchor.x, centerY: anchor.y, width, height };
+    }
+    if (height > lineHeight * 1.5) {
+        const centred = centreSectorLabelInBand(anchor, sector, height);
+        if (centred != null) {
+            return centred;
+        }
+    }
+    const contains = (x: number, y: number) => isPointInSector(x, y, sector);
+    const limit = Math.abs(sector.outerRadius) * 2;
+    // Furthest an edge through corners A and B can slide along (dirX, dirY) while both corners stay in the wedge.
+    const reach = (ax: number, ay: number, bx: number, by: number, dirX: number, dirY: number) => {
+        let lo = 0;
+        let hi = limit;
+        for (let i = 0; i < 24; i += 1) {
+            const t = (lo + hi) / 2;
+            if (contains(ax + dirX * t, ay + dirY * t) && contains(bx + dirX * t, by + dirY * t)) {
+                lo = t;
+            } else {
+                hi = t;
+            }
+        }
+        return lo;
+    };
+    // Clearance for the box's leading edges (kept at the final size), then recentre on the room found.
+    const right = reach(anchor.x, anchor.y - halfHeight, anchor.x, anchor.y + halfHeight, 1, 0);
+    const left = reach(anchor.x, anchor.y - halfHeight, anchor.x, anchor.y + halfHeight, -1, 0);
+    const centerX = anchor.x + (right - left) / 2;
+    const down = reach(centerX - halfWidth, anchor.y, centerX + halfWidth, anchor.y, 0, 1);
+    const up = reach(centerX - halfWidth, anchor.y, centerX + halfWidth, anchor.y, 0, -1);
+    return { centerX, centerY: anchor.y + (down - up) / 2, width, height };
+}
+
+// Radial slack (px) kept between the placed box and the wedge's arcs, so a box corner rounded outward by
+// floating error still passes the visibility gate that hides overflowing sector labels.
+const SECTOR_ARC_INSET = 0.75;
+// Two bands whose widths are within this many px count as equally wide, so the tie-break toward the band
+// furthest from the centre decides between them rather than sub-pixel noise.
+const SECTOR_WIDTH_TOLERANCE = 2;
+
+/**
+ * Fits a multi-line sector label to the widest horizontal band the wedge offers, placed as far from the
+ * chart centre as that width allows. A tall box measured symmetrically about the bisector is capped by the
+ * nearer radial edge and left hugging it; instead, candidate vertical centres are scanned and, at each, the
+ * box spans the wedge's true horizontal extent common to its top and bottom edges (convex wedge, so those
+ * edges bind) searched outward from the bisector with {@link isPointInSector}. The widest band wins, and
+ * among equally wide bands the one furthest from the centre — where the wedge reads as a landscape strip
+ * rather than a cramped tip — so the label sits centred between the wedge's sides. Returns `null` when no
+ * band holds the box (e.g. a box nearly as tall as the radius), so the caller falls back to symmetric
+ * placement.
+ */
+function centreSectorLabelInBand(
+    anchor: Point,
+    sector: { startAngle: number; endAngle: number; innerRadius: number; outerRadius: number },
+    height: number
+): SectorLabelRect | null {
+    const radius = Math.hypot(anchor.x, anchor.y);
+    if (radius < 1e-6) {
+        return null;
+    }
+    const midCos = anchor.x / radius;
+    const midSin = anchor.y / radius;
+    // Probe against arc-inset radii so the chosen box clears the arcs by SECTOR_ARC_INSET on both sides.
+    const outer = Math.abs(sector.outerRadius) - SECTOR_ARC_INSET;
+    const inset = {
+        startAngle: sector.startAngle,
+        endAngle: sector.endAngle,
+        innerRadius: sector.innerRadius > 0 ? sector.innerRadius + SECTOR_ARC_INSET : 0,
+        outerRadius: outer,
+    };
+    const halfHeight = height / 2;
+    const limit = outer * 2;
+    // Furthest the bisector-seed on line `y` can slide along `dir` (±1 in x) while staying in the wedge.
+    const edge = (seedX: number, y: number, dir: -1 | 1) => {
+        let lo = 0;
+        let hi = limit;
+        for (let i = 0; i < 24; i += 1) {
+            const t = (lo + hi) / 2;
+            if (isPointInSector(seedX + dir * t, y, inset)) {
+                lo = t;
+            } else {
+                hi = t;
+            }
+        }
+        return seedX + dir * lo;
+    };
+    // Seed each line from the point where the bisector ray crosses it, guaranteed inside where the ray reaches.
+    const seedAt = (y: number) => (Math.abs(midSin) > 1e-3 ? (y * midCos) / midSin : anchor.x);
+
+    const bands: SectorLabelRect[] = [];
+    let maxWidth = 0;
+    const steps = 48;
+    for (let i = 0; i <= steps; i += 1) {
+        const centerY = -outer + (2 * outer * i) / steps;
+        let left = -Infinity;
+        let right = Infinity;
+        let fits = true;
+        for (const y of [centerY - halfHeight, centerY + halfHeight]) {
+            const seedX = seedAt(y);
+            if (!isPointInSector(seedX, y, inset)) {
+                fits = false;
+                break;
+            }
+            left = Math.max(left, edge(seedX, y, -1));
+            right = Math.min(right, edge(seedX, y, 1));
+        }
+        if (!fits || right <= left) {
+            continue;
+        }
+        const width = right - left;
+        bands.push({ centerX: (left + right) / 2, centerY, width, height });
+        maxWidth = Math.max(maxWidth, width);
+    }
+    // Among the widest bands (within a tolerance), take the one furthest from the chart centre.
+    let best: SectorLabelRect | null = null;
+    let bestRadius = -Infinity;
+    for (const band of bands) {
+        if (band.width < maxWidth - SECTOR_WIDTH_TOLERANCE) {
+            continue;
+        }
+        const bandRadius = Math.hypot(band.centerX, band.centerY);
+        if (bandRadius > bestRadius) {
+            best = band;
+            bestRadius = bandRadius;
+        }
+    }
+    return best;
 }
 
 /** Inside-marker label geometry resolved from a series' configured placements and marker shape. */
@@ -342,6 +514,34 @@ function isBesidePlacement(placement: BarLabelPlacement): placement is BesideBar
     return placement.startsWith('beside-');
 }
 
+/** The value-axis end an inside/beside placement anchors against, so `spacing` reserves its gap there. */
+export function barValueAnchor(placement: BarLabelPlacement): BarValueAnchor {
+    const value = isBesidePlacement(placement) ? besideValuePlacement(placement).valuePlacement : placement;
+    if (value.endsWith('-center')) return 'center';
+    return value.endsWith('-start') ? 'start' : 'end';
+}
+
+/**
+ * Containment region and text container for an inside bar label at `placement`: the region reserves the
+ * anchored-side `spacing` gap (nothing for the centred placement) plus `threshold` cross-axis
+ * wall-clearance, so the gap survives the engine's flush/containment; the container is that region minus
+ * the drawn box, bounding how much text fits. Fit and containment share the region so fitted text can
+ * never overflow the bound the engine contains it against.
+ */
+export function insideBarLabelBounds(
+    rect: Bounds,
+    placement: BarLabelPlacement,
+    isUpward: boolean,
+    isVertical: boolean,
+    spacing: number,
+    threshold: number,
+    box: Required<PaddingOptions>
+): { region: BoxBounds; container: { width: number; height: number } } {
+    const insets = insideBarValueInsets(barValueAnchor(placement), isUpward, isVertical, spacing);
+    const region = insideBarRegion(rect, insets.min, insets.max, threshold, isVertical);
+    return { region, container: insideBarContainer(region, box) };
+}
+
 /**
  * Resolves a `beside-*` placement into the side it sits on (`after` = the far side of the cross axis
  * before any reversal) and the along-value-axis anchor it reuses from the matching `inside-*` placement.
@@ -392,6 +592,12 @@ export function adjustLabelPlacement({
     // anchor. Pre-subtracting the drift keeps the glyph centred on the bar's cross-axis. Zero unrotated.
     const drift = boxPadding == null ? { x: 0, y: 0 } : rotatedGlyphDrift(rotation, boxPadding);
 
+    // Distance from the anchor to the (rotated) box edge facing the bar; equals boxPadding[facing] for an
+    // unrotated label, but grows with the box's cross-axis when the label is rotated. Added beyond
+    // `spacing` so the box edge — not the text — sits `spacing` from the bar, on whichever axis faces it.
+    const insetFor = (facing: keyof Required<PaddingOptions>) =>
+        boxPadding == null ? 0 : rotatedLabelInset(facing, rotation, labelWidth, labelHeight, boxPadding);
+
     // `beside-*` reuses the matching `inside-*` anchor for the value axis, then floats the label off the
     // segment on the cross axis (overriding that axis's coordinate and text anchor below).
     let beside: { after: boolean } | undefined;
@@ -404,6 +610,10 @@ export function adjustLabelPlacement({
         valuePlacement = placement;
     }
 
+    // A beside label is pushed off the bar by `spacing` on its cross axis only (below); along the value
+    // axis it just aligns start/center/end to the bar, with no `spacing` gap.
+    const valueSpacing = beside == null ? spacing : 0;
+
     if (valuePlacement === 'inside-center') {
         // No bar-facing axis: keep the glyph centred on both axes of the bar rect.
         x -= drift.x;
@@ -412,17 +622,13 @@ export function adjustLabelPlacement({
         const barDirection = (isUpward ? 1 : -1) * (isVertical ? -1 : 1);
         const { direction, textAlignment } = placements[valuePlacement];
         const displacementRatio = (direction + 1) * 0.5;
-        // Distance from the anchor to the (rotated) box edge facing the bar; equals boxPadding[facing]
-        // for an unrotated label, but grows with the box's cross-axis when the label is rotated.
-        const insetFor = (facing: keyof Required<PaddingOptions>) =>
-            boxPadding == null ? 0 : rotatedLabelInset(facing, rotation, labelWidth, labelHeight, boxPadding);
 
         if (isVertical) {
             const y0 = isUpward ? rect.y + rect.height : rect.y;
             const height = rect.height * barDirection;
             const facing = textAlignment === barDirection ? 'top' : 'bottom';
             const inset = insetFor(facing);
-            y = y0 + height * displacementRatio + (spacing + inset) * textAlignment * barDirection;
+            y = y0 + height * displacementRatio + (valueSpacing + inset) * textAlignment * barDirection;
             x -= drift.x;
             textBaseline = facing;
         } else {
@@ -430,7 +636,7 @@ export function adjustLabelPlacement({
             const width = rect.width * barDirection;
             const facing = textAlignment === barDirection ? 'left' : 'right';
             const inset = insetFor(facing);
-            x = x0 + width * displacementRatio + (spacing + inset) * textAlignment * barDirection;
+            x = x0 + width * displacementRatio + (valueSpacing + inset) * textAlignment * barDirection;
             y -= drift.y;
             textAlign = facing;
         }
@@ -438,14 +644,19 @@ export function adjustLabelPlacement({
 
     if (beside) {
         // Flip the side with a reversed category axis so `before`/`after` keep their physical meaning
-        // (column: before → left, after → right; horizontal bar: before → above, after → below).
+        // (column: before → left, after → right; horizontal bar: before → above, after → below). The
+        // facing box inset keeps the box edge — not the text — `spacing` from the bar.
         const after = beside.after !== crossReversed;
         if (isVertical) {
-            x = after ? rect.x + rect.width + spacing : rect.x - spacing;
-            textAlign = after ? 'left' : 'right';
+            const facing = after ? 'left' : 'right';
+            const offset = spacing + insetFor(facing);
+            x = after ? rect.x + rect.width + offset : rect.x - offset;
+            textAlign = facing;
         } else {
-            y = after ? rect.y + rect.height + spacing : rect.y - spacing;
-            textBaseline = after ? 'top' : 'bottom';
+            const facing = after ? 'top' : 'bottom';
+            const offset = spacing + insetFor(facing);
+            y = after ? rect.y + rect.height + offset : rect.y - offset;
+            textBaseline = facing;
         }
     }
 
@@ -469,16 +680,17 @@ export interface BarPositionedCandidate extends PositionedLabelCandidate {
  * orientation-invariant, so it is measured once per placement and shared across that placement's
  * orientations. Inside placements constrain to the inset bar rect; outside placements float (no region).
  */
-export function buildBarLabelCandidates({
+export function buildBarLabelCandidates<TParams>({
     isUpward,
     isVertical,
     placements: placementList,
     orientations,
     spacing,
     threshold,
+    label,
+    textWidth,
+    textHeight,
     rect,
-    width,
-    height,
     crossReversed = false,
     rejectOutsideStart = false,
     rejectOutsideEnd = false,
@@ -490,9 +702,13 @@ export function buildBarLabelCandidates({
     orientations: readonly AgChartLabelOrientation[];
     spacing: number;
     threshold: number;
+    // The styled label; the box extent (padding + border) is resolved per candidate from its placement's
+    // style, so an inside↔outside cascade offsets and sizes each candidate by its own style.
+    label: Label<TParams> & { insideStyle: LabelPlacementStyle; outsideStyle: LabelPlacementStyle };
+    // Raw measured text size, before the per-placement box extent is folded in.
+    textWidth: number;
+    textHeight: number;
     rect: Bounds;
-    width: number;
-    height: number;
     crossReversed?: boolean;
     rejectOutsideStart?: boolean;
     rejectOutsideEnd?: boolean;
@@ -514,16 +730,48 @@ export function buildBarLabelCandidates({
         }
     }
 
-    const insideRegion = insideBarRegion(rect, spacing, threshold, isVertical);
     // `plotRegion` is a collision-only boundary for outside/beside candidates (flushToRegion: false): a
     // label overflowing it (e.g. into the axis-label zone) fails containment so the cascade falls through
     // to the next placement, rather than being clamped into it or floating into the engine's wider bounds.
     const candidates: BarPositionedCandidate[] = [];
     for (const placement of effectivePlacements) {
-        const anchor = adjustLabelPlacement({ isUpward, isVertical, placement, spacing, rect, crossReversed });
+        // Per-placement drawn-box extent: an inside candidate uses insideStyle, an outside one outsideStyle,
+        // so their padding/border differences move the anchor and size the footprint independently.
+        const boxPadding = resolvePlacementLabelBoxExtent(
+            label,
+            pickPlacementStyle(label, toResolvedPlacement(placement))
+        );
+        const width = textWidth + boxPadding.left + boxPadding.right;
+        const height = textHeight + boxPadding.top + boxPadding.bottom;
+        const anchor = adjustLabelPlacement({
+            isUpward,
+            isVertical,
+            placement,
+            spacing,
+            boxPadding,
+            rect,
+            crossReversed,
+        });
         const isInside = placement.startsWith('inside');
-        const region = isInside ? insideRegion : plotRegion;
+        // Inside labels reserve `spacing` on the end they anchor against, so the gap survives the engine's
+        // flush/containment (not just the anchor); centred labels reserve nothing.
+        const insets = insideBarValueInsets(barValueAnchor(placement), isUpward, isVertical, spacing);
+        const region = isInside ? insideBarRegion(rect, insets.min, insets.max, threshold, isVertical) : plotRegion;
         const centre = labelGlyphCentre(anchor, width, height);
+        // The anchor sits on the glyph's edge, but the drawn box protrudes `boxPadding[facing]` past it
+        // toward the bar (the offset `adjustLabelPlacement` added so the box clears the bar by `spacing`).
+        // Recentre the collision footprint on that drawn box, else it reaches the box extent further onto
+        // a neighbour than what is rendered and the label collides before its box actually touches.
+        if (anchor.textAlign === 'right' || anchor.textAlign === 'end') {
+            centre.x += boxPadding.right;
+        } else if (anchor.textAlign === 'left' || anchor.textAlign === 'start') {
+            centre.x -= boxPadding.left;
+        }
+        if (anchor.textBaseline === 'bottom') {
+            centre.y += boxPadding.bottom;
+        } else if (anchor.textBaseline === 'top') {
+            centre.y -= boxPadding.top;
+        }
         for (const orientation of orientations) {
             const rotationDeg = orientationAngles[orientation];
             const { width: fw, height: fh } = getMinOuterRectSize(rotationDeg, width, height);

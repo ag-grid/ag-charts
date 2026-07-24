@@ -67,6 +67,19 @@ const MARKER_LABEL_STRATEGIES: Record<string, LabelCollisionConfig> = {
     'hide on collision (suppressHide: false, default)': { collision: { suppressHide: false } },
 };
 
+type LabelBox = { x: number; y: number; width: number; height: number };
+
+// The visible labels' bounding boxes for a series, used by the cross-series obstacle tests to assert one
+// series' labels clear another's.
+const seriesVisibleLabelBoxes = (series: {
+    labelSelection: { nodes(): { visible: boolean; computeBBox(): LabelBox | undefined }[] };
+}) =>
+    series.labelSelection
+        .nodes()
+        .filter((node) => node.visible)
+        .map((node) => node.computeBBox())
+        .filter((box): box is LabelBox => box != null);
+
 describe('label collision avoidance', () => {
     setupMockConsole();
 
@@ -81,6 +94,13 @@ describe('label collision avoidance', () => {
         prepareTestOptions(options as any);
         chart = AgCharts.create(options as any);
         await compareImageSnapshot(chart, ctx, defaults);
+    };
+
+    const placedLabelPlacements = () => {
+        const series = deproxy(chart as any).series[0] as unknown as {
+            placedLabelData: { placement?: string }[];
+        };
+        return series.placedLabelData;
     };
 
     const cartesianAxes = {
@@ -421,13 +441,6 @@ describe('label collision avoidance', () => {
             { x: 90, y: 50, size: 1, label: 'C' },
         ];
 
-        const placedLabels = () => {
-            const series = deproxy(chart as any).series[0] as unknown as {
-                placedLabelData: { placement?: string }[];
-            };
-            return series.placedLabelData;
-        };
-
         const render = async (
             type: 'scatter' | 'bubble',
             opts: { markerSize: number; placement: string | string[] }
@@ -453,7 +466,7 @@ describe('label collision avoidance', () => {
             prepareTestOptions(options);
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
-            return placedLabels();
+            return placedLabelPlacements();
         };
 
         it('scatter: keeps the label inside when it fits the marker', async () => {
@@ -516,6 +529,184 @@ describe('label collision avoidance', () => {
                 },
                 PATTERN_SNAPSHOT_DEFAULTS
             );
+        });
+    });
+
+    describe('series-area overflow (marker series)', () => {
+        // A single point pinned to the top edge of the plot; a `top` label sits above the series area
+        // but within the chart's outer padding band. Series-area containment is opt-in via
+        // `collideWith.seriesArea`: off by default the label is kept (spilling into the padding band is
+        // allowed); enabling it treats the overflow as a collision so a hideable label is dropped.
+        const topEdgeData = [{ x: 5, y: 10, size: 4, label: 'Edge' }];
+        const edgeAxes = {
+            x: { position: 'bottom', type: 'number', min: 0, max: 10 },
+            y: { position: 'left', type: 'number', min: 0, max: 10 },
+        };
+
+        const render = async (
+            type: 'scatter' | 'bubble',
+            opts: {
+                seriesAreaPaddingTop?: number;
+                placement?: string;
+                markerSize?: number;
+                seriesArea?: boolean;
+            } = {}
+        ) => {
+            const { seriesAreaPaddingTop, placement = 'top', markerSize = 6, seriesArea } = opts;
+            const options: any = {
+                data: topEdgeData,
+                legend: { enabled: false },
+                padding: { top: 80, right: 10, bottom: 10, left: 10 },
+                ...(seriesAreaPaddingTop == null ? {} : { seriesArea: { padding: { top: seriesAreaPaddingTop } } }),
+                axes: edgeAxes,
+                series: [
+                    {
+                        type,
+                        xKey: 'x',
+                        yKey: 'y',
+                        labelKey: 'label',
+                        ...(type === 'bubble'
+                            ? { sizeKey: 'size', minSize: markerSize, maxSize: markerSize }
+                            : { size: markerSize }),
+                        label: {
+                            enabled: true,
+                            placement,
+                            collision: {
+                                suppressHide: false,
+                                ...(seriesArea == null ? {} : { collideWith: { seriesArea } }),
+                            },
+                        },
+                    },
+                ],
+            };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            return placedLabelPlacements();
+        };
+
+        for (const type of ['scatter', 'bubble'] as const) {
+            it(`${type}: keeps a label overflowing the series area by default (seriesArea off)`, async () => {
+                const placed = await render(type);
+                expect(placed.length).toBe(1);
+            });
+
+            it(`${type}: drops a label overflowing the series area when collideWith.seriesArea is on`, async () => {
+                const placed = await render(type, { seriesArea: true });
+                expect(placed.length).toBe(0);
+            });
+
+            it(`${type}: keeps the label when seriesArea padding grows the region to contain it`, async () => {
+                const placed = await render(type, { seriesArea: true, seriesAreaPaddingTop: 80 });
+                expect(placed.length).toBe(1);
+            });
+
+            // An `inside` label is fitted to and centred on its marker, so an edge marker's label
+            // rides with the point; it is exempt from the series-area containment that hides
+            // directional labels spilling into the padding zone.
+            it(`${type}: keeps an inside label centred on an edge marker even with seriesArea on`, async () => {
+                const placed = await render(type, { seriesArea: true, placement: 'inside', markerSize: 60 });
+                expect(placed.length).toBe(1);
+            });
+        }
+    });
+
+    describe('bar collideWith overrides', () => {
+        // Bars resolve collideWith from their theme (seriesItem/seriesArea on; marker/label inherit the
+        // global on) merged with the user's, so a user override must reach the bar label placement path.
+        const barAxes = {
+            x: { position: 'bottom', type: 'category' },
+            y: { position: 'left', type: 'number', min: 0, max: 10 },
+        };
+
+        const visibleBarLabelCount = (seriesIndex = 0) => {
+            const series = deproxy(chart as any).series[seriesIndex] as unknown as {
+                labelSelection: { nodes(): { visible: boolean }[] };
+            };
+            return series.labelSelection.nodes().filter((node) => node.visible).length;
+        };
+
+        describe('seriesArea', () => {
+            // A single bar filling the value axis; its `outside-end` label sits above the bar top,
+            // overflowing the series area into the chart padding band.
+            const topBarData = [{ x: 'A', y: 10 }];
+
+            const render = async (collision: object) => {
+                const options: any = {
+                    data: topBarData,
+                    legend: { enabled: false },
+                    padding: { top: 100, right: 10, bottom: 10, left: 10 },
+                    axes: barAxes,
+                    series: [
+                        {
+                            type: 'bar',
+                            xKey: 'x',
+                            yKey: 'y',
+                            label: { enabled: true, placement: 'outside-end', collision },
+                        },
+                    ],
+                };
+                prepareTestOptions(options);
+                chart = AgCharts.create(options);
+                await waitForChartStability(chart);
+                return visibleBarLabelCount();
+            };
+
+            it('drops an outside label overflowing the series area by default (seriesArea on)', async () => {
+                expect(await render({ suppressHide: false })).toBe(0);
+            });
+
+            it('keeps the outside label when collideWith.seriesArea is disabled', async () => {
+                expect(await render({ suppressHide: false, collideWith: { seriesArea: false } })).toBe(1);
+            });
+        });
+
+        describe('labels', () => {
+            // A line and a bar sharing the same category and top value, so the bar's `outside-end` label
+            // and the line's `top` label stack above the same point; padded, filled boxes force them to
+            // overlap. The line is declared first so its kept label seeds the obstacle before the
+            // hideable bar label resolves and either avoids it (default) or ignores it (labels off).
+            const comboData = [{ x: 'A', line: 10, bar: 10 }];
+            const boxedLabel = { fill: 'white', padding: 20 };
+
+            const render = async (barCollision: object) => {
+                const options: any = {
+                    data: comboData,
+                    legend: { enabled: false },
+                    padding: { top: 100, right: 40, bottom: 10, left: 40 },
+                    axes: barAxes,
+                    series: [
+                        {
+                            type: 'line',
+                            xKey: 'x',
+                            yKey: 'line',
+                            marker: { enabled: true, size: 6 },
+                            label: { enabled: true, placement: 'top', ...boxedLabel },
+                        },
+                        {
+                            type: 'bar',
+                            xKey: 'x',
+                            yKey: 'bar',
+                            label: { enabled: true, placement: 'outside-end', ...boxedLabel, collision: barCollision },
+                        },
+                    ],
+                };
+                prepareTestOptions(options);
+                chart = AgCharts.create(options);
+                await waitForChartStability(chart);
+                return visibleBarLabelCount(1);
+            };
+
+            it('drops the bar label colliding with the line label by default (labels on)', async () => {
+                // seriesArea off so the label is not dropped for overflowing the plot area instead.
+                expect(await render({ suppressHide: false, collideWith: { seriesArea: false } })).toBe(0);
+            });
+
+            it('keeps the bar label when collideWith.labels is disabled', async () => {
+                expect(await render({ suppressHide: false, collideWith: { seriesArea: false, labels: false } })).toBe(
+                    1
+                );
+            });
         });
     });
 
@@ -702,6 +893,49 @@ describe('label collision avoidance', () => {
                 }
             }
         });
+
+        // A bordered outside label's drawn box (padding + half the border stroke reserved outward) must
+        // sit exactly `spacing` from the bar, not `spacing - strokeWidth/2` — i.e. the anchor offset must
+        // include the border extent, not padding alone.
+        it('reserves padding and border in a bordered histogram outside-label offset', async () => {
+            const SPACING = 20;
+            const PADDING = 12;
+            const STROKE = 8;
+            const options: any = {
+                data: Array.from({ length: 5 }, () => ({ x: 0.5 })),
+                legend: { enabled: false },
+                padding: { top: 100, right: 10, bottom: 10, left: 10 },
+                axes: { x: { type: 'number', min: 0, max: 1 }, y: { type: 'number', min: 0, max: 200 } },
+                series: [
+                    {
+                        type: 'histogram',
+                        xKey: 'x',
+                        bins: [[0, 1]],
+                        label: {
+                            enabled: true,
+                            placement: 'outside-end',
+                            spacing: SPACING,
+                            color: 'black',
+                            fill: '#ffe08a',
+                            padding: PADDING,
+                            border: { enabled: true, stroke: 'red', strokeWidth: STROKE },
+                            collision: { threshold: 0, suppressHide: false },
+                        },
+                    },
+                ],
+            };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            const series = deproxy(chart as any).series[0] as unknown as {
+                contextNodeData?: { nodeData?: { y: number }[]; labelData?: { label?: { y: number } }[] };
+            };
+            const barTop = series.contextNodeData!.nodeData![0].y;
+            const labelY = series.contextNodeData!.labelData![0].label!.y;
+            // outside-end sits above the bar with baseline 'bottom'; the box extends down toward the bar by
+            // padding + half the stroke, so that edge must clear the bar by exactly `spacing`.
+            expect(barTop - (labelY + PADDING + STROKE / 2)).toBeCloseTo(SPACING);
+        });
     });
 
     // Bar/histogram contribute their rects as `seriesItem` obstacles; a placing series only routes
@@ -752,10 +986,279 @@ describe('label collision avoidance', () => {
         });
     });
 
-    // Bar-family `placement` was widened to accept an ordered array, but the bar candidate-fallback
-    // engine is not yet wired (Ticket C). Until then a supplied array must be inert-safe: the first
-    // candidate is used, matching the single-value render, with no error raised.
-    describe('bar placement (widened type, fallback not yet wired)', () => {
+    // A bar's inside label with the default `suppressHide: true` and a single placement is baked
+    // directly rather than routed through the placement engine, so it never enters the obstacle index
+    // via placement. It must still act as a `label` obstacle so another series' labels avoid it —
+    // otherwise a scatter label sitting over a bar's inside label goes undetected.
+    describe('cross-series obstacles (baked bar inside label vs scatter label)', () => {
+        type Box = { x: number; y: number; width: number; height: number };
+        const overlaps = (a: Box, b: Box) =>
+            a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
+
+        // The B1 scatter point sits inside the first bar (yB 2.4 within the 0..5 bar), so its label
+        // collides with the bar's baked inside label; the rest are clear.
+        const data = [
+            { x: 1, yA: 5, yB: 2.4, nameB: 'B1' },
+            { x: 2, yA: 5.2, yB: 6.6, nameB: 'B2' },
+            { x: 3, yA: 5.1, yB: 5.5, nameB: 'B3' },
+            { x: 4, yA: 8, yB: 8.4, nameB: 'B4' },
+            { x: 5, yA: 8.2, yB: 8.6, nameB: 'B5' },
+            { x: 6, yA: 8.1, yB: 8.5, nameB: 'B6' },
+            { x: 7, yA: 3, yB: 3.4, nameB: 'B7' },
+            { x: 8, yA: 3.2, yB: 3.6, nameB: 'B8' },
+        ];
+
+        const options = (): any => ({
+            data,
+            legend: { enabled: false },
+            axes: { x: { type: 'number' }, y: { type: 'number' } },
+            series: [
+                {
+                    type: 'bar',
+                    xKey: 'x',
+                    yKey: 'yA',
+                    label: { enabled: true, collision: { suppressHide: true } },
+                },
+                {
+                    type: 'scatter',
+                    xKey: 'x',
+                    yKey: 'yB',
+                    labelKey: 'nameB',
+                    label: {
+                        enabled: true,
+                        placement: ['top', 'bottom'],
+                        collision: { suppressHide: false },
+                    },
+                },
+            ],
+        });
+
+        it('renders with the scatter label cleared off the bar inside label', async () => {
+            await renderAndSnapshot(options());
+        });
+
+        it('drops a hideable scatter label overlapping a bar inside label', async () => {
+            const opts = options();
+            prepareTestOptions(opts);
+            chart = AgCharts.create(opts);
+            await waitForChartStability(chart);
+            const [bar, scatter] = deproxy(chart as any).series as unknown as Parameters<
+                typeof seriesVisibleLabelBoxes
+            >[0][];
+            const barBoxes = seriesVisibleLabelBoxes(bar);
+            const scatterBoxes = seriesVisibleLabelBoxes(scatter);
+            // Anti-vacuous guards: both series must render labels for the invariant to mean anything.
+            expect(barBoxes.length).toBeGreaterThan(0);
+            expect(scatterBoxes.length).toBeGreaterThan(0);
+            // A hideable scatter label must never remain visible on top of a bar's inside label.
+            for (const barBox of barBoxes) {
+                for (const scatterBox of scatterBoxes) {
+                    expect(overlaps(barBox, scatterBox)).toBe(false);
+                }
+            }
+        });
+    });
+
+    describe('cross-series obstacles (baked histogram inside label vs scatter label)', () => {
+        type Box = { x: number; y: number; width: number; height: number };
+        const overlaps = (a: Box, b: Box) =>
+            a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
+
+        // Six points fall in the first bin [0, 4), so its frequency is 6 and its inside-centre label
+        // sits at y ≈ 3. The HIT scatter point sits just below that centre so its `top` candidate lands
+        // on the baked label (`bottom` clears it); the rest are clear.
+        const histogramData = [{ x: 1 }, { x: 1 }, { x: 2 }, { x: 2 }, { x: 3 }, { x: 3 }, { x: 5 }, { x: 9 }];
+        const scatterData = [
+            { x: 2, y: 2.8, name: 'HIT' },
+            { x: 6, y: 1, name: 'S1' },
+            { x: 10, y: 1, name: 'S2' },
+        ];
+
+        const options = (): any => ({
+            legend: { enabled: false },
+            axes: { x: { type: 'number' }, y: { type: 'number' } },
+            series: [
+                {
+                    type: 'histogram',
+                    xKey: 'x',
+                    data: histogramData,
+                    bins: [
+                        [0, 4],
+                        [4, 8],
+                        [8, 12],
+                    ],
+                    label: { enabled: true, collision: { suppressHide: true } },
+                },
+                {
+                    type: 'scatter',
+                    xKey: 'x',
+                    yKey: 'y',
+                    labelKey: 'name',
+                    data: scatterData,
+                    label: {
+                        enabled: true,
+                        placement: ['top', 'bottom'],
+                        collision: { suppressHide: false },
+                    },
+                },
+            ],
+        });
+
+        it('renders with the scatter label cleared off the histogram inside label', async () => {
+            await renderAndSnapshot(options());
+        });
+
+        it('drops a hideable scatter label overlapping a histogram inside label', async () => {
+            const opts = options();
+            prepareTestOptions(opts);
+            chart = AgCharts.create(opts);
+            await waitForChartStability(chart);
+            const [histogram, scatter] = deproxy(chart as any).series as unknown as Parameters<
+                typeof seriesVisibleLabelBoxes
+            >[0][];
+            const histogramBoxes = seriesVisibleLabelBoxes(histogram);
+            const scatterBoxes = seriesVisibleLabelBoxes(scatter);
+            // Anti-vacuous guards: both series must render labels for the invariant to mean anything.
+            expect(histogramBoxes.length).toBeGreaterThan(0);
+            expect(scatterBoxes.length).toBeGreaterThan(0);
+            // A hideable scatter label must never remain visible on top of a histogram's inside label.
+            for (const histogramBox of histogramBoxes) {
+                for (const scatterBox of scatterBoxes) {
+                    expect(overlaps(histogramBox, scatterBox)).toBe(false);
+                }
+            }
+        });
+    });
+
+    describe('histogram placement cascade and own-label hiding', () => {
+        // A single bin filling the value axis; its `outside-end` label overflows the series area into the
+        // padding band, so a hideable single-placement label is dropped when series-area avoidance is on,
+        // while a placement array cascades to an inside candidate that fits.
+        const data = Array.from({ length: 10 }, () => ({ x: 0.5 }));
+        const options = (collision: object, placement: string | string[] = 'outside-end'): any => ({
+            data,
+            legend: { enabled: false },
+            padding: { top: 100, right: 10, bottom: 10, left: 10 },
+            axes: { x: { type: 'number' }, y: { type: 'number', min: 0, max: 10 } },
+            series: [
+                {
+                    type: 'histogram',
+                    xKey: 'x',
+                    bins: [[0, 1]],
+                    label: { enabled: true, placement, collision },
+                },
+            ],
+        });
+        const visibleLabelCount = () => {
+            const series = deproxy(chart as any).series[0] as unknown as {
+                labelSelection: { nodes(): { visible: boolean }[] };
+            };
+            return series.labelSelection.nodes().filter((node) => node.visible).length;
+        };
+        const render = async (collision: object, placement?: string | string[]) => {
+            const opts = options(collision, placement);
+            prepareTestOptions(opts);
+            chart = AgCharts.create(opts);
+            await waitForChartStability(chart);
+            return visibleLabelCount();
+        };
+
+        it('drops a hideable outside label overflowing the series area', async () => {
+            expect(await render({ suppressHide: false, collideWith: { seriesArea: true } })).toBe(0);
+        });
+
+        it('keeps the same label when it is not hideable (suppressHide: true)', async () => {
+            expect(await render({ suppressHide: true, collideWith: { seriesArea: true } })).toBe(1);
+        });
+
+        it('cascades a hideable outside label to an inside placement that fits', async () => {
+            // The single `outside-end` label above hides (0); the array falls through to `inside-center`,
+            // which fits inside the tall bin, so the label is kept even though `suppressHide` is false.
+            expect(
+                await render({ suppressHide: false, collideWith: { seriesArea: true } }, [
+                    'outside-end',
+                    'inside-center',
+                ])
+            ).toBe(1);
+        });
+
+        // With an `['inside-center', ...]` cascade that has a non-inside fallback, a label too large to fit
+        // inside the bin must NOT be truncated to the bin and pinned inside; it keeps its full text and
+        // cascades to the outside fallback. (Only an inside-only placement binds the text to the bar.)
+        it('keeps full text and cascades an oversized inside-first label to the outside fallback', async () => {
+            // A narrow, centred bin whose long label cannot fit inside. Without the fix the label is fitted
+            // to the tiny inside container and dropped; with it, full text cascades to the outside fallback.
+            const opts: any = {
+                data: Array.from({ length: 5 }, () => ({ x: 2 })),
+                legend: { enabled: false },
+                padding: { top: 100, right: 100, bottom: 10, left: 100 },
+                axes: { x: { type: 'number', min: 0, max: 4 }, y: { type: 'number', min: 0, max: 100 } },
+                series: [
+                    {
+                        type: 'histogram',
+                        xKey: 'x',
+                        bins: [[1.9, 2.1]],
+                        label: {
+                            enabled: true,
+                            formatter: () => 'WWWWWWWWWWWWWWWWWWWW',
+                            placement: ['inside-center', 'outside-end'],
+                            collision: { suppressHide: false },
+                        },
+                    },
+                ],
+            };
+            prepareTestOptions(opts);
+            chart = AgCharts.create(opts);
+            await waitForChartStability(chart);
+            const series = deproxy(chart as any).series[0] as unknown as {
+                labelSelection: { nodes(): { visible: boolean; datum: { label?: { placement?: string } } }[] };
+            };
+            const labels = series.labelSelection.nodes().filter((node) => node.visible);
+            expect(labels).toHaveLength(1);
+            expect(labels[0].datum.label?.placement).toBe('outside-end');
+        });
+
+        // One render covering every cascade outcome: the short bins keep the `outside-end` label above
+        // the bar; the full-height bin whose `outside-end` overflows the top series area cascades to
+        // `inside-center`; the full-height bin with a label too wide to fit inside is dropped.
+        it('renders outside, cascaded-inside and dropped labels across a multi-bin chart', async () => {
+            const binData = [
+                ...Array.from({ length: 3 }, () => ({ x: 0.5 })),
+                ...Array.from({ length: 6 }, () => ({ x: 1.5 })),
+                ...Array.from({ length: 10 }, () => ({ x: 2.5 })),
+                ...Array.from({ length: 10 }, () => ({ x: 3.5 })),
+            ];
+            await renderAndSnapshot({
+                data: binData,
+                legend: { enabled: false },
+                padding: { top: 60, right: 10, bottom: 10, left: 10 },
+                axes: { x: { type: 'number' }, y: { type: 'number', min: 0, max: 10 } },
+                series: [
+                    {
+                        type: 'histogram',
+                        xKey: 'x',
+                        bins: [
+                            [0, 1],
+                            [1, 2],
+                            [2, 3],
+                            [3, 4],
+                        ],
+                        label: {
+                            enabled: true,
+                            formatter: ({ binIndex, frequency }: any) =>
+                                binIndex === 3 ? 'WWWWWWWWWWWWWWWWWWWW' : String(frequency),
+                            placement: ['outside-end', 'inside-center'],
+                            collision: { suppressHide: false, collideWith: { seriesArea: true } },
+                        },
+                    },
+                ],
+            });
+        });
+    });
+
+    // A `placement` array is an ordered fallback list: the first candidate that clears its obstacles wins,
+    // so an array whose first candidate already fits renders identically to that single placement.
+    describe('bar-family placement cascade (first fitting candidate wins)', () => {
         const barData = Array.from({ length: 8 }, (_, i) => ({ x: `C${i}`, y: 20 + 10 * Math.sin(i) }));
         const barOptions = (placement: string | string[]) => ({
             data: barData,
@@ -764,12 +1267,29 @@ describe('label collision avoidance', () => {
             series: [{ type: 'bar', xKey: 'x', yKey: 'y', label: { enabled: true, placement } }],
         });
 
-        it('renders an array placement identically to its first candidate', async () => {
+        it('bar renders an array placement identically to its fitting first candidate', async () => {
             await expectPixelIdenticalAcrossUpdate(
                 ctx,
                 createChart,
                 barOptions('inside-end') as any,
                 barOptions(['inside-end', 'outside-end']) as any
+            );
+        });
+
+        const histData = Array.from({ length: 8 }, (_, i) => ({ x: 20 + 10 * Math.sin(i) }));
+        const histOptions = (placement: string | string[]) => ({
+            data: histData,
+            legend: { enabled: false },
+            axes: { x: { type: 'number', position: 'bottom' }, y: { type: 'number', position: 'left' } },
+            series: [{ type: 'histogram', xKey: 'x', label: { enabled: true, placement } }],
+        });
+
+        it('histogram renders an array placement identically to its fitting first candidate', async () => {
+            await expectPixelIdenticalAcrossUpdate(
+                ctx,
+                createChart,
+                histOptions('inside-center') as any,
+                histOptions(['inside-center', 'outside-end']) as any
             );
         });
     });

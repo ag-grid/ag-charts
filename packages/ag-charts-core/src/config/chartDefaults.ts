@@ -769,6 +769,7 @@ collisionOptionsDef.collideWith = undocumented({
     markers: boolean,
     labels: boolean,
     seriesItems: boolean,
+    seriesArea: boolean,
 });
 
 export const seriesLabelOptionsDefs: OptionsDefs<AgChartLabelOptions<any, any>> = {

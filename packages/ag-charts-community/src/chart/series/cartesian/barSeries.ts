@@ -24,19 +24,21 @@ import {
     DebugMetrics,
     applyBarLabelOrientation,
     areScalingEqual,
+    bakedLabelObstacles,
     barLabelOrientation,
     barLabelResolvesOrientation,
     barLabelResolvesPlacement,
     barLabelRotation,
     buildBarLabelData,
     buildBarPositionedLabelDatum,
-    insideBarRegion,
     isContinuous,
     isFiniteNumber,
     maxValue,
     measureLabelText,
     mergeDefaults,
     minValue,
+    placedBarLabelTargets,
+    rectLabelObstacles,
     resolveLabelFit,
     toArray,
     toNumber,
@@ -82,12 +84,13 @@ import {
     processedDataIsAnimatable,
     valueProperty,
 } from '../../data/processors';
-import { expandPlacementLabelBoxExtent, resolvePlacementLabelPadding } from '../../label';
+import { expandPlacementLabelBoxExtent, resolvePlacementLabelBoxExtent } from '../../label';
 import type { BarLabelPlacement, BarPositionedCandidate } from '../../labelUtil';
 import {
     adjustLabelPlacement,
     buildBarLabelCandidates,
     fitLabelToContainer,
+    insideBarLabelBounds,
     pickPlacementStyle,
     toResolvedPlacement,
     updateLabelNode,
@@ -128,7 +131,7 @@ import {
 } from './cartesianSeries';
 import type { CartesianSeriesNodeDatum } from './cartesianSeriesTypes';
 import { calculateDataDiff } from './diffUtil';
-import { calculateSegments, rectLabelObstacles } from './util';
+import { calculateSegments } from './util';
 
 interface BarNodeLabelDatum {
     readonly text: NormalisedTextOrSegments;
@@ -147,6 +150,8 @@ interface BarNodeLabelDatum {
     placement?: BarLabelPlacement;
     /** Pre-positioned cascade candidates, present only when `placement` resolves an array (>1 entry). */
     candidates?: readonly BarPositionedCandidate[];
+    /** Engine-routed label the placement engine dropped (no candidate fit); rendered invisible. */
+    hidden?: boolean;
 }
 
 /**
@@ -194,7 +199,6 @@ interface BarSeriesNodeDatumContext {
      */
     readonly plotRegion: { x: number; y: number; width: number; height: number } | undefined;
     readonly bboxBottom: number;
-    readonly labelSpacing: number;
     /** Cross-axis wall clearance for inside labels; resolved from `label.collision.threshold`. */
     readonly labelThreshold: number;
     readonly boxPadding: Required<PaddingOptions>;
@@ -229,6 +233,9 @@ interface BarSeriesNodeDatumContext {
     // Full ordered placement list and whether it resolves (>1 entry); drive the placement-cascade path.
     readonly labelPlacements: AgBarSeriesLabelPlacement[];
     readonly labelResolvesPlacement: boolean;
+    // Hideable labels (`collision.suppressHide: false`) route even single placements through the engine
+    // so a no-fit label is dropped and hidden, rather than baked unconditionally by the fast path.
+    readonly labelHideable: boolean;
     readonly labelRotation: number;
     readonly labelResolvesOrientation: boolean;
     readonly labelFit: LabelFit | undefined;
@@ -656,23 +663,17 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         const isStacked = dataModel.hasColumnById(this, 'yValue-start');
         const stackIndex = this.seriesGrouping?.stackIndex ?? 0;
         const stackCount = this.seriesGrouping?.stackCount ?? 0;
-        // Plot-local coordinates, so the seriesArea padding extends the rect into a negative origin.
-        const seriesRect = this.chart?.seriesRect;
-        const seriesAreaPadding = this.chart?.seriesAreaPadding;
-        const plotRegion = seriesRect
-            ? {
-                  x: -(seriesAreaPadding?.left ?? 0),
-                  y: -(seriesAreaPadding?.top ?? 0),
-                  width: seriesRect.width + (seriesAreaPadding?.left ?? 0) + (seriesAreaPadding?.right ?? 0),
-                  height: seriesRect.height + (seriesAreaPadding?.top ?? 0) + (seriesAreaPadding?.bottom ?? 0),
-              }
-            : undefined;
         const { label } = this.properties;
+        // The series-area clamp is opt-in via `collideWith.seriesArea`; without it outside/beside
+        // candidates fall back to the engine's plot bounds and may overflow the series area.
+        const plotRegion = label.collision.resolveCollideWith().seriesArea ? this.getSeriesPlotRegion() : undefined;
         const labelPlacements = toArray(label.placement);
         if (labelPlacements.length === 0) labelPlacements.push('inside-center');
         const labelPlacement = labelPlacements[0];
         const placementStyle = labelPlacement?.startsWith('inside') ? label.insideStyle : label.outsideStyle;
-        const boxPadding = resolvePlacementLabelPadding(label, placementStyle);
+        // Full drawn-box extent (padding + border half-stroke) facing the bar, so the anchor keeps the
+        // box's outer edge — not just its padding boundary — `spacing` from the bar.
+        const boxPadding = resolvePlacementLabelBoxExtent(label, placementStyle);
         const canIncrementallyUpdate = this.canIncrementallyUpdateNodes(dataAggregationFilter != null);
 
         const { groupOffset, barOffset, barWidth } = this.getBarDimensions();
@@ -721,8 +722,6 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             plotRegion,
             // 0n keeps a bigint y-domain on the full-precision convert() path (a numeric 0 narrows to Number).
             bboxBottom: yScale.convert(0n),
-            labelSpacing:
-                label.spacing + Math.max(boxPadding.top, boxPadding.right, boxPadding.bottom, boxPadding.left),
             labelThreshold: label.collision.threshold ?? 0,
             boxPadding,
             labelBoxExtent: expandPlacementLabelBoxExtent(label),
@@ -751,6 +750,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             labelPlacement,
             labelPlacements,
             labelResolvesPlacement: barLabelResolvesPlacement(label.placement),
+            labelHideable: !label.collision.suppressHide,
             labelRotation: barLabelRotation(toArray(label.orientation)[0]),
             labelResolvesOrientation: barLabelResolvesOrientation(label.orientation),
             labelFit: resolveLabelFit(label, !label.collision.suppressHide),
@@ -1024,16 +1024,34 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         const rect = { x: rectX, y: rectY, width: rectWidth, height: rectHeight };
         if (nodeLabelText == null) {
             mutableNode.label = undefined;
-        } else if (ctx.labelResolvesPlacement) {
-            // Placement-cascade path: pre-position a candidate per placement × orientation for the engine
-            // to resolve. Full text is measured (no fit) then inflated by the box (padding + border stroke)
-            // so each candidate's footprint matches the rendered box; the engine picks the first that fits
-            // its region. The first candidate is baked as a backward-safe default until the engine writes
-            // the chosen one back.
-            const text = measureLabelText(nodeLabelText, ctx.label);
+        } else if (ctx.labelResolvesPlacement || ctx.labelHideable) {
+            // Positioned-candidate path: pre-position a candidate per placement × orientation for the
+            // engine to resolve, each footprint inflated by the box (padding + border stroke). A single
+            // hideable placement first fits its text to the bar (wrap/truncate/hide), reserving the box
+            // padding so the padded candidate box — not just the text — fits within the bar; the
+            // multi-placement cascade keeps full text and falls through to the next placement on overflow.
+            // The engine picks the first candidate that fits its region; the first is baked as a
+            // backward-safe default until the engine writes the chosen one back.
             const { labelBoxExtent: box } = ctx;
-            const width = text.width + box.left + box.right;
-            const height = text.height + box.top + box.bottom;
+            let labelText = nodeLabelText;
+            if (!ctx.labelResolvesPlacement) {
+                const { labelPlacement: placement } = ctx;
+                const isInside = placement == null || placement.startsWith('inside');
+                // The engine region comes from the candidate below; here we only need the fit container.
+                const container = isInside
+                    ? insideBarLabelBounds(
+                          rect,
+                          placement ?? 'inside-center',
+                          isUpward,
+                          !ctx.barAlongX,
+                          ctx.label.spacing,
+                          ctx.labelThreshold,
+                          box
+                      ).container
+                    : undefined;
+                labelText = fitLabelToContainer(nodeLabelText, ctx.labelFit, ctx.label, container);
+            }
+            const text = measureLabelText(labelText, ctx.label);
             const orientations = toArray(ctx.label.orientation);
             if (orientations.length === 0) orientations.push('horizontal');
             const candidates = buildBarLabelCandidates({
@@ -1041,11 +1059,12 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 isVertical: !ctx.barAlongX,
                 placements: ctx.labelPlacements,
                 orientations,
-                spacing: ctx.labelSpacing,
+                spacing: ctx.label.spacing,
                 threshold: ctx.labelThreshold,
+                label: ctx.label,
+                textWidth: text.width,
+                textHeight: text.height,
                 rect,
-                width,
-                height,
                 crossReversed: ctx.crossReversed,
                 rejectOutsideStart: ctx.stackedTowardStart,
                 rejectOutsideEnd: ctx.stackedTowardEnd,
@@ -1054,7 +1073,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             const { anchor, region, placement } = candidates[0];
             const existingLabel = mutableNode.label;
             if (existingLabel) {
-                existingLabel.text = nodeLabelText;
+                existingLabel.text = labelText;
                 existingLabel.x = anchor.x;
                 existingLabel.y = anchor.y;
                 existingLabel.textAlign = anchor.textAlign;
@@ -1067,7 +1086,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 existingLabel.candidates = candidates;
             } else {
                 mutableNode.label = {
-                    text: nodeLabelText,
+                    text: labelText,
                     x: anchor.x,
                     y: anchor.y,
                     textAlign: anchor.textAlign,
@@ -1087,15 +1106,23 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             // Inside labels fit within the bar rect; outside labels sit beside it, so leave them unbound.
             // The rect is only needed to bound the fit or to resolve orientation, so skip it otherwise.
             const isInside = placement == null || placement.startsWith('inside');
-            const needsRect = ctx.labelFit != null || ctx.labelResolvesOrientation;
-            const insideBox =
-                isInside && needsRect
-                    ? insideBarRegion(rect, ctx.labelSpacing, ctx.labelThreshold, !ctx.barAlongX)
+            // Region reserves the anchored-side spacing gap; container is that region minus the box.
+            const bounds =
+                isInside && (ctx.labelFit != null || ctx.labelResolvesOrientation)
+                    ? insideBarLabelBounds(
+                          rect,
+                          placement ?? 'inside-center',
+                          isUpward,
+                          !ctx.barAlongX,
+                          ctx.label.spacing,
+                          ctx.labelThreshold,
+                          ctx.labelBoxExtent
+                      )
                     : undefined;
-            // The first orientation is baked into `rotation`; an array resolves against the bar rect for
-            // inside placements only (outside labels fall back to the plot bounds via no region).
-            const region = ctx.labelResolvesOrientation ? insideBox : undefined;
-            const fittedText = fitLabelToContainer(nodeLabelText, ctx.labelFit, ctx.label, insideBox);
+            // The first orientation is baked into `rotation`; an array resolves against the bar region
+            // for inside placements — outside labels fall back to the plot bounds via no region.
+            const region = ctx.labelResolvesOrientation ? bounds?.region : undefined;
+            const fittedText = fitLabelToContainer(nodeLabelText, ctx.labelFit, ctx.label, bounds?.container);
             // A rotated label's gap to the bar depends on its box size; measure only when it rotates.
             const { width: labelWidth, height: labelHeight } =
                 rotation === 0 ? { width: 0, height: 0 } : measureLabelText(fittedText, ctx.label);
@@ -1126,6 +1153,9 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 existingLabel.offsetY = 0;
                 existingLabel.placement = placement;
                 existingLabel.candidates = undefined;
+                // Clear any hide set while this label was engine-routed, so switching back to the fast
+                // path (e.g. suppressHide toggled on) renders it again.
+                existingLabel.hidden = undefined;
             } else {
                 // Create new label object (first time label is added)
                 mutableNode.label = {
@@ -1393,7 +1423,13 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
      */
     protected override resolveUsesPlacedLabels(): boolean {
         const { label } = this.properties;
-        return barLabelResolvesOrientation(label.orientation) || barLabelResolvesPlacement(label.placement);
+        // Hideable labels route through the engine even for a single placement, so a no-fit label can be
+        // dropped and hidden. A multi-entry orientation/placement array always resolves via the engine.
+        return (
+            barLabelResolvesOrientation(label.orientation) ||
+            barLabelResolvesPlacement(label.placement) ||
+            !label.collision.suppressHide
+        );
     }
 
     protected override populateNodeData(ctx: BarSeriesNodeDatumContext): void {
@@ -1805,7 +1841,25 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
     }
 
     getLabelObstacles() {
-        return rectLabelObstacles(this.contextNodeData?.nodeData);
+        const rects = rectLabelObstacles(this.contextNodeData?.nodeData);
+        // Baked labels (single placement, `suppressHide: true`) never route through the placement
+        // engine, so they never enter the obstacle index there. Contribute their drawn footprint as
+        // `label` obstacles so other series' labels avoid them; routed labels are excluded because the
+        // engine already inserts them as it places each one.
+        if (this.usesPlacedLabels || !this.isLabelEnabled()) return rects;
+        const labels = this.getBakedLabelObstacles();
+        if (labels == null) return rects;
+        return rects == null ? labels : rects.concat(labels);
+    }
+
+    private getBakedLabelObstacles() {
+        const { label } = this.properties;
+        const box = expandPlacementLabelBoxExtent(label);
+        return bakedLabelObstacles(this.contextNodeData?.labelData, (node) => ({
+            label: node.label,
+            config: label,
+            box,
+        }));
     }
 
     override getLabelData(): PointLabelDatum[] {
@@ -1818,13 +1872,30 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             const { width, height } = measureLabelText(text, label);
             return { width: width + box.left + box.right, height: height + box.top + box.bottom };
         };
-        if (barLabelResolvesPlacement(label.placement)) {
+        const suppressHide = label.collision.suppressHide;
+        const hideable = !suppressHide;
+        const collideWith = label.collision.resolveCollideWith();
+        if (barLabelResolvesPlacement(label.placement) || hideable) {
             const data: PointLabelDatum[] = [];
             for (const node of this.contextNodeData?.labelData ?? []) {
                 const nodeLabel = node.label;
                 if (nodeLabel?.candidates == null || nodeLabel.text === '') continue;
                 const { width, height } = measureBox(nodeLabel.text);
-                data.push(buildBarPositionedLabelDatum(nodeLabel.text, width, height, nodeLabel.candidates, nodeLabel));
+                // Own bar rect (full-column geometry, matching this node's `seriesItem` obstacle box)
+                // so a positioned candidate avoids neighbouring bars but never its own bar/stack.
+                const ownBox = { x: node.x, y: node.y, width: node.width, height: node.height };
+                data.push(
+                    buildBarPositionedLabelDatum(
+                        nodeLabel.text,
+                        width,
+                        height,
+                        nodeLabel.candidates,
+                        nodeLabel,
+                        ownBox,
+                        suppressHide,
+                        collideWith
+                    )
+                );
             }
             return data;
         }
@@ -1832,11 +1903,22 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             label: node.label,
             config: label,
             size: node.label != null && node.label.text !== '' ? measureBox(node.label.text) : undefined,
+            collideWith,
         }));
     }
 
     override updatePlacedLabelData(placed: PlacedLabel<BarNodeDatum>[]) {
         applyBarLabelOrientation(placed);
+        // Hideable labels (`neverDrop: false`) the engine dropped are absent from `placed`; flag the
+        // routed labels (`candidates != null`) it kept as visible and the rest as hidden. Fast-path
+        // labels (`candidates == null`) are never routed and stay visible.
+        const placedTargets = placedBarLabelTargets(placed);
+        for (const node of this.contextNodeData?.labelData ?? []) {
+            const nodeLabel = node.label;
+            if (nodeLabel?.candidates != null) {
+                nodeLabel.hidden = !placedTargets.has(nodeLabel);
+            }
+        }
         this.refreshPlacedLabelNodes();
     }
 
@@ -1865,6 +1947,10 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const { label } = this.properties;
         opts.labelSelection.each((textNode, datum) => {
+            if (datum.label?.hidden) {
+                textNode.visible = false;
+                return;
+            }
             textNode.fillOpacity = this.getHighlightStyle(isHighlight, datum?.datumIndex).opacity ?? 1;
             const placement = datum.label?.placement ?? toArray(label.placement)[0] ?? 'inside-center';
             const placementStyle = pickPlacementStyle(label, toResolvedPlacement(placement));

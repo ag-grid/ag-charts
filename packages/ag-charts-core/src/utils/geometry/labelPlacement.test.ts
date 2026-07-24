@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import type { AgChartLabelOrientation } from 'ag-charts-types';
+import type { AgChartLabelOrientation, PaddingOptions } from 'ag-charts-types';
 
 import type { Point, SizedPoint } from '../../types/scene';
 import { type BoxBounds, boxCollides, boxContains } from './boxBounds';
@@ -17,18 +17,41 @@ import {
     type SeriesLabelDefaults,
     type SeriesLabels,
     applyBarLabelOrientation,
+    bakedLabelObstacles,
     barLabelResolvesOrientation,
     barLabelResolvesPlacement,
     buildBarLabelDatum,
     buildBarPositionedLabelDatum,
+    insideBarContainer,
     insideBarRegion,
+    insideBarValueInsets,
+    labelFootprintBox,
     labelGlyphCentre,
+    measureLabelText,
     placeLabels,
+    rectLabelObstacles,
     resolveLabelFit,
     rotatedGlyphDrift,
     rotatedLabelInset,
+    sectorLabelContainer,
 } from './labelPlacement';
 import { SpatialIndex } from './spatialIndex';
+
+// jsdom has no canvas, so cachedTextMeasurer's real createCanvasContext throws. This stand-in gives
+// measureLabelText deterministic metrics (CHAR_WIDTH px per codepoint, LINE_HEIGHT px per line).
+const { CHAR_WIDTH } = vi.hoisted(() => ({ CHAR_WIDTH: 10 }));
+vi.mock('../canvas', () => ({
+    createCanvasContext: () => ({
+        font: '',
+        measureText: (text: string) => ({
+            width: [...text].length * CHAR_WIDTH,
+            fontBoundingBoxAscent: 16,
+            fontBoundingBoxDescent: 4,
+            emHeightAscent: 16,
+            emHeightDescent: 4,
+        }),
+    }),
+}));
 
 const PLACEMENTS: (LabelPlacement | undefined)[] = [
     undefined,
@@ -1239,46 +1262,199 @@ describe('bar label placement helpers', () => {
         });
     });
 
+    describe('labelFootprintBox', () => {
+        const anchor: OrientationAnchor = { x: 100, y: 50, textAlign: 'center', textBaseline: 'middle' };
+        const padding: Required<PaddingOptions> = { top: 3, bottom: 3, left: 4, right: 4 };
+
+        it('is the exact padded box, centred on the glyph, when unrotated', () => {
+            // Glyph 40x10 centred at (100, 50); box grows by padding to 48x16, still centred.
+            expect(labelFootprintBox(anchor, 40, 10, padding, 0)).toEqual({ x: 76, y: 42, width: 48, height: 16 });
+        });
+
+        it('offsets the centre by asymmetric padding', () => {
+            const asym: Required<PaddingOptions> = { top: 0, bottom: 10, left: 0, right: 20 };
+            // Box 60x20; centre shifts by ((20-0)/2, (10-0)/2) = (10, 5) to (110, 55).
+            expect(labelFootprintBox(anchor, 40, 10, asym, 0)).toEqual({ x: 80, y: 45, width: 60, height: 20 });
+        });
+
+        it('returns the rotated outer AABB, swapping extents at a quarter turn', () => {
+            // 48x16 box rotated -90deg → 16x48 AABB, centred on the glyph.
+            const box = labelFootprintBox(anchor, 40, 10, padding, -Math.PI / 2);
+            expect(box.width).toBeCloseTo(16);
+            expect(box.height).toBeCloseTo(48);
+            expect(box.x + box.width / 2).toBeCloseTo(100);
+            expect(box.y + box.height / 2).toBeCloseTo(50);
+        });
+    });
+
+    describe('bakedLabelObstacles', () => {
+        const config = { fontSize: 12, fontFamily: 'sans-serif' };
+        const box: Required<PaddingOptions> = { top: 3, bottom: 3, left: 4, right: 4 };
+        const anchor: OrientationAnchor = { x: 100, y: 50, textAlign: 'center', textBaseline: 'middle' };
+        const bake = (text: string, rotation = 0, hidden?: boolean) => ({
+            label: { ...anchor, text, rotation, hidden },
+        });
+
+        it('builds one label rect obstacle per element, matching labelFootprintBox', () => {
+            const result = bakedLabelObstacles([bake('Hello')], (e) => ({ label: e.label, config, box }));
+            expect(result).toHaveLength(1);
+            const { width, height } = measureLabelText('Hello', config);
+            expect(result![0]).toEqual({
+                kind: 'rect',
+                box: labelFootprintBox(anchor, width, height, box, 0),
+                category: 'label',
+            });
+        });
+
+        it('skips absent, empty-text and hidden labels', () => {
+            const elements = [bake('kept'), { label: undefined }, bake(''), bake('gone', 0, true)];
+            const result = bakedLabelObstacles(elements, (e) => ({ label: e.label, config, box }));
+            expect(result).toHaveLength(1);
+        });
+
+        it('returns undefined when nothing is contributed', () => {
+            expect(bakedLabelObstacles(undefined, () => undefined)).toBeUndefined();
+            expect(bakedLabelObstacles([bake('')], (e) => ({ label: e.label, config, box }))).toBeUndefined();
+        });
+    });
+
+    describe('rectLabelObstacles', () => {
+        it('maps rect node data to seriesItem rect obstacles', () => {
+            const result = rectLabelObstacles([
+                { x: 0, y: 10, width: 20, height: 30 },
+                { x: 50, y: 5, width: 15, height: 25 },
+            ]);
+            expect(result).toEqual([
+                { kind: 'rect', box: { x: 0, y: 10, width: 20, height: 30 }, category: 'seriesItem' },
+                { kind: 'rect', box: { x: 50, y: 5, width: 15, height: 25 }, category: 'seriesItem' },
+            ]);
+        });
+
+        it('skips phantom nodes', () => {
+            const result = rectLabelObstacles([
+                { x: 0, y: 0, width: 10, height: 10, phantom: true },
+                { x: 0, y: 0, width: 10, height: 10, phantom: false },
+            ]);
+            expect(result).toEqual([
+                { kind: 'rect', box: { x: 0, y: 0, width: 10, height: 10 }, category: 'seriesItem' },
+            ]);
+        });
+
+        it('skips zero-area rects', () => {
+            const result = rectLabelObstacles([
+                { x: 0, y: 0, width: 0, height: 10 },
+                { x: 0, y: 0, width: 10, height: 0 },
+                { x: 0, y: 0, width: 10, height: 10 },
+            ]);
+            expect(result).toEqual([
+                { kind: 'rect', box: { x: 0, y: 0, width: 10, height: 10 }, category: 'seriesItem' },
+            ]);
+        });
+
+        it('returns undefined when there is nothing to contribute', () => {
+            expect(rectLabelObstacles(undefined)).toBeUndefined();
+            expect(rectLabelObstacles([])).toBeUndefined();
+            expect(rectLabelObstacles([{ x: 0, y: 0, width: 0, height: 0, phantom: true }])).toBeUndefined();
+        });
+    });
+
+    describe('insideBarValueInsets', () => {
+        it('reserves nothing on the value axis for a centred label', () => {
+            expect(insideBarValueInsets('center', true, true, 5)).toEqual({ min: 0, max: 0 });
+            expect(insideBarValueInsets('center', false, false, 5)).toEqual({ min: 0, max: 0 });
+        });
+
+        it('reserves the gap on the value-origin end for inside-start, flipping with bar direction', () => {
+            // vertical: the origin sits at the max side for an upward bar, the min side for a downward one.
+            expect(insideBarValueInsets('start', true, true, 5)).toEqual({ min: 0, max: 5 });
+            expect(insideBarValueInsets('start', false, true, 5)).toEqual({ min: 5, max: 0 });
+            // horizontal: the origin sits at the min side for a positive bar, the max side for a negative one.
+            expect(insideBarValueInsets('start', true, false, 5)).toEqual({ min: 5, max: 0 });
+            expect(insideBarValueInsets('start', false, false, 5)).toEqual({ min: 0, max: 5 });
+        });
+
+        it('reserves the gap on the far end for inside-end (opposite of inside-start)', () => {
+            expect(insideBarValueInsets('end', true, true, 5)).toEqual({ min: 5, max: 0 });
+            expect(insideBarValueInsets('end', true, false, 5)).toEqual({ min: 0, max: 5 });
+        });
+    });
+
     describe('insideBarRegion', () => {
         const rect: BoxBounds = { x: 10, y: 20, width: 40, height: 200 };
 
-        it('insets a vertical bar by spacing on Y (length) and threshold on X (cross)', () => {
-            expect(insideBarRegion(rect, 5, 2, true)).toEqual({ x: 12, y: 25, width: 36, height: 190 });
+        it('insets a vertical bar by threshold on X (cross) and the value insets on Y (length)', () => {
+            expect(insideBarRegion(rect, 5, 3, 2, true)).toEqual({ x: 12, y: 25, width: 36, height: 192 });
         });
 
-        it('insets a horizontal bar by spacing on X (length) and threshold on Y (cross)', () => {
-            expect(insideBarRegion(rect, 5, 2, false)).toEqual({ x: 15, y: 22, width: 30, height: 196 });
+        it('insets a horizontal bar by threshold on Y (cross) and the value insets on X (length)', () => {
+            expect(insideBarRegion(rect, 5, 3, 2, false)).toEqual({ x: 15, y: 22, width: 32, height: 196 });
         });
 
-        it('leaves the cross axis flush when threshold is zero', () => {
-            expect(insideBarRegion(rect, 5, 0, true)).toEqual({ x: 10, y: 25, width: 40, height: 190 });
-            expect(insideBarRegion(rect, 5, 0, false)).toEqual({ x: 15, y: 20, width: 30, height: 200 });
+        it('reserves the gap on a single value end when only one inset is set', () => {
+            expect(insideBarRegion(rect, 5, 0, 0, true)).toEqual({ x: 10, y: 25, width: 40, height: 195 });
+            expect(insideBarRegion(rect, 0, 5, 0, true)).toEqual({ x: 10, y: 20, width: 40, height: 195 });
+        });
+
+        it('leaves the whole rect flush when every inset is zero', () => {
+            expect(insideBarRegion(rect, 0, 0, 0, true)).toEqual(rect);
+            expect(insideBarRegion(rect, 0, 0, 0, false)).toEqual(rect);
+        });
+    });
+
+    describe('insideBarContainer', () => {
+        const region: BoxBounds = { x: 12, y: 25, width: 36, height: 192 };
+        const box: Required<PaddingOptions> = { top: 1, bottom: 2, left: 3, right: 4 };
+
+        it('shrinks the region by the drawn box on each side', () => {
+            expect(insideBarContainer(region, box)).toEqual({ width: 29, height: 189 });
+        });
+
+        it('clamps to zero rather than returning negative room', () => {
+            const tiny: BoxBounds = { x: 0, y: 0, width: 4, height: 4 };
+            expect(insideBarContainer(tiny, box)).toEqual({ width: 0, height: 1 });
         });
     });
 
     describe('buildBarLabelDatum + applyBarLabelOrientation', () => {
         const region: BoxBounds = { x: 0, y: 0, width: 30, height: 200 };
         const anchor: OrientationAnchor = { x: 15, y: 100, textAlign: 'center', textBaseline: 'middle' };
+        const collideWith = { marker: true, label: true, seriesItem: true, seriesArea: true };
 
-        it('centres the candidate box, constrains it to the region, and avoids other labels only', () => {
+        it('centres the candidate box, constrains it to the region, and stamps the resolved collideWith', () => {
             const target = { rotation: 0 };
-            const datum = buildBarLabelDatum(anchor, 'label', 100, 10, ['horizontal', 'vertical'], region, target);
+            const datum = buildBarLabelDatum(
+                anchor,
+                'label',
+                100,
+                10,
+                ['horizontal', 'vertical'],
+                region,
+                collideWith,
+                target
+            );
             expect(datum.point).toEqual({ x: 15, y: 100, size: 0 });
             expect(datum.region).toBe(region);
+            // The region doubles as the own-shape box so an inside label excludes its own bar.
+            expect(datum.ownBox).toBe(region);
             expect(datum.neverDrop).toBe(true);
             expect(datum.placement).toBeUndefined();
             expect(datum.orientation).toEqual(['horizontal', 'vertical']);
-            expect(datum.collideWith).toEqual({
-                label: true,
-                marker: false,
-                seriesItem: false,
-            });
+            expect(datum.collideWith).toBe(collideWith);
             expect(datum.target).toBe(target);
         });
 
         it('resolves the orientation through the engine and writes the rotation (radians) back to the target', () => {
             const target = { rotation: 0 };
-            const datum = buildBarLabelDatum(anchor, 'label', 100, 10, ['horizontal', 'vertical'], region, target);
+            const datum = buildBarLabelDatum(
+                anchor,
+                'label',
+                100,
+                10,
+                ['horizontal', 'vertical'],
+                region,
+                collideWith,
+                target
+            );
             const placed = placeLabels(
                 new Map([['s', seriesLabels([datum])]]),
                 { x: 0, y: 0, width: 200, height: 200 },
@@ -1288,6 +1464,43 @@ describe('bar label placement helpers', () => {
             applyBarLabelOrientation(placed);
             // Horizontal (100 wide) overflows the 30-wide region, so it falls through to vertical (-90deg).
             expect(target.rotation).toBeCloseTo(-Math.PI / 2);
+        });
+
+        it('excludes any-category obstacle overlapping the own box on the compass path', () => {
+            // A wide region the horizontal label fits, so the only thing that could reject it is an
+            // obstacle. A marker obstacle overlapping the label sits within the own box (the region), so
+            // the category-agnostic own-shape exclusion ignores it and the label keeps its first
+            // (horizontal) orientation rather than falling through to vertical.
+            const wideRegion: BoxBounds = { x: 0, y: 0, width: 200, height: 200 };
+            const centred: OrientationAnchor = { x: 100, y: 100, textAlign: 'center', textBaseline: 'middle' };
+            const target = { rotation: 0 };
+            const datum = buildBarLabelDatum(
+                centred,
+                'label',
+                100,
+                10,
+                ['horizontal', 'vertical'],
+                wideRegion,
+                collideWith,
+                target
+            );
+            const marker: LabelObstacle = {
+                kind: 'circle',
+                box: { x: 70, y: 70, width: 60, height: 60 },
+                cx: 100,
+                cy: 100,
+                r: 30,
+                category: 'marker',
+            };
+            const placed = placeLabels(
+                new Map([['s', seriesLabels([datum])]]),
+                { x: 0, y: 0, width: 200, height: 200 },
+                5,
+                [marker]
+            ).get('s') as PlacedLabel<BarPlacedLabelDatum>[];
+
+            applyBarLabelOrientation(placed);
+            expect(target.rotation).toBe(0);
         });
     });
 });
@@ -1303,14 +1516,33 @@ describe('placeLabels positioned candidates', () => {
     // A bar-family positioned candidate: the generic engine box plus the anchor/placement written back.
     type BarCandidate = PositionedLabelCandidate & { anchor: OrientationAnchor; placement: string };
 
-    const place = (candidates: BarCandidate[], obstacles: LabelObstacle[] = []) => {
+    // A zero-size default own box never intersects any obstacle, so the own-bar exclusion is inert
+    // unless a test opts in with a real rect.
+    const place = (
+        candidates: BarCandidate[],
+        obstacles: LabelObstacle[] = [],
+        ownBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 },
+        suppressHide = true,
+        collideWith = { marker: true, label: true, seriesItem: true, seriesArea: true }
+    ) => {
         const target: BarLabelTarget = { rotation: 0 };
-        const datum = buildBarPositionedLabelDatum('label', 20, 10, candidates, target);
+        const datum = buildBarPositionedLabelDatum(
+            'label',
+            20,
+            10,
+            candidates,
+            target,
+            ownBox,
+            suppressHide,
+            collideWith
+        );
         const placed = placeLabels(new Map([['s', seriesLabels([datum])]]), bounds, 5, obstacles).get(
             's'
         ) as PlacedLabel[];
         return { placed, target };
     };
+
+    const seriesItemRect = (box: BoxBounds): LabelObstacle => ({ kind: 'rect', box, category: 'seriesItem' });
 
     it('returns the first candidate that fits its region', () => {
         const first: BarCandidate = {
@@ -1439,6 +1671,128 @@ describe('placeLabels positioned candidates', () => {
             placement: 'outside-end',
         });
     });
+
+    describe('neighbouring-bar collision', () => {
+        it('falls through a candidate that lands on a neighbouring bar in another column', () => {
+            const ownBar = { x: 40, y: 60, width: 30, height: 80 };
+            const neighbourBar = { x: 120, y: 60, width: 30, height: 80 };
+            const beside: BarCandidate = {
+                box: { x: 118, y: 90, width: 28, height: 16 }, // sits on the neighbour bar
+                region: bounds,
+                anchor: anchorOf(132, 98),
+                placement: 'beside-after-center',
+            };
+            const inside: BarCandidate = {
+                box: { x: 42, y: 90, width: 26, height: 16 }, // inside the own bar
+                region: bounds,
+                anchor: anchorOf(55, 98),
+                placement: 'inside-center',
+            };
+            const { placed } = place([beside, inside], [seriesItemRect(ownBar), seriesItemRect(neighbourBar)], ownBar);
+            expect(placed[0].candidate).toBe(inside);
+        });
+
+        it('never collides with its own bar or an identical stacked sibling', () => {
+            const ownColumn = { x: 40, y: 40, width: 30, height: 120 };
+            // A same-sign stacked sibling shares the identical full-column obstacle box.
+            const sibling = { ...ownColumn };
+            const insideOwn: BarCandidate = {
+                box: { x: 44, y: 80, width: 22, height: 16 },
+                region: bounds,
+                anchor: anchorOf(55, 88),
+                placement: 'inside-center',
+            };
+            const elsewhere: BarCandidate = {
+                box: { x: 120, y: 80, width: 22, height: 16 },
+                region: bounds,
+                anchor: anchorOf(131, 88),
+                placement: 'outside-end',
+            };
+            const { placed } = place(
+                [insideOwn, elsewhere],
+                [seriesItemRect(ownColumn), seriesItemRect(sibling)],
+                ownColumn
+            );
+            expect(placed[0].candidate).toBe(insideOwn);
+        });
+
+        it('excludes a grouped:false behind-bar overlapping its own bar (geometric, not exact match)', () => {
+            const frontBar = { x: 40, y: 40, width: 30, height: 120 };
+            // grouped:false draws a different series in the same band: overlapping in area but a
+            // different height, so exact box-value matching would miss it.
+            const behindBar = { x: 40, y: 70, width: 30, height: 90 };
+            const insideFront: BarCandidate = {
+                box: { x: 44, y: 100, width: 22, height: 16 },
+                region: bounds,
+                anchor: anchorOf(55, 108),
+                placement: 'inside-center',
+            };
+            const elsewhere: BarCandidate = {
+                box: { x: 120, y: 100, width: 22, height: 16 },
+                region: bounds,
+                anchor: anchorOf(131, 108),
+                placement: 'outside-end',
+            };
+            const { placed } = place(
+                [insideFront, elsewhere],
+                [seriesItemRect(frontBar), seriesItemRect(behindBar)],
+                frontBar
+            );
+            expect(placed[0].candidate).toBe(insideFront);
+        });
+    });
+
+    describe('hideable (suppressHide: false)', () => {
+        it('drops a sole candidate whose box overflows its region', () => {
+            const overflowing: BarCandidate = {
+                // Wider than the region on the cross axis: the full padded box cannot be contained.
+                box: { x: 180, y: 90, width: 40, height: 16 },
+                region: bounds,
+                anchor: anchorOf(200, 98),
+                placement: 'inside-center',
+            };
+            const { placed } = place([overflowing], [], { x: 0, y: 0, width: 0, height: 0 }, false);
+            expect(placed).toHaveLength(0);
+        });
+
+        it('keeps that same overflowing candidate when not hideable (least overflow)', () => {
+            const overflowing: BarCandidate = {
+                box: { x: 180, y: 90, width: 40, height: 16 },
+                region: bounds,
+                anchor: anchorOf(200, 98),
+                placement: 'inside-center',
+            };
+            const { placed } = place([overflowing]);
+            expect(placed).toHaveLength(1);
+            expect(placed[0].candidate).toBe(overflowing);
+        });
+
+        it('drops a sole candidate landing on a neighbouring bar', () => {
+            const ownBar = { x: 40, y: 60, width: 30, height: 80 };
+            const neighbourBar = { x: 120, y: 60, width: 30, height: 80 };
+            const beside: BarCandidate = {
+                box: { x: 118, y: 90, width: 28, height: 16 }, // sits on the neighbour bar
+                region: bounds,
+                anchor: anchorOf(132, 98),
+                placement: 'beside-after-center',
+            };
+            const { placed } = place([beside], [seriesItemRect(ownBar), seriesItemRect(neighbourBar)], ownBar, false);
+            expect(placed).toHaveLength(0);
+        });
+
+        it('keeps a sole candidate over its own bar (own-box exclusion)', () => {
+            const ownBar = { x: 40, y: 60, width: 30, height: 80 };
+            const inside: BarCandidate = {
+                box: { x: 42, y: 90, width: 26, height: 16 }, // inside the own bar
+                region: bounds,
+                anchor: anchorOf(55, 98),
+                placement: 'inside-center',
+            };
+            const { placed } = place([inside], [seriesItemRect(ownBar)], ownBar, false);
+            expect(placed).toHaveLength(1);
+            expect(placed[0].candidate).toBe(inside);
+        });
+    });
 });
 
 describe('resolveLabelFit', () => {
@@ -1478,5 +1832,77 @@ describe('resolveLabelFit', () => {
 
     it('lets truncate:true win over collision avoidance', () => {
         expect(resolveLabelFit({ maxWidth: 120, truncate: true }, true)?.overflowStrategy).toBe('ellipsis');
+    });
+});
+
+describe('sectorLabelContainer', () => {
+    const anchorAt = (radius: number, angle: number) => ({ x: radius * Math.cos(angle), y: radius * Math.sin(angle) });
+    const cornersOf = (anchor: Point, box: { width: number; height: number }) => {
+        const hw = box.width / 2;
+        const hh = box.height / 2;
+        return [
+            { x: anchor.x - hw, y: anchor.y - hh },
+            { x: anchor.x + hw, y: anchor.y - hh },
+            { x: anchor.x + hw, y: anchor.y + hh },
+            { x: anchor.x - hw, y: anchor.y + hh },
+        ];
+    };
+    const contained = (
+        p: Point,
+        s: { startAngle: number; endAngle: number; innerRadius: number; outerRadius: number }
+    ) => {
+        const r = Math.hypot(p.x, p.y);
+        const a = Math.atan2(p.y, p.x);
+        return (
+            r >= s.innerRadius - 1e-6 && r <= s.outerRadius + 1e-6 && a >= s.startAngle - 1e-6 && a <= s.endAngle + 1e-6
+        );
+    };
+
+    // The (anchor-centred) box must sit wholly inside the wedge at every orientation, so a fitted label placed
+    // within it can never spill past the arc or the straight edges into a neighbouring sector.
+    it.each([0, Math.PI / 6, Math.PI / 4, Math.PI / 3, Math.PI / 2 - 0.05])(
+        'keeps every corner inside the wedge at mid-angle %f',
+        (midAngle) => {
+            const halfSpan = Math.PI / 6;
+            const sector = {
+                startAngle: midAngle - halfSpan,
+                endAngle: midAngle + halfSpan,
+                innerRadius: 40,
+                outerRadius: 120,
+            };
+            const anchor = anchorAt(85, midAngle);
+            const box = sectorLabelContainer(anchor, sector, 14);
+            expect(box.width).toBeGreaterThan(0);
+            expect(box.height).toBeGreaterThan(0);
+            for (const corner of cornersOf(anchor, box)) {
+                expect(contained(corner, sector)).toBe(true);
+            }
+        }
+    );
+
+    it('offers a narrower box in a thinner wedge', () => {
+        // At mid-angle π/2 the label sits at the top of the circle, so the straight edges bound its width.
+        const mid = Math.PI / 2;
+        const anchor = anchorAt(85, mid);
+        const wide = sectorLabelContainer(
+            anchor,
+            { startAngle: mid - Math.PI / 4, endAngle: mid + Math.PI / 4, innerRadius: 0, outerRadius: 120 },
+            14
+        );
+        const thin = sectorLabelContainer(
+            anchor,
+            { startAngle: mid - Math.PI / 12, endAngle: mid + Math.PI / 12, innerRadius: 0, outerRadius: 120 },
+            14
+        );
+        expect(thin.width).toBeLessThan(wide.width);
+    });
+
+    it('returns an empty box at the centre', () => {
+        const box = sectorLabelContainer(
+            { x: 0, y: 0 },
+            { startAngle: 0, endAngle: Math.PI / 2, innerRadius: 0, outerRadius: 120 },
+            14
+        );
+        expect(box).toEqual({ width: 0, height: 0 });
     });
 });

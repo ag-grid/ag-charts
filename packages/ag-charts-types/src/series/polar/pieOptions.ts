@@ -37,8 +37,11 @@ export interface AgPieSeriesLabelOptions<TDatum, TParams, TContext = ContextDefa
     avoidCollisions?: boolean;
 }
 
-export interface AgPieSeriesSectorLabelOptions<TDatum, TParams, TContext = ContextDefault>
-    extends AgChartLabelOptions<TDatum, TParams, TContext>, AgChartLabelFitOptions {
+export interface AgPieSeriesSectorLabelOptions<TDatum, TParams, TContext = ContextDefault> extends AgChartLabelOptions<
+    TDatum,
+    TParams,
+    TContext
+> {
     /** Distance in pixels, used to make the label text closer to or further from the center. This offset is applied after positionRatio. */
     positionOffset?: PixelSize;
     /** Position of labels as a ratio proportional to pie radius. Additional offset in pixels can be applied by using positionOffset. */

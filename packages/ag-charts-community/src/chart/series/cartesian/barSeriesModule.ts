@@ -1,8 +1,8 @@
-import type { DynamicContext, SeriesModuleDefinition } from 'ag-charts-core';
 import {
     ChartAxisDirection,
     DEFAULT_SHADOW_COLOUR,
     DIRECTION_SWAP_AXES,
+    type DynamicContext,
     FILL_GRADIENT_LINEAR_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
@@ -10,6 +10,8 @@ import {
     MULTI_SERIES_HIGHLIGHT_STYLE,
     SEGMENTATION_DEFAULTS,
     SERIES_SELECTION_THEME,
+    type SeriesModuleDefinition,
+    undocumentedThemeOptions,
 } from 'ag-charts-core';
 import type { AgBarSeriesOptions, ExtensibleTheme } from 'ag-charts-types';
 
@@ -45,7 +47,10 @@ const themeTemplate: ExtensibleTheme<'bar'> = {
             fontFamily: { $ref: 'fontFamily' },
             spacing: 8,
             padding: 8,
-            collision: { threshold: 4 },
+            collision: {
+                threshold: 4,
+                ...undocumentedThemeOptions({ collideWith: { seriesItems: true, seriesArea: true } }),
+            },
             insideStyle: {
                 color: { $isUserOption: ['../color', { $path: '../color' }, { $ref: 'chartBackgroundColor' }] },
             },

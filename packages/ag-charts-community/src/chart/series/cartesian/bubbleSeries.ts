@@ -1,5 +1,6 @@
 import type { DynamicContext, NormalisedSeriesMarkerStyle } from 'ag-charts-core';
 import {
+    type BoxBounds,
     type CallbackParamRules,
     ChartAxisDirection,
     type DomainWithMetadata,
@@ -193,6 +194,8 @@ export interface BubbleScatterNodeDatum extends CartesianSeriesNodeDatum, ErrorB
     readonly anchor: Point;
     readonly insideOffset: Point | undefined;
     readonly insideSize: { width: number; height: number } | undefined;
+    /** Series-area rect a label must fit within; a label overflowing it fails collision containment. */
+    readonly region?: BoxBounds;
     readonly count: number;
     readonly dilation: number;
     readonly area: number;
@@ -262,6 +265,7 @@ interface BubbleSeriesNodeDatumContext extends CartesianMarkerLikeContext<Bubble
     readonly labelTextMeasurer: { measureLines: (text: string) => { width: number; height: number } };
     readonly labelFit: LabelFit | undefined;
     readonly label: BubbleScatterSeriesProperties['label'];
+    readonly plotRegion: BoxBounds | undefined;
 
     // Other state
     readonly visible: boolean;
@@ -584,6 +588,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         // so a directional fallback isn't constrained to the marker.
         const insideOnly = placements.length > 0 && placements.every((placement) => placement === 'inside');
         const insideRect = placements.includes('inside') ? markerLabelRect(marker.shape) : undefined;
+        const collideWith = label.collision.resolveCollideWith();
 
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
@@ -662,6 +667,10 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             labelTextMeasurer: cachedTextMeasurer(label),
             labelFit: resolveLabelFit(label, !label.collision.suppressHide, insideOnly),
             label,
+            // The series-area clamp is opt-in via `collideWith.seriesArea`. Inside-only labels are
+            // additionally exempt: fitted to and centred on their marker, an edge marker's label rides
+            // with the point, so only directional placements can spill past the series area.
+            plotRegion: insideOnly || !collideWith.seriesArea ? undefined : this.getSeriesPlotRegion(),
 
             // Other state
             animationEnabled: !this.ctx.animationManager.isSkipped(),
@@ -966,6 +975,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             anchor: ctx.labelAnchor,
             insideOffset: ctx.labelInsideOffset,
             insideSize: ctx.labelInsideSize,
+            region: ctx.plotRegion,
             placement: ctx.labelPlacement,
             count: 1,
             dilation: 1,
@@ -1002,6 +1012,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         mutableNode.anchor = ctx.labelAnchor;
         mutableNode.insideOffset = ctx.labelInsideOffset;
         mutableNode.insideSize = ctx.labelInsideSize;
+        mutableNode.region = ctx.plotRegion;
         mutableNode.placement = ctx.labelPlacement;
 
         // Update point in-place

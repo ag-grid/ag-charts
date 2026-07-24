@@ -1,4 +1,4 @@
-import type { ChartAnimationPhase, NormalisedSeriesSegmentation, Scaling } from 'ag-charts-core';
+import type { BoxBounds, ChartAnimationPhase, NormalisedSeriesSegmentation, Scaling } from 'ag-charts-core';
 import {
     ChartAxisDirection,
     Debug,
@@ -577,6 +577,23 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         throw new Error(
             `${this.constructor.name}: createNodeDatumContext() must be implemented when using the template method pattern`
         );
+    }
+
+    /**
+     * The series plot area as a label containment rect, in plot-local coordinates, so the
+     * seriesArea padding extends the rect into a negative origin. A label overflowing this rect
+     * spills past the series area (into the axis/padding zone) and must fail collision containment.
+     */
+    protected getSeriesPlotRegion(): BoxBounds | undefined {
+        const seriesRect = this.chart?.seriesRect;
+        if (seriesRect == null) return undefined;
+        const padding = this.chart?.seriesAreaPadding;
+        return {
+            x: -(padding?.left ?? 0),
+            y: -(padding?.top ?? 0),
+            width: seriesRect.width + (padding?.left ?? 0) + (padding?.right ?? 0),
+            height: seriesRect.height + (padding?.top ?? 0) + (padding?.bottom ?? 0),
+        };
     }
 
     /**

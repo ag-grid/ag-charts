@@ -97,7 +97,6 @@ export const pieSeriesThemeableOptionsDef: OptionsDefs<AgPieSeriesThemeableOptio
             ...labelBoxOptionsDef,
             ...fontOptionsDef,
         }),
-        ...labelFitOptionsDefs,
         ...labelBoxOptionsDef,
         ...fontOptionsDef,
     },
@@ -151,6 +150,14 @@ pieSeriesOptionsDef.title._enabledFromTheme = undocumented(boolean);
 pieSeriesOptionsDef.calloutLabel._enabledFromTheme = undocumented(boolean);
 // @ts-expect-error undocumented option
 pieSeriesOptionsDef.sectorLabel._enabledFromTheme = undocumented(boolean);
+// @ts-expect-error undocumented option
+pieSeriesOptionsDef.sectorLabel.maxWidth = undocumented(labelFitOptionsDefs.maxWidth);
+// @ts-expect-error undocumented option
+pieSeriesOptionsDef.sectorLabel.maxHeight = undocumented(labelFitOptionsDefs.maxHeight);
+// @ts-expect-error undocumented option
+pieSeriesOptionsDef.sectorLabel.wrapping = undocumented(labelFitOptionsDefs.wrapping);
+// @ts-expect-error undocumented option
+pieSeriesOptionsDef.sectorLabel.truncate = undocumented(labelFitOptionsDefs.truncate);
 // @ts-expect-error undocumented option
 pieSeriesOptionsDef.angleKeyAxis = undocumented(string);
 // @ts-expect-error undocumented option
