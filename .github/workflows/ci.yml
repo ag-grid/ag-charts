@@ -1351,6 +1351,15 @@ jobs:
                   # Deterministic URL — the report filenames are snapshot-<slug>.html.
                   report_base_url: https://ag-grid.github.io/ag-charts/pr-${{ github.event.pull_request.number }}/
 
+            # Post the summary immediately (the report link is a "publishing…" placeholder at this
+            # point). Also the GC point: clears a stale section when this build produced no report.
+            - name: Upsert snapshot-review section (summary)
+              uses: ./.github/actions/pr-report-comment
+              with:
+                  pr_number: ${{ github.event.pull_request.number }}
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
+                  remove_sections: ${{ steps.review.outputs.produced != 'true' && 'snapshot-review' || '' }}
+
             - name: Upload snapshot-review HTML reports
               if: steps.review.outputs.produced == 'true'
               uses: actions/upload-artifact@v4
@@ -1385,14 +1394,42 @@ jobs:
                   files: ${{ steps.reports.outputs.files }}
                   github_token: ${{ secrets.GITHUB_TOKEN }}
 
-            # Upsert the snapshot-review section when reports were produced; otherwise clear any
-            # stale section from an earlier push (snapshots since fixed / no longer changed).
-            - name: Upsert snapshot-review section
+            # Wait for the just-published reports to become reachable on gh-pages before linking them,
+            # so the comment never carries a link that 404s while the deploy propagates. Best-effort:
+            # if a report is still unreachable after the budget, link it anyway (advisory job).
+            - name: Wait for published reports
+              if: steps.review.outputs.produced == 'true'
+              shell: bash
+              run: |
+                  set -uo pipefail
+                  base="https://ag-grid.github.io/ag-charts/pr-${{ github.event.pull_request.number }}"
+                  for f in "${{ steps.review.outputs.html_dir }}"/*.html; do
+                      url="${base}/$(basename "$f")"
+                      echo "Waiting for ${url}"
+                      for attempt in $(seq 1 40); do
+                          code=$(curl -s -o /dev/null -w '%{http_code}' "$url" || echo 000)
+                          [[ "$code" == "200" ]] && { echo "  reachable"; break; }
+                          [[ "$attempt" == "40" ]] && echo "::warning::${url} still ${code} after retries; linking anyway."
+                          sleep 5
+                      done
+                  done
+
+            # Swap the deferred-link sentinels for live links now the reports are reachable.
+            - name: Finalize snapshot-review links
+              if: steps.review.outputs.produced == 'true'
+              shell: bash
+              run: |
+                  set -euo pipefail
+                  frag="${RUNNER_TEMP}/pr-sections/25-snapshot-review.md"
+                  sed -E -i 's#<!-- report-link href="([^"]+)" -->.*#[Open the full interactive report](\1)#' "$frag"
+
+            # Re-upsert with the live report links in place.
+            - name: Upsert snapshot-review section (with report link)
+              if: steps.review.outputs.produced == 'true'
               uses: ./.github/actions/pr-report-comment
               with:
                   pr_number: ${{ github.event.pull_request.number }}
                   github_token: ${{ secrets.GITHUB_TOKEN }}
-                  remove_sections: ${{ steps.review.outputs.produced != 'true' && 'snapshot-review' || '' }}
 
     sonarqube:
         # Org-scoped GHA variable kill-switch: set SONARCLOUD_ENABLED=false to

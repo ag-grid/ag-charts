@@ -102,11 +102,14 @@ runs:
                       return 1
                   fi
 
-                  # Prefer a direct link to the published report (one click); otherwise fall back to
-                  # the run's artifacts page (download + unzip).
+                  # For a published report, emit a deferred-link sentinel rather than the link itself:
+                  # the summary can post immediately while the report is still propagating to gh-pages,
+                  # and the caller rewrites the sentinel into a live link once the URL is reachable
+                  # (avoids a transient 404 on the freshly-posted comment). The artifacts fallback is
+                  # reachable at once, so it is linked directly.
                   local link
                   if [[ -n "${REPORT_BASE_URL}" ]]; then
-                      link="[Open the full interactive report](${REPORT_BASE_URL%/}/snapshot-${slug}.html)"
+                      link="<!-- report-link href=\"${REPORT_BASE_URL%/}/snapshot-${slug}.html\" -->⏳ _Publishing interactive report…_"
                   else
                       link="[Full interactive report: \`snapshot-${slug}.html\` in run artifacts](${RUN_URL}#artifacts)"
                   fi
