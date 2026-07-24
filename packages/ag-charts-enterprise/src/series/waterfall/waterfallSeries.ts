@@ -751,10 +751,13 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             const isUpward = (value ?? -1) >= 0 !== valueAxisReversed;
             const resolvesOrientation = barLabelResolvesOrientation(label.orientation);
             const labelRotation = barLabelRotation(firstCandidate(label.orientation));
+            // Only bind the text to the bar when `inside` is the sole placement; a cascade with a non-inside
+            // fallback must keep full text so a label that cannot fit inside can escape to that fallback.
+            const insideOnly = toArray(label.placement).every((p) => p.startsWith('inside'));
             // Inside labels fit within the bar region (reserving the anchored-side spacing gap and drawn
             // box); outside labels sit beside it, so leave them unbound.
             const bounds =
-                insidePlacement && (labelFit != null || resolvesOrientation)
+                insideOnly && (labelFit != null || resolvesOrientation)
                     ? insideBarLabelBounds(
                           rect,
                           placement ?? 'inside-center',

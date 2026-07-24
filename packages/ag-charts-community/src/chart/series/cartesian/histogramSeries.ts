@@ -550,9 +550,13 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         const rotation = barLabelRotation(toArray(label.orientation)[0]);
         const resolvesOrientation = barLabelResolvesOrientation(label.orientation);
         const rect = { x, y, width: w, height: h };
+        // Only bind the text to the bar (fitting/hiding it inside) when `inside` is the sole placement. A
+        // cascade with a non-inside fallback must keep full text so a label that cannot fit inside can
+        // escape to that fallback rather than being truncated or dropped for failing the inside fit.
+        const insideOnly = toArray(label.placement).every((p) => p.startsWith('inside'));
         // Region reserves the anchored-side spacing gap (nothing when centred); container is region minus
         // the drawn box. Outside labels float free of the bar (no container/region).
-        const bounds = isInside
+        const bounds = insideOnly
             ? insideBarLabelBounds(
                   rect,
                   placement,

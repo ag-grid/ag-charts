@@ -1139,6 +1139,42 @@ describe('label collision avoidance', () => {
             ).toBe(1);
         });
 
+        // With an `['inside-center', ...]` cascade that has a non-inside fallback, a label too large to fit
+        // inside the bin must NOT be truncated to the bin and pinned inside; it keeps its full text and
+        // cascades to the outside fallback. (Only an inside-only placement binds the text to the bar.)
+        it('keeps full text and cascades an oversized inside-first label to the outside fallback', async () => {
+            // A narrow, centred bin whose long label cannot fit inside. Without the fix the label is fitted
+            // to the tiny inside container and dropped; with it, full text cascades to the outside fallback.
+            const opts: any = {
+                data: Array.from({ length: 5 }, () => ({ x: 2 })),
+                legend: { enabled: false },
+                padding: { top: 100, right: 100, bottom: 10, left: 100 },
+                axes: { x: { type: 'number', min: 0, max: 4 }, y: { type: 'number', min: 0, max: 100 } },
+                series: [
+                    {
+                        type: 'histogram',
+                        xKey: 'x',
+                        bins: [[1.9, 2.1]],
+                        label: {
+                            enabled: true,
+                            formatter: () => 'WWWWWWWWWWWWWWWWWWWW',
+                            placement: ['inside-center', 'outside-end'],
+                            collision: { suppressHide: false },
+                        },
+                    },
+                ],
+            };
+            prepareTestOptions(opts);
+            chart = AgCharts.create(opts);
+            await waitForChartStability(chart);
+            const series = deproxy(chart as any).series[0] as unknown as {
+                labelSelection: { nodes(): { visible: boolean; datum: { label?: { placement?: string } } }[] };
+            };
+            const labels = series.labelSelection.nodes().filter((node) => node.visible);
+            expect(labels).toHaveLength(1);
+            expect(labels[0].datum.label?.placement).toBe('outside-end');
+        });
+
         // One render covering every cascade outcome: the short bins keep the `outside-end` label above
         // the bar; the full-height bin whose `outside-end` overflows the top series area cascades to
         // `inside-center`; the full-height bin with a label too wide to fit inside is dropped.
