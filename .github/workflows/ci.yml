@@ -160,7 +160,9 @@ jobs:
               id: build
               if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
               run: |
-                  yarn nx run-many -t build,docs-resolved-interfaces,generate-example --exclude tag:skip-gha-cache,all
+                  # generate-thumbnail is included so thumbnail outputs land in the rw Nx cache —
+                  # otherwise the (read-only) website_build job regenerates all ~126 on every PR.
+                  yarn nx run-many -t build,docs-resolved-interfaces,generate-example,generate-thumbnail --exclude tag:skip-gha-cache,all
                   # Populate the (rw-cached) staging example outputs here so the ro website_build
                   # job restores them instead of regenerating all examples. Only latest builds the
                   # website with -c staging, so scope the extra generation to that branch.
@@ -580,7 +582,10 @@ jobs:
     website_build:
         runs-on: ubuntu-24.04
         name: Website Build
-        needs: [detect-changes, init]
+        # Deliberately does not wait for init: it consumes no init outputs, only the previous
+        # baseline Nx cache (restore-keys), and rebuilds PR-affected tasks itself. Starting it
+        # immediately takes ~4 minutes off the critical path on code-change PRs.
+        needs: [detect-changes]
         if: needs.detect-changes.outputs.run_full_ci == 'true'
         outputs:
             build: ${{ steps.build.outcome || '' }}
