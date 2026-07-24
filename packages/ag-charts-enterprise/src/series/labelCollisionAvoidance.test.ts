@@ -35,6 +35,10 @@ describe('label collision avoidance', () => {
 
     const ctx = setupMockCanvas();
 
+    type Box = { x: number; y: number; width: number; height: number };
+    const overlaps = (a: Box, b: Box) =>
+        a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
+
     const renderAndSnapshot = async (options: object) => {
         prepareEnterpriseTestOptions(options as AgChartOptions);
         chart = deproxy(AgCharts.create(options as AgChartOptions));
@@ -329,10 +333,6 @@ describe('label collision avoidance', () => {
     });
 
     describe('cross-series obstacles (baked range-bar labels vs scatter label)', () => {
-        type Box = { x: number; y: number; width: number; height: number };
-        const overlaps = (a: Box, b: Box) =>
-            a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
-
         // Range-bar A spans low 2 to high 8, baking a label at each end. The HIT scatter point sits just
         // below the low label so its `top` candidate lands on it; the rest are clear.
         const rangeData = [
@@ -573,9 +573,6 @@ describe('label collision avoidance', () => {
     });
 
     describe('range-bar sibling-label collision (shared bar rect)', () => {
-        type Box = { x: number; y: number; width: number; height: number };
-        const overlaps = (a: Box, b: Box) =>
-            a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
         const visibleLabels = (series: {
             labelSelection: {
                 nodes(): { visible: boolean; datum: { placement?: string }; computeBBox(): Box | undefined }[];
