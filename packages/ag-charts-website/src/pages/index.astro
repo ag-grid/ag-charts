@@ -2,6 +2,7 @@
 // cspell:ignore whats
 import Layout from '@layouts/Layout.astro';
 import styles from '@pages-styles/homepage.module.scss';
+import { DISABLE_MARKDOWN_DOCS } from '@constants';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import { getEntry, type CollectionEntry } from 'astro:content';
 import { Icon } from '@ag-website-shared/components/icon/Icon';
@@ -61,11 +62,14 @@ const frameworksData = [
 ];
 
 const mapExampleHeights = 360;
+
+const markdownUrl = DISABLE_MARKDOWN_DOCS ? undefined : urlWithBaseUrl('/index.md');
 ---
 
 <Layout
     title="JavaScript Charts | AG Charts"
     description="Create beautiful, high-performance JavaScript Charts quickly with AG Charts. Free forever; upgrade to enterprise for advanced features and dedicated support."
+    markdownUrl={markdownUrl}
 >
     <div class:list={[styles.container]}>
         <div class={styles.homepageHero}>

@@ -6,6 +6,8 @@ import { parseVersion } from '@ag-website-shared/utils/parseVersion';
 import { SideNavigation } from '@components/pages-navigation/components/SideNavigation';
 import MajorTable from '@ag-website-shared/components/major-table/MajorTable.astro';
 import docsStyles from '@ag-website-shared/components/page-styles/docs.module.scss';
+import { DISABLE_MARKDOWN_DOCS } from '@constants';
+import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 
 import type { Framework } from '@ag-grid-types';
 
@@ -30,6 +32,8 @@ const headings = [
         return { slug: `version-${major}`, depth: 2, text: `Version ${major}` };
     }),
 ];
+
+const markdownUrl = DISABLE_MARKDOWN_DOCS ? undefined : urlWithBaseUrl('/documentation-archive.md');
 ---
 
 <Layout
@@ -37,6 +41,7 @@ const headings = [
     description={'Browse archived documentation for previous AG Charts versions, from version 9 onwards. View changelogs for every minor and major release.'}
     showDocsNav={true}
     showSearchBar={true}
+    markdownUrl={markdownUrl}
 >
     <div class:list={[docsStyles.contentViewport, 'layout-grid']}>
         <DocsNavFromLocalStorage client:load menuData={docsNavData} pageName={pageName} />
