@@ -25,6 +25,7 @@ export const AG_CHARTS_LOCALE_BG_BG: Record<string, string> = {
     ariaOrgChartExpanded: 'разгънато',
     ariaDescriptionExpandNode: 'Натиснете Alt + стрелка надолу, за да разгънете този възел',
     ariaDescriptionCollapseNode: 'Натиснете Alt + стрелка нагоре, за да свиете този възел',
+    ariaDescriptionToggleNode: 'Натиснете Space или Enter, за да разгънете или свиете този възел',
     ariaAnnounceGaugeChart: 'графика тип манометър, ${caption}',
     ariaAnnounceHierarchyChart: 'йерархична диаграма, ${caption}',
     ariaAnnounceHierarchyDatum: 'ниво ${level}[number], ${count}[number] деца, ${description}',

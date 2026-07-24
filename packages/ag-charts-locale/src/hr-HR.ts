@@ -25,6 +25,7 @@ export const AG_CHARTS_LOCALE_HR_HR: Record<string, string> = {
     ariaOrgChartExpanded: 'prošireno',
     ariaDescriptionExpandNode: 'Pritisnite Alt + strelicu dolje za proširenje ovog čvora',
     ariaDescriptionCollapseNode: 'Pritisnite Alt + strelicu gore za sažimanje ovog čvora',
+    ariaDescriptionToggleNode: 'Pritisnite Space ili Enter za proširenje ili sažimanje ovog čvora',
     ariaAnnounceGaugeChart: 'mjerna ljestvica, ${caption}',
     ariaAnnounceHierarchyChart: 'hijerarhijski grafikon, ${caption}',
     ariaAnnounceHierarchyDatum: 'razina ${level}[number], ${count}[number] djece, ${description}',

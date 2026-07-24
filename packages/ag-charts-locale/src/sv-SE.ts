@@ -25,6 +25,7 @@ export const AG_CHARTS_LOCALE_SV_SE: Record<string, string> = {
     ariaOrgChartExpanded: 'expanderad',
     ariaDescriptionExpandNode: 'Tryck på Alt + Nedåtpil för att expandera denna nod',
     ariaDescriptionCollapseNode: 'Tryck på Alt + Uppåtpil för att komprimera denna nod',
+    ariaDescriptionToggleNode: 'Tryck på Space eller Enter för att expandera eller komprimera denna nod',
     ariaAnnounceGaugeChart: 'mätargraf, ${caption}',
     ariaAnnounceHierarchyChart: 'hierarkidiagram, ${caption}',
     ariaAnnounceHierarchyDatum: 'nivå ${level}[number], ${count}[number] barn, ${description}',

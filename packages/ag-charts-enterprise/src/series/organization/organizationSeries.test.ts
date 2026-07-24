@@ -1769,6 +1769,24 @@ describe('OrganizationSeries', () => {
             seriesArea.dispatchEvent(new KeyboardEvent('keydown', { key, code: key, bubbles: true }));
         }
 
+        function pressKeyOnSeriesArea(key: string, code: string) {
+            const seriesArea = document.querySelector<HTMLElement>('.ag-charts-series-area');
+            if (!seriesArea) throw new Error('series-area element not found');
+            seriesArea.dispatchEvent(new KeyboardEvent('keydown', { key, code, bubbles: true }));
+        }
+
+        async function setupChartWithClickToExpand(clickToExpand: boolean) {
+            const baseSeries = (SIMPLE_ORG_CHART.series as any)[0];
+            const options: AgChartOptions = {
+                ...SIMPLE_ORG_CHART,
+                series: [{ ...baseSeries, node: { ...baseSeries.node, clickToExpand } }],
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            return deproxy(chart).ctx.collapsedManager;
+        }
+
         it('announces a parent node identity-first with level, position, and expanded state', async () => {
             await setupChart();
             // Default focus sits on the root (ceo); ArrowDown moves to its first child (cto).
@@ -1776,7 +1794,7 @@ describe('OrganizationSeries', () => {
             await waitForChartStability(chart);
             // Identity-first ordering matches WAI-ARIA tree conventions: name before metadata.
             expect(readLiveAnnouncement()).toBe(
-                'Bob Smith, Chief Technology Officer, London, level 2, 1 of 2, expanded, 2 children. Press ALT UP to collapse this node'
+                'Bob Smith, Chief Technology Officer, London, level 2, 1 of 2, expanded, 2 children. Press ALT UP to collapse this node. Press Space or Enter to expand or collapse this node'
             );
         });
 
@@ -1803,7 +1821,7 @@ describe('OrganizationSeries', () => {
             pressArrowOnSeriesArea('ArrowRight');
             await waitForChartStability(chart);
             expect(readLiveAnnouncement()).toBe(
-                'Carol Wu, Chief Financial Officer, London, level 2, 2 of 2, expanded, 1 child. Press ALT UP to collapse this node'
+                'Carol Wu, Chief Financial Officer, London, level 2, 2 of 2, expanded, 1 child. Press ALT UP to collapse this node. Press Space or Enter to expand or collapse this node'
             );
         });
 
@@ -1815,8 +1833,58 @@ describe('OrganizationSeries', () => {
             pressArrowOnSeriesArea('ArrowDown');
             await waitForChartStability(chart);
             expect(readLiveAnnouncement()).toBe(
-                'Bob Smith, Chief Technology Officer, London, level 2, 1 of 2, collapsed, 2 children. Press ALT DOWN to expand this node'
+                'Bob Smith, Chief Technology Officer, London, level 2, 1 of 2, collapsed, 2 children. Press ALT DOWN to expand this node. Press Space or Enter to expand or collapse this node'
             );
+        });
+
+        // AG-17263 regression: Alt+Up/Down keybindings were added but Enter/Space toggling was lost.
+        // With clickToExpand enabled (the default) Enter/Space must still expand/collapse the node.
+        it('Enter toggles the focused parent node when clickToExpand is enabled', async () => {
+            const collapsedManager = await setupChartWithClickToExpand(true);
+            // ceo → cto (a parent node).
+            pressArrowOnSeriesArea('ArrowDown');
+            await waitForChartStability(chart);
+            expect(collapsedManager.isCollapsed('cto')).toBe(false);
+
+            pressKeyOnSeriesArea('Enter', 'Enter');
+            await waitForChartStability(chart);
+            expect(collapsedManager.isCollapsed('cto')).toBe(true);
+
+            pressKeyOnSeriesArea('Enter', 'Enter');
+            await waitForChartStability(chart);
+            expect(collapsedManager.isCollapsed('cto')).toBe(false);
+        });
+
+        it('Space toggles the focused parent node when clickToExpand is enabled', async () => {
+            const collapsedManager = await setupChartWithClickToExpand(true);
+            pressArrowOnSeriesArea('ArrowDown');
+            await waitForChartStability(chart);
+            expect(collapsedManager.isCollapsed('cto')).toBe(false);
+
+            pressKeyOnSeriesArea(' ', 'Space');
+            await waitForChartStability(chart);
+            expect(collapsedManager.isCollapsed('cto')).toBe(true);
+        });
+
+        it('Enter does not toggle a node when clickToExpand is disabled', async () => {
+            const collapsedManager = await setupChartWithClickToExpand(false);
+            pressArrowOnSeriesArea('ArrowDown');
+            await waitForChartStability(chart);
+            expect(collapsedManager.isCollapsed('cto')).toBe(false);
+
+            pressKeyOnSeriesArea('Enter', 'Enter');
+            await waitForChartStability(chart);
+            // clickToExpand off → Enter/Space are inert; use Alt+Up/Down instead.
+            expect(collapsedManager.isCollapsed('cto')).toBe(false);
+        });
+
+        it('omits the Enter/Space instruction from announcements when clickToExpand is disabled', async () => {
+            await setupChartWithClickToExpand(false);
+            pressArrowOnSeriesArea('ArrowDown');
+            await waitForChartStability(chart);
+            const announcement = readLiveAnnouncement();
+            expect(announcement).toContain('Press ALT UP to collapse this node');
+            expect(announcement).not.toContain('Press Space or Enter');
         });
     });
 

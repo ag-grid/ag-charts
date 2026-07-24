@@ -25,6 +25,7 @@ export const AG_CHARTS_LOCALE_RO_RO: Record<string, string> = {
     ariaOrgChartExpanded: 'extins',
     ariaDescriptionExpandNode: 'Apăsați Alt + Săgeată jos pentru a extinde acest nod',
     ariaDescriptionCollapseNode: 'Apăsați Alt + Săgeată sus pentru a restrânge acest nod',
+    ariaDescriptionToggleNode: 'Apăsați Space sau Enter pentru a extinde sau restrânge acest nod',
     ariaAnnounceGaugeChart: 'grafic indicator, ${caption}',
     ariaAnnounceHierarchyChart: 'diagramă ierarhică, ${caption}',
     ariaAnnounceHierarchyDatum: 'nivel ${level}[number], ${count}[number] copii, ${description}',

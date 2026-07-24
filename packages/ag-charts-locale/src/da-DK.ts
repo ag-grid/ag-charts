@@ -25,6 +25,7 @@ export const AG_CHARTS_LOCALE_DA_DK: Record<string, string> = {
     ariaOrgChartExpanded: 'udvidet',
     ariaDescriptionExpandNode: 'Tryk på Alt + Pil ned for at udvide denne node',
     ariaDescriptionCollapseNode: 'Tryk på Alt + Pil op for at skjule denne node',
+    ariaDescriptionToggleNode: 'Tryk på Space eller Enter for at udvide eller skjule denne node',
     ariaAnnounceGaugeChart: 'målerdiagram, ${caption}',
     ariaAnnounceHierarchyChart: 'hierarkisk diagram, ${caption}',
     ariaAnnounceHierarchyDatum: 'niveau ${level}[number], ${count}[number] børn, ${description}',

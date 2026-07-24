@@ -25,6 +25,7 @@ export const AG_CHARTS_LOCALE_SK_SK: Record<string, string> = {
     ariaOrgChartExpanded: 'rozbalený',
     ariaDescriptionExpandNode: 'Stlačením Alt + šípka nadol rozbalíte tento uzol',
     ariaDescriptionCollapseNode: 'Stlačením Alt + šípka nahor zbalíte tento uzol',
+    ariaDescriptionToggleNode: 'Stlačením Space alebo Enter rozbalíte alebo zbalíte tento uzol',
     ariaAnnounceGaugeChart: 'stupnicový graf, ${caption}',
     ariaAnnounceHierarchyChart: 'hierarchický graf, ${caption}',
     ariaAnnounceHierarchyDatum: 'úroveň ${level}[number], ${count}[number] detí, ${description}',

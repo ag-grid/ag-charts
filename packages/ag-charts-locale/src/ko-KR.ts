@@ -25,6 +25,7 @@ export const AG_CHARTS_LOCALE_KO_KR: Record<string, string> = {
     ariaOrgChartExpanded: '확장됨',
     ariaDescriptionExpandNode: 'Alt + 아래쪽 화살표를 눌러 이 노드를 펼치세요',
     ariaDescriptionCollapseNode: 'Alt + 위쪽 화살표를 눌러 이 노드를 접으세요',
+    ariaDescriptionToggleNode: 'Space 또는 Enter를 눌러 이 노드를 펼치거나 접으세요',
     ariaAnnounceGaugeChart: '게이지 차트, ${caption}',
     ariaAnnounceHierarchyChart: '계층 차트, ${caption}',
     ariaAnnounceHierarchyDatum: '레벨 ${level}[number], ${count}[number] 자식, ${description}',

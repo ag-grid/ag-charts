@@ -25,6 +25,7 @@ export const AG_CHARTS_LOCALE_JA_JP: Record<string, string> = {
     ariaOrgChartExpanded: '展開',
     ariaDescriptionExpandNode: 'Alt + 下矢印キーを押してこのノードを展開します',
     ariaDescriptionCollapseNode: 'Alt + 上矢印キーを押してこのノードを折りたたみます',
+    ariaDescriptionToggleNode: 'Space または Enter キーを押してこのノードを展開または折りたたみます',
     ariaAnnounceGaugeChart: 'ゲージチャート、${caption}',
     ariaAnnounceHierarchyChart: '階層チャート, ${caption}',
     ariaAnnounceHierarchyDatum: 'レベル ${level}[number]、${count}[number] の子供、${description}',
