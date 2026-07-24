@@ -1314,6 +1314,11 @@ jobs:
             packages: read
             # scene-graph review (follow-up) downloads CI artifacts via gh — needs actions: read.
             actions: read
+        env:
+            # Report URLs are deterministic (snapshot-<slug>.html), so a previous run's deploy answers
+            # 200 at the same URL while this run's is still propagating. Stamp each report with a
+            # per-commit marker and gate the reachability check on it, so a stale deploy can't pass.
+            REPORT_DEPLOY_MARKER: '<!-- snapshot-review-deploy ${{ github.event.pull_request.head.sha }} -->'
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -1368,8 +1373,8 @@ jobs:
                   path: ${{ steps.review.outputs.html_dir }}/*.html
                   if-no-files-found: ignore
 
-            # Resolve the generated report files for the PR-preview publish (the publish action takes
-            # explicit newline-separated paths, not a glob).
+            # Stamp each report with the per-commit deploy marker, then resolve the file paths for the
+            # PR-preview publish (the publish action takes explicit newline-separated paths, not a glob).
             - name: Stage report files
               id: reports
               if: steps.review.outputs.produced == 'true'
@@ -1377,6 +1382,9 @@ jobs:
               run: |
                   set -euo pipefail
                   files=$(find "${{ steps.review.outputs.html_dir }}" -maxdepth 1 -type f -name '*.html')
+                  while IFS= read -r f; do
+                      [[ -n "$f" ]] && printf '\n%s\n' "$REPORT_DEPLOY_MARKER" >> "$f"
+                  done <<< "$files"
                   {
                       echo "files<<__FILES_EOF__"
                       echo "$files"
@@ -1387,6 +1395,7 @@ jobs:
             # https://ag-grid.github.io/ag-charts/pr-<N>/snapshot-<slug>.html). Removed with the rest
             # of the PR preview when the PR closes.
             - name: Publish reports to PR preview
+              id: publish
               if: steps.review.outputs.produced == 'true'
               uses: ./external/ag-shared/github/actions/pr-preview-publish
               with:
@@ -1394,38 +1403,57 @@ jobs:
                   files: ${{ steps.reports.outputs.files }}
                   github_token: ${{ secrets.GITHUB_TOKEN }}
 
-            # Wait for the just-published reports to become reachable on gh-pages before linking them,
-            # so the comment never carries a link that 404s while the deploy propagates. Best-effort:
-            # if a report is still unreachable after the budget, link it anyway (advisory job).
+            # Wait for THIS run's reports to become reachable on gh-pages before linking them, so the
+            # comment never carries a link that 404s while the deploy propagates. Gate on the deploy
+            # marker (not status alone): a deterministic URL can answer 200 from a previous run's
+            # deploy while this run's is still propagating. Best-effort — if the current deploy is
+            # still not served after the budget, the failure path below falls back to artifacts.
             - name: Wait for published reports
+              id: wait
               if: steps.review.outputs.produced == 'true'
               shell: bash
               run: |
                   set -uo pipefail
                   base="https://ag-grid.github.io/ag-charts/pr-${{ github.event.pull_request.number }}"
+                  reachable=true
                   for f in "${{ steps.review.outputs.html_dir }}"/*.html; do
                       url="${base}/$(basename "$f")"
                       echo "Waiting for ${url}"
                       for attempt in $(seq 1 40); do
-                          code=$(curl -s -o /dev/null -w '%{http_code}' "$url" || echo 000)
-                          [[ "$code" == "200" ]] && { echo "  reachable"; break; }
-                          [[ "$attempt" == "40" ]] && echo "::warning::${url} still ${code} after retries; linking anyway."
+                          if curl -sf "$url" 2>/dev/null | grep -qF "$REPORT_DEPLOY_MARKER"; then
+                              echo "  reachable (current deploy)"; break
+                          fi
+                          if [[ "$attempt" == "40" ]]; then
+                              echo "::warning::${url} did not serve this run's deploy after retries."
+                              reachable=false
+                          fi
                           sleep 5
                       done
                   done
+                  echo "reachable=${reachable}" >> "$GITHUB_OUTPUT"
 
-            # Swap the deferred-link sentinels for live links now the reports are reachable.
+            # Replace the deferred-link sentinel. always(): even if upload/stage/publish/wait failed,
+            # the sentinel MUST be resolved so the comment never sticks on "Publishing…". Link the live
+            # report only when it published AND is serving this run's deploy; otherwise fall back to the
+            # run artifacts (never a link that 404s or serves a stale comparison).
             - name: Finalize snapshot-review links
-              if: steps.review.outputs.produced == 'true'
+              if: always() && steps.review.outputs.produced == 'true'
               shell: bash
+              env:
+                  RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
               run: |
                   set -euo pipefail
                   frag="${RUNNER_TEMP}/pr-sections/25-snapshot-review.md"
-                  sed -E -i 's#<!-- report-link href="([^"]+)" -->.*#[Open the full interactive report](\1)#' "$frag"
+                  [[ -f "$frag" ]] || exit 0
+                  if [[ "${{ steps.publish.outcome }}" == "success" && "${{ steps.wait.outputs.reachable }}" == "true" ]]; then
+                      sed -E -i 's#<!-- report-link href="([^"]+)" -->.*#[Open the full interactive report](\1)#' "$frag"
+                  else
+                      sed -E -i "s|<!-- report-link href=\"[^\"]+\" -->.*|:warning: Report publish failed — download the \`snapshot-review-html\` artifact from the [workflow run](${RUN_URL}#artifacts).|" "$frag"
+                  fi
 
-            # Re-upsert with the live report links in place.
+            # Re-upsert with the resolved report link (live or fallback) in place.
             - name: Upsert snapshot-review section (with report link)
-              if: steps.review.outputs.produced == 'true'
+              if: always() && steps.review.outputs.produced == 'true'
               uses: ./.github/actions/pr-report-comment
               with:
                   pr_number: ${{ github.event.pull_request.number }}
