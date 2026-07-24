@@ -16,6 +16,15 @@ name: Release Review
 #     (`github.event.created`). The branch filter keeps unrelated branch pushes
 #     out of this workflow entirely; the `created` guard ensures the review runs
 #     once when the release branch is cut, not on every subsequent commit to it.
+#     The push itself never runs the review jobs directly — anthropics/
+#     claude-code-action@v1 only supports entity (issues/PR/comment) or
+#     automation (workflow_dispatch/repository_dispatch/schedule/workflow_run)
+#     events and throws "Unsupported event type: push" otherwise, and
+#     GITHUB_EVENT_NAME can't be remapped from a step (it's a reserved default
+#     env var the runner re-asserts, so a step-level override is silently
+#     discarded). Instead, `dispatch-on-push` re-fires this same workflow via a
+#     genuine `workflow_dispatch` call against the new branch — same
+#     self-dispatch pattern ci.yml uses for the canary auto-bump.
 #
 # Each job uploads the full report as an artifact and posts a concise summary +
 # the full report (as a file) to #charts_teamcity_status.
@@ -74,11 +83,28 @@ env:
     DEV_PROMPTS_CHANNEL: canary
 
 jobs:
+    dispatch-on-push:
+        name: Dispatch review (push → workflow_dispatch)
+        # Re-fires this workflow as a genuine workflow_dispatch against the new
+        # branch; see the "Triggers" note above for why the push event can't
+        # run the review jobs directly.
+        if: github.event_name == 'push' && github.event.created
+        runs-on: ubuntu-latest
+        permissions:
+            actions: write
+        steps:
+            - name: Trigger release review via workflow_dispatch
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  gh workflow run release-review.yml \
+                      --repo "${{ github.repository }}" \
+                      --ref "${{ github.ref_name }}" \
+                      -f review=both
+
     docs-review:
         name: Documentation review
-        if: >-
-            (github.event_name == 'push' && github.event.created) ||
-            (github.event_name == 'workflow_dispatch' && (inputs.review == 'docs' || inputs.review == 'both'))
+        if: github.event_name == 'workflow_dispatch' && (inputs.review == 'docs' || inputs.review == 'both')
         runs-on: ubuntu-latest
         timeout-minutes: 120
         steps:
@@ -124,9 +150,7 @@ jobs:
 
     options-review:
         name: Options (API) review
-        if: >-
-            (github.event_name == 'push' && github.event.created) ||
-            (github.event_name == 'workflow_dispatch' && (inputs.review == 'options' || inputs.review == 'both'))
+        if: github.event_name == 'workflow_dispatch' && (inputs.review == 'options' || inputs.review == 'both')
         runs-on: ubuntu-latest
         timeout-minutes: 60
         steps:
