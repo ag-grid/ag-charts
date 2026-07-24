@@ -709,19 +709,45 @@ jobs:
         name: Playwright Image
         needs: [detect-changes]
         if: needs.detect-changes.outputs.run_full_ci == 'true'
+        permissions:
+            packages: write
         env:
             PLAYWRIGHT_IMAGE: mcr.microsoft.com/playwright:v1.60.0-jammy
+            GHCR_IMAGE: ghcr.io/ag-grid/ag-charts/playwright:v1.60.0-jammy
             PLAYWRIGHT_CACHE_KEY: playwright-image-v1.60.0-jammy-v1
+        outputs:
+            # 'true' when shards can `docker pull` the GHCR mirror instead of restoring
+            # the tarball cache. Falls back to the tarball path for fork PRs, whose
+            # tokens cannot push (and may not read) GHCR packages.
+            ghcr_available: ${{ steps.mirror_check.outputs.exists == 'true' || steps.mirror_push.outcome == 'success' }}
         steps:
+            - name: Log in to GHCR
+              id: ghcr_login
+              continue-on-error: true # Fork PR tokens lack packages access; fall back to the tarball cache.
+              run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+            - name: Check GHCR Mirror
+              id: mirror_check
+              if: steps.ghcr_login.outcome == 'success'
+              run: |
+                  if docker manifest inspect "${GHCR_IMAGE}" >/dev/null 2>&1 ; then
+                    echo "exists=true" >> "$GITHUB_OUTPUT"
+                  else
+                    echo "exists=false" >> "$GITHUB_OUTPUT"
+                  fi
+
+            # Tarball cache path — only needed until the GHCR mirror exists for this
+            # Playwright version, and as the fallback for fork PRs.
             - name: Restore Playwright Image Cache
               id: pw_cache
+              if: steps.mirror_check.outputs.exists != 'true'
               uses: actions/cache@v4
               with:
                   path: /tmp/playwright-docker-image.tar
                   key: ${{ env.PLAYWRIGHT_CACHE_KEY }}
 
             - name: Pull Playwright Image
-              if: steps.pw_cache.outputs.cache-hit != 'true'
+              if: steps.mirror_check.outputs.exists != 'true' && steps.pw_cache.outputs.cache-hit != 'true'
               run: |
                   pull_attempts=4
                   for attempt in $(seq 1 ${pull_attempts}) ; do
@@ -739,17 +765,34 @@ jobs:
                   done
                   docker save ${PLAYWRIGHT_IMAGE} -o /tmp/playwright-docker-image.tar
 
+            - name: Load Playwright Image
+              if: steps.mirror_check.outputs.exists != 'true' && steps.pw_cache.outputs.cache-hit == 'true'
+              run: docker load -i /tmp/playwright-docker-image.tar
+
+            # Mirror the exact upstream image to GHCR (retag only — contents are
+            # byte-identical) so shards can pull it instead of restoring the tarball.
+            - name: Push GHCR Mirror
+              id: mirror_push
+              if: steps.ghcr_login.outcome == 'success' && steps.mirror_check.outputs.exists != 'true'
+              continue-on-error: true # Push failure just means shards use the tarball cache.
+              run: |
+                  docker tag "${PLAYWRIGHT_IMAGE}" "${GHCR_IMAGE}"
+                  docker push "${GHCR_IMAGE}"
+
     e2e:
         runs-on: ubuntu-latest
         name: E2E Tests (${{ matrix.shard }}/${{ strategy.job-total }})
         permissions:
             contents: write
+            packages: read
         needs: [detect-changes, init, playwright_image]
         if: needs.detect-changes.outputs.run_full_ci == 'true' && needs.init.outputs.e2e_count > 0
         strategy:
             fail-fast: false
             matrix: ${{ fromJson(needs.init.outputs.e2e_matrix )}}
         env:
+            PLAYWRIGHT_IMAGE: mcr.microsoft.com/playwright:v1.60.0-jammy
+            GHCR_IMAGE: ghcr.io/ag-grid/ag-charts/playwright:v1.60.0-jammy
             NX_BASE: ${{ needs.init.outputs.nx_base }}
             AG_FORCE_ALL_TESTS: 1
             # Scene-graph JSON capture alongside E2E screenshots: full dump on baseline-branch pushes,
@@ -775,7 +818,27 @@ jobs:
                   free_disk_space: false
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
 
+            # Registry pull is faster than cache restore + docker load. Retagging to the
+            # upstream name means playwright.sh finds the image locally and skips its
+            # own pull; the rendered environment is byte-identical either way.
+            - name: Pull Playwright Image (GHCR mirror)
+              if: needs.playwright_image.outputs.ghcr_available == 'true'
+              run: |
+                  echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+                  for attempt in 1 2 3 ; do
+                    if docker pull "${GHCR_IMAGE}" ; then
+                      break
+                    fi
+                    if [[ ${attempt} -eq 3 ]] ; then
+                      echo "Failed to pull ${GHCR_IMAGE}."
+                      exit 1
+                    fi
+                    sleep $((attempt * 10))
+                  done
+                  docker tag "${GHCR_IMAGE}" "${PLAYWRIGHT_IMAGE}"
+
             - name: Restore Playwright Image Cache
+              if: needs.playwright_image.outputs.ghcr_available != 'true'
               uses: actions/cache/restore@v4
               with:
                   path: /tmp/playwright-docker-image.tar
@@ -783,6 +846,7 @@ jobs:
                   fail-on-cache-miss: true
 
             - name: Load Playwright Image
+              if: needs.playwright_image.outputs.ghcr_available != 'true'
               run: docker load -i /tmp/playwright-docker-image.tar
 
             - name: nx test:e2e
@@ -817,8 +881,12 @@ jobs:
         name: Demo Apps Smoke
         needs: [detect-changes, init, playwright_image]
         if: needs.detect-changes.outputs.run_full_ci == 'true' && needs.init.outputs.demos_affected != '0'
+        permissions:
+            contents: read
+            packages: read
         env:
             PLAYWRIGHT_IMAGE: mcr.microsoft.com/playwright:v1.60.0-jammy
+            GHCR_IMAGE: ghcr.io/ag-grid/ag-charts/playwright:v1.60.0-jammy
         steps:
             - name: Checkout
               id: checkout
@@ -841,7 +909,24 @@ jobs:
                   free_disk_space: false
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
 
+            - name: Pull Playwright Image (GHCR mirror)
+              if: needs.playwright_image.outputs.ghcr_available == 'true'
+              run: |
+                  echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+                  for attempt in 1 2 3 ; do
+                    if docker pull "${GHCR_IMAGE}" ; then
+                      break
+                    fi
+                    if [[ ${attempt} -eq 3 ]] ; then
+                      echo "Failed to pull ${GHCR_IMAGE}."
+                      exit 1
+                    fi
+                    sleep $((attempt * 10))
+                  done
+                  docker tag "${GHCR_IMAGE}" "${PLAYWRIGHT_IMAGE}"
+
             - name: Restore Playwright Image Cache
+              if: needs.playwright_image.outputs.ghcr_available != 'true'
               uses: actions/cache/restore@v4
               with:
                   path: /tmp/playwright-docker-image.tar
@@ -849,6 +934,7 @@ jobs:
                   fail-on-cache-miss: true
 
             - name: Load Playwright Image
+              if: needs.playwright_image.outputs.ghcr_available != 'true'
               run: docker load -i /tmp/playwright-docker-image.tar
 
             - name: playwright test ag-charts-demos
