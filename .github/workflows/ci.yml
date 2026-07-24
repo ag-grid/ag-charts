@@ -822,23 +822,26 @@ jobs:
             # upstream name means playwright.sh finds the image locally and skips its
             # own pull; the rendered environment is byte-identical either way.
             - name: Pull Playwright Image (GHCR mirror)
+              id: ghcr_pull
               if: needs.playwright_image.outputs.ghcr_available == 'true'
+              # Registry flakiness must not fail the shard — the tarball cache below is the fallback.
+              continue-on-error: true
               run: |
-                  echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
                   for attempt in 1 2 3 ; do
-                    if docker pull "${GHCR_IMAGE}" ; then
-                      break
-                    fi
-                    if [[ ${attempt} -eq 3 ]] ; then
-                      echo "Failed to pull ${GHCR_IMAGE}."
-                      exit 1
+                    # Login is inside the retry: under ~48 concurrent shards the GHCR token
+                    # endpoint itself can time out transiently.
+                    if echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin \
+                        && docker pull "${GHCR_IMAGE}" ; then
+                      docker tag "${GHCR_IMAGE}" "${PLAYWRIGHT_IMAGE}"
+                      exit 0
                     fi
                     sleep $((attempt * 10))
                   done
-                  docker tag "${GHCR_IMAGE}" "${PLAYWRIGHT_IMAGE}"
+                  echo "Failed to pull ${GHCR_IMAGE}; falling back to the tarball cache."
+                  exit 1
 
             - name: Restore Playwright Image Cache
-              if: needs.playwright_image.outputs.ghcr_available != 'true'
+              if: needs.playwright_image.outputs.ghcr_available != 'true' || steps.ghcr_pull.outcome == 'failure'
               uses: actions/cache/restore@v4
               with:
                   path: /tmp/playwright-docker-image.tar
@@ -846,7 +849,7 @@ jobs:
                   fail-on-cache-miss: true
 
             - name: Load Playwright Image
-              if: needs.playwright_image.outputs.ghcr_available != 'true'
+              if: needs.playwright_image.outputs.ghcr_available != 'true' || steps.ghcr_pull.outcome == 'failure'
               run: docker load -i /tmp/playwright-docker-image.tar
 
             - name: nx test:e2e
@@ -910,23 +913,26 @@ jobs:
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
 
             - name: Pull Playwright Image (GHCR mirror)
+              id: ghcr_pull
               if: needs.playwright_image.outputs.ghcr_available == 'true'
+              # Registry flakiness must not fail the shard — the tarball cache below is the fallback.
+              continue-on-error: true
               run: |
-                  echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
                   for attempt in 1 2 3 ; do
-                    if docker pull "${GHCR_IMAGE}" ; then
-                      break
-                    fi
-                    if [[ ${attempt} -eq 3 ]] ; then
-                      echo "Failed to pull ${GHCR_IMAGE}."
-                      exit 1
+                    # Login is inside the retry: under ~48 concurrent shards the GHCR token
+                    # endpoint itself can time out transiently.
+                    if echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin \
+                        && docker pull "${GHCR_IMAGE}" ; then
+                      docker tag "${GHCR_IMAGE}" "${PLAYWRIGHT_IMAGE}"
+                      exit 0
                     fi
                     sleep $((attempt * 10))
                   done
-                  docker tag "${GHCR_IMAGE}" "${PLAYWRIGHT_IMAGE}"
+                  echo "Failed to pull ${GHCR_IMAGE}; falling back to the tarball cache."
+                  exit 1
 
             - name: Restore Playwright Image Cache
-              if: needs.playwright_image.outputs.ghcr_available != 'true'
+              if: needs.playwright_image.outputs.ghcr_available != 'true' || steps.ghcr_pull.outcome == 'failure'
               uses: actions/cache/restore@v4
               with:
                   path: /tmp/playwright-docker-image.tar
@@ -934,7 +940,7 @@ jobs:
                   fail-on-cache-miss: true
 
             - name: Load Playwright Image
-              if: needs.playwright_image.outputs.ghcr_available != 'true'
+              if: needs.playwright_image.outputs.ghcr_available != 'true' || steps.ghcr_pull.outcome == 'failure'
               run: docker load -i /tmp/playwright-docker-image.tar
 
             - name: playwright test ag-charts-demos
