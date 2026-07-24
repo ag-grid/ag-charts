@@ -19,6 +19,7 @@ import {
 } from 'ag-charts-community';
 import {
     type AxisID,
+    type BoxBounds,
     type CallbackParamRules,
     ChartAxisDirection,
     ChartUpdateType,
@@ -29,6 +30,8 @@ import {
     type NormalisedTextOrSegments,
     type Point,
     Vertex,
+    boxCollides,
+    boxContains,
     clamp,
     mergeDefaults,
     strictObjectKeys,
@@ -514,6 +517,21 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     // `regularBBox` on each layout pass, growing the card by `expander.height / 2` per toggle.
     protected override measureDatumNode(node: OrganizationNode): _ModuleSupport.BBox {
         return node.getShapeBBox();
+    }
+
+    // Drag-to-select hit-tests against the card only. The default predicate uses the node's
+    // full bbox, which for an org node also spans the expander pill's overhang, so a drag-rect
+    // touching only the pill would wrongly pick the node.
+    protected override pickNodesInBBoxPredicate() {
+        const { containment } = this.properties.selection;
+        return (selectionBox: BoxBounds, node: _ModuleSupport.Node): boolean => {
+            // The card is the only selectable target; a node without one is never a hit.
+            if (!(node instanceof OrganizationNode)) return false;
+            const cardBox = _ModuleSupport.Transformable.toCanvas(node, node.getShapeBBox());
+            return containment === 'all'
+                ? boxContains(selectionBox, cardBox.x, cardBox.y, cardBox.width, cardBox.height)
+                : boxCollides(selectionBox, cardBox.x, cardBox.y, cardBox.width, cardBox.height);
+        };
     }
 
     protected override makeLayoutUpdateOptions(): NetworkTreeLayoutUpdateOptions<OrganizationVertex, OrganizationEdge> {

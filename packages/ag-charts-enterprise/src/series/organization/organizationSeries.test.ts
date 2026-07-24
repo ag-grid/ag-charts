@@ -6,7 +6,7 @@ import type {
     AgStandaloneChartOptions,
     TextAlign,
 } from 'ag-charts-community';
-import { AgCharts } from 'ag-charts-community';
+import { AgCharts, _ModuleSupport } from 'ag-charts-community';
 import {
     type ChartTestCase,
     type SceneGeometrySample,
@@ -1262,6 +1262,55 @@ describe('OrganizationSeries', () => {
             await dragAction({ x: 400, y: 580 }, { x: 400, y: 50 })(chart);
 
             await compare();
+        });
+    });
+
+    describe('drag-to-select hit-testing', () => {
+        it('should hit-test against the card only, excluding the expander pill overhang', async () => {
+            // Default direction ('vertical' → 'down') puts the expander pill at the bottom of each
+            // parent card, overhanging below it. A drag-rect touching only that overhang must not
+            // pick the node; only overlap with the card itself counts.
+            const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const series = deproxy(chart).series[0] as any;
+
+            // A parent node has an expander, so its full bbox overhangs its card (shape) bbox.
+            let target: { datumIndex: number; cardBox: any; fullBox: any } | undefined;
+            series.datumSelection.each((node: any, datum: any) => {
+                if (target || datum.collapsedByAncestor) return;
+                const cardBox = _ModuleSupport.Transformable.toCanvas(node, node.getShapeBBox());
+                const fullBox = _ModuleSupport.Transformable.toCanvas(node, node.getFullBBox());
+                if (fullBox.height > cardBox.height + 1) {
+                    target = { datumIndex: datum.datumIndex, cardBox, fullBox };
+                }
+            });
+
+            expect(target).toBeDefined();
+            const { datumIndex, cardBox, fullBox } = target!;
+
+            const cardBottom = cardBox.y + cardBox.height;
+            const overhang = fullBox.y + fullBox.height - cardBottom;
+            expect(overhang).toBeGreaterThan(1);
+
+            const pickedIndices = (box: any) =>
+                new Set<number>([...series.pickNodesInBBox(box)].map((d: any) => d.datumIndex));
+
+            // A rect covering only the expander overhang strip below the card must not pick the node.
+            const expanderOnly = { x: fullBox.x, y: cardBottom + 0.5, width: fullBox.width, height: overhang - 0.5 };
+            expect(pickedIndices(expanderOnly).has(datumIndex)).toBe(false);
+
+            // Control: a rect over the card interior does pick the node.
+            const cardInterior = {
+                x: cardBox.x + cardBox.width / 2,
+                y: cardBox.y + cardBox.height / 2,
+                width: 1,
+                height: 1,
+            };
+            expect(pickedIndices(cardInterior).has(datumIndex)).toBe(true);
         });
     });
 
