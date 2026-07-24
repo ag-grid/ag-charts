@@ -9,6 +9,7 @@ import type {
 } from 'ag-charts-types';
 
 import type { AxisValuePick } from '../../module/axisContext';
+import type { CrossLineValuePick } from '../crossline/crossLine';
 import type { CategoryLegendDatum } from '../legend/legendDatum';
 import type { ISeries, SeriesNodeDatum } from '../series/seriesTypes';
 
@@ -40,6 +41,11 @@ export interface ContextShowOnMap extends ContextShowOnMapRule {
         event: InferTEvent<'caption'>;
         callback: (param: InferTEvent<'caption'>) => void;
         context: Pick<AgContextMenuGetItemsParamsCaption, 'captionType' | 'text'>;
+    };
+    crossline: {
+        event: InferTEvent<'crossline'>;
+        callback: (param: InferTEvent<'crossline'>) => void;
+        context: CrossLineValuePick;
     };
     'legend-item': {
         event: InferTEvent<'legend-item'>;

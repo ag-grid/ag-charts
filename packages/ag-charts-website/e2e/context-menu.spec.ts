@@ -220,7 +220,7 @@ test.describe('context-menu', () => {
             expect(await popContextMenuText(page)).toEqual('always,series-area,series-node,');
         });
 
-        test.skip('right-clicking Apr bar on crossline shows only crossline and series-node contexts', async ({
+        test('right-clicking Apr bar on crossline shows crossline, series-area and series-node contexts', async ({
             page,
         }) => {
             await page.mouse.click(371, 224, { button: 'right' });

@@ -39,6 +39,7 @@ const options: AgCartesianChartOptions = {
         items: [
             { showOn: 'always', label: 'always,', action: () => {} },
             { showOn: 'axis', label: 'axis,', action: () => {} },
+            { showOn: 'crossline', label: 'crossline,', action: () => {} },
             { showOn: 'series-area', label: 'series-area,', action: () => {} },
             { showOn: 'series-node', label: 'series-node,', action: () => {} },
         ],
