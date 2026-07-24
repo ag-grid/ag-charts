@@ -43,7 +43,7 @@ env:
     BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
     AG_LIBRARY: charts
     AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
-    AG_E2E_SHARD_COUNT: 32
+    AG_E2E_SHARD_COUNT: 48
     LIBRARY_WEBSITE_STATUS_CHANNEL: '#charts-website-status'
 
 permissions:
@@ -236,6 +236,9 @@ jobs:
               uses: actions/upload-artifact@v4
               with:
                   name: e2e-init-outputs
+                  # Mostly minified JS — heavier compression buys little and costs
+                  # upload/download time on init and every e2e shard.
+                  compression-level: 1
                   path: |
                       dist/
                       packages/*/dist/
@@ -1329,7 +1332,10 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v4
               with:
+                  # Full history topology is needed for snapshot diffing, but blobs can be
+                  # fetched lazily — a blob-less clone cuts checkout from ~80s to ~15s.
                   fetch-depth: 0
+                  filter: blob:none
 
             - name: Install ImageMagick
               shell: bash
