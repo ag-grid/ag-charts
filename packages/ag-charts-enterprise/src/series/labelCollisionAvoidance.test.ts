@@ -688,4 +688,49 @@ describe('label collision avoidance', () => {
             });
         });
     });
+
+    describe('range-bar reversed value axis', () => {
+        // A reversed value axis puts the low value at the top of the bar and the high value at the bottom,
+        // so the low label must render above the high label. Covers both the baked path (single inside
+        // placement) and the placement-cascade path.
+        const reversedLabelEnds = async (label: object) => {
+            const opts: any = {
+                data: [{ x: 'A', low: 2, high: 8 }],
+                legend: { enabled: false },
+                padding: { top: 60, right: 40, bottom: 60, left: 40 },
+                axes: { x: { type: 'category' }, y: { type: 'number', min: 0, max: 10, reverse: true } },
+                series: [{ type: 'range-bar', xKey: 'x', yLowKey: 'low', yHighKey: 'high', label }],
+            };
+            prepareEnterpriseTestOptions(opts);
+            chart = deproxy(AgCharts.create(opts));
+            await waitForChartStability(chart);
+            const series = chart.series[0] as unknown as {
+                labelSelection: {
+                    nodes(): { visible: boolean; datum: { itemType: string }; computeBBox(): Box | undefined }[];
+                };
+            };
+            const nodes = series.labelSelection.nodes().filter((node) => node.visible);
+            const low = nodes.find((node) => node.datum.itemType === 'low')?.computeBBox();
+            const high = nodes.find((node) => node.datum.itemType === 'high')?.computeBBox();
+            return { low, high };
+        };
+
+        it('places the low label above the high label (baked inside placement)', async () => {
+            const { low, high } = await reversedLabelEnds({ enabled: true, placement: 'inside' });
+            expect(low).toBeDefined();
+            expect(high).toBeDefined();
+            expect(low!.y).toBeLessThan(high!.y);
+        });
+
+        it('places the low label above the high label (placement cascade)', async () => {
+            const { low, high } = await reversedLabelEnds({
+                enabled: true,
+                placement: ['outside', 'inside'],
+                collision: { suppressHide: false },
+            });
+            expect(low).toBeDefined();
+            expect(high).toBeDefined();
+            expect(low!.y).toBeLessThan(high!.y);
+        });
+    });
 });

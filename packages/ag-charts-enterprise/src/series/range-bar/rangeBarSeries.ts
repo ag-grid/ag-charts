@@ -143,6 +143,8 @@ interface RangeBarSeriesNodeDatumContext extends _ModuleSupport.CartesianCreateN
 
     // Pre-computed values
     readonly barAlongX: boolean;
+    // Value axis reversed: low then sits at the rect's far edge, so the low/high labels swap ends.
+    readonly yReversed: boolean;
     readonly crisp: boolean;
 
     // Property keys (constant across all datums - worth caching)
@@ -533,6 +535,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             barOffset,
             barWidth,
             barAlongX,
+            yReversed: yAxis.isReversed(),
             crisp,
             dataAggregationFilter,
             animationEnabled,
@@ -1142,6 +1145,15 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
 
         const low = labels[0] as Mutable<RangeBarNodeLabelDatum>;
         const high = labels[1] as Mutable<RangeBarNodeLabelDatum>;
+        // On a reversed value axis the low value sits at the rect's high edge and vice versa, so the two
+        // baked anchors belong to the opposite labels; swap their positions (each keeps its own value text).
+        // The cascade path below re-bakes reversed-aware candidates, so this only affects the direct path.
+        if (ctx.yReversed) {
+            [low.x, high.x] = [high.x, low.x];
+            [low.y, high.y] = [high.y, low.y];
+            [low.textAlign, high.textAlign] = [high.textAlign, low.textAlign];
+            [low.textBaseline, high.textBaseline] = [high.textBaseline, low.textBaseline];
+        }
         const rectBox = { x: rectX, y: rectY, width: rectWidth, height: rectHeight };
         // yLow and yHigh share the bar rect, so each ignores its own bar when avoiding series items.
         low.ownBox = rectBox;
@@ -1162,7 +1174,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             const buildCandidates = (text: NormalisedTextOrSegments, end: 'start' | 'end') => {
                 const size = measureLabelText(text, label);
                 return buildBarLabelCandidates({
-                    isUpward: true,
+                    // A reversed value axis flips which rect edge the start/end candidates anchor to.
+                    isUpward: !ctx.yReversed,
                     isVertical: !barAlongX,
                     placements: coarseList.map((c): _ModuleSupport.BarLabelPlacement => `${c}-${end}`),
                     orientations,
