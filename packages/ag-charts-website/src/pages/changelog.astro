@@ -5,11 +5,19 @@ import { getFrameworkFromPath } from '@components/docs/utils/urlPaths';
 import { Changelog } from '@ag-website-shared/components/changelog/Changelog';
 import { DocsNavFromLocalStorage } from '@ag-website-shared/components/docs-navigation/DocsNavFromLocalStorage';
 import styles from '@ag-website-shared/components/changelog/changelog.module.scss';
+import { DISABLE_MARKDOWN_DOCS } from '@constants';
+import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
+import { getIsProduction } from '@utils/env';
 
 const path = Astro.url.pathname;
 const framework = getFrameworkFromPath(path);
 
 const { data: docsNavData } = (await getEntry('docsNav', 'nav')) as CollectionEntry<'docsNav'>;
+
+// The changelog `.md` twin is generated only on production by grid's Jira cron
+// (scripts/jira/production/getChartsChangelog.* in the ag-grid repo), so it doesn't exist in this
+// build — advertise it in production only to avoid pointing at a 404 in dev/staging.
+const markdownUrl = !DISABLE_MARKDOWN_DOCS && getIsProduction() ? urlWithBaseUrl('/changelog.md') : undefined;
 ---
 
 <Layout
@@ -17,6 +25,7 @@ const { data: docsNavData } = (await getEntry('docsNav', 'nav')) as CollectionEn
     description={'Identify the specific version in which a feature request or bug fix was included. Find changelog items by issue number, summary content, or version.'}
     showDocsNav={true}
     showSearchBar={true}
+    markdownUrl={markdownUrl}
 >
     <div class:list={['contentViewport layout-grid']}>
         <DocsNavFromLocalStorage client:load menuData={docsNavData} framework={framework} />
