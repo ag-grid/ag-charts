@@ -48,9 +48,28 @@ export function validateCrossLineValue(crossLine: ICrossLine, scale: Scale<any, 
     }
 }
 
+/**
+ * Identifies a cross line hit by a pointer interaction, assembled by the cross-lines plugin from the
+ * hit {@link CrossLine} instance plus its owning axis. Mirrors {@link AxisValuePick}; consumed by the
+ * context-menu `crossline` scope.
+ */
+export interface CrossLineValuePick {
+    readonly crossLineId: string;
+    readonly axisId: string;
+    readonly direction: ChartAxisDirection;
+    readonly type: CrossLineType;
+    readonly value?: unknown;
+    readonly range?: [unknown, unknown];
+}
+
 export interface CrossLine<LabelType = AgBaseCrossLineLabelOptions> {
     calculateLayout?(visible: boolean, reversedAxis?: boolean): void;
     calculatePadding?(padding: Partial<Record<AgCrossLineLabelPosition, number>>): void;
+    /**
+     * Hit-tests a canvas-space point against the cross line's rendered line or fill, widened by a
+     * small fixed pixel tolerance. Returns `false` when the cross line is not currently visible.
+     */
+    containsPoint?(canvasX: number, canvasY: number): boolean;
     clippedRange: [number, number];
     enabled?: boolean;
     defaultColorRange: string[];
