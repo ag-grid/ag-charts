@@ -504,12 +504,17 @@ export class DOMManager extends BaseManager {
         this.container = pendingContainer;
         this.pendingContainer = undefined;
         this.agDocument.setContainer(pendingContainer);
-        // Shadow-path watchers live on the previous shadow root and are orphaned by the move; drop
-        // the mirror so they are re-registered against the new root. Normal-path watchers are
-        // children of `this.element`, which moves with its subtree, so their mirror stays valid.
-        this.shadowCssVariableWatchers.clear();
-
+        // Shadow-path watchers (sensor/style elements plus a transitionend listener) live on the
+        // shadow root, not on `this.element`, so a container move does not carry them along. Drop the
+        // mirror only when the resolved shadow root actually changes; clearing it for a move within
+        // the same root would re-register duplicate watchers over the ones already present. Normal-
+        // path watchers are children of `this.element`, which moves with its subtree, so their mirror
+        // stays valid regardless.
+        const previousShadowRoot = this.shadowDocumentRoot?.getRootNode();
         this.shadowDocumentRoot = this.getShadowDocumentRoot(pendingContainer);
+        if (this.shadowDocumentRoot?.getRootNode() !== previousShadowRoot) {
+            this.shadowCssVariableWatchers.clear();
+        }
         this.initiallyConnected = pendingContainer.isConnected;
         this.observeAttachTransition(pendingContainer);
 

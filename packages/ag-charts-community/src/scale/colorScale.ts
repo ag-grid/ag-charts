@@ -67,8 +67,9 @@ export class ColorScale extends AbstractScale<number, string> {
     /**
      * OKLCH interpolation plus RGBA-string allocation dominate heat-map redraws, where the same
      * value recurs across cells and frames. Memoise by exact input value. Cleared in update() on
-     * any domain/range/mode change; capped so an explicit, never-invalidated domain fed continuous
-     * values cannot grow the map without bound.
+     * any domain/range/mode change. Once the cap is reached we stop inserting rather than clearing:
+     * an explicit, never-invalidated domain fed more than the cap of distinct continuous values
+     * would otherwise thrash, clearing and rebuilding the whole map within a single redraw pass.
      */
     private readonly convertCache = new Map<number, string>();
 
@@ -127,10 +128,9 @@ export class ColorScale extends AbstractScale<number, string> {
         }
 
         const result = this.computeColor(xn);
-        if (this.convertCache.size >= MAX_CONVERT_CACHE_SIZE) {
-            this.convertCache.clear();
+        if (this.convertCache.size < MAX_CONVERT_CACHE_SIZE) {
+            this.convertCache.set(xn, result);
         }
-        this.convertCache.set(xn, result);
         return result;
     }
 

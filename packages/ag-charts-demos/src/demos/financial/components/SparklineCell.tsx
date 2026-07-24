@@ -55,11 +55,6 @@ export function SparklineCell({ data: row }: CustomCellRendererProps<SparkRow>) 
     const pointsRef = useRef<SparkPoint[]>([]);
     const seqRef = useRef(0);
     const baselineRef = useRef(baseline);
-    // Streaming hands a fresh history array every tick, so the effect below fires
-    // even when the drawn line is unchanged. Track a cheap content signature and
-    // skip the redundant chart update when it matches.
-    const contentRef = useRef<string>();
-    const content = `${history.length}:${history[history.length - 1]}:${baseline}`;
 
     useLayoutEffect(() => {
         const points = history.map((y, i) => ({ x: i, y }));
@@ -67,16 +62,14 @@ export function SparklineCell({ data: row }: CustomCellRendererProps<SparkRow>) 
         seqRef.current = history.length;
         baselineRef.current = baseline;
         chartRef.current = AgCharts.__createSparkline(sparklineOptions(containerRef.current!, points, baseline));
-        contentRef.current = content;
         return () => chartRef.current?.destroy();
         // Created once; data updates are handled by the effect below.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
-        if (content === contentRef.current) return;
-        contentRef.current = content;
-
+        // Streaming hands a fresh history array every tick; scrollShift() value-compares the window,
+        // so an unchanged tick yields empty removed/appended and skips the chart call below.
         // The baseline drives segmentation, which a transaction can't change; a shift in
         // it (or any history that isn't a clean scroll of the current one) forces a reseed.
         const scroll = baseline === baselineRef.current ? scrollShift(pointsRef.current, history) : undefined;
@@ -95,7 +88,7 @@ export function SparklineCell({ data: row }: CustomCellRendererProps<SparkRow>) 
         if (removed.length || added.length) {
             chartRef.current?.applyTransaction({ remove: removed, add: added }).catch(logError);
         }
-    }, [content, history, baseline]);
+    }, [history, baseline]);
 
     // Decorative: the trend duplicates the row's visible % change, and the chart injects
     // a role="img" node that churns every tick — keep the whole subtree out of the a11y tree.

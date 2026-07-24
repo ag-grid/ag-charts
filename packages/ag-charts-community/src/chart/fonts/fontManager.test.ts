@@ -144,6 +144,29 @@ describe('FontManager', () => {
         expect(fontSet.check).toHaveBeenNthCalledWith(2, '16px Roboto');
     });
 
+    it('waitForFonts re-checks a confirmed spec after a font-set loadingdone event', () => {
+        const { fontManager } = createFontManager();
+        const listeners: Record<string, () => void> = {};
+        const fontSet = {
+            check: vi.fn().mockReturnValue(true),
+            load: vi.fn(),
+            addEventListener: vi.fn((type: string, handler: () => void) => {
+                listeners[type] = handler;
+            }),
+            removeEventListener: vi.fn(),
+        };
+        setDocumentFonts(fontSet);
+
+        fontManager.waitForFonts(new Set(['16px Arial']));
+        expect(fontSet.check).toHaveBeenCalledTimes(1);
+
+        // A late @font-face load fires loadingdone; the cached verdict must be dropped and re-checked.
+        listeners.loadingdone?.();
+        fontManager.waitForFonts(new Set(['16px Arial']));
+
+        expect(fontSet.check).toHaveBeenCalledTimes(2);
+    });
+
     it('waitForFonts re-checks an unconfirmed spec until it becomes available', () => {
         const { fontManager } = createFontManager();
         const fontSet = { check: vi.fn().mockReturnValue(false), load: vi.fn().mockResolvedValue([]) };
