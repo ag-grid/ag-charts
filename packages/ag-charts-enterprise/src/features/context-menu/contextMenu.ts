@@ -74,6 +74,7 @@ type SeriesNodeParams = Extract<ShowOnParams, { showOn: 'series-node' }>;
 type AxisParams = Extract<ShowOnParams, { showOn: 'axis' }>;
 type CaptionParams = Extract<ShowOnParams, { showOn: 'caption' }>;
 type LegendItemParams = Extract<ShowOnParams, { showOn: 'legend-item' }>;
+type GetItemsParams = [AgContextMenuGetItemsParams, Caller[]];
 
 export class ContextMenu extends AbstractModuleInstance {
     private get opts() {
@@ -177,99 +178,109 @@ export class ContextMenu extends AbstractModuleInstance {
         return params;
     }
 
-    private makeGetItemsParams(
-        event: ContextMenuEvent,
-        active: ReadonlySet<AgContextMenuItemShowOn>
-    ): [AgContextMenuGetItemsParams, Caller[]] {
+    private makeGetItemsParams(event: ContextMenuEvent, active: ReadonlySet<AgContextMenuItemShowOn>): GetItemsParams {
         const { showOn } = event;
-        const chart = this.ctx.chartService;
         const items = this.opts.items ?? ['defaults'];
         const defaultItems: AgContextMenuItem[] = expandBuiltinLists(active, items, this.ctx.contextMenuRegistry);
         switch (showOn) {
             case 'always':
             case 'series-area':
+                const chart = this.ctx.chartService;
                 return [{ showOn, defaultItems, allShowOnParams: this.plotOverlapRegions(active) }, [chart]];
-
-            case 'series-node': {
-                if (this.pickedNode == null) throw new Error(`this.pickedNode is null`);
-                // FIXME: Some optional keys like dataIdKey are not set. Is that a concern?
-                const itemId = getItemId(this.pickedNode, this.pickedNode.series.data?.dataIdKey);
-                const region: SeriesNodeParams = {
-                    showOn: 'series-node',
-                    seriesId: this.pickedNode.series.id,
-                    itemId,
-                    datum: this.pickedNode.datum,
-                    selectionState: this.pickedNode.series.getSelectionStateString(this.pickedNode.datumIndex),
-                    isCollapsed: this.ctx.collapsedManager.isCollapsed(itemId),
-                };
-
-                for (const k of DATUM_KEYS) {
-                    if (this.pickedNode[k] !== undefined) {
-                        region[k] = this.pickedNode[k];
-                    }
-                }
-
-                // Histogram bins carry standardised bin metadata; binIndex is always set for histogram nodes.
-                if (this.pickedNode.binIndex !== undefined) {
-                    const { datums, binIndex, binRange, aggregatedValue, frequency } = this.pickedNode;
-                    Object.assign(region, { datums, binIndex, binRange, aggregatedValue, frequency });
-                }
-                const allShowOnParams: ShowOnParams[] = [...this.plotOverlapRegions(active), region];
-                const params: AgContextMenuGetItemsParamsSeriesNode = { ...region, defaultItems, allShowOnParams };
-                const callers: Caller[] = [this.pickedNode.series.properties, chart];
-                return [params, callers];
-            }
-
-            case 'axis': {
-                if (this.pickedAxisCtx == null) throw new Error(`this.pickedAxisCtx is null`);
-                const region = this.axisRegion(this.pickedAxisCtx);
-                const allShowOnParams: ShowOnParams[] = [region];
-                if (active.has('series-area')) allShowOnParams.push({ showOn: 'series-area' });
-                const params: AgContextMenuGetItemsParamsAxis<DatumDefault, ContextDefault> = {
-                    ...region,
-                    defaultItems,
-                    allShowOnParams,
-                };
-                const callers: Caller[] = [this.pickedAxisCtx.caller, chart];
-                return [params, callers];
-            }
-
-            case 'caption': {
-                const ctx = this.pickedCaptionCtx;
-                if (ctx == null) throw new Error(`this.pickedCaptionCtx is null`);
-                const region: CaptionParams = { showOn: 'caption', captionType: ctx.captionType, text: ctx.text };
-                const params: AgContextMenuGetItemsParamsCaption<DatumDefault, ContextDefault> = {
-                    ...region,
-                    defaultItems,
-                    allShowOnParams: [region],
-                };
-                const callers: Caller[] = [chart];
-                return [params, callers];
-            }
-
-            case 'legend-item': {
-                if (this.pickedLegendItem == null) throw new Error(`this.pickedLegendItem is null`);
-                const { itemId, seriesId, label, enabled } = this.pickedLegendItem;
-                const text = toPlainText(label.text);
-                const region: LegendItemParams = {
-                    showOn: 'legend-item',
-                    itemId,
-                    seriesId,
-                    text,
-                    visible: enabled,
-                };
-                const params: AgContextMenuGetItemsParamsLegendItem<DatumDefault, ContextDefault> = {
-                    ...region,
-                    defaultItems,
-                    allShowOnParams: [region],
-                };
-                const callers: Caller[] = [chart];
-                return [params, callers];
-            }
-
+            case 'series-node':
+                return this.makeGetItemsParamsSeriesNode(defaultItems, active);
+            case 'axis':
+                return this.makeGetItemsParamsAxis(defaultItems, active);
+            case 'caption':
+                return this.makeGetItemsParamsCaption(defaultItems);
+            case 'legend-item':
+                return this.makeGetItemsParamsLegendItem(defaultItems);
             default:
                 return showOn satisfies never; // unreachable
         }
+    }
+
+    private makeGetItemsParamsSeriesNode(
+        defaultItems: AgContextMenuItem[],
+        active: ReadonlySet<AgContextMenuItemShowOn>
+    ): GetItemsParams {
+        if (this.pickedNode == null) throw new Error(`this.pickedNode is null`);
+        // FIXME: Some optional keys like dataIdKey are not set. Is that a concern?
+        const itemId = getItemId(this.pickedNode, this.pickedNode.series.data?.dataIdKey);
+        const region: SeriesNodeParams = {
+            showOn: 'series-node',
+            seriesId: this.pickedNode.series.id,
+            itemId,
+            datum: this.pickedNode.datum,
+            selectionState: this.pickedNode.series.getSelectionStateString(this.pickedNode.datumIndex),
+            isCollapsed: this.ctx.collapsedManager.isCollapsed(itemId),
+        };
+
+        for (const k of DATUM_KEYS) {
+            if (this.pickedNode[k] !== undefined) {
+                region[k] = this.pickedNode[k];
+            }
+        }
+
+        // Histogram bins carry standardised bin metadata; binIndex is always set for histogram nodes.
+        if (this.pickedNode.binIndex !== undefined) {
+            const { datums, binIndex, binRange, aggregatedValue, frequency } = this.pickedNode;
+            Object.assign(region, { datums, binIndex, binRange, aggregatedValue, frequency });
+        }
+        const allShowOnParams: ShowOnParams[] = [...this.plotOverlapRegions(active), region];
+        const params: AgContextMenuGetItemsParamsSeriesNode = { ...region, defaultItems, allShowOnParams };
+        const callers: Caller[] = [this.pickedNode.series.properties, this.ctx.chartService];
+        return [params, callers];
+    }
+
+    private makeGetItemsParamsAxis(
+        defaultItems: AgContextMenuItem[],
+        active: ReadonlySet<AgContextMenuItemShowOn>
+    ): GetItemsParams {
+        if (this.pickedAxisCtx == null) throw new Error(`this.pickedAxisCtx is null`);
+        const region = this.axisRegion(this.pickedAxisCtx);
+        const allShowOnParams: ShowOnParams[] = [region];
+        if (active.has('series-area')) allShowOnParams.push({ showOn: 'series-area' });
+        const params: AgContextMenuGetItemsParamsAxis<DatumDefault, ContextDefault> = {
+            ...region,
+            defaultItems,
+            allShowOnParams,
+        };
+        const callers: Caller[] = [this.pickedAxisCtx.caller, this.ctx.chartService];
+        return [params, callers];
+    }
+
+    private makeGetItemsParamsCaption(defaultItems: AgContextMenuItem[]): GetItemsParams {
+        const ctx = this.pickedCaptionCtx;
+        if (ctx == null) throw new Error(`this.pickedCaptionCtx is null`);
+        const region: CaptionParams = { showOn: 'caption', captionType: ctx.captionType, text: ctx.text };
+        const params: AgContextMenuGetItemsParamsCaption<DatumDefault, ContextDefault> = {
+            ...region,
+            defaultItems,
+            allShowOnParams: [region],
+        };
+        const callers: Caller[] = [this.ctx.chartService];
+        return [params, callers];
+    }
+
+    private makeGetItemsParamsLegendItem(defaultItems: AgContextMenuItem[]): GetItemsParams {
+        if (this.pickedLegendItem == null) throw new Error(`this.pickedLegendItem is null`);
+        const { itemId, seriesId, label, enabled } = this.pickedLegendItem;
+        const text = toPlainText(label.text);
+        const region: LegendItemParams = {
+            showOn: 'legend-item',
+            itemId,
+            seriesId,
+            text,
+            visible: enabled,
+        };
+        const params: AgContextMenuGetItemsParamsLegendItem<DatumDefault, ContextDefault> = {
+            ...region,
+            defaultItems,
+            allShowOnParams: [region],
+        };
+        const callers: Caller[] = [this.ctx.chartService];
+        return [params, callers];
     }
 
     private expandItemsOptions(event: ContextMenuEvent): ContextMenuItem[] {
