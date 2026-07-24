@@ -190,9 +190,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         // processing branches on it, so context-only deltas can take the fast path.
         'context',
     ]);
-    private static isFastPathDelta(deltaOptions: DeepPartial<AgChartOptions> | null) {
+    private static isFastPathDelta(
+        deltaOptions: DeepPartial<AgChartOptions> | null,
+        presetFastUpdateKeys?: ReadonlySet<string>
+    ) {
         for (const key of Object.keys(deltaOptions ?? {})) {
-            if (!this.FAST_PATH_OPTIONS.has(key as keyof AgChartOptions)) {
+            if (!this.FAST_PATH_OPTIONS.has(key as keyof AgChartOptions) && !presetFastUpdateKeys?.has(key)) {
                 ChartOptions.perfDebug('ChartOptions.isFastPathDelta() - slow path required due to presence of: ', key);
                 return false;
             }
@@ -319,12 +322,16 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             googleFonts,
             fonts,
             optionsGraph;
+        const presetDef =
+            this.optionMetadata.presetType == null
+                ? undefined
+                : ModuleRegistry.getPresetModule(this.optionMetadata.presetType);
         if (
             !stripSymbols &&
             !refreshCSSVariables &&
             this.seriesWithUserVisibility == undefined &&
             deltaOptions !== undefined &&
-            ChartOptions.isFastPathDelta(deltaOptions) &&
+            ChartOptions.isFastPathDelta(deltaOptions, presetDef?.fastUpdateKeys) &&
             baseChartOptions != null &&
             !dataChangedLength
         ) {
@@ -385,12 +392,16 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const { activeTheme, processedOptions: baseOptions } = baseChartOptions;
         const { presetType } = this.optionMetadata;
 
-        if (presetType != null && deltaOptions?.data != null) {
+        if (presetType != null && deltaOptions != null) {
             const presetDef = ModuleRegistry.getPresetModule(presetType);
             // Handle preset data transforms gracefully.
-            if (presetDef?.processData) {
+            if (presetDef?.processData && deltaOptions.data != null) {
                 const { series, data } = presetDef.processData(deltaOptions.data);
                 deltaOptions = mergeDefaults({ series, data }, deltaOptions) as DeepPartial<T>;
+            }
+            // Map preset-owned root keys (e.g. a gauge's `value`) onto the internal series shape.
+            if (presetDef?.processFastUpdate) {
+                deltaOptions = presetDef.processFastUpdate(deltaOptions) as DeepPartial<T>;
             }
         }
 

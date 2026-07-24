@@ -6,6 +6,26 @@ import { AgCharts } from 'ag-charts-react';
 import { THEME } from '../chartTheme';
 import { type Instrument, type PeerPerformanceFeed, sectorPeers } from '../data';
 
+// Module-scope so these option pieces keep stable identities across renders; fresh
+// function identities per tick would force the chart's full slow-path options
+// processing instead of the data-only fast path.
+const PEER_TOOLTIP_RENDERER: NonNullable<NonNullable<AgLineSeriesOptions['tooltip']>['renderer']> = ({
+    datum,
+    yKey,
+}) => ({
+    data: [
+        {
+            label: yKey,
+            value: `${datum[yKey].toFixed(1)}%`,
+        },
+    ],
+});
+
+const Y_LABEL_FORMATTER = ({ value }: { value: number }) => {
+    if (value === 0) return '0%\nS&P 500';
+    return `${value > 0 ? '+' : ''}${value.toFixed(0)}%`;
+};
+
 interface PeerPerformanceChartProps {
     instrument: Instrument;
     peerFeed: PeerPerformanceFeed;
@@ -25,31 +45,29 @@ export function PeerPerformanceChart({ instrument, peerFeed, peerTick, windowMin
         [peerFeed, peers, windowMinutes, peerTick]
     );
 
-    const options = useMemo<AgCartesianChartOptions>(() => {
-        const series: AgLineSeriesOptions[] = peers.map((ticker) => ({
-            type: 'line',
-            xKey: 'date',
-            yKey: ticker,
-            yName: ticker,
-            // Emphasise the selected company against its peers via stroke width only.
-            strokeWidth: ticker === instrument.ticker ? 3 : 1,
-            strokeOpacity: ticker === instrument.ticker ? 1 : 0.5,
-            marker: {
-                enabled: false,
-            },
-            tooltip: {
-                renderer: function ({ datum, yKey }) {
-                    return {
-                        data: [
-                            {
-                                label: yKey,
-                                value: `${datum[yKey].toFixed(1)}%`,
-                            },
-                        ],
-                    };
+    // Memoised separately from `data` so every tick reuses the same series identities,
+    // keeping per-tick chart updates on the data-only fast path.
+    const series = useMemo<AgLineSeriesOptions[]>(
+        () =>
+            peers.map((ticker) => ({
+                type: 'line',
+                xKey: 'date',
+                yKey: ticker,
+                yName: ticker,
+                // Emphasise the selected company against its peers via stroke width only.
+                strokeWidth: ticker === instrument.ticker ? 3 : 1,
+                strokeOpacity: ticker === instrument.ticker ? 1 : 0.5,
+                marker: {
+                    enabled: false,
                 },
-            },
-        }));
+                tooltip: {
+                    renderer: PEER_TOOLTIP_RENDERER,
+                },
+            })),
+        [peers, instrument.ticker]
+    );
+
+    const options = useMemo<AgCartesianChartOptions>(() => {
         return {
             theme: THEME,
             data,
@@ -68,10 +86,7 @@ export function PeerPerformanceChart({ instrument, peerFeed, peerTick, windowMin
                     type: 'number',
                     position: 'right',
                     label: {
-                        formatter: ({ value }) => {
-                            if (value === 0) return '0%\nS&P 500';
-                            return `${value > 0 ? '+' : ''}${value.toFixed(0)}%`;
-                        },
+                        formatter: Y_LABEL_FORMATTER,
                     },
                     crossLines: [
                         {
@@ -101,7 +116,7 @@ export function PeerPerformanceChart({ instrument, peerFeed, peerTick, windowMin
                 left: 2,
             },
         } as AgCartesianChartOptions;
-    }, [data, peers, instrument.ticker]);
+    }, [data, series]);
 
     return (
         <div className="fin-detail-card">

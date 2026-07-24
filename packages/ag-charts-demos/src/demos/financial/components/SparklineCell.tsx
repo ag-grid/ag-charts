@@ -1,7 +1,12 @@
 import { type CustomCellRendererProps } from 'ag-grid-react';
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 
-import { type AgChartInstance, AgCharts, type AgSparklineOptions } from 'ag-charts-community';
+import {
+    type AgChartInstance,
+    AgCharts,
+    type AgLineSparklinePreset,
+    type AgSparklineOptions,
+} from 'ag-charts-community';
 
 // Literal (not var) — the sparkline canvas resolves colours at render time and
 // does not read the --fin-* CSS custom properties.
@@ -20,6 +25,19 @@ interface SparkRow {
     history: number[];
     baseline: number;
 }
+
+// Module-scope so the marker options (and the itemStyler) keep a stable identity across
+// updates; a fresh function identity per tick would force the chart's full slow-path
+// options processing instead of the data-only fast path.
+const MARKER: AgLineSparklinePreset<SparkPoint>['marker'] = {
+    enabled: true,
+    size: 1,
+    // Colour each point by whether it sits above or below the baseline.
+    itemStyler: ({ datum }) => {
+        const color = datum.up ? UP : DOWN;
+        return { fill: color, stroke: color };
+    },
+};
 
 function sparklineOptions(container: HTMLElement, history: number[], baseline: number): AgSparklineOptions {
     // Split at the session baseline (first value of all history): green above, red below.
@@ -42,15 +60,7 @@ function sparklineOptions(container: HTMLElement, history: number[], baseline: n
             key: 'y',
             segments: [{ stop: baseline, stroke: DOWN }],
         },
-        marker: {
-            enabled: true,
-            size: 1,
-            // Colour each point by whether it sits above or below the baseline.
-            itemStyler: ({ datum }) => {
-                const color = (datum as SparkPoint).up ? UP : DOWN;
-                return { fill: color, stroke: color };
-            },
-        },
+        marker: MARKER,
     };
 }
 
