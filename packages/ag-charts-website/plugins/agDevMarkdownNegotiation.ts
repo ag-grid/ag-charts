@@ -1,7 +1,7 @@
 import type { Plugin } from 'vite';
 
 import agDevMarkdownNegotiation from '../../../external/ag-website-shared/plugins/agDevMarkdownNegotiation';
-import { DISABLE_MARKDOWN_DOCS, FRAMEWORKS } from '../src/constants';
+import { DISABLE_MARKDOWN_DOCS, FRAMEWORKS, SITE_BASE_URL } from '../src/constants';
 
 // A single docs page path, e.g. `/charts/react/axes`. The framework segment is matched
 // wherever it appears so the rule holds regardless of the configured base (`/charts`).
@@ -16,12 +16,17 @@ const TOP_LEVEL_MD_PATH = /\/(?:license-pricing|documentation-archive|gallery)\/
 // The /community landing page and its subpages, each with a `.md` twin.
 const COMMUNITY_MD_PATH = /\/community(?:\/(?:events|showcase|tools-extensions|media|beyond-the-prompt))?\/?$/;
 
+// Charts is served under a base (`/charts`), so the homepage request is `/charts/`; the shared
+// factory maps that base root to `<base>/index.md`.
+const BASE_PATH = (SITE_BASE_URL ?? '').replace(/\/$/, '');
+
 // Content-negotiate charts docs pages to their markdown variant in the dev server. Charts
-// supplies its URL shapes; the shared factory holds the mechanism (see
+// supplies its URL shapes and base; the shared factory holds the mechanism (see
 // external/ag-website-shared/plugins/agDevMarkdownNegotiation for the full rationale).
 export default function agDevChartsMarkdownNegotiation(): Plugin {
     return agDevMarkdownNegotiation({
         pathPatterns: [DOCS_PAGE_PATH, TOP_LEVEL_MD_PATH, COMMUNITY_MD_PATH],
         disabled: DISABLE_MARKDOWN_DOCS,
+        basePath: BASE_PATH,
     });
 }
