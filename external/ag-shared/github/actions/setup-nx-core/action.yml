@@ -266,7 +266,9 @@ runs:
                 # safe for jobs whose own nx run materialises all needed outputs anyway
                 # (plugin-build also side-effect-builds plugin deps like package dist/types,
                 # which e.g. type-aware lint relies on).
-                ALLOW_SCRIPTS_RUNNING=1 ${SKIP_PLUGIN_BUILD_ENV} yarn postinstall
+                # `env` is required: an assignment produced by variable expansion is not
+                # parsed as an assignment prefix by the shell.
+                env ALLOW_SCRIPTS_RUNNING=1 ${SKIP_PLUGIN_BUILD_ENV} yarn postinstall
               else
                 yarn install --ci --prefer-offline
 
