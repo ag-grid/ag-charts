@@ -177,6 +177,27 @@ export interface SectorLabelRect {
     readonly height: number;
 }
 
+// A box taller than one line by this ratio is treated as multi-line and fitted to a horizontal band
+// (see centreSectorLabelInBand) rather than slid symmetrically about the bisector.
+const SECTOR_MULTILINE_HEIGHT_RATIO = 1.5;
+// Binary-search iterations for the sector edge probes below; ~24 halvings resolves sub-pixel on any radius.
+const SECTOR_BISECTION_STEPS = 24;
+
+/** Largest `t` in `[0, limit]` for which `inside(t)` still holds, by binary search (`inside` is monotone false-ward). */
+function furthestInside(limit: number, inside: (t: number) => boolean): number {
+    let lo = 0;
+    let hi = limit;
+    for (let i = 0; i < SECTOR_BISECTION_STEPS; i += 1) {
+        const t = (lo + hi) / 2;
+        if (inside(t)) {
+            lo = t;
+        } else {
+            hi = t;
+        }
+    }
+    return lo;
+}
+
 /**
  * Rectangle a horizontal label should fill inside an origin-centred annular wedge. {@link sectorLabelContainer}
  * sizes a box that fits the wedge centred on `anchor`, but a horizontal label is not symmetric about the sector
@@ -201,7 +222,7 @@ export function fitSectorLabelRect(
     if (halfWidth <= 0 || halfHeight <= 0 || !isPointInSector(anchor.x, anchor.y, sector)) {
         return { centerX: anchor.x, centerY: anchor.y, width, height };
     }
-    if (height > lineHeight * 1.5) {
+    if (height > lineHeight * SECTOR_MULTILINE_HEIGHT_RATIO) {
         const centred = centreSectorLabelInBand(anchor, sector, height);
         if (centred != null) {
             return centred;
@@ -210,19 +231,8 @@ export function fitSectorLabelRect(
     const contains = (x: number, y: number) => isPointInSector(x, y, sector);
     const limit = Math.abs(sector.outerRadius) * 2;
     // Furthest an edge through corners A and B can slide along (dirX, dirY) while both corners stay in the wedge.
-    const reach = (ax: number, ay: number, bx: number, by: number, dirX: number, dirY: number) => {
-        let lo = 0;
-        let hi = limit;
-        for (let i = 0; i < 24; i += 1) {
-            const t = (lo + hi) / 2;
-            if (contains(ax + dirX * t, ay + dirY * t) && contains(bx + dirX * t, by + dirY * t)) {
-                lo = t;
-            } else {
-                hi = t;
-            }
-        }
-        return lo;
-    };
+    const reach = (ax: number, ay: number, bx: number, by: number, dirX: number, dirY: number) =>
+        furthestInside(limit, (t) => contains(ax + dirX * t, ay + dirY * t) && contains(bx + dirX * t, by + dirY * t));
     // Clearance for the box's leading edges (kept at the final size), then recentre on the room found.
     const right = reach(anchor.x, anchor.y - halfHeight, anchor.x, anchor.y + halfHeight, 1, 0);
     const left = reach(anchor.x, anchor.y - halfHeight, anchor.x, anchor.y + halfHeight, -1, 0);
@@ -272,19 +282,8 @@ function centreSectorLabelInBand(
     const halfHeight = height / 2;
     const limit = outer * 2;
     // Furthest the bisector-seed on line `y` can slide along `dir` (±1 in x) while staying in the wedge.
-    const edge = (seedX: number, y: number, dir: -1 | 1) => {
-        let lo = 0;
-        let hi = limit;
-        for (let i = 0; i < 24; i += 1) {
-            const t = (lo + hi) / 2;
-            if (isPointInSector(seedX + dir * t, y, inset)) {
-                lo = t;
-            } else {
-                hi = t;
-            }
-        }
-        return seedX + dir * lo;
-    };
+    const edge = (seedX: number, y: number, dir: -1 | 1) =>
+        seedX + dir * furthestInside(limit, (t) => isPointInSector(seedX + dir * t, y, inset));
     // Seed each line from the point where the bisector ray crosses it, guaranteed inside where the ray reaches.
     const seedAt = (y: number) => (Math.abs(midSin) > 1e-3 ? (y * midCos) / midSin : anchor.x);
 

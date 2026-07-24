@@ -15,11 +15,13 @@ import {
     type RequireOptional,
     addValues,
     applyBarLabelOrientation,
-    bakedLabelObstacles,
+    applyPlacedBarLabelVisibility,
+    barLabelObstacles,
     barLabelOrientation,
     barLabelResolvesOrientation,
     barLabelResolvesPlacement,
     barLabelRotation,
+    barLabelRoutesThroughEngine,
     buildBarLabelData,
     buildBarPositionedLabelDatum,
     createBigIntBins,
@@ -34,8 +36,6 @@ import {
     maxValue,
     measureLabelText,
     mergeDefaults,
-    placedBarLabelTargets,
-    rectLabelObstacles,
     resolveLabelFit,
     tickStep,
     toArray,
@@ -504,7 +504,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             xName,
             yName,
             label,
-            labelFit: resolveLabelFit(label, !label.collision.suppressHide),
+            labelFit: resolveLabelFit(label, !label.collision.alwaysShow),
 
             // Animation flag
             animationEnabled: !this.ctx.animationManager.isSkipped(),
@@ -583,13 +583,13 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         // A placement/orientation array (or a hideable label) pre-positions a candidate per
         // placement × orientation the engine cascades through until one fits; a hideable no-fit label is
         // dropped so it can be hidden. A single fixed, non-hideable placement bakes directly.
-        if (!label.collision.suppressHide || barLabelResolvesPlacement(label.placement)) {
+        if (!label.collision.alwaysShow || barLabelResolvesPlacement(label.placement)) {
             const measured = measureLabelText(text, label);
             const placements = toArray(label.placement);
             if (placements.length === 0) placements.push('inside-center');
             const orientations = toArray(label.orientation);
             if (orientations.length === 0) orientations.push('horizontal');
-            const plotRegion = label.collision.resolveCollideWith().seriesArea ? this.getSeriesPlotRegion() : undefined;
+            const plotRegion = this.resolveLabelPlotRegion(label.collision);
             const candidates = buildBarLabelCandidates({
                 isUpward,
                 isVertical: true,
@@ -989,25 +989,14 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
     }
 
     getLabelObstacles() {
-        const rects = rectLabelObstacles(this.contextNodeData?.nodeData);
-        // Baked labels (single placement, `suppressHide: true`) never route through the placement
-        // engine, so they never enter the obstacle index there. Contribute their drawn footprint as
-        // `label` obstacles so other series' labels avoid them; routed labels are excluded because the
-        // engine already inserts them as it places each one.
-        if (this.usesPlacedLabels || !this.isLabelEnabled()) return rects;
-        const labels = this.getBakedLabelObstacles();
-        if (labels == null) return rects;
-        return rects == null ? labels : rects.concat(labels);
-    }
-
-    private getBakedLabelObstacles() {
         const { label } = this.properties;
         const box = expandPlacementLabelBoxExtent(label);
-        return bakedLabelObstacles(this.contextNodeData?.labelData, (node) => ({
-            label: node.label,
-            config: label,
-            box,
-        }));
+        return barLabelObstacles(
+            this.contextNodeData?.nodeData,
+            this.contextNodeData?.labelData,
+            this.isLabelEnabled() && !this.usesPlacedLabels,
+            (node) => ({ label: node.label, config: label, box })
+        );
     }
 
     protected override updateLabelSelection(opts: {
@@ -1068,13 +1057,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
 
     protected override resolveUsesPlacedLabels(): boolean {
         const { label } = this.properties;
-        // A placement/orientation array cascades through the engine; a hideable label routes even for a
-        // single placement, so a no-fit label can be dropped and hidden.
-        return (
-            barLabelResolvesOrientation(label.orientation) ||
-            barLabelResolvesPlacement(label.placement) ||
-            !label.collision.suppressHide
-        );
+        return barLabelRoutesThroughEngine(label.orientation, label.placement, label.collision.alwaysShow);
     }
 
     override getLabelData(): PointLabelDatum[] {
@@ -1087,12 +1070,12 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             const { width, height } = measureLabelText(text, label);
             return { width: width + box.left + box.right, height: height + box.top + box.bottom };
         };
-        const suppressHide = label.collision.suppressHide;
+        const alwaysShow = label.collision.alwaysShow;
         const collideWith = label.collision.resolveCollideWith();
         // The positioned path drives both a hideable label (dropped on no fit) and a placement cascade
-        // (kept at the best candidate when `suppressHide`); an orientation-only array stays on the baked
+        // (kept at the best candidate when `alwaysShow`); an orientation-only array stays on the baked
         // path below, which resolves orientation against the bar region.
-        if (!suppressHide || barLabelResolvesPlacement(label.placement)) {
+        if (!alwaysShow || barLabelResolvesPlacement(label.placement)) {
             const data: PointLabelDatum[] = [];
             for (const node of this.contextNodeData?.labelData ?? []) {
                 const nodeLabel = node.label;
@@ -1108,7 +1091,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                         nodeLabel.candidates,
                         nodeLabel,
                         ownBox,
-                        suppressHide,
+                        alwaysShow,
                         collideWith
                     )
                 );
@@ -1125,15 +1108,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
 
     override updatePlacedLabelData(placed: PlacedLabel<HistogramNodeDatum>[]) {
         applyBarLabelOrientation(placed);
-        // Hideable labels (`neverDrop: false`) the engine dropped are absent from `placed`; flag the
-        // routed labels (`candidates != null`) it kept as visible and the rest as hidden.
-        const placedTargets = placedBarLabelTargets(placed);
-        for (const node of this.contextNodeData?.labelData ?? []) {
-            const nodeLabel = node.label;
-            if (nodeLabel?.candidates != null) {
-                nodeLabel.hidden = !placedTargets.has(nodeLabel);
-            }
-        }
+        applyPlacedBarLabelVisibility(this.contextNodeData?.labelData, placed, (node) => node.label);
         this.refreshPlacedLabelNodes();
     }
 

@@ -61,13 +61,16 @@ export interface AgChartLabelCollideWithOptions {
 export interface AgChartLabelCollisionOptions {
     /**
      * Collision threshold in pixels. A positive value triggers avoidance strategies when labels are further away, a negative value allows labels to overlap without triggering avoidance.
+     *
+     * Default: `0`
      */
     threshold?: PixelSize;
     /**
-     * Whether to keep a colliding label visible if there is still a collision after applying all strategies . When `true` the label
-     * stays at the best available solution; when `false` it is hidden instead.
+     * Whether to keep a colliding label visible when a collision remains after every avoidance strategy has been applied. When `true` the label stays at the best available position; when `false` it is hidden instead.
+     *
+     * Default: `true`
      */
-    suppressHide?: boolean;
+    alwaysShow?: boolean;
     // Undocumented: per-category toggle for the obstacles the label avoids. Accepted at runtime via
     // the `collideWith` validator but kept off the public type contract.
     // collideWith?: AgChartLabelCollideWithOptions;

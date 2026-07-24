@@ -9,6 +9,7 @@ import {
     LABEL_BOXING_TOP_LEVEL_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
     SERIES_SELECTION_THEME,
+    undocumentedThemeOptions,
 } from 'ag-charts-core';
 import type {
     AgBubbleSeriesOptions,
@@ -86,7 +87,7 @@ const themeTemplate: ExtensibleTheme<'bubble'> = {
             padding: 8,
             insideStyle: { color: { $isUserOption: ['../color', { $path: '../color' }, { $ref: 'textColor' }] } },
             outsideStyle: { color: { $isUserOption: ['../color', { $path: '../color' }, { $ref: 'textColor' }] } },
-            collision: { suppressHide: false },
+            collision: { alwaysShow: false, ...undocumentedThemeOptions({ collideWith: { seriesArea: false } }) },
         },
         tooltip: {
             range: {

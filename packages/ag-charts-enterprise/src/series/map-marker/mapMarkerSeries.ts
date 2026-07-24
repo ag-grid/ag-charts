@@ -586,7 +586,7 @@ export class MapMarkerSeries
         const markerMaxSize = properties.maxSize ?? properties.size;
         sizeScale.range = [markerMinSize, Math.max(markerMinSize, markerMaxSize)];
         const measurer = cachedTextMeasurer(label);
-        const labelFit = resolveLabelFit(label, !label.collision.suppressHide);
+        const labelFit = resolveLabelFit(label, !label.collision.alwaysShow);
 
         const projectedGeometries = this.prepareProjectedGeometries(
             columns.idValues,

@@ -395,7 +395,7 @@ export class MapLineSeries
         const maxStrokeWidth = properties.maxStrokeWidth ?? properties.strokeWidth;
         sizeScale.range = [minStrokeWidth, Math.max(minStrokeWidth, maxStrokeWidth)];
         const measurer = cachedTextMeasurer(label);
-        const labelFit = resolveLabelFit(label, !label.collision.suppressHide);
+        const labelFit = resolveLabelFit(label, !label.collision.alwaysShow);
 
         const projectedGeometries = this.prepareProjectedLineGeometries(
             columns.idValues,

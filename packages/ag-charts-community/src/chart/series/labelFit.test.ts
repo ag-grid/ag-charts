@@ -131,10 +131,10 @@ describe('series label fit', () => {
             expect(labelTexts()).toEqual(showData.map((d) => d.label));
         });
 
-        it('hides oversized labels when suppressHide is false', async () => {
-            await renderAndSnapshot(barChart({ collision: { suppressHide: false } }));
+        it('hides oversized labels when alwaysShow is false', async () => {
+            await renderAndSnapshot(barChart({ collision: { alwaysShow: false } }));
             const texts = labelTexts();
-            // suppressHide: false → overflow 'hide': oversized labels are dropped to empty rather than ellipsised,
+            // alwaysShow: false → overflow 'hide': oversized labels are dropped to empty rather than ellipsised,
             // while labels that already fit their bar survive intact.
             expect(texts.some((text) => text === '' || text == null)).toBe(true);
             expect(someTruncated(texts)).toBe(false);

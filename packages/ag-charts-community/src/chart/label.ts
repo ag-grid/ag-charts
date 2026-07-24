@@ -81,14 +81,14 @@ export class LabelCollision extends BaseProperties implements AgChartLabelCollis
     threshold?: number;
 
     @Property
-    suppressHide: boolean = true;
+    alwaysShow: boolean = true;
 
     @Property
     collideWith = new LabelCollideWith();
 
     /**
-     * Resolved per-category obstacle toggles. Applies the global default profile: marker/label avoidance
-     * default on, seriesItem/seriesArea default off; a per-series theme overrides these via `collideWith`.
+     * Resolved per-category obstacle toggles. Applies the global default profile: marker/label/seriesArea
+     * avoidance default on, seriesItem defaults off; a per-series theme overrides these via `collideWith`.
      */
     resolveCollideWith(): CollideWith {
         const { markers, labels, seriesItems, seriesArea } = this.collideWith;
@@ -96,7 +96,7 @@ export class LabelCollision extends BaseProperties implements AgChartLabelCollis
             marker: markers ?? true,
             label: labels ?? true,
             seriesItem: seriesItems ?? false,
-            seriesArea: seriesArea ?? false,
+            seriesArea: seriesArea ?? true,
         };
     }
 }

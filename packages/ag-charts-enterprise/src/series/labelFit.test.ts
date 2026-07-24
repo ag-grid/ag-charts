@@ -128,19 +128,19 @@ describe('series label fit', () => {
             expect(someTruncated(texts)).toBe(true);
         });
 
-        it('hides oversized labels when suppressHide is false', async () => {
+        it('hides oversized labels when alwaysShow is false', async () => {
             const data = Array.from({ length: 10 }, (_, i) => ({ cat: `Category ${i}`, value: 100 }));
             await renderAndSnapshot(
                 waterfallChart(
                     {
-                        collision: { suppressHide: false },
+                        collision: { alwaysShow: false },
                         formatter: () => 'A very long waterfall label that cannot possibly fit inside the bar',
                     },
                     data
                 )
             );
             const texts = nestedLabelTexts();
-            // suppressHide: false → overflow 'hide': oversized labels drop to empty rather than ellipsising.
+            // alwaysShow: false → overflow 'hide': oversized labels drop to empty rather than ellipsising.
             expect(texts.some((text) => text === '' || text == null)).toBe(true);
             expect(someTruncated(texts)).toBe(false);
         });

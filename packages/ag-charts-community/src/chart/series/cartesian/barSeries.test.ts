@@ -1642,7 +1642,7 @@ describe('BarSeries', () => {
                             fill: '#ffe08a',
                             padding: 12,
                             border: { enabled: true, stroke: 'red', strokeWidth: 8 },
-                            collision: { threshold: 0, suppressHide: false },
+                            collision: { threshold: 0, alwaysShow: false },
                         },
                     },
                 ],
@@ -1815,10 +1815,10 @@ describe('BarSeries', () => {
         );
     });
 
-    // Hideable labels (`collision.suppressHide: false`) route even a single placement through the
+    // Hideable labels (`collision.alwaysShow: false`) route even a single placement through the
     // placement engine so a label that cannot fit is dropped and rendered invisible, rather than baked
-    // unconditionally by the fast path. The default (`suppressHide: true`) keeps the byte-identical bake.
-    describe('suppressHide single-placement hiding', () => {
+    // unconditionally by the fast path. The default (`alwaysShow: true`) keeps the byte-identical bake.
+    describe('alwaysShow single-placement hiding', () => {
         const visibleLabelCount = async (options: AgChartOptions) => {
             prepareTestOptions(options);
             chart = AgCharts.create(options);
@@ -1830,7 +1830,7 @@ describe('BarSeries', () => {
         // Twelve tall, narrow bars: an inside-center label forced wide by the formatter overflows the
         // bar on the cross (width) axis while fitting comfortably on the value axis.
         const wideLabelData = Array.from({ length: 12 }, (_, i) => ({ x: `c${i}`, y: 100 }));
-        const wideLabel = (suppressHide?: boolean): AgChartOptions => ({
+        const wideLabel = (alwaysShow?: boolean): AgChartOptions => ({
             data: wideLabelData,
             legend: { enabled: false },
             series: [
@@ -1842,23 +1842,23 @@ describe('BarSeries', () => {
                         placement: 'inside-center',
                         formatter: () => 'WWWWWWWWWW',
                         color: 'black',
-                        ...(suppressHide == null ? {} : { collision: { suppressHide } }),
+                        ...(alwaysShow == null ? {} : { collision: { alwaysShow } }),
                     },
                 },
             ],
         });
 
-        it('hides an inside-center label wider than its bar when suppressHide is false', async () => {
+        it('hides an inside-center label wider than its bar when alwaysShow is false', async () => {
             const count = await visibleLabelCount(wideLabel(false));
             expect(count).toBeLessThan(wideLabelData.length);
         });
 
-        it('keeps the same label under the default suppressHide (fast path)', async () => {
+        it('keeps the same label under the default alwaysShow (fast path)', async () => {
             const count = await visibleLabelCount(wideLabel(true));
             expect(count).toBe(wideLabelData.length);
         });
 
-        it('restores hidden labels when suppressHide is toggled back on', async () => {
+        it('restores hidden labels when alwaysShow is toggled back on', async () => {
             const hiddenOptions = wideLabel(false);
             prepareTestOptions(hiddenOptions);
             chart = AgCharts.create(hiddenOptions);
@@ -1877,7 +1877,7 @@ describe('BarSeries', () => {
         // A beside-after-center label sits to the right of its bar; with many closely-spaced bars it
         // lands on the neighbouring bar (a real seriesItem collision) and, being hideable, is dropped.
         const besideData = Array.from({ length: 10 }, (_, i) => ({ x: `c${i}`, y: 100 }));
-        const beside = (suppressHide: boolean): AgChartOptions => ({
+        const beside = (alwaysShow: boolean): AgChartOptions => ({
             data: besideData,
             legend: { enabled: false },
             series: [
@@ -1890,18 +1890,18 @@ describe('BarSeries', () => {
                         formatter: () => 'WWWW',
                         spacing: 5,
                         color: 'black',
-                        collision: { suppressHide },
+                        collision: { alwaysShow },
                     },
                 },
             ],
         });
 
-        it('hides a beside label that lands on a neighbouring bar when suppressHide is false', async () => {
+        it('hides a beside label that lands on a neighbouring bar when alwaysShow is false', async () => {
             const count = await visibleLabelCount(beside(false));
             expect(count).toBeLessThan(besideData.length);
         });
 
-        it('keeps beside labels overlapping neighbours under the default suppressHide', async () => {
+        it('keeps beside labels overlapping neighbours under the default alwaysShow', async () => {
             const count = await visibleLabelCount(beside(true));
             expect(count).toBe(besideData.length);
         });
@@ -1919,7 +1919,7 @@ describe('BarSeries', () => {
                         type: 'bar',
                         xKey: 'x',
                         yKey: 'y',
-                        label: { placement: 'inside-center', color: 'black', collision: { suppressHide: false } },
+                        label: { placement: 'inside-center', color: 'black', collision: { alwaysShow: false } },
                     },
                 ],
             });

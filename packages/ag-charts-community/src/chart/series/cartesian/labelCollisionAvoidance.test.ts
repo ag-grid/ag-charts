@@ -25,7 +25,7 @@ type LabelCollisionConfig = {
     placement?: string[];
     collision?: {
         threshold?: number;
-        suppressHide?: boolean;
+        alwaysShow?: boolean;
         collideWith?: object;
     };
     spacing?: number;
@@ -37,34 +37,34 @@ type LabelCollisionConfig = {
 // variation is the placement candidate list and, for the first case, whether a colliding label is kept
 // (at its least-overflow candidate) rather than hidden.
 const PLACED_LABEL_STRATEGIES: Record<string, LabelCollisionConfig> = {
-    'keep overlapping (suppressHide: true)': {
+    'keep overlapping (alwaysShow: true)': {
         placement: ['top', 'bottom'],
-        collision: { suppressHide: true },
+        collision: { alwaysShow: true },
     },
     'reposition top-bottom': {
         placement: ['top', 'bottom'],
-        collision: { suppressHide: false },
+        collision: { alwaysShow: false },
     },
     'reposition left-right': {
         placement: ['left', 'right'],
-        collision: { suppressHide: false },
+        collision: { alwaysShow: false },
     },
     'reposition all directions': {
         placement: ['top', 'bottom', 'left', 'right', 'top-left', 'top-right', 'bottom-left', 'bottom-right'],
-        collision: { suppressHide: false },
+        collision: { alwaysShow: false },
     },
     'reposition with min spacing': {
         placement: ['top', 'bottom'],
-        collision: { suppressHide: false, threshold: 3 },
+        collision: { alwaysShow: false, threshold: 3 },
     },
 };
 
 // Scatter (and bubble, which it extends) position labels at their own fixed `label.placement` and
 // ignore the placement candidates, so collision resolution only ever decides whether an overlapping
-// label is hidden or kept — the single meaningful axis for marker series is `suppressHide`.
+// label is hidden or kept — the single meaningful axis for marker series is `alwaysShow`.
 const MARKER_LABEL_STRATEGIES: Record<string, LabelCollisionConfig> = {
-    'keep overlapping (suppressHide: true)': { collision: { suppressHide: true } },
-    'hide on collision (suppressHide: false, default)': { collision: { suppressHide: false } },
+    'keep overlapping (alwaysShow: true)': { collision: { alwaysShow: true } },
+    'hide on collision (alwaysShow: false, default)': { collision: { alwaysShow: false } },
 };
 
 type LabelBox = { x: number; y: number; width: number; height: number };
@@ -117,7 +117,7 @@ describe('label collision avoidance', () => {
         label: `Point ${i}`,
     }));
 
-    // Three points close enough that their padded label boxes overlap; used by the suppressHide and
+    // Three points close enough that their padded label boxes overlap; used by the alwaysShow and
     // threshold acceptance suites to force a collision at a known, tight spacing.
     const closeData = [
         { x: 10, y: 50 },
@@ -145,7 +145,7 @@ describe('label collision avoidance', () => {
                         formatter: ({ value }: any) => String(value),
                         placement: 'top',
                         // A padded, filled box forces the labels to collide at this tight spacing (as in
-                        // the box-footprint suite above), independent of `collision.suppressHide`.
+                        // the box-footprint suite above), independent of `collision.alwaysShow`.
                         fill: 'white',
                         padding: 20,
                         ...label,
@@ -572,7 +572,7 @@ describe('label collision avoidance', () => {
                             enabled: true,
                             placement,
                             collision: {
-                                suppressHide: false,
+                                alwaysShow: false,
                                 ...(seriesArea == null ? {} : { collideWith: { seriesArea } }),
                             },
                         },
@@ -653,11 +653,11 @@ describe('label collision avoidance', () => {
             };
 
             it('drops an outside label overflowing the series area by default (seriesArea on)', async () => {
-                expect(await render({ suppressHide: false })).toBe(0);
+                expect(await render({ alwaysShow: false })).toBe(0);
             });
 
             it('keeps the outside label when collideWith.seriesArea is disabled', async () => {
-                expect(await render({ suppressHide: false, collideWith: { seriesArea: false } })).toBe(1);
+                expect(await render({ alwaysShow: false, collideWith: { seriesArea: false } })).toBe(1);
             });
         });
 
@@ -699,13 +699,11 @@ describe('label collision avoidance', () => {
 
             it('drops the bar label colliding with the line label by default (labels on)', async () => {
                 // seriesArea off so the label is not dropped for overflowing the plot area instead.
-                expect(await render({ suppressHide: false, collideWith: { seriesArea: false } })).toBe(0);
+                expect(await render({ alwaysShow: false, collideWith: { seriesArea: false } })).toBe(0);
             });
 
             it('keeps the bar label when collideWith.labels is disabled', async () => {
-                expect(await render({ suppressHide: false, collideWith: { seriesArea: false, labels: false } })).toBe(
-                    1
-                );
+                expect(await render({ alwaysShow: false, collideWith: { seriesArea: false, labels: false } })).toBe(1);
             });
         });
     });
@@ -768,7 +766,7 @@ describe('label collision avoidance', () => {
     describe('with varied label options and stylers', () => {
         const repositionAllDirections: LabelCollisionConfig = {
             placement: ['top', 'bottom', 'left', 'right', 'top-left', 'top-right', 'bottom-left', 'bottom-right'],
-            collision: { suppressHide: false },
+            collision: { alwaysShow: false },
         };
 
         it('line: large labels with padding repositioned around dense markers', async () => {
@@ -812,7 +810,7 @@ describe('label collision avoidance', () => {
                             enabled: true,
                             formatter: ({ value }: any) => value.toFixed(1),
                             placement: ['top', 'bottom'],
-                            collision: { suppressHide: false },
+                            collision: { alwaysShow: false },
                         },
                     },
                 ],
@@ -866,7 +864,7 @@ describe('label collision avoidance', () => {
                             placement: 'top',
                             fill: 'white',
                             padding,
-                            collision: { suppressHide: false },
+                            collision: { alwaysShow: false },
                         },
                     },
                 ],
@@ -919,7 +917,7 @@ describe('label collision avoidance', () => {
                             fill: '#ffe08a',
                             padding: PADDING,
                             border: { enabled: true, stroke: 'red', strokeWidth: STROKE },
-                            collision: { threshold: 0, suppressHide: false },
+                            collision: { threshold: 0, alwaysShow: false },
                         },
                     },
                 ],
@@ -967,7 +965,7 @@ describe('label collision avoidance', () => {
                 series: series({
                     placement: ['top', 'bottom'],
                     collision: {
-                        suppressHide: false,
+                        alwaysShow: false,
                         collideWith: { seriesItems: true },
                     },
                 }),
@@ -986,7 +984,7 @@ describe('label collision avoidance', () => {
         });
     });
 
-    // A bar's inside label with the default `suppressHide: true` and a single placement is baked
+    // A bar's inside label with the default `alwaysShow: true` and a single placement is baked
     // directly rather than routed through the placement engine, so it never enters the obstacle index
     // via placement. It must still act as a `label` obstacle so another series' labels avoid it —
     // otherwise a scatter label sitting over a bar's inside label goes undetected.
@@ -1017,7 +1015,7 @@ describe('label collision avoidance', () => {
                     type: 'bar',
                     xKey: 'x',
                     yKey: 'yA',
-                    label: { enabled: true, collision: { suppressHide: true } },
+                    label: { enabled: true, collision: { alwaysShow: true } },
                 },
                 {
                     type: 'scatter',
@@ -1027,7 +1025,7 @@ describe('label collision avoidance', () => {
                     label: {
                         enabled: true,
                         placement: ['top', 'bottom'],
-                        collision: { suppressHide: false },
+                        collision: { alwaysShow: false },
                     },
                 },
             ],
@@ -1087,7 +1085,7 @@ describe('label collision avoidance', () => {
                         [4, 8],
                         [8, 12],
                     ],
-                    label: { enabled: true, collision: { suppressHide: true } },
+                    label: { enabled: true, collision: { alwaysShow: true } },
                 },
                 {
                     type: 'scatter',
@@ -1098,7 +1096,7 @@ describe('label collision avoidance', () => {
                     label: {
                         enabled: true,
                         placement: ['top', 'bottom'],
-                        collision: { suppressHide: false },
+                        collision: { alwaysShow: false },
                     },
                 },
             ],
@@ -1164,21 +1162,18 @@ describe('label collision avoidance', () => {
         };
 
         it('drops a hideable outside label overflowing the series area', async () => {
-            expect(await render({ suppressHide: false, collideWith: { seriesArea: true } })).toBe(0);
+            expect(await render({ alwaysShow: false, collideWith: { seriesArea: true } })).toBe(0);
         });
 
-        it('keeps the same label when it is not hideable (suppressHide: true)', async () => {
-            expect(await render({ suppressHide: true, collideWith: { seriesArea: true } })).toBe(1);
+        it('keeps the same label when it is not hideable (alwaysShow: true)', async () => {
+            expect(await render({ alwaysShow: true, collideWith: { seriesArea: true } })).toBe(1);
         });
 
         it('cascades a hideable outside label to an inside placement that fits', async () => {
             // The single `outside-end` label above hides (0); the array falls through to `inside-center`,
-            // which fits inside the tall bin, so the label is kept even though `suppressHide` is false.
+            // which fits inside the tall bin, so the label is kept even though `alwaysShow` is false.
             expect(
-                await render({ suppressHide: false, collideWith: { seriesArea: true } }, [
-                    'outside-end',
-                    'inside-center',
-                ])
+                await render({ alwaysShow: false, collideWith: { seriesArea: true } }, ['outside-end', 'inside-center'])
             ).toBe(1);
         });
 
@@ -1202,7 +1197,7 @@ describe('label collision avoidance', () => {
                             enabled: true,
                             formatter: () => 'WWWWWWWWWWWWWWWWWWWW',
                             placement: ['inside-center', 'outside-end'],
-                            collision: { suppressHide: false },
+                            collision: { alwaysShow: false },
                         },
                     },
                 ],
@@ -1248,7 +1243,7 @@ describe('label collision avoidance', () => {
                             formatter: ({ binIndex, frequency }: any) =>
                                 binIndex === 3 ? 'WWWWWWWWWWWWWWWWWWWW' : String(frequency),
                             placement: ['outside-end', 'inside-center'],
-                            collision: { suppressHide: false, collideWith: { seriesArea: true } },
+                            collision: { alwaysShow: false, collideWith: { seriesArea: true } },
                         },
                     },
                 ],
@@ -1562,6 +1557,102 @@ describe('label collision avoidance', () => {
         }
     });
 
+    // A bar-family label with an orientation array but only a single `placement` and default
+    // `alwaysShow` is baked (not routed through positioned candidates), yet still `usesPlacedLabels`
+    // because the engine must resolve its orientation. It must never see its own baked footprint as a
+    // `label` obstacle — neither during its own resolution nor as a cross-series obstacle other series'
+    // labels are asked to avoid.
+    describe('orientation-array bar label is not its own obstacle', () => {
+        const barData = Array.from({ length: 8 }, (_, i) => ({ cat: `Category ${i}`, bar: 30 + 10 * Math.sin(i) }));
+        const comboData = barData.map((d, i) => ({ ...d, line: 20 + 8 * Math.cos(i) }));
+
+        const barLabel = {
+            enabled: true,
+            orientation: ['horizontal', 'vertical'] as const,
+            placement: 'outside-end',
+        };
+
+        const barRotations = () => {
+            const series = deproxy(chart as any).series[0] as unknown as {
+                labelSelection: { nodes(): { visible: boolean }[] };
+                contextNodeData?: { labelData?: { label?: { rotation?: number } }[] };
+            };
+            const visible = series.labelSelection.nodes().filter((node) => node.visible).length;
+            const rotations = (series.contextNodeData?.labelData ?? []).map((d) => d.label?.rotation ?? 0);
+            return { visible, rotations };
+        };
+
+        it('places every bar label at its single-series orientation alongside a second collision series', async () => {
+            const barOnlyOptions: any = {
+                data: barData,
+                legend: { enabled: false },
+                axes: { x: { type: 'category', position: 'bottom' }, y: { type: 'number', position: 'left' } },
+                series: [{ type: 'bar', xKey: 'cat', yKey: 'bar', label: barLabel }],
+            };
+            prepareTestOptions(barOnlyOptions);
+            chart = AgCharts.create(barOnlyOptions);
+            await waitForChartStability(chart);
+            const baseline = barRotations();
+            // Anti-vacuous guard: every bar must actually render a label in the baseline.
+            expect(baseline.visible).toBe(barData.length);
+
+            chart.destroy();
+            const comboOptions: any = {
+                data: comboData,
+                legend: { enabled: false },
+                axes: { x: { type: 'category', position: 'bottom' }, y: { type: 'number', position: 'left' } },
+                series: [
+                    { type: 'bar', xKey: 'cat', yKey: 'bar', label: barLabel },
+                    {
+                        type: 'line',
+                        xKey: 'cat',
+                        yKey: 'line',
+                        marker: { enabled: true, size: 6 },
+                        label: { enabled: true, placement: 'bottom' },
+                    },
+                ],
+            };
+            prepareTestOptions(comboOptions);
+            chart = AgCharts.create(comboOptions);
+            await waitForChartStability(chart);
+            const combo = barRotations();
+
+            // A self-obstacle would make the bar wrongly perceive a collision with its own label,
+            // potentially hiding it or flipping its orientation once a second series is present.
+            expect(combo.visible).toBe(barData.length);
+            expect(combo.rotations).toEqual(baseline.rotations);
+        });
+
+        it('does not contribute its own routed label as a `label` obstacle for other series to avoid', async () => {
+            const options: any = {
+                data: comboData,
+                legend: { enabled: false },
+                axes: { x: { type: 'category', position: 'bottom' }, y: { type: 'number', position: 'left' } },
+                series: [
+                    { type: 'bar', xKey: 'cat', yKey: 'bar', label: barLabel },
+                    {
+                        type: 'line',
+                        xKey: 'cat',
+                        yKey: 'line',
+                        marker: { enabled: true, size: 6 },
+                        label: { enabled: true, placement: 'bottom' },
+                    },
+                ],
+            };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const bar = deproxy(chart as any).series[0] as unknown as {
+                getLabelObstacles(): { kind: string; category?: string }[] | undefined;
+            };
+            const obstacles = bar.getLabelObstacles() ?? [];
+            // Anti-vacuous guard: the bar still contributes its rects as `seriesItem` obstacles.
+            expect(obstacles.length).toBe(barData.length);
+            expect(obstacles.every((o) => o.category === 'seriesItem')).toBe(true);
+        });
+    });
+
     // An inside label's spacing is a gap from the bar's value end, so it applies only along the bar's
     // length axis. On the cross axis the label may span the full bar width/height and must not be
     // rejected as a collision, letting a candidate that overflows the old all-sides inset be kept.
@@ -1683,24 +1774,24 @@ describe('label collision avoidance', () => {
         });
     });
 
-    // `suppressHide` gates only the terminal hide-vs-keep decision once collision resolution has run;
+    // `alwaysShow` gates only the terminal hide-vs-keep decision once collision resolution has run;
     // it is orthogonal to fit (wrapping/truncation) and placement cascade, which always apply
     // regardless of its value.
-    describe('collision.suppressHide (acceptance criteria)', () => {
-        it('suppressHide: false hides a label that cannot avoid a collision', async () => {
+    describe('collision.alwaysShow (acceptance criteria)', () => {
+        it('alwaysShow: false hides a label that cannot avoid a collision', async () => {
             // Anti-vacuous guard: some labels must actually collide for the assertion to be meaningful.
-            const placed = await renderPlaced({ collision: { suppressHide: false } });
+            const placed = await renderPlaced({ collision: { alwaysShow: false } });
             expect(placed.length).toBeLessThan(closeData.length);
         });
 
-        it('suppressHide: true keeps every label visible at its least-overflow candidate', async () => {
-            const placed = await renderPlaced({ collision: { suppressHide: true } });
+        it('alwaysShow: true keeps every label visible at its least-overflow candidate', async () => {
+            const placed = await renderPlaced({ collision: { alwaysShow: true } });
             expect(placed.length).toBe(closeData.length);
         });
 
-        it('still cascades a placement fallback for a kept label when suppressHide is true', async () => {
+        it('still cascades a placement fallback for a kept label when alwaysShow is true', async () => {
             const placed = await renderPlaced({
-                collision: { suppressHide: true },
+                collision: { alwaysShow: true },
                 placement: ['top', 'bottom'],
             });
             expect(placed.length).toBe(closeData.length);
@@ -1708,9 +1799,9 @@ describe('label collision avoidance', () => {
             expect(placed.some((label) => label.placement === 'bottom')).toBe(true);
         });
 
-        it('still wraps and truncates a kept label when suppressHide is true', async () => {
+        it('still wraps and truncates a kept label when alwaysShow is true', async () => {
             const placed = await renderPlaced({
-                collision: { suppressHide: true },
+                collision: { alwaysShow: true },
                 maxWidth: 20,
                 wrapping: 'on-space',
                 truncate: true,
@@ -1728,13 +1819,13 @@ describe('label collision avoidance', () => {
     // validation (setupMockConsole fails the test on any validation warning).
     describe('collision.threshold (acceptance criteria)', () => {
         it('threshold: 0 keeps the label box unchanged, hiding a colliding label', async () => {
-            const placed = await renderPlaced({ collision: { suppressHide: false, threshold: 0 } });
+            const placed = await renderPlaced({ collision: { alwaysShow: false, threshold: 0 } });
             // Anti-vacuous guard: labels must actually collide for the tolerance assertions to be meaningful.
             expect(placed.length).toBeLessThan(closeData.length);
         });
 
         it('a negative threshold tolerates overlap and keeps every label', async () => {
-            const placed = await renderPlaced({ collision: { suppressHide: false, threshold: -1000 } });
+            const placed = await renderPlaced({ collision: { alwaysShow: false, threshold: -1000 } });
             expect(placed.length).toBe(closeData.length);
         });
     });
@@ -1800,7 +1891,7 @@ describe('label collision avoidance', () => {
                         enabled: true,
                         formatter: ({ value }: any) => `label-${value}`,
                         placement,
-                        collision: { suppressHide: true },
+                        collision: { alwaysShow: true },
                     },
                 },
             ],

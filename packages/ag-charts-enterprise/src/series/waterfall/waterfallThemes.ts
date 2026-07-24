@@ -5,6 +5,7 @@ import {
     FILL_PATTERN_KEYED_DEFAULTS,
     LABEL_BOXING_TOP_LEVEL_DEFAULTS,
     SINGLE_SERIES_HIGHLIGHT_STYLE,
+    undocumentedThemeOptions,
 } from 'ag-charts-core';
 import type { ExtensibleTheme } from 'ag-charts-types';
 
@@ -41,8 +42,7 @@ function itemTheme(
             padding: 6,
             collision: {
                 threshold: 4,
-                // @ts-expect-error undocumented option
-                collideWith: { seriesItems: true, seriesArea: true },
+                ...undocumentedThemeOptions({ collideWith: { seriesItems: true } }),
             },
             insideStyle: {
                 color: { $isUserOption: ['../color', { $path: '../color' }, { $ref: 'textColor' as const }] },
