@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
 import {
+    type AgChartInstance,
     type AgChartOptions,
     AgCharts,
     type AgNightingaleSeriesOptions,
@@ -13,17 +14,24 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     MIN_UNHIGHLIGHT_DELAY,
     type MockNightingaleStyler,
+    type SceneFrameInvariant,
+    type SceneGeometrySample,
     clickAction,
     compareImageSnapshot,
+    createSceneGeometrySampler,
     deproxy,
     doubleClickAction,
     doubleTapAction,
+    expectAnimatedEndpointsMatchStatic,
+    expectMonotonic,
+    expectProgresses,
+    expectSceneTrajectory,
     expectWarningsCalls,
     hoverAction,
     newFreezableMock,
     setupMockCanvas,
     setupMockConsole,
-    spyOnAnimationManager,
+    spyOnAnimationFrames,
     tapAction,
     testLegendItemName,
     waitForChartStability,
@@ -277,98 +285,193 @@ describe('NightingaleSeries', () => {
         });
     });
 
-    describe('initial animation', () => {
-        const animate = spyOnAnimationManager();
+    // The public animation data actions — initial load, add/remove/update data — asserted over the whole
+    // animation trajectory (see the animation-trajectory-tests rule) rather than as per-ratio image
+    // snapshots. Only the empty→ready reveal animates: each wedge grows radially from a collapsed centre
+    // (outerRadius 0 → target) while its fixed angular slice holds. A data update, add, or partial remove
+    // on an already-populated series snaps to the settled state with no tween — the snap CASEs pin that.
+    describe('animation -test page actions', () => {
+        const frames = spyOnAnimationFrames();
 
-        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-            it(`for EXAMPLE_OPTIONS should animate at ${ratio * 100}%`, async () => {
-                animate(1200, ratio);
-
-                const options: AgChartOptions = { ...EXAMPLE_OPTIONS };
-                prepareEnterpriseTestOptions(options);
-
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
-                await compare();
+        type Row = { quarter: string; air: number; winds: number };
+        const NG_DATA: Row[] = [
+            { quarter: `Q1'22`, air: 4.35, winds: 2.14 },
+            { quarter: `Q2'22`, air: 4.28, winds: 3.13 },
+            { quarter: `Q3'22`, air: 4.14, winds: 3.34 },
+            { quarter: `Q4'22`, air: 3.48, winds: 3.56 },
+        ];
+        // A pinned radius axis keeps the scaling fixed across data mutations, so only the marks move.
+        const nightingaleOptions = (data: Row[] = NG_DATA): AgPolarChartOptions =>
+            prepareEnterpriseTestOptions<AgPolarChartOptions>({
+                data: [...data],
+                series: [
+                    { type: 'nightingale', angleKey: 'quarter', radiusKey: 'air', radiusName: 'Air' },
+                    { type: 'nightingale', angleKey: 'quarter', radiusKey: 'winds', radiusName: 'Winds' },
+                ],
+                axes: {
+                    angle: { type: 'angle-category' },
+                    radius: { type: 'radius-number', min: 0, max: 10, nice: false },
+                },
+                legend: { enabled: true },
             });
-        }
-    });
+        const grow = (data: Row[]) => data.map((d) => ({ ...d, air: d.air * 1.8 }));
 
-    describe('remove animation', () => {
-        const animate = spyOnAnimationManager();
+        const sectorEntries = (sample: SceneGeometrySample) =>
+            [...sample].filter(([key]) => /^series\[\d+\]\/sector\[/.test(key));
+        const sectorCount = (sample: SceneGeometrySample) => sectorEntries(sample).length;
+        const outerRadiusOf = (sample: SceneGeometrySample, key: string) => sample.get(key)?.outerRadius;
+        const radii = (trajectory: SceneGeometrySample[], key: string): number[] =>
+            trajectory.map((f) => outerRadiusOf(f, key)).filter((v): v is number => v != null && Number.isFinite(v));
+        const maxRadius = (sample: SceneGeometrySample) =>
+            Math.max(...sectorEntries(sample).map(([, v]) => v.outerRadius));
+        // The per-wedge labels start collapsed at opacity ~0 on the first captured frame, so the
+        // trailing-phase fade-in specs cannot pass vacuously — a regression that snapped them straight
+        // to full opacity would trip this.
+        const expectLabelsStartHidden = (trajectory: SceneGeometrySample[]) => {
+            const hidden = [...trajectory[0]].filter(([key]) => /^series\[\d+\]\/labels\/text\[.+\]$/.test(key));
+            expect(hidden.length, 'label nodes at frame 0').toBeGreaterThan(0);
+            for (const [key, props] of hidden) {
+                expect(props.opacity, `${key} opacity at frame 0`).toBeLessThanOrEqual(0.01);
+            }
+        };
 
-        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-            it(`for EXAMPLE_OPTIONS should animate at ${ratio * 100}%`, async () => {
-                animate(1200, 1);
+        it('initial load: every wedge grows radially from a collapsed centre', async () => {
+            const proxy = AgCharts.create(nightingaleOptions());
+            chart = deproxy(proxy);
+            const sampleScene = createSceneGeometrySampler(proxy);
+            const trajectory = await frames.captureAnimationFrames(proxy, sampleScene);
+            await frames.runToEnd(proxy);
+            const sectorKeys = sectorEntries(sampleScene()).map(([key]) => key);
+            expect(sectorKeys).toHaveLength(8);
 
-                const options: AgChartOptions = { ...EXAMPLE_OPTIONS };
-                prepareEnterpriseTestOptions(options);
+            // Every wedge advances by one shared growth fraction on each frame — the desync detector.
+            const wedgesGrowInSync: SceneFrameInvariant = {
+                name: 'all wedges share one radial growth fraction',
+                check: (frame) => {
+                    const fractions: number[] = [];
+                    for (const key of sectorKeys) {
+                        const current = outerRadiusOf(frame, key);
+                        const target = radii(trajectory, key).at(-1);
+                        if (current == null || target == null || target < 20) continue;
+                        fractions.push(current / target);
+                    }
+                    if (fractions.length < 2) return undefined;
+                    const spread = Math.max(...fractions) - Math.min(...fractions);
+                    return spread > 0.1 ? `growth fractions desynced by ${spread.toFixed(3)}` : undefined;
+                },
+            };
 
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
+            // Each wedge grows radially during 'initial' — its outer edge sweeps out and, for the
+            // radially-stacked outer series, its inner edge tracks the series beneath it. The angular
+            // slice holds fixed; the per-wedge labels fade in during the trailing phase, after the growth.
+            const radialGrowth = {
+                startAngle: 'constant',
+                endAngle: 'constant',
+                innerRadius: { during: 'initial', expect: ['increases', 'bounded'] },
+                outerRadius: { during: 'initial', expect: ['increases', 'bounded'] },
+            } as const;
+            const labelFadeIn = {
+                opacity: { during: 'trailing', expect: ['increases', 'bounded'] },
+                x: 'any',
+                y: 'any',
+            } as const;
+            expectSceneTrajectory(
+                trajectory,
+                {
+                    'series[0]/sector[*]': radialGrowth,
+                    'series[1]/sector[*]': radialGrowth,
+                    'series[0]/labels/text[*]': labelFadeIn,
+                    'series[1]/labels/text[*]': labelFadeIn,
+                },
+                { frameInvariants: [wedgesGrowInSync] }
+            );
+            expectLabelsStartHidden(trajectory);
 
-                chart.updateDelta({
-                    data: options.data!.slice(0, 4),
-                });
-                animate(1200, ratio);
+            // Anti-vacuity: every wedge starts collapsed at the centre (~0) and grows to a real radius —
+            // a snap regression would show frame 0 already at the target.
+            for (const key of sectorKeys) {
+                const radius = radii(trajectory, key);
+                expect(radius[0], `${key} collapsed at frame 0`).toBeLessThanOrEqual(1);
+                expectMonotonic(radius, 'increasing');
+                expectProgresses(radius);
+                expect(radius.at(-1)! - radius[0], `${key} radial growth`).toBeGreaterThan(20);
+            }
+        });
 
-                await waitForChartStability(chart);
-                await compare();
+        it('update data: value changes snap into place without a tween', async () => {
+            const options = nightingaleOptions();
+            const proxy = AgCharts.create(options);
+            chart = deproxy(proxy);
+            const sampleScene = createSceneGeometrySampler(proxy);
+            const { before, trajectory, after } = await frames.captureSnap(proxy, sampleScene, () =>
+                (proxy as AgChartInstance).update({ ...options, data: grow(NG_DATA) } as AgPolarChartOptions)
+            );
+            // The update actually grew the air wedges (anti-vacuity for the snap assertion)...
+            expect(maxRadius(after) - maxRadius(before), 'wedges grew').toBeGreaterThan(20);
+            // ...and the whole scene held constant across the captured frames: it landed fully formed on
+            // frame 0 with no tween anywhere (a regression that tweened the growth would break this).
+            expectSceneTrajectory(trajectory);
+        });
+
+        it('add data: new wedges appear fully formed without animating in', async () => {
+            const options = nightingaleOptions();
+            const proxy = AgCharts.create({ ...options, data: NG_DATA.slice(0, 3) } as AgPolarChartOptions);
+            chart = deproxy(proxy);
+            const sampleScene = createSceneGeometrySampler(proxy);
+            const { before, trajectory, after } = await frames.captureSnap(proxy, sampleScene, () =>
+                (proxy as AgChartInstance).update({ ...options, data: [...NG_DATA] } as AgPolarChartOptions)
+            );
+            expect(sectorCount(before), 'three quarters before').toBe(6);
+            expect(sectorCount(after), 'four quarters after').toBe(8);
+            expect(sectorCount(trajectory[0]), 'added wedges present from frame 0').toBe(8);
+            expectSceneTrajectory(trajectory);
+        });
+
+        it('remove data: dropped wedges disappear without collapsing', async () => {
+            const options = nightingaleOptions();
+            const proxy = AgCharts.create(options);
+            chart = deproxy(proxy);
+            const sampleScene = createSceneGeometrySampler(proxy);
+            const { before, trajectory, after } = await frames.captureSnap(proxy, sampleScene, () =>
+                (proxy as AgChartInstance).update({ ...options, data: NG_DATA.slice(0, 3) } as AgPolarChartOptions)
+            );
+            expect(sectorCount(before), 'four quarters before').toBe(8);
+            expect(sectorCount(after), 'three quarters after').toBe(6);
+            expect(sectorCount(trajectory[0]), 'dropped wedges gone from frame 0').toBe(6);
+            expectSceneTrajectory(trajectory);
+        });
+
+        // Endpoint sanity guards: the animated reveal into `before` and the snapped transition into
+        // `after` must settle at exactly the pixels a non-animated render of the same options produces.
+        it('sanity: update-data endpoints match static renders', async () => {
+            const before = nightingaleOptions();
+            const proxy = AgCharts.create(before);
+            chart = deproxy(proxy);
+            await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), proxy, before, {
+                ...before,
+                data: grow(NG_DATA),
             });
-        }
-    });
+        });
 
-    describe('add animation', () => {
-        const animate = spyOnAnimationManager();
-
-        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-            it(`for EXAMPLE_OPTIONS should animate at ${ratio * 100}%`, async () => {
-                animate(1200, 1);
-
-                const { data: fullData } = EXAMPLE_OPTIONS;
-                const options: AgChartOptions = { ...EXAMPLE_OPTIONS, data: fullData?.slice(0, 4) };
-                prepareEnterpriseTestOptions(options);
-
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
-
-                chart.updateDelta({
-                    data: fullData,
-                });
-                animate(1200, ratio);
-
-                await waitForChartStability(chart);
-                await compare();
+        it('sanity: add-data endpoints match static renders', async () => {
+            const before = { ...nightingaleOptions(), data: NG_DATA.slice(0, 3) } as AgPolarChartOptions;
+            const proxy = AgCharts.create(before);
+            chart = deproxy(proxy);
+            await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), proxy, before, {
+                ...nightingaleOptions(),
+                data: [...NG_DATA],
             });
-        }
-    });
+        });
 
-    describe('update animation', () => {
-        const animate = spyOnAnimationManager();
-
-        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-            it(`for EXAMPLE_OPTIONS should animate at ${ratio * 100}%`, async () => {
-                animate(1200, 1);
-
-                const options: AgChartOptions = { ...EXAMPLE_OPTIONS };
-                prepareEnterpriseTestOptions(options);
-
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
-
-                chart.updateDelta({
-                    data: options.data!.map((d: any) => {
-                        return Object.entries(d).reduce((obj, [key, value], i) => {
-                            return Object.assign(obj, { [key]: typeof value === 'number' ? value * i : value });
-                        }, {});
-                    }),
-                });
-                animate(1200, ratio);
-
-                await waitForChartStability(chart);
-                await compare();
+        it('sanity: remove-data endpoints match static renders', async () => {
+            const before = nightingaleOptions();
+            const proxy = AgCharts.create(before);
+            chart = deproxy(proxy);
+            await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), proxy, before, {
+                ...before,
+                data: NG_DATA.slice(0, 3),
             });
-        }
+        });
     });
 
     describe('gradient fill', () => {

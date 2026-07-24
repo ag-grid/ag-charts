@@ -4,7 +4,7 @@ import type { AgContextMenuItemLiteral, AgContextMenuItemShowOn } from 'ag-chart
 import type { ContextMenuEvent } from '../../core/eventsHub';
 import type { ChartRegistry } from '../../module/moduleContext';
 import type { MouseWidgetEvent } from '../../widget/widgetEvents';
-import type { ContextMenuCallback, ContextShowOnMap } from './contextMenuTypes';
+import type { ContextMenuCallback, ContextMenuRegionContexts, ContextShowOnMap } from './contextMenuTypes';
 import { ContextMenuBuiltins } from './contextMenuTypes';
 
 export class ContextMenuRegistry {
@@ -38,6 +38,16 @@ export class ContextMenuRegistry {
         context: ContextShowOnMap[T]['context'],
         position?: { x: number; y: number }
     ) {
+        this.dispatchContextRegions(showOn, [showOn], { [showOn]: context }, pointerEvent, position);
+    }
+
+    public dispatchContextRegions(
+        primaryShowOn: AgContextMenuItemShowOn,
+        regions: readonly AgContextMenuItemShowOn[],
+        contexts: ContextMenuRegionContexts,
+        pointerEvent: { widgetEvent: MouseWidgetEvent<'contextmenu'>; canvasX: number; canvasY: number },
+        position?: { x: number; y: number }
+    ) {
         const { widgetEvent } = pointerEvent;
         if (widgetEvent.sourceEvent.defaultPrevented) {
             // AG-12894 'contextmenu' event bubbles, do not re-dispatch ContextMenuEvent if we're already draw own menu
@@ -46,7 +56,15 @@ export class ContextMenuRegistry {
         const x = position?.x ?? pointerEvent.canvasX;
         const y = position?.y ?? pointerEvent.canvasY;
 
-        const event: Writeable<ContextMenuEvent> = { showOn, x, y, context, widgetEvent };
+        const event: Writeable<ContextMenuEvent> = {
+            showOn: primaryShowOn,
+            x,
+            y,
+            context: contexts[primaryShowOn],
+            widgetEvent,
+            regions,
+            contexts,
+        };
         this.ctx.eventsHub.emit('context-menu:setup', event);
         this.ctx.eventsHub.emit('context-menu:complete', event);
     }

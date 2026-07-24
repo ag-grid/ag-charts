@@ -1,5 +1,5 @@
 import { type AgFinancialChartOptions, type AgPriceVolumeChartType, _ModuleSupport } from 'ag-charts-community';
-import { AbstractModuleInstance, type DynamicContext, Logger } from 'ag-charts-core';
+import { AbstractModuleInstance, type DynamicContext } from 'ag-charts-core';
 
 import type { SharedToolbar, SharedToolbarWithSection } from '../shared-toolbar/sharedToolbar';
 
@@ -92,7 +92,7 @@ export class ChartToolbar extends AbstractModuleInstance {
 
     private setChartType(chartType: AgPriceVolumeChartType) {
         const options: AgFinancialChartOptions = { chartType };
-        this.ctx.chartService.publicApi?.updateDelta(options as any).catch((e) => Logger.error(e));
+        this.ctx.chartService.publicApi?.updateDelta(options as any).catch((e) => this.ctx.logger.error(e));
     }
 
     private getChartType(): AgPriceVolumeChartType {

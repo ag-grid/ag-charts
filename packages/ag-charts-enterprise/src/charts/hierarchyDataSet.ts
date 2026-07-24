@@ -33,9 +33,10 @@ export class HierarchyDataSet<T = unknown> extends DataSet<T> {
     constructor(
         data: T[],
         dataIdKey: string | undefined,
-        private readonly childrenKey: string
+        private readonly childrenKey: string,
+        logger?: Logger
     ) {
-        super(data, dataIdKey);
+        super(data, dataIdKey, logger);
     }
 
     private getDfsOrdering(): DFSMemory<T> {
@@ -250,7 +251,7 @@ export class HierarchyDataSet<T = unknown> extends DataSet<T> {
                 }
             }
             if (this.dataIdKey !== undefined && dataIdKeyFoundCount === 0 && this.data.length > 0) {
-                Logger.warnOnce(`dataIdKey '${this.dataIdKey}' was not found on any data item.`);
+                this.logger.warnOnce(`dataIdKey '${this.dataIdKey}' was not found on any data item.`);
             }
         }
         return this.idToIndexCache;
@@ -287,7 +288,7 @@ export class HierarchyDataSet<T = unknown> extends DataSet<T> {
         for (const item of remove) {
             const id = this.getIdValue(item);
             if (id === undefined) {
-                Logger.warnOnce(`applyTransaction() remove item is missing '${this.dataIdKey}' field; ignoring.`);
+                this.logger.warnOnce(`applyTransaction() remove item is missing '${this.dataIdKey}' field; ignoring.`);
             } else {
                 idsToRemove.add(id);
             }

@@ -19,7 +19,6 @@ import {
     DebugMetrics,
     type DynamicContext,
     type FillStrokeMorph,
-    Logger,
     type Mutable,
     type Normalised,
     type NormalisedColorType,
@@ -523,14 +522,14 @@ export abstract class OhlcSeriesBase<
         const validHighValue = highValue != null && highValue >= openValue && highValue >= closeValue;
 
         if (!validLowValue) {
-            Logger.warnOnce(
+            this.ctx.logger.warnOnce(
                 `invalid low value for key [${ctx.lowKey}] in data element, low value cannot be higher than datum open or close values`
             );
             return undefined;
         }
 
         if (!validHighValue) {
-            Logger.warnOnce(
+            this.ctx.logger.warnOnce(
                 `invalid high value for key [${ctx.highKey}] in data element, high value cannot be lower than datum open or close values.`
             );
             return undefined;

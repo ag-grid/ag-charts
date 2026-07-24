@@ -80,7 +80,7 @@ export class DataSet<T = unknown> {
     constructor(
         public data: T[],
         public readonly dataIdKey?: string,
-        private readonly logger: Logger = Logger.default
+        protected readonly logger: Logger = Logger.default
     ) {}
 
     /**

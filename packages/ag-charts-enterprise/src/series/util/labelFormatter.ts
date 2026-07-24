@@ -425,7 +425,7 @@ export function formatLabels<Meta = never>(
     const secondaryLabelValue = secondaryLabelProps.enabled ? baseSecondaryLabelValue : undefined;
 
     if (hasInvalidFontSize(labelProps) || hasInvalidFontSize(secondaryLabelProps)) {
-        Logger.warnOnce(`minimumFontSize should be set to a value less than or equal to the font size`);
+        Logger.default.warnOnce(`minimumFontSize should be set to a value less than or equal to the font size`);
     }
 
     let value: StackedLabelFormatting<Meta> | undefined;

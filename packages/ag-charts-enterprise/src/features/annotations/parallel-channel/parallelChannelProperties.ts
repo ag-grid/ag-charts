@@ -47,7 +47,7 @@ export class ParallelChannelProperties extends Annotation(
             bottom.start.y = subtractValues(bottom.start.y, this.height);
             bottom.end.y = subtractValues(bottom.end.y, this.height);
         } else {
-            Logger.warnOnce(`Annotation [${this.type}] can only be used with a numeric y-axis.`);
+            Logger.default.warnOnce(`Annotation [${this.type}] can only be used with a numeric y-axis.`);
         }
 
         return bottom;

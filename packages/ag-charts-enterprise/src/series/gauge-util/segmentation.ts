@@ -48,7 +48,7 @@ class GaugeSegmentationIntervalProperties extends BaseProperties {
         }
 
         if (ticks != null && ticks.length > maxTicks) {
-            Logger.warnOnce(
+            Logger.default.warnOnce(
                 `the configured segmentation results in more than 1 item per pixel, ignoring. Supply a segmentation configuration that results in larger segments or omit this configuration`
             );
             ticks = undefined;
