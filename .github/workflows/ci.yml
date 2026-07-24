@@ -164,7 +164,9 @@ jobs:
               run: |
                   # generate-thumbnail is included so thumbnail outputs land in the rw Nx cache —
                   # otherwise the (read-only) website_build job regenerates all ~126 on every PR.
-                  yarn nx run-many -t build,docs-resolved-interfaces,generate-example,generate-thumbnail --exclude tag:skip-gha-cache,all
+                  # --parallel=12: on warm runs this step is ~900 IO-bound cache replays, which the
+                  # CPU-count default (4) needlessly serialises.
+                  yarn nx run-many -t build,docs-resolved-interfaces,generate-example,generate-thumbnail --exclude tag:skip-gha-cache,all --parallel=12
                   # Populate the (rw-cached) staging example outputs here so the ro website_build
                   # job restores them instead of regenerating all examples. Only latest builds the
                   # website with -c staging, so scope the extra generation to that branch.
