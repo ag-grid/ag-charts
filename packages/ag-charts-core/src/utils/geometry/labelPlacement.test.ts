@@ -33,6 +33,7 @@ import {
     resolveLabelFit,
     rotatedGlyphDrift,
     rotatedLabelInset,
+    sectorLabelContainer,
 } from './labelPlacement';
 import { SpatialIndex } from './spatialIndex';
 
@@ -1831,5 +1832,77 @@ describe('resolveLabelFit', () => {
 
     it('lets truncate:true win over collision avoidance', () => {
         expect(resolveLabelFit({ maxWidth: 120, truncate: true }, true)?.overflowStrategy).toBe('ellipsis');
+    });
+});
+
+describe('sectorLabelContainer', () => {
+    const anchorAt = (radius: number, angle: number) => ({ x: radius * Math.cos(angle), y: radius * Math.sin(angle) });
+    const cornersOf = (anchor: Point, box: { width: number; height: number }) => {
+        const hw = box.width / 2;
+        const hh = box.height / 2;
+        return [
+            { x: anchor.x - hw, y: anchor.y - hh },
+            { x: anchor.x + hw, y: anchor.y - hh },
+            { x: anchor.x + hw, y: anchor.y + hh },
+            { x: anchor.x - hw, y: anchor.y + hh },
+        ];
+    };
+    const contained = (
+        p: Point,
+        s: { startAngle: number; endAngle: number; innerRadius: number; outerRadius: number }
+    ) => {
+        const r = Math.hypot(p.x, p.y);
+        const a = Math.atan2(p.y, p.x);
+        return (
+            r >= s.innerRadius - 1e-6 && r <= s.outerRadius + 1e-6 && a >= s.startAngle - 1e-6 && a <= s.endAngle + 1e-6
+        );
+    };
+
+    // The (anchor-centred) box must sit wholly inside the wedge at every orientation, so a fitted label placed
+    // within it can never spill past the arc or the straight edges into a neighbouring sector.
+    it.each([0, Math.PI / 6, Math.PI / 4, Math.PI / 3, Math.PI / 2 - 0.05])(
+        'keeps every corner inside the wedge at mid-angle %f',
+        (midAngle) => {
+            const halfSpan = Math.PI / 6;
+            const sector = {
+                startAngle: midAngle - halfSpan,
+                endAngle: midAngle + halfSpan,
+                innerRadius: 40,
+                outerRadius: 120,
+            };
+            const anchor = anchorAt(85, midAngle);
+            const box = sectorLabelContainer(anchor, sector, 14);
+            expect(box.width).toBeGreaterThan(0);
+            expect(box.height).toBeGreaterThan(0);
+            for (const corner of cornersOf(anchor, box)) {
+                expect(contained(corner, sector)).toBe(true);
+            }
+        }
+    );
+
+    it('offers a narrower box in a thinner wedge', () => {
+        // At mid-angle π/2 the label sits at the top of the circle, so the straight edges bound its width.
+        const mid = Math.PI / 2;
+        const anchor = anchorAt(85, mid);
+        const wide = sectorLabelContainer(
+            anchor,
+            { startAngle: mid - Math.PI / 4, endAngle: mid + Math.PI / 4, innerRadius: 0, outerRadius: 120 },
+            14
+        );
+        const thin = sectorLabelContainer(
+            anchor,
+            { startAngle: mid - Math.PI / 12, endAngle: mid + Math.PI / 12, innerRadius: 0, outerRadius: 120 },
+            14
+        );
+        expect(thin.width).toBeLessThan(wide.width);
+    });
+
+    it('returns an empty box at the centre', () => {
+        const box = sectorLabelContainer(
+            { x: 0, y: 0 },
+            { startAngle: 0, endAngle: Math.PI / 2, innerRadius: 0, outerRadius: 120 },
+            14
+        );
+        expect(box).toEqual({ width: 0, height: 0 });
     });
 });

@@ -205,6 +205,48 @@ describe('series label fit', () => {
         expect(someTruncated(texts)).toBe(true);
     });
 
+    // Pie/donut sector labels auto-fit the wedge: the series computes the room each sector offers a horizontal
+    // label and fits the text to it, so wrapping/truncate alone shrink the label to its sector without any
+    // explicit maxWidth (mirroring how a bar label fits its rect). Mixed sector sizes and label lengths show the
+    // spectrum in one image — short labels whole, longer ones wrapped, the longest wrapped-then-ellipsised.
+    const sectorLabelData = [
+        { value: 26, label: 'Q1' },
+        { value: 22, label: 'Two words here' },
+        { value: 20, label: 'A medium length label' },
+        { value: 18, label: 'A rather long label that wraps across several lines then runs out of room' },
+        { value: 14, label: 'Another fairly long caption spanning multiple words and lines here too' },
+    ];
+    // Donut fits the sector text into the rendered label node at draw time (not the datum), so read the visible
+    // label nodes rather than getNodeData(), which still holds the original unfitted text.
+    const sectorTexts = (seriesIndex = 0): unknown[] => {
+        const series = deproxy(chart as any).series[seriesIndex] as unknown as {
+            labelSelection?: { nodes: () => { visible: boolean; text?: unknown }[] };
+        };
+        return (series.labelSelection?.nodes() ?? []).filter((node) => node.visible).map((node) => node.text);
+    };
+
+    for (const type of ['pie', 'donut'] as const) {
+        it(`auto-fits ${type} sector labels to the wedge with wrapping and truncation`, async () => {
+            await renderAndSnapshot({
+                data: sectorLabelData,
+                legend: { enabled: false },
+                series: [
+                    {
+                        type,
+                        angleKey: 'value',
+                        sectorLabelKey: 'label',
+                        // Widen the donut ring so a label has radial room to wrap before truncating (donut-only option).
+                        ...(type === 'donut' ? { innerRadiusRatio: 0.3 } : {}),
+                        sectorLabel: { enabled: true, wrapping: 'on-space', truncate: true },
+                    },
+                ],
+            });
+            const texts = sectorTexts();
+            expect(someWrapped(texts)).toBe(true);
+            expect(someTruncated(texts)).toBe(true);
+        });
+    }
+
     it('centres bubble labels inside large markers and truncates those overflowing small markers', async () => {
         // `placement: 'inside'` fits each label to its marker: big bubbles hold their label, small bubbles
         // ellipsise one that cannot fit. Sizes and label lengths are mixed so one image shows both outcomes.

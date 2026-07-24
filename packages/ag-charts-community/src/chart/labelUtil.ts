@@ -26,6 +26,7 @@ import {
     orientationAngles,
     rotatedGlyphDrift,
     rotatedLabelInset,
+    sectorLabelContainer,
 } from 'ag-charts-core';
 import type {
     AgChartLabelOrientation,
@@ -43,6 +44,7 @@ import type { HighlightNodeDatum } from '../core/eventsHub';
 import type { ChartRegistry } from '../module/moduleContext';
 import type { Text } from '../scene/shape/text';
 import { isRotatable } from '../scene/transformable';
+import { isPointInSector } from '../scene/util/sector';
 import { type Label, type LabelPlacementStyle, resolvePlacementLabelStyle } from './label';
 import { markerLabelRect } from './marker/markerLabelRect';
 import { getItemId } from './series/pickManager';
@@ -158,6 +160,167 @@ export function insideMarkerContainer(
         width: Math.max(0, markerSize * rect.width - 2 * threshold),
         height: Math.max(0, markerSize * rect.height - 2 * threshold),
     };
+}
+
+/** Placement and size of the rectangle a horizontal sector label fits into. */
+export interface SectorLabelRect {
+    /** Centre of the inscribed rectangle — where the horizontal label sits. */
+    readonly centerX: number;
+    readonly centerY: number;
+    /** Size the label text is fitted to. */
+    readonly width: number;
+    readonly height: number;
+}
+
+/**
+ * Rectangle a horizontal label should fill inside an origin-centred annular wedge. {@link sectorLabelContainer}
+ * sizes a box that fits the wedge centred on `anchor`, but a horizontal label is not symmetric about the sector
+ * bisector, so that box hugs one side. Keeping the (safe) size, we slide it to the middle of the room the wedge
+ * actually offers on each axis — probed with {@link isPointInSector} — so the label sits centred both ways
+ * instead of against an edge. `lineHeight` seeds the size search with a single line's height.
+ *
+ * A multi-line box spans a radial band whose width varies with height, so sizing it symmetrically about the
+ * bisector caps its width at the nearer radial edge and the slide above cannot recover the room the far side
+ * offers — the label ends up hugging one edge. Such a box is instead fitted to the wedge's true horizontal
+ * extent across its own band (see {@link centreSectorLabelInBand}); the symmetric slide is kept for
+ * single-line boxes, whose thin band cannot exhibit this.
+ */
+export function fitSectorLabelRect(
+    anchor: Point,
+    sector: { startAngle: number; endAngle: number; innerRadius: number; outerRadius: number },
+    lineHeight: number
+): SectorLabelRect {
+    const { width, height } = sectorLabelContainer(anchor, sector, lineHeight);
+    const halfWidth = width / 2;
+    const halfHeight = height / 2;
+    if (halfWidth <= 0 || halfHeight <= 0 || !isPointInSector(anchor.x, anchor.y, sector)) {
+        return { centerX: anchor.x, centerY: anchor.y, width, height };
+    }
+    if (height > lineHeight * 1.5) {
+        const centred = centreSectorLabelInBand(anchor, sector, height);
+        if (centred != null) {
+            return centred;
+        }
+    }
+    const contains = (x: number, y: number) => isPointInSector(x, y, sector);
+    const limit = Math.abs(sector.outerRadius) * 2;
+    // Furthest an edge through corners A and B can slide along (dirX, dirY) while both corners stay in the wedge.
+    const reach = (ax: number, ay: number, bx: number, by: number, dirX: number, dirY: number) => {
+        let lo = 0;
+        let hi = limit;
+        for (let i = 0; i < 24; i += 1) {
+            const t = (lo + hi) / 2;
+            if (contains(ax + dirX * t, ay + dirY * t) && contains(bx + dirX * t, by + dirY * t)) {
+                lo = t;
+            } else {
+                hi = t;
+            }
+        }
+        return lo;
+    };
+    // Clearance for the box's leading edges (kept at the final size), then recentre on the room found.
+    const right = reach(anchor.x, anchor.y - halfHeight, anchor.x, anchor.y + halfHeight, 1, 0);
+    const left = reach(anchor.x, anchor.y - halfHeight, anchor.x, anchor.y + halfHeight, -1, 0);
+    const centerX = anchor.x + (right - left) / 2;
+    const down = reach(centerX - halfWidth, anchor.y, centerX + halfWidth, anchor.y, 0, 1);
+    const up = reach(centerX - halfWidth, anchor.y, centerX + halfWidth, anchor.y, 0, -1);
+    return { centerX, centerY: anchor.y + (down - up) / 2, width, height };
+}
+
+// Radial slack (px) kept between the placed box and the wedge's arcs, so a box corner rounded outward by
+// floating error still passes the visibility gate that hides overflowing sector labels.
+const SECTOR_ARC_INSET = 0.75;
+// Two bands whose widths are within this many px count as equally wide, so the tie-break toward the band
+// furthest from the centre decides between them rather than sub-pixel noise.
+const SECTOR_WIDTH_TOLERANCE = 2;
+
+/**
+ * Fits a multi-line sector label to the widest horizontal band the wedge offers, placed as far from the
+ * chart centre as that width allows. A tall box measured symmetrically about the bisector is capped by the
+ * nearer radial edge and left hugging it; instead, candidate vertical centres are scanned and, at each, the
+ * box spans the wedge's true horizontal extent common to its top and bottom edges (convex wedge, so those
+ * edges bind) searched outward from the bisector with {@link isPointInSector}. The widest band wins, and
+ * among equally wide bands the one furthest from the centre — where the wedge reads as a landscape strip
+ * rather than a cramped tip — so the label sits centred between the wedge's sides. Returns `null` when no
+ * band holds the box (e.g. a box nearly as tall as the radius), so the caller falls back to symmetric
+ * placement.
+ */
+function centreSectorLabelInBand(
+    anchor: Point,
+    sector: { startAngle: number; endAngle: number; innerRadius: number; outerRadius: number },
+    height: number
+): SectorLabelRect | null {
+    const radius = Math.hypot(anchor.x, anchor.y);
+    if (radius < 1e-6) {
+        return null;
+    }
+    const midCos = anchor.x / radius;
+    const midSin = anchor.y / radius;
+    // Probe against arc-inset radii so the chosen box clears the arcs by SECTOR_ARC_INSET on both sides.
+    const outer = Math.abs(sector.outerRadius) - SECTOR_ARC_INSET;
+    const inset = {
+        startAngle: sector.startAngle,
+        endAngle: sector.endAngle,
+        innerRadius: sector.innerRadius > 0 ? sector.innerRadius + SECTOR_ARC_INSET : 0,
+        outerRadius: outer,
+    };
+    const halfHeight = height / 2;
+    const limit = outer * 2;
+    // Furthest the bisector-seed on line `y` can slide along `dir` (±1 in x) while staying in the wedge.
+    const edge = (seedX: number, y: number, dir: -1 | 1) => {
+        let lo = 0;
+        let hi = limit;
+        for (let i = 0; i < 24; i += 1) {
+            const t = (lo + hi) / 2;
+            if (isPointInSector(seedX + dir * t, y, inset)) {
+                lo = t;
+            } else {
+                hi = t;
+            }
+        }
+        return seedX + dir * lo;
+    };
+    // Seed each line from the point where the bisector ray crosses it, guaranteed inside where the ray reaches.
+    const seedAt = (y: number) => (Math.abs(midSin) > 1e-3 ? (y * midCos) / midSin : anchor.x);
+
+    const bands: SectorLabelRect[] = [];
+    let maxWidth = 0;
+    const steps = 48;
+    for (let i = 0; i <= steps; i += 1) {
+        const centerY = -outer + (2 * outer * i) / steps;
+        let left = -Infinity;
+        let right = Infinity;
+        let fits = true;
+        for (const y of [centerY - halfHeight, centerY + halfHeight]) {
+            const seedX = seedAt(y);
+            if (!isPointInSector(seedX, y, inset)) {
+                fits = false;
+                break;
+            }
+            left = Math.max(left, edge(seedX, y, -1));
+            right = Math.min(right, edge(seedX, y, 1));
+        }
+        if (!fits || right <= left) {
+            continue;
+        }
+        const width = right - left;
+        bands.push({ centerX: (left + right) / 2, centerY, width, height });
+        maxWidth = Math.max(maxWidth, width);
+    }
+    // Among the widest bands (within a tolerance), take the one furthest from the chart centre.
+    let best: SectorLabelRect | null = null;
+    let bestRadius = -Infinity;
+    for (const band of bands) {
+        if (band.width < maxWidth - SECTOR_WIDTH_TOLERANCE) {
+            continue;
+        }
+        const bandRadius = Math.hypot(band.centerX, band.centerY);
+        if (bandRadius > bestRadius) {
+            best = band;
+            bestRadius = bandRadius;
+        }
+    }
+    return best;
 }
 
 /** Inside-marker label geometry resolved from a series' configured placements and marker shape. */

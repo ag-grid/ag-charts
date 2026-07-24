@@ -401,6 +401,56 @@ export function insideBarContainer(
     };
 }
 
+/**
+ * Size of the largest axis-aligned rectangle a horizontal label can occupy centred on `anchor` inside an
+ * origin-centred annular wedge. Lets a pie/donut sector label wrap/truncate to the room the wedge offers, the
+ * way a bar label fits its rect. `lineHeight` seeds the width with one line's height so the first line clears
+ * the arc; the returned height then bounds how many lines survive. Deliberately conservative — each boundary is
+ * treated independently — so the box always fits; placement (which is not centred on the anchor for a tilted
+ * wedge) is refined separately by the caller.
+ */
+export function sectorLabelContainer(
+    anchor: { x: number; y: number },
+    sector: { startAngle: number; endAngle: number; innerRadius: number; outerRadius: number },
+    lineHeight: number
+): { width: number; height: number } {
+    const { startAngle, endAngle, innerRadius, outerRadius } = sector;
+    const px = Math.abs(anchor.x);
+    const py = Math.abs(anchor.y);
+    const radius = Math.hypot(px, py);
+    if (radius < 1e-6) return { width: 0, height: 0 };
+
+    const cosMid = px / radius;
+    const sinMid = py / radius;
+    const halfSpan = Math.min(Math.abs(endAngle - startAngle) / 2, Math.PI / 2);
+    const edgeDistance = radius * Math.sin(halfSpan);
+    const edges = [startAngle, endAngle].map((angle) => ({
+        sin: Math.abs(Math.sin(angle)),
+        cos: Math.abs(Math.cos(angle)),
+    }));
+
+    // Half-width the wedge allows for a box of half-height `b`: bounded by the outer arc (worst outward corner),
+    // each straight edge (box extent along the edge normal ≤ its perpendicular distance) and, for a donut, the
+    // inner arc (radial-inward extent ≤ the ring depth).
+    const halfWidthGiven = (b: number) => {
+        const outer = Math.sqrt(Math.max(0, outerRadius ** 2 - (py + b) ** 2)) - px;
+        const edgeLimits = edges.map((e) => (e.sin > 1e-6 ? (edgeDistance - b * e.cos) / e.sin : Infinity));
+        const inner = innerRadius > 0 && cosMid > 1e-6 ? (radius - innerRadius - b * sinMid) / cosMid : Infinity;
+        return Math.max(0, Math.min(outer, inner, ...edgeLimits));
+    };
+    const halfHeightGiven = (a: number) => {
+        const outer = Math.sqrt(Math.max(0, outerRadius ** 2 - (px + a) ** 2)) - py;
+        const edgeLimits = edges.map((e) => (e.cos > 1e-6 ? (edgeDistance - a * e.sin) / e.cos : Infinity));
+        const inner = innerRadius > 0 && sinMid > 1e-6 ? (radius - innerRadius - a * cosMid) / sinMid : Infinity;
+        return Math.max(0, Math.min(outer, inner, ...edgeLimits));
+    };
+
+    const halfHeightSeed = lineHeight / 2;
+    const halfWidth = halfWidthGiven(halfHeightSeed);
+    const halfHeight = Math.max(halfHeightSeed, halfHeightGiven(halfWidth));
+    return { width: 2 * halfWidth, height: 2 * halfHeight };
+}
+
 const oppositeSide: Record<keyof Required<PaddingOptions>, keyof Required<PaddingOptions>> = {
     top: 'bottom',
     bottom: 'top',
