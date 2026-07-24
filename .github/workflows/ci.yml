@@ -154,6 +154,8 @@ jobs:
               with:
                   cache_mode: ${{ github.event.inputs.clean_checkout == 'true' && 'off' || 'rw' }}
                   free_disk_space: false
+                  # Safe for init only: its own build step materialises all plugin outputs.
+                  skip_plugin_build: true
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref || 'latest' }}
 
             - name: nx build and generate cacheable examples

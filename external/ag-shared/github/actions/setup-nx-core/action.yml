@@ -15,6 +15,16 @@ inputs:
             - 'true'
             - 'false'
             - 'no-install'
+    skip_plugin_build:
+        description: >-
+            Skip the repo postinstall plugin-build pass on an exact node_modules cache hit.
+            Only safe for jobs whose own nx run materialises all outputs it needs (plugin-build
+            side-effect-builds plugin dependencies such as package dist/types).
+        required: false
+        default: 'false'
+        options:
+            - 'true'
+            - 'false'
     fetch_base:
         description: 'Shallow fetch latest branch.'
         required: false
@@ -235,6 +245,7 @@ runs:
               # 'true' only on an exact key hit; an inexact restore-keys fallback can carry a stale hoisting layout.
               EXACT_CACHE_HIT: ${{ steps.cache_rw.outputs.cache-hit == 'true' || steps.cache_ro.outputs.cache-hit == 'true' }}
               NODE_MODULES_PATHS: ${{ inputs.node_modules_paths }}
+              SKIP_PLUGIN_BUILD_ENV: ${{ inputs.skip_plugin_build == 'true' && 'AG_SKIP_PLUGIN_BUILD=1' || '' }}
           run: |
               if [[ "${EXACT_CACHE_HIT}" != "true" ]] ; then
                 # Fallback restore: wipe node_modules so install rebuilds hoisting from this
@@ -251,11 +262,11 @@ runs:
                 # Exact-hit caches are only saved after a fully-scripted install, so
                 # dependency lifecycle scripts (allow-scripts) have already run in this
                 # tree — skip them and run only the repo's own postinstall steps.
-                # Plugin builds are also skipped: Nx loads workspace plugins from source
-                # when computing the graph, and any consumer of plugin dist outputs gets
-                # them rebuilt (or cache-replayed) by its own nx invocation. The separate
-                # plugin-build pass costs ~60s of redundant no-daemon graph computation.
-                ALLOW_SCRIPTS_RUNNING=1 AG_SKIP_PLUGIN_BUILD=1 yarn postinstall
+                # skip_plugin_build additionally skips the ~60s plugin-build pass; only
+                # safe for jobs whose own nx run materialises all needed outputs anyway
+                # (plugin-build also side-effect-builds plugin deps like package dist/types,
+                # which e.g. type-aware lint relies on).
+                ALLOW_SCRIPTS_RUNNING=1 ${SKIP_PLUGIN_BUILD_ENV} yarn postinstall
               else
                 yarn install --ci --prefer-offline
 
