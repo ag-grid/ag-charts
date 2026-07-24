@@ -480,7 +480,7 @@ jobs:
               run: |
                   mkdir -p "${RUNNER_TEMP}/pr-sections"
                   cat > "${RUNNER_TEMP}/pr-sections/10-preview.md" <<EOF
-                  ## Live-test this PR in Plunker
+                  ## [ok] Live-test this PR in Plunker
 
                   Paste these two \`<script>\` tags into a Plunker (or any vanilla-JS host) to load the UMD bundles built from this PR:
 
@@ -552,9 +552,11 @@ jobs:
                   if [ -f l10n-review.md ]; then
                       # Drop the standalone marker the generator prepends (review-translations.mjs);
                       # the consolidated comment owns the parent marker. Prepend our section heading.
-                      { echo '## Translation review'; echo; sed '/<!-- l10n-translation-review -->/d' l10n-review.md; } > "$out"
+                      # [warn]: the reviewer flagged translations to read before merge.
+                      { echo '## [warn] Translation review'; echo; sed '/<!-- l10n-translation-review -->/d' l10n-review.md; } > "$out"
                   else
-                      printf '## Translation review\n\nNo translation issues found.\n' > "$out"
+                      # [ok]: nothing to action.
+                      printf '## [ok] Translation review\n\nNo translation issues found.\n' > "$out"
                   fi
 
             - name: Upsert L10n section
@@ -1305,7 +1307,9 @@ jobs:
             github.event.pull_request.head.repo.full_name == github.repository &&
             needs.detect-changes.outputs.run_full_ci == 'true'
         permissions:
-            contents: read
+            # write: the HTML reports are published to the gh-pages PR preview (peaceiris/actions-gh-pages
+            # pushes with GITHUB_TOKEN, which is scoped by this job's permissions).
+            contents: write
             pull-requests: write
             packages: read
             # scene-graph review (follow-up) downloads CI artifacts via gh — needs actions: read.
@@ -1343,6 +1347,9 @@ jobs:
                   snapshot_branch: ${{ needs.init.outputs.snapshot_branch }}
                   base_branch: ${{ github.base_ref }}
                   github_token: ${{ secrets.GITHUB_TOKEN }}
+                  # Reports are published to the PR preview below; link straight to them (one click).
+                  # Deterministic URL — the report filenames are snapshot-<slug>.html.
+                  report_base_url: https://ag-grid.github.io/ag-charts/pr-${{ github.event.pull_request.number }}/
 
             - name: Upload snapshot-review HTML reports
               if: steps.review.outputs.produced == 'true'
@@ -1351,6 +1358,32 @@ jobs:
                   name: snapshot-review-html
                   path: ${{ steps.review.outputs.html_dir }}/*.html
                   if-no-files-found: ignore
+
+            # Resolve the generated report files for the PR-preview publish (the publish action takes
+            # explicit newline-separated paths, not a glob).
+            - name: Stage report files
+              id: reports
+              if: steps.review.outputs.produced == 'true'
+              shell: bash
+              run: |
+                  set -euo pipefail
+                  files=$(find "${{ steps.review.outputs.html_dir }}" -maxdepth 1 -type f -name '*.html')
+                  {
+                      echo "files<<__FILES_EOF__"
+                      echo "$files"
+                      echo "__FILES_EOF__"
+                  } >> "$GITHUB_OUTPUT"
+
+            # Publish the self-contained reports under pr-<N>/ (served at
+            # https://ag-grid.github.io/ag-charts/pr-<N>/snapshot-<slug>.html). Removed with the rest
+            # of the PR preview when the PR closes.
+            - name: Publish reports to PR preview
+              if: steps.review.outputs.produced == 'true'
+              uses: ./external/ag-shared/github/actions/pr-preview-publish
+              with:
+                  pr_number: ${{ github.event.pull_request.number }}
+                  files: ${{ steps.reports.outputs.files }}
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
 
             # Upsert the snapshot-review section when reports were produced; otherwise clear any
             # stale section from an earlier push (snapshots since fixed / no longer changed).
