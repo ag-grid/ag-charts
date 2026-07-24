@@ -1436,7 +1436,30 @@ jobs:
                   fetch-depth: 0
                   filter: blob:none
 
+            # The review can only produce output when the PR touches committed baselines (PNGs)
+            # or CI regenerated baselines onto the snapshot branch. Detecting that up front lets
+            # the no-change path skip the ~65s of ImageMagick + dev-prompts installs.
+            - name: Detect snapshot changes
+              id: detect
+              env:
+                  SNAPSHOT_BRANCH: ${{ needs.init.outputs.snapshot_branch }}
+                  BASE_BRANCH: ${{ github.base_ref }}
+              run: |
+                  set -uo pipefail
+                  changed=false
+                  if git ls-remote --exit-code --heads origin "$SNAPSHOT_BRANCH" >/dev/null 2>&1 ; then
+                    changed=true
+                    echo "Snapshot branch $SNAPSHOT_BRANCH exists on origin."
+                  elif git diff --name-only "origin/${BASE_BRANCH}...HEAD" -- '*.png' | grep -q . ; then
+                    changed=true
+                    echo "PR diff touches committed PNG baselines."
+                  else
+                    echo "No snapshot changes detected; skipping review installs."
+                  fi
+                  echo "changed=${changed}" >> "$GITHUB_OUTPUT"
+
             - name: Install ImageMagick
+              if: steps.detect.outputs.changed == 'true'
               shell: bash
               run: |
                   set -euo pipefail
@@ -1452,11 +1475,13 @@ jobs:
                   magick identify -version | head -1
 
             - name: Install @ag-grid/dev-prompts
+              if: steps.detect.outputs.changed == 'true'
               uses: ./external/ag-shared/github/actions/install-ag-dev-prompts
               with:
                   channel: canary
 
             - name: Generate snapshot-review reports
+              if: steps.detect.outputs.changed == 'true'
               id: review
               uses: ./.github/actions/snapshot-review-run
               with:
