@@ -25,6 +25,7 @@ export const AG_CHARTS_LOCALE_TR_TR: Record<string, string> = {
     ariaOrgChartExpanded: 'genişletilmiş',
     ariaDescriptionExpandNode: 'Bu düğümü genişletmek için Alt + Aşağı Ok tuşuna basın',
     ariaDescriptionCollapseNode: 'Bu düğümü daraltmak için Alt + Yukarı Ok tuşuna basın',
+    ariaDescriptionToggleNode: 'Bu düğümü genişletmek veya daraltmak için Space veya Enter tuşuna basın',
     ariaAnnounceGaugeChart: 'gösterge grafik, ${caption}',
     ariaAnnounceHierarchyChart: 'hiyerarşi grafiği, ${caption}',
     ariaAnnounceHierarchyDatum: 'seviye ${level}[number], ${count}[number] çocuk, ${description}',

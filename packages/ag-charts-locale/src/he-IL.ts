@@ -25,6 +25,7 @@ export const AG_CHARTS_LOCALE_HE_IL: Record<string, string> = {
     ariaOrgChartExpanded: 'מורחב',
     ariaDescriptionExpandNode: 'לחץ על Alt + חץ למטה כדי להרחיב את הצומת הזה',
     ariaDescriptionCollapseNode: 'לחץ על Alt + חץ למעלה כדי לכווץ את הצומת הזה',
+    ariaDescriptionToggleNode: 'לחץ על Space או Enter כדי להרחיב או לכווץ את הצומת הזה',
     ariaAnnounceGaugeChart: 'תרשים מד, ${caption}',
     ariaAnnounceHierarchyChart: 'תרשים היררכי, ${caption}',
     ariaAnnounceHierarchyDatum: 'רמה ${level}[number], ${count}[number] ילדים, ${description}',

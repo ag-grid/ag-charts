@@ -388,11 +388,13 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         }
     }
 
-    // Keyboard activations have no pointer target — allow them; pointer clicks must hit the expander.
+    // A pointer click toggles collapse only when it lands on the expander pill; `clickToExpand`
+    // widens that to the whole card. Keyboard Enter/Space activations arrive with no pointer target,
+    // so they toggle exactly when `clickToExpand` is enabled — restoring the pre-Alt+Up/Down behaviour.
     override hasBuiltinListener(target: _ModuleSupport.Node<unknown> | undefined): boolean {
         const { clickToExpand } = this.properties.node;
         const Expander: number = OrganizationNodeTag.Expander;
-        return target != null && (target.tag === Expander || clickToExpand);
+        return target?.tag === Expander || clickToExpand;
     }
 
     override pickFocus(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.PickFocusOutputs | undefined {
@@ -458,9 +460,14 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const itemId = vertex.value as string;
         const isCollapsed = this.ctx.collapsedManager.isCollapsed(itemId);
         const collapsedState = this.ctx.localeManager.t(isCollapsed ? 'ariaOrgChartCollapsed' : 'ariaOrgChartExpanded');
-        const instruction = this.ctx.localeManager.t(
-            isCollapsed ? 'ariaDescriptionExpandNode' : 'ariaDescriptionCollapseNode'
-        );
+        // Alt+Down/Up always toggle a node, so advertise them unconditionally. Enter/Space only
+        // toggle when `clickToExpand` is enabled (see `hasBuiltinListener`), so only mention them then.
+        const instructions = [
+            this.ctx.localeManager.t(isCollapsed ? 'ariaDescriptionExpandNode' : 'ariaDescriptionCollapseNode'),
+        ];
+        if (this.properties.node.clickToExpand) {
+            instructions.push(this.ctx.localeManager.t('ariaDescriptionToggleNode'));
+        }
         // Locale tooling has no `[plural]` annotation, so split the key by child count.
         const key = childCount === 1 ? 'ariaAnnounceOrgChartParentSingular' : 'ariaAnnounceOrgChartParent';
         return {
@@ -472,7 +479,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                 childCount,
                 collapsedState,
             }),
-            instructions: [instruction],
+            instructions,
         };
     }
 

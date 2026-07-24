@@ -25,6 +25,7 @@ export const AG_CHARTS_LOCALE_IT_IT: Record<string, string> = {
     ariaOrgChartExpanded: 'espanso',
     ariaDescriptionExpandNode: 'Premi Alt + Freccia giù per espandere questo nodo',
     ariaDescriptionCollapseNode: 'Premi Alt + Freccia su per comprimere questo nodo',
+    ariaDescriptionToggleNode: 'Premi Space o Enter per espandere o comprimere questo nodo',
     ariaAnnounceGaugeChart: 'grafico a tachimetro, ${caption}',
     ariaAnnounceHierarchyChart: 'grafico gerarchico, ${caption}',
     ariaAnnounceHierarchyDatum: 'livello ${level}[number], ${count}[number] figli, ${description}',

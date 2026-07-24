@@ -25,6 +25,7 @@ export const AG_CHARTS_LOCALE_DE_DE: Record<string, string> = {
     ariaOrgChartExpanded: 'ausgeklappt',
     ariaDescriptionExpandNode: 'Drücken Sie Alt + Pfeil nach unten, um diesen Knoten zu erweitern',
     ariaDescriptionCollapseNode: 'Drücken Sie Alt + Pfeil nach oben, um diesen Knoten zu reduzieren',
+    ariaDescriptionToggleNode: 'Drücken Sie Space oder Enter, um diesen Knoten zu erweitern oder zu reduzieren',
     ariaAnnounceGaugeChart: 'Tachometerdiagramm, ${caption}',
     ariaAnnounceHierarchyChart: 'Hierarchiediagramm, ${caption}',
     ariaAnnounceHierarchyDatum: 'Ebene ${level}[number], ${count}[number] Kinder, ${description}',

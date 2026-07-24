@@ -25,6 +25,7 @@ export const AG_CHARTS_LOCALE_FI_FI: Record<string, string> = {
     ariaOrgChartExpanded: 'avattu',
     ariaDescriptionExpandNode: 'Paina Alt + Nuoli alas laajentaaksesi tämän solmun',
     ariaDescriptionCollapseNode: 'Paina Alt + Nuoli ylös tiivistääksesi tämän solmun',
+    ariaDescriptionToggleNode: 'Paina Space tai Enter laajentaaksesi tai tiivistääksesi tämän solmun',
     ariaAnnounceGaugeChart: 'mittarikaavio, ${caption}',
     ariaAnnounceHierarchyChart: 'hierarkkinen kaavio, ${caption}',
     ariaAnnounceHierarchyDatum: 'taso ${level}[number], ${count}[number] lasta, ${description}',

@@ -25,6 +25,7 @@ export const AG_CHARTS_LOCALE_AR_EG: Record<string, string> = {
     ariaOrgChartExpanded: 'موسع',
     ariaDescriptionExpandNode: 'اضغط على Alt + السهم لأسفل لتوسيع هذه العقدة',
     ariaDescriptionCollapseNode: 'اضغط على Alt + السهم لأعلى لطي هذه العقدة',
+    ariaDescriptionToggleNode: 'اضغط على Space أو Enter لتوسيع أو طي هذه العقدة',
     ariaAnnounceGaugeChart: 'مخطط المقياس، ${caption}',
     ariaAnnounceHierarchyChart: 'مخطط هرمي، ${caption}',
     ariaAnnounceHierarchyDatum: 'المستوى ${level}[number]، ${count}[number] أطفال، ${description}',

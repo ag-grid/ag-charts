@@ -25,6 +25,7 @@ export const AG_CHARTS_LOCALE_PL_PL: Record<string, string> = {
     ariaOrgChartExpanded: 'rozwinięty',
     ariaDescriptionExpandNode: 'Naciśnij Alt + Strzałkę w dół, aby rozwinąć ten węzeł',
     ariaDescriptionCollapseNode: 'Naciśnij Alt + Strzałkę w górę, aby zwinąć ten węzeł',
+    ariaDescriptionToggleNode: 'Naciśnij Space lub Enter, aby rozwinąć lub zwinąć ten węzeł',
     ariaAnnounceGaugeChart: 'wykres wskaźnikowy, ${caption}',
     ariaAnnounceHierarchyChart: 'wykres hierarchii, ${caption}',
     ariaAnnounceHierarchyDatum: 'poziom ${level}[number], ${count}[number] dzieci, ${description}',

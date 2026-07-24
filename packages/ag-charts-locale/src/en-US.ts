@@ -35,6 +35,8 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     ariaDescriptionExpandNode: 'Press ALT DOWN to expand this node',
     // Screen reader description for the keybinding to collapse a node (such as in an Organization chart)
     ariaDescriptionCollapseNode: 'Press ALT UP to collapse this node',
+    // Screen reader description for the Enter/Space keybinding to expand or collapse a node when clickToExpand is enabled
+    ariaDescriptionToggleNode: 'Press Space or Enter to expand or collapse this node',
     // Screen reader description for legend items
     ariaDescriptionLegendItem: 'Press Space or Enter to toggle visibility',
     // Screen reader for the '+' horizontal line button on the Y-axis

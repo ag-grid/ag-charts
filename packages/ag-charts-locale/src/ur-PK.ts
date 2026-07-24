@@ -25,6 +25,7 @@ export const AG_CHARTS_LOCALE_UR_PK: Record<string, string> = {
     ariaOrgChartExpanded: 'پھیلا ہوا',
     ariaDescriptionExpandNode: 'اس نوڈ کو پھیلانے کے لیے Alt + نیچے تیر دبائیں',
     ariaDescriptionCollapseNode: 'اس نوڈ کو سمیٹنے کے لیے Alt + اوپر تیر دبائیں',
+    ariaDescriptionToggleNode: 'اس نوڈ کو پھیلانے یا سمیٹنے کے لیے Space یا Enter دبائیں',
     ariaAnnounceGaugeChart: 'گیج چارٹ, ${caption}',
     ariaAnnounceHierarchyChart: 'درجہ بندی چارٹ، ${caption}',
     ariaAnnounceHierarchyDatum: 'سطح ${level}[number], ${count}[number] بچے, ${description}',
