@@ -205,7 +205,13 @@ jobs:
                     e2e_count=0
                   fi
 
-                  e2e_matrix=$(node ./external/ag-shared/scripts/shard/calculate-shards.js eval --max ${{ env.AG_E2E_SHARD_COUNT }} ${e2e_count})
+                  # Duration-balanced shard assignment (falls back to Playwright count-based
+                  # --shard sharding if the committed timings file is missing or stale).
+                  e2e_matrix=$(node ./external/ag-shared/scripts/shard/assign-e2e-shards.js \
+                    --max ${{ env.AG_E2E_SHARD_COUNT }} \
+                    --count ${e2e_count} \
+                    --timings packages/ag-charts-website/e2e/shard-timings.json \
+                    --test-dir packages/ag-charts-website/e2e)
                   echo "e2e_matrix=${e2e_matrix}" >> $GITHUB_OUTPUT
                   echo "e2e_count=${e2e_count}" >> $GITHUB_OUTPUT
                   echo "E2E matrix determined to be: ${e2e_matrix} (e2e_test_count=${e2e_count})"
@@ -779,7 +785,9 @@ jobs:
               run: |
                   cd packages/ag-charts-website/
 
-                  ./playwright.sh --host test -u changed --shard=${{ matrix.shard }}/${{ strategy.job-total }}
+                  # matrix.args is either an explicit duration-balanced spec-file list (optionally
+                  # with an intra-file --shard split) or a plain --shard=n/m fallback.
+                  ./playwright.sh --host test -u changed ${{ matrix.args }}
               timeout-minutes: 15
 
             - name: Snapshot Branch
