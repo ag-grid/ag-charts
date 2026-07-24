@@ -16,8 +16,8 @@ describe('Range', () => {
         const GAP = 25;
         const COORDINATES: Partial<Range> = { x1: 0, y1: 0, x2: 200, y2: 100 };
         const STYLE_TC_PARAMS = {
-            stroke: 'black',
-            fill: 'rgba(238,102,102, 0.2)',
+            stroke: 'blue',
+            fill: 'rgba(102,168,238, 0.2)',
         };
         const BASE_TEST_CASES: (Partial<Range> | undefined)[] = [
             {

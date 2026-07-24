@@ -22,6 +22,14 @@ inputs:
     github_token:
         description: 'Token for gh (scene-fetch downloads CI artifacts).'
         required: true
+    report_base_url:
+        description: >-
+            Public base URL the HTML reports are published under (e.g. the PR-preview
+            https://<owner>.github.io/<repo>/pr-<N>/). When set, the section links straight to
+            `<base>/snapshot-<slug>.html` — one click. Leave empty to fall back to the run's
+            artifacts page (the report then has to be downloaded and unzipped).
+        required: false
+        default: ''
 
 outputs:
     html_dir:
@@ -42,8 +50,10 @@ runs:
               BASE_BRANCH: ${{ inputs.base_branch }}
               SCRIPTS: ${{ inputs.scripts_root }}
               GH_TOKEN: ${{ inputs.github_token }}
-              # Point the run's artifacts page from inside the section text.
+              # Point the run's artifacts page from inside the section text (fallback link).
               RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+              # Public base URL the reports are published under, when available (one-click link).
+              REPORT_BASE_URL: ${{ inputs.report_base_url }}
           run: |
               set -uo pipefail
 
@@ -92,12 +102,23 @@ runs:
                       return 1
                   fi
 
+                  # For a published report, emit a deferred-link sentinel rather than the link itself:
+                  # the summary can post immediately while the report is still propagating to gh-pages,
+                  # and the caller rewrites the sentinel into a live link once the URL is reachable
+                  # (avoids a transient 404 on the freshly-posted comment). The artifacts fallback is
+                  # reachable at once, so it is linked directly.
+                  local link
+                  if [[ -n "${REPORT_BASE_URL}" ]]; then
+                      link="<!-- report-link href=\"${REPORT_BASE_URL%/}/snapshot-${slug}.html\" -->⏳ _Publishing interactive report…_"
+                  else
+                      link="[Full interactive report: \`snapshot-${slug}.html\` in run artifacts](${RUN_URL}#artifacts)"
+                  fi
                   {
                       echo "### ${label}"
                       echo
                       cat "$md"
                       echo
-                      echo "[Full interactive report: \`snapshot-${slug}.html\` in run artifacts](${RUN_URL}#artifacts)"
+                      echo "${link}"
                       echo
                   } >> "${WORK}/section-body.md"
                   ANY=1
@@ -122,7 +143,8 @@ runs:
               fi
 
               if [[ "$ANY" -eq 1 ]]; then
-                  { echo '## Snapshot review'; echo; cat "${WORK}/section-body.md"; } > "$SECTION"
+                  # [warn]: visual changes to read and confirm before merge (not a hard blocker).
+                  { echo '## [warn] Snapshot review'; echo; cat "${WORK}/section-body.md"; } > "$SECTION"
                   echo "produced=true" >> "$GITHUB_OUTPUT"
                   echo "Wrote ${SECTION}"
               else
