@@ -45,7 +45,12 @@ import type { ChartRegistry } from '../module/moduleContext';
 import type { Text } from '../scene/shape/text';
 import { isRotatable } from '../scene/transformable';
 import { isPointInSector } from '../scene/util/sector';
-import { type Label, type LabelPlacementStyle, resolvePlacementLabelStyle } from './label';
+import {
+    type Label,
+    type LabelPlacementStyle,
+    resolvePlacementLabelBoxExtent,
+    resolvePlacementLabelStyle,
+} from './label';
 import { markerLabelRect } from './marker/markerLabelRect';
 import { getItemId } from './series/pickManager';
 import type { DatumIndex, SeriesNodeDatum } from './series/seriesTypes';
@@ -675,17 +680,17 @@ export interface BarPositionedCandidate extends PositionedLabelCandidate {
  * orientation-invariant, so it is measured once per placement and shared across that placement's
  * orientations. Inside placements constrain to the inset bar rect; outside placements float (no region).
  */
-export function buildBarLabelCandidates({
+export function buildBarLabelCandidates<TParams>({
     isUpward,
     isVertical,
     placements: placementList,
     orientations,
     spacing,
     threshold,
-    boxPadding,
+    label,
+    textWidth,
+    textHeight,
     rect,
-    width,
-    height,
     crossReversed = false,
     rejectOutsideStart = false,
     rejectOutsideEnd = false,
@@ -697,10 +702,13 @@ export function buildBarLabelCandidates({
     orientations: readonly AgChartLabelOrientation[];
     spacing: number;
     threshold: number;
-    boxPadding?: Required<PaddingOptions>;
+    // The styled label; the box extent (padding + border) is resolved per candidate from its placement's
+    // style, so an inside↔outside cascade offsets and sizes each candidate by its own style.
+    label: Label<TParams> & { insideStyle: LabelPlacementStyle; outsideStyle: LabelPlacementStyle };
+    // Raw measured text size, before the per-placement box extent is folded in.
+    textWidth: number;
+    textHeight: number;
     rect: Bounds;
-    width: number;
-    height: number;
     crossReversed?: boolean;
     rejectOutsideStart?: boolean;
     rejectOutsideEnd?: boolean;
@@ -727,6 +735,14 @@ export function buildBarLabelCandidates({
     // to the next placement, rather than being clamped into it or floating into the engine's wider bounds.
     const candidates: BarPositionedCandidate[] = [];
     for (const placement of effectivePlacements) {
+        // Per-placement drawn-box extent: an inside candidate uses insideStyle, an outside one outsideStyle,
+        // so their padding/border differences move the anchor and size the footprint independently.
+        const boxPadding = resolvePlacementLabelBoxExtent(
+            label,
+            pickPlacementStyle(label, toResolvedPlacement(placement))
+        );
+        const width = textWidth + boxPadding.left + boxPadding.right;
+        const height = textHeight + boxPadding.top + boxPadding.bottom;
         const anchor = adjustLabelPlacement({
             isUpward,
             isVertical,
@@ -746,17 +762,15 @@ export function buildBarLabelCandidates({
         // toward the bar (the offset `adjustLabelPlacement` added so the box clears the bar by `spacing`).
         // Recentre the collision footprint on that drawn box, else it reaches the box extent further onto
         // a neighbour than what is rendered and the label collides before its box actually touches.
-        if (boxPadding != null) {
-            if (anchor.textAlign === 'right' || anchor.textAlign === 'end') {
-                centre.x += boxPadding.right;
-            } else if (anchor.textAlign === 'left' || anchor.textAlign === 'start') {
-                centre.x -= boxPadding.left;
-            }
-            if (anchor.textBaseline === 'bottom') {
-                centre.y += boxPadding.bottom;
-            } else if (anchor.textBaseline === 'top') {
-                centre.y -= boxPadding.top;
-            }
+        if (anchor.textAlign === 'right' || anchor.textAlign === 'end') {
+            centre.x += boxPadding.right;
+        } else if (anchor.textAlign === 'left' || anchor.textAlign === 'start') {
+            centre.x -= boxPadding.left;
+        }
+        if (anchor.textBaseline === 'bottom') {
+            centre.y += boxPadding.bottom;
+        } else if (anchor.textBaseline === 'top') {
+            centre.y -= boxPadding.top;
         }
         for (const orientation of orientations) {
             const rotationDeg = orientationAngles[orientation];

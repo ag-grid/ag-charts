@@ -1170,7 +1170,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             const orientations = toArray(label.orientation);
             if (orientations.length === 0) orientations.push('horizontal');
             const plotRegion = label.collision.resolveCollideWith().seriesArea ? this.getSeriesPlotRegion() : undefined;
-            const box = expandPlacementLabelBoxExtent(label);
             const buildCandidates = (text: NormalisedTextOrSegments, end: 'start' | 'end') => {
                 const size = measureLabelText(text, label);
                 return buildBarLabelCandidates({
@@ -1181,10 +1180,10 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                     orientations,
                     spacing: label.spacing,
                     threshold,
-                    boxPadding: ctx.labelBoxPadding,
+                    label,
+                    textWidth: size.width,
+                    textHeight: size.height,
                     rect: rectBox,
-                    width: size.width + box.left + box.right,
-                    height: size.height + box.top + box.bottom,
                     plotRegion,
                 });
             };

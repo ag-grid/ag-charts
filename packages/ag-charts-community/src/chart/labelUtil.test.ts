@@ -213,7 +213,11 @@ describe('buildBarLabelCandidates', () => {
     // A horizontal bar, upward, spacing 5; a 30×10 label. `getMinOuterRectSize`/`labelGlyphCentre` are
     // pure, so no canvas is needed here.
     const rect = { x: 0, y: 0, width: 100, height: 40 };
-    const build = (placements: any[], orientations: any[]) =>
+    // A styled label stub; the box extent is resolved per placement from insideStyle/outsideStyle. A
+    // boxless label (no fill/border) yields a zero extent, so the footprint equals the raw text size.
+    const makeLabel = (insideStyle: any = {}, outsideStyle: any = {}) =>
+        ({ padding: undefined, fill: undefined, border: undefined, insideStyle, outsideStyle }) as any;
+    const build = (placements: any[], orientations: any[], label: any = makeLabel()) =>
         buildBarLabelCandidates({
             isUpward: true,
             isVertical: false,
@@ -221,9 +225,10 @@ describe('buildBarLabelCandidates', () => {
             orientations,
             spacing: 5,
             threshold: 2,
+            label,
+            textWidth: 30,
+            textHeight: 10,
             rect,
-            width: 30,
-            height: 10,
         });
 
     it('emits one candidate per placement (outer) × orientation (inner), in cascade order', () => {
@@ -258,5 +263,18 @@ describe('buildBarLabelCandidates', () => {
         expectBox(vertical.box, { x: 45, y: 5, width: 10, height: 30 });
         expect(vertical.box.x + vertical.box.width / 2).toBeCloseTo(horizontal.box.x + horizontal.box.width / 2);
         expect(vertical.box.y + vertical.box.height / 2).toBeCloseTo(horizontal.box.y + horizontal.box.height / 2);
+    });
+
+    it('sizes each candidate by its own placement style padding, not a shared one', () => {
+        // inside padding 0, outside padding 20 (both boxed via fill). A shared box extent would size both
+        // candidates identically; per-placement resolution sizes each to its own style.
+        const label = makeLabel({ fill: 'red', padding: 0 }, { fill: 'red', padding: 20 });
+        const [inside, outside] = build(['inside-center', 'outside-end'], ['horizontal'], label);
+        // inside-center keeps the raw 30×10 footprint (0 padding).
+        expect(inside.box.width).toBeCloseTo(30);
+        expect(inside.box.height).toBeCloseTo(10);
+        // outside-end reserves its own 20px padding on every side (30+40 × 10+40).
+        expect(outside.box.width).toBeCloseTo(70);
+        expect(outside.box.height).toBeCloseTo(50);
     });
 });

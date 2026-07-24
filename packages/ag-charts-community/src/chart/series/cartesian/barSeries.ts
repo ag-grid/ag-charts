@@ -1052,8 +1052,6 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 labelText = fitLabelToContainer(nodeLabelText, ctx.labelFit, ctx.label, container);
             }
             const text = measureLabelText(labelText, ctx.label);
-            const width = text.width + box.left + box.right;
-            const height = text.height + box.top + box.bottom;
             const orientations = toArray(ctx.label.orientation);
             if (orientations.length === 0) orientations.push('horizontal');
             const candidates = buildBarLabelCandidates({
@@ -1063,10 +1061,10 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 orientations,
                 spacing: ctx.label.spacing,
                 threshold: ctx.labelThreshold,
-                boxPadding: ctx.boxPadding,
+                label: ctx.label,
+                textWidth: text.width,
+                textHeight: text.height,
                 rect,
-                width,
-                height,
                 crossReversed: ctx.crossReversed,
                 rejectOutsideStart: ctx.stackedTowardStart,
                 rejectOutsideEnd: ctx.stackedTowardEnd,

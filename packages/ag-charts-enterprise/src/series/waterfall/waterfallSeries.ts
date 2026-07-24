@@ -769,7 +769,6 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                       )
                     : undefined;
             const fittedLabelText = fitLabelToContainer(labelText, labelFit, label, bounds?.container);
-            const box = expandPlacementLabelBoxExtent(label);
             if (!label.collision.suppressHide || barLabelResolvesPlacement(label.placement)) {
                 // A placement/orientation array (or a hideable label) pre-positions a candidate per
                 // placement × orientation the engine cascades through until one fits; a hideable no-fit
@@ -789,10 +788,10 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                     orientations,
                     spacing: label.spacing,
                     threshold,
-                    boxPadding,
+                    label,
+                    textWidth: measured.width,
+                    textHeight: measured.height,
                     rect,
-                    width: measured.width + box.left + box.right,
-                    height: measured.height + box.top + box.bottom,
                     plotRegion,
                 });
                 // The engine picks the first candidate that fits; the first is baked as a backward-safe

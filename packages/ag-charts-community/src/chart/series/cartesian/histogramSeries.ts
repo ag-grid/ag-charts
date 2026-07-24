@@ -584,7 +584,6 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         // placement × orientation the engine cascades through until one fits; a hideable no-fit label is
         // dropped so it can be hidden. A single fixed, non-hideable placement bakes directly.
         if (!label.collision.suppressHide || barLabelResolvesPlacement(label.placement)) {
-            const box = expandPlacementLabelBoxExtent(label);
             const measured = measureLabelText(text, label);
             const placements = toArray(label.placement);
             if (placements.length === 0) placements.push('inside-center');
@@ -598,10 +597,10 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                 orientations,
                 spacing: label.spacing,
                 threshold: label.collision.threshold ?? 0,
-                boxPadding: resolvePlacementLabelBoxExtent(label, placementStyle),
+                label,
+                textWidth: measured.width,
+                textHeight: measured.height,
                 rect,
-                width: measured.width + box.left + box.right,
-                height: measured.height + box.top + box.bottom,
                 plotRegion,
             });
             // The engine picks the first candidate that fits; the first is baked as a backward-safe default
