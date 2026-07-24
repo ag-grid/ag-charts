@@ -56,7 +56,7 @@ const {
     buildBarLabelCandidates,
     toResolvedPlacement,
     insideBarLabelBounds,
-    resolvePlacementLabelPadding,
+    resolvePlacementLabelBoxExtent,
     fitLabelToContainer,
     SeriesNodePickMode,
     fixNumericExtent,
@@ -745,7 +745,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             const placement = toArray(label.placement)[0];
             const insidePlacement = placement == null || placement.startsWith('inside');
             const placementStyle = insidePlacement ? label.insideStyle : label.outsideStyle;
-            const boxPadding = resolvePlacementLabelPadding(label, placementStyle);
+            const boxPadding = resolvePlacementLabelBoxExtent(label, placementStyle);
             const rect = { x: rectX, y: rectY, width: rectWidth, height: rectHeight };
             const threshold = label.collision.threshold ?? 0;
             const isUpward = (value ?? -1) >= 0 !== valueAxisReversed;

@@ -70,7 +70,7 @@ const {
     updateLabelNode,
     pickPlacementStyle,
     expandPlacementLabelBoxExtent,
-    resolvePlacementLabelPadding,
+    resolvePlacementLabelBoxExtent,
     SMALLEST_KEY_INTERVAL,
     LARGEST_KEY_INTERVAL,
     diff,
@@ -511,7 +511,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const labelPlacement = toArray(this.properties.label.placement)[0];
         const labelProps = this.properties.label;
         const placementStyle = labelPlacement === 'outside' ? labelProps.outsideStyle : labelProps.insideStyle;
-        const boxPadding = resolvePlacementLabelPadding(labelProps, placementStyle);
+        const boxPadding = resolvePlacementLabelBoxExtent(labelProps, placementStyle);
         const isOutside = labelPlacement === 'outside';
         const sign = isOutside ? 1 : -1;
         // yLow and yHigh sit on opposite edges of the same axis, so one's outer side is the other's inner side.

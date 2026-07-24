@@ -893,6 +893,49 @@ describe('label collision avoidance', () => {
                 }
             }
         });
+
+        // A bordered outside label's drawn box (padding + half the border stroke reserved outward) must
+        // sit exactly `spacing` from the bar, not `spacing - strokeWidth/2` — i.e. the anchor offset must
+        // include the border extent, not padding alone.
+        it('reserves padding and border in a bordered histogram outside-label offset', async () => {
+            const SPACING = 20;
+            const PADDING = 12;
+            const STROKE = 8;
+            const options: any = {
+                data: Array.from({ length: 5 }, () => ({ x: 0.5 })),
+                legend: { enabled: false },
+                padding: { top: 100, right: 10, bottom: 10, left: 10 },
+                axes: { x: { type: 'number', min: 0, max: 1 }, y: { type: 'number', min: 0, max: 200 } },
+                series: [
+                    {
+                        type: 'histogram',
+                        xKey: 'x',
+                        bins: [[0, 1]],
+                        label: {
+                            enabled: true,
+                            placement: 'outside-end',
+                            spacing: SPACING,
+                            color: 'black',
+                            fill: '#ffe08a',
+                            padding: PADDING,
+                            border: { enabled: true, stroke: 'red', strokeWidth: STROKE },
+                            collision: { threshold: 0, suppressHide: false },
+                        },
+                    },
+                ],
+            };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            const series = deproxy(chart as any).series[0] as unknown as {
+                contextNodeData?: { nodeData?: { y: number }[]; labelData?: { label?: { y: number } }[] };
+            };
+            const barTop = series.contextNodeData!.nodeData![0].y;
+            const labelY = series.contextNodeData!.labelData![0].label!.y;
+            // outside-end sits above the bar with baseline 'bottom'; the box extends down toward the bar by
+            // padding + half the stroke, so that edge must clear the bar by exactly `spacing`.
+            expect(barTop - (labelY + PADDING + STROKE / 2)).toBeCloseTo(SPACING);
+        });
     });
 
     // Bar/histogram contribute their rects as `seriesItem` obstacles; a placing series only routes

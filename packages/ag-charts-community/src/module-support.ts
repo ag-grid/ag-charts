@@ -428,6 +428,7 @@ export {
     PlacedSeriesLabel,
     expandLabelBoxExtent,
     expandPlacementLabelBoxExtent,
+    resolvePlacementLabelBoxExtent,
     resolvePlacementLabelPadding,
 } from './chart/label';
 export { Marker } from './chart/marker/marker';

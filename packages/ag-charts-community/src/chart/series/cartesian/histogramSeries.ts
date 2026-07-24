@@ -80,7 +80,7 @@ import {
     rowCountProperty,
     valueProperty,
 } from '../../data/processors';
-import { expandPlacementLabelBoxExtent, resolvePlacementLabelPadding } from '../../label';
+import { expandPlacementLabelBoxExtent, resolvePlacementLabelBoxExtent } from '../../label';
 import {
     adjustLabelPlacement,
     buildBarLabelCandidates,
@@ -598,7 +598,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                 orientations,
                 spacing: label.spacing,
                 threshold: label.collision.threshold ?? 0,
-                boxPadding: resolvePlacementLabelPadding(label, placementStyle),
+                boxPadding: resolvePlacementLabelBoxExtent(label, placementStyle),
                 rect,
                 width: measured.width + box.left + box.right,
                 height: measured.height + box.top + box.bottom,
@@ -635,7 +635,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             isVertical: true,
             placement,
             spacing: label.spacing,
-            boxPadding: resolvePlacementLabelPadding(label, placementStyle),
+            boxPadding: resolvePlacementLabelBoxExtent(label, placementStyle),
             rect,
             rotation,
             labelWidth,
