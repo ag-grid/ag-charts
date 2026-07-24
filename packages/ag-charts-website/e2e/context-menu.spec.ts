@@ -246,7 +246,20 @@ test.describe('context-menu', () => {
         };
 
         const getItemsEvent = (captionType: CaptionType, text: TextType): AgContextMenuGetItemsParamsCaption => {
-            return { captionType, defaultItems: ['download'], context: undefined, showOn: 'caption', text };
+            return {
+                captionType,
+                defaultItems: ['download'],
+                context: undefined,
+                showOn: 'caption',
+                text,
+                allShowOnParams: [
+                    {
+                        captionType,
+                        showOn: 'caption',
+                        text,
+                    },
+                ],
+            };
         };
 
         const rightClick = (page: Page, point: { clientX: number; clientY: number }) =>
@@ -398,6 +411,7 @@ test.describe('context-menu', () => {
                 defaultItems: ['download'],
                 ...commonArg,
                 ...pointArgs,
+                allShowOnParams: [{ showOn: 'axis', ...commonArg, ...pointArgs }],
             };
         }
 

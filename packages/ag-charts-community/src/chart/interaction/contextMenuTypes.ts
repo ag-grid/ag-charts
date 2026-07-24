@@ -63,6 +63,11 @@ export interface ContextShowOnMap extends ContextShowOnMapRule {
 
 export type ContextMenuCallback<K extends AgContextMenuItemShowOn> = ContextShowOnMap[K]['callback'];
 
+/** Per-region internal pick contexts for a single context-menu event, keyed by region. */
+export type ContextMenuRegionContexts = {
+    [K in AgContextMenuItemShowOn]?: ContextShowOnMap[K]['context'];
+};
+
 /**
  * Merge a union of objects into one object with all the properties. This is just to check at compile-time that
  * ContextMenuItem implements all properties of AgContextMenuItem API contract.

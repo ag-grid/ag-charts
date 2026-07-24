@@ -190,16 +190,15 @@ export class AxisDOMProxy extends AbstractModuleInstance {
     private onSeriesAreaContextMenu(event: _ModuleSupport.SeriesAreaContextMenuEvent) {
         if (!this.isEnabled() || !this.isEnabledContextMenu()) return;
 
-        // A series node was hit; leave the context menu to the series area.
-        if (event.consumed) return;
-
         // Only continue if we know we have axes that overlap the series area.
         if (!this.hasOverlappingAxes()) return;
 
         const axis = this.pickAxisAtPoint(event);
         if (!axis) return;
 
-        this.dispatchAxisContextMenu(axis.axisId, event.widgetEvent, event.canvasX, event.canvasY);
+        // Annotate the overlapping axis so the series-area dispatch offers it as an additional region,
+        // rather than dispatching a competing axis-only menu. This lets a node and an axis co-exist.
+        event.axis = this.pickAxisValue(axis.axisId, event.widgetEvent);
     }
 
     private onSeriesAreaDoubleClick(event: _ModuleSupport.DragInterpreterDblClickEvent) {
@@ -279,16 +278,17 @@ export class AxisDOMProxy extends AbstractModuleInstance {
         });
     }
 
+    private pickAxisValue(axisId: AxisID, widgetEvent: _Widget.MouseWidgetEvent<'contextmenu'>) {
+        return this.ctx.axisManager.getAxisIdContext(axisId)?.pickValue(widgetEvent);
+    }
+
     private dispatchAxisContextMenu(
         axisId: AxisID,
         widgetEvent: _Widget.MouseWidgetEvent<'contextmenu'>,
         canvasX: number,
         canvasY: number
     ) {
-        const axisCtx = this.ctx.axisManager.getAxisIdContext(axisId);
-        if (!axisCtx) return;
-
-        const pick = axisCtx.pickValue(widgetEvent);
+        const pick = this.pickAxisValue(axisId, widgetEvent);
         if (!pick) return;
 
         this.ctx.contextMenuRegistry?.dispatchContext('axis', { widgetEvent, canvasX, canvasY }, pick);
