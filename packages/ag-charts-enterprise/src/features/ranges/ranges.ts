@@ -76,6 +76,16 @@ export class Ranges extends AbstractModuleInstance {
     private dropdownLabel = DEFAULT_DROPDOWN_LABEL;
     private dropdownMinWidth?: number;
 
+    // `getBounds()` on the range-buttons toolbar has no inline height, so it falls back to
+    // `offsetHeight` and forces a sync reflow on every layout. The measured height only depends on
+    // the resolved ranges options (button set, styling) and which toolbar is shown, so cache it
+    // keyed on those. `opts` keeps a stable reference across data-only updates and is replaced on
+    // any option/theme change, so the cache self-invalidates; a miss always re-measures.
+    private cachedToolbarHeight?: number;
+    private cachedToolbarHeightOpts?: _ModuleSupport.NormalisedRangesOptions;
+    private cachedToolbarHeightIsDropdown?: boolean;
+    private cachedToolbarHeightLabel?: string;
+
     // Ranges is only created when the `ranges` subtree is configured, so assert
     // presence here and rely on rangesTheme for field-level defaults.
     private get opts(): _ModuleSupport.NormalisedRangesOptions {
@@ -157,7 +167,7 @@ export class Ranges extends AbstractModuleInstance {
             this.swapDropdownOut();
         }
 
-        const { height } = this.isDropdown ? dropdownToolbar.getBounds() : buttonsToolbar.getBounds();
+        const height = this.getToolbarHeight(opts, this.isDropdown ? dropdownToolbar : buttonsToolbar);
         const bounds = { x: layoutBox.x, y: layoutBox.y };
 
         if (position === 'top' || position === 'top-left' || position === 'top-right') {
@@ -169,6 +179,30 @@ export class Ranges extends AbstractModuleInstance {
 
         buttonsToolbar.setBounds(bounds);
         dropdownToolbar.setBounds(bounds);
+    }
+
+    private getToolbarHeight(
+        opts: _ModuleSupport.NormalisedRangesOptions,
+        toolbar: _ModuleSupport.BaseToolbar
+    ): number {
+        if (
+            this.cachedToolbarHeight !== undefined &&
+            this.cachedToolbarHeightOpts === opts &&
+            this.cachedToolbarHeightIsDropdown === this.isDropdown &&
+            this.cachedToolbarHeightLabel === this.dropdownLabel
+        ) {
+            return this.cachedToolbarHeight;
+        }
+
+        const { height } = toolbar.getBounds();
+        // A zero height means the toolbar isn't laid out yet; don't pin the cache to it.
+        if (height === 0) return height;
+
+        this.cachedToolbarHeight = height;
+        this.cachedToolbarHeightOpts = opts;
+        this.cachedToolbarHeightIsDropdown = this.isDropdown;
+        this.cachedToolbarHeightLabel = this.dropdownLabel;
+        return height;
     }
 
     private onLayoutComplete({ series: { rect: seriesRect }, layoutBox }: _ModuleSupport.LayoutCompleteEvent) {

@@ -8,7 +8,17 @@ type StyledElement = new () => { style: CSSStyleDeclaration };
 // getWindow is required to make sure this works on our CI.
 // Using Option instead of createElement because it should be faster.
 let styleDeclaration: CSSStyleDeclaration;
+
+// Parsing is a DOM write/read per call but is pure per input, so memoise. The cap bounds memory
+// under pathological dynamic-colour usage; parsing is document-independent, so a module-level
+// cache is safe.
+const PARSE_COLOR_CACHE_LIMIT = 4000;
+const parseColorCache = new Map<string, string | null>();
 export function parseColor(color: string): string | null {
+    if (parseColorCache.has(color)) {
+        return parseColorCache.get(color) ?? null;
+    }
+
     if (styleDeclaration == null) {
         const OptionConstructor = getWindow<StyledElement>('Option');
         styleDeclaration = new OptionConstructor().style;
@@ -16,6 +26,11 @@ export function parseColor(color: string): string | null {
     styleDeclaration.color = color;
     const result = styleDeclaration.color || null;
     styleDeclaration.color = '';
+
+    if (parseColorCache.size >= PARSE_COLOR_CACHE_LIMIT) {
+        parseColorCache.clear();
+    }
+    parseColorCache.set(color, result);
     return result;
 }
 

@@ -454,12 +454,16 @@ export function sectorPeers(ticker: string): string[] {
 }
 
 export interface PerfRow {
+    /** Sample timestamp (epoch ms); a stable id for matching incremental transactions. */
+    id: number;
     date: Date;
     [ticker: string]: number | Date;
 }
 
 /** One cell of a peer-over-time heatmap: a value for one peer in one time bucket. */
 export interface PeerHeatmapCell {
+    /** Composite `time|peer` id; stable per cell for matching incremental transactions. */
+    key: string;
     /** Time-bucket label (x axis). */
     time: string;
     /** Peer ticker (y axis). */
@@ -498,6 +502,15 @@ export class PeerPerformanceFeed {
     private spx = SPX_SEED;
     private time: number;
 
+    // Per-sample rebased rows, reused across ticks: a row depends only on its own
+    // immutable sample and the fixed origin, so it never changes once computed.
+    private perfCache = new WeakMap<PeerSample, PerfRow>();
+    private perfCacheKey = '';
+    // Settled heatmap buckets keyed by wall-clock bucket key; a bucket's cells are
+    // fixed once it has a stable predecessor in the window (see rollingSpread).
+    private readonly spreadCache = new Map<number, PeerHeatmapCell[]>();
+    private spreadCacheKey = '';
+
     constructor(now: number) {
         for (const company of ALL_PEER_COMPANIES) {
             this.prices[company.ticker] = company.seed;
@@ -532,33 +545,70 @@ export class PeerPerformanceFeed {
      * the oldest off the left, like the candlestick chart.
      */
     relativePerformance(tickers: string[], count: number): PerfRow[] {
+        const tickersKey = tickers.join(',');
+        if (tickersKey !== this.perfCacheKey) {
+            this.perfCache = new WeakMap();
+            this.perfCacheKey = tickersKey;
+        }
         const slice = this.samples.slice(-count);
         const marketReturnOf = (spx: number) => spx / this.baseSpx - 1;
         return slice.map((sample) => {
-            const row: PerfRow = { date: sample.date };
+            const cached = this.perfCache.get(sample);
+            if (cached) return cached;
+            const row: PerfRow = { id: sample.time, date: sample.date };
             const marketReturn = marketReturnOf(sample.spx);
             for (const ticker of tickers) {
                 const totalReturn = sample.prices[ticker] / this.basePrices[ticker] - 1;
                 const beta = PEER_BETAS.get(ticker) ?? 1;
                 row[ticker] = (totalReturn - beta * marketReturn) * 100;
             }
+            this.perfCache.set(sample, row);
             return row;
         });
     }
 
     /** Group the most recent samples into up to `buckets` fixed wall-clock time buckets (oldest first). */
     private timeBuckets(buckets = HEATMAP_BUCKETS): PeerSample[][] {
+        // Scan newest-first, stopping once the trailing `buckets` wall-clock buckets
+        // are collected, so cost tracks the window rather than the full sample history.
         const byKey = new Map<number, PeerSample[]>();
-        for (const sample of this.samples) {
+        for (let i = this.samples.length - 1; i >= 0; i--) {
+            const sample = this.samples[i];
             const key = Math.floor(sample.time / HEATMAP_BUCKET_MS);
-            const bucket = byKey.get(key) ?? [];
-            if (bucket.length === 0) byKey.set(key, bucket);
-            bucket.push(sample);
+            let bucket = byKey.get(key);
+            if (!bucket) {
+                if (byKey.size === buckets) break;
+                bucket = [];
+                byKey.set(key, bucket);
+            }
+            bucket.unshift(sample);
         }
-        return [...byKey.keys()]
-            .sort((a, b) => a - b)
-            .slice(-buckets)
-            .map((key) => byKey.get(key)!);
+        return [...byKey.keys()].sort((a, b) => a - b).map((key) => byKey.get(key)!);
+    }
+
+    private computeBucketCells(
+        bucket: PeerSample[],
+        priorBucket: PeerSample[] | undefined,
+        tickers: string[]
+    ): PeerHeatmapCell[] {
+        const label = bucketTimeLabel(bucket[0].time);
+        const cells: PeerHeatmapCell[] = [];
+        for (const ticker of tickers) {
+            const moves: number[] = [];
+            let prev = priorBucket?.at(-1)?.prices[ticker];
+            for (const sample of bucket) {
+                const price = sample.prices[ticker];
+                if (prev != null && prev !== 0) moves.push((Math.abs(price - prev) / prev) * 100);
+                prev = price;
+            }
+            cells.push({
+                key: `${label}|${ticker}`,
+                time: label,
+                peer: ticker,
+                value: round2(moves.length ? mean(moves) : 0),
+            });
+        }
+        return cells;
     }
 
     /**
@@ -567,21 +617,32 @@ export class PeerPerformanceFeed {
      * so it stays meaningful even when a bucket holds a single sample.
      */
     rollingSpread(tickers: string[], bucketCount = HEATMAP_BUCKETS): PeerHeatmapCell[] {
+        const tickersKey = tickers.join(',');
+        if (tickersKey !== this.spreadCacheKey) {
+            this.spreadCache.clear();
+            this.spreadCacheKey = tickersKey;
+        }
+        const buckets = this.timeBuckets(bucketCount);
+        const lastIndex = buckets.length - 1;
+        const liveKeys = new Set<number>();
         const cells: PeerHeatmapCell[] = [];
-        this.timeBuckets(bucketCount).forEach((bucket, bucketIndex, buckets) => {
-            const label = bucketTimeLabel(bucket[0].time);
-            const priorBucket = buckets[bucketIndex - 1];
-            for (const ticker of tickers) {
-                const moves: number[] = [];
-                let prev = priorBucket?.at(-1)?.prices[ticker];
-                for (const sample of bucket) {
-                    const price = sample.prices[ticker];
-                    if (prev != null && prev !== 0) moves.push((Math.abs(price - prev) / prev) * 100);
-                    prev = price;
-                }
-                cells.push({ time: label, peer: ticker, value: round2(moves.length ? mean(moves) : 0) });
+        buckets.forEach((bucket, bucketIndex) => {
+            const key = Math.floor(bucket[0].time / HEATMAP_BUCKET_MS);
+            liveKeys.add(key);
+            // The leftmost bucket has no in-window predecessor and the trailing bucket
+            // may still be filling, so both recompute every tick; interior buckets are
+            // settled and reuse their cached cells (keeping their identity).
+            const settled = bucketIndex > 0 && bucketIndex < lastIndex;
+            let bucketCells = settled ? this.spreadCache.get(key) : undefined;
+            if (!bucketCells) {
+                bucketCells = this.computeBucketCells(bucket, buckets[bucketIndex - 1], tickers);
+                if (settled) this.spreadCache.set(key, bucketCells);
             }
+            for (const cell of bucketCells) cells.push(cell);
         });
+        for (const key of this.spreadCache.keys()) {
+            if (!liveKeys.has(key)) this.spreadCache.delete(key);
+        }
         return cells;
     }
 }

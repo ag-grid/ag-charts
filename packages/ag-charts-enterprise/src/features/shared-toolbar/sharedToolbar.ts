@@ -33,6 +33,13 @@ export class SharedToolbar extends AbstractModuleInstance {
     };
     private firstLayoutSection?: SharedToolbarSection;
 
+    // `getBounds().width` falls back to `offsetWidth` (a sync reflow) on every layout because the
+    // toolbar carries no inline width. Its width is a function of the rendered button set, which is
+    // rebuilt with identical content on every layout (see chartToolbar.updateButton), so cache the
+    // measurement keyed on a signature of that content and re-measure only when it actually changes.
+    private cachedWidth?: number;
+    private cachedWidthSignature?: string;
+
     constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
         this.container = this.ctx.domManager.addChild('canvas-overlay', 'shared-toolbar');
@@ -81,7 +88,7 @@ export class SharedToolbar extends AbstractModuleInstance {
                 }
                 this.firstLayoutSection = section;
 
-                const width = sharedToolbar.getBounds().width;
+                const width = this.measureWidth(sharedToolbar);
                 const { isRtl } = this.ctx.domManager;
                 sharedToolbar.setBounds({
                     x: isRtl ? layoutBox.x + layoutBox.width - width : layoutBox.x,
@@ -153,6 +160,31 @@ export class SharedToolbar extends AbstractModuleInstance {
         withSection.setHidden(false);
 
         return withSection;
+    }
+
+    private measureWidth(sharedToolbar: _ModuleSupport.Toolbar<_ModuleSupport.ToolbarButtonOptions>): number {
+        const signature = this.widthSignature();
+        if (this.cachedWidth !== undefined && this.cachedWidthSignature === signature) {
+            return this.cachedWidth;
+        }
+
+        const width = sharedToolbar.getBounds().width;
+        // A zero width means the toolbar isn't laid out yet; don't pin the cache to it.
+        if (width === 0) return width;
+
+        this.cachedWidth = width;
+        this.cachedWidthSignature = signature;
+        return width;
+    }
+
+    private widthSignature(): string {
+        return SharedToolbar.SECTION_ORDER.map((section) => {
+            const active = this.activeSections.has(section) ? '1' : '0';
+            const buttons = this.sectionButtons[section]
+                .map((b) => `${b.label ?? ''}~${b.icon ?? ''}~${b.iconPosition ?? ''}`)
+                .join(',');
+            return `${section}:${active}:${buttons}`;
+        }).join('|');
     }
 
     private getIndex(section: SharedToolbarSection, index: number) {

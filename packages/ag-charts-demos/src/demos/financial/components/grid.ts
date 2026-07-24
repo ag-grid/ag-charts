@@ -56,6 +56,22 @@ export const baseColDef = <T>(): ColDef<T> => ({
 
 export const getRowId = <T extends { ticker: string }>({ data }: GetRowIdParams<T>) => data.ticker;
 
+// True when two snapshots of the same row carry identical displayed values. Feeds hand
+// back a fresh object every tick, so identity never matches; compare values instead and
+// treat the rolling `history` window by its length and newest (tail) value.
+export const rowValuesEqual = <T extends object>(a: T, b: T): boolean => {
+    for (const key of Object.keys(a) as (keyof T)[]) {
+        const av = a[key];
+        const bv = b[key];
+        if (Array.isArray(av) && Array.isArray(bv)) {
+            if (av.length !== bv.length || av[av.length - 1] !== bv[bv.length - 1]) return false;
+        } else if (av !== bv) {
+            return false;
+        }
+    }
+    return true;
+};
+
 // A non-interactive trend column rendering each row's price history as a sparkline.
 export const sparklineColDef = <T extends { history: number[] }>(): ColDef<T> => ({
     colId: 'history',

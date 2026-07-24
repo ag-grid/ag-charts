@@ -38,6 +38,12 @@ export const THEME = {
     },
     overrides: {
         common: {
+            // Streaming re-applies options every 500ms tick; per-tick tweens (gauge
+            // count-up, price transitions) never let the page idle. Presets omit
+            // `animation` from their option types, so the theme is the only lever.
+            animation: {
+                enabled: false,
+            },
             highlight: {
                 enabled: false,
             },

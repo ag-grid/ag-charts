@@ -6,6 +6,10 @@ export class FontManager {
     private observers: Array<ResizeObserver> = [];
     private destroyed = false;
 
+    // Fonts never unload once available, so specs confirmed by `check()` stay available for the
+    // chart's lifetime. Caching them lets streaming updates skip the per-update native check.
+    private readonly confirmedFontSpecs = new Set<string>();
+
     constructor(private readonly ctx: DynamicContext<ChartRegistry>) {}
 
     public updateFonts(fonts?: Set<string>) {
@@ -29,8 +33,11 @@ export class FontManager {
 
         const pending: Array<Promise<unknown>> = [];
         for (const spec of fontSpecs) {
+            if (this.confirmedFontSpecs.has(spec)) continue;
             try {
-                if (!fontSet.check(spec)) {
+                if (fontSet.check(spec)) {
+                    this.confirmedFontSpecs.add(spec);
+                } else {
                     pending.push(fontSet.load(spec));
                 }
             } catch {

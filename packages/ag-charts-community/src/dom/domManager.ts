@@ -157,6 +157,13 @@ export class DOMManager extends BaseManager {
     private pendingContainer?: HTMLElement = undefined;
     private container?: HTMLElement = undefined;
     private shadowDocumentRoot?: HTMLElement = undefined;
+    // Mirrors the CSS-variable watcher elements already registered, so the per-datum
+    // `updateCSSVariableWatchers` call skips an O(children) DOM scan. Normal-path watchers are
+    // children of `this.element` and survive container moves; shadow-path watchers live on the
+    // shadow root, so their set is cleared when the container (and thus shadow root) changes.
+    private readonly cssVariableWatchers = new Set<string>();
+    private readonly shadowCssVariableWatchers = new Set<string>();
+    private lastThemeParameters?: AgChartAllThemeParams = undefined;
     private initiallyConnected?: boolean = undefined;
     containerSize?: Size = undefined;
     private readonly tabGuards?: GuardedElement;
@@ -497,6 +504,11 @@ export class DOMManager extends BaseManager {
         this.container = pendingContainer;
         this.pendingContainer = undefined;
         this.agDocument.setContainer(pendingContainer);
+        // Shadow-path watchers live on the previous shadow root and are orphaned by the move; drop
+        // the mirror so they are re-registered against the new root. Normal-path watchers are
+        // children of `this.element`, which moves with its subtree, so their mirror stays valid.
+        this.shadowCssVariableWatchers.clear();
+
         this.shadowDocumentRoot = this.getShadowDocumentRoot(pendingContainer);
         this.initiallyConnected = pendingContainer.isConnected;
         this.observeAttachTransition(pendingContainer);
@@ -538,6 +550,11 @@ export class DOMManager extends BaseManager {
     }
 
     setThemeParameters(params: AgChartAllThemeParams) {
+        // Called every layout, but the resolved parameters keep a stable reference across data-only
+        // updates (the options fast path carries them forward), so skip the re-flatten when unchanged.
+        if (params === this.lastThemeParameters) return;
+        this.lastThemeParameters = params;
+
         const variables: Record<string, string | number> = {};
 
         // Flatten theme params into a single object ready for the css variables
@@ -1055,17 +1072,10 @@ export class DOMManager extends BaseManager {
             return;
         }
 
-        const existingWatchers = new Set();
-        for (let i = 0; i < this.element.children.length; i++) {
-            const child = this.element.children.item(i) as HTMLElement | null;
-            if (child?.dataset.variableName != null) {
-                existingWatchers.add(child.dataset.variableName);
-            }
-        }
-
         for (const key of strictObjectKeys(cssVariables)) {
             const property = key.slice(4, -1);
-            if (existingWatchers.has(property)) continue;
+            if (this.cssVariableWatchers.has(property)) continue;
+            this.cssVariableWatchers.add(property);
 
             const styleElement = createElement('style');
             styleElement.dataset.variableName = property;
@@ -1092,17 +1102,9 @@ export class DOMManager extends BaseManager {
         const shadowRoot = this.shadowDocumentRoot?.getRootNode() as HTMLElement | undefined;
         if (!shadowRoot || !('addEventListener' in shadowRoot)) return;
 
-        const existingWatchers = new Set();
-        for (let i = 0; i < shadowRoot.children.length; i++) {
-            const child = shadowRoot.children.item(i) as HTMLElement | null;
-            if (child?.dataset.variableName != null) {
-                existingWatchers.add(child.dataset.variableName);
-            }
-        }
-
         // Attach a single event listener to the shadow root to catch the bubbled events for every property, rather
         // than a different event for each property.
-        if (existingWatchers.size === 0) {
+        if (this.shadowCssVariableWatchers.size === 0) {
             const handleTransitionEnd = () => {
                 this.eventsHub.emit('chart:request-refresh', null);
             };
@@ -1114,7 +1116,8 @@ export class DOMManager extends BaseManager {
 
         for (const key of strictObjectKeys(cssVariables)) {
             const property = key.slice(4, -1);
-            if (existingWatchers.has(property)) continue;
+            if (this.shadowCssVariableWatchers.has(property)) continue;
+            this.shadowCssVariableWatchers.add(property);
 
             // Unlike normal DOM, here we transition directly on the color property since we need to combine the style
             // and sensor into a single element.

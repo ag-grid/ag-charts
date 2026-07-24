@@ -121,6 +121,40 @@ describe('FontManager', () => {
         expect(handler).not.toHaveBeenCalled();
     });
 
+    it('waitForFonts checks each confirmed spec only once across updates', () => {
+        const { fontManager } = createFontManager();
+        const fontSet = { check: vi.fn().mockReturnValue(true), load: vi.fn() };
+        setDocumentFonts(fontSet);
+
+        fontManager.waitForFonts(new Set(['16px Arial']));
+        fontManager.waitForFonts(new Set(['16px Arial']));
+
+        expect(fontSet.check).toHaveBeenCalledTimes(1);
+    });
+
+    it('waitForFonts still checks a newly-referenced spec once', () => {
+        const { fontManager } = createFontManager();
+        const fontSet = { check: vi.fn().mockReturnValue(true), load: vi.fn() };
+        setDocumentFonts(fontSet);
+
+        fontManager.waitForFonts(new Set(['16px Arial']));
+        fontManager.waitForFonts(new Set(['16px Arial', '16px Roboto']));
+
+        expect(fontSet.check).toHaveBeenCalledTimes(2);
+        expect(fontSet.check).toHaveBeenNthCalledWith(2, '16px Roboto');
+    });
+
+    it('waitForFonts re-checks an unconfirmed spec until it becomes available', () => {
+        const { fontManager } = createFontManager();
+        const fontSet = { check: vi.fn().mockReturnValue(false), load: vi.fn().mockResolvedValue([]) };
+        setDocumentFonts(fontSet);
+
+        fontManager.waitForFonts(new Set(['16px Arial']));
+        fontManager.waitForFonts(new Set(['16px Arial']));
+
+        expect(fontSet.check).toHaveBeenCalledTimes(2);
+    });
+
     it('waitForFonts is a no-op without a document FontFaceSet (SSR)', async () => {
         const { fontManager, handler } = createFontManager();
         setDocumentFonts(undefined);

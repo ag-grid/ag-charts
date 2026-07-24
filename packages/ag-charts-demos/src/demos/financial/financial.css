@@ -387,6 +387,10 @@
 /* Sparkline trend cell: let the chart fill the full cell box. */
 .fin-sparkline-col {
     padding: 0;
+    /* The sparkline canvas repaints every tick; contain isolates that reflow/repaint
+       from the rest of the grid. Safe because AG Grid sizes the cell externally (fixed
+       row height, flex width), so no `size` containment is implied. */
+    contain: layout paint;
 }
 .fin-sparkline-cell {
     width: 100%;
