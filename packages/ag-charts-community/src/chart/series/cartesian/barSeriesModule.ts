@@ -1,8 +1,8 @@
-import { type DynamicContext, type SeriesModuleDefinition, undocumentedThemeOptions } from 'ag-charts-core';
 import {
     ChartAxisDirection,
     DEFAULT_SHADOW_COLOUR,
     DIRECTION_SWAP_AXES,
+    type DynamicContext,
     FILL_GRADIENT_LINEAR_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
@@ -10,6 +10,8 @@ import {
     MULTI_SERIES_HIGHLIGHT_STYLE,
     SEGMENTATION_DEFAULTS,
     SERIES_SELECTION_THEME,
+    type SeriesModuleDefinition,
+    undocumentedThemeOptions,
 } from 'ag-charts-core';
 import type { AgBarSeriesOptions, ExtensibleTheme } from 'ag-charts-types';
 

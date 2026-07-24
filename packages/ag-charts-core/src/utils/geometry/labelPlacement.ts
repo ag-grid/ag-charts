@@ -183,6 +183,14 @@ export interface PointLabelDatum {
      * avoidance enabled.
      */
     readonly ownBox?: BoxBounds;
+    /**
+     * Keep `category: 'label'` obstacles that overlap this label's own box as real obstacles rather
+     * than excluding them with the own-box gate. Range-bar sets this because both its labels share the
+     * one bar rect, so a sibling label sitting inside that rect must still be avoided (letting the
+     * placement cascade advance one label outside). Its own bar and marker stay excluded. Unset
+     * preserves the default exclude-all-categories behaviour for stacked/grouped bars.
+     */
+    readonly ownBoxLabelsCollide?: boolean;
 }
 
 export type ObstacleCategory = 'marker' | 'label' | 'seriesItem';
@@ -644,7 +652,8 @@ export function buildBarPositionedLabelDatum(
     target: BarLabelTarget,
     ownBox: BoxBounds,
     suppressHide: boolean,
-    collideWith: CollideWith
+    collideWith: CollideWith,
+    ownBoxLabelsCollide = false
 ): BarPlacedLabelDatum {
     return {
         point: { x: 0, y: 0, size: 0 },
@@ -658,6 +667,7 @@ export function buildBarPositionedLabelDatum(
         collideWith,
         positionedCandidates: candidates,
         ownBox,
+        ownBoxLabelsCollide,
         target,
     };
 }
@@ -865,6 +875,9 @@ let candidateOwnMarkerR = -1;
 // an inside label never collides with the shape it sits on. `undefined` disables the gate (marker
 // series, whose own marker is handled by the own-marker circle gate instead).
 let candidateOwnBox: BoxBounds | undefined;
+// When true, `category: 'label'` obstacles overlapping `candidateOwnBox` are not excluded by the
+// own-box gate (range-bar's two labels share one bar rect and must still avoid each other).
+let candidateOwnBoxLabelsCollide = false;
 // The label's text/box after the fit step, reused per label to keep the hot path allocation-free.
 const fittedLabel: { text: NormalisedTextOrSegments; width: number; height: number } = {
     text: '',
@@ -919,8 +932,10 @@ function obstacleOverlapsCandidate(o: LabelObstacle): boolean {
     // label's own box — its own bar and anything coincident with it (stacked siblings sharing the
     // full-column box, grouped:false bars overlapping in the band, a marker or label sitting on the bar)
     // — is excluded, regardless of category. Only obstacles clear of the own shape are avoided.
+    // `ownBoxLabelsCollide` opts sibling labels back in (range-bar's two labels share one bar rect).
     if (
         candidateOwnBox != null &&
+        !(candidateOwnBoxLabelsCollide && category === 'label') &&
         boxCollides(o.box, candidateOwnBox.x, candidateOwnBox.y, candidateOwnBox.width, candidateOwnBox.height)
     ) {
         return false;
@@ -1303,6 +1318,7 @@ function placeAvoidingLabel(
     // Bar labels carry their own bar rect here so an inside label excludes its own shape; marker series
     // leave it unset (their own marker is handled by the own-marker circle gate above).
     candidateOwnBox = d.ownBox;
+    candidateOwnBoxLabelsCollide = d.ownBoxLabelsCollide ?? false;
     const candidateCount = candidates?.length ?? 1;
     const orientationCount = orientations?.length ?? 1;
     const region = d.region ?? bounds;
@@ -1413,6 +1429,7 @@ function placeFromPositionedCandidates(
     candidateOwnMarkerCy = Number.NaN;
     candidateOwnMarkerR = -1;
     candidateOwnBox = d.ownBox;
+    candidateOwnBoxLabelsCollide = d.ownBoxLabelsCollide ?? false;
 
     let bestOverflow = Infinity;
     let bestX = 0;

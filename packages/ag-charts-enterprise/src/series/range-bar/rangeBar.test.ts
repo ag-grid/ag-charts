@@ -1099,7 +1099,10 @@ describe('RangeBarSeries', () => {
 
     describe('AG-8290', () => {
         async function testCase(
-            labelOpts: { placement: AgRangeBarSeriesLabelPlacement; spacing?: number },
+            labelOpts: {
+                placement: AgRangeBarSeriesLabelPlacement | AgRangeBarSeriesLabelPlacement[];
+                spacing?: number;
+            },
             name: string
         ) {
             chart = AgCharts.create(
@@ -1120,7 +1123,12 @@ describe('RangeBarSeries', () => {
                 await testCase({ placement: 'inside', spacing: 30 }, 'AG-8290-range-bar-label-spacing-inside');
             });
             test('outside', async () => {
-                await testCase({ placement: 'outside', spacing: 30 }, 'AG-8290-range-bar-label-spacing-outside');
+                // `['outside', 'inside']` so bar 3's low label — which would overflow the series-area floor
+                // outside — cascades inside instead of being clipped there.
+                await testCase(
+                    { placement: ['outside', 'inside'], spacing: 30 },
+                    'AG-8290-range-bar-label-spacing-outside'
+                );
             });
         });
     });

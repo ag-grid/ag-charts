@@ -67,6 +67,19 @@ const MARKER_LABEL_STRATEGIES: Record<string, LabelCollisionConfig> = {
     'hide on collision (suppressHide: false, default)': { collision: { suppressHide: false } },
 };
 
+type LabelBox = { x: number; y: number; width: number; height: number };
+
+// The visible labels' bounding boxes for a series, used by the cross-series obstacle tests to assert one
+// series' labels clear another's.
+const seriesVisibleLabelBoxes = (series: {
+    labelSelection: { nodes(): { visible: boolean; computeBBox(): LabelBox | undefined }[] };
+}) =>
+    series.labelSelection
+        .nodes()
+        .filter((node) => node.visible)
+        .map((node) => node.computeBBox())
+        .filter((box): box is LabelBox => box != null);
+
 describe('label collision avoidance', () => {
     setupMockConsole();
 
@@ -952,15 +965,6 @@ describe('label collision avoidance', () => {
             { x: 8, yA: 3.2, yB: 3.6, nameB: 'B8' },
         ];
 
-        const visibleLabelBoxes = (series: {
-            labelSelection: { nodes(): { visible: boolean; computeBBox(): Box | undefined }[] };
-        }) =>
-            series.labelSelection
-                .nodes()
-                .filter((node) => node.visible)
-                .map((node) => node.computeBBox())
-                .filter((box): box is Box => box != null);
-
         const options = (): any => ({
             data,
             legend: { enabled: false },
@@ -995,9 +999,11 @@ describe('label collision avoidance', () => {
             prepareTestOptions(opts);
             chart = AgCharts.create(opts);
             await waitForChartStability(chart);
-            const [bar, scatter] = deproxy(chart as any).series as unknown as Parameters<typeof visibleLabelBoxes>[0][];
-            const barBoxes = visibleLabelBoxes(bar);
-            const scatterBoxes = visibleLabelBoxes(scatter);
+            const [bar, scatter] = deproxy(chart as any).series as unknown as Parameters<
+                typeof seriesVisibleLabelBoxes
+            >[0][];
+            const barBoxes = seriesVisibleLabelBoxes(bar);
+            const scatterBoxes = seriesVisibleLabelBoxes(scatter);
             // Anti-vacuous guards: both series must render labels for the invariant to mean anything.
             expect(barBoxes.length).toBeGreaterThan(0);
             expect(scatterBoxes.length).toBeGreaterThan(0);
@@ -1024,15 +1030,6 @@ describe('label collision avoidance', () => {
             { x: 6, y: 1, name: 'S1' },
             { x: 10, y: 1, name: 'S2' },
         ];
-
-        const visibleLabelBoxes = (series: {
-            labelSelection: { nodes(): { visible: boolean; computeBBox(): Box | undefined }[] };
-        }) =>
-            series.labelSelection
-                .nodes()
-                .filter((node) => node.visible)
-                .map((node) => node.computeBBox())
-                .filter((box): box is Box => box != null);
 
         const options = (): any => ({
             legend: { enabled: false },
@@ -1074,10 +1071,10 @@ describe('label collision avoidance', () => {
             chart = AgCharts.create(opts);
             await waitForChartStability(chart);
             const [histogram, scatter] = deproxy(chart as any).series as unknown as Parameters<
-                typeof visibleLabelBoxes
+                typeof seriesVisibleLabelBoxes
             >[0][];
-            const histogramBoxes = visibleLabelBoxes(histogram);
-            const scatterBoxes = visibleLabelBoxes(scatter);
+            const histogramBoxes = seriesVisibleLabelBoxes(histogram);
+            const scatterBoxes = seriesVisibleLabelBoxes(scatter);
             // Anti-vacuous guards: both series must render labels for the invariant to mean anything.
             expect(histogramBoxes.length).toBeGreaterThan(0);
             expect(scatterBoxes.length).toBeGreaterThan(0);

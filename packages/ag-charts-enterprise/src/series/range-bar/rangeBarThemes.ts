@@ -41,7 +41,7 @@ export const RANGE_BAR_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['rang
                 color: { $isUserOption: ['../color', { $path: '../color' }, { $ref: 'chartBackgroundColor' }] },
             },
             outsideStyle: {
-                color: { $isUserOption: ['../color', { $path: '../color' }, { $ref: 'chartBackgroundColor' }] },
+                color: { $isUserOption: ['../color', { $path: '../color' }, { $ref: 'textColor' }] },
             },
             placement: 'inside',
         },

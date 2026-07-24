@@ -975,7 +975,12 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             isInside && (ctx.labelFit != null || ctx.labelResolvesOrientation)
                 ? insideBarRegion(rect, label.spacing, label.spacing, threshold, !barAlongX)
                 : undefined;
-        const container = barRegion ? insideBarContainer(barRegion, expandPlacementLabelBoxExtent(label)) : undefined;
+        // Only bind the text to the bar (and hide it when it overflows) when `inside` is the sole
+        // placement. A cascade with a non-inside fallback lets a label that cannot fit inside escape to
+        // that placement, so hiding it for failing the inside fit would wrongly drop a placeable label.
+        const insideOnly = toArray(label.placement).every((p) => p === 'inside');
+        const container =
+            barRegion && insideOnly ? insideBarContainer(barRegion, expandPlacementLabelBoxExtent(label)) : undefined;
         // Orientation resolution flushes/contains an inside label against the same region.
         const region = ctx.labelResolvesOrientation ? barRegion : undefined;
 
@@ -1468,7 +1473,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                         labelDatum,
                         ownBox,
                         suppressHide,
-                        collideWith
+                        collideWith,
+                        true
                     )
                 );
             }

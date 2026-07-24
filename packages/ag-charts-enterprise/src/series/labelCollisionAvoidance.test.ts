@@ -571,4 +571,77 @@ describe('label collision avoidance', () => {
             });
         });
     });
+
+    describe('range-bar sibling-label collision (shared bar rect)', () => {
+        type Box = { x: number; y: number; width: number; height: number };
+        const overlaps = (a: Box, b: Box) =>
+            a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
+        const visibleLabels = (series: {
+            labelSelection: {
+                nodes(): { visible: boolean; datum: { placement?: string }; computeBBox(): Box | undefined }[];
+            };
+        }) =>
+            series.labelSelection
+                .nodes()
+                .filter((node) => node.visible)
+                .map((node) => ({ placement: node.datum.placement, box: node.computeBBox() }))
+                .filter((label): label is { placement: string | undefined; box: Box } => label.box != null);
+
+        // A single short bar (low 48, high 52 on a 0-100 axis) whose two end labels cannot both fit inside
+        // the bar rect. With `placement: ['inside', 'outside']` and hideable labels, neither label may be
+        // dropped for failing to fit inside (both can escape outside), and the second-placed label must
+        // treat its already-placed sibling — sharing the one bar rect — as an obstacle and cascade outside.
+        it('cascades one sibling label outside instead of dropping or overlapping it inside', async () => {
+            const opts: any = {
+                data: [{ x: 'A', low: 48, high: 52 }],
+                legend: { enabled: false },
+                axes: { x: { type: 'category' }, y: { type: 'number', min: 0, max: 100 } },
+                series: [
+                    {
+                        type: 'range-bar',
+                        xKey: 'x',
+                        yLowKey: 'low',
+                        yHighKey: 'high',
+                        label: { enabled: true, placement: ['inside', 'outside'], collision: { suppressHide: false } },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(opts);
+            chart = deproxy(AgCharts.create(opts));
+            await waitForChartStability(chart);
+            const series = chart.series[0] as unknown as Parameters<typeof visibleLabels>[0];
+            const labels = visibleLabels(series);
+            // Anti-vacuous guard: both end labels must stay visible (neither hidden for failing inside).
+            expect(labels.length).toBe(2);
+            expect(overlaps(labels[0].box, labels[1].box)).toBe(false);
+            // Exactly one end cascades outside; the other stays inside.
+            expect(labels.filter((l) => l.placement?.startsWith('outside'))).toHaveLength(1);
+        });
+
+        // Visual coverage with default styling (no `color`, default `suppressHide`): three short bars whose
+        // two end labels collide inside. With `placement: ['inside', 'outside']` one label per bar renders
+        // outside the bar to avoid the sibling, rather than being hidden — and the outside label picks up
+        // the legible `outsideStyle` colour (dark on the background) while the inside label stays white.
+        it('renders one label per short bar outside to avoid the inside collision', async () => {
+            await renderAndSnapshot({
+                data: [
+                    { x: 'A', low: 44, high: 50 },
+                    { x: 'B', low: 47, high: 53 },
+                    { x: 'C', low: 50, high: 56 },
+                ],
+                legend: { enabled: false },
+                padding: { top: 40, right: 40, bottom: 20, left: 40 },
+                axes: { x: { type: 'category' }, y: { type: 'number', min: 0, max: 100 } },
+                series: [
+                    {
+                        type: 'range-bar',
+                        xKey: 'x',
+                        yLowKey: 'low',
+                        yHighKey: 'high',
+                        label: { enabled: true, placement: ['inside', 'outside'] },
+                    },
+                ],
+            });
+        });
+    });
 });
