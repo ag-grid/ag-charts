@@ -1536,11 +1536,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this: void,
         optionsNode: any,
         _parallelNode: any,
-        container: HTMLElement | undefined,
+        ctx: { container: HTMLElement | null | undefined; logger: Logger } | undefined,
         processedCSSVariables: Record<string, string> | undefined
     ) {
         processedCSSVariables ??= {};
 
+        const container = ctx?.container;
         if (!optionsNode || !isObjectLike(optionsNode) || !container) {
             return processedCSSVariables;
         }
@@ -1554,7 +1555,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             if (!resolved) continue;
 
             if (!resolved.isValid) {
-                Logger.default.warnOnce(`CSS property [${value}] is not a valid color, ignoring.`);
+                (ctx?.logger ?? Logger.default).warnOnce(`CSS property [${value}] is not a valid color, ignoring.`);
                 delete optionsNode[key];
                 continue;
             }
@@ -1598,17 +1599,21 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         if (container == null) return;
 
         const skip = new Set(['data']);
-        let processed = jsonWalk(options, ChartOptions.processCSSVariablesJSON, skip, undefined, container);
+        const ctx = { container, logger: this.logger };
+        let processed = jsonWalk(options, ChartOptions.processCSSVariablesJSON, skip, undefined, ctx);
         // The options graph resolves theme params from `activeTheme.params`, a distinct object from `options`, so an
         // invalid `var()` colour there must be dropped here too — otherwise it reaches the blend engine unresolved.
-        processed = jsonWalk(themeParams, ChartOptions.processCSSVariablesJSON, skip, undefined, container, processed);
+        processed = jsonWalk(themeParams, ChartOptions.processCSSVariablesJSON, skip, undefined, ctx, processed);
         return processed;
     }
 
     processCSSVariablesPartial(partialOptions: PlainObject | undefined, container: HTMLElement | null | undefined) {
         if (partialOptions == null || container == null) return;
 
-        return jsonWalk(partialOptions, ChartOptions.processCSSVariablesJSON, new Set(['data']), undefined, container);
+        return jsonWalk(partialOptions, ChartOptions.processCSSVariablesJSON, new Set(['data']), undefined, {
+            container,
+            logger: this.logger,
+        });
     }
 
     private specialOverridesDefaults(options: Partial<ChartSpecialOverrides>) {
