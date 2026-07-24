@@ -73,9 +73,15 @@ runs:
                                     const raw = fs.readFileSync(path.join(SECTIONS_DIR, file), 'utf8').replace(/\s+$/, '');
                                     const nl = raw.indexOf('\n');
                                     const first = (nl === -1 ? raw : raw.slice(0, nl)).trim();
-                                    const title = first.replace(/^#+\s*/, '') || id;
+                                    // A heading may carry a leading status token: `## [ok|warn|error] Title`.
+                                    // It is stripped from the visible title and drives the summary icon.
+                                    let heading = first.replace(/^#+\s*/, '');
+                                    const sm = /^\[(ok|warn|error)\]\s*/i.exec(heading);
+                                    const status = sm ? sm[1].toLowerCase() : '';
+                                    if (sm) heading = heading.slice(sm[0].length);
+                                    const title = heading || id;
                                     const rest = (nl === -1 ? '' : raw.slice(nl + 1)).replace(/^\s+/, '');
-                                    return { id, order, title, rest };
+                                    return { id, order, status, title, rest };
                                 })
                           : [];
 
@@ -96,22 +102,29 @@ runs:
 
                   const { owner, repo } = context.repo;
 
-                  const begin = (id, order) => `<!-- section:${id} order=${order} -->`;
+                  // At-a-glance status icon rendered into each section's <summary>, so a reader sees
+                  // the section's state without expanding it. Unknown/legacy status renders icon-less.
+                  const ICON = { ok: '✅', warn: '⚠️', error: '❌' };
+                  const iconFor = (status) => ICON[status] || '';
+                  const begin = (id, order, status) =>
+                      `<!-- section:${id} order=${order}${status ? ` status=${status}` : ''} -->`;
                   const end = (id) => `<!-- /section:${id} -->`;
-                  const renderBlock = ({ id, order, title, rest }) =>
-                      [begin(id, order), '<details>', `<summary><b>${title}</b></summary>`, '', rest, '', '</details>', end(id)].join(
-                          '\n'
-                      );
+                  const renderBlock = ({ id, order, status, title, rest }) => {
+                      const icon = iconFor(status);
+                      const summary = `<summary>${icon ? `${icon} ` : ''}<b>${title}</b></summary>`;
+                      return [begin(id, order, status), '<details>', summary, '', rest, '', '</details>', end(id)].join('\n');
+                  };
 
                   // Parse a body into ordered section entries so we can splice by id and keep order.
-                  const SECTION_RE = /<!-- section:([\w.-]+) order=(\d{2}) -->([\s\S]*?)<!-- \/section:\1 -->/g;
+                  // `status=` is optional so comments written before status icons still parse cleanly.
+                  const SECTION_RE = /<!-- section:([\w.-]+) order=(\d{2})(?: status=(\w+))? -->([\s\S]*?)<!-- \/section:\1 -->/g;
                   function parse(body) {
                       const sections = [];
                       if (!body) return sections;
                       let m;
                       SECTION_RE.lastIndex = 0;
                       while ((m = SECTION_RE.exec(body)) !== null) {
-                          sections.push({ id: m[1], order: m[2], block: m[0] });
+                          sections.push({ id: m[1], order: m[2], status: m[3], block: m[0] });
                       }
                       return sections;
                   }

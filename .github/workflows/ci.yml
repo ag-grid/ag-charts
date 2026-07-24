@@ -480,7 +480,7 @@ jobs:
               run: |
                   mkdir -p "${RUNNER_TEMP}/pr-sections"
                   cat > "${RUNNER_TEMP}/pr-sections/10-preview.md" <<EOF
-                  ## Live-test this PR in Plunker
+                  ## [ok] Live-test this PR in Plunker
 
                   Paste these two \`<script>\` tags into a Plunker (or any vanilla-JS host) to load the UMD bundles built from this PR:
 
@@ -552,9 +552,11 @@ jobs:
                   if [ -f l10n-review.md ]; then
                       # Drop the standalone marker the generator prepends (review-translations.mjs);
                       # the consolidated comment owns the parent marker. Prepend our section heading.
-                      { echo '## Translation review'; echo; sed '/<!-- l10n-translation-review -->/d' l10n-review.md; } > "$out"
+                      # [warn]: the reviewer flagged translations to read before merge.
+                      { echo '## [warn] Translation review'; echo; sed '/<!-- l10n-translation-review -->/d' l10n-review.md; } > "$out"
                   else
-                      printf '## Translation review\n\nNo translation issues found.\n' > "$out"
+                      # [ok]: nothing to action.
+                      printf '## [ok] Translation review\n\nNo translation issues found.\n' > "$out"
                   fi
 
             - name: Upsert L10n section
@@ -1305,11 +1307,18 @@ jobs:
             github.event.pull_request.head.repo.full_name == github.repository &&
             needs.detect-changes.outputs.run_full_ci == 'true'
         permissions:
-            contents: read
+            # write: the HTML reports are published to the gh-pages PR preview (peaceiris/actions-gh-pages
+            # pushes with GITHUB_TOKEN, which is scoped by this job's permissions).
+            contents: write
             pull-requests: write
             packages: read
             # scene-graph review (follow-up) downloads CI artifacts via gh — needs actions: read.
             actions: read
+        env:
+            # Report URLs are deterministic (snapshot-<slug>.html), so a previous run's deploy answers
+            # 200 at the same URL while this run's is still propagating. Stamp each report with a
+            # per-commit marker and gate the reachability check on it, so a stale deploy can't pass.
+            REPORT_DEPLOY_MARKER: '<!-- snapshot-review-deploy ${{ github.event.pull_request.head.sha }} -->'
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -1343,6 +1352,18 @@ jobs:
                   snapshot_branch: ${{ needs.init.outputs.snapshot_branch }}
                   base_branch: ${{ github.base_ref }}
                   github_token: ${{ secrets.GITHUB_TOKEN }}
+                  # Reports are published to the PR preview below; link straight to them (one click).
+                  # Deterministic URL — the report filenames are snapshot-<slug>.html.
+                  report_base_url: https://ag-grid.github.io/ag-charts/pr-${{ github.event.pull_request.number }}/
+
+            # Post the summary immediately (the report link is a "publishing…" placeholder at this
+            # point). Also the GC point: clears a stale section when this build produced no report.
+            - name: Upsert snapshot-review section (summary)
+              uses: ./.github/actions/pr-report-comment
+              with:
+                  pr_number: ${{ github.event.pull_request.number }}
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
+                  remove_sections: ${{ steps.review.outputs.produced != 'true' && 'snapshot-review' || '' }}
 
             - name: Upload snapshot-review HTML reports
               if: steps.review.outputs.produced == 'true'
@@ -1352,14 +1373,91 @@ jobs:
                   path: ${{ steps.review.outputs.html_dir }}/*.html
                   if-no-files-found: ignore
 
-            # Upsert the snapshot-review section when reports were produced; otherwise clear any
-            # stale section from an earlier push (snapshots since fixed / no longer changed).
-            - name: Upsert snapshot-review section
+            # Stamp each report with the per-commit deploy marker, then resolve the file paths for the
+            # PR-preview publish (the publish action takes explicit newline-separated paths, not a glob).
+            - name: Stage report files
+              id: reports
+              if: steps.review.outputs.produced == 'true'
+              shell: bash
+              run: |
+                  set -euo pipefail
+                  files=$(find "${{ steps.review.outputs.html_dir }}" -maxdepth 1 -type f -name '*.html')
+                  while IFS= read -r f; do
+                      [[ -n "$f" ]] && printf '\n%s\n' "$REPORT_DEPLOY_MARKER" >> "$f"
+                  done <<< "$files"
+                  {
+                      echo "files<<__FILES_EOF__"
+                      echo "$files"
+                      echo "__FILES_EOF__"
+                  } >> "$GITHUB_OUTPUT"
+
+            # Publish the self-contained reports under pr-<N>/ (served at
+            # https://ag-grid.github.io/ag-charts/pr-<N>/snapshot-<slug>.html). Removed with the rest
+            # of the PR preview when the PR closes.
+            - name: Publish reports to PR preview
+              id: publish
+              if: steps.review.outputs.produced == 'true'
+              uses: ./external/ag-shared/github/actions/pr-preview-publish
+              with:
+                  pr_number: ${{ github.event.pull_request.number }}
+                  files: ${{ steps.reports.outputs.files }}
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
+
+            # Wait for THIS run's reports to become reachable on gh-pages before linking them, so the
+            # comment never carries a link that 404s while the deploy propagates. Gate on the deploy
+            # marker (not status alone): a deterministic URL can answer 200 from a previous run's
+            # deploy while this run's is still propagating. Best-effort — if the current deploy is
+            # still not served after the budget, the failure path below falls back to artifacts.
+            - name: Wait for published reports
+              id: wait
+              if: steps.review.outputs.produced == 'true'
+              shell: bash
+              run: |
+                  set -uo pipefail
+                  base="https://ag-grid.github.io/ag-charts/pr-${{ github.event.pull_request.number }}"
+                  reachable=true
+                  for f in "${{ steps.review.outputs.html_dir }}"/*.html; do
+                      url="${base}/$(basename "$f")"
+                      echo "Waiting for ${url}"
+                      for attempt in $(seq 1 40); do
+                          if curl -sf "$url" 2>/dev/null | grep -qF "$REPORT_DEPLOY_MARKER"; then
+                              echo "  reachable (current deploy)"; break
+                          fi
+                          if [[ "$attempt" == "40" ]]; then
+                              echo "::warning::${url} did not serve this run's deploy after retries."
+                              reachable=false
+                          fi
+                          sleep 5
+                      done
+                  done
+                  echo "reachable=${reachable}" >> "$GITHUB_OUTPUT"
+
+            # Replace the deferred-link sentinel. always(): even if upload/stage/publish/wait failed,
+            # the sentinel MUST be resolved so the comment never sticks on "Publishing…". Link the live
+            # report only when it published AND is serving this run's deploy; otherwise fall back to the
+            # run artifacts (never a link that 404s or serves a stale comparison).
+            - name: Finalize snapshot-review links
+              if: always() && steps.review.outputs.produced == 'true'
+              shell: bash
+              env:
+                  RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+              run: |
+                  set -euo pipefail
+                  frag="${RUNNER_TEMP}/pr-sections/25-snapshot-review.md"
+                  [[ -f "$frag" ]] || exit 0
+                  if [[ "${{ steps.publish.outcome }}" == "success" && "${{ steps.wait.outputs.reachable }}" == "true" ]]; then
+                      sed -E -i 's#<!-- report-link href="([^"]+)" -->.*#[Open the full interactive report](\1)#' "$frag"
+                  else
+                      sed -E -i "s|<!-- report-link href=\"[^\"]+\" -->.*|:warning: Report publish failed — download the \`snapshot-review-html\` artifact from the [workflow run](${RUN_URL}#artifacts).|" "$frag"
+                  fi
+
+            # Re-upsert with the resolved report link (live or fallback) in place.
+            - name: Upsert snapshot-review section (with report link)
+              if: always() && steps.review.outputs.produced == 'true'
               uses: ./.github/actions/pr-report-comment
               with:
                   pr_number: ${{ github.event.pull_request.number }}
                   github_token: ${{ secrets.GITHUB_TOKEN }}
-                  remove_sections: ${{ steps.review.outputs.produced != 'true' && 'snapshot-review' || '' }}
 
     sonarqube:
         # Org-scoped GHA variable kill-switch: set SONARCLOUD_ENABLED=false to
