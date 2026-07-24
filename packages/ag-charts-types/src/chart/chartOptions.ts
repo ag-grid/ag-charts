@@ -72,18 +72,6 @@ export interface AgChartOverlaysOptions<TContext = ContextDefault> {
     unsupportedBrowser?: AgChartOverlayOptions<TContext>;
 }
 
-export type AgChartValidationLevel = 'error' | 'warning' | 'deprecation' | 'none';
-
-export interface AgChartValidationsOptions {
-    /**
-     * Controls the on-chart overlay that surfaces option misconfiguration and caught runtime errors during development.
-     * Setting a severity shows the overlay for that severity and every louder one (`'error'` is loudest); `'none'` never shows it.
-     *
-     * Default: `'none'`
-     */
-    overlayLevel?: AgChartValidationLevel;
-}
-
 /** Params passed to the caption tooltip renderer callback. */
 export interface AgCaptionTooltipRendererParams<TContext = ContextDefault> {
     /** The caption's own text content as a plain string. */
@@ -359,6 +347,4 @@ export interface AgBaseChartOptions<
     initialState?: AgInitialStateOptions;
     /** Set to show or hide the loading overlay. */
     loading?: boolean;
-    /** Configuration for dev-time validation, surfacing option misconfiguration and caught runtime errors. */
-    validations?: AgChartValidationsOptions;
 }
