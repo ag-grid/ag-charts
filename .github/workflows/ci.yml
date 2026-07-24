@@ -311,6 +311,7 @@ jobs:
               uses: ./.github/actions/setup-nx
               with:
                   cache_mode: ro
+                  free_disk_space: false
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
 
             - name: nx generate
@@ -346,6 +347,7 @@ jobs:
               uses: ./.github/actions/setup-nx
               with:
                   cache_mode: ro
+                  free_disk_space: false
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
 
             - name: nx build
@@ -587,6 +589,7 @@ jobs:
               uses: ./.github/actions/setup-nx
               with:
                   cache_mode: ro
+                  free_disk_space: false
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
 
             - name: nx build ag-charts-website
@@ -644,6 +647,7 @@ jobs:
               uses: ./.github/actions/setup-nx
               with:
                   cache_mode: ro
+                  free_disk_space: false
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
 
             - name: nx test
@@ -749,6 +753,7 @@ jobs:
                   yarn_postinstall: no-install
                   nx_restore: false # Restored in previous step.
                   cache_mode: ro
+                  free_disk_space: false
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
 
             - name: Restore Playwright Image Cache
@@ -812,6 +817,7 @@ jobs:
                   yarn_postinstall: no-install
                   nx_restore: false # Restored in previous step.
                   cache_mode: ro
+                  free_disk_space: false
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
 
             - name: Restore Playwright Image Cache
@@ -876,6 +882,7 @@ jobs:
               uses: ./.github/actions/setup-nx
               with:
                   cache_mode: ro
+                  free_disk_space: false
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
 
             - name: nx package:test
@@ -953,6 +960,7 @@ jobs:
               uses: ./.github/actions/setup-nx
               with:
                   cache_mode: ro
+                  free_disk_space: false
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
 
             - name: nx test:bundle-${{ matrix.name }}
