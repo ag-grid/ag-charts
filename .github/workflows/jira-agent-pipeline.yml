@@ -303,13 +303,25 @@ jobs:
     # status: done, clear AI failure, zero the recovery counter. See the
     # shared action for the full eligibility walk.
     ci-success-handler:
+        # Fire on a green CI run — and ALSO on a `cancelled` one. GitHub marks a
+        # whole run `cancelled` if ANY job is cancelled, so a concurrency-
+        # cancelled non-essential preview-deploy (`PR Preview (UMD)`) drags the CI
+        # run to `cancelled` even when every required test/build check passed and
+        # the PR is mergeable — which silently stranded AG-17920 at draft-pr-open
+        # for ~21h. On the cancelled path the shared handler re-verifies the run's
+        # OWN jobs (`ci_conclusion` input → verifyCancelledCiRun) and promotes only
+        # when they are genuinely green; a real failure / wholesale-cancel no-ops.
         if: |
             github.event_name == 'workflow_run' &&
-            github.event.workflow_run.conclusion == 'success'
+            (github.event.workflow_run.conclusion == 'success' ||
+             github.event.workflow_run.conclusion == 'cancelled')
         runs-on: ubuntu-latest
         timeout-minutes: 5
         permissions:
             contents: read
+            # actions: read — the handler reads this CI run's own jobs
+            # (actions/runs/{id}/jobs) to re-verify a cancelled run is green.
+            actions: read
             pull-requests: read
             packages: read
         # Surfaced so the pr-plnkr job can gate on the first promoting green
@@ -323,6 +335,11 @@ jobs:
             # to address them. Routed into agent-run below (the success-side
             # analog of ci-failure-iterate) — no self-dispatch needed.
             dispatch_pr_iterate: ${{ steps.handler.outputs.dispatch_pr_iterate }}
+            # 'true' when the promotion rode a `cancelled` CI run whose only
+            # cancelled job was the non-essential preview-deploy (AG-17920): the
+            # per-PR UMD bundles never published, so pr-plnkr (below) must not run
+            # against 404 bundle URLs.
+            preview_unavailable: ${{ steps.handler.outputs.preview_unavailable }}
         steps:
             - uses: actions/checkout@v4
               with:
@@ -339,6 +356,10 @@ jobs:
                   head_branch: ${{ github.event.workflow_run.head_branch }}
                   head_sha: ${{ github.event.workflow_run.head_sha }}
                   run_url: ${{ github.event.workflow_run.html_url }}
+                  # Drives the cancelled-run re-verification (AG-17920). `success`
+                  # takes the historic fast path (trigger proves green); `cancelled`
+                  # re-checks this run's own jobs before promoting.
+                  ci_conclusion: ${{ github.event.workflow_run.conclusion }}
                   jira_email: ${{ secrets.JIRA_AI_BOT_EMAIL }}
                   jira_api_token: ${{ secrets.JIRA_AI_BOT_API_TOKEN }}
                   jira_site_url: ${{ vars.JIRA_SITE_URL }}
@@ -371,7 +392,10 @@ jobs:
     # NOT go through jira-pipeline.
     pr-plnkr:
         needs: ci-success-handler
-        if: needs.ci-success-handler.outputs.handled == 'true'
+        # Skip when the promotion rode a cancelled CI run whose preview-deploy was
+        # cancelled (AG-17920): the per-PR UMD bundles never published, so the
+        # plunker re-point would produce 404 links.
+        if: needs.ci-success-handler.outputs.handled == 'true' && needs.ci-success-handler.outputs.preview_unavailable != 'true'
         runs-on: ubuntu-latest
         timeout-minutes: 20
         permissions:
