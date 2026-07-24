@@ -3,12 +3,16 @@ import { describe, expect, it } from 'vitest';
 import { buildCommunityMediaMarkdown } from './buildCommunityMediaMarkdown';
 
 describe('buildCommunityMediaMarkdown', () => {
-    const output = buildCommunityMediaMarkdown({ siteRoot: 'https://www.ag-grid.com/' });
+    const output = buildCommunityMediaMarkdown({
+        product: 'AG Grid',
+        currentSite: 'grid',
+        siteRoot: 'https://www.ag-grid.com/',
+    });
 
     it('emits frontmatter and the page H1', () => {
         expect(output.startsWith('---\n')).toBe(true);
-        expect(output).toContain('title: "AG Charts: Media"');
-        expect(output).toContain('\n# Community Podcasts and Publications featuring AG Charts');
+        expect(output).toContain('title: "AG Grid: Media"');
+        expect(output).toContain('\n# Community Podcasts and Publications featuring AG Grid');
     });
 
     it('renders videos, podcasts and blogs sections', () => {

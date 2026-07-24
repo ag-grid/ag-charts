@@ -3,12 +3,16 @@ import { describe, expect, it } from 'vitest';
 import { buildCommunityShowcaseMarkdown } from './buildCommunityShowcaseMarkdown';
 
 describe('buildCommunityShowcaseMarkdown', () => {
-    const output = buildCommunityShowcaseMarkdown({ siteRoot: 'https://www.ag-grid.com/' });
+    const output = buildCommunityShowcaseMarkdown({
+        product: 'AG Grid',
+        currentSite: 'grid',
+        siteRoot: 'https://www.ag-grid.com/',
+    });
 
     it('emits frontmatter and the page H1', () => {
         expect(output.startsWith('---\n')).toBe(true);
-        expect(output).toContain('title: "AG Charts: Showcase"');
-        expect(output).toContain('\n# Open-Source Projects powered by AG Charts');
+        expect(output).toContain('title: "AG Grid: Showcase"');
+        expect(output).toContain('\n# Open-Source Projects powered by AG Grid');
     });
 
     it('renders the favourites and full showcase sections', () => {

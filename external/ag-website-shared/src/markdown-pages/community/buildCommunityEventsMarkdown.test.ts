@@ -3,11 +3,15 @@ import { describe, expect, it } from 'vitest';
 import { buildCommunityEventsMarkdown } from './buildCommunityEventsMarkdown';
 
 describe('buildCommunityEventsMarkdown', () => {
-    const output = buildCommunityEventsMarkdown({ siteRoot: 'https://www.ag-grid.com/' });
+    const output = buildCommunityEventsMarkdown({
+        product: 'AG Grid',
+        currentSite: 'grid',
+        siteRoot: 'https://www.ag-grid.com/',
+    });
 
     it('emits frontmatter and the page H1', () => {
         expect(output.startsWith('---\n')).toBe(true);
-        expect(output).toContain('title: "AG Charts: Events"');
+        expect(output).toContain('title: "AG Grid: Events"');
         expect(output).toContain('\n# Global Event Participation');
     });
 

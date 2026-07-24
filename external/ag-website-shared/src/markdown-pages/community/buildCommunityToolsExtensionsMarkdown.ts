@@ -1,13 +1,13 @@
-import { allTools, renderTools } from './communityContent';
+import { type CommunityMarkdownOptions, allTools, renderTools } from './communityContent';
 
 /**
  * Build the markdown twin of /community/tools-extensions: the ecosystem of community-built tools,
  * extensions and utilities. Reads the same tools-extensions.json the page renders.
  */
-export function buildCommunityToolsExtensionsMarkdown({ siteRoot }: { siteRoot?: string } = {}): string {
+export function buildCommunityToolsExtensionsMarkdown({ product, siteRoot }: CommunityMarkdownOptions): string {
     const frontmatter = [
         '---',
-        'title: "AG Charts: Tools & Extensions"',
+        `title: "${product}: Tools & Extensions"`,
         'description: "Browse our ecosystem of community-built tools, extensions and utils to help you create your next project, no matter which language or framework you\'re using."',
         '---',
     ].join('\n');

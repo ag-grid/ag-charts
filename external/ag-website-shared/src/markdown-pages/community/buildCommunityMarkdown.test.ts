@@ -3,12 +3,16 @@ import { describe, expect, it } from 'vitest';
 import { buildCommunityMarkdown } from './buildCommunityMarkdown';
 
 describe('buildCommunityMarkdown', () => {
-    const output = buildCommunityMarkdown({ siteRoot: 'https://www.ag-grid.com/' });
+    const output = buildCommunityMarkdown({
+        product: 'AG Grid',
+        currentSite: 'grid',
+        siteRoot: 'https://www.ag-grid.com/',
+    });
 
     it('emits frontmatter and the page H1', () => {
         expect(output.startsWith('---\n')).toBe(true);
-        expect(output).toContain('title: "AG Charts Community"');
-        expect(output).toContain('\n# AG Charts Community');
+        expect(output).toContain('title: "AG Grid Community"');
+        expect(output).toContain('\n# AG Grid Community');
     });
 
     it('renders the five landing-page sections', () => {

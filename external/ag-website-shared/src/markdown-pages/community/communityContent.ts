@@ -10,7 +10,20 @@ import { markdownTable } from '@ag-website-shared/markdoc/markdownTable';
 import { toAbsoluteUrl } from '@ag-website-shared/markdoc/toAbsoluteUrl';
 
 // Shared renderers for the /community landing twin and the community subpage twins, all reading
-// the same community JSON the pages render, so the markdown cannot drift from the site.
+// the same community JSON the pages render, so the markdown cannot drift from the site. The
+// community section is shared across AG products, so the builders are parameterised by the
+// product brand (used in headings) and the current site (used to pick per-site support links).
+
+export type CommunitySite = 'grid' | 'charts' | 'studio';
+
+export interface CommunityMarkdownOptions {
+    /** Product brand used in headings/frontmatter, e.g. "AG Grid", "AG Charts", "AG Studio". */
+    product: string;
+    /** Which site is rendering, used to pick per-site links (e.g. Support gridLink vs chartsLink). */
+    currentSite: CommunitySite;
+    /** Canonical site root with trailing slash, for absolutising internal links. */
+    siteRoot?: string;
+}
 
 export interface CommunityEvent {
     title: string;
@@ -53,6 +66,7 @@ interface Blog {
 interface SupportSite {
     title: string;
     desc: string;
+    gridLink: string;
     chartsLink: string;
 }
 interface Social {
@@ -154,9 +168,13 @@ export function renderBlogs(siteRoot?: string): string {
 
 /* --------------------------------------------------------------------- support */
 
-export function renderSupport(siteRoot?: string): string {
+// Mirror the Support component: grid uses gridLink, every other site uses chartsLink.
+export function renderSupport(currentSite: CommunitySite, siteRoot?: string): string {
     return (supportSites as SupportSite[])
-        .map((site) => `- **${mdLink(site.title, site.chartsLink, siteRoot)}** — ${site.desc}`)
+        .map((site) => {
+            const link = currentSite === 'grid' ? site.gridLink : site.chartsLink;
+            return `- **${mdLink(site.title, link, siteRoot)}** — ${site.desc}`;
+        })
         .join('\n');
 }
 

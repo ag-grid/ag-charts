@@ -1,4 +1,5 @@
 import whatsNewData from '@ag-website-shared/content/whats-new/data.json';
+import { htmlInlineToMarkdown } from '@ag-website-shared/markdoc/htmlInlineToMarkdown';
 import { toAbsoluteUrl } from '@ag-website-shared/markdoc/toAbsoluteUrl';
 import { parseVersion } from '@ag-website-shared/utils/parseVersion';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
@@ -6,7 +7,6 @@ import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import faqData from '../../content/faqs/homepage.json';
 import homepage from '../../content/homepage/homepage.json';
 import versionsData from '../../content/versions/ag-charts-versions.json';
-import { htmlInlineToMarkdown } from './htmlInlineToMarkdown';
 
 const { blogPrefix } = whatsNewData['charts'];
 const NUM_LATEST_RELEASES = 3;

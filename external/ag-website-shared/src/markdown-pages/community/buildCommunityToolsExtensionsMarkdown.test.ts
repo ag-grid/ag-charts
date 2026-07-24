@@ -3,11 +3,15 @@ import { describe, expect, it } from 'vitest';
 import { buildCommunityToolsExtensionsMarkdown } from './buildCommunityToolsExtensionsMarkdown';
 
 describe('buildCommunityToolsExtensionsMarkdown', () => {
-    const output = buildCommunityToolsExtensionsMarkdown({ siteRoot: 'https://www.ag-grid.com/' });
+    const output = buildCommunityToolsExtensionsMarkdown({
+        product: 'AG Grid',
+        currentSite: 'grid',
+        siteRoot: 'https://www.ag-grid.com/',
+    });
 
     it('emits frontmatter and the page H1', () => {
         expect(output.startsWith('---\n')).toBe(true);
-        expect(output).toContain('title: "AG Charts: Tools & Extensions"');
+        expect(output).toContain('title: "AG Grid: Tools & Extensions"');
         expect(output).toContain('\n# An Ecosystem of Tools and Libraries');
     });
 
