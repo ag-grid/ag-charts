@@ -1,4 +1,4 @@
-/* eslint-disable no-console */
+/* eslint-disable no-console, @typescript-eslint/no-require-imports */
 /**
  * Duration-balanced shard assignment for Playwright E2E tests.
  *
