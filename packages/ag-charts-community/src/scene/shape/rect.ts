@@ -1,4 +1,4 @@
-import type { SerializedNodeState, SerializedPathProps } from 'ag-charts-core';
+import type { SerializedNodeState, SerializedRectProps } from 'ag-charts-core';
 import { DeclaredSceneChangeDetection, type DistantObject, boxesEqual, isNumberEqual } from 'ag-charts-core';
 import type { AgDrawingMode } from 'ag-charts-types';
 
@@ -281,8 +281,18 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
         return { type: 'rect', props: this.serializeProps(), svgPath: this.serializeSvgPath() };
     }
 
-    protected override serializeProps(): SerializedPathProps {
-        return { ...super.serializeProps(), x: this.x, y: this.y, width: this.width, height: this.height };
+    protected override serializeProps(): SerializedRectProps {
+        const { x, y, width, height, clipBBox } = this;
+        const props: SerializedRectProps = { ...super.serializeProps(), x, y, width, height };
+        // Expose the clip window (a rect's reveal mask) so trajectory tests can read the sweep; emit it
+        // only when a clipBBox is set, leaving static rects' serialized state unchanged.
+        if (clipBBox != null) {
+            props.clipX0 = clipBBox.x;
+            props.clipY0 = clipBBox.y;
+            props.clipX1 = clipBBox.x + clipBBox.width;
+            props.clipY1 = clipBBox.y + clipBBox.height;
+        }
+        return props;
     }
 
     set cornerRadius(cornerRadius: number) {
@@ -304,6 +314,17 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
     @DeclaredSceneChangeDetection()
     crisp: boolean = false;
     declare __crisp: boolean; // optimised field accessor
+
+    /**
+     * When crisp, snaps this dimension's edge-pair centre-preservingly so the rect's centre stays on
+     * its datum coordinate (see {@link Shape.alignCentre}). Used by bars for the category dimension so
+     * they align with axis gridlines; `undefined` keeps the independent per-edge snap.
+     */
+    @DeclaredSceneChangeDetection()
+    crispCentreDirection: 'x' | 'y' | undefined = undefined;
+    declare __crispCentreDirection: 'x' | 'y' | undefined; // optimised field accessor
+
+    private readonly crispCentreScratch = { start: 0, length: 0 };
 
     private borderClipPath?: ExtendedPath2D;
 
@@ -360,20 +381,44 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
             if (h <= pixelSize) {
                 microPixelEffectOpacity *= h / pixelSize;
             }
-            w = this.align(x, w);
-            h = this.align(y, h);
-            x = this.align(x);
-            y = this.align(y);
+            const centreDirection = this.__crispCentreDirection;
+            if (centreDirection === 'x') {
+                ({ start: x, length: w } = this.alignCentre(x, w, this.crispCentreScratch));
+            } else {
+                w = this.align(x, w);
+                x = this.align(x);
+            }
+            if (centreDirection === 'y') {
+                ({ start: y, length: h } = this.alignCentre(y, h, this.crispCentreScratch));
+            } else {
+                h = this.align(y, h);
+                y = this.align(y);
+            }
 
-            clipBBox =
-                clipBBox == null
-                    ? undefined
-                    : new BBox(
-                          this.align(clipBBox.x),
-                          this.align(clipBBox.y),
-                          this.align(clipBBox.x, clipBBox.width),
-                          this.align(clipBBox.y, clipBBox.height)
-                      );
+            if (clipBBox == null) {
+                clipBBox = undefined;
+            } else if (centreDirection === 'x') {
+                // Snap the clip's category dimension with the same centre-snap the body uses, so the
+                // clip edges land on the body edges regardless of how the clip coordinate arrived
+                // (raw on a static render, pre-snapped from an animation). Mismatched snaps here shift
+                // a clipped edge by a device pixel and make an animated bar settle off a static one.
+                const { start: cx, length: cw } = this.alignCentre(clipBBox.x, clipBBox.width, this.crispCentreScratch);
+                clipBBox = new BBox(cx, this.align(clipBBox.y), cw, this.align(clipBBox.y, clipBBox.height));
+            } else if (centreDirection === 'y') {
+                const { start: cy, length: ch } = this.alignCentre(
+                    clipBBox.y,
+                    clipBBox.height,
+                    this.crispCentreScratch
+                );
+                clipBBox = new BBox(this.align(clipBBox.x), cy, this.align(clipBBox.x, clipBBox.width), ch);
+            } else {
+                clipBBox = new BBox(
+                    this.align(clipBBox.x),
+                    this.align(clipBBox.y),
+                    this.align(clipBBox.x, clipBBox.width),
+                    this.align(clipBBox.y, clipBBox.height)
+                );
+            }
         }
 
         if (strokeWidth) {

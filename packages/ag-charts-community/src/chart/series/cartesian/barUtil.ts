@@ -134,6 +134,42 @@ export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(
 ) {
     const isRemoved = (datum?: T) => datum == null || Number.isNaN(datum.x) || Number.isNaN(datum.y);
 
+    // Converge on the device-snapped category position so the settle crisp is a no-op: without this the
+    // bar animates to its raw position then jumps up to ~1px at the final frame. Snapping reuses the same
+    // `Shape.alignCentre` primitive the crisp render applies, so the animation target matches the rest
+    // spot exactly. Only the category dimension is snapped (never the value dimension, which may
+    // legitimately collapse to 0 on enter/exit).
+    const alignScratch = { start: 0, length: 0 };
+    const snapCategory = (rect: BarRect, geom: AnimatableBarDatum): AnimatableBarDatum => {
+        const dir = rect.crispCentreDirection;
+        if (dir == null) return geom;
+
+        const coord = dir === 'x' ? geom.x : geom.y;
+        if (!Number.isFinite(coord)) return geom;
+
+        const extent = dir === 'x' ? geom.width : geom.height;
+        // Thin bars edge-snap at render; pre-snapping their width/clip here would diverge from that path
+        // and reintroduce the sub-pixel jitter the edge snap avoids, so leave them for the crisp render.
+        if (!rect.centreSnapApplies(extent)) return geom;
+        const { start, length } = rect.alignCentre(coord, extent, alignScratch);
+        const { clipBBox } = geom;
+        if (dir === 'x') {
+            // Keep the clip's category extent on the snapped body, else it trims a sub-pixel sliver.
+            return {
+                ...geom,
+                x: start,
+                width: length,
+                clipBBox: clipBBox && new BBox(start, clipBBox.y, length, clipBBox.height),
+            };
+        }
+        return {
+            ...geom,
+            y: start,
+            height: length,
+            clipBBox: clipBBox && new BBox(clipBBox.x, start, clipBBox.width, length),
+        };
+    };
+
     const fromFn: FromToMotionPropFn<AnimatableBarDatum, BarRect, AnimatableBarDatum> = (rect, datum, status) => {
         if (status === 'updated' && isRemoved(rect.unsafeDatum)) {
             status = 'removed';
@@ -169,7 +205,7 @@ export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(
         }
 
         const phase = NODE_UPDATE_STATE_TO_PHASE_MAPPING[status];
-        return { ...source, phase };
+        return { ...snapCategory(rect, source), phase };
     };
     const toFn: FromToMotionPropFn<AnimatableBarDatum, BarRect, AnimatableBarDatum> = (rect, datum, status) => {
         if (status === 'removed' && rect.datum == null && initPos.mode === 'fade') {
@@ -178,14 +214,14 @@ export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(
         } else if (status === 'removed' || isRemoved(rect.unsafeDatum)) {
             return initPos.calculate(rect.unsafeDatum, rect.unsafePreviousDatum);
         } else {
-            return {
+            return snapCategory(rect, {
                 x: datum.x,
                 y: datum.y,
                 width: datum.width,
                 height: datum.height,
                 clipBBox: datum.clipBBox,
                 opacity: datum.opacity ?? 1,
-            };
+            });
         }
     };
     const applyFn: ApplyFn<AnimatableBarDatum, BarRect, AnimatableBarDatum> = (rect, datum, status) => {

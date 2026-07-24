@@ -12,7 +12,7 @@
       "cache": true,
       "options": {
         "cwd": "{projectRoot}",
-        "command": "vite build"
+        "command": "DEMOS_BASE_PATH=./ vite build"
       }
     },
     "build:watch": {
@@ -22,7 +22,7 @@
       "cache": false,
       "options": {
         "cwd": "{projectRoot}",
-        "command": "DEMOS_BASE_PATH=/internal-demos/ vite build"
+        "command": "DEMOS_BASE_PATH=./ vite build"
       }
     },
     "typecheck": {

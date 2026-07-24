@@ -1,5 +1,5 @@
 import type { MementoOriginator, ReactiveState } from 'ag-charts-core';
-import { type AreExact, Logger, isArray } from 'ag-charts-core';
+import { type AreExact, type Logger, isArray } from 'ag-charts-core';
 import type { AgInitialStateLegendOptions as DefectAgInitialStateLegendOptions } from 'ag-charts-types';
 
 import type { ChartState } from '../chartState';
@@ -18,9 +18,11 @@ export class LegendManager implements MementoOriginator<LegendDataMemento> {
     public mementoOriginatorKey = 'legend' as const;
 
     private readonly chartState: ReactiveState<ChartState>;
+    private readonly logger: Logger;
 
-    constructor(ctx: { chartState: ReactiveState<ChartState> }) {
+    constructor(ctx: { chartState: ReactiveState<ChartState>; logger: Logger }) {
         this.chartState = ctx.chartState;
+        this.logger = ctx.logger;
     }
 
     public createMemento() {
@@ -98,7 +100,7 @@ export class LegendManager implements MementoOriginator<LegendDataMemento> {
     }
 
     private warnFixed(seriesId: string, itemId: any) {
-        Logger.default.warnOnce(
+        this.logger.warnOnce(
             `The legend item with seriesId [${seriesId}] and itemId [${itemId}] is not configurable, this series item cannot be toggled through the legend.`
         );
     }

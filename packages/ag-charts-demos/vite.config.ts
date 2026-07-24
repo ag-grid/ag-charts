@@ -1,8 +1,11 @@
 import { defineConfig } from 'vite';
 
-// Standalone (`vite`, the smoke E2E) serves from the root. When the website
-// builds these demos for its dev server to serve statically, `nx dev` sets
-// DEMOS_BASE_PATH so the built asset URLs resolve under the served sub-path.
+// Standalone (`vite` dev, the smoke E2E) serves from the root. The website
+// consumes the built output under a deploy-dependent sub-path (which differs
+// between staging and production), so builds set DEMOS_BASE_PATH=./ to emit a
+// base-relative bundle whose chunks and assets resolve relative to the entry
+// module's own URL — the serving side (the route + the dev static plugin)
+// applies the actual base.
 const base = process.env.DEMOS_BASE_PATH ?? '/';
 
 export default defineConfig({

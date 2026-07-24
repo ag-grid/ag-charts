@@ -165,7 +165,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
             if (!chart.isDataTransactionSupported()) {
                 // Avoid mutating original data set; it will be compared with in options processing.
                 const service = chart.ctx.dataSelectionService;
-                const dataSet = deepCloneDataSet(service, chart.data);
+                const dataSet = deepCloneDataSet(service, chart.data, chart.ctx.logger);
                 dataSet.addTransaction(transaction);
                 dataSet.commitPendingTransactions(service);
                 return this.updateDelta({ data: dataSet.data });

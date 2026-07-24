@@ -22,6 +22,8 @@ export type RenderContext = {
     width: number;
     height: number;
     devicePixelRatio: number;
+    // Optional so context-less (grid sparkline) rendering can build a RenderContext without a chart logger.
+    logger?: Logger;
     clipBBox?: BBox;
     stats?: {
         opsPerformed: number;
@@ -248,7 +250,7 @@ export abstract class Node<TDatum = unknown> {
                 throw e;
             }
 
-            Logger.default.warnOnce('Error during rendering', e, e.stack);
+            (renderCtx.logger ?? Logger.default).warnOnce('Error during rendering', e, e.stack);
         } finally {
             renderCtx.ctx.restore();
             renderCtx.currentFont = savedFont;

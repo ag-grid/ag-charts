@@ -61,7 +61,8 @@ export class DataController {
     public constructor(
         private readonly mode: ChartMode,
         readonly suppressFieldDotNotation: boolean,
-        private readonly eventsHub: EventsHub | undefined
+        private readonly eventsHub: EventsHub | undefined,
+        private readonly logger: Logger = Logger.default
     ) {}
 
     public async request<
@@ -139,7 +140,8 @@ export class DataController {
                         opts,
                         this.mode,
                         this.suppressFieldDotNotation,
-                        this.eventsHub
+                        this.eventsHub,
+                        this.logger
                     );
                     const sources = new Map(valid.map((v) => [v.id, v.dataSet]));
                     const processedData = dataModel.processData(sources);
@@ -171,7 +173,8 @@ export class DataController {
                         opts,
                         this.mode,
                         this.suppressFieldDotNotation,
-                        this.eventsHub
+                        this.eventsHub,
+                        this.logger
                     );
                     const sources = new Map(valid.map((v) => [v.id, v.dataSet]));
                     const baselineData = baselineModel.processData(sources);
@@ -189,19 +192,19 @@ export class DataController {
                     const diff = jsonDiff(baselineJson, reprocessedJson);
 
                     if (diff) {
-                        Logger.default.log('⚠️ DATA-MODEL REPROCESS DIFF DETECTED ⚠️');
-                        Logger.default.log('Difference between incremental update and full reprocess:');
-                        Logger.default.log('');
-                        Logger.default.log('BASELINE (full reprocess):');
-                        Logger.default.log(JSON.stringify(baselineJson, null, 2));
-                        Logger.default.log('');
-                        Logger.default.log('REPROCESSED (incremental update):');
-                        Logger.default.log(JSON.stringify(reprocessedJson, null, 2));
-                        Logger.default.log('');
-                        Logger.default.log('DIFF (what changed):');
-                        Logger.default.log(JSON.stringify(diff, null, 2));
+                        this.logger.log('⚠️ DATA-MODEL REPROCESS DIFF DETECTED ⚠️');
+                        this.logger.log('Difference between incremental update and full reprocess:');
+                        this.logger.log('');
+                        this.logger.log('BASELINE (full reprocess):');
+                        this.logger.log(JSON.stringify(baselineJson, null, 2));
+                        this.logger.log('');
+                        this.logger.log('REPROCESSED (incremental update):');
+                        this.logger.log(JSON.stringify(reprocessedJson, null, 2));
+                        this.logger.log('');
+                        this.logger.log('DIFF (what changed):');
+                        this.logger.log(JSON.stringify(diff, null, 2));
                     } else {
-                        Logger.default.log('✅ Data-model reprocess matches baseline (no diff)');
+                        this.logger.log('✅ Data-model reprocess matches baseline (no diff)');
                     }
                 }
 

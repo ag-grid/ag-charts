@@ -1253,8 +1253,14 @@ export abstract class Axis<
         return result;
     }
 
-    protected setPickTickData(ticks: readonly { readonly index: number; readonly translation: number }[]): void {
-        this.pickTickData = ticks.map(({ index, translation }) => ({ index, translation }));
+    protected setPickTickData(
+        ticks: readonly { readonly index: number; readonly translation: number }[],
+        firstTickIndex = 0
+    ): void {
+        // A picked value's index must match what the axis label formatter reports for the same tick. The
+        // formatter numbers ticks by their 0-based position among the generated ticks, whereas TickDatum.index
+        // is the absolute index (offset by firstTickIndex on reversed/zoomed axes), so subtract it here.
+        this.pickTickData = ticks.map(({ index, translation }) => ({ index: index - firstTickIndex, translation }));
     }
 
     /**

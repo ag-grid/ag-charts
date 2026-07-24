@@ -35,7 +35,7 @@ import { getColorStops } from '../gradient/stops';
 import { Image } from '../image/image';
 import { Node } from '../node';
 import { Pattern } from '../pattern/pattern';
-import { align } from '../util/pixel';
+import { type AlignedInterval, align, alignCentre, centreSnapApplies } from '../util/pixel';
 import { setSvgLineDashAttributes, setSvgStrokeAttributes } from './svgUtils';
 
 export type ShapeLineCap = 'butt' | 'round' | 'square';
@@ -165,6 +165,18 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
      */
     align(start: number, length?: number) {
         return align(this.layerManager?.canvas?.pixelRatio ?? 1, start, length);
+    }
+
+    /**
+     * Device-pixel aligns an edge-pair while preserving its centre. See {@link alignCentre}.
+     */
+    alignCentre(start: number, length: number, out?: AlignedInterval) {
+        return alignCentre(this.layerManager?.canvas?.pixelRatio ?? 1, start, length, out);
+    }
+
+    /** Whether {@link alignCentre} centre-snaps a bar of this length rather than edge-snapping it. */
+    centreSnapApplies(length: number) {
+        return centreSnapApplies(this.layerManager?.canvas?.pixelRatio ?? 1, length);
     }
 
     @SceneArrayChangeDetection()

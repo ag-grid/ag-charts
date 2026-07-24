@@ -1,5 +1,4 @@
-import type { MementoOriginator } from 'ag-charts-core';
-import { Logger } from 'ag-charts-core';
+import type { Logger, MementoOriginator } from 'ag-charts-core';
 import type { AgFinancialChartOptions, AgInitialStateChartType } from 'ag-charts-types';
 
 import type { ChartService } from '../../chart/chartService';
@@ -19,7 +18,10 @@ const chartTypes: Array<AgInitialStateChartType> = [
 export class ChartTypeOriginator implements MementoOriginator<ChartTypeMemento> {
     public mementoOriginatorKey = 'chartType' as const;
 
-    constructor(private readonly chartService: ChartService) {}
+    constructor(
+        private readonly chartService: ChartService,
+        private readonly logger: Logger
+    ) {}
 
     public createMemento() {
         let chartType = (this.chartService.publicApi?.getOptions() as AgFinancialChartOptions)?.chartType;
@@ -39,6 +41,6 @@ export class ChartTypeOriginator implements MementoOriginator<ChartTypeMemento> 
         const options: AgFinancialChartOptions = { chartType: memento };
         this.chartService.publicApi
             ?.updateDelta(options as any)
-            .catch((e) => Logger.default.error('error restoring state', e));
+            .catch((e) => this.logger.error('error restoring state', e));
     }
 }

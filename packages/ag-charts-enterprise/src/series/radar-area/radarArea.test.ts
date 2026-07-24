@@ -13,14 +13,21 @@ import {
     BIG,
     MIN_UNHIGHLIGHT_DELAY,
     type MockRadarAreaStyler,
+    type SceneNodeExpectation,
     compareImageSnapshot,
+    createSceneGeometrySampler,
+    deproxy,
+    expectAnimatedEndpointsMatchStatic,
+    expectMonotonic,
+    expectProgresses,
+    expectSceneTrajectory,
     expectWarningsCalls,
     hoverAction,
     looserSnapshotDefaults,
     newFreezableMock,
     setupMockCanvas,
     setupMockConsole,
-    spyOnAnimationManager,
+    spyOnAnimationFrames,
     testLegendItemName,
     waitForChartStability,
 } from 'ag-charts-community-test';
@@ -198,21 +205,88 @@ describe('RadarAreaSeries', () => {
         await compare();
     });
 
+    // The initial-load reveal, asserted over the whole animation trajectory (see the
+    // animation-trajectory-tests rule) rather than as per-ratio image snapshots. Each series'
+    // fill and line path grows from the polar centre — its bounding box sweeps from a point to
+    // full size while the data labels fade in at the tail of the reveal.
     describe('initial animation', () => {
-        const animate = spyOnAnimationManager();
+        const frames = spyOnAnimationFrames();
 
-        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-            it(`for EXAMPLE_OPTIONS should animate at ${ratio * 100}%`, async () => {
-                animate(1200, ratio);
+        const pathKeys = (sample: ReadonlyMap<string, unknown>) =>
+            [...sample.keys()].filter((key) => /^series\[\d+\]\/path\[/.test(key));
 
-                const options: AgChartOptions = { ...EXAMPLE_OPTIONS };
-                prepareEnterpriseTestOptions(options);
+        it('series grow from the polar centre (path bbox 0 -> full, labels fade in) on the initial reveal', async () => {
+            const options: AgChartOptions = { ...EXAMPLE_OPTIONS };
+            prepareEnterpriseTestOptions(options);
 
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
-                await compare();
-            });
-        }
+            const proxy = AgCharts.create(options);
+            chart = deproxy(proxy);
+            const sampler = createSceneGeometrySampler(chart);
+            const trajectory = await frames.captureAnimationFrames(chart, sampler);
+            await frames.runToEnd(chart);
+
+            const keys = pathKeys(trajectory.at(-1)!);
+            expect(keys, 'one fill + one line path per series').toHaveLength(4);
+
+            for (const key of keys) {
+                const width = trajectory.map((frame) => frame.get(key)!.width);
+                const height = trajectory.map((frame) => frame.get(key)!.height);
+                // Anti-vacuity: the path collapses to a point at frame 0 and settles at full size,
+                // so the directional specs below cannot pass flat.
+                expect(width[0], `${key} width at frame 0`).toBeLessThanOrEqual(0.01);
+                expect(width.at(-1)!, `${key} width settled`).toBeGreaterThan(1);
+                expectMonotonic(width, 'increasing');
+                expectProgresses(width);
+                expect(height[0], `${key} height at frame 0`).toBeLessThanOrEqual(0.01);
+                expectMonotonic(height, 'increasing');
+            }
+
+            const labelKeys = [...trajectory.at(-1)!.keys()].filter((key) => /\/labels\/text\[/.test(key));
+            expect(labelKeys.length, 'sampled data labels').toBeGreaterThan(0);
+            for (const key of labelKeys) {
+                const opacity = trajectory
+                    .map((frame) => frame.get(key)?.opacity)
+                    .filter((v): v is number => v != null);
+                expect(opacity[0], `${key} opacity at frame 0`).toBeLessThanOrEqual(0.001);
+                expect(opacity.at(-1)!, `${key} opacity settled`).toBeCloseTo(1, 2);
+            }
+
+            const spec: Record<string, SceneNodeExpectation> = {
+                'series[*]/path[*]': {
+                    width: ['increases', 'progresses'],
+                    height: ['increases', 'progresses'],
+                    // The bbox grows about the fixed polar centre, so its top-left corner drifts
+                    // outward in lock-step with the width/height reveal.
+                    x: 'any',
+                    y: 'any',
+                    // Per-station top-y crossings are non-finite while the path is collapsed.
+                    'top@0': 'degenerate',
+                    'top@1': 'degenerate',
+                    'top@2': 'degenerate',
+                    'top@3': 'degenerate',
+                    'top@4': 'degenerate',
+                },
+                'series[*]/labels/text[*]': { opacity: ['increases'] },
+                // Static polar grid rings whose per-station tops carry NaN unrelated to the reveal.
+                'axis[*]/grid/path[*]': 'any',
+            };
+            expectSceneTrajectory(trajectory, spec);
+        });
+
+        // Pixel endpoint guard replacing the deleted 0%/100% ratio snapshots: the animated reveal
+        // must settle at exactly what a snapped render of the same options produces.
+        it('reveal endpoints match a static render', async () => {
+            const options: AgChartOptions = { ...EXAMPLE_OPTIONS };
+            prepareEnterpriseTestOptions(options);
+            // Rescale each radius (all still positive) so the transition reshapes both polar areas.
+            const rescaled: AgChartOptions = {
+                ...options,
+                data: EXAMPLE_OPTIONS.data!.map((d) => ({ ...d, gradeA: d.gradeA * 0.5, gradeB: d.gradeB * 1.2 })),
+            };
+
+            chart = AgCharts.create(options);
+            await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, options, rescaled);
+        });
     });
 
     describe('gradient fill', () => {

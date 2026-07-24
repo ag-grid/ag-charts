@@ -15,6 +15,14 @@ const isDebugPage = (page: string) => {
 };
 
 /*
+ * Demo app examples — published for internal review but unlinked and kept out of
+ * search (also carry noindex and a robots disallow entry).
+ */
+export const isDemoPage = (page: string) => {
+    return page.includes('/demos/') || page.endsWith('/demos');
+};
+
+/*
  * Documentation redirect pages
  */
 const isRedirectPage = (page: string) => {
@@ -55,6 +63,7 @@ const filterIgnoredPages = (page: string) => {
     return (
         !isExamplePage(page) &&
         !isDebugPage(page) &&
+        !isDemoPage(page) &&
         !isInternalPage(page) &&
         !isRedirectPage(page) &&
         !isNonPublicContent(page)

@@ -15,15 +15,22 @@ import {
     MIN_UNHIGHLIGHT_DELAY,
     type MockBoxPlotStyler,
     NEG_BIG,
+    type SceneNodeExpectation,
     compareImageSnapshot,
+    createSceneGeometrySampler,
     deproxy,
+    expectAnimatedEndpointsMatchStatic,
+    expectMonotonic,
     expectPixelIdenticalAcrossMagnitude,
+    expectProgresses,
+    expectSceneTrajectory,
     expectWarningsCalls,
     hoverAction,
     magnitudePair,
     newFreezableMock,
     setupMockCanvas,
     setupMockConsole,
+    spyOnAnimationFrames,
     spyOnAnimationManager,
     stripAxes,
     waitForChartStability,
@@ -290,19 +297,63 @@ describe('BoxPlotSeries', () => {
         await compareSnapshot(AgCharts.create(options));
     });
 
+    // The grow-from-median reveal, asserted over the whole animation trajectory (see the
+    // animation-trajectory-tests rule) rather than as per-ratio image snapshots. Each box grows
+    // vertically about its median: scalingY sweeps 0 -> 1 while scalingX and everything else hold.
     describe('initial animation', () => {
-        const animate = spyOnAnimationManager();
+        const frames = spyOnAnimationFrames();
 
-        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-            it(`for BOX_PLOT_BAR_OPTIONS should animate at ${ratio * 100}%`, async () => {
-                animate(1200, ratio);
+        const boxKeys = (sample: ReadonlyMap<string, unknown>) =>
+            [...sample.keys()].filter((key) => /^series\[0\]\/path\[/.test(key));
 
-                const options: AgChartOptions = { ...BOX_PLOT_BAR_OPTIONS };
-                prepareEnterpriseTestOptions(options);
+        it('boxes grow from the median (scalingY 0 -> 1, scalingX constant) on the initial reveal', async () => {
+            const options: AgChartOptions = { ...BOX_PLOT_BAR_OPTIONS };
+            prepareEnterpriseTestOptions(options);
 
-                await compareSnapshot(AgCharts.create(options));
-            });
-        }
+            const proxy = AgCharts.create(options);
+            const sampler = createSceneGeometrySampler(proxy);
+            const trajectory = await frames.captureAnimationFrames(proxy, sampler);
+            await frames.runToEnd(proxy);
+
+            const keys = boxKeys(trajectory.at(-1)!);
+            expect(keys, 'one box node per datum').toHaveLength(4);
+
+            for (const key of keys) {
+                const scalingY = trajectory.map((frame) => frame.get(key)!.scalingY);
+                // Anti-vacuity: the box collapses to nothing at frame 0 and settles at full height,
+                // so the directional spec below cannot pass flat.
+                expect(scalingY[0], `${key} scalingY at frame 0`).toBeLessThanOrEqual(0.01);
+                expect(scalingY.at(-1)!, `${key} scalingY at final frame`).toBeCloseTo(1, 2);
+                expectMonotonic(scalingY, 'increasing');
+                expectProgresses(scalingY);
+            }
+
+            const spec: Record<string, SceneNodeExpectation> = {};
+            for (const key of keys) {
+                spec[key] = { scalingY: ['increases', 'progresses'], scalingX: 'constant' };
+            }
+            expectSceneTrajectory(trajectory, spec);
+
+            deproxy(proxy).destroy();
+        });
+
+        // Pixel endpoint guard replacing the deleted 0%/100% ratio snapshots: the animated reveal
+        // must settle at exactly what a snapped render of the same options produces.
+        it('reveal endpoints match a static render', async () => {
+            const options: AgChartOptions = { ...BOX_PLOT_BAR_OPTIONS };
+            prepareEnterpriseTestOptions(options);
+            // Widen each box's whiskers (still min < q1 < median < q3 < max) so the transition
+            // reshapes the render without producing invalid box-plot data.
+            const widened: AgChartOptions = {
+                ...options,
+                data: BOX_PLOT_BAR_OPTIONS.data!.map((d: any) => ({ ...d, min: d.min - 0.5, max: d.max + 0.5 })),
+            };
+
+            const chart = AgCharts.create(options);
+            await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, options, widened);
+
+            deproxy(chart).destroy();
+        });
     });
 
     describe('gradient fill', () => {

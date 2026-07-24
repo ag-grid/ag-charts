@@ -45,6 +45,7 @@ import { type AnimationPhase, type IAnimation, PHASE_METADATA, PHASE_ORDER } fro
 import { BBox } from '../../scene/bbox';
 import { Group } from '../../scene/group';
 import type { Node } from '../../scene/node';
+import { alignCentre, snapDeviceCentre } from '../../scene/util/pixel';
 import { extractImageData, type setupMockCanvas } from '../../util/test/mockCanvas';
 import type { Chart } from '../chart';
 import type { AgChartProxy } from '../chartProxy';
@@ -515,6 +516,102 @@ export async function waitForChartStability<
         // No animation mocks present - treat as real-time delay
         await delay(animationAdvanceMs);
         await chart.waitForUpdate(timeoutMs, true);
+    }
+}
+
+/**
+ * Object-form axes placing category gridlines on the category centre, for asserting that bars align
+ * with their gridlines (AG-17856). Spread into a chart options `axes` field.
+ */
+export const CATEGORY_CENTRE_GRIDLINE_AXES = {
+    x: { type: 'category', position: 'bottom', interval: { placement: 'on' }, gridLine: { enabled: true } },
+    y: { type: 'number', position: 'left' },
+} as const;
+
+function categoryGridlineOffsets(chart: any): number[] {
+    const xAxis = chart.axes.find((a: any) => a.direction === 'x');
+    return (xAxis?.tickLayout?.gridLines ?? []).map((g: any) => Number(g.offset));
+}
+
+/** Logical bar centres along the category (x) axis, before device-pixel snapping, ascending. */
+function categoryBarCentresX(chart: any): number[] {
+    const nodeData = chart.series[0].contextNodeData?.nodeData ?? [];
+    return nodeData
+        .map((d: any) => d.x + d.width / 2)
+        .filter((v: number) => Number.isFinite(v))
+        .sort((a: number, b: number) => a - b);
+}
+
+/**
+ * Assert every category-axis bar centre coincides with a gridline. The bar centre and the gridline
+ * derive from one unrounded coordinate, so they are numerically identical regardless of DPR.
+ */
+export function expectBarCentresOnCategoryGridlines(chartOrProxy: ChartOrProxy<any>, expectedBars?: number) {
+    const chart = deproxy(chartOrProxy) as any;
+    const gridlines = categoryGridlineOffsets(chart);
+    const centres = categoryBarCentresX(chart);
+
+    if (expectedBars == null) {
+        expect(centres.length).toBeGreaterThan(0);
+    } else {
+        expect(centres.length).toBe(expectedBars);
+    }
+    expect(gridlines.length).toBeGreaterThanOrEqual(centres.length);
+
+    for (const centre of centres) {
+        const nearest = gridlines.reduce((min, g) => Math.min(min, Math.abs(g - centre)), Infinity);
+        expect(nearest).toBeLessThan(1e-6);
+    }
+}
+
+/** Mirror of `Line.render`'s stroke snap — a gridline is a vertical `Line` and has no exported snap. */
+function lineStrokeSnapDev(pixelRatio: number, coord: number, strokeWidth: number): number {
+    return snapDeviceCentre(coord * pixelRatio, Math.trunc(strokeWidth * pixelRatio));
+}
+
+/**
+ * Assert every bar renders on its gridline in DEVICE space — the check {@link expectBarCentresOnCategoryGridlines}
+ * cannot make, since equal logical centres can still snap to different device pixels (AG-17856). Applies the
+ * production {@link alignCentre} to each bar and compares against the gridline's snapped position. Bars whose
+ * device width matches the gridline stroke parity land exactly; otherwise they sit within the unavoidable
+ * half-device-pixel parity gap.
+ */
+export function expectBarCentresRenderedOnCategoryGridlines(
+    chartOrProxy: ChartOrProxy<any>,
+    pixelRatio: number,
+    expectedBars?: number
+) {
+    const chart = deproxy(chartOrProxy) as any;
+    const xAxis = chart.axes.find((a: any) => a.direction === 'x');
+
+    // The gridline group and the series content are translated by the same floored origin, so a locally
+    // snapped bar centre and gridline compare directly. A drift here would offset every bar from its grid.
+    expect(chart.seriesRoot.translationX).toBe(xAxis.gridGroup.translationX);
+
+    const gridlines = categoryGridlineOffsets(chart);
+    const gridStrokeWidth = xAxis.gridLine?.style?.[0]?.strokeWidth ?? 1;
+    const nodeData = chart.series[0].contextNodeData?.nodeData ?? [];
+    const bars = nodeData.filter((d: any) => Number.isFinite(d.x) && Number.isFinite(d.width) && d.width > 0);
+
+    if (expectedBars == null) {
+        expect(bars.length).toBeGreaterThan(0);
+    } else {
+        expect(bars.length).toBe(expectedBars);
+    }
+
+    const gridParity = Math.trunc(gridStrokeWidth * pixelRatio) % 2;
+    for (const d of bars) {
+        const logicalCentre = d.x + d.width / 2;
+        const { start, length } = alignCentre(pixelRatio, d.x, d.width);
+        const barCentreDev = (start + length / 2) * pixelRatio;
+        const nearestGrid = gridlines.reduce(
+            (best, g) => (Math.abs(g - logicalCentre) < Math.abs(best - logicalCentre) ? g : best),
+            gridlines[0]
+        );
+        const gridCentreDev = lineStrokeSnapDev(pixelRatio, nearestGrid, gridStrokeWidth);
+        const deviceWidth = Math.round(length * pixelRatio);
+        const parityMatches = deviceWidth % 2 === gridParity;
+        expect(Math.abs(barCentreDev - gridCentreDev)).toBeLessThanOrEqual(parityMatches ? 1e-6 : 0.5 + 1e-6);
     }
 }
 
@@ -1504,6 +1601,12 @@ export function expectNoAnimation(trajectory: SceneGeometrySample[]): void {
 
 // Flag/range properties whose whole domain fits inside a 1px geometry tolerance — compare exactly.
 const EXACT_MATCH_PROPS = new Set(['opacity', 'visible', 'clip', 'cutout', 'subpaths']);
+// The Rect clip window duplicates the painted bounds it is intersected with (clipX0/clipY0 track
+// x/y, clipX1/clipY1 track x+width/y+height), so on a revealing rect it moves in lock-step with the
+// already-checked geometry. Treating it as default-`constant` would make every rect-reveal suite fail
+// on a redundant signal, so it is opt-in: asserted only when a node's spec names it (as the gauge
+// bar-reveal CASE does to exercise this reader), and otherwise left unchecked.
+const OPT_IN_PROPS = new Set(['clipX0', 'clipY0', 'clipX1', 'clipY1']);
 // These props live on a 0..1 (or 0/1) scale, so the pixel-scaled constant tolerance would let a value
 // drift halfway across its whole range unnoticed. Judge their constancy/bounds against a scale-honest
 // epsilon instead — loose enough to absorb interpolation float noise, tight enough to catch a stalled
@@ -1798,6 +1901,10 @@ export function expectSceneTrajectory(
         }
 
         for (const prop of props) {
+            const explicitlyNamed = typeof expectation === 'object' && (expectation as any)[prop] != null;
+            // Opt-in props (the clip window) are only asserted when a node's spec names them; otherwise
+            // they are left unchecked rather than defaulting to constant (see OPT_IN_PROPS).
+            if (OPT_IN_PROPS.has(prop) && !explicitlyNamed) continue;
             const raw = expectation === 'constant' ? 'constant' : ((expectation as any)[prop] ?? 'constant');
             // Flag/range props must be judged on their native 0..1 scale for constancy AND direction:
             // at the pixel-scaled monotonic tolerance every per-frame opacity step fits both

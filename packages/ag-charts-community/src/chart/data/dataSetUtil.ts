@@ -1,3 +1,5 @@
+import type { Logger } from 'ag-charts-core';
+
 import type { IDataSelectionService } from './dataSelectionServiceTypes';
 import { DataSet } from './dataSet';
 
@@ -7,8 +9,12 @@ import { DataSet } from './dataSet';
  * are dropped because index-based transfer cannot guarantee correctness after the
  * clone's data is independently mutated.
  */
-export function deepCloneDataSet<T = unknown>(service: IDataSelectionService | undefined, src: DataSet<T>): DataSet<T> {
-    const clone = new DataSet<T>([...src.data], src.dataIdKey);
+export function deepCloneDataSet<T = unknown>(
+    service: IDataSelectionService | undefined,
+    src: DataSet<T>,
+    logger?: Logger
+): DataSet<T> {
+    const clone = new DataSet<T>([...src.data], src.dataIdKey, logger);
     service?.transferDataSet(clone, src);
     return clone;
 }
@@ -22,9 +28,10 @@ export function replaceDataSet<T = unknown>(
     service: IDataSelectionService | undefined,
     src: DataSet<T> | undefined,
     data: T[],
-    dataIdKey: string | undefined
+    dataIdKey: string | undefined,
+    logger?: Logger
 ): DataSet<T> {
-    const dst = new DataSet<T>(data, dataIdKey);
+    const dst = new DataSet<T>(data, dataIdKey, logger);
     if (src) service?.transferDataSet(dst, src);
     return dst;
 }
