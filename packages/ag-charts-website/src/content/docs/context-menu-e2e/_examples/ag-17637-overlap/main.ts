@@ -28,6 +28,7 @@ const options: AgCartesianChartOptions = {
         x: {
             type: 'category',
             crossAt: { value: 0 },
+            crossLines: [{ type: 'line', value: 'May', stroke: 'blue', strokeWidth: 2 }],
         },
         y: {
             type: 'number',
