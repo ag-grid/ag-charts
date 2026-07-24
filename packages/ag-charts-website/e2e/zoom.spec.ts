@@ -2,6 +2,7 @@ import { expect, test } from './fixture';
 import { expectChartScreenshot } from './scene-capture';
 import {
     SELECTORS,
+    canvasToPageTransformer,
     delay,
     dragCanvas,
     gotoExample,
@@ -145,6 +146,39 @@ test.describe('zoom', () => {
         await expectChartScreenshot(page, page, 'zoom-axis-overlap-axis-does-drag-without-highlight.png', {
             animations: 'disabled',
         });
+    });
+
+    test('axis drag keeps the resize cursor when released over the axis', async ({ page }) => {
+        const { url } = toExamplePageUrl('zoom-e2e', 'zoom-crosshairs', 'vanilla');
+
+        await gotoExample(page, url);
+
+        const { width, height } = await locateCanvas(page);
+        const toPage = await canvasToPageTransformer(page);
+        const wrapper = page.locator('.ag-charts-wrapper');
+        const readCursor = () => wrapper.evaluate((el) => getComputedStyle(el).cursor);
+
+        // Locate the x-axis band by hovering upward from the bottom until the resize cursor appears,
+        // rather than hard-coding an offset that depends on the axis label geometry.
+        const centreX = Math.round(width / 2);
+        let axisY = -1;
+        for (let y = height - 6; y > height - 70; y -= 4) {
+            const p = toPage(centreX, y);
+            await page.mouse.move(p.x, p.y);
+            await delay(60);
+            if ((await readCursor()) === 'ew-resize') {
+                axisY = y;
+                break;
+            }
+        }
+        expect(axisY).toBeGreaterThan(0);
+
+        // Drag the x-axis and release the mouse while it is still over the axis.
+        await dragCanvas(page, { x: Math.round(width * 0.7), y: axisY }, { x: Math.round(width * 0.4), y: axisY });
+        await waitForAllChartUpdates(page);
+
+        // The pointer never left the axis, so the ew-resize cursor must remain after release.
+        await expect(wrapper).toHaveCSS('cursor', 'ew-resize');
     });
 
     test('AG-13166 zoom keynav focus-visible', async ({ page }) => {
