@@ -513,12 +513,14 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     }
 
     // Drag-to-select hit-tests against the card only. The default predicate uses the node's
-    // full bbox (`node.getBBox()`), which for an org node also spans the expander pill's
-    // overhang, so a drag-rect touching only the pill would wrongly pick the node.
+    // full bbox, which for an org node also spans the expander pill's overhang, so a drag-rect
+    // touching only the pill would wrongly pick the node.
     protected override pickNodesInBBoxPredicate() {
         const { containment } = this.properties.selection;
         return (selectionBox: BoxBounds, node: _ModuleSupport.Node): boolean => {
-            const cardBox = _ModuleSupport.Transformable.toCanvas(node, (node as OrganizationNode).getShapeBBox());
+            // The card is the only selectable target; a node without one is never a hit.
+            if (!(node instanceof OrganizationNode)) return false;
+            const cardBox = _ModuleSupport.Transformable.toCanvas(node, node.getShapeBBox());
             return containment === 'all'
                 ? boxContains(selectionBox, cardBox.x, cardBox.y, cardBox.width, cardBox.height)
                 : boxCollides(selectionBox, cardBox.x, cardBox.y, cardBox.width, cardBox.height);
