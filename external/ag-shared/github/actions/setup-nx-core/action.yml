@@ -248,7 +248,10 @@ runs:
                 yarn install --ci --prefer-offline
                 yarn check --integrity
               elif (yarn check --integrity) ; then
-                yarn postinstall
+                # Exact-hit caches are only saved after a fully-scripted install, so
+                # dependency lifecycle scripts (allow-scripts) have already run in this
+                # tree — skip them and run only the repo's own postinstall steps.
+                ALLOW_SCRIPTS_RUNNING=1 yarn postinstall
               else
                 yarn install --ci --prefer-offline
 
