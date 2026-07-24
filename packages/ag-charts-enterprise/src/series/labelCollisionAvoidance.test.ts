@@ -45,6 +45,24 @@ describe('label collision avoidance', () => {
         await compareImageSnapshot(chart, ctx);
     };
 
+    const visibleLabelCount = () => {
+        const series = chart.series[0] as unknown as { labelSelection: { nodes(): { visible: boolean }[] } };
+        return series.labelSelection.nodes().filter((node) => node.visible).length;
+    };
+
+    // Renders a placement-cascade options factory and returns how many labels stayed visible.
+    const renderPlacementCount = async (
+        makeOptions: (collision: object, placement?: string | string[]) => object,
+        collision: object,
+        placement?: string | string[]
+    ) => {
+        const opts = makeOptions(collision, placement);
+        prepareEnterpriseTestOptions(opts as AgChartOptions);
+        chart = deproxy(AgCharts.create(opts as AgChartOptions));
+        await waitForChartStability(chart);
+        return visibleLabelCount();
+    };
+
     // A tight cluster of lat/lon markers (projection fixed by the UK background) forces overlapping
     // labels, so placement candidates always resolve real collisions; `suppressHide` only decides the
     // terminal outcome for a label that fails every candidate.
@@ -424,31 +442,24 @@ describe('label collision avoidance', () => {
                 },
             ],
         });
-        const visibleLabelCount = () => {
-            const series = chart.series[0] as unknown as { labelSelection: { nodes(): { visible: boolean }[] } };
-            return series.labelSelection.nodes().filter((node) => node.visible).length;
-        };
-        const render = async (collision: object, placement?: string | string[]) => {
-            const opts = options(collision, placement);
-            prepareEnterpriseTestOptions(opts);
-            chart = deproxy(AgCharts.create(opts));
-            await waitForChartStability(chart);
-            return visibleLabelCount();
-        };
 
         it('drops a hideable outside label overflowing the series area', async () => {
-            expect(await render({ suppressHide: false, collideWith: { seriesArea: true } })).toBe(0);
+            expect(
+                await renderPlacementCount(options, { suppressHide: false, collideWith: { seriesArea: true } })
+            ).toBe(0);
         });
 
         it('keeps the same label when it is not hideable (suppressHide: true)', async () => {
-            expect(await render({ suppressHide: true, collideWith: { seriesArea: true } })).toBe(1);
+            expect(await renderPlacementCount(options, { suppressHide: true, collideWith: { seriesArea: true } })).toBe(
+                1
+            );
         });
 
         it('cascades a hideable outside label to an inside placement that fits', async () => {
             // The single `outside-end` label above hides (0); the array falls through to `inside-center`,
             // which fits inside the tall bar, so the label is kept even though `suppressHide` is false.
             expect(
-                await render({ suppressHide: false, collideWith: { seriesArea: true } }, [
+                await renderPlacementCount(options, { suppressHide: false, collideWith: { seriesArea: true } }, [
                     'outside-end',
                     'inside-center',
                 ])
@@ -510,30 +521,26 @@ describe('label collision avoidance', () => {
                 },
             ],
         });
-        const visibleLabelCount = () => {
-            const series = chart.series[0] as unknown as { labelSelection: { nodes(): { visible: boolean }[] } };
-            return series.labelSelection.nodes().filter((node) => node.visible).length;
-        };
-        const render = async (collision: object, placement?: string | string[]) => {
-            const opts = options(collision, placement);
-            prepareEnterpriseTestOptions(opts);
-            chart = deproxy(AgCharts.create(opts));
-            await waitForChartStability(chart);
-            return visibleLabelCount();
-        };
 
         it('drops only the colliding high-end label, keeping the low-end label', async () => {
-            expect(await render({ suppressHide: false, collideWith: { seriesArea: true } })).toBe(1);
+            expect(
+                await renderPlacementCount(options, { suppressHide: false, collideWith: { seriesArea: true } })
+            ).toBe(1);
         });
 
         it('keeps both labels when not hideable (suppressHide: true)', async () => {
-            expect(await render({ suppressHide: true, collideWith: { seriesArea: true } })).toBe(2);
+            expect(await renderPlacementCount(options, { suppressHide: true, collideWith: { seriesArea: true } })).toBe(
+                2
+            );
         });
 
         it('cascades the colliding high-end label to an inside placement, keeping both', async () => {
             // Only the high end overflows: it falls through to `inside`, while the low end stays outside.
             expect(
-                await render({ suppressHide: false, collideWith: { seriesArea: true } }, ['outside', 'inside'])
+                await renderPlacementCount(options, { suppressHide: false, collideWith: { seriesArea: true } }, [
+                    'outside',
+                    'inside',
+                ])
             ).toBe(2);
         });
 
