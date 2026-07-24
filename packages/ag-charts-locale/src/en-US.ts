@@ -1,6 +1,6 @@
 export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     // Initial screen reader alt-text of the series area
-    ariaInitSeriesArea: 'interactive chart',
+    ariaInitSeriesArea: 'interactive chart area',
     // Screen reader announcement when focusing an item in the chart
     ariaAnnounceHoverDatum: '${datum}',
     // Screen reader announcement for a datum item in the 'selected-item' state
