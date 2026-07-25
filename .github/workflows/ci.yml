@@ -124,8 +124,9 @@ jobs:
     init:
         runs-on: ubuntu-24.04
         name: Initialise Workflow
-        needs: detect-changes
-        if: needs.detect-changes.outputs.run_full_ci == 'true'
+        # Deliberately does not wait for detect-changes (~20-30s off the critical path):
+        # init consumes none of its outputs. On the rare docs-only PR this wastes one
+        # init run — every downstream job is still gated by detect-changes.
         permissions:
             contents: write
         env:
@@ -155,10 +156,9 @@ jobs:
                   cache_mode: ${{ github.event.inputs.clean_checkout == 'true' && 'off' || 'rw' }}
                   free_disk_space: false
                   # Safe for init only: its own build step materialises all plugin outputs.
-                  # Currently disabled: the postinstall plugin-build also warms the Nx project
-                  # graph for the (much larger) build step, so skipping it just moves the
-                  # ~60s graph computation there.
-                  skip_plugin_build: false
+                  # Measured net win (~30s): the graph computation moves into the build step,
+                  # but the plugin-build invocation's own fixed overhead is avoided.
+                  skip_plugin_build: true
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref || 'latest' }}
 
             - name: nx build and generate cacheable examples
