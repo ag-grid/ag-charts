@@ -155,7 +155,10 @@ jobs:
                   cache_mode: ${{ github.event.inputs.clean_checkout == 'true' && 'off' || 'rw' }}
                   free_disk_space: false
                   # Safe for init only: its own build step materialises all plugin outputs.
-                  skip_plugin_build: true
+                  # Currently disabled: the postinstall plugin-build also warms the Nx project
+                  # graph for the (much larger) build step, so skipping it just moves the
+                  # ~60s graph computation there.
+                  skip_plugin_build: false
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref || 'latest' }}
 
             - name: nx build and generate cacheable examples
