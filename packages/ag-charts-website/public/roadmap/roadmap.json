@@ -121,15 +121,6 @@
             "link": null
         },
         {
-            "id": "AG-17826",
-            "title": "Accessibility Improvements",
-            "q": 3,
-            "status": "planned",
-            "why": "Supports compliance and inclusive design for enterprise and public-sector applications.",
-            "desc": "Improved keyboard navigation and screen reader support, with greater control over accessibility behaviour.",
-            "link": null
-        },
-        {
             "id": "AG-17827",
             "title": "Validation Feedback",
             "q": 3,
@@ -139,7 +130,16 @@
             "link": null
         },
         {
-            "id": "AG-16579",
+            "id": "AG-17826",
+            "title": "Accessibility Improvements",
+            "q": 4,
+            "status": "planned",
+            "why": "Supports compliance and inclusive design for enterprise and public-sector applications.",
+            "desc": "Improved keyboard navigation and screen reader support, with greater control over accessibility behaviour.",
+            "link": null
+        },
+        {
+            "id": "AG-17983",
             "title": "Additional Financial Series Types",
             "q": 4,
             "status": "planned",
@@ -163,15 +163,6 @@
             "status": "planned",
             "why": "Gives developers greater control to build bespoke financial and trading applications.",
             "desc": "Custom user series, configurable axis types, and status bar control for the financial chart.",
-            "link": null
-        },
-        {
-            "id": "AG-16583",
-            "title": "Technical Indicators",
-            "q": 4,
-            "status": "planned",
-            "why": "Supports professional trading and analytical workflows with a range of technical indicators.",
-            "desc": "A range of technical indicators for financial charts.",
             "link": null
         },
         {
