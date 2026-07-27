@@ -286,7 +286,7 @@ export type PropertySelectors = {
     matchGroupIds?: string[];
 };
 
-export type DatumValidationFn = (value: any, datum: any, index: number, logger?: Logger) => boolean;
+export type DatumValidationFn = (value: any, datum: any, index: number, logger: Logger) => boolean;
 
 export type DatumPropertyDefinition<K> = PropertyIdentifiers & {
     type: 'key' | 'value';

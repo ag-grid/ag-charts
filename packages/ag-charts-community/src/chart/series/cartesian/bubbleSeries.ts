@@ -1778,7 +1778,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
     }
 
     protected override initQuadTree(quadtree: QuadtreeNearest<BubbleScatterNodeDatum>) {
-        addHitTestersToQuadtree(quadtree, this.datumNodesIter());
+        addHitTestersToQuadtree(quadtree, this.datumNodesIter(), this.ctx.logger);
     }
 
     protected override pickNodeDataClosestDatum(point: Point): SeriesNodePickMatch | undefined {

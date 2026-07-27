@@ -1122,7 +1122,11 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
     protected override initQuadTree(quadtree: QuadtreeNearest<HistogramNodeDatum>) {
         const { value: childNode } = this.contentGroup.children().next();
         if (childNode instanceof Group) {
-            addHitTestersToQuadtree(quadtree, childNode.children() as Iterable<Rect<HistogramNodeDatum>>);
+            addHitTestersToQuadtree(
+                quadtree,
+                childNode.children() as Iterable<Rect<HistogramNodeDatum>>,
+                this.ctx.logger
+            );
         }
     }
 

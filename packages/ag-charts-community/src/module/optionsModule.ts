@@ -470,7 +470,13 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                     options = {} as any;
                 } else {
                     ChartOptions.debug('>>> AgCharts.createOrUpdate() - applying preset', cleared);
-                    options = presetDef.create(cleared, presetTheme, () => this.activeTheme, activeTheme.overrides);
+                    options = presetDef.create(
+                        cleared,
+                        presetTheme,
+                        () => this.activeTheme,
+                        activeTheme.overrides,
+                        this.logger
+                    );
                     activeTheme = sanitizeThemeModules(getChartTheme(options.theme));
                 }
             }
@@ -1550,7 +1556,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         processedCSSVariables ??= {};
 
         const container = ctx?.container;
-        if (!optionsNode || !isObjectLike(optionsNode) || !container) {
+        if (!ctx || !optionsNode || !isObjectLike(optionsNode) || !container) {
             return processedCSSVariables;
         }
 
@@ -1563,7 +1569,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             if (!resolved) continue;
 
             if (!resolved.isValid) {
-                (ctx?.logger ?? Logger.default).warnOnce(`CSS property [${value}] is not a valid color, ignoring.`);
+                ctx.logger.warnOnce(`CSS property [${value}] is not a valid color, ignoring.`);
                 delete optionsNode[key];
                 continue;
             }

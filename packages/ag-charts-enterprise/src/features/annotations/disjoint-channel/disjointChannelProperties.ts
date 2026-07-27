@@ -1,5 +1,5 @@
 import { type PixelSize, _ModuleSupport } from 'ag-charts-community';
-import { BaseProperties, Logger, Property, isNumericValue, isObject, subtractValues } from 'ag-charts-core';
+import { BaseProperties, type Logger, Property, isNumericValue, isObject, subtractValues } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
 import {
@@ -36,7 +36,7 @@ export class DisjointChannelProperties extends Annotation(
 
     snapToAngle: number = 45;
 
-    get bottom() {
+    getBottom(logger: Logger) {
         const bottom = {
             start: { x: this.start.x, y: this.start.y },
             end: { x: this.end.x, y: this.end.y },
@@ -46,7 +46,7 @@ export class DisjointChannelProperties extends Annotation(
             bottom.start.y = subtractValues(bottom.start.y, this.startHeight);
             bottom.end.y = subtractValues(bottom.end.y, this.endHeight);
         } else {
-            Logger.default.warnOnce(`Annotation [${this.type}] can only be used with a numeric y-axis.`);
+            logger.warnOnce(`Annotation [${this.type}] can only be used with a numeric y-axis.`);
         }
 
         return bottom;

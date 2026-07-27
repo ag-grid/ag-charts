@@ -1181,7 +1181,8 @@ export class SeriesAreaManager extends BaseManager {
         datum: SeriesNodeDatum,
         tooltipContent: TooltipContent[]
     ): string {
-        const description = tooltipContent == null ? '' : tooltipContentAriaLabel(tooltipContent);
+        const description =
+            tooltipContent == null ? '' : tooltipContentAriaLabel(tooltipContent, this.chart.ctx.logger);
         const ariaMeta = datum.series.getDatumAriaMeta(datum, description);
         const datumText = this.chart.ctx.localeManager.t('ariaAnnounceHoverDatum', {
             datum: ariaMeta?.text ?? description,
