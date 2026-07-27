@@ -317,7 +317,7 @@ export class MapMarkerSeries
         if (this.isColorScaleValid()) {
             const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue');
             const domain = processedData.domain.values[colorKeyIdx];
-            configureColorScale(colorScale, this.properties.colorScale, domain);
+            configureColorScale(colorScale, this.properties.colorScale, domain, this.ctx.logger);
         }
 
         this.animationState.transition('updateData');

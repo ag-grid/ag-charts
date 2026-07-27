@@ -48,6 +48,10 @@ export class ColorScale extends AbstractScale<number, string> {
     readonly defaultTickCount = 0;
     protected invalid = true;
 
+    // Per-chart logger, set by the owning series via `configureColorScale`. Falls back to the
+    // module default for context-less callers (gradient legend / grid sparklines).
+    logger: Logger = Logger.default;
+
     @Invalidating
     domain = [0, 1];
     @Invalidating
@@ -67,7 +71,7 @@ export class ColorScale extends AbstractScale<number, string> {
         const { domain, range } = this;
 
         if (domain.length < 2) {
-            Logger.default.warnOnce('`colorDomain` should have at least 2 values.');
+            this.logger.warnOnce('`colorDomain` should have at least 2 values.');
             if (domain.length === 0) {
                 domain.push(0, 1);
             } else if (domain.length === 1) {
@@ -79,7 +83,7 @@ export class ColorScale extends AbstractScale<number, string> {
             const a = domain[i - 1];
             const b = domain[i];
             if (a > b) {
-                Logger.default.warnOnce('`colorDomain` values should be supplied in ascending order.');
+                this.logger.warnOnce('`colorDomain` values should be supplied in ascending order.');
                 domain.sort((a2, b2) => a2 - b2);
                 break;
             }

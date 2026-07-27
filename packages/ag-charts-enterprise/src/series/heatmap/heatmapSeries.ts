@@ -223,10 +223,11 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
                     configureColorScale(
                         this.colorScale,
                         { fills: [mid, mid], domain: colorScaleProps.domain, mode: colorScaleProps.mode },
-                        domain
+                        domain,
+                        this.ctx.logger
                     );
                 } else {
-                    configureColorScale(this.colorScale, colorScaleProps, domain);
+                    configureColorScale(this.colorScale, colorScaleProps, domain, this.ctx.logger);
                 }
             }
         }
