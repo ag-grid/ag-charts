@@ -123,7 +123,7 @@ export function createChartContext(chart: ChartHost, vars: ChartContextVars): Dy
         .service('stateManager', (c) => new StateManager(c.logger))
         .service('labelManager', () => new LabelManager())
         .service('interactionManager', () => new InteractionManager())
-        .service('optionsGraphService', () => new OptionsGraphService())
+        .service('optionsGraphService', (c) => new OptionsGraphService(c.logger))
         .service('chartTypeOriginator', (c) => new ChartTypeOriginator(chart, c.logger))
         .service('widgets', (c) => new WidgetSet(c, { withDragInterpretation: vars.withDragInterpretation }))
         .service('axisManager', (c) => new AxisManager(c.eventsHub, vars.root))

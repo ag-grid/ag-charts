@@ -1,7 +1,7 @@
 import {
     Debug,
     Graph,
-    Logger,
+    type Logger,
     ModuleRegistry,
     type PlainObject,
     type Resolved,
@@ -42,10 +42,11 @@ const debug = Debug.create('opts', 'options-graph');
 
 // Interface that only exposes safe access methods to the OptionsGraph.
 export interface OptionsGraphAccessor {
-    resolve(): PlainObject;
+    resolve(logger: Logger | undefined): PlainObject;
     resolveParams(): PlainObject;
     resolveAnnotationThemes(): PlainObject;
     resolvePartial<T extends PlainObject>(
+        logger: Logger | undefined,
         path: Array<string>,
         partialOptions?: T,
         resolveOptions?: OptionsGraphAccessorResolvePartialOptions,
@@ -79,8 +80,8 @@ export function createOptionsGraph(
         );
 
         return {
-            resolve() {
-                return optionsGraph.resolve();
+            resolve(logger) {
+                return optionsGraph.resolve(logger);
             },
             resolveParams() {
                 return optionsGraph.resolveParams();
@@ -88,8 +89,8 @@ export function createOptionsGraph(
             resolveAnnotationThemes() {
                 return optionsGraph.resolveAnnotationThemes();
             },
-            resolvePartial(path, partialOptions, resolveOptions, partialCssVariables) {
-                return optionsGraph.resolvePartial(path, partialOptions, resolveOptions, partialCssVariables);
+            resolvePartial(logger, path, partialOptions, resolveOptions, partialCssVariables) {
+                return optionsGraph.resolvePartial(logger, path, partialOptions, resolveOptions, partialCssVariables);
             },
             clearSafe() {
                 return optionsGraph.clearSafe();
@@ -151,6 +152,26 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
     }
 
     public readonly paletteType: PaletteType;
+
+    // Set only for the duration of a resolve call. The graph instance is memoised and shared
+    // between charts with identical options, so it must never retain one chart's logger.
+    private activeLogger: Logger | undefined;
+
+    // Graph construction happens before any chart resolves through it, so warnings raised there
+    // are held until the first resolve can route them to that chart's logger.
+    private readonly pendingWarnings: string[] = [];
+
+    get logger(): Logger | undefined {
+        return this.activeLogger;
+    }
+
+    warnOnce(message: string) {
+        if (this.activeLogger == null) {
+            this.pendingWarnings.push(message);
+        } else {
+            this.activeLogger.warnOnce(message);
+        }
+    }
 
     // The current priority order in which to resolve options values.
     private edgePriority = [...OptionsGraph.EDGE_PRIORITY];
@@ -330,26 +351,41 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         this.clear();
     }
 
-    resolve() {
-        return debug.group('OptionsGraph.resolve()', () => {
-            this.resolved = {};
-            this.resolvedParams = {};
-            this.resolvedAnnotations = {};
+    resolve(logger: Logger | undefined) {
+        return this.withLogger(logger, () =>
+            debug.group('OptionsGraph.resolve()', () => {
+                this.resolved = {};
+                this.resolvedParams = {};
+                this.resolvedAnnotations = {};
 
-            debug('resolve params');
-            this.resolveVertex(this.params!, this.resolvedParams);
-            debug('resolve annotations');
-            this.resolveVertex(this.annotations!, this.resolvedAnnotations);
+                debug('resolve params');
+                this.resolveVertex(this.params!, this.resolvedParams);
+                debug('resolve annotations');
+                this.resolveVertex(this.annotations!, this.resolvedAnnotations);
 
-            debug('resolve root');
-            this.resolveVertex(this.root!);
-            debug('resolved root', this.resolved);
+                debug('resolve root');
+                this.resolveVertex(this.root!);
+                debug('resolved root', this.resolved);
 
-            debug('vertex count', this.getVertexCount());
-            debug('edge count', this.getEdgeCount());
+                debug('vertex count', this.getVertexCount());
+                debug('edge count', this.getEdgeCount());
 
-            return this.resolved;
-        });
+                return this.resolved;
+            })
+        );
+    }
+
+    private withLogger<T>(logger: Logger | undefined, fn: () => T): T {
+        const previous = this.activeLogger;
+        this.activeLogger = logger;
+        try {
+            for (const message of this.pendingWarnings.splice(0)) {
+                logger?.warnOnce(message);
+            }
+            return fn();
+        } finally {
+            this.activeLogger = previous;
+        }
     }
 
     resolveParams() {
@@ -383,6 +419,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
      * Returns an object with only those keys that were also present within `partialOptions`.
      */
     resolvePartial<T extends PlainObject>(
+        logger: Logger | undefined,
         path: Array<string>,
         partialOptions?: T,
         resolveOptions?: {
@@ -394,6 +431,21 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
     ): Resolved<Partial<T>> | undefined {
         if (!partialOptions) return;
 
+        return this.withLogger(logger, () =>
+            this.resolvePartialInternal(path, partialOptions, resolveOptions, cssVariables)
+        );
+    }
+
+    private resolvePartialInternal<T extends PlainObject>(
+        path: Array<string>,
+        partialOptions: T,
+        resolveOptions?: {
+            permissivePath?: boolean;
+            pick?: boolean;
+            proxyPaths?: Record<string, Array<string>>;
+        },
+        cssVariables?: Record<string, string>
+    ): Resolved<Partial<T>> | undefined {
         // If the graph has been cleared, do not attempt to resolve. This will occur when no `styler` options are provided.
         if (!this.root) return;
 
@@ -754,7 +806,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
 
         // If the grafted value is a public operation, let it resolve normally as it will resolve to a unique leaf and
         // does not need to be handled like other values. Private operations will not reach this point.
-        const operation = getOperation(value);
+        const operation = getOperation(value, undefined, this);
         if (operation) return;
 
         this.value$1.set(pathArray.join('.'), value);
@@ -810,7 +862,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         ignorePaths?: Set<string>
     ) {
         const keys = Object.keys(object);
-        const operation = getOperation(object, keys);
+        const operation = getOperation(object, keys, this);
         if (operation) {
             const valueVertex = this.addVertex(object);
             this.addEdge(parentVertex, valueVertex, edgeValue);
@@ -924,7 +976,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             this.addEdge(pathVertex, pathArrayVertex, PATH_ARRAY_EDGE);
         }
 
-        const operation = getOperation(value);
+        const operation = getOperation(value, undefined, this);
         if (operation) {
             const valueVertex = this.addVertex(value);
             this.addEdge(pathVertex, valueVertex, edgeValue);
@@ -990,7 +1042,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         this.addEdge(valueVertex, pathArrayVertex, PATH_ARRAY_EDGE);
         this.addEdge(valueVertex, operationValueVertex, OPERATION_VALUE_EDGE);
 
-        const innerOperation = getOperation(operationValue);
+        const innerOperation = getOperation(operationValue, undefined, this);
         if (innerOperation) {
             this.buildGraphFromOperation(operationValueVertex, edgeValue, innerOperation, pathArrayVertex);
         } else if (isObjectLike(operationValue)) {
@@ -1009,9 +1061,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             if (!vertex) continue;
 
             if (typeof vertex.value === 'string' && visited?.includes(vertex.value)) {
-                Logger.default.warnOnce(
-                    `Infinite loop cycle found in theme params [${visited.join(' -> ')}], ignoring.`
-                );
+                this.warnOnce(`Infinite loop cycle found in theme params [${visited.join(' -> ')}], ignoring.`);
                 return true;
             }
 

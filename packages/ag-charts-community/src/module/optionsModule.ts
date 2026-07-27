@@ -522,7 +522,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
 
         const optionsGraph = createOptionsGraphMemoised(activeTheme, options, this.processedCSSVariables);
-        const resolvedOptions = optionsGraph.resolve() as any;
+        const resolvedOptions = optionsGraph.resolve(this.logger) as any;
         const themeParameters = optionsGraph.resolveParams();
         const annotationThemes = optionsGraph.resolveAnnotationThemes();
         optionsGraph.clearSafe();

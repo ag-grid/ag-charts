@@ -1,3 +1,4 @@
+import type { Logger } from 'ag-charts-core';
 import type { PlainObject, Resolved } from 'ag-charts-core';
 
 import type { OptionsGraphAccessor, OptionsGraphAccessorResolvePartialOptions } from '../module/optionsGraph';
@@ -13,12 +14,14 @@ export class OptionsGraphService {
         this.resolvePartialCallback = resolvePartialCallback;
     }
 
+    constructor(private readonly logger: Logger) {}
+
     resolvePartial<T extends PlainObject>(
         path: Array<string>,
         partialOptions?: T,
         resolveOptions?: OptionsGraphAccessorResolvePartialOptions,
         cssVariables?: Record<string, string>
     ): Resolved<Partial<T>> | undefined {
-        return this.resolvePartialCallback?.(path, partialOptions, resolveOptions, cssVariables);
+        return this.resolvePartialCallback?.(this.logger, path, partialOptions, resolveOptions, cssVariables);
     }
 }

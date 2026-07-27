@@ -1,4 +1,4 @@
-import { expectWarningsCalls, setupMockConsole } from '_ag-charts-test';
+import { expectWarningsCalls, setupMockConsole, testLogger } from '_ag-charts-test';
 import { describe, expect, it } from 'vitest';
 
 import type { PlainObject } from 'ag-charts-core';
@@ -29,7 +29,7 @@ describe('OptionsGraph', () => {
             title: { text: 'User Options Title' },
             legend: { label: { enabled: false } },
         });
-        const options = new OptionsGraph(themeConfig, userOptions).resolve();
+        const options = new OptionsGraph(themeConfig, userOptions).resolve(testLogger);
         expect(options).toStrictEqual({
             title: { text: 'User Options Title', spacing: 20 },
             legend: { enabled: true, label: { enabled: false, text: 'Default Legend' } },
@@ -49,7 +49,7 @@ describe('OptionsGraph', () => {
             two: undefined,
             three: 'user-value',
         });
-        const options = new OptionsGraph(themeConfig, userOptions).resolve();
+        const options = new OptionsGraph(themeConfig, userOptions).resolve(testLogger);
         expect(options).toStrictEqual({
             one: 'default-value',
             two: undefined,
@@ -83,7 +83,7 @@ describe('OptionsGraph', () => {
                 y: { type: 'number', title: { text: 'Number Title' } },
             },
         });
-        const options = new OptionsGraph(themeConfig, userOptions).resolve();
+        const options = new OptionsGraph(themeConfig, userOptions).resolve(testLogger);
         expect(options).toStrictEqual({
             title: { enabled: true, text: 'Default Title', spacing: 10 },
             subtitle: { enabled: false, text: 'Default Subtitle' },
@@ -106,13 +106,13 @@ describe('OptionsGraph', () => {
         const autoEnabled = new OptionsGraph(
             themeConfig,
             prepareOptions({ label: { border: { strokeWidth: 5 } } })
-        ).resolve() as { label: { border: { enabled: boolean; strokeWidth: number } } };
+        ).resolve(testLogger) as { label: { border: { enabled: boolean; strokeWidth: number } } };
         expect(autoEnabled.label.border).toStrictEqual({ enabled: true, strokeWidth: 5 });
 
         const explicitOff = new OptionsGraph(
             themeConfig,
             prepareOptions({ label: { border: { enabled: false, strokeWidth: 5 } } })
-        ).resolve() as { label: { border: { enabled: boolean; strokeWidth: number } } };
+        ).resolve(testLogger) as { label: { border: { enabled: boolean; strokeWidth: number } } };
         expect(explicitOff.label.border).toStrictEqual({ enabled: false, strokeWidth: 5 });
     });
 
@@ -125,7 +125,7 @@ describe('OptionsGraph', () => {
         const userOptions = prepareOptions({
             one: { child: 'child-value' },
         });
-        const options = new OptionsGraph(themeConfig, userOptions).resolve();
+        const options = new OptionsGraph(themeConfig, userOptions).resolve(testLogger);
         expect(options).toStrictEqual({
             one: { child: 'child-value' },
             axes: expect.any(Object),
@@ -220,7 +220,7 @@ describe('OptionsGraph', () => {
             ],
         });
 
-        const options = new OptionsGraph(themeConfig, userOptions, params, params, palette).resolve();
+        const options = new OptionsGraph(themeConfig, userOptions, params, params, palette).resolve(testLogger);
         expect(options).toStrictEqual({
             title: 'User Options', // from user options
             background: 'grey', // from user options
@@ -279,7 +279,7 @@ describe('OptionsGraph', () => {
         const userOptions = prepareOptions({
             item: { $path: '/other' },
         });
-        const options = new OptionsGraph(themeConfig, userOptions, {}, {}, overrides).resolve();
+        const options = new OptionsGraph(themeConfig, userOptions, {}, {}, overrides).resolve(testLogger);
         expect(options).toStrictEqual({
             item: {
                 one: 'other-one',
@@ -301,7 +301,7 @@ describe('OptionsGraph', () => {
                     fill: { $mix: ['#ffffff', '#000000', 0.5] },
                 },
             };
-            const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve();
+            const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve(testLogger);
             expect(options).toStrictEqual({
                 fill: '#808080',
                 axes: expect.any(Object),
@@ -314,7 +314,7 @@ describe('OptionsGraph', () => {
                     fill: { $opacity: ['#ff0000', 0.5] },
                 },
             };
-            const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve();
+            const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve(testLogger);
             expect(options).toStrictEqual({
                 fill: 'rgba(255, 0, 0, 0.5)',
                 axes: expect.any(Object),
@@ -345,7 +345,7 @@ describe('OptionsGraph', () => {
                         { type: 'line', fill: 'green', fillOpacity: 0.5 },
                     ],
                 });
-                const options = new OptionsGraph(themeConfig, userOptions).resolve();
+                const options = new OptionsGraph(themeConfig, userOptions).resolve(testLogger);
                 expect(options).toStrictEqual({
                     one: {
                         child: true,
@@ -429,7 +429,7 @@ describe('OptionsGraph', () => {
                 const palette = {
                     fills: ['red', 'green', 'blue'],
                 };
-                const options = new OptionsGraph(themeConfig, prepareOptions({}), {}, {}, palette).resolve();
+                const options = new OptionsGraph(themeConfig, prepareOptions({}), {}, {}, palette).resolve(testLogger);
                 expect(options).toStrictEqual({
                     items: [{ fill: 'red' }],
                     axes: expect.any(Object),
@@ -452,7 +452,7 @@ describe('OptionsGraph', () => {
                 const palette = {
                     fills: ['red', 'green', 'blue'],
                 };
-                const options = new OptionsGraph(themeConfig, prepareOptions({}), {}, {}, palette).resolve();
+                const options = new OptionsGraph(themeConfig, prepareOptions({}), {}, {}, palette).resolve(testLogger);
                 expect(options).toStrictEqual({
                     items: [
                         { fill: 'red' },
@@ -485,7 +485,7 @@ describe('OptionsGraph', () => {
                         relativeChild: { $path: '../parent/child' },
                     },
                 });
-                const options = new OptionsGraph(themeConfig, userOptions).resolve();
+                const options = new OptionsGraph(themeConfig, userOptions).resolve(testLogger);
                 expect(options).toStrictEqual({
                     key: 'key-value',
                     parent: { child: 'child-value' },
@@ -514,7 +514,7 @@ describe('OptionsGraph', () => {
                     five: { $path: './six' },
                     six: 'six-value',
                 });
-                const options = new OptionsGraph(themeConfig, userOptions).resolve();
+                const options = new OptionsGraph(themeConfig, userOptions).resolve(testLogger);
                 expect(options).toStrictEqual({
                     one: 'three-value',
                     two: 'three-value',
@@ -535,7 +535,7 @@ describe('OptionsGraph', () => {
                         three: 'three-value',
                     },
                 };
-                const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve();
+                const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve(testLogger);
                 expect(options).toStrictEqual({
                     // TODO: `one` does not resolve since there is no operational dependency between `two` and `three`, the
                     // dependency is only discovered through the plain value of `two` being used by `one`. If `one` is
@@ -555,7 +555,7 @@ describe('OptionsGraph', () => {
                         three: { $path: ['./invalid', 'default-value'] },
                     },
                 };
-                const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve();
+                const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve(testLogger);
                 expect(options).toStrictEqual({
                     one: 'default-value',
                     two: 'default-value',
@@ -570,7 +570,7 @@ describe('OptionsGraph', () => {
                         parent: { $path: ['/child', undefined, { child: 'child-value' }] },
                     },
                 };
-                const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve();
+                const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve(testLogger);
                 expect(options).toStrictEqual({
                     parent: 'child-value',
                     axes: expect.any(Object),
@@ -586,7 +586,7 @@ describe('OptionsGraph', () => {
                         sibling: { $path: ['/child', undefined, { $path: '/parent' }] },
                     },
                 };
-                const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve();
+                const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve(testLogger);
                 expect(options).toStrictEqual({
                     parent: {
                         child: 'child-value',
@@ -601,7 +601,7 @@ describe('OptionsGraph', () => {
             it('should resolve `$ref` operations', () => {
                 const options = new OptionsGraph({ line: { one: { $ref: 'key' } } }, prepareOptions({}), {
                     key: 'value',
-                }).resolve();
+                }).resolve(testLogger);
                 expect(options).toStrictEqual({
                     one: 'value',
                     axes: expect.any(Object),
@@ -612,7 +612,7 @@ describe('OptionsGraph', () => {
                 const options = new OptionsGraph({ line: { one: { $ref: 'second' } } }, prepareOptions({}), {
                     first: 'value',
                     second: { $ref: 'first' },
-                }).resolve();
+                }).resolve(testLogger);
                 expect(options).toStrictEqual({
                     one: 'value',
                     axes: expect.any(Object),
@@ -633,7 +633,7 @@ describe('OptionsGraph', () => {
                         ],
                     },
                 };
-                const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve();
+                const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve(testLogger);
                 expect(options).toStrictEqual({
                     items: [{ index: 0 }, { index: 1 }, { index: 2 }],
                     axes: expect.any(Object),
@@ -655,7 +655,7 @@ describe('OptionsGraph', () => {
                     caseOne: [true, false],
                 },
             };
-            const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve();
+            const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve(testLogger);
             expect(options).toStrictEqual({
                 one: true,
                 two: false,
@@ -675,7 +675,7 @@ describe('OptionsGraph', () => {
                     two: [true, false],
                 },
             };
-            const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve();
+            const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve(testLogger);
             expect(options).toStrictEqual({
                 one: false,
                 two: [true, false],
@@ -691,7 +691,7 @@ describe('OptionsGraph', () => {
                     three: { $eq: ['hello', 'hello'] },
                 },
             };
-            const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve();
+            const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve(testLogger);
             expect(options).toStrictEqual({
                 one: true,
                 two: false,
@@ -712,7 +712,7 @@ describe('OptionsGraph', () => {
             const userOptions = prepareOptions({
                 seven: { $if: [true, { $omit: [['six'], { $path: '/four' }] }, { eight: 'eight' }] },
             });
-            const options = new OptionsGraph(themeConfig, userOptions).resolve();
+            const options = new OptionsGraph(themeConfig, userOptions).resolve(testLogger);
             expect(options).toStrictEqual({
                 one: 'yes',
                 two: 'no',
@@ -784,7 +784,7 @@ describe('OptionsGraph', () => {
                     },
                 },
             };
-            const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve();
+            const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve(testLogger);
             expect(options).toStrictEqual({
                 arrayValue: expect.anything(),
                 objectValue: expect.anything(),
@@ -846,7 +846,7 @@ describe('OptionsGraph', () => {
                         one: { $isType: [{ $path: './stringValue' }, 'symbol', 'yes', 'no'] },
                     },
                 };
-                const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve();
+                const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve(testLogger);
                 expect(options).toStrictEqual({
                     stringValue: 'hello',
                     one: 'no',
@@ -874,7 +874,9 @@ describe('OptionsGraph', () => {
             };
 
             const resolveWithStroke = (stroke?: unknown) =>
-                new OptionsGraph(themeConfig, prepareOptions(stroke === undefined ? {} : { stroke })).resolve();
+                new OptionsGraph(themeConfig, prepareOptions(stroke === undefined ? {} : { stroke })).resolve(
+                    testLogger
+                );
 
             expect(resolveWithStroke({ type: 'gradient' })).toMatchObject({ strokeWidth: 4 });
             expect(resolveWithStroke('red')).toMatchObject({ strokeWidth: 2 });
@@ -889,7 +891,7 @@ describe('OptionsGraph', () => {
                     three: { $not: ['hello'] },
                 },
             };
-            const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve();
+            const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve(testLogger);
             expect(options).toStrictEqual({
                 one: false,
                 two: true,
@@ -910,7 +912,7 @@ describe('OptionsGraph', () => {
                     caseNeither: [false, false],
                 },
             };
-            const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve();
+            const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve(testLogger);
             expect(options).toStrictEqual({
                 one: true,
                 two: true,
@@ -932,7 +934,7 @@ describe('OptionsGraph', () => {
                     two: [true, false],
                 },
             };
-            const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve();
+            const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve(testLogger);
             expect(options).toStrictEqual({
                 one: true,
                 two: [true, false],
@@ -954,7 +956,7 @@ describe('OptionsGraph', () => {
                     two: 'case-a',
                 },
             };
-            const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve();
+            const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve(testLogger);
             expect(options).toStrictEqual({
                 one: 'case-a-value',
                 two: 'case-a',
@@ -970,7 +972,7 @@ describe('OptionsGraph', () => {
                     compare: [0, 5, 10],
                 },
             };
-            const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve();
+            const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve(testLogger);
             expect(options).toStrictEqual({
                 one: false,
                 two: true,
@@ -989,7 +991,7 @@ describe('OptionsGraph', () => {
                     compare: [{ value: 0 }, { value: 5 }, { value: 10 }],
                 },
             };
-            const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve();
+            const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve(testLogger);
             expect(options).toStrictEqual({
                 one: true,
                 two: false,
@@ -1025,7 +1027,7 @@ describe('OptionsGraph', () => {
                         },
                     ],
                 });
-                const options = new OptionsGraph(themeConfig, userOptions).resolve();
+                const options = new OptionsGraph(themeConfig, userOptions).resolve(testLogger);
                 expect(options).toStrictEqual({
                     title: 'Default Title',
                     axes: expect.any(Object),
@@ -1055,7 +1057,7 @@ describe('OptionsGraph', () => {
                     },
                 };
                 const userOptions = prepareOptions({});
-                const options = new OptionsGraph(themeConfig, userOptions).resolve();
+                const options = new OptionsGraph(themeConfig, userOptions).resolve(testLogger);
                 expect(options).toStrictEqual({
                     padding: { top: 4, right: 4, bottom: 4, left: 4 },
                     axes: expect.any(Object),
@@ -1071,7 +1073,7 @@ describe('OptionsGraph', () => {
                     },
                 };
                 const userOptions = prepareOptions({ padding: 3 });
-                const options = new OptionsGraph(themeConfig, userOptions).resolve();
+                const options = new OptionsGraph(themeConfig, userOptions).resolve(testLogger);
                 expect(options).toStrictEqual({
                     padding: { top: 3, right: 3, bottom: 3, left: 3 },
                     axes: expect.any(Object),
@@ -1087,7 +1089,7 @@ describe('OptionsGraph', () => {
                     },
                 };
                 const userOptions = prepareOptions({ padding: { top: 3, bottom: 3 } });
-                const options = new OptionsGraph(themeConfig, userOptions).resolve();
+                const options = new OptionsGraph(themeConfig, userOptions).resolve(testLogger);
                 expect(options).toStrictEqual({
                     padding: { top: 3, right: 8, bottom: 3, left: 16 },
                     axes: expect.any(Object),
@@ -1104,7 +1106,9 @@ describe('OptionsGraph', () => {
                 };
                 const userOptions = prepareOptions({});
                 const overrides = { line: { padding: 8 } };
-                const options = new OptionsGraph(themeConfig, userOptions, undefined, {}, {}, overrides).resolve();
+                const options = new OptionsGraph(themeConfig, userOptions, undefined, {}, {}, overrides).resolve(
+                    testLogger
+                );
                 expect(options).toStrictEqual({
                     padding: { top: 8, right: 8, bottom: 8, left: 8 },
                     axes: expect.any(Object),
@@ -1121,7 +1125,9 @@ describe('OptionsGraph', () => {
                 };
                 const userOptions = prepareOptions({});
                 const overrides = { line: { padding: { left: 15, right: 15 } } };
-                const options = new OptionsGraph(themeConfig, userOptions, undefined, {}, {}, overrides).resolve();
+                const options = new OptionsGraph(themeConfig, userOptions, undefined, {}, {}, overrides).resolve(
+                    testLogger
+                );
                 expect(options).toStrictEqual({
                     padding: { top: 4, right: 15, bottom: 4, left: 15 },
                     axes: expect.any(Object),
@@ -1138,7 +1144,9 @@ describe('OptionsGraph', () => {
                 };
                 const userOptions = prepareOptions({ padding: 3 });
                 const overrides = { line: { padding: 8 } };
-                const options = new OptionsGraph(themeConfig, userOptions, undefined, {}, {}, overrides).resolve();
+                const options = new OptionsGraph(themeConfig, userOptions, undefined, {}, {}, overrides).resolve(
+                    testLogger
+                );
                 expect(options).toStrictEqual({
                     padding: { top: 3, right: 3, bottom: 3, left: 3 },
                     axes: expect.any(Object),
@@ -1158,7 +1166,9 @@ describe('OptionsGraph', () => {
                 // series-type (`line`) namespace, exercising the common-namespace fallback in
                 // dangerouslyGetThemeOverride alongside the per-side merge.
                 const overrides = { common: { padding: { right: 15, bottom: 15 } } };
-                const options = new OptionsGraph(themeConfig, userOptions, undefined, {}, {}, overrides).resolve();
+                const options = new OptionsGraph(themeConfig, userOptions, undefined, {}, {}, overrides).resolve(
+                    testLogger
+                );
                 // Per-side precedence user > override > default: left from user, right/bottom from
                 // override, top falls through to the default. A partial user object must not discard
                 // the override- or default-supplied sides.
@@ -1185,7 +1195,7 @@ describe('OptionsGraph', () => {
                     },
                 };
                 const userOptions = prepareOptions({});
-                const options = new OptionsGraph(themeConfig, userOptions).resolve();
+                const options = new OptionsGraph(themeConfig, userOptions).resolve(testLogger);
                 expect(options).toStrictEqual({
                     item: { first: 'default' },
                     axes: expect.any(Object),
@@ -1209,7 +1219,7 @@ describe('OptionsGraph', () => {
                 const userOptions = prepareOptions({
                     item: { first: 'user' },
                 });
-                const options = new OptionsGraph(themeConfig, userOptions).resolve();
+                const options = new OptionsGraph(themeConfig, userOptions).resolve(testLogger);
                 expect(options).toStrictEqual({
                     item: { first: 'user' },
                     axes: expect.any(Object),
@@ -1237,7 +1247,7 @@ describe('OptionsGraph', () => {
                         other: 'user',
                     },
                 });
-                const options = new OptionsGraph(themeConfig, userOptions).resolve();
+                const options = new OptionsGraph(themeConfig, userOptions).resolve(testLogger);
                 expect(options).toStrictEqual({
                     item: {
                         type: 'two',
@@ -1271,7 +1281,7 @@ describe('OptionsGraph', () => {
                         { other: 'younger-sibling' },
                     ],
                 });
-                const options = new OptionsGraph(themeConfig, userOptions).resolve();
+                const options = new OptionsGraph(themeConfig, userOptions).resolve(testLogger);
                 expect(options).toStrictEqual({
                     items: [
                         { child: 'sibling-value', other: 'user-value' },
@@ -1295,7 +1305,7 @@ describe('OptionsGraph', () => {
                     },
                 },
             };
-            const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve();
+            const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve(testLogger);
             expect(options).toStrictEqual({
                 one: {
                     four: 'four-value',
@@ -1318,7 +1328,7 @@ describe('OptionsGraph', () => {
                         one: { $map: ['ciao', ['hello', 'bonjour']] },
                     },
                 };
-                const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve();
+                const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve(testLogger);
                 expect(options).toStrictEqual({
                     one: ['ciao', 'ciao'],
                     axes: expect.any(Object),
@@ -1332,7 +1342,7 @@ describe('OptionsGraph', () => {
                         two: ['hello', 'bonjour'],
                     },
                 };
-                const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve();
+                const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve(testLogger);
                 expect(options).toStrictEqual({
                     one: ['ciao', 'ciao'],
                     two: ['hello', 'bonjour'],
@@ -1348,7 +1358,7 @@ describe('OptionsGraph', () => {
                         three: 'three-value',
                     },
                 };
-                const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve();
+                const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve(testLogger);
                 expect(options).toStrictEqual({
                     one: ['three-value', 'three-value'],
                     two: [{ child: 'hello' }, { child: 'bonjour' }],
@@ -1364,7 +1374,7 @@ describe('OptionsGraph', () => {
                         two: ['hello', 'bonjour'],
                     },
                 };
-                const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve();
+                const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve(testLogger);
                 expect(options).toStrictEqual({
                     one: ['hello', 'bonjour'],
                     two: ['hello', 'bonjour'],
@@ -1379,7 +1389,7 @@ describe('OptionsGraph', () => {
                         two: ['hello', 'bonjour'],
                     },
                 };
-                const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve();
+                const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve(testLogger);
                 expect(options).toStrictEqual({
                     one: [{ child: 'hello' }, { child: 'bonjour' }],
                     two: ['hello', 'bonjour'],
@@ -1395,7 +1405,7 @@ describe('OptionsGraph', () => {
                         three: 'three-value',
                     },
                 };
-                const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve();
+                const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve(testLogger);
                 expect(options).toStrictEqual({
                     one: ['hello', 'bonjour'],
                     two: [{ child: 'hello' }, { child: 'bonjour' }],
@@ -1422,7 +1432,7 @@ describe('OptionsGraph', () => {
                 const palette = {
                     strokes: ['red', 'green', 'blue'],
                 };
-                const options = new OptionsGraph(themeConfig, prepareOptions({}), {}, {}, palette).resolve();
+                const options = new OptionsGraph(themeConfig, prepareOptions({}), {}, {}, palette).resolve(testLogger);
                 expect(options).toStrictEqual({
                     item: {
                         enabled: true,
@@ -1460,7 +1470,7 @@ describe('OptionsGraph', () => {
                     },
                 },
             };
-            const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve();
+            const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve(testLogger);
             expect(options).toStrictEqual({
                 one: {
                     child: 'child-value',
@@ -1502,7 +1512,7 @@ describe('OptionsGraph', () => {
             it('should resolve public `ref` operations', () => {
                 const themeConfig = { line: { one: { ref: 'key' } } };
                 const params = { key: 'value' };
-                const options = new OptionsGraph(themeConfig, prepareOptions({}), params).resolve();
+                const options = new OptionsGraph(themeConfig, prepareOptions({}), params).resolve(testLogger);
                 expect(options).toStrictEqual({
                     one: 'value',
                     axes: expect.any(Object),
@@ -1512,7 +1522,7 @@ describe('OptionsGraph', () => {
             it('should resolve public `ref` operation on `$ref` operation', () => {
                 const themeConfig = { line: { one: { ref: 'second' } } };
                 const params = { first: 'value', second: { $ref: 'first' } };
-                const options = new OptionsGraph(themeConfig, prepareOptions({}), params).resolve();
+                const options = new OptionsGraph(themeConfig, prepareOptions({}), params).resolve(testLogger);
                 expect(options).toStrictEqual({
                     one: 'value',
                     axes: expect.any(Object),
@@ -1522,7 +1532,7 @@ describe('OptionsGraph', () => {
             it('should resolve public `ref` operation with `mix` and default onto transparent', () => {
                 const themeConfig = { line: { fill: { ref: 'accentColor', mix: 0.25 } } };
                 const params = { accentColor: 'rgba(255, 0, 0, 1)' };
-                const options = new OptionsGraph(themeConfig, prepareOptions({}), params).resolve();
+                const options = new OptionsGraph(themeConfig, prepareOptions({}), params).resolve(testLogger);
                 expect(options).toStrictEqual({
                     fill: 'rgba(255, 0, 0, 0.25)',
                     axes: expect.any(Object),
@@ -1532,7 +1542,7 @@ describe('OptionsGraph', () => {
             it('should resolve public `ref` operation with `mix` and `onto` color', () => {
                 const themeConfig = { line: { fill: { ref: 'accentColor', mix: 0.25, onto: 'backgroundColor' } } };
                 const params = { accentColor: '#ff0000', backgroundColor: '#00ff00' };
-                const options = new OptionsGraph(themeConfig, prepareOptions({}), params).resolve();
+                const options = new OptionsGraph(themeConfig, prepareOptions({}), params).resolve(testLogger);
                 expect(options).toStrictEqual({
                     fill: '#40bf00',
                     axes: expect.any(Object),
@@ -1542,7 +1552,7 @@ describe('OptionsGraph', () => {
             it('should resolve public `ref` operation with `mix` and a literal `ontoColor`', () => {
                 const themeConfig = { line: { fill: { ref: 'accentColor', mix: 0.25, ontoColor: '#00ff00' } } };
                 const params = { accentColor: '#ff0000' };
-                const options = new OptionsGraph(themeConfig, prepareOptions({}), params).resolve();
+                const options = new OptionsGraph(themeConfig, prepareOptions({}), params).resolve(testLogger);
                 expect(options).toStrictEqual({
                     fill: '#40bf00',
                     axes: expect.any(Object),
@@ -1562,7 +1572,7 @@ describe('OptionsGraph', () => {
                     undefined,
                     new Map(),
                     cssVariables
-                ).resolve();
+                ).resolve(testLogger);
                 expect(options).toStrictEqual({
                     fill: '#40bf00',
                     axes: expect.any(Object),
@@ -1574,7 +1584,7 @@ describe('OptionsGraph', () => {
                     line: { fill: { ref: 'accentColor', mix: 0.25, ontoColor: 'oklch(0.7 0.15 200)' } },
                 };
                 const params = { accentColor: '#ff0000' };
-                const options = new OptionsGraph(themeConfig, prepareOptions({}), params).resolve();
+                const options = new OptionsGraph(themeConfig, prepareOptions({}), params).resolve(testLogger);
                 expect(options).toStrictEqual({
                     fill: '#408b92',
                     axes: expect.any(Object),
@@ -1584,7 +1594,7 @@ describe('OptionsGraph', () => {
             it('should resolve public `ref` operation with `mix` on an oklch() param', () => {
                 const themeConfig = { line: { fill: { ref: 'accentColor', mix: 0.25 } } };
                 const params = { accentColor: 'oklch(0.7 0.15 200)' };
-                const options = new OptionsGraph(themeConfig, prepareOptions({}), params).resolve();
+                const options = new OptionsGraph(themeConfig, prepareOptions({}), params).resolve(testLogger);
                 expect(options).toStrictEqual({
                     fill: 'rgba(0, 185, 195, 0.25)',
                     axes: expect.any(Object),
@@ -1596,7 +1606,7 @@ describe('OptionsGraph', () => {
                     line: { fill: { ref: 'accentColor', mix: 0.25, onto: 'backgroundColor', ontoColor: '#0000ff' } },
                 };
                 const params = { accentColor: '#ff0000', backgroundColor: '#00ff00' };
-                const options = new OptionsGraph(themeConfig, prepareOptions({}), params).resolve();
+                const options = new OptionsGraph(themeConfig, prepareOptions({}), params).resolve(testLogger);
                 expect(options).toStrictEqual({
                     fill: '#40bf00',
                     axes: expect.any(Object),
@@ -1617,7 +1627,7 @@ describe('OptionsGraph', () => {
                     foregroundColor: '#ff0000',
                     backgroundColor: '#00ff00',
                 };
-                const options = new OptionsGraph(themeConfig, prepareOptions({}), params).resolve();
+                const options = new OptionsGraph(themeConfig, prepareOptions({}), params).resolve(testLogger);
                 expect(options).toStrictEqual({
                     fill: '#40bf00',
                     axes: expect.any(Object),
@@ -1631,7 +1641,7 @@ describe('OptionsGraph', () => {
                     foregroundColor: '#ff0000',
                     backgroundColor: '#00ff00',
                 };
-                const options = new OptionsGraph(themeConfig, prepareOptions({}), params).resolve();
+                const options = new OptionsGraph(themeConfig, prepareOptions({}), params).resolve(testLogger);
                 expect(options).toStrictEqual({
                     fill: '#ff0000',
                     axes: expect.any(Object),
@@ -1644,7 +1654,7 @@ describe('OptionsGraph', () => {
                     gridLineColor: { ref: 'foregroundColor' },
                     foregroundColor: { ref: 'accentColor' },
                 };
-                new OptionsGraph({}, prepareOptions({}), params).resolve();
+                new OptionsGraph({}, prepareOptions({}), params).resolve(testLogger);
                 expectWarningsCalls().toMatchInlineSnapshot(`
                   [
                     [
@@ -1660,7 +1670,7 @@ describe('OptionsGraph', () => {
                     textColor: { ref: 'subtleTextColor' },
                     subtleTextColor: { $mix: [{ $ref: 'textColor' }, { $ref: 'backgroundColor' }, 0.38] },
                 };
-                new OptionsGraph({}, prepareOptions({}), params).resolve();
+                new OptionsGraph({}, prepareOptions({}), params).resolve(testLogger);
                 expectWarningsCalls().toMatchInlineSnapshot(`
                   [
                     [
