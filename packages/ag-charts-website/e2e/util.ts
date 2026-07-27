@@ -236,20 +236,9 @@ export async function gotoUrl(page: Page, url: string) {
     expect(await page.title()).not.toMatch(/Page Not Found/);
 }
 
-export async function gotoExample(
-    page: Page,
-    url: string,
-    opts = { skipStabilityChecks: false, skipNetworkIdle: false }
-) {
+export async function gotoExample(page: Page, url: string, opts = { skipStabilityChecks: false }) {
+    // gotoUrl already waits for network idle and asserts the page was found.
     await gotoUrl(page, url + '#e2e=true');
-
-    if (opts.skipNetworkIdle) {
-        await page.waitForLoadState('load');
-    } else {
-        await page.waitForLoadState('networkidle');
-    }
-
-    expect(await page.title()).not.toMatch(/Page Not Found/);
 
     // Wait for synchronous JS execution to complete before we start waiting
     // for <canvas/> to appear.
