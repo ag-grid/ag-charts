@@ -190,10 +190,9 @@ class HistogramSeriesNodeEvent<TEvent extends string = SeriesNodeEventTypes> ext
         nativeEvent: Event,
         datum: HistogramNodeDatum,
         series: HistogramSeries,
-        selectionState: PublicSelectionState | undefined,
-        isCollapsed: boolean
+        selectionState: PublicSelectionState | undefined
     ) {
-        super(type, nativeEvent, datum, series, selectionState, isCollapsed);
+        super(type, nativeEvent, datum, series, selectionState);
         this.binIndex = datum.binIndex;
         this.binRange = datum.binRange;
         this.aggregatedValue = datum.aggregatedValue;

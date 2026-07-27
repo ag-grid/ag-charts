@@ -139,6 +139,10 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         return typeof itemId === 'string' && this.ctx.collapsedManager.isCollapsed(itemId);
     }
 
+    override getCollapsedState(itemId: string | number) {
+        return this.ctx.collapsedManager.isCollapsed(itemId);
+    }
+
     async processData(dataController: _ModuleSupport.DataController) {
         const { data } = this;
         if (data == null) return;

@@ -108,10 +108,9 @@ export class FlowProportionSeriesNodeEvent<
                 _ModuleSupport.ISeriesProperties
             >;
         },
-        selectionState: SelectionState | undefined,
-        isCollapsed: boolean
+        selectionState: SelectionState | undefined
     ) {
-        super(type, nativeEvent, datum, series, selectionState, isCollapsed);
+        super(type, nativeEvent, datum, series, selectionState);
         const nodeDatum = series.contextNodeData?.nodeData.find(
             (d) => d.type === datum.type && d.datumIndex === datum.datumIndex
         );

@@ -215,7 +215,7 @@ export interface AgContextMenuShowOnParamsSeriesNode<TDatum = DatumDefault, TCon
     /** The current selection state of this datum. Set to `undefined` if the selection module is not enabled. */
     selectionState?: SelectionState;
     /** Whether this datum is collapsed. */
-    isCollapsed: boolean;
+    isCollapsed?: boolean;
 }
 
 export interface AgContextMenuShowOnParamsLegendItem<_TDatumReserved = never, TContext = ContextDefault> extends Omit<
