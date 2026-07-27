@@ -43,7 +43,10 @@ env:
     BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
     AG_LIBRARY: charts
     AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
-    AG_E2E_SHARD_COUNT: 32
+    # PR runs sweep only the vanilla example variant (see AG_E2E_FRAMEWORKS), so each shard
+    # carries roughly a third of the work and fewer, fuller shards waste less on the ~45s of
+    # fixed per-shard setup. Pushes still run all six variants and keep the wider fan-out.
+    AG_E2E_SHARD_COUNT: ${{ github.event_name == 'pull_request' && '16' || '32' }}
     LIBRARY_WEBSITE_STATUS_CHANNEL: '#charts-website-status'
 
 permissions:
