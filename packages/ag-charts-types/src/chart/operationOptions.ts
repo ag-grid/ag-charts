@@ -90,15 +90,17 @@ type ColorOperation =
 
 type FontOperation = { $rem: Leaf<number> | [Leaf<number>, Leaf<ThemeParam>] }; // Ratio of base font size
 
+type UserOptionTarget = Leaf<string> | Leaf<string>[];
+
 type LocationOperation =
     | { $circular: Leaf<any> }
-    // Target vertex | Value if true (default `true`) | Value if false (default `false`)
+    // Target vertex, or list of targets matching if any is set | Value if true (default `true`) | Value if false (default `false`)
     | {
           $isUserOption:
               | Leaf<string>
-              | [Leaf<string>]
-              | [Leaf<string>, AnyLeaf | object]
-              | [Leaf<string>, AnyLeaf | object, AnyLeaf | object];
+              | [UserOptionTarget]
+              | [UserOptionTarget, AnyLeaf]
+              | [UserOptionTarget, AnyLeaf, AnyLeaf];
       }
     | { $mapPalette: PaletteParam } // Palette param
     | { $palette: PaletteParam } // Palette param
