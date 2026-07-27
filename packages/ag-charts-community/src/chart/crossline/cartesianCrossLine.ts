@@ -12,6 +12,7 @@ import { Group } from '../../scene/group';
 import { PointerEvents } from '../../scene/node';
 import { Range } from '../../scene/shape/range';
 import { TransformableText } from '../../scene/shape/text';
+import { Transformable } from '../../scene/transformable';
 import { LabelStyle } from '../label';
 import { rangeAlignment } from '../rangeAlignment';
 import { type CrossLine, type CrossLineType, validateCrossLineValue } from './crossLine';
@@ -128,6 +129,9 @@ class CartesianCrossLineLabel extends LabelStyle implements AgCartesianCrossLine
 
 type NodeData = [number, number];
 
+/** Pointer hit tolerance in pixels, widening a cross line's line/fill so thin `line` cross lines remain targetable. */
+const CROSS_LINE_HIT_TOLERANCE = 5;
+
 export class CartesianCrossLine extends BaseProperties implements CrossLine<CartesianCrossLineLabel> {
     static readonly className = 'CrossLine';
     readonly id = createId(this);
@@ -191,6 +195,22 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
     constructor() {
         super();
         this.crossLineRange.pointerEvents = PointerEvents.None;
+    }
+
+    /**
+     * Hit-tests a canvas-space point against this cross line's rendered line/fill, widened by
+     * {@link CROSS_LINE_HIT_TOLERANCE} so thin `line` cross lines remain targetable. The `crossLineRange`
+     * node holds the geometry for both the `line` (stroke) and `range` (fill) variants; its bbox is
+     * transformed into canvas space to match the pointer coordinates carried by context-menu events.
+     */
+    containsPoint(canvasX: number, canvasY: number): boolean {
+        const group = this.type === 'range' ? this.rangeGroup : this.lineGroup;
+        if (!this.enabled || this.data == null || !group.visible) {
+            return false;
+        }
+
+        const bbox = Transformable.toCanvas(this.crossLineRange).clone().grow(CROSS_LINE_HIT_TOLERANCE);
+        return bbox.containsPoint(canvasX, canvasY);
     }
 
     private _isRange: boolean | undefined = undefined;
