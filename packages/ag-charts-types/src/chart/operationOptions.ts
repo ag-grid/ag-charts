@@ -99,8 +99,11 @@ type LocationOperation =
     | { $pathString: Leaf<string> } // Relative path to vertex
     | { $ref: ThemeParam }; // Theme param
 
+type ValueTypeName = 'array' | 'boolean' | 'date' | 'function' | 'nullish' | 'number' | 'object' | 'string';
+
 type LogicOperation =
     | { $if: [AnyLeaf, AnyLeaf | object, AnyLeaf | object] } // Condition | Value if true | Value if false
+    | { $isType: [AnyLeaf, ValueTypeName | ValueTypeName[], AnyLeaf | object, AnyLeaf | object] } // Value | Type name(s) | Value if matched | Value if not
     | { $or: AnyLeaf[] } // Array of values that are truthy
     | { $and: AnyLeaf[] } // Array of values that are truthy
     | { $eq: AnyLeaf[] } // Array of values that are truthy
