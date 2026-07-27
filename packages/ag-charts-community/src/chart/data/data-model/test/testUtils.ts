@@ -1,3 +1,5 @@
+import { testLogger } from '_ag-charts-test';
+
 import type { AgNumericValue } from 'ag-charts-types';
 
 import {
@@ -162,7 +164,7 @@ export function verifyReprocessMatchesBaseline(
 }
 
 export function basicDataSet<T>(data: T[], scopes = ['test']) {
-    const dataSet = new DataSet(data);
+    const dataSet = new DataSet(data, testLogger);
     return new Map([...scopes.map((s) => [s, dataSet] as const)]);
 }
 

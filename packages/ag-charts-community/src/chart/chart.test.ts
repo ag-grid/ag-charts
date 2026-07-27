@@ -1,3 +1,4 @@
+import { testLogger } from '_ag-charts-test';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { ChartAxisDirection, ChartUpdateType, Logger } from 'ag-charts-core';
@@ -643,9 +644,9 @@ describe('Chart', () => {
                     },
                 ],
             });
-            expect(chart.data).toEqual(DataSet.wrap(moreData));
-            expect(chart.series[0].data).toEqual(DataSet.wrap(moreData));
-            expect(chart.series[1].data).toEqual(DataSet.wrap(lessData));
+            expect(chart.data).toEqual(DataSet.wrap(moreData, testLogger));
+            expect(chart.series[0].data).toEqual(DataSet.wrap(moreData, testLogger));
+            expect(chart.series[1].data).toEqual(DataSet.wrap(lessData, testLogger));
 
             await updateChart(chartProxy, {
                 data: moreData,
@@ -664,9 +665,9 @@ describe('Chart', () => {
                 ],
             });
 
-            expect(chart.data).toEqual(DataSet.wrap(moreData));
-            expect(chart.series[0].data).toEqual(DataSet.wrap(lessData));
-            expect(chart.series[1].data).toEqual(DataSet.wrap(moreData));
+            expect(chart.data).toEqual(DataSet.wrap(moreData, testLogger));
+            expect(chart.series[0].data).toEqual(DataSet.wrap(lessData, testLogger));
+            expect(chart.series[1].data).toEqual(DataSet.wrap(moreData, testLogger));
 
             await updateChart(chartProxy, {
                 data: moreData,

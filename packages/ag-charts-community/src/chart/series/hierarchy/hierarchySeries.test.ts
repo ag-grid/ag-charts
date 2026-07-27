@@ -1,3 +1,5 @@
+import { testLogger } from '_ag-charts-test';
+
 import { EventEmitter } from 'ag-charts-core';
 
 import { Group } from '../../../scene/group';
@@ -72,17 +74,20 @@ describe('HierarchySeries', () => {
         } as any);
         series.properties.sizeKey = 'size';
         series.setChartData(
-            DataSet.wrap([
-                { size: 5, children: [{ size: 1 }, { size: 2 }, { size: 3 }] },
-                {
-                    size: 5,
-                    children: [
-                        { size: 1 },
-                        { size: 2, children: [{ size: 4 }, { size: 5 }, { size: 6 }] },
-                        { size: 3, children: [{ size: 7 }] },
-                    ],
-                },
-            ])
+            DataSet.wrap(
+                [
+                    { size: 5, children: [{ size: 1 }, { size: 2 }, { size: 3 }] },
+                    {
+                        size: 5,
+                        children: [
+                            { size: 1 },
+                            { size: 2, children: [{ size: 4 }, { size: 5 }, { size: 6 }] },
+                            { size: 3, children: [{ size: 7 }] },
+                        ],
+                    },
+                ],
+                testLogger
+            )
         );
         series.processData();
 
@@ -103,16 +108,19 @@ describe('HierarchySeries', () => {
         series.properties.sizeKey = 'size';
         series.properties.colorKey = 'color';
         series.setChartData(
-            DataSet.wrap([
-                {
-                    size: BIG,
-                    color: BIG,
-                    children: [
-                        { size: BIG, color: BIG * 2n },
-                        { size: BIG * 2n, color: BIG * 3n },
-                    ],
-                },
-            ])
+            DataSet.wrap(
+                [
+                    {
+                        size: BIG,
+                        color: BIG,
+                        children: [
+                            { size: BIG, color: BIG * 2n },
+                            { size: BIG * 2n, color: BIG * 3n },
+                        ],
+                    },
+                ],
+                testLogger
+            )
         );
         series.processData();
 
@@ -130,7 +138,7 @@ describe('HierarchySeries', () => {
         const series = new ExampleHierarchySeries({
             eventsHub: new EventEmitter(),
         } as any);
-        series.setChartData(DataSet.wrap([]));
+        series.setChartData(DataSet.wrap([], testLogger));
         series.processData();
 
         // @ts-expect-error - Remove circular dependencies because if this test fails, Jest won't be able to print any errors
@@ -157,20 +165,23 @@ describe('HierarchySeries', () => {
             eventsHub: new EventEmitter(),
         } as any);
         series.setChartData(
-            DataSet.wrap([
-                {
-                    order: 1,
-                    children: [{ order: 2 }, { order: 3 }, { order: 4 }],
-                },
-                {
-                    order: 5,
-                    children: [
-                        { order: 6 },
-                        { order: 7, children: [{ order: 8 }, { order: 9 }, { order: 10 }] },
-                        { order: 11, children: [{ order: 12 }] },
-                    ],
-                },
-            ])
+            DataSet.wrap(
+                [
+                    {
+                        order: 1,
+                        children: [{ order: 2 }, { order: 3 }, { order: 4 }],
+                    },
+                    {
+                        order: 5,
+                        children: [
+                            { order: 6 },
+                            { order: 7, children: [{ order: 8 }, { order: 9 }, { order: 10 }] },
+                            { order: 11, children: [{ order: 12 }] },
+                        ],
+                    },
+                ],
+                testLogger
+            )
         );
         series.processData();
 

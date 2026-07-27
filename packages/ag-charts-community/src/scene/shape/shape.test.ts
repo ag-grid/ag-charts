@@ -1,3 +1,4 @@
+import { testLogger } from '_ag-charts-test';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { Logger } from 'ag-charts-core';
@@ -430,6 +431,7 @@ describe('Shape', () => {
                         width: canvasCtx.nodeCanvas.width,
                         height: canvasCtx.nodeCanvas.height,
                         devicePixelRatio: 1,
+                        logger: testLogger,
                         debugNodes: {},
                     };
                     ctx.save();
@@ -479,6 +481,7 @@ describe('Shape', () => {
                         width: canvasCtx.nodeCanvas.width,
                         height: canvasCtx.nodeCanvas.height,
                         devicePixelRatio: 1,
+                        logger: testLogger,
                         debugNodes: {},
                     };
                     ctx.save();
@@ -528,6 +531,7 @@ describe('Shape', () => {
                         width: canvasCtx.nodeCanvas.width,
                         height: canvasCtx.nodeCanvas.height,
                         devicePixelRatio: 1,
+                        logger: testLogger,
                         debugNodes: {},
                     };
                     ctx.save();
@@ -577,6 +581,7 @@ describe('Shape', () => {
                         width: canvasCtx.nodeCanvas.width,
                         height: canvasCtx.nodeCanvas.height,
                         devicePixelRatio: 1,
+                        logger: testLogger,
                         debugNodes: {},
                     };
                     ctx.save();
@@ -626,6 +631,7 @@ describe('Shape', () => {
                         width: canvasCtx.nodeCanvas.width,
                         height: canvasCtx.nodeCanvas.height,
                         devicePixelRatio: 1,
+                        logger: testLogger,
                         debugNodes: {},
                     };
                     ctx.save();
@@ -675,6 +681,7 @@ describe('Shape', () => {
                         width: canvasCtx.nodeCanvas.width,
                         height: canvasCtx.nodeCanvas.height,
                         devicePixelRatio: 1,
+                        logger: testLogger,
                         debugNodes: {},
                     };
                     ctx.save();
@@ -724,6 +731,7 @@ describe('Shape', () => {
                         width: canvasCtx.nodeCanvas.width,
                         height: canvasCtx.nodeCanvas.height,
                         devicePixelRatio: 1,
+                        logger: testLogger,
                         debugNodes: {},
                     };
                     ctx.save();
@@ -758,7 +766,7 @@ describe('Shape', () => {
             return Object.assign(new Rect(), testCase);
         };
 
-        const render = (rect: Rect, logger?: Logger) => {
+        const render = (rect: Rect, logger: Logger = testLogger) => {
             const ctx = canvasCtx.getRenderContext2D();
             const renderCtx = {
                 ctx,
@@ -777,21 +785,14 @@ describe('Shape', () => {
 
         it('routes a pattern fill "too small to render" warning through the render-context logger', () => {
             const logger = new Logger();
+            const other = new Logger();
             const scoped = vi.spyOn(logger, 'warnOnce').mockImplementation(() => {});
-            const fallback = vi.spyOn(Logger.default, 'warnOnce').mockImplementation(() => {});
+            const unrelated = vi.spyOn(other, 'warnOnce').mockImplementation(() => {});
 
             render(tooSmallPatternRect(), logger);
 
             expect(scoped).toHaveBeenCalledWith('Pattern fill is too small to render, ignoring.');
-            expect(fallback).not.toHaveBeenCalled();
-        });
-
-        it('falls back to Logger.default when the render context carries no logger', () => {
-            const fallback = vi.spyOn(Logger.default, 'warnOnce').mockImplementation(() => {});
-
-            render(tooSmallPatternRect());
-
-            expect(fallback).toHaveBeenCalledWith('Pattern fill is too small to render, ignoring.');
+            expect(unrelated).not.toHaveBeenCalled();
         });
     });
 });

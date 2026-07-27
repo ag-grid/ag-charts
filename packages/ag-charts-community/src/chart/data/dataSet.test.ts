@@ -1,3 +1,4 @@
+import { testLogger } from '_ag-charts-test';
 import { describe, expect, test } from 'vitest';
 
 import { expectWarningMessages, setupMockConsole } from '../test/utils';
@@ -24,7 +25,7 @@ function runCommitScenario<T>({
     steps: CommitStep<T>[];
     dataIdKey?: string;
 }) {
-    const dataSet = new DataSet<T>([...initial], dataIdKey);
+    const dataSet = new DataSet<T>([...initial], testLogger, dataIdKey);
 
     for (const step of steps) {
         for (const transaction of step.transactions) {
@@ -85,12 +86,12 @@ describe('DataSet', () => {
 
     describe('getChangeDescription', () => {
         test('should return undefined when there are no pending transactions', () => {
-            const dataSet = new DataSet([1, 2, 3]);
+            const dataSet = new DataSet([1, 2, 3], testLogger);
             expect(dataSet.getChangeDescription()).toBeUndefined();
         });
 
         test('should handle append-only operations', () => {
-            const dataSet = new DataSet([1, 2, 3]);
+            const dataSet = new DataSet([1, 2, 3], testLogger);
             dataSet.addTransaction({ append: [4, 5] });
 
             const desc = dataSet.getChangeDescription()!;
@@ -122,7 +123,7 @@ describe('DataSet', () => {
         });
 
         test('should handle prepend-only operations', () => {
-            const dataSet = new DataSet([1, 2, 3]);
+            const dataSet = new DataSet([1, 2, 3], testLogger);
             dataSet.addTransaction({ prepend: [0] });
 
             const desc = dataSet.getChangeDescription()!;
@@ -157,7 +158,7 @@ describe('DataSet', () => {
             const item0 = { x: 0 };
             const item1 = { x: 1 };
             const item2 = { x: 2 };
-            const dataSet = new DataSet([item0, item1, item2]);
+            const dataSet = new DataSet([item0, item1, item2], testLogger);
             dataSet.addTransaction({ remove: [item1] });
 
             const desc = dataSet.getChangeDescription()!;
@@ -193,7 +194,7 @@ describe('DataSet', () => {
             const item0 = { x: 0 };
             const item1 = { x: 1 };
             const item2 = { x: 2 };
-            const dataSet = new DataSet([item0, item1, item2]);
+            const dataSet = new DataSet([item0, item1, item2], testLogger);
 
             dataSet.addTransaction({ prepend: [{ x: -1 }] });
             dataSet.addTransaction({ remove: [item1] });
@@ -214,7 +215,7 @@ describe('DataSet', () => {
             const item0 = { x: 0 };
             const item1 = { x: 1 };
             const item2 = { x: 2 };
-            const dataSet = new DataSet([item0, item1, item2]);
+            const dataSet = new DataSet([item0, item1, item2], testLogger);
 
             dataSet.addTransaction({ remove: [item1] });
             dataSet.addTransaction({ append: [{ x: 3 }, { x: 4 }] });
@@ -237,7 +238,7 @@ describe('DataSet', () => {
             const item2 = { x: 2 };
             const item3 = { x: 3 };
             const item4 = { x: 4 };
-            const dataSet = new DataSet([item0, item1, item2, item3, item4]);
+            const dataSet = new DataSet([item0, item1, item2, item3, item4], testLogger);
 
             dataSet.addTransaction({ remove: [item1, item3] });
 
@@ -255,7 +256,7 @@ describe('DataSet', () => {
         test('should handle prepend + append + remove', () => {
             const item0 = { x: 0 };
             const item1 = { x: 1 };
-            const dataSet = new DataSet([item0, item1]);
+            const dataSet = new DataSet([item0, item1], testLogger);
 
             dataSet.addTransaction({ prepend: [{ x: -1 }] });
             dataSet.addTransaction({ append: [{ x: 2 }, { x: 3 }] });
@@ -275,7 +276,7 @@ describe('DataSet', () => {
         });
 
         test('should cache the result', () => {
-            const dataSet = new DataSet([1, 2, 3]);
+            const dataSet = new DataSet([1, 2, 3], testLogger);
             dataSet.addTransaction({ append: [4] });
 
             const desc1 = dataSet.getChangeDescription();
@@ -285,7 +286,7 @@ describe('DataSet', () => {
         });
 
         test('should invalidate cache after commitPendingTransactions', () => {
-            const dataSet = new DataSet([1, 2, 3]);
+            const dataSet = new DataSet([1, 2, 3], testLogger);
             dataSet.addTransaction({ append: [4] });
 
             const descBefore = dataSet.getChangeDescription();
@@ -303,7 +304,7 @@ describe('DataSet', () => {
         });
 
         test('should invalidate cache automatically when adding transactions', () => {
-            const dataSet = new DataSet([1, 2, 3]);
+            const dataSet = new DataSet([1, 2, 3], testLogger);
             dataSet.addTransaction({ append: [4] });
 
             const desc1 = dataSet.getChangeDescription();
@@ -320,7 +321,7 @@ describe('DataSet', () => {
         });
 
         test('should handle empty array', () => {
-            const dataSet = new DataSet<number>([]);
+            const dataSet = new DataSet<number>([], testLogger);
             dataSet.addTransaction({ append: [1, 2] });
 
             const desc = dataSet.getChangeDescription()!;
@@ -332,7 +333,7 @@ describe('DataSet', () => {
         test('should handle removing all items', () => {
             const item0 = { x: 0 };
             const item1 = { x: 1 };
-            const dataSet = new DataSet([item0, item1]);
+            const dataSet = new DataSet([item0, item1], testLogger);
 
             dataSet.addTransaction({ remove: [item0, item1] });
 
@@ -348,7 +349,7 @@ describe('DataSet', () => {
             const item1 = { x: 1 };
             const item2 = { x: 2 };
             const item3 = { x: 3 };
-            const dataSet = new DataSet([item0, item1, item2, item3]);
+            const dataSet = new DataSet([item0, item1, item2, item3], testLogger);
 
             dataSet.addTransaction({ remove: [item1, item2] });
 
@@ -368,7 +369,7 @@ describe('DataSet', () => {
             const item0 = { x: 0 };
             const item1 = { x: 1 };
             const item2 = { x: 2 };
-            const dataSet = new DataSet([item0, item1, item2]);
+            const dataSet = new DataSet([item0, item1, item2], testLogger);
 
             // Mutate items
             item1.x = 10;
@@ -394,7 +395,7 @@ describe('DataSet', () => {
             const item1 = { x: 1 };
             const item2 = { x: 2 };
             const item3 = { x: 3 };
-            const dataSet = new DataSet([item0, item1, item2, item3]);
+            const dataSet = new DataSet([item0, item1, item2, item3], testLogger);
 
             // Mutate items
             item1.x = 10;
@@ -416,7 +417,7 @@ describe('DataSet', () => {
             const item1 = { x: 1 };
             const item2 = { x: 2 };
             const nonExistent = { x: 99 };
-            const dataSet = new DataSet([item0, item1, item2]);
+            const dataSet = new DataSet([item0, item1, item2], testLogger);
 
             dataSet.addTransaction({ update: [nonExistent] });
 
@@ -434,7 +435,7 @@ describe('DataSet', () => {
         test('should handle combined update + append', () => {
             const item0 = { x: 0 };
             const item1 = { x: 1 };
-            const dataSet = new DataSet([item0, item1]);
+            const dataSet = new DataSet([item0, item1], testLogger);
 
             item0.x = 10;
             dataSet.addTransaction({ update: [item0], append: [{ x: 2 }] });
@@ -456,7 +457,7 @@ describe('DataSet', () => {
         test('should handle combined update + prepend', () => {
             const item0 = { x: 0 };
             const item1 = { x: 1 };
-            const dataSet = new DataSet([item0, item1]);
+            const dataSet = new DataSet([item0, item1], testLogger);
 
             item1.x = 10;
             dataSet.addTransaction({ update: [item1], prepend: [{ x: -1 }] });
@@ -479,7 +480,7 @@ describe('DataSet', () => {
             const item0 = { x: 0 };
             const item1 = { x: 1 };
             const item2 = { x: 2 };
-            const dataSet = new DataSet([item0, item1, item2]);
+            const dataSet = new DataSet([item0, item1, item2], testLogger);
 
             item1.x = 10;
             dataSet.addTransaction({ remove: [item1], update: [item1] });
@@ -498,7 +499,7 @@ describe('DataSet', () => {
 
         test('should handle update of prepended item', () => {
             const item0 = { x: 0 };
-            const dataSet = new DataSet([item0]);
+            const dataSet = new DataSet([item0], testLogger);
 
             const newItem = { x: -1 };
             dataSet.addTransaction({ prepend: [newItem] });
@@ -514,7 +515,7 @@ describe('DataSet', () => {
 
         test('should handle update of appended item', () => {
             const item0 = { x: 0 };
-            const dataSet = new DataSet([item0]);
+            const dataSet = new DataSet([item0], testLogger);
 
             const newItem = { x: 1 };
             dataSet.addTransaction({ append: [newItem] });
@@ -532,7 +533,7 @@ describe('DataSet', () => {
             const item0 = { x: 0 };
             const item1 = { x: 1 };
             const item2 = { x: 2 };
-            const dataSet = new DataSet([item0, item1, item2]);
+            const dataSet = new DataSet([item0, item1, item2], testLogger);
 
             const newItem = { x: 3 };
             item0.x = 100;
@@ -717,7 +718,7 @@ describe('DataSet', () => {
                 const item1 = { x: 1 };
                 const item2 = { x: 2 };
 
-                const dataSet = new DataSet([item0, item1, item2]);
+                const dataSet = new DataSet([item0, item1, item2], testLogger);
 
                 // Mutate item in place
                 item1.x = 10;
@@ -734,7 +735,7 @@ describe('DataSet', () => {
                 const item1 = { x: 1 };
                 const item2 = { x: 2 };
 
-                const dataSet = new DataSet([item0, item1, item2]);
+                const dataSet = new DataSet([item0, item1, item2], testLogger);
 
                 // Mutate items in place
                 item0.x = 100;
@@ -752,7 +753,7 @@ describe('DataSet', () => {
                 const item1 = { x: 1 };
                 const nonExistent = { x: 99 };
 
-                const dataSet = new DataSet([item0, item1]);
+                const dataSet = new DataSet([item0, item1], testLogger);
 
                 dataSet.addTransaction({ update: [nonExistent] });
                 dataSet.commitPendingTransactions(undefined);
@@ -770,7 +771,7 @@ describe('DataSet', () => {
                 const item1 = { x: 1 };
                 const newItem = { x: 2 };
 
-                const dataSet = new DataSet([item0, item1]);
+                const dataSet = new DataSet([item0, item1], testLogger);
 
                 item0.x = 100;
                 dataSet.addTransaction({ append: [newItem], update: [item0] });
@@ -785,7 +786,7 @@ describe('DataSet', () => {
                 const item1 = { x: 1 };
                 const newItem = { x: -1 };
 
-                const dataSet = new DataSet([item0, item1]);
+                const dataSet = new DataSet([item0, item1], testLogger);
 
                 item1.x = 100;
                 dataSet.addTransaction({ prepend: [newItem], update: [item1] });
@@ -800,7 +801,7 @@ describe('DataSet', () => {
                 const item1 = { x: 1 };
                 const item2 = { x: 2 };
 
-                const dataSet = new DataSet([item0, item1, item2]);
+                const dataSet = new DataSet([item0, item1, item2], testLogger);
 
                 item1.x = 100;
                 dataSet.addTransaction({ remove: [item1], update: [item1] });
@@ -818,7 +819,7 @@ describe('DataSet', () => {
                 const item0 = { x: 0 };
                 const newItem = { x: -1 };
 
-                const dataSet = new DataSet([item0]);
+                const dataSet = new DataSet([item0], testLogger);
 
                 dataSet.addTransaction({ prepend: [newItem] });
                 newItem.x = -100;
@@ -833,7 +834,7 @@ describe('DataSet', () => {
                 const item0 = { x: 0 };
                 const newItem = { x: 1 };
 
-                const dataSet = new DataSet([item0]);
+                const dataSet = new DataSet([item0], testLogger);
 
                 dataSet.addTransaction({ append: [newItem] });
                 newItem.x = 100;
@@ -851,7 +852,7 @@ describe('DataSet', () => {
                 const prependItem = { x: -1 };
                 const appendItem = { x: 3 };
 
-                const dataSet = new DataSet([item0, item1, item2]);
+                const dataSet = new DataSet([item0, item1, item2], testLogger);
 
                 item0.x = 100;
                 item2.x = 200;
@@ -894,7 +895,7 @@ describe('DataSet', () => {
                 const item2 = { x: 2 };
                 const newItem = { x: 1.5 };
 
-                const dataSet = new DataSet([item0, item1, item2]);
+                const dataSet = new DataSet([item0, item1, item2], testLogger);
 
                 item1.x = 100;
                 dataSet.addTransaction({ add: [newItem], addIndex: 2, update: [item1] });
@@ -910,7 +911,7 @@ describe('DataSet', () => {
                 const item2 = { x: 2 };
                 const newItem = { x: 0.5 };
 
-                const dataSet = new DataSet([item0, item1, item2]);
+                const dataSet = new DataSet([item0, item1, item2], testLogger);
 
                 // Update item2, insert newItem at index 1 (before item2)
                 item2.x = 200;
@@ -973,7 +974,7 @@ describe('DataSet', () => {
         function createTrackedDataSet<T>(initialData: T[]) {
             const tracker = new OperationTracker<T>();
             const trackedData = tracker.wrap(initialData);
-            const dataSet = new DataSet(trackedData);
+            const dataSet = new DataSet(trackedData, testLogger);
 
             return { dataSet, tracker };
         }
@@ -1203,7 +1204,7 @@ describe('DataSet', () => {
             test('warns when remove contains items not in the dataset', () => {
                 const existing = { id: 1 };
                 const missing = { id: 2 };
-                const dataSet = new DataSet([existing]);
+                const dataSet = new DataSet([existing], testLogger);
 
                 dataSet.addTransaction({ remove: [missing] });
                 dataSet.getChangeDescription();
@@ -1216,7 +1217,7 @@ describe('DataSet', () => {
             test('warns when update contains items not in the dataset', () => {
                 const existing = { id: 1 };
                 const missing = { id: 2 };
-                const dataSet = new DataSet([existing]);
+                const dataSet = new DataSet([existing], testLogger);
 
                 dataSet.addTransaction({ update: [missing] });
                 dataSet.getChangeDescription();
@@ -1793,7 +1794,7 @@ describe('DataSet', () => {
         });
 
         test('fallback: no dataIdKey preserves referential equality matching', () => {
-            const dataSet = new DataSet<Item>([a, b, c]);
+            const dataSet = new DataSet<Item>([a, b, c], testLogger);
             // Without dataIdKey, a different object with matching id should NOT match
             dataSet.addTransaction({ remove: [{ id: 'b', value: 2 }] });
             dataSet.commitPendingTransactions(undefined);
@@ -1853,6 +1854,7 @@ describe('DataSet', () => {
                     { id: 'a', value: 2 },
                     { id: 'b', value: 3 },
                 ],
+                testLogger,
                 'id'
             );
             dataSet.commitPendingTransactions(undefined);
@@ -1866,6 +1868,7 @@ describe('DataSet', () => {
                     { id: 'a', value: 2 },
                     { id: 'b', value: 3 },
                 ],
+                testLogger,
                 'id'
             );
             dataSet.addTransaction({ remove: [{ id: 'a' } as Item] });
@@ -1936,7 +1939,7 @@ describe('DataSet', () => {
         });
 
         test('missing ID field: dataIdKey set but datum lacks the field, falls through with warning', () => {
-            const dataSet = new DataSet<any>([{ id: 'a', value: 1 }], 'id');
+            const dataSet = new DataSet<any>([{ id: 'a', value: 1 }], testLogger, 'id');
             dataSet.addTransaction({ remove: [{ value: 1 }] });
             dataSet.commitPendingTransactions(undefined);
             // Item should not be removed because it has no 'id' field
@@ -1950,6 +1953,7 @@ describe('DataSet', () => {
                     { id: 123, value: 1 },
                     { id: 'other', value: 2 },
                 ],
+                testLogger,
                 'id'
             );
             dataSet.addTransaction({ remove: [{ id: '123' }] });
@@ -1965,7 +1969,7 @@ describe('DataSet', () => {
         });
 
         test('update with non-existent ID: warning logged, item ignored', () => {
-            const dataSet = new DataSet<Item>([{ ...a }, { ...b }], 'id');
+            const dataSet = new DataSet<Item>([{ ...a }, { ...b }], testLogger, 'id');
             dataSet.addTransaction({ update: [{ id: 'nonexistent', value: 99 }] });
             dataSet.commitPendingTransactions(undefined);
             expect(dataSet.data).toEqual([a, b]);
@@ -2104,6 +2108,7 @@ describe('DataSet', () => {
                     { id: Number.NaN, value: 2 },
                     { id: 'c', value: 3 },
                 ],
+                testLogger,
                 'id'
             );
             // NaN-id item should not be in ID index, so update targeting NaN has no effect
@@ -2141,7 +2146,7 @@ describe('DataSet', () => {
         });
 
         test('warns when dataIdKey field is not found on any data item', () => {
-            const dataSet = new DataSet<Item>([{ ...a }, { ...b }, { ...c }], 'nonExistent');
+            const dataSet = new DataSet<Item>([{ ...a }, { ...b }, { ...c }], testLogger, 'nonExistent');
             dataSet.addTransaction({ remove: [{ nonExistent: 'x' } as any] });
             dataSet.commitPendingTransactions(undefined);
             expectWarningMessages([
@@ -2152,7 +2157,7 @@ describe('DataSet', () => {
 
         test('does not warn when dataIdKey field exists on data items', () => {
             const newA: Item = { id: 'a', value: 10 };
-            const dataSet = new DataSet<Item>([{ ...a }, { ...b }, { ...c }], 'id');
+            const dataSet = new DataSet<Item>([{ ...a }, { ...b }, { ...c }], testLogger, 'id');
             dataSet.addTransaction({ update: [newA] });
             dataSet.commitPendingTransactions(undefined);
             expect(dataSet.data[0]).toBe(newA);
@@ -2160,7 +2165,7 @@ describe('DataSet', () => {
         });
 
         test('does not warn when data is empty', () => {
-            const dataSet = new DataSet<Item>([], 'id');
+            const dataSet = new DataSet<Item>([], testLogger, 'id');
             dataSet.addTransaction({ append: [{ id: 'a', value: 10 }] });
             dataSet.commitPendingTransactions(undefined);
             expectWarningMessages([]);
@@ -2168,14 +2173,14 @@ describe('DataSet', () => {
 
         test('does not warn when dataIdKey is not set', () => {
             const items = [{ ...a }, { ...b }, { ...c }];
-            const dataSet = new DataSet<Item>(items);
+            const dataSet = new DataSet<Item>(items, testLogger);
             dataSet.addTransaction({ update: [items[0]] });
             dataSet.commitPendingTransactions(undefined);
             expectWarningMessages([]);
         });
 
         test('prepend duplicate ID: cache maps to prepended (first) occurrence after warm cache', () => {
-            const dataSet = new DataSet<Item>([{ ...a }, { ...b }, { ...c }], 'id');
+            const dataSet = new DataSet<Item>([{ ...a }, { ...b }, { ...c }], testLogger, 'id');
 
             // Warm the ID cache with an update
             const newC: Item = { id: 'c', value: 30 };

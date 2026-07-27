@@ -14,8 +14,10 @@ import requireSharedRenderer from './libraries/ag-charts-eslint-rules/rules/requ
 // the shared `Logger.default`. Tests construct loggers freely.
 const SANCTIONED_LOGGER_CONSTRUCTION = [
     '/logging/logger.ts',
-    '/chart/chartContext.ts',
+    // The chart's single instance, adopted by the chart context.
     '/module/optionsModule.ts',
+    // Only for a Scene with no owning chart (AG Grid sparklines / mini charts).
+    '/scene/scene.ts',
     '.test.',
     '.spec.',
 ];

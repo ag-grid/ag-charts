@@ -16,10 +16,7 @@ class CapturingGroup extends Group {
 
 function renderCapturingScene(pixelRatio: number, logger?: Logger): RenderContext | undefined {
     const canvasElement = document.createElement('canvas');
-    const scene = new Scene({ canvasElement, pixelRatio });
-    if (logger != null) {
-        scene.setLogger(logger);
-    }
+    const scene = new Scene({ canvasElement, pixelRatio }, logger);
     const root = new CapturingGroup();
     scene.setRoot(root);
     root.markDirty('test');
@@ -36,8 +33,11 @@ describe('Scene', () => {
             expect(renderCapturingScene(1, logger)?.logger).toBe(logger);
         });
 
-        it('falls back to Logger.default when no logger is configured (grid sparkline use)', () => {
-            expect(renderCapturingScene(1)?.logger).toBe(Logger.default);
+        it('supplies a self-owned logger when constructed without one (grid sparkline use)', () => {
+            const first = renderCapturingScene(1)?.logger;
+            expect(first).toBeInstanceOf(Logger);
+            // Each context-less Scene owns its logger rather than sharing an ambient one.
+            expect(renderCapturingScene(1)?.logger).not.toBe(first);
         });
     });
 

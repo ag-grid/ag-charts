@@ -1,3 +1,4 @@
+import { testLogger } from '_ag-charts-test';
 import { describe, expect, it } from 'vitest';
 
 import { expectWarningsCalls, setupMockConsole } from '../../../test/utils';
@@ -31,16 +32,19 @@ describe('DataModel', () => {
     describe('reprocessData', () => {
         describe('append operations', () => {
             it('should handle append-only transaction', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y')],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                    },
+                    testLogger
+                );
 
                 // Initial data
                 const initialData = [
                     { x: 1, y: 10 },
                     { x: 2, y: 20 },
                 ];
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
@@ -73,15 +77,18 @@ describe('DataModel', () => {
 
         describe('prepend operations', () => {
             it('should handle prepend-only transaction', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y')],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                    },
+                    testLogger
+                );
 
                 const initialData = [
                     { x: 2, y: 20 },
                     { x: 3, y: 30 },
                 ];
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
@@ -113,16 +120,19 @@ describe('DataModel', () => {
 
         describe('remove operations', () => {
             it('should handle remove transaction', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y')],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                    },
+                    testLogger
+                );
 
                 const initialData = [
                     { x: 1, y: 10 },
                     { x: 2, y: 20 },
                     { x: 3, y: 30 },
                 ];
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
@@ -148,16 +158,19 @@ describe('DataModel', () => {
 
         describe('mixed operations', () => {
             it('should handle mixed append and remove', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y')],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                    },
+                    testLogger
+                );
 
                 const initialData = [
                     { x: 1, y: 10 },
                     { x: 2, y: 20 },
                     { x: 3, y: 30 },
                 ];
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
@@ -188,12 +201,15 @@ describe('DataModel', () => {
             });
 
             it('should handle multiple value columns', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y1'), value('y2')],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y1'), value('y2')],
+                    },
+                    testLogger
+                );
 
                 const initialData = [{ x: 1, y1: 10, y2: 100 }];
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
@@ -216,15 +232,18 @@ describe('DataModel', () => {
 
         describe('diff tracking opt-in', () => {
             it('should NOT generate diffs when diff tracking is not initialized', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y')],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                    },
+                    testLogger
+                );
 
                 const initialData = [
                     { x: 1, y: 10 },
                     { x: 2, y: 20 },
                 ];
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
@@ -252,15 +271,18 @@ describe('DataModel', () => {
             });
 
             it('should generate diffs when diff tracking IS initialized', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y')],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                    },
+                    testLogger
+                );
 
                 const initialData = [
                     { x: 1, y: 10 },
                     { x: 2, y: 20 },
                 ];
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
@@ -291,12 +313,15 @@ describe('DataModel', () => {
             });
 
             it('should skip diff generation when no changes occur', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y')],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                    },
+                    testLogger
+                );
 
                 const initialData = [{ x: 1, y: 10 }];
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
@@ -319,16 +344,19 @@ describe('DataModel', () => {
             });
 
             it('should capture removed keys when rows are deleted', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y')],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                    },
+                    testLogger
+                );
 
                 const initialData = [
                     { x: 1, y: 10 },
                     { x: 2, y: 20 },
                     { x: 3, y: 30 },
                 ];
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
@@ -354,12 +382,15 @@ describe('DataModel', () => {
 
         describe('edge cases', () => {
             it('should handle no pending transactions', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y')],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                    },
+                    testLogger
+                );
 
                 const initialData = [{ x: 1, y: 10 }];
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
@@ -371,15 +402,18 @@ describe('DataModel', () => {
             });
 
             it('should handle category keys', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [categoryKey('category'), value('value')],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [categoryKey('category'), value('value')],
+                    },
+                    testLogger
+                );
 
                 const initialData = [
                     { category: 'A', value: 10 },
                     { category: 'B', value: 20 },
                 ];
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
@@ -394,19 +428,22 @@ describe('DataModel', () => {
             });
 
             it('should track invalid data in insertions', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [
-                        rangeKey('x'),
-                        { ...value('y'), validation: (v: any) => typeof v === 'number', invalidValue: undefined },
-                    ],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [
+                            rangeKey('x'),
+                            { ...value('y'), validation: (v: any) => typeof v === 'number', invalidValue: undefined },
+                        ],
+                    },
+                    testLogger
+                );
 
                 // Start with data that includes invalid item to ensure invalidData is initialized
                 const initialData = [
                     { x: 1, y: 10 },
                     { x: 2, y: 'bad' as any },
                 ];
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources)!;
@@ -438,16 +475,19 @@ describe('DataModel', () => {
             });
 
             it('should track missing data in insertions', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), { ...value('y'), missingValue: 0 }],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), { ...value('y'), missingValue: 0 }],
+                    },
+                    testLogger
+                );
 
                 // Start with data that includes missing item to ensure missingData is initialized
                 const initialData = [
                     { x: 1, y: 10 },
                     { x: 2 }, // missing `y`
                 ];
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources)!;
@@ -480,17 +520,20 @@ describe('DataModel', () => {
 
         describe('grouped data reprocessing', () => {
             it('should handle append to grouped data', () => {
-                const dataModel = new DataModel<any, any, true>({
-                    props: [rangeKey('x'), value('y')],
-                    groupByKeys: true,
-                });
+                const dataModel = new DataModel<any, any, true>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                        groupByKeys: true,
+                    },
+                    testLogger
+                );
 
                 // Initial grouped data
                 const initialData = [
                     { x: 1, y: 10 },
                     { x: 2, y: 20 },
                 ];
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
@@ -524,16 +567,19 @@ describe('DataModel', () => {
             });
 
             it('should handle prepend to grouped data', () => {
-                const dataModel = new DataModel<any, any, true>({
-                    props: [rangeKey('x'), value('y')],
-                    groupByKeys: true,
-                });
+                const dataModel = new DataModel<any, any, true>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                        groupByKeys: true,
+                    },
+                    testLogger
+                );
 
                 const initialData = [
                     { x: 2, y: 20 },
                     { x: 3, y: 30 },
                 ];
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
@@ -568,17 +614,20 @@ describe('DataModel', () => {
             });
 
             it('should handle remove from grouped data', () => {
-                const dataModel = new DataModel<any, any, true>({
-                    props: [rangeKey('x'), value('y')],
-                    groupByKeys: true,
-                });
+                const dataModel = new DataModel<any, any, true>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                        groupByKeys: true,
+                    },
+                    testLogger
+                );
 
                 const initialData = [
                     { x: 1, y: 10 },
                     { x: 2, y: 20 },
                     { x: 3, y: 30 },
                 ];
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
@@ -602,17 +651,20 @@ describe('DataModel', () => {
             });
 
             it('should handle multiple items per group', () => {
-                const dataModel = new DataModel<any, any, true>({
-                    props: [categoryKey('category'), value('value')],
-                    groupByKeys: true,
-                });
+                const dataModel = new DataModel<any, any, true>(
+                    {
+                        props: [categoryKey('category'), value('value')],
+                        groupByKeys: true,
+                    },
+                    testLogger
+                );
 
                 const initialData = [
                     { category: 'A', value: 10 },
                     { category: 'A', value: 20 },
                     { category: 'B', value: 30 },
                 ];
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
@@ -640,13 +692,16 @@ describe('DataModel', () => {
             });
 
             it('should throw error when appending data with invalid keys', () => {
-                const dataModel = new DataModel<any, any, true>({
-                    props: [rangeKey('x'), value('y')],
-                    groupByKeys: true,
-                });
+                const dataModel = new DataModel<any, any, true>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                        groupByKeys: true,
+                    },
+                    testLogger
+                );
 
                 const initialData = [{ x: 1, y: 10 }];
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
@@ -673,14 +728,17 @@ describe('DataModel', () => {
 
         describe('banding with multiple scopes', () => {
             it('should handle banding when appending to large dataset (50+ items)', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [
-                        { ...rangeKey('x'), scopes: ['seriesA', 'seriesB'] },
-                        scopedValue(['seriesA', 'seriesB'], 'y1', 'seriesA', 'value'),
-                        scopedValue(['seriesB'], 'y2', 'seriesB', 'value'),
-                    ],
-                    domainBandingConfig: bandingConfig(50, 5),
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [
+                            { ...rangeKey('x'), scopes: ['seriesA', 'seriesB'] },
+                            scopedValue(['seriesA', 'seriesB'], 'y1', 'seriesA', 'value'),
+                            scopedValue(['seriesB'], 'y2', 'seriesB', 'value'),
+                        ],
+                        domainBandingConfig: bandingConfig(50, 5),
+                    },
+                    testLogger
+                );
 
                 // Create large initial dataset (50+ items to trigger banding)
                 const initialData = Array.from({ length: 100 }, (_, i) => ({
@@ -688,7 +746,7 @@ describe('DataModel', () => {
                     y1: i * 10,
                     y2: i * 5,
                 }));
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = new Map([
                     ['seriesA', dataSet],
                     ['seriesB', dataSet],
@@ -727,15 +785,18 @@ describe('DataModel', () => {
             });
 
             it('should handle stacking on grouped data when scrolling through large dataset', () => {
-                const dataModel = new DataModel<any, any, true>({
-                    props: [
-                        categoryKey('category', ['seriesA', 'seriesB']),
-                        scopedValue(['seriesA', 'seriesB'], 'valueA', 'seriesA', 'value'),
-                        scopedValue(['seriesB'], 'valueB', 'seriesB', 'value'),
-                    ],
-                    groupByKeys: true,
-                    domainBandingConfig: bandingConfig(50, 5),
-                });
+                const dataModel = new DataModel<any, any, true>(
+                    {
+                        props: [
+                            categoryKey('category', ['seriesA', 'seriesB']),
+                            scopedValue(['seriesA', 'seriesB'], 'valueA', 'seriesA', 'value'),
+                            scopedValue(['seriesB'], 'valueB', 'seriesB', 'value'),
+                        ],
+                        groupByKeys: true,
+                        domainBandingConfig: bandingConfig(50, 5),
+                    },
+                    testLogger
+                );
 
                 // Create large initial dataset with categories Cat0...Cat99
                 const initialData = Array.from({ length: 100 }, (_, i) => ({
@@ -743,7 +804,7 @@ describe('DataModel', () => {
                     valueA: i * 10,
                     valueB: i * 5,
                 }));
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = new Map([
                     ['seriesA', dataSet],
                     ['seriesB', dataSet],
@@ -794,15 +855,18 @@ describe('DataModel', () => {
         it('should not over-apply band updates when multiple scopes share same DataSet', () => {
             // This test verifies that updateBandsForChanges() deduplicates change descriptions
             // to avoid applying band insertions/removals multiple times
-            const dataModel = new DataModel<any, any, true>({
-                props: [
-                    categoryKey('category', ['scope1', 'scope2']),
-                    scopedValue('scope1', 'value1'),
-                    scopedValue('scope2', 'value2'),
-                ],
-                groupByKeys: true,
-                domainBandingConfig: bandingConfig(50, 5),
-            });
+            const dataModel = new DataModel<any, any, true>(
+                {
+                    props: [
+                        categoryKey('category', ['scope1', 'scope2']),
+                        scopedValue('scope1', 'value1'),
+                        scopedValue('scope2', 'value2'),
+                    ],
+                    groupByKeys: true,
+                    domainBandingConfig: bandingConfig(50, 5),
+                },
+                testLogger
+            );
 
             // Create initial data with 100 items (above threshold to enable banding)
             const initialData = Array.from({ length: 100 }, (_, i) => ({
@@ -810,7 +874,7 @@ describe('DataModel', () => {
                 value1: i * 10,
                 value2: i * 100,
             }));
-            const dataSet = new DataSet(initialData);
+            const dataSet = new DataSet(initialData, testLogger);
 
             // Multiple scopes, same DataSet
             const sources = new Map([
@@ -874,21 +938,24 @@ describe('DataModel', () => {
         it('should not double-apply group processors when multiple scopes share same DataSet', () => {
             // This test verifies that reprocessGroupProcessors() deduplicates change descriptions
             // to avoid applying group processor adjustments multiple times (which would double stacking values)
-            const dataModel = new DataModel<any, any, true>({
-                props: [
-                    categoryKey('category', ['scope1', 'scope2']),
-                    scopedValue('scope1', 'seriesA', 'stack'),
-                    scopedValue('scope2', 'seriesB', 'stack'),
-                    actualAccumulateGroup('stack', 'normal'),
-                ],
-                groupByKeys: true,
-            });
+            const dataModel = new DataModel<any, any, true>(
+                {
+                    props: [
+                        categoryKey('category', ['scope1', 'scope2']),
+                        scopedValue('scope1', 'seriesA', 'stack'),
+                        scopedValue('scope2', 'seriesB', 'stack'),
+                        actualAccumulateGroup('stack', 'normal'),
+                    ],
+                    groupByKeys: true,
+                },
+                testLogger
+            );
 
             const initialData = [
                 { category: 'A', seriesA: 100, seriesB: 50 },
                 { category: 'B', seriesA: 150, seriesB: 75 },
             ];
-            const dataSet = new DataSet(initialData);
+            const dataSet = new DataSet(initialData, testLogger);
 
             // Multiple scopes, same DataSet
             const sources = new Map([
@@ -925,20 +992,23 @@ describe('DataModel', () => {
         it('should not commit transactions multiple times when multiple scopes share same DataSet', () => {
             // This test verifies that commitPendingTransactions() deduplicates DataSets
             // to avoid committing the same transaction multiple times
-            const dataModel = new DataModel<any, any, true>({
-                props: [
-                    categoryKey('category', ['scope1', 'scope2']),
-                    scopedValue('scope1', 'value1'),
-                    scopedValue('scope2', 'value2'),
-                ],
-                groupByKeys: true,
-            });
+            const dataModel = new DataModel<any, any, true>(
+                {
+                    props: [
+                        categoryKey('category', ['scope1', 'scope2']),
+                        scopedValue('scope1', 'value1'),
+                        scopedValue('scope2', 'value2'),
+                    ],
+                    groupByKeys: true,
+                },
+                testLogger
+            );
 
             const initialData = [
                 { category: 'A', value1: 10, value2: 100 },
                 { category: 'B', value1: 20, value2: 200 },
             ];
-            const dataSet = new DataSet(initialData);
+            const dataSet = new DataSet(initialData, testLogger);
 
             // Multiple scopes, same DataSet
             const sources = new Map([
@@ -973,16 +1043,19 @@ describe('DataModel', () => {
 
         it('should handle mixed operations with multiple scopes sharing same DataSet', () => {
             // This test verifies all deduplication logic works together with complex operations
-            const dataModel = new DataModel<any, any, true>({
-                props: [
-                    categoryKey('category', ['scope1', 'scope2']),
-                    scopedValue('scope1', 'seriesA', 'stack'),
-                    scopedValue('scope2', 'seriesB', 'stack'),
-                    actualAccumulateGroup('stack', 'normal'),
-                ],
-                groupByKeys: true,
-                domainBandingConfig: bandingConfig(50, 5),
-            });
+            const dataModel = new DataModel<any, any, true>(
+                {
+                    props: [
+                        categoryKey('category', ['scope1', 'scope2']),
+                        scopedValue('scope1', 'seriesA', 'stack'),
+                        scopedValue('scope2', 'seriesB', 'stack'),
+                        actualAccumulateGroup('stack', 'normal'),
+                    ],
+                    groupByKeys: true,
+                    domainBandingConfig: bandingConfig(50, 5),
+                },
+                testLogger
+            );
 
             // Create larger dataset to enable banding
             const initialData = Array.from({ length: 100 }, (_, i) => ({
@@ -990,7 +1063,7 @@ describe('DataModel', () => {
                 seriesA: i * 10,
                 seriesB: i * 5,
             }));
-            const dataSet = new DataSet(initialData);
+            const dataSet = new DataSet(initialData, testLogger);
 
             // Multiple scopes, same DataSet
             const sources = new Map([
@@ -1036,21 +1109,24 @@ describe('DataModel', () => {
     describe('reprocessing with stacked area charts', () => {
         it('should fallback to full reprocessing for normal accumulation mode', () => {
             // Normal accumulation mode (not window) should not support reprocessing
-            const dataModel = new DataModel<any, any, true>({
-                props: [
-                    categoryKey('category'),
-                    value('seriesA', 'stack'),
-                    value('seriesB', 'stack'),
-                    actualAccumulateGroup('stack', 'normal'),
-                ],
-                groupByKeys: true,
-            });
+            const dataModel = new DataModel<any, any, true>(
+                {
+                    props: [
+                        categoryKey('category'),
+                        value('seriesA', 'stack'),
+                        value('seriesB', 'stack'),
+                        actualAccumulateGroup('stack', 'normal'),
+                    ],
+                    groupByKeys: true,
+                },
+                testLogger
+            );
 
             const initialData = [
                 { category: 'A', seriesA: 100, seriesB: 50 },
                 { category: 'B', seriesA: 150, seriesB: 75 },
             ];
-            const dataSet = new DataSet(initialData);
+            const dataSet = new DataSet(initialData, testLogger);
             const sources = basicDataSet(initialData).set('test', dataSet);
 
             const processedData = dataModel.processData(sources);
@@ -1088,9 +1164,12 @@ describe('DataModel', () => {
 
     describe('isReprocessingSupported', () => {
         it('should support ungrouped data without aggregates', () => {
-            const dataModel = new DataModel<any, any>({
-                props: [rangeKey('x'), value('y')],
-            });
+            const dataModel = new DataModel<any, any>(
+                {
+                    props: [rangeKey('x'), value('y')],
+                },
+                testLogger
+            );
 
             const sources = basicDataSet([{ x: 1, y: 10 }]);
             const processedData = dataModel.processData(sources);
@@ -1099,10 +1178,13 @@ describe('DataModel', () => {
         });
 
         it('should support grouped data with groupsUnique=true and single scope', () => {
-            const dataModel = new DataModel<any, any, true>({
-                props: [rangeKey('x'), value('y')],
-                groupByKeys: true,
-            });
+            const dataModel = new DataModel<any, any, true>(
+                {
+                    props: [rangeKey('x'), value('y')],
+                    groupByKeys: true,
+                },
+                testLogger
+            );
 
             const sources = basicDataSet([
                 { x: 1, y: 10 },
@@ -1119,18 +1201,21 @@ describe('DataModel', () => {
         it('should not support grouped data with groupsUnique=false', () => {
             // Create a scenario where groupsUnique=false by using multiple scopes
             // that share group keys (this prevents the batch merging optimization)
-            const dataModel = new DataModel<any, any, true>({
-                props: [
-                    categoryKey('category', ['scope1', 'scope2']),
-                    scopedValue('scope1', 'value1'),
-                    scopedValue('scope2', 'value2'),
-                ],
-                groupByKeys: true,
-                groupByFn: () => () => ['shared-group'], // Force all data into one group
-            });
+            const dataModel = new DataModel<any, any, true>(
+                {
+                    props: [
+                        categoryKey('category', ['scope1', 'scope2']),
+                        scopedValue('scope1', 'value1'),
+                        scopedValue('scope2', 'value2'),
+                    ],
+                    groupByKeys: true,
+                    groupByFn: () => () => ['shared-group'], // Force all data into one group
+                },
+                testLogger
+            );
 
-            const dataSet1 = new DataSet([{ category: 'A', value1: 10 }]);
-            const dataSet2 = new DataSet([{ category: 'A', value2: 20 }]);
+            const dataSet1 = new DataSet([{ category: 'A', value1: 10 }], testLogger);
+            const dataSet2 = new DataSet([{ category: 'A', value2: 20 }], testLogger);
             const sources = new Map<string, DataSet<any>>([
                 ['scope1', dataSet1],
                 ['scope2', dataSet2],
@@ -1144,9 +1229,12 @@ describe('DataModel', () => {
         });
 
         it('should not support data with aggregates', () => {
-            const dataModel = new DataModel<any, any>({
-                props: [rangeKey('x'), value('y', 'group1'), sum('group1')],
-            });
+            const dataModel = new DataModel<any, any>(
+                {
+                    props: [rangeKey('x'), value('y', 'group1'), sum('group1')],
+                },
+                testLogger
+            );
 
             const sources = basicDataSet([{ x: 1, y: 10 }]);
             const processedData = dataModel.processData(sources);
@@ -1155,19 +1243,25 @@ describe('DataModel', () => {
         });
 
         it('should support multiple scopes with same DataSet', () => {
-            const dataModel = new DataModel<any, any, true>({
-                props: [
-                    categoryKey('category', ['scope1', 'scope2']),
-                    scopedValue('scope1', 'value1'),
-                    scopedValue('scope2', 'value2'),
-                ],
-                groupByKeys: true,
-            });
+            const dataModel = new DataModel<any, any, true>(
+                {
+                    props: [
+                        categoryKey('category', ['scope1', 'scope2']),
+                        scopedValue('scope1', 'value1'),
+                        scopedValue('scope2', 'value2'),
+                    ],
+                    groupByKeys: true,
+                },
+                testLogger
+            );
 
-            const dataSet = new DataSet([
-                { category: 'A', value1: 10, value2: 100 },
-                { category: 'B', value1: 20, value2: 200 },
-            ]);
+            const dataSet = new DataSet(
+                [
+                    { category: 'A', value1: 10, value2: 100 },
+                    { category: 'B', value1: 20, value2: 200 },
+                ],
+                testLogger
+            );
 
             // Multiple scopes, same DataSet
             const sources = new Map([
@@ -1181,23 +1275,32 @@ describe('DataModel', () => {
         });
 
         it('should not support multiple scopes with different DataSets', () => {
-            const dataModel = new DataModel<any, any, true>({
-                props: [
-                    categoryKey('category', ['scope1', 'scope2']),
-                    scopedValue('scope1', 'value1'),
-                    scopedValue('scope2', 'value2'),
-                ],
-                groupByKeys: true,
-            });
+            const dataModel = new DataModel<any, any, true>(
+                {
+                    props: [
+                        categoryKey('category', ['scope1', 'scope2']),
+                        scopedValue('scope1', 'value1'),
+                        scopedValue('scope2', 'value2'),
+                    ],
+                    groupByKeys: true,
+                },
+                testLogger
+            );
 
-            const dataSet1 = new DataSet([
-                { category: 'A', value1: 10, value2: 100 },
-                { category: 'B', value1: 20, value2: 200 },
-            ]);
-            const dataSet2 = new DataSet([
-                { category: 'A', value1: 10, value2: 100 },
-                { category: 'B', value1: 20, value2: 200 },
-            ]);
+            const dataSet1 = new DataSet(
+                [
+                    { category: 'A', value1: 10, value2: 100 },
+                    { category: 'B', value1: 20, value2: 200 },
+                ],
+                testLogger
+            );
+            const dataSet2 = new DataSet(
+                [
+                    { category: 'A', value1: 10, value2: 100 },
+                    { category: 'B', value1: 20, value2: 200 },
+                ],
+                testLogger
+            );
 
             // Multiple scopes, different DataSets
             const sources = new Map([
@@ -1216,15 +1319,18 @@ describe('DataModel', () => {
 
         describe('entirely null datums', () => {
             it('should handle appending null datum', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y')],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                    },
+                    testLogger
+                );
 
                 const initialData = [
                     { x: 1, y: 10 },
                     { x: 2, y: 20 },
                 ];
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
@@ -1242,12 +1348,15 @@ describe('DataModel', () => {
             });
 
             it('should handle appending undefined datum', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y')],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                    },
+                    testLogger
+                );
 
                 const initialData = [{ x: 1, y: 10 }];
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
@@ -1264,15 +1373,18 @@ describe('DataModel', () => {
             });
 
             it('should handle prepending null datum', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y')],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                    },
+                    testLogger
+                );
 
                 const initialData = [
                     { x: 2, y: 20 },
                     { x: 3, y: 30 },
                 ];
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
@@ -1292,12 +1404,15 @@ describe('DataModel', () => {
             });
 
             it('should handle appending multiple null datums in single transaction', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y')],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                    },
+                    testLogger
+                );
 
                 const initialData = [{ x: 1, y: 10 }];
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
@@ -1319,16 +1434,19 @@ describe('DataModel', () => {
             });
 
             it('should handle replacing valid datum with null via remove+append', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y')],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                    },
+                    testLogger
+                );
 
                 const initialData = [
                     { x: 1, y: 10 },
                     { x: 2, y: 20 },
                     { x: 3, y: 30 },
                 ];
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
@@ -1350,15 +1468,18 @@ describe('DataModel', () => {
 
         describe('datums with null value fields (valid key)', () => {
             it('should handle appending datum with null value but valid key', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [
-                        rangeKey('x'),
-                        { ...value('y'), validation: (v: any) => typeof v === 'number', invalidValue: undefined },
-                    ],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [
+                            rangeKey('x'),
+                            { ...value('y'), validation: (v: any) => typeof v === 'number', invalidValue: undefined },
+                        ],
+                    },
+                    testLogger
+                );
 
                 const initialData = [{ x: 1, y: 10 }];
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
@@ -1384,16 +1505,19 @@ describe('DataModel', () => {
             });
 
             it('should handle multiple value columns with selective nulls', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [
-                        rangeKey('x'),
-                        { ...value('y1'), validation: (v: any) => typeof v === 'number', invalidValue: undefined },
-                        { ...value('y2'), validation: (v: any) => typeof v === 'number', invalidValue: undefined },
-                    ],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [
+                            rangeKey('x'),
+                            { ...value('y1'), validation: (v: any) => typeof v === 'number', invalidValue: undefined },
+                            { ...value('y2'), validation: (v: any) => typeof v === 'number', invalidValue: undefined },
+                        ],
+                    },
+                    testLogger
+                );
 
                 const initialData = [{ x: 1, y1: 10, y2: 100 }];
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
@@ -1421,15 +1545,18 @@ describe('DataModel', () => {
             });
 
             it('should handle appending datum with undefined value field', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [
-                        rangeKey('x'),
-                        { ...value('y'), validation: (v: any) => typeof v === 'number', invalidValue: undefined },
-                    ],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [
+                            rangeKey('x'),
+                            { ...value('y'), validation: (v: any) => typeof v === 'number', invalidValue: undefined },
+                        ],
+                    },
+                    testLogger
+                );
 
                 const initialData = [{ x: 1, y: 10 }];
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
@@ -1454,18 +1581,21 @@ describe('DataModel', () => {
 
         describe('update operations with nulls', () => {
             it('should handle updating datum to have null value', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [
-                        rangeKey('x'),
-                        { ...value('y'), validation: (v: any) => typeof v === 'number', invalidValue: undefined },
-                    ],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [
+                            rangeKey('x'),
+                            { ...value('y'), validation: (v: any) => typeof v === 'number', invalidValue: undefined },
+                        ],
+                    },
+                    testLogger
+                );
 
                 const initialData = [
                     { x: 1, y: 10 },
                     { x: 2, y: 20 },
                 ];
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
@@ -1486,14 +1616,17 @@ describe('DataModel', () => {
 
         describe('remove operations with nulls', () => {
             it('should handle removing null datum', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y')],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                    },
+                    testLogger
+                );
 
                 // Start with data that includes null
                 const nullDatum = null as any;
                 const initialData = [{ x: 1, y: 10 }, nullDatum, { x: 3, y: 30 }];
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
@@ -1513,14 +1646,17 @@ describe('DataModel', () => {
             });
 
             it('should handle removing all valid datums leaving only nulls', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y')],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                    },
+                    testLogger
+                );
 
                 const nullDatum = null as any;
                 const validDatum = { x: 1, y: 10 };
                 const initialData = [validDatum, nullDatum];
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
@@ -1544,15 +1680,18 @@ describe('DataModel', () => {
 
         describe('mixed transactions with nulls', () => {
             it('should handle prepend null and append valid', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y')],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                    },
+                    testLogger
+                );
 
                 const initialData = [
                     { x: 2, y: 20 },
                     { x: 3, y: 30 },
                 ];
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
@@ -1573,16 +1712,19 @@ describe('DataModel', () => {
             });
 
             it('should handle remove valid and append null', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y')],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                    },
+                    testLogger
+                );
 
                 const initialData = [
                     { x: 1, y: 10 },
                     { x: 2, y: 20 },
                     { x: 3, y: 30 },
                 ];
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
@@ -1604,17 +1746,20 @@ describe('DataModel', () => {
             });
 
             it('should handle rolling window with null datums', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y')],
-                    domainBandingConfig: bandingConfig(50, 5),
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                        domainBandingConfig: bandingConfig(50, 5),
+                    },
+                    testLogger
+                );
 
                 // Large dataset to trigger banding
                 const initialData = Array.from({ length: 100 }, (_, i) => ({
                     x: i,
                     y: i * 10,
                 }));
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
@@ -1639,12 +1784,15 @@ describe('DataModel', () => {
 
         describe('domain correctness with nulls', () => {
             it('should compute correct key domain excluding null keys', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y')],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                    },
+                    testLogger
+                );
 
                 const initialData = [{ x: 1, y: 10 }];
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
@@ -1671,15 +1819,18 @@ describe('DataModel', () => {
             });
 
             it('should compute correct value domain excluding null values', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [
-                        rangeKey('x'),
-                        { ...value('y'), validation: (v: any) => typeof v === 'number', invalidValue: undefined },
-                    ],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [
+                            rangeKey('x'),
+                            { ...value('y'), validation: (v: any) => typeof v === 'number', invalidValue: undefined },
+                        ],
+                    },
+                    testLogger
+                );
 
                 const initialData = [{ x: 1, y: 10 }];
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
@@ -1710,19 +1861,22 @@ describe('DataModel', () => {
 
         describe('grouped data with nulls', () => {
             it('should handle grouped data with null value but valid key', () => {
-                const dataModel = new DataModel<any, any, true>({
-                    props: [
-                        rangeKey('x'),
-                        { ...value('y'), validation: (v: any) => typeof v === 'number', invalidValue: undefined },
-                    ],
-                    groupByKeys: true,
-                });
+                const dataModel = new DataModel<any, any, true>(
+                    {
+                        props: [
+                            rangeKey('x'),
+                            { ...value('y'), validation: (v: any) => typeof v === 'number', invalidValue: undefined },
+                        ],
+                        groupByKeys: true,
+                    },
+                    testLogger
+                );
 
                 const initialData = [
                     { x: 1, y: 10 },
                     { x: 2, y: 20 },
                 ];
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
@@ -1746,17 +1900,20 @@ describe('DataModel', () => {
             });
 
             it('should not support reprocessing when invalid keys exist in initial data', () => {
-                const dataModel = new DataModel<any, any, true>({
-                    props: [rangeKey('x'), value('y')],
-                    groupByKeys: true,
-                });
+                const dataModel = new DataModel<any, any, true>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                        groupByKeys: true,
+                    },
+                    testLogger
+                );
 
                 // Initial data with null key
                 const initialData = [
                     { x: 1, y: 10 },
                     { x: null as any, y: 20 },
                 ];
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
@@ -1771,16 +1928,19 @@ describe('DataModel', () => {
 
         describe('allowNullKey support', () => {
             it('should include null in category domain when allowNullKey is true', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [categoryKeyAllowNull('x'), value('y')],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [categoryKeyAllowNull('x'), value('y')],
+                    },
+                    testLogger
+                );
 
                 const initialData = [
                     { x: 'A', y: 10 },
                     { x: null as any, y: 20 },
                     { x: 'B', y: 30 },
                 ];
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
@@ -1794,9 +1954,12 @@ describe('DataModel', () => {
             });
 
             it('should distinguish null from string "null" in category keys', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [categoryKeyAllowNull('x'), value('y')],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [categoryKeyAllowNull('x'), value('y')],
+                    },
+                    testLogger
+                );
 
                 const initialData = [
                     { x: 'A', y: 10 },
@@ -1804,7 +1967,7 @@ describe('DataModel', () => {
                     { x: 'null', y: 30 }, // string "null" is different from actual null
                     { x: 'B', y: 40 },
                 ];
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
@@ -1816,17 +1979,20 @@ describe('DataModel', () => {
             });
 
             it('should support reprocessing with allowNullKey when null keys exist', () => {
-                const dataModel = new DataModel<any, any, true>({
-                    props: [categoryKeyAllowNull('x'), value('y')],
-                    groupByKeys: true,
-                });
+                const dataModel = new DataModel<any, any, true>(
+                    {
+                        props: [categoryKeyAllowNull('x'), value('y')],
+                        groupByKeys: true,
+                    },
+                    testLogger
+                );
 
                 // Initial data with null key
                 const initialData = [
                     { x: 'A', y: 10 },
                     { x: null as any, y: 20 },
                 ];
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
@@ -1850,16 +2016,19 @@ describe('DataModel', () => {
             });
 
             it('should NOT emit warnings when null keys are processed with allowNullKey: true', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [categoryKeyAllowNull('x'), value('y')],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [categoryKeyAllowNull('x'), value('y')],
+                    },
+                    testLogger
+                );
 
                 const initialData = [
                     { x: 'A', y: 10 },
                     { x: null as any, y: 20 },
                     { x: 'B', y: 30 },
                 ];
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 // Process data with null key - should NOT emit warnings
@@ -1870,12 +2039,15 @@ describe('DataModel', () => {
             });
 
             it('should NOT emit warnings when appending null keys with allowNullKey: true', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [categoryKeyAllowNull('x'), value('y')],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [categoryKeyAllowNull('x'), value('y')],
+                    },
+                    testLogger
+                );
 
                 const initialData = [{ x: 'A', y: 10 }];
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
@@ -1893,9 +2065,12 @@ describe('DataModel', () => {
             });
 
             it('should handle multiple null keys in data with allowNullKey: true', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [categoryKeyAllowNull('x'), value('y')],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [categoryKeyAllowNull('x'), value('y')],
+                    },
+                    testLogger
+                );
 
                 const initialData = [
                     { x: 'A', y: 10 },
@@ -1903,7 +2078,7 @@ describe('DataModel', () => {
                     { x: null as any, y: 25 }, // Multiple nulls
                     { x: 'B', y: 30 },
                 ];
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
@@ -1920,16 +2095,19 @@ describe('DataModel', () => {
             });
 
             it('should correctly store null key values in keys array', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [categoryKeyAllowNull('x'), value('y')],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [categoryKeyAllowNull('x'), value('y')],
+                    },
+                    testLogger
+                );
 
                 const initialData = [
                     { x: 'A', y: 10 },
                     { x: null as any, y: 20 },
                     { x: 'B', y: 30 },
                 ];
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
@@ -1946,16 +2124,19 @@ describe('DataModel', () => {
             });
 
             it('should include undefined in category domain when allowNullKey is true', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [categoryKeyAllowNull('x'), value('y')],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [categoryKeyAllowNull('x'), value('y')],
+                    },
+                    testLogger
+                );
 
                 const initialData = [
                     { x: 'A', y: 10 },
                     { x: undefined as any, y: 20 },
                     { x: 'B', y: 30 },
                 ];
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
@@ -1971,9 +2152,12 @@ describe('DataModel', () => {
             });
 
             it('should treat null and undefined as distinct category keys when allowNullKey is true', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [categoryKeyAllowNull('x'), value('y')],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [categoryKeyAllowNull('x'), value('y')],
+                    },
+                    testLogger
+                );
 
                 const initialData = [
                     { x: 'A', y: 10 },
@@ -1981,7 +2165,7 @@ describe('DataModel', () => {
                     { x: undefined as any, y: 30 },
                     { x: 'B', y: 40 },
                 ];
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
@@ -1999,17 +2183,20 @@ describe('DataModel', () => {
 
         describe('banding with nulls', () => {
             it('should handle banded domain with null datum insertions', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y')],
-                    domainBandingConfig: bandingConfig(50, 5),
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                        domainBandingConfig: bandingConfig(50, 5),
+                    },
+                    testLogger
+                );
 
                 // Large dataset to trigger banding
                 const initialData = Array.from({ length: 100 }, (_, i) => ({
                     x: i,
                     y: i * 10,
                 }));
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);

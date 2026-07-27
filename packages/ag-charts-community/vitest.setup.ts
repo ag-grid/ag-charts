@@ -1,9 +1,9 @@
-import { mockCanvas, toMatchImage } from '_ag-charts-test';
+import { mockCanvas, testLogger, toMatchImage } from '_ag-charts-test';
 import { toMatchImageSnapshot } from 'jest-image-snapshot';
 import { URL } from 'node:url';
 import { TextDecoder, TextEncoder } from 'node:util';
 import { DOMMatrix, Image, Path2D } from 'skia-canvas';
-import { expect } from 'vitest';
+import { afterEach, expect } from 'vitest';
 
 const { ModuleRegistry } = await import('ag-charts-core');
 const { AllCommunityModule } = await import('./src/module-bundles/all');
@@ -80,3 +80,5 @@ globalThis.MouseEvent.prototype = OrigMouseEvent.prototype;
 Object.setPrototypeOf(globalThis.MouseEvent, OrigMouseEvent);
 
 expect.extend({ toMatchImageSnapshot, toMatchImage });
+
+afterEach(() => testLogger.reset());

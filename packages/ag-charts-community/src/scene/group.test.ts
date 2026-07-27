@@ -1,9 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
+import { Logger } from 'ag-charts-core';
+
 import { BBox } from './bbox';
 import type { HdpiOffscreenCanvas } from './canvas/hdpiOffscreenCanvas';
 import { Group } from './group';
 import { type IScene, Node, type RenderContext } from './node';
+
+const sceneTestLogger = new Logger();
 
 class TestNode extends Node {
     protected override computeBBox(): BBox | undefined {
@@ -156,6 +160,7 @@ describe('Group', () => {
                     width: 100,
                     height: 100,
                     devicePixelRatio: 1,
+                    logger: sceneTestLogger,
                     debugNodes: {},
                 };
 
@@ -195,6 +200,7 @@ describe('Group', () => {
                     width: 100,
                     height: 100,
                     devicePixelRatio: 1,
+                    logger: sceneTestLogger,
                     debugNodes: {},
                 };
 
@@ -228,6 +234,7 @@ describe('Group', () => {
                     width: 100,
                     height: 100,
                     devicePixelRatio: 1,
+                    logger: sceneTestLogger,
                     debugNodes: {},
                 };
 

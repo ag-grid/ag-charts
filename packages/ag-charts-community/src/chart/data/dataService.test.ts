@@ -1,3 +1,4 @@
+import { testLogger } from '_ag-charts-test';
 import type { MockInstance } from 'vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -31,9 +32,10 @@ describe('DataService', () => {
         const animationManager = new AnimationManager(
             new AgDocument(getDocument()),
             interactionManager,
-            chartUpdateMutex
+            chartUpdateMutex,
+            testLogger
         );
-        dataService = new DataService(eventsHub, {}, animationManager);
+        dataService = new DataService(eventsHub, {}, animationManager, testLogger);
         dataService.requestThrottle = REQUEST_THROTTLE;
     });
 
