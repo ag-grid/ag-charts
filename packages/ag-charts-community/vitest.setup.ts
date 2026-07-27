@@ -1,4 +1,4 @@
-import { mockCanvas, testLogger, toMatchImage } from '_ag-charts-test';
+import { mockCanvas, resetTestLogging, toMatchImage } from '_ag-charts-test';
 import { toMatchImageSnapshot } from 'jest-image-snapshot';
 import { URL } from 'node:url';
 import { TextDecoder, TextEncoder } from 'node:util';
@@ -81,4 +81,4 @@ Object.setPrototypeOf(globalThis.MouseEvent, OrigMouseEvent);
 
 expect.extend({ toMatchImageSnapshot, toMatchImage });
 
-afterEach(() => testLogger.reset());
+afterEach(resetTestLogging);

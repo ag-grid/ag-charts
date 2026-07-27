@@ -1,5 +1,4 @@
-import type { Logger } from 'ag-charts-core';
-import type { PlainObject, Resolved } from 'ag-charts-core';
+import type { Logger, PlainObject, Resolved } from 'ag-charts-core';
 
 import type { OptionsGraphAccessor, OptionsGraphAccessorResolvePartialOptions } from '../module/optionsGraph';
 

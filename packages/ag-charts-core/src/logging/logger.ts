@@ -5,10 +5,6 @@
 const SEVERITY = { warn: 1, error: 2 } as const;
 
 export class Logger {
-    // Shared module-default instance backing the `Logger.*` statics and the free functions below, so every
-    // chart-less call path shares one dedup cache and `reset()`. The sanctioned fallback for code with no chart.
-    static readonly default = new Logger();
-
     private readonly doOnceCache = new Set<string>();
 
     constructor(private readonly minSeverity: number = 0) {}
@@ -86,44 +82,24 @@ export class Logger {
             }
         }
     }
-
-    static log(...logContent: any[]) {
-        Logger.default.log(...logContent);
-    }
-    static warn(message: any, ...logContent: any[]) {
-        Logger.default.warn(message, ...logContent);
-    }
-    static error(message: any, ...logContent: any[]) {
-        Logger.default.error(message, ...logContent);
-    }
-    static table(...logContent: any[]) {
-        Logger.default.table(...logContent);
-    }
-    static warnOnce(messageOrError: unknown, ...logContent: any[]) {
-        Logger.default.warnOnce(messageOrError, ...logContent);
-    }
-    static errorOnce(messageOrError: unknown, ...logContent: any[]) {
-        Logger.default.errorOnce(messageOrError, ...logContent);
-    }
-    static reset() {
-        Logger.default.reset();
-    }
-    static logGroup<T>(name: string, cb: () => T): T {
-        return Logger.default.logGroup(name, cb);
-    }
 }
 
 function isPromise(value: unknown): value is Promise<unknown> {
     return typeof value === 'object' && value !== null && 'then' in value;
 }
 
-export const log = (...logContent: any[]) => Logger.default.log(...logContent);
-export const warn = (message: any, ...logContent: any[]) => Logger.default.warn(message, ...logContent);
-export const error = (message: any, ...logContent: any[]) => Logger.default.error(message, ...logContent);
-export const table = (...logContent: any[]) => Logger.default.table(...logContent);
+// The single instance behind the free functions below. Deliberately module-private: a chart's Logger
+// comes from its context, and code with no chart calls these functions rather than getting hold of a
+// shared Logger it could pass around. See `no-unscoped-logger` for the files allowed to use them.
+const ambient = new Logger();
+
+export const log = (...logContent: any[]) => ambient.log(...logContent);
+export const warn = (message: any, ...logContent: any[]) => ambient.warn(message, ...logContent);
+export const error = (message: any, ...logContent: any[]) => ambient.error(message, ...logContent);
+export const table = (...logContent: any[]) => ambient.table(...logContent);
 export const warnOnce = (messageOrError: unknown, ...logContent: any[]) =>
-    Logger.default.warnOnce(messageOrError, ...logContent);
+    ambient.warnOnce(messageOrError, ...logContent);
 export const errorOnce = (messageOrError: unknown, ...logContent: any[]) =>
-    Logger.default.errorOnce(messageOrError, ...logContent);
-export const reset = () => Logger.default.reset();
-export const logGroup = <T>(name: string, cb: () => T): T => Logger.default.logGroup(name, cb);
+    ambient.errorOnce(messageOrError, ...logContent);
+export const reset = () => ambient.reset();
+export const logGroup = <T>(name: string, cb: () => T): T => ambient.logGroup(name, cb);

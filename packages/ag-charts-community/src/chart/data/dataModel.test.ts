@@ -3524,7 +3524,7 @@ describe('DataModel', () => {
         it('routes data-validation warnings through the logger passed to the constructor', () => {
             const logger = new Logger();
             const scopedWarnOnce = vi.spyOn(logger, 'warnOnce').mockImplementation(() => {});
-            const fallbackWarnOnce = vi.spyOn(Logger.default, 'warnOnce').mockImplementation(() => {});
+            const fallbackWarnOnce = vi.spyOn(new Logger(), 'warnOnce').mockImplementation(() => {});
 
             const dataModel = new DataModel<any, any, true>(
                 {
@@ -3551,7 +3551,7 @@ describe('DataModel', () => {
         it('routes time-axis datum-validation warnings through the constructor logger', () => {
             const logger = new Logger();
             const scopedWarnOnce = vi.spyOn(logger, 'warnOnce').mockImplementation(() => {});
-            const fallbackWarnOnce = vi.spyOn(Logger.default, 'warnOnce').mockImplementation(() => {});
+            const fallbackWarnOnce = vi.spyOn(new Logger(), 'warnOnce').mockImplementation(() => {});
 
             const dataModel = new DataModel<any, any, true>(
                 {

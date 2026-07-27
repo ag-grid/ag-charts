@@ -1,4 +1,4 @@
-import { Logger } from 'ag-charts-core';
+import { ambientLog } from 'ag-charts-core';
 import type { Formatter, MessageFormatterParams } from 'ag-charts-types';
 
 const messageRegExp = /\$\{(\w+)}(?:\[(\w+)])?/gi;
@@ -22,7 +22,7 @@ export const defaultMessageFormatter: Formatter<MessageFormatterParams> = ({ def
         const formatter = format == null ? null : formatters[format];
 
         if (format != null && formatter == null) {
-            Logger.default.warnOnce(`Format style [${format}] is not supported`);
+            ambientLog.warnOnce(`Format style [${format}] is not supported`);
         }
 
         if (formatter != null) {

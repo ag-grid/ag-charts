@@ -789,7 +789,7 @@ describe('MapShapeSeries', () => {
             await waitForChartStability(chart);
 
             const scopedWarnOnce = vi.spyOn(chart.ctx.logger, 'warnOnce').mockImplementation(() => {});
-            const fallbackWarnOnce = vi.spyOn(Logger.default, 'warnOnce').mockImplementation(() => {});
+            const fallbackWarnOnce = vi.spyOn(new Logger(), 'warnOnce').mockImplementation(() => {});
 
             // Updating without a topology re-runs processData, whose no-topology guard emits via this.ctx.logger.
             const noTopologyOptions: AgChartOptions = {

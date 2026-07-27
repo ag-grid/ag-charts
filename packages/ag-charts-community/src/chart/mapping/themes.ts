@@ -1,8 +1,8 @@
 import {
     Debug,
-    Logger,
     ModuleRegistry,
     type OptionsDefs,
+    ambientLog,
     arrayOf,
     boolean,
     color,
@@ -147,7 +147,7 @@ function createChartTheme(value: unknown): ChartTheme {
     const { cleared, invalid } = validate(reduceThemeOptions(value), themeOptionsDef, 'theme');
 
     for (const error of invalid) {
-        Logger.default.warnOnce(String(error));
+        ambientLog.warnOnce(String(error));
     }
 
     const baseTheme: any = cleared?.baseTheme ? getChartTheme(cleared.baseTheme) : lightTheme();
@@ -269,7 +269,7 @@ function validateStructure(value: unknown) {
         { theme: or(themeNameValidator, object) }
     );
     for (const error of invalid) {
-        Logger.default.warnOnce(String(error));
+        ambientLog.warnOnce(String(error));
     }
     return invalid.length === 0;
 }

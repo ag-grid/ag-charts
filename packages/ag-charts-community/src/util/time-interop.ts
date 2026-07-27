@@ -1,4 +1,4 @@
-import { Logger, type RequireOptional } from 'ag-charts-core';
+import { type RequireOptional, ambientLog } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
 interface TimeIntervalBackwardsCompat extends RequireOptional<AgTimeInterval> {
@@ -25,7 +25,7 @@ function createTimeInterval(
 const cachedInstances: Partial<Record<string, TimeIntervalBackwardsCompat>> = {};
 
 function getTimeInterval(unit: AgTimeIntervalUnit, step = 1, epoch?: Date, utc = false): TimeIntervalBackwardsCompat {
-    Logger.default.warnOnce('time import is deprecated, use object notation instead');
+    ambientLog.warnOnce('time import is deprecated, use object notation instead');
 
     const key = `${unit}:${step}:${epoch?.getTime() ?? 0}:${utc}`;
     let instance = cachedInstances[key];

@@ -242,7 +242,7 @@ class AgChartsInternal {
         }
 
         if (chartOptions.optionsGraph) {
-            chart.ctx.optionsGraphService.updateCallback((path, partialOptions, resolveOptions) => {
+            chart.ctx.optionsGraphService.updateCallback((logger, path, partialOptions, resolveOptions) => {
                 const processedCSSVariables = chartOptions.processCSSVariablesPartial(
                     partialOptions,
                     chartOptions.processedOptions.container
@@ -250,6 +250,7 @@ class AgChartsInternal {
                 chart.ctx.domManager.updateCSSVariableWatchers(processedCSSVariables);
 
                 return chartOptions.optionsGraph?.resolvePartial(
+                    logger,
                     path,
                     partialOptions,
                     resolveOptions,

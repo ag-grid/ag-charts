@@ -1,10 +1,11 @@
-import { testLogger } from '_ag-charts-test';
 import { describe, expect, test, vi } from 'vitest';
 
 import { Logger, computeColorBins, deriveNormalizedStops, formatColorScaleBinLabel } from 'ag-charts-core';
 
 import { ColorScale } from './colorScale';
 import { configureColorScale } from './colorScaleUtil';
+
+const scaleTestLogger = new Logger();
 
 describe('computeColorBins', () => {
     describe('discrete mode', () => {
@@ -315,7 +316,7 @@ describe('configureColorScale', () => {
             scale,
             { fills: [{ color: 'red' }, { color: 'green' }], domain: undefined, mode: 'discrete' },
             [0, 100],
-            testLogger
+            scaleTestLogger
         );
         expect(scale.mode).toBe('discrete');
         expect(scale.domain).toEqual([0, 50, 100]);
@@ -332,7 +333,7 @@ describe('configureColorScale', () => {
         const scale = new ColorScale();
         const domainBefore = [...scale.domain];
         const rangeBefore = [...scale.range];
-        configureColorScale(scale, { fills: [], domain: undefined, mode: 'continuous' }, [10, 90], testLogger);
+        configureColorScale(scale, { fills: [], domain: undefined, mode: 'continuous' }, [10, 90], scaleTestLogger);
         expect(scale.domain).toEqual(domainBefore);
         expect(scale.range).toEqual(rangeBefore);
     });
@@ -351,7 +352,7 @@ describe('configureColorScale', () => {
                 mode: 'continuous',
             },
             [0, 100],
-            testLogger
+            scaleTestLogger
         );
         expect(deriveNormalizedStops(scale)).toEqual([
             { stop: 0, color: 'red' },
@@ -366,7 +367,7 @@ describe('configureColorScale', () => {
             scale,
             { fills: [{ color: 'red' }, { color: 'green' }], domain: [20, 80], mode: 'discrete' },
             [0, 100],
-            testLogger
+            scaleTestLogger
         );
         expect(scale.domain[0]).toBe(20);
         expect(scale.domain.at(-1)).toBe(80);
@@ -386,7 +387,7 @@ describe('configureColorScale', () => {
             scale,
             { fills: [{ color: 'red' }, { color: 'green' }], domain: undefined, mode: 'continuous' },
             [42],
-            testLogger
+            scaleTestLogger
         );
         expect(scale.domain).toEqual(originalDomain);
         expect(scale.range).toEqual(originalRange);
@@ -398,7 +399,7 @@ describe('configureColorScale', () => {
             scale,
             { fills: [{ color: 'blue' }, { color: 'orange' }], domain: undefined, mode: 'continuous' },
             [10, 20, 30, 90],
-            testLogger
+            scaleTestLogger
         );
         expect(scale.domain).toEqual([10, 90]);
         expect(scale.range).toEqual(['blue', 'orange']);
@@ -495,7 +496,7 @@ describe('configureColorScale displayDomain', () => {
                 mode: 'continuous',
             },
             [-100, 200],
-            testLogger
+            scaleTestLogger
         );
         expect(scale.displayDomain).toEqual([-100, 200]);
     });
@@ -510,7 +511,7 @@ describe('configureColorScale displayDomain', () => {
                 mode: 'continuous',
             },
             [-100, 200],
-            testLogger
+            scaleTestLogger
         );
         expect(scale.displayDomain).toEqual([0, 50]);
     });
@@ -528,7 +529,7 @@ describe('configureColorScale displayDomain', () => {
                 mode: 'continuous',
             },
             [0, 100],
-            testLogger
+            scaleTestLogger
         );
         expect(scale.displayDomain).toEqual([0, 100]);
         // domain reflects the stop positions for interpolation

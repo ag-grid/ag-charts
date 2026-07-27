@@ -4,13 +4,13 @@ import {
     Debug,
     type FontOptions,
     LineSplitter,
-    Logger,
     type MeasuredImageSegment,
     type NormalisedContentSegment,
     type NormalisedTextOrSegments,
     type RequireOptional,
     SceneRefChangeDetection,
     type TextMetricsBox,
+    ambientLog,
     blockStripHeight,
     blockStripWidth,
     cachedTextMeasurer,
@@ -804,7 +804,7 @@ export class Text<D = unknown> extends Shape<D> {
         if (isArray(text)) {
             for (const segment of text) {
                 if (segment.type === 'image') {
-                    Logger.default.warnOnce('SVG export drops inline image segments; text content is preserved.');
+                    ambientLog.warnOnce('SVG export drops inline image segments; text content is preserved.');
                     continue;
                 }
                 const segmentElement = createSvgElement('tspan');

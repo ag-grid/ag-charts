@@ -64,7 +64,7 @@ describe('Chart', () => {
             await waitForChartStability(chart);
 
             const scopedWarnOnce = vi.spyOn(chart.ctx.logger, 'warnOnce').mockImplementation(() => {});
-            const fallbackWarnOnce = vi.spyOn(Logger.default, 'warnOnce').mockImplementation(() => {});
+            const fallbackWarnOnce = vi.spyOn(new Logger(), 'warnOnce').mockImplementation(() => {});
 
             chart.data.addTransaction({ remove: [{ x: 'not-present', y: 9 }] });
             chart.data.commitPendingTransactions(undefined);

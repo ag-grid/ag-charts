@@ -25,6 +25,9 @@ export * from './structures/eventEmitter';
 export * from './structures/lruCache';
 export * as Debug from './logging/debugLogger';
 export { Logger } from './logging/logger';
+// The chart-less logging fallback. Restricted to the files listed in the `no-unscoped-logger`
+// lint rule — everything else logs through the chart's `ctx.logger`.
+export * as ambientLog from './logging/logger';
 export * as DebugMetrics from './logging/debugMetrics';
 export * from './modules/enterpriseRegistry';
 export * as ModuleRegistry from './modules/moduleRegistry';

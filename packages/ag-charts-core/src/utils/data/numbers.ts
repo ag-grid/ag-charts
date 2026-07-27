@@ -1,6 +1,6 @@
 import type { AgNumericValue } from 'ag-charts-types';
 
-import * as Logger from '../../logging/logger';
+import * as ambientLog from '../../logging/logger';
 
 export function clamp(min: number, value: number, max: number) {
     return Math.min(max, Math.max(min, value));
@@ -12,7 +12,7 @@ export function toNumber(value: AgNumericValue): number {
 
     const n = Number(value);
     if (!Number.isFinite(n)) {
-        Logger.warnOnce(`the value ${value} exceeds the representable Number range and cannot be rendered.`);
+        ambientLog.warnOnce(`the value ${value} exceeds the representable Number range and cannot be rendered.`);
     }
     return n;
 }

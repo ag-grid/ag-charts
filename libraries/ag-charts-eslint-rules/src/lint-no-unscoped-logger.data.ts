@@ -1,5 +1,6 @@
+import { ambientLog } from 'ag-charts-core';
+
 declare class Logger {
-    static default: Logger;
     static warn(message: string): void;
     static warnOnce(message: string): void;
     static error(message: string): void;
@@ -14,7 +15,7 @@ declare const ctx: { logger: Logger };
 // Flagged: ambient unscoped construction.
 export const unscoped = new Logger();
 
-// Flagged: ambient static emitters.
+// Flagged: static emitters, which no longer exist on the class.
 export function test_ambient_statics() {
     Logger.warn('warn');
     Logger.warnOnce('warn once');
@@ -22,10 +23,10 @@ export function test_ambient_statics() {
     Logger.log('log');
 }
 
-// Allowed: the explicit shared fallback for chart-less code.
-export function test_default_fallback() {
-    Logger.default.warn('warn');
-    Logger.default.warnOnce('warn once');
+// Flagged: `ambientLog` outside the sanctioned chart-less files.
+export function test_ambient_log() {
+    ambientLog.warn('warn');
+    ambientLog.warnOnce('warn once');
 }
 
 // Allowed: the per-chart scoped logger.

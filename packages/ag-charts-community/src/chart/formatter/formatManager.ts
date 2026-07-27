@@ -1,5 +1,5 @@
 import {
-    Logger,
+    ambientLog,
     buildDateFormatter,
     createNumberFormatter,
     formatValue,
@@ -80,7 +80,7 @@ export class FormatManager extends Listeners<'format-changed', () => void> {
     ): ((value: any, fractionDigits?: number) => string) | undefined {
         if (isPlainObject(specifier)) {
             if (type !== 'date') {
-                Logger.default.warn('Date formatter configuration is not supported for non-date types.');
+                ambientLog.warn('Date formatter configuration is not supported for non-date types.');
                 return;
             }
 

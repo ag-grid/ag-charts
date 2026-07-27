@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, vi } from 'vitest';
 
 import { textOrSegments } from '../config/chartDefaults';
 import { colorOrRef } from '../config/optionsDefaults';
-import { reset as resetLogger } from '../logging/logger';
+import { Logger, reset as resetLogger } from '../logging/logger';
 import { RegistryMode, reset as resetRegistry, setRegistryMode } from '../modules/moduleRegistry';
 import {
     type OptionsDefs,
@@ -45,6 +45,8 @@ function isValid<T extends object>(options: unknown, defs: OptionsDefs<T>, path?
 }
 
 describe('Validation utils', () => {
+    const validationLogger = new Logger();
+
     const mockContext = (): ValidatorContext => ({ options: {}, path: 'pathTo' });
     const isValidatorResultValid = (result: ValidatorResult | boolean) =>
         typeof result === 'object' ? result.valid : result;
@@ -54,6 +56,7 @@ describe('Validation utils', () => {
     beforeEach(() => {
         console.warn = vi.fn();
         resetLogger();
+        validationLogger.reset();
     });
 
     describe('Base Validators', () => {
@@ -172,7 +175,8 @@ describe('Validation utils', () => {
                 const { cleared, invalid } = validate<{ key: string }>(
                     { key: 'x' },
                     { key: enterprise(string) },
-                    'series[0]'
+                    'series[0]',
+                    { logger: validationLogger }
                 );
                 expect(cleared).toEqual({ key: null });
                 // The gate uses warnOnce directly so the error is not propagated through the
@@ -185,9 +189,10 @@ describe('Validation utils', () => {
 
             test('dedupes repeat validations of the same path', () => {
                 const defs = { key: enterprise(string) };
-                validate<{ key: string }>({ key: 'x' }, defs, 'series[0]');
-                validate<{ key: string }>({ key: 'x' }, defs, 'series[0]');
-                validate<{ key: string }>({ key: 'x' }, defs, 'series[0]');
+                const params = { logger: validationLogger };
+                validate<{ key: string }>({ key: 'x' }, defs, 'series[0]', params);
+                validate<{ key: string }>({ key: 'x' }, defs, 'series[0]', params);
+                validate<{ key: string }>({ key: 'x' }, defs, 'series[0]', params);
                 // warnOnce caches by message — the same path logs once.
                 expect(console.warn).toHaveBeenCalledTimes(1);
             });
@@ -201,7 +206,9 @@ describe('Validation utils', () => {
             test('strips nested enterprise option defs', () => {
                 const { cleared, invalid } = validate<{ scale: { fills: string[] } }>(
                     { scale: { fills: ['#fff'] } },
-                    { scale: enterprise({ fills: arrayOf(string) }) }
+                    { scale: enterprise({ fills: arrayOf(string) }) },
+                    '',
+                    { logger: validationLogger }
                 );
                 expect(cleared).toEqual({ scale: null });
                 expect(invalid).toEqual([]);
@@ -268,6 +275,7 @@ describe('Validation utils', () => {
             const { cleared } = callbackOf(validator, description)(() => returnValue, {
                 options: {},
                 path,
+                params: { logger: validationLogger },
             }) as ValidatorResult;
             return (cleared as (...args: any[]) => any)();
         };

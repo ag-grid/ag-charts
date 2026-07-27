@@ -1,5 +1,4 @@
-import type { DistantObject } from 'ag-charts-core';
-import type { Logger, Point } from 'ag-charts-core';
+import type { DistantObject, Logger, Point } from 'ag-charts-core';
 
 import type { Group } from '../../../scene/group';
 import type { Node } from '../../../scene/node';

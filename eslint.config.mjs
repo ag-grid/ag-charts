@@ -12,6 +12,38 @@ import requireSharedRenderer from './libraries/ag-charts-eslint-rules/rules/requ
 
 // Path fragments of the files sanctioned to call `new Logger()`; everything else uses `ctx.logger` or
 // the shared `Logger.default`. Tests construct loggers freely.
+// The complete set of files that log without a chart. Each one is here because no chart context
+// reaches it — not because threading one was inconvenient. Anything added here needs the same
+// justification, and anything that gains a reachable chart context should come off the list.
+const SANCTIONED_AMBIENT_LOGGING = [
+    '/logging/logger.ts',
+    // Pixel-boundary coercion called from everywhere; a logger parameter would be viral.
+    '/utils/data/numbers.ts',
+    // `BaseProperties.set()`, reached from programmatic property assignment with no chart to hand.
+    // Option-driven unknown properties are already reported as validation errors.
+    '/state/properties.ts',
+    // Cycle detection in the generic JSON walker.
+    '/utils/data/json.ts',
+    // Runs before any chart exists.
+    '/util/browser.ts',
+    '/util/time-interop.ts',
+    '/chart/mapping/themes.ts',
+    '/chart/factory/processModuleOptions.ts',
+    // Pure parsers and formatters with no owner.
+    '/util/svg.ts',
+    '/locale/defaultMessageFormatter.ts',
+    // Static `FormatManager.getFormatter`, reached from properties classes with no chart.
+    '/chart/formatter/formatManager.ts',
+    // Global error interception, by definition not attributable to one chart.
+    '/util/listeners.ts',
+    // Development-only diagnostics.
+    '/scene/sceneDebug.ts',
+    // SVG export walks the scene graph outside a render pass.
+    '/scene/shape/text.ts',
+    // Test helpers.
+    '/util/test/mockConsole.ts',
+];
+
 const SANCTIONED_LOGGER_CONSTRUCTION = [
     '/logging/logger.ts',
     // The chart's single instance, adopted by the chart context.
@@ -289,12 +321,21 @@ export default [
         },
     },
     {
-        // Community and enterprise source are fully migrated off the ambient static `Logger.*` API, so
-        // enable the static-emitter ban here. Core is rolled in as it migrates.
-        files: ['packages/ag-charts-community/src/**/*.{ts,tsx}', 'packages/ag-charts-enterprise/src/**/*.{ts,tsx}'],
+        files: [
+            'packages/ag-charts-core/src/**/*.{ts,tsx}',
+            'packages/ag-charts-community/src/**/*.{ts,tsx}',
+            'packages/ag-charts-enterprise/src/**/*.{ts,tsx}',
+        ],
         ignores: ['**/*.{test,spec}.ts'],
         rules: {
-            'aglint/no-unscoped-logger': [2, { allowNewIn: SANCTIONED_LOGGER_CONSTRUCTION, checkStatic: true }],
+            'aglint/no-unscoped-logger': [
+                2,
+                {
+                    allowNewIn: SANCTIONED_LOGGER_CONSTRUCTION,
+                    checkStatic: true,
+                    allowAmbientIn: SANCTIONED_AMBIENT_LOGGING,
+                },
+            ],
         },
     },
 ];
