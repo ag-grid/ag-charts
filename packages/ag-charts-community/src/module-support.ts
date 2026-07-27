@@ -428,8 +428,8 @@ export {
     PlacedSeriesLabel,
     expandLabelBoxExtent,
     expandPlacementLabelBoxExtent,
+    placedLabelTextOffset,
     resolvePlacementLabelBoxExtent,
-    resolvePlacementLabelPadding,
 } from './chart/label';
 export { Marker } from './chart/marker/marker';
 export { drawMarkerUnitPolygon } from './chart/marker/shapes';

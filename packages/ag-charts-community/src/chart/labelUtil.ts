@@ -16,7 +16,7 @@ import type {
 } from 'ag-charts-core';
 import {
     type NormalisedChartLabelStyleOptions,
-    fitLabelText,
+    fitLabelTextOrOverflow,
     getMinOuterRectSize,
     insideBarContainer,
     insideBarRegion,
@@ -125,9 +125,10 @@ export function fitLabelToContainer(
     text: NormalisedTextOrSegments,
     fit: LabelFit | undefined,
     font: FontOptions,
-    container: { width: number; height: number } | undefined
+    container: { width: number; height: number } | undefined,
+    fitOverflow?: LabelFit
 ): NormalisedTextOrSegments {
-    return fitLabelText(text, boundLabelFit(fit, container), font);
+    return fitLabelTextOrOverflow(text, boundLabelFit(fit, container), fitOverflow, font);
 }
 
 /**

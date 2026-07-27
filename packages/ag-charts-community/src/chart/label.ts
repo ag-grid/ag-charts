@@ -335,3 +335,20 @@ export function resolvePlacementLabelBoxExtent<TParams>(
 ): Required<PaddingOptions> {
     return expandLabelBoxExtent(resolvePlacementLabelStyle(label, placementStyle));
 }
+
+/**
+ * Offset from a placed label's reserved top-left to its text anchor. The reservation spans the larger of
+ * the two placements' extents, so the surplus is split evenly to keep the drawn box centred on whatever
+ * the placement engine centred the reservation on.
+ */
+export function placedLabelTextOffset<TParams>(
+    label: Label<TParams> & { insideStyle: LabelPlacementStyle; outsideStyle: LabelPlacementStyle },
+    placementStyle: LabelPlacementStyle | undefined
+): { x: number; y: number } {
+    const reserved = expandPlacementLabelBoxExtent(label);
+    const drawn = resolvePlacementLabelPadding(label, placementStyle);
+    return {
+        x: drawn.left + (reserved.left + reserved.right - drawn.left - drawn.right) / 2,
+        y: drawn.top + (reserved.top + reserved.bottom - drawn.top - drawn.bottom) / 2,
+    };
+}

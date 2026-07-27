@@ -12,6 +12,31 @@ export interface LabelMeasureContext {
     readonly labelPadding: Required<PaddingOptions>;
     readonly labelTextMeasurer: { measureLines: (text: string) => { width: number; height: number } };
     readonly labelFit: LabelFit | undefined;
+    /**
+     * Policy without the series' implicit container, applied when {@link labelFit} leaves nothing to draw.
+     * Set only when the label must survive that, so leaving it unset keeps an erased label erased.
+     */
+    readonly labelFitOverflow?: LabelFit;
+}
+
+/** A fit can bound the text away to nothing, which the placement engine treats as no label at all. */
+function isErased(text: NormalisedTextOrSegments): boolean {
+    return isArray(text) ? text.length === 0 : String(text).length === 0;
+}
+
+/**
+ * Fits `text` to `fit`, falling back to `fitOverflow` when that leaves nothing to draw. An erased label is
+ * dropped by the placement engine, so one that must always show overflows its bound rather than vanishing.
+ */
+export function fitLabelTextOrOverflow(
+    text: NormalisedTextOrSegments,
+    fit: LabelFit | undefined,
+    fitOverflow: LabelFit | undefined,
+    font: FontOptions
+): NormalisedTextOrSegments {
+    const fitted = fitLabelText(text, fit, font);
+    if (fitOverflow == null || !isErased(fitted) || isErased(text)) return fitted;
+    return fitLabelText(text, fitOverflow, font);
 }
 
 /** Fits `labelText` to the label's policy and measures it, inflated by the label's drawn box padding. */
@@ -23,7 +48,7 @@ export function measurePlacedLabel(
     if (labelText == null) {
         return { text: '', width: 0, height: 0 };
     }
-    const fittedText = fitLabelText(labelText, ctx.labelFit, font);
+    const fittedText = fitLabelTextOrOverflow(labelText, ctx.labelFit, ctx.labelFitOverflow, font);
     let { width, height } = isArray(fittedText)
         ? measureTextSegments(fittedText, font)
         : ctx.labelTextMeasurer.measureLines(String(fittedText));

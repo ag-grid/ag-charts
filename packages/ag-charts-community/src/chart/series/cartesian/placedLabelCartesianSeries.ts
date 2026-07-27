@@ -13,7 +13,7 @@ import { measurePlacedLabel, resolveSeriesLabelDefaults, toArray } from 'ag-char
 import { PointerEvents } from '../../../scene/node';
 import type { Text } from '../../../scene/shape/text';
 import type { PlacedSeriesLabel } from '../../label';
-import { expandLabelPadding, resolvePlacementLabelStyle } from '../../label';
+import { placedLabelTextOffset } from '../../label';
 import { getLabelStyles, pickPlacementStyle } from '../../labelUtil';
 import type { SeriesNodeDatum } from '../seriesTypes';
 import { CartesianSeries } from './cartesianSeries';
@@ -118,9 +118,14 @@ export abstract class PlacedLabelCartesianSeries<
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const params = this.makeLabelFormatterParams();
         const label = this.labelProperty;
+        const insideStyle = pickPlacementStyle(label, 'inside');
+        const outsideStyle = pickPlacementStyle(label, 'outside');
+        const insideOffset = placedLabelTextOffset(label, insideStyle);
+        const outsideOffset = placedLabelTextOffset(label, outsideStyle);
 
         opts.labelSelection.each((text, datum) => {
-            const placementStyle = pickPlacementStyle(label, datum.placement === 'inside' ? 'inside' : 'outside');
+            const isInside = datum.placement === 'inside';
+            const placementStyle = isInside ? insideStyle : outsideStyle;
             const style = getLabelStyles(
                 this,
                 datum,
@@ -135,15 +140,15 @@ export abstract class PlacedLabelCartesianSeries<
             const { enabled, fontStyle, fontWeight, fontSize, fontFamily, color } = style;
             if (enabled && datum?.labelText) {
                 const point = this.readLabelPoint(datum);
-                const labelPadding = expandLabelPadding(resolvePlacementLabelStyle(label, placementStyle));
+                const offset = isInside ? insideOffset : outsideOffset;
                 text.fontStyle = fontStyle;
                 text.fontWeight = fontWeight;
                 text.fontSize = fontSize;
                 text.fontFamily = fontFamily;
                 text.textBaseline = 'top';
                 text.text = datum.label.text;
-                text.x = point.x + labelPadding.left;
-                text.y = point.y + labelPadding.top;
+                text.x = point.x + offset.x;
+                text.y = point.y + offset.y;
                 text.fill = color;
                 text.visible = true;
                 text.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;

@@ -72,7 +72,7 @@ const {
     keyProperty,
     updateLabelNode,
     expandPlacementLabelBoxExtent,
-    resolvePlacementLabelPadding,
+    placedLabelTextOffset,
     pickPlacementStyle,
     fixNumericExtent,
     buildResetPathFn,
@@ -1343,17 +1343,17 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
 
     /**
      * Maps the engine's label box onto the render anchor: horizontal centre for the centred text, top
-     * edge inset by the resolved placement's padding for the `top` baseline.
+     * edge inset for the `top` baseline so the drawn box sits centred within the reserved box.
      */
     private placedLabelDatum(placed: PlacedLabel<RangeAreaLabelDatum>): RangeAreaLabelDatum {
         const { datum } = placed;
         const placement = placed.placement ?? datum.placement;
         const { label } = this.properties;
-        const padding = resolvePlacementLabelPadding(
+        const offset = placedLabelTextOffset(
             label,
             pickPlacementStyle(label, coarsePlacement(placement, datum.valueSide))
         );
-        return { ...datum, x: placed.x + placed.width / 2, y: placed.y + padding.top, placement };
+        return { ...datum, x: placed.x + placed.width / 2, y: placed.y + offset.y, placement };
     }
 
     protected override getHighlightLabelData(

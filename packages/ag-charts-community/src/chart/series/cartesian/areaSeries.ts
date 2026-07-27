@@ -1001,12 +1001,13 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
             size: labelInsideSize,
         } = resolveInsidePlacement(placements, marker.shape);
         const markerSize = marker.enabled ? marker.size : 0;
-        const labelFit = insideOnly
-            ? boundLabelFit(
-                  resolveLabelFit(label, false, true),
-                  insideMarkerContainer(markerSize, marker.shape, label.collision.threshold ?? 0)
-              )
+        const insideFit = insideOnly ? resolveLabelFit(label, false, true) : undefined;
+        const labelFit = insideFit
+            ? boundLabelFit(insideFit, insideMarkerContainer(markerSize, marker.shape, label.collision.threshold ?? 0))
             : resolveLabelFit(label, !label.collision.alwaysShow);
+        // A marker too small to hold even an ellipsis fits the label away to nothing; `alwaysShow` then
+        // falls back to the configured policy alone, so the label overflows the marker instead of vanishing.
+        const labelFitOverflow = label.collision.alwaysShow ? insideFit : undefined;
         const labelAnchor = Marker.anchor(marker.shape);
 
         return {
@@ -1042,6 +1043,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
             labelPadding: expandPlacementLabelBoxExtent(label),
             labelTextMeasurer: cachedTextMeasurer(label),
             labelFit,
+            labelFitOverflow,
             labelInsideOffset,
             labelInsideSize,
             labelAnchor,
