@@ -90,9 +90,18 @@ type ColorOperation =
 
 type FontOperation = { $rem: Leaf<number> | [Leaf<number>, Leaf<ThemeParam>] }; // Ratio of base font size
 
+type UserOptionTarget = Leaf<string> | Leaf<string>[];
+
 type LocationOperation =
     | { $circular: Leaf<any> }
-    | { $isUserOption: [Leaf<string>, AnyLeaf, AnyLeaf] } // Target vertex | Value if true | Value if false
+    // Target vertex, or list of targets matching if any is set | Value if true (default `true`) | Value if false (default `false`)
+    | {
+          $isUserOption:
+              | Leaf<string>
+              | [UserOptionTarget]
+              | [UserOptionTarget, AnyLeaf]
+              | [UserOptionTarget, AnyLeaf, AnyLeaf];
+      }
     | { $mapPalette: PaletteParam } // Palette param
     | { $palette: PaletteParam } // Palette param
     | { $path: Leaf<string> | [Leaf<string>, AnyLeaf] | [Leaf<string>, AnyLeaf, AnyLeaf] } // Relative path to vertex | Default if path undefined | Custom branch on which to find the path
@@ -102,12 +111,15 @@ type LocationOperation =
 type ValueTypeName = 'array' | 'boolean' | 'date' | 'function' | 'nullish' | 'number' | 'object' | 'string';
 
 type LogicOperation =
-    | { $if: [AnyLeaf, AnyLeaf | object, AnyLeaf | object] } // Condition | Value if true | Value if false
+    // Condition | Value if true (default `true`) | Value if false (default `false`)
+    | { $if: [AnyLeaf] | [AnyLeaf, AnyLeaf | object] | [AnyLeaf, AnyLeaf | object, AnyLeaf | object] }
+    // Value | Type name(s) | Value if matched (default `true`) | Value if not (default `false`)
     | {
           $isType:
+              | [AnyLeaf, ValueTypeName | ValueTypeName[]]
               | [AnyLeaf, ValueTypeName | ValueTypeName[], AnyLeaf | object]
               | [AnyLeaf, ValueTypeName | ValueTypeName[], AnyLeaf | object, AnyLeaf | object];
-      } // Value | Type name(s) | Value if matched | Value if not (omitted resolves to undefined)
+      }
     | { $or: AnyLeaf[] } // Array of values that are truthy
     | { $and: AnyLeaf[] } // Array of values that are truthy
     | { $eq: AnyLeaf[] } // Array of values that are truthy

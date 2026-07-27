@@ -380,7 +380,7 @@ export const LABEL_BOXING_DEFAULTS: WithThemeParams<LabelBoxOptions> = {
     padding: 8,
     cornerRadius: 4,
     border: {
-        enabled: { $isUserOption: ['../border', true, false] },
+        enabled: { $isUserOption: '../border' },
         strokeWidth: 1,
         stroke: { $foregroundOpacity: 0.08 },
     },
@@ -397,7 +397,7 @@ export const LABEL_BOXING_TOP_LEVEL_DEFAULTS: WithThemeParams<LabelBoxOptions> =
     ...LABEL_BOXING_FILL_DEFAULTS,
     cornerRadius: 4,
     border: {
-        enabled: { $isUserOption: ['../border', true, false] },
+        enabled: { $isUserOption: '../border' },
         strokeWidth: 1,
         stroke: { $foregroundOpacity: 0.08 },
     },
