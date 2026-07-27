@@ -212,7 +212,7 @@
         "{workspaceRoot}/packages/ag-charts-website/src/content/**/_examples/*/main.ts"
       ],
       "outputs": ["{projectRoot}/e2e/generated/**"],
-      "cache": true,
+      "cache": false,
       "options": {
         "parallel": false,
         "commands": ["rimraf ./e2e/generated", "mkdir -p ./e2e/generated", "tsx ./e2e/generate-test-files.ts"],

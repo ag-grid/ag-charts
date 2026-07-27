@@ -34,6 +34,38 @@ export type ExampleOverrides = {
     snapshot?: boolean;
 } & Partial<ExampleCommonOptions>;
 
+/**
+ * Optional CI scoping of the framework variants swept by the generated example specs (and the
+ * gallery/snapshot sweeps). Absent — the local default — every framework runs, so nothing changes
+ * for developers or for callers that do not set it. CI narrows unchanged examples to `vanilla` on
+ * PR runs, and keeps the full six-variant sweep on pushes to the baseline branches.
+ *
+ * An empty or whitespace-only value is treated as absent rather than as "no frameworks", so a
+ * mis-set variable cannot silently reduce a run to zero tests.
+ */
+const frameworkScope = process.env.AG_E2E_FRAMEWORKS?.trim()
+    ? process.env.AG_E2E_FRAMEWORKS.split(',')
+          .map((fw) => fw.trim())
+          .filter(Boolean)
+    : undefined;
+
+/**
+ * Intersects a per-example `frameworks` override with the run's framework scope, so scoping can
+ * only ever narrow an example's coverage.
+ *
+ * Every override in use today narrows to `vanilla` (optionally with `typescript`), so a `vanilla`
+ * scope leaves them all with work to do. An override pinning an example to a variant outside the
+ * scope would intersect to nothing and that example would not run on PRs — it still runs in full on
+ * pushes, which is the coherent reading of "PR runs cover vanilla only". Widening the scope back up
+ * to reach it would defeat the purpose.
+ */
+function scopeFrameworks(frameworks: string[] | undefined, changed: boolean): string[] | undefined {
+    // Examples the branch actually touched are worth the full sweep, so they opt out of scoping.
+    if (changed || frameworkScope == null) return frameworks;
+    if (frameworks == null) return frameworkScope;
+    return frameworks.filter((fw) => frameworkScope.includes(fw));
+}
+
 export async function triggerExampleTooltips(page: Page) {
     const wrappers = page.locator(SELECTORS.wrapper);
     const wrapperCount = await wrappers.count();
@@ -75,7 +107,9 @@ async function isTooltipVisible(wrapper: Locator) {
 export function convertPageUrls(
     path: string,
     exampleOptions: Record<string, Record<string, ExampleOverrides>>,
-    ignorePages = ['benchmarks']
+    ignorePages = ['benchmarks'],
+    /** Whether this example changed on the branch — see `scopeFrameworks`. */
+    changed = false
 ) {
     const astroPath = path.split('content/').at(1)!;
     const [pagePath, examplePath] = astroPath.split('/_examples/');
@@ -121,8 +155,10 @@ export function convertPageUrls(
         ...options?.[example],
     };
 
+    const scopedFrameworks = scopeFrameworks(frameworks, changed);
+
     return pages
-        .filter((r) => frameworks?.includes(r.framework) !== false)
+        .filter((r) => scopedFrameworks?.includes(r.framework) !== false)
         .map(
             ({ url, example: pageExample, framework }): ExampleOptions => ({
                 pagePath,

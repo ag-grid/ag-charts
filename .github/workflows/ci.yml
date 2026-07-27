@@ -131,6 +131,12 @@ jobs:
             contents: write
         env:
             AG_FORCE_ALL_TESTS: 1
+            # Docs-example sweeps cover only the vanilla variant of the examples this branch did not
+            # touch; changed examples always sweep all six. Everything except PRs — pushes (the
+            # on.push filter admits latest/next/bX.Y.Z only) and manual dispatches, which are run to
+            # verify deliberately — keeps the full six-variant sweep. Must stay in step with the e2e
+            # job below.
+            AG_E2E_FRAMEWORKS: ${{ github.event_name != 'pull_request' && 'vanilla,typescript,reactFunctional,reactFunctionalTs,angular,vue3' || 'vanilla' }}
         outputs:
             nx_base: ${{ steps.setup.outputs.base }}
             test_count: ${{ steps.matrix.outputs.test_count }}
@@ -806,6 +812,9 @@ jobs:
             GHCR_IMAGE: ghcr.io/ag-grid/ag-charts/playwright:v1.60.0-jammy
             NX_BASE: ${{ needs.init.outputs.nx_base }}
             AG_FORCE_ALL_TESTS: 1
+            # Must hold the same value as the init job: init's `playwright test --list` count is what
+            # sizes the shard plan, so a disagreement would plan shards for a workload never run.
+            AG_E2E_FRAMEWORKS: ${{ github.event_name != 'pull_request' && 'vanilla,typescript,reactFunctional,reactFunctionalTs,angular,vue3' || 'vanilla' }}
             # Scene-graph JSON capture alongside E2E screenshots: full dump on baseline-branch pushes,
             # dump-on-diff for PRs (for E2E, both capture — see expectChartScreenshot).
             AG_SCENE_SNAPSHOTS: ${{ github.event_name == 'push' && 'all' || 'diff' }}
@@ -892,17 +901,37 @@ jobs:
                   fi
                   echo "pulled=${pulled}" >> "$GITHUB_OUTPUT"
 
+            # Fallback for fork PRs (whose tokens cannot read GHCR) and for transient registry
+            # failures. The tarball cache is only refreshed while the GHCR mirror does not yet
+            # exist, so it may be absent — pull from upstream as a last resort rather than failing.
             - name: Restore Playwright Image Cache
+              id: pw_tarball
               if: steps.await_image.outputs.pulled != 'true'
               uses: actions/cache/restore@v4
               with:
                   path: /tmp/playwright-docker-image.tar
                   key: playwright-image-v1.60.0-jammy-v1
-                  fail-on-cache-miss: true
 
             - name: Load Playwright Image
               if: steps.await_image.outputs.pulled != 'true'
-              run: docker load -i /tmp/playwright-docker-image.tar
+              env:
+                  TARBALL_HIT: ${{ steps.pw_tarball.outputs.cache-hit }}
+              run: |
+                  if [ "${TARBALL_HIT}" == "true" ] ; then
+                    docker load -i /tmp/playwright-docker-image.tar
+                    exit 0
+                  fi
+                  echo "No cached image tarball; pulling ${PLAYWRIGHT_IMAGE} from upstream."
+                  for attempt in 1 2 3 4 ; do
+                    if docker pull "${PLAYWRIGHT_IMAGE}" ; then
+                      exit 0
+                    fi
+                    if [ ${attempt} -lt 4 ] ; then
+                      sleep $((attempt * 15))
+                    fi
+                  done
+                  echo "Failed to obtain ${PLAYWRIGHT_IMAGE}."
+                  exit 1
 
             - name: nx test:e2e
               id: test
@@ -1013,17 +1042,37 @@ jobs:
                   fi
                   echo "pulled=${pulled}" >> "$GITHUB_OUTPUT"
 
+            # Fallback for fork PRs (whose tokens cannot read GHCR) and for transient registry
+            # failures. The tarball cache is only refreshed while the GHCR mirror does not yet
+            # exist, so it may be absent — pull from upstream as a last resort rather than failing.
             - name: Restore Playwright Image Cache
+              id: pw_tarball
               if: steps.await_image.outputs.pulled != 'true'
               uses: actions/cache/restore@v4
               with:
                   path: /tmp/playwright-docker-image.tar
                   key: playwright-image-v1.60.0-jammy-v1
-                  fail-on-cache-miss: true
 
             - name: Load Playwright Image
               if: steps.await_image.outputs.pulled != 'true'
-              run: docker load -i /tmp/playwright-docker-image.tar
+              env:
+                  TARBALL_HIT: ${{ steps.pw_tarball.outputs.cache-hit }}
+              run: |
+                  if [ "${TARBALL_HIT}" == "true" ] ; then
+                    docker load -i /tmp/playwright-docker-image.tar
+                    exit 0
+                  fi
+                  echo "No cached image tarball; pulling ${PLAYWRIGHT_IMAGE} from upstream."
+                  for attempt in 1 2 3 4 ; do
+                    if docker pull "${PLAYWRIGHT_IMAGE}" ; then
+                      exit 0
+                    fi
+                    if [ ${attempt} -lt 4 ] ; then
+                      sleep $((attempt * 15))
+                    fi
+                  done
+                  echo "Failed to obtain ${PLAYWRIGHT_IMAGE}."
+                  exit 1
 
             - name: playwright test ag-charts-demos
               id: demos_e2e
