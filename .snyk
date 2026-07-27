@@ -117,7 +117,11 @@ ignore:
   SNYK-JS-BRACEEXPANSION-18313044:
     - react-query@3.39.3 > broadcast-channel@3.7.0 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.0.2:
         reason: >-
-            react-query is only used wtih urls we control
+            broadcast-channel is only reachable via react-query's
+            broadcastQueryClient-experimental entry point, which we don't import; its
+            rimraf/glob usage is Node-only and stubbed out in browser bundles via the
+            package browser field. Glob patterns are internal temp paths, never user
+            input.
         expires: 2026-09-06T00:00:00.000Z
         created: 2026-07-27T10:25:49.846Z
     - typescript-eslint@8.59.3 > @typescript-eslint/eslint-plugin@8.59.3 > @typescript-eslint/type-utils@8.59.3 > @typescript-eslint/typescript-estree@8.59.3 > minimatch@10.2.5 > brace-expansion@5.0.6:
@@ -1007,7 +1011,12 @@ ignore:
         created: 2026-05-28T00:00:00.000Z
   SNYK-JS-BRACEEXPANSION-15789759:
     - react-query@3.39.3 > broadcast-channel@3.7.0 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.0.2:
-        reason: We control the urls we query
+        reason: >-
+            broadcast-channel is only reachable via react-query's
+            broadcastQueryClient-experimental entry point, which we don't import; its
+            rimraf/glob usage is Node-only and stubbed out in browser bundles via the
+            package browser field. Glob patterns are internal temp paths, never user
+            input.
         expires: 2026-09-06T00:00:00.000Z
         created: 2026-03-27T16:22:30.286Z
     - madge@8.0.0 > dependency-tree@11.0.1 > precinct@12.1.2 > detective-typescript@13.0.0 > @typescript-eslint/typescript-estree@7.18.0 > minimatch@9.0.4 > brace-expansion@2.0.2:
@@ -1520,7 +1529,12 @@ ignore:
         expires: 2026-09-06T00:00:00.000Z
         created: 2026-03-02T17:24:45.880Z
     - react-query@3.39.3 > broadcast-channel@3.7.0 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2:
-        reason: 'React Query is only used with known urls, so is not affected'
+        reason: >-
+            broadcast-channel is only reachable via react-query's
+            broadcastQueryClient-experimental entry point, which we don't import; its
+            rimraf/glob usage is Node-only and stubbed out in browser bundles via the
+            package browser field. Glob patterns are internal temp paths, never user
+            input.
         expires: 2026-09-06T00:00:00.000Z
         created: 2026-03-02T17:24:45.877Z
     - nx@20.3.1 > tmp@0.2.1 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2:
@@ -1717,7 +1731,12 @@ ignore:
         expires: 2026-09-06T00:00:00.000Z
         created: 2026-03-02T16:54:38.494Z
     - react-query@3.39.3 > broadcast-channel@3.7.0 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2:
-        reason: Used in build & dev - not included in final production build
+        reason: >-
+            broadcast-channel is only reachable via react-query's
+            broadcastQueryClient-experimental entry point, which we don't import; its
+            rimraf/glob usage is Node-only and stubbed out in browser bundles via the
+            package browser field. Glob patterns are internal temp paths, never user
+            input.
         expires: 2026-09-06T00:00:00.000Z
         created: 2026-03-02T16:54:38.490Z
     - nx@20.3.1 > tmp@0.2.1 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2:
@@ -2198,7 +2217,12 @@ ignore:
         expires: '2026-10-23T00:00:00.000Z'
         created: '2026-07-23T00:00:00.000Z'
     - react-query@3.39.3 > broadcast-channel@3.7.0 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.0.2:
-        reason: Build/dev/test tooling dependency - not shipped in AG Charts runtime bundles (which have zero third-party runtime dependencies)
+        reason: >-
+            broadcast-channel is only reachable via react-query's
+            broadcastQueryClient-experimental entry point, which we don't import; its
+            rimraf/glob usage is Node-only and stubbed out in browser bundles via the
+            package browser field. Glob patterns are internal temp paths, never user
+            input.
         expires: '2026-10-23T00:00:00.000Z'
         created: '2026-07-23T00:00:00.000Z'
     - jscodeshift@0.16.1 > temp@0.9.4 > rimraf@2.6.3 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.0.2:
