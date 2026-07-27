@@ -1,3 +1,4 @@
+import { testLogger } from '_ag-charts-test';
 import { describe, expect, test, vi } from 'vitest';
 
 import { Logger, computeColorBins, deriveNormalizedStops, formatColorScaleBinLabel } from 'ag-charts-core';
@@ -313,7 +314,8 @@ describe('configureColorScale', () => {
         configureColorScale(
             scale,
             { fills: [{ color: 'red' }, { color: 'green' }], domain: undefined, mode: 'discrete' },
-            [0, 100]
+            [0, 100],
+            testLogger
         );
         expect(scale.mode).toBe('discrete');
         expect(scale.domain).toEqual([0, 50, 100]);
@@ -330,7 +332,7 @@ describe('configureColorScale', () => {
         const scale = new ColorScale();
         const domainBefore = [...scale.domain];
         const rangeBefore = [...scale.range];
-        configureColorScale(scale, { fills: [], domain: undefined, mode: 'continuous' }, [10, 90]);
+        configureColorScale(scale, { fills: [], domain: undefined, mode: 'continuous' }, [10, 90], testLogger);
         expect(scale.domain).toEqual(domainBefore);
         expect(scale.range).toEqual(rangeBefore);
     });
@@ -348,7 +350,8 @@ describe('configureColorScale', () => {
                 domain: undefined,
                 mode: 'continuous',
             },
-            [0, 100]
+            [0, 100],
+            testLogger
         );
         expect(deriveNormalizedStops(scale)).toEqual([
             { stop: 0, color: 'red' },
@@ -362,7 +365,8 @@ describe('configureColorScale', () => {
         configureColorScale(
             scale,
             { fills: [{ color: 'red' }, { color: 'green' }], domain: [20, 80], mode: 'discrete' },
-            [0, 100]
+            [0, 100],
+            testLogger
         );
         expect(scale.domain[0]).toBe(20);
         expect(scale.domain.at(-1)).toBe(80);
@@ -381,7 +385,8 @@ describe('configureColorScale', () => {
         configureColorScale(
             scale,
             { fills: [{ color: 'red' }, { color: 'green' }], domain: undefined, mode: 'continuous' },
-            [42]
+            [42],
+            testLogger
         );
         expect(scale.domain).toEqual(originalDomain);
         expect(scale.range).toEqual(originalRange);
@@ -392,7 +397,8 @@ describe('configureColorScale', () => {
         configureColorScale(
             scale,
             { fills: [{ color: 'blue' }, { color: 'orange' }], domain: undefined, mode: 'continuous' },
-            [10, 20, 30, 90]
+            [10, 20, 30, 90],
+            testLogger
         );
         expect(scale.domain).toEqual([10, 90]);
         expect(scale.range).toEqual(['blue', 'orange']);
@@ -488,7 +494,8 @@ describe('configureColorScale displayDomain', () => {
                 domain: undefined,
                 mode: 'continuous',
             },
-            [-100, 200]
+            [-100, 200],
+            testLogger
         );
         expect(scale.displayDomain).toEqual([-100, 200]);
     });
@@ -502,7 +509,8 @@ describe('configureColorScale displayDomain', () => {
                 domain: [0, 50],
                 mode: 'continuous',
             },
-            [-100, 200]
+            [-100, 200],
+            testLogger
         );
         expect(scale.displayDomain).toEqual([0, 50]);
     });
@@ -519,7 +527,8 @@ describe('configureColorScale displayDomain', () => {
                 domain: undefined,
                 mode: 'continuous',
             },
-            [0, 100]
+            [0, 100],
+            testLogger
         );
         expect(scale.displayDomain).toEqual([0, 100]);
         // domain reflects the stop positions for interpolation
@@ -542,37 +551,37 @@ describe('configureColorScale logger routing', () => {
         expect(scale.logger).toBe(logger);
     });
 
-    test('routes the "at least 2 values" colorDomain warning through the scale logger, not the module default', () => {
+    test('routes the "at least 2 values" colorDomain warning through the scale logger', () => {
         const scale = new ColorScale();
         const logger = new Logger();
         const scopedWarn = vi.spyOn(logger, 'warnOnce').mockImplementation(() => {});
-        const defaultWarn = vi.spyOn(Logger.default, 'warnOnce').mockImplementation(() => {});
+        const unrelatedWarn = vi.spyOn(new Logger(), 'warnOnce').mockImplementation(() => {});
 
         scale.logger = logger;
         scale.domain = [5];
         scale.update();
 
         expect(scopedWarn).toHaveBeenCalledWith('`colorDomain` should have at least 2 values.');
-        expect(defaultWarn).not.toHaveBeenCalled();
+        expect(unrelatedWarn).not.toHaveBeenCalled();
 
         scopedWarn.mockRestore();
-        defaultWarn.mockRestore();
+        unrelatedWarn.mockRestore();
     });
 
-    test('routes the "ascending order" colorDomain warning through the scale logger, not the module default', () => {
+    test('routes the "ascending order" colorDomain warning through the scale logger', () => {
         const scale = new ColorScale();
         const logger = new Logger();
         const scopedWarn = vi.spyOn(logger, 'warnOnce').mockImplementation(() => {});
-        const defaultWarn = vi.spyOn(Logger.default, 'warnOnce').mockImplementation(() => {});
+        const unrelatedWarn = vi.spyOn(new Logger(), 'warnOnce').mockImplementation(() => {});
 
         scale.logger = logger;
         scale.domain = [10, 1];
         scale.update();
 
         expect(scopedWarn).toHaveBeenCalledWith('`colorDomain` values should be supplied in ascending order.');
-        expect(defaultWarn).not.toHaveBeenCalled();
+        expect(unrelatedWarn).not.toHaveBeenCalled();
 
         scopedWarn.mockRestore();
-        defaultWarn.mockRestore();
+        unrelatedWarn.mockRestore();
     });
 });

@@ -1,5 +1,6 @@
 import type {
     DomainWithMetadata,
+    Logger,
     NormalizedDomain,
     Scale,
     ScaleAlignment,
@@ -8,6 +9,8 @@ import type {
 } from 'ag-charts-core';
 
 export abstract class AbstractScale<D, R, I = number> implements Scale<D, R, I> {
+    logger: Logger | undefined;
+
     abstract readonly type: ScaleType;
     abstract readonly defaultTickCount: number;
     abstract domain: D[];

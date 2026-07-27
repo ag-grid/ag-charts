@@ -11,9 +11,9 @@ export function configureColorScale(
         mode: ColorScaleMode;
     },
     dataDomain: AgNumericValue[],
-    logger?: Logger
+    logger: Logger
 ): void {
-    if (logger != null) colorScale.logger = logger;
+    colorScale.logger = logger;
 
     if (dataDomain.length < 2) return;
     if (colorScaleProps.fills.length === 0) return;
