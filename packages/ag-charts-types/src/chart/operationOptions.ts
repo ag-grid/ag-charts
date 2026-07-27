@@ -93,7 +93,13 @@ type FontOperation = { $rem: Leaf<number> | [Leaf<number>, Leaf<ThemeParam>] }; 
 type LocationOperation =
     | { $circular: Leaf<any> }
     // Target vertex | Value if true (default `true`) | Value if false (default `false`)
-    | { $isUserOption: Leaf<string> | [Leaf<string>, (AnyLeaf | object)?, (AnyLeaf | object)?] }
+    | {
+          $isUserOption:
+              | Leaf<string>
+              | [Leaf<string>]
+              | [Leaf<string>, AnyLeaf | object]
+              | [Leaf<string>, AnyLeaf | object, AnyLeaf | object];
+      }
     | { $mapPalette: PaletteParam } // Palette param
     | { $palette: PaletteParam } // Palette param
     | { $path: Leaf<string> | [Leaf<string>, AnyLeaf] | [Leaf<string>, AnyLeaf, AnyLeaf] } // Relative path to vertex | Default if path undefined | Custom branch on which to find the path
@@ -104,9 +110,14 @@ type ValueTypeName = 'array' | 'boolean' | 'date' | 'function' | 'nullish' | 'nu
 
 type LogicOperation =
     // Condition | Value if true (default `true`) | Value if false (default `false`)
-    | { $if: [AnyLeaf, (AnyLeaf | object)?, (AnyLeaf | object)?] }
+    | { $if: [AnyLeaf] | [AnyLeaf, AnyLeaf | object] | [AnyLeaf, AnyLeaf | object, AnyLeaf | object] }
     // Value | Type name(s) | Value if matched (default `true`) | Value if not (default `false`)
-    | { $isType: [AnyLeaf, ValueTypeName | ValueTypeName[], (AnyLeaf | object)?, (AnyLeaf | object)?] }
+    | {
+          $isType:
+              | [AnyLeaf, ValueTypeName | ValueTypeName[]]
+              | [AnyLeaf, ValueTypeName | ValueTypeName[], AnyLeaf | object]
+              | [AnyLeaf, ValueTypeName | ValueTypeName[], AnyLeaf | object, AnyLeaf | object];
+      }
     | { $or: AnyLeaf[] } // Array of values that are truthy
     | { $and: AnyLeaf[] } // Array of values that are truthy
     | { $eq: AnyLeaf[] } // Array of values that are truthy
