@@ -69,7 +69,7 @@ export class LinearScale extends ContinuousScale<AgNumericValue> {
         if (interval) {
             // A custom interval step is a Number concept; bigint full precision applies only to the auto-step path.
             const step = Math.abs(Number(interval));
-            if (!isDenseInterval((d1 - d0) / step, this.getPixelRange())) {
+            if (!isDenseInterval((d1 - d0) / step, this.getPixelRange(), this.logger)) {
                 return range(d0, d1, step, visibleRange);
             }
         }

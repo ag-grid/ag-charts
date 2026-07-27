@@ -38,7 +38,7 @@ export class LinearAngleScale extends LinearScale {
         if (interval) {
             const step = Math.abs(toNumber(interval));
             const availableRange = this.getPixelRange();
-            if (!isDenseInterval((d1 - d0) / step, availableRange)) {
+            if (!isDenseInterval((d1 - d0) / step, availableRange, this.logger)) {
                 const result = range(d0, d1, step);
                 return { ticks: result.ticks, count: result.count };
             }

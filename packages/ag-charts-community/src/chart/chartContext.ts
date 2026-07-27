@@ -120,7 +120,7 @@ export function createChartContext(chart: ChartHost, vars: ChartContextVars): Dy
     ctx.service('callbackCache', (c) => new CallbackCache(c.logger))
         .service('formatManager', () => new FormatManager())
         .service('seriesStateManager', () => new SeriesStateManager())
-        .service('stateManager', () => new StateManager())
+        .service('stateManager', (c) => new StateManager(c.logger))
         .service('labelManager', () => new LabelManager())
         .service('interactionManager', () => new InteractionManager())
         .service('optionsGraphService', () => new OptionsGraphService())
