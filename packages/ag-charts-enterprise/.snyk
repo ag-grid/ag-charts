@@ -1,6 +1,39 @@
 # Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
 version: v1.25.1
 ignore:
+  SNYK-JS-POSTCSS-18313038:
+    - vitest@2.1.9 > vite@6.3.5 > postcss@8.5.3:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-07-27T10:17:20.157Z
+  SNYK-JS-POSTCSS-18313036:
+    - vitest@2.1.9 > vite@6.3.5 > postcss@8.5.3:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-07-27T10:16:26.716Z
+  SNYK-JS-BRACEEXPANSION-18313044:
+    - del@6.1.1 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.0.2:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-07-27T09:08:46.981Z
+    - glob@8.0.3 > minimatch@5.1.6 > brace-expansion@2.0.2:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-07-27T09:08:46.966Z
+    - jest-image-snapshot@6.4.0 > rimraf@2.7.1 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.0.2:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-07-27T09:08:46.959Z
+    - rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.0.2:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-07-27T09:08:46.894Z
   SNYK-JS-ESBUILD-17750822:
     - vitest@2.1.9 > vite@6.3.5 > esbuild@0.25.0:
         reason: Test dependency - not included in final production build
