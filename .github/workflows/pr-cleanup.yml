@@ -53,8 +53,14 @@ jobs:
         if: github.event.pull_request.head.repo.full_name == github.repository
         permissions:
             contents: write
+        # Per-PR lock: stops this close-time cleanup from running concurrently with
+        # the same PR's publishers in ci.yml (`pr_preview`, `snapshot_review`),
+        # narrowing the window in which a late publish could re-create the pr-<N>/
+        # this job removes. Cross-PR pushes are resolved by the retry loop in
+        # pr-preview-cleanup, not this lock. Keep this group string byte-identical
+        # to the two in ci.yml.
         concurrency:
-            group: pr-preview-gh-pages
+            group: pr-preview-gh-pages-${{ github.event.pull_request.number }}
             cancel-in-progress: false
         env:
             PR_NUMBER: ${{ github.event.pull_request.number }}
