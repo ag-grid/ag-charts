@@ -139,6 +139,26 @@ describe('series label fit', () => {
             expect(texts.some((text) => text === '' || text == null)).toBe(true);
             expect(someTruncated(texts)).toBe(false);
         });
+
+        it('renders every label whole when wrapping is set with truncate disabled', async () => {
+            // `wrapping` alone must not imply truncation: with truncate off the text overhangs its bar untouched.
+            await renderAndSnapshot(barChart({ wrapping: 'never', truncate: false }));
+            expect(labelTexts()).toEqual(barData.map((d) => d.label));
+        });
+
+        it('wraps without truncating when truncate is disabled', async () => {
+            await renderAndSnapshot(barChart({ wrapping: 'on-space', truncate: false }));
+            const texts = labelTexts();
+            expect(someWrapped(texts)).toBe(true);
+            expect(someTruncated(texts)).toBe(false);
+        });
+
+        it('hides oversized labels when alwaysShow is false even with a wrapping mode set', async () => {
+            await renderAndSnapshot(barChart({ wrapping: 'on-space', collision: { alwaysShow: false } }));
+            const texts = labelTexts();
+            expect(texts.some((text) => text === '' || text == null)).toBe(true);
+            expect(someTruncated(texts)).toBe(false);
+        });
     });
 
     it('wraps and truncates histogram bin labels across bins of varied frequency', async () => {

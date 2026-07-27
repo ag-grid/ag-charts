@@ -29,6 +29,13 @@ import {
     unguardTextEdges,
 } from './textUtils';
 
+/**
+ * Overflow policies the wrapping engine understands. `'preserve'` is internal to the engine (it is not a
+ * public {@link OverflowStrategy}): the text wraps to `maxWidth` where the wrapping mode asks for it, but
+ * no character, line or segment is ever dropped, so overflow overhangs the bounds instead.
+ */
+export type WrapOverflow = OverflowStrategy | 'preserve';
+
 // Extended measurement options including wrapping behaviour.
 export interface WrapOptions {
     font: FontOptions;
@@ -36,12 +43,16 @@ export interface WrapOptions {
     maxHeight?: number;
     lineHeight?: number;
     textWrap?: TextWrap;
-    overflow?: OverflowStrategy;
+    overflow?: WrapOverflow;
     avoidOrphans?: boolean;
 }
 
 function shouldHideOverflow(clippedResult: string[], options: WrapOptions) {
     return options.overflow === 'hide' && clippedResult.some(isTextTruncated);
+}
+
+function preservesText(options: WrapOptions) {
+    return options.overflow === 'preserve';
 }
 
 export function wrapTextOrSegments(text: string, options: WrapOptions): string;
@@ -68,12 +79,14 @@ export function fitLabelText(
     if (fit == null) return text;
     const { maxWidth, maxHeight, wrapping, overflowStrategy } = fit;
     if (maxWidth == null && maxHeight == null) return text;
+    const overflow = overflowStrategy ?? 'preserve';
     return wrapTextOrSegments(text, {
         font,
         maxWidth: maxWidth ?? Infinity,
-        maxHeight,
+        // A height bound can only be honoured by dropping lines, which 'preserve' forbids.
+        maxHeight: overflow === 'preserve' ? undefined : maxHeight,
         textWrap: wrapping,
-        overflow: overflowStrategy,
+        overflow,
     });
 }
 
@@ -111,8 +124,12 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0) {
     const lines: string[] = text.split(LineSplitter);
     const measurer = cachedTextMeasurer(options.font);
     const result: string[] = [];
+    const preserveText = preservesText(options);
 
     if (options.textWrap === 'never') {
+        if (preserveText) {
+            return lines.map((line) => line.trimEnd());
+        }
         for (const line of lines) {
             const truncatedLine = truncateLine(line.trimEnd(), measurer, Math.max(0, options.maxWidth - widthOffset));
             if (!truncatedLine) break;
@@ -155,7 +172,9 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0) {
             if (estimatedWidth > options.maxWidth) {
                 // char width is greater than options.maxWidth
                 if (i === 0) {
-                    line = '';
+                    if (!preserveText) {
+                        line = '';
+                    }
                     break;
                 }
 
@@ -168,6 +187,22 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0) {
                     estimatedWidth = actualWidth;
                     charOffset += char.length;
                     i++;
+                    continue;
+                }
+
+                if (preserveText && wrapOnSpace) {
+                    // Break at the nearest space and keep wrapping the remainder; a word with no space to
+                    // break at overhangs whole rather than being cut short.
+                    const breakIndex = lastSpaceIndex || line.indexOf(' ', 1);
+                    if (breakIndex < 1) break;
+                    result.push(line.slice(0, breakIndex).trimEnd());
+                    line = line.slice(breakIndex).trimStart();
+                    graphemes = graphemeSegments(line);
+
+                    i = 0;
+                    charOffset = 0;
+                    estimatedWidth = 0;
+                    lastSpaceIndex = 0;
                     continue;
                 }
 
@@ -217,7 +252,9 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0) {
                 if (newLine && newLine !== TrimEdgeGuard) {
                     result.push(preserveArabicJoining(newLine) + postfix);
                 } else {
-                    line = '';
+                    if (!preserveText) {
+                        line = '';
+                    }
                     break;
                 }
 
@@ -454,7 +491,11 @@ function wrapBlockGroup(
     // Inner wrap can occasionally emit a single ellipsis/orphan segment that itself exceeds the
     // column budget when `innerMaxWidth` is sub-character. If that happens, the centered label
     // ends up wider than the tile and the strip is pushed past the tile edge — drop the column.
-    if (innerResult.length > 0 && measureTextSegments(innerResult, options.font).width > innerMaxWidth) {
+    if (
+        !preservesText(options) &&
+        innerResult.length > 0 &&
+        measureTextSegments(innerResult, options.font).width > innerMaxWidth
+    ) {
         return strip;
     }
     return [...strip, ...innerResult];
@@ -544,6 +585,7 @@ function hasImageWithStrategy(segments: NormalisedContentSegment[], strategy: 'h
 
 function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: WrapOptions): MeasuredSegment[] {
     const { maxHeight = Infinity } = options;
+    const preserveText = preservesText(options);
     const result: MeasuredSegment[] = [];
 
     let lineWidth = 0;
@@ -586,7 +628,9 @@ function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: 
             return true;
         }
 
-        const truncationIndex = wrappedLines.findIndex(isTextTruncated);
+        // Under 'preserve' a trailing ellipsis can only be the author's own text ("Loading…"), so acting
+        // on it here would drop the lines and segments that follow it.
+        const truncationIndex = preserveText ? -1 : wrappedLines.findIndex(isTextTruncated);
         if (truncationIndex !== -1) {
             wrappedLines = wrappedLines.slice(0, truncationIndex + 1);
         }
@@ -671,6 +715,13 @@ function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: 
                     lineWidth = imageWidth;
                     totalHeight += lineHeight + imageHeight;
                     lineHeight = 0;
+                    result.push(segment);
+                    continue;
+                }
+
+                if (preserveText) {
+                    lineWidth += imageWidth;
+                    lineHeight = Math.max(lineHeight, imageHeight);
                     result.push(segment);
                     continue;
                 }

@@ -81,6 +81,14 @@ describe('fitLabelToContainer', () => {
         expect(String(result)).toContain('\n');
     });
 
+    it('keeps the text whole when a wrapping mode is set without truncate', () => {
+        expect(fitToContainer(LONG_TEXT, { wrapping: 'never' }, { width: 40, height: 100 })).toBe(LONG_TEXT);
+        const wrapped = String(fitToContainer(LONG_TEXT, { wrapping: 'on-space' }, { width: 60, height: 100 }));
+        expect(wrapped).toContain('\n');
+        expect(wrapped).not.toContain(ELLIPSIS);
+        expect(wrapped.replaceAll('\n', ' ')).toBe(LONG_TEXT);
+    });
+
     it('resolves collision avoidance to a hide overflow', () => {
         const expected: LabelFit = { maxWidth: 30, maxHeight: 100, wrapping: undefined, overflowStrategy: 'hide' };
         expect(fitToContainer(LONG_TEXT, { avoid: true }, { width: 30, height: 100 })).toBe(
