@@ -157,13 +157,13 @@ export class DOMManager extends BaseManager {
     private pendingContainer?: HTMLElement = undefined;
     private container?: HTMLElement = undefined;
     private shadowDocumentRoot?: HTMLElement = undefined;
-    // Mirrors the CSS-variable watcher elements already registered, so the per-datum
-    // `updateCSSVariableWatchers` call skips an O(children) DOM scan. Normal-path watchers are
-    // children of `this.element` and survive container moves; shadow-path watchers live on the
-    // shadow root, so their set is cleared when the container (and thus shadow root) changes.
+    // OPTIMIZATION: mirrors the registered CSS-variable watchers so `updateCSSVariableWatchers`
+    // skips an O(children) DOM scan. Normal-path watchers are children of `this.element` and move
+    // with it; shadow-path watchers live on the shadow root, so that set is cleared when it changes.
     private readonly cssVariableWatchers = new Set<string>();
     private readonly shadowCssVariableWatchers = new Set<string>();
     private lastThemeParameters?: AgChartAllThemeParams = undefined;
+    private lastThemeParameterCount = 0;
     private initiallyConnected?: boolean = undefined;
     containerSize?: Size = undefined;
     private readonly tabGuards?: GuardedElement;
@@ -504,12 +504,9 @@ export class DOMManager extends BaseManager {
         this.container = pendingContainer;
         this.pendingContainer = undefined;
         this.agDocument.setContainer(pendingContainer);
-        // Shadow-path watchers (sensor/style elements plus a transitionend listener) live on the
-        // shadow root, not on `this.element`, so a container move does not carry them along. Drop the
-        // mirror only when the resolved shadow root actually changes; clearing it for a move within
-        // the same root would re-register duplicate watchers over the ones already present. Normal-
-        // path watchers are children of `this.element`, which moves with its subtree, so their mirror
-        // stays valid regardless.
+        // Shadow-path watchers live on the shadow root, so a container move does not carry them
+        // along. Only drop the mirror when the resolved root actually changes — clearing it for a
+        // move within the same root would re-register duplicates over the existing watchers.
         const previousShadowRoot = this.shadowDocumentRoot?.getRootNode();
         this.shadowDocumentRoot = this.getShadowDocumentRoot(pendingContainer);
         if (this.shadowDocumentRoot?.getRootNode() !== previousShadowRoot) {
@@ -555,10 +552,13 @@ export class DOMManager extends BaseManager {
     }
 
     setThemeParameters(params: AgChartAllThemeParams) {
-        // Called every layout, but the resolved parameters keep a stable reference across data-only
-        // updates (the options fast path carries them forward), so skip the re-flatten when unchanged.
-        if (params === this.lastThemeParameters) return;
+        // OPTIMIZATION: called every layout, but the resolved parameters keep a stable reference
+        // across data-only updates (the options fast path carries them forward). The graph also
+        // lazily adds params to that same object, so the key count guards against a stale skip.
+        const paramCount = Object.keys(params).length;
+        if (params === this.lastThemeParameters && paramCount === this.lastThemeParameterCount) return;
         this.lastThemeParameters = params;
+        this.lastThemeParameterCount = paramCount;
 
         const variables: Record<string, string | number> = {};
 

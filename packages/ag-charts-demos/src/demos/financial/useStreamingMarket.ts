@@ -40,12 +40,11 @@ export function useStreamingMarket() {
     const peerFeedRef = useRef<PeerPerformanceFeed>();
     const trendingFeedRef = useRef<MoverFeed>();
     const mostActiveFeedRef = useRef<MoverFeed>();
-    // Total ticks streamed, and the tick count each feed has been advanced to, so a
-    // lazily-ticked mover feed can be caught up to "now" when it is selected.
+    // Tick counts per feed, so a lazily-ticked mover feed can be caught up when selected.
     const tickCountRef = useRef(0);
     const feedTickRef = useRef<Map<string, number>>();
-    // Pending coalesced state flush; interval ticks advance the model synchronously
-    // but push their state through a single animation frame so setters never outpace paint.
+    // Ticks advance the model synchronously but flush state through one animation frame, so setters
+    // never outpace paint.
     const flushRef = useRef(0);
     if (!feedsRef.current || !peerFeedRef.current || !trendingFeedRef.current || !mostActiveFeedRef.current) {
         const now = Date.now();
@@ -67,9 +66,8 @@ export function useStreamingMarket() {
     // Bumped on every tick so consumers of the (mutable) peer feed recompute.
     const [peerTick, setPeerTick] = useState(0);
 
-    // Keep the visible bars and gauges in sync when the trader switches instruments,
-    // catching a lazily-ticked mover feed up to the current time first so its series
-    // looks live rather than frozen at the moment it was seeded.
+    // Catch a lazily-ticked mover feed up to the current time on selection, so its series looks live
+    // rather than frozen at the moment it was seeded.
     useEffect(() => {
         const feed = feedsRef.current!.get(ticker)!;
         const feedTicks = feedTickRef.current!;
@@ -82,8 +80,7 @@ export function useStreamingMarket() {
     useEffect(() => {
         if (!running) return;
         const id = window.setInterval(() => {
-            // Advance only the watchlist feeds plus the on-screen instrument; the other
-            // mover feeds are consumed only when selected and are caught up lazily then.
+            // Only the watchlist feeds and the on-screen instrument; the rest are caught up on select.
             const feeds = feedsRef.current!;
             const feedTicks = feedTickRef.current!;
             const count = ++tickCountRef.current;
@@ -99,8 +96,7 @@ export function useStreamingMarket() {
             const trendingRows = trendingFeedRef.current!.tick();
             const mostActiveRows = mostActiveFeedRef.current!.tick();
 
-            // Coalesce into one frame: if a flush is already pending, replace it so
-            // only the most recent state reaches React.
+            // Replace any pending flush so only the most recent state reaches React.
             if (flushRef.current) cancelAnimationFrame(flushRef.current);
             flushRef.current = requestAnimationFrame(() => {
                 flushRef.current = 0;

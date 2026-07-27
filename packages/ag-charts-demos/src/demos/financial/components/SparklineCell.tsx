@@ -8,9 +8,8 @@ import { type AgChartInstance, AgCharts, type AgSparklineOptions } from 'ag-char
 const UP = '#10b981';
 const DOWN = '#f43f5e';
 
-// One point of the spark. `x` is a monotonically increasing sequence number (not the
-// array index) so a scrolling window is one appended point plus one dropped point,
-// rather than every point's x shifting.
+// `x` is a monotonic sequence number rather than the array index, so a scrolling window is one
+// appended plus one dropped point instead of every point's x shifting.
 interface SparkPoint {
     x: number;
     y: number;
@@ -50,8 +49,7 @@ export function SparklineCell({ data: row }: CustomCellRendererProps<SparkRow>) 
     const chartRef = useRef<AgChartInstance<AgSparklineOptions>>();
     const history = useMemo(() => row?.history ?? [], [row]);
     const baseline = row?.baseline ?? history[0] ?? 0;
-    // The points currently rendered (stable object identities, so a scroll removes the
-    // dropped point by reference) and the next x sequence number to hand out.
+    // Stable object identities, so a scroll can remove the dropped point by reference.
     const pointsRef = useRef<SparkPoint[]>([]);
     const seqRef = useRef(0);
     const baselineRef = useRef(baseline);
@@ -68,10 +66,8 @@ export function SparklineCell({ data: row }: CustomCellRendererProps<SparkRow>) 
     }, []);
 
     useEffect(() => {
-        // Streaming hands a fresh history array every tick; scrollShift() value-compares the window,
-        // so an unchanged tick yields empty removed/appended and skips the chart call below.
-        // The baseline drives segmentation, which a transaction can't change; a shift in
-        // it (or any history that isn't a clean scroll of the current one) forces a reseed.
+        // The baseline drives segmentation, which a transaction cannot change, so a shift in it —
+        // or any history that isn't a clean scroll of the current one — forces a full reseed.
         const scroll = baseline === baselineRef.current ? scrollShift(pointsRef.current, history) : undefined;
         if (scroll === undefined) {
             const points = history.map((y, i) => ({ x: i, y }));
@@ -90,17 +86,16 @@ export function SparklineCell({ data: row }: CustomCellRendererProps<SparkRow>) 
         }
     }, [history, baseline]);
 
-    // Decorative: the trend duplicates the row's visible % change, and the chart injects
-    // a role="img" node that churns every tick — keep the whole subtree out of the a11y tree.
+    // Decorative: the trend duplicates the row's visible % change, and the injected role="img" node
+    // churns every tick, so keep the whole subtree out of the a11y tree.
     return <div ref={containerRef} className="fin-sparkline-cell" aria-hidden="true" />;
 }
 
 // eslint-disable-next-line no-console
 const logError = (e: unknown) => console.error(e);
 
-// If `history` is the current points scrolled left by some amount (the leading values
-// dropped and new values appended to the end), return the dropped points and the
-// appended values; otherwise undefined, signalling the caller to reseed.
+// If `history` is the current points scrolled left, return the dropped points and appended values;
+// otherwise undefined, signalling the caller to reseed.
 function scrollShift(
     points: SparkPoint[],
     history: number[]

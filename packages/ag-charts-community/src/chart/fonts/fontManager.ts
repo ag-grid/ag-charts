@@ -6,11 +6,9 @@ export class FontManager {
     private observers: Array<ResizeObserver> = [];
     private destroyed = false;
 
-    // Caches specs confirmed by `check()` so streaming updates skip the per-update native check.
-    // `check()` reports a spec as available even when no matching `@font-face` exists yet, so a
-    // later font declaration or load can make a cached "confirmed" verdict stale; the
-    // `loadingdone`/`loadingerror` listener below clears the cache whenever the document's font set
-    // changes, forcing the next update to re-check.
+    // OPTIMIZATION: skips the native `check()` per streaming update. `check()` reports a spec as
+    // available even with no matching `@font-face`, so a later declaration or load can make a
+    // verdict stale — the `loadingdone`/`loadingerror` listener clears the cache to re-check.
     private readonly confirmedFontSpecs = new Set<string>();
     private watchedFontSet?: FontFaceSet;
 
@@ -63,14 +61,23 @@ export class FontManager {
         });
     }
 
-    // The document `FontFaceSet` outlives individual charts, so a cached "confirmed" spec must be
-    // invalidated whenever the set changes. Attach lazily (never in the constructor: SSR has no font
-    // set, and only the first real `waitForFonts` call proves one exists) and only once per set.
+    // The document `FontFaceSet` outlives individual charts, so a cached verdict must be invalidated
+    // whenever the set changes. Attached lazily: SSR has no font set, and only the first real
+    // `waitForFonts` call proves one exists. Font availability is per-document, so a swapped set
+    // (a chart moved into another document) invalidates every verdict cached against the old one.
     private watchFontSet(fontSet: FontFaceSet) {
         if (this.watchedFontSet === fontSet || !('addEventListener' in fontSet)) return;
+        this.unwatchFontSet();
+        this.confirmedFontSpecs.clear();
         this.watchedFontSet = fontSet;
         fontSet.addEventListener('loadingdone', this.onFontSetChange);
         fontSet.addEventListener('loadingerror', this.onFontSetChange);
+    }
+
+    private unwatchFontSet() {
+        this.watchedFontSet?.removeEventListener('loadingdone', this.onFontSetChange);
+        this.watchedFontSet?.removeEventListener('loadingerror', this.onFontSetChange);
+        this.watchedFontSet = undefined;
     }
 
     public destroy() {
@@ -79,11 +86,7 @@ export class FontManager {
             observer.disconnect();
         }
         this.observers = [];
-        if (this.watchedFontSet != null) {
-            this.watchedFontSet.removeEventListener('loadingdone', this.onFontSetChange);
-            this.watchedFontSet.removeEventListener('loadingerror', this.onFontSetChange);
-            this.watchedFontSet = undefined;
-        }
+        this.unwatchFontSet();
     }
 
     private loadFonts(fonts: Set<string>) {

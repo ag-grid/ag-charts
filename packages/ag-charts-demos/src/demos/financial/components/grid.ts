@@ -56,10 +56,9 @@ export const baseColDef = <T>(): ColDef<T> => ({
 
 export const getRowId = <T extends { ticker: string }>({ data }: GetRowIdParams<T>) => data.ticker;
 
-// True when two snapshots of the same row carry identical displayed values. Feeds hand
-// back a fresh object every tick, so identity never matches; compare values instead, and
-// compare the rolling `history` window element-wise (a scroll that drops the head and appends
-// a value equal to the old tail would slip past a length + tail-only check).
+// Feeds hand back a fresh object every tick, so row identity never matches; compare values. The
+// rolling `history` must be compared element-wise — a scroll appending a value equal to the old tail
+// would slip past a length + tail-only check.
 export const rowValuesEqual = <T extends object>(a: T, b: T): boolean => {
     for (const key of Object.keys(a) as (keyof T)[]) {
         const av = a[key];

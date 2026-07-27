@@ -25,6 +25,7 @@ describe('Ranges', () => {
         // test cannot drive the non-zero measurement path this cache is about.
         interface RangesInternals {
             getToolbarHeight(opts: object, toolbar: { getBounds(): { height: number } }): number;
+            invalidateToolbarHeightCache(): void;
             isDropdown?: boolean;
             dropdownLabel?: string;
         }
@@ -62,6 +63,20 @@ describe('Ranges', () => {
             ranges.isDropdown = true;
             ranges.getToolbarHeight(opts, toolbar);
 
+            expect(toolbar.getBounds).toHaveBeenCalledTimes(2);
+        });
+
+        // Text metrics are not part of the key, so the `font:load` listener must reset the cache;
+        // without this a late webfont leaves the height pinned to fallback-font metrics.
+        it('re-measures after the cache is invalidated by a font load', () => {
+            const ranges = createRanges();
+            const opts = {};
+            const toolbar = { getBounds: vi.fn(() => ({ height: 24 })) };
+
+            ranges.getToolbarHeight(opts, toolbar);
+            ranges.invalidateToolbarHeightCache();
+
+            expect(ranges.getToolbarHeight(opts, toolbar)).toBe(24);
             expect(toolbar.getBounds).toHaveBeenCalledTimes(2);
         });
 

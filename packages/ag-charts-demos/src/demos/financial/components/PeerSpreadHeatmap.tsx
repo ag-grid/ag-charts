@@ -80,9 +80,8 @@ export function PeerSpreadHeatmap({ instrument, peerFeed, peerTick, windowMinute
         return {
             theme: THEME,
             data,
-            // The leftmost and trailing buckets recompute each tick; matching cells by
-            // their composite id lets those changes flow through as `update`s while a
-            // rolled bucket adds/removes cells, all off the slow path.
+            // The leftmost and trailing buckets recompute each tick, so matching on the composite
+            // cell id lets those arrive as `update`s while a rolled bucket adds/removes cells.
             dataIdKey: 'key',
             series: [HEATMAP_SERIES],
             axes: {

@@ -64,13 +64,9 @@ export class ColorScale extends AbstractScale<number, string> {
 
     private parsedRange = this.range.map(convertColorStringToOklcha);
 
-    /**
-     * OKLCH interpolation plus RGBA-string allocation dominate heat-map redraws, where the same
-     * value recurs across cells and frames. Memoise by exact input value. Cleared in update() on
-     * any domain/range/mode change. Once the cap is reached we stop inserting rather than clearing:
-     * an explicit, never-invalidated domain fed more than the cap of distinct continuous values
-     * would otherwise thrash, clearing and rebuilding the whole map within a single redraw pass.
-     */
+    // OPTIMIZATION: OKLCH interpolation and RGBA-string allocation dominate heat-map redraws, where
+    // the same value recurs across cells and frames. Cleared in update() on any domain/range/mode
+    // change. At the cap we stop inserting rather than clearing, which would thrash mid-redraw.
     private readonly convertCache = new Map<number, string>();
 
     update() {

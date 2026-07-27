@@ -502,12 +502,12 @@ export class PeerPerformanceFeed {
     private spx = SPX_SEED;
     private time: number;
 
-    // Per-sample rebased rows, reused across ticks: a row depends only on its own
-    // immutable sample and the fixed origin, so it never changes once computed.
+    // OPTIMIZATION: a row depends only on its own immutable sample and the fixed origin, so it never
+    // changes once computed.
     private perfCache = new WeakMap<PeerSample, PerfRow>();
     private perfCacheKey = '';
-    // Settled heatmap buckets keyed by wall-clock bucket key; a bucket's cells are
-    // fixed once it has a stable predecessor in the window (see rollingSpread).
+    // Settled buckets only — a bucket's cells are fixed once it has a stable predecessor in the
+    // window (see rollingSpread).
     private readonly spreadCache = new Map<number, PeerHeatmapCell[]>();
     private spreadCacheKey = '';
 
@@ -569,8 +569,7 @@ export class PeerPerformanceFeed {
 
     /** Group the most recent samples into up to `buckets` fixed wall-clock time buckets (oldest first). */
     private timeBuckets(buckets = HEATMAP_BUCKETS): PeerSample[][] {
-        // Scan newest-first, stopping once the trailing `buckets` wall-clock buckets
-        // are collected, so cost tracks the window rather than the full sample history.
+        // Scan newest-first so cost tracks the window rather than the full sample history.
         const byKey = new Map<number, PeerSample[]>();
         for (let i = this.samples.length - 1; i >= 0; i--) {
             const sample = this.samples[i];
@@ -629,9 +628,8 @@ export class PeerPerformanceFeed {
         buckets.forEach((bucket, bucketIndex) => {
             const key = Math.floor(bucket[0].time / HEATMAP_BUCKET_MS);
             liveKeys.add(key);
-            // The leftmost bucket has no in-window predecessor and the trailing bucket
-            // may still be filling, so both recompute every tick; interior buckets are
-            // settled and reuse their cached cells (keeping their identity).
+            // The leftmost bucket has no in-window predecessor and the trailing one may still be
+            // filling, so both recompute; interior buckets reuse their cells, keeping their identity.
             const settled = bucketIndex > 0 && bucketIndex < lastIndex;
             let bucketCells = settled ? this.spreadCache.get(key) : undefined;
             if (!bucketCells) {

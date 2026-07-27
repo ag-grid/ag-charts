@@ -9,9 +9,9 @@ type StyledElement = new () => { style: CSSStyleDeclaration };
 // Using Option instead of createElement because it should be faster.
 let styleDeclaration: CSSStyleDeclaration;
 
-// Parsing is a DOM write/read per call but is pure per input, so memoise. The cap bounds memory
-// under pathological dynamic-colour usage; parsing is document-independent, so a module-level
-// cache is safe.
+// OPTIMIZATION: parsing is a DOM write/read per call, but resolves to the specified value only
+// (never a computed one), so it is document-independent and safe to memoise module-wide. At the cap
+// we stop inserting rather than clearing, so a pathological input stream cannot thrash the map.
 const PARSE_COLOR_CACHE_LIMIT = 4000;
 const parseColorCache = new Map<string, string | null>();
 export function parseColor(color: string): string | null {
@@ -27,10 +27,9 @@ export function parseColor(color: string): string | null {
     const result = styleDeclaration.color || null;
     styleDeclaration.color = '';
 
-    if (parseColorCache.size >= PARSE_COLOR_CACHE_LIMIT) {
-        parseColorCache.clear();
+    if (parseColorCache.size < PARSE_COLOR_CACHE_LIMIT) {
+        parseColorCache.set(color, result);
     }
-    parseColorCache.set(color, result);
     return result;
 }
 

@@ -26,10 +26,8 @@ export function TickerGrid<T extends { ticker: string }>({
     const gridRef = useRef<AgGridReact<T>>(null);
     const defaultColDef = useMemo(() => baseColDef<T>(), []);
 
-    // Seed the grid once with the initial rows, then stream subsequent ticks as
-    // async transactions: the fixed row set never changes shape, so pushing only the
-    // changed rows lets the grid refresh those cells in place instead of diffing a
-    // fresh array every tick. Keyed by getRowId so updates match existing nodes.
+    // OPTIMIZATION: the row set never changes shape, so seed once and stream only the changed rows
+    // as transactions — the grid refreshes those cells in place instead of diffing a fresh array.
     const initialRowData = useRef(rowData);
     const seenRows = useRef(new Map<string, T>(rowData.map((row) => [row.ticker, row])));
     useEffect(() => {

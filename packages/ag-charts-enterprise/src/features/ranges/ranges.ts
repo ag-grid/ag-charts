@@ -76,11 +76,9 @@ export class Ranges extends AbstractModuleInstance {
     private dropdownLabel = DEFAULT_DROPDOWN_LABEL;
     private dropdownMinWidth?: number;
 
-    // `getBounds()` on the range-buttons toolbar has no inline height, so it falls back to
-    // `offsetHeight` and forces a sync reflow on every layout. The measured height only depends on
-    // the resolved ranges options (button set, styling) and which toolbar is shown, so cache it
-    // keyed on those. `opts` keeps a stable reference across data-only updates and is replaced on
-    // any option/theme change, so the cache self-invalidates; a miss always re-measures.
+    // OPTIMIZATION: `getBounds()` has no inline height, so it forces a sync reflow every layout.
+    // The height depends on the resolved options, the shown toolbar, and text metrics — the first
+    // three form the key below, the last is handled by the `font:load` reset.
     private cachedToolbarHeight?: number;
     private cachedToolbarHeightOpts?: _ModuleSupport.NormalisedRangesOptions;
     private cachedToolbarHeightIsDropdown?: boolean;
@@ -100,6 +98,9 @@ export class Ranges extends AbstractModuleInstance {
             ctx.eventsHub.on('layout:complete', this.onLayoutComplete.bind(this)),
             ctx.widgets.chartWidget.addListener('click', this.onChartWidgetClick.bind(this)),
             ctx.eventsHub.on('zoom:change-complete', this.onZoomChanged.bind(this)),
+            // A font arriving after first layout changes button text metrics; this event re-runs
+            // layout so they are picked up, so the cached measurement must not survive it.
+            ctx.eventsHub.on('font:load', () => this.invalidateToolbarHeightCache()),
             ctx.chartState.observe((get) => {
                 const enabled = get('options', 'ranges.enabled') ?? false;
                 // Reset `isDropdown` state when the ranges module is disabled, to ensure the buttons are
@@ -179,6 +180,10 @@ export class Ranges extends AbstractModuleInstance {
 
         buttonsToolbar.setBounds(bounds);
         dropdownToolbar.setBounds(bounds);
+    }
+
+    private invalidateToolbarHeightCache() {
+        this.cachedToolbarHeight = undefined;
     }
 
     private getToolbarHeight(

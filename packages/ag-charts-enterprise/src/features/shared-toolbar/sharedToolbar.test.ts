@@ -6,6 +6,7 @@ import { SharedToolbar } from './sharedToolbar';
 // a full-chart test cannot drive the non-zero measurement path this cache is about.
 interface SharedToolbarInternals {
     measureWidth(toolbar: { getBounds(): { width: number } }): number;
+    invalidateWidthCache(): void;
     sectionButtons: Record<string, Array<{ label?: string; icon?: string; iconPosition?: string }>>;
     activeSections: Set<string>;
 }
@@ -47,6 +48,19 @@ describe('SharedToolbar width caching', () => {
         toolbar.sectionButtons.annotations = [{ icon: 'trend-line' }];
         toolbar.measureWidth(shared);
 
+        expect(shared.getBounds).toHaveBeenCalledTimes(2);
+    });
+
+    // Text metrics are not part of the signature, so the `font:load` listener must reset the cache;
+    // without this a late webfont leaves the width pinned to fallback-font metrics.
+    it('re-measures after the cache is invalidated by a font load', () => {
+        const toolbar = createSharedToolbar();
+        const shared = { getBounds: vi.fn(() => ({ width: 96 })) };
+
+        toolbar.measureWidth(shared);
+        toolbar.invalidateWidthCache();
+
+        expect(toolbar.measureWidth(shared)).toBe(96);
         expect(shared.getBounds).toHaveBeenCalledTimes(2);
     });
 

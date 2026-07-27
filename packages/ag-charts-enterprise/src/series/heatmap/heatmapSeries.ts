@@ -84,11 +84,7 @@ interface HeatmapLabelDatum extends Point {
 type ItemStyle = Pick<NormalisedHeatmapSeriesStyle, 'fill'> &
     Required<Omit<NormalisedHeatmapSeriesStyle, 'fill'>> & { opacity: number };
 
-/**
- * Per-pass styling state shared across every cell. The colour-scale validity check and the
- * fill-independent portion of the item style are constant across a create/update pass, so
- * computing them per cell makes styling O(cells²); hoist them to O(cells).
- */
+/** OPTIMIZATION: per-pass styling state, hoisted out of the per-cell path to keep styling O(cells). */
 interface HeatmapItemStyleContext {
     readonly colorScaleValid: boolean;
     readonly baseStyle: Omit<ItemStyle, 'fill'>;

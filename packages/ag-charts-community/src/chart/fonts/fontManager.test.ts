@@ -167,6 +167,28 @@ describe('FontManager', () => {
         expect(fontSet.check).toHaveBeenCalledTimes(2);
     });
 
+    // Font availability is per-document, so verdicts cached against the previous set cannot carry
+    // over when the chart is moved into another document.
+    it('waitForFonts re-checks a confirmed spec against a swapped font set and detaches the old one', () => {
+        const { fontManager } = createFontManager();
+        const createFontSet = () => ({
+            check: vi.fn().mockReturnValue(true),
+            load: vi.fn(),
+            addEventListener: vi.fn(),
+            removeEventListener: vi.fn(),
+        });
+        const first = createFontSet();
+        setDocumentFonts(first);
+        fontManager.waitForFonts(new Set(['16px Arial']));
+
+        const second = createFontSet();
+        setDocumentFonts(second);
+        fontManager.waitForFonts(new Set(['16px Arial']));
+
+        expect(second.check).toHaveBeenCalledWith('16px Arial');
+        expect(first.removeEventListener).toHaveBeenCalledTimes(2);
+    });
+
     it('waitForFonts re-checks an unconfirmed spec until it becomes available', () => {
         const { fontManager } = createFontManager();
         const fontSet = { check: vi.fn().mockReturnValue(false), load: vi.fn().mockResolvedValue([]) };

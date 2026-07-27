@@ -65,8 +65,7 @@ export function PeerPerformanceChart({ instrument, peerFeed, peerTick, windowMin
         return {
             theme: THEME,
             data,
-            // A point's rebased value is fixed once computed, so ticks only add/remove
-            // whole points; matching by the sample id keeps them off the slow path.
+            // A point's rebased value is fixed once computed, so ticks only add/remove whole points.
             dataIdKey: 'id',
             series,
             axes: {

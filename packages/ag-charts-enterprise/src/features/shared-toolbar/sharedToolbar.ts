@@ -33,10 +33,9 @@ export class SharedToolbar extends AbstractModuleInstance {
     };
     private firstLayoutSection?: SharedToolbarSection;
 
-    // `getBounds().width` falls back to `offsetWidth` (a sync reflow) on every layout because the
-    // toolbar carries no inline width. Its width is a function of the rendered button set, which is
-    // rebuilt with identical content on every layout (see chartToolbar.updateButton), so cache the
-    // measurement keyed on a signature of that content and re-measure only when it actually changes.
+    // OPTIMIZATION: `getBounds().width` has no inline width, so it forces a sync reflow every
+    // layout. The width depends on the rendered button content (the signature below) and on text
+    // metrics (handled by the `font:load` reset).
     private cachedWidth?: number;
     private cachedWidthSignature?: string;
 
@@ -44,6 +43,9 @@ export class SharedToolbar extends AbstractModuleInstance {
         super();
         this.container = this.ctx.domManager.addChild('canvas-overlay', 'shared-toolbar');
         this.container.role = 'presentation';
+        // A font arriving after first layout changes button text metrics; this event re-runs layout
+        // so they are picked up, so the cached measurement must not survive it.
+        this.cleanup.register(ctx.eventsHub.on('font:load', () => this.invalidateWidthCache()));
     }
 
     public getSharedToolbar<ButtonOptions extends _ModuleSupport.ToolbarButtonOptions>(section: SharedToolbarSection) {
@@ -160,6 +162,10 @@ export class SharedToolbar extends AbstractModuleInstance {
         withSection.setHidden(false);
 
         return withSection;
+    }
+
+    private invalidateWidthCache() {
+        this.cachedWidth = undefined;
     }
 
     private measureWidth(sharedToolbar: _ModuleSupport.Toolbar<_ModuleSupport.ToolbarButtonOptions>): number {

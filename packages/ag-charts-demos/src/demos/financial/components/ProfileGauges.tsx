@@ -185,8 +185,7 @@ function ProfileGaugesImpl({ metrics }: ProfileGaugesProps) {
     );
 }
 
-// A fresh metrics object arrives every tick; skip the re-render (and its gauge
-// option work) unless one of the rounded values actually moved.
+// A fresh metrics object arrives every tick, so skip the re-render unless a value actually moved.
 export const ProfileGauges = memo(
     ProfileGaugesImpl,
     (prev, next) =>

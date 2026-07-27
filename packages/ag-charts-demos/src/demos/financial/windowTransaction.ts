@@ -1,15 +1,9 @@
 import { type AgDataTransaction } from 'ag-charts-community';
 
-// Diff two ordered windows of an incrementally-streamed chart into the minimal set
-// of data transactions needed to turn `prev` into `next`. Both windows are trailing
-// slices of the same growing series, so retained items always form one contiguous
-// run: additions sit at the front (window grew leftwards) and/or the back (a fresh
-// point streamed in), never in the interior.
-//
-// Items are matched by the id returned from `idOf`, which must line up with the
-// chart's `dataIdKey`. `valueEquals`, when supplied, flags a retained item whose
-// content changed so it is re-emitted as an `update` (the id is stable but the datum
-// is replaced) — omit it for series whose data points are immutable once created.
+// Minimal transactions to turn `prev` into `next`. Both are trailing slices of the same growing
+// series, so retained items form one contiguous run and additions only ever sit at the front or
+// back, never the interior. `idOf` must line up with the chart's `dataIdKey`; `valueEquals` marks a
+// retained-but-changed item as an `update` and is omitted for immutable data points.
 export function diffWindow<T>(
     prev: readonly T[],
     next: readonly T[],

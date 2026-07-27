@@ -18,8 +18,7 @@ function createFinancialOptions(
     return {
         theme: THEME,
         data,
-        // Bars carry a stable epoch-ms `time`; matching transactions by it lets a tick
-        // append/remove single bars instead of replacing the whole dataset.
+        // Bars carry a stable epoch-ms `time`, so a tick appends/removes single bars.
         dataIdKey: 'time',
         chartType,
         dateKey: 'date',
@@ -41,12 +40,10 @@ interface FinancialChartProps {
 
 export function FinancialChart({ bars, windowMinutes }: FinancialChartProps) {
     const chartRef = useRef<AgChartInstance>(null);
-    // One ChartDatum per Bar: bars keep their identity across ticks (only the newest
-    // is appended), so unchanged bars — and their Dates — are mapped once, not per tick.
-    // key={ticker} remounts the chart per instrument, resetting this alongside it.
+    // OPTIMIZATION: bars are immutable once created, so each one's ChartDatum (and its Date) is
+    // built once rather than per tick.
     const datumCache = useRef(new WeakMap<Bar, ChartDatum>());
-    // The datum window currently rendered by the chart, diffed against each new window
-    // to derive the incremental transaction.
+    // The window currently rendered, diffed against each new window for the transaction.
     const windowRef = useRef<ChartDatum[]>([]);
 
     const windowedData = useMemo(() => {
@@ -62,9 +59,8 @@ export function FinancialChart({ bars, windowMinutes }: FinancialChartProps) {
         });
     }, [bars, windowMinutes]);
 
-    // Seed the chart once; every later window change streams in as a transaction so the
-    // options object stays referentially stable and never re-runs the slow options path
-    // (which would also clobber the toolbar's live chart-type selection).
+    // Seeded once so the options reference stays stable: re-running the slow options path would also
+    // clobber the toolbar's live chart-type selection. Later windows stream in via the effect below.
     const options = useMemo(() => {
         windowRef.current = windowedData;
         return createFinancialOptions(windowedData, 'candlestick');
