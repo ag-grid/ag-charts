@@ -794,6 +794,14 @@ export const labelFitOptionsDefs: OptionsDefs<AgChartLabelFitOptions> = {
     truncate: boolean,
 };
 
+/** Label-fit defs kept usable internally while withheld from the documented option surface. */
+export const undocumentedLabelFitOptionsDefs: OptionsDefs<AgChartLabelFitOptions> = {
+    maxWidth: undocumented(positiveNumber),
+    maxHeight: undocumented(positiveNumber),
+    wrapping: undocumented(textWrap),
+    truncate: undocumented(boolean),
+};
+
 /** Label-fit defs plus the collision object, for series that place their labels against obstacles. */
 export const labelCollisionFitOptionsDefs: OptionsDefs<AgChartLabelCollisionFitOptions> = {
     ...labelFitOptionsDefs,
