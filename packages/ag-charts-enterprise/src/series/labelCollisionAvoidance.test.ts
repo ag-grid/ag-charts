@@ -64,7 +64,7 @@ describe('label collision avoidance', () => {
     };
 
     // A tight cluster of lat/lon markers (projection fixed by the UK background) forces overlapping
-    // labels, so placement candidates always resolve real collisions; `suppressHide` only decides the
+    // labels, so placement candidates always resolve real collisions; `alwaysShow` only decides the
     // terminal outcome for a label that fails every candidate.
     describe('map-marker', () => {
         // 4x4 grid of points within a ~1° box; at the UK-wide projection they land in a small pixel
@@ -89,12 +89,35 @@ describe('label collision avoidance', () => {
             ],
         });
 
-        it('reposition overlapping labels around the candidate list (suppressHide: false, default)', async () => {
-            await renderAndSnapshot(markerOptions({}));
+        it('reposition overlapping labels around the candidate list (alwaysShow: false)', async () => {
+            await renderAndSnapshot(markerOptions({ collision: { alwaysShow: false } }));
         });
 
-        it('keeps a label that fails every candidate visible when suppressHide is true', async () => {
-            await renderAndSnapshot(markerOptions({ collision: { suppressHide: true } }));
+        it('keeps a label that fails every candidate visible when alwaysShow is true', async () => {
+            await renderAndSnapshot(markerOptions({ collision: { alwaysShow: true } }));
+        });
+
+        // The theme default is `collision.alwaysShow: false` (map-marker hides on collision), so a chart
+        // with no explicit `collision` option must behave exactly like the explicit `alwaysShow: false` case.
+        it('hides overlapping labels by default, matching the explicit alwaysShow: false count', async () => {
+            const render = async (config: object) => {
+                chart?.destroy();
+                const opts = markerOptions(config);
+                prepareEnterpriseTestOptions(opts as AgChartOptions);
+                chart = deproxy(AgCharts.create(opts as AgChartOptions));
+                await waitForChartStability(chart);
+                const series = chart.series.find((s: any) => s.type === 'map-marker') as unknown as {
+                    labelSelection: { nodes(): { visible: boolean }[] };
+                };
+                return series.labelSelection.nodes().filter((node) => node.visible).length;
+            };
+
+            const defaultVisible = await render({});
+            // Anti-vacuous guard: the dense cluster must actually force some labels to hide.
+            expect(defaultVisible).toBeLessThan(collisionData.length);
+
+            const explicitVisible = await render({ collision: { alwaysShow: false } });
+            expect(defaultVisible).toBe(explicitVisible);
         });
 
         // `label.spacing` is the gap between a marker-based label and its anchor; a larger value pushes
@@ -142,18 +165,38 @@ describe('label collision avoidance', () => {
                     idKey: 'name',
                     labelKey: 'name',
                     // Large bold labels so neighbouring route names genuinely overlap, forcing the
-                    // collision pass to drop some by default (and keep them all with suppressHide: true).
+                    // collision pass to drop some when hideable (and keep them all with alwaysShow: true).
                     label: { enabled: true, fontSize: 24, fontWeight: 'bold', ...config },
                 },
             ],
         });
 
-        it('drops overlapping route labels (suppressHide: false, default)', async () => {
-            await renderAndSnapshot(lineOptions({}));
+        it('drops overlapping route labels (alwaysShow: false)', async () => {
+            await renderAndSnapshot(lineOptions({ collision: { alwaysShow: false } }));
         });
 
-        it('keeps every overlapping route label when suppressHide is true', async () => {
-            await renderAndSnapshot(lineOptions({ collision: { suppressHide: true } }));
+        it('keeps every overlapping route label when alwaysShow is true', async () => {
+            await renderAndSnapshot(lineOptions({ collision: { alwaysShow: true } }));
+        });
+
+        // The theme default is `collision.alwaysShow: false` (map-line hides on collision), so a chart
+        // with no explicit `collision` option must behave exactly like the explicit `alwaysShow: false` case.
+        it('drops overlapping route labels by default, matching the explicit alwaysShow: false count', async () => {
+            const render = async (config: object) => {
+                chart?.destroy();
+                const opts = lineOptions(config);
+                prepareEnterpriseTestOptions(opts as AgChartOptions);
+                chart = deproxy(AgCharts.create(opts as AgChartOptions));
+                await waitForChartStability(chart);
+                return visibleLabelCount();
+            };
+
+            const defaultVisible = await render({});
+            // Anti-vacuous guard: the bold, large route labels must actually force some to hide.
+            expect(defaultVisible).toBeLessThan(ukRoadData.length);
+
+            const explicitVisible = await render({ collision: { alwaysShow: false } });
+            expect(defaultVisible).toBe(explicitVisible);
         });
     });
 
@@ -382,7 +425,7 @@ describe('label collision avoidance', () => {
                     yLowKey: 'low',
                     yHighKey: 'high',
                     data: rangeData,
-                    label: { enabled: true, collision: { suppressHide: true } },
+                    label: { enabled: true, collision: { alwaysShow: true } },
                 },
                 {
                     type: 'scatter',
@@ -393,7 +436,7 @@ describe('label collision avoidance', () => {
                     label: {
                         enabled: true,
                         placement: ['top', 'bottom'],
-                        collision: { suppressHide: false },
+                        collision: { alwaysShow: false },
                     },
                 },
             ],
@@ -444,22 +487,22 @@ describe('label collision avoidance', () => {
         });
 
         it('drops a hideable outside label overflowing the series area', async () => {
-            expect(
-                await renderPlacementCount(options, { suppressHide: false, collideWith: { seriesArea: true } })
-            ).toBe(0);
+            expect(await renderPlacementCount(options, { alwaysShow: false, collideWith: { seriesArea: true } })).toBe(
+                0
+            );
         });
 
-        it('keeps the same label when it is not hideable (suppressHide: true)', async () => {
-            expect(await renderPlacementCount(options, { suppressHide: true, collideWith: { seriesArea: true } })).toBe(
+        it('keeps the same label when it is not hideable (alwaysShow: true)', async () => {
+            expect(await renderPlacementCount(options, { alwaysShow: true, collideWith: { seriesArea: true } })).toBe(
                 1
             );
         });
 
         it('cascades a hideable outside label to an inside placement that fits', async () => {
             // The single `outside-end` label above hides (0); the array falls through to `inside-center`,
-            // which fits inside the tall bar, so the label is kept even though `suppressHide` is false.
+            // which fits inside the tall bar, so the label is kept even though `alwaysShow` is false.
             expect(
-                await renderPlacementCount(options, { suppressHide: false, collideWith: { seriesArea: true } }, [
+                await renderPlacementCount(options, { alwaysShow: false, collideWith: { seriesArea: true } }, [
                     'outside-end',
                     'inside-center',
                 ])
@@ -488,7 +531,7 @@ describe('label collision avoidance', () => {
                                     enabled: true,
                                     formatter: () => 'WWWWWWWWWWWWWWWWWWWW',
                                     placement: ['inside-center', 'outside-end'],
-                                    collision: { suppressHide: false },
+                                    collision: { alwaysShow: false },
                                 },
                             },
                         },
@@ -513,7 +556,7 @@ describe('label collision avoidance', () => {
             const barLabel = {
                 enabled: true,
                 placement: ['outside-end', 'inside-center'],
-                collision: { suppressHide: false, collideWith: { seriesArea: true } },
+                collision: { alwaysShow: false, collideWith: { seriesArea: true } },
             };
             await renderAndSnapshot({
                 data: [
@@ -563,13 +606,13 @@ describe('label collision avoidance', () => {
         });
 
         it('drops only the colliding high-end label, keeping the low-end label', async () => {
-            expect(
-                await renderPlacementCount(options, { suppressHide: false, collideWith: { seriesArea: true } })
-            ).toBe(1);
+            expect(await renderPlacementCount(options, { alwaysShow: false, collideWith: { seriesArea: true } })).toBe(
+                1
+            );
         });
 
-        it('keeps both labels when not hideable (suppressHide: true)', async () => {
-            expect(await renderPlacementCount(options, { suppressHide: true, collideWith: { seriesArea: true } })).toBe(
+        it('keeps both labels when not hideable (alwaysShow: true)', async () => {
+            expect(await renderPlacementCount(options, { alwaysShow: true, collideWith: { seriesArea: true } })).toBe(
                 2
             );
         });
@@ -577,7 +620,7 @@ describe('label collision avoidance', () => {
         it('cascades the colliding high-end label to an inside placement, keeping both', async () => {
             // Only the high end overflows: it falls through to `inside`, while the low end stays outside.
             expect(
-                await renderPlacementCount(options, { suppressHide: false, collideWith: { seriesArea: true } }, [
+                await renderPlacementCount(options, { alwaysShow: false, collideWith: { seriesArea: true } }, [
                     'outside',
                     'inside',
                 ])
@@ -611,7 +654,7 @@ describe('label collision avoidance', () => {
                             color: 'black',
                             formatter: ({ datum }: any) => (datum.x === 'C' ? 'WWWWWWWWWWWWWWWWWWWW' : undefined),
                             placement: ['outside', 'inside'],
-                            collision: { suppressHide: false, collideWith: { seriesArea: true } },
+                            collision: { alwaysShow: false, collideWith: { seriesArea: true } },
                         },
                     },
                 ],
@@ -646,7 +689,7 @@ describe('label collision avoidance', () => {
                         xKey: 'x',
                         yLowKey: 'low',
                         yHighKey: 'high',
-                        label: { enabled: true, placement: ['inside', 'outside'], collision: { suppressHide: false } },
+                        label: { enabled: true, placement: ['inside', 'outside'], collision: { alwaysShow: false } },
                     },
                 ],
             };
@@ -662,7 +705,7 @@ describe('label collision avoidance', () => {
             expect(labels.filter((l) => l.placement?.startsWith('outside'))).toHaveLength(1);
         });
 
-        // Visual coverage with default styling (no `color`, default `suppressHide`): three short bars whose
+        // Visual coverage with default styling (no `color`, default `alwaysShow`): three short bars whose
         // two end labels collide inside. With `placement: ['inside', 'outside']` one label per bar renders
         // outside the bar to avoid the sibling, rather than being hidden — and the outside label picks up
         // the legible `outsideStyle` colour (dark on the background) while the inside label stays white.
@@ -726,7 +769,7 @@ describe('label collision avoidance', () => {
             const { low, high } = await reversedLabelEnds({
                 enabled: true,
                 placement: ['outside', 'inside'],
-                collision: { suppressHide: false },
+                collision: { alwaysShow: false },
             });
             expect(low).toBeDefined();
             expect(high).toBeDefined();

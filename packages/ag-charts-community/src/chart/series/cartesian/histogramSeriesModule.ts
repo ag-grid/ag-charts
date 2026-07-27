@@ -9,6 +9,7 @@ import {
     FILL_PATTERN_DEFAULTS,
     LABEL_BOXING_TOP_LEVEL_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
+    undocumentedThemeOptions,
 } from 'ag-charts-core';
 import type { AgHistogramSeriesOptions, ExtensibleTheme } from 'ag-charts-types';
 
@@ -46,8 +47,7 @@ const themeTemplate: ExtensibleTheme<'histogram'> = {
             padding: 8,
             collision: {
                 threshold: 4,
-                // @ts-expect-error undocumented option
-                collideWith: { seriesItems: true, seriesArea: true },
+                ...undocumentedThemeOptions({ collideWith: { seriesItems: true } }),
             },
             insideStyle: {
                 color: { $isUserOption: ['../color', { $path: '../color' }, { $ref: 'chartBackgroundColor' }] },

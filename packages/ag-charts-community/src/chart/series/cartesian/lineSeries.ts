@@ -488,7 +488,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                   resolveLabelFit(label, false, true),
                   insideMarkerContainer(markerSize, marker.shape, collision.threshold ?? 0)
               )
-            : resolveLabelFit(label, !collision.suppressHide);
+            : resolveLabelFit(label, !collision.alwaysShow);
         const labelAnchor = Marker.anchor(marker.shape);
 
         return {

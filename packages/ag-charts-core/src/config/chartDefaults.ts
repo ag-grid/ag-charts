@@ -762,7 +762,7 @@ export const labelOrientationDef = unionOrArray('horizontal', 'vertical', 'verti
 
 export const collisionOptionsDef = {
     threshold: number,
-    suppressHide: boolean,
+    alwaysShow: boolean,
 };
 
 // @ts-expect-error undocumented option

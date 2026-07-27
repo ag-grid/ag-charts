@@ -665,7 +665,6 @@ describe('ChartOptions', () => {
                     },
                     "collision": {
                       "collideWith": {
-                        "seriesArea": true,
                         "seriesItems": true,
                       },
                       "threshold": 4,
@@ -758,7 +757,6 @@ describe('ChartOptions', () => {
                     },
                     "collision": {
                       "collideWith": {
-                        "seriesArea": true,
                         "seriesItems": true,
                       },
                       "threshold": 4,
@@ -851,7 +849,6 @@ describe('ChartOptions', () => {
                     },
                     "collision": {
                       "collideWith": {
-                        "seriesArea": true,
                         "seriesItems": true,
                       },
                       "threshold": 4,
@@ -944,7 +941,6 @@ describe('ChartOptions', () => {
                     },
                     "collision": {
                       "collideWith": {
-                        "seriesArea": true,
                         "seriesItems": true,
                       },
                       "threshold": 4,
@@ -1198,7 +1194,6 @@ describe('ChartOptions', () => {
                     },
                     "collision": {
                       "collideWith": {
-                        "seriesArea": true,
                         "seriesItems": true,
                       },
                       "threshold": 4,
@@ -1291,7 +1286,6 @@ describe('ChartOptions', () => {
                     },
                     "collision": {
                       "collideWith": {
-                        "seriesArea": true,
                         "seriesItems": true,
                       },
                       "threshold": 4,
@@ -1384,7 +1378,6 @@ describe('ChartOptions', () => {
                     },
                     "collision": {
                       "collideWith": {
-                        "seriesArea": true,
                         "seriesItems": true,
                       },
                       "threshold": 4,
@@ -1477,7 +1470,6 @@ describe('ChartOptions', () => {
                     },
                     "collision": {
                       "collideWith": {
-                        "seriesArea": true,
                         "seriesItems": true,
                       },
                       "threshold": 4,
@@ -1731,7 +1723,6 @@ describe('ChartOptions', () => {
                     },
                     "collision": {
                       "collideWith": {
-                        "seriesArea": true,
                         "seriesItems": true,
                       },
                       "threshold": 4,
@@ -1824,7 +1815,6 @@ describe('ChartOptions', () => {
                     },
                     "collision": {
                       "collideWith": {
-                        "seriesArea": true,
                         "seriesItems": true,
                       },
                       "threshold": 4,
@@ -1917,7 +1907,6 @@ describe('ChartOptions', () => {
                     },
                     "collision": {
                       "collideWith": {
-                        "seriesArea": true,
                         "seriesItems": true,
                       },
                       "threshold": 4,
@@ -2010,7 +1999,6 @@ describe('ChartOptions', () => {
                     },
                     "collision": {
                       "collideWith": {
-                        "seriesArea": true,
                         "seriesItems": true,
                       },
                       "threshold": 4,

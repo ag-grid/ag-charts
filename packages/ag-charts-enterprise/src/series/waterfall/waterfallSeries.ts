@@ -23,10 +23,12 @@ import {
     type PointLabelDatum,
     type RequireOptional,
     applyBarLabelOrientation,
-    bakedLabelObstacles,
+    applyPlacedBarLabelVisibility,
+    barLabelObstacles,
     barLabelResolvesOrientation,
     barLabelResolvesPlacement,
     barLabelRotation,
+    barLabelRoutesThroughEngine,
     buildBarLabelData,
     buildBarPositionedLabelDatum,
     easeOut,
@@ -36,8 +38,6 @@ import {
     measureLabelText,
     mergeDefaults,
     minValue,
-    placedBarLabelTargets,
-    rectLabelObstacles,
     resolveLabelFit,
     subtractValues,
     toArray,
@@ -740,7 +740,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             );
 
             // Label config is item-type specific, so the fit is resolved per datum rather than hoisted.
-            const labelFit = resolveLabelFit(label, !label.collision.suppressHide);
+            const labelFit = resolveLabelFit(label, !label.collision.alwaysShow);
             // Array placement is accepted, but only its first candidate is honoured here.
             const placement = toArray(label.placement)[0];
             const insidePlacement = placement == null || placement.startsWith('inside');
@@ -769,7 +769,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                       )
                     : undefined;
             const fittedLabelText = fitLabelToContainer(labelText, labelFit, label, bounds?.container);
-            if (!label.collision.suppressHide || barLabelResolvesPlacement(label.placement)) {
+            if (!label.collision.alwaysShow || barLabelResolvesPlacement(label.placement)) {
                 // A placement/orientation array (or a hideable label) pre-positions a candidate per
                 // placement × orientation the engine cascades through until one fits; a hideable no-fit
                 // label is dropped so it can be hidden.
@@ -778,9 +778,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                 if (placements.length === 0) placements.push('inside-center');
                 const orientations = toArray(label.orientation);
                 if (orientations.length === 0) orientations.push('horizontal');
-                const plotRegion = label.collision.resolveCollideWith().seriesArea
-                    ? this.getSeriesPlotRegion()
-                    : undefined;
+                const plotRegion = this.resolveLabelPlotRegion(label.collision);
                 const candidates = buildBarLabelCandidates({
                     isUpward,
                     isVertical: !barAlongX,
@@ -1162,22 +1160,15 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
     }
 
     getLabelObstacles() {
-        const rects = rectLabelObstacles(this.contextNodeData?.nodeData);
-        // Baked labels (single placement, `suppressHide: true`) never route through the placement
-        // engine, so they never enter the obstacle index there. Contribute their drawn footprint as
-        // `label` obstacles so other series' labels avoid them; routed labels are excluded because the
-        // engine already inserts them as it places each one.
-        if (this.usesPlacedLabels || !this.isLabelEnabled()) return rects;
-        const labels = this.getBakedLabelObstacles();
-        if (labels == null) return rects;
-        return rects == null ? labels : rects.concat(labels);
-    }
-
-    private getBakedLabelObstacles() {
-        return bakedLabelObstacles(this.contextNodeData?.labelData, (node) => {
-            const { label } = this.getItemConfig(node.itemType);
-            return { label: node.label, config: label, box: expandPlacementLabelBoxExtent(label) };
-        });
+        return barLabelObstacles(
+            this.contextNodeData?.nodeData,
+            this.contextNodeData?.labelData,
+            this.isLabelEnabled() && !this.usesPlacedLabels,
+            (node) => {
+                const { label } = this.getItemConfig(node.itemType);
+                return { label: node.label, config: label, box: expandPlacementLabelBoxExtent(label) };
+            }
+        );
     }
 
     override getLabelData(): PointLabelDatum[] {
@@ -1207,7 +1198,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                         nodeLabel.candidates,
                         nodeLabel,
                         ownBox,
-                        label.collision.suppressHide,
+                        label.collision.alwaysShow,
                         collideWith
                     )
                 );
@@ -1218,27 +1209,14 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
     override updatePlacedLabelData(placed: PlacedLabel<WaterfallNodeDatum>[]) {
         applyBarLabelOrientation(placed);
-        // Hideable labels (`neverDrop: false`) the engine dropped are absent from `placed`; flag the
-        // routed labels (`candidates != null`) it kept as visible and the rest as hidden.
-        const placedTargets = placedBarLabelTargets(placed);
-        for (const node of this.contextNodeData?.labelData ?? []) {
-            const nodeLabel = node.label;
-            if (nodeLabel?.candidates != null) {
-                nodeLabel.hidden = !placedTargets.has(nodeLabel);
-            }
-        }
+        applyPlacedBarLabelVisibility(this.contextNodeData?.labelData, placed, (node) => node.label);
         this.refreshPlacedLabelNodes();
     }
 
     protected override resolveUsesPlacedLabels(): boolean {
         const { positive, negative, total } = this.properties.item;
-        // A placement/orientation array cascades through the engine; a hideable label routes even for a
-        // single placement, so a no-fit label can be dropped and hidden.
-        return [positive, negative, total].some(
-            (item) =>
-                barLabelResolvesOrientation(item.label.orientation) ||
-                barLabelResolvesPlacement(item.label.placement) ||
-                !item.label.collision.suppressHide
+        return [positive, negative, total].some((item) =>
+            barLabelRoutesThroughEngine(item.label.orientation, item.label.placement, item.label.collision.alwaysShow)
         );
     }
 

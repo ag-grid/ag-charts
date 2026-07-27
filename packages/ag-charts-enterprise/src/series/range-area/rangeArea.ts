@@ -430,7 +430,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             dataAggregationFilter,
             range,
             labelsEnabled: this.properties.label.enabled,
-            labelFit: resolveLabelFit(this.properties.label, !this.properties.label.collision.suppressHide),
+            labelFit: resolveLabelFit(this.properties.label, !this.properties.label.collision.alwaysShow),
             animationEnabled,
             canIncrementallyUpdate,
             xKey: this.properties.xKey,

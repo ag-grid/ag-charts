@@ -8,6 +8,7 @@ import {
     MULTI_SERIES_HIGHLIGHT_STYLE,
     SEGMENTATION_DEFAULTS,
     SERIES_SELECTION_THEME,
+    undocumentedThemeOptions,
 } from 'ag-charts-core';
 
 export const RANGE_BAR_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['range-bar']> = {
@@ -34,8 +35,7 @@ export const RANGE_BAR_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['rang
             padding: 6,
             collision: {
                 threshold: 4,
-                // @ts-expect-error undocumented option
-                collideWith: { seriesItems: true, seriesArea: true },
+                ...undocumentedThemeOptions({ collideWith: { seriesItems: true } }),
             },
             insideStyle: {
                 color: { $isUserOption: ['../color', { $path: '../color' }, { $ref: 'chartBackgroundColor' }] },

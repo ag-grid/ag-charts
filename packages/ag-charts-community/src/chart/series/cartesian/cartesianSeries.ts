@@ -1,4 +1,10 @@
-import type { BoxBounds, ChartAnimationPhase, NormalisedSeriesSegmentation, Scaling } from 'ag-charts-core';
+import type {
+    BoxBounds,
+    ChartAnimationPhase,
+    CollideWith,
+    NormalisedSeriesSegmentation,
+    Scaling,
+} from 'ag-charts-core';
 import {
     ChartAxisDirection,
     Debug,
@@ -594,6 +600,11 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
             width: seriesRect.width + (padding?.left ?? 0) + (padding?.right ?? 0),
             height: seriesRect.height + (padding?.top ?? 0) + (padding?.bottom ?? 0),
         };
+    }
+
+    /** The plot-area containment rect when the label opts into `collideWith.seriesArea`, else `undefined`. */
+    protected resolveLabelPlotRegion(collision: { resolveCollideWith(): CollideWith }): BoxBounds | undefined {
+        return collision.resolveCollideWith().seriesArea ? this.getSeriesPlotRegion() : undefined;
     }
 
     /**

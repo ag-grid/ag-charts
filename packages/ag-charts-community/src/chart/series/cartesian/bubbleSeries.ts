@@ -665,7 +665,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             labelTextDomain,
             labelPadding: expandPlacementLabelBoxExtent(label),
             labelTextMeasurer: cachedTextMeasurer(label),
-            labelFit: resolveLabelFit(label, !label.collision.suppressHide, insideOnly),
+            labelFit: resolveLabelFit(label, !label.collision.alwaysShow, insideOnly),
             label,
             // The series-area clamp is opt-in via `collideWith.seriesArea`. Inside-only labels are
             // additionally exempt: fitted to and centred on their marker, an edge marker's label rides

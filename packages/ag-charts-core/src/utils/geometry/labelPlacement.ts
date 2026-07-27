@@ -141,9 +141,9 @@ export interface PointLabelDatum {
     /**
      * When no candidate fits its region and clears every obstacle: keep the label at its
      * least-overflowing candidate (`true`) or drop it (`false`). Overrides the series
-     * {@link SeriesLabelDefaults.suppressHide} when set; the engine defaults to keeping the label.
+     * {@link SeriesLabelDefaults.alwaysShow} when set; the engine defaults to keeping the label.
      */
-    readonly suppressHide?: boolean;
+    readonly alwaysShow?: boolean;
     /**
      * Distance in px between the label and its anchor point. Overrides the series
      * {@link SeriesLabelDefaults.spacing} when set, else falls back to the `padding` argument of
@@ -206,11 +206,11 @@ export interface CollideWith {
 
 /**
  * Series-level collision defaults shared by every label in a series, resolved once per render from
- * the series' collision config. A datum's own field ({@link PointLabelDatum.suppressHide} etc.)
+ * the series' collision config. A datum's own field ({@link PointLabelDatum.alwaysShow} etc.)
  * overrides the matching default; when unset the engine falls back to these.
  */
 export interface SeriesLabelDefaults {
-    readonly suppressHide?: boolean;
+    readonly alwaysShow?: boolean;
     /** Distance in px between each label and its anchor; a datum's own {@link PointLabelDatum.spacing} overrides it. */
     readonly spacing?: number;
     /** Collision-detection threshold applied to the label's own box: positive grows it, negative shrinks it. */
@@ -227,7 +227,7 @@ export interface SeriesLabels {
 
 /** Structural source of a series' resolved collision config (community `LabelCollision`). */
 export interface LabelCollisionSource {
-    readonly suppressHide?: boolean;
+    readonly alwaysShow?: boolean;
     readonly threshold?: number;
     resolveCollideWith(): CollideWith | undefined;
 }
@@ -239,7 +239,7 @@ export function resolveSeriesLabelDefaults(
     spacing?: number
 ): SeriesLabelDefaults {
     return {
-        suppressHide: src.suppressHide,
+        alwaysShow: src.alwaysShow,
         spacing,
         threshold: src.threshold,
         collideWith: src.resolveCollideWith(),
@@ -641,7 +641,7 @@ export function buildBarLabelDatum(
 /**
  * Builds the {@link PointLabelDatum} routing a bar label through the positioned-candidate engine path:
  * the pre-positioned `candidates` are cascaded in order (each carries its own region), avoiding other
- * labels and bars in other columns. Dropped when no candidate fits unless `suppressHide`. Hands the
+ * labels and bars in other columns. Dropped when no candidate fits unless `alwaysShow`. Hands the
  * engine opaque boxes instead of an orientation array to resolve.
  */
 export function buildBarPositionedLabelDatum(
@@ -651,7 +651,7 @@ export function buildBarPositionedLabelDatum(
     candidates: readonly PositionedLabelCandidate[],
     target: BarLabelTarget,
     ownBox: BoxBounds,
-    suppressHide: boolean,
+    alwaysShow: boolean,
     collideWith: CollideWith,
     ownBoxLabelsCollide = false
 ): BarPlacedLabelDatum {
@@ -661,9 +661,9 @@ export function buildBarPositionedLabelDatum(
         anchor: undefined,
         placement: undefined,
         gap: 0,
-        // When labels are hideable (`suppressHide: false`) a no-fit candidate is dropped so the caller
+        // When labels are hideable (`alwaysShow: false`) a no-fit candidate is dropped so the caller
         // can hide it; otherwise the engine keeps the least-overflowing candidate.
-        neverDrop: suppressHide,
+        neverDrop: alwaysShow,
         collideWith,
         positionedCandidates: candidates,
         ownBox,
@@ -711,12 +711,42 @@ export function placedBarLabelTargets(placed: readonly PlacedLabel<unknown>[]): 
 }
 
 /**
+ * Flags each routed bar label hidden when the engine dropped it: a routed label (`candidates` set) the
+ * engine kept is in `placed`, one it dropped is absent. Baked labels (no candidates) are left visible.
+ * `resolveTarget` maps each element to its label object, which doubles as its {@link BarLabelTarget}.
+ */
+export function applyPlacedBarLabelVisibility<T>(
+    elements: Iterable<T> | undefined,
+    placed: readonly PlacedLabel<unknown>[],
+    resolveTarget: (element: T) => (BarLabelTarget & { candidates?: unknown; hidden?: boolean }) | undefined
+): void {
+    const kept = placedBarLabelTargets(placed);
+    for (const element of elements ?? []) {
+        const target = resolveTarget(element);
+        if (target?.candidates != null) target.hidden = !kept.has(target);
+    }
+}
+
+/**
  * True when a `placement` array offers more than one candidate to cascade through. A single value (or
  * unset) has nothing to resolve, so the series keeps its unconditional first-placement bake and never
  * enters the positioned-candidate engine path — leaving existing charts byte-identical.
  */
 export function barLabelResolvesPlacement(placement: unknown): boolean {
     return Array.isArray(placement) && placement.length > 1;
+}
+
+/**
+ * Whether a bar-family label must route through the placement engine rather than take its unconditional
+ * fast-path bake: a multi-entry orientation or placement array cascades through obstacles, and a hideable
+ * label (`alwaysShow: false`) routes even a single placement so a no-fit label can be dropped and hidden.
+ */
+export function barLabelRoutesThroughEngine(
+    orientation: AgChartLabelOrientation | AgChartLabelOrientation[] | undefined,
+    placement: unknown,
+    alwaysShow: boolean
+): boolean {
+    return barLabelResolvesOrientation(orientation) || barLabelResolvesPlacement(placement) || !alwaysShow;
 }
 
 /** Measured size of a label's text or rich-text segments under the given font. */
@@ -812,6 +842,25 @@ export function bakedLabelObstacles<T>(
         obstacles.push({ kind: 'rect', box, category: 'label' });
     }
     return obstacles.length > 0 ? obstacles : undefined;
+}
+
+/**
+ * Combines a bar-family series' rendered-rect obstacles (`seriesItem`) with the footprints of its baked
+ * labels (`label`) — the obstacle set other series' labels must avoid. `bakeLabels` must be false when the
+ * series routes its labels through {@link placeLabels}: the engine indexes each routed label as it places
+ * it, so baking them here too would double-count them (see the caller's `usesPlacedLabels` guard).
+ */
+export function barLabelObstacles<T>(
+    nodeData: readonly RectObstacleSource[] | undefined,
+    labelData: Iterable<T> | undefined,
+    bakeLabels: boolean,
+    resolveBaked: (element: T) => BakedLabelSource | undefined
+): LabelObstacle[] | undefined {
+    const rects = rectLabelObstacles(nodeData);
+    if (!bakeLabels) return rects;
+    const labels = bakedLabelObstacles(labelData, resolveBaked);
+    if (labels == null) return rects;
+    return rects == null ? labels : rects.concat(labels);
 }
 
 const labelPlacements: Record<LabelPlacement, { x: -1 | 0 | 1; y: -1 | 0 | 1 }> = {
@@ -1043,8 +1092,8 @@ function hasAnyLabels(data: Map<string, SeriesLabels>): boolean {
 
 /** True if the series can drop a label on collision: its default hides, or any datum opts in. */
 function seriesHides(entry: SeriesLabels): boolean {
-    if (entry.defaults?.suppressHide === false) return true;
-    return entry.datums.some((d) => d.suppressHide === false);
+    if (entry.defaults?.alwaysShow === false) return true;
+    return entry.datums.some((d) => d.alwaysShow === false);
 }
 
 /**
@@ -1069,8 +1118,8 @@ function orderKeepFirst(data: Map<string, SeriesLabels>): [string, SeriesLabels]
  * building it is wasted work (see {@link placeLabels}).
  */
 function isSoleCandidateKeep(d: PointLabelDatum, defaults: SeriesLabelDefaults | undefined): boolean {
-    const suppressHide = d.suppressHide ?? defaults?.suppressHide ?? true;
-    if (!suppressHide || d.positionedCandidates != null || d.neverDrop === true) return false;
+    const alwaysShow = d.alwaysShow ?? defaults?.alwaysShow ?? true;
+    if (!alwaysShow || d.positionedCandidates != null || d.neverDrop === true) return false;
     const placements = d.placements ?? defaults?.placements;
     return (placements?.length ?? 1) <= 1 && (orientationsOf(d)?.length ?? 1) <= 1;
 }
@@ -1235,7 +1284,7 @@ function fitLabel(d: PointLabelDatum) {
  * footprint is used only for containment and obstacle tests. A sole-candidate label kept on overflow
  * takes its placement unconditionally — never bounds-clipped, never dropped. A multi-candidate
  * placement or orientation list is a directional fallback set that cascades over obstacles; when none
- * clears them, `suppressHide` decides whether the least-overflow candidate is kept or the label dropped.
+ * clears them, `alwaysShow` decides whether the least-overflow candidate is kept or the label dropped.
  */
 function tryPlaceLabel(
     d: PointLabelDatum,
@@ -1245,7 +1294,7 @@ function tryPlaceLabel(
     bounds: BoxBounds
 ): PlacedLabel | undefined {
     // A datum's own field overrides the series default; when neither is set the label is kept.
-    const suppressHide = d.suppressHide ?? defaults?.suppressHide ?? true;
+    const alwaysShow = d.alwaysShow ?? defaults?.alwaysShow ?? true;
     const placements = d.placements ?? defaults?.placements;
     const collideWith = d.collideWith ?? defaults?.collideWith;
     const gap = d.gap ?? d.point.size / 2;
@@ -1267,7 +1316,7 @@ function tryPlaceLabel(
         d,
         placements,
         collideWith,
-        suppressHide,
+        alwaysShow,
         index,
         bounds,
         text,
@@ -1282,16 +1331,16 @@ function tryPlaceLabel(
 /**
  * Tries each `(placement × orientation)` candidate in order, returning the first whose rotated box
  * fits `d.region ?? bounds` and clears every obstacle in the index. When none fits: a {@link
- * PointLabelDatum.neverDrop} label, or one with `suppressHide` set, keeps the least region-overflowing
+ * PointLabelDatum.neverDrop} label, or one with `alwaysShow` set, keeps the least region-overflowing
  * candidate; otherwise the label is dropped (`undefined`). A `neverDrop` label is always rendered
  * (dropping it would revert its orientation to the baked first one), so it is kept regardless of
- * `suppressHide`.
+ * `alwaysShow`.
  */
 function placeAvoidingLabel(
     d: PointLabelDatum,
     placements: readonly LabelPlacement[] | undefined,
     collideWith: CollideWith | undefined,
-    suppressHide: boolean,
+    alwaysShow: boolean,
     index: number,
     bounds: BoxBounds,
     text: NormalisedTextOrSegments,
@@ -1370,7 +1419,7 @@ function placeAvoidingLabel(
                     offsetY,
                 };
             }
-            const keepBest = d.neverDrop === true || suppressHide;
+            const keepBest = d.neverDrop === true || alwaysShow;
             const overflow = keepBest ? regionOverflow(containRegion, x, y, cw, ch) : Infinity;
             if (overflow < bestOverflow) {
                 bestOverflow = overflow;

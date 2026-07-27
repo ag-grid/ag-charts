@@ -49,7 +49,7 @@ const themeTemplate: ExtensibleTheme<'bar'> = {
             padding: 8,
             collision: {
                 threshold: 4,
-                ...undocumentedThemeOptions({ collideWith: { seriesItems: true, seriesArea: true } }),
+                ...undocumentedThemeOptions({ collideWith: { seriesItems: true } }),
             },
             insideStyle: {
                 color: { $isUserOption: ['../color', { $path: '../color' }, { $ref: 'chartBackgroundColor' }] },
