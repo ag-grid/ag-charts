@@ -1334,7 +1334,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             return this.internalParams.get(value);
         }
 
-        if (typeof value === 'string' && value in this.cssVariables) {
+        if (typeof value === 'string' && Object.hasOwn(this.cssVariables, value)) {
             return this.cssVariables[value];
         }
 
