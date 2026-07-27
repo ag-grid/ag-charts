@@ -121,8 +121,8 @@ export class DataModel<
         private readonly opts: DataModelOptions<K, Grouped, true>,
         private readonly mode: ChartMode = 'standalone',
         private readonly suppressFieldDotNotation: boolean = false,
-        private readonly eventsHub?: EventsHub,
-        private readonly logger: Logger = Logger.default
+        private readonly eventsHub: EventsHub | undefined,
+        private readonly logger: Logger
     ) {
         // Validate that keys appear before values in the definitions, as output ordering depends
         // on configuration ordering, but we process keys before values.

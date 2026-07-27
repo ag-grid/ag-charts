@@ -1,4 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import type { Logger } from 'ag-charts-core';
 import { SceneArrayChangeDetection, SceneChangeDetection } from 'ag-charts-core';
 
 import type { BoxPlotNodeDatum } from './boxPlotTypes';
@@ -213,8 +214,8 @@ export class BoxPlotNode extends Scalable(Path<BoxPlotNodeDatum>) {
         }
     }
 
-    override drawPath(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D) {
-        super.drawPath(ctx);
+    override drawPath(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, logger: Logger) {
+        super.drawPath(ctx, logger);
 
         const { wickPath } = this;
         if (wickPath.isEmpty()) return;

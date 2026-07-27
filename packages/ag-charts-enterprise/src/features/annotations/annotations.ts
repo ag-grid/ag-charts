@@ -573,7 +573,7 @@ export class Annotations extends AbstractModuleInstance {
         // data model and we don't have missing props of `date` and `volume`.
         // Request a data model with no extra props, we expect the required keys of `date` and `volume` will already
         // be provided by the series, so we can skip duplicate processing.
-        const dataSet = DataSet.wrap(opts.data as any[]) ?? DataSet.empty();
+        const dataSet = DataSet.wrap(opts.data as any[], this.ctx.logger) ?? DataSet.empty(this.ctx.logger);
         const { dataModel, processedData } = await dataController.request('annotations', dataSet, {
             props,
         });

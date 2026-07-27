@@ -62,7 +62,7 @@ export class DataController {
         private readonly mode: ChartMode,
         readonly suppressFieldDotNotation: boolean,
         private readonly eventsHub: EventsHub | undefined,
-        private readonly logger: Logger = Logger.default
+        private readonly logger: Logger
     ) {}
 
     public async request<

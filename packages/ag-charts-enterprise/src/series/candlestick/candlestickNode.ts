@@ -1,4 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import type { Logger } from 'ag-charts-core';
 import { DeclaredSceneChangeDetection, SceneArrayChangeDetection } from 'ag-charts-core';
 
 import { OhlcBaseNode } from '../ohlc/ohlcNode';
@@ -139,8 +140,8 @@ export class CandlestickNode<D> extends OhlcBaseNode<D> {
         }
     }
 
-    override drawPath(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D) {
-        super.drawPath(ctx);
+    override drawPath(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, logger: Logger) {
+        super.drawPath(ctx, logger);
 
         const { wickPath } = this;
         if (wickPath.isEmpty()) return;

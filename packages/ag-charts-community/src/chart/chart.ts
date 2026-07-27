@@ -301,7 +301,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     })
     container?: HTMLElement;
 
-    public data: DataSet = DataSet.empty();
+    public data: DataSet;
 
     // A dispatched lazy load is a non-empty array, but its rows can still fail to render against the
     // series keys (wrong-shaped or all-null rows). The DataService is series-agnostic and cannot
@@ -493,6 +493,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             updateMutex: this.updateMutex,
             cssVariables: options.processedCSSVariables,
         }));
+        this.data = DataSet.empty(ctx.logger);
+
         // Publish processed options to chartState immediately so option-derived reads
         // (mode, padding, etc.) work for the rest of construction. `applyOptions` will
         // refresh this on each subsequent update.
@@ -2239,7 +2241,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         target.properties.set(seriesOptions);
 
         if ('data' in options) {
-            target.setOptionsData(data == null ? undefined : DataSet.wrap(data, undefined, this.ctx.logger));
+            target.setOptionsData(data == null ? undefined : DataSet.wrap(data, this.ctx.logger));
         }
 
         if ('listeners' in options) {

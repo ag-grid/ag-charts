@@ -688,7 +688,7 @@ export class Text<D = unknown> extends Shape<D> {
         ctx.textAlign = textAlign;
 
         this.renderBoxing(renderCtx);
-        this.fillStroke(ctx);
+        this.fillStroke(ctx, renderCtx.logger);
     }
 
     private renderBoxing(renderCtx: RenderContext, bbox?: BBox): void {

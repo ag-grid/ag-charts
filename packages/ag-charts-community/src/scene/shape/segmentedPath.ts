@@ -1,4 +1,5 @@
 import {
+    type Logger,
     type NormalisedFillOptions,
     type NormalisedStrokeOptions,
     SceneRefChangeDetection,
@@ -25,9 +26,9 @@ export class SegmentedPath<D = any> extends Path<D> {
 
     private readonly segmentPath = new Path();
 
-    override drawPath(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D): void {
+    override drawPath(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, logger: Logger): void {
         if (!this.segments || this.segments.length === 0) {
-            super.drawPath(ctx);
+            super.drawPath(ctx, logger);
             return;
         }
 
@@ -45,7 +46,7 @@ export class SegmentedPath<D = any> extends Path<D> {
             rect(inverse, s.clipRect);
         }
         ctx.clip(inverse);
-        super.drawPath(ctx);
+        super.drawPath(ctx, logger);
         ctx.restore();
 
         // Draw the segments
@@ -71,7 +72,7 @@ export class SegmentedPath<D = any> extends Path<D> {
             rect(clipPath, clipRect);
             ctx.clip(clipPath);
 
-            segmentPath.drawPath(ctx);
+            segmentPath.drawPath(ctx, logger);
 
             ctx.restore();
         }

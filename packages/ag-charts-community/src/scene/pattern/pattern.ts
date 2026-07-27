@@ -86,12 +86,12 @@ export class Pattern implements Omit<RequiredInternalAgPatternColor, 'type'> {
     private createCanvasPattern(
         ctx: CanvasRenderingContext2D,
         pixelRatio: number,
-        logger?: Logger
+        logger: Logger
     ): CanvasPattern | null {
         const { width, height, scale, backgroundFill, backgroundFillOpacity } = this;
 
         if (width * scale < 1 || height * scale < 1) {
-            (logger ?? Logger.default).warnOnce('Pattern fill is too small to render, ignoring.');
+            logger.warnOnce('Pattern fill is too small to render, ignoring.');
             return null;
         }
 
@@ -133,7 +133,7 @@ export class Pattern implements Omit<RequiredInternalAgPatternColor, 'type'> {
     private _cache:
         | { ctx: CanvasRenderingContext2D; pattern: CanvasPattern | undefined; pixelRatio: number }
         | undefined = undefined;
-    createPattern(ctx: CanvasRenderingContext2D, pixelRatio: number, logger?: Logger): CanvasPattern | undefined {
+    createPattern(ctx: CanvasRenderingContext2D, pixelRatio: number, logger: Logger): CanvasPattern | undefined {
         if (this._cache?.ctx === ctx && this._cache.pixelRatio === pixelRatio) {
             return this._cache.pattern;
         }

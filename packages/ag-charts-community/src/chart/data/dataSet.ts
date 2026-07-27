@@ -79,22 +79,22 @@ export class DataSet<T = unknown> {
 
     constructor(
         public data: T[],
-        public readonly dataIdKey?: string,
-        protected readonly logger: Logger = Logger.default
+        protected readonly logger: Logger,
+        public readonly dataIdKey?: string
     ) {}
 
     /**
      * Creates an empty DataSet.
      */
-    static empty<U = unknown>(dataIdKey?: string, logger?: Logger): DataSet<U> {
-        return new DataSet<U>([], dataIdKey, logger);
+    static empty<U = unknown>(logger: Logger, dataIdKey?: string): DataSet<U> {
+        return new DataSet<U>([], logger, dataIdKey);
     }
 
     /**
      * Wraps existing data in a DataSet.
      */
-    static wrap<U = unknown>(data: U[], dataIdKey?: string, logger?: Logger): DataSet<U> {
-        return new DataSet<U>(data, dataIdKey, logger);
+    static wrap<U = unknown>(data: U[], logger: Logger, dataIdKey?: string): DataSet<U> {
+        return new DataSet<U>(data, logger, dataIdKey);
     }
 
     /**

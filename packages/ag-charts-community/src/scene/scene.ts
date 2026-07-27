@@ -42,8 +42,8 @@ export class Scene extends EventEmitter<EventMap> {
     private readonly cleanup = new CleanupRegistry();
     private releaseDebugStats?: () => void;
 
-    // Falls back to Logger.default when unset — Scene is used context-less by AG Grid sparklines/mini charts.
-    private logger: Logger = Logger.default;
+    // Self-owned until a chart injects its own — Scene is used context-less by AG Grid sparklines/mini charts.
+    private logger: Logger = new Logger();
 
     constructor(canvasOptions: CanvasOptions) {
         super();

@@ -589,11 +589,11 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
 
     protected override applyFillAndAlpha(
         ctx: CanvasRenderingContext2D,
+        logger: Logger,
         bboxOverride?: BBox,
-        fillBBoxOverride?: BBox,
-        logger?: Logger
+        fillBBoxOverride?: BBox
     ) {
-        super.applyFillAndAlpha(ctx, bboxOverride, fillBBoxOverride, logger);
+        super.applyFillAndAlpha(ctx, logger, bboxOverride, fillBBoxOverride);
         ctx.globalAlpha *= this.microPixelEffectOpacity;
     }
 
