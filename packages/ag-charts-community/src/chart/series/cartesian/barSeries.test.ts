@@ -1761,51 +1761,63 @@ describe('BarSeries', () => {
             await compare();
         });
 
+        // A descriptive label per segment, wider than the tiny middle/top segments, so it cannot fit
+        // inside them and the cascade is forced past `inside-center` — the large base still fits inside.
+        const stackedLabel = (text: string) => ({
+            placement: ['inside-center', 'outside-end', 'beside-after-center'] as AgBarSeriesLabelPlacement[],
+            spacing: 10,
+            color: 'black',
+            formatter: () => text,
+        });
+        const stackedCascadeOptions = (direction: 'horizontal' | 'vertical', hideTop = false): AgChartOptions => {
+            // Headroom above the stacks (value max well beyond the tallest total) so an outermost
+            // `outside-end` label has room to sit outside the bar without overflowing the plot — that
+            // plot-overflow rejection is a separate concern covered by its own test.
+            const valueAxis = { type: 'number', max: 200 };
+            const categoryAxis = { type: 'category' };
+            return {
+                // Room on every side (collision boundary grows with seriesArea padding) so the beside and
+                // outside labels of edge bars have space, rather than being rejected off the plot.
+                seriesArea: { padding: { top: 60, bottom: 60, left: 60, right: 60 } },
+                data: [
+                    { x: 'a', bottom: 100, middle: 3, top: 3 },
+                    { x: 'b', bottom: 120, middle: 3, top: 3 },
+                    { x: 'c', bottom: 90, middle: 3, top: 3 },
+                    { x: 'd', bottom: 140, middle: 3, top: 3 },
+                ],
+                axes:
+                    direction === 'horizontal'
+                        ? ([
+                              { ...valueAxis, position: 'bottom' },
+                              { ...categoryAxis, position: 'left' },
+                          ] as any)
+                        : ([
+                              { ...categoryAxis, position: 'bottom' },
+                              { ...valueAxis, position: 'left' },
+                          ] as any),
+                series: [
+                    { type: 'bar', direction, xKey: 'x', yKey: 'bottom', stacked: true, label: stackedLabel('base') },
+                    { type: 'bar', direction, xKey: 'x', yKey: 'middle', stacked: true, label: stackedLabel('mid') },
+                    {
+                        type: 'bar',
+                        direction,
+                        xKey: 'x',
+                        yKey: 'top',
+                        stacked: true,
+                        label: stackedLabel('top'),
+                        visible: !hideTop,
+                    },
+                ],
+            };
+        };
+
         // Three-segment stack, fallback `[inside, outside, beside]`: base stays inside; the sandwiched tiny
         // middle has `outside-end` rejected (a stacked neighbour on that side would be mislabelled) so falls
         // back to beside; the outermost tiny top keeps `outside-end` (nothing stacked beyond it).
         it.each(['horizontal', 'vertical'] as const)(
             'rejects outside labels that would point into a stacked neighbour (%s bars)',
             async (direction) => {
-                // A descriptive label per segment, wider than the tiny middle/top segments, so it cannot fit
-                // inside them and the cascade is forced past `inside-center` — the large base still fits inside.
-                const label = (text: string) => ({
-                    placement: ['inside-center', 'outside-end', 'beside-after-center'] as AgBarSeriesLabelPlacement[],
-                    spacing: 10,
-                    color: 'black',
-                    formatter: () => text,
-                });
-                // Headroom above the stacks (value max well beyond the tallest total) so an outermost
-                // `outside-end` label has room to sit outside the bar without overflowing the plot — that
-                // plot-overflow rejection is a separate concern covered by its own test.
-                const valueAxis = { type: 'number', max: 200 };
-                const categoryAxis = { type: 'category' };
-                const options: AgChartOptions = {
-                    // Room on every side (collision boundary grows with seriesArea padding) so the beside and
-                    // outside labels of edge bars have space, rather than being rejected off the plot.
-                    seriesArea: { padding: { top: 60, bottom: 60, left: 60, right: 60 } },
-                    data: [
-                        { x: 'a', bottom: 100, middle: 3, top: 3 },
-                        { x: 'b', bottom: 120, middle: 3, top: 3 },
-                        { x: 'c', bottom: 90, middle: 3, top: 3 },
-                        { x: 'd', bottom: 140, middle: 3, top: 3 },
-                    ],
-                    axes:
-                        direction === 'horizontal'
-                            ? ([
-                                  { ...valueAxis, position: 'bottom' },
-                                  { ...categoryAxis, position: 'left' },
-                              ] as any)
-                            : ([
-                                  { ...categoryAxis, position: 'bottom' },
-                                  { ...valueAxis, position: 'left' },
-                              ] as any),
-                    series: [
-                        { type: 'bar', direction, xKey: 'x', yKey: 'bottom', stacked: true, label: label('base') },
-                        { type: 'bar', direction, xKey: 'x', yKey: 'middle', stacked: true, label: label('mid') },
-                        { type: 'bar', direction, xKey: 'x', yKey: 'top', stacked: true, label: label('top') },
-                    ],
-                };
+                const options = stackedCascadeOptions(direction);
 
                 prepareTestOptions(options);
 
@@ -1813,6 +1825,17 @@ describe('BarSeries', () => {
                 await compare();
             }
         );
+
+        // With the top segment hidden the middle is outermost, so nothing rejects its `outside-end` and the
+        // label sits above the stack rather than falling back to beside.
+        it('accepts an outside label once the stacked neighbour beyond it is hidden', async () => {
+            const options = stackedCascadeOptions('vertical', true);
+
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
     });
 
     // Hideable labels (`collision.alwaysShow: false`) route even a single placement through the
@@ -1969,6 +1992,32 @@ describe('BarSeries', () => {
                 ],
             } as AgChartOptions);
             expect(counts[1]).toBe(stackedData.length);
+        });
+
+        it('restores that label once the stacked neighbour above it is hidden', async () => {
+            const counts = await visibleLabelCounts({
+                data: stackedData,
+                legend: { enabled: false },
+                series: [
+                    stackedSeries('bottom', { placement: ['beside-before-center'], spacing: 5 }),
+                    stackedSeries('middle', { placement: ['outside-end'], collision: { alwaysShow: false } }),
+                    { ...stackedSeries('top', { placement: ['inside-center'] }), visible: false },
+                ],
+            } as AgChartOptions);
+            expect(counts[1]).toBe(stackedData.length);
+        });
+
+        it('still rejects the placement when only the neighbour on the far side is hidden', async () => {
+            const counts = await visibleLabelCounts({
+                data: stackedData,
+                legend: { enabled: false },
+                series: [
+                    { ...stackedSeries('bottom', { placement: ['beside-before-center'], spacing: 5 }), visible: false },
+                    stackedSeries('middle', { placement: ['outside-end'], collision: { alwaysShow: false } }),
+                    stackedSeries('top', { placement: ['inside-center'] }),
+                ],
+            } as AgChartOptions);
+            expect(counts[1]).toBe(0);
         });
     });
 
