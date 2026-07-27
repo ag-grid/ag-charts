@@ -1244,7 +1244,9 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         this.updateHighlightLabelSelection();
     }
 
-    private updateHighlightLabelSelection() {
+    // Maps the placed labels inline rather than through `getHighlightLabelData`, since a bubble's label
+    // anchor is its `point` (carrying the marker size) rather than a plain `(x, y)`.
+    protected override updateHighlightLabelSelection() {
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
         const highlightItem =
             this.isSeriesHighlighted(highlightedDatum) && highlightedDatum?.datum ? highlightedDatum : undefined;

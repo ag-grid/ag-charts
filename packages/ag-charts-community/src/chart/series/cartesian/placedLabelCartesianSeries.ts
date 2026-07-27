@@ -106,24 +106,6 @@ export abstract class PlacedLabelCartesianSeries<
         this.updateHighlightLabelSelection();
     }
 
-    protected updateHighlightLabelSelection() {
-        const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
-        const highlightItem =
-            this.isSeriesHighlighted(highlightedDatum) && highlightedDatum?.datum ? highlightedDatum : undefined;
-        const highlightLabelData = highlightItem == null ? [] : (this.getHighlightLabelData([], highlightItem) ?? []);
-
-        this.highlightLabelSelection =
-            this.updateLabelSelection({
-                labelData: highlightLabelData,
-                labelSelection: this.highlightLabelSelection,
-            }) ?? this.highlightLabelSelection;
-
-        this.highlightLabelGroup.visible = highlightLabelData.length > 0;
-        this.highlightLabelGroup.batchedUpdate(() => {
-            this.updateLabelNodes({ labelSelection: this.highlightLabelSelection, isHighlight: true });
-        });
-    }
-
     protected override updateLabelSelection(opts: {
         labelData: LabelOf<TTypes>[];
         labelSelection: LabelSelectionOf<TTypes>;

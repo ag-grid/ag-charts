@@ -780,17 +780,24 @@ describe('label collision avoidance', () => {
     // compass placement engine: the coarse `outside`/`inside` vocabulary maps per datum onto the
     // direction that faces away from / into the band.
     describe('range-area label placement', () => {
-        type PlacedLabel = {
+        type LabelNode = {
             visible: boolean;
             datum: { itemType: string; placement?: string; valueSide: string };
             computeBBox(): Box | undefined;
         };
+        /** Range-area's engine output, in the plot-local coordinates its anchor points also use. */
+        type RangeAreaPlacedLabels = PlacedLabelGeometry & {
+            placedLabelData: { placement?: string; datum: { itemType: string } }[];
+        };
+        const placedLabelData = () => (chart.series[0] as unknown as RangeAreaPlacedLabels).placedLabelData;
+
         const placedLabels = async (options: object): Promise<{ placement?: string; side: string; box: Box }[]> => {
+            chart?.destroy();
             const opts = options as AgChartOptions;
             prepareEnterpriseTestOptions(opts);
             chart = deproxy(AgCharts.create(opts));
             await waitForChartStability(chart);
-            const series = chart.series[0] as unknown as { labelSelection: { nodes(): PlacedLabel[] } };
+            const series = chart.series[0] as unknown as { labelSelection: { nodes(): LabelNode[] } };
             return series.labelSelection
                 .nodes()
                 .filter((node) => node.visible)
@@ -820,7 +827,7 @@ describe('label collision avoidance', () => {
             // Anti-vacuous guard: both end labels stay visible (neither hidden for failing inside).
             expect(labels).toHaveLength(2);
             expect(overlaps(labels[0].box, labels[1].box)).toBe(false);
-            // Exactly one end cascades outside; the other stays inside.
+            // Both resolved a vertical placement, and exactly one of them cascaded outside.
             expect(labels.filter((l) => l.placement === 'bottom' || l.placement === 'top')).toHaveLength(2);
             const outside = labels.filter((l) => (l.placement === 'top') === (l.side === 'high'));
             expect(outside).toHaveLength(1);
@@ -849,15 +856,13 @@ describe('label collision avoidance', () => {
 
         it('drops labels that fit nowhere when alwaysShow is false, keeps them when true', async () => {
             const hidden = await placedLabels(crowded({ alwaysShow: false }));
-            chart.destroy();
             const kept = await placedLabels(crowded({ alwaysShow: true }));
             expect(hidden.length).toBeLessThan(kept.length);
             expect(kept).toHaveLength(24);
         });
 
         // `low > high` draws the low value above the high value, so each label's facing side flips: the
-        // `high` label of an inverted datum must render below its own stroke, not above it. Geometry is
-        // read from the engine output, which shares the plot-local coordinates of the anchor points.
+        // `high` label of an inverted datum must render below its own stroke, not above it.
         it('places every outside label clear of the band, including on an inverted datum', async () => {
             await placedLabels({
                 data: [
@@ -878,15 +883,7 @@ describe('label collision avoidance', () => {
                     },
                 ],
             });
-            const series = chart.series[0] as unknown as {
-                placedLabelData: {
-                    y: number;
-                    height: number;
-                    placement?: string;
-                    datum: { itemType: string; point: { y: number } };
-                }[];
-            };
-            const placed = series.placedLabelData;
+            const placed = placedLabelData();
             expect(placed).toHaveLength(4);
             const anchorYs = placed.map((label) => label.datum.point.y);
             const bandMidY = (Math.min(...anchorYs) + Math.max(...anchorYs)) / 2;
@@ -929,22 +926,23 @@ describe('label collision avoidance', () => {
                     },
                 ],
             });
-            const series = chart.series[0] as unknown as PlacedLabelGeometry;
-            expect(topLabelAnchorGap(series)).toBeCloseTo(markerSize / 2 + spacing, 5);
+            expect(topLabelAnchorGap(chart.series[0] as PlacedLabelGeometry)).toBeCloseTo(markerSize / 2 + spacing, 5);
         });
 
         it('reports the resolved coarse placement to the label itemStyler', async () => {
             const captured: (string | undefined)[] = [];
+            const itemStyler = (params: { placement?: string }) => {
+                captured.push(params.placement);
+                return {};
+            };
             await placedLabels(
                 narrowBand({
                     enabled: true,
                     placement: ['inside', 'outside'],
                     collision: { alwaysShow: false },
-                    itemStyler: (params: any) => (captured.push(params.placement), {}),
+                    itemStyler,
                 })
             );
-            expect(captured.length).toBeGreaterThan(0);
-            expect(captured.every((placement) => placement === 'inside' || placement === 'outside')).toBe(true);
             expect(new Set(captured)).toEqual(new Set(['inside', 'outside']));
         });
     });

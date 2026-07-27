@@ -26,7 +26,7 @@ export interface RangeAreaLabelDatum extends Readonly<Point>, PointLabelDatum {
     rotation: number;
     /** Compass placement the engine resolved, coarsened back to inside/outside for the placement styles. */
     readonly placement: LabelPlacement | undefined;
-    /** The band side this label sits on, already flipped for an inverted datum, so the coarsening is exact. */
+    /** The band side this label draws against, already flipped for an inverted datum. */
     readonly valueSide: AgRangeAreaSeriesItemType;
     datum: any;
     readonly itemId?: never;

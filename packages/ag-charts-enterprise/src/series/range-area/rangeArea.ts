@@ -165,8 +165,7 @@ interface RangeAreaSeriesNodeDatumContext
     // Pre-computed flags
     readonly labelsEnabled: boolean;
 
-    // Per-band-side label config, resolved once because low and high carry independent markers and
-    // resolve the same coarse placement to opposite directions.
+    // Keyed by band side: low and high carry independent markers and face opposite directions.
     readonly labelPlacements: Record<AgRangeAreaSeriesItemType, readonly LabelPlacement[]>;
     readonly labelMarkerSize: Record<AgRangeAreaSeriesItemType, number>;
     readonly labelAnchor: Record<AgRangeAreaSeriesItemType, Point | undefined>;
@@ -924,7 +923,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         const measuredLabel = measurePlacedLabel(labelText, label, ctx);
 
         return {
-            // The engine returns a box top-left, which the placement write-back converts to this anchor.
+            // Provisional anchor; {@link placedLabelDatum} replaces it with the engine's resolved box.
             x: point.x,
             y: point.y,
             point: { x: point.x, y: point.y, size: markerSize },
@@ -1343,8 +1342,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
     }
 
     /**
-     * Copies a placed label with the engine's box mapped onto the render anchor: the box centre for the
-     * centred text, and its top edge inset by the resolved placement's padding for the `top` baseline.
+     * Maps the engine's label box onto the render anchor: horizontal centre for the centred text, top
+     * edge inset by the resolved placement's padding for the `top` baseline.
      */
     private placedLabelDatum(placed: PlacedLabel<RangeAreaLabelDatum>): RangeAreaLabelDatum {
         const { datum } = placed;
@@ -1355,23 +1354,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             pickPlacementStyle(label, coarsePlacement(placement, datum.valueSide))
         );
         return { ...datum, x: placed.x + placed.width / 2, y: placed.y + padding.top, placement };
-    }
-
-    private updateHighlightLabelSelection() {
-        const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
-        const highlightItem =
-            this.isSeriesHighlighted(highlightedDatum) && highlightedDatum?.datum ? highlightedDatum : undefined;
-        const highlightLabelData = highlightItem == null ? [] : (this.getHighlightLabelData([], highlightItem) ?? []);
-
-        this.highlightLabelSelection = this.updateLabelSelection({
-            labelData: highlightLabelData,
-            labelSelection: this.highlightLabelSelection,
-        });
-
-        this.highlightLabelGroup.visible = highlightLabelData.length > 0;
-        this.highlightLabelGroup.batchedUpdate(() => {
-            this.updateLabelNodes({ labelSelection: this.highlightLabelSelection, isHighlight: true });
-        });
     }
 
     protected override getHighlightLabelData(
