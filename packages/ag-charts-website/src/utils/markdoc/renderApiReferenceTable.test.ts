@@ -162,6 +162,25 @@ describe('buildApiReferenceTable', () => {
         expect(row(table, 'selection.selectedItem')?.[1]).toBe('StyleOptions');
     });
 
+    // Shaped like `crossLines?: AgAngleCrossLineOptions<AgNumericValue>[]`, where the supplied
+    // argument differs from the type-param default. The member resolves through the array, so the
+    // type arguments have to as well or the children fall back to the default.
+    it('substitutes generics through an array member', () => {
+        const reference = makeReference({
+            Root: iface('Root', [
+                member('crossLines', { kind: 'array', type: typeRef('CrossLine', ['NumericValue']) }),
+            ]),
+            CrossLine: iface('CrossLine', [member('value', 'TValue')], {
+                typeParams: [{ kind: 'typeParam', name: 'TValue', default: 'AxisValue' }],
+            }),
+        });
+
+        const table = buildApiReferenceTable(reference, { id: 'Root' });
+
+        expect(row(table, 'crossLines')?.[1]).toBe('CrossLine[]');
+        expect(row(table, 'crossLines.value')?.[1]).toBe('NumericValue');
+    });
+
     describe('config attributes', () => {
         const reference = makeReference({
             Root: iface('Root', [

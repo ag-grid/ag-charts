@@ -364,6 +364,14 @@ describe('buildTypeArguments', () => {
         expect(buildTypeArguments(member({ kind: 'typeRef', type: 'Selection' }) as any, {})).toBeUndefined();
     });
 
+    // getMemberType unwraps `Foo<Bar>[]` to `Foo`, so the arguments must be read from the element
+    // type too — otherwise the resolved interface falls back to its type-param defaults.
+    it('unwraps an array member to read its element type arguments', () => {
+        const type = { kind: 'array', type: { kind: 'typeRef', type: 'CrossLine', typeArguments: ['NumericValue'] } };
+
+        expect(buildTypeArguments(member(type) as any, {})).toEqual(['NumericValue']);
+    });
+
     it('returns undefined for a member that is not a typeRef', () => {
         expect(buildTypeArguments(member('boolean') as any, {})).toBeUndefined();
     });

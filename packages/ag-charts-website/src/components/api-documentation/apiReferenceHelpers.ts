@@ -910,10 +910,17 @@ export function buildTypeArgumentsFromGenericsMap(
  * Builds positional type arguments from a member's own `typeRef`, resolving each against the
  * declaring interface's generics map. Counterpart to buildTypeArgumentsFromGenericsMap, which
  * reads the target's type-params rather than the member's arguments.
+ *
+ * Array members unwrap to their element type, so the arguments read here line up with the type
+ * `getMemberType` resolves for the same member (e.g. `AgAngleCrossLineOptions<AgNumericValue>[]`).
  */
 export function buildTypeArguments(member: MemberNode, genericsMap?: Record<string, TypeNode>) {
-    if (typeof member.type === 'object' && member.type.kind === 'typeRef') {
-        return member.type.typeArguments?.map((genericType) =>
+    let memberType = member.type;
+    while (isArrayNode(memberType)) {
+        memberType = memberType.type;
+    }
+    if (typeof memberType === 'object' && memberType.kind === 'typeRef') {
+        return memberType.typeArguments?.map((genericType) =>
             typeof genericType === 'string'
                 ? normalizeType(genericsMap?.[genericType] ?? genericType)
                 : normalizeType(genericType)
