@@ -535,9 +535,11 @@ function greaterThanOperation(graph: OptionsGraphInterface, vertex: VertexInterf
 function ifOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
     const [conditionVertex, thenVertex, elseVertex] = values;
 
-    const condition = graph.resolveVertexValue(vertex, conditionVertex);
+    const condition = Boolean(graph.resolveVertexValue(vertex, conditionVertex));
+    const branchVertex = condition ? thenVertex : elseVertex;
+    if (!branchVertex) return condition;
 
-    return resolveConditionalBranch(graph, vertex, condition ? thenVertex : elseVertex);
+    return resolveConditionalBranch(graph, vertex, branchVertex);
 }
 
 // Re-parent the branch's children onto the vertex so that an object branch expands as a sub-tree.
@@ -577,7 +579,7 @@ function isTypeOperation(graph: OptionsGraphInterface, vertex: VertexInterface, 
         : isValueType(graph, vertex, value, type);
 
     const branchVertex = matched ? thenVertex : elseVertex;
-    if (!branchVertex) return;
+    if (!branchVertex) return matched;
 
     return resolveConditionalBranch(graph, vertex, branchVertex);
 }
@@ -693,19 +695,24 @@ function circularOperation(graph: OptionsGraphInterface, vertex: VertexInterface
 function isUserOptionOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
     const [relativePathVertices, thenVertex, elseVertex] = values;
 
+    let matched = false;
     const children = graph.neighboursWithEdgeValue(relativePathVertices, PATH_EDGE);
     if (children) {
         for (const child of children) {
             const relativePathVertex = graph.findNeighbour(child, DEFAULTS_EDGE);
             if (relativePathVertex && isUserOptionCheck(graph, vertex, relativePathVertex)) {
-                return graph.resolveVertexValue(vertex, thenVertex);
+                matched = true;
+                break;
             }
         }
-    } else if (isUserOptionCheck(graph, vertex, relativePathVertices)) {
-        return graph.resolveVertexValue(vertex, thenVertex);
+    } else {
+        matched = isUserOptionCheck(graph, vertex, relativePathVertices);
     }
 
-    return graph.resolveVertexValue(vertex, elseVertex);
+    const branchVertex = matched ? thenVertex : elseVertex;
+    if (!branchVertex) return matched;
+
+    return graph.resolveVertexValue(vertex, branchVertex);
 }
 
 function isUserOptionCheck(graph: OptionsGraphInterface, vertex: VertexInterface, relativePathVertex: VertexInterface) {

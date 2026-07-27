@@ -33,7 +33,7 @@ export const parentLevelAxisThemeTemplate = {
             enabled: { $path: '../../label/enabled' },
             border: {
                 enabled: {
-                    $or: [{ $isUserOption: ['../border', true, false] }, { $path: '../../../label/border/enabled' }],
+                    $or: [{ $isUserOption: '../border' }, { $path: '../../../label/border/enabled' }],
                 },
                 strokeWidth: { $path: '../../../label/border/strokeWidth' },
                 stroke: { $path: '../../../label/border/stroke' },

@@ -123,10 +123,10 @@ export const organizationSeriesTheme: ExtensibleTheme<'organization'> = {
                 $not: {
                     $or: [
                         { $path: ['/series/$index/selection/enabled', false] },
-                        { $isUserOption: ['/listeners/seriesNodeClick', true, false] },
-                        { $isUserOption: ['/listeners/seriesNodeDoubleClick', true, false] },
-                        { $isUserOption: ['/series/$index/listeners/seriesNodeClick', true, false] },
-                        { $isUserOption: ['/series/$index/listeners/seriesNodeDoubleClick', true, false] },
+                        { $isUserOption: '/listeners/seriesNodeClick' },
+                        { $isUserOption: '/listeners/seriesNodeDoubleClick' },
+                        { $isUserOption: '/series/$index/listeners/seriesNodeClick' },
+                        { $isUserOption: '/series/$index/listeners/seriesNodeDoubleClick' },
                     ],
                 },
             },
