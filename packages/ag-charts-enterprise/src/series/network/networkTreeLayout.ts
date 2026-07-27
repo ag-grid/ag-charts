@@ -54,12 +54,9 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
             }
         }
 
-        const acc = this.directionalLayout.contentBoundsAccumulator;
-        acc.count = 0;
-
+        this.directionalLayout.resetContentBBox();
         const { containerBBox } = this.directionalLayout.updateNodes(options, undefined, this.regularBBox);
-        this._contentBBox =
-            acc.count > 0 ? new BBox(acc.left, acc.top, acc.right - acc.left, acc.bottom - acc.top) : containerBBox;
+        this._contentBBox = this.directionalLayout.getContentBBox() ?? containerBBox;
 
         // TODO: AG-17279 & AG-17206 – this is currently non-functional but will be required in the future when zoom &
         // focus is improved
@@ -113,6 +110,17 @@ abstract class NetworkTreeDirectionalLayout<TVertex, TEdge> {
         containerBBox: TBBox,
         regularBBox?: TBBox
     ): void;
+
+    resetContentBBox() {
+        this.contentBoundsAccumulator.count = 0;
+    }
+
+    getContentBBox() {
+        const acc = this.contentBoundsAccumulator;
+        if (acc.count === 0) return;
+
+        return new BBox(acc.left, acc.top, acc.right - acc.left, acc.bottom - acc.top);
+    }
 
     protected accumulateContentBounds(bbox: TBBox) {
         const acc = this.contentBoundsAccumulator;
