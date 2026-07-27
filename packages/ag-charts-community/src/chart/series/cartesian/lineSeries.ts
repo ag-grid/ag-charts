@@ -480,12 +480,12 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             size: labelInsideSize,
         } = resolveInsidePlacement(placements, marker.shape);
         const markerSize = marker.enabled ? marker.size : 0;
-        const labelFit = insideOnly
-            ? boundLabelFit(
-                  resolveLabelFit(label, false, true),
-                  insideMarkerContainer(markerSize, marker.shape, collision.threshold ?? 0)
-              )
+        const insideFit = insideOnly ? resolveLabelFit(label, false, true) : undefined;
+        const labelFit = insideFit
+            ? boundLabelFit(insideFit, insideMarkerContainer(markerSize, marker.shape, collision.threshold ?? 0))
             : resolveLabelFit(label, !collision.alwaysShow);
+        // Keeps the label on a marker too small to hold even an ellipsis.
+        const labelFitOverflow = collision.alwaysShow ? insideFit : undefined;
         const labelAnchor = Marker.anchor(marker.shape);
 
         return {
@@ -513,6 +513,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             labelPadding: expandPlacementLabelBoxExtent(this.properties.label),
             labelTextMeasurer: cachedTextMeasurer(this.properties.label),
             labelFit,
+            labelFitOverflow,
             labelInsideOffset,
             labelInsideSize,
             labelAnchor,

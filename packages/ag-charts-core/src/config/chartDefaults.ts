@@ -5,6 +5,7 @@ import {
     type AgChartAutoSizedBaseLabelOptions,
     type AgChartCaptionOptions,
     type AgChartLabelCollisionFitOptions,
+    type AgChartLabelCollisionOptions,
     type AgChartLabelFitOptions,
     type AgChartLabelOptions,
     type AgChartLabelPlacementStyleOptions,
@@ -760,7 +761,7 @@ export const labelCollisionPlacementDef = unionOrArray(
 /** Label orientation accepting a single value or an ordered fallback list. */
 export const labelOrientationDef = unionOrArray('horizontal', 'vertical', 'vertical-reversed');
 
-export const collisionOptionsDef = {
+export const collisionOptionsDef: OptionsDefs<AgChartLabelCollisionOptions> = {
     threshold: number,
     alwaysShow: boolean,
 };

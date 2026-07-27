@@ -72,7 +72,7 @@ const {
     keyProperty,
     updateLabelNode,
     expandPlacementLabelBoxExtent,
-    resolvePlacementLabelPadding,
+    placedLabelTextOffset,
     pickPlacementStyle,
     fixNumericExtent,
     buildResetPathFn,
@@ -1334,7 +1334,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
     override updatePlacedLabelData(labelData: PlacedLabel<RangeAreaLabelDatum>[]) {
         this.placedLabelData = labelData;
         this.labelSelection = this.updateLabelSelection({
-            labelData: labelData.map((placed) => this.placedLabelDatum(placed)),
+            labelData: labelData.map(this.placedLabelMapper()),
             labelSelection: this.labelSelection,
         });
         this.updateLabelNodes({ labelSelection: this.labelSelection });
@@ -1343,17 +1343,20 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
 
     /**
      * Maps the engine's label box onto the render anchor: horizontal centre for the centred text, top
-     * edge inset by the resolved placement's padding for the `top` baseline.
+     * edge inset for the `top` baseline so the drawn box sits centred within the reserved box. Both
+     * placement offsets are invariant across the labels, so they are resolved once per pass.
      */
-    private placedLabelDatum(placed: PlacedLabel<RangeAreaLabelDatum>): RangeAreaLabelDatum {
-        const { datum } = placed;
-        const placement = placed.placement ?? datum.placement;
+    private placedLabelMapper(): (placed: PlacedLabel<RangeAreaLabelDatum>) => RangeAreaLabelDatum {
         const { label } = this.properties;
-        const padding = resolvePlacementLabelPadding(
-            label,
-            pickPlacementStyle(label, coarsePlacement(placement, datum.valueSide))
-        );
-        return { ...datum, x: placed.x + placed.width / 2, y: placed.y + padding.top, placement };
+        const insideOffset = placedLabelTextOffset(label, pickPlacementStyle(label, 'inside'));
+        const outsideOffset = placedLabelTextOffset(label, pickPlacementStyle(label, 'outside'));
+        return function placedLabelDatum(placed) {
+            const { datum } = placed;
+            const placement = placed.placement ?? datum.placement;
+            const isInside = coarsePlacement(placement, datum.valueSide) === 'inside';
+            const offset = isInside ? insideOffset : outsideOffset;
+            return { ...datum, x: placed.x + placed.width / 2, y: placed.y + offset.y, placement };
+        };
     }
 
     protected override getHighlightLabelData(
@@ -1364,7 +1367,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         // Both band labels share one datumIndex, so this still returns the low/high pair.
         const items = this.placedLabelData
             .filter((placed) => placed.datum.datumIndex === highlightedItem.datumIndex)
-            .map((placed) => this.placedLabelDatum(placed));
+            .map(this.placedLabelMapper());
         return items.length === 0 ? undefined : items;
     }
 

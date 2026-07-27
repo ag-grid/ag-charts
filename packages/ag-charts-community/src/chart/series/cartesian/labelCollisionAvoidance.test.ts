@@ -103,6 +103,25 @@ describe('label collision avoidance', () => {
         return series.placedLabelData;
     };
 
+    const renderedLabelTexts = () => {
+        const series = deproxy(chart as any).series[0] as unknown as {
+            labelSelection: { nodes(): { visible: boolean; text?: string | object[] }[] };
+        };
+        return series.labelSelection
+            .nodes()
+            .filter((node) => node.visible)
+            .map((node) => (typeof node.text === 'string' ? node.text : ''));
+    };
+
+    const expectAllEllipsised = (fullText: string) => {
+        const texts = renderedLabelTexts();
+        expect(texts.length).toBeGreaterThan(0);
+        for (const rendered of texts) {
+            expect(rendered).not.toBe(fullText);
+            expect(rendered.endsWith('…')).toBe(true);
+        }
+    };
+
     const cartesianAxes = {
         x: { position: 'bottom', type: 'number' },
         y: { position: 'left', type: 'number' },
@@ -311,9 +330,16 @@ describe('label collision avoidance', () => {
 
         const render = async (
             type: 'line' | 'area',
-            opts: { markerSize?: number; markerEnabled?: boolean; placement?: string | string[] } = {}
+            opts: {
+                markerSize?: number;
+                markerEnabled?: boolean;
+                placement?: string | string[];
+                alwaysShow?: boolean;
+                truncate?: boolean;
+                text?: string;
+            } = {}
         ) => {
-            const { markerSize = 40, markerEnabled = true, placement = 'inside' } = opts;
+            const { markerSize = 40, markerEnabled = true, placement = 'inside', alwaysShow, truncate, text } = opts;
             const options: any = {
                 data: sparseData,
                 legend: { enabled: false },
@@ -327,7 +353,9 @@ describe('label collision avoidance', () => {
                         label: {
                             enabled: true,
                             placement,
-                            formatter: ({ value }: any) => String(value),
+                            truncate,
+                            formatter: ({ value }: any) => text ?? String(value),
+                            ...(alwaysShow == null ? {} : { collision: { alwaysShow } }),
                         },
                     },
                 ],
@@ -349,14 +377,37 @@ describe('label collision avoidance', () => {
                 }
             });
 
-            it(`${type}: hides labels whose text overflows a small marker`, async () => {
+            it(`${type}: overflows a small marker at full text rather than hiding`, async () => {
                 const placed = await render(type, { markerSize: 4 });
+                expect(placed.length).toBe(sparseData.length);
+                for (const label of placed) {
+                    expect(label.placement).toBe('inside');
+                    expect(label.x + label.width / 2).toBeCloseTo(label.datum.point.x, 0);
+                    expect(label.y + label.height / 2).toBeCloseTo(label.datum.point.y, 0);
+                }
+                expect(renderedLabelTexts()).toEqual(sparseData.map(() => '50'));
+            });
+
+            it(`${type}: centres inside labels on the point when the marker is disabled`, async () => {
+                const placed = await render(type, { markerEnabled: false, markerSize: 40 });
+                expect(placed.length).toBe(sparseData.length);
+                for (const label of placed) {
+                    expect(label.x + label.width / 2).toBeCloseTo(label.datum.point.x, 0);
+                    expect(label.y + label.height / 2).toBeCloseTo(label.datum.point.y, 0);
+                }
+                expect(renderedLabelTexts()).toEqual(sparseData.map(() => '50'));
+            });
+
+            it(`${type}: hides labels whose text overflows a small marker when alwaysShow is off`, async () => {
+                const placed = await render(type, { markerSize: 4, alwaysShow: false });
                 expect(placed.length).toBe(0);
             });
 
-            it(`${type}: hides inside labels when the marker is disabled`, async () => {
-                const placed = await render(type, { markerEnabled: false, markerSize: 40 });
-                expect(placed.length).toBe(0);
+            it(`${type}: ellipsises an overflowing label to the marker when truncate is set`, async () => {
+                const text = 'Category value';
+                const placed = await render(type, { markerSize: 60, truncate: true, text });
+                expect(placed.length).toBe(sparseData.length);
+                expectAllEllipsised(text);
             });
 
             it(`${type}: cascades an oversized inside label to a directional fallback`, async () => {
@@ -382,6 +433,122 @@ describe('label collision avoidance', () => {
                 }
             });
         }
+
+        it('renders inside labels overflowing markers too small to contain them', async () => {
+            await renderAndSnapshot({
+                data: sparseData,
+                legend: { enabled: false },
+                axes: cartesianAxes,
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'x',
+                        yKey: 'y',
+                        marker: { enabled: true, size: 4 },
+                        label: { enabled: true, placement: 'inside', formatter: ({ value }: any) => String(value) },
+                    },
+                ],
+            });
+        });
+    });
+
+    // The engine reserves the larger of the two placement styles' box extents, so a boxed label's drawn
+    // box has to be re-centred within that reservation instead of sitting flush to its top-left.
+    describe('inside placement centres the drawn box on the marker', () => {
+        const sparseData = [
+            { x: 10, y: 50 },
+            { x: 50, y: 50 },
+            { x: 90, y: 50 },
+        ];
+
+        const drawnBoxesOnMarkers = () => {
+            const series = deproxy(chart as any).series[0] as unknown as {
+                placedLabelData: { datum: { point: { x: number; y: number } } }[];
+                labelSelection: { nodes(): { computeBBox(): LabelBox | undefined }[] };
+            };
+            const nodes = series.labelSelection.nodes();
+            return series.placedLabelData
+                .map((placed, index) => ({ box: nodes[index]?.computeBBox(), marker: placed.datum.point }))
+                .filter((entry): entry is { box: LabelBox; marker: { x: number; y: number } } => entry.box != null);
+        };
+
+        const render = async (type: 'line' | 'area' | 'scatter', labelStyle: object) => {
+            const options: any = {
+                data: sparseData,
+                legend: { enabled: false },
+                axes: cartesianAxes,
+                series: [
+                    {
+                        type,
+                        xKey: 'x',
+                        yKey: 'y',
+                        ...(type === 'scatter' ? { size: 100 } : { marker: { enabled: true, size: 100 } }),
+                        label: {
+                            enabled: true,
+                            placement: 'inside',
+                            formatter: () => 'Ab',
+                            ...labelStyle,
+                        },
+                    },
+                ],
+            };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            return drawnBoxesOnMarkers();
+        };
+
+        for (const type of ['line', 'area', 'scatter'] as const) {
+            it(`${type}: centres a bordered box on the marker`, async () => {
+                const placed = await render(type, {
+                    fill: 'white',
+                    padding: 4,
+                    border: { stroke: 'black', strokeWidth: 6 },
+                });
+                expect(placed.length).toBe(sparseData.length);
+                for (const { box, marker } of placed) {
+                    expect(box.x + box.width / 2).toBeCloseTo(marker.x, 0);
+                    expect(box.y + box.height / 2).toBeCloseTo(marker.y, 0);
+                }
+            });
+
+            it(`${type}: centres the box when the placement styles' padding diverges`, async () => {
+                const placed = await render(type, {
+                    fill: 'white',
+                    insideStyle: { padding: 2 },
+                    outsideStyle: { padding: 20 },
+                });
+                expect(placed.length).toBe(sparseData.length);
+                for (const { box, marker } of placed) {
+                    expect(box.x + box.width / 2).toBeCloseTo(marker.x, 0);
+                    expect(box.y + box.height / 2).toBeCloseTo(marker.y, 0);
+                }
+            });
+        }
+
+        it('renders bordered inside labels centred on their markers', async () => {
+            await renderAndSnapshot({
+                data: sparseData,
+                legend: { enabled: false },
+                axes: cartesianAxes,
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'x',
+                        yKey: 'y',
+                        marker: { enabled: true, size: 100, fill: 'lightsteelblue' },
+                        label: {
+                            enabled: true,
+                            placement: 'inside',
+                            formatter: () => 'Ab',
+                            fill: 'white',
+                            padding: 10,
+                            border: { stroke: 'crimson', strokeWidth: 6 },
+                        },
+                    },
+                ],
+            });
+        });
     });
 
     // Reproduces the reported scenario: three close, parallel lines with a `['top','bottom','inside']`
@@ -443,9 +610,15 @@ describe('label collision avoidance', () => {
 
         const render = async (
             type: 'scatter' | 'bubble',
-            opts: { markerSize: number; placement: string | string[] }
+            opts: {
+                markerSize: number;
+                placement: string | string[];
+                alwaysShow?: boolean;
+                truncate?: boolean;
+                text?: string;
+            }
         ) => {
-            const { markerSize, placement } = opts;
+            const { markerSize, placement, alwaysShow, truncate, text } = opts;
             const options: any = {
                 data: sparseData,
                 legend: { enabled: false },
@@ -459,7 +632,13 @@ describe('label collision avoidance', () => {
                         ...(type === 'bubble'
                             ? { sizeKey: 'size', minSize: markerSize, maxSize: markerSize }
                             : { size: markerSize }),
-                        label: { enabled: true, placement },
+                        label: {
+                            enabled: true,
+                            placement,
+                            truncate,
+                            ...(text == null ? {} : { formatter: () => text }),
+                            ...(alwaysShow == null ? {} : { collision: { alwaysShow } }),
+                        },
                     },
                 ],
             };
@@ -490,6 +669,30 @@ describe('label collision avoidance', () => {
             const placed = await render('scatter', { markerSize: 6, placement: 'inside' });
             expect(placed.length).toBe(0);
         });
+
+        for (const type of ['scatter', 'bubble'] as const) {
+            it(`${type}: a lone inside placement overflows a too-small marker when alwaysShow is on`, async () => {
+                const placed = await render(type, { markerSize: 6, placement: 'inside', alwaysShow: true });
+                expect(placed.length).toBe(sparseData.length);
+                for (const label of placed) {
+                    expect(label.placement).toBe('inside');
+                }
+                expect(renderedLabelTexts()).toEqual(sparseData.map(({ label }) => label));
+            });
+
+            it(`${type}: alwaysShow with truncate still ellipsises to the marker`, async () => {
+                const text = 'Category value';
+                const placed = await render(type, {
+                    markerSize: 40,
+                    placement: 'inside',
+                    alwaysShow: true,
+                    truncate: true,
+                    text,
+                });
+                expect(placed.length).toBe(sparseData.length);
+                expectAllEllipsised(text);
+            });
+        }
 
         it('bubble: cascades to a directional fallback when the marker is too small', async () => {
             const placed = await render('bubble', { markerSize: 6, placement: ['inside', 'top', 'bottom'] });

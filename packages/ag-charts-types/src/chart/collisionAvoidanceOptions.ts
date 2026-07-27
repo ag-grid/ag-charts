@@ -64,8 +64,6 @@ export interface AgChartLabelCollideWithOptions {
 export interface AgChartLabelCollisionOptions {
     /**
      * Collision threshold in pixels. A positive value triggers avoidance strategies when labels are further away, a negative value allows labels to overlap without triggering avoidance.
-     *
-     * Default: `0`
      */
     threshold?: PixelSize;
     /**
