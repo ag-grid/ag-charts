@@ -328,11 +328,11 @@ Nodes with children can be collapsed and expanded by clicking the expander. They
 In this example:
 
 - The subtrees under 'Lawrence Martinez' and 'Eric Jensen' will start in a collapsed state. This uses the `initialState.collapsed` property to specify which subtrees start collapsed.
-- Use `node.clickToExpand` to toggle collapsing/expanding by clicking anywhere on the card instead of the expander only. 
-    - Defaults to `false` when node has a [click listener](./events/#seriesnodeclick-and-seriesnodedoubleclick) or has [Data Selection](./selection/) enabled,, otherwise defaults to `true`. 
-- The `collapsed` array contains the identifiers of all currently collapsed nodes. 
+- Use `node.clickToExpand` to toggle collapsing/expanding by clicking anywhere on the card instead of the expander only.
+    - Defaults to `false` when node has a [click listener](./events/#seriesnodeclick-and-seriesnodedoubleclick) or has [Data Selection](./selection/) enabled,, otherwise defaults to `true`.
+- The `collapsed` array contains the identifiers of all currently collapsed nodes.
     - See the [State API](./api-state/#collapsed) page for more details.
-- Changes in the collapsed items can be listened to with the `collapsedChange` event, logged to the console here showing the `itemId` of each newly collapsed and expanded node. 
+- Changes in the collapsed items can be listened to with the `collapsedChange` event, logged to the console here showing the `itemId` of each newly collapsed and expanded node.
     - See the [Events API](./events/#collapsedchange) page for more details.
 
 ### Zoom
