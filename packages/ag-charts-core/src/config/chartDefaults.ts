@@ -139,7 +139,7 @@ export const legendPositionValidator: Validator = attachDescription(
                 );
             }
         } else {
-            const { cleared, invalid } = validate(value, legendPositionOptionsDef);
+            const { cleared, invalid } = validate(value, legendPositionOptionsDef, context.path, context.params);
             result = { valid: invalid.length === 0, cleared, invalid };
         }
         return result;

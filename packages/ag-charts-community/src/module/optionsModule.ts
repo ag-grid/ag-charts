@@ -463,7 +463,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 const presetSubType = (options as any).type as keyof AgPresetOverrides | undefined;
                 const presetTheme = presetSubType == null ? undefined : activeTheme.presets[presetSubType];
 
-                const { cleared, invalid } = validatePreset(presetParams, presetDef.options, '');
+                const { cleared, invalid } = validatePreset(presetParams, presetDef.options, '', this.validateParams);
                 this.recordValidationErrors(invalid);
 
                 if (hasRequiredInPath(invalid, '')) {
@@ -486,7 +486,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         // Must run before chart validation to cleanup invalid types.
         removeIncompatibleModuleOptions(undefined, options);
 
-        const missingSeriesModules = this.validateSeriesOptions(options);
+        const missingSeriesModules = this.validateSeriesOptions(options, this.validateParams);
 
         const chartType = detectChartType(options);
 
@@ -494,14 +494,14 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         if (!this.chartDef.placeholder) {
             const { validate: validateChart = validate } = this.chartDef;
-            const { cleared, invalid } = validateChart(options, this.chartDef.options, '');
+            const { cleared, invalid } = validateChart(options, this.chartDef.options, '', this.validateParams);
             this.recordValidationErrors(invalid);
             options = cleared as T;
         }
 
         // The first pass validation of the axes, before they have been processed. At this point the axis keys are still
         // the ones provided by the user and have not been remapped. Any axes without a `type` property are skipped.
-        const missingAxesModules = this.validateAxesOptions(options);
+        const missingAxesModules = this.validateAxesOptions(options, this.validateParams);
 
         this.removeDisabledOptions(options);
 
@@ -535,7 +535,11 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         // Second-pass validation runs after `removeDisabledOptions`, so disabled nodes have been
         // stripped to `{ enabled: false }`; skip their required-field/discriminant warnings.
-        const secondPassParams: ValidateParams = { skipDisabledNodeValidation: true, silentAdvisories: true };
+        const secondPassParams: ValidateParams = {
+            skipDisabledNodeValidation: true,
+            silentAdvisories: true,
+            logger: this.logger,
+        };
 
         this.validateSeriesOptions(processedOptions, secondPassParams);
 
@@ -633,6 +637,10 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     // Every option-validation error goes to both the console log and the per-chart overlay collector.
+    private get validateParams(): ValidateParams {
+        return { logger: this.logger };
+    }
+
     private recordValidationErrors(invalid: ValidationError[]) {
         for (const error of invalid) {
             this.logger.warn(error);
@@ -649,7 +657,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.validationIssues.push({ severity: 'warning', message });
     }
 
-    private validatePluginOptions(options: T, params: ValidateParams = {}) {
+    private validatePluginOptions(options: T, params: ValidateParams) {
         for (const pluginDef of ModuleRegistry.listModulesByType(ModuleType.Plugin)) {
             const pluginKey = pluginDef.name as keyof T;
             if (
@@ -664,7 +672,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
     }
 
-    private validateSeriesOptions(options: T, params: ValidateParams = {}): ModulePlaceholder[] {
+    private validateSeriesOptions(options: T, params: ValidateParams): ModulePlaceholder[] {
         const chartType = this.chartDef?.name;
         const validatedSeriesOptions: any[] = [];
         const seriesCount = options.series?.length ?? 0;
@@ -729,7 +737,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         return missingModules;
     }
 
-    private validateAxesOptions(options: T, params: ValidateParams = {}): ModulePlaceholder[] {
+    private validateAxesOptions(options: T, params: ValidateParams): ModulePlaceholder[] {
         const missingModules: ModulePlaceholder[] = [];
         if (!('axes' in options) || !options.axes) return missingModules;
 

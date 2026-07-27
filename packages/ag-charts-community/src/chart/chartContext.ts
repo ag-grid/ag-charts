@@ -117,7 +117,7 @@ export function createChartContext(chart: ChartHost, vars: ChartContextVars): Dy
         // when transferable resources are preserved across chart-type switches.
         .ref('scene', scene);
 
-    ctx.service('callbackCache', () => new CallbackCache())
+    ctx.service('callbackCache', (c) => new CallbackCache(c.logger))
         .service('formatManager', () => new FormatManager())
         .service('seriesStateManager', () => new SeriesStateManager())
         .service('stateManager', () => new StateManager())
