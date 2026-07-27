@@ -60,8 +60,8 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
         this.axisCtx.attachAxisOverlay(this.labelGroup, 'high');
 
         // Annotate the series-area context-menu handoff when the pointer hits one of this axis's cross
-        // lines — mirrors how axis-owning modules annotate `event.axis` (see axisDomProxy). Phase 3b
-        // consumes the annotation to build the `crossline` context-menu region.
+        // lines — mirrors how axis-owning modules annotate `event.axis` (see axisDomProxy). The
+        // series-area dispatch turns the annotation into a `crossline` context-menu region.
         this.removeContextMenuListener = this.ctx.eventsHub.on('series-area:contextmenu', (event) =>
             this.onSeriesAreaContextMenu(event)
         );
@@ -82,10 +82,6 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
                 value: crossLine.value,
                 range: crossLine.range,
             };
-
-            // Phase 3a PoC: observable stub broadcast into the context-menu flow. Replaced in Phase 3b
-            // by wiring the annotation through to a rendered `crossline` menu region.
-            this.ctx.logger.log('AG Charts - [PoC] cross-line context-menu hit', event.crossLine);
             return;
         }
     }

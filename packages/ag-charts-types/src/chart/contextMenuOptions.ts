@@ -3,6 +3,7 @@ import type {
     AgAxisContextMenuActionEvent,
     AgCaptionContextMenuActionEvent,
     AgChartContextMenuEvent,
+    AgCrossLineContextMenuActionEvent,
     AgNodeContextMenuActionEvent,
     AgSeriesAreaContextMenuActionEvent,
 } from './eventOptions';
@@ -19,7 +20,14 @@ export type AgContextMenuItemLiteral =
     | 'toggle-other-series'
     | 'separator';
 
-export type AgContextMenuItemShowOn = 'always' | 'axis' | 'caption' | 'series-area' | 'series-node' | 'legend-item';
+export type AgContextMenuItemShowOn =
+    | 'always'
+    | 'axis'
+    | 'caption'
+    | 'crossline'
+    | 'series-area'
+    | 'series-node'
+    | 'legend-item';
 
 export type AgContextMenuItemType = 'action' | 'separator';
 
@@ -73,6 +81,18 @@ export interface AgContextMenuItemAxis<TDatum = DatumDefault, TContext = Context
     showOn: 'axis';
     /** Function called when clicking on this menu item. */
     action?: (event: AgAxisContextMenuActionEvent<TContext>) => void;
+}
+
+export interface AgContextMenuItemCrossLine<TDatum = DatumDefault, TContext = ContextDefault> extends ItemMixin<
+    TDatum,
+    TContext
+> {
+    /**
+     * Which clicked element this menu item should be shown for. `'crossline'` menu items are shown when right-clicking a cross line's line or fill.
+     */
+    showOn: 'crossline';
+    /** Function called when clicking on this menu item. */
+    action?: (event: AgCrossLineContextMenuActionEvent<TContext>) => void;
 }
 
 export interface AgContextMenuItemCaption<TDatum = DatumDefault, TContext = ContextDefault> extends ItemMixin<
@@ -130,6 +150,7 @@ export type AgContextMenuItem<TDatum = DatumDefault, TContext = ContextDefault> 
     | AgContextMenuItemAlways<TDatum, TContext>
     | AgContextMenuItemAxis<TDatum, TContext>
     | AgContextMenuItemCaption<TDatum, TContext>
+    | AgContextMenuItemCrossLine<TDatum, TContext>
     | AgContextMenuItemSeriesArea<TDatum, TContext>
     | AgContextMenuItemSeriesNode<TDatum, TContext>
     | AgContextMenuItemLegendItem<TDatum, TContext>;
@@ -159,6 +180,14 @@ export interface AgContextMenuShowOnParamsAxis<_TDatumReserved = never, TContext
 > {
     /** Which clicked element this menu item should be shown for. */
     showOn: 'axis';
+}
+
+export interface AgContextMenuShowOnParamsCrossLine<_TDatumReserved = never, TContext = ContextDefault> extends Omit<
+    AgCrossLineContextMenuActionEvent<TContext>,
+    GetItemsParamsOmissions
+> {
+    /** Which clicked element this menu item should be shown for. */
+    showOn: 'crossline';
 }
 
 export interface AgContextMenuShowOnParamsCaption<_TDatumReserved = never, TContext = ContextDefault> extends Omit<
@@ -212,6 +241,7 @@ export type AgContextMenuShowOnParams<TDatum = DatumDefault, TContext = ContextD
     | AgContextMenuShowOnParamsAlways<TDatum, TContext>
     | AgContextMenuShowOnParamsAxis<TDatum, TContext>
     | AgContextMenuShowOnParamsCaption<TDatum, TContext>
+    | AgContextMenuShowOnParamsCrossLine<TDatum, TContext>
     | AgContextMenuShowOnParamsSeriesArea<TDatum, TContext>
     | AgContextMenuShowOnParamsSeriesNode<TDatum, TContext>
     | AgContextMenuShowOnParamsLegendItem<TDatum, TContext>;
@@ -233,6 +263,11 @@ export interface AgContextMenuGetItemsParamsAlways<_TDatumReserved = never, TCon
 
 export interface AgContextMenuGetItemsParamsAxis<_TDatumReserved = never, TContext = ContextDefault>
     extends AgContextMenuShowOnParamsAxis<_TDatumReserved, TContext>, GetItemsParamsMixin<_TDatumReserved, TContext> {}
+
+export interface AgContextMenuGetItemsParamsCrossLine<_TDatumReserved = never, TContext = ContextDefault>
+    extends
+        AgContextMenuShowOnParamsCrossLine<_TDatumReserved, TContext>,
+        GetItemsParamsMixin<_TDatumReserved, TContext> {}
 
 export interface AgContextMenuGetItemsParamsCaption<_TDatumReserved = never, TContext = ContextDefault>
     extends
@@ -256,6 +291,7 @@ export type AgContextMenuGetItemsParams<TDatum = DatumDefault, TContext = Contex
     | AgContextMenuGetItemsParamsAlways<TDatum, TContext>
     | AgContextMenuGetItemsParamsAxis<TDatum, TContext>
     | AgContextMenuGetItemsParamsCaption<TDatum, TContext>
+    | AgContextMenuGetItemsParamsCrossLine<TDatum, TContext>
     | AgContextMenuGetItemsParamsSeriesArea<TDatum, TContext>
     | AgContextMenuGetItemsParamsSeriesNode<TDatum, TContext>
     | AgContextMenuGetItemsParamsLegendItem<TDatum, TContext>;

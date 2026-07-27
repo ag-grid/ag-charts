@@ -212,6 +212,24 @@ export interface AgAxisContextMenuActionEvent<TContext = ContextDefault> extends
     domain: AgAxisDomain;
 }
 
+export interface AgCrossLineContextMenuActionEvent<TContext = ContextDefault> extends AgChartEvent<
+    'crossLineContextMenuAction',
+    TContext
+> {
+    /** Cross Line ID (generated if not specified). */
+    crossLineId: string;
+    /** ID of the axis the Cross Line belongs to, as specified in `axes`. */
+    axisId: string;
+    /** Direction of the axis the Cross Line belongs to. */
+    direction: AgAxisDirection;
+    /** Whether the Cross Line is a single `line` or a `range` band. */
+    crossLineType: 'line' | 'range';
+    /** The data value of a `line` Cross Line. Undefined for `range` Cross Lines. */
+    value?: AgAxisValue;
+    /** The `[start, end]` data values of a `range` Cross Line. Undefined for `line` Cross Lines. */
+    range?: [AgAxisValue, AgAxisValue];
+}
+
 export interface AgCaptionContextMenuActionEvent<TContext = ContextDefault> extends AgChartEvent<
     'captionContextMenuAction',
     TContext

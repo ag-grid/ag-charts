@@ -210,7 +210,7 @@ test.describe('context-menu', () => {
             await gotoExample(page, toExamplePageUrl('context-menu-e2e', 'ag-17637-overlap', 'vanilla').url);
         });
 
-        test('right-clicking Mar tick label shows axis and series-node contexts', async ({ page }) => {
+        test('right-clicking Mar tick label shows axis and series contexts', async ({ page }) => {
             await page.mouse.click(283, 336, { button: 'right' });
             expect(await popContextMenuText(page)).toEqual('always,axis,series-area,series-node,');
         });
@@ -220,11 +220,14 @@ test.describe('context-menu', () => {
             expect(await popContextMenuText(page)).toEqual('always,series-area,series-node,');
         });
 
-        test.skip('right-clicking Apr bar on crossline shows only crossline and series-node contexts', async ({
-            page,
-        }) => {
+        test('right-clicking Apr bar on crossline shows crossline and series contexts', async ({ page }) => {
             await page.mouse.click(371, 224, { button: 'right' });
             expect(await popContextMenuText(page)).toEqual('always,crossline,series-area,series-node,');
+        });
+
+        test('right-clicking May tick label shows axis, crossline and series contexts', async ({ page }) => {
+            await page.mouse.click(459, 336, { button: 'right' });
+            expect(await popContextMenuText(page)).toEqual('always,axis,crossline,series-area,series-node,');
         });
     });
 

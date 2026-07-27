@@ -509,12 +509,18 @@ export class SeriesAreaManager extends BaseManager {
             regions.push('axis');
             contexts.axis = collectEvent.axis;
         }
+        if (collectEvent.crossLine) {
+            regions.push('crossline');
+            contexts.crossline = collectEvent.crossLine;
+        }
 
-        // Primary region for backwards-compatible `showOn`: a node wins over an overlapping axis, which wins
-        // over the bare series area (matches the pre-multi-region dispatch precedence).
+        // Primary region for backwards-compatible `showOn`: a node wins over a cross line, which wins over an
+        // overlapping axis, which wins over the bare series area (matches the pre-multi-region dispatch precedence).
         let primary: AgContextMenuItemShowOn = 'series-area';
         if (contexts['series-node']) {
             primary = 'series-node';
+        } else if (collectEvent.crossLine) {
+            primary = 'crossline';
         } else if (collectEvent.axis) {
             primary = 'axis';
         }
