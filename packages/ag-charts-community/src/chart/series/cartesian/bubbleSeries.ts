@@ -396,7 +396,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             const domain = extent(rawDomain);
 
             if (domain != null) {
-                configureColorScale(this.colorScale, this.properties.colorScale, domain);
+                configureColorScale(this.colorScale, this.properties.colorScale, domain, this.ctx.logger);
                 this.colorScaleValid = true;
             }
         }

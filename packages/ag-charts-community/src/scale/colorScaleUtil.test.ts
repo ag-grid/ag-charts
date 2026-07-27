@@ -1,6 +1,6 @@
-import { describe, expect, test } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 
-import { computeColorBins, deriveNormalizedStops, formatColorScaleBinLabel } from 'ag-charts-core';
+import { Logger, computeColorBins, deriveNormalizedStops, formatColorScaleBinLabel } from 'ag-charts-core';
 
 import { ColorScale } from './colorScale';
 import { configureColorScale } from './colorScaleUtil';
@@ -524,5 +524,55 @@ describe('configureColorScale displayDomain', () => {
         expect(scale.displayDomain).toEqual([0, 100]);
         // domain reflects the stop positions for interpolation
         expect(scale.domain).toEqual([-200, 200]);
+    });
+});
+
+describe('configureColorScale logger routing', () => {
+    test('threads the provided per-chart logger onto the color scale', () => {
+        const scale = new ColorScale();
+        const logger = new Logger();
+
+        configureColorScale(
+            scale,
+            { fills: [{ color: 'red' }, { color: 'blue' }], mode: 'continuous' },
+            [0, 100],
+            logger
+        );
+
+        expect(scale.logger).toBe(logger);
+    });
+
+    test('routes the "at least 2 values" colorDomain warning through the scale logger, not the module default', () => {
+        const scale = new ColorScale();
+        const logger = new Logger();
+        const scopedWarn = vi.spyOn(logger, 'warnOnce').mockImplementation(() => {});
+        const defaultWarn = vi.spyOn(Logger.default, 'warnOnce').mockImplementation(() => {});
+
+        scale.logger = logger;
+        scale.domain = [5];
+        scale.update();
+
+        expect(scopedWarn).toHaveBeenCalledWith('`colorDomain` should have at least 2 values.');
+        expect(defaultWarn).not.toHaveBeenCalled();
+
+        scopedWarn.mockRestore();
+        defaultWarn.mockRestore();
+    });
+
+    test('routes the "ascending order" colorDomain warning through the scale logger, not the module default', () => {
+        const scale = new ColorScale();
+        const logger = new Logger();
+        const scopedWarn = vi.spyOn(logger, 'warnOnce').mockImplementation(() => {});
+        const defaultWarn = vi.spyOn(Logger.default, 'warnOnce').mockImplementation(() => {});
+
+        scale.logger = logger;
+        scale.domain = [10, 1];
+        scale.update();
+
+        expect(scopedWarn).toHaveBeenCalledWith('`colorDomain` values should be supplied in ascending order.');
+        expect(defaultWarn).not.toHaveBeenCalled();
+
+        scopedWarn.mockRestore();
+        defaultWarn.mockRestore();
     });
 });
