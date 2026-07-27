@@ -2,6 +2,7 @@ import {
     type AgDrawingMode,
     type AgRangeAreaSeriesItemType,
     type AgRangeAreaSeriesLabelFormatterParams,
+    type AgRangeAreaSeriesLabelPlacement,
     type AgRangeAreaSeriesLineStyle,
     type AgRangeAreaSeriesOptions,
     type AgRangeAreaSeriesStyle,
@@ -19,23 +20,29 @@ import {
     type AreExact,
     type CallbackParamRules,
     ChartAxisDirection,
+    DEFAULT_MARKERLESS_LABEL_GAP,
     DebugMetrics,
     type DeepRequired,
     type DomainWithMetadata,
     type DynamicContext,
-    type LabelFit,
+    type LabelMeasureContext,
+    type LabelPlacement,
     type Normalised,
     type NormalisedColorType,
     type NormalisedSeriesMarkerStyle,
+    type PlacedLabel,
     type Point,
     type RequireOptional,
+    type SeriesLabelDefaults,
+    cachedTextMeasurer,
     extent,
     findMinMax,
-    firstCandidate,
-    fitLabelText,
     isContinuous,
+    measurePlacedLabel,
     mergeDefaults,
     resolveLabelFit,
+    resolveSeriesLabelDefaults,
+    toArray,
     toNumber,
 } from 'ag-charts-core';
 import type { AgNumericValue, CssColor } from 'ag-charts-types';
@@ -64,6 +71,7 @@ const {
     valueProperty,
     keyProperty,
     updateLabelNode,
+    expandPlacementLabelBoxExtent,
     resolvePlacementLabelPadding,
     pickPlacementStyle,
     fixNumericExtent,
@@ -138,7 +146,8 @@ type StylerMarkerOptionsResult = DeepRequired<ResolvedStyleMixin>;
  * Context object for efficient node datum creation.
  * Caches expensive-to-compute values that are reused across all datum iterations.
  */
-interface RangeAreaSeriesNodeDatumContext extends _ModuleSupport.CartesianCreateNodeDataContext<RangeAreaMarkerDatum> {
+interface RangeAreaSeriesNodeDatumContext
+    extends _ModuleSupport.CartesianCreateNodeDataContext<RangeAreaMarkerDatum>, LabelMeasureContext {
     // Data arrays (from dataModel - cache once)
     readonly yHighValues: AgNumericValue[];
     readonly yLowValues: AgNumericValue[];
@@ -155,7 +164,11 @@ interface RangeAreaSeriesNodeDatumContext extends _ModuleSupport.CartesianCreate
 
     // Pre-computed flags
     readonly labelsEnabled: boolean;
-    readonly labelFit: LabelFit | undefined;
+
+    // Keyed by band side: low and high carry independent markers and face opposite directions.
+    readonly labelPlacements: Record<AgRangeAreaSeriesItemType, readonly LabelPlacement[]>;
+    readonly labelMarkerSize: Record<AgRangeAreaSeriesItemType, number>;
+    readonly labelAnchor: Record<AgRangeAreaSeriesItemType, Point | undefined>;
 
     // Property caches
     readonly yLowKey: string;
@@ -168,6 +181,19 @@ interface RangeAreaSeriesNodeDatumContext extends _ModuleSupport.CartesianCreate
     // Mutable state for building node data
     labelData: RangeAreaLabelDatum[];
     spanPoints: Array<RangeAreaSpanPointDatum[] | { skip: number }>;
+}
+
+/** `high` faces up when placed outside the band and down when inside; `low` mirrors it. */
+function enginePlacement(coarse: AgRangeAreaSeriesLabelPlacement, side: AgRangeAreaSeriesItemType): LabelPlacement {
+    return (coarse === 'outside') === (side === 'high') ? 'top' : 'bottom';
+}
+
+/** Inverse of {@link enginePlacement}; range-area only ever offers the two vertical candidates. */
+function coarsePlacement(
+    placement: LabelPlacement | undefined,
+    side: AgRangeAreaSeriesItemType
+): AgRangeAreaSeriesLabelPlacement {
+    return (placement === 'top') === (side === 'high') ? 'outside' : 'inside';
 }
 
 /**
@@ -265,6 +291,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
 
     private readonly aggregationManager = new AggregationManager<RangeAreaSeriesDataAggregationFilter>();
     private hideWithSize0 = false;
+    private placedLabelData: PlacedLabel<RangeAreaLabelDatum>[] = [];
 
     constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
@@ -286,6 +313,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
                 datum: (node, datum) => ({ ...resetMarkerFn(node), ...resetMarkerPositionFn(node, datum) }),
             },
             clipFocusBox: false,
+            usesPlacedLabels: true,
         });
     }
 
@@ -416,6 +444,15 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
                 !processedDataIsAnimatable(processedData) ||
                 dataAggregationFilter != null);
 
+        const { item, label } = this.properties;
+        const configuredPlacements = toArray(label.placement);
+        // An explicitly empty list would yield zero candidates and drop every label.
+        const coarsePlacements = configuredPlacements.length > 0 ? configuredPlacements : (['outside'] as const);
+        const markerSizeOf = (side: AgRangeAreaSeriesItemType) => {
+            const { marker } = item[side];
+            return marker.enabled ? marker.size : 0;
+        };
+
         return {
             xAxis,
             yAxis,
@@ -429,8 +466,16 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             xOffset: (xScale.bandwidth ?? 0) / 2,
             dataAggregationFilter,
             range,
-            labelsEnabled: this.properties.label.enabled,
-            labelFit: resolveLabelFit(this.properties.label, !this.properties.label.collision.alwaysShow),
+            labelsEnabled: label.enabled,
+            labelFit: resolveLabelFit(label, !label.collision.alwaysShow),
+            labelPadding: expandPlacementLabelBoxExtent(label),
+            labelTextMeasurer: cachedTextMeasurer(label),
+            labelPlacements: {
+                low: coarsePlacements.map((coarse) => enginePlacement(coarse, 'low')),
+                high: coarsePlacements.map((coarse) => enginePlacement(coarse, 'high')),
+            },
+            labelMarkerSize: { low: markerSizeOf('low'), high: markerSizeOf('high') },
+            labelAnchor: { low: Marker.anchor(item.low.marker.shape), high: Marker.anchor(item.high.marker.shape) },
             animationEnabled,
             canIncrementallyUpdate,
             xKey: this.properties.xKey,
@@ -636,19 +681,16 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
 
         // Skip label creation if labels are disabled
         if (ctx.labelsEnabled) {
-            const labelDatum = this.createLabelData({
-                datumIndex,
-                point: { x: scratch.x, y },
-                value: yValue,
-                yLowValue: scratch.yLowValue,
-                yHighValue: scratch.yHighValue,
-                itemType,
-                inverted: scratch.inverted,
-                datum: scratch.datum,
-                series: this,
-                labelFit: ctx.labelFit,
-            });
-            ctx.labelData.push(labelDatum);
+            ctx.labelData.push(
+                this.createLabelData(ctx, {
+                    datumIndex,
+                    point: { x: scratch.x, y },
+                    value: yValue,
+                    itemType,
+                    inverted: scratch.inverted,
+                    datum: scratch.datum,
+                })
+            );
         }
     }
 
@@ -831,81 +873,76 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         return getMarkerStyles(this, line, line.marker, inheritedStyles);
     }
 
-    private createLabelData({
-        datumIndex,
-        point,
-        value,
-        itemType,
-        inverted,
-        datum,
-        series,
-        labelFit,
-    }: {
-        datumIndex: number;
-        point: Point;
-        value: any;
-        yLowValue: any;
-        yHighValue: any;
-        itemType: AgRangeAreaSeriesItemType;
-        inverted: boolean;
-        datum: any;
-        series: RangeAreaSeries;
-        labelFit: LabelFit | undefined;
-    }): RangeAreaLabelDatum {
-        const { xKey, yLowKey, yHighKey, xName, yName, yLowName, yHighName, legendItemName, label } = this.properties;
-        // Array placement is accepted, but only its first candidate is honoured here.
-        const placement = firstCandidate(label.placement);
-        const placementStyle = placement === 'outside' ? label.outsideStyle : label.insideStyle;
-        const boxPadding = resolvePlacementLabelPadding(label, placementStyle);
-
-        let actualItemId = itemType;
-        if (inverted) {
-            actualItemId = itemType === 'low' ? 'high' : 'low';
+    private createLabelData(
+        ctx: RangeAreaSeriesNodeDatumContext,
+        {
+            datumIndex,
+            point,
+            value,
+            itemType,
+            inverted,
+            datum,
+        }: {
+            datumIndex: number;
+            point: Point;
+            value: any;
+            itemType: AgRangeAreaSeriesItemType;
+            inverted: boolean;
+            datum: any;
         }
-        const direction =
-            (placement === 'outside' && actualItemId === 'high') || (placement === 'inside' && actualItemId === 'low')
-                ? -1
-                : 1;
-        const facing = direction === -1 ? 'bottom' : 'top';
+    ): RangeAreaLabelDatum {
+        const { xKey, yLowKey, yHighKey, xName, yName, yLowName, yHighName, legendItemName, label } = this.properties;
+        // An inverted datum draws the low value above the high value, flipping which side each label faces.
+        let valueSide = itemType;
+        if (inverted) {
+            valueSide = itemType === 'low' ? 'high' : 'low';
+        }
+        const markerSize = ctx.labelMarkerSize[itemType];
 
-        const yDomain = this.getSeriesDomain(ChartAxisDirection.Y).domain;
+        const labelText = this.getLabelText<AgRangeAreaSeriesLabelFormatterParams>(
+            value,
+            datum,
+            itemType === 'high' ? yHighKey : yLowKey,
+            'y',
+            ctx.yDomain,
+            label,
+            {
+                value,
+                datum,
+                itemType,
+                xKey,
+                yLowKey,
+                yHighKey,
+                xName,
+                yLowName,
+                yHighName,
+                yName,
+                legendItemName,
+            }
+        );
+        const measuredLabel = measurePlacedLabel(labelText, label, ctx);
 
         return {
+            // Provisional anchor; {@link placedLabelDatum} replaces it with the engine's resolved box.
             x: point.x,
-            y: point.y + (label.spacing + boxPadding[facing]) * direction,
-            series,
+            y: point.y,
+            point: { x: point.x, y: point.y, size: markerSize },
+            label: measuredLabel,
+            text: measuredLabel.text,
+            anchor: ctx.labelAnchor[itemType],
+            placements: ctx.labelPlacements[valueSide],
+            placement: undefined,
+            // Markerless vertices still nudge their label clear of the stroke with a small fixed gap.
+            gap: markerSize > 0 ? markerSize / 2 : DEFAULT_MARKERLESS_LABEL_GAP,
+            valueSide,
+            series: this,
             itemType,
             datum,
             datumIndex,
-            text: fitLabelText(
-                this.getLabelText<AgRangeAreaSeriesLabelFormatterParams>(
-                    value,
-                    datum,
-                    itemType === 'high' ? yHighKey : yLowKey,
-                    'y',
-                    yDomain,
-                    label,
-                    {
-                        value,
-                        datum,
-                        itemType,
-                        xKey,
-                        yLowKey,
-                        yHighKey,
-                        xName,
-                        yLowName,
-                        yHighName,
-                        yName,
-                        legendItemName,
-                    }
-                ),
-                labelFit,
-                label
-            ),
+            // `textAlign` also justifies a wrapped label's lines against each other, so it stays centred.
             textAlign: 'center',
-            textBaseline: direction === -1 ? 'bottom' : 'top',
+            textBaseline: 'top',
             rotation: 0,
-            placement,
         };
     }
 
@@ -1268,7 +1305,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         const { label } = this.properties;
         labelSelection.each((textNode, datum) => {
             textNode.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;
-            const placementStyle = pickPlacementStyle(label, datum.placement);
+            const placement = coarsePlacement(datum.placement, datum.valueSide);
             updateLabelNode(
                 this,
                 textNode,
@@ -1277,15 +1314,58 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
                 datum,
                 { isHighlight, activeHighlight },
                 undefined,
-                placementStyle
+                pickPlacementStyle(label, placement),
+                { placement }
             );
         });
     }
 
-    protected override getHighlightLabelData(labelData: RangeAreaLabelDatum[], highlightedItem: RangeAreaMarkerDatum) {
-        if (!labelData?.length) return [];
+    override getLabelData(): RangeAreaLabelDatum[] {
+        if (!this.isLabelEnabled()) return [];
+        return this.contextNodeData?.labelData ?? [];
+    }
 
-        return labelData.filter((labelDatum) => labelDatum.datum === highlightedItem.datum);
+    override getLabelDefaults(): SeriesLabelDefaults {
+        const { label } = this.properties;
+        // Placements are supplied per datum, so a series-level list would never be consulted.
+        return resolveSeriesLabelDefaults(label.collision, undefined, label.spacing);
+    }
+
+    override updatePlacedLabelData(labelData: PlacedLabel<RangeAreaLabelDatum>[]) {
+        this.placedLabelData = labelData;
+        this.labelSelection = this.updateLabelSelection({
+            labelData: labelData.map((placed) => this.placedLabelDatum(placed)),
+            labelSelection: this.labelSelection,
+        });
+        this.updateLabelNodes({ labelSelection: this.labelSelection });
+        this.updateHighlightLabelSelection();
+    }
+
+    /**
+     * Maps the engine's label box onto the render anchor: horizontal centre for the centred text, top
+     * edge inset by the resolved placement's padding for the `top` baseline.
+     */
+    private placedLabelDatum(placed: PlacedLabel<RangeAreaLabelDatum>): RangeAreaLabelDatum {
+        const { datum } = placed;
+        const placement = placed.placement ?? datum.placement;
+        const { label } = this.properties;
+        const padding = resolvePlacementLabelPadding(
+            label,
+            pickPlacementStyle(label, coarsePlacement(placement, datum.valueSide))
+        );
+        return { ...datum, x: placed.x + placed.width / 2, y: placed.y + padding.top, placement };
+    }
+
+    protected override getHighlightLabelData(
+        _labelData: RangeAreaLabelDatum[],
+        highlightedItem: RangeAreaMarkerDatum
+    ): RangeAreaLabelDatum[] | undefined {
+        // Source from the placed positions so hover cannot resurface a label the collision pass dropped.
+        // Both band labels share one datumIndex, so this still returns the low/high pair.
+        const items = this.placedLabelData
+            .filter((placed) => placed.datum.datumIndex === highlightedItem.datumIndex)
+            .map((placed) => this.placedLabelDatum(placed));
+        return items.length === 0 ? undefined : items;
     }
 
     protected override getHighlightData(

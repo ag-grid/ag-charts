@@ -103,9 +103,10 @@ type LabelDatum = Point & {
     /**
      * The label's resolved placement. Bar-family labels carry the granular {@link BarLabelPlacement}
      * (coarsened to inside/outside via {@link toResolvedPlacement} when selecting placement styles);
-     * other series carry the coarse {@link ResolvedLabelPlacement}. Unset applies neither style.
+     * placement-engine series carry the compass {@link LabelPlacement}; the rest carry the coarse
+     * {@link ResolvedLabelPlacement}. Unset applies neither style.
      */
-    placement?: ResolvedLabelPlacement | BarLabelPlacement;
+    placement?: ResolvedLabelPlacement | BarLabelPlacement | LabelPlacement;
     /** Rotation in radians applied to the label node; `undefined`/`0` renders upright. */
     rotation?: number;
     /** Translation (px) sliding a region-bound label flush inside its region; `undefined`/`0` leaves it anchored. */

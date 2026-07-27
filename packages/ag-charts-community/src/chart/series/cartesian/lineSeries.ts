@@ -11,6 +11,7 @@ import type {
 import {
     AGGREGATION_INDEX_Y_MAX,
     ChartAxisDirection,
+    DEFAULT_MARKERLESS_LABEL_GAP,
     DebugMetrics,
     cachedTextMeasurer,
     extent,
@@ -103,11 +104,7 @@ import {
     resetMarkerSelectionsDirect,
 } from './markerUtil';
 import { buildResetPathFn, pathSwipeInAnimation, updateClipPath } from './pathUtil';
-import {
-    DEFAULT_MARKERLESS_LABEL_GAP,
-    PlacedLabelCartesianSeries,
-    type PlacedLabelSeriesTypes,
-} from './placedLabelCartesianSeries';
+import { PlacedLabelCartesianSeries, type PlacedLabelSeriesTypes } from './placedLabelCartesianSeries';
 import { calculateSegments } from './util';
 
 /**

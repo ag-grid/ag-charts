@@ -247,6 +247,9 @@ export function resolveSeriesLabelDefaults(
     };
 }
 
+/** Label offset applied at a markerless vertex (size 0), where the marker radius can't supply one. */
+export const DEFAULT_MARKERLESS_LABEL_GAP = 2;
+
 export interface PlacedLabel<PLD = PointLabelDatum> extends MeasuredLabel, Readonly<Point> {
     readonly index: number;
     readonly datum: PLD;

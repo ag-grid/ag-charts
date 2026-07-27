@@ -202,7 +202,6 @@ describe('label collision avoidance', () => {
 
     // A `placement` array is an ordered fallback list: the first candidate that clears its obstacles wins,
     // so an array whose first candidate already fits renders identically to that single placement.
-    // (range-area is not yet cascade-wired, so it simply uses the first candidate — same result here.)
     describe('bar-family placement cascade (first fitting candidate wins)', () => {
         it('waterfall renders an array placement identically to its first candidate', async () => {
             const options = (placement: string | string[]): AgChartOptions => ({
@@ -774,6 +773,257 @@ describe('label collision avoidance', () => {
             expect(low).toBeDefined();
             expect(high).toBeDefined();
             expect(low!.y).toBeLessThan(high!.y);
+        });
+    });
+
+    // Range-area labels are point-anchored on the low and high strokes, so they resolve through the
+    // compass placement engine: the coarse `outside`/`inside` vocabulary maps per datum onto the
+    // direction that faces away from / into the band.
+    describe('range-area label placement', () => {
+        type LabelNode = {
+            visible: boolean;
+            datum: { itemType: string; placement?: string; valueSide: string };
+            computeBBox(): Box | undefined;
+        };
+        /** A visible label node's resolved placement, band side, and rendered box. */
+        type PlacedLabelInfo = { placement?: string; side: string; box: Box };
+        /** Range-area's engine output, in the plot-local coordinates its anchor points also use. */
+        type RangeAreaPlacedLabel = {
+            y: number;
+            height: number;
+            placement?: string;
+            datum: { itemType: string; point: { y: number } };
+        };
+        const placedLabelData = (): RangeAreaPlacedLabel[] => chart.series[0].placedLabelData;
+
+        const placedLabels = async (options: object): Promise<PlacedLabelInfo[]> => {
+            chart?.destroy();
+            const opts = options as AgChartOptions;
+            prepareEnterpriseTestOptions(opts);
+            chart = deproxy(AgCharts.create(opts));
+            await waitForChartStability(chart);
+            const series = chart.series[0] as unknown as { labelSelection: { nodes(): LabelNode[] } };
+            const labels: PlacedLabelInfo[] = [];
+            for (const node of series.labelSelection.nodes()) {
+                const box = node.visible ? node.computeBBox() : undefined;
+                if (box != null) {
+                    labels.push({ placement: node.datum.placement, side: node.datum.valueSide, box });
+                }
+            }
+            return labels;
+        };
+
+        const narrowBand = (label: object) => ({
+            data: [{ x: 'A', low: 46, high: 54 }],
+            legend: { enabled: false },
+            padding: { top: 40, right: 40, bottom: 20, left: 40 },
+            axes: { x: { type: 'category' }, y: { type: 'number', min: 0, max: 100 } },
+            series: [{ type: 'range-area', xKey: 'x', yLowKey: 'low', yHighKey: 'high', label }],
+        });
+
+        // A band too narrow for both end labels to sit inside it. With `placement: ['inside', 'outside']`
+        // the second-placed label must treat its already-placed sibling as an obstacle and cascade
+        // outside, rather than overlapping it or being dropped.
+        it('cascades one sibling label outside instead of dropping or overlapping it inside', async () => {
+            const labels = await placedLabels(
+                narrowBand({ enabled: true, placement: ['inside', 'outside'], collision: { alwaysShow: false } })
+            );
+            // Anti-vacuous guard: both end labels stay visible (neither hidden for failing inside).
+            expect(labels).toHaveLength(2);
+            expect(overlaps(labels[0].box, labels[1].box)).toBe(false);
+            // Both resolved a vertical placement, and exactly one of them cascaded outside.
+            expect(labels.filter((l) => l.placement === 'bottom' || l.placement === 'top')).toHaveLength(2);
+            const outside = labels.filter((l) => (l.placement === 'top') === (l.side === 'high'));
+            expect(outside).toHaveLength(1);
+        });
+
+        // A dense band of long labels: every candidate collides, so `alwaysShow` decides the outcome.
+        const crowded = (collision: object) => ({
+            data: Array.from({ length: 12 }, (_, i) => ({ x: `Category ${i}`, low: 40 + i, high: 44 + i })),
+            legend: { enabled: false },
+            axes: { x: { type: 'category' }, y: { type: 'number', min: 0, max: 100 } },
+            series: [
+                {
+                    type: 'range-area',
+                    xKey: 'x',
+                    yLowKey: 'low',
+                    yHighKey: 'high',
+                    label: {
+                        enabled: true,
+                        formatter: () => 'A very long range-area label',
+                        placement: ['outside', 'inside'],
+                        collision,
+                    },
+                },
+            ],
+        });
+
+        it('drops labels that fit nowhere when alwaysShow is false, keeps them when true', async () => {
+            const hidden = await placedLabels(crowded({ alwaysShow: false }));
+            const kept = await placedLabels(crowded({ alwaysShow: true }));
+            expect(hidden.length).toBeLessThan(kept.length);
+            expect(kept).toHaveLength(24);
+        });
+
+        // `low > high` draws the low value above the high value, so each label's facing side flips: the
+        // `high` label of an inverted datum must render below its own stroke, not above it.
+        it('places every outside label clear of the band, including on an inverted datum', async () => {
+            await placedLabels({
+                data: [
+                    { x: 'A', low: 20, high: 80 },
+                    { x: 'B', low: 80, high: 20 },
+                ],
+                legend: { enabled: false },
+                padding: { top: 40, right: 40, bottom: 20, left: 40 },
+                axes: { x: { type: 'category' }, y: { type: 'number', min: 0, max: 100 } },
+                series: [
+                    {
+                        type: 'range-area',
+                        xKey: 'x',
+                        yLowKey: 'low',
+                        yHighKey: 'high',
+                        invertedStyle: { enabled: true },
+                        label: { enabled: true, placement: 'outside' },
+                    },
+                ],
+            });
+            const placed = placedLabelData();
+            expect(placed).toHaveLength(4);
+            const anchorYs = placed.map((label) => label.datum.point.y);
+            const bandMidY = (Math.min(...anchorYs) + Math.max(...anchorYs)) / 2;
+            for (const label of placed) {
+                const anchorY = label.datum.point.y;
+                if (anchorY < bandMidY) {
+                    // Upper stroke: the label sits entirely above its anchor.
+                    expect(label.placement).toBe('top');
+                    expect(label.y + label.height).toBeLessThanOrEqual(anchorY);
+                } else {
+                    expect(label.placement).toBe('bottom');
+                    expect(label.y).toBeGreaterThanOrEqual(anchorY);
+                }
+            }
+            // Anti-vacuous guard: the inverted datum's `high` label is the one on the lower stroke.
+            const invertedHigh = placed.filter(
+                (label) => label.datum.itemType === 'high' && label.placement === 'bottom'
+            );
+            expect(invertedHigh).toHaveLength(1);
+        });
+
+        // A label sits `gap + spacing` from its anchor, `gap` being the marker radius, so it never
+        // lands on its own marker.
+        it('offsets an outside label from its marker by the marker radius plus label.spacing', async () => {
+            const markerSize = 20;
+            const spacing = 12;
+            await placedLabels({
+                data: [{ x: 'A', low: 20, high: 80 }],
+                legend: { enabled: false },
+                padding: { top: 60, right: 40, bottom: 20, left: 40 },
+                axes: { x: { type: 'category' }, y: { type: 'number', min: 0, max: 100 } },
+                series: [
+                    {
+                        type: 'range-area',
+                        xKey: 'x',
+                        yLowKey: 'low',
+                        yHighKey: 'high',
+                        marker: { enabled: true, size: markerSize },
+                        label: { enabled: true, placement: 'outside', spacing },
+                    },
+                ],
+            });
+            expect(topLabelAnchorGap(chart.series[0] as PlacedLabelGeometry)).toBeCloseTo(markerSize / 2 + spacing, 5);
+        });
+
+        it('reports the resolved coarse placement to the label itemStyler', async () => {
+            const captured: (string | undefined)[] = [];
+            const itemStyler = (params: { placement?: string }) => {
+                captured.push(params.placement);
+                return {};
+            };
+            await placedLabels(
+                narrowBand({
+                    enabled: true,
+                    placement: ['inside', 'outside'],
+                    collision: { alwaysShow: false },
+                    itemStyler,
+                })
+            );
+            expect(new Set(captured)).toEqual(new Set(['inside', 'outside']));
+        });
+
+        // The structural tests above assert the placement the engine resolved; these pin what actually
+        // renders, so a cascade that reports the right placement but draws in the wrong spot still fails.
+        // The first two are a contrast pair over identical data: without a fallback the colliding sibling
+        // is dropped, with one it survives outside the band. Each asserts its label distribution first, so
+        // no baseline can bake in a render where the fallback silently failed to fire.
+        describe('rendered placement fallback', () => {
+            // Bands narrow enough that the two end labels cannot both sit inside at the theme's spacing.
+            const cascadeBands = (placement: string | string[]) => ({
+                data: [
+                    { x: 'A', low: 46, high: 54 },
+                    { x: 'B', low: 44, high: 56 },
+                    { x: 'C', low: 47, high: 53 },
+                ],
+                legend: { enabled: false },
+                padding: { top: 40, right: 40, bottom: 40, left: 40 },
+                axes: { x: { type: 'category' }, y: { type: 'number', min: 0, max: 100 } },
+                series: [
+                    {
+                        type: 'range-area',
+                        xKey: 'x',
+                        yLowKey: 'low',
+                        yHighKey: 'high',
+                        label: { enabled: true, placement, collision: { alwaysShow: false } },
+                    },
+                ],
+            });
+            const isOutside = (l: { placement?: string; side: string }) =>
+                (l.placement === 'top') === (l.side === 'high');
+
+            it('drops the colliding sibling label when inside is the only placement', async () => {
+                const labels = await placedLabels(cascadeBands('inside'));
+                // Two of the six end labels have nowhere to go once their sibling claims the inside slot.
+                expect(labels).toHaveLength(4);
+                expect(labels.filter(isOutside)).toHaveLength(0);
+                await compareImageSnapshot(chart, ctx);
+            });
+
+            it('keeps both sibling labels by cascading one outside when a fallback is offered', async () => {
+                const labels = await placedLabels(cascadeBands(['inside', 'outside']));
+                // Same data as above: the two labels dropped there are recovered outside their bands.
+                expect(labels).toHaveLength(6);
+                expect(labels.filter(isOutside)).toHaveLength(2);
+                await compareImageSnapshot(chart, ctx);
+            });
+
+            // Labels too long for either candidate are dropped rather than overlapped, leaving visible gaps.
+            it('drops labels whose every placement candidate collides', async () => {
+                const labels = await placedLabels({
+                    data: Array.from({ length: 8 }, (_, i) => ({ x: `Category ${i}`, low: 42 + i, high: 50 + i })),
+                    legend: { enabled: false },
+                    padding: { top: 40, right: 40, bottom: 40, left: 40 },
+                    axes: { x: { type: 'category' }, y: { type: 'number', min: 0, max: 100 } },
+                    series: [
+                        {
+                            type: 'range-area',
+                            xKey: 'x',
+                            yLowKey: 'low',
+                            yHighKey: 'high',
+                            label: {
+                                enabled: true,
+                                placement: ['outside', 'inside'],
+                                formatter: () => 'A very long range-area label',
+                                collision: { alwaysShow: false },
+                            },
+                        },
+                    ],
+                });
+                // All three cascade outcomes must be present, so the render shows each of them: some
+                // labels keep `outside`, some fall back to `inside`, and the rest are dropped.
+                expect(labels.filter(isOutside).length).toBeGreaterThan(0);
+                expect(labels.filter((l) => !isOutside(l)).length).toBeGreaterThan(0);
+                expect(labels.length).toBeLessThan(16);
+                await compareImageSnapshot(chart, ctx);
+            });
         });
     });
 });

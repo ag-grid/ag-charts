@@ -1702,6 +1702,26 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         return this.usesPlacedLabels;
     }
 
+    // Rebuilds the highlight label selection from whatever the placement engine wrote back, so a hover
+    // cannot resurface a label the collision pass dropped.
+    protected updateHighlightLabelSelection() {
+        const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
+        const highlightItem =
+            this.isSeriesHighlighted(highlightedDatum) && highlightedDatum?.datum ? highlightedDatum : undefined;
+        const highlightLabelData = highlightItem == null ? [] : (this.getHighlightLabelData([], highlightItem) ?? []);
+
+        this.highlightLabelSelection =
+            this.updateLabelSelection({
+                labelData: highlightLabelData,
+                labelSelection: this.highlightLabelSelection,
+            }) ?? this.highlightLabelSelection;
+
+        this.highlightLabelGroup.visible = highlightLabelData.length > 0;
+        this.highlightLabelGroup.batchedUpdate(() => {
+            this.updateLabelNodes({ labelSelection: this.highlightLabelSelection, isHighlight: true });
+        });
+    }
+
     // Re-renders both label selections after the placement engine has written back the chosen
     // orientation, so highlighted labels pick up the resolved rotation too.
     protected refreshPlacedLabelNodes() {
