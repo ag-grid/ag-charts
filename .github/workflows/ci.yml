@@ -420,8 +420,17 @@ jobs:
         permissions:
             contents: write
             pull-requests: write
+        # Per-PR lock: stops this PR's publishers (the UMD bundles here and the
+        # snapshot reports in `snapshot_review`) and its close-time cleanup from
+        # running concurrently, which narrows the window in which a late publish
+        # could re-create a pr-<N>/ that cleanup removed. (Job concurrency prevents
+        # overlap but not strict ordering, so it narrows rather than closes that
+        # window.) Cross-PR safety is NOT this lock's job — the push-retry loop in
+        # pr-preview-publish resolves diverged refs between different PRs, so they no
+        # longer contend. Keep this group string byte-identical to the ones in
+        # `snapshot_review` (below) and `gh_pages_cleanup` (pr-cleanup.yml).
         concurrency:
-            group: pr-preview-gh-pages
+            group: pr-preview-gh-pages-${{ github.event.pull_request.number }}
             cancel-in-progress: false
         env:
             PR_NUMBER: ${{ github.event.pull_request.number }}
@@ -1307,13 +1316,19 @@ jobs:
             github.event.pull_request.head.repo.full_name == github.repository &&
             needs.detect-changes.outputs.run_full_ci == 'true'
         permissions:
-            # write: the HTML reports are published to the gh-pages PR preview (peaceiris/actions-gh-pages
+            # write: the HTML reports are published to the gh-pages PR preview (pr-preview-publish
             # pushes with GITHUB_TOKEN, which is scoped by this job's permissions).
             contents: write
             pull-requests: write
             packages: read
             # scene-graph review (follow-up) downloads CI artifacts via gh — needs actions: read.
             actions: read
+        # This job also publishes into the PR's pr-<N>/ preview, so it shares the
+        # per-PR lock with `pr_preview` and `gh_pages_cleanup` — see the rationale on
+        # `pr_preview`. Byte-identical group string across all three.
+        concurrency:
+            group: pr-preview-gh-pages-${{ github.event.pull_request.number }}
+            cancel-in-progress: false
         env:
             # Report URLs are deterministic (snapshot-<slug>.html), so a previous run's deploy answers
             # 200 at the same URL while this run's is still propagating. Stamp each report with a
