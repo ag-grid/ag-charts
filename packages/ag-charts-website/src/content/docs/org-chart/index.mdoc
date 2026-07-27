@@ -295,7 +295,7 @@ In this configuration:
 
 ### Collapse and Expand
 
-Nodes with children can be collapsed and expanded by clicking the expander button. They can also be controlled programmatically.
+Nodes with children can be collapsed and expanded by clicking the expander. They can also be controlled programmatically.
 
 {% chartExampleRunner title="Collapse and Expand" name="org-chart-expand-collapse" type="generated" /%}
 
@@ -304,16 +304,36 @@ Nodes with children can be collapsed and expanded by clicking the expander butto
     initialState: {
         collapsed: ['Lawrence Martinez', 'Eric Jensen'],
     },
-    series: [{ type: 'organization' }],
+    series: [
+        {
+            type: 'organization',
+            node: {
+                clickToExpand: true,
+            },
+        },
+    ],
+    listeners: {
+        collapsedChange: ({ collapsed, expanded }) => {
+            console.log(
+                'collapsed:',
+                collapsed.map((item) => item.itemId),
+                'expanded:',
+                expanded.map((item) => item.itemId)
+            );
+        },
+    },
 }
 ```
 
 In this example:
 
 - The subtrees under 'Lawrence Martinez' and 'Eric Jensen' will start in a collapsed state. This uses the `initialState.collapsed` property to specify which subtrees start collapsed.
-- To read or update the collapsed state at runtime, use `getState()` and `setState()`. The `collapsed` array contains the identifiers of all currently collapsed nodes. See the [State API](./api-state/#collapsed) page for more details.
-- Set `node.clickToExpand` to `false` to disable collapsing/expanding by clicking anywhere on the card, restricting the interaction to the expander button only. Defaults to `false` when clicking a node is used for something else (e.g. [Data Selection](./selection/)), otherwise defaults to `true`. Toggle the checkbox above to compare both behaviours.
-- Changes in the collapsed items can be listened to with the `collapsedChange` event, logged to the console here showing the `itemId` of each newly collapsed and expanded node. See the [Events API](./events/#collapsedchange) page for more details.
+- Use `node.clickToExpand` to toggle collapsing/expanding by clicking anywhere on the card instead of the expander only. 
+    - Defaults to `false` when node has a [click listener](./events/#seriesnodeclick-and-seriesnodedoubleclick) or has [Data Selection](./selection/) enabled,, otherwise defaults to `true`. 
+- The `collapsed` array contains the identifiers of all currently collapsed nodes. 
+    - See the [State API](./api-state/#collapsed) page for more details.
+- Changes in the collapsed items can be listened to with the `collapsedChange` event, logged to the console here showing the `itemId` of each newly collapsed and expanded node. 
+    - See the [Events API](./events/#collapsedchange) page for more details.
 
 ### Zoom
 
