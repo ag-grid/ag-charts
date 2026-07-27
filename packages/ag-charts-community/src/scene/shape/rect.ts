@@ -1,4 +1,4 @@
-import type { SerializedNodeState, SerializedRectProps } from 'ag-charts-core';
+import type { Logger, SerializedNodeState, SerializedRectProps } from 'ag-charts-core';
 import { DeclaredSceneChangeDetection, type DistantObject, boxesEqual, isNumberEqual } from 'ag-charts-core';
 import type { AgDrawingMode } from 'ag-charts-types';
 
@@ -587,8 +587,13 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
         return this.distanceCalculator(x, y);
     }
 
-    protected override applyFillAndAlpha(ctx: CanvasRenderingContext2D) {
-        super.applyFillAndAlpha(ctx);
+    protected override applyFillAndAlpha(
+        ctx: CanvasRenderingContext2D,
+        bboxOverride?: BBox,
+        fillBBoxOverride?: BBox,
+        logger?: Logger
+    ) {
+        super.applyFillAndAlpha(ctx, bboxOverride, fillBBoxOverride, logger);
         ctx.globalAlpha *= this.microPixelEffectOpacity;
     }
 

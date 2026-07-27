@@ -15,7 +15,7 @@ import {
     isString,
     objectsEqual,
 } from 'ag-charts-core';
-import type { SerializedNodeState, SerializedShapeProps } from 'ag-charts-core';
+import type { Logger, SerializedNodeState, SerializedShapeProps } from 'ag-charts-core';
 import type {
     AgDrawingMode,
     AgImageFill,
@@ -235,18 +235,30 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         this.cachedDefaultGradientFillBBox = undefined;
     }
 
-    protected fillStroke(ctx: CanvasContext, path?: Path2D, bboxOverride?: BBox, fillBBoxOverride?: BBox) {
+    protected fillStroke(
+        ctx: CanvasContext,
+        path?: Path2D,
+        bboxOverride?: BBox,
+        fillBBoxOverride?: BBox,
+        logger?: Logger
+    ) {
         if (this.__drawingMode === 'cutout') {
             ctx.globalCompositeOperation = 'destination-out';
             this.executeFill(ctx, path);
             ctx.globalCompositeOperation = 'source-over';
         }
 
-        this.renderFill(ctx, path, bboxOverride, fillBBoxOverride);
+        this.renderFill(ctx, path, bboxOverride, fillBBoxOverride, logger);
         this.renderStroke(ctx, path, bboxOverride);
     }
 
-    protected renderFill(ctx: CanvasContext, path?: Path2D, bboxOverride?: BBox, fillBBoxOverride?: BBox) {
+    protected renderFill(
+        ctx: CanvasContext,
+        path?: Path2D,
+        bboxOverride?: BBox,
+        fillBBoxOverride?: BBox,
+        logger?: Logger
+    ) {
         const { __fill: fill, __fillOpacity: fillOpacity = 1, fillImage } = this;
         if (fill != null && fill !== 'none' && fillOpacity > 0) {
             const globalAlpha = ctx.globalAlpha;
@@ -258,7 +270,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
                 ctx.globalAlpha = globalAlpha;
             }
 
-            this.applyFillAndAlpha(ctx, bboxOverride, fillBBoxOverride);
+            this.applyFillAndAlpha(ctx, bboxOverride, fillBBoxOverride, logger);
             this.applyShadow(ctx);
             this.executeFill(ctx, path);
             ctx.globalAlpha = globalAlpha;
@@ -276,7 +288,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         }
     }
 
-    protected applyFillAndAlpha(ctx: CanvasContext, bboxOverride?: BBox, fillBBoxOverride?: BBox) {
+    protected applyFillAndAlpha(ctx: CanvasContext, bboxOverride?: BBox, fillBBoxOverride?: BBox, logger?: Logger) {
         const {
             __fill: fill,
             fillGradient,
@@ -303,7 +315,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         } else if (fillPattern) {
             const { x, y } = bboxOverride ?? this.getBBox();
             const pixelRatio = this.layerManager?.canvas?.pixelRatio ?? 1;
-            const pattern = fillPattern.createPattern(ctx as any, pixelRatio);
+            const pattern = fillPattern.createPattern(ctx as any, pixelRatio, logger);
             fillPattern.setPatternTransform(pattern, pixelRatio, x, y);
             if (pattern) {
                 ctx.fillStyle = pattern;
@@ -313,7 +325,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             }
         } else if (fillImage) {
             const bbox = bboxOverride ?? this.getBBox();
-            const image = fillImage.createPattern(ctx as any, bbox.width, bbox.height, this);
+            const image = fillImage.createPattern(ctx as any, bbox.width, bbox.height, this, logger);
             fillImage.setImageTransform(image, bbox);
             ctx.fillStyle = image ?? 'transparent';
         } else {
