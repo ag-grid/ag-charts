@@ -45,7 +45,7 @@ export interface ContextShowOnMap extends ContextShowOnMapRule {
     crossline: {
         event: InferTEvent<'crossline'>;
         callback: (param: InferTEvent<'crossline'>) => void;
-        context: CrossLineValuePick;
+        context: CrossLineValuePick[];
     };
     'legend-item': {
         event: InferTEvent<'legend-item'>;

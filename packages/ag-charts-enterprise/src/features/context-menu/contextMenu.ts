@@ -173,17 +173,21 @@ export class ContextMenu extends AbstractModuleInstance {
         return { showOn: 'axis', axisId, boundSeries, direction, domain, value, index };
     }
 
-    private crossLineRegion(pick: ContextShowOnMap['crossline']['context']): CrossLineParams {
-        const { crossLineId, axisId, direction, type, value, range } = pick;
-        return {
-            showOn: 'crossline',
-            crossLineId,
-            axisId,
-            direction,
-            crossLineType: type,
-            value: value as CrossLineParams['value'],
-            range: range as CrossLineParams['range'],
-        };
+    private crossLineRegions(picks: ContextShowOnMap['crossline']['context']): CrossLineParams[] {
+        const result: CrossLineParams[] = [];
+        for (const pick of picks) {
+            const { crossLineId, axisId, direction, type, value, range } = pick;
+            result.push({
+                showOn: 'crossline',
+                crossLineId,
+                axisId,
+                direction,
+                crossLineType: type,
+                value: value as CrossLineParams['value'],
+                range: range as CrossLineParams['range'],
+            });
+        }
+        return result;
     }
 
     // Scopes that can overlap the series area: the area itself, an axis positioned inside it (e.g. `crossAt`),
@@ -193,7 +197,7 @@ export class ContextMenu extends AbstractModuleInstance {
         if (active.has('series-area')) params.push({ showOn: 'series-area' });
         if (active.has('axis') && this.pickedAxisCtx != null) params.push(this.axisRegion(this.pickedAxisCtx));
         if (active.has('crossline') && this.pickedCrossLine != null) {
-            params.push(this.crossLineRegion(this.pickedCrossLine));
+            params.push(...this.crossLineRegions(this.pickedCrossLine));
         }
         return params;
     }
@@ -264,7 +268,7 @@ export class ContextMenu extends AbstractModuleInstance {
         const allShowOnParams: ShowOnParams[] = [region];
         if (active.has('series-area')) allShowOnParams.push({ showOn: 'series-area' });
         if (active.has('crossline') && this.pickedCrossLine != null) {
-            allShowOnParams.push(this.crossLineRegion(this.pickedCrossLine));
+            allShowOnParams.push(...this.crossLineRegions(this.pickedCrossLine));
         }
         const params: AgContextMenuGetItemsParamsAxis<DatumDefault, ContextDefault> = {
             ...region,
@@ -280,12 +284,16 @@ export class ContextMenu extends AbstractModuleInstance {
         active: ReadonlySet<AgContextMenuItemShowOn>
     ): GetItemsParams {
         if (this.pickedCrossLine == null) throw new Error(`this.pickedCrossLine is null`);
-        const region = this.crossLineRegion(this.pickedCrossLine);
-        const allShowOnParams: ShowOnParams[] = [region];
+        const regions = this.crossLineRegions(this.pickedCrossLine);
+        if (regions.length === 0) throw new Error(`this.pickedCrossLine is empty`);
+
+        // The first crossline (rendering order) wins. Overlapping crosslines at this contextmenu point will be
+        // broadcast in the allShowOnParams property.
+        const allShowOnParams: ShowOnParams[] = [...regions];
         if (active.has('series-area')) allShowOnParams.push({ showOn: 'series-area' });
         if (active.has('axis') && this.pickedAxisCtx != null) allShowOnParams.push(this.axisRegion(this.pickedAxisCtx));
         const params: AgContextMenuGetItemsParamsCrossLine<DatumDefault, ContextDefault> = {
-            ...region,
+            ...regions[0],
             defaultItems,
             allShowOnParams,
         };
@@ -545,8 +553,8 @@ export class ContextMenu extends AbstractModuleInstance {
             };
         } else if (ContextMenuRegistry.checkCallback('crossline', showOn, callback)) {
             return () => {
-                if (this.pickedCrossLine) {
-                    const { crossLineId, axisId, direction, type, value, range } = this.pickedCrossLine;
+                if (this.pickedCrossLine && this.pickedCrossLine.length > 0) {
+                    const { crossLineId, axisId, direction, type, value, range } = this.pickedCrossLine[0];
                     const callers: Caller = this.ctx.chartService;
                     const apiEvent: Omit<AgCrossLineContextMenuActionEvent<never>, 'context'> = {
                         type: 'crossLineContextMenuAction',

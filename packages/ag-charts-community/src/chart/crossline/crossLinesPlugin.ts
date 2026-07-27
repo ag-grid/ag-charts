@@ -68,21 +68,17 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
     }
 
     private onSeriesAreaContextMenu(event: SeriesAreaContextMenuEvent): void {
-        // Another axis's cross line already claimed the hit.
-        if (event.crossLine != null) return;
-
         for (const crossLine of this.instances) {
             if (crossLine.containsPoint?.(event.canvasX, event.canvasY) !== true) continue;
 
-            event.crossLine = {
+            event.crossLine.push({
                 crossLineId: crossLine.id,
                 axisId: this.axisCtx.axisId,
                 direction: this.axisCtx.direction,
                 type: crossLine.type,
                 value: crossLine.value,
                 range: crossLine.range,
-            };
-            return;
+            });
         }
     }
 

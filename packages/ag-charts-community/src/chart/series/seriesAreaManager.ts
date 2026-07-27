@@ -503,13 +503,18 @@ export class SeriesAreaManager extends BaseManager {
 
         // Ask axis-owning modules whether an axis overlaps this point (mirrors the hover/drag handoff). They
         // annotate `axis` rather than dispatching, so a single menu can offer both the series and axis regions.
-        const collectEvent: Writeable<SeriesAreaContextMenuEvent> = { canvasX, canvasY, widgetEvent: event };
+        const collectEvent: Writeable<SeriesAreaContextMenuEvent> = {
+            canvasX,
+            canvasY,
+            widgetEvent: event,
+            crossLine: [],
+        };
         this.chart.ctx.eventsHub.emit('series-area:contextmenu', collectEvent);
         if (collectEvent.axis) {
             regions.push('axis');
             contexts.axis = collectEvent.axis;
         }
-        if (collectEvent.crossLine) {
+        if (collectEvent.crossLine.length > 0) {
             regions.push('crossline');
             contexts.crossline = collectEvent.crossLine;
         }

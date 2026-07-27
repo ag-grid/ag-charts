@@ -100,7 +100,7 @@ export interface SeriesAreaContextMenuEvent {
      * The cross line, if any, at the pointer. The cross-lines plugin annotates this (mirroring `axis`) so the
      * series-area dispatch can offer the cross-line region alongside the series region.
      */
-    crossLine?: CrossLineValuePick;
+    crossLine: CrossLineValuePick[];
 }
 
 export interface DataModelSeriesDiff {
