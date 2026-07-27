@@ -88,7 +88,7 @@ export class ContextMenu extends AbstractModuleInstance {
     private readonly interactionManager: _ModuleSupport.InteractionManager;
 
     // State
-    private pickedNode: PickedNode | undefined = undefined;
+    private pickedNodes?: ContextShowOnMap['series-node']['context'];
     private pickedLegendItem?: _ModuleSupport.CategoryLegendDatum;
     private pickedCaptionCtx?: ContextShowOnMap['caption']['context'];
     private pickedAxisCtx?: _ModuleSupport.AxisValuePick;
@@ -226,36 +226,45 @@ export class ContextMenu extends AbstractModuleInstance {
         }
     }
 
-    private makeGetItemsParamsSeriesNode(
-        defaultItems: AgContextMenuItem[],
-        active: ReadonlySet<AgContextMenuItemShowOn>
-    ): GetItemsParams {
-        if (this.pickedNode == null) throw new Error(`this.pickedNode is null`);
+    private seriesNodeRegion(node: PickedNode): SeriesNodeParams {
         // FIXME: Some optional keys like dataIdKey are not set. Is that a concern?
-        const itemId = getItemId(this.pickedNode, this.pickedNode.series.data?.dataIdKey);
+        const itemId = getItemId(node, node.series.data?.dataIdKey);
         const region: SeriesNodeParams = {
             showOn: 'series-node',
-            seriesId: this.pickedNode.series.id,
+            seriesId: node.series.id,
             itemId,
-            datum: this.pickedNode.datum,
-            selectionState: this.pickedNode.series.getSelectionStateString(this.pickedNode.datumIndex),
+            datum: node.datum,
+            selectionState: node.series.getSelectionStateString(node.datumIndex),
             isCollapsed: this.ctx.collapsedManager.isCollapsed(itemId),
         };
 
         for (const k of DATUM_KEYS) {
-            if (this.pickedNode[k] !== undefined) {
-                region[k] = this.pickedNode[k];
+            if (node[k] !== undefined) {
+                region[k] = node[k];
             }
         }
 
         // Histogram bins carry standardised bin metadata; binIndex is always set for histogram nodes.
-        if (this.pickedNode.binIndex !== undefined) {
-            const { datums, binIndex, binRange, aggregatedValue, frequency } = this.pickedNode;
+        if (node.binIndex !== undefined) {
+            const { datums, binIndex, binRange, aggregatedValue, frequency } = node;
             Object.assign(region, { datums, binIndex, binRange, aggregatedValue, frequency });
         }
-        const allShowOnParams: ShowOnParams[] = [...this.plotOverlapRegions(active), region];
-        const params: AgContextMenuGetItemsParamsSeriesNode = { ...region, defaultItems, allShowOnParams };
-        const callers: Caller[] = [this.pickedNode.series.properties, this.ctx.chartService];
+        return region;
+    }
+
+    private makeGetItemsParamsSeriesNode(
+        defaultItems: AgContextMenuItem[],
+        active: ReadonlySet<AgContextMenuItemShowOn>
+    ): GetItemsParams {
+        if (this.pickedNodes == null) throw new Error(`this.pickedNodes is null`);
+        const regions = this.pickedNodes.map((node) => this.seriesNodeRegion(node));
+        if (regions.length === 0) throw new Error(`this.pickedNodes is empty`);
+
+        // The topmost node (hit-test order) wins. Nodes overlapping it at this contextmenu point are broadcast in
+        // the allShowOnParams property.
+        const allShowOnParams: ShowOnParams[] = [...this.plotOverlapRegions(active), ...regions];
+        const params: AgContextMenuGetItemsParamsSeriesNode = { ...regions[0], defaultItems, allShowOnParams };
+        const callers: Caller[] = [this.pickedNodes[0].series.properties, this.ctx.chartService];
         return [params, callers];
     }
 
@@ -361,7 +370,7 @@ export class ContextMenu extends AbstractModuleInstance {
         // Regions can overlap (e.g. a datum node over a crossing axis), so populate every picked context the
         // event carries rather than a single mutually-exclusive one; item actions route by their own showOn.
         const { contexts } = event;
-        this.pickedNode = contexts['series-node']?.pickedNode;
+        this.pickedNodes = contexts['series-node'];
         this.pickedAxisCtx = contexts.axis;
         this.pickedCaptionCtx = contexts.caption;
         this.pickedLegendItem = contexts['legend-item']?.legendItem;
@@ -520,7 +529,7 @@ export class ContextMenu extends AbstractModuleInstance {
             return () => {
                 const { chartService: chart } = this.ctx;
 
-                const pickedNode = this.pickedNode;
+                const pickedNode = this.pickedNodes?.[0];
                 const callers: (Caller | undefined)[] = [pickedNode?.series.properties, chart];
                 const apiEvent = pickedNode?.series.createNodeContextMenuActionEvent(showEvent, pickedNode);
                 if (apiEvent) {
