@@ -1,6 +1,7 @@
 import { type AgMapLineSeriesOptions, VERSION } from 'ag-charts-community';
 import {
     LABEL_BOXING_DEFAULTS,
+    LABEL_OVERFLOW_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
     SAFE_RANGE2_OPERATION,
     SAFE_STROKE_FILL_OPERATION,
@@ -46,6 +47,7 @@ export const MapLineSeriesModule: SeriesModuleDefinition<AgMapLineSeriesOptions>
             lineDashOffset: 0,
             label: {
                 ...LABEL_BOXING_DEFAULTS,
+                ...LABEL_OVERFLOW_DEFAULTS,
                 enabled: true,
                 fontSize: { $ref: 'fontSize' },
                 fontFamily: { $ref: 'fontFamily' },

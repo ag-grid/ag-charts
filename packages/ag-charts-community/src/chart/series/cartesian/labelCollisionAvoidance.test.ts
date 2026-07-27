@@ -1416,17 +1416,18 @@ describe('label collision avoidance', () => {
             expect(labels[0].datum.label?.placement).toBe('outside-end');
         });
 
-        // One render covering every cascade outcome: the short bins keep the `outside-end` label above
-        // the bar; the full-height bin whose `outside-end` overflows the top series area cascades to
-        // `inside-center`; the full-height bin with a label too wide to fit inside is dropped.
-        it('renders outside, cascaded-inside and dropped labels across a multi-bin chart', async () => {
+        // The short bins keep the `outside-end` label above the bar; the full-height bin whose
+        // `outside-end` overflows the top series area cascades to `inside-center`; the full-height bin
+        // with a label too wide to fit inside exercises the overflow policy, which the two cases below
+        // resolve differently.
+        const multiBinCascade = (label: object) => {
             const binData = [
                 ...Array.from({ length: 3 }, () => ({ x: 0.5 })),
                 ...Array.from({ length: 6 }, () => ({ x: 1.5 })),
                 ...Array.from({ length: 10 }, () => ({ x: 2.5 })),
                 ...Array.from({ length: 10 }, () => ({ x: 3.5 })),
             ];
-            await renderAndSnapshot({
+            return {
                 data: binData,
                 legend: { enabled: false },
                 padding: { top: 60, right: 10, bottom: 10, left: 10 },
@@ -1447,10 +1448,23 @@ describe('label collision avoidance', () => {
                                 binIndex === 3 ? 'WWWWWWWWWWWWWWWWWWWW' : String(frequency),
                             placement: ['outside-end', 'inside-center'],
                             collision: { alwaysShow: false, collideWith: { seriesArea: true } },
+                            ...label,
                         },
                     },
                 ],
-            });
+            };
+        };
+
+        // A placement array turns truncation on, so the oversized label is ellipsised into the candidate
+        // that keeps the most of it rather than dropped.
+        it('renders outside, cascaded-inside and dropped labels across a multi-bin chart', async () => {
+            await renderAndSnapshot(multiBinCascade({}));
+        });
+
+        // Opting out of truncation leaves nothing to fall back on: every candidate for the oversized
+        // label overflows at full text, so it is dropped instead.
+        it('drops rather than truncates the oversized label when truncate is off', async () => {
+            await renderAndSnapshot(multiBinCascade({ truncate: false }));
         });
     });
 
@@ -1571,10 +1585,10 @@ describe('label collision avoidance', () => {
         });
 
         // Shrinking the chart width must not make a resolved vertical label snap back to the wider
-        // horizontal bake. Once a bar is too narrow for horizontal the engine picks vertical; when it
-        // is too narrow for even vertical the label must keep the least-overflowing orientation
-        // rather than being dropped and reverting to the first (horizontal) orientation baked at node-data
-        // time, which would overflow the bar rect (AG-17782).
+        // horizontal bake. Once a bar is too narrow for horizontal the engine picks vertical; a bar too
+        // narrow for even vertical hides its label (an orientation array opts into overflow management),
+        // which must not be reached by reverting to the first (horizontal) orientation baked at
+        // node-data time, since that would overflow the bar rect (AG-17782).
         it('keeps a narrowing bar label vertical instead of reverting to horizontal', async () => {
             const optionsAt = (width: number) => {
                 const options = {
@@ -1603,28 +1617,34 @@ describe('label collision avoidance', () => {
                 return options as any;
             };
 
+            // Rotation of the first rendered label, or `undefined` once the bars are too narrow to show
+            // any label at all.
             const firstLabelRotation = () => {
                 const series = deproxy(chart as any).series[0] as unknown as {
-                    contextNodeData?: { labelData?: { label?: { text?: unknown; rotation?: number } }[] };
+                    contextNodeData?: {
+                        labelData?: { label?: { text?: unknown; rotation?: number; hidden?: boolean } }[];
+                    };
                 };
                 const labelData = series.contextNodeData?.labelData ?? [];
-                const labelled = labelData.find((d) => d.label != null && d.label.text !== '');
-                return labelled?.label?.rotation ?? 0;
+                const labelled = labelData.find(
+                    (d) => d.label != null && d.label.text !== '' && d.label.hidden !== true
+                );
+                return labelled == null ? undefined : (labelled.label?.rotation ?? 0);
             };
 
             chart = AgCharts.create(optionsAt(1000));
             await waitForChartStability(chart);
 
-            const rotations: number[] = [];
+            const rotations: (number | undefined)[] = [];
             for (const width of [1000, 700, 500, 350, 240, 160, 110, 70]) {
                 await chart.update(optionsAt(width));
                 await waitForChartStability(chart);
                 rotations.push(firstLabelRotation());
             }
 
-            // The scenario must actually reach vertical at some width, then never revert to the
-            // horizontal (0) bake as the bar narrows further.
-            const firstVertical = rotations.findIndex((rotation) => rotation !== 0);
+            // The scenario must actually reach vertical at some width, after which every label that is
+            // still rendered stays vertical rather than reverting to the horizontal (0) bake.
+            const firstVertical = rotations.findIndex((rotation) => rotation != null && rotation !== 0);
             expect(firstVertical).toBeGreaterThanOrEqual(0);
             for (let i = firstVertical; i < rotations.length; i++) {
                 expect(rotations[i]).not.toBe(0);
@@ -1675,7 +1695,7 @@ describe('label collision avoidance', () => {
                 return series.labelSelection.nodes().find((node) => node.visible && node.rotation !== 0);
             };
 
-            chart = AgCharts.create(optionsAt(300));
+            chart = AgCharts.create(optionsAt(900));
             await waitForChartStability(chart);
 
             const initial = firstRotatedLabelPivot();
@@ -1683,7 +1703,7 @@ describe('label collision avoidance', () => {
             expect(initial).toBeDefined();
             const { rotationCenterX, rotationCenterY } = initial!;
 
-            for (const width of [300, 200, 140, 200, 300, 140, 300]) {
+            for (const width of [900, 700, 500, 700, 900, 500, 900]) {
                 await chart.update(optionsAt(width));
                 await waitForChartStability(chart);
             }
@@ -1768,11 +1788,19 @@ describe('label collision avoidance', () => {
     describe('orientation-array bar label is not its own obstacle', () => {
         const barData = Array.from({ length: 8 }, (_, i) => ({ cat: `Category ${i}`, bar: 30 + 10 * Math.sin(i) }));
         const comboData = barData.map((d, i) => ({ ...d, line: 20 + 8 * Math.cos(i) }));
+        const plainAxes = {
+            x: { type: 'category', position: 'bottom' },
+            y: { type: 'number', position: 'left' },
+        };
 
+        // `alwaysShow` pins the baked path this case covers: an orientation array alone would opt the
+        // label into overflow management, routing it through positioned candidates and hiding the ones
+        // that cannot be placed — which is a different mechanism from the self-obstacle regression here.
         const barLabel = {
             enabled: true,
             orientation: ['horizontal', 'vertical'] as const,
             placement: 'outside-end',
+            collision: { alwaysShow: true },
         };
 
         const barRotations = () => {
@@ -1789,7 +1817,7 @@ describe('label collision avoidance', () => {
             const barOnlyOptions: any = {
                 data: barData,
                 legend: { enabled: false },
-                axes: { x: { type: 'category', position: 'bottom' }, y: { type: 'number', position: 'left' } },
+                axes: plainAxes,
                 series: [{ type: 'bar', xKey: 'cat', yKey: 'bar', label: barLabel }],
             };
             prepareTestOptions(barOnlyOptions);
@@ -1803,7 +1831,7 @@ describe('label collision avoidance', () => {
             const comboOptions: any = {
                 data: comboData,
                 legend: { enabled: false },
-                axes: { x: { type: 'category', position: 'bottom' }, y: { type: 'number', position: 'left' } },
+                axes: plainAxes,
                 series: [
                     { type: 'bar', xKey: 'cat', yKey: 'bar', label: barLabel },
                     {

@@ -34,16 +34,20 @@ describe('series label fit', () => {
     };
 
     // Range-bar and range-area carry the fitted text flat on each `labelData` entry; waterfall, radar and map-marker
-    // nest it under `.label.text`.
+    // nest it under `.label`. Either way `text` is the unfitted source, `fittedText` the text the placement engine
+    // fitted to the candidate it chose, and a label the engine dropped renders nothing at all.
+    type RenderedLabel = { text?: unknown; fittedText?: unknown; hidden?: boolean };
+    const renderedText = (label: RenderedLabel | undefined) =>
+        label == null || label.hidden === true ? '' : (label.fittedText ?? label.text);
     const flatLabelTexts = (seriesIndex = 0): unknown[] => {
-        const series = chart.series[seriesIndex] as { contextNodeData?: { labelData?: { text?: unknown }[] } };
-        return (series.contextNodeData?.labelData ?? []).map((d) => d.text);
+        const series = chart.series[seriesIndex] as { contextNodeData?: { labelData?: RenderedLabel[] } };
+        return (series.contextNodeData?.labelData ?? []).map(renderedText);
     };
     const nestedLabelTexts = (seriesIndex = 0): unknown[] => {
         const series = chart.series[seriesIndex] as {
-            contextNodeData?: { labelData?: { label?: { text?: unknown } }[] };
+            contextNodeData?: { labelData?: { label?: RenderedLabel }[] };
         };
-        return (series.contextNodeData?.labelData ?? []).map((d) => d.label?.text);
+        return (series.contextNodeData?.labelData ?? []).map((d) => renderedText(d.label));
     };
     const someWrapped = (texts: unknown[]) => texts.some((text) => String(text).includes('\n'));
     const someTruncated = (texts: unknown[]) => texts.some((text) => String(text).includes(ELLIPSIS));

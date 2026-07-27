@@ -13,7 +13,6 @@ import type {
     NormalisedTextOrSegments,
 } from '../../types/normalised-options/normalisedCommonOptions';
 import type { ITextMeasurer, MeasuredImageSegment, MeasuredSegment, MeasuredTextSegment } from '../../types/text';
-import type { LabelFit } from '../geometry/labelPlacement';
 import { isArray, isFiniteNumber } from '../types/typeGuards';
 import {
     EllipsisChar,
@@ -28,6 +27,17 @@ import {
     toTextString,
     unguardTextEdges,
 } from './textUtils';
+
+/**
+ * How a label's text adapts to the region produced by its placement. `maxWidth`/`maxHeight` bound the
+ * region explicitly; when omitted the fit step derives a budget from the series or an estimate.
+ */
+export interface LabelFit {
+    readonly maxWidth?: number;
+    readonly maxHeight?: number;
+    readonly wrapping?: TextWrap;
+    readonly overflowStrategy?: OverflowStrategy;
+}
 
 // Extended measurement options including wrapping behaviour.
 export interface WrapOptions {

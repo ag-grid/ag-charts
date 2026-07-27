@@ -548,16 +548,17 @@ describe('label collision avoidance', () => {
             expect(labels[0].datum.label?.placement).toBe('outside-end');
         });
 
-        // One render covering every cascade outcome: the short bars keep the `outside-end` label above
-        // the bar; the full-height bar whose `outside-end` overflows the top series area cascades to
-        // `inside-center`; the full-height total bar with a label too wide to fit inside is dropped.
-        it('renders outside, cascaded-inside and dropped labels across a multi-bar chart', async () => {
+        // The short bars keep the `outside-end` label above the bar; the full-height bar whose
+        // `outside-end` overflows the top series area cascades to `inside-center`; the total bar carries
+        // a label too wide to fit inside, which the two cases below resolve differently.
+        const multiBarCascade = (label: object) => {
             const barLabel = {
                 enabled: true,
                 placement: ['outside-end', 'inside-center'],
                 collision: { alwaysShow: false, collideWith: { seriesArea: true } },
+                ...label,
             };
-            await renderAndSnapshot({
+            return {
                 data: [
                     { year: 'Y0', spending: 3 },
                     { year: 'Y1', spending: 3 },
@@ -579,7 +580,19 @@ describe('label collision avoidance', () => {
                         },
                     },
                 ],
-            });
+            };
+        };
+
+        // A placement array turns truncation on, so the total's oversized label is ellipsised into the
+        // candidate that keeps the most of it rather than dropped.
+        it('renders outside, cascaded-inside and dropped labels across a multi-bar chart', async () => {
+            await renderAndSnapshot(multiBarCascade({}));
+        });
+
+        // Opting out of truncation leaves nothing to fall back on: every candidate for the oversized
+        // label overflows at full text, so it is dropped instead.
+        it('drops rather than truncates the oversized label when truncate is off', async () => {
+            await renderAndSnapshot(multiBarCascade({ truncate: false }));
         });
     });
 
@@ -630,34 +643,45 @@ describe('label collision avoidance', () => {
         // keeps both labels `outside` (room above the high end and below the low end); bar B's high end
         // reaches the axis top so its overflowing `outside` label cascades to `inside`, while its low
         // label stays outside; bar C's high label is too wide to fit inside and is dropped.
-        it('renders outside, cascaded-inside and dropped labels across a multi-bar chart', async () => {
-            await renderAndSnapshot({
-                data: [
-                    { x: 'A', low: 2, high: 6 },
-                    { x: 'B', low: 1, high: 10 },
-                    { x: 'C', low: 1, high: 10 },
-                ],
-                legend: { enabled: false },
-                padding: { top: 60, right: 10, bottom: 10, left: 10 },
-                axes: { x: { type: 'category' }, y: { type: 'number', min: 0, max: 10 } },
-                series: [
-                    {
-                        type: 'range-bar',
-                        xKey: 'x',
-                        yLowKey: 'low',
-                        yHighKey: 'high',
-                        label: {
-                            enabled: true,
-                            // Range-bar labels default to white (usually drawn inside the bar); force a dark
-                            // colour so the outside labels are legible against the plot background too.
-                            color: 'black',
-                            formatter: ({ datum }: any) => (datum.x === 'C' ? 'WWWWWWWWWWWWWWWWWWWW' : undefined),
-                            placement: ['outside', 'inside'],
-                            collision: { alwaysShow: false, collideWith: { seriesArea: true } },
-                        },
+        const multiBarCascade = (label: object) => ({
+            data: [
+                { x: 'A', low: 2, high: 6 },
+                { x: 'B', low: 1, high: 10 },
+                { x: 'C', low: 1, high: 10 },
+            ],
+            legend: { enabled: false },
+            padding: { top: 60, right: 10, bottom: 10, left: 10 },
+            axes: { x: { type: 'category' }, y: { type: 'number', min: 0, max: 10 } },
+            series: [
+                {
+                    type: 'range-bar',
+                    xKey: 'x',
+                    yLowKey: 'low',
+                    yHighKey: 'high',
+                    label: {
+                        enabled: true,
+                        // Range-bar labels default to white (usually drawn inside the bar); force a dark
+                        // colour so the outside labels are legible against the plot background too.
+                        color: 'black',
+                        formatter: ({ datum }: any) => (datum.x === 'C' ? 'WWWWWWWWWWWWWWWWWWWW' : undefined),
+                        placement: ['outside', 'inside'],
+                        collision: { alwaysShow: false, collideWith: { seriesArea: true } },
+                        ...label,
                     },
-                ],
-            });
+                },
+            ],
+        });
+
+        // A placement array turns truncation on, so bar C's oversized high label is ellipsised into the
+        // candidate that keeps the most of it rather than dropped.
+        it('renders outside, cascaded-inside and dropped labels across a multi-bar chart', async () => {
+            await renderAndSnapshot(multiBarCascade({}));
+        });
+
+        // Opting out of truncation leaves nothing to fall back on: every candidate for that label
+        // overflows at full text, so it is dropped instead.
+        it('drops rather than truncates the oversized label when truncate is off', async () => {
+            await renderAndSnapshot(multiBarCascade({ truncate: false }));
         });
     });
 

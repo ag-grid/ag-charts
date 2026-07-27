@@ -768,7 +768,16 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                           expandPlacementLabelBoxExtent(label)
                       )
                     : undefined;
-            const fittedLabelText = fitLabelToContainer(labelText, labelFit, label, bounds?.container);
+            // The engine refits an orientation array per orientation, knowing a rotated label measures
+            // against the bar's other axis; fitting here would bind every orientation to the upright
+            // budget, and every positioned candidate to the first placement's (see barSeries).
+            const fittedLabelText = barLabelRoutesThroughEngine(
+                label.orientation,
+                label.placement,
+                label.collision.alwaysShow
+            )
+                ? labelText
+                : fitLabelToContainer(labelText, labelFit, label, bounds?.container);
             if (!label.collision.alwaysShow || barLabelResolvesPlacement(label.placement)) {
                 // A placement/orientation array (or a hideable label) pre-positions a candidate per
                 // placement × orientation the engine cascades through until one fits; a hideable no-fit
@@ -791,6 +800,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                     textHeight: measured.height,
                     rect,
                     plotRegion,
+                    fitted: labelFit != null,
                 });
                 // The engine picks the first candidate that fits; the first is baked as a backward-safe
                 // default until the engine writes the chosen one back.
@@ -1184,10 +1194,16 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             const box = expandPlacementLabelBoxExtent(label);
             const { width, height } = measureLabelText(nodeLabel.text, label);
             const size = { width: width + box.left + box.right, height: height + box.top + box.bottom };
+            const policy = resolveLabelFit(label, !label.collision.alwaysShow);
+            // Each candidate refits the unfitted source text to the room it offers, so a placement or
+            // orientation that can hold the whole text is not disqualified by an earlier one's truncation.
+            const fit = policy && { text: nodeLabel.text, policy, font: label, boxPadding: box };
             // A cascading item carries pre-positioned candidates (built per item config); others resolve
             // their orientation array against the bar rect, or stay baked when single-orientation.
             if (nodeLabel.candidates == null) {
-                data.push(...buildBarLabelData([node], () => ({ label: nodeLabel, config: label, size, collideWith })));
+                data.push(
+                    ...buildBarLabelData([node], () => ({ label: nodeLabel, config: label, size, collideWith, fit }))
+                );
             } else {
                 const ownBox = { x: node.x, y: node.y, width: node.width, height: node.height };
                 data.push(
@@ -1199,7 +1215,9 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                         nodeLabel,
                         ownBox,
                         label.collision.alwaysShow,
-                        collideWith
+                        collideWith,
+                        false,
+                        fit
                     )
                 );
             }

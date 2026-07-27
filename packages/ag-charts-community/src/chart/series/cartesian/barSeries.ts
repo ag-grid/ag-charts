@@ -4,6 +4,7 @@ import type {
     DomainWithMetadata,
     DynamicContext,
     LabelFit,
+    LabelFitDescriptor,
     Mutable,
     NormalisedBarSeriesStyle,
     NormalisedTextOrSegments,
@@ -135,6 +136,8 @@ import { calculateSegments } from './util';
 
 interface BarNodeLabelDatum {
     readonly text: NormalisedTextOrSegments;
+    /** Text the placement engine fitted to its chosen candidate; rendered in place of `text` when set. */
+    fittedText?: NormalisedTextOrSegments;
     // Mutable so the placement engine can retarget the label to a chosen candidate's anchor.
     x: number;
     y: number;
@@ -1024,32 +1027,12 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             mutableNode.label = undefined;
         } else if (ctx.labelResolvesPlacement || ctx.labelHideable) {
             // Positioned-candidate path: pre-position a candidate per placement × orientation for the
-            // engine to resolve, each footprint inflated by the box (padding + border stroke). A single
-            // hideable placement first fits its text to the bar (wrap/truncate/hide), reserving the box
-            // padding so the padded candidate box — not just the text — fits within the bar; the
-            // multi-placement cascade keeps full text and falls through to the next placement on overflow.
-            // The engine picks the first candidate that fits its region; the first is baked as a
-            // backward-safe default until the engine writes the chosen one back.
-            const { labelBoxExtent: box } = ctx;
-            let labelText = nodeLabelText;
-            if (!ctx.labelResolvesPlacement) {
-                const { labelPlacement: placement } = ctx;
-                const isInside = placement == null || placement.startsWith('inside');
-                // The engine region comes from the candidate below; here we only need the fit container.
-                const container = isInside
-                    ? insideBarLabelBounds(
-                          rect,
-                          placement ?? 'inside-center',
-                          isUpward,
-                          !ctx.barAlongX,
-                          ctx.label.spacing,
-                          ctx.labelThreshold,
-                          box
-                      ).container
-                    : undefined;
-                labelText = fitLabelToContainer(nodeLabelText, ctx.labelFit, ctx.label, container);
-            }
-            const text = measureLabelText(labelText, ctx.label);
+            // engine to resolve, each footprint inflated by the box (padding + border stroke) and — when
+            // an overflow policy applies — carrying the glyph budget its own region offers, so the engine
+            // fits the text per candidate and prefers the one that keeps the most of it. The engine picks
+            // the first candidate that fits its region; the first is baked as a backward-safe default
+            // until the engine writes the chosen one back.
+            const text = measureLabelText(nodeLabelText, ctx.label);
             const orientations = toArray(ctx.label.orientation);
             if (orientations.length === 0) orientations.push('horizontal');
             const candidates = buildBarLabelCandidates({
@@ -1067,11 +1050,13 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 rejectOutsideStart: ctx.stackedTowardStart,
                 rejectOutsideEnd: ctx.stackedTowardEnd,
                 plotRegion: ctx.plotRegion,
+                fitted: ctx.labelFit != null,
             });
             const { anchor, region, placement } = candidates[0];
             const existingLabel = mutableNode.label;
             if (existingLabel) {
-                existingLabel.text = labelText;
+                existingLabel.text = nodeLabelText;
+                existingLabel.fittedText = undefined;
                 existingLabel.x = anchor.x;
                 existingLabel.y = anchor.y;
                 existingLabel.textAlign = anchor.textAlign;
@@ -1084,7 +1069,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 existingLabel.candidates = candidates;
             } else {
                 mutableNode.label = {
-                    text: labelText,
+                    text: nodeLabelText,
                     x: anchor.x,
                     y: anchor.y,
                     textAlign: anchor.textAlign,
@@ -1120,7 +1105,12 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             // The first orientation is baked into `rotation`; an array resolves against the bar region
             // for inside placements — outside labels fall back to the plot bounds via no region.
             const region = ctx.labelResolvesOrientation ? bounds?.region : undefined;
-            const fittedText = fitLabelToContainer(nodeLabelText, ctx.labelFit, ctx.label, bounds?.container);
+            // An orientation array is refitted per orientation by the engine, which knows that a rotated
+            // label measures against the bar's other axis; fitting here would bind every orientation to
+            // the upright budget and leave a rotation that could hold the full text unreachable.
+            const fittedText = ctx.labelResolvesOrientation
+                ? nodeLabelText
+                : fitLabelToContainer(nodeLabelText, ctx.labelFit, ctx.label, bounds?.container);
             // A rotated label's gap to the bar depends on its box size; measure only when it rotates.
             const { width: labelWidth, height: labelHeight } =
                 rotation === 0 ? { width: 0, height: 0 } : measureLabelText(fittedText, ctx.label);
@@ -1151,9 +1141,10 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 existingLabel.offsetY = 0;
                 existingLabel.placement = placement;
                 existingLabel.candidates = undefined;
-                // Clear any hide set while this label was engine-routed, so switching back to the fast
-                // path (e.g. alwaysShow toggled on) renders it again.
+                // Clear any hide or engine-chosen text set while this label was engine-routed, so
+                // switching back to the fast path (e.g. alwaysShow toggled on) renders it again in full.
                 existingLabel.hidden = undefined;
+                existingLabel.fittedText = undefined;
             } else {
                 // Create new label object (first time label is added)
                 mutableNode.label = {
@@ -1856,6 +1847,11 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         const alwaysShow = label.collision.alwaysShow;
         const hideable = !alwaysShow;
         const collideWith = label.collision.resolveCollideWith();
+        const policy = resolveLabelFit(label, hideable);
+        // Each candidate refits the unfitted source text to the room it offers, so a placement or
+        // orientation that can hold the whole text is not disqualified by an earlier one's truncation.
+        const fitFor = (text: NormalisedTextOrSegments): LabelFitDescriptor | undefined =>
+            policy && { text, policy, font: label, boxPadding: box };
         if (barLabelResolvesPlacement(label.placement) || hideable) {
             const data: PointLabelDatum[] = [];
             for (const node of this.contextNodeData?.labelData ?? []) {
@@ -1874,7 +1870,9 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                         nodeLabel,
                         ownBox,
                         alwaysShow,
-                        collideWith
+                        collideWith,
+                        false,
+                        fitFor(nodeLabel.text)
                     )
                 );
             }
@@ -1885,6 +1883,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             config: label,
             size: node.label != null && node.label.text !== '' ? measureBox(node.label.text) : undefined,
             collideWith,
+            fit: node.label == null ? undefined : fitFor(node.label.text),
         }));
     }
 

@@ -21,12 +21,12 @@ import {
     insideBarContainer,
     insideBarRegion,
     insideBarValueInsets,
-    labelGlyphCentre,
     mergeDefaults,
     orientationAngles,
     rotatedGlyphDrift,
     rotatedLabelInset,
     sectorLabelContainer,
+    writeLabelBoxCentre,
 } from 'ag-charts-core';
 import type {
     AgChartLabelOrientation,
@@ -98,6 +98,12 @@ type ResolvedPlacement = Pick<AgChartLabelStylerParams<unknown, unknown>, 'place
 
 type LabelDatum = Point & {
     text: NormalisedTextOrSegments;
+    /**
+     * The text the placement engine fitted to the candidate it chose, rendered in place of {@link text}.
+     * Kept separate so {@link text} stays the unfitted source every placement pass re-fits from, rather
+     * than each pass truncating the previous pass's output further.
+     */
+    fittedText?: NormalisedTextOrSegments;
     textAlign: CanvasTextAlign;
     textBaseline: CanvasTextBaseline;
     /**
@@ -478,7 +484,7 @@ export function updateLabelNode<TParams>(
         // from the shifted position, so the rotated glyph box moves with it. `0` for every other label.
         textNode.x = labelDatum.x + (labelDatum.offsetX ?? 0);
         textNode.y = labelDatum.y + (labelDatum.offsetY ?? 0);
-        textNode.text = labelDatum.text;
+        textNode.text = labelDatum.fittedText ?? labelDatum.text;
         textNode.fill = style.color;
         textNode.setAlign(labelDatum);
         textNode.setFont(style);
@@ -665,6 +671,18 @@ export function adjustLabelPlacement({
 }
 
 /**
+ * Glyph budget a bar label has inside `region` at a given rotation: the region minus its drawn box, with
+ * the axes swapped for a rotated label, whose glyph width runs along the region's height.
+ */
+function orientedBarContainer(region: BoxBounds, rotationDeg: number, box: Required<PaddingOptions>) {
+    if (rotationDeg % 180 === 0) return insideBarContainer(region, box);
+    return {
+        width: Math.max(0, region.height - box.left - box.right),
+        height: Math.max(0, region.width - box.top - box.bottom),
+    };
+}
+
+/**
  * A pre-positioned bar label candidate: the generic {@link PositionedLabelCandidate} box the placement
  * engine cascades over, plus the bar-specific `anchor` and granular `placement` written back onto the
  * label node when this candidate wins (its coarse inside/outside is derived from `placement`).
@@ -680,6 +698,9 @@ export interface BarPositionedCandidate extends PositionedLabelCandidate {
  * inside-vertical → outside-horizontal → outside-vertical for the ticket's example. The glyph centre is
  * orientation-invariant, so it is measured once per placement and shared across that placement's
  * orientations. Inside placements constrain to the inset bar rect; outside placements float (no region).
+ *
+ * With `fitted` set, each candidate also carries the glyph budget its region offers, so the placement
+ * engine re-fits the text per candidate instead of every candidate inheriting one up-front truncation.
  */
 export function buildBarLabelCandidates<TParams>({
     isUpward,
@@ -696,6 +717,7 @@ export function buildBarLabelCandidates<TParams>({
     rejectOutsideStart = false,
     rejectOutsideEnd = false,
     plotRegion,
+    fitted = false,
 }: {
     isUpward: boolean;
     isVertical: boolean;
@@ -714,6 +736,8 @@ export function buildBarLabelCandidates<TParams>({
     rejectOutsideStart?: boolean;
     rejectOutsideEnd?: boolean;
     plotRegion?: Bounds;
+    /** Attach the per-candidate fit inputs the engine needs to re-fit the text to each candidate. */
+    fitted?: boolean;
 }): BarPositionedCandidate[] {
     // Drop the outside placements that would point into an adjacent stacked segment on that side, so the
     // cascade falls through to a beside/inside candidate rather than mislabelling the neighbour. Keep the
@@ -757,22 +781,11 @@ export function buildBarLabelCandidates<TParams>({
         // Inside labels reserve `spacing` on the end they anchor against, so the gap survives the engine's
         // flush/containment (not just the anchor); centred labels reserve nothing.
         const insets = insideBarValueInsets(barValueAnchor(placement), isUpward, isVertical, spacing);
-        const region = isInside ? insideBarRegion(rect, insets.min, insets.max, threshold, isVertical) : plotRegion;
-        const centre = labelGlyphCentre(anchor, width, height);
-        // The anchor sits on the glyph's edge, but the drawn box protrudes `boxPadding[facing]` past it
-        // toward the bar (the offset `adjustLabelPlacement` added so the box clears the bar by `spacing`).
-        // Recentre the collision footprint on that drawn box, else it reaches the box extent further onto
-        // a neighbour than what is rendered and the label collides before its box actually touches.
-        if (anchor.textAlign === 'right' || anchor.textAlign === 'end') {
-            centre.x += boxPadding.right;
-        } else if (anchor.textAlign === 'left' || anchor.textAlign === 'start') {
-            centre.x -= boxPadding.left;
-        }
-        if (anchor.textBaseline === 'bottom') {
-            centre.y += boxPadding.bottom;
-        } else if (anchor.textBaseline === 'top') {
-            centre.y -= boxPadding.top;
-        }
+        const insideRegion = isInside
+            ? insideBarRegion(rect, insets.min, insets.max, threshold, isVertical)
+            : undefined;
+        const region = insideRegion ?? plotRegion;
+        const centre = writeLabelBoxCentre({ x: 0, y: 0 }, anchor, width, height, boxPadding);
         for (const orientation of orientations) {
             const rotationDeg = orientationAngles[orientation];
             const { width: fw, height: fh } = getMinOuterRectSize(rotationDeg, width, height);
@@ -784,6 +797,15 @@ export function buildBarLabelCandidates<TParams>({
                 rotation: rotationDeg || undefined,
                 anchor,
                 placement,
+                // An outside candidate floats, so it offers no container and only the label's own
+                // maxWidth/maxHeight can truncate it.
+                fitTo: fitted
+                    ? {
+                          container: insideRegion && orientedBarContainer(insideRegion, rotationDeg, boxPadding),
+                          anchor,
+                          padding: boxPadding,
+                      }
+                    : undefined,
             });
         }
     }

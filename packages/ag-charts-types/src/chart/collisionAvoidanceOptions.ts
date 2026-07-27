@@ -68,6 +68,8 @@ export interface AgChartLabelCollisionOptions {
     threshold?: PixelSize;
     /**
      * Whether to keep a colliding label visible when a collision remains after every avoidance strategy has been applied. When `true` the label stays at the best available position; when `false` it is hidden instead.
+     *
+     * Default: `false` when any of `maxWidth`, `maxHeight`, `wrapping`, `truncate` or a multi-candidate `placement`/`orientation` list is set, otherwise `true`
      */
     alwaysShow?: boolean;
     // Undocumented: per-category toggle for the obstacles the label avoids. Accepted at runtime via

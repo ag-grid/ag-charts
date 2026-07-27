@@ -37,12 +37,17 @@ describe('series label fit', () => {
         await compareImageSnapshot(chart, ctx);
     };
 
-    // Bar, histogram and line all expose their fitted label as `node.label.text` on `contextNodeData.labelData`.
+    // The text each label actually renders: `label.text` is the unfitted source, `label.fittedText` the text the
+    // placement engine fitted to the candidate it chose, and a label the engine dropped renders nothing at all.
     const labelTexts = (seriesIndex = 0): unknown[] => {
         const series = deproxy(chart as any).series[seriesIndex] as unknown as {
-            contextNodeData?: { labelData?: { label?: { text?: unknown } }[] };
+            contextNodeData?: {
+                labelData?: { label?: { text?: unknown; fittedText?: unknown; hidden?: boolean } }[];
+            };
         };
-        return (series.contextNodeData?.labelData ?? []).map((d) => d.label?.text);
+        return (series.contextNodeData?.labelData ?? []).map((d) =>
+            d.label == null || d.label.hidden === true ? '' : (d.label.fittedText ?? d.label.text)
+        );
     };
     const someWrapped = (texts: unknown[]) => texts.some((text) => String(text).includes('\n'));
     const someTruncated = (texts: unknown[]) => texts.some((text) => String(text).includes(ELLIPSIS));
