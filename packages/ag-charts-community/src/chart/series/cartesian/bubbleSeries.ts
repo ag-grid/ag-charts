@@ -672,8 +672,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             labelPadding: expandPlacementLabelBoxExtent(label),
             labelTextMeasurer: cachedTextMeasurer(label),
             labelFit,
-            // A marker too small to hold even an ellipsis fits the label away to nothing; `alwaysShow`
-            // then drops the marker bound, so the label overflows the marker instead of vanishing.
+            // Keeps the label on a marker too small to hold even an ellipsis.
             labelFitOverflow: insideOnly && label.collision.alwaysShow ? labelFit : undefined,
             label,
             // The series-area clamp is opt-in via `collideWith.seriesArea`. Inside-only labels are

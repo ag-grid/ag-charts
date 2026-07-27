@@ -1005,8 +1005,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
         const labelFit = insideFit
             ? boundLabelFit(insideFit, insideMarkerContainer(markerSize, marker.shape, label.collision.threshold ?? 0))
             : resolveLabelFit(label, !label.collision.alwaysShow);
-        // A marker too small to hold even an ellipsis fits the label away to nothing; `alwaysShow` then
-        // falls back to the configured policy alone, so the label overflows the marker instead of vanishing.
+        // Keeps the label on a marker too small to hold even an ellipsis.
         const labelFitOverflow = label.collision.alwaysShow ? insideFit : undefined;
         const labelAnchor = Marker.anchor(marker.shape);
 

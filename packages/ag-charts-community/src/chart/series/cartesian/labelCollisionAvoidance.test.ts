@@ -113,6 +113,13 @@ describe('label collision avoidance', () => {
             .map((node) => (typeof node.text === 'string' ? node.text : ''));
     };
 
+    const expectAllEllipsised = (fullText: string) => {
+        for (const rendered of renderedLabelTexts()) {
+            expect(rendered).not.toBe(fullText);
+            expect(rendered.endsWith('…')).toBe(true);
+        }
+    };
+
     const cartesianAxes = {
         x: { position: 'bottom', type: 'number' },
         y: { position: 'left', type: 'number' },
@@ -398,10 +405,7 @@ describe('label collision avoidance', () => {
                 const text = 'Category value';
                 const placed = await render(type, { markerSize: 60, truncate: true, text });
                 expect(placed.length).toBe(sparseData.length);
-                for (const rendered of renderedLabelTexts()) {
-                    expect(rendered).not.toBe(text);
-                    expect(rendered.endsWith('…')).toBe(true);
-                }
+                expectAllEllipsised(text);
             });
 
             it(`${type}: cascades an oversized inside label to a directional fallback`, async () => {
@@ -684,10 +688,7 @@ describe('label collision avoidance', () => {
                     text,
                 });
                 expect(placed.length).toBe(sparseData.length);
-                for (const rendered of renderedLabelTexts()) {
-                    expect(rendered).not.toBe(text);
-                    expect(rendered.endsWith('…')).toBe(true);
-                }
+                expectAllEllipsised(text);
             });
         }
 
