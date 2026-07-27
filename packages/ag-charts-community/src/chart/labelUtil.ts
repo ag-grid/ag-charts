@@ -695,6 +695,7 @@ export function buildBarLabelCandidates<TParams>({
     crossReversed = false,
     rejectOutsideStart = false,
     rejectOutsideEnd = false,
+    hideable = false,
     plotRegion,
 }: {
     isUpward: boolean;
@@ -713,11 +714,12 @@ export function buildBarLabelCandidates<TParams>({
     crossReversed?: boolean;
     rejectOutsideStart?: boolean;
     rejectOutsideEnd?: boolean;
+    /** A label that may be dropped on overflow (`collision.alwaysShow: false`) rather than always rendered. */
+    hideable?: boolean;
     plotRegion?: Bounds;
 }): BarPositionedCandidate[] {
     // Drop the outside placements that would point into an adjacent stacked segment on that side, so the
-    // cascade falls through to a beside/inside candidate rather than mislabelling the neighbour. Keep the
-    // original list if every placement is dropped, so a label is still produced.
+    // cascade falls through to a beside/inside candidate rather than mislabelling the neighbour.
     const rejectsOutside = rejectOutsideStart || rejectOutsideEnd;
     let effectivePlacements = placementList;
     if (rejectsOutside) {
@@ -727,6 +729,8 @@ export function buildBarLabelCandidates<TParams>({
                 !(placement === 'outside-end' && rejectOutsideEnd)
         );
         if (effectivePlacements.length === 0) {
+            // Nowhere left to put it, so drop a hideable label; one that must be shown needs a placement anyway.
+            if (hideable) return [];
             effectivePlacements = placementList;
         }
     }

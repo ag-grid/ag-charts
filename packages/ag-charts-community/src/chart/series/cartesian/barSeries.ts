@@ -1066,36 +1066,43 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 crossReversed: ctx.crossReversed,
                 rejectOutsideStart: ctx.stackedTowardStart,
                 rejectOutsideEnd: ctx.stackedTowardEnd,
+                hideable: ctx.labelHideable,
                 plotRegion: ctx.plotRegion,
             });
-            const { anchor, region, placement } = candidates[0];
-            const existingLabel = mutableNode.label;
-            if (existingLabel) {
-                existingLabel.text = labelText;
-                existingLabel.x = anchor.x;
-                existingLabel.y = anchor.y;
-                existingLabel.textAlign = anchor.textAlign;
-                existingLabel.textBaseline = anchor.textBaseline;
-                existingLabel.rotation = ctx.labelRotation;
-                existingLabel.region = region;
-                existingLabel.offsetX = 0;
-                existingLabel.offsetY = 0;
-                existingLabel.placement = placement;
-                existingLabel.candidates = candidates;
+            if (candidates.length === 0) {
+                // Every placement points into a stacked neighbour, so there is nowhere left to put a
+                // label that may be hidden.
+                mutableNode.label = undefined;
             } else {
-                mutableNode.label = {
-                    text: labelText,
-                    x: anchor.x,
-                    y: anchor.y,
-                    textAlign: anchor.textAlign,
-                    textBaseline: anchor.textBaseline,
-                    rotation: ctx.labelRotation,
-                    region,
-                    offsetX: 0,
-                    offsetY: 0,
-                    placement,
-                    candidates,
-                };
+                const { anchor, region, placement } = candidates[0];
+                const existingLabel = mutableNode.label;
+                if (existingLabel) {
+                    existingLabel.text = labelText;
+                    existingLabel.x = anchor.x;
+                    existingLabel.y = anchor.y;
+                    existingLabel.textAlign = anchor.textAlign;
+                    existingLabel.textBaseline = anchor.textBaseline;
+                    existingLabel.rotation = ctx.labelRotation;
+                    existingLabel.region = region;
+                    existingLabel.offsetX = 0;
+                    existingLabel.offsetY = 0;
+                    existingLabel.placement = placement;
+                    existingLabel.candidates = candidates;
+                } else {
+                    mutableNode.label = {
+                        text: labelText,
+                        x: anchor.x,
+                        y: anchor.y,
+                        textAlign: anchor.textAlign,
+                        textBaseline: anchor.textBaseline,
+                        rotation: ctx.labelRotation,
+                        region,
+                        offsetX: 0,
+                        offsetY: 0,
+                        placement,
+                        candidates,
+                    };
+                }
             }
         } else {
             // Single-placement fast path: the placement is baked unconditionally; only an orientation

@@ -1819,13 +1819,15 @@ describe('BarSeries', () => {
     // placement engine so a label that cannot fit is dropped and rendered invisible, rather than baked
     // unconditionally by the fast path. The default (`alwaysShow: true`) keeps the byte-identical bake.
     describe('alwaysShow single-placement hiding', () => {
-        const visibleLabelCount = async (options: AgChartOptions) => {
+        const visibleLabelCounts = async (options: AgChartOptions) => {
             prepareTestOptions(options);
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
-            const series = deproxy(chart).series[0] as any;
-            return series.labelSelection.nodes().filter((node: any) => node.visible).length;
+            return (deproxy(chart).series as any[]).map(
+                (series) => series.labelSelection.nodes().filter((node: any) => node.visible).length
+            );
         };
+        const visibleLabelCount = async (options: AgChartOptions) => (await visibleLabelCounts(options))[0];
 
         // Twelve tall, narrow bars: an inside-center label forced wide by the formatter overflows the
         // bar on the cross (width) axis while fitting comfortably on the value axis.
@@ -1924,6 +1926,49 @@ describe('BarSeries', () => {
                 ],
             });
             expect(count).toBe(3);
+        });
+
+        // A middle stacked segment offered only `outside-end` has that placement rejected — it points into
+        // the segment stacked above. A hideable label is dropped rather than rendered over that neighbour,
+        // while the base segment, whose placement is unaffected, keeps its label.
+        const stackedData = [
+            { x: 'a', bottom: 100, middle: 3, top: 3 },
+            { x: 'b', bottom: 120, middle: 3, top: 3 },
+            { x: 'c', bottom: 90, middle: 3, top: 3 },
+        ];
+        const stackedSeries = (yKey: string, label: object) => ({
+            type: 'bar' as const,
+            xKey: 'x',
+            yKey,
+            stacked: true,
+            label: { color: 'black', formatter: () => yKey, ...label },
+        });
+
+        it('hides a stacked segment label whose only placement points into a stacked neighbour', async () => {
+            const counts = await visibleLabelCounts({
+                data: stackedData,
+                legend: { enabled: false },
+                series: [
+                    stackedSeries('bottom', { placement: ['beside-before-center'], spacing: 5 }),
+                    stackedSeries('middle', { placement: ['outside-end'], collision: { alwaysShow: false } }),
+                    stackedSeries('top', { placement: ['inside-center'] }),
+                ],
+            } as AgChartOptions);
+            expect(counts[1]).toBe(0);
+            expect(counts[0]).toBe(stackedData.length);
+        });
+
+        it('keeps that label under the default alwaysShow', async () => {
+            const counts = await visibleLabelCounts({
+                data: stackedData,
+                legend: { enabled: false },
+                series: [
+                    stackedSeries('bottom', { placement: ['beside-before-center'], spacing: 5 }),
+                    stackedSeries('middle', { placement: ['outside-end'] }),
+                    stackedSeries('top', { placement: ['inside-center'] }),
+                ],
+            } as AgChartOptions);
+            expect(counts[1]).toBe(stackedData.length);
         });
     });
 
