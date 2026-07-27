@@ -48,9 +48,10 @@ export type AgBaseCrossLineOptions<TValue = AxisValue, LabelType = AgBaseCrossLi
     | AgRangeCrossLineOptions<TValue, LabelType>;
 
 // `id` identifies a single Cross Line, so it is deliberately absent from the themeable surface.
-export interface AgCrossLineThemeOptions<
-    LabelType = AgBaseCrossLineLabelOptions,
-> extends Omit<AgCommonCrossLineOptions<LabelType>, 'id'> {
+export interface AgCrossLineThemeOptions<LabelType = AgBaseCrossLineLabelOptions> extends Omit<
+    AgCommonCrossLineOptions<LabelType>,
+    'id'
+> {
     /** The colour to use for the fill of the range. */
     fill?: CssColor;
     /** The opacity of the fill for the range. */
