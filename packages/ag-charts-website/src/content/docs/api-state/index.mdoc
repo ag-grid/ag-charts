@@ -83,6 +83,7 @@ In this example:
 - `legendPagination` - This number is the current legend page of a [paginated legend](./legend/#pagination).
 - `active` - This object contains the currently active item, which is the series node or legend item that is highlighted/showing a tooltip.
 - `annotations` - This object contains the position and style of any displayed drawings or text annotations.
+- `collapsed` - This array contains the identifiers of the currently collapsed items in an [Org Chart](./org-chart/).
 - `chartType` - This string is one of the [Chart Types](./financial-charts-configuration/#chart-types).
 
 {% note %}
@@ -150,6 +151,13 @@ In this example:
 
 - Clicking the chart freezes the current Active State. The Highlight & Tooltip remain static when the mouse moves.
 - Clicking the 'Unfreeze' button in the Tooltip restores interactivity.
+
+### Collapsed
+
+The `collapsed` state stores the identifiers of items collapsed in an [Org Chart](./org-chart/).
+
+Changes to this state can be listened to with the `collapsedChange` event. See the
+[Events API](./events/#collapsedchange) page for more details.
 
 ## API Reference
 

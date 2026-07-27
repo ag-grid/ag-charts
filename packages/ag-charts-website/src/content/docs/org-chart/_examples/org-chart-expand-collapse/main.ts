@@ -1,5 +1,6 @@
 import {
     AgCharts,
+    AgOrganizationSeriesOptions,
     AgStandaloneChartOptions,
     ContextMenuModule,
     ModuleRegistry,
@@ -27,12 +28,28 @@ const options: AgStandaloneChartOptions = {
                 title: { key: 'name' },
                 subtitle: { key: 'job' },
                 labels: [{ key: 'location' }],
+                clickToExpand: true,
             },
         },
     ],
+    listeners: {
+        collapsedChange: ({ collapsed, expanded }) => {
+            console.log(
+                'collapsed:',
+                collapsed.map((item) => item.itemId),
+                'expanded:',
+                expanded.map((item) => item.itemId)
+            );
+        },
+    },
 };
 
 const chart = AgCharts.create(options);
+
+function setClickToExpand(clickToExpand: boolean) {
+    (options.series![0] as AgOrganizationSeriesOptions).node!.clickToExpand = clickToExpand;
+    chart.update(options);
+}
 
 function expandAll() {
     const { version } = chart.getState();

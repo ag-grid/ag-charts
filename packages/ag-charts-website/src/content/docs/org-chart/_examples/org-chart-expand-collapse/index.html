@@ -3,6 +3,14 @@
         <button onclick="expandAll()">Expand All</button>
         <button onclick="collapseAll()">Collapse All</button>
         <button onclick="toggleCTO()">Toggle CTO</button>
+        <input
+            type="checkbox"
+            id="clickToExpand"
+            checked
+            class="gap-left"
+            onchange="setClickToExpand(event.target.checked)"
+        />
+        <label for="clickToExpand">Click node to expand</label>
     </div>
 </div>
 <div id="myChart"></div>
