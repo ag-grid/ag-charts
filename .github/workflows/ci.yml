@@ -174,11 +174,11 @@ jobs:
               id: build
               if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
               run: |
-                  # generate-thumbnail is included so thumbnail outputs land in the rw Nx cache —
-                  # otherwise the (read-only) website_build job regenerates all ~126 on every PR.
-                  # --parallel=12: on warm runs this step is ~900 IO-bound cache replays, which the
-                  # CPU-count default (4) needlessly serialises.
-                  yarn nx run-many -t build,docs-resolved-interfaces,generate-example,generate-thumbnail --exclude tag:skip-gha-cache,all --parallel=12
+                  # generate-thumbnail is deliberately NOT built here. It cost ~80s on this
+                  # critical-path job purely to populate the Nx cache for website_build — which no
+                  # longer waits for init, so it cannot see this run's cache anyway and generates
+                  # the thumbnails itself, in parallel, where it has slack.
+                  yarn nx run-many -t build,docs-resolved-interfaces,generate-example --exclude tag:skip-gha-cache,all --parallel=12
                   # Populate the (rw-cached) staging example outputs here so the ro website_build
                   # job restores them instead of regenerating all examples. Only latest builds the
                   # website with -c staging, so scope the extra generation to that branch.
@@ -323,7 +323,9 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                shard: [1, 2]
+                # `generate -c production` is a separate pass from init's `generate-example`, so it
+                # is real work (~940 tasks, almost no cache hits) rather than a cache replay.
+                shard: [1, 2, 3, 4]
         outputs:
             generate: ${{ steps.generate.outcome || '' }}
         steps:
