@@ -1272,6 +1272,27 @@ describe('OptionsGraph', () => {
         });
     });
 
+    describe('css variables', () => {
+        it('should not treat `Object.prototype` member names as CSS variables', () => {
+            const themeConfig = { line: { themeValue: 'valueOf' } };
+            const userOptions = prepareOptions({
+                title: { text: 'constructor' },
+                userValue: 'toString',
+                inherited: '__proto__',
+            });
+            const options = new OptionsGraph(themeConfig, userOptions, {}, {}, {}, undefined, new Map(), {
+                'var(--brand)': '#00ff00',
+            }).resolve();
+            expect(options).toStrictEqual({
+                themeValue: 'valueOf',
+                title: { text: 'constructor' },
+                userValue: 'toString',
+                inherited: '__proto__',
+                axes: expect.any(Object),
+            });
+        });
+    });
+
     describe('public api', () => {
         describe('ref', () => {
             it('should resolve public `ref` operations', () => {
