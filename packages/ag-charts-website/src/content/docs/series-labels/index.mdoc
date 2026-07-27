@@ -1,0 +1,189 @@
+---
+title: 'Series Labels'
+description: '$framework Charts support styling series data labels, controlling their position and orientation, and avoiding collisions between labels, markers and other series geometry.'
+---
+
+Series data labels display the value of a data point directly on the chart, alongside or instead of a [Tooltip](./tooltips/). Labels are configured on the `label` property of each series.
+
+```js format="snippet"
+{
+    series: [
+        {
+            // ...
+            label: {
+                enabled: true,
+            },
+        },
+    ],
+}
+```
+
+Please see the [API Reference](#api-reference) for the full list of available options, which vary slightly between series types.
+
+## Styling
+
+{% chartExampleRunner title="Label Styling" name="label-styling" type="generated" /%}
+
+Label text is styled with `color`, `fontSize`, `fontWeight`, `fontStyle` and `fontFamily`. A background box can be added behind the label using `fill`, `fillOpacity`, `cornerRadius`, `padding` and `border` — see [Fills & Borders](./fills-borders/) for these options in the wider context of chart styling.
+
+```js format="snippet"
+{
+    series: [
+        {
+            // ...
+            label: {
+                enabled: true,
+                color: 'white',
+                fontWeight: 'bold',
+                fill: 'rgba(0, 0, 0, 0.6)',
+                cornerRadius: 4,
+                padding: { top: 2, bottom: 2, left: 6, right: 6 },
+            },
+        },
+    ],
+}
+```
+
+### Placement-Specific Styling
+
+Some series resolve a label's placement relative to its shape at layout time, for example a bar label that ends up either inside or outside its bar segment. Use `insideStyle` and `outsideStyle` to apply different colours, fills or borders depending on which placement was resolved, without needing to know the outcome in advance.
+
+```js format="snippet"
+{
+    series: [
+        {
+            // ...
+            label: {
+                enabled: true,
+                insideStyle: {
+                    color: 'white',
+                },
+                outsideStyle: {
+                    color: 'black',
+                },
+            },
+        },
+    ],
+}
+```
+
+A value set on `insideStyle` or `outsideStyle` takes precedence over the top-level `label` value for the matching placement, falling back to the theme default otherwise. Whether a border is shown is controlled once by `label.border.enabled`; only the border's stroke, width and opacity are placement-reactive.
+
+## Position and Orientation
+
+Where a label is placed relative to its data point depends on the series type:
+
+- Point-based series (`line`, `area`, `scatter`, `bubble`, and [map markers](./map-markers/)/lines) use `label.placement`, accepting a single [`AgChartLabelCollisionPlacement`](#api-reference) value (`'top'`, `'bottom'`, `'left'`, `'right'`, the diagonal corners, or `'inside'`) or an ordered array of fallback placements tried in turn.
+- Bar-family series ([`bar`](./bar-series/), `range-bar`, `waterfall`) use `label.placement` values specific to a bounded region (`'inside-center'`, `'inside-start'`, `'inside-end'`, `'outside-start'`, `'outside-end'`), and additionally support `label.orientation` (`'horizontal'`, `'vertical'`, `'vertical-reversed'`) to rotate the label within its segment.
+
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'bar',
+            // ...
+            label: {
+                enabled: true,
+                placement: 'inside-end',
+                orientation: 'vertical',
+            },
+        },
+    ],
+}
+```
+
+### Fitting
+
+Use `maxWidth`, `maxHeight`, `wrapping` and `truncate` to control how a label is fitted to the region produced by its placement. Only series that reserve a region for their labels — such as bar-family series — honour these options.
+
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'bar',
+            // ...
+            label: {
+                enabled: true,
+                maxWidth: 60,
+                wrapping: 'on-space',
+                truncate: true,
+            },
+        },
+    ],
+}
+```
+
+{% note %}
+For auto-sized labels (such as Treemap and Sunburst tile labels), an `overflowStrategy` of `'hide'` removes a label that doesn't fit its tile. This is a text-fit overflow behaviour and is unrelated to collision avoidance, described below.
+{% /note %}
+
+## Collision Avoidance
+
+{% chartExampleRunner title="Label Collision Avoidance" name="label-collision-avoidance" type="generated" /%}
+
+Provide `label.placement` as an ordered array of fallback positions to reposition labels so they don't overlap other labels, [markers](./markers/), or series geometry. Each candidate is tried in turn until one is found clear of obstacles.
+
+```js format="snippet"
+{
+    series: [
+        {
+            // ...
+            label: {
+                enabled: true,
+                placement: ['top', 'bottom', 'left', 'right'],
+                collision: {
+                    threshold: 4,
+                },
+            },
+        },
+    ],
+}
+```
+
+- `collision.threshold` is the minimum pixel spacing kept from an obstacle before it counts as a collision. A negative value allows labels to overlap without triggering avoidance.
+- If none of the candidate placements are clear of every obstacle, the label is hidden by default — see [Keeping Labels Visible](#keeping-labels-visible) below.
+- Bar-family labels (`bar`, `range-bar`, `waterfall`) are never hidden by collision avoidance — instead they fall back to whichever candidate position overlaps the least.
+
+Series label collision avoidance is separate from [axis label collision avoidance](./axes-labels/#collision-avoidance), which is configured independently on each axis.
+
+### Keeping Labels Visible
+
+By default, point-based series (`line`, `area`, `scatter`, `bubble`) hide a label that collision avoidance cannot place clear of its obstacles. Bar-family series (`bar`, `range-bar`, `waterfall`) keep labels visible by default instead. Set `collision.suppressHide` to override either default, falling back to whichever candidate position overlaps the least rather than removing the label entirely.
+
+```js format="snippet"
+{
+    series: [
+        {
+            // ...
+            label: {
+                enabled: true,
+                collision: {
+                    suppressHide: true,
+                },
+            },
+        },
+    ],
+}
+```
+
+{% note %}
+`suppressHide` trades label completeness for label visibility: a label kept this way may overlap other chart elements. Use it when a data point's label being present, even partially obscured, is more important than a clean layout.
+{% /note %}
+
+## API Reference
+
+{% tabs %}
+
+{% tabItem id="AgChartLabelOptions" label="Label Options" %}
+{% apiReference id="AgChartLabelOptions" /%}
+{% /tabItem %}
+
+{% tabItem id="AgChartLabelFitOptions" label="Fit Options" %}
+{% apiReference id="AgChartLabelFitOptions" /%}
+{% /tabItem %}
+
+{% tabItem id="AgChartLabelCollisionFitOptions" label="Collision Avoidance" %}
+{% apiReference id="AgChartLabelCollisionFitOptions" /%}
+{% /tabItem %}
+
+{% /tabs %}
