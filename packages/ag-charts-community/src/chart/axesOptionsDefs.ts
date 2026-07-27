@@ -90,8 +90,9 @@ export const commonCrossLineLabelOptionsDefs: OptionsDefs<AgBaseCrossLineLabelOp
 };
 
 // Stroke/enabled style shared by both cross-line variants. `fill`/`fillOpacity` are intentionally
-// excluded — they belong to the `range` variant only (see `crossLineOptionsDefs`).
-const crossLineCommonStyleOptionsDefs: OptionsDefs<Omit<AgCommonCrossLineOptions, 'label'>> = {
+// excluded — they belong to the `range` variant only (see `crossLineOptionsDefs`). `id` is excluded
+// because it identifies a single cross line rather than styling it, so it is not themeable.
+const crossLineCommonStyleOptionsDefs: OptionsDefs<Omit<AgCommonCrossLineOptions, 'label' | 'id'>> = {
     enabled: boolean,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
@@ -117,7 +118,8 @@ export function crossLineOptionsDefs(
     value: Validator,
     labelDefs: OptionsDefs<AgBaseCrossLineLabelOptions>
 ): OptionsDefs<AgBaseCrossLineOptions> {
-    const commonStyle = { ...crossLineCommonStyleOptionsDefs, label: labelDefs };
+    // `id` is per-cross-line rather than stylistic, so it lives here instead of in the themeable style defs.
+    const commonStyle = { id: string, ...crossLineCommonStyleOptionsDefs, label: labelDefs };
     return typeUnion<AgBaseCrossLineOptions>(
         {
             line: { value: required(value), ...commonStyle },

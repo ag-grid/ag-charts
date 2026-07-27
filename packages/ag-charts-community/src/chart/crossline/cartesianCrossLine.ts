@@ -134,7 +134,10 @@ const CROSS_LINE_HIT_TOLERANCE = 5;
 
 export class CartesianCrossLine extends BaseProperties implements CrossLine<CartesianCrossLineLabel> {
     static readonly className = 'CrossLine';
-    readonly id = createId(this);
+    readonly internalId = createId(this);
+
+    @Property
+    id?: string;
 
     @Property
     enabled?: boolean;
@@ -182,9 +185,9 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
         return 'top';
     }
 
-    readonly rangeGroup = new Group({ name: this.id });
-    readonly lineGroup = new Group({ name: this.id });
-    readonly labelGroup = new Group({ name: this.id });
+    readonly rangeGroup = new Group({ name: this.internalId });
+    readonly lineGroup = new Group({ name: this.internalId });
+    readonly labelGroup = new Group({ name: this.internalId });
     private readonly crossLineRange = this.lineGroup.appendChild(new Range());
     private readonly crossLineLabel = this.labelGroup.appendChild(new TransformableText());
 

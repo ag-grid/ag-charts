@@ -79,7 +79,10 @@ export interface CrossLine<LabelType = AgBaseCrossLineLabelOptions> {
     gridPadding: number;
     lineGroup: Group;
     rangeGroup: Group;
-    id: string;
+    /** Internally generated, always present and unique per instance. */
+    internalId: string;
+    /** User-supplied identifier, when the cross line's options set one. */
+    id?: string;
     label: LabelType;
     labelGroup: Group;
     lineDash?: number[];

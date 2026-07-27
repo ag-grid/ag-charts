@@ -579,7 +579,7 @@ test.describe('context-menu', () => {
         // Crossline 1: Blue Vertical Line (x-axis)
         const PARAMS_crossline1: Params = {
             axisId: 'x',
-            crossLineId: 'CrossLine-4',
+            crossLineId: 'blue-line',
             crossLineType: 'line',
             direction: 'x',
             range: undefined,
@@ -588,7 +588,7 @@ test.describe('context-menu', () => {
         // Crossline 2: Black/Gray Vertical Range (x-axis)
         const PARAMS_crossline2: Params = {
             axisId: 'x',
-            crossLineId: 'CrossLine-5',
+            crossLineId: 'grey-range',
             crossLineType: 'range',
             direction: 'x',
             range: ['Mar', 'Jun'],
