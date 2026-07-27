@@ -392,7 +392,8 @@ export abstract class FlowProportionSeries<
             const { links, nodeGraph, maxPathLength } = computeNodeGraph(
                 new Map<string, TNodeDatum>().values(),
                 [],
-                includeCircularReferences
+                includeCircularReferences,
+                this.ctx.logger
             );
 
             this.nodeCount = 0;
@@ -448,7 +449,8 @@ export abstract class FlowProportionSeries<
         const { links, nodeGraph, maxPathLength } = computeNodeGraph(
             nodesById.values(),
             baseLinks,
-            includeCircularReferences
+            includeCircularReferences,
+            this.ctx.logger
         );
 
         for (const node of nodeGraph.values()) {

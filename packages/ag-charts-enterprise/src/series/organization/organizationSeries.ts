@@ -78,7 +78,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     private rootVertex?: Vertex<OrganizationVertex, OrganizationEdge>;
 
     createNetworkGraph() {
-        return new OrganizationGraph();
+        return new OrganizationGraph(this.ctx.logger);
     }
 
     createNetworkLayout() {

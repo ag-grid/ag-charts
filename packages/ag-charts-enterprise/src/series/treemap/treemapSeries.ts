@@ -617,7 +617,8 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
                     secondaryLabelText ?? secondaryLabelValue,
                     this.properties.tile.secondaryLabel,
                     { padding: tile.padding },
-                    () => layout
+                    () => layout,
+                    this.ctx.logger
                 );
                 if (formatting == null) {
                     return;

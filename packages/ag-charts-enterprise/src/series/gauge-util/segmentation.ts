@@ -1,4 +1,4 @@
-import { BaseProperties, Logger, Property, type Scale } from 'ag-charts-core';
+import { BaseProperties, type Logger, Property, type Scale } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
 class GaugeSegmentationIntervalProperties extends BaseProperties {
@@ -11,7 +11,7 @@ class GaugeSegmentationIntervalProperties extends BaseProperties {
     @Property
     count?: number;
 
-    getSegments(scale: Scale<AgNumericValue, number>, maxTicks: number) {
+    getSegments(scale: Scale<AgNumericValue, number>, maxTicks: number, logger: Logger) {
         const { values, step, count } = this;
         // Keep raw endpoints exact for scale.convert(); the Number copies drive only stepping/division.
         const d0 = scale.domainMin ?? Number.NaN;
@@ -48,7 +48,7 @@ class GaugeSegmentationIntervalProperties extends BaseProperties {
         }
 
         if (ticks != null && ticks.length > maxTicks) {
-            Logger.default.warnOnce(
+            logger.warnOnce(
                 `the configured segmentation results in more than 1 item per pixel, ignoring. Supply a segmentation configuration that results in larger segments or omit this configuration`
             );
             ticks = undefined;

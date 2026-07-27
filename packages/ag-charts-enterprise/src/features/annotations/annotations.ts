@@ -941,6 +941,7 @@ export class Annotations extends AbstractModuleInstance {
 
         const snap = this.opts.snap ?? false;
         return {
+            logger: ctx.logger,
             seriesRect,
             isRtl: ctx.domManager.isRtl,
             xAxis: {

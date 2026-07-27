@@ -1,5 +1,5 @@
 import type { _ModuleSupport } from 'ag-charts-community';
-import { Logger } from 'ag-charts-core';
+import type { Logger } from 'ag-charts-core';
 
 interface Node {
     id: string;
@@ -27,10 +27,11 @@ export interface NodeGraphEntry<N extends Node, L extends Link<N>> {
 export function computeNodeGraph<N extends Node, L extends Link<N>>(
     nodes: Iterable<N>,
     links: L[],
-    includeCircularReferences: boolean
+    includeCircularReferences: boolean,
+    logger: Logger
 ) {
     if (!includeCircularReferences) {
-        links = removeCircularLinks(links);
+        links = removeCircularLinks(links, logger);
     }
 
     const nodeGraph = new Map<string, NodeGraphEntry<N, L>>();
@@ -76,14 +77,14 @@ function findCircularLinks<N extends Node, L extends Link<N>>(links: L[], link: 
     stack.pop();
 }
 
-function removeCircularLinks<N extends Node, L extends Link<N>>(links: L[]) {
+function removeCircularLinks<N extends Node, L extends Link<N>>(links: L[], logger: Logger) {
     const circularLinks = new Set<L>();
     for (const link of links) {
         findCircularLinks(links, link, circularLinks, []);
     }
 
     if (circularLinks.size !== 0) {
-        Logger.default.warnOnce('Some links formed circular references. These will be removed from the output.');
+        logger.warnOnce('Some links formed circular references. These will be removed from the output.');
     }
 
     return circularLinks.size === 0 ? links : links.filter((link) => !circularLinks.has(link));

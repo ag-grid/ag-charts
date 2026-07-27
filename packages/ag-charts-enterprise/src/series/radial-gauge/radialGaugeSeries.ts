@@ -569,7 +569,9 @@ export class RadialGaugeSeries
         const containerEndAngle = scale.convert(value);
 
         const maxTicks = Math.ceil(normalizeAngle360Inclusive(containerEndAngle - containerStartAngle) * radius);
-        let segments = segmentation.enabled ? segmentation.interval.getSegments(scale, maxTicks) : undefined;
+        let segments = segmentation.enabled
+            ? segmentation.interval.getSegments(scale, maxTicks, this.ctx.logger)
+            : undefined;
 
         const barStyle = bar.getStyle(defaultColorRange, scale);
         const scaleStyle = scaleProps.getStyle(bar.enabled, defaultColorRange, scale);
