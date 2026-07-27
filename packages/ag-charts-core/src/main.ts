@@ -107,6 +107,7 @@ export * from './utils/dom/domElements';
 export * from './utils/dom/domEvents';
 export * from './utils/dom/globalsProxy';
 export * from './utils/dom/domDownload';
+export * from './utils/text/labelMeasure';
 export * from './utils/text/textUtils';
 export * from './utils/text/textWrapper';
 export * from './utils/time/ticks';

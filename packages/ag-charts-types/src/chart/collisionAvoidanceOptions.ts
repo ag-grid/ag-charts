@@ -16,6 +16,9 @@ export type AgChartLabelCollisionPlacement =
     | 'bottom-left'
     | 'bottom-right';
 
+/** Placement of a label relative to a bounded region (a range-area band, a range-bar rect). */
+export type AgChartLabelRegionPlacement = 'inside' | 'outside';
+
 /**
  * Rotation of a label rendered inside a bounded region (bar, waterfall, range-bar, range-area).
  * `horizontal` renders the label upright in the normal reading direction; the two `vertical`

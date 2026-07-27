@@ -42,7 +42,7 @@ export type RangeAreaSeriesParams = Pick<
 
 class RangeAreaSeriesLabel extends Label<AgRangeAreaSeriesLabelFormatterParams> {
     @Property
-    placement: AgRangeAreaSeriesLabelPlacement = 'outside';
+    placement: AgRangeAreaSeriesLabelPlacement | AgRangeAreaSeriesLabelPlacement[] = 'outside';
 
     @Property
     spacing: PixelSize = 0;
