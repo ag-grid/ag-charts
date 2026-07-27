@@ -609,10 +609,7 @@ test.describe('context-menu', () => {
             const seriesAreaShowOnParams: AgContextMenuShowOnParamsAlways = { showOn: 'series-area' };
             return {
                 ...expectedHits[0],
-                allShowOnParams: [
-                    ...expectedHits,
-                    seriesAreaShowOnParams,
-                ],
+                allShowOnParams: [...expectedHits, seriesAreaShowOnParams],
                 defaultItems: ['download'],
             };
         }
