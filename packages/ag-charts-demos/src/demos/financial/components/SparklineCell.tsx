@@ -66,10 +66,9 @@ export function SparklineCell({ data: row }: CustomCellRendererProps<SparkRow>) 
     }, []);
 
     useEffect(() => {
-        // The baseline drives segmentation, which a transaction cannot change, so a shift in it —
-        // or any history that isn't a clean scroll of the current one — forces a full reseed.
-        const scroll = baseline === baselineRef.current ? scrollShift(pointsRef.current, history) : undefined;
-        if (scroll === undefined) {
+        // The baseline drives segmentation, which a transaction cannot change, so a shift in it
+        // forces a full reseed.
+        if (baseline !== baselineRef.current) {
             const points = history.map((y, i) => ({ x: i, y }));
             pointsRef.current = points;
             seqRef.current = history.length;
@@ -78,7 +77,7 @@ export function SparklineCell({ data: row }: CustomCellRendererProps<SparkRow>) 
             return;
         }
 
-        const { removed, appended } = scroll;
+        const { removed, appended } = scrollShift(pointsRef.current, history);
         const added = appended.map((y) => ({ x: seqRef.current++, y }));
         pointsRef.current = [...pointsRef.current.slice(removed.length), ...added];
         if (removed.length || added.length) {
@@ -94,13 +93,10 @@ export function SparklineCell({ data: row }: CustomCellRendererProps<SparkRow>) 
 // eslint-disable-next-line no-console
 const logError = (e: unknown) => console.error(e);
 
-// If `history` is the current points scrolled left, return the dropped points and appended values;
-// otherwise undefined, signalling the caller to reseed.
-function scrollShift(
-    points: SparkPoint[],
-    history: number[]
-): { removed: SparkPoint[]; appended: number[] } | undefined {
-    for (let shift = 0; shift <= points.length; shift++) {
+// Expresses `history` as a scroll of the current points: the dropped points plus the appended
+// values. A window sharing no prefix still resolves, as a full replacement.
+function scrollShift(points: SparkPoint[], history: number[]): { removed: SparkPoint[]; appended: number[] } {
+    for (let shift = 0; shift < points.length; shift++) {
         const retained = points.length - shift;
         if (retained > history.length) continue;
         let matches = true;
@@ -114,5 +110,5 @@ function scrollShift(
             return { removed: points.slice(0, shift), appended: history.slice(retained) };
         }
     }
-    return undefined;
+    return { removed: points.slice(), appended: history };
 }

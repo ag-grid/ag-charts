@@ -574,6 +574,7 @@ export class DOMManager extends BaseManager {
         }
 
         this.setCSSVariables('--ag-charts', undefined, undefined, variables);
+        this.eventsHub.emit('theme:params-change', null);
     }
 
     setModuleCSSVariables(

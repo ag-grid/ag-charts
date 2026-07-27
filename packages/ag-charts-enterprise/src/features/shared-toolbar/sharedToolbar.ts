@@ -34,8 +34,9 @@ export class SharedToolbar extends AbstractModuleInstance {
     private firstLayoutSection?: SharedToolbarSection;
 
     // OPTIMIZATION: `getBounds().width` has no inline width, so it forces a sync reflow every
-    // layout. The width depends on the rendered button content (the signature below) and on text
-    // metrics (handled by the `font:load` reset).
+    // layout. The width depends on the rendered button content (the signature below), on text
+    // metrics, and on the theme CSS variables the button styles read — the latter two are covered
+    // by the resets below rather than the signature.
     private cachedWidth?: number;
     private cachedWidthSignature?: string;
 
@@ -43,9 +44,10 @@ export class SharedToolbar extends AbstractModuleInstance {
         super();
         this.container = this.ctx.domManager.addChild('canvas-overlay', 'shared-toolbar');
         this.container.role = 'presentation';
-        // A font arriving after first layout changes button text metrics; this event re-runs layout
-        // so they are picked up, so the cached measurement must not survive it.
-        this.cleanup.register(ctx.eventsHub.on('font:load', () => this.invalidateWidthCache()));
+        this.cleanup.register(
+            ctx.eventsHub.on('font:load', () => this.invalidateWidthCache()),
+            ctx.eventsHub.on('theme:params-change', () => this.invalidateWidthCache())
+        );
     }
 
     public getSharedToolbar<ButtonOptions extends _ModuleSupport.ToolbarButtonOptions>(section: SharedToolbarSection) {

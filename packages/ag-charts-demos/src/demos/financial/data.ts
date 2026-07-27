@@ -324,11 +324,15 @@ function seedHistory(instrument: Instrument, now: number): Bar[] {
 export class MarketFeed {
     readonly instrument: Instrument;
     private readonly bars: Bar[];
+    // The window drops its oldest bar once past MAX_BARS, so `bars[0]` is not a stable session
+    // reference; capture the open once, as MoverFeed does with its per-row baseline.
+    private readonly openPrice: number;
     private readonly gaugeMetrics: GaugeMetrics;
 
     constructor(instrument: Instrument, now: number) {
         this.instrument = instrument;
         this.bars = seedHistory(instrument, now);
+        this.openPrice = this.bars[0].open;
         this.gaugeMetrics = {
             sentiment: instrument.sentiment,
             beta: instrument.beta,
@@ -359,17 +363,16 @@ export class MarketFeed {
         return this.bars.slice(-count).map((bar) => bar.close);
     }
 
-    /** Opening value of the full history — the reference for the session change. */
+    /** Opening value of the session — the reference for the session change. */
     get sessionOpen(): number {
-        return this.bars[0].open;
+        return this.openPrice;
     }
 
-    /** Session quote: latest price and change since the session's opening bar. */
+    /** Session quote: latest price and change since the session open. */
     quote(): { last: number; change: number; changePct: number } {
-        const first = this.bars[0];
         const last = this.bars[this.bars.length - 1];
-        const change = last.close - first.open;
-        return { last: last.close, change, changePct: (change / first.open) * 100 };
+        const change = last.close - this.openPrice;
+        return { last: last.close, change, changePct: (change / this.openPrice) * 100 };
     }
 
     /** Advance the feed one step: append a fresh bar and return the new window. */

@@ -77,8 +77,9 @@ export class Ranges extends AbstractModuleInstance {
     private dropdownMinWidth?: number;
 
     // OPTIMIZATION: `getBounds()` has no inline height, so it forces a sync reflow every layout.
-    // The height depends on the resolved options, the shown toolbar, and text metrics — the first
-    // three form the key below, the last is handled by the `font:load` reset.
+    // The height depends on the resolved options, the shown toolbar, text metrics, and the theme
+    // CSS variables the button styles read — the first two form the key below, the rest are
+    // covered by the resets registered in the constructor.
     private cachedToolbarHeight?: number;
     private cachedToolbarHeightOpts?: _ModuleSupport.NormalisedRangesOptions;
     private cachedToolbarHeightIsDropdown?: boolean;
@@ -98,9 +99,8 @@ export class Ranges extends AbstractModuleInstance {
             ctx.eventsHub.on('layout:complete', this.onLayoutComplete.bind(this)),
             ctx.widgets.chartWidget.addListener('click', this.onChartWidgetClick.bind(this)),
             ctx.eventsHub.on('zoom:change-complete', this.onZoomChanged.bind(this)),
-            // A font arriving after first layout changes button text metrics; this event re-runs
-            // layout so they are picked up, so the cached measurement must not survive it.
             ctx.eventsHub.on('font:load', () => this.invalidateToolbarHeightCache()),
+            ctx.eventsHub.on('theme:params-change', () => this.invalidateToolbarHeightCache()),
             ctx.chartState.observe((get) => {
                 const enabled = get('options', 'ranges.enabled') ?? false;
                 // Reset `isDropdown` state when the ranges module is disabled, to ensure the buttons are
