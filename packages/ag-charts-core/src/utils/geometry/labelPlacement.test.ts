@@ -1982,6 +1982,21 @@ describe('placeLabels per-candidate fit', () => {
         expect(placed.text).toBe('WW…');
     });
 
+    it('drops a sole-candidate label whose fit policy hides the text', () => {
+        // `overflowStrategy: 'hide'` empties the text instead of truncating it, and one placement leaves
+        // nowhere else to try; rendering the unfitted text would defeat the policy.
+        const placed = placeOne(
+            fittedLabel(
+                { x: 0, y: 0, width: 34, height: 34 },
+                {
+                    orientation: 'horizontal',
+                    fit: { text: TEXT, policy: { overflowStrategy: 'hide' }, font: FONT },
+                }
+            )
+        );
+        expect(placed).toBeUndefined();
+    });
+
     describe('positioned candidates', () => {
         const target = (): BarLabelTarget => ({ rotation: 0 });
         const anchor: OrientationAnchor = { x: 50, y: 50, textAlign: 'center', textBaseline: 'middle' };

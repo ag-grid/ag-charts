@@ -1376,15 +1376,20 @@ function textLength(text: NormalisedTextOrSegments): number {
  * writing the result into the shared {@link fittedLabel} scratch. Returns `false` when the fit policy
  * hid the text outright, which disqualifies the candidate.
  *
- * The full text is measured first and returned untouched when it already fits, so the common case never
- * pays for wrapping. `fittedLabel.dropped` counts the characters truncation removed, letting the
+ * The source text is measured first and returned untouched when it already fits, so the common case
+ * never pays for wrapping; `source` carries that measurement in from the cascade, which reuses it
+ * across candidates. `fittedLabel.dropped` counts the characters truncation removed, letting the
  * placement axis prefer the candidate that keeps the most text.
  */
-function fitLabelToCandidate(fit: LabelFitDescriptor, container: { width: number; height: number } | undefined) {
+function fitLabelToCandidate(
+    fit: LabelFitDescriptor,
+    source: { width: number; height: number } | undefined,
+    container: { width: number; height: number } | undefined
+) {
     const { text, policy, font } = fit;
     const maxWidth = Math.min(policy.maxWidth ?? Infinity, container?.width ?? Infinity);
     const maxHeight = Math.min(policy.maxHeight ?? Infinity, container?.height ?? Infinity);
-    const full = measureLabelText(text, font);
+    const full = source ?? measureLabelText(text, font);
     if (full.width <= maxWidth && full.height <= maxHeight) {
         fittedLabel.text = text;
         fittedLabel.width = full.width;
@@ -1434,7 +1439,8 @@ function compassCandidateContainer(d: PointLabelDatum, fit: LabelFitDescriptor, 
  * from `d.placements`, then the series `defaults.placements`, then the single `d.placement`; orientation
  * from `d.orientation`. The reported box keeps the label's measured `width`/`height`; the rotated
  * footprint is used only for containment and obstacle tests. A sole-candidate label kept on overflow
- * takes its placement unconditionally — never bounds-clipped, never dropped. A multi-candidate
+ * takes its placement unconditionally — never bounds-clipped, and dropped only when its own fit policy
+ * hides the text outright, which no placement can satisfy. A multi-candidate
  * placement or orientation list is a directional fallback set that cascades over obstacles; when none
  * clears them, `alwaysShow` decides whether the least-overflow candidate is kept or the label dropped.
  */
@@ -1460,7 +1466,8 @@ function tryPlaceLabel(
         const orientation = candidateAt(orientationsOf(d), singleOrientationOf(d), 0);
         const rotation = orientation == null ? 0 : orientationAngles[orientation];
         let { text, width, height } = d.label;
-        if (d.fit != null && fitLabelToCandidate(d.fit, compassCandidateContainer(d, d.fit, rotation))) {
+        if (d.fit != null) {
+            if (!fitLabelToCandidate(d.fit, undefined, compassCandidateContainer(d, d.fit, rotation))) return undefined;
             ({ text } = fittedLabel);
             width = fittedLabel.width + boxWidthOf(d.fit);
             height = fittedLabel.height + boxHeightOf(d.fit);
@@ -1600,6 +1607,8 @@ function placeAvoidingLabel(
         return placeFromPositionedCandidates(d, collideWith, threshold, index, bounds);
     }
     const { fit } = d;
+    // Measured once here rather than per candidate: every candidate refits the same source text.
+    const fitSource = fit == null ? undefined : measureLabelText(fit.text, fit.font);
     const candidates = placements;
     const orientations = orientationsOf(d);
     const singleOrientation = singleOrientationOf(d);
@@ -1632,7 +1641,7 @@ function placeAvoidingLabel(
             let { text, width, height } = d.label;
             let dropped = 0;
             if (fit != null) {
-                if (!fitLabelToCandidate(fit, compassCandidateContainer(d, fit, rotation))) continue;
+                if (!fitLabelToCandidate(fit, fitSource, compassCandidateContainer(d, fit, rotation))) continue;
                 ({ text, dropped } = fittedLabel);
                 width = fittedLabel.width + boxWidthOf(fit);
                 height = fittedLabel.height + boxHeightOf(fit);
@@ -1733,6 +1742,8 @@ function placeFromPositionedCandidates(
     candidateOwnBoxLabelsCollide = d.ownBoxLabelsCollide ?? false;
 
     const { fit } = d;
+    // Measured once here rather than per candidate: every candidate refits the same source text.
+    const fitSource = fit == null ? undefined : measureLabelText(fit.text, fit.font);
     for (let ci = 0, ln = candidates.length; ci < ln; ci++) {
         const c = candidates[ci];
         const region = c.region ?? bounds;
@@ -1743,7 +1754,7 @@ function placeFromPositionedCandidates(
         candidateBox.width = c.box.width;
         candidateBox.height = c.box.height;
         if (fit != null && c.fitTo != null) {
-            if (!fitLabelToCandidate(fit, c.fitTo.container)) continue;
+            if (!fitLabelToCandidate(fit, fitSource, c.fitTo.container)) continue;
             ({ text, dropped } = fittedLabel);
             const { padding } = c.fitTo;
             width = fittedLabel.width + padding.left + padding.right;

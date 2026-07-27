@@ -111,10 +111,11 @@ export interface AgChartLabelFitOptions {
      * - `'on-space'` will only wrap on white space. If there is no possibility to wrap a line on space and satisfy the bounds, the text will be truncated.
      * - `'never'` disables text wrapping.
      *
-     * Setting this opts the label into overflow management, so `truncate` and `collision.alwaysShow`
-     * take their overflow-managed defaults unless set explicitly.
+     * Setting this opts the label into overflow management, so `truncate` takes its overflow-managed
+     * default unless set explicitly; a value other than `'never'` does the same for
+     * `collision.alwaysShow`.
      *
-     * Default: `'on-space'` when any other overflow-control option is set, otherwise unset
+     * Default: `'on-space'` when any of `maxWidth`, `maxHeight`, `truncate: true` or a multi-candidate `placement`/`orientation` list is set, otherwise unset
      */
     wrapping?: TextWrap;
     /**
@@ -123,7 +124,7 @@ export interface AgChartLabelFitOptions {
      * Setting this to `true` opts the label into overflow management, so `wrapping` and
      * `collision.alwaysShow` take their overflow-managed defaults unless set explicitly.
      *
-     * Default: `true` when any other overflow-control option is set, otherwise unset
+     * Default: `true` when any of `maxWidth`, `maxHeight`, `wrapping` or a multi-candidate `placement`/`orientation` list is set, otherwise unset
      */
     truncate?: boolean;
 }
