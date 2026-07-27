@@ -114,7 +114,9 @@ describe('label collision avoidance', () => {
     };
 
     const expectAllEllipsised = (fullText: string) => {
-        for (const rendered of renderedLabelTexts()) {
+        const texts = renderedLabelTexts();
+        expect(texts.length).toBeGreaterThan(0);
+        for (const rendered of texts) {
             expect(rendered).not.toBe(fullText);
             expect(rendered.endsWith('…')).toBe(true);
         }
