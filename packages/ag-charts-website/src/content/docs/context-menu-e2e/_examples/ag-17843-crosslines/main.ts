@@ -49,7 +49,7 @@ const options: AgCartesianChartOptions = {
         getItems: (params: AgContextMenuGetItemsParams): AgContextMenuItem[] => {
             getItemsCalls.push(params);
             console.log(`getItems()`, params);
-            if (params.showOn !== 'crossline') {
+            if (params.showOn !== 'cross-line') {
                 return [
                     {
                         showOn: 'always',
@@ -60,7 +60,7 @@ const options: AgCartesianChartOptions = {
             } else {
                 return [
                     {
-                        showOn: 'crossline',
+                        showOn: 'cross-line',
                         label: 'Run crossline action',
                         action: (ev: AgCrossLineContextMenuActionEvent) => {
                             console.log(`action()`, params);

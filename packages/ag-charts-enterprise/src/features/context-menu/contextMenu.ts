@@ -74,7 +74,7 @@ type PickedNode = _ModuleSupport.SeriesNodeDatum & {
 type ShowOnParams = AgContextMenuShowOnParams<DatumDefault, ContextDefault>;
 type SeriesNodeParams = Extract<ShowOnParams, { showOn: 'series-node' }>;
 type AxisParams = Extract<ShowOnParams, { showOn: 'axis' }>;
-type CrossLineParams = Extract<ShowOnParams, { showOn: 'crossline' }>;
+type CrossLineParams = Extract<ShowOnParams, { showOn: 'cross-line' }>;
 type CaptionParams = Extract<ShowOnParams, { showOn: 'caption' }>;
 type LegendItemParams = Extract<ShowOnParams, { showOn: 'legend-item' }>;
 type GetItemsParams = [AgContextMenuGetItemsParams, Caller[]];
@@ -92,7 +92,7 @@ export class ContextMenu extends AbstractModuleInstance {
     private pickedLegendItem?: _ModuleSupport.CategoryLegendDatum;
     private pickedCaptionCtx?: ContextShowOnMap['caption']['context'];
     private pickedAxisCtx?: _ModuleSupport.AxisValuePick;
-    private pickedCrossLine?: ContextShowOnMap['crossline']['context'];
+    private pickedCrossLine?: ContextShowOnMap['cross-line']['context'];
     private x: number = 0;
     private y: number = 0;
     private collapsingSubMenus = 0;
@@ -173,12 +173,12 @@ export class ContextMenu extends AbstractModuleInstance {
         return { showOn: 'axis', axisId, boundSeries, direction, domain, value, index };
     }
 
-    private crossLineRegions(picks: ContextShowOnMap['crossline']['context']): CrossLineParams[] {
+    private crossLineRegions(picks: ContextShowOnMap['cross-line']['context']): CrossLineParams[] {
         const result: CrossLineParams[] = [];
         for (const pick of picks) {
             const { crossLineId, axisId, direction, type, value, range } = pick;
             result.push({
-                showOn: 'crossline',
+                showOn: 'cross-line',
                 crossLineId,
                 axisId,
                 direction,
@@ -196,7 +196,7 @@ export class ContextMenu extends AbstractModuleInstance {
         const params: ShowOnParams[] = [];
         if (active.has('series-area')) params.push({ showOn: 'series-area' });
         if (active.has('axis') && this.pickedAxisCtx != null) params.push(this.axisRegion(this.pickedAxisCtx));
-        if (active.has('crossline') && this.pickedCrossLine != null) {
+        if (active.has('cross-line') && this.pickedCrossLine != null) {
             params.push(...this.crossLineRegions(this.pickedCrossLine));
         }
         return params;
@@ -215,7 +215,7 @@ export class ContextMenu extends AbstractModuleInstance {
                 return this.makeGetItemsParamsSeriesNode(defaultItems, active);
             case 'axis':
                 return this.makeGetItemsParamsAxis(defaultItems, active);
-            case 'crossline':
+            case 'cross-line':
                 return this.makeGetItemsParamsCrossLine(defaultItems, active);
             case 'caption':
                 return this.makeGetItemsParamsCaption(defaultItems);
@@ -276,7 +276,7 @@ export class ContextMenu extends AbstractModuleInstance {
         const region = this.axisRegion(this.pickedAxisCtx);
         const allShowOnParams: ShowOnParams[] = [region];
         if (active.has('series-area')) allShowOnParams.push({ showOn: 'series-area' });
-        if (active.has('crossline') && this.pickedCrossLine != null) {
+        if (active.has('cross-line') && this.pickedCrossLine != null) {
             allShowOnParams.push(...this.crossLineRegions(this.pickedCrossLine));
         }
         const params: AgContextMenuGetItemsParamsAxis<DatumDefault, ContextDefault> = {
@@ -374,7 +374,7 @@ export class ContextMenu extends AbstractModuleInstance {
         this.pickedAxisCtx = contexts.axis;
         this.pickedCaptionCtx = contexts.caption;
         this.pickedLegendItem = contexts['legend-item']?.legendItem;
-        this.pickedCrossLine = contexts.crossline;
+        this.pickedCrossLine = contexts['cross-line'];
 
         const expandedItems = this.expandItemsOptions(event);
         if (expandedItems.length === 0) return;
@@ -560,7 +560,7 @@ export class ContextMenu extends AbstractModuleInstance {
                 }
                 this.hide();
             };
-        } else if (ContextMenuRegistry.checkCallback('crossline', showOn, callback)) {
+        } else if (ContextMenuRegistry.checkCallback('cross-line', showOn, callback)) {
             return () => {
                 if (this.pickedCrossLine && this.pickedCrossLine.length > 0) {
                     const { crossLineId, axisId, direction, type, value, range } = this.pickedCrossLine[0];

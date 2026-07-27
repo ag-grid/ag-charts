@@ -42,9 +42,9 @@ export interface ContextShowOnMap extends ContextShowOnMapRule {
         callback: (param: InferTEvent<'caption'>) => void;
         context: Pick<AgContextMenuGetItemsParamsCaption, 'captionType' | 'text'>;
     };
-    crossline: {
-        event: InferTEvent<'crossline'>;
-        callback: (param: InferTEvent<'crossline'>) => void;
+    'cross-line': {
+        event: InferTEvent<'cross-line'>;
+        callback: (param: InferTEvent<'cross-line'>) => void;
         context: CrossLineValuePick[];
     };
     'legend-item': {
