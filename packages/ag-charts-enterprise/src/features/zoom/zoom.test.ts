@@ -562,7 +562,7 @@ describe('Zoom', () => {
             });
         });
 
-        describe('dragging past the plot edge', () => {
+        describe('dragging to the plot edge', () => {
             // minVisibleItems: 0 removes the item-count floor so the assertion isolates the pointer/anchor
             // math from the (separate) minimum-visible-items clamp.
             const stepsPerLeg = 5;
@@ -585,52 +585,62 @@ describe('Zoom', () => {
                 }
             }
 
-            // Drags from the axis grab point to the plot edge, then continues past it, capturing the zoomed
-            // span at each. The bug froze the span at the edge; the fix keeps it shrinking beyond it.
-            async function dragAcrossEdge(
+            // Drags from the axis grab point toward the plot edge, capturing the zoomed span shortly before the
+            // edge, at the edge, and after continuing past it. The zoom must keep updating right up to the axis
+            // end (not stall before it) and stop there (not continue past it).
+            async function dragToEdge(
                 axis: 'x' | 'y',
                 grab: { x: number; y: number },
                 edge: { x: number; y: number },
                 past: { x: number; y: number }
-            ): Promise<{ spanAtEdge: number; spanPastEdge: number }> {
+            ): Promise<{ spanNearEdge: number; spanAtEdge: number; spanPastEdge: number }> {
+                const nearEdge = {
+                    x: grab.x + (edge.x - grab.x) * 0.8,
+                    y: grab.y + (edge.y - grab.y) * 0.8,
+                };
+
                 await mouseDownAction(grab.x, grab.y)(chart);
                 await mouseMoveAction(grab.x, grab.y)(chart);
-                await stepTo(grab, edge);
+                await stepTo(grab, nearEdge);
+                const spanNearEdge = span(axis);
+                await stepTo(nearEdge, edge);
                 const spanAtEdge = span(axis);
                 await stepTo(edge, past);
                 const spanPastEdge = span(axis);
                 await mouseUpAction(past.x, past.y)(chart);
-                return { spanAtEdge, spanPastEdge };
+                return { spanNearEdge, spanAtEdge, spanPastEdge };
             }
 
-            it('keeps zooming the x-axis as the pointer is dragged past the origin', async () => {
+            it('stops zooming the x-axis when the pointer reaches the axis end', async () => {
                 await prepareChart({ minVisibleItems: 0 });
                 const plotLeft = plotRect().x;
                 const axisY = cy * 2 - 30;
 
-                const { spanAtEdge, spanPastEdge } = await dragAcrossEdge(
+                const { spanNearEdge, spanAtEdge, spanPastEdge } = await dragToEdge(
                     'x',
                     { x: cx * 1.5, y: axisY },
                     { x: plotLeft, y: axisY },
                     { x: plotLeft - 100, y: axisY }
                 );
 
-                expect(spanPastEdge).toBeLessThan(spanAtEdge);
+                expect(spanAtEdge).toBeLessThan(spanNearEdge);
+                expect(spanPastEdge).toBeCloseTo(spanAtEdge);
             });
 
-            it('keeps zooming the y-axis as the pointer is dragged past the plot edge', async () => {
+            it('stops zooming the y-axis when the pointer reaches the plot edge', async () => {
                 await prepareChart({ minVisibleItems: 0 });
                 const plotTop = plotRect().y;
                 const axisX = 30;
 
-                const { spanAtEdge, spanPastEdge } = await dragAcrossEdge(
+                const { spanNearEdge, spanAtEdge, spanPastEdge } = await dragToEdge(
                     'y',
                     { x: axisX, y: cy * 1.5 },
                     { x: axisX, y: plotTop },
                     { x: axisX, y: plotTop - 100 }
                 );
 
-                expect(spanPastEdge).toBeLessThan(spanAtEdge);
+                expect(spanAtEdge).toBeLessThan(spanNearEdge);
+                expect(spanPastEdge).toBeCloseTo(spanAtEdge);
             });
         });
     });

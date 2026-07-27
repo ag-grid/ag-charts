@@ -3,7 +3,7 @@ import { ChartAxisDirection, definedZoomState } from 'ag-charts-core';
 import type { BoxBounds, DefinedZoomState, ZoomMinMax, ZoomState } from 'ag-charts-core';
 
 import type { ZoomCoords } from './zoomTypes';
-import { constrainZoom, dx, dy, pointToRatio, pointToRatioUnconstrained, scaleZoomAxisWithAnchor } from './zoomUtils';
+import { constrainZoom, dx, dy, pointToRatio, scaleZoomAxisWithAnchor } from './zoomUtils';
 
 export class ZoomAxisDragger {
     private coords?: ZoomCoords;
@@ -50,10 +50,10 @@ export class ZoomAxisDragger {
             return newZoom.y;
         }
 
-        // Scale the zoom along the given axis, anchoring on the end of the axis. The grab point stays clamped
-        // to the plot, but the current pointer is taken unclamped so the drag keeps zooming past the plot edge.
+        // Scale the zoom along the given axis, anchoring on the end of the axis. Both the grab point and the
+        // current pointer are pinned to the plot, so the zoom stops updating once the pointer reaches the axis end.
         const origin = pointToRatio(bbox, coords.x1, coords.y1);
-        const target = pointToRatioUnconstrained(bbox, coords.x2, coords.y2);
+        const target = pointToRatio(bbox, coords.x2, coords.y2);
 
         if (direction === ChartAxisDirection.X) {
             const scaleX = (target.x - origin.x) * dx(oldZoom);
