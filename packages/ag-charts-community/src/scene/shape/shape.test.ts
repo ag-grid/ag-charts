@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { Logger } from 'ag-charts-core';
 import type { AgPatternName } from 'ag-charts-types';
 
 import { PATTERN_SNAPSHOT_DEFAULTS, looserSnapshotDefaults } from '../../chart/test/utils';
@@ -739,6 +740,58 @@ describe('Shape', () => {
             // Check rendering.
             const imageData = extractImageData(canvasCtx);
             expect(imageData).toMatchImageSnapshot();
+        });
+    });
+
+    describe('pattern/image fill logger routing', () => {
+        const canvasCtx = setupMockCanvas({ width: 100, height: 100 });
+
+        afterEach(() => vi.restoreAllMocks());
+
+        // Pattern width clamps to >= 1, so scale < 1 forces width * scale < 1 — the "too small" guard.
+        const tooSmallPatternRect = () => {
+            const testCase: Partial<Rect> = {
+                width: 50,
+                height: 50,
+                fill: { type: 'pattern', pattern: 'circles', width: 1, scale: 0.5, fill: 'black' },
+            };
+            return Object.assign(new Rect(), testCase);
+        };
+
+        const render = (rect: Rect, logger?: Logger) => {
+            const ctx = canvasCtx.getRenderContext2D();
+            const renderCtx = {
+                ctx,
+                direction: 'ltr' as const,
+                width: 100,
+                height: 100,
+                devicePixelRatio: 1,
+                logger,
+                debugNodes: {},
+            };
+            ctx.save();
+            rect.preRender(renderCtx);
+            rect.render(renderCtx);
+            ctx.restore();
+        };
+
+        it('routes a pattern fill "too small to render" warning through the render-context logger', () => {
+            const logger = new Logger();
+            const scoped = vi.spyOn(logger, 'warnOnce').mockImplementation(() => {});
+            const fallback = vi.spyOn(Logger.default, 'warnOnce').mockImplementation(() => {});
+
+            render(tooSmallPatternRect(), logger);
+
+            expect(scoped).toHaveBeenCalledWith('Pattern fill is too small to render, ignoring.');
+            expect(fallback).not.toHaveBeenCalled();
+        });
+
+        it('falls back to Logger.default when the render context carries no logger', () => {
+            const fallback = vi.spyOn(Logger.default, 'warnOnce').mockImplementation(() => {});
+
+            render(tooSmallPatternRect());
+
+            expect(fallback).toHaveBeenCalledWith('Pattern fill is too small to render, ignoring.');
         });
     });
 });
