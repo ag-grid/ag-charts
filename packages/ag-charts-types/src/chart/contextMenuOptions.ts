@@ -220,9 +220,8 @@ interface GetItemsParamsMixin<TDatum, TContext> {
     /** The default menu items that would be shown without customisation. */
     defaultItems: AgContextMenuItem<TDatum, TContext>[];
     /**
-     * Every `showOn` scope that matched at the click point, including the winning scope carried by these root
-     * params. Lets the callback build one combined menu when scopes overlap — for example a datum node drawn
-     * over an axis positioned with `crossAt`. Scopes that did not match are absent from the array.
+     * Every `showOn` scope that matched at the click point, including the winning scope in the root
+     * params. Scopes that did not match are absent from the array.
      */
     allShowOnParams: AgContextMenuShowOnParams<TDatum, TContext>[];
 }

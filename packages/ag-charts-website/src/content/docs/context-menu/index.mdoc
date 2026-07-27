@@ -60,7 +60,16 @@ The Context Menu's custom actions can be used to run arbitrary functions based o
 
 {% chartExampleRunner title="Context Menu Custom Actions" name="context-menu-actions" type="generated" /%}
 
-Use the `showOn` property to specify when the action should be shown.
+Use the `showOn` property to specify when a custom item should be shown:
+
+- `always` - shown regardless of what was clicked.
+- `axis` - shown when right-clicking an axis.
+- `caption` - shown when right-clicking a caption (title, subtitle, footnote).
+- `series-area` - shown when right-clicking anywhere within the series area bounds.
+- `series-node` - shown when right-clicking a datum node.
+- `legend-item` - shown when right-clicking a legend item.
+
+If there are multiple elements that match the `showOn` value, all of them are shown in the Context Menu.
 
 ```js format="snippet"
 {
@@ -79,14 +88,6 @@ Use the `showOn` property to specify when the action should be shown.
                 label: 'Say hello to an axis',
                 action: (ev) => console.log(`Hello in axis "${ev.axisId}":"`, ev),
             },
-            'separator',
-            {
-                showOn: 'caption',
-                label: 'Say hello in a caption',
-                action: ({ captionType, text }) =>
-                    console.log(`Hello in a ${captionType} caption: "${text}"`),
-            },
-            'separator',
             {
                 showOn: 'series-area',
                 label: 'Say hello in the series area',
@@ -98,12 +99,7 @@ Use the `showOn` property to specify when the action should be shown.
                 label: 'Say hello to a node',
                 action: ({ datum, yKey }) => console.log(`Hello ${yKey} in ${datum.month}!`),
             },
-            'separator',
-            {
-                showOn: 'legend-item',
-                label: 'Say hello to a legend item',
-                action: ({ itemId }) => console.log(`Hello ${itemId}!`),
-            },
+            //...more custom actions for legend items, captions, etc.
         ],
     },
 }
@@ -112,7 +108,7 @@ Use the `showOn` property to specify when the action should be shown.
 In this configuration:
 
 - A single custom action is added for the entire chart, the captions, the series area, the series node and the legend items.
-  Multiple actions per item can be specified within the array if required.
+- Multiple entries per `showOn` element can be specified within the array if required.
 - Right clicking on one of these areas will show these additional actions in the Context Menu.
 - Clicking these extra actions will display information in the console, demonstrating that the action is aware of details about the right-clicked item.
 
@@ -216,8 +212,9 @@ The `getItems` callback can be used to implement Dynamic Context Menus. This is 
 
 In this example:
 
-- The Context Menu on Bar Nodes includes a console `Log Datum` Menu Item,
-  whose text is dynamically derived from the Context Menu Event parameters.
+- The Context Menu on Bar Nodes includes a console `Log Datum` Menu Item, whose text is dynamically derived from the Context Menu Event parameters.
+- The `getItems` params includes a `showOn` property which indicates which element type was right-clicked, alongside relevant information about the clicked element.
+- If there are multiple elements at the same click point, the `allShowOnParams` array on the `getItems` params provides the parameters for every element, not just the winning one.
 
 ### Example: Interactive Customisation
 
