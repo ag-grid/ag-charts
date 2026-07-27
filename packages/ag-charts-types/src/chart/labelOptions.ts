@@ -90,19 +90,9 @@ export interface AgChartLabelOptions<TDatum, TParams, TContext = ContextDefault>
  * these options.
  */
 export interface AgChartLabelFitOptions {
-    /**
-     * Maximum width, in pixels, the label may occupy before it is wrapped or truncated to fit.
-     *
-     * Setting this opts the label into overflow management, so `wrapping`, `truncate` and
-     * `collision.alwaysShow` take their overflow-managed defaults unless set explicitly.
-     */
+    /** Maximum width, in pixels, the label may occupy before it is wrapped or truncated to fit. */
     maxWidth?: PixelSize;
-    /**
-     * Maximum height, in pixels, the label may occupy before it is wrapped or truncated to fit.
-     *
-     * Setting this opts the label into overflow management, so `wrapping`, `truncate` and
-     * `collision.alwaysShow` take their overflow-managed defaults unless set explicitly.
-     */
+    /** Maximum height, in pixels, the label may occupy before it is wrapped or truncated to fit. */
     maxHeight?: PixelSize;
     /**
      * Text wrapping strategy applied when the label is constrained by `maxWidth` or `maxHeight`.
@@ -110,22 +100,9 @@ export interface AgChartLabelFitOptions {
      * - `'hyphenate'` is similar to `'always'`, but inserts a hyphen (`-`) if forced to wrap in the middle of a word.
      * - `'on-space'` will only wrap on white space. If there is no possibility to wrap a line on space and satisfy the bounds, the text will be truncated.
      * - `'never'` disables text wrapping.
-     *
-     * Setting this opts the label into overflow management, so `truncate` takes its overflow-managed
-     * default unless set explicitly; a value other than `'never'` does the same for
-     * `collision.alwaysShow`.
-     *
-     * Default: `'on-space'` when any of `maxWidth`, `maxHeight`, `truncate: true` or a multi-candidate `placement`/`orientation` list is set, otherwise unset
      */
     wrapping?: TextWrap;
-    /**
-     * Whether to truncate the label with an ellipsis when it does not fit within its bounds.
-     *
-     * Setting this to `true` opts the label into overflow management, so `wrapping` and
-     * `collision.alwaysShow` take their overflow-managed defaults unless set explicitly.
-     *
-     * Default: `true` when any of `maxWidth`, `maxHeight`, `wrapping` or a multi-candidate `placement`/`orientation` list is set, otherwise unset
-     */
+    /** Whether to truncate the label with an ellipsis when it does not fit within its bounds. */
     truncate?: boolean;
 }
 
