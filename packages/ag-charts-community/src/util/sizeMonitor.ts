@@ -13,6 +13,7 @@ type OnSizeChange = (size: Size, element: HTMLElement) => void;
 interface Entry {
     cb: OnSizeChange;
     size?: Size;
+    resizeObserverAttached?: boolean;
 }
 
 export class SizeMonitor {
@@ -20,7 +21,7 @@ export class SizeMonitor {
     private resizeObserver: ResizeObserver | undefined;
     private pixelRatioObserver: PixelRatioObserver | undefined;
     private documentReady = false;
-    private queuedObserveRequests: [HTMLElement, OnSizeChange, { skipInitialRead?: boolean }?][] = [];
+    private pendingObserveAttachments: HTMLElement[] = [];
     private removeLoadListener: (() => void) | undefined;
 
     constructor(agDocument: AgDocument, mode: 'normal' | 'minimal' = 'normal') {
@@ -64,10 +65,11 @@ export class SizeMonitor {
 
     onLoad: EventListener = () => {
         this.documentReady = true;
-        for (const [el, cb, opts] of this.queuedObserveRequests) {
-            this.observe(el, cb, opts);
+        const pending = this.pendingObserveAttachments;
+        this.pendingObserveAttachments = [];
+        for (const element of pending) {
+            this.attachObserver(element);
         }
-        this.queuedObserveRequests = [];
         this.observeWindow();
     };
 
@@ -107,22 +109,33 @@ export class SizeMonitor {
 
     // Only a single callback is supported.
     observe(element: HTMLElement, cb: OnSizeChange, opts?: { skipInitialRead?: boolean }) {
-        if (!this.documentReady) {
-            this.queuedObserveRequests.push([element, cb, opts]);
-            return;
-        }
-
-        if (this.elements.has(element)) {
-            this.removeFromQueue(element);
-        } else {
-            this.resizeObserver?.observe(element);
-        }
-        const entry: Entry = { cb };
+        const entry: Entry = {
+            cb,
+            resizeObserverAttached: this.elements.get(element)?.resizeObserverAttached,
+        };
         this.elements.set(element, entry);
 
+        if (this.documentReady) {
+            this.attachObserver(element);
+        } else if (!this.pendingObserveAttachments.includes(element)) {
+            this.pendingObserveAttachments.push(element);
+        }
+
+        // Only the observer attachment may wait for the load event; the size must be read now, or
+        // the chart lays out against a fabricated default and jumps once the real size arrives.
         if (!opts?.skipInitialRead) {
             this.readSize(entry, element);
         }
+    }
+
+    private attachObserver(element: HTMLElement) {
+        this.removeFromQueue(element);
+
+        const entry = this.elements.get(element);
+        if (entry == null || entry.resizeObserverAttached) return;
+
+        entry.resizeObserverAttached = true;
+        this.resizeObserver?.observe(element);
     }
 
     // Synchronously read an element's size for cases the ResizeObserver may not cover: a
@@ -163,6 +176,6 @@ export class SizeMonitor {
     }
 
     removeFromQueue(element: HTMLElement) {
-        this.queuedObserveRequests = this.queuedObserveRequests.filter(([el]) => el !== element);
+        this.pendingObserveAttachments = this.pendingObserveAttachments.filter((el) => el !== element);
     }
 }

@@ -6,14 +6,26 @@ import { SizeMonitor } from './sizeMonitor';
 // Capture the ResizeObserver callback registered by SizeMonitor so we can
 // simulate browser-fired resize events in tests.
 let resizeObserverCallback: ResizeObserverCallback | undefined;
+// Elements handed to ResizeObserver.observe(), in call order.
+let observedElements: HTMLElement[] = [];
+let loadListeners: EventListener[] = [];
 
 function createMockAgDocument({ ready = true } = {}) {
     return {
         isReady: () => ready,
-        attachListener: () => () => {},
+        attachListener: (_type: string, listener: EventListener) => {
+            loadListeners.push(listener);
+            return () => {
+                loadListeners = loadListeners.filter((l) => l !== listener);
+            };
+        },
         createResizeObserver(callback: ResizeObserverCallback) {
             resizeObserverCallback = callback;
-            return { observe: () => {}, unobserve: () => {}, disconnect: () => {} };
+            return {
+                observe: (element: HTMLElement) => observedElements.push(element),
+                unobserve: () => {},
+                disconnect: () => {},
+            };
         },
         createIntersectionObserver: () => undefined,
         devicePixelRatio: 1,
@@ -23,6 +35,12 @@ function createMockAgDocument({ ready = true } = {}) {
 
 function fireResizeObserver(element: HTMLElement, width: number, height: number) {
     resizeObserverCallback?.([{ target: element, contentRect: { width, height } } as any], {} as any);
+}
+
+function fireDocumentLoad() {
+    for (const listener of [...loadListeners]) {
+        listener(new Event('load'));
+    }
 }
 
 function mockElement(opts: {
@@ -51,6 +69,8 @@ function mockElement(opts: {
 describe('SizeMonitor', () => {
     beforeEach(() => {
         resizeObserverCallback = undefined;
+        observedElements = [];
+        loadListeners = [];
     });
 
     describe('CRT-1065: synchronous initial read must use content-box dimensions', () => {
@@ -112,6 +132,99 @@ describe('SizeMonitor', () => {
             fireResizeObserver(element, 900, 700);
             expect(sizes).toHaveLength(2);
             expect(sizes[1]).toMatchObject({ width: 900, height: 700 });
+        });
+    });
+
+    describe('a chart created before the document load event still gets its size up front', () => {
+        it('reads the size synchronously while the document is still loading', () => {
+            const sizeMonitor = new SizeMonitor(createMockAgDocument({ ready: false }));
+            const element = mockElement({ clientWidth: 900, clientHeight: 700 });
+
+            const sizes: Size[] = [];
+            sizeMonitor.observe(element, (size) => sizes.push({ ...size }));
+
+            // Without this the chart lays out at a fabricated default size and then jumps.
+            expect(sizes).toHaveLength(1);
+            expect(sizes[0]).toMatchObject({ width: 900, height: 700 });
+        });
+
+        it('defers the ResizeObserver attachment until the load event', () => {
+            const sizeMonitor = new SizeMonitor(createMockAgDocument({ ready: false }));
+            const element = mockElement({ clientWidth: 900, clientHeight: 700 });
+
+            sizeMonitor.observe(element, () => {});
+            // Attaching before the document completes fires spurious resizes.
+            expect(observedElements).toEqual([]);
+
+            fireDocumentLoad();
+            expect(observedElements).toEqual([element]);
+        });
+
+        it('does not re-report an unchanged size when the load event attaches the observer', () => {
+            const sizeMonitor = new SizeMonitor(createMockAgDocument({ ready: false }));
+            const element = mockElement({ clientWidth: 900, clientHeight: 700 });
+
+            const sizes: Size[] = [];
+            sizeMonitor.observe(element, (size) => sizes.push({ ...size }));
+            expect(sizes).toHaveLength(1);
+
+            fireDocumentLoad();
+            fireResizeObserver(element, 900, 700);
+
+            expect(sizes).toHaveLength(1);
+        });
+
+        it('attaches the ResizeObserver once when observe() is called again after load', () => {
+            const sizeMonitor = new SizeMonitor(createMockAgDocument({ ready: false }));
+            const element = mockElement({ clientWidth: 900, clientHeight: 700 });
+
+            sizeMonitor.observe(element, () => {});
+            fireDocumentLoad();
+            sizeMonitor.observe(element, () => {});
+
+            expect(observedElements).toEqual([element]);
+        });
+
+        it('reports a size that changed between observe() and the load event', () => {
+            const sizeMonitor = new SizeMonitor(createMockAgDocument({ ready: false }));
+            const element = mockElement({ clientWidth: 900, clientHeight: 700 });
+
+            const sizes: Size[] = [];
+            sizeMonitor.observe(element, (size) => sizes.push({ ...size }));
+            expect(sizes).toHaveLength(1);
+
+            // The attached observer delivers the current size, covering a mid-load relayout.
+            fireDocumentLoad();
+            fireResizeObserver(element, 640, 480);
+
+            expect(sizes).toHaveLength(2);
+            expect(sizes[1]).toMatchObject({ width: 640, height: 480 });
+        });
+
+        it('skips the initial read but still attaches the observer when asked to', () => {
+            const sizeMonitor = new SizeMonitor(createMockAgDocument({ ready: false }));
+            const element = mockElement({ clientWidth: 900, clientHeight: 700 });
+
+            const sizes: Size[] = [];
+            sizeMonitor.observe(element, (size) => sizes.push({ ...size }), { skipInitialRead: true });
+            expect(sizes).toHaveLength(0);
+
+            fireDocumentLoad();
+            expect(observedElements).toEqual([element]);
+
+            fireResizeObserver(element, 900, 700);
+            expect(sizes).toHaveLength(1);
+        });
+
+        it('does not attach an observer for an element unobserved before the load event', () => {
+            const sizeMonitor = new SizeMonitor(createMockAgDocument({ ready: false }));
+            const element = mockElement({ clientWidth: 900, clientHeight: 700 });
+
+            sizeMonitor.observe(element, () => {});
+            sizeMonitor.unobserve(element);
+            fireDocumentLoad();
+
+            expect(observedElements).toEqual([]);
         });
     });
 
