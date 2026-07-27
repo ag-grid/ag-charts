@@ -1,6 +1,84 @@
 # Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
 version: v1.25.1
 ignore:
+  SNYK-JS-POSTCSS-18313038:
+    - astro@6.1.9 > vite@7.3.3 > postcss@8.5.10:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-07-27T10:17:20.228Z
+    - '@astrojs/react@5.0.4 > vite@7.3.3 > postcss@8.5.10':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-07-27T10:17:20.225Z
+    - vitest@2.1.9 > vite@6.3.5 > postcss@8.5.3:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-07-27T10:17:20.162Z
+    - vite@5.4.20 > postcss@8.5.4:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-07-27T10:17:20.145Z
+  SNYK-JS-POSTCSS-18313036:
+    - astro@6.1.9 > vite@7.3.3 > postcss@8.5.10:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-07-27T10:16:26.777Z
+    - '@astrojs/react@5.0.4 > vite@7.3.3 > postcss@8.5.10':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-07-27T10:16:26.768Z
+    - vitest@2.1.9 > vite@6.3.5 > postcss@8.5.3:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-07-27T10:16:26.719Z
+    - vite@5.4.20 > postcss@8.5.4:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-07-27T10:16:26.689Z
+  SNYK-JS-JSYAML-18313070:
+    - vite-plugin-svgr@4.5.0 > @svgr/core@8.1.0 > cosmiconfig@8.3.6 > js-yaml@4.1.0:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-07-27T09:53:10.876Z
+    - '@astrojs/markdoc@1.0.4 > @astrojs/markdown-remark@7.1.1 > js-yaml@4.1.1':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-07-27T09:53:10.869Z
+    - astro@6.1.9 > @astrojs/markdown-remark@7.1.1 > js-yaml@4.1.1:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-07-27T09:53:10.862Z
+    - astro@6.1.9 > js-yaml@4.1.1:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-07-27T09:53:10.858Z
+  SNYK-JS-BRACEEXPANSION-18313044:
+    - react-query@3.39.3 > broadcast-channel@3.7.0 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.0.2:
+        reason: >-
+            broadcast-channel is only reachable via react-query's
+            broadcastQueryClient-experimental entry point, which we don't import; its
+            rimraf/glob usage is Node-only and stubbed out in browser bundles via the
+            package browser field. Glob patterns are internal temp paths, never user
+            input.
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-07-27T10:25:49.854Z
+    - glob@8.0.3 > minimatch@5.1.6 > brace-expansion@2.0.2:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-07-27T09:08:46.969Z
   SNYK-JS-ESBUILD-17750822:
     - vitest@2.1.9 > vite@6.3.5 > esbuild@0.25.0:
         reason: Test dependency - not included in final production build
@@ -222,7 +300,12 @@ ignore:
         created: 2026-05-28T00:00:00.000Z
   SNYK-JS-BRACEEXPANSION-15789759:
     - react-query@3.39.3 > broadcast-channel@3.7.0 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.0.2:
-        reason: We control the urls we query
+        reason: >-
+            broadcast-channel is only reachable via react-query's
+            broadcastQueryClient-experimental entry point, which we don't import; its
+            rimraf/glob usage is Node-only and stubbed out in browser bundles via the
+            package browser field. Glob patterns are internal temp paths, never user
+            input.
         expires: 2026-09-06T00:00:00.000Z
         created: 2026-03-27T16:22:30.297Z
     - glob@8.0.3 > minimatch@5.1.6 > brace-expansion@2.0.2:
@@ -250,7 +333,12 @@ ignore:
         created: 2026-03-02T17:33:07.518Z
   SNYK-JS-MINIMATCH-15353389:
     - react-query@3.39.3 > broadcast-channel@3.7.0 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2:
-        reason: 'React query is only used with known urls, so this is not relevant'
+        reason: >-
+            broadcast-channel is only reachable via react-query's
+            broadcastQueryClient-experimental entry point, which we don't import; its
+            rimraf/glob usage is Node-only and stubbed out in browser bundles via the
+            package browser field. Glob patterns are internal temp paths, never user
+            input.
         expires: 2026-09-06T00:00:00.000Z
         created: 2026-03-02T17:27:05.128Z
     - glob@8.0.3 > minimatch@5.1.6:
@@ -259,7 +347,12 @@ ignore:
         created: 2026-03-02T17:27:05.115Z
   SNYK-JS-MINIMATCH-15309438:
     - react-query@3.39.3 > broadcast-channel@3.7.0 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2:
-        reason: 'React query is only used by known urls, so won''t be affected by ReDoS attacks'
+        reason: >-
+            broadcast-channel is only reachable via react-query's
+            broadcastQueryClient-experimental entry point, which we don't import; its
+            rimraf/glob usage is Node-only and stubbed out in browser bundles via the
+            package browser field. Glob patterns are internal temp paths, never user
+            input.
         expires: 2026-09-06T00:00:00.000Z
         created: 2026-03-02T16:58:54.289Z
     - glob@8.0.3 > minimatch@5.1.6:
@@ -312,7 +405,12 @@ ignore:
         expires: '2026-10-23T00:00:00.000Z'
         created: '2026-07-23T00:00:00.000Z'
     - react-query@3.39.3 > broadcast-channel@3.7.0 > rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.0.2:
-        reason: Build/dev/test tooling dependency - not shipped in AG Charts runtime bundles (which have zero third-party runtime dependencies)
+        reason: >-
+            broadcast-channel is only reachable via react-query's
+            broadcastQueryClient-experimental entry point, which we don't import; its
+            rimraf/glob usage is Node-only and stubbed out in browser bundles via the
+            package browser field. Glob patterns are internal temp paths, never user
+            input.
         expires: '2026-10-23T00:00:00.000Z'
         created: '2026-07-23T00:00:00.000Z'
   SNYK-JS-EXTRACTZIP-17660777:

@@ -1,6 +1,24 @@
 # Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
 version: v1.25.1
 ignore:
+  SNYK-JS-POSTCSS-18313038:
+    - vitest@2.1.9 > vite@6.3.5 > postcss@8.5.3:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-07-27T10:17:20.151Z
+  SNYK-JS-POSTCSS-18313036:
+    - vitest@2.1.9 > vite@6.3.5 > postcss@8.5.3:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-07-27T10:16:26.706Z
+  SNYK-JS-BRACEEXPANSION-18313044:
+    - jest-image-snapshot@6.4.0 > rimraf@2.7.1 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.0.2:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-07-27T09:08:46.956Z
   SNYK-JS-ESBUILD-17750822:
     - vitest@2.1.9 > vite@6.3.5 > esbuild@0.25.0:
         reason: Test dependency - not included in final production build
