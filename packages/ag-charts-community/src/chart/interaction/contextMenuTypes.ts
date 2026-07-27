@@ -11,7 +11,7 @@ import type {
 import type { AxisValuePick } from '../../module/axisContext';
 import type { CrossLineValuePick } from '../crossline/crossLine';
 import type { CategoryLegendDatum } from '../legend/legendDatum';
-import type { ISeries, SeriesNodeDatum } from '../series/seriesTypes';
+import type { SeriesNodeDatum } from '../series/seriesTypes';
 
 // Extract TEvent from `action?: (param: TEvent)` of the AgContextMenuItem contract:
 type InferTEvent<T extends AgContextMenuItemShowOn> =
@@ -60,10 +60,8 @@ export interface ContextShowOnMap extends ContextShowOnMapRule {
     'series-node': {
         event: InferTEvent<'series-node'>;
         callback: (param: InferTEvent<'series-node'>) => void;
-        context: {
-            pickedSeries: ISeries<any, any, any> | undefined;
-            pickedNode: SeriesNodeDatum | undefined;
-        };
+        /** Every node matched at the click point (e.g. overlapping markers), hit-test order; the first one wins. */
+        context: SeriesNodeDatum[];
     };
 }
 

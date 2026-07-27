@@ -233,9 +233,8 @@ export interface AgContextMenuShowOnParamsLegendItem<_TDatumReserved = never, TC
  * `allShowOnParams` — the same shape a scope passes as its top-level params when it wins outright, without the
  * callback-level `defaultItems`.
  *
- * Keyed by array position rather than by scope so that a future release can surface more than one context for
- * the same scope — e.g. overlapping markers (multiple `series-node`) or an x/y crossover (multiple `axis`) —
- * without an API change. Emitting multiple entries per scope is not yet implemented.
+ * Keyed by array position rather than by scope, because one scope can match more than once at a single click
+ * point — e.g. overlapping markers each contribute their own `series-node` entry.
  */
 export type AgContextMenuShowOnParams<TDatum = DatumDefault, TContext = ContextDefault> =
     | AgContextMenuShowOnParamsAlways<TDatum, TContext>
@@ -250,8 +249,10 @@ interface GetItemsParamsMixin<TDatum, TContext> {
     /** The default menu items that would be shown without customisation. */
     defaultItems: AgContextMenuItem<TDatum, TContext>[];
     /**
-     * Every `showOn` scope that matched at the click point, including the winning scope in the root
-     * params. Scopes that did not match are absent from the array.
+     * Every `showOn` scope that matched at the click point, including the winning scope carried by these root
+     * params. Lets the callback build one combined menu when scopes overlap — for example a datum node drawn
+     * over an axis positioned with `crossAt`. Scopes that did not match are absent from the array. A scope
+     * appears more than once when several of its contexts match the same point, such as overlapping markers.
      */
     allShowOnParams: AgContextMenuShowOnParams<TDatum, TContext>[];
 }

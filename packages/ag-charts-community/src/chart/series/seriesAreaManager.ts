@@ -128,6 +128,15 @@ function computeHighlightInViewport(
     return false;
 }
 
+/** Nodes without a datum index cannot be identified by a context-menu item action, so they are dropped. */
+function seriesNodeContexts(pickedNodes: readonly HighlightNodeDatum[]): SeriesNodeDatum[] {
+    const contexts: SeriesNodeDatum[] = [];
+    for (const { datumIndex, ...node } of pickedNodes) {
+        if (datumIndex != null) contexts.push({ ...node, datumIndex });
+    }
+    return contexts;
+}
+
 function computePendingViewportFocus(event: ZoomChangeCompleteEvent): PickViewportFocusInputs['where'] | undefined {
     switch (event.sourceDetail) {
         case 'keyboard-page(1)':
@@ -466,10 +475,12 @@ export class SeriesAreaManager extends BaseManager {
             return;
         }
 
-        let pickedNode: HighlightNodeDatum | undefined;
+        // Every node under the point, not just the topmost: overlapping markers each get their own context.
+        let pickedNodes: readonly HighlightNodeDatum[] = [];
         let position: { x: number; y: number } | undefined;
         if (this.focusIndicator?.isFocusVisible()) {
-            pickedNode = this.chart.ctx.highlightManager.getActiveHighlight();
+            const pickedNode = this.chart.ctx.highlightManager.getActiveHighlight();
+            if (pickedNode) pickedNodes = [pickedNode];
             if (pickedNode && this.seriesRect && pickedNode.midPoint) {
                 position = Transformable.toCanvasPoint(
                     pickedNode.series.contentGroup,
@@ -483,22 +494,20 @@ export class SeriesAreaManager extends BaseManager {
                 this.pickManager.maybeActivate(undefined, (): void => {
                     this.chart.ctx.highlightManager.updateHighlight(this.id);
                 });
-                pickedNode = pick.matches[0];
+                pickedNodes = pick.matches;
             }
         }
-
-        const pickedSeries = pickedNode?.series;
 
         this.clearAll();
         const canvasX = event.currentX + current.cssLeft();
         const canvasY = event.currentY + current.cssTop();
-        const { datumIndex } = pickedNode ?? {};
 
         const regions: AgContextMenuItemShowOn[] = ['series-area'];
         const contexts: ContextMenuRegionContexts = {};
-        if (pickedSeries && pickedNode && datumIndex != null) {
+        const nodeContexts = seriesNodeContexts(pickedNodes);
+        if (nodeContexts.length > 0) {
             regions.push('series-node');
-            contexts['series-node'] = { pickedSeries, pickedNode: { ...pickedNode, datumIndex } };
+            contexts['series-node'] = nodeContexts;
         }
 
         // Ask axis-owning modules whether an axis overlaps this point (mirrors the hover/drag handoff). They
@@ -524,7 +533,7 @@ export class SeriesAreaManager extends BaseManager {
         let primary: AgContextMenuItemShowOn = 'series-area';
         if (contexts['series-node']) {
             primary = 'series-node';
-        } else if (collectEvent.crossLine) {
+        } else if (collectEvent.crossLine.length > 0) {
             primary = 'crossline';
         } else if (collectEvent.axis) {
             primary = 'axis';
