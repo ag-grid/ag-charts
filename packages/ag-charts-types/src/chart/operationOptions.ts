@@ -103,7 +103,11 @@ type ValueTypeName = 'array' | 'boolean' | 'date' | 'function' | 'nullish' | 'nu
 
 type LogicOperation =
     | { $if: [AnyLeaf, AnyLeaf | object, AnyLeaf | object] } // Condition | Value if true | Value if false
-    | { $isType: [AnyLeaf, ValueTypeName | ValueTypeName[], AnyLeaf | object, AnyLeaf | object] } // Value | Type name(s) | Value if matched | Value if not
+    | {
+          $isType:
+              | [AnyLeaf, ValueTypeName | ValueTypeName[], AnyLeaf | object]
+              | [AnyLeaf, ValueTypeName | ValueTypeName[], AnyLeaf | object, AnyLeaf | object];
+      } // Value | Type name(s) | Value if matched | Value if not (omitted resolves to undefined)
     | { $or: AnyLeaf[] } // Array of values that are truthy
     | { $and: AnyLeaf[] } // Array of values that are truthy
     | { $eq: AnyLeaf[] } // Array of values that are truthy
