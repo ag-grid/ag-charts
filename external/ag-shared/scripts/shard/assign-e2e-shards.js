@@ -24,11 +24,20 @@
  * files on disk), the script emits the legacy count-based matrix ({"shard": i, "args":
  * "--shard=i/n"}) so CI degrades gracefully to Playwright's own sharding.
  *
- * Usage (regenerating the timings file):
- *   1. Download all `test-results-e2e-shard-*` artifacts from a recent full CI run:
+ * Durations are specific to the CI event type they were captured from: a workflow may sweep a
+ * wider framework matrix or capture more snapshot output on pushes than on pull requests, which
+ * scales the cost of the affected spec files. Timings captured from one event type therefore
+ * cannot plan shards for another — the mis-weighted files get packed together and the bins
+ * overflow the job timeout. Keep one timings file per event type and pass the matching one.
+ *
+ * Usage (regenerating a timings file):
+ *   1. Pick a run of the SAME event type as the file you are regenerating (a push run for the
+ *      push timings, a pull_request run for the PR timings), then download its shard artifacts:
  *        for i in $(seq 1 48); do gh run download <run-id> -n test-results-e2e-shard-$i -D /tmp/e2e-timings/shard-$i; done
- *   2. Aggregate them:
- *        node assign-e2e-shards.js aggregate /tmp/e2e-timings > packages/ag-charts-website/e2e/shard-timings.json
+ *   2. Check every shard produced a `reports/` directory — `aggregate` skips artifacts without
+ *      one, and a silently-skipped shard leaves its spec files to be guessed at median weight.
+ *   3. Aggregate them into the file for that event type:
+ *        node assign-e2e-shards.js aggregate /tmp/e2e-timings > <path>/shard-timings.json
  */
 const fs = require('fs');
 const path = require('path');
@@ -213,6 +222,8 @@ function aggregate(dir) {
                 _readme:
                     'Historical per-spec-file E2E durations (seconds) used by ' +
                     'external/ag-shared/scripts/shard/assign-e2e-shards.js to balance CI shards. ' +
+                    'Durations are specific to the CI event type they were captured from, so ' +
+                    'regenerate this file from a run of the same event type it is used for. ' +
                     'To regenerate, see the usage notes at the top of that script.',
                 files,
             },

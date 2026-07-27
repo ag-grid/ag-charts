@@ -225,10 +225,15 @@ jobs:
 
                   # Duration-balanced shard assignment (falls back to Playwright count-based
                   # --shard sharding if the committed timings file is missing or stale).
+                  # One timings file per event type: pushes sweep all six framework variants with
+                  # AG_SCENE_SNAPSHOTS=all, so their docs-example specs cost ~10x what the same
+                  # specs cost on a vanilla-only PR run. Planning either run type from the other's
+                  # timings mis-weights those specs badly enough to overflow the 15-minute job
+                  # timeout, so each file must be regenerated from a run of its own event type.
                   e2e_matrix=$(node ./external/ag-shared/scripts/shard/assign-e2e-shards.js \
                     --max ${{ env.AG_E2E_SHARD_COUNT }} \
                     --count ${e2e_count} \
-                    --timings packages/ag-charts-website/e2e/shard-timings.json \
+                    --timings packages/ag-charts-website/e2e/shard-timings${{ github.event_name == 'pull_request' && '.pr' || '' }}.json \
                     --test-dir packages/ag-charts-website/e2e)
                   echo "e2e_matrix=${e2e_matrix}" >> $GITHUB_OUTPUT
                   echo "e2e_count=${e2e_count}" >> $GITHUB_OUTPUT
