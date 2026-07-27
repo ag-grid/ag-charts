@@ -1062,11 +1062,22 @@ export abstract class Axis<
         );
         const { type, value } = formatParams;
 
+        // A crosshair sits at an interpolated position rather than on a tick, so resolve the nearest tick to
+        // give the label formatter the same index it reports for that tick (and the context menu at that point).
+        // Other sources have no meaningful tick index and keep NaN.
+        let labelIndex = Number.NaN;
+        if (source === 'crosshair') {
+            const position = this.scale.convert(input);
+            if (typeof position === 'number' && Number.isFinite(position)) {
+                labelIndex = this.resolveTickIndex(position);
+            }
+        }
+
         const f = this.createCallWithContext(contextProvider);
         const result =
             label?.formatValue(f, type, value, params ?? formatParams) ??
             formatManager.format(f, formatParams, { allowNull }) ??
-            formatAxisLabelValue(this.options.label, this.formatterCache, f, formatParams, Number.NaN) ??
+            formatAxisLabelValue(this.options.label, this.formatterCache, f, formatParams, labelIndex) ??
             formatManager.defaultFormat(formatParams);
 
         return isArray(result) ? result : String(result);
