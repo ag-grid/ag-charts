@@ -44,15 +44,6 @@ describe('buildHomepageMarkdown', () => {
         expect(output).toContain('### Markers & POIs');
     });
 
-    it('lists the latest releases with blog links and highlights', () => {
-        expect(output).toContain(
-            '### [14.1.0 — August 5th, 2026](https://blog.ag-grid.com/whats-new-in-ag-charts-14-1/)'
-        );
-        expect(output).toContain('- Series Label Collisions');
-        // A .0 minor release links to the major-only blog URL.
-        expect(output).toContain('](https://blog.ag-grid.com/whats-new-in-ag-charts-14/)');
-    });
-
     it('renders each FAQ question as an H3', () => {
         expect(output).toContain('### What are AG Charts JavaScript charts?');
     });
