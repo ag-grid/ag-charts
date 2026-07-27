@@ -49,6 +49,7 @@ export class UnitTimeAxis extends DiscreteTimeAxis<UnitTimeScale, NormalisedUnit
 
     constructor(moduleCtx: DynamicContext<ChartRegistry>, id: AxisID, options: NormalisedUnitTimeAxisOptions) {
         super(moduleCtx, id, new UnitTimeScale(), options, false);
+        this.scale.logger = moduleCtx.logger;
     }
 
     override hasDefinedDomain(): boolean {
