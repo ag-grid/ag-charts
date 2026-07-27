@@ -785,28 +785,32 @@ describe('label collision avoidance', () => {
             datum: { itemType: string; placement?: string; valueSide: string };
             computeBBox(): Box | undefined;
         };
+        /** A visible label node's resolved placement, band side, and rendered box. */
+        type PlacedLabelInfo = { placement?: string; side: string; box: Box };
         /** Range-area's engine output, in the plot-local coordinates its anchor points also use. */
-        type RangeAreaPlacedLabels = PlacedLabelGeometry & {
-            placedLabelData: { placement?: string; datum: { itemType: string } }[];
+        type RangeAreaPlacedLabel = {
+            y: number;
+            height: number;
+            placement?: string;
+            datum: { itemType: string; point: { y: number } };
         };
-        const placedLabelData = () => (chart.series[0] as unknown as RangeAreaPlacedLabels).placedLabelData;
+        const placedLabelData = (): RangeAreaPlacedLabel[] => chart.series[0].placedLabelData;
 
-        const placedLabels = async (options: object): Promise<{ placement?: string; side: string; box: Box }[]> => {
+        const placedLabels = async (options: object): Promise<PlacedLabelInfo[]> => {
             chart?.destroy();
             const opts = options as AgChartOptions;
             prepareEnterpriseTestOptions(opts);
             chart = deproxy(AgCharts.create(opts));
             await waitForChartStability(chart);
             const series = chart.series[0] as unknown as { labelSelection: { nodes(): LabelNode[] } };
-            return series.labelSelection
-                .nodes()
-                .filter((node) => node.visible)
-                .map((node) => ({
-                    placement: node.datum.placement,
-                    side: node.datum.valueSide,
-                    box: node.computeBBox(),
-                }))
-                .filter((label): label is { placement?: string; side: string; box: Box } => label.box != null);
+            const labels: PlacedLabelInfo[] = [];
+            for (const node of series.labelSelection.nodes()) {
+                const box = node.visible ? node.computeBBox() : undefined;
+                if (box != null) {
+                    labels.push({ placement: node.datum.placement, side: node.datum.valueSide, box });
+                }
+            }
+            return labels;
         };
 
         const narrowBand = (label: object) => ({
@@ -944,6 +948,82 @@ describe('label collision avoidance', () => {
                 })
             );
             expect(new Set(captured)).toEqual(new Set(['inside', 'outside']));
+        });
+
+        // The structural tests above assert the placement the engine resolved; these pin what actually
+        // renders, so a cascade that reports the right placement but draws in the wrong spot still fails.
+        // The first two are a contrast pair over identical data: without a fallback the colliding sibling
+        // is dropped, with one it survives outside the band. Each asserts its label distribution first, so
+        // no baseline can bake in a render where the fallback silently failed to fire.
+        describe('rendered placement fallback', () => {
+            // Bands narrow enough that the two end labels cannot both sit inside at the theme's spacing.
+            const cascadeBands = (placement: string | string[]) => ({
+                data: [
+                    { x: 'A', low: 46, high: 54 },
+                    { x: 'B', low: 44, high: 56 },
+                    { x: 'C', low: 47, high: 53 },
+                ],
+                legend: { enabled: false },
+                padding: { top: 40, right: 40, bottom: 40, left: 40 },
+                axes: { x: { type: 'category' }, y: { type: 'number', min: 0, max: 100 } },
+                series: [
+                    {
+                        type: 'range-area',
+                        xKey: 'x',
+                        yLowKey: 'low',
+                        yHighKey: 'high',
+                        label: { enabled: true, placement, collision: { alwaysShow: false } },
+                    },
+                ],
+            });
+            const isOutside = (l: { placement?: string; side: string }) =>
+                (l.placement === 'top') === (l.side === 'high');
+
+            it('drops the colliding sibling label when inside is the only placement', async () => {
+                const labels = await placedLabels(cascadeBands('inside'));
+                // Two of the six end labels have nowhere to go once their sibling claims the inside slot.
+                expect(labels).toHaveLength(4);
+                expect(labels.filter(isOutside)).toHaveLength(0);
+                await compareImageSnapshot(chart, ctx);
+            });
+
+            it('keeps both sibling labels by cascading one outside when a fallback is offered', async () => {
+                const labels = await placedLabels(cascadeBands(['inside', 'outside']));
+                // Same data as above: the two labels dropped there are recovered outside their bands.
+                expect(labels).toHaveLength(6);
+                expect(labels.filter(isOutside)).toHaveLength(2);
+                await compareImageSnapshot(chart, ctx);
+            });
+
+            // Labels too long for either candidate are dropped rather than overlapped, leaving visible gaps.
+            it('drops labels whose every placement candidate collides', async () => {
+                const labels = await placedLabels({
+                    data: Array.from({ length: 8 }, (_, i) => ({ x: `Category ${i}`, low: 42 + i, high: 50 + i })),
+                    legend: { enabled: false },
+                    padding: { top: 40, right: 40, bottom: 40, left: 40 },
+                    axes: { x: { type: 'category' }, y: { type: 'number', min: 0, max: 100 } },
+                    series: [
+                        {
+                            type: 'range-area',
+                            xKey: 'x',
+                            yLowKey: 'low',
+                            yHighKey: 'high',
+                            label: {
+                                enabled: true,
+                                placement: ['outside', 'inside'],
+                                formatter: () => 'A very long range-area label',
+                                collision: { alwaysShow: false },
+                            },
+                        },
+                    ],
+                });
+                // All three cascade outcomes must be present, so the render shows each of them: some
+                // labels keep `outside`, some fall back to `inside`, and the rest are dropped.
+                expect(labels.filter(isOutside).length).toBeGreaterThan(0);
+                expect(labels.filter((l) => !isOutside(l)).length).toBeGreaterThan(0);
+                expect(labels.length).toBeLessThan(16);
+                await compareImageSnapshot(chart, ctx);
+            });
         });
     });
 });
