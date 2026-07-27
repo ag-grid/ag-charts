@@ -43,7 +43,7 @@ env:
     BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
     AG_LIBRARY: charts
     AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
-    AG_E2E_SHARD_COUNT: 80
+    AG_E2E_SHARD_COUNT: 32
     LIBRARY_WEBSITE_STATUS_CHANNEL: '#charts-website-status'
 
 permissions:
