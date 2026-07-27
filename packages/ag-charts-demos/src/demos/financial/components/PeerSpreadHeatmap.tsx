@@ -94,7 +94,6 @@ export function PeerSpreadHeatmap({ instrument, peerFeed, peerTick, windowMinute
                 },
                 y: { type: 'category', position: 'left', line: { enabled: false } },
             },
-            animation: { enabled: false },
             gradientLegend: {
                 enabled: true,
                 position: 'bottom',
