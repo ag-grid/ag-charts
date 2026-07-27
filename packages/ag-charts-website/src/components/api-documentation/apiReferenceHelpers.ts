@@ -20,7 +20,7 @@ import { entries } from 'ag-charts-core';
 
 import { getIsBenchmarkOnlyBuild } from '../../utils/env';
 
-type ApiReferenceType = Map<string, NodeTypes>;
+export type ApiReferenceType = Map<string, NodeTypes>;
 type PossibleTypeNode = NodeTypes | undefined | PossibleTypeNode[];
 
 export type SearchDatum = { label: string; searchable: string; navPath: NavigationPath[] };
@@ -904,6 +904,48 @@ export function buildTypeArgumentsFromGenericsMap(
     return typeParams.map((typeParam) =>
         normalizeType(genericsMap[typeParam.name] ?? typeParam.default ?? typeParam.name)
     );
+}
+
+/**
+ * Builds positional type arguments from a member's own `typeRef`, resolving each against the
+ * declaring interface's generics map. Counterpart to buildTypeArgumentsFromGenericsMap, which
+ * reads the target's type-params rather than the member's arguments.
+ *
+ * Array members unwrap to their element type, so the arguments read here line up with the type
+ * `getMemberType` resolves for the same member (e.g. `AgAngleCrossLineOptions<AgNumericValue>[]`).
+ */
+export function buildTypeArguments(member: MemberNode, genericsMap?: Record<string, TypeNode>) {
+    let memberType = member.type;
+    while (isArrayNode(memberType)) {
+        memberType = memberType.type;
+    }
+    if (typeof memberType === 'object' && memberType.kind === 'typeRef') {
+        return memberType.typeArguments?.map((genericType) =>
+            typeof genericType === 'string'
+                ? normalizeType(genericsMap?.[genericType] ?? genericType)
+                : normalizeType(genericType)
+        );
+    }
+    return undefined;
+}
+
+/**
+ * Resolves a type name to its reference node, dropping interfaces hidden from the docs. A type
+ * alias pointing at another known type resolves to both nodes, so renderers can show the alias
+ * alongside what it expands to.
+ */
+export function resolveReferenceType(
+    reference: ApiReferenceType | undefined,
+    typeName: string
+): NodeTypes | NodeTypes[] | undefined {
+    if (!reference?.has(typeName) || isInterfaceHidden(typeName)) {
+        return undefined;
+    }
+    const ref = reference.get(typeName)!;
+    if (ref.kind === 'typeAlias' && typeof ref.type === 'string' && reference.has(ref.type)) {
+        return [ref, reference.get(ref.type)!];
+    }
+    return ref;
 }
 
 function collectInterfaceSearchData(

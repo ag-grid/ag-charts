@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+    buildTypeArguments,
     extractSearchData,
     formatTypeToCode,
     formatUnionSignature,
@@ -8,6 +9,7 @@ import {
     getMemberType,
     normalizeType,
     processMembers,
+    resolveReferenceType,
 } from './apiReferenceHelpers';
 
 const union = (...types: any[]) => ({ kind: 'union' as const, type: types });
@@ -310,5 +312,67 @@ describe('extractSearchData', () => {
         expect(run).not.toThrow();
         // Root(1) + Wide members(breadth) + Leaf members per Wide member(breadth^2).
         expect(run()).toHaveLength(1 + breadth + breadth * breadth);
+    });
+});
+
+describe('resolveReferenceType', () => {
+    const reference = new Map<string, any>(
+        Object.entries({
+            LabelOptions: { kind: 'interface', name: 'LabelOptions', members: [] },
+            Label: alias('Label', 'LabelOptions'),
+            Dangling: alias('Dangling', 'NotInReference'),
+            CssColor: alias('CssColor', union('string')),
+        })
+    );
+
+    it('resolves a plain interface to its node', () => {
+        expect(resolveReferenceType(reference as any, 'LabelOptions')).toBe(reference.get('LabelOptions'));
+    });
+
+    it('resolves an alias to a known type as the alias and its target', () => {
+        expect(resolveReferenceType(reference as any, 'Label')).toEqual([
+            reference.get('Label'),
+            reference.get('LabelOptions'),
+        ]);
+    });
+
+    it('resolves an alias to an unknown type as the alias alone', () => {
+        expect(resolveReferenceType(reference as any, 'Dangling')).toBe(reference.get('Dangling'));
+    });
+
+    it.each([
+        ['a name hidden from the docs', 'CssColor'],
+        ['a name absent from the reference', 'Missing'],
+    ])('returns undefined for %s', (_label, typeName) => {
+        expect(resolveReferenceType(reference as any, typeName)).toBeUndefined();
+    });
+});
+
+describe('buildTypeArguments', () => {
+    const member = (type: any) => ({ kind: 'member' as const, name: 'selection', type });
+
+    it('resolves a type-param argument through the generics map', () => {
+        const type = { kind: 'typeRef', type: 'Selection', typeArguments: ['ItemStyle', 'Explicit'] };
+
+        expect(buildTypeArguments(member(type) as any, { ItemStyle: 'StyleOptions' })).toEqual([
+            'StyleOptions',
+            'Explicit',
+        ]);
+    });
+
+    it('returns undefined for a typeRef without arguments', () => {
+        expect(buildTypeArguments(member({ kind: 'typeRef', type: 'Selection' }) as any, {})).toBeUndefined();
+    });
+
+    // getMemberType unwraps `Foo<Bar>[]` to `Foo`, so the arguments must be read from the element
+    // type too — otherwise the resolved interface falls back to its type-param defaults.
+    it('unwraps an array member to read its element type arguments', () => {
+        const type = { kind: 'array', type: { kind: 'typeRef', type: 'CrossLine', typeArguments: ['NumericValue'] } };
+
+        expect(buildTypeArguments(member(type) as any, {})).toEqual(['NumericValue']);
+    });
+
+    it('returns undefined for a member that is not a typeRef', () => {
+        expect(buildTypeArguments(member('boolean') as any, {})).toBeUndefined();
     });
 });
