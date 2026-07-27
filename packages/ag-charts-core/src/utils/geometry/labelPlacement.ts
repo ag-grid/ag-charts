@@ -47,7 +47,6 @@ export interface LabelFit {
     readonly maxWidth?: number;
     readonly maxHeight?: number;
     readonly wrapping?: TextWrap;
-    /** Unset preserves the text in full: it wraps to `maxWidth` where `wrapping` asks for it, but never truncates. */
     readonly overflowStrategy?: OverflowStrategy;
 }
 

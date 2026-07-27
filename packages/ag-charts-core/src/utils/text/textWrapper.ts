@@ -29,11 +29,7 @@ import {
     unguardTextEdges,
 } from './textUtils';
 
-/**
- * Overflow policies the wrapping engine understands. `'preserve'` is internal to the engine (it is not a
- * public {@link OverflowStrategy}): the text wraps to `maxWidth` where the wrapping mode asks for it, but
- * no character, line or segment is ever dropped, so overflow overhangs the bounds instead.
- */
+/** `'preserve'` is engine-internal: text still wraps to `maxWidth`, but nothing is ever dropped or ellipsised. */
 export type WrapOverflow = OverflowStrategy | 'preserve';
 
 // Extended measurement options including wrapping behaviour.
@@ -156,6 +152,16 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0) {
         let estimatedWidth = 0;
         let lastSpaceIndex = 0;
 
+        // Cut `line` at `breakIndex` and restart the scan at the head of what remains.
+        const resumeAfterBreak = (breakIndex: number) => {
+            line = line.slice(breakIndex).trimStart();
+            graphemes = graphemeSegments(line);
+            i = 0;
+            charOffset = 0;
+            estimatedWidth = 0;
+            lastSpaceIndex = 0;
+        };
+
         if (!result.length) {
             estimatedWidth = widthOffset;
         }
@@ -191,18 +197,11 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0) {
                 }
 
                 if (preserveText && wrapOnSpace) {
-                    // Break at the nearest space and keep wrapping the remainder; a word with no space to
-                    // break at overhangs whole rather than being cut short.
+                    // A word with no space to break at overhangs whole rather than being cut short.
                     const breakIndex = lastSpaceIndex || line.indexOf(' ', 1);
                     if (breakIndex < 1) break;
                     result.push(line.slice(0, breakIndex).trimEnd());
-                    line = line.slice(breakIndex).trimStart();
-                    graphemes = graphemeSegments(line);
-
-                    i = 0;
-                    charOffset = 0;
-                    estimatedWidth = 0;
-                    lastSpaceIndex = 0;
+                    resumeAfterBreak(breakIndex);
                     continue;
                 }
 
@@ -212,13 +211,7 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0) {
 
                     if (textWidth <= options.maxWidth) {
                         result.push(line.slice(0, lastSpaceIndex).trimEnd());
-                        line = line.slice(lastSpaceIndex).trimStart();
-                        graphemes = graphemeSegments(line);
-
-                        i = 0; // reset the index after cutting the line
-                        charOffset = 0;
-                        estimatedWidth = 0; // reset the width
-                        lastSpaceIndex = 0; // reset last space index
+                        resumeAfterBreak(lastSpaceIndex);
                         continue;
                     } else if (wrapOnSpace && textWidth > options.maxWidth) {
                         result.push(
@@ -258,13 +251,7 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0) {
                     break;
                 }
 
-                line = line.slice(newLine.length).trimStart();
-                graphemes = graphemeSegments(line);
-
-                i = 0; // reset the index after cutting the line
-                charOffset = 0;
-                estimatedWidth = 0; // reset the width
-                lastSpaceIndex = 0; // reset last space index
+                resumeAfterBreak(newLine.length);
                 continue;
             }
 
