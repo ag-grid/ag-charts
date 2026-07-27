@@ -242,9 +242,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     // Provide the unmapped axis keys for error logging & callbacks.
     unmappedAxisKeys: Map<string, string> = new Map();
 
-    // Validation runs synchronously in this constructor, before the chart's `ctx.logger` exists on
-    // initial create, so console output routes through this instance (the chart's own where one exists).
-    private readonly logger: Logger;
+    // Validation runs synchronously in this constructor, before a chart exists on initial create.
+    // The chart then adopts this instance as `ctx.logger`, so a chart has exactly one Logger.
+    readonly logger: Logger;
 
     private static readonly debug = Debug.create(true, 'opts');
 

@@ -42,10 +42,11 @@ export class Scene extends EventEmitter<EventMap> {
     private readonly cleanup = new CleanupRegistry();
     private releaseDebugStats?: () => void;
 
-    // Self-owned until a chart injects its own — Scene is used context-less by AG Grid sparklines/mini charts.
-    private logger: Logger = new Logger();
-
-    constructor(canvasOptions: CanvasOptions) {
+    constructor(
+        canvasOptions: CanvasOptions,
+        // Defaulted for context-less use by AG Grid sparklines/mini charts; a chart passes its own.
+        private logger: Logger = new Logger()
+    ) {
         super();
 
         this.updateDebugFlags();

@@ -490,6 +490,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             withDragInterpretation: options.optionMetadata.withDragInterpretation ?? true,
             syncManager: new SyncManager(this),
             fireEvent: (event) => this.fireEvent(event),
+            logger: options.logger,
             updateMutex: this.updateMutex,
             cssVariables: options.processedCSSVariables,
         }));

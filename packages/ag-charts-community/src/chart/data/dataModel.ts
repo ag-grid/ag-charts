@@ -119,10 +119,10 @@ export class DataModel<
 
     public constructor(
         private readonly opts: DataModelOptions<K, Grouped, true>,
+        private readonly logger: Logger,
         private readonly mode: ChartMode = 'standalone',
         private readonly suppressFieldDotNotation: boolean = false,
-        private readonly eventsHub: EventsHub | undefined,
-        private readonly logger: Logger
+        private readonly eventsHub?: EventsHub
     ) {
         // Validate that keys appear before values in the definitions, as output ordering depends
         // on configuration ordering, but we process keys before values.

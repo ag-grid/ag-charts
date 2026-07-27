@@ -3,7 +3,7 @@ import {
     CallbackCache,
     type DynamicContext,
     EventEmitter,
-    Logger,
+    type Logger,
     ModuleRegistry,
     ModuleType,
     ReactiveState,
@@ -58,6 +58,7 @@ export interface ChartContextVars {
     domMode?: 'normal' | 'minimal';
     withDragInterpretation: boolean;
     fireEvent: <TEvent extends TypedEvent>(event: TEvent) => void;
+    logger: Logger;
     updateMutex: Mutex;
     cssVariables?: Record<string, string>;
 }
@@ -95,10 +96,13 @@ export function createChartContext(chart: ChartHost, vars: ChartContextVars): Dy
         'scene-canvas',
         vars.scene?.canvas.element
     ) as HTMLCanvasElement & StrictHTMLElement;
-    const scene = vars.scene ?? new Scene({ canvasElement, pixelRatio: vars.agDocument.window.devicePixelRatio ?? 1 });
+    const scene =
+        vars.scene ??
+        new Scene({ canvasElement, pixelRatio: vars.agDocument.window.devicePixelRatio ?? 1 }, vars.logger);
     scene.setRoot(vars.root);
 
-    ctx.constant('eventsHub', eventsHub)
+    ctx.constant('logger', vars.logger)
+        .constant('eventsHub', eventsHub)
         .constant('agDocument', vars.agDocument)
         // The chart is the host — it manages its own lifecycle and the context's.
         // Registering as `ref` keeps it readable via `ctx.chartService` without the
@@ -113,8 +117,7 @@ export function createChartContext(chart: ChartHost, vars: ChartContextVars): Dy
         // when transferable resources are preserved across chart-type switches.
         .ref('scene', scene);
 
-    ctx.service('logger', () => new Logger())
-        .service('callbackCache', () => new CallbackCache())
+    ctx.service('callbackCache', () => new CallbackCache())
         .service('formatManager', () => new FormatManager())
         .service('seriesStateManager', () => new SeriesStateManager())
         .service('stateManager', () => new StateManager())
@@ -140,7 +143,8 @@ export function createChartContext(chart: ChartHost, vars: ChartContextVars): Dy
         .service('dataService', (c) => new DataService<any>(c.eventsHub, chart, c.animationManager, c.logger))
         .service('zoomManager', (c) => new ZoomManager(c));
 
-    scene.setLogger(ctx.logger);
+    // A scene transferred from a previous chart still points at that chart's logger.
+    if (vars.scene) scene.setLogger(vars.logger);
 
     // Plugin modules register their own services (e.g. sharedToolbar) after the
     // core registry is complete but before any consumer reads from the context.
