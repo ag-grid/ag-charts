@@ -1972,7 +1972,11 @@ describe('BarSeries', () => {
                 data: stackedData,
                 legend: { enabled: false },
                 series: [
-                    stackedSeries('bottom', { placement: ['beside-before-center'], spacing: 5 }),
+                    stackedSeries('bottom', {
+                        placement: ['beside-before-center'],
+                        spacing: 5,
+                        collision: { alwaysShow: true },
+                    }),
                     stackedSeries('middle', { placement: ['outside-end'], collision: { alwaysShow: false } }),
                     stackedSeries('top', { placement: ['inside-center'] }),
                 ],
@@ -1981,13 +1985,15 @@ describe('BarSeries', () => {
             expect(counts[0]).toBe(stackedData.length);
         });
 
+        // A string placement, not a one-item list: an array-valued `placement` opts into overflow management, which
+        // turns `alwaysShow` off and would defeat the default under test.
         it('keeps that label under the default alwaysShow', async () => {
             const counts = await visibleLabelCounts({
                 data: stackedData,
                 legend: { enabled: false },
                 series: [
                     stackedSeries('bottom', { placement: ['beside-before-center'], spacing: 5 }),
-                    stackedSeries('middle', { placement: ['outside-end'] }),
+                    stackedSeries('middle', { placement: 'outside-end' }),
                     stackedSeries('top', { placement: ['inside-center'] }),
                 ],
             } as AgChartOptions);

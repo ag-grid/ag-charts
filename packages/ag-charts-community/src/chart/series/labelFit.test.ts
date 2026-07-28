@@ -146,9 +146,9 @@ describe('series label fit', () => {
         });
 
         it('renders every label whole when wrapping is set with truncate disabled', async () => {
-            // An explicit `truncate: false` survives the wrapping trigger, and `wrapping: 'never'` is excluded
-            // from the `alwaysShow` trigger, so nothing bounds the text and it overhangs its bar untouched.
-            await renderAndSnapshot(barChart({ wrapping: 'never', truncate: false }));
+            // `wrapping: 'never'` with `truncate: false` leaves nothing to bound the text, so it overhangs its bar
+            // untouched; `alwaysShow` is explicit because either option otherwise opts the label into hiding.
+            await renderAndSnapshot(barChart({ wrapping: 'never', truncate: false, collision: { alwaysShow: true } }));
             expect(labelTexts()).toEqual(barData.map((d) => d.label));
         });
 
