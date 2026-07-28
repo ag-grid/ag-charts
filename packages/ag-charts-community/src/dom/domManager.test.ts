@@ -640,6 +640,48 @@ describe('DOMManager', () => {
         });
     });
 
+    // The canvas is centred inside canvas-center, so a canvas whose size disagrees with that box
+    // sits half the difference down the container.
+    describe('AG-17927 alignment of an unreconciled canvas size', () => {
+        const newManager = () => {
+            const container = doc.createElement('div');
+            doc.body.append(container);
+            const dm = new DOMManager(eventsHub, undefined, doc, container);
+            return { dm, wrapper: container.firstElementChild! };
+        };
+        const isTopLeftAligned = (wrapper: Element) => ({
+            vertical: wrapper.classList.contains('ag-charts-wrapper--safe-vertical'),
+            horizontal: wrapper.classList.contains('ag-charts-wrapper--safe-horizontal'),
+        });
+
+        it('aligns to the start when the size comes from the container', () => {
+            const { dm, wrapper } = newManager();
+            dm.containerSize = { width: 1666, height: 1290, pixelRatio: 1 };
+            dm.setSizeOptions(0, 0);
+
+            // Without this the placeholder-sized canvas is centred, offsetting the chart by
+            // (1290 - canvasHeight) / 2.
+            expect(isTopLeftAligned(wrapper)).toEqual({ vertical: true, horizontal: true });
+        });
+
+        it('still centres a canvas the caller explicitly sized smaller than its container', () => {
+            const { dm, wrapper } = newManager();
+            dm.containerSize = { width: 1666, height: 1290, pixelRatio: 1 };
+            dm.setSizeOptions(0, 0, 600, 400);
+
+            expect(isTopLeftAligned(wrapper)).toEqual({ vertical: false, horizontal: false });
+        });
+
+        it('keeps aligning an explicitly sized canvas to the start when it exceeds its container', () => {
+            const { dm, wrapper } = newManager();
+            dm.containerSize = { width: 300, height: 200, pixelRatio: 1 };
+            dm.setSizeOptions(0, 0, 600, 400);
+
+            // Centring a canvas larger than the box would hide its top-left.
+            expect(isTopLeftAligned(wrapper)).toEqual({ vertical: true, horizontal: true });
+        });
+    });
+
     describe('destroy()', () => {
         it('removes children it owns but leaves a transferred (re-homed) child intact', () => {
             const container = doc.createElement('div');
