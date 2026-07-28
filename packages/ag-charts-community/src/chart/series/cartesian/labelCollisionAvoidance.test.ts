@@ -2061,6 +2061,98 @@ describe('label collision avoidance', () => {
         });
     });
 
+    // The threshold is a property of the label's own box, so it acts identically on both axes, against
+    // obstacles and against the shape the label sits on alike.
+    describe('collision.threshold applies on both axes', () => {
+        // The top segment is short in the first category and tall in the rest, so only the first
+        // label is bound by the value axis — isolating the axis a negative threshold has to relax.
+        const stackedOptions = (threshold: number) => ({
+            data: [
+                { cat: 'A', base: 14, top: 6 },
+                { cat: 'B', base: 124, top: 20 },
+                { cat: 'C', base: 112, top: 20 },
+            ],
+            legend: { enabled: false },
+            series: [
+                { type: 'bar', xKey: 'cat', yKey: 'base', stacked: true },
+                {
+                    type: 'bar',
+                    xKey: 'cat',
+                    yKey: 'top',
+                    stacked: true,
+                    label: {
+                        enabled: true,
+                        placement: 'inside-center',
+                        // Binds the label's fit to the segment rect, so the value-axis extent decides
+                        // how many lines survive rather than the fit policy alone.
+                        truncate: true,
+                        formatter: () => 'wwwwwwww w wwwwww wwwwwww wwwwwwwww wwwwwwwwww wwww ww',
+                        collision: { alwaysShow: false, threshold },
+                    },
+                },
+            ],
+        });
+
+        const shortSegmentLabelBox = async (threshold: number) => {
+            chart?.destroy();
+            const options = stackedOptions(threshold);
+            prepareTestOptions(options as any);
+            chart = AgCharts.create(options as any);
+            await waitForChartStability(chart);
+            const series = deproxy(chart as any).series[1] as unknown as {
+                labelSelection: { nodes(): { visible: boolean; computeBBox(): LabelBox | undefined }[] };
+            };
+            const [node] = series.labelSelection.nodes();
+            expect(node).toBeDefined();
+            expect(node.visible).toBe(true);
+            const box = node.computeBBox();
+            expect(box).toBeDefined();
+            return box!;
+        };
+
+        it('a negative threshold relaxes the value axis, not just the cross axis', async () => {
+            const at0 = await shortSegmentLabelBox(0);
+            const relaxed = await shortSegmentLabelBox(-50);
+            // Cross axis: the label is already allowed to bleed past the bar's sides.
+            expect(relaxed.width).toBeGreaterThan(at0.width);
+            // Value axis: it must gain the same tolerance and wrap to more lines, rather than staying
+            // pinned to the single line the short segment's height allows.
+            expect(relaxed.height).toBeGreaterThan(at0.height);
+        });
+
+        // Narrow bars of varied height, so a label too big for its bar spills past the sides (cross axis)
+        // and past a short bar's ends (value axis) rather than being truncated back inside it.
+        const spillOptions = (threshold: number) => ({
+            data: [
+                { cat: 'A', value: 8 },
+                { cat: 'B', value: 60 },
+                { cat: 'C', value: 14 },
+                { cat: 'D', value: 90 },
+                { cat: 'E', value: 22 },
+            ],
+            legend: { enabled: false },
+            series: [
+                {
+                    type: 'bar',
+                    xKey: 'cat',
+                    yKey: 'value',
+                    label: {
+                        enabled: true,
+                        placement: 'inside-center',
+                        truncate: true,
+                        color: 'black',
+                        formatter: () => 'Inside label that overflows its bar',
+                        collision: { alwaysShow: false, threshold },
+                    },
+                },
+            ],
+        });
+
+        it('renders inside labels spilling past their bar on both axes', async () => {
+            await renderAndSnapshot(spillOptions(-40));
+        });
+    });
+
     // `label.spacing` is the gap in px between a marker-based label and its anchor point; a larger value
     // pushes the label further from the marker along its placement direction.
     describe('label.spacing (acceptance criteria)', () => {

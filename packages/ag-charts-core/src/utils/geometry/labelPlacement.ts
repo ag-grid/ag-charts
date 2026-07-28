@@ -206,6 +206,12 @@ export interface PointLabelDatum {
      */
     readonly collideWith?: CollideWith;
     /**
+     * Collision clearance for this label's box. Overrides the series
+     * {@link SeriesLabelDefaults.threshold} when set — waterfall styles each item type separately, so
+     * one series can carry several.
+     */
+    readonly threshold?: number;
+    /**
      * Containment rect for this label's fit test, overriding the shared `bounds`. Bar-family labels
      * constrain to their own bar rect so a candidate that overflows the bar is rejected. Falls back
      * to `bounds` when unset, so existing point-series consumers are unaffected.
@@ -371,7 +377,8 @@ function circleOverlapsBox(cx: number, cy: number, r: number, x: number, y: numb
     const dx = cx - edgeX;
     const dy = cy - edgeY;
     // Squared-distance compare avoids Math.hypot's overflow-safe scaling on this per-obstacle hot path.
-    return dx * dx + dy * dy <= r * r;
+    // Strict, matching `boxCollides`: a box merely touching the circle is clear of it, not colliding.
+    return dx * dx + dy * dy < r * r;
 }
 
 export function isPointLabelDatum(x: any): x is PointLabelDatum {
@@ -424,30 +431,30 @@ export function insideBarValueInsets(
 }
 
 /**
- * Inside-label containment region: the bar rect inset by `threshold` on the cross axis (wall-clearance
- * from the bar's side edges) and by the {@link insideBarValueInsets} `spacing` reservation on the value
- * axis — the gap the label keeps from the end(s) it is anchored against. The engine flushes and contains
- * labels against this region, so the gap survives orientation/placement resolution, not just the anchor.
+ * Inside-label containment region: the bar rect inset by the {@link insideBarValueInsets} `spacing`
+ * reservation on the value axis — the gap the label keeps from the end(s) it is anchored against. The
+ * engine flushes and contains labels against this region, so the gap survives orientation/placement
+ * resolution, not just the anchor. Collision clearance is not part of it; the engine applies
+ * `collision.threshold` to every region uniformly.
  */
 export function insideBarRegion(
     rect: BoxBounds,
     valueMinInset: number,
     valueMaxInset: number,
-    threshold: number,
     isVertical: boolean
 ): BoxBounds {
     return isVertical
         ? {
-              x: rect.x + threshold,
+              x: rect.x,
               y: rect.y + valueMinInset,
-              width: rect.width - 2 * threshold,
+              width: rect.width,
               height: rect.height - valueMinInset - valueMaxInset,
           }
         : {
               x: rect.x + valueMinInset,
-              y: rect.y + threshold,
+              y: rect.y,
               width: rect.width - valueMinInset - valueMaxInset,
-              height: rect.height - 2 * threshold,
+              height: rect.height,
           };
 }
 
@@ -704,6 +711,7 @@ export function buildBarLabelDatum(
     orientations: AgChartLabelOrientation[],
     region: BoxBounds | undefined,
     collideWith: CollideWith,
+    threshold: number,
     target: BarLabelTarget,
     fit?: LabelFitDescriptor
 ): BarPlacedLabelDatum {
@@ -718,6 +726,7 @@ export function buildBarLabelDatum(
         gap: 0,
         neverDrop: true,
         collideWith,
+        threshold,
         region,
         ownBox: region,
         target,
@@ -739,6 +748,7 @@ export function buildBarPositionedLabelDatum(
     ownBox: BoxBounds,
     alwaysShow: boolean,
     collideWith: CollideWith,
+    threshold: number,
     ownBoxLabelsCollide = false,
     fit?: LabelFitDescriptor
 ): BarPlacedLabelDatum {
@@ -753,6 +763,7 @@ export function buildBarPositionedLabelDatum(
         // can hide it; otherwise the engine keeps the least-overflowing candidate.
         neverDrop: alwaysShow,
         collideWith,
+        threshold,
         positionedCandidates: candidates,
         ownBox,
         ownBoxLabelsCollide,
@@ -855,6 +866,8 @@ export interface BarLabelSource {
     readonly size?: { width: number; height: number };
     /** Resolved obstacle-category toggles for this label, stamped onto the datum. */
     readonly collideWith: CollideWith;
+    /** Collision clearance for this label's box, stamped onto the datum. */
+    readonly threshold: number;
     /** Per-candidate fit inputs, so each orientation gets the text refitted to the room it actually has. */
     readonly fit?: LabelFitDescriptor;
 }
@@ -884,6 +897,7 @@ export function buildBarLabelData<T>(
                 orientations,
                 label.region,
                 source.collideWith,
+                source.threshold,
                 label,
                 source.fit
             )
@@ -1006,20 +1020,22 @@ const queryBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
 // The marker inscribed rect an `inside` candidate is contained by, co-centred with its label box.
 const insideRegionBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
 const inflatedBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
+// Threshold-adjusted regions, all live at once: the containment region (the datum's own region or the
+// shared bounds), the per-candidate marker rect, and the own region as a glyph budget.
+const deflatedRegionBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
+const deflatedInsideRegionBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
+const fitRegionBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
 // The candidate datum's per-category obstacle config, set before each obstacle query.
 let candidateCollideWith: CollideWith | undefined;
 // Collision-detection threshold applied to the candidate's own box: positive grows it (more clearance),
 // negative shrinks it (tolerates overlap). Set per label before its obstacle queries.
 let candidateThreshold = 0;
-// The directional gap between the label and its anchor marker's edge. The label collides with its own
-// anchor marker only when the threshold demands more clearance than this gap. Set per label.
-let candidateSpacing = 0;
 // The placement of the candidate being tested.
 let candidatePlacement: LabelPlacement | undefined;
-// Centre and radius of the candidate datum's own anchor marker; the label is placed a fixed gap from
-// it, so it is handled by the spacing gate rather than normal collision. The radius disambiguates it
-// from a coincident marker of a different size (e.g. stacked bubbles). Set per datum before its
-// obstacle queries; centre is NaN and radius -1 (never matches) for candidates with no own marker.
+// Centre and radius of the candidate datum's own anchor marker, which an `inside` label is centred on
+// and so never avoids. The radius disambiguates it from a coincident marker of a different size (e.g.
+// stacked bubbles). Set per datum before its obstacle queries; centre is NaN and radius -1 (never
+// matches) for candidates with no own marker.
 let candidateOwnMarkerCx = 0;
 let candidateOwnMarkerCy = 0;
 let candidateOwnMarkerR = -1;
@@ -1075,22 +1091,55 @@ function inflateBoxInto(dest: BoxBounds, src: BoxBounds, inflate: number) {
     dest.height = src.height + 2 * inflate;
 }
 
+/**
+ * How much of the collision threshold a containment region takes: only the negative part, which is spill
+ * allowance — the label may overflow the region by that much without counting as a collision. A positive
+ * threshold must not inset a containment region, because the label is flushed against that region's raw
+ * edge and an inset bound could then only ever reject it. Positive clearance is the glyph budget's job
+ * ({@link deflateContainer}), not containment's.
+ */
+function containmentThreshold(threshold: number): number {
+    return Math.min(threshold, 0);
+}
+
+// The collision threshold applied to a containment region: testing a box inflated by the threshold is
+// the same predicate as testing the raw box against the region inset by it, and the region form is what
+// the least-overflow ranking can share.
+function deflateRegion(dest: BoxBounds, src: BoxBounds, threshold: number): BoxBounds {
+    if (threshold === 0) return src;
+    dest.x = src.x + threshold;
+    dest.y = src.y + threshold;
+    dest.width = Math.max(0, src.width - 2 * threshold);
+    dest.height = Math.max(0, src.height - 2 * threshold);
+    return dest;
+}
+
+// The glyph budget an own region leaves once the collision threshold is taken off it. This is the only
+// way a positive threshold reaches an own shape: the text wraps or truncates to the clearance it has to
+// keep, rather than the box being moved to make room for it.
+function deflateContainer(container: { width: number; height: number } | undefined, threshold: number) {
+    if (container == null || threshold === 0) return container;
+    candidateContainer.width = Math.max(0, container.width - 2 * threshold);
+    candidateContainer.height = Math.max(0, container.height - 2 * threshold);
+    return candidateContainer;
+}
+
 function obstacleOverlapsCandidate(o: LabelObstacle): boolean {
     const category = o.category ?? 'seriesItem';
-    // The label's own anchor marker, when the label is offset from it (a directional or `inside`
-    // placement — not the centred default, which genuinely sits over the marker): an `inside` label is
-    // centred on it and never avoids it; a directional label sits a fixed `spacing` gap from it and
-    // avoids it only when the threshold demands more clearance than that gap (`threshold > spacing`),
-    // never at the default threshold of 0.
+    // An `inside` label is centred on its own anchor marker, so it can never be said to avoid it.
+    // A directional label sits `gap + spacing` off the same marker and falls through to the ordinary
+    // circle test below, which measures the clearance it actually has: `spacing` for the axis-aligned
+    // placements, but the longer corner distance for the diagonals, which must not be treated as
+    // colliding until the threshold really reaches the marker.
     if (
-        candidatePlacement != null &&
+        candidatePlacement === 'inside' &&
         category === 'marker' &&
         o.kind === 'circle' &&
         o.cx === candidateOwnMarkerCx &&
         o.cy === candidateOwnMarkerCy &&
         o.r === candidateOwnMarkerR
     ) {
-        return candidatePlacement !== 'inside' && candidateThreshold > candidateSpacing;
+        return false;
     }
 
     // An on-shape (inside) label never collides with the shape it sits on: any obstacle overlapping the
@@ -1436,8 +1485,7 @@ function fitLabelToCandidate(
  * axes swapped for a rotated candidate (its glyph width runs along the region's height). `undefined`
  * when the datum has no region, leaving the candidate bound only by the fit policy.
  */
-function compassCandidateContainer(d: PointLabelDatum, fit: LabelFitDescriptor, rotation: number) {
-    const region = d.region;
+function compassCandidateContainer(region: BoxBounds | undefined, fit: LabelFitDescriptor, rotation: number) {
     if (region == null) return undefined;
     const pad = fit.boxPadding;
     const upright = rotation % 180 === 0;
@@ -1473,7 +1521,7 @@ function tryPlaceLabel(
     const collideWith = d.collideWith ?? defaults?.collideWith;
     const gap = d.gap ?? d.point.size / 2;
     const spacing = d.spacing ?? defaults?.spacing ?? padding;
-    const threshold = defaults?.threshold ?? 0;
+    const threshold = d.threshold ?? defaults?.threshold ?? 0;
 
     // Sole-candidate keep-forever: one placement, kept on overflow, never dropped. The obstacle query
     // could only ever return this same placement, so skip it and take the placement unconditionally.
@@ -1483,7 +1531,9 @@ function tryPlaceLabel(
         const rotation = orientation == null ? 0 : orientationAngles[orientation];
         let { text, width, height } = d.label;
         if (d.fit != null) {
-            if (!fitLabelToCandidate(d.fit, undefined, compassCandidateContainer(d, d.fit, rotation))) return undefined;
+            if (!fitLabelToCandidate(d.fit, undefined, compassCandidateContainer(d.region, d.fit, rotation))) {
+                return undefined;
+            }
             ({ text } = fittedLabel);
             width = fittedLabel.width + boxWidthOf(d.fit);
             height = fittedLabel.height + boxHeightOf(d.fit);
@@ -1631,7 +1681,6 @@ function placeAvoidingLabel(
     const inflate = Math.max(threshold, 0);
     candidateCollideWith = collideWith;
     candidateThreshold = threshold;
-    candidateSpacing = spacing;
     markerCentreOf(d);
     candidateOwnMarkerCx = markerCentre.cx;
     candidateOwnMarkerCy = markerCentre.cy;
@@ -1642,7 +1691,10 @@ function placeAvoidingLabel(
     candidateOwnBoxLabelsCollide = d.ownBoxLabelsCollide ?? false;
     const candidateCount = candidates?.length ?? 1;
     const orientationCount = orientations?.length ?? 1;
-    const region = d.region ?? bounds;
+    const rawRegion = d.region ?? bounds;
+    const containThreshold = containmentThreshold(threshold);
+    const region = deflateRegion(deflatedRegionBox, rawRegion, containThreshold);
+    const fitRegion = d.region == null ? undefined : deflateRegion(fitRegionBox, d.region, threshold);
     // Edge-anchored bar labels are centred on their glyph centre, which for inside-start/inside-end
     // sits at the bar's end; a candidate rotated to run along the bar would straddle that end. Slide
     // it flush inside its own bar rect instead (a no-op for inside-center, already centred).
@@ -1657,7 +1709,7 @@ function placeAvoidingLabel(
             let { text, width, height } = d.label;
             let dropped = 0;
             if (fit != null) {
-                if (!fitLabelToCandidate(fit, fitSource, compassCandidateContainer(d, fit, rotation))) continue;
+                if (!fitLabelToCandidate(fit, fitSource, compassCandidateContainer(fitRegion, fit, rotation))) continue;
                 ({ text, dropped } = fittedLabel);
                 width = fittedLabel.width + boxWidthOf(fit);
                 height = fittedLabel.height + boxHeightOf(fit);
@@ -1668,15 +1720,17 @@ function placeAvoidingLabel(
             let offsetX = 0;
             let offsetY = 0;
             if (flushToRegion) {
-                const nx = clampAxis(x, cw, region.x, region.width);
-                const ny = clampAxis(y, ch, region.y, region.height);
+                const nx = clampAxis(x, cw, rawRegion.x, rawRegion.width);
+                const ny = clampAxis(y, ch, rawRegion.y, rawRegion.height);
                 offsetX = nx - x;
                 offsetY = ny - y;
                 candidateBox.x = x = nx;
                 candidateBox.y = y = ny;
             }
             candidatePlacement = placement;
-            const containRegion = insideRegionFor(d, placement, x, y, cw, ch, threshold) ?? region;
+            const insideRegion = insideRegionFor(d, placement, x, y, cw, ch);
+            const containRegion =
+                insideRegion == null ? region : deflateRegion(deflatedInsideRegionBox, insideRegion, containThreshold);
             inflateBoxInto(queryBox, candidateBox, inflate);
             if (boxContains(containRegion, x, y, cw, ch) && !obstacleIndex.query(queryBox, obstacleOverlapsCandidate)) {
                 if (dropped === 0) {
@@ -1747,7 +1801,6 @@ function placeFromPositionedCandidates(
     const inflate = Math.max(threshold, 0);
     candidateCollideWith = collideWith;
     candidateThreshold = threshold;
-    candidateSpacing = 0;
     // No compass placement and no own marker on this path (bars): the own-marker gate in
     // obstacleOverlapsCandidate must stay inert, so no obstacle centre can match.
     candidatePlacement = undefined;
@@ -1760,9 +1813,11 @@ function placeFromPositionedCandidates(
     const { fit } = d;
     // Measured once here rather than per candidate: every candidate refits the same source text.
     const fitSource = fit == null ? undefined : measureLabelText(fit.text, fit.font);
+    const containThreshold = containmentThreshold(threshold);
     for (let ci = 0, ln = candidates.length; ci < ln; ci++) {
         const c = candidates[ci];
-        const region = c.region ?? bounds;
+        const rawRegion = c.region ?? bounds;
+        const region = deflateRegion(deflatedRegionBox, rawRegion, containThreshold);
         let { text, width, height } = d.label;
         let dropped = 0;
         candidateBox.x = c.box.x;
@@ -1770,7 +1825,7 @@ function placeFromPositionedCandidates(
         candidateBox.width = c.box.width;
         candidateBox.height = c.box.height;
         if (fit != null && c.fitTo != null) {
-            if (!fitLabelToCandidate(fit, fitSource, c.fitTo.container)) continue;
+            if (!fitLabelToCandidate(fit, fitSource, deflateContainer(c.fitTo.container, threshold))) continue;
             ({ text, dropped } = fittedLabel);
             const { padding } = c.fitTo;
             width = fittedLabel.width + padding.left + padding.right;
@@ -1785,8 +1840,8 @@ function placeFromPositionedCandidates(
         // clampAxis flush); a region-less (outside) candidate floats. A collision-only region
         // (flushToRegion === false) is not flushed — an overflowing box is left to fail containment below.
         if (c.region != null && c.flushToRegion !== false) {
-            const nx = clampAxis(x, cw, region.x, region.width);
-            const ny = clampAxis(y, ch, region.y, region.height);
+            const nx = clampAxis(x, cw, rawRegion.x, rawRegion.width);
+            const ny = clampAxis(y, ch, rawRegion.y, rawRegion.height);
             offsetX = nx - x;
             offsetY = ny - y;
             candidateBox.x = x = nx;
@@ -1864,10 +1919,8 @@ function candidateAt<T>(list: readonly T[] | undefined, single: T | undefined, i
 /**
  * The marker inscribed rect an `inside` candidate must fit, co-centred with the candidate box (which
  * `insideOffset` already placed at that rect's centre), written into the shared {@link insideRegionBox}.
- * `threshold` shrinks the rect on every side (a positive value demands wall clearance; a negative one
- * lets the label bleed past the marker edge), mirroring its obstacle-avoidance sense. Returns
- * `undefined` for directional candidates or when the datum carries no {@link PointLabelDatum.insideSize},
- * so the caller falls back to the shared region.
+ * Returns `undefined` for directional candidates or when the datum carries no
+ * {@link PointLabelDatum.insideSize}, so the caller falls back to the shared region.
  */
 function insideRegionFor(
     d: PointLabelDatum,
@@ -1875,12 +1928,11 @@ function insideRegionFor(
     x: number,
     y: number,
     boxWidth: number,
-    boxHeight: number,
-    threshold: number
+    boxHeight: number
 ): BoxBounds | undefined {
     if (placement !== 'inside' || d.insideSize == null) return undefined;
-    const rw = Math.max(0, d.insideSize.width * d.point.size - 2 * threshold);
-    const rh = Math.max(0, d.insideSize.height * d.point.size - 2 * threshold);
+    const rw = d.insideSize.width * d.point.size;
+    const rh = d.insideSize.height * d.point.size;
     insideRegionBox.x = x + boxWidth / 2 - rw / 2;
     insideRegionBox.y = y + boxHeight / 2 - rh / 2;
     insideRegionBox.width = rw;

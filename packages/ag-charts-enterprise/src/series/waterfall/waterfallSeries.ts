@@ -747,7 +747,6 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             const placementStyle = insidePlacement ? label.insideStyle : label.outsideStyle;
             const boxPadding = resolvePlacementLabelBoxExtent(label, placementStyle);
             const rect = { x: rectX, y: rectY, width: rectWidth, height: rectHeight };
-            const threshold = label.collision.threshold ?? 0;
             const isUpward = (value ?? -1) >= 0 !== valueAxisReversed;
             const resolvesOrientation = barLabelResolvesOrientation(label.orientation);
             const labelRotation = barLabelRotation(firstCandidate(label.orientation));
@@ -764,7 +763,6 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                           isUpward,
                           !barAlongX,
                           label.spacing,
-                          threshold,
                           expandPlacementLabelBoxExtent(label)
                       )
                     : undefined;
@@ -794,7 +792,6 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                     placements,
                     orientations,
                     spacing: label.spacing,
-                    threshold,
                     label,
                     textWidth: measured.width,
                     textHeight: measured.height,
@@ -1189,6 +1186,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             if (nodeLabel == null || nodeLabel.text === '') continue;
             const label = this.getItemConfig(node.itemType).label;
             const collideWith = label.collision.resolveCollideWith();
+            const threshold = label.collision.threshold ?? 0;
             // Inflate the measured text by the label's drawn box (padding + border stroke) so collisions
             // avoid the box, not just the text.
             const box = expandPlacementLabelBoxExtent(label);
@@ -1199,7 +1197,14 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             // their orientation array against the bar rect, or stay baked when single-orientation.
             if (nodeLabel.candidates == null) {
                 data.push(
-                    ...buildBarLabelData([node], () => ({ label: nodeLabel, config: label, size, collideWith, fit }))
+                    ...buildBarLabelData([node], () => ({
+                        label: nodeLabel,
+                        config: label,
+                        size,
+                        collideWith,
+                        threshold,
+                        fit,
+                    }))
                 );
             } else {
                 const ownBox = { x: node.x, y: node.y, width: node.width, height: node.height };
@@ -1213,6 +1218,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                         ownBox,
                         label.collision.alwaysShow,
                         collideWith,
+                        threshold,
                         false,
                         fit
                     )

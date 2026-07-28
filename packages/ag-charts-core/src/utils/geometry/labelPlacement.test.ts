@@ -716,6 +716,49 @@ describe('placeLabels', () => {
         expect(place(20, dropped).some((l) => l.datum === dropped)).toBe(false);
     });
 
+    it('measures own-marker clearance geometrically, so a diagonal keeps its longer corner gap', () => {
+        // Same `spacing` off the same marker, but a diagonal label is offset on both axes, so its nearest
+        // corner sits √2·(r + spacing) − r ≈ 18.3 from the marker rather than `spacing` = 10. A threshold
+        // of 12 reaches the marker from directly above and must not be counted as reaching it diagonally.
+        const labelled = (placement: 'top' | 'top-right'): PointLabelDatum => ({
+            point: { x: 100, y: 100, size: 20 },
+            label: { text: 'X', width: 30, height: 12 },
+            anchor: undefined,
+            placement,
+            placements: [placement],
+            spacing: 10,
+        });
+        const place = (d: PointLabelDatum) =>
+            placeLabels(new Map([['s', seriesLabels([d], { alwaysShow: false, threshold: 12 })]]), bounds, 5).get('s')!;
+
+        const above = labelled('top');
+        const diagonal = labelled('top-right');
+        expect(place(above).some((l) => l.datum === above)).toBe(false);
+        expect(place(diagonal).some((l) => l.datum === diagonal)).toBe(true);
+    });
+
+    it('keeps a label flush against the shared bounds at a positive threshold', () => {
+        // The threshold is clearance from obstacles, not an inset on the region a label is tested against:
+        // a box sitting exactly on the bounds edge stays contained however much clearance it asks for.
+        // Only a box that genuinely leaves the bounds is dropped.
+        const centred = (y: number): PointLabelDatum => ({
+            point: { x: 100, y, size: 0 },
+            label: { text: 'A', width: 40, height: 12 },
+            anchor: undefined,
+            placement: undefined,
+        });
+        const place = (d: PointLabelDatum, threshold: number) =>
+            placeLabels(new Map([['s', seriesLabels([d], { alwaysShow: false, threshold })]]), bounds, 5).get('s')!;
+
+        // Centred on its point, so the box's top edge lands exactly on `bounds.y`.
+        const flush = centred(bounds.y + 6);
+        expect(place(flush, 0).some((l) => l.datum === flush)).toBe(true);
+        expect(place(flush, 8).some((l) => l.datum === flush)).toBe(true);
+        // One pixel further out leaves the bounds, and no threshold buys it back.
+        const outside = centred(bounds.y + 5);
+        expect(place(outside, 0).some((l) => l.datum === outside)).toBe(false);
+    });
+
     it('tolerates label overlap within a negative threshold', () => {
         // Two centred labels whose boxes overlap by 5px in x. The second is dropped at threshold 0, but
         // kept once a negative threshold shrinks the first label's obstacle box past the overlap.
@@ -958,32 +1001,34 @@ describe('placeLabels', () => {
             expect(placed).toBeUndefined();
         });
 
-        it('shrinks the marker-fit region by a positive threshold, cascading a snug label out', () => {
-            const datum: PointLabelDatum = {
+        it('holds a fitting label inside its marker at a positive threshold, and lets a negative one spill', () => {
+            const datum = (width: number): PointLabelDatum => ({
                 point: { x: 200, y: 200, size: 100 },
-                label: { text: 'L', width: 40, height: 12 },
+                label: { text: 'L', width, height: 12 },
                 anchor: { x: 0.5, y: 0.5 },
                 placement: 'inside',
                 placements: insideThenDirectional,
-                // 70×70 rect: the 40×12 label fits at threshold 0.
+                // 70×70 rect: a 40-wide label fits inside it, an 80-wide one overflows by 5 a side.
                 insideSize: { width: 0.7, height: 0.7 },
-                // Spacing ≥ threshold keeps the top fallback clear of its own marker, so the cascade
-                // below is driven by the shrunken inside region, not own-marker inflation.
+                // Spacing ≥ threshold keeps the top fallback clear of its own marker, so any cascade
+                // below is driven by the inside region, not own-marker inflation.
                 spacing: 20,
                 alwaysShow: false,
-            };
-            const inside = placeLabels(new Map([['s', seriesLabels([datum], { alwaysShow: false })]]), bounds, 5).get(
-                's'
-            )![0];
-            expect(inside.placement).toBe('inside');
+            });
+            const place = (width: number, threshold: number) =>
+                placeLabels(
+                    new Map([['s', seriesLabels([datum(width)], { alwaysShow: false, threshold })]]),
+                    bounds,
+                    5
+                ).get('s')![0];
 
-            // threshold 20 shrinks the rect to 30×30; the 40-wide label no longer fits and cascades to top.
-            const clamped = placeLabels(
-                new Map([['s', seriesLabels([datum], { alwaysShow: false, threshold: 20 })]]),
-                bounds,
-                5
-            ).get('s')![0];
-            expect(clamped.placement).toBe('top');
+            // A positive threshold constrains the glyph budget, not containment, so it cannot evict a
+            // label that geometrically fits the shape it sits on.
+            expect(place(40, 0).placement).toBe('inside');
+            expect(place(40, 20).placement).toBe('inside');
+            // An overflowing label cascades out, unless a negative threshold grants it that much spill.
+            expect(place(80, 0).placement).toBe('top');
+            expect(place(80, -10).placement).toBe('inside');
         });
 
         it('tests inside against the shared bounds when no insideSize is given (gating regression)', () => {
@@ -1382,22 +1427,22 @@ describe('bar label placement helpers', () => {
     describe('insideBarRegion', () => {
         const rect: BoxBounds = { x: 10, y: 20, width: 40, height: 200 };
 
-        it('insets a vertical bar by threshold on X (cross) and the value insets on Y (length)', () => {
-            expect(insideBarRegion(rect, 5, 3, 2, true)).toEqual({ x: 12, y: 25, width: 36, height: 192 });
+        it('insets a vertical bar by the value insets on Y (length) and spans its full width', () => {
+            expect(insideBarRegion(rect, 5, 3, true)).toEqual({ x: 10, y: 25, width: 40, height: 192 });
         });
 
-        it('insets a horizontal bar by threshold on Y (cross) and the value insets on X (length)', () => {
-            expect(insideBarRegion(rect, 5, 3, 2, false)).toEqual({ x: 15, y: 22, width: 32, height: 196 });
+        it('insets a horizontal bar by the value insets on X (length) and spans its full height', () => {
+            expect(insideBarRegion(rect, 5, 3, false)).toEqual({ x: 15, y: 20, width: 32, height: 200 });
         });
 
         it('reserves the gap on a single value end when only one inset is set', () => {
-            expect(insideBarRegion(rect, 5, 0, 0, true)).toEqual({ x: 10, y: 25, width: 40, height: 195 });
-            expect(insideBarRegion(rect, 0, 5, 0, true)).toEqual({ x: 10, y: 20, width: 40, height: 195 });
+            expect(insideBarRegion(rect, 5, 0, true)).toEqual({ x: 10, y: 25, width: 40, height: 195 });
+            expect(insideBarRegion(rect, 0, 5, true)).toEqual({ x: 10, y: 20, width: 40, height: 195 });
         });
 
         it('leaves the whole rect flush when every inset is zero', () => {
-            expect(insideBarRegion(rect, 0, 0, 0, true)).toEqual(rect);
-            expect(insideBarRegion(rect, 0, 0, 0, false)).toEqual(rect);
+            expect(insideBarRegion(rect, 0, 0, true)).toEqual(rect);
+            expect(insideBarRegion(rect, 0, 0, false)).toEqual(rect);
         });
     });
 
@@ -1430,6 +1475,7 @@ describe('bar label placement helpers', () => {
                 ['horizontal', 'vertical'],
                 region,
                 collideWith,
+                0,
                 target
             );
             expect(datum.point).toEqual({ x: 15, y: 100, size: 0 });
@@ -1453,6 +1499,7 @@ describe('bar label placement helpers', () => {
                 ['horizontal', 'vertical'],
                 region,
                 collideWith,
+                0,
                 target
             );
             const placed = placeLabels(
@@ -1482,6 +1529,7 @@ describe('bar label placement helpers', () => {
                 ['horizontal', 'vertical'],
                 wideRegion,
                 collideWith,
+                0,
                 target
             );
             const marker: LabelObstacle = {
@@ -2030,6 +2078,7 @@ describe('placeLabels per-candidate fit', () => {
                                 { x: 20, y: 20, width: 60, height: 60 },
                                 true,
                                 {},
+                                0,
                                 false,
                                 { text: TEXT, policy: { overflowStrategy: 'ellipsis' }, font: FONT }
                             ),

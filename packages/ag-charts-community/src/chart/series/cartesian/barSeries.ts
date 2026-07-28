@@ -202,8 +202,6 @@ interface BarSeriesNodeDatumContext {
      */
     readonly plotRegion: { x: number; y: number; width: number; height: number } | undefined;
     readonly bboxBottom: number;
-    /** Cross-axis wall clearance for inside labels; resolved from `label.collision.threshold`. */
-    readonly labelThreshold: number;
     readonly boxPadding: Required<PaddingOptions>;
     /** Per-side extent of the label's drawn box (padding + border stroke) folded into the collision footprint. */
     readonly labelBoxExtent: Required<PaddingOptions>;
@@ -723,7 +721,6 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             plotRegion,
             // 0n keeps a bigint y-domain on the full-precision convert() path (a numeric 0 narrows to Number).
             bboxBottom: yScale.convert(0n),
-            labelThreshold: label.collision.threshold ?? 0,
             boxPadding,
             labelBoxExtent: expandPlacementLabelBoxExtent(label),
             crisp:
@@ -1041,7 +1038,6 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 placements: ctx.labelPlacements,
                 orientations,
                 spacing: ctx.label.spacing,
-                threshold: ctx.labelThreshold,
                 label: ctx.label,
                 textWidth: text.width,
                 textHeight: text.height,
@@ -1105,7 +1101,6 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                           isUpward,
                           !ctx.barAlongX,
                           ctx.label.spacing,
-                          ctx.labelThreshold,
                           ctx.labelBoxExtent
                       )
                     : undefined;
@@ -1854,6 +1849,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         const alwaysShow = label.collision.alwaysShow;
         const hideable = !alwaysShow;
         const collideWith = label.collision.resolveCollideWith();
+        const threshold = label.collision.threshold ?? 0;
         const fitFor = resolveLabelFitDescriptors(label, box, hideable);
         if (barLabelResolvesPlacement(label.placement) || hideable) {
             const data: PointLabelDatum[] = [];
@@ -1874,6 +1870,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                         ownBox,
                         alwaysShow,
                         collideWith,
+                        threshold,
                         false,
                         fitFor(nodeLabel.text)
                     )
@@ -1886,6 +1883,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             config: label,
             size: node.label != null && node.label.text !== '' ? measureBox(node.label.text) : undefined,
             collideWith,
+            threshold,
             fit: node.label == null ? undefined : fitFor(node.label.text),
         }));
     }
