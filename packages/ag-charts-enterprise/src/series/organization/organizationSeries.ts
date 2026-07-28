@@ -315,9 +315,10 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             node.realign(regularBBox);
         }
 
-        const focusBBox = node.getFullBBox();
+        const fullBBox = node.getFullBBox();
 
-        return new _ModuleSupport.BBox(bbox.x, bbox.y, focusBBox.width, focusBBox.height);
+        // Add the bbox positions together to ensure the offset from expander is taken into account.
+        return new _ModuleSupport.BBox(bbox.x + fullBBox.x, bbox.y + fullBBox.y, fullBBox.width, fullBBox.height);
     }
 
     getLinkInterpolation(
