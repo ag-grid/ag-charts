@@ -97,7 +97,7 @@ const options: AgChartOptions = {
                     },
                 },
                 itemStyler: ({ isCollapsed }) => {
-                    return { strokeWidth: isCollapsed ? 1 : 2 };
+                    return { strokeWidth: isCollapsed ? 2 : 1 };
                 },
             },
             link: {
