@@ -48,18 +48,6 @@ export type AgBarSeriesLabelPlacement =
     | 'beside-after-center'
     | 'beside-after-end';
 
-/** Per-category toggle for the obstacles a label avoids. */
-export interface AgChartLabelCollideWithOptions {
-    /** Whether labels avoid series markers. */
-    markers?: boolean;
-    /** Whether labels avoid other labels. */
-    labels?: boolean;
-    /** Whether labels avoid rendered series geometry contributed by other series, such as bars. */
-    seriesItems?: boolean;
-    /** Whether labels must stay inside the series plotting area, treating an overflow past it as a collision. */
-    seriesArea?: boolean;
-}
-
 /** Configuration controlling how a label behaves when it cannot be placed clear of every obstacle. */
 export interface AgChartLabelCollisionOptions {
     /**
@@ -70,7 +58,6 @@ export interface AgChartLabelCollisionOptions {
      * Whether to keep a colliding label visible when a collision remains after every avoidance strategy has been applied. When `true` the label stays at the best available position; when `false` it is hidden instead.
      */
     alwaysShow?: boolean;
-    // Undocumented: per-category toggle for the obstacles the label avoids. Accepted at runtime via
-    // the `collideWith` validator but kept off the public type contract.
-    // collideWith?: AgChartLabelCollideWithOptions;
+    // Undocumented `collideWith` (markers/labels/seriesItems/seriesArea) is accepted by the runtime
+    // validator but deliberately kept off the public type contract.
 }

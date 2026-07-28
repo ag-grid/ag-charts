@@ -8,7 +8,6 @@ import {
     mergeDefaults,
 } from 'ag-charts-core';
 import type {
-    AgChartLabelCollideWithOptions,
     AgChartLabelCollisionOptions,
     AgChartLabelCollisionPlacement,
     AgChartLabelFormatterParams,
@@ -62,7 +61,8 @@ export class LabelPlacementBorder {
     strokeOpacity?: number;
 }
 
-class LabelCollideWith extends BaseProperties implements AgChartLabelCollideWithOptions {
+/** Undocumented per-category toggle for the obstacles a label avoids. */
+class LabelCollideWith extends BaseProperties {
     @Property
     markers?: boolean;
 
