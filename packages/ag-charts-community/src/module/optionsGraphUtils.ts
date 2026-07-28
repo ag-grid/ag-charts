@@ -1,4 +1,3 @@
-import type { Logger } from 'ag-charts-core';
 import { type PlainObject, isNumber, isObjectLike } from 'ag-charts-core';
 
 import type { PaletteType } from './coreModulesTypes';
@@ -8,8 +7,6 @@ export interface VertexInterface {}
 export interface OptionsGraphInterface {
     readonly palette: PlainObject;
     readonly paletteType: PaletteType;
-    /** The logger of the chart currently resolving through this graph, if any. */
-    readonly logger: Logger | undefined;
     /** Warn through the resolving chart's logger, deferring warnings raised before any resolve. */
     warnOnce(message: string): void;
 

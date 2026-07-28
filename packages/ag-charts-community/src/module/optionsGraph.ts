@@ -161,10 +161,6 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
     // are held until the first resolve can route them to that chart's logger.
     private readonly pendingWarnings: string[] = [];
 
-    get logger(): Logger | undefined {
-        return this.activeLogger;
-    }
-
     warnOnce(message: string) {
         if (this.activeLogger == null) {
             this.pendingWarnings.push(message);
@@ -379,8 +375,12 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         const previous = this.activeLogger;
         this.activeLogger = logger;
         try {
-            for (const message of this.pendingWarnings.splice(0)) {
-                logger?.warnOnce(message);
+            // Drain only when there is somewhere to drain to; the graph is memoised, so discarding the
+            // queue here would lose those warnings for every later chart resolving the same options.
+            if (logger != null) {
+                for (const message of this.pendingWarnings.splice(0)) {
+                    logger.warnOnce(message);
+                }
             }
             return fn();
         } finally {
@@ -1200,10 +1200,11 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         if (pathLeaf in OptionsGraph.TRANSFORM_USER_KEY_OPERATION_PAIRS) {
             const expectedOperation = OptionsGraph.TRANSFORM_USER_KEY_OPERATION_PAIRS[pathLeaf];
             const overrideIsOperation =
-                getOperation(this.findNeighbourValue(vertex, OVERRIDES_EDGE))?.operation.valueOf() ===
+                getOperation(this.findNeighbourValue(vertex, OVERRIDES_EDGE), undefined, this)?.operation.valueOf() ===
                 expectedOperation;
             const defaultIsOperation =
-                getOperation(this.findNeighbourValue(vertex, DEFAULTS_EDGE))?.operation.valueOf() === expectedOperation;
+                getOperation(this.findNeighbourValue(vertex, DEFAULTS_EDGE), undefined, this)?.operation.valueOf() ===
+                expectedOperation;
             if (overrideIsOperation) {
                 // The override supplies its own operation template; resolve it (falling back to the default operation).
                 edgePriority = [OVERRIDES_EDGE, DEFAULTS_EDGE];
