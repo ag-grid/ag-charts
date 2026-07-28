@@ -36,15 +36,37 @@
         "commands": ["tsc --noEmit -p tsconfig.json"]
       }
     },
+    "test": {
+      "executor": "nx:run-commands",
+      "inputs": ["default", "^production"],
+      "outputs": ["{workspaceRoot}/reports/ag-charts-demos.xml"],
+      "cache": true,
+      "options": {
+        "commands": [
+          "npx vitest run --config {projectRoot}/vitest.config.ts",
+          "npx vitest run --config {projectRoot}/vitest.config.tz.ts"
+        ],
+        "parallel": false
+      },
+      "configurations": {
+        "watch": {
+          "command": "npx vitest --config {projectRoot}/vitest.config.ts"
+        }
+      }
+    },
     "dev": {
       "dependsOn": ["^build"],
       "command": "vite",
-      "options": { "cwd": "{projectRoot}" }
+      "options": {
+        "cwd": "{projectRoot}"
+      }
     },
     "preview": {
       "dependsOn": ["build"],
       "command": "vite preview",
-      "options": { "cwd": "{projectRoot}" }
+      "options": {
+        "cwd": "{projectRoot}"
+      }
     },
     "test:e2e": {
       "dependsOn": ["^build"],
@@ -53,7 +75,9 @@
       "cache": false,
       "parallelism": false,
       "command": "playwright test",
-      "options": { "cwd": "{projectRoot}" }
+      "options": {
+        "cwd": "{projectRoot}"
+      }
     },
     "lint:eslint": {},
     "lint": {
