@@ -8,6 +8,9 @@ import { Node, type RenderContext } from './node';
 
 const sceneTestLogger = new Logger();
 
+// Local to this file: `scene/**` cannot import the shared test library under `ag-isolated-scene`.
+afterEach(() => sceneTestLogger.reset());
+
 class TestNode<D = any> extends Group<D> {
     protected override computeBBox(): BBox | undefined {
         return BBox.merge(Array.from(this.children(), (c) => c.getBBox()));

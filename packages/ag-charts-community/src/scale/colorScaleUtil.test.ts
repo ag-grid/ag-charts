@@ -1,11 +1,20 @@
-import { describe, expect, test, vi } from 'vitest';
+import { afterEach, describe, expect, test, vi } from 'vitest';
 
-import { Logger, computeColorBins, deriveNormalizedStops, formatColorScaleBinLabel } from 'ag-charts-core';
+import {
+    Logger,
+    ambientLogger,
+    computeColorBins,
+    deriveNormalizedStops,
+    formatColorScaleBinLabel,
+} from 'ag-charts-core';
 
 import { ColorScale } from './colorScale';
 import { configureColorScale } from './colorScaleUtil';
 
 const scaleTestLogger = new Logger();
+
+// Local to this file: `scale*` cannot import the shared test library under `ag-isolated-scales`.
+afterEach(() => scaleTestLogger.reset());
 
 describe('computeColorBins', () => {
     describe('discrete mode', () => {
@@ -556,7 +565,7 @@ describe('configureColorScale logger routing', () => {
         const scale = new ColorScale();
         const logger = new Logger();
         const scopedWarn = vi.spyOn(logger, 'warnOnce').mockImplementation(() => {});
-        const unrelatedWarn = vi.spyOn(new Logger(), 'warnOnce').mockImplementation(() => {});
+        const unrelatedWarn = vi.spyOn(ambientLogger, 'warnOnce').mockImplementation(() => {});
 
         scale.logger = logger;
         scale.domain = [5];
@@ -573,7 +582,7 @@ describe('configureColorScale logger routing', () => {
         const scale = new ColorScale();
         const logger = new Logger();
         const scopedWarn = vi.spyOn(logger, 'warnOnce').mockImplementation(() => {});
-        const unrelatedWarn = vi.spyOn(new Logger(), 'warnOnce').mockImplementation(() => {});
+        const unrelatedWarn = vi.spyOn(ambientLogger, 'warnOnce').mockImplementation(() => {});
 
         scale.logger = logger;
         scale.domain = [10, 1];

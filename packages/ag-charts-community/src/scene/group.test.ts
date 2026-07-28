@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import { Logger } from 'ag-charts-core';
 
@@ -8,6 +8,9 @@ import { Group } from './group';
 import { type IScene, Node, type RenderContext } from './node';
 
 const sceneTestLogger = new Logger();
+
+// Local to this file: `scene/**` cannot import the shared test library under `ag-isolated-scene`.
+afterEach(() => sceneTestLogger.reset());
 
 class TestNode extends Node {
     protected override computeBBox(): BBox | undefined {

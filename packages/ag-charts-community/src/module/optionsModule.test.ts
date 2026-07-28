@@ -1,7 +1,7 @@
 import type { Mock } from 'vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { Logger, ModuleRegistry, ambientLog } from 'ag-charts-core';
+import { Logger, ModuleRegistry, ambientLog, ambientLogger } from 'ag-charts-core';
 import type {
     AgAreaSeriesOptions,
     AgBarSeriesOptions,
@@ -3741,7 +3741,7 @@ describe('ChartOptions', () => {
             } as any);
             const logger = new Logger();
             const instanceWarnOnce = vi.spyOn(logger, 'warnOnce');
-            const unrelatedWarnOnce = vi.spyOn(new Logger(), 'warnOnce');
+            const unrelatedWarnOnce = vi.spyOn(ambientLogger, 'warnOnce').mockImplementation(() => {});
             const chartOptions = new ChartOptions(
                 {},
                 {} as AgChartOptions,
