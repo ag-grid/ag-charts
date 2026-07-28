@@ -869,8 +869,15 @@ export class SeriesAreaManager extends BaseManager {
 
         const distance = updated.paginationState == null ? pickedNodes.distance : 0;
 
+        // A dedicated control (e.g. the org-chart expander) owns its clicks: it still drives its own
+        // interaction via the `series-area:click` event emitted by the caller, but must not also
+        // reach the user's node click / double-click listeners (AG-17947).
+        const firesUserClickListeners = updated.active.series.firesUserClickListeners(pickedNodes.target);
+
         if (event.type === 'click') {
-            const defaultBehavior = updated.active.series.fireNodeClickEvent(event.sourceEvent, updated.active);
+            const defaultBehavior = firesUserClickListeners
+                ? updated.active.series.fireNodeClickEvent(event.sourceEvent, updated.active)
+                : true;
             if (defaultBehavior) {
                 const next = this.pickManager.nextCandidate();
                 if (next.active !== undefined) {
@@ -899,7 +906,9 @@ export class SeriesAreaManager extends BaseManager {
             // a node.
             event.preventZoomDblClick = distance === 0;
 
-            updated.active.series.fireNodeDoubleClickEvent(event.sourceEvent, updated.active);
+            if (firesUserClickListeners) {
+                updated.active.series.fireNodeDoubleClickEvent(event.sourceEvent, updated.active);
+            }
             return { node: updated.active, target: pickedNodes.target };
         }
 

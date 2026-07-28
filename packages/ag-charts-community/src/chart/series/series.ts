@@ -1154,6 +1154,10 @@ export abstract class Series<
         return false;
     }
 
+    firesUserClickListeners(_target: Node<unknown> | undefined): boolean {
+        return true;
+    }
+
     protected pickNodesInBBoxPredicate(): PickNodesInBBoxPredicate {
         // By default, pickNodesInBBox just used boxes for hit-testing because it's easier and faster. Series with more
         // complicated shapes (e.g. sectors or pie/donut, paths for maps) need to override this predicate to implement

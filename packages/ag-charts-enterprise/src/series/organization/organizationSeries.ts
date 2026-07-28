@@ -376,13 +376,24 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         }
     }
 
+    private isExpanderTarget(target: _ModuleSupport.Node<unknown> | undefined): boolean {
+        const Expander: number = OrganizationNodeTag.Expander;
+        return target?.tag === Expander;
+    }
+
     // A pointer click toggles collapse only when it lands on the expander pill; `clickToExpand`
     // widens that to the whole card. Keyboard Enter/Space activations arrive with no pointer target,
     // so they toggle exactly when `clickToExpand` is enabled — restoring the pre-Alt+Up/Down behaviour.
     override hasBuiltinListener(target: _ModuleSupport.Node<unknown> | undefined): boolean {
-        const { clickToExpand } = this.properties.node;
-        const Expander: number = OrganizationNodeTag.Expander;
-        return target?.tag === Expander || clickToExpand;
+        return this.isExpanderTarget(target) || this.properties.node.clickToExpand;
+    }
+
+    // Expanding/collapsing is a distinct interaction from activating a node, so the expander pill
+    // keeps its clicks to itself (AG-17947). Note this is deliberately independent of
+    // `clickToExpand`: a card-body click still fires the node events even when it also toggles, so
+    // consumers get a consistent event surface and can `preventDefault()` if they want.
+    override firesUserClickListeners(target: _ModuleSupport.Node<unknown> | undefined): boolean {
+        return !this.isExpanderTarget(target);
     }
 
     override pickFocus(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.PickFocusOutputs | undefined {
