@@ -371,7 +371,9 @@ describe('OptionsGraph', () => {
 
         describe('$isUserOption', () => {
             const resolveWithMaxWidth = (themeConfig: PlainObject, maxWidth?: number) =>
-                new OptionsGraph(themeConfig, prepareOptions(maxWidth === undefined ? {} : { maxWidth })).resolve();
+                new OptionsGraph(themeConfig, prepareOptions(maxWidth === undefined ? {} : { maxWidth })).resolve(
+                    testLogger
+                );
 
             it('should resolve omitted branches to the check outcome', () => {
                 const themeConfig = {
@@ -734,7 +736,7 @@ describe('OptionsGraph', () => {
                     six: { $if: [false, 'yes', undefined] },
                 },
             };
-            const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve();
+            const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve(testLogger);
             expect(options).toStrictEqual({
                 one: true,
                 two: false,
@@ -824,7 +826,7 @@ describe('OptionsGraph', () => {
                     five: { $isType: [{ $path: './arrayValue' }, 'string', 'yes', undefined] },
                 },
             };
-            const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve();
+            const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve(testLogger);
             expect(options).toStrictEqual({
                 arrayValue: expect.anything(),
                 one: true,
@@ -1496,7 +1498,7 @@ describe('OptionsGraph', () => {
             });
             const options = new OptionsGraph(themeConfig, userOptions, {}, {}, {}, undefined, new Map(), {
                 'var(--brand)': '#00ff00',
-            }).resolve();
+            }).resolve(testLogger);
             expect(options).toStrictEqual({
                 themeValue: 'valueOf',
                 title: { text: 'constructor' },
