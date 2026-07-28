@@ -472,6 +472,7 @@ class OrganizationExpanderNode extends _ModuleSupport.TranslatableGroup {
     private removeCountNode() {
         if (!this.countNode) return;
         this.countNode.remove();
+        this.countNode = undefined;
     }
 
     private updateChevronNode(
