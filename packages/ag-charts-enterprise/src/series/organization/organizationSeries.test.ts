@@ -1,3 +1,4 @@
+import { Caster } from '_ag-charts-test';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type {
@@ -10,9 +11,11 @@ import { AgCharts, _ModuleSupport } from 'ag-charts-community';
 import {
     type ChartTestCase,
     type SceneGeometrySample,
+    clickAction,
     compareImageSnapshot,
     createSceneGeometrySampler,
     deproxy,
+    doubleClickAction,
     dragAction,
     expectSceneSamplesMatch,
     hoverAction,
@@ -24,8 +27,10 @@ import {
 } from 'ag-charts-community-test';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
+import { OrganizationNodeTag } from './organizationNode';
+import { OrganizationSeries } from './organizationSeries';
 
-const SIMPLE_ORG_CHART: AgChartOptions = {
+const SIMPLE_ORG_CHART: AgChartOptions & { series: { type: 'organization' }[] } = {
     data: [
         {
             id: 'ceo',
@@ -60,7 +65,7 @@ const SIMPLE_ORG_CHART: AgChartOptions = {
     ],
     series: [
         {
-            type: 'organization',
+            type: 'organization' as const,
             idKey: 'id',
             parentIdKey: 'parentId',
             node: {
@@ -1968,6 +1973,138 @@ describe('OrganizationSeries', () => {
             const announcement = readLiveAnnouncement();
             expect(announcement).toContain('Press ALT UP to collapse this node');
             expect(announcement).not.toContain('Press Space or Enter');
+        });
+    });
+
+    // AG-17947: expanding/collapsing is a distinct interaction from activating a node, so a pointer
+    // event on the expander pill must not also reach the user's node click/double-click listeners.
+    describe('AG-17947 expander clicks do not fire node events', () => {
+        type Node<T = unknown> = _ModuleSupport.Node<T>;
+        type Fn = ReturnType<(typeof vi)['fn']>;
+        type CollapsedManager = ReturnType<typeof deproxy>['ctx']['collapsedManager'];
+        let seriesNodeClick: Fn;
+        let seriesNodeDoubleClick: Fn;
+        let chartSeriesNodeClick: Fn;
+        let collapsedManager: CollapsedManager;
+
+        async function setupChart(opts: { clickToExpand: boolean }) {
+            seriesNodeClick = vi.fn();
+            seriesNodeDoubleClick = vi.fn();
+            chartSeriesNodeClick = vi.fn();
+            const baseSeries = new Caster(SIMPLE_ORG_CHART.series).assertNonNullish().value[0];
+            const options: AgChartOptions = {
+                ...SIMPLE_ORG_CHART,
+                series: [
+                    {
+                        ...baseSeries,
+                        node: { ...baseSeries.node, ...opts },
+                        listeners: { seriesNodeClick, seriesNodeDoubleClick },
+                    },
+                ],
+                listeners: { seriesNodeClick: chartSeriesNodeClick },
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            collapsedManager = deproxy(chart).ctx.collapsedManager;
+        }
+
+        /** Canvas-space centre of the scene node tagged `tag` within the card for `itemId`. */
+        function centreOf(itemId: string, tag: OrganizationNodeTag): { x: number; y: number } {
+            function findDescendantByTag(node: Node, searchTag: number): Node | undefined {
+                if (node.tag === searchTag) return node;
+                if (!(node instanceof _ModuleSupport.Group)) return undefined;
+                for (const child of node.children()) {
+                    const found = findDescendantByTag(child, searchTag);
+                    if (found) return found;
+                }
+            }
+
+            function findByItemId(searchItemId: string): Node | undefined {
+                const nodes = new Caster(deproxy(chart).series[0])
+                    .cast(OrganizationSeries)
+                    .accessProperty('datumSelection')
+                    .cast(_ModuleSupport.Selection)
+                    .value.nodes();
+                return nodes.find((node: Node<any>) => node.datum?.itemId === searchItemId);
+            }
+
+            let card: Node | undefined = findByItemId(itemId);
+            expect(card).toBeDefined();
+            card = card!;
+
+            let target: Node | undefined = findDescendantByTag(card, tag);
+            expect(target).toBeDefined();
+            target = target!;
+
+            return _ModuleSupport.Transformable.toCanvas(target).computeCenter();
+        }
+
+        async function clickItem(itemId: string, tag: OrganizationNodeTag): Promise<void> {
+            const expander = centreOf(itemId, tag);
+            await clickAction(expander.x, expander.y)(chart);
+            await waitForChartStability(chart);
+        }
+
+        async function doubleClickItem(itemId: string, tag: OrganizationNodeTag): Promise<void> {
+            const expander = centreOf(itemId, tag);
+            await doubleClickAction(expander.x, expander.y)(chart);
+            await waitForChartStability(chart);
+        }
+
+        describe('clickToExpand: false', () => {
+            beforeEach(async () => {
+                await setupChart({ clickToExpand: false });
+            });
+
+            it('collapses and expands on expander clicks without firing seriesNodeClick', async () => {
+                await clickItem('cto', OrganizationNodeTag.Expander);
+                expect(collapsedManager.isCollapsed('cto')).toBe(true);
+
+                await clickItem('cto', OrganizationNodeTag.Expander);
+                expect(collapsedManager.isCollapsed('cto')).toBe(false);
+
+                expect(seriesNodeClick).not.toHaveBeenCalled();
+                expect(chartSeriesNodeClick).not.toHaveBeenCalled();
+            });
+
+            it('does not fire seriesNodeDoubleClick when the expander is double-clicked', async () => {
+                await doubleClickItem('cto', OrganizationNodeTag.Expander);
+                expect(seriesNodeDoubleClick).not.toHaveBeenCalled();
+            });
+
+            it('still fires seriesNodeClick when the card body is clicked', async () => {
+                await clickItem('cto', OrganizationNodeTag.Card);
+                expect(seriesNodeClick).toHaveBeenCalledTimes(1);
+                expect(seriesNodeClick.mock.calls[0][0]).toMatchObject({ itemId: 'cto' });
+                expect(chartSeriesNodeClick).toHaveBeenCalledTimes(1);
+            });
+
+            it('still fires seriesNodeDoubleClick when the card body is double-clicked', async () => {
+                await doubleClickItem('cto', OrganizationNodeTag.Card);
+                expect(seriesNodeDoubleClick).toHaveBeenCalledTimes(1);
+                expect(seriesNodeDoubleClick.mock.calls[0][0]).toMatchObject({ itemId: 'cto' });
+            });
+        });
+
+        // `clickToExpand` widens the toggle to the whole card, but only the expander is exempt from
+        // node events — a card-body click must both toggle and fire seriesNodeClick.
+        describe('clickToExpand: true', () => {
+            beforeEach(async () => {
+                await setupChart({ clickToExpand: true });
+            });
+
+            it('fires seriesNodeClick for a card-body click even when clickToExpand toggles the node', async () => {
+                await clickItem('cto', OrganizationNodeTag.Card);
+                expect(collapsedManager.isCollapsed('cto')).toBe(true);
+                expect(seriesNodeClick).toHaveBeenCalledTimes(1);
+            });
+
+            it('suppresses seriesNodeClick for an expander click even when clickToExpand is enabled', async () => {
+                await clickItem('cto', OrganizationNodeTag.Expander);
+                expect(collapsedManager.isCollapsed('cto')).toBe(true);
+                expect(seriesNodeClick).not.toHaveBeenCalled();
+            });
         });
     });
 
