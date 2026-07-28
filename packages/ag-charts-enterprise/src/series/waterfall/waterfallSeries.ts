@@ -39,6 +39,7 @@ import {
     mergeDefaults,
     minValue,
     resolveLabelFit,
+    resolveLabelFitDescriptors,
     subtractValues,
     toArray,
     zeroLike,
@@ -1194,10 +1195,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             const box = expandPlacementLabelBoxExtent(label);
             const { width, height } = measureLabelText(nodeLabel.text, label);
             const size = { width: width + box.left + box.right, height: height + box.top + box.bottom };
-            const policy = resolveLabelFit(label, !label.collision.alwaysShow);
-            // Each candidate refits the unfitted source text to the room it offers, so a placement or
-            // orientation that can hold the whole text is not disqualified by an earlier one's truncation.
-            const fit = policy && { text: nodeLabel.text, policy, font: label, boxPadding: box };
+            const fit = resolveLabelFitDescriptors(label, box, !label.collision.alwaysShow)(nodeLabel.text);
             // A cascading item carries pre-positioned candidates (built per item config); others resolve
             // their orientation array against the bar rect, or stay baked when single-orientation.
             if (nodeLabel.candidates == null) {

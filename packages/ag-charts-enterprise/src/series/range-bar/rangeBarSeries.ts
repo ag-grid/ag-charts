@@ -21,7 +21,6 @@ import {
     type DynamicContext,
     type FillStrokeMorph,
     type LabelFit,
-    type LabelFitDescriptor,
     type Mutable,
     type Normalised,
     type NormalisedTextOrSegments,
@@ -46,6 +45,7 @@ import {
     measureLabelText,
     mergeDefaults,
     resolveLabelFit,
+    resolveLabelFitDescriptors,
     rotatedGlyphDrift,
     rotatedLabelInset,
     toArray,
@@ -1455,11 +1455,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const box = expandPlacementLabelBoxExtent(label);
         const collideWith = label.collision.resolveCollideWith();
         const alwaysShow = label.collision.alwaysShow;
-        const policy = resolveLabelFit(label, !alwaysShow);
-        // Each candidate refits the unfitted source text to the room it offers, so a placement or
-        // orientation that can hold the whole text is not disqualified by an earlier one's truncation.
-        const fitFor = (text: NormalisedTextOrSegments): LabelFitDescriptor | undefined =>
-            policy && { text, policy, font: label, boxPadding: box };
+        const fitFor = resolveLabelFitDescriptors(label, box, !alwaysShow);
         const data: PointLabelDatum[] = [];
         for (const labelDatum of this.contextNodeData?.labelData ?? []) {
             if (labelDatum.text === '') {

@@ -4,7 +4,6 @@ import type {
     DomainWithMetadata,
     DynamicContext,
     LabelFit,
-    LabelFitDescriptor,
     Mutable,
     NormalisedBarSeriesStyle,
     NormalisedTextOrSegments,
@@ -41,6 +40,7 @@ import {
     mergeDefaults,
     minValue,
     resolveLabelFit,
+    resolveLabelFitDescriptors,
     toArray,
     toNumber,
     zeroLike,
@@ -1854,11 +1854,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         const alwaysShow = label.collision.alwaysShow;
         const hideable = !alwaysShow;
         const collideWith = label.collision.resolveCollideWith();
-        const policy = resolveLabelFit(label, hideable);
-        // Each candidate refits the unfitted source text to the room it offers, so a placement or
-        // orientation that can hold the whole text is not disqualified by an earlier one's truncation.
-        const fitFor = (text: NormalisedTextOrSegments): LabelFitDescriptor | undefined =>
-            policy && { text, policy, font: label, boxPadding: box };
+        const fitFor = resolveLabelFitDescriptors(label, box, hideable);
         if (barLabelResolvesPlacement(label.placement) || hideable) {
             const data: PointLabelDatum[] = [];
             for (const node of this.contextNodeData?.labelData ?? []) {

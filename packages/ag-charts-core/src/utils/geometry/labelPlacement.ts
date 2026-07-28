@@ -91,6 +91,22 @@ export interface LabelFitDescriptor {
 }
 
 /**
+ * Resolves a label surface's fit policy once, returning the builder that stamps it onto each label's
+ * source text. Each candidate refits that text to the room it offers, so a placement or orientation
+ * able to hold the whole text is not disqualified by an earlier one's truncation. The builder yields
+ * `undefined` for every text when the label opted out of overflow management.
+ */
+export function resolveLabelFitDescriptors(
+    fit: LabelFitOptions & FontOptions,
+    boxPadding: Required<PaddingOptions>,
+    hideOnOverflow: boolean
+) {
+    const policy = resolveLabelFit(fit, hideOnOverflow);
+    return (text: NormalisedTextOrSegments): LabelFitDescriptor | undefined =>
+        policy == null ? undefined : { text, policy, font: fit, boxPadding };
+}
+
+/**
  * Per-candidate inputs for {@link LabelFitDescriptor} on the positioned-candidate path, where the series
  * owns the geometry: `container` is the glyph budget this candidate offers (its region minus the drawn
  * box, axes swapped when the candidate is rotated) and `anchor`/`padding` rebuild {@link

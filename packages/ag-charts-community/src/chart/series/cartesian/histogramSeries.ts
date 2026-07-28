@@ -2,7 +2,6 @@ import type {
     CallbackParamRules,
     DynamicContext,
     LabelFit,
-    LabelFitDescriptor,
     NormalisedHistogramSeriesStyle,
     NormalisedTextOrSegments,
     PlacedLabel,
@@ -38,6 +37,7 @@ import {
     measureLabelText,
     mergeDefaults,
     resolveLabelFit,
+    resolveLabelFitDescriptors,
     tickStep,
     toArray,
     toNumber,
@@ -577,12 +577,6 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             label,
             { ...this.binParams(bin), value: total, xKey, yKey, xName, yName }
         );
-        // An orientation array is refitted per orientation by the engine, which knows a rotated label
-        // measures against the bin's other axis; fitting here would bind every orientation to the
-        // upright budget (see barSeries).
-        const text = resolvesOrientation
-            ? sourceText
-            : fitLabelToContainer(sourceText, labelFit, label, bounds?.container);
         // A placement/orientation array (or a hideable label) pre-positions a candidate per
         // placement × orientation the engine cascades through until one fits; a hideable no-fit label is
         // dropped so it can be hidden. A single fixed, non-hideable placement bakes directly.
@@ -625,6 +619,12 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             };
         }
 
+        // An orientation array is refitted per orientation by the engine, which knows a rotated label
+        // measures against the bin's other axis; fitting here would bind every orientation to the
+        // upright budget (see barSeries).
+        const text = resolvesOrientation
+            ? sourceText
+            : fitLabelToContainer(sourceText, labelFit, label, bounds?.container);
         // A rotated label's gap to the bar depends on its box size; measure only when it rotates.
         const { width: labelWidth, height: labelHeight } =
             rotation === 0 ? { width: 0, height: 0 } : measureLabelText(text, label);
@@ -1076,11 +1076,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         };
         const alwaysShow = label.collision.alwaysShow;
         const collideWith = label.collision.resolveCollideWith();
-        const policy = resolveLabelFit(label, !alwaysShow);
-        // Each candidate refits the unfitted source text to the room it offers, so a placement or
-        // orientation that can hold the whole text is not disqualified by an earlier one's truncation.
-        const fitFor = (text: NormalisedTextOrSegments): LabelFitDescriptor | undefined =>
-            policy && { text, policy, font: label, boxPadding: box };
+        const fitFor = resolveLabelFitDescriptors(label, box, !alwaysShow);
         // The positioned path drives both a hideable label (dropped on no fit) and a placement cascade
         // (kept at the best candidate when `alwaysShow`); an orientation-only array stays on the baked
         // path below, which resolves orientation against the bar region.

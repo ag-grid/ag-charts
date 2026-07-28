@@ -1588,7 +1588,7 @@ describe('label collision avoidance', () => {
         // horizontal bake. Once a bar is too narrow for horizontal the engine picks vertical; a bar too
         // narrow for even vertical hides its label (an orientation array opts into overflow management),
         // which must not be reached by reverting to the first (horizontal) orientation baked at
-        // node-data time, since that would overflow the bar rect (AG-17782).
+        // node-data time, since that would overflow the bar rect.
         it('keeps a narrowing bar label vertical instead of reverting to horizontal', async () => {
             const optionsAt = (width: number) => {
                 const options = {
@@ -1795,7 +1795,7 @@ describe('label collision avoidance', () => {
 
         // `alwaysShow` pins the baked path this case covers: an orientation array alone would opt the
         // label into overflow management, routing it through positioned candidates and hiding the ones
-        // that cannot be placed — which is a different mechanism from the self-obstacle regression here.
+        // that cannot be placed — a different mechanism from the self-obstacle behaviour pinned here.
         const barLabel = {
             enabled: true,
             orientation: ['horizontal', 'vertical'] as const,
