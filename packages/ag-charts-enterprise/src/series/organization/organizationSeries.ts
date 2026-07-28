@@ -1175,6 +1175,11 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             highlightState: highlightState == null ? 'none' : _ModuleSupport.toHighlightString(highlightState),
             selectionState: this.getSelectionStateString(datumIndex),
             candidateState: this.getCandidateStateString(datumIndex),
+            // Internal unset sentinels (NaN/Infinity) must reach styler consumers as undefined.
+            width: Number.isNaN(style.width) ? undefined : style.width,
+            height: Number.isNaN(style.height) ? undefined : style.height,
+            maxWidth: Number.isFinite(style.maxWidth) ? style.maxWidth : undefined,
+            maxHeight: Number.isFinite(style.maxHeight) ? style.maxHeight : undefined,
         } satisfies CallbackParamRules<AgOrganizationSeriesNodeItemStylerParams<unknown, unknown>>;
     }
 

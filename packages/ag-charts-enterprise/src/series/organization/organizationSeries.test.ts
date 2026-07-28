@@ -915,6 +915,64 @@ describe('OrganizationSeries', () => {
         );
     });
 
+    describe('node.itemStyler dimension params', () => {
+        const createWithNodeStyler = (node: Record<string, unknown>) => {
+            const captured: any[] = [];
+            const options: AgChartOptions = {
+                ...SIMPLE_ORG_CHART,
+                series: [
+                    {
+                        type: 'organization',
+                        idKey: 'id',
+                        parentIdKey: 'parentId',
+                        node: {
+                            title: { key: 'name' },
+                            subtitle: { key: 'job' },
+                            labels: [{ key: 'location' }],
+                            ...node,
+                            itemStyler: (params: any) => {
+                                captured.push(params);
+                                return undefined;
+                            },
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+            return { options, captured };
+        };
+
+        it('AG-17992 passes undefined, not NaN/Infinity, for unconstrained width/height/maxWidth/maxHeight', async () => {
+            const { options, captured } = createWithNodeStyler({});
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expect(captured.length).toBeGreaterThan(0);
+            for (const params of captured) {
+                expect(params.width).toBeUndefined();
+                expect(params.height).toBeUndefined();
+                expect(params.maxWidth).toBeUndefined();
+                expect(params.maxHeight).toBeUndefined();
+            }
+        });
+
+        it('AG-17992 reflects configured width/maxHeight and leaves the unset dimensions undefined', async () => {
+            const { options, captured } = createWithNodeStyler({ width: 200, maxHeight: 150 });
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expect(captured.length).toBeGreaterThan(0);
+            for (const params of captured) {
+                expect(params.width).toBe(200);
+                expect(params.maxHeight).toBe(150);
+                expect(params.height).toBeUndefined();
+                expect(params.maxWidth).toBeUndefined();
+            }
+        });
+    });
+
     describe('expander chevron', () => {
         it('should render a point-down chevron when a node is expanded', async () => {
             const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
