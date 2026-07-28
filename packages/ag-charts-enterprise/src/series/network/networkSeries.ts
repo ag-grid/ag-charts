@@ -334,7 +334,7 @@ export abstract class AbstractNetworkSeries<
     private applyViewportTransform() {
         const zoom = this.ctx.chartState.getValue('zoom');
         const { seriesRect } = this;
-        const contentBBox = this.layout.contentBBox;
+        const contentBBox = this.layout.getContentBBox();
 
         if (!seriesRect || !contentBBox || contentBBox.width <= 0 || contentBBox.height <= 0) {
             this.viewportGroup.translationX = 0;
@@ -485,7 +485,7 @@ export abstract class AbstractNetworkSeries<
     // isotropic line `xRange/fitX = yRange/fitY` — less-zoomed axis wins, preserving content.
     private constrainZoomToPixelFloor(event: _ModuleSupport.ZoomChangeRequestEvent) {
         const { seriesRect } = this;
-        const contentBBox = this.layout.contentBBox;
+        const contentBBox = this.layout.getContentBBox();
         if (!seriesRect || !contentBBox || contentBBox.width <= 0 || contentBBox.height <= 0) return;
 
         const fitX = seriesRect.width / contentBBox.width;
