@@ -1,0 +1,51 @@
+<div class="example-controls">
+    <div class="controls-row">
+        <div class="gap-right">
+            <label for="maxWidthSlider">Max Width:</label>
+            <input
+                type="range"
+                id="maxWidthSlider"
+                min="20"
+                max="150"
+                value="70"
+                oninput="setMaxWidth(event)"
+                onchange="setMaxWidth(event)"
+            />
+            <span id="maxWidthValue" style="display: inline-block; min-width: 4ch; text-align: right">70</span>
+        </div>
+        <div>
+            <label for="maxHeightSlider">Max Height:</label>
+            <input
+                type="range"
+                id="maxHeightSlider"
+                min="10"
+                max="80"
+                value="40"
+                oninput="setMaxHeight(event)"
+                onchange="setMaxHeight(event)"
+            />
+            <span id="maxHeightValue" style="display: inline-block; min-width: 4ch; text-align: right">40</span>
+        </div>
+    </div>
+    <div class="controls-row">
+        <div class="gap-right">
+            <label for="wrap-select">Wrapping:</label>
+            <select id="wrap-select" onchange="setWrapping(event.target.value)">
+                <option value="on-space">on-space (default)</option>
+                <option value="always">always</option>
+                <option value="hyphenate">hyphenate</option>
+                <option value="never">never</option>
+            </select>
+        </div>
+        <div>
+            <label for="truncate-select">Truncate:</label>
+            <select id="truncate-select" onchange="setTruncate(event.target.value)">
+                <option value="enabled">Enabled</option>
+                <option value="disabled">Disabled</option>
+            </select>
+        </div>
+    </div>
+</div>
+<div class="resizable-container">
+    <div id="myChart" class="resizable"></div>
+</div>

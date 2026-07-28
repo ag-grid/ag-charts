@@ -17,9 +17,8 @@ const options: AgCartesianChartOptions<DataType> = {
             label: {
                 enabled: true,
                 fontWeight: 'bold',
-                placement: ['inside-end', 'outside-end'],
-                cornerRadius: 4,
-                padding: { top: 2, bottom: 2, left: 6, right: 6 },
+                placement: ['outside-end', 'inside-end'],
+                orientation: 'horizontal',
                 border: { enabled: true, strokeWidth: 1 },
                 insideStyle: {
                     color: 'white',
@@ -40,4 +39,4 @@ const options: AgCartesianChartOptions<DataType> = {
     },
 };
 
-const chart = AgCharts.create(options);
+AgCharts.create(options);

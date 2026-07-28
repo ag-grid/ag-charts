@@ -1,0 +1,25 @@
+<div class="example-controls">
+    <div class="controls-row">
+        <label for="thresholdSlider">Collision Threshold:</label>
+        <input
+            type="range"
+            id="thresholdSlider"
+            min="-10"
+            max="20"
+            value="4"
+            oninput="setThreshold(event)"
+            onchange="setThreshold(event)"
+        />
+        <span id="thresholdValue" style="display: inline-block; min-width: 4ch; text-align: right">4</span>
+    </div>
+    <div class="controls-row">
+        <span>Colliding labels:</span>
+        <select onchange="setSuppressHide(event.target.value)">
+            <option value="hide" selected>Hide (default)</option>
+            <option value="show">Keep visible</option>
+        </select>
+    </div>
+</div>
+<div class="resizable-container">
+    <div id="myChart" class="resizable"></div>
+</div>
