@@ -366,14 +366,12 @@ export abstract class AbstractNetworkSeries<
         const centerX = Math.max(0, (vw - cw * s) / 2);
         const centerY = Math.max(0, (vh - ch * s) / 2);
 
-        const offsetX = this.dataNodeGroup.translationX;
-        const offsetY = this.dataNodeGroup.translationY;
         const screenTopFractionY = 1 - yMax;
 
         this.viewportGroup.scalingX = s;
         this.viewportGroup.scalingY = s;
-        this.viewportGroup.translationX = -(contentBBox.x + xMin * cw + offsetX) * s + centerX;
-        this.viewportGroup.translationY = -(contentBBox.y + screenTopFractionY * ch + offsetY) * s + centerY;
+        this.viewportGroup.translationX = -(contentBBox.x + xMin * cw) * s + centerX;
+        this.viewportGroup.translationY = -(contentBBox.y + screenTopFractionY * ch) * s + centerY;
     }
 
     // Runs on every activeItem change incl. hover — opens collapsed ancestors.

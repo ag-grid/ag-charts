@@ -57,10 +57,6 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
         this.directionalLayout.resetContentBBox();
         const { containerBBox } = this.directionalLayout.updateNodes(options, undefined, this.regularBBox);
         this._contentBBox = this.directionalLayout.getContentBBox() ?? containerBBox;
-
-        // TODO: AG-17279 & AG-17206 – this is currently non-functional but will be required in the future when zoom &
-        // focus is improved
-        this.directionalLayout.updateOffset(options, containerBBox);
     }
 
     protected override calculateRegularDimensions(options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>) {
@@ -104,12 +100,6 @@ abstract class NetworkTreeDirectionalLayout<TVertex, TEdge> {
         containerBBox: TBBox;
         childrenBBoxes: { vertex: Vertex<TVertex, TEdge>; bbox: TBBox }[];
     };
-
-    abstract updateOffset(
-        options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>,
-        containerBBox: TBBox,
-        regularBBox?: TBBox
-    ): void;
 
     resetContentBBox() {
         this.contentBoundsAccumulator.count = 0;
@@ -229,37 +219,6 @@ class NetworkTreeVerticalLayout<TVertex, TEdge> extends NetworkTreeDirectionalLa
         }
 
         return { containerBBox: groupBBox, childrenBBoxes: layoutBBoxes };
-    }
-
-    updateOffset(options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>, containerBBox: TBBox, regularBBox?: TBBox) {
-        let offset = {
-            x: containerBBox.x + containerBBox.width / 2,
-            y: 0,
-        };
-
-        const focusedVertex = options.getFocusedVertex();
-        if (focusedVertex) {
-            const focusedBBox = options.getDatumNodeBBox(focusedVertex);
-            if (focusedBBox) {
-                offset = {
-                    x: options.width / 2 - focusedBBox.x - (regularBBox?.width ?? focusedBBox.width) / 2,
-                    y: -focusedBBox.y,
-                };
-            }
-        } else {
-            const defaultFocusedVertices = options.getDefaultFocusedVertices();
-            const bboxes = defaultFocusedVertices?.map((vertex) => options.getDatumNodeBBox(vertex)).filter(Boolean);
-            if (bboxes && bboxes.length > 0) {
-                const focusedBBox = BBox.merge(bboxes as TBBox[]);
-                offset = {
-                    x: options.width / 2 - focusedBBox.x - (regularBBox?.width ?? focusedBBox.width) / 2,
-                    y: -focusedBBox.y,
-                };
-            }
-        }
-
-        // Auto-centre only — Zoom feature owns pan/clamp.
-        options.updateOffset(offset);
     }
 
     private updateChildren(
@@ -457,14 +416,6 @@ class NetworkTreeHorizontalLayout<TVertex, TEdge> extends NetworkTreeDirectional
         }
 
         return { containerBBox: groupBBox, childrenBBoxes: layoutBBoxes };
-    }
-
-    updateOffset(
-        _options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>,
-        _containerBBox: TBBox,
-        _regularBBox?: TBBox
-    ) {
-        // TODO
     }
 
     private updateChildren(
