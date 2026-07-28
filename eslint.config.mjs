@@ -56,6 +56,8 @@ const SANCTIONED_LOGGER_CONSTRUCTION = [
     '/logging/logger.ts',
     // The chart's single instance, adopted by the chart context.
     '/module/optionsModule.ts',
+    // The shared Logger for tests that build chart internals directly, rather than through a chart.
+    '/console/test-logger.ts',
     '.test.',
     '.spec.',
 ];
