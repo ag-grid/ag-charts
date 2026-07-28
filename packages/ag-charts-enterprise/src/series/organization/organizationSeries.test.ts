@@ -785,7 +785,7 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
             ...SIMPLE_ORG_CHART,
             series: [
                 {
-                    ...SIMPLE_ORG_CHART.series![0],
+                    ...SIMPLE_ORG_CHART.series[0],
                     expander: {
                         text: {
                             showDirectChildren: true,
@@ -802,7 +802,7 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
             ...SIMPLE_ORG_CHART,
             series: [
                 {
-                    ...SIMPLE_ORG_CHART.series![0],
+                    ...SIMPLE_ORG_CHART.series[0],
                     expander: {
                         text: {
                             showDirectChildren: false,
