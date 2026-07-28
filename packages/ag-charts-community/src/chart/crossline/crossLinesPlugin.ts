@@ -61,7 +61,7 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
 
         // Annotate the series-area context-menu handoff when the pointer hits one of this axis's cross
         // lines — mirrors how axis-owning modules annotate `event.axis` (see axisDomProxy). The
-        // series-area dispatch turns the annotation into a `crossline` context-menu region.
+        // series-area dispatch turns the annotation into a `cross-line` context-menu region.
         this.removeContextMenuListener = this.ctx.eventsHub.on('series-area:contextmenu', (event) =>
             this.onSeriesAreaContextMenu(event)
         );

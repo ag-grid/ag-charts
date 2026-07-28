@@ -24,7 +24,7 @@ export type AgContextMenuItemShowOn =
     | 'always'
     | 'axis'
     | 'caption'
-    | 'crossline'
+    | 'cross-line'
     | 'series-area'
     | 'series-node'
     | 'legend-item';
@@ -88,9 +88,9 @@ export interface AgContextMenuItemCrossLine<TDatum = DatumDefault, TContext = Co
     TContext
 > {
     /**
-     * Which clicked element this menu item should be shown for. `'crossline'` menu items are shown when right-clicking a cross line's line or fill.
+     * Which clicked element this menu item should be shown for. `'cross-line'` menu items are shown when right-clicking a cross line's line or fill.
      */
-    showOn: 'crossline';
+    showOn: 'cross-line';
     /** Function called when clicking on this menu item. */
     action?: (event: AgCrossLineContextMenuActionEvent<TContext>) => void;
 }
@@ -187,7 +187,7 @@ export interface AgContextMenuShowOnParamsCrossLine<_TDatumReserved = never, TCo
     GetItemsParamsOmissions
 > {
     /** Which clicked element this menu item should be shown for. */
-    showOn: 'crossline';
+    showOn: 'cross-line';
 }
 
 export interface AgContextMenuShowOnParamsCaption<_TDatumReserved = never, TContext = ContextDefault> extends Omit<

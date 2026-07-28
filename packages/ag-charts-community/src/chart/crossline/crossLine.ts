@@ -51,7 +51,7 @@ export function validateCrossLineValue(crossLine: ICrossLine, scale: Scale<any, 
 /**
  * Identifies a cross line hit by a pointer interaction, assembled by the cross-lines plugin from the
  * hit {@link CrossLine} instance plus its owning axis. Mirrors {@link AxisValuePick}; consumed by the
- * context-menu `crossline` scope.
+ * context-menu `cross-line` scope.
  */
 export interface CrossLineValuePick {
     readonly crossLineId: string;

@@ -229,12 +229,12 @@ test.describe('context-menu', () => {
 
         test('right-clicking Apr bar on crossline shows crossline and series contexts', async ({ page }) => {
             await page.mouse.click(371, 224, { button: 'right' });
-            expect(await popContextMenuText(page)).toEqual('always,crossline,series-area,series-node,');
+            expect(await popContextMenuText(page)).toEqual('always,cross-line,series-area,series-node,');
         });
 
         test('right-clicking May tick label shows axis, crossline and series contexts', async ({ page }) => {
             await page.mouse.click(459, 336, { button: 'right' });
-            expect(await popContextMenuText(page)).toEqual('always,axis,crossline,series-area,series-node,');
+            expect(await popContextMenuText(page)).toEqual('always,axis,cross-line,series-area,series-node,');
         });
     });
 
@@ -605,7 +605,7 @@ test.describe('context-menu', () => {
         };
 
         function itemsEvent(...expectedHits: Params[]): AgContextMenuGetItemsParamsCrossLine {
-            expectedHits = expectedHits.map((hit) => ({ ...hit, showOn: 'crossline' }));
+            expectedHits = expectedHits.map((hit) => ({ ...hit, showOn: 'cross-line' }));
             const seriesAreaShowOnParams: AgContextMenuShowOnParamsAlways = { showOn: 'series-area' };
             return {
                 ...expectedHits[0],

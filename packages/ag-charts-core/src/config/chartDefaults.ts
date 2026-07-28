@@ -240,7 +240,7 @@ const contextMenuItemObjectDef: OptionsDefs<Extract<AgContextMenuItem, object>> 
         'always',
         'axis',
         'caption',
-        'crossline',
+        'cross-line',
         'series-area',
         'series-node',
         'legend-item'

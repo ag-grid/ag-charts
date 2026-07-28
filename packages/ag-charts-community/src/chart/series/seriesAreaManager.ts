@@ -524,8 +524,8 @@ export class SeriesAreaManager extends BaseManager {
             contexts.axis = collectEvent.axis;
         }
         if (collectEvent.crossLine.length > 0) {
-            regions.push('crossline');
-            contexts.crossline = collectEvent.crossLine;
+            regions.push('cross-line');
+            contexts['cross-line'] = collectEvent.crossLine;
         }
 
         // Primary region for backwards-compatible `showOn`: a node wins over a cross line, which wins over an
@@ -534,7 +534,7 @@ export class SeriesAreaManager extends BaseManager {
         if (contexts['series-node']) {
             primary = 'series-node';
         } else if (collectEvent.crossLine.length > 0) {
-            primary = 'crossline';
+            primary = 'cross-line';
         } else if (collectEvent.axis) {
             primary = 'axis';
         }
