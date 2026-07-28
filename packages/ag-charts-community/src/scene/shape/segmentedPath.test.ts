@@ -1,3 +1,4 @@
+import { testLogger } from '_ag-charts-test';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { getPath2D } from 'ag-charts-core';
@@ -37,7 +38,7 @@ describe('SegmentedPath', () => {
             clip: vi.fn(),
         } as unknown as CanvasRenderingContext2D;
 
-        path.drawPath(ctx);
+        path.drawPath(ctx, testLogger);
 
         const maxX = Math.max(...pointsReached.map(([x]) => x));
         const maxY = Math.max(...pointsReached.map(([, y]) => y));

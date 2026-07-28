@@ -1,4 +1,12 @@
-import { CleanupRegistry, Debug, EventEmitter, Logger, createId, downloadUrl } from 'ag-charts-core';
+import {
+    CleanupRegistry,
+    Debug,
+    EventEmitter,
+    type Logger,
+    ambientLogger,
+    createId,
+    downloadUrl,
+} from 'ag-charts-core';
 
 import type { BBox } from './bbox';
 import { type CanvasOptions, HdpiCanvas } from './canvas/hdpiCanvas';
@@ -42,10 +50,12 @@ export class Scene extends EventEmitter<EventMap> {
     private readonly cleanup = new CleanupRegistry();
     private releaseDebugStats?: () => void;
 
-    // Falls back to Logger.default when unset — Scene is used context-less by AG Grid sparklines/mini charts.
-    private logger: Logger = Logger.default;
-
-    constructor(canvasOptions: CanvasOptions) {
+    constructor(
+        canvasOptions: CanvasOptions,
+        // Defaulted for context-less use by AG Grid sparklines/mini charts; a chart passes its own.
+        // Sharing the ambient instance keeps one `warnOnce` cache across every sparkline in a grid.
+        private logger: Logger = ambientLogger
+    ) {
         super();
 
         this.updateDebugFlags();

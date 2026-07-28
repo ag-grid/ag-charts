@@ -1,4 +1,4 @@
-import { Logger } from 'ag-charts-core';
+import { ambientLog } from 'ag-charts-core';
 
 export type SVGCommand = 'z' | 'h' | 'v' | 'm' | 'l' | 't' | 's' | 'q' | 'c' | 'a';
 export type SVGPathSegment = { command: SVGCommand; params: number[] };
@@ -32,7 +32,7 @@ export function parseSvg(d?: string): SVGPathSegment[] | undefined {
 
         if (commandMatch == null) {
             if (!currentCommand) {
-                Logger.default.warnOnce(`Invalid SVG path, error at index ${i}: Missing command.`);
+                ambientLog.warnOnce(`Invalid SVG path, error at index ${i}: Missing command.`);
                 return;
             }
             command = currentCommand;
@@ -71,7 +71,7 @@ export function parseSegment(command: SVGCommand, d: string, index: number): [nu
         } else if (pathSeg.params.length === 1) {
             return [index, pathSeg];
         } else {
-            Logger.default.warnOnce(
+            ambientLog.warnOnce(
                 `Invalid SVG path, error at index ${index}: No path segment parameters for command [${command}]`
             );
             return;

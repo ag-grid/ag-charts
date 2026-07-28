@@ -1,3 +1,5 @@
+import { testLogger } from '_ag-charts-test';
+
 import { DataSet } from './dataSet';
 
 describe('DataChangeDescription', () => {
@@ -6,7 +8,7 @@ describe('DataChangeDescription', () => {
             it('should merge 100 consecutive deletions into 1 splice operation', () => {
                 // Create initial data with 200 items
                 const initialData = Array.from({ length: 200 }, (_, i) => ({ value: i }));
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
 
                 // Create removal items for indices 5-104
                 const itemsToRemove = initialData.slice(5, 105);
@@ -35,7 +37,7 @@ describe('DataChangeDescription', () => {
 
             it('should merge consecutive deletions at the start', () => {
                 const initialData = Array.from({ length: 20 }, (_, i) => ({ value: i }));
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
 
                 // Remove first 5 items
                 const itemsToRemove = initialData.slice(0, 5);
@@ -60,7 +62,7 @@ describe('DataChangeDescription', () => {
 
             it('should merge consecutive deletions at the end', () => {
                 const initialData = Array.from({ length: 20 }, (_, i) => ({ value: i }));
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
 
                 // Remove last 5 items
                 const itemsToRemove = initialData.slice(15, 20);
@@ -85,7 +87,7 @@ describe('DataChangeDescription', () => {
 
             it('should handle consecutive deletions with prepends', () => {
                 const initialData = Array.from({ length: 20 }, (_, i) => ({ value: i }));
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
 
                 // Remove indices 5-9
                 const itemsToRemove = initialData.slice(5, 10);
@@ -128,7 +130,7 @@ describe('DataChangeDescription', () => {
         describe('non-consecutive deletions', () => {
             it('should create separate operations for non-consecutive groups', () => {
                 const initialData = Array.from({ length: 20 }, (_, i) => ({ value: i }));
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
 
                 // Remove non-consecutive items: 2-4 and 10-12
                 const itemsToRemove = [...initialData.slice(2, 5), ...initialData.slice(10, 13)];
@@ -161,7 +163,7 @@ describe('DataChangeDescription', () => {
 
             it('should handle single deletions between consecutive groups', () => {
                 const initialData = Array.from({ length: 20 }, (_, i) => ({ value: i }));
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
 
                 // Remove groups: 1-3, 5 (single), 7-9
                 const itemsToRemove = [...initialData.slice(1, 4), initialData[5], ...initialData.slice(7, 10)];
@@ -201,7 +203,7 @@ describe('DataChangeDescription', () => {
         describe('edge cases', () => {
             it('should handle single deletion', () => {
                 const initialData = Array.from({ length: 20 }, (_, i) => ({ value: i }));
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
 
                 // Remove single item at index 5
                 const itemsToRemove = [initialData[5]];
@@ -226,7 +228,7 @@ describe('DataChangeDescription', () => {
 
             it('should handle all indices removed', () => {
                 const initialData = Array.from({ length: 10 }, (_, i) => ({ value: i }));
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
 
                 // Remove all items
                 dataSet.addTransaction({ remove: initialData });
@@ -251,7 +253,7 @@ describe('DataChangeDescription', () => {
         describe('array transformation', () => {
             it('should correctly apply optimized splice operations', () => {
                 const initialData = Array.from({ length: 10 }, (_, i) => ({ value: i }));
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
 
                 // Remove indices 2-4 and 7-8 (non-consecutive)
                 const itemsToRemove = [...initialData.slice(2, 5), ...initialData.slice(7, 9)];
@@ -270,7 +272,7 @@ describe('DataChangeDescription', () => {
 
             it('should handle complex transformation with prepends and appends', () => {
                 const initialData: any[] = Array.from({ length: 5 }, (_, i) => ({ value: i }));
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
 
                 // Remove indices 1-2
                 const itemsToRemove = initialData.slice(1, 3);
@@ -299,7 +301,7 @@ describe('DataChangeDescription', () => {
     describe('applyToTypedArray', () => {
         it('should handle rolling window (remove head + append tail)', () => {
             const data = Array.from({ length: 10 }, (_, i) => ({ value: i }));
-            const ds = new DataSet(data);
+            const ds = new DataSet(data, testLogger);
 
             // Remove first 3, append 3 new
             ds.addTransaction({ remove: data.slice(0, 3), append: [{ value: 10 }, { value: 11 }, { value: 12 }] });
@@ -324,7 +326,7 @@ describe('DataChangeDescription', () => {
 
         it('should handle append-only', () => {
             const data = [{ value: 0 }, { value: 1 }];
-            const ds = new DataSet(data);
+            const ds = new DataSet(data, testLogger);
             ds.addTransaction({ append: [{ value: 2 }] });
             const desc = ds.getChangeDescription()!;
 
@@ -339,7 +341,7 @@ describe('DataChangeDescription', () => {
 
         it('should handle prepend-only', () => {
             const data = [{ value: 0 }, { value: 1 }];
-            const ds = new DataSet(data);
+            const ds = new DataSet(data, testLogger);
             ds.addTransaction({ prepend: [{ value: -1 }] });
             const desc = ds.getChangeDescription()!;
 
@@ -353,7 +355,7 @@ describe('DataChangeDescription', () => {
 
         it('should handle single removal', () => {
             const data = [{ value: 0 }, { value: 1 }, { value: 2 }, { value: 3 }];
-            const ds = new DataSet(data);
+            const ds = new DataSet(data, testLogger);
             ds.addTransaction({ remove: [data[1]] });
             const desc = ds.getChangeDescription()!;
 
@@ -368,7 +370,7 @@ describe('DataChangeDescription', () => {
 
         it('should handle no-op (no changes)', () => {
             const data = [{ value: 0 }];
-            const ds = new DataSet(data);
+            const ds = new DataSet(data, testLogger);
             ds.addTransaction({}); // Empty transaction
 
             const desc = ds.getChangeDescription()!;
@@ -380,7 +382,7 @@ describe('DataChangeDescription', () => {
 
         it('should handle full removal', () => {
             const data = [{ value: 0 }, { value: 1 }, { value: 2 }];
-            const ds = new DataSet(data);
+            const ds = new DataSet(data, testLogger);
             ds.addTransaction({ remove: [...data] });
             const desc = ds.getChangeDescription()!;
 
@@ -393,7 +395,7 @@ describe('DataChangeDescription', () => {
 
         it('should handle prepend + removals + append', () => {
             const data = [{ value: 0 }, { value: 1 }, { value: 2 }, { value: 3 }, { value: 4 }];
-            const ds = new DataSet(data);
+            const ds = new DataSet(data, testLogger);
 
             ds.addTransaction({
                 prepend: [{ value: -2 }, { value: -1 }],
@@ -422,7 +424,7 @@ describe('DataChangeDescription', () => {
 
         it('should handle mid-array insertion with removals (slow path)', () => {
             const data = Array.from({ length: 10 }, (_, i) => ({ id: i, value: i }));
-            const ds = new DataSet(data, 'id');
+            const ds = new DataSet(data, testLogger, 'id');
 
             // Remove index 2, insert 3 new items at index 5
             // Original: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
@@ -474,7 +476,7 @@ describe('DataChangeDescription', () => {
 
         it('should support custom default value', () => {
             const data = [{ value: 0 }, { value: 1 }];
-            const ds = new DataSet(data);
+            const ds = new DataSet(data, testLogger);
             ds.addTransaction({ append: [{ value: 2 }] });
             const desc = ds.getChangeDescription()!;
 

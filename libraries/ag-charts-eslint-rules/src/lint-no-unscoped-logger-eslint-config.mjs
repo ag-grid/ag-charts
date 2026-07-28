@@ -18,7 +18,7 @@ export default [
             },
         },
         rules: {
-            'aglint/no-unscoped-logger': [2, { allowNewIn: [], checkStatic: true }],
+            'aglint/no-unscoped-logger': [2, { allowNewIn: [], checkStatic: true, allowAmbientIn: [] }],
         },
     },
 ];

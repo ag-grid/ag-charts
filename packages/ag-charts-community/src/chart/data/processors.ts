@@ -62,7 +62,7 @@ const TIME_AXIS_ACCEPTED_FORMATS =
     "Date, epoch number/bigint, or strict ISO 8601 string (e.g. '2024-01-15', '2024-01-15T10:30:00Z')";
 
 // Separate from basicContinuousCheckDatumValidation so only time scales accept ISO 8601 strings.
-function basicTimeCheckDatumValidation(value: any, _datum?: any, index?: number, logger: Logger = Logger.default) {
+function basicTimeCheckDatumValidation(value: any, _datum: any, index: number | undefined, logger: Logger) {
     if (value == null) return false;
     if (isContinuous(value) || isISO8601(value)) return true;
     if (typeof value === 'string') {

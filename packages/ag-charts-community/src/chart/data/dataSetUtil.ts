@@ -12,9 +12,9 @@ import { DataSet } from './dataSet';
 export function deepCloneDataSet<T = unknown>(
     service: IDataSelectionService | undefined,
     src: DataSet<T>,
-    logger?: Logger
+    logger: Logger
 ): DataSet<T> {
-    const clone = new DataSet<T>([...src.data], src.dataIdKey, logger);
+    const clone = new DataSet<T>([...src.data], logger, src.dataIdKey);
     service?.transferDataSet(clone, src);
     return clone;
 }
@@ -29,9 +29,9 @@ export function replaceDataSet<T = unknown>(
     src: DataSet<T> | undefined,
     data: T[],
     dataIdKey: string | undefined,
-    logger?: Logger
+    logger: Logger
 ): DataSet<T> {
-    const dst = new DataSet<T>(data, dataIdKey, logger);
+    const dst = new DataSet<T>(data, logger, dataIdKey);
     if (src) service?.transferDataSet(dst, src);
     return dst;
 }

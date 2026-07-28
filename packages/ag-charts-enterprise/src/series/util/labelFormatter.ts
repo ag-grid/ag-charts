@@ -1,6 +1,6 @@
+import type { Logger } from 'ag-charts-core';
 import {
     type FontOptions,
-    Logger,
     type NormalisedContentSegment,
     type NormalisedTextOrSegments,
     cachedTextMeasurer,
@@ -419,13 +419,14 @@ export function formatLabels<Meta = never>(
     baseSecondaryLabelValue: NormalisedTextOrSegments | undefined,
     secondaryLabelProps: AutoSizedSecondaryLabelOptions,
     layoutParams: LayoutParams,
-    sizeFittingHeight: SizeFittingHeightFn<Meta>
+    sizeFittingHeight: SizeFittingHeightFn<Meta>,
+    logger: Logger
 ): StackedLabelFormatting<Meta> | undefined {
     const labelValue = labelProps.enabled ? baseLabelValue : undefined;
     const secondaryLabelValue = secondaryLabelProps.enabled ? baseSecondaryLabelValue : undefined;
 
     if (hasInvalidFontSize(labelProps) || hasInvalidFontSize(secondaryLabelProps)) {
-        Logger.default.warnOnce(`minimumFontSize should be set to a value less than or equal to the font size`);
+        logger.warnOnce(`minimumFontSize should be set to a value less than or equal to the font size`);
     }
 
     let value: StackedLabelFormatting<Meta> | undefined;

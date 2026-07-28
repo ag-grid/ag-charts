@@ -336,7 +336,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
             autoScaledAxes: defined,
         };
 
-        const { invalid } = validate(blob, zoomMementoDefs);
+        const { invalid } = validate(blob, zoomMementoDefs, '', { logger: this.ctx.logger });
         if (invalid.length > 0) {
             messages.push(...invalid.map(String));
             return false;

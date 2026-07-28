@@ -1,3 +1,4 @@
+import { testLogger } from '_ag-charts-test';
 import { describe, expect, test } from 'vitest';
 
 import { discreteColorStops, resolveStopPositions } from 'ag-charts-core';
@@ -237,7 +238,8 @@ describe('stops', () => {
             configureColorScale(
                 scale,
                 { fills: [{ color: 'red' }, { color: 'green' }], domain: undefined, mode: 'continuous' },
-                [0, 100]
+                [0, 100],
+                testLogger
             );
 
             const datum = buildGradientLegendDatum(scale, [], 'series-1', true, [

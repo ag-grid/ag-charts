@@ -79,7 +79,7 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
         }
 
         const top = convertLine(datum, context);
-        const bottom = convertLine(datum.bottom, context);
+        const bottom = convertLine(datum.getBottom(context.logger), context);
         if (!top || !bottom) return;
 
         const vectors = {

@@ -609,7 +609,9 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         const cornersOnAllItems = cornerMode === 'item';
 
         const maxTicks = Math.ceil(mainAxisSize);
-        let segments = segmentation.enabled ? segmentation.interval.getSegments(scale, maxTicks) : undefined;
+        let segments = segmentation.enabled
+            ? segmentation.interval.getSegments(scale, maxTicks, this.ctx.logger)
+            : undefined;
 
         const barStyle = bar.getStyle(defaultColorRange, horizontal, scale);
         const scaleStyle = scaleProps.getStyle(bar.enabled, defaultColorRange, horizontal, scale);

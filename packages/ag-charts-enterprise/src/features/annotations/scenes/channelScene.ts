@@ -1,6 +1,6 @@
 /* eslint-disable no-restricted-properties */
 import { _ModuleSupport } from 'ag-charts-community';
-import type { Bounds4, Point } from 'ag-charts-core';
+import type { Bounds4, Logger, Point } from 'ag-charts-core';
 
 import type { ChannelTextProperties } from '../annotationProperties';
 import type { AnnotationContext, DataPoint } from '../annotationTypes';
@@ -20,7 +20,7 @@ export abstract class ChannelScene<
         visible?: boolean;
         start: DataPoint;
         end: DataPoint;
-        bottom: { start: DataPoint; end: DataPoint };
+        getBottom(logger: Logger): { start: DataPoint; end: DataPoint };
         strokeWidth?: number;
         text?: ChannelTextProperties;
         isWriteable: () => boolean;
@@ -39,7 +39,7 @@ export abstract class ChannelScene<
         const { locked, visible } = datum;
 
         const top = convertLine(datum, context);
-        const bottom = convertLine(datum.bottom, context);
+        const bottom = convertLine(datum.getBottom(context.logger), context);
 
         if (top == null || bottom == null) {
             this.visible = false;

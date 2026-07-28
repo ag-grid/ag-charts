@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { Logger, reset, warnOnce } from './logger';
+import { Logger, reset, warn, warnOnce } from './logger';
 
 describe('Logger', () => {
     beforeEach(() => {
@@ -30,8 +30,8 @@ describe('Logger', () => {
             expect(console.error).toHaveBeenCalledWith('AG Charts error', err, 'context');
         });
 
-        it('emits the same output from the static fallback as from an instance', () => {
-            Logger.warn('shared message');
+        it('emits the same output from the ambient free function as from an instance', () => {
+            warn('shared message');
             expect(console.warn).toHaveBeenCalledWith('AG Charts - shared message');
         });
     });
@@ -61,10 +61,10 @@ describe('Logger', () => {
         });
     });
 
-    describe('module-default fallback', () => {
-        it('shares one dedup cache between the free functions and the static methods', () => {
+    describe('ambient fallback', () => {
+        it('shares one dedup cache across the free functions', () => {
             warnOnce('fallback message');
-            Logger.warnOnce('fallback message');
+            warnOnce('fallback message');
             expect(console.warn).toHaveBeenCalledTimes(1);
         });
 

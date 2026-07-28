@@ -1,4 +1,4 @@
-import { warnOnce } from '../logging/logger';
+import type { Logger } from '../logging/logger';
 
 interface DebounceOptions {
     leading?: boolean;
@@ -125,11 +125,16 @@ export function throttle<T extends (...args: Parameters<T>) => void>(
     });
 }
 
-export function safeCall<T = unknown>(callback: Function, args: any[], errorPath = ''): T | undefined {
+export function safeCall<T = unknown>(
+    callback: Function,
+    args: any[],
+    logger: Logger | undefined,
+    errorPath = ''
+): T | undefined {
     try {
         return callback(...args);
     } catch (error) {
         const postfix = errorPath ? ` \`${errorPath}\`` : '';
-        warnOnce(`Uncaught exception in user callback${postfix}`, error);
+        logger?.warnOnce(`Uncaught exception in user callback${postfix}`, error);
     }
 }

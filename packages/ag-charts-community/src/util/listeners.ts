@@ -1,4 +1,4 @@
-import { Logger } from 'ag-charts-core';
+import { ambientLog } from 'ag-charts-core';
 
 type Handler = (...args: any[]) => void;
 
@@ -40,7 +40,7 @@ export class Listeners<EventType extends string, EventHandler extends Handler> {
             try {
                 listener.handler(...params);
             } catch (e) {
-                Logger.default.errorOnce(e);
+                ambientLog.errorOnce(e);
             }
         }
     }

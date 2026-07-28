@@ -6,7 +6,6 @@ import type {
     ScaleTickResult,
 } from 'ag-charts-core';
 import {
-    Logger,
     ScaleAlignment,
     decodeIntervalValue,
     encodedToTimestamp,
@@ -38,9 +37,6 @@ export class UnitTimeScale extends DiscreteTimeScale {
     override readonly type = 'unit-time';
 
     override readonly defaultTickCount = Infinity;
-
-    // Per-chart logger, threaded by the owning axis; falls back to the module default.
-    logger: Logger = Logger.default;
 
     static supportsInterval(domain: Date[], interval: AgTimeInterval | AgTimeIntervalUnit) {
         return supportsInterval(domain, interval);

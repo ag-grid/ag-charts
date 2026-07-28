@@ -593,7 +593,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             undefined,
             this.properties.label,
             { padding: itemPadding },
-            sizeFittingHeight
+            sizeFittingHeight,
+            this.ctx.logger
         );
 
         if (labels?.label == null) {
@@ -954,7 +955,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
     }
 
     protected override initQuadTree(quadtree: _ModuleSupport.QuadtreeNearest<HeatmapNodeDatum>) {
-        addHitTestersToQuadtree(quadtree, this.datumNodesIter());
+        addHitTestersToQuadtree(quadtree, this.datumNodesIter(), this.ctx.logger);
     }
 
     protected override pickNodesExactShape(point: Point): _ModuleSupport.SeriesNodePickMatch[] {

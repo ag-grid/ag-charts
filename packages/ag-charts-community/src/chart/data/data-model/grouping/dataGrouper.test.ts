@@ -1,3 +1,4 @@
+import { testLogger } from '_ag-charts-test';
 import { describe, expect, it } from 'vitest';
 
 import { DataModel } from '../../dataModel';
@@ -7,25 +8,34 @@ import { categoryKey, scopedValue } from '../test/testUtils';
 describe('DataGrouper', () => {
     describe('Column Batch Merging', () => {
         it('should merge batches with identical keys and invalidKeys', () => {
-            const dataSet1 = new DataSet([
-                { key: 1, valueA: 10 },
-                { key: 2, valueA: 20 },
-            ]);
-
-            const dataSet2 = new DataSet([
-                { key: 1, valueB: 100 },
-                { key: 2, valueB: 200 },
-            ]);
-
-            const dataModel = new DataModel<any, any, true>({
-                props: [
-                    categoryKey('key', ['scope1']),
-                    categoryKey('key', ['scope2']),
-                    scopedValue('scope1', 'valueA'),
-                    scopedValue('scope2', 'valueB'),
+            const dataSet1 = new DataSet(
+                [
+                    { key: 1, valueA: 10 },
+                    { key: 2, valueA: 20 },
                 ],
-                groupByKeys: true,
-            });
+                testLogger
+            );
+
+            const dataSet2 = new DataSet(
+                [
+                    { key: 1, valueB: 100 },
+                    { key: 2, valueB: 200 },
+                ],
+                testLogger
+            );
+
+            const dataModel = new DataModel<any, any, true>(
+                {
+                    props: [
+                        categoryKey('key', ['scope1']),
+                        categoryKey('key', ['scope2']),
+                        scopedValue('scope1', 'valueA'),
+                        scopedValue('scope2', 'valueB'),
+                    ],
+                    groupByKeys: true,
+                },
+                testLogger
+            );
 
             const data = new Map<string, DataSet<any>>([
                 ['scope1', dataSet1],
@@ -46,25 +56,34 @@ describe('DataGrouper', () => {
         });
 
         it('should not merge batches with different keys', () => {
-            const dataSet1 = new DataSet([
-                { key: 1, value: 10 },
-                { key: 2, value: 20 },
-            ]);
-
-            const dataSet2 = new DataSet([
-                { key: 3, value: 30 },
-                { key: 4, value: 40 },
-            ]);
-
-            const dataModel = new DataModel<any, any, true>({
-                props: [
-                    categoryKey('key', ['scope1']),
-                    categoryKey('key', ['scope2']),
-                    scopedValue('scope1', 'value'),
-                    scopedValue('scope2', 'value'),
+            const dataSet1 = new DataSet(
+                [
+                    { key: 1, value: 10 },
+                    { key: 2, value: 20 },
                 ],
-                groupByKeys: true,
-            });
+                testLogger
+            );
+
+            const dataSet2 = new DataSet(
+                [
+                    { key: 3, value: 30 },
+                    { key: 4, value: 40 },
+                ],
+                testLogger
+            );
+
+            const dataModel = new DataModel<any, any, true>(
+                {
+                    props: [
+                        categoryKey('key', ['scope1']),
+                        categoryKey('key', ['scope2']),
+                        scopedValue('scope1', 'value'),
+                        scopedValue('scope2', 'value'),
+                    ],
+                    groupByKeys: true,
+                },
+                testLogger
+            );
 
             const data = new Map<string, DataSet<any>>([
                 ['scope1', dataSet1],
@@ -83,25 +102,34 @@ describe('DataGrouper', () => {
         });
 
         it('should handle edge case with undefined invalidData and invalidKeys', () => {
-            const dataSet1 = new DataSet([
-                { key: 1, value: 10 },
-                { key: 2, value: 20 },
-            ]);
-
-            const dataSet2 = new DataSet([
-                { key: 1, value: 100 },
-                { key: 2, value: 200 },
-            ]);
-
-            const dataModel = new DataModel<any, any, true>({
-                props: [
-                    categoryKey('key', ['scope1']),
-                    categoryKey('key', ['scope2']),
-                    scopedValue('scope1', 'value'),
-                    scopedValue('scope2', 'value'),
+            const dataSet1 = new DataSet(
+                [
+                    { key: 1, value: 10 },
+                    { key: 2, value: 20 },
                 ],
-                groupByKeys: true,
-            });
+                testLogger
+            );
+
+            const dataSet2 = new DataSet(
+                [
+                    { key: 1, value: 100 },
+                    { key: 2, value: 200 },
+                ],
+                testLogger
+            );
+
+            const dataModel = new DataModel<any, any, true>(
+                {
+                    props: [
+                        categoryKey('key', ['scope1']),
+                        categoryKey('key', ['scope2']),
+                        scopedValue('scope1', 'value'),
+                        scopedValue('scope2', 'value'),
+                    ],
+                    groupByKeys: true,
+                },
+                testLogger
+            );
 
             const data = new Map<string, DataSet<any>>([
                 ['scope1', dataSet1],
@@ -121,27 +149,36 @@ describe('DataGrouper', () => {
         });
 
         it('should merge batches with multiple columns per scope', () => {
-            const dataSet1 = new DataSet([
-                { key: 1, valueA1: 10, valueA2: 15 },
-                { key: 2, valueA1: 20, valueA2: 25 },
-            ]);
-
-            const dataSet2 = new DataSet([
-                { key: 1, valueB1: 100, valueB2: 150 },
-                { key: 2, valueB1: 200, valueB2: 250 },
-            ]);
-
-            const dataModel = new DataModel<any, any, true>({
-                props: [
-                    categoryKey('key', ['scope1']),
-                    categoryKey('key', ['scope2']),
-                    scopedValue('scope1', 'valueA1'),
-                    scopedValue('scope1', 'valueA2'),
-                    scopedValue('scope2', 'valueB1'),
-                    scopedValue('scope2', 'valueB2'),
+            const dataSet1 = new DataSet(
+                [
+                    { key: 1, valueA1: 10, valueA2: 15 },
+                    { key: 2, valueA1: 20, valueA2: 25 },
                 ],
-                groupByKeys: true,
-            });
+                testLogger
+            );
+
+            const dataSet2 = new DataSet(
+                [
+                    { key: 1, valueB1: 100, valueB2: 150 },
+                    { key: 2, valueB1: 200, valueB2: 250 },
+                ],
+                testLogger
+            );
+
+            const dataModel = new DataModel<any, any, true>(
+                {
+                    props: [
+                        categoryKey('key', ['scope1']),
+                        categoryKey('key', ['scope2']),
+                        scopedValue('scope1', 'valueA1'),
+                        scopedValue('scope1', 'valueA2'),
+                        scopedValue('scope2', 'valueB1'),
+                        scopedValue('scope2', 'valueB2'),
+                    ],
+                    groupByKeys: true,
+                },
+                testLogger
+            );
 
             const data = new Map<string, DataSet<any>>([
                 ['scope1', dataSet1],

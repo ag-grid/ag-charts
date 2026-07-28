@@ -426,6 +426,7 @@ export abstract class Axis<
     ) {
         this.id = id;
         this.options = options;
+        scale.logger = moduleCtx.logger;
         // Only assign `context` when the user supplied one — a missing key
         // must leave the property absent so `'context' in axis` returns
         // `false` and chart-level context can fall through. See the field

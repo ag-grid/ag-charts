@@ -1,4 +1,4 @@
-import * as Logger from '../logging/logger';
+import * as ambientLog from '../logging/logger';
 import { merge } from '../utils/data/object';
 import { listDecoratedProperties } from '../utils/types/decorator';
 import { isArray, isPlainObject } from '../utils/types/typeGuards';
@@ -20,7 +20,7 @@ export class BaseProperties<T extends object = object> {
         }
 
         if (typeof properties !== 'object') {
-            Logger.warn(`unable to set ${className} - expecting a properties object`);
+            ambientLog.warn(`unable to set ${className} - expecting a properties object`);
             return this;
         }
 
@@ -35,7 +35,7 @@ export class BaseProperties<T extends object = object> {
                         // reset() runtime-validates the value and returns undefined for non-arrays.
                         const array = self[propertyKey].reset(value as object[]);
                         if (array == null) {
-                            Logger.warn(`unable to set [${String(propertyKey)}] - expecting a properties array`);
+                            ambientLog.warn(`unable to set [${String(propertyKey)}] - expecting a properties array`);
                         } else {
                             self[propertyKey] = array;
                         }
@@ -53,7 +53,7 @@ export class BaseProperties<T extends object = object> {
         }
         this.handleUnknownProperties(keys, properties);
         for (const unknownKey of keys) {
-            Logger.warn(`unable to set [${String(unknownKey)}] in ${className} - property is unknown`);
+            ambientLog.warn(`unable to set [${String(unknownKey)}] in ${className} - property is unknown`);
         }
 
         return this;

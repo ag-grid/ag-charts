@@ -22,8 +22,7 @@ export type RenderContext = {
     width: number;
     height: number;
     devicePixelRatio: number;
-    // Optional so context-less (grid sparkline) rendering can build a RenderContext without a chart logger.
-    logger?: Logger;
+    logger: Logger;
     clipBBox?: BBox;
     stats?: {
         opsPerformed: number;
@@ -250,7 +249,7 @@ export abstract class Node<TDatum = unknown> {
                 throw e;
             }
 
-            (renderCtx.logger ?? Logger.default).warnOnce('Error during rendering', e, e.stack);
+            renderCtx.logger.warnOnce('Error during rendering', e, e.stack);
         } finally {
             renderCtx.ctx.restore();
             renderCtx.currentFont = savedFont;
@@ -260,7 +259,7 @@ export abstract class Node<TDatum = unknown> {
     render(renderCtx: RenderContext): void {
         const { stats } = renderCtx;
 
-        this.debugDirtyProperties();
+        this.debugDirtyProperties(renderCtx.logger);
 
         if (renderCtx.debugNodeSearch) {
             const idOrName = this.name ?? this.id;
@@ -456,18 +455,18 @@ export abstract class Node<TDatum = unknown> {
         this._debugDirtyProperties?.set(property, sources);
     }
 
-    private debugDirtyProperties() {
+    private debugDirtyProperties(logger: Logger) {
         if (this._debugDirtyProperties == null) return;
 
         if (!this._debugDirtyProperties.has('__first__')) {
             // Construction cases aren't interesting - we only really care about update cases.
             for (const [property, sources] of this._debugDirtyProperties.entries()) {
                 if (sources.length > 1) {
-                    Logger.default.logGroup(
+                    logger.logGroup(
                         `Property changed multiple times before render: ${this.constructor.name}.${property} (${sources.length}x)`,
                         () => {
                             for (const source of sources) {
-                                Logger.default.log(source);
+                                logger.log(source);
                             }
                         }
                     );

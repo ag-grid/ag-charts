@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import type { DistantObject, Geometry, Position } from 'ag-charts-core';
+import type { DistantObject, Geometry, Logger, Position } from 'ag-charts-core';
 import { SceneChangeDetection, SceneObjectChangeDetection, objectsEqual } from 'ag-charts-core';
 
 import { lineStringDistance } from './lineStringUtil';
@@ -42,8 +42,8 @@ export class GeoGeometry<D = unknown> extends Path<D> implements DistantObject {
         this.bbox = projectedGeometry == null ? undefined : this.drawGeometry(projectedGeometry, undefined);
     }
 
-    override drawPath(ctx: any) {
-        super.drawPath(ctx);
+    override drawPath(ctx: any, logger: Logger) {
+        super.drawPath(ctx, logger);
 
         this.renderStroke(ctx, this.strokePath.getPath2D());
     }

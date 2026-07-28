@@ -1,9 +1,9 @@
-import { mockCanvas, toMatchImage } from '_ag-charts-test';
+import { mockCanvas, resetTestLogging, toMatchImage } from '_ag-charts-test';
 import { toMatchImageSnapshot } from 'jest-image-snapshot';
 import { URL } from 'node:url';
 import { TextDecoder, TextEncoder } from 'node:util';
 import { DOMMatrix, Image, Path2D } from 'skia-canvas';
-import { expect, vi } from 'vitest';
+import { afterEach, expect, vi } from 'vitest';
 
 // @ts-expect-error types don't exactly align
 globalThis.Canvas = mockCanvas.ConfiguredCanvas;
@@ -76,6 +76,8 @@ globalThis.MouseEvent.prototype = OrigMouseEvent.prototype;
 Object.setPrototypeOf(globalThis.MouseEvent, OrigMouseEvent);
 
 expect.extend({ toMatchImageSnapshot, toMatchImage });
+
+afterEach(resetTestLogging);
 
 vi.mock('./src/license/licenseManager');
 

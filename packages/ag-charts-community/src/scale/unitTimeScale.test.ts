@@ -1,6 +1,6 @@
 import { vi } from 'vitest';
 
-import { Logger, type ScaleTickParams } from 'ag-charts-core';
+import { Logger, type ScaleTickParams, ambientLogger } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
 import { UnitTimeScale } from './unitTimeScale';
@@ -242,11 +242,11 @@ describe('UnitTimeScale', () => {
         const HUGE_DOMAIN: [Date, Date] = [new Date(1970, 0, 1), new Date(2024, 0, 1)];
         const WARNING = 'the configured unit results in too many bands, ignoring. Supply a larger unit.';
 
-        it('routes the warning through the threaded per-chart logger, not the module default', () => {
+        it('routes the warning through the threaded per-chart logger, not the ambient one', () => {
             const scale = new UnitTimeScale();
             const logger = new Logger();
             const scopedWarn = vi.spyOn(logger, 'warnOnce').mockImplementation(() => {});
-            const defaultWarn = vi.spyOn(Logger.default, 'warnOnce').mockImplementation(() => {});
+            const ambientWarn = vi.spyOn(ambientLogger, 'warnOnce').mockImplementation(() => {});
 
             scale.logger = logger;
             scale.domain = HUGE_DOMAIN;
@@ -254,23 +254,23 @@ describe('UnitTimeScale', () => {
             scale.getBandCountForUpdate();
 
             expect(scopedWarn).toHaveBeenCalledWith(WARNING);
-            expect(defaultWarn).not.toHaveBeenCalled();
+            expect(ambientWarn).not.toHaveBeenCalled();
 
             scopedWarn.mockRestore();
-            defaultWarn.mockRestore();
+            ambientWarn.mockRestore();
         });
 
-        it('falls back to the module default logger when none is threaded', () => {
+        it('falls back to the ambient logger when none is threaded', () => {
             const scale = new UnitTimeScale();
-            const defaultWarn = vi.spyOn(Logger.default, 'warnOnce').mockImplementation(() => {});
+            const ambientWarn = vi.spyOn(ambientLogger, 'warnOnce').mockImplementation(() => {});
 
             scale.domain = HUGE_DOMAIN;
             scale.interval = 'millisecond';
             scale.getBandCountForUpdate();
 
-            expect(defaultWarn).toHaveBeenCalledWith(WARNING);
+            expect(ambientWarn).toHaveBeenCalledWith(WARNING);
 
-            defaultWarn.mockRestore();
+            ambientWarn.mockRestore();
         });
     });
 });

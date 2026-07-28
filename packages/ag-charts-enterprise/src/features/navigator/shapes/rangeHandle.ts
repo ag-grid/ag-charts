@@ -1,4 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import type { Logger } from 'ag-charts-core';
 import { Property, SceneChangeDetection } from 'ag-charts-core';
 
 const { BBox, ExtendedPath2D } = _ModuleSupport;
@@ -102,9 +103,9 @@ export class RangeHandle extends _ModuleSupport.Path {
         }
     }
 
-    protected override renderFill(ctx: _ModuleSupport.CanvasContext, path?: Path2D): void {
+    protected override renderFill(ctx: _ModuleSupport.CanvasContext, logger: Logger, path?: Path2D): void {
         const { stroke } = this;
-        super.renderFill(ctx, path);
+        super.renderFill(ctx, logger, path);
 
         ctx.fillStyle = typeof stroke === 'string' ? stroke : 'black';
         ctx.fill(this.gripPath.getPath2D());

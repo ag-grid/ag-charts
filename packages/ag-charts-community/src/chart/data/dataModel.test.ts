@@ -1,6 +1,7 @@
+import { testLogger } from '_ag-charts-test';
 import { describe, expect, it, vi } from 'vitest';
 
-import { Logger, getEpochColumn } from 'ag-charts-core';
+import { Logger, ambientLogger, getEpochColumn } from 'ag-charts-core';
 
 import { DATA_BROWSER_MARKET_SHARE } from '../test/data';
 import * as examples from '../test/examples';
@@ -50,9 +51,12 @@ describe('DataModel', () => {
     describe('ungrouped processing', () => {
         it('should generated the expected results', () => {
             const data = basicDataSet(examples.SIMPLE_LINE_CHART_EXAMPLE.data ?? []);
-            const dataModel = new DataModel<any, any>({
-                props: [rangeKey('date'), value('petrol'), value('diesel')],
-            });
+            const dataModel = new DataModel<any, any>(
+                {
+                    props: [rangeKey('date'), value('petrol'), value('diesel')],
+                },
+                testLogger
+            );
 
             expect(dataModel.processData(data)).toMatchSnapshot({
                 time: expect.any(Number),
@@ -63,9 +67,12 @@ describe('DataModel', () => {
 
         describe('property tests', () => {
             describe('simple data', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('kp'), value('vp1'), value('vp2'), SMALLEST_KEY_INTERVAL],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('kp'), value('vp1'), value('vp2'), SMALLEST_KEY_INTERVAL],
+                    },
+                    testLogger
+                );
                 const data = basicDataSet([
                     { kp: 2, vp1: 5, vp2: 7 },
                     { kp: 3, vp1: 1, vp2: 2 },
@@ -109,9 +116,12 @@ describe('DataModel', () => {
 
             describe('ISO 8601 datetime string data', () => {
                 const isoTimeValue = { ...value('date'), timeDomain: true };
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('kp'), isoTimeValue, value('vp1')],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('kp'), isoTimeValue, value('vp1')],
+                    },
+                    testLogger
+                );
                 const isoDates = ['2024-01-01T00:00:00Z', '2024-01-02T00:00:00Z', '2024-01-03T00:00:00Z'];
                 const data = basicDataSet(isoDates.map((date, kp) => ({ kp, date, vp1: kp * 2 })));
 
@@ -138,10 +148,13 @@ describe('DataModel', () => {
             });
 
             describe('category data', () => {
-                const dataModel = new DataModel<any, any, false>({
-                    props: [categoryKey('kp'), value('vp1'), value('vp2')],
-                    groupByKeys: false,
-                });
+                const dataModel = new DataModel<any, any, false>(
+                    {
+                        props: [categoryKey('kp'), value('vp1'), value('vp2')],
+                        groupByKeys: false,
+                    },
+                    testLogger
+                );
                 const data = basicDataSet([
                     { kp: 'Q1', vp1: 5, vp2: 7 },
                     { kp: 'Q1', vp1: 1, vp2: 2 },
@@ -169,10 +182,13 @@ describe('DataModel', () => {
             });
 
             describe('category data with toString()', () => {
-                const dataModel = new DataModel<any, any, false>({
-                    props: [categoryKey('kp'), value('vp1'), value('vp2')],
-                    groupByKeys: false,
-                });
+                const dataModel = new DataModel<any, any, false>(
+                    {
+                        props: [categoryKey('kp'), value('vp1'), value('vp2')],
+                        groupByKeys: false,
+                    },
+                    testLogger
+                );
                 const dataSet = [
                     { kp: { toString: () => 'Q1' }, vp1: 5, vp2: 7 },
                     { kp: { toString: () => 'Q1' }, vp1: 1, vp2: 2 },
@@ -206,14 +222,17 @@ describe('DataModel', () => {
     describe('ungrouped processing - accumulated and normalised properties', () => {
         it('should generated the expected results', () => {
             const data = basicDataSet(examples.SIMPLE_PIE_CHART_EXAMPLE.series?.[0].data ?? []);
-            const dataModel = new DataModel<any, any>({
-                props: [
-                    accumulatedPropertyValue('population'),
-                    categoryValue('religion'),
-                    value('population'),
-                    normalisePropertyTo('population', [0, 2 * Math.PI]),
-                ],
-            });
+            const dataModel = new DataModel<any, any>(
+                {
+                    props: [
+                        accumulatedPropertyValue('population'),
+                        categoryValue('religion'),
+                        value('population'),
+                        normalisePropertyTo('population', [0, 2 * Math.PI]),
+                    ],
+                },
+                testLogger
+            );
 
             expect(dataModel.processData(data)).toMatchSnapshot({
                 time: expect.any(Number),
@@ -224,15 +243,18 @@ describe('DataModel', () => {
 
         describe('property tests', () => {
             describe('simple data', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [
-                        rangeKey('kp'),
-                        accumulatedPropertyValue('vp1'),
-                        accumulatedPropertyValue('vp2'),
-                        value('vp3'),
-                        normalisePropertyTo('vp1', [0, 100]),
-                    ],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [
+                            rangeKey('kp'),
+                            accumulatedPropertyValue('vp1'),
+                            accumulatedPropertyValue('vp2'),
+                            value('vp3'),
+                            normalisePropertyTo('vp1', [0, 100]),
+                        ],
+                    },
+                    testLogger
+                );
                 const data = basicDataSet([
                     { kp: 2, vp1: 5, vp2: 7, vp3: 1 },
                     { kp: 3, vp1: 1, vp2: -5, vp3: 2 },
@@ -272,10 +294,13 @@ describe('DataModel', () => {
             });
 
             describe('category data', () => {
-                const dataModel = new DataModel<any, any, false>({
-                    props: [categoryKey('kp'), value('vp1'), value('vp2')],
-                    groupByKeys: false,
-                });
+                const dataModel = new DataModel<any, any, false>(
+                    {
+                        props: [categoryKey('kp'), value('vp1'), value('vp2')],
+                        groupByKeys: false,
+                    },
+                    testLogger
+                );
                 const data = basicDataSet([
                     { kp: 'Q1', vp1: 5, vp2: 7 },
                     { kp: 'Q1', vp1: 1, vp2: 2 },
@@ -307,10 +332,13 @@ describe('DataModel', () => {
     describe('grouped processing - grouped example', () => {
         it('should generated the expected results', () => {
             const data = basicDataSet(examples.GROUPED_BAR_CHART_EXAMPLE.data ?? []);
-            const dataModel = new DataModel<any, any, true>({
-                props: [categoryKey('type'), value('total', 'all'), value('regular', 'all'), sum('all')],
-                groupByKeys: true,
-            });
+            const dataModel = new DataModel<any, any, true>(
+                {
+                    props: [categoryKey('type'), value('total', 'all'), value('regular', 'all'), sum('all')],
+                    groupByKeys: true,
+                },
+                testLogger
+            );
 
             expect(dataModel.processData(data)).toMatchSnapshot({
                 time: expect.any(Number),
@@ -320,10 +348,13 @@ describe('DataModel', () => {
         });
 
         describe('property tests', () => {
-            const dataModel = new DataModel<any, any, true>({
-                props: [categoryKey('kp'), value('vp1'), value('vp2')],
-                groupByKeys: true,
-            });
+            const dataModel = new DataModel<any, any, true>(
+                {
+                    props: [categoryKey('kp'), value('vp1'), value('vp2')],
+                    groupByKeys: true,
+                },
+                testLogger
+            );
             const data = basicDataSet([
                 { kp: 'Q1', vp1: 5, vp2: 7 },
                 { kp: 'Q1', vp1: 1, vp2: 2 },
@@ -376,10 +407,13 @@ describe('DataModel', () => {
             });
 
             it('should only sum per data-item', () => {
-                const dataModel2 = new DataModel<any, any, true>({
-                    props: [categoryKey('kp'), value('vp1', 'all'), value('vp2', 'all'), sum('all')],
-                    groupByKeys: true,
-                });
+                const dataModel2 = new DataModel<any, any, true>(
+                    {
+                        props: [categoryKey('kp'), value('vp1', 'all'), value('vp2', 'all'), sum('all')],
+                        groupByKeys: true,
+                    },
+                    testLogger
+                );
                 const data2 = basicDataSet([
                     { kp: 'Q1', vp1: 5, vp2: 7 },
                     { kp: 'Q1', vp1: 1, vp2: 2 },
@@ -397,32 +431,41 @@ describe('DataModel', () => {
             });
 
             it('should ignore missing scoped values when aggregating', () => {
-                const raggedModel = new DataModel<any, any, true>({
-                    props: [
-                        categoryKey('key', ['left', 'right']),
-                        scopedValue('left', 'value', 'shared'),
-                        scopedValue('right', 'value', 'shared'),
-                        sum('shared'),
-                    ],
-                    groupByKeys: true,
-                });
+                const raggedModel = new DataModel<any, any, true>(
+                    {
+                        props: [
+                            categoryKey('key', ['left', 'right']),
+                            scopedValue('left', 'value', 'shared'),
+                            scopedValue('right', 'value', 'shared'),
+                            sum('shared'),
+                        ],
+                        groupByKeys: true,
+                    },
+                    testLogger
+                );
 
                 const sources = new Map<string, DataSet<any>>([
                     [
                         'left',
-                        new DataSet([
-                            { key: 'A', value: 1 },
-                            { key: 'B', value: 2 },
-                            { key: 'C', value: 3 },
-                        ]),
+                        new DataSet(
+                            [
+                                { key: 'A', value: 1 },
+                                { key: 'B', value: 2 },
+                                { key: 'C', value: 3 },
+                            ],
+                            testLogger
+                        ),
                     ],
                     [
                         'right',
-                        new DataSet([
-                            { key: 'A', value: 10 },
-                            { key: 'B', value: 20 },
-                            { key: 'D', value: 40 },
-                        ]),
+                        new DataSet(
+                            [
+                                { key: 'A', value: 10 },
+                                { key: 'B', value: 20 },
+                                { key: 'D', value: 40 },
+                            ],
+                            testLogger
+                        ),
                     ],
                 ]);
 
@@ -442,10 +485,13 @@ describe('DataModel', () => {
 
     describe('grouped processing - category objects', () => {
         describe('property tests', () => {
-            const dataModel = new DataModel<any, any, true>({
-                props: [categoryKey('kp'), value('vp1'), value('vp2')],
-                groupByKeys: true,
-            });
+            const dataModel = new DataModel<any, any, true>(
+                {
+                    props: [categoryKey('kp'), value('vp1'), value('vp2')],
+                    groupByKeys: true,
+                },
+                testLogger
+            );
             const dataSet = [
                 { kp: { id: 1, q: 'Q1' }, vp1: 5, vp2: 7 },
                 { kp: { id: 2, q: 'Q1' }, vp1: 1, vp2: 2 },
@@ -499,10 +545,13 @@ describe('DataModel', () => {
 
     describe('grouped processing - time-series example', () => {
         describe('property tests', () => {
-            const dataModel = new DataModel<any, any, true>({
-                props: [{ ...rangeKey('kp'), validation: (v) => v instanceof Date }, value('vp1'), value('vp2')],
-                groupByKeys: true,
-            });
+            const dataModel = new DataModel<any, any, true>(
+                {
+                    props: [{ ...rangeKey('kp'), validation: (v) => v instanceof Date }, value('vp1'), value('vp2')],
+                    groupByKeys: true,
+                },
+                testLogger
+            );
             const dataSet = [
                 { kp: new Date('2023-01-01T00:00:00.000Z'), vp1: 5, vp2: 7 },
                 { kp: new Date('2023-01-02T00:00:00.000Z'), vp1: 1, vp2: 2 },
@@ -589,10 +638,13 @@ describe('DataModel', () => {
             });
 
             it('should only sum per data-item', () => {
-                const dataModel2 = new DataModel<any, any, true>({
-                    props: [categoryKey('kp'), value('vp1', 'all'), value('vp2', 'all'), sum('all')],
-                    groupByKeys: true,
-                });
+                const dataModel2 = new DataModel<any, any, true>(
+                    {
+                        props: [categoryKey('kp'), value('vp1', 'all'), value('vp2', 'all'), sum('all')],
+                        groupByKeys: true,
+                    },
+                    testLogger
+                );
                 const data2 = basicDataSet([
                     { kp: 'Q1', vp1: 5, vp2: 7 },
                     { kp: 'Q1', vp1: 1, vp2: 2 },
@@ -614,17 +666,20 @@ describe('DataModel', () => {
     describe('grouped processing - stacked example', () => {
         it('should generated the expected results', () => {
             const data = basicDataSet(examples.STACKED_BAR_CHART_EXAMPLE.data ?? []);
-            const dataModel = new DataModel<any, any, true>({
-                props: [
-                    categoryKey('type'),
-                    value('ownerOccupied', 'all'),
-                    value('privateRented', 'all'),
-                    value('localAuthority', 'all'),
-                    value('housingAssociation', 'all'),
-                    sum('all'),
-                ],
-                groupByKeys: true,
-            });
+            const dataModel = new DataModel<any, any, true>(
+                {
+                    props: [
+                        categoryKey('type'),
+                        value('ownerOccupied', 'all'),
+                        value('privateRented', 'all'),
+                        value('localAuthority', 'all'),
+                        value('housingAssociation', 'all'),
+                        sum('all'),
+                    ],
+                    groupByKeys: true,
+                },
+                testLogger
+            );
 
             expect(dataModel.processData(data)).toMatchSnapshot({
                 time: expect.any(Number),
@@ -634,18 +689,21 @@ describe('DataModel', () => {
         });
 
         describe('property tests', () => {
-            const dataModel = new DataModel<any, any, true>({
-                props: [
-                    categoryKey('kp'),
-                    value('vp1', 'group1'),
-                    value('vp2', 'group1'),
-                    value('vp3', 'group2'),
-                    value('vp4', 'group2'),
-                    sum('group1'),
-                    sum('group2'),
-                ],
-                groupByKeys: true,
-            });
+            const dataModel = new DataModel<any, any, true>(
+                {
+                    props: [
+                        categoryKey('kp'),
+                        value('vp1', 'group1'),
+                        value('vp2', 'group1'),
+                        value('vp3', 'group2'),
+                        value('vp4', 'group2'),
+                        sum('group1'),
+                        sum('group2'),
+                    ],
+                    groupByKeys: true,
+                },
+                testLogger
+            );
             const data = basicDataSet([
                 { kp: 'Q1', vp1: 5, vp2: 7, vp3: 1, vp4: 5 },
                 { kp: 'Q1', vp1: 1, vp2: 2, vp3: 2, vp4: 4 },
@@ -724,16 +782,19 @@ describe('DataModel', () => {
     describe('grouped processing - stacked with accumulation example', () => {
         it('should generated the expected results', () => {
             const data = basicDataSet(examples.STACKED_BAR_CHART_EXAMPLE.data ?? []);
-            const dataModel = new DataModel<any, any, true>({
-                props: [
-                    categoryKey('type'),
-                    accumulatedPropertyValue('ownerOccupied'),
-                    accumulatedPropertyValue('privateRented'),
-                    accumulatedPropertyValue('localAuthority'),
-                    accumulatedPropertyValue('housingAssociation'),
-                ],
-                groupByKeys: true,
-            });
+            const dataModel = new DataModel<any, any, true>(
+                {
+                    props: [
+                        categoryKey('type'),
+                        accumulatedPropertyValue('ownerOccupied'),
+                        accumulatedPropertyValue('privateRented'),
+                        accumulatedPropertyValue('localAuthority'),
+                        accumulatedPropertyValue('housingAssociation'),
+                    ],
+                    groupByKeys: true,
+                },
+                testLogger
+            );
 
             expect(dataModel.processData(data)).toMatchSnapshot({
                 time: expect.any(Number),
@@ -743,16 +804,19 @@ describe('DataModel', () => {
         });
 
         describe('property tests', () => {
-            const dataModel = new DataModel<any, any, true>({
-                props: [
-                    categoryKey('kp'),
-                    accumulatedPropertyValue('vp1'),
-                    accumulatedPropertyValue('vp2'),
-                    accumulatedPropertyValue('vp3'),
-                    accumulatedPropertyValue('vp4'),
-                ],
-                groupByKeys: true,
-            });
+            const dataModel = new DataModel<any, any, true>(
+                {
+                    props: [
+                        categoryKey('kp'),
+                        accumulatedPropertyValue('vp1'),
+                        accumulatedPropertyValue('vp2'),
+                        accumulatedPropertyValue('vp3'),
+                        accumulatedPropertyValue('vp4'),
+                    ],
+                    groupByKeys: true,
+                },
+                testLogger
+            );
             const data = basicDataSet([
                 { kp: 'Q1', vp1: 5, vp2: 7, vp3: 1, vp4: 5 },
                 { kp: 'Q1', vp1: 1, vp2: 2, vp3: 2, vp4: 4 },
@@ -800,20 +864,23 @@ describe('DataModel', () => {
     describe('grouped processing - stacked and normalised example', () => {
         it('should generated the expected results for 100% stacked columns example', () => {
             const data = basicDataSet(examples.ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EXAMPLE.data ?? []);
-            const dataModel = new DataModel<any, any, true>({
-                props: [
-                    categoryKey('type'),
-                    value('white', 'all'),
-                    value('mixed', 'all'),
-                    value('asian', 'all'),
-                    value('black', 'all'),
-                    value('chinese', 'all'),
-                    value('other', 'all'),
-                    sum('all'),
-                    normaliseGroupTo('all', 100),
-                ],
-                groupByKeys: true,
-            });
+            const dataModel = new DataModel<any, any, true>(
+                {
+                    props: [
+                        categoryKey('type'),
+                        value('white', 'all'),
+                        value('mixed', 'all'),
+                        value('asian', 'all'),
+                        value('black', 'all'),
+                        value('chinese', 'all'),
+                        value('other', 'all'),
+                        sum('all'),
+                        normaliseGroupTo('all', 100),
+                    ],
+                    groupByKeys: true,
+                },
+                testLogger
+            );
 
             expect(dataModel.processData(data)).toMatchSnapshot({
                 time: expect.any(Number),
@@ -824,20 +891,23 @@ describe('DataModel', () => {
 
         it('should generated the expected results for 100% stacked area example', () => {
             const data = basicDataSet(examples.ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH_EXAMPLE.data ?? []);
-            const dataModel = new DataModel<any, any, true>({
-                props: [
-                    categoryKey('month'),
-                    value('petroleum', 'all'),
-                    value('naturalGas', 'all'),
-                    value('bioenergyWaste', 'all'),
-                    value('nuclear', 'all'),
-                    value('windSolarHydro', 'all'),
-                    value('imported', 'all'),
-                    sum('all'),
-                    normaliseGroupTo('all', 100),
-                ],
-                groupByKeys: true,
-            });
+            const dataModel = new DataModel<any, any, true>(
+                {
+                    props: [
+                        categoryKey('month'),
+                        value('petroleum', 'all'),
+                        value('naturalGas', 'all'),
+                        value('bioenergyWaste', 'all'),
+                        value('nuclear', 'all'),
+                        value('windSolarHydro', 'all'),
+                        value('imported', 'all'),
+                        sum('all'),
+                        normaliseGroupTo('all', 100),
+                    ],
+                    groupByKeys: true,
+                },
+                testLogger
+            );
 
             const result = dataModel.processData(data)!;
             expect(result).toMatchSnapshot({
@@ -849,20 +919,23 @@ describe('DataModel', () => {
         });
 
         describe('property tests', () => {
-            const dataModel = new DataModel<any, any, true>({
-                props: [
-                    categoryKey('kp'),
-                    value('vp1', 'group1'),
-                    value('vp2', 'group1'),
-                    value('vp3', 'group2'),
-                    value('vp4', 'group2'),
-                    sum('group1'),
-                    sum('group2'),
-                    normaliseGroupTo('group1', 100),
-                    normaliseGroupTo('group2', 100),
-                ],
-                groupByKeys: true,
-            });
+            const dataModel = new DataModel<any, any, true>(
+                {
+                    props: [
+                        categoryKey('kp'),
+                        value('vp1', 'group1'),
+                        value('vp2', 'group1'),
+                        value('vp3', 'group2'),
+                        value('vp4', 'group2'),
+                        sum('group1'),
+                        sum('group2'),
+                        normaliseGroupTo('group1', 100),
+                        normaliseGroupTo('group2', 100),
+                    ],
+                    groupByKeys: true,
+                },
+                testLogger
+            );
             const data = basicDataSet([
                 { kp: 'Q1', vp1: 5, vp2: 7, vp3: 1, vp4: 5 },
                 { kp: 'Q1', vp1: 1, vp2: 2, vp3: 2, vp4: 4 },
@@ -973,18 +1046,21 @@ describe('DataModel', () => {
     describe('grouped processing - stacked with accumulation and normalised example', () => {
         it('should generated the expected results', () => {
             const data = basicDataSet(examples.STACKED_BAR_CHART_EXAMPLE.data ?? []);
-            const dataModel = new DataModel<any, any, true>({
-                props: [
-                    categoryKey('type'),
-                    ...accumulatedGroupValues(
-                        ['ownerOccupied', 'privateRented', 'localAuthority', 'housingAssociation'],
-                        'all'
-                    ),
-                    range('all'),
-                    normaliseGroupTo('all', 100),
-                ],
-                groupByKeys: true,
-            });
+            const dataModel = new DataModel<any, any, true>(
+                {
+                    props: [
+                        categoryKey('type'),
+                        ...accumulatedGroupValues(
+                            ['ownerOccupied', 'privateRented', 'localAuthority', 'housingAssociation'],
+                            'all'
+                        ),
+                        range('all'),
+                        normaliseGroupTo('all', 100),
+                    ],
+                    groupByKeys: true,
+                },
+                testLogger
+            );
 
             expect(dataModel.processData(data)).toMatchSnapshot({
                 time: expect.any(Number),
@@ -994,15 +1070,18 @@ describe('DataModel', () => {
         });
 
         describe('property tests', () => {
-            const dataModel = new DataModel<any, any, true>({
-                props: [
-                    categoryKey('kp'),
-                    ...accumulatedGroupValues(['vp1', 'vp2', 'vp3', 'vp4'], 'all'),
-                    range('all'),
-                    normaliseGroupTo('all', 100),
-                ],
-                groupByKeys: true,
-            });
+            const dataModel = new DataModel<any, any, true>(
+                {
+                    props: [
+                        categoryKey('kp'),
+                        ...accumulatedGroupValues(['vp1', 'vp2', 'vp3', 'vp4'], 'all'),
+                        range('all'),
+                        normaliseGroupTo('all', 100),
+                    ],
+                    groupByKeys: true,
+                },
+                testLogger
+            );
             const data = basicDataSet([
                 { kp: 'Q1', vp1: 5, vp2: 7, vp3: 1, vp4: 5 },
                 { kp: 'Q1', vp1: 1, vp2: 2, vp3: 2, vp4: 4 },
@@ -1111,10 +1190,13 @@ describe('DataModel', () => {
 
         it('should generated the expected results for simple histogram example with hard-coded buckets', () => {
             const data = basicDataSet(examples.SIMPLE_HISTOGRAM_CHART_EXAMPLE.data?.slice(0, 20) ?? []);
-            const dataModel = new DataModel<any, any, true>({
-                props: [categoryKey('engine-size'), rowCountProperty('count'), groupCount(), SORT_DOMAIN_GROUPS],
-                groupByFn,
-            });
+            const dataModel = new DataModel<any, any, true>(
+                {
+                    props: [categoryKey('engine-size'), rowCountProperty('count'), groupCount(), SORT_DOMAIN_GROUPS],
+                    groupByFn,
+                },
+                testLogger
+            );
 
             expect(dataModel.processData(data)).toMatchSnapshot({
                 time: expect.any(Number),
@@ -1125,15 +1207,18 @@ describe('DataModel', () => {
 
         it('should generated the expected results for simple histogram example with average bucket calculation', () => {
             const data = basicDataSet(examples.XY_HISTOGRAM_WITH_MEAN_EXAMPLE.data?.slice(0, 20) ?? []);
-            const dataModel = new DataModel<any, any, true>({
-                props: [
-                    categoryKey('engine-size'),
-                    value('highway-mpg', 'mpg'),
-                    groupAverage('mpg'),
-                    SORT_DOMAIN_GROUPS,
-                ],
-                groupByFn,
-            });
+            const dataModel = new DataModel<any, any, true>(
+                {
+                    props: [
+                        categoryKey('engine-size'),
+                        value('highway-mpg', 'mpg'),
+                        groupAverage('mpg'),
+                        SORT_DOMAIN_GROUPS,
+                    ],
+                    groupByFn,
+                },
+                testLogger
+            );
 
             expect(dataModel.processData(data)).toMatchSnapshot({
                 time: expect.any(Number),
@@ -1144,24 +1229,27 @@ describe('DataModel', () => {
 
         it('should generated the expected results for simple histogram example with area bucket calculation', () => {
             const data = basicDataSet(examples.HISTOGRAM_WITH_SPECIFIED_BINS_EXAMPLE.data?.slice(0, 20) ?? []);
-            const dataModel = new DataModel<any, any, true>({
-                props: [
-                    rangeKey('curb-weight'),
-                    value('curb-weight', 'weight'),
-                    area('weight', groupCount()),
-                    SORT_DOMAIN_GROUPS,
-                ],
-                groupByFn: () => {
-                    return (keys) => {
-                        if (typeof keys[0] === 'number' && keys[0] < 2000) {
-                            return [0, 2000];
-                        } else if (typeof keys[0] === 'number' && keys[0] <= 3000) {
-                            return [2000, 3000];
-                        }
-                        return [3000, 4500];
-                    };
+            const dataModel = new DataModel<any, any, true>(
+                {
+                    props: [
+                        rangeKey('curb-weight'),
+                        value('curb-weight', 'weight'),
+                        area('weight', groupCount()),
+                        SORT_DOMAIN_GROUPS,
+                    ],
+                    groupByFn: () => {
+                        return (keys) => {
+                            if (typeof keys[0] === 'number' && keys[0] < 2000) {
+                                return [0, 2000];
+                            } else if (typeof keys[0] === 'number' && keys[0] <= 3000) {
+                                return [2000, 3000];
+                            }
+                            return [3000, 4500];
+                        };
+                    },
                 },
-            });
+                testLogger
+            );
 
             expect(dataModel.processData(data)).toMatchSnapshot({
                 time: expect.any(Number),
@@ -1174,20 +1262,23 @@ describe('DataModel', () => {
     describe('repeated property processing', () => {
         it('should generated the expected results', () => {
             const data = basicDataSet([...(examples.PIE_IN_A_DONUT.series?.[0]?.data?.map((v) => ({ ...v })) ?? [])]);
-            const dataModel = new DataModel<any, any>({
-                props: [
-                    accumulatedPropertyValue('share', 'angleGroup', 'angle'),
-                    {
-                        ...rangedValueProperty('share', {
-                            id: 'radius',
-                            min: 0.05,
-                            max: 0.7,
-                        }),
-                        scopes: ['test'],
-                    },
-                    normalisePropertyTo({ id: 'angle' }, [0, 1]),
-                ],
-            });
+            const dataModel = new DataModel<any, any>(
+                {
+                    props: [
+                        accumulatedPropertyValue('share', 'angleGroup', 'angle'),
+                        {
+                            ...rangedValueProperty('share', {
+                                id: 'radius',
+                                min: 0.05,
+                                max: 0.7,
+                            }),
+                            scopes: ['test'],
+                        },
+                        normalisePropertyTo({ id: 'angle' }, [0, 1]),
+                    ],
+                },
+                testLogger
+            );
 
             expect(dataModel.processData(data)).toMatchSnapshot({
                 time: expect.any(Number),
@@ -1199,20 +1290,23 @@ describe('DataModel', () => {
 
     describe('multiple data sources', () => {
         it.fails('should generate the expected results', () => {
-            const dataModel = new DataModel<any, any>({
-                props: [
-                    {
-                        scopes: ['test1', 'test2'],
-                        property: 'year',
-                        type: 'key' as const,
-                        valueType: 'category' as const,
-                    },
-                    scopedValue(['test1', 'test2'], 'ie'),
-                    scopedValue(['test1', 'test2'], 'chrome'),
-                    scopedValue(['test1', 'test2'], 'firefox'),
-                    scopedValue(['test1', 'test2'], 'safari'),
-                ],
-            });
+            const dataModel = new DataModel<any, any>(
+                {
+                    props: [
+                        {
+                            scopes: ['test1', 'test2'],
+                            property: 'year',
+                            type: 'key' as const,
+                            valueType: 'category' as const,
+                        },
+                        scopedValue(['test1', 'test2'], 'ie'),
+                        scopedValue(['test1', 'test2'], 'chrome'),
+                        scopedValue(['test1', 'test2'], 'firefox'),
+                        scopedValue(['test1', 'test2'], 'safari'),
+                    ],
+                },
+                testLogger
+            );
 
             const data1 = DATA_BROWSER_MARKET_SHARE.map((d) => d);
             const data2 = DATA_BROWSER_MARKET_SHARE.map((d) => ({
@@ -1220,7 +1314,9 @@ describe('DataModel', () => {
                 firefox: d.firefox ? d.firefox * 2 : d.firefox,
             }));
 
-            const allData = basicDataSet(data2).set('test1', new DataSet(data1)).set('test2', new DataSet(data2));
+            const allData = basicDataSet(data2)
+                .set('test1', new DataSet(data1, testLogger))
+                .set('test2', new DataSet(data2, testLogger));
             const processedData = dataModel.processData(allData);
 
             expect(processedData!.columns).toEqual([
@@ -1262,9 +1358,12 @@ describe('DataModel', () => {
 
     describe('mid-dataset insertions', () => {
         it('should match full processing when inserting within ungrouped data', () => {
-            const dataModel = new DataModel<any, any>({
-                props: [rangeKey('x'), value('y')],
-            });
+            const dataModel = new DataModel<any, any>(
+                {
+                    props: [rangeKey('x'), value('y')],
+                },
+                testLogger
+            );
 
             const initialData = [
                 { x: 1, y: 10 },
@@ -1272,7 +1371,7 @@ describe('DataModel', () => {
                 { x: 4, y: 40 },
                 { x: 5, y: 50 },
             ];
-            const dataSet = new DataSet(initialData);
+            const dataSet = new DataSet(initialData, testLogger);
             const sources = basicDataSet(initialData).set('test', dataSet);
 
             const processedData = dataModel.processData(sources);
@@ -1295,9 +1394,12 @@ describe('DataModel', () => {
         });
 
         it('should stay aligned after transaction, full process, and another transaction with mid insert', () => {
-            const dataModel = new DataModel<any, any>({
-                props: [rangeKey('x'), value('y')],
-            });
+            const dataModel = new DataModel<any, any>(
+                {
+                    props: [rangeKey('x'), value('y')],
+                },
+                testLogger
+            );
 
             const initialData = [
                 { x: 0, y: 0 },
@@ -1305,7 +1407,7 @@ describe('DataModel', () => {
                 { x: 4, y: 40 },
                 { x: 6, y: 60 },
             ];
-            const dataSet = new DataSet(initialData);
+            const dataSet = new DataSet(initialData, testLogger);
             const sources = basicDataSet(initialData).set('test', dataSet);
 
             const processedData = dataModel.processData(sources);
@@ -1320,7 +1422,7 @@ describe('DataModel', () => {
             verifyReprocessMatchesBaseline(dataModel, firstReprocess, sources);
 
             // Simulate updateDelta() recreating the DataSet with the latest materialized data.
-            const snapshotDataSet = new DataSet([...dataSet.data]);
+            const snapshotDataSet = new DataSet([...dataSet.data], testLogger);
             sources.set('test', snapshotDataSet);
 
             const fullProcess = dataModel.processData(sources);
@@ -1341,16 +1443,19 @@ describe('DataModel', () => {
         });
 
         it('should handle insertion at index 0 (prepend boundary)', () => {
-            const dataModel = new DataModel<any, any>({
-                props: [rangeKey('x'), value('y')],
-            });
+            const dataModel = new DataModel<any, any>(
+                {
+                    props: [rangeKey('x'), value('y')],
+                },
+                testLogger
+            );
 
             const initialData = [
                 { x: 2, y: 20 },
                 { x: 3, y: 30 },
                 { x: 4, y: 40 },
             ];
-            const dataSet = new DataSet(initialData);
+            const dataSet = new DataSet(initialData, testLogger);
             const sources = basicDataSet(initialData).set('test', dataSet);
 
             const processedData = dataModel.processData(sources);
@@ -1369,16 +1474,19 @@ describe('DataModel', () => {
         });
 
         it('should handle insertion at last valid index (append boundary)', () => {
-            const dataModel = new DataModel<any, any>({
-                props: [rangeKey('x'), value('y')],
-            });
+            const dataModel = new DataModel<any, any>(
+                {
+                    props: [rangeKey('x'), value('y')],
+                },
+                testLogger
+            );
 
             const initialData = [
                 { x: 1, y: 10 },
                 { x: 2, y: 20 },
                 { x: 3, y: 30 },
             ];
-            const dataSet = new DataSet(initialData);
+            const dataSet = new DataSet(initialData, testLogger);
             const sources = basicDataSet(initialData).set('test', dataSet);
 
             const processedData = dataModel.processData(sources);
@@ -1397,15 +1505,18 @@ describe('DataModel', () => {
         });
 
         it('should handle multiple sequential mid-insertions', () => {
-            const dataModel = new DataModel<any, any>({
-                props: [rangeKey('x'), value('y')],
-            });
+            const dataModel = new DataModel<any, any>(
+                {
+                    props: [rangeKey('x'), value('y')],
+                },
+                testLogger
+            );
 
             const initialData = [
                 { x: 1, y: 10 },
                 { x: 5, y: 50 },
             ];
-            const dataSet = new DataSet(initialData);
+            const dataSet = new DataSet(initialData, testLogger);
             const sources = basicDataSet(initialData).set('test', dataSet);
 
             const processedData = dataModel.processData(sources);
@@ -1445,9 +1556,12 @@ describe('DataModel', () => {
 
     describe('columnNeedValueOf optimization', () => {
         it('should correctly identify columns with primitive values', () => {
-            const dataModel = new DataModel<any, any>({
-                props: [categoryKey('id'), value('count'), value('amount')],
-            });
+            const dataModel = new DataModel<any, any>(
+                {
+                    props: [categoryKey('id'), value('count'), value('amount')],
+                },
+                testLogger
+            );
 
             const data = [
                 { id: 'A', count: 10, amount: 100.5 },
@@ -1455,7 +1569,7 @@ describe('DataModel', () => {
                 { id: 'C', count: 30, amount: 300.7 },
             ];
 
-            const dataSet = new DataSet(data);
+            const dataSet = new DataSet(data, testLogger);
             const sources = basicDataSet(data).set('test', dataSet);
             const processedData = dataModel.processData(sources);
 
@@ -1465,9 +1579,12 @@ describe('DataModel', () => {
         });
 
         it('should correctly identify value columns with Date objects', () => {
-            const dataModel = new DataModel<any, any>({
-                props: [rangeKey('timestamp'), value('dateValue'), value('primitiveValue')],
-            });
+            const dataModel = new DataModel<any, any>(
+                {
+                    props: [rangeKey('timestamp'), value('dateValue'), value('primitiveValue')],
+                },
+                testLogger
+            );
 
             const data = [
                 { timestamp: new Date(2024, 0, 1), dateValue: new Date(2024, 0, 1), primitiveValue: 10 },
@@ -1475,7 +1592,7 @@ describe('DataModel', () => {
                 { timestamp: new Date(2024, 0, 3), dateValue: new Date(2024, 0, 3), primitiveValue: 30 },
             ];
 
-            const dataSet = new DataSet(data);
+            const dataSet = new DataSet(data, testLogger);
             const sources = basicDataSet(data).set('test', dataSet);
             const processedData = dataModel.processData(sources);
 
@@ -1486,16 +1603,19 @@ describe('DataModel', () => {
         });
 
         it('should correctly identify columns with mixed object types', () => {
-            const dataModel = new DataModel<any, any>({
-                props: [categoryKey('key'), value('primitiveValue'), value('objectValue')],
-            });
+            const dataModel = new DataModel<any, any>(
+                {
+                    props: [categoryKey('key'), value('primitiveValue'), value('objectValue')],
+                },
+                testLogger
+            );
 
             const data = [
                 { key: 'A', primitiveValue: 10, objectValue: new Date(2024, 0, 1) },
                 { key: 'B', primitiveValue: 20, objectValue: new Date(2024, 0, 2) },
             ];
 
-            const dataSet = new DataSet(data);
+            const dataSet = new DataSet(data, testLogger);
             const sources = basicDataSet(data).set('test', dataSet);
             const processedData = dataModel.processData(sources);
 
@@ -1506,16 +1626,19 @@ describe('DataModel', () => {
         });
 
         it('should handle incremental updates without losing columnNeedValueOf metadata', () => {
-            const dataModel = new DataModel<any, any>({
-                props: [rangeKey('timestamp'), value('dateValue'), value('primitiveValue')],
-            });
+            const dataModel = new DataModel<any, any>(
+                {
+                    props: [rangeKey('timestamp'), value('dateValue'), value('primitiveValue')],
+                },
+                testLogger
+            );
 
             const initialData = [
                 { timestamp: new Date(2024, 0, 1), dateValue: new Date(2024, 0, 1), primitiveValue: 10 },
                 { timestamp: new Date(2024, 0, 2), dateValue: new Date(2024, 0, 2), primitiveValue: 20 },
             ];
 
-            const dataSet = new DataSet(initialData);
+            const dataSet = new DataSet(initialData, testLogger);
             const sources = basicDataSet(initialData).set('test', dataSet);
             const processedData = dataModel.processData(sources);
 
@@ -1536,32 +1659,38 @@ describe('DataModel', () => {
 
     describe('columnValueType tag', () => {
         it('should tag number-only value columns as "number"', () => {
-            const dataModel = new DataModel<any, any>({
-                props: [categoryKey('id'), value('count'), value('amount')],
-            });
+            const dataModel = new DataModel<any, any>(
+                {
+                    props: [categoryKey('id'), value('count'), value('amount')],
+                },
+                testLogger
+            );
 
             const data = [
                 { id: 'A', count: 10, amount: 100.5 },
                 { id: 'B', count: 20, amount: 200.3 },
             ];
 
-            const sources = basicDataSet(data).set('test', new DataSet(data));
+            const sources = basicDataSet(data).set('test', new DataSet(data, testLogger));
             const processedData = dataModel.processData(sources);
 
             expect(processedData!.columnValueType).toEqual(['number', 'number']);
         });
 
         it('should tag bigint-only value columns as "bigint"', () => {
-            const dataModel = new DataModel<any, any>({
-                props: [categoryKey('id'), value('count')],
-            });
+            const dataModel = new DataModel<any, any>(
+                {
+                    props: [categoryKey('id'), value('count')],
+                },
+                testLogger
+            );
 
             const data = [
                 { id: 'A', count: 10n },
                 { id: 'B', count: 9007199254740993n },
             ];
 
-            const sources = basicDataSet(data).set('test', new DataSet(data));
+            const sources = basicDataSet(data).set('test', new DataSet(data, testLogger));
             const processedData = dataModel.processData(sources);
 
             expect(processedData!.columnValueType).toEqual(['bigint']);
@@ -1570,16 +1699,19 @@ describe('DataModel', () => {
         it('should retain bigint values in the column and continuous domain', () => {
             // AG-16608: bigint values now flow into the column and build a bigint ContinuousDomain
             // (the scale/aggregation arithmetic that consumes them is bigint-safe).
-            const dataModel = new DataModel<any, any>({
-                props: [categoryKey('id'), value('count')],
-            });
+            const dataModel = new DataModel<any, any>(
+                {
+                    props: [categoryKey('id'), value('count')],
+                },
+                testLogger
+            );
 
             const data = [
                 { id: 'A', count: 10n },
                 { id: 'B', count: 20n },
             ];
 
-            const sources = basicDataSet(data).set('test', new DataSet(data));
+            const sources = basicDataSet(data).set('test', new DataSet(data, testLogger));
             const processedData = dataModel.processData(sources)!;
 
             expect(processedData.columnValueType).toEqual(['bigint']);
@@ -1590,16 +1722,19 @@ describe('DataModel', () => {
         it('should retain bigint keys in the key column', () => {
             // AG-16608: bigint *keys* now flow through extraction unchanged (the SORT_DOMAIN_GROUPS
             // comparator is bigint-safe), matching the existing support for bigint values.
-            const dataModel = new DataModel<any, any>({
-                props: [rangeKey('x'), value('y')],
-            });
+            const dataModel = new DataModel<any, any>(
+                {
+                    props: [rangeKey('x'), value('y')],
+                },
+                testLogger
+            );
 
             const data = [
                 { x: 1n, y: 10 },
                 { x: 2n, y: 20 },
             ];
 
-            const sources = basicDataSet(data).set('test', new DataSet(data));
+            const sources = basicDataSet(data).set('test', new DataSet(data, testLogger));
             const processedData = dataModel.processData(sources)!;
 
             expect(processedData.keys).toEqual(expectedKeys([1n, 2n]));
@@ -1608,10 +1743,13 @@ describe('DataModel', () => {
         it('should sort grouped bigint keys without throwing', () => {
             // AG-16608: SORT_DOMAIN_GROUPS compares bigint keys directly; subtraction would yield a
             // bigint that Array.sort ToNumber-coerces and throws on.
-            const dataModel = new DataModel<any, any, true>({
-                props: [rangeKey('x'), value('y'), SORT_DOMAIN_GROUPS],
-                groupByKeys: true,
-            });
+            const dataModel = new DataModel<any, any, true>(
+                {
+                    props: [rangeKey('x'), value('y'), SORT_DOMAIN_GROUPS],
+                    groupByKeys: true,
+                },
+                testLogger
+            );
 
             const data = [
                 { x: 3n, y: 30 },
@@ -1619,32 +1757,38 @@ describe('DataModel', () => {
                 { x: 2n, y: 20 },
             ];
 
-            const sources = basicDataSet(data).set('test', new DataSet(data));
+            const sources = basicDataSet(data).set('test', new DataSet(data, testLogger));
             const processedData = dataModel.processData(sources)!;
 
             expect(processedData.reduced!.sortedGroupDomain).toEqual([[1n], [2n], [3n]]);
         });
 
         it('should tag Date value columns as "date"', () => {
-            const dataModel = new DataModel<any, any>({
-                props: [categoryKey('id'), value('when')],
-            });
+            const dataModel = new DataModel<any, any>(
+                {
+                    props: [categoryKey('id'), value('when')],
+                },
+                testLogger
+            );
 
             const data = [
                 { id: 'A', when: new Date(2024, 0, 1) },
                 { id: 'B', when: new Date(2024, 0, 2) },
             ];
 
-            const sources = basicDataSet(data).set('test', new DataSet(data));
+            const sources = basicDataSet(data).set('test', new DataSet(data, testLogger));
             const processedData = dataModel.processData(sources);
 
             expect(processedData!.columnValueType).toEqual(['date']);
         });
 
         it('should tag a column mixing number and bigint as "mixed-numeric" and warn once', () => {
-            const dataModel = new DataModel<any, any>({
-                props: [categoryKey('id'), value('count')],
-            });
+            const dataModel = new DataModel<any, any>(
+                {
+                    props: [categoryKey('id'), value('count')],
+                },
+                testLogger
+            );
 
             const data = [
                 { id: 'A', count: 10 },
@@ -1652,7 +1796,7 @@ describe('DataModel', () => {
                 { id: 'C', count: 30n },
             ];
 
-            const sources = basicDataSet(data).set('test', new DataSet(data));
+            const sources = basicDataSet(data).set('test', new DataSet(data, testLogger));
             const processedData = dataModel.processData(sources);
 
             expect(processedData!.columnValueType).toEqual(['mixed-numeric']);
@@ -1666,9 +1810,12 @@ describe('DataModel', () => {
         });
 
         it('should warn once when a date column mixes in a non-date value', () => {
-            const dataModel = new DataModel<any, any>({
-                props: [categoryKey('id'), value('when')],
-            });
+            const dataModel = new DataModel<any, any>(
+                {
+                    props: [categoryKey('id'), value('when')],
+                },
+                testLogger
+            );
 
             const data = [
                 { id: 'A', when: new Date(2024, 0, 1) },
@@ -1676,7 +1823,7 @@ describe('DataModel', () => {
                 { id: 'C', when: new Date(2024, 0, 3) },
             ];
 
-            const sources = basicDataSet(data).set('test', new DataSet(data));
+            const sources = basicDataSet(data).set('test', new DataSet(data, testLogger));
             const processedData = dataModel.processData(sources);
 
             expect(processedData!.columnValueType).toEqual(['date']);
@@ -1690,9 +1837,12 @@ describe('DataModel', () => {
         });
 
         it('should tag plain-object value columns as "object"', () => {
-            const dataModel = new DataModel<any, any>({
-                props: [categoryKey('id'), value('category')],
-            });
+            const dataModel = new DataModel<any, any>(
+                {
+                    props: [categoryKey('id'), value('category')],
+                },
+                testLogger
+            );
 
             const category = (label: string) => ({ id: label, label, toString: () => label });
             const data = [
@@ -1700,23 +1850,26 @@ describe('DataModel', () => {
                 { id: 'B', category: category('two') },
             ];
 
-            const sources = basicDataSet(data).set('test', new DataSet(data));
+            const sources = basicDataSet(data).set('test', new DataSet(data, testLogger));
             const processedData = dataModel.processData(sources);
 
             expect(processedData!.columnValueType).toEqual(['object']);
         });
 
         it('should preserve the columnValueType tag across incremental reprocessing', () => {
-            const dataModel = new DataModel<any, any>({
-                props: [categoryKey('id'), value('count')],
-            });
+            const dataModel = new DataModel<any, any>(
+                {
+                    props: [categoryKey('id'), value('count')],
+                },
+                testLogger
+            );
 
             const initialData = [
                 { id: 'A', count: 10n },
                 { id: 'B', count: 20n },
             ];
 
-            const dataSet = new DataSet(initialData);
+            const dataSet = new DataSet(initialData, testLogger);
             const sources = basicDataSet(initialData).set('test', dataSet);
             const processedData = dataModel.processData(sources);
 
@@ -1731,9 +1884,12 @@ describe('DataModel', () => {
 
     describe('bigint aggregation (AG-16608)', () => {
         it('should accumulate a bigint value column into bigint running totals', () => {
-            const dataModel = new DataModel<any, any>({
-                props: [rangeKey('kp'), accumulatedPropertyValue('vp')],
-            });
+            const dataModel = new DataModel<any, any>(
+                {
+                    props: [rangeKey('kp'), accumulatedPropertyValue('vp')],
+                },
+                testLogger
+            );
             const data = basicDataSet([
                 { kp: 1, vp: 5n },
                 { kp: 2, vp: 3n },
@@ -1748,9 +1904,12 @@ describe('DataModel', () => {
 
         it('should clamp negative bigints when accumulating with onlyPositive', () => {
             // accumulatedPropertyValue uses accumulatedValue(true): a negative bigint contributes 0n.
-            const dataModel = new DataModel<any, any>({
-                props: [rangeKey('kp'), accumulatedPropertyValue('vp')],
-            });
+            const dataModel = new DataModel<any, any>(
+                {
+                    props: [rangeKey('kp'), accumulatedPropertyValue('vp')],
+                },
+                testLogger
+            );
             const data = basicDataSet([
                 { kp: 1, vp: 5n },
                 { kp: 2, vp: -4n },
@@ -1763,10 +1922,13 @@ describe('DataModel', () => {
         });
 
         it('should stack bigint value columns into bigint totals', () => {
-            const dataModel = new DataModel<any, any, true>({
-                props: [categoryKey('kp'), ...accumulatedGroupValues(['a', 'b'], 'all'), range('all')],
-                groupByKeys: true,
-            });
+            const dataModel = new DataModel<any, any, true>(
+                {
+                    props: [categoryKey('kp'), ...accumulatedGroupValues(['a', 'b'], 'all'), range('all')],
+                    groupByKeys: true,
+                },
+                testLogger
+            );
             const data = basicDataSet([{ kp: 'Q1', a: 5n, b: 7n }]);
 
             const result = dataModel.processData(data)!;
@@ -1779,10 +1941,13 @@ describe('DataModel', () => {
 
     describe('stacking on a date column (AG-16608)', () => {
         it('should reject a stacked date-tagged column with a warning and render empty', () => {
-            const dataModel = new DataModel<any, any, true>({
-                props: [categoryKey('kp'), ...accumulatedGroupValues(['a', 'b'], 'all')],
-                groupByKeys: true,
-            });
+            const dataModel = new DataModel<any, any, true>(
+                {
+                    props: [categoryKey('kp'), ...accumulatedGroupValues(['a', 'b'], 'all')],
+                    groupByKeys: true,
+                },
+                testLogger
+            );
             const data = basicDataSet([
                 { kp: 'Q1', a: new Date(2024, 0, 1), b: new Date(2024, 0, 2) },
                 { kp: 'Q2', a: new Date(2024, 0, 3), b: new Date(2024, 0, 4) },
@@ -1806,10 +1971,13 @@ describe('DataModel', () => {
         });
 
         it('should not reject a stacked number column', () => {
-            const dataModel = new DataModel<any, any, true>({
-                props: [categoryKey('kp'), ...accumulatedGroupValues(['a', 'b'], 'all')],
-                groupByKeys: true,
-            });
+            const dataModel = new DataModel<any, any, true>(
+                {
+                    props: [categoryKey('kp'), ...accumulatedGroupValues(['a', 'b'], 'all')],
+                    groupByKeys: true,
+                },
+                testLogger
+            );
             const data = basicDataSet([{ kp: 'Q1', a: 5, b: 7 }]);
 
             const result = dataModel.processData(data)!;
@@ -1823,14 +1991,17 @@ describe('DataModel', () => {
     describe('update operations', () => {
         describe('ungrouped data', () => {
             it('should process updated items correctly', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y')],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                    },
+                    testLogger
+                );
 
                 const item0 = { x: 1, y: 10 };
                 const item1 = { x: 2, y: 20 };
                 const item2 = { x: 3, y: 30 };
-                const dataSet = new DataSet([item0, item1, item2]);
+                const dataSet = new DataSet([item0, item1, item2], testLogger);
                 const sources = new Map([['test', dataSet]]);
 
                 const processedData = dataModel.processData(sources);
@@ -1848,14 +2019,17 @@ describe('DataModel', () => {
             });
 
             it('should handle multiple updated items', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y')],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                    },
+                    testLogger
+                );
 
                 const item0 = { x: 1, y: 10 };
                 const item1 = { x: 2, y: 20 };
                 const item2 = { x: 3, y: 30 };
-                const dataSet = new DataSet([item0, item1, item2]);
+                const dataSet = new DataSet([item0, item1, item2], testLogger);
                 const sources = new Map([['test', dataSet]]);
 
                 const processedData = dataModel.processData(sources);
@@ -1875,13 +2049,16 @@ describe('DataModel', () => {
             });
 
             it('should handle combined update and append', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y')],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                    },
+                    testLogger
+                );
 
                 const item0 = { x: 1, y: 10 };
                 const item1 = { x: 2, y: 20 };
-                const dataSet = new DataSet([item0, item1]);
+                const dataSet = new DataSet([item0, item1], testLogger);
                 const sources = new Map([['test', dataSet]]);
 
                 const processedData = dataModel.processData(sources);
@@ -1900,13 +2077,16 @@ describe('DataModel', () => {
             });
 
             it('should handle combined update and prepend', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y')],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                    },
+                    testLogger
+                );
 
                 const item0 = { x: 2, y: 20 };
                 const item1 = { x: 3, y: 30 };
-                const dataSet = new DataSet([item0, item1]);
+                const dataSet = new DataSet([item0, item1], testLogger);
                 const sources = new Map([['test', dataSet]]);
 
                 const processedData = dataModel.processData(sources);
@@ -1925,14 +2105,17 @@ describe('DataModel', () => {
             });
 
             it('should handle combined update, remove, and add', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y')],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                    },
+                    testLogger
+                );
 
                 const item0 = { x: 1, y: 10 };
                 const item1 = { x: 2, y: 20 };
                 const item2 = { x: 3, y: 30 };
-                const dataSet = new DataSet([item0, item1, item2]);
+                const dataSet = new DataSet([item0, item1, item2], testLogger);
                 const sources = new Map([['test', dataSet]]);
 
                 const processedData = dataModel.processData(sources);
@@ -1955,13 +2138,16 @@ describe('DataModel', () => {
             });
 
             it('should preserve update behavior through multiple reprocessing cycles', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y')],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                    },
+                    testLogger
+                );
 
                 const item0 = { x: 1, y: 10 };
                 const item1 = { x: 2, y: 20 };
-                const dataSet = new DataSet([item0, item1]);
+                const dataSet = new DataSet([item0, item1], testLogger);
                 const sources = new Map([['test', dataSet]]);
 
                 const initialProcessedData = dataModel.processData(sources)!;
@@ -1987,15 +2173,18 @@ describe('DataModel', () => {
 
         describe('grouped data', () => {
             it('should process updated items in grouped data', () => {
-                const dataModel = new DataModel<any, any, true>({
-                    props: [categoryKey('category'), value('value')],
-                    groupByKeys: true,
-                });
+                const dataModel = new DataModel<any, any, true>(
+                    {
+                        props: [categoryKey('category'), value('value')],
+                        groupByKeys: true,
+                    },
+                    testLogger
+                );
 
                 const item0 = { category: 'A', value: 10 };
                 const item1 = { category: 'B', value: 20 };
                 const item2 = { category: 'C', value: 30 };
-                const dataSet = new DataSet([item0, item1, item2]);
+                const dataSet = new DataSet([item0, item1, item2], testLogger);
                 const sources = new Map([['test', dataSet]]);
 
                 const processedData = dataModel.processData(sources)!;
@@ -2014,15 +2203,18 @@ describe('DataModel', () => {
             });
 
             it('should handle multiple updates in grouped data', () => {
-                const dataModel = new DataModel<any, any, true>({
-                    props: [categoryKey('category'), value('value')],
-                    groupByKeys: true,
-                });
+                const dataModel = new DataModel<any, any, true>(
+                    {
+                        props: [categoryKey('category'), value('value')],
+                        groupByKeys: true,
+                    },
+                    testLogger
+                );
 
                 const item0 = { category: 'A', value: 10 };
                 const item1 = { category: 'B', value: 20 };
                 const item2 = { category: 'C', value: 30 };
-                const dataSet = new DataSet([item0, item1, item2]);
+                const dataSet = new DataSet([item0, item1, item2], testLogger);
                 const sources = new Map([['test', dataSet]]);
 
                 const processedData = dataModel.processData(sources)!;
@@ -2042,14 +2234,17 @@ describe('DataModel', () => {
             });
 
             it('should handle updates with category key changes', () => {
-                const dataModel = new DataModel<any, any, true>({
-                    props: [categoryKey('category'), value('value')],
-                    groupByKeys: true,
-                });
+                const dataModel = new DataModel<any, any, true>(
+                    {
+                        props: [categoryKey('category'), value('value')],
+                        groupByKeys: true,
+                    },
+                    testLogger
+                );
 
                 const item0 = { category: 'A', value: 10 };
                 const item1 = { category: 'B', value: 20 };
-                const dataSet = new DataSet([item0, item1]);
+                const dataSet = new DataSet([item0, item1], testLogger);
                 const sources = new Map([['test', dataSet]]);
 
                 const processedData = dataModel.processData(sources)!;
@@ -2072,14 +2267,17 @@ describe('DataModel', () => {
 
         describe('accumulated and normalized properties', () => {
             it('should handle updates with accumulated values', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), accumulatedPropertyValue('y'), normalisePropertyTo('y', [0, 100])],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), accumulatedPropertyValue('y'), normalisePropertyTo('y', [0, 100])],
+                    },
+                    testLogger
+                );
 
                 const item0 = { x: 1, y: 10 };
                 const item1 = { x: 2, y: 20 };
                 const item2 = { x: 3, y: 30 };
-                const dataSet = new DataSet([item0, item1, item2]);
+                const dataSet = new DataSet([item0, item1, item2], testLogger);
                 const sources = new Map([['test', dataSet]]);
 
                 const processedData = dataModel.processData(sources);
@@ -2108,14 +2306,17 @@ describe('DataModel', () => {
 
         describe('with mid-dataset insertions', () => {
             it('should handle update combined with mid-dataset insertion', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y')],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                    },
+                    testLogger
+                );
 
                 const item0 = { x: 1, y: 10 };
                 const item1 = { x: 2, y: 20 };
                 const item3 = { x: 4, y: 40 };
-                const dataSet = new DataSet([item0, item1, item3]);
+                const dataSet = new DataSet([item0, item1, item3], testLogger);
                 const sources = new Map([['test', dataSet]]);
 
                 const processedData = dataModel.processData(sources);
@@ -2143,11 +2344,14 @@ describe('DataModel', () => {
                 initialData: any[],
                 transaction: Parameters<DataSet['addTransaction']>[0]
             ) => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y'), SMALLEST_KEY_INTERVAL],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y'), SMALLEST_KEY_INTERVAL],
+                    },
+                    testLogger
+                );
 
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
                 const processedData = dataModel.processData(sources);
 
@@ -2270,12 +2474,15 @@ describe('DataModel', () => {
                 });
 
                 it('should return initialValue for all-NaN data', () => {
-                    const dataModel = new DataModel<any, any>({
-                        props: [rangeKey('x'), value('y'), SMALLEST_KEY_INTERVAL],
-                    });
+                    const dataModel = new DataModel<any, any>(
+                        {
+                            props: [rangeKey('x'), value('y'), SMALLEST_KEY_INTERVAL],
+                        },
+                        testLogger
+                    );
 
                     const initialData = Array.from({ length: 10000 }, (_, i) => ({ x: Number.NaN, y: i }));
-                    const dataSet = new DataSet(initialData);
+                    const dataSet = new DataSet(initialData, testLogger);
                     const sources = basicDataSet(initialData).set('test', dataSet);
 
                     const processedData = dataModel.processData(sources);
@@ -2325,14 +2532,20 @@ describe('DataModel', () => {
 
     describe('optimization metadata', () => {
         it('should collect optimization metadata when debug enabled', () => {
-            const dataModel = new DataModel<any, any>({
-                props: [rangeKey('x'), value('y')],
-            });
+            const dataModel = new DataModel<any, any>(
+                {
+                    props: [rangeKey('x'), value('y')],
+                },
+                testLogger
+            );
 
-            const dataSet = new DataSet([
-                { x: 1, y: 10 },
-                { x: 2, y: 20 },
-            ]);
+            const dataSet = new DataSet(
+                [
+                    { x: 1, y: 10 },
+                    { x: 2, y: 20 },
+                ],
+                testLogger
+            );
             const sources = new Map([['test', dataSet]]);
 
             const processedData = dataModel.processData(sources);
@@ -2345,14 +2558,20 @@ describe('DataModel', () => {
         });
 
         it('should track reprocessing applied', () => {
-            const dataModel = new DataModel<any, any>({
-                props: [rangeKey('x'), value('y')],
-            });
+            const dataModel = new DataModel<any, any>(
+                {
+                    props: [rangeKey('x'), value('y')],
+                },
+                testLogger
+            );
 
-            const dataSet = new DataSet([
-                { x: 1, y: 10 },
-                { x: 2, y: 20 },
-            ]);
+            const dataSet = new DataSet(
+                [
+                    { x: 1, y: 10 },
+                    { x: 2, y: 20 },
+                ],
+                testLogger
+            );
             const sources = new Map([['test', dataSet]]);
 
             const processedData = dataModel.processData(sources);
@@ -2366,15 +2585,21 @@ describe('DataModel', () => {
         });
 
         it('should explain why reprocessing is not supported', () => {
-            const dataModel = new DataModel<any, any, true>({
-                props: [categoryKey('category'), value('value', 'value'), sum('value')],
-                groupByKeys: true,
-            });
+            const dataModel = new DataModel<any, any, true>(
+                {
+                    props: [categoryKey('category'), value('value', 'value'), sum('value')],
+                    groupByKeys: true,
+                },
+                testLogger
+            );
 
-            const dataSet = new DataSet([
-                { category: 'A', value: 10 },
-                { category: 'B', value: 20 },
-            ]);
+            const dataSet = new DataSet(
+                [
+                    { category: 'A', value: 10 },
+                    { category: 'B', value: 20 },
+                ],
+                testLogger
+            );
             const sources = new Map([['test', dataSet]]);
 
             const processedData = dataModel.processData(sources);
@@ -2384,16 +2609,22 @@ describe('DataModel', () => {
         });
 
         it('should track shared datum indices for grouped data', () => {
-            const dataModel = new DataModel<any, any, true>({
-                props: [categoryKey('category'), value('value')],
-                groupByKeys: true,
-            });
+            const dataModel = new DataModel<any, any, true>(
+                {
+                    props: [categoryKey('category'), value('value')],
+                    groupByKeys: true,
+                },
+                testLogger
+            );
 
-            const dataSet = new DataSet([
-                { category: 'A', value: 10 },
-                { category: 'B', value: 20 },
-                { category: 'C', value: 30 },
-            ]);
+            const dataSet = new DataSet(
+                [
+                    { category: 'A', value: 10 },
+                    { category: 'B', value: 20 },
+                    { category: 'C', value: 30 },
+                ],
+                testLogger
+            );
             const sources = new Map([['test', dataSet]]);
 
             const processedData = dataModel.processData(sources);
@@ -2407,14 +2638,20 @@ describe('DataModel', () => {
         // always be present depending on the data structure and processing path
 
         it('should always collect metadata for testing', () => {
-            const dataModel = new DataModel<any, any>({
-                props: [rangeKey('x'), value('y')],
-            });
+            const dataModel = new DataModel<any, any>(
+                {
+                    props: [rangeKey('x'), value('y')],
+                },
+                testLogger
+            );
 
-            const dataSet = new DataSet([
-                { x: 1, y: 10 },
-                { x: 2, y: 20 },
-            ]);
+            const dataSet = new DataSet(
+                [
+                    { x: 1, y: 10 },
+                    { x: 2, y: 20 },
+                ],
+                testLogger
+            );
             const sources = new Map([['test', dataSet]]);
 
             const processedData = dataModel.processData(sources);
@@ -2427,13 +2664,16 @@ describe('DataModel', () => {
 
         describe('banded reducer optimizations', () => {
             it('should track reducer banding metadata when banding is applied', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y'), SMALLEST_KEY_INTERVAL],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y'), SMALLEST_KEY_INTERVAL],
+                    },
+                    testLogger
+                );
 
                 // Create large dataset (above banding threshold)
                 const initialData = Array.from({ length: 10000 }, (_, i) => ({ x: i, y: i }));
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = new Map([['test', dataSet]]);
 
                 const processedData = dataModel.processData(sources);
@@ -2455,12 +2695,15 @@ describe('DataModel', () => {
             });
 
             it('should report correct band statistics after incremental update', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y'), SMALLEST_KEY_INTERVAL],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y'), SMALLEST_KEY_INTERVAL],
+                    },
+                    testLogger
+                );
 
                 const initialData = Array.from({ length: 10000 }, (_, i) => ({ x: i, y: i }));
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = new Map([['test', dataSet]]);
 
                 const processedData = dataModel.processData(sources);
@@ -2492,13 +2735,16 @@ describe('DataModel', () => {
             });
 
             it('should not apply banding for small datasets', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y'), SMALLEST_KEY_INTERVAL],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y'), SMALLEST_KEY_INTERVAL],
+                    },
+                    testLogger
+                );
 
                 // Create small dataset (below banding threshold of 1000)
                 const initialData = Array.from({ length: 500 }, (_, i) => ({ x: i, y: i }));
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = new Map([['test', dataSet]]);
 
                 const processedData = dataModel.processData(sources);
@@ -2514,12 +2760,15 @@ describe('DataModel', () => {
             });
 
             it('should track low scan ratio for rolling window operations', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y'), SMALLEST_KEY_INTERVAL],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y'), SMALLEST_KEY_INTERVAL],
+                    },
+                    testLogger
+                );
 
                 const initialData = Array.from({ length: 10000 }, (_, i) => ({ x: i, y: i }));
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = new Map([['test', dataSet]]);
 
                 const processedData = dataModel.processData(sources);
@@ -2547,9 +2796,12 @@ describe('DataModel', () => {
     describe('KEY_SORT_ORDERS metadata', () => {
         describe('continuous keys', () => {
             it('should track ascending sorted unique keys', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y')],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                    },
+                    testLogger
+                );
                 const data = basicDataSet([
                     { x: 1, y: 10 },
                     { x: 2, y: 20 },
@@ -2567,9 +2819,12 @@ describe('DataModel', () => {
             });
 
             it('should track descending sorted unique keys', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y')],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                    },
+                    testLogger
+                );
                 const data = basicDataSet([
                     { x: 100, y: 10 },
                     { x: 75, y: 20 },
@@ -2586,9 +2841,12 @@ describe('DataModel', () => {
             });
 
             it('should detect unordered keys', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y')],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                    },
+                    testLogger
+                );
                 const data = basicDataSet([
                     { x: 1, y: 10 },
                     { x: 5, y: 20 },
@@ -2604,9 +2862,12 @@ describe('DataModel', () => {
             });
 
             it('should detect duplicate keys', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y')],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                    },
+                    testLogger
+                );
                 const data = basicDataSet([
                     { x: 1, y: 10 },
                     { x: 2, y: 20 },
@@ -2623,9 +2884,12 @@ describe('DataModel', () => {
             });
 
             it('should track Date keys correctly', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('date'), value('y')],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('date'), value('y')],
+                    },
+                    testLogger
+                );
                 const data = basicDataSet([
                     { date: new Date('2024-01-01'), y: 10 },
                     { date: new Date('2024-01-02'), y: 20 },
@@ -2641,9 +2905,12 @@ describe('DataModel', () => {
             });
 
             it('should track bigint keys beyond the safe-integer range', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y')],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                    },
+                    testLogger
+                );
                 // Ascending bigints past Number.MAX_SAFE_INTEGER must be tracked relationally, not skipped, so
                 // a bigint-keyed series is still recognised as ordered/unique for animation.
                 const data = basicDataSet([
@@ -2661,9 +2928,12 @@ describe('DataModel', () => {
             });
 
             it('should handle single-element data', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y')],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                    },
+                    testLogger
+                );
                 const data = basicDataSet([{ x: 42, y: 10 }]);
 
                 const result = dataModel.processData(data)!;
@@ -2675,9 +2945,12 @@ describe('DataModel', () => {
             });
 
             it('should handle empty data', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y')],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                    },
+                    testLogger
+                );
                 const data = basicDataSet([]);
 
                 const result = dataModel.processData(data)!;
@@ -2690,9 +2963,12 @@ describe('DataModel', () => {
 
         describe('category keys', () => {
             it('should track unique category keys', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [categoryKey('category'), value('y')],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [categoryKey('category'), value('y')],
+                    },
+                    testLogger
+                );
                 const data = basicDataSet([
                     { category: 'A', y: 10 },
                     { category: 'B', y: 20 },
@@ -2708,9 +2984,12 @@ describe('DataModel', () => {
             });
 
             it('should detect duplicate category keys', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [categoryKey('category'), value('y')],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [categoryKey('category'), value('y')],
+                    },
+                    testLogger
+                );
                 const data = basicDataSet([
                     { category: 'A', y: 10 },
                     { category: 'A', y: 15 },
@@ -2729,16 +3008,19 @@ describe('DataModel', () => {
 
         describe('incremental updates', () => {
             it('should maintain metadata for ascending append', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y')],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                    },
+                    testLogger
+                );
 
                 const initialData = [
                     { x: 1, y: 10 },
                     { x: 2, y: 20 },
                     { x: 3, y: 30 },
                 ];
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = new Map([['test', dataSet]]);
 
                 const result = dataModel.processData(sources)!;
@@ -2754,16 +3036,19 @@ describe('DataModel', () => {
             });
 
             it('should detect order violation on append', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y')],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                    },
+                    testLogger
+                );
 
                 const initialData = [
                     { x: 1, y: 10 },
                     { x: 2, y: 20 },
                     { x: 3, y: 30 },
                 ];
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = new Map([['test', dataSet]]);
 
                 const result = dataModel.processData(sources)!;
@@ -2777,16 +3062,19 @@ describe('DataModel', () => {
             });
 
             it('should detect duplicates on append', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y')],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                    },
+                    testLogger
+                );
 
                 const initialData = [
                     { x: 1, y: 10 },
                     { x: 2, y: 20 },
                     { x: 3, y: 30 },
                 ];
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = new Map([['test', dataSet]]);
 
                 const result = dataModel.processData(sources)!;
@@ -2800,12 +3088,15 @@ describe('DataModel', () => {
             });
 
             it('should handle rolling window appends (ascending)', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y')],
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                    },
+                    testLogger
+                );
 
                 const initialData = Array.from({ length: 100 }, (_, i) => ({ x: i, y: i * 10 }));
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = new Map([['test', dataSet]]);
 
                 const result = dataModel.processData(sources)!;
@@ -2832,21 +3123,24 @@ describe('DataModel', () => {
 
     describe('sorted domain optimization', () => {
         it('should produce correct domains with sorted unique Date keys', () => {
-            const dataModel = new DataModel<any, any>({
-                props: [categoryKey('date'), value('value')],
-                domainBandingConfig: {
-                    minDataSizeForBanding: 10,
-                    targetBandCount: 3,
-                    enableBanding: true,
+            const dataModel = new DataModel<any, any>(
+                {
+                    props: [categoryKey('date'), value('value')],
+                    domainBandingConfig: {
+                        minDataSizeForBanding: 10,
+                        targetBandCount: 3,
+                        enableBanding: true,
+                    },
                 },
-            });
+                testLogger
+            );
 
             // Create sorted unique Date data
             const data = Array.from({ length: 30 }, (_, i) => ({
                 date: new Date(`2024-01-${String(i + 1).padStart(2, '0')}`),
                 value: i * 10,
             }));
-            const dataSet = new DataSet(data);
+            const dataSet = new DataSet(data, testLogger);
             const sources = basicDataSet(data).set('test', dataSet);
 
             const result = dataModel.processData(sources)!;
@@ -2863,20 +3157,23 @@ describe('DataModel', () => {
         });
 
         it('should handle incremental updates with sorted unique Date keys', () => {
-            const dataModel = new DataModel<any, any>({
-                props: [categoryKey('date'), value('value')],
-                domainBandingConfig: {
-                    minDataSizeForBanding: 10,
-                    targetBandCount: 3,
-                    enableBanding: true,
+            const dataModel = new DataModel<any, any>(
+                {
+                    props: [categoryKey('date'), value('value')],
+                    domainBandingConfig: {
+                        minDataSizeForBanding: 10,
+                        targetBandCount: 3,
+                        enableBanding: true,
+                    },
                 },
-            });
+                testLogger
+            );
 
             const data = Array.from({ length: 30 }, (_, i) => ({
                 date: new Date(`2024-01-${String(i + 1).padStart(2, '0')}`),
                 value: i * 10,
             }));
-            const dataSet = new DataSet(data);
+            const dataSet = new DataSet(data, testLogger);
             const sources = basicDataSet(data).set('test', dataSet);
 
             const result = dataModel.processData(sources)!;
@@ -2899,21 +3196,24 @@ describe('DataModel', () => {
         });
 
         it('should handle rolling window with sorted unique Date keys', () => {
-            const dataModel = new DataModel<any, any>({
-                props: [categoryKey('date'), value('value')],
-                domainBandingConfig: {
-                    minDataSizeForBanding: 10,
-                    targetBandCount: 5,
-                    enableBanding: true,
+            const dataModel = new DataModel<any, any>(
+                {
+                    props: [categoryKey('date'), value('value')],
+                    domainBandingConfig: {
+                        minDataSizeForBanding: 10,
+                        targetBandCount: 5,
+                        enableBanding: true,
+                    },
                 },
-            });
+                testLogger
+            );
 
             // Start with Jan 1-30
             const data = Array.from({ length: 30 }, (_, i) => ({
                 date: new Date(`2024-01-${String(i + 1).padStart(2, '0')}`),
                 value: i * 10,
             }));
-            const dataSet = new DataSet(data);
+            const dataSet = new DataSet(data, testLogger);
             const sources = basicDataSet(data).set('test', dataSet);
 
             let result: any = dataModel.processData(sources)!;
@@ -2953,9 +3253,12 @@ describe('DataModel', () => {
 
     describe('ISO 8601 / time-axis data extraction', () => {
         function timeKeyModel() {
-            return new DataModel<any, any>({
-                props: [scoped(keyProperty('x', 'time')), scoped(valueProperty('y', 'number'))],
-            });
+            return new DataModel<any, any>(
+                {
+                    props: [scoped(keyProperty('x', 'time')), scoped(valueProperty('y', 'number'))],
+                },
+                testLogger
+            );
         }
 
         it('accepts ISO 8601 strings on a time axis and preserves the original string', () => {
@@ -3012,9 +3315,12 @@ describe('DataModel', () => {
         });
 
         it("promotes a column mixing Date, ISO string and epoch number/bigint to the 'date' tag", () => {
-            const model = new DataModel<any, any>({
-                props: [scoped(valueProperty('v', 'time'))],
-            });
+            const model = new DataModel<any, any>(
+                {
+                    props: [scoped(valueProperty('v', 'time'))],
+                },
+                testLogger
+            );
             const result = model.processData(
                 basicDataSet([
                     { v: new Date('2024-01-01T00:00:00Z') },
@@ -3028,9 +3334,12 @@ describe('DataModel', () => {
         });
 
         it('rejects ISO 8601 strings on a numeric axis', () => {
-            const model = new DataModel<any, any>({
-                props: [scoped(keyProperty('x', 'number')), scoped(valueProperty('y', 'number'))],
-            });
+            const model = new DataModel<any, any>(
+                {
+                    props: [scoped(keyProperty('x', 'number')), scoped(valueProperty('y', 'number'))],
+                },
+                testLogger
+            );
             const result = model.processData(
                 basicDataSet([
                     { x: 1, y: 1 },
@@ -3111,10 +3420,13 @@ describe('DataModel', () => {
         });
 
         it('uses ISO 8601 strings as-is on a category axis (no time validation, no parsing)', () => {
-            const model = new DataModel<any, any, false>({
-                props: [scoped(keyProperty('x')), scoped(valueProperty('y', 'number'))],
-                groupByKeys: false,
-            });
+            const model = new DataModel<any, any, false>(
+                {
+                    props: [scoped(keyProperty('x')), scoped(valueProperty('y', 'number'))],
+                    groupByKeys: false,
+                },
+                testLogger
+            );
             const result = model.processData(
                 basicDataSet([
                     { x: '2024-01-15', y: 1 },
@@ -3130,10 +3442,13 @@ describe('DataModel', () => {
             // A category axis keeps ISO strings as opaque labels (no instant interpretation); even though
             // the value sniffer tags the column 'date', the timezone-ambiguity warning must not fire because
             // the offsets are never interpreted as instants.
-            const model = new DataModel<any, any, false>({
-                props: [scoped(keyProperty('x')), scoped(valueProperty('y', 'number'))],
-                groupByKeys: false,
-            });
+            const model = new DataModel<any, any, false>(
+                {
+                    props: [scoped(keyProperty('x')), scoped(valueProperty('y', 'number'))],
+                    groupByKeys: false,
+                },
+                testLogger
+            );
             model.processData(
                 basicDataSet([
                     { x: '2024-01-15T10:00:00Z', y: 1 },
@@ -3172,7 +3487,7 @@ describe('DataModel', () => {
                 { x: Date.parse('2024-01-15T09:00:00Z'), y: 1 },
                 { x: Date.parse('2024-01-15T10:00:00Z'), y: 2 },
             ];
-            const dataSet = new DataSet(initialData);
+            const dataSet = new DataSet(initialData, testLogger);
             const sources = basicDataSet(initialData).set(ISO_SCOPE, dataSet);
 
             const processed = model.processData(sources)!;
@@ -3187,10 +3502,13 @@ describe('DataModel', () => {
         });
 
         it('keeps ISO-shaped strings as labels in a category-axis domain (AG-16654 guard)', () => {
-            const model = new DataModel<any, any, false>({
-                props: [scoped(keyProperty('x')), scoped(valueProperty('y', 'number'))],
-                groupByKeys: false,
-            });
+            const model = new DataModel<any, any, false>(
+                {
+                    props: [scoped(keyProperty('x')), scoped(valueProperty('y', 'number'))],
+                    groupByKeys: false,
+                },
+                testLogger
+            );
             const result = model.processData(
                 basicDataSet([
                     { x: '2024-01-15', y: 1 },
@@ -3206,17 +3524,17 @@ describe('DataModel', () => {
         it('routes data-validation warnings through the logger passed to the constructor', () => {
             const logger = new Logger();
             const scopedWarnOnce = vi.spyOn(logger, 'warnOnce').mockImplementation(() => {});
-            const fallbackWarnOnce = vi.spyOn(Logger.default, 'warnOnce').mockImplementation(() => {});
+            const fallbackWarnOnce = vi.spyOn(ambientLogger, 'warnOnce').mockImplementation(() => {});
 
             const dataModel = new DataModel<any, any, true>(
                 {
                     props: [{ ...rangeKey('kp'), validation: (v: unknown) => v instanceof Date }, value('vp')],
                     groupByKeys: true,
                 },
+                logger,
                 'standalone',
                 false,
-                undefined,
-                logger
+                undefined
             );
 
             dataModel.processData(
@@ -3233,17 +3551,17 @@ describe('DataModel', () => {
         it('routes time-axis datum-validation warnings through the constructor logger', () => {
             const logger = new Logger();
             const scopedWarnOnce = vi.spyOn(logger, 'warnOnce').mockImplementation(() => {});
-            const fallbackWarnOnce = vi.spyOn(Logger.default, 'warnOnce').mockImplementation(() => {});
+            const fallbackWarnOnce = vi.spyOn(ambientLogger, 'warnOnce').mockImplementation(() => {});
 
             const dataModel = new DataModel<any, any, true>(
                 {
                     props: [scoped(keyProperty('kp', 'time')), scoped(valueProperty('vp', 'number'))],
                     groupByKeys: true,
                 },
+                logger,
                 'standalone',
                 false,
-                undefined,
-                logger
+                undefined
             );
 
             dataModel.processData(basicDataSet([{ kp: 'not-a-date', vp: 5 }]));

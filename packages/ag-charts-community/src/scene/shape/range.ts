@@ -65,7 +65,7 @@ export class Range<D = any> extends Shape<D> {
         const { globalAlpha } = ctx;
 
         if (fill != null) {
-            this.applyFillAndAlpha(ctx);
+            this.applyFillAndAlpha(ctx, renderCtx.logger);
 
             ctx.beginPath();
             ctx.moveTo(x1, y1);

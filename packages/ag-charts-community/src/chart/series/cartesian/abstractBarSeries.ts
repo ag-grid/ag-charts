@@ -372,7 +372,7 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
     }
 
     protected override initQuadTree(quadtree: QuadtreeNearest<DatumOf<TTypes>>) {
-        addHitTestersToQuadtree(quadtree, this.datumNodesIter());
+        addHitTestersToQuadtree(quadtree, this.datumNodesIter(), this.ctx.logger);
     }
 
     protected override pickNodeClosestDatum(point: Point): SeriesNodePickMatch | undefined {

@@ -1,7 +1,6 @@
 import {
     Color,
     Debug,
-    Logger,
     ModuleRegistry,
     type PlainObject,
     circularSliceArray,
@@ -68,14 +67,15 @@ type OperationResolver = (
 
 export function getOperation(
     value: unknown,
-    keys?: Array<string>
+    keys?: Array<string>,
+    warnings?: Pick<OptionsGraphInterface, 'warnOnce'>
 ): { operation: Operation; values: Array<any> } | undefined {
     if (value == null || typeof value !== 'object' || Array.isArray(value)) return;
 
     keys ??= Object.keys(value);
     if (keys.length === 0) return;
 
-    const publicOperation = getPublicOperation(value, keys);
+    const publicOperation = getPublicOperation(value, keys, warnings);
     if (publicOperation) return publicOperation;
 
     const operation = keys[0] as Operation;
@@ -91,7 +91,8 @@ export function getOperation(
 // Translate public-facing Grid compatible operations into Charts options graph operations.
 function getPublicOperation(
     value: object,
-    keys: Array<string>
+    keys: Array<string>,
+    warnings: Pick<OptionsGraphInterface, 'warnOnce'> | undefined
 ): { operation: Operation; values: Array<any> } | undefined {
     //  `{ ref: string; mix?: number; onto?: string }`
     if ('ref' in value && typeof value.ref === 'string') {
@@ -121,7 +122,7 @@ function getPublicOperation(
                 typeof value.ontoColor === 'string' &&
                 keys.length === 4 + privateOperation
             ) {
-                Logger.default.warnOnce('`onto` and `ontoColor` are mutually exclusive, ignoring `ontoColor`.');
+                warnings?.warnOnce('`onto` and `ontoColor` are mutually exclusive, ignoring `ontoColor`.');
                 return { operation: ColorOperation.Mix, values: [{ $ref: value.ref }, { $ref: value.onto }, ratio] };
             }
 
@@ -139,7 +140,7 @@ function getPublicOperation(
 }
 
 function getOperationTargetVertex(graph: OptionsGraphInterface, vertex: VertexInterface, valueVertex: VertexInterface) {
-    const operation = getOperation(graph.getVertexValue(valueVertex));
+    const operation = getOperation(graph.getVertexValue(valueVertex), undefined, graph);
 
     switch (operation?.operation) {
         case LocationOperation.Path: {
@@ -303,7 +304,7 @@ function foregroundBackgroundMixOperation(
     }
 
     Debug.inDevelopmentMode(() =>
-        Logger.default.warnOnce(
+        graph.warnOnce(
             `\`$foregroundBackgroundMix\` json operation failed on [${String(foregroundRatio)}}}] at [${graph.getPathArray(vertex).join('.')}], expecting a number between 0 and 1.`
         )
     );
@@ -324,7 +325,7 @@ function foregroundOpacityOperation(
     }
 
     Debug.inDevelopmentMode(() =>
-        Logger.default.warnOnce(
+        graph.warnOnce(
             `\`$foregroundOpacity\` json operation failed on [${String(opacity)}}}] at [${graph.getPathArray(vertex).join('.')}], expecting a number between 0 and 1.`
         )
     );
@@ -372,7 +373,7 @@ function mixOperation(graph: OptionsGraphInterface, vertex: VertexInterface, val
     const warningMessage = `${warningPrefix} two colors and a number between 0 and 1.`;
 
     if (typeof colorB !== 'string' || !isRatio(ratio)) {
-        Debug.inDevelopmentMode(() => Logger.default.warnOnce(warningMessage));
+        Debug.inDevelopmentMode(() => graph.warnOnce(warningMessage));
         return;
     }
 
@@ -380,13 +381,13 @@ function mixOperation(graph: OptionsGraphInterface, vertex: VertexInterface, val
         try {
             return Color.mix(Color.fromString(colorA), Color.fromString(colorB), ratio).toString();
         } catch {
-            Debug.inDevelopmentMode(() => Logger.default.warnOnce(warningMessage));
+            Debug.inDevelopmentMode(() => graph.warnOnce(warningMessage));
             return;
         }
     }
 
     if (!isGradientFill(colorA)) {
-        Debug.inDevelopmentMode(() => Logger.default.warnOnce(warningMessage));
+        Debug.inDevelopmentMode(() => graph.warnOnce(warningMessage));
         return;
     }
 
@@ -401,7 +402,7 @@ function mixOperation(graph: OptionsGraphInterface, vertex: VertexInterface, val
         });
     } catch {
         Debug.inDevelopmentMode(() =>
-            Logger.default.warnOnce(`${warningPrefix} a gradient, a color and a number between 0 and 1.`)
+            graph.warnOnce(`${warningPrefix} a gradient, a color and a number between 0 and 1.`)
         );
         return;
     }
@@ -420,7 +421,7 @@ function opacityOperation(graph: OptionsGraphInterface, vertex: VertexInterface,
     }
 
     Debug.inDevelopmentMode(() =>
-        Logger.default.warnOnce(
+        graph.warnOnce(
             `\`$opacity\` operation failed on [${String(colorValue)}, ${String(opacity)}}}] at ` +
                 `[${graph.getPathArray(vertex).join('.')}], expecting a color and a number between 0 and 1.`
         )
@@ -448,7 +449,7 @@ function remOperation(graph: OptionsGraphInterface, vertex: VertexInterface, val
     }
 
     Debug.inDevelopmentMode(() =>
-        Logger.default.warnOnce(
+        graph.warnOnce(
             `\`$rem\` json operation failed on [${String(value)}] at [${graph.getPathArray(vertex).join('.')}], expecting a number.`
         )
     );
@@ -590,7 +591,7 @@ function isValueType(graph: OptionsGraphInterface, vertex: VertexInterface, valu
     }
 
     Debug.inDevelopmentMode(() =>
-        Logger.default.warnOnce(
+        graph.warnOnce(
             `\`$isType\` json operation failed on [${String(type)}] at [${graph.getPathArray(vertex).join('.')}], expecting one of [${Object.keys(VALUE_TYPE_GUARDS).join(', ')}].`
         )
     );
@@ -968,7 +969,7 @@ function applyOperation(graph: OptionsGraphInterface, vertex: VertexInterface, v
         : undefined;
 
     if (!hasChildren && defaultValue != null) {
-        if (getOperation(defaultValue)) {
+        if (getOperation(defaultValue, undefined, graph)) {
             const resolvedDefaultValue = graph.resolveVertexValue(vertex, defaultValueVertex);
             if (isPlainObject(resolvedDefaultValue)) {
                 graph.graftObject(vertex, resolvedDefaultValue, [overridesPath1, overridesPath2]);

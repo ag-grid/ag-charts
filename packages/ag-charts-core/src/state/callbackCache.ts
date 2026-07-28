@@ -1,4 +1,4 @@
-import { warnOnce } from '../logging/logger';
+import type { Logger } from '../logging/logger';
 import type { Callback, CallbackParam, RequireOptional } from '../types/global';
 
 type Caller = { context?: unknown } | undefined;
@@ -40,6 +40,8 @@ export function callWithContext<F extends Callback>(
 
 export class CallbackCache {
     private cache: WeakMap<Function, Map<string, any>> = new WeakMap();
+
+    constructor(private readonly logger: Logger) {}
 
     call<F extends Callback>(
         callers: Caller | Caller[],
@@ -86,7 +88,7 @@ export class CallbackCache {
             }
             return result;
         } catch (e) {
-            warnOnce(`User callback errored, ignoring`, e);
+            this.logger.warnOnce(`User callback errored, ignoring`, e);
             return;
         }
     }

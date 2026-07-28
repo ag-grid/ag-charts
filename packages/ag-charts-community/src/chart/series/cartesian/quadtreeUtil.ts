@@ -1,5 +1,4 @@
-import type { DistantObject } from 'ag-charts-core';
-import { Logger, type Point } from 'ag-charts-core';
+import type { DistantObject, Logger, Point } from 'ag-charts-core';
 
 import type { Group } from '../../../scene/group';
 import type { Node } from '../../../scene/node';
@@ -11,12 +10,13 @@ export type QuadtreeCompatibleNode<D> = Node<D> & DistantObject & { readonly mid
 
 export function addHitTestersToQuadtree<TDatum extends SeriesNodeDatum, TNode extends QuadtreeCompatibleNode<TDatum>>(
     quadtree: QuadtreeNearest<TDatum>,
-    hitTesters: Iterable<TNode>
+    hitTesters: Iterable<TNode>,
+    logger: Logger
 ) {
     for (const node of hitTesters) {
         const datum: TDatum | undefined = node.datum;
         if (datum === undefined) {
-            Logger.default.error('undefined datum');
+            logger.error('undefined datum');
         } else {
             quadtree.addValue(node, datum);
         }

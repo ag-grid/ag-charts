@@ -286,7 +286,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         const allowNullKey = this.properties.allowNullKeys ?? false;
         const { processedData } = await this.requestDataModel<any, any, true>(
             dataController,
-            DataSet.wrap(dataWithTotals),
+            DataSet.wrap(dataWithTotals, this.ctx.logger),
             {
                 props: [
                     keyProperty(xKey, xScaleType, { id: `xValue`, allowNullKey }),

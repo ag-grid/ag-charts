@@ -1,5 +1,5 @@
 import { _Theme } from 'ag-charts-community';
-import { FONT_SIZE_RATIO, Logger, SAFE_STROKE_FILL_OPERATION, mergeDefaults } from 'ag-charts-core';
+import { FONT_SIZE_RATIO, type Logger, SAFE_STROKE_FILL_OPERATION, mergeDefaults } from 'ag-charts-core';
 import type {
     AgAnnotationsOptions,
     AgAnnotationsToolbarButton,
@@ -64,7 +64,8 @@ export function priceVolume(
     opts: AgPriceVolumePreset & AgBaseFinancialPresetOptions,
     _presetTheme: any,
     getTheme: () => ChartTheme,
-    themeOverrides?: AgThemeOverrides
+    themeOverrides: AgThemeOverrides | undefined,
+    logger: Logger
 ): AgCartesianChartOptions<DatumDefault, never> {
     const {
         dateKey = 'date',
@@ -87,7 +88,7 @@ export function priceVolume(
         ...unusedOpts
     } = opts;
 
-    const priceSeries = createPriceSeries(chartType, dateKey, highKey, lowKey, openKey, closeKey);
+    const priceSeries = createPriceSeries(chartType, dateKey, highKey, lowKey, openKey, closeKey, logger);
     const volumeSeries = createVolumeSeries(getTheme, dateKey, openKey, closeKey, volume, volumeKey);
 
     const userToolbarButtons = themeOverrides?.common?.annotations?.toolbar?.buttons;
@@ -438,7 +439,8 @@ function createPriceSeries(
     highKey: string,
     lowKey: string,
     openKey: string,
-    closeKey: string
+    closeKey: string,
+    logger: Logger
 ) {
     const keys: PriceSeriesKeys = {
         xKey,
@@ -469,7 +471,7 @@ function createPriceSeries(
         case 'hollow-candlestick':
             return createPriceSeriesCandlestick(common, keys);
         default:
-            Logger.default.warnOnce(`unknown chart type: ${chartType}; expected one of: ${chartTypes.join(', ')}`);
+            logger.warnOnce(`unknown chart type: ${chartType}; expected one of: ${chartTypes.join(', ')}`);
             return createPriceSeriesCandlestick(common, keys);
     }
 }
