@@ -232,7 +232,6 @@ describe('buildBarLabelCandidates', () => {
             placements,
             orientations,
             spacing: 5,
-            threshold: 2,
             label,
             textWidth: 30,
             textHeight: 10,
@@ -250,11 +249,12 @@ describe('buildBarLabelCandidates', () => {
         ]);
     });
 
-    it('constrains inside placements to the threshold-inset bar rect and floats outside placements', () => {
-        // Horizontal bar: only threshold (2) insets top/bottom (cross); the length axis stays flush — the
-        // one-sided spacing is delivered by the anchor offset, not by shrinking the containment region.
+    it('constrains inside placements to the bar rect and floats outside placements', () => {
+        // A centred inside label reserves nothing on the length axis (the one-sided spacing is delivered
+        // by the anchor offset) and spans the bar's full cross extent; collision clearance is the
+        // engine's to apply, not the region's.
         const candidates = build(['inside-center', 'outside-end'], ['horizontal']);
-        expect(candidates[0].region).toEqual({ x: 0, y: 2, width: 100, height: 36 });
+        expect(candidates[0].region).toEqual(rect);
         expect(candidates[1].region).toBeUndefined();
     });
 

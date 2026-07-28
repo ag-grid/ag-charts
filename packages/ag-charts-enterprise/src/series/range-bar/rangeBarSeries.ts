@@ -974,15 +974,14 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const rectHeight = params.rectHeight;
 
         const rect = { x: rectX, y: rectY, width: rectWidth, height: rectHeight };
-        const threshold = label.collision.threshold ?? 0;
         // Inside labels fit within the bar rect (each end reserves the one-sided spacing and drawn box);
         // outside labels sit beside it, so leave them unbound.
         const isInside = placement === 'inside';
         // A range bar carries a label at each value end (low and high), so the region reserves the
-        // `spacing` gap on both value ends; cross-axis wall-clearance comes from `threshold`.
+        // `spacing` gap on both value ends.
         const barRegion =
             isInside && (ctx.labelFit != null || ctx.labelResolvesOrientation)
-                ? insideBarRegion(rect, label.spacing, label.spacing, threshold, !barAlongX)
+                ? insideBarRegion(rect, label.spacing, label.spacing, !barAlongX)
                 : undefined;
         // Only bind the text to the bar (and hide it when it overflows) when `inside` is the sole
         // placement. A cascade with a non-inside fallback lets a label that cannot fit inside escape to
@@ -1185,7 +1184,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                     placements: coarseList.map((c): _ModuleSupport.BarLabelPlacement => `${c}-${end}`),
                     orientations,
                     spacing: label.spacing,
-                    threshold,
                     label,
                     textWidth: size.width,
                     textHeight: size.height,
@@ -1453,13 +1451,19 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         // resolution avoids the box, not just the text.
         const box = expandPlacementLabelBoxExtent(label);
         const collideWith = label.collision.resolveCollideWith();
+        const threshold = label.collision.threshold ?? 0;
         const alwaysShow = label.collision.alwaysShow;
         const fitFor = resolveLabelFitDescriptors(label, box, !alwaysShow);
         const data: PointLabelDatum[] = [];
         for (const labelDatum of this.contextNodeData?.labelData ?? []) {
             if (labelDatum.text === '') {
                 data.push(
-                    ...buildBarLabelData([labelDatum], () => ({ label: labelDatum, config: label, collideWith }))
+                    ...buildBarLabelData([labelDatum], () => ({
+                        label: labelDatum,
+                        config: label,
+                        collideWith,
+                        threshold,
+                    }))
                 );
                 continue;
             }
@@ -1474,6 +1478,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                         config: label,
                         size,
                         collideWith,
+                        threshold,
                         fit: fitFor(labelDatum.text),
                     }))
                 );
@@ -1489,6 +1494,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                         ownBox,
                         alwaysShow,
                         collideWith,
+                        threshold,
                         true,
                         fitFor(labelDatum.text)
                     )

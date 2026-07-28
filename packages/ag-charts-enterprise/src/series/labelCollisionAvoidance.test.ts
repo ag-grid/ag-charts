@@ -697,13 +697,15 @@ describe('label collision avoidance', () => {
                 .map((node) => ({ placement: node.datum.placement, box: node.computeBBox() }))
                 .filter((label): label is { placement: string | undefined; box: Box } => label.box != null);
 
-        // A single short bar (low 48, high 52 on a 0-100 axis) whose two end labels cannot both fit inside
-        // the bar rect. With `placement: ['inside', 'outside']` and hideable labels, neither label may be
-        // dropped for failing to fit inside (both can escape outside), and the second-placed label must
-        // treat its already-placed sibling — sharing the one bar rect — as an obstacle and cascade outside.
+        // A single short bar (low 47, high 53 on a 0-100 axis) whose two end labels cannot both fit inside
+        // the bar rect, but which is deliberately tall enough to hold one — otherwise both ends cascade on
+        // fit alone and the sibling obstacle is not what drives the result. With
+        // `placement: ['inside', 'outside']` and hideable labels, neither label may be dropped for failing
+        // to fit inside (both can escape outside), and the second-placed label must treat its
+        // already-placed sibling — sharing the one bar rect — as an obstacle and cascade outside.
         it('cascades one sibling label outside instead of dropping or overlapping it inside', async () => {
             const opts: any = {
-                data: [{ x: 'A', low: 48, high: 52 }],
+                data: [{ x: 'A', low: 47, high: 53 }],
                 legend: { enabled: false },
                 axes: { x: { type: 'category' }, y: { type: 'number', min: 0, max: 100 } },
                 series: [

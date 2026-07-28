@@ -530,10 +530,10 @@ export function barValueAnchor(placement: BarLabelPlacement): BarValueAnchor {
 
 /**
  * Containment region and text container for an inside bar label at `placement`: the region reserves the
- * anchored-side `spacing` gap (nothing for the centred placement) plus `threshold` cross-axis
- * wall-clearance, so the gap survives the engine's flush/containment; the container is that region minus
- * the drawn box, bounding how much text fits. Fit and containment share the region so fitted text can
- * never overflow the bound the engine contains it against.
+ * anchored-side `spacing` gap (nothing for the centred placement), so the gap survives the engine's
+ * flush/containment; the container is that region minus the drawn box, bounding how much text fits. Fit
+ * and containment share the region so fitted text can never overflow the bound the engine contains it
+ * against.
  */
 export function insideBarLabelBounds(
     rect: Bounds,
@@ -541,11 +541,10 @@ export function insideBarLabelBounds(
     isUpward: boolean,
     isVertical: boolean,
     spacing: number,
-    threshold: number,
     box: Required<PaddingOptions>
 ): { region: BoxBounds; container: { width: number; height: number } } {
     const insets = insideBarValueInsets(barValueAnchor(placement), isUpward, isVertical, spacing);
-    const region = insideBarRegion(rect, insets.min, insets.max, threshold, isVertical);
+    const region = insideBarRegion(rect, insets.min, insets.max, isVertical);
     return { region, container: insideBarContainer(region, box) };
 }
 
@@ -708,7 +707,6 @@ export function buildBarLabelCandidates<TParams>({
     placements: placementList,
     orientations,
     spacing,
-    threshold,
     label,
     textWidth,
     textHeight,
@@ -725,7 +723,6 @@ export function buildBarLabelCandidates<TParams>({
     placements: readonly BarLabelPlacement[];
     orientations: readonly AgChartLabelOrientation[];
     spacing: number;
-    threshold: number;
     // The styled label; the box extent (padding + border) is resolved per candidate from its placement's
     // style, so an inside↔outside cascade offsets and sizes each candidate by its own style.
     label: Label<TParams> & { insideStyle: LabelPlacementStyle; outsideStyle: LabelPlacementStyle };
@@ -785,9 +782,7 @@ export function buildBarLabelCandidates<TParams>({
         // Inside labels reserve `spacing` on the end they anchor against, so the gap survives the engine's
         // flush/containment (not just the anchor); centred labels reserve nothing.
         const insets = insideBarValueInsets(barValueAnchor(placement), isUpward, isVertical, spacing);
-        const insideRegion = isInside
-            ? insideBarRegion(rect, insets.min, insets.max, threshold, isVertical)
-            : undefined;
+        const insideRegion = isInside ? insideBarRegion(rect, insets.min, insets.max, isVertical) : undefined;
         const region = insideRegion ?? plotRegion;
         const centre = writeLabelBoxCentre({ x: 0, y: 0 }, anchor, width, height, boxPadding);
         for (const orientation of orientations) {

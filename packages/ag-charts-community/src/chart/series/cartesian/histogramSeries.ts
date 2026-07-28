@@ -557,15 +557,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         // Region reserves the anchored-side spacing gap (nothing when centred); container is region minus
         // the drawn box. Outside labels float free of the bar (no container/region).
         const bounds = insideOnly
-            ? insideBarLabelBounds(
-                  rect,
-                  placement,
-                  isUpward,
-                  true,
-                  label.spacing,
-                  label.collision.threshold ?? 0,
-                  expandPlacementLabelBoxExtent(label)
-              )
+            ? insideBarLabelBounds(rect, placement, isUpward, true, label.spacing, expandPlacementLabelBoxExtent(label))
             : undefined;
         const sourceText = this.getLabelText<AgHistogramSeriesLabelFormatterParams>(
             total,
@@ -592,7 +584,6 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                 placements,
                 orientations,
                 spacing: label.spacing,
-                threshold: label.collision.threshold ?? 0,
                 label,
                 textWidth: measured.width,
                 textHeight: measured.height,
@@ -1075,6 +1066,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         };
         const alwaysShow = label.collision.alwaysShow;
         const collideWith = label.collision.resolveCollideWith();
+        const threshold = label.collision.threshold ?? 0;
         const fitFor = resolveLabelFitDescriptors(label, box, !alwaysShow);
         // The positioned path drives both a hideable label (dropped on no fit) and a placement cascade
         // (kept at the best candidate when `alwaysShow`); an orientation-only array stays on the baked
@@ -1097,6 +1089,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                         ownBox,
                         alwaysShow,
                         collideWith,
+                        threshold,
                         false,
                         fitFor(nodeLabel.text)
                     )
@@ -1109,6 +1102,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             config: label,
             size: node.label != null && node.label.text !== '' ? measureBox(node.label.text) : undefined,
             collideWith,
+            threshold,
             fit: node.label == null ? undefined : fitFor(node.label.text),
         }));
     }
