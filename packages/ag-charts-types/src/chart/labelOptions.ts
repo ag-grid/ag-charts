@@ -70,9 +70,6 @@ export interface AgChartLabelStylerParams<TDatum, TContext>
  * Represents the configuration options for labels in an AgCharts.
  *
  * Labels are used to display textual information alongside data points in a chart.
- *
- * @typeparam TDatum - The type of data associated with the chart.
- * @typeparam TParams - The type of parameters expected by the label formatter function.
  */
 export interface AgChartLabelOptions<TDatum, TParams, TContext = ContextDefault> extends AgChartLabelStyleOptions {
     /** A custom formatting function used to convert data values into text for display by labels. */
@@ -105,11 +102,7 @@ export interface AgChartLabelFitOptions {
     truncate?: boolean;
 }
 
-/**
- * Label-fit options extended with collision handling, for series that place their labels against
- * obstacles (line, area, scatter, bubble, the bar family and map markers/lines). Collision resolution
- * always runs; `collision` only governs the spacing and hide-or-keep policy applied to it.
- */
+/** Label-fit options extended with collision handling. */
 export interface AgChartLabelCollisionFitOptions extends AgChartLabelFitOptions {
     /**
      * Configuration controlling the spacing kept from obstacles and whether a label that cannot be
