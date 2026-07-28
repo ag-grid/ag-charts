@@ -213,14 +213,6 @@ export function priceVolume(
                 overrides: {
                     common: {
                         title: { padding: 4 },
-                        padding: {
-                            $applyPadding: {
-                                top: 6,
-                                right: 8,
-                                bottom: 6,
-                                left: 0,
-                            },
-                        },
                         chartToolbar: {
                             enabled: toolbar,
                         },
