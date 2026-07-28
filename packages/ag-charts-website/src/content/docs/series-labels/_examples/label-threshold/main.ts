@@ -18,10 +18,14 @@ const options: AgCartesianChartOptions<DataType> = {
             labelKey: 'station',
             label: {
                 enabled: true,
-                border: { enabled: true, strokeWidth: 1 },
+                border: {
+                    enabled: true,
+                    stroke: { ref: 'foregroundColor', mix: 0.5, onto: 'backgroundColor' },
+                    strokeWidth: 2,
+                },
                 collision: {
                     threshold: 4,
-                    suppressHide: false,
+                    alwaysShow: false,
                 },
             },
         },
@@ -41,7 +45,7 @@ function setThreshold(event: Event) {
     chart.update(options);
 }
 
-function setSuppressHide(value: string) {
-    (options.series![0] as AgBubbleSeriesOptions<DataType>).label!.collision!.suppressHide = value === 'show';
+function setAlwaysShow(value: string) {
+    (options.series![0] as AgBubbleSeriesOptions<DataType>).label!.collision!.alwaysShow = value === 'show';
     chart.update(options);
 }

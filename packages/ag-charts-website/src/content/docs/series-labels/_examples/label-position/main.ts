@@ -37,6 +37,7 @@ const options: AgCartesianChartOptions<BubbleDataType | BarDataType> = {
             yKey: 'humidity',
             sizeKey: 'windSpeed',
             labelKey: 'station',
+            maxSize: 60,
             label: {
                 enabled: true,
                 placement: 'top',
@@ -70,16 +71,24 @@ function setSeriesType(seriesType: SeriesType) {
                 yKey: 'humidity',
                 sizeKey: 'windSpeed',
                 labelKey: 'station',
+                maxSize: 60,
                 label: { enabled: true, placement: 'top', spacing: 6 },
             },
         ];
     } else {
         options.title = { text: 'Quarterly Profit Change ($m)' };
         options.data = barData;
-        options.axes = {
-            x: { type: 'category' },
-            y: { type: 'number', title: { text: 'Profit Change ($m)' } },
-        };
+        // direction: 'horizontal' swaps which axis carries the category vs the value
+        options.axes =
+            seriesType === 'bar-horizontal'
+                ? {
+                      y: { type: 'category' },
+                      x: { type: 'number', title: { text: 'Profit Change ($m)' } },
+                  }
+                : {
+                      x: { type: 'category' },
+                      y: { type: 'number', title: { text: 'Profit Change ($m)' } },
+                  };
         const barSeries: AgBarSeriesOptions<BarDataType> = {
             type: 'bar',
             direction: seriesType === 'bar-horizontal' ? 'horizontal' : 'vertical',
@@ -89,7 +98,8 @@ function setSeriesType(seriesType: SeriesType) {
                 enabled: true,
                 placement: 'outside-end',
                 spacing: 6,
-                formatter: (params) => `${params.datum.quarter} profit $${params.value}m`,
+                truncate: false,
+                formatter: (params) => `$${params.value}m`,
             },
         };
         options.series = [barSeries];

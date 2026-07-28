@@ -30,6 +30,22 @@ export const bubbleData: BubbleDataType[] = [
     { station: 'Verwood', temperature: 19.6, humidity: 62, windSpeed: 15 },
     { station: 'Wetherby', temperature: 20.3, humidity: 59, windSpeed: 9 },
     { station: 'Yeovil', temperature: 19.8, humidity: 61, windSpeed: 13 },
+    { station: 'Amersham', temperature: 19.5, humidity: 62, windSpeed: 11 },
+    { station: 'Bakewell', temperature: 20.1, humidity: 60, windSpeed: 9 },
+    { station: 'Chard', temperature: 19.7, humidity: 64, windSpeed: 13 },
+    { station: 'Devizes', temperature: 20.4, humidity: 59, windSpeed: 10 },
+    { station: 'Evesham', temperature: 19.3, humidity: 63, windSpeed: 15 },
+    { station: 'Fakenham', temperature: 20.6, humidity: 61, windSpeed: 8 },
+    { station: 'Grantham', temperature: 19.9, humidity: 58, windSpeed: 14 },
+    { station: 'Honiton', temperature: 20.2, humidity: 65, windSpeed: 11 },
+    { station: 'Ivybridge', temperature: 19.6, humidity: 60, windSpeed: 9 },
+    { station: 'Kington', temperature: 20.0, humidity: 62, windSpeed: 12 },
+    { station: 'Ludlow', temperature: 19.4, humidity: 64, windSpeed: 16 },
+    { station: 'Malmesbury', temperature: 20.5, humidity: 59, windSpeed: 8 },
+    { station: 'Newark', temperature: 19.8, humidity: 61, windSpeed: 13 },
+    { station: 'Oswestry', temperature: 20.3, humidity: 63, windSpeed: 10 },
+    { station: 'Presteigne', temperature: 19.2, humidity: 58, windSpeed: 15 },
+    { station: 'Ringwood', temperature: 20.7, humidity: 60, windSpeed: 9 },
 ];
 
 export interface BarDataType {

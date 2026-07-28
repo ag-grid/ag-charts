@@ -4,8 +4,8 @@
         <input
             type="range"
             id="thresholdSlider"
-            min="-10"
-            max="20"
+            min="-5"
+            max="5"
             value="4"
             oninput="setThreshold(event)"
             onchange="setThreshold(event)"
@@ -14,8 +14,8 @@
     </div>
     <div class="controls-row">
         <span>Colliding labels:</span>
-        <select onchange="setSuppressHide(event.target.value)">
-            <option value="hide" selected>Hide (default)</option>
+        <select onchange="setAlwaysShow(event.target.value)">
+            <option value="hide" selected>Hide</option>
             <option value="show">Keep visible</option>
         </select>
     </div>
