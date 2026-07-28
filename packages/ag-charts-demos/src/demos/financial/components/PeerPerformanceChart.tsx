@@ -1,10 +1,11 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 
-import { type AgCartesianChartOptions, type AgLineSeriesOptions } from 'ag-charts-community';
+import { type AgCartesianChartOptions, type AgChartInstance, type AgLineSeriesOptions } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-react';
 
 import { THEME } from '../chartTheme';
-import { type Instrument, type PeerPerformanceFeed, sectorPeers } from '../data';
+import { type Instrument, type PeerPerformanceFeed, type PerfRow, sectorPeers } from '../data';
+import { diffWindow } from '../windowTransaction';
 
 // Module-scope so these option pieces keep stable identities across renders; fresh
 // function identities per tick would force the chart's full slow-path options
@@ -36,6 +37,7 @@ interface PeerPerformanceChartProps {
 }
 
 export function PeerPerformanceChart({ instrument, peerFeed, peerTick, windowMinutes }: PeerPerformanceChartProps) {
+    const chartRef = useRef<AgChartInstance>(null);
     const peers = useMemo(() => sectorPeers(instrument.ticker), [instrument.ticker]);
     const data = useMemo(
         () => peerFeed.relativePerformance(peers, windowMinutes),
@@ -44,33 +46,27 @@ export function PeerPerformanceChart({ instrument, peerFeed, peerTick, windowMin
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [peerFeed, peers, windowMinutes, peerTick]
     );
-
-    // Memoised separately from `data` so every tick reuses the same series identities,
-    // keeping per-tick chart updates on the data-only fast path.
-    const series = useMemo<AgLineSeriesOptions[]>(
-        () =>
-            peers.map((ticker) => ({
-                type: 'line',
-                xKey: 'date',
-                yKey: ticker,
-                yName: ticker,
-                // Emphasise the selected company against its peers via stroke width only.
-                strokeWidth: ticker === instrument.ticker ? 3 : 1,
-                strokeOpacity: ticker === instrument.ticker ? 1 : 0.5,
-                marker: {
-                    enabled: false,
-                },
-                tooltip: {
-                    renderer: PEER_TOOLTIP_RENDERER,
-                },
-            })),
-        [peers, instrument.ticker]
-    );
+    // The rows currently rendered, diffed against each new window for the transaction.
+    const windowRef = useRef<PerfRow[]>([]);
 
     const options = useMemo<AgCartesianChartOptions>(() => {
+        windowRef.current = data;
+        const series: AgLineSeriesOptions[] = peers.map((ticker) => ({
+            type: 'line',
+            xKey: 'date',
+            yKey: ticker,
+            yName: ticker,
+            // Emphasise the selected company against its peers via stroke width only.
+            strokeWidth: ticker === instrument.ticker ? 3 : 1,
+            strokeOpacity: ticker === instrument.ticker ? 1 : 0.5,
+            marker: { enabled: false },
+            tooltip: { renderer: PEER_TOOLTIP_RENDERER },
+        }));
         return {
             theme: THEME,
             data,
+            // A point's rebased value is fixed once computed, so ticks only add/remove whole points.
+            dataIdKey: 'id',
             series,
             axes: {
                 x: {
@@ -116,13 +112,24 @@ export function PeerPerformanceChart({ instrument, peerFeed, peerTick, windowMin
                 left: 2,
             },
         } as AgCartesianChartOptions;
-    }, [data, series]);
+        // Seeded once; later windows stream in via applyTransaction below.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    useEffect(() => {
+        const transactions = diffWindow(windowRef.current, data, (row) => row.id);
+        windowRef.current = data;
+        for (const transaction of transactions) {
+            // eslint-disable-next-line no-console
+            chartRef.current?.applyTransaction(transaction).catch((e) => console.error(e));
+        }
+    }, [data]);
 
     return (
         <div className="fin-detail-card">
             <div className="fin-detail-card-title">Peer performance vs S&amp;P 500</div>
             <div className="fin-detail-chart">
-                <AgCharts options={options} style={{ height: '100%', width: '100%' }} />
+                <AgCharts ref={chartRef} options={options} style={{ height: '100%', width: '100%' }} />
             </div>
         </div>
     );

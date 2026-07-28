@@ -229,7 +229,7 @@ export class MapLineSeries
         if (this.isColorScaleValid()) {
             const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue');
             const domain = processedData.domain.values[colorKeyIdx];
-            configureColorScale(colorScale, this.properties.colorScale, domain);
+            configureColorScale(colorScale, this.properties.colorScale, domain, this.ctx.logger);
         }
 
         if (topology == null) {
@@ -395,7 +395,7 @@ export class MapLineSeries
         const maxStrokeWidth = properties.maxStrokeWidth ?? properties.strokeWidth;
         sizeScale.range = [minStrokeWidth, Math.max(minStrokeWidth, maxStrokeWidth)];
         const measurer = cachedTextMeasurer(label);
-        const labelFit = resolveLabelFit(label, !label.collision.suppressHide);
+        const labelFit = resolveLabelFit(label, !label.collision.alwaysShow);
 
         const projectedGeometries = this.prepareProjectedLineGeometries(
             columns.idValues,

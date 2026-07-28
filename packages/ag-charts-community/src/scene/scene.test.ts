@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { Logger } from 'ag-charts-core';
+import { Logger, ambientLogger } from 'ag-charts-core';
 
 import { setupMockCanvas } from '../util/test/mockCanvas';
 import { Group } from './group';
@@ -16,10 +16,7 @@ class CapturingGroup extends Group {
 
 function renderCapturingScene(pixelRatio: number, logger?: Logger): RenderContext | undefined {
     const canvasElement = document.createElement('canvas');
-    const scene = new Scene({ canvasElement, pixelRatio });
-    if (logger != null) {
-        scene.setLogger(logger);
-    }
+    const scene = new Scene({ canvasElement, pixelRatio }, logger);
     const root = new CapturingGroup();
     scene.setRoot(root);
     root.markDirty('test');
@@ -36,8 +33,12 @@ describe('Scene', () => {
             expect(renderCapturingScene(1, logger)?.logger).toBe(logger);
         });
 
-        it('falls back to Logger.default when no logger is configured (grid sparkline use)', () => {
-            expect(renderCapturingScene(1)?.logger).toBe(Logger.default);
+        it('shares the ambient logger when constructed without one (grid sparkline use)', () => {
+            const first = renderCapturingScene(1)?.logger;
+            expect(first).toBe(ambientLogger);
+            // One `warnOnce` cache across every context-less Scene, so a grid of sparklines sharing
+            // a bad config warns once rather than once per cell.
+            expect(renderCapturingScene(1)?.logger).toBe(first);
         });
     });
 

@@ -242,9 +242,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     // Provide the unmapped axis keys for error logging & callbacks.
     unmappedAxisKeys: Map<string, string> = new Map();
 
-    // Validation runs synchronously in this constructor, before the chart's `ctx.logger` exists on
-    // initial create, so console output routes through this instance (the chart's own where one exists).
-    private readonly logger: Logger;
+    // Validation runs synchronously in this constructor, before a chart exists on initial create.
+    // The chart then adopts this instance as `ctx.logger`, so a chart has exactly one Logger.
+    logger: Logger;
 
     private static readonly debug = Debug.create(true, 'opts');
 
@@ -448,7 +448,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             }
         }
 
-        let activeTheme = sanitizeThemeModules(getChartTheme(options.theme));
+        let activeTheme = sanitizeThemeModules(getChartTheme(options.theme, this.logger));
 
         const { presetType } = this.optionMetadata;
         if (presetType != null) {
@@ -463,15 +463,21 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 const presetSubType = (options as any).type as keyof AgPresetOverrides | undefined;
                 const presetTheme = presetSubType == null ? undefined : activeTheme.presets[presetSubType];
 
-                const { cleared, invalid } = validatePreset(presetParams, presetDef.options, '');
+                const { cleared, invalid } = validatePreset(presetParams, presetDef.options, '', this.validateParams);
                 this.recordValidationErrors(invalid);
 
                 if (hasRequiredInPath(invalid, '')) {
                     options = {} as any;
                 } else {
                     ChartOptions.debug('>>> AgCharts.createOrUpdate() - applying preset', cleared);
-                    options = presetDef.create(cleared, presetTheme, () => this.activeTheme, activeTheme.overrides);
-                    activeTheme = sanitizeThemeModules(getChartTheme(options.theme));
+                    options = presetDef.create(
+                        cleared,
+                        presetTheme,
+                        () => this.activeTheme,
+                        activeTheme.overrides,
+                        this.logger
+                    );
+                    activeTheme = sanitizeThemeModules(getChartTheme(options.theme, this.logger, presetDef.name));
                 }
             }
         }
@@ -486,7 +492,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         // Must run before chart validation to cleanup invalid types.
         removeIncompatibleModuleOptions(undefined, options);
 
-        const missingSeriesModules = this.validateSeriesOptions(options);
+        const missingSeriesModules = this.validateSeriesOptions(options, this.validateParams);
 
         const chartType = detectChartType(options);
 
@@ -494,14 +500,14 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         if (!this.chartDef.placeholder) {
             const { validate: validateChart = validate } = this.chartDef;
-            const { cleared, invalid } = validateChart(options, this.chartDef.options, '');
+            const { cleared, invalid } = validateChart(options, this.chartDef.options, '', this.validateParams);
             this.recordValidationErrors(invalid);
             options = cleared as T;
         }
 
         // The first pass validation of the axes, before they have been processed. At this point the axis keys are still
         // the ones provided by the user and have not been remapped. Any axes without a `type` property are skipped.
-        const missingAxesModules = this.validateAxesOptions(options);
+        const missingAxesModules = this.validateAxesOptions(options, this.validateParams);
 
         this.removeDisabledOptions(options);
 
@@ -522,7 +528,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
 
         const optionsGraph = createOptionsGraphMemoised(activeTheme, options, this.processedCSSVariables);
-        const resolvedOptions = optionsGraph.resolve() as any;
+        const resolvedOptions = optionsGraph.resolve(this.logger) as any;
         const themeParameters = optionsGraph.resolveParams();
         const annotationThemes = optionsGraph.resolveAnnotationThemes();
         optionsGraph.clearSafe();
@@ -535,7 +541,11 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         // Second-pass validation runs after `removeDisabledOptions`, so disabled nodes have been
         // stripped to `{ enabled: false }`; skip their required-field/discriminant warnings.
-        const secondPassParams: ValidateParams = { skipDisabledNodeValidation: true, silentAdvisories: true };
+        const secondPassParams: ValidateParams = {
+            skipDisabledNodeValidation: true,
+            silentAdvisories: true,
+            logger: this.logger,
+        };
 
         this.validateSeriesOptions(processedOptions, secondPassParams);
 
@@ -586,7 +596,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private slowSetupCached(cached: StructuralCacheEntry) {
-        const activeTheme = sanitizeThemeModules(getChartTheme((this.userOptions as any).theme));
+        const activeTheme = sanitizeThemeModules(getChartTheme((this.userOptions as any).theme, this.logger));
         this.chartDef = cached.chartDef;
 
         // A cache hit skips the validate loops that populate `validationIssues`, so replay the
@@ -632,7 +642,20 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         };
     }
 
+    /**
+     * Point these options at the Logger of the chart that ended up owning them, which is not knowable
+     * until the chart type is resolved and the pool consulted.
+     */
+    adoptLogger(logger: Logger) {
+        this.logger = logger;
+    }
+
+    private get validateParams(): ValidateParams {
+        return { logger: this.logger };
+    }
+
     // Every option-validation error goes to both the console log and the per-chart overlay collector.
+
     private recordValidationErrors(invalid: ValidationError[]) {
         for (const error of invalid) {
             this.logger.warn(error);
@@ -649,7 +672,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.validationIssues.push({ severity: 'warning', message });
     }
 
-    private validatePluginOptions(options: T, params: ValidateParams = {}) {
+    private validatePluginOptions(options: T, params: ValidateParams) {
         for (const pluginDef of ModuleRegistry.listModulesByType(ModuleType.Plugin)) {
             const pluginKey = pluginDef.name as keyof T;
             if (
@@ -664,7 +687,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
     }
 
-    private validateSeriesOptions(options: T, params: ValidateParams = {}): ModulePlaceholder[] {
+    private validateSeriesOptions(options: T, params: ValidateParams): ModulePlaceholder[] {
         const chartType = this.chartDef?.name;
         const validatedSeriesOptions: any[] = [];
         const seriesCount = options.series?.length ?? 0;
@@ -729,7 +752,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         return missingModules;
     }
 
-    private validateAxesOptions(options: T, params: ValidateParams = {}): ModulePlaceholder[] {
+    private validateAxesOptions(options: T, params: ValidateParams): ModulePlaceholder[] {
         const missingModules: ModulePlaceholder[] = [];
         if (!('axes' in options) || !options.axes) return missingModules;
 
@@ -1542,7 +1565,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         processedCSSVariables ??= {};
 
         const container = ctx?.container;
-        if (!optionsNode || !isObjectLike(optionsNode) || !container) {
+        if (!ctx || !optionsNode || !isObjectLike(optionsNode) || !container) {
             return processedCSSVariables;
         }
 
@@ -1555,7 +1578,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             if (!resolved) continue;
 
             if (!resolved.isValid) {
-                (ctx?.logger ?? Logger.default).warnOnce(`CSS property [${value}] is not a valid color, ignoring.`);
+                ctx.logger.warnOnce(`CSS property [${value}] is not a valid color, ignoring.`);
                 delete optionsNode[key];
                 continue;
             }

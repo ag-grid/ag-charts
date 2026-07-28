@@ -24,7 +24,11 @@ export * from './structures/bitfield';
 export * from './structures/eventEmitter';
 export * from './structures/lruCache';
 export * as Debug from './logging/debugLogger';
-export { Logger } from './logging/logger';
+export { Logger, ambientLogger } from './logging/logger';
+// The chart-less logging fallback. Restricted to the files listed in the `no-unscoped-logger`
+// lint rule — everything else logs through the chart's `ctx.logger`. Enumerated rather than
+// `export *` so the namespace cannot be used to reach the `Logger` constructor.
+export * as ambientLog from './logging/ambientLog';
 export * as DebugMetrics from './logging/debugMetrics';
 export * from './modules/enterpriseRegistry';
 export * as ModuleRegistry from './modules/moduleRegistry';
@@ -107,6 +111,7 @@ export * from './utils/dom/domElements';
 export * from './utils/dom/domEvents';
 export * from './utils/dom/globalsProxy';
 export * from './utils/dom/domDownload';
+export * from './utils/text/labelMeasure';
 export * from './utils/text/textUtils';
 export * from './utils/text/textWrapper';
 export * from './utils/time/ticks';

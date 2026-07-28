@@ -8,7 +8,6 @@ import {
     mergeDefaults,
 } from 'ag-charts-core';
 import type {
-    AgChartLabelCollideWithOptions,
     AgChartLabelCollisionOptions,
     AgChartLabelCollisionPlacement,
     AgChartLabelFormatterParams,
@@ -62,7 +61,8 @@ export class LabelPlacementBorder {
     strokeOpacity?: number;
 }
 
-class LabelCollideWith extends BaseProperties implements AgChartLabelCollideWithOptions {
+/** Undocumented per-category toggle for the obstacles a label avoids. */
+class LabelCollideWith extends BaseProperties {
     @Property
     markers?: boolean;
 
@@ -81,14 +81,14 @@ export class LabelCollision extends BaseProperties implements AgChartLabelCollis
     threshold?: number;
 
     @Property
-    suppressHide: boolean = true;
+    alwaysShow: boolean = true;
 
     @Property
     collideWith = new LabelCollideWith();
 
     /**
-     * Resolved per-category obstacle toggles. Applies the global default profile: marker/label avoidance
-     * default on, seriesItem/seriesArea default off; a per-series theme overrides these via `collideWith`.
+     * Resolved per-category obstacle toggles. Applies the global default profile: marker/label/seriesArea
+     * avoidance default on, seriesItem defaults off; a per-series theme overrides these via `collideWith`.
      */
     resolveCollideWith(): CollideWith {
         const { markers, labels, seriesItems, seriesArea } = this.collideWith;
@@ -96,7 +96,7 @@ export class LabelCollision extends BaseProperties implements AgChartLabelCollis
             marker: markers ?? true,
             label: labels ?? true,
             seriesItem: seriesItems ?? false,
-            seriesArea: seriesArea ?? false,
+            seriesArea: seriesArea ?? true,
         };
     }
 }
@@ -334,4 +334,21 @@ export function resolvePlacementLabelBoxExtent<TParams>(
     placementStyle: LabelPlacementStyle | undefined
 ): Required<PaddingOptions> {
     return expandLabelBoxExtent(resolvePlacementLabelStyle(label, placementStyle));
+}
+
+/**
+ * Offset from a placed label's reserved top-left to its text anchor. The reservation spans the larger of
+ * the two placements' extents, so the surplus is split evenly to keep the drawn box centred on whatever
+ * the placement engine centred the reservation on.
+ */
+export function placedLabelTextOffset<TParams>(
+    label: Label<TParams> & { insideStyle: LabelPlacementStyle; outsideStyle: LabelPlacementStyle },
+    placementStyle: LabelPlacementStyle | undefined
+): { x: number; y: number } {
+    const reserved = expandPlacementLabelBoxExtent(label);
+    const drawn = resolvePlacementLabelPadding(label, placementStyle);
+    return {
+        x: drawn.left + (reserved.left + reserved.right - drawn.left - drawn.right) / 2,
+        y: drawn.top + (reserved.top + reserved.bottom - drawn.top - drawn.bottom) / 2,
+    };
 }

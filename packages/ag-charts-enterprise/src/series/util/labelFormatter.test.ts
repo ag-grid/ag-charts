@@ -1,3 +1,5 @@
+import { testLogger } from '_ag-charts-test';
+
 import {
     formatLabels,
     formatSingleLabel,
@@ -231,7 +233,8 @@ describe('label formatter', () => {
                     overflowStrategy: 'hide',
                 },
                 { padding: 10 },
-                () => ({ width: Infinity, height: Infinity, meta: undefined })
+                () => ({ width: Infinity, height: Infinity, meta: undefined }),
+                testLogger
             );
 
             expect(output!.label).toBe(undefined);
@@ -264,7 +267,8 @@ describe('label formatter', () => {
                     overflowStrategy: 'hide',
                 },
                 { padding },
-                () => ({ width: boxWidth, height: boxHeight, meta: undefined })
+                () => ({ width: boxWidth, height: boxHeight, meta: undefined }),
+                testLogger
             );
 
             expect(output!.label).not.toBe(undefined);
@@ -297,7 +301,8 @@ describe('label formatter', () => {
                     overflowStrategy: 'hide',
                 },
                 { padding: 10 },
-                () => ({ width: 1000, height: 1000, meta: undefined })
+                () => ({ width: 1000, height: 1000, meta: undefined }),
+                testLogger
             );
 
             expect(output!.label).not.toBe(undefined);
@@ -326,7 +331,8 @@ describe('label formatter', () => {
                     overflowStrategy: 'hide',
                 },
                 { padding: 10 },
-                () => ({ width: 200, height: 60, meta: undefined })
+                () => ({ width: 200, height: 60, meta: undefined }),
+                testLogger
             );
 
             expect(output!.label).not.toBe(undefined);

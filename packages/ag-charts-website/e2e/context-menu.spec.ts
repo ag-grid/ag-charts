@@ -6,6 +6,9 @@ import type {
     AgCaptionContextMenuActionEvent,
     AgContextMenuGetItemsParamsAxis,
     AgContextMenuGetItemsParamsCaption,
+    AgContextMenuGetItemsParamsCrossLine,
+    AgContextMenuShowOnParamsAlways,
+    AgCrossLineContextMenuActionEvent,
 } from 'ag-charts-types';
 
 import { expect, test } from './fixture';
@@ -49,6 +52,10 @@ async function popGetItems(page: Page): Promise<AgContextMenuGetItemsParamsCapti
     });
     expect(Array.isArray(getItems)).toBe(true);
     return getItems as AgContextMenuGetItemsParamsCaption[];
+}
+
+async function contextMenu(page: Page, point: { clientX: number; clientY: number }) {
+    await page.mouse.click(point.clientX, point.clientY, { button: 'right' });
 }
 
 test.describe('context-menu', () => {
@@ -210,7 +217,7 @@ test.describe('context-menu', () => {
             await gotoExample(page, toExamplePageUrl('context-menu-e2e', 'ag-17637-overlap', 'vanilla').url);
         });
 
-        test('right-clicking Mar tick label shows axis and series-node contexts', async ({ page }) => {
+        test('right-clicking Mar tick label shows axis and series contexts', async ({ page }) => {
             await page.mouse.click(283, 336, { button: 'right' });
             expect(await popContextMenuText(page)).toEqual('always,axis,series-area,series-node,');
         });
@@ -220,11 +227,14 @@ test.describe('context-menu', () => {
             expect(await popContextMenuText(page)).toEqual('always,series-area,series-node,');
         });
 
-        test.skip('right-clicking Apr bar on crossline shows only crossline and series-node contexts', async ({
-            page,
-        }) => {
+        test('right-clicking Apr bar on crossline shows crossline and series contexts', async ({ page }) => {
             await page.mouse.click(371, 224, { button: 'right' });
-            expect(await popContextMenuText(page)).toEqual('always,crossline,series-area,series-node,');
+            expect(await popContextMenuText(page)).toEqual('always,cross-line,series-area,series-node,');
+        });
+
+        test('right-clicking May tick label shows axis, crossline and series contexts', async ({ page }) => {
+            await page.mouse.click(459, 336, { button: 'right' });
+            expect(await popContextMenuText(page)).toEqual('always,axis,cross-line,series-area,series-node,');
         });
     });
 
@@ -452,10 +462,6 @@ test.describe('context-menu', () => {
             return expect.closeTo(x, 4) as unknown as number;
         }
 
-        async function contextMenu(page: Page, point: { clientX: number; clientY: number }) {
-            await page.mouse.click(point.clientX, point.clientY, { button: 'right' });
-        }
-
         async function runAction(page: Page) {
             const button = page.getByText('Run axis action');
             await button.click();
@@ -562,6 +568,122 @@ test.describe('context-menu', () => {
                         actionEvent(PARAMS_ySecondary, { index: 3, value: closeTo(64479041.9162) }),
                     ]);
                 });
+            });
+        });
+    });
+
+    test.describe('AG-17843 showOn crossline', () => {
+        type ParamKeys = 'crossLineId' | 'axisId' | 'direction' | 'crossLineType' | 'value' | 'range';
+        type Params = Pick<AgCrossLineContextMenuActionEvent, ParamKeys>;
+
+        // Crossline 1: Blue Vertical Line (x-axis)
+        const PARAMS_crossline1: Params = {
+            axisId: 'x',
+            crossLineId: 'blue-line',
+            crossLineType: 'line',
+            direction: 'x',
+            range: undefined,
+            value: 'May',
+        };
+        // Crossline 2: Black/Gray Vertical Range (x-axis)
+        const PARAMS_crossline2: Params = {
+            axisId: 'x',
+            crossLineId: 'grey-range',
+            crossLineType: 'range',
+            direction: 'x',
+            range: ['Mar', 'Jun'],
+            value: undefined,
+        };
+        // Crossline 3: Lime Horizontal Line (y-axis)
+        const PARAMS_crossline3: Params = {
+            axisId: 'y',
+            crossLineId: 'CrossLine-6',
+            crossLineType: 'line',
+            direction: 'y',
+            range: undefined,
+            value: 8,
+        };
+
+        function itemsEvent(...expectedHits: Params[]): AgContextMenuGetItemsParamsCrossLine {
+            expectedHits = expectedHits.map((hit) => ({ ...hit, showOn: 'cross-line' }));
+            const seriesAreaShowOnParams: AgContextMenuShowOnParamsAlways = { showOn: 'series-area' };
+            return {
+                ...expectedHits[0],
+                allShowOnParams: [...expectedHits, seriesAreaShowOnParams],
+                defaultItems: ['download'],
+            };
+        }
+
+        function actionEvent(...allShowOnParams: Params[]): AgCrossLineContextMenuActionEvent {
+            return {
+                type: 'crossLineContextMenuAction',
+                event: expect.anything() as AgAxisContextMenuActionEvent['event'],
+                ...allShowOnParams[0],
+            };
+        }
+
+        async function runAction(page: Page) {
+            const button = page.getByText('Run crossline action');
+            await button.click();
+        }
+
+        test.beforeEach(async ({ page }) => {
+            await gotoExample(page, toExamplePageUrl('context-menu-e2e', 'ag-17843-crosslines', 'vanilla').url);
+        });
+
+        test.describe('point: crossline 2 only', () => {
+            test.beforeEach('getItems', async ({ page }) => {
+                await contextMenu(page, { clientX: 332, clientY: 73 });
+            });
+            test('getItems', async ({ page }) => {
+                expect(await popGetItems(page)).toEqual([itemsEvent(PARAMS_crossline2)]);
+            });
+            test('actions', async ({ page }) => {
+                await runAction(page);
+                expect(await popActions(page)).toEqual([actionEvent(PARAMS_crossline2)]);
+            });
+        });
+
+        test.describe('point: crossline 3 only', () => {
+            test.beforeEach('getItems', async ({ page }) => {
+                await contextMenu(page, { clientX: 147, clientY: 338 });
+            });
+            test('getItems', async ({ page }) => {
+                expect(await popGetItems(page)).toEqual([itemsEvent(PARAMS_crossline3)]);
+            });
+            test('actions', async ({ page }) => {
+                await runAction(page);
+                expect(await popActions(page)).toEqual([actionEvent(PARAMS_crossline3)]);
+            });
+        });
+
+        test.describe('point: crosslines 1 and 2', () => {
+            test.beforeEach('getItems', async ({ page }) => {
+                await contextMenu(page, { clientX: 458, clientY: 79 });
+            });
+            test('getItems', async ({ page }) => {
+                expect(await popGetItems(page)).toEqual([itemsEvent(PARAMS_crossline1, PARAMS_crossline2)]);
+            });
+            test('actions', async ({ page }) => {
+                await runAction(page);
+                expect(await popActions(page)).toEqual([actionEvent(PARAMS_crossline1, PARAMS_crossline2)]);
+            });
+        });
+
+        test.describe('point: all crosslines', () => {
+            test.beforeEach('getItems', async ({ page }) => {
+                await contextMenu(page, { clientX: 458, clientY: 338 });
+            });
+            test('getItems', async ({ page }) => {
+                expect(await popGetItems(page)).toEqual([
+                    itemsEvent(PARAMS_crossline1, PARAMS_crossline2, PARAMS_crossline3),
+                ]);
+            });
+            test('actions', async ({ page }) => {
+                await runAction(page);
+                expect(await popActions(page)).toEqual([
+                    actionEvent(PARAMS_crossline1, PARAMS_crossline2, PARAMS_crossline3),
+                ]);
             });
         });
     });

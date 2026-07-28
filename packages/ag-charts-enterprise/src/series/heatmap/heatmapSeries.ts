@@ -84,6 +84,12 @@ interface HeatmapLabelDatum extends Point {
 type ItemStyle = Pick<NormalisedHeatmapSeriesStyle, 'fill'> &
     Required<Omit<NormalisedHeatmapSeriesStyle, 'fill'>> & { opacity: number };
 
+/** OPTIMIZATION: per-pass styling state, hoisted out of the per-cell path to keep styling O(cells). */
+interface HeatmapItemStyleContext {
+    readonly colorScaleValid: boolean;
+    readonly baseStyle: Omit<ItemStyle, 'fill'>;
+}
+
 /** Context object caching expensive lookups for createNodeData(). */
 interface HeatmapSeriesNodeDatumContext extends _ModuleSupport.CartesianCreateNodeDataContext<HeatmapNodeDatum> {
     // Override yKey to be required for heatmap
@@ -108,6 +114,9 @@ interface HeatmapSeriesNodeDatumContext extends _ModuleSupport.CartesianCreateNo
     // Label support
     readonly labels: HeatmapLabelDatum[];
     labelIndex: number;
+
+    // Styling state shared across all cells in the pass
+    readonly itemStyleContext: HeatmapItemStyleContext;
 }
 
 class HeatmapSeriesNodeEvent<
@@ -120,10 +129,9 @@ class HeatmapSeriesNodeEvent<
         nativeEvent: Event,
         datum: HeatmapNodeDatum,
         series: HeatmapSeries,
-        selectionState: SelectionState | undefined,
-        isCollapsed: boolean
+        selectionState: SelectionState | undefined
     ) {
-        super(type, nativeEvent, datum, series, selectionState, isCollapsed);
+        super(type, nativeEvent, datum, series, selectionState);
         this.colorKey = series.properties.colorKey;
     }
 }
@@ -223,10 +231,11 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
                     configureColorScale(
                         this.colorScale,
                         { fills: [mid, mid], domain: colorScaleProps.domain, mode: colorScaleProps.mode },
-                        domain
+                        domain,
+                        this.ctx.logger
                     );
                 } else {
-                    configureColorScale(this.colorScale, colorScaleProps, domain);
+                    configureColorScale(this.colorScale, colorScaleProps, domain, this.ctx.logger);
                 }
             }
         }
@@ -416,6 +425,16 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             // Label support - labels are always rebuilt from scratch (not incrementally updated)
             labels: [],
             labelIndex: 0,
+
+            itemStyleContext: this.createItemStyleContext(),
+        };
+    }
+
+    private createItemStyleContext(): HeatmapItemStyleContext {
+        const { stroke, strokeWidth, strokeOpacity } = this.properties;
+        return {
+            colorScaleValid: this.isColorScaleValid(),
+            baseStyle: { fillOpacity: 1, stroke, strokeWidth, strokeOpacity, opacity: 1 },
         };
     }
 
@@ -495,7 +514,12 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         mutableNode.midPoint.y = y;
 
         // Update style
-        mutableNode.style = this.getItemStyle({ datumIndex, datum, colorValue }, false);
+        mutableNode.style = this.getItemStyle(
+            { datumIndex, datum, colorValue },
+            false,
+            undefined,
+            ctx.itemStyleContext
+        );
     }
 
     /**
@@ -569,7 +593,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             undefined,
             this.properties.label,
             { padding: itemPadding },
-            sizeFittingHeight
+            sizeFittingHeight,
+            this.ctx.logger
         );
 
         if (labels?.label == null) {
@@ -625,16 +650,18 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
     protected getItemStyle(
         { datumIndex, datum, colorValue }: Partial<HeatmapNodeDatum>,
         isHighlight: boolean,
-        highlightState?: _ModuleSupport.HighlightState
+        highlightState?: _ModuleSupport.HighlightState,
+        itemStyleContext: HeatmapItemStyleContext = this.createItemStyleContext()
     ): NormalisedHeatmapSeriesStyle {
         const { properties } = this;
-        const { itemStyler, stroke, strokeWidth, strokeOpacity, colorKey } = properties;
+        const { itemStyler, colorKey } = properties;
         const { missingDataFill } = properties.colorScale;
+        const { colorScaleValid, baseStyle } = itemStyleContext;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
         const selectionStyle = this.getSelectionStyle(datumIndex);
         let fill: string;
-        if (this.isColorScaleValid() && colorValue != null) {
+        if (colorScaleValid && colorValue != null) {
             fill = this.colorScale.convert(colorValue);
         } else if (colorKey != null && missingDataFill != null) {
             fill = missingDataFill;
@@ -642,14 +669,13 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             fill = 'transparent';
         }
         // Colour refs are resolved during theme-merge before reaching scene nodes.
-        const style = mergeDefaults(selectionStyle, highlightStyle, {
-            fill,
-            fillOpacity: 1,
-            stroke,
-            strokeWidth,
-            strokeOpacity,
-            opacity: 1,
-        }) as Required<NormalisedHeatmapSeriesStyle>;
+        // `baseStyle` is shared across cells — do not mutate it.
+        const style = mergeDefaults(
+            selectionStyle,
+            highlightStyle,
+            { fill },
+            baseStyle
+        ) as Required<NormalisedHeatmapSeriesStyle>;
 
         let overrides;
         if (itemStyler != null && datumIndex != null) {
@@ -702,9 +728,10 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         isHighlight: boolean;
     }) {
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        const itemStyleContext = this.createItemStyleContext();
         datumSelection.each((_, nodeDatum) => {
             const highlightState = this.getHighlightState(activeHighlight, isHighlight, nodeDatum.datumIndex);
-            nodeDatum.style = this.getItemStyle(nodeDatum, isHighlight, highlightState);
+            nodeDatum.style = this.getItemStyle(nodeDatum, isHighlight, highlightState, itemStyleContext);
         });
     }
 
@@ -928,7 +955,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
     }
 
     protected override initQuadTree(quadtree: _ModuleSupport.QuadtreeNearest<HeatmapNodeDatum>) {
-        addHitTestersToQuadtree(quadtree, this.datumNodesIter());
+        addHitTestersToQuadtree(quadtree, this.datumNodesIter(), this.ctx.logger);
     }
 
     protected override pickNodesExactShape(point: Point): _ModuleSupport.SeriesNodePickMatch[] {

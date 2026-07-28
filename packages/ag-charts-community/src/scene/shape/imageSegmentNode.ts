@@ -1,5 +1,3 @@
-import { Logger } from 'ag-charts-core';
-
 import { BBox } from '../bbox';
 import type { ImageLoader } from '../image/imageLoader';
 import { type IScene, Node, type RenderContext, SceneChangeDetection } from '../node';
@@ -95,7 +93,7 @@ export class ImageSegmentNode extends Node {
                 }
             }
         } else {
-            (renderCtx.logger ?? Logger.default).warnOnce(
+            renderCtx.logger.warnOnce(
                 `Image segment has an empty url; rendering background only (${boxWidth}x${boxHeight} box).`
             );
         }

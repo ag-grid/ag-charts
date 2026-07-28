@@ -79,6 +79,10 @@
         "classification": "zone-wrap",
         "reason": "Context-menu action dispatched from out-of-zone DOM listeners; re-entered into the zone by patchContextMenu."
     },
+    "AgContextMenuItemCrossLine.action": {
+        "classification": "zone-wrap",
+        "reason": "Context-menu action dispatched from out-of-zone DOM listeners; re-entered into the zone by patchContextMenu."
+    },
     "AgContextMenuItemSeriesArea.action": {
         "classification": "zone-wrap",
         "reason": "Context-menu action dispatched from out-of-zone DOM listeners; re-entered into the zone by patchContextMenu."

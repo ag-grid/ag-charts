@@ -51,7 +51,10 @@ export class PolarCrossLineLabel extends LabelStyle implements AgBaseCrossLineLa
  */
 export class PolarCrossLine extends BaseProperties implements _ModuleSupport.PolarCrossLine {
     static readonly className = 'PolarCrossLine';
-    readonly id = createId(this);
+    readonly internalId = createId(this);
+
+    @Property
+    id?: string;
 
     @Property
     enabled?: boolean;
@@ -109,9 +112,9 @@ export class PolarCrossLine extends BaseProperties implements _ModuleSupport.Pol
     /** Populated by `applyPolarLayout` for radius cross-lines (radial grid angles). */
     gridAngles?: number[];
 
-    readonly lineGroup = new Group({ name: this.id });
-    readonly rangeGroup = new Group({ name: this.id });
-    readonly labelGroup = new Group({ name: this.id });
+    readonly lineGroup = new Group({ name: this.internalId });
+    readonly rangeGroup = new Group({ name: this.internalId });
+    readonly labelGroup = new Group({ name: this.internalId });
 
     private readonly polygonNode = new Path();
     private readonly sectorNode = new Sector();

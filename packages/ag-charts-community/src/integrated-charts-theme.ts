@@ -91,7 +91,7 @@ export function resolveOperation(operation: Operation): any {
 
     // Create a graph with a stub line series with which to resolve the operation
     const graph = new OptionsGraph({ line: { operation } }, { series: [{ type: 'line' }] }, params, params, palette);
-    const resolved = graph.resolve();
+    const resolved = graph.resolve(undefined);
 
     return resolved.operation;
 }

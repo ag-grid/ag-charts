@@ -3,6 +3,7 @@ import type {
     AgAxisContextMenuActionEvent,
     AgCaptionContextMenuActionEvent,
     AgChartContextMenuEvent,
+    AgCrossLineContextMenuActionEvent,
     AgNodeContextMenuActionEvent,
     AgSeriesAreaContextMenuActionEvent,
 } from './eventOptions';
@@ -19,7 +20,14 @@ export type AgContextMenuItemLiteral =
     | 'toggle-other-series'
     | 'separator';
 
-export type AgContextMenuItemShowOn = 'always' | 'axis' | 'caption' | 'series-area' | 'series-node' | 'legend-item';
+export type AgContextMenuItemShowOn =
+    | 'always'
+    | 'axis'
+    | 'caption'
+    | 'cross-line'
+    | 'series-area'
+    | 'series-node'
+    | 'legend-item';
 
 export type AgContextMenuItemType = 'action' | 'separator';
 
@@ -73,6 +81,18 @@ export interface AgContextMenuItemAxis<TDatum = DatumDefault, TContext = Context
     showOn: 'axis';
     /** Function called when clicking on this menu item. */
     action?: (event: AgAxisContextMenuActionEvent<TContext>) => void;
+}
+
+export interface AgContextMenuItemCrossLine<TDatum = DatumDefault, TContext = ContextDefault> extends ItemMixin<
+    TDatum,
+    TContext
+> {
+    /**
+     * Which clicked element this menu item should be shown for. `'cross-line'` menu items are shown when right-clicking a cross line's line or fill.
+     */
+    showOn: 'cross-line';
+    /** Function called when clicking on this menu item. */
+    action?: (event: AgCrossLineContextMenuActionEvent<TContext>) => void;
 }
 
 export interface AgContextMenuItemCaption<TDatum = DatumDefault, TContext = ContextDefault> extends ItemMixin<
@@ -130,6 +150,7 @@ export type AgContextMenuItem<TDatum = DatumDefault, TContext = ContextDefault> 
     | AgContextMenuItemAlways<TDatum, TContext>
     | AgContextMenuItemAxis<TDatum, TContext>
     | AgContextMenuItemCaption<TDatum, TContext>
+    | AgContextMenuItemCrossLine<TDatum, TContext>
     | AgContextMenuItemSeriesArea<TDatum, TContext>
     | AgContextMenuItemSeriesNode<TDatum, TContext>
     | AgContextMenuItemLegendItem<TDatum, TContext>;
@@ -161,6 +182,14 @@ export interface AgContextMenuShowOnParamsAxis<_TDatumReserved = never, TContext
     showOn: 'axis';
 }
 
+export interface AgContextMenuShowOnParamsCrossLine<_TDatumReserved = never, TContext = ContextDefault> extends Omit<
+    AgCrossLineContextMenuActionEvent<TContext>,
+    GetItemsParamsOmissions
+> {
+    /** Which clicked element this menu item should be shown for. */
+    showOn: 'cross-line';
+}
+
 export interface AgContextMenuShowOnParamsCaption<_TDatumReserved = never, TContext = ContextDefault> extends Omit<
     AgCaptionContextMenuActionEvent<TContext>,
     GetItemsParamsOmissions
@@ -186,7 +215,7 @@ export interface AgContextMenuShowOnParamsSeriesNode<TDatum = DatumDefault, TCon
     /** The current selection state of this datum. Set to `undefined` if the selection module is not enabled. */
     selectionState?: SelectionState;
     /** Whether this datum is collapsed. */
-    isCollapsed: boolean;
+    isCollapsed?: boolean;
 }
 
 export interface AgContextMenuShowOnParamsLegendItem<_TDatumReserved = never, TContext = ContextDefault> extends Omit<
@@ -204,14 +233,14 @@ export interface AgContextMenuShowOnParamsLegendItem<_TDatumReserved = never, TC
  * `allShowOnParams` — the same shape a scope passes as its top-level params when it wins outright, without the
  * callback-level `defaultItems`.
  *
- * Keyed by array position rather than by scope so that a future release can surface more than one context for
- * the same scope — e.g. overlapping markers (multiple `series-node`) or an x/y crossover (multiple `axis`) —
- * without an API change. Emitting multiple entries per scope is not yet implemented.
+ * Keyed by array position rather than by scope, because one scope can match more than once at a single click
+ * point — e.g. overlapping markers each contribute their own `series-node` entry.
  */
 export type AgContextMenuShowOnParams<TDatum = DatumDefault, TContext = ContextDefault> =
     | AgContextMenuShowOnParamsAlways<TDatum, TContext>
     | AgContextMenuShowOnParamsAxis<TDatum, TContext>
     | AgContextMenuShowOnParamsCaption<TDatum, TContext>
+    | AgContextMenuShowOnParamsCrossLine<TDatum, TContext>
     | AgContextMenuShowOnParamsSeriesArea<TDatum, TContext>
     | AgContextMenuShowOnParamsSeriesNode<TDatum, TContext>
     | AgContextMenuShowOnParamsLegendItem<TDatum, TContext>;
@@ -222,7 +251,8 @@ interface GetItemsParamsMixin<TDatum, TContext> {
     /**
      * Every `showOn` scope that matched at the click point, including the winning scope carried by these root
      * params. Lets the callback build one combined menu when scopes overlap — for example a datum node drawn
-     * over an axis positioned with `crossAt`. Scopes that did not match are absent from the array.
+     * over an axis positioned with `crossAt`. Scopes that did not match are absent from the array. A scope
+     * appears more than once when several of its contexts match the same point, such as overlapping markers.
      */
     allShowOnParams: AgContextMenuShowOnParams<TDatum, TContext>[];
 }
@@ -234,6 +264,11 @@ export interface AgContextMenuGetItemsParamsAlways<_TDatumReserved = never, TCon
 
 export interface AgContextMenuGetItemsParamsAxis<_TDatumReserved = never, TContext = ContextDefault>
     extends AgContextMenuShowOnParamsAxis<_TDatumReserved, TContext>, GetItemsParamsMixin<_TDatumReserved, TContext> {}
+
+export interface AgContextMenuGetItemsParamsCrossLine<_TDatumReserved = never, TContext = ContextDefault>
+    extends
+        AgContextMenuShowOnParamsCrossLine<_TDatumReserved, TContext>,
+        GetItemsParamsMixin<_TDatumReserved, TContext> {}
 
 export interface AgContextMenuGetItemsParamsCaption<_TDatumReserved = never, TContext = ContextDefault>
     extends
@@ -257,6 +292,7 @@ export type AgContextMenuGetItemsParams<TDatum = DatumDefault, TContext = Contex
     | AgContextMenuGetItemsParamsAlways<TDatum, TContext>
     | AgContextMenuGetItemsParamsAxis<TDatum, TContext>
     | AgContextMenuGetItemsParamsCaption<TDatum, TContext>
+    | AgContextMenuGetItemsParamsCrossLine<TDatum, TContext>
     | AgContextMenuGetItemsParamsSeriesArea<TDatum, TContext>
     | AgContextMenuGetItemsParamsSeriesNode<TDatum, TContext>
     | AgContextMenuGetItemsParamsLegendItem<TDatum, TContext>;

@@ -16,17 +16,17 @@ import type {
 } from 'ag-charts-core';
 import {
     type NormalisedChartLabelStyleOptions,
-    fitLabelText,
+    fitLabelTextOrOverflow,
     getMinOuterRectSize,
     insideBarContainer,
     insideBarRegion,
     insideBarValueInsets,
-    labelGlyphCentre,
     mergeDefaults,
     orientationAngles,
     rotatedGlyphDrift,
     rotatedLabelInset,
     sectorLabelContainer,
+    writeLabelBoxCentre,
 } from 'ag-charts-core';
 import type {
     AgChartLabelOrientation,
@@ -98,14 +98,21 @@ type ResolvedPlacement = Pick<AgChartLabelStylerParams<unknown, unknown>, 'place
 
 type LabelDatum = Point & {
     text: NormalisedTextOrSegments;
+    /**
+     * The text the placement engine fitted to the candidate it chose, rendered in place of {@link text}.
+     * Kept separate so {@link text} stays the unfitted source every placement pass re-fits from, rather
+     * than each pass truncating the previous pass's output further.
+     */
+    fittedText?: NormalisedTextOrSegments;
     textAlign: CanvasTextAlign;
     textBaseline: CanvasTextBaseline;
     /**
      * The label's resolved placement. Bar-family labels carry the granular {@link BarLabelPlacement}
      * (coarsened to inside/outside via {@link toResolvedPlacement} when selecting placement styles);
-     * other series carry the coarse {@link ResolvedLabelPlacement}. Unset applies neither style.
+     * placement-engine series carry the compass {@link LabelPlacement}; the rest carry the coarse
+     * {@link ResolvedLabelPlacement}. Unset applies neither style.
      */
-    placement?: ResolvedLabelPlacement | BarLabelPlacement;
+    placement?: ResolvedLabelPlacement | BarLabelPlacement | LabelPlacement;
     /** Rotation in radians applied to the label node; `undefined`/`0` renders upright. */
     rotation?: number;
     /** Translation (px) sliding a region-bound label flush inside its region; `undefined`/`0` leaves it anchored. */
@@ -124,9 +131,10 @@ export function fitLabelToContainer(
     text: NormalisedTextOrSegments,
     fit: LabelFit | undefined,
     font: FontOptions,
-    container: { width: number; height: number } | undefined
+    container: { width: number; height: number } | undefined,
+    fitOverflow?: LabelFit
 ): NormalisedTextOrSegments {
-    return fitLabelText(text, boundLabelFit(fit, container), font);
+    return fitLabelTextOrOverflow(text, boundLabelFit(fit, container), fitOverflow, font);
 }
 
 /**
@@ -177,6 +185,27 @@ export interface SectorLabelRect {
     readonly height: number;
 }
 
+// A box taller than one line by this ratio is treated as multi-line and fitted to a horizontal band
+// (see centreSectorLabelInBand) rather than slid symmetrically about the bisector.
+const SECTOR_MULTILINE_HEIGHT_RATIO = 1.5;
+// Binary-search iterations for the sector edge probes below; ~24 halvings resolves sub-pixel on any radius.
+const SECTOR_BISECTION_STEPS = 24;
+
+/** Largest `t` in `[0, limit]` for which `inside(t)` still holds, by binary search (`inside` is monotone false-ward). */
+function furthestInside(limit: number, inside: (t: number) => boolean): number {
+    let lo = 0;
+    let hi = limit;
+    for (let i = 0; i < SECTOR_BISECTION_STEPS; i += 1) {
+        const t = (lo + hi) / 2;
+        if (inside(t)) {
+            lo = t;
+        } else {
+            hi = t;
+        }
+    }
+    return lo;
+}
+
 /**
  * Rectangle a horizontal label should fill inside an origin-centred annular wedge. {@link sectorLabelContainer}
  * sizes a box that fits the wedge centred on `anchor`, but a horizontal label is not symmetric about the sector
@@ -201,7 +230,7 @@ export function fitSectorLabelRect(
     if (halfWidth <= 0 || halfHeight <= 0 || !isPointInSector(anchor.x, anchor.y, sector)) {
         return { centerX: anchor.x, centerY: anchor.y, width, height };
     }
-    if (height > lineHeight * 1.5) {
+    if (height > lineHeight * SECTOR_MULTILINE_HEIGHT_RATIO) {
         const centred = centreSectorLabelInBand(anchor, sector, height);
         if (centred != null) {
             return centred;
@@ -210,19 +239,8 @@ export function fitSectorLabelRect(
     const contains = (x: number, y: number) => isPointInSector(x, y, sector);
     const limit = Math.abs(sector.outerRadius) * 2;
     // Furthest an edge through corners A and B can slide along (dirX, dirY) while both corners stay in the wedge.
-    const reach = (ax: number, ay: number, bx: number, by: number, dirX: number, dirY: number) => {
-        let lo = 0;
-        let hi = limit;
-        for (let i = 0; i < 24; i += 1) {
-            const t = (lo + hi) / 2;
-            if (contains(ax + dirX * t, ay + dirY * t) && contains(bx + dirX * t, by + dirY * t)) {
-                lo = t;
-            } else {
-                hi = t;
-            }
-        }
-        return lo;
-    };
+    const reach = (ax: number, ay: number, bx: number, by: number, dirX: number, dirY: number) =>
+        furthestInside(limit, (t) => contains(ax + dirX * t, ay + dirY * t) && contains(bx + dirX * t, by + dirY * t));
     // Clearance for the box's leading edges (kept at the final size), then recentre on the room found.
     const right = reach(anchor.x, anchor.y - halfHeight, anchor.x, anchor.y + halfHeight, 1, 0);
     const left = reach(anchor.x, anchor.y - halfHeight, anchor.x, anchor.y + halfHeight, -1, 0);
@@ -272,19 +290,8 @@ function centreSectorLabelInBand(
     const halfHeight = height / 2;
     const limit = outer * 2;
     // Furthest the bisector-seed on line `y` can slide along `dir` (±1 in x) while staying in the wedge.
-    const edge = (seedX: number, y: number, dir: -1 | 1) => {
-        let lo = 0;
-        let hi = limit;
-        for (let i = 0; i < 24; i += 1) {
-            const t = (lo + hi) / 2;
-            if (isPointInSector(seedX + dir * t, y, inset)) {
-                lo = t;
-            } else {
-                hi = t;
-            }
-        }
-        return seedX + dir * lo;
-    };
+    const edge = (seedX: number, y: number, dir: -1 | 1) =>
+        seedX + dir * furthestInside(limit, (t) => isPointInSector(seedX + dir * t, y, inset));
     // Seed each line from the point where the bisector ray crosses it, guaranteed inside where the ray reaches.
     const seedAt = (y: number) => (Math.abs(midSin) > 1e-3 ? (y * midCos) / midSin : anchor.x);
 
@@ -477,7 +484,7 @@ export function updateLabelNode<TParams>(
         // from the shifted position, so the rotated glyph box moves with it. `0` for every other label.
         textNode.x = labelDatum.x + (labelDatum.offsetX ?? 0);
         textNode.y = labelDatum.y + (labelDatum.offsetY ?? 0);
-        textNode.text = labelDatum.text;
+        textNode.text = labelDatum.fittedText ?? labelDatum.text;
         textNode.fill = style.color;
         textNode.setAlign(labelDatum);
         textNode.setFont(style);
@@ -523,10 +530,10 @@ export function barValueAnchor(placement: BarLabelPlacement): BarValueAnchor {
 
 /**
  * Containment region and text container for an inside bar label at `placement`: the region reserves the
- * anchored-side `spacing` gap (nothing for the centred placement) plus `threshold` cross-axis
- * wall-clearance, so the gap survives the engine's flush/containment; the container is that region minus
- * the drawn box, bounding how much text fits. Fit and containment share the region so fitted text can
- * never overflow the bound the engine contains it against.
+ * anchored-side `spacing` gap (nothing for the centred placement), so the gap survives the engine's
+ * flush/containment; the container is that region minus the drawn box, bounding how much text fits. Fit
+ * and containment share the region so fitted text can never overflow the bound the engine contains it
+ * against.
  */
 export function insideBarLabelBounds(
     rect: Bounds,
@@ -534,11 +541,10 @@ export function insideBarLabelBounds(
     isUpward: boolean,
     isVertical: boolean,
     spacing: number,
-    threshold: number,
     box: Required<PaddingOptions>
 ): { region: BoxBounds; container: { width: number; height: number } } {
     const insets = insideBarValueInsets(barValueAnchor(placement), isUpward, isVertical, spacing);
-    const region = insideBarRegion(rect, insets.min, insets.max, threshold, isVertical);
+    const region = insideBarRegion(rect, insets.min, insets.max, isVertical);
     return { region, container: insideBarContainer(region, box) };
 }
 
@@ -664,6 +670,18 @@ export function adjustLabelPlacement({
 }
 
 /**
+ * Glyph budget a bar label has inside `region` at a given rotation: the region minus its drawn box, with
+ * the axes swapped for a rotated label, whose glyph width runs along the region's height.
+ */
+function orientedBarContainer(region: BoxBounds, rotationDeg: number, box: Required<PaddingOptions>) {
+    if (rotationDeg % 180 === 0) return insideBarContainer(region, box);
+    return {
+        width: Math.max(0, region.height - box.left - box.right),
+        height: Math.max(0, region.width - box.top - box.bottom),
+    };
+}
+
+/**
  * A pre-positioned bar label candidate: the generic {@link PositionedLabelCandidate} box the placement
  * engine cascades over, plus the bar-specific `anchor` and granular `placement` written back onto the
  * label node when this candidate wins (its coarse inside/outside is derived from `placement`).
@@ -679,6 +697,9 @@ export interface BarPositionedCandidate extends PositionedLabelCandidate {
  * inside-vertical → outside-horizontal → outside-vertical for the ticket's example. The glyph centre is
  * orientation-invariant, so it is measured once per placement and shared across that placement's
  * orientations. Inside placements constrain to the inset bar rect; outside placements float (no region).
+ *
+ * With `fitted` set, each candidate also carries the glyph budget its region offers, so the placement
+ * engine re-fits the text per candidate instead of every candidate inheriting one up-front truncation.
  */
 export function buildBarLabelCandidates<TParams>({
     isUpward,
@@ -686,7 +707,6 @@ export function buildBarLabelCandidates<TParams>({
     placements: placementList,
     orientations,
     spacing,
-    threshold,
     label,
     textWidth,
     textHeight,
@@ -694,14 +714,15 @@ export function buildBarLabelCandidates<TParams>({
     crossReversed = false,
     rejectOutsideStart = false,
     rejectOutsideEnd = false,
+    hideable = false,
     plotRegion,
+    fitted = false,
 }: {
     isUpward: boolean;
     isVertical: boolean;
     placements: readonly BarLabelPlacement[];
     orientations: readonly AgChartLabelOrientation[];
     spacing: number;
-    threshold: number;
     // The styled label; the box extent (padding + border) is resolved per candidate from its placement's
     // style, so an inside↔outside cascade offsets and sizes each candidate by its own style.
     label: Label<TParams> & { insideStyle: LabelPlacementStyle; outsideStyle: LabelPlacementStyle };
@@ -712,11 +733,14 @@ export function buildBarLabelCandidates<TParams>({
     crossReversed?: boolean;
     rejectOutsideStart?: boolean;
     rejectOutsideEnd?: boolean;
+    /** A label that may be dropped on overflow (`collision.alwaysShow: false`) rather than always rendered. */
+    hideable?: boolean;
     plotRegion?: Bounds;
+    /** Attach the per-candidate fit inputs the engine needs to re-fit the text to each candidate. */
+    fitted?: boolean;
 }): BarPositionedCandidate[] {
     // Drop the outside placements that would point into an adjacent stacked segment on that side, so the
-    // cascade falls through to a beside/inside candidate rather than mislabelling the neighbour. Keep the
-    // original list if every placement is dropped, so a label is still produced.
+    // cascade falls through to a beside/inside candidate rather than mislabelling the neighbour.
     const rejectsOutside = rejectOutsideStart || rejectOutsideEnd;
     let effectivePlacements = placementList;
     if (rejectsOutside) {
@@ -726,6 +750,8 @@ export function buildBarLabelCandidates<TParams>({
                 !(placement === 'outside-end' && rejectOutsideEnd)
         );
         if (effectivePlacements.length === 0) {
+            // Nowhere left to put it, so drop a hideable label; one that must be shown needs a placement anyway.
+            if (hideable) return [];
             effectivePlacements = placementList;
         }
     }
@@ -756,22 +782,9 @@ export function buildBarLabelCandidates<TParams>({
         // Inside labels reserve `spacing` on the end they anchor against, so the gap survives the engine's
         // flush/containment (not just the anchor); centred labels reserve nothing.
         const insets = insideBarValueInsets(barValueAnchor(placement), isUpward, isVertical, spacing);
-        const region = isInside ? insideBarRegion(rect, insets.min, insets.max, threshold, isVertical) : plotRegion;
-        const centre = labelGlyphCentre(anchor, width, height);
-        // The anchor sits on the glyph's edge, but the drawn box protrudes `boxPadding[facing]` past it
-        // toward the bar (the offset `adjustLabelPlacement` added so the box clears the bar by `spacing`).
-        // Recentre the collision footprint on that drawn box, else it reaches the box extent further onto
-        // a neighbour than what is rendered and the label collides before its box actually touches.
-        if (anchor.textAlign === 'right' || anchor.textAlign === 'end') {
-            centre.x += boxPadding.right;
-        } else if (anchor.textAlign === 'left' || anchor.textAlign === 'start') {
-            centre.x -= boxPadding.left;
-        }
-        if (anchor.textBaseline === 'bottom') {
-            centre.y += boxPadding.bottom;
-        } else if (anchor.textBaseline === 'top') {
-            centre.y -= boxPadding.top;
-        }
+        const insideRegion = isInside ? insideBarRegion(rect, insets.min, insets.max, isVertical) : undefined;
+        const region = insideRegion ?? plotRegion;
+        const centre = writeLabelBoxCentre({ x: 0, y: 0 }, anchor, width, height, boxPadding);
         for (const orientation of orientations) {
             const rotationDeg = orientationAngles[orientation];
             const { width: fw, height: fh } = getMinOuterRectSize(rotationDeg, width, height);
@@ -783,6 +796,15 @@ export function buildBarLabelCandidates<TParams>({
                 rotation: rotationDeg || undefined,
                 anchor,
                 placement,
+                // An outside candidate floats, so it offers no container and only the label's own
+                // maxWidth/maxHeight can truncate it.
+                fitTo: fitted
+                    ? {
+                          container: insideRegion && orientedBarContainer(insideRegion, rotationDeg, boxPadding),
+                          anchor,
+                          padding: boxPadding,
+                      }
+                    : undefined,
             });
         }
     }

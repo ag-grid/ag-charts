@@ -1,6 +1,80 @@
 # Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
 version: v1.25.1
 ignore:
+  SNYK-JS-POSTCSS-18313038:
+    - ng-packagr@20.3.2 > postcss@8.4.49:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-07-27T10:17:20.211Z
+    - '@angular-devkit/build-angular@20.3.27 > postcss@8.5.12':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-07-27T10:17:20.205Z
+    - '@angular-devkit/build-angular@20.3.27 > @angular/build@20.3.27 > beasties@0.3.5 > postcss@8.5.15':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-07-27T10:17:20.195Z
+    - '@angular-devkit/build-angular@20.3.27 > resolve-url-loader@5.0.0 > postcss@8.4.32':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-07-27T10:17:20.186Z
+    - '@angular-devkit/build-angular@20.3.27 > css-loader@7.1.2 > postcss@8.4.47':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-07-27T10:17:20.176Z
+    - '@angular-devkit/build-angular@20.3.27 > @angular/build@20.3.27 > vite@7.3.2 > postcss@8.5.10':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-07-27T10:17:20.171Z
+  SNYK-JS-POSTCSS-18313036:
+    - ng-packagr@20.3.2 > postcss@8.4.49:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-07-27T10:16:26.750Z
+    - '@angular-devkit/build-angular@20.3.27 > resolve-url-loader@5.0.0 > postcss@8.4.32':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-07-27T10:16:26.739Z
+    - '@angular-devkit/build-angular@20.3.27 > css-loader@7.1.2 > postcss@8.4.47':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-07-27T10:16:26.726Z
+    - '@angular-devkit/build-angular@20.3.27 > @angular/build@20.3.27 > vite@7.3.2 > postcss@8.5.10':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-07-27T10:16:26.723Z
+  SNYK-JS-JSYAML-18313070:
+    - '@angular-devkit/build-angular@20.3.27 > postcss-loader@8.1.1 > cosmiconfig@9.0.0 > js-yaml@4.1.0':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-07-27T09:53:10.846Z
+  SNYK-JS-BRACEEXPANSION-18313044:
+    - '@angular/cli@20.3.27 > pacote@21.0.4 > @npmcli/package-json@7.0.5 > glob@13.0.6 > minimatch@10.2.5 > brace-expansion@5.0.6':
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-07-27T09:08:46.953Z
+    - karma@6.4.4 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.0.2:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-07-27T09:08:46.950Z
+    - karma-coverage@2.2.1 > minimatch@3.1.2 > brace-expansion@2.0.2:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-07-27T09:08:46.945Z
   SNYK-JS-ESBUILD-17750822:
     - ng-packagr@20.3.2 > esbuild@0.25.0:
         reason: Downstream dependency of angular - not included in final production build

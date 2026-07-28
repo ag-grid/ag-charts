@@ -1,3 +1,4 @@
+import { testLogger } from '_ag-charts-test';
 import { type Image, loadImage } from 'skia-canvas';
 import { beforeAll, describe, expect, it } from 'vitest';
 
@@ -247,6 +248,7 @@ describe('Text', () => {
                         width: canvasCtx.nodeCanvas.width,
                         height: canvasCtx.nodeCanvas.height,
                         devicePixelRatio: 1,
+                        logger: testLogger,
                         debugNodes: {},
                     });
                     ctx.restore();
@@ -306,6 +308,7 @@ describe('Text', () => {
                         width: canvasCtx.nodeCanvas.width,
                         height: canvasCtx.nodeCanvas.height,
                         devicePixelRatio: 1,
+                        logger: testLogger,
                         debugNodes: {},
                     });
                     ctx.restore();
@@ -483,6 +486,7 @@ describe('Text', () => {
                 width: canvasCtx.nodeCanvas.width,
                 height: canvasCtx.nodeCanvas.height,
                 devicePixelRatio: 1,
+                logger: testLogger,
                 debugNodes: {},
             });
             ctx.restore();
@@ -524,6 +528,7 @@ describe('Text', () => {
                 width: canvasCtx.nodeCanvas.width,
                 height: canvasCtx.nodeCanvas.height,
                 devicePixelRatio: 1,
+                logger: testLogger,
                 debugNodes: {},
             });
             ctx.restore();
@@ -557,6 +562,7 @@ describe('Text', () => {
                 width: canvasCtx.nodeCanvas.width,
                 height: canvasCtx.nodeCanvas.height,
                 devicePixelRatio: 1,
+                logger: testLogger,
                 debugNodes: {},
             });
             ctx.restore();
@@ -619,6 +625,7 @@ describe('Text', () => {
                 width: canvasCtx.nodeCanvas.width,
                 height: canvasCtx.nodeCanvas.height,
                 devicePixelRatio: 1,
+                logger: testLogger,
                 debugNodes: {},
             });
             ctx.restore();

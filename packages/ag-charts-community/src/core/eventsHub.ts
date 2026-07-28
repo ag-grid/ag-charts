@@ -26,6 +26,7 @@ import type {
     AgZoomEventSource,
 } from 'ag-charts-types';
 
+import type { CrossLineValuePick } from '../chart/crossline/crossLine';
 import { DataSet } from '../chart/data/dataSet';
 import type { ContextMenuRegionContexts, ContextShowOnMap } from '../chart/interaction/contextMenuTypes';
 import type { ChartLegendType } from '../chart/legend/legendDatum';
@@ -95,6 +96,11 @@ export interface SeriesAreaContextMenuEvent {
      * dispatch can offer the axis region alongside the series region rather than dispatching a competing menu.
      */
     axis?: AxisValuePick;
+    /**
+     * The cross line, if any, at the pointer. The cross-lines plugin annotates this (mirroring `axis`) so the
+     * series-area dispatch can offer the cross-line region alongside the series region.
+     */
+    crossLine: CrossLineValuePick[];
 }
 
 export interface DataModelSeriesDiff {
@@ -161,6 +167,8 @@ export interface EventsHubMap {
     'series-area:contextmenu': SeriesAreaContextMenuEvent;
     'series:redo': null;
     'series:undo': null;
+    /** Emitted when resolved theme parameters change, i.e. the theme CSS variables have been rewritten. */
+    'theme:params-change': null;
     'update:complete': UpdateCompleteEvent;
     'update:pre-dom': null;
     'update:pre-series': PreSeriesUpdateEvent;

@@ -6,7 +6,6 @@ import type {
     ScaleTickResult,
 } from 'ag-charts-core';
 import {
-    Logger,
     ScaleAlignment,
     decodeIntervalValue,
     encodedToTimestamp,
@@ -151,7 +150,7 @@ export class UnitTimeScale extends DiscreteTimeScale {
         const rangeParams = { visibleRange: [0, 1] as [number, number], extend: false };
 
         if (intervalRangeCount(interval, start, stop, rangeParams) > MAX_BANDS) {
-            Logger.default.warnOnce(`the configured unit results in too many bands, ignoring. Supply a larger unit.`);
+            this.logger.warnOnce(`the configured unit results in too many bands, ignoring. Supply a larger unit.`);
             this._encodedBands = [];
             return;
         }

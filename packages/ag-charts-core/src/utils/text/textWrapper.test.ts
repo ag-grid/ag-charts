@@ -962,7 +962,47 @@ describe('fitLabelText', () => {
         expect(fitLabelText('Hello World', { maxWidth: 60 }, font)).toBe('Hello\nWorld');
     });
 
-    it('truncates with an ellipsis when wrapping is disabled and the text overflows maxWidth', () => {
-        expect(fitLabelText('Hello World', { maxWidth: 60, wrapping: 'never' }, font)).toBe(`Hello${E}`);
+    it('keeps the text whole when wrapping is disabled and no overflow strategy is set', () => {
+        expect(fitLabelText('Hello World', { maxWidth: 60, wrapping: 'never' }, font)).toBe('Hello World');
+    });
+
+    it('truncates with an ellipsis when the policy asks for one', () => {
+        expect(
+            fitLabelText('Hello World', { maxWidth: 60, wrapping: 'never', overflowStrategy: 'ellipsis' }, font)
+        ).toBe(`Hello${E}`);
+    });
+
+    it('ignores maxHeight when no overflow strategy is set, since honouring it would drop lines', () => {
+        const result = fitLabelText('one two three four', { maxWidth: 60, maxHeight: 20, wrapping: 'on-space' }, font);
+        expect(result).toBe('one\ntwo\nthree\nfour');
+        expect(String(result)).not.toContain(E);
+    });
+
+    it('lets an unbreakable word overhang while continuing to wrap the remainder', () => {
+        expect(fitLabelText('Hi Verylongword ok', { maxWidth: 60, wrapping: 'on-space' }, font)).toBe(
+            'Hi\nVerylongword\nok'
+        );
+    });
+
+    it('loses no characters when hyphenating a word wider than the bound', () => {
+        const result = String(fitLabelText('Extraordinarily', { maxWidth: 60, wrapping: 'hyphenate' }, font));
+        expect(result).toContain('-');
+        expect(result.replaceAll('\n', '').replaceAll('-', '')).toBe('Extraordinarily');
+    });
+
+    it('hides the label when the policy asks to hide overflow', () => {
+        expect(fitLabelText('Hello World', { maxWidth: 60, wrapping: 'never', overflowStrategy: 'hide' }, font)).toBe(
+            ''
+        );
+    });
+
+    it('drops no segment when text overhangs alongside an image narrower than the bound', () => {
+        const segments = [image('flag', { width: 20, height: 20 }), text(' Verylongcaption here')];
+        const result = fitLabelText(segments, { maxWidth: 60, wrapping: 'on-space' }, font);
+        expect(Array.isArray(result)).toBe(true);
+        const measured = result as MeasuredSegment[];
+        expect(imageUrls(measured)).toEqual(['https://example.com/flag.png']);
+        expect(textOf(measured)).not.toContain(E);
+        expect(textOf(measured).replace(/\s+/g, ' ').trim()).toBe('Verylongcaption here');
     });
 });

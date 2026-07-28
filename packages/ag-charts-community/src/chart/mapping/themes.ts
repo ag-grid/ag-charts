@@ -1,8 +1,9 @@
 import {
     Debug,
-    Logger,
+    type Logger,
     ModuleRegistry,
     type OptionsDefs,
+    ambientLogger,
     arrayOf,
     boolean,
     color,
@@ -99,7 +100,7 @@ let chartThemeObjectCache = new WeakMap<object, ChartTheme>();
 let chartThemeCacheRevision = -1;
 const themeCacheDebug = Debug.create(true, 'perf', 'theme');
 
-export const getChartTheme: typeof createChartTheme = (value) => {
+export const getChartTheme: typeof createChartTheme = (value, logger, presetName) => {
     chartThemeCacheRevision = ModuleRegistry.ifRegistryChanged(chartThemeCacheRevision, () => {
         chartThemeCache.clear();
         chartThemeObjectCache = new WeakMap();
@@ -110,7 +111,7 @@ export const getChartTheme: typeof createChartTheme = (value) => {
         : chartThemeCache.get(value as string | null | undefined);
     if (theme == null) {
         themeCacheDebug('[CACHE] ChartTheme', 'miss', createChartTheme.name, [value]);
-        theme = createChartTheme(value);
+        theme = createChartTheme(value, logger, presetName);
         if (objectKey) {
             chartThemeObjectCache.set(objectKey, theme);
         } else {
@@ -129,10 +130,10 @@ export function __clearChartThemeCacheForTests() {
     chartThemeCacheRevision = -1;
 }
 
-function createChartTheme(value: unknown): ChartTheme {
+function createChartTheme(value: unknown, logger: Logger = ambientLogger, presetName?: string): ChartTheme {
     if (value instanceof ChartTheme) {
         return value;
-    } else if (!validateStructure(value)) {
+    } else if (!validateStructure(value, logger)) {
         return lightTheme();
     }
 
@@ -144,14 +145,14 @@ function createChartTheme(value: unknown): ChartTheme {
         throw new Error(`Cannot find theme \`${value}\`.`);
     }
 
-    const { cleared, invalid } = validate(reduceThemeOptions(value), themeOptionsDef, 'theme');
+    const { cleared, invalid } = validate(reduceThemeOptions(value), themeOptionsDef, 'theme', { logger });
 
     for (const error of invalid) {
-        Logger.default.warnOnce(String(error));
+        logger.warnOnce(String(error));
     }
 
-    const baseTheme: any = cleared?.baseTheme ? getChartTheme(cleared.baseTheme) : lightTheme();
-    return cleared ? new baseTheme.constructor(cleared) : baseTheme;
+    const baseTheme: any = cleared?.baseTheme ? getChartTheme(cleared.baseTheme, logger, presetName) : lightTheme();
+    return cleared ? new baseTheme.constructor(cleared, presetName) : baseTheme;
 }
 
 function reduceThemeOptions(options: AgChartTheme): AgChartTheme {
@@ -263,13 +264,15 @@ const themeNameValidator = union(
     'ag-financial-dark'
 );
 
-function validateStructure(value: unknown) {
+function validateStructure(value: unknown, logger: Logger) {
     const { invalid } = validate<{ theme?: AgChartTheme | AgChartThemeName }>(
         { theme: value },
-        { theme: or(themeNameValidator, object) }
+        { theme: or(themeNameValidator, object) },
+        '',
+        { logger }
     );
     for (const error of invalid) {
-        Logger.default.warnOnce(String(error));
+        logger.warnOnce(String(error));
     }
     return invalid.length === 0;
 }

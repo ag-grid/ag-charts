@@ -262,6 +262,10 @@ export interface AgOrganizationSeriesExpanderItemStylerParams<TDatum = DatumDefa
     depth: number;
     /** `true` when the node is collapsed (its descendants are hidden); `false` otherwise. */
     isCollapsed: boolean;
+    /** The number of descendants of this item. */
+    allChildren: number;
+    /** The number of direct children of this item. */
+    directChildren: number;
 }
 
 export interface AgOrganizationSeriesLinkItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault>
@@ -284,6 +288,10 @@ export interface AgOrganizationSeriesNodeItemStylerParams<TDatum = DatumDefault,
     depth: number;
     /** `true` when the node is collapsed (its descendants are hidden); `false` otherwise. */
     isCollapsed: boolean;
+    /** The number of descendants of this item. */
+    allChildren: number;
+    /** The number of direct children of this item. */
+    directChildren: number;
 }
 
 export interface AgOrganizationSeriesNodeTextStylerParams<TDatum = DatumDefault, TContext = ContextDefault>
@@ -295,6 +303,10 @@ export interface AgOrganizationSeriesNodeTextStylerParams<TDatum = DatumDefault,
     depth: number;
     /** `true` when the node is collapsed (its descendants are hidden); `false` otherwise. */
     isCollapsed: boolean;
+    /** The number of descendants of this item. */
+    allChildren: number;
+    /** The number of direct children of this item. */
+    directChildren: number;
 }
 
 export interface AgOrganizationSeriesTooltipRendererParams<TDatum, TContext = ContextDefault>

@@ -317,7 +317,7 @@ export class MapMarkerSeries
         if (this.isColorScaleValid()) {
             const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue');
             const domain = processedData.domain.values[colorKeyIdx];
-            configureColorScale(colorScale, this.properties.colorScale, domain);
+            configureColorScale(colorScale, this.properties.colorScale, domain, this.ctx.logger);
         }
 
         this.animationState.transition('updateData');
@@ -586,7 +586,7 @@ export class MapMarkerSeries
         const markerMaxSize = properties.maxSize ?? properties.size;
         sizeScale.range = [markerMinSize, Math.max(markerMinSize, markerMaxSize)];
         const measurer = cachedTextMeasurer(label);
-        const labelFit = resolveLabelFit(label, !label.collision.suppressHide);
+        const labelFit = resolveLabelFit(label, !label.collision.alwaysShow);
 
         const projectedGeometries = this.prepareProjectedGeometries(
             columns.idValues,

@@ -1,5 +1,5 @@
 import type { ScaleAlignment } from 'ag-charts-core';
-import { Logger, clamp } from 'ag-charts-core';
+import { clamp } from 'ag-charts-core';
 
 import { AbstractScale } from './abstractScale';
 import { Invalidating } from './invalidating';
@@ -95,7 +95,7 @@ export abstract class BandScale<D, I = number> extends AbstractScale<D, number, 
         this.update();
 
         if (this.invalid) {
-            Logger.default.warnOnce('Expected update to not invalidate scale');
+            this.logger.warnOnce('Expected update to not invalidate scale');
         }
     }
 

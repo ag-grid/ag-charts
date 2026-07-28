@@ -6,6 +6,8 @@ import {
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
     LABEL_BOXING_TOP_LEVEL_DEFAULTS,
+    LABEL_OVERFLOW_ALWAYS_SHOW,
+    LABEL_OVERFLOW_DEFAULTS,
     MARKER_SERIES_HIGHLIGHT_STYLE,
     type NonNullablePath,
     SEGMENTATION_DEFAULTS,
@@ -144,6 +146,7 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['ran
         },
         label: {
             ...LABEL_BOXING_TOP_LEVEL_DEFAULTS,
+            ...LABEL_OVERFLOW_DEFAULTS,
             enabled: false,
             placement: 'outside',
             fontSize: { $ref: 'fontSize' },
@@ -151,6 +154,7 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['ran
             fontWeight: { $ref: 'fontWeight' },
             spacing: 10,
             padding: 10,
+            collision: { alwaysShow: LABEL_OVERFLOW_ALWAYS_SHOW },
             insideStyle: {
                 color: { $isUserOption: ['../color', { $path: '../color' }, { $ref: 'textColor' }] },
             },

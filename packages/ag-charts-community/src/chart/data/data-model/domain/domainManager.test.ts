@@ -1,3 +1,4 @@
+import { testLogger } from '_ag-charts-test';
 import { describe, expect, it } from 'vitest';
 
 import { DataModel } from '../../dataModel';
@@ -30,16 +31,19 @@ function createScrollingTestScenario(config: {
     minDataSizeForBanding: number;
     targetBandCount: number;
 }) {
-    const dataModel = new DataModel<any, any>({
-        props: [rangeKey('x'), value('y')],
-        domainBandingConfig: bandingConfig(config.minDataSizeForBanding, config.targetBandCount),
-    });
+    const dataModel = new DataModel<any, any>(
+        {
+            props: [rangeKey('x'), value('y')],
+            domainBandingConfig: bandingConfig(config.minDataSizeForBanding, config.targetBandCount),
+        },
+        testLogger
+    );
 
     const initialData = Array.from({ length: config.dataSize }, (_, i) => ({
         x: i,
         y: i * 10,
     }));
-    const dataSet = new DataSet(initialData);
+    const dataSet = new DataSet(initialData, testLogger);
     const sources = basicDataSet(initialData).set('test', dataSet);
     const processedData = dataModel.processData(sources);
 
@@ -142,17 +146,20 @@ describe('DomainManager', () => {
         describe('append operations with banding', () => {
             it('should correctly update domain when appending to large dataset', () => {
                 // Create a data model with banding enabled for datasets > 100 items
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y')],
-                    domainBandingConfig: bandingConfig(100, 5), // Lower threshold for testing
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                        domainBandingConfig: bandingConfig(100, 5), // Lower threshold for testing
+                    },
+                    testLogger
+                );
 
                 // Create large initial dataset
                 const initialData = Array.from({ length: 200 }, (_, i) => ({
                     x: i,
                     y: i * 10,
                 }));
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
@@ -185,17 +192,20 @@ describe('DomainManager', () => {
 
         describe('prepend operations with banding', () => {
             it('should correctly update domain when prepending to large dataset', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y')],
-                    domainBandingConfig: bandingConfig(100, 5),
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                        domainBandingConfig: bandingConfig(100, 5),
+                    },
+                    testLogger
+                );
 
                 // Create large initial dataset starting from 10
                 const initialData = Array.from({ length: 150 }, (_, i) => ({
                     x: i + 10,
                     y: (i + 10) * 10,
                 }));
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
@@ -227,16 +237,19 @@ describe('DomainManager', () => {
             });
 
             it('should continue extending the domain across successive prepends', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y')],
-                    domainBandingConfig: bandingConfig(100, 5),
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                        domainBandingConfig: bandingConfig(100, 5),
+                    },
+                    testLogger
+                );
 
                 const initialData = Array.from({ length: 600 }, (_, i) => ({
                     x: i,
                     y: i,
                 }));
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 let processedData: any = dataModel.processData(sources)!;
@@ -260,17 +273,20 @@ describe('DomainManager', () => {
 
         describe('mixed operations with banding', () => {
             it('should correctly update domain with mixed insert/remove operations', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y')],
-                    domainBandingConfig: bandingConfig(50, 4),
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                        domainBandingConfig: bandingConfig(50, 4),
+                    },
+                    testLogger
+                );
 
                 // Create dataset with gaps
                 const initialData = Array.from({ length: 100 }, (_, i) => ({
                     x: i * 2, // 0, 2, 4, 6, ...
                     y: i * 20,
                 }));
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
@@ -302,17 +318,20 @@ describe('DomainManager', () => {
 
         describe('boundary value removal with banding', () => {
             it('should correctly recalculate domain when removing boundary values', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y')],
-                    domainBandingConfig: bandingConfig(50, 3),
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                        domainBandingConfig: bandingConfig(50, 3),
+                    },
+                    testLogger
+                );
 
                 // Dataset with clear boundaries
                 const initialData = Array.from({ length: 60 }, (_, i) => ({
                     x: i,
                     y: i * 10,
                 }));
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
@@ -338,17 +357,20 @@ describe('DomainManager', () => {
             });
 
             it('should handle removing all values from a band', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y')],
-                    domainBandingConfig: bandingConfig(20, 4),
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                        domainBandingConfig: bandingConfig(20, 4),
+                    },
+                    testLogger
+                );
 
                 // Small dataset that will be banded
                 const initialData = Array.from({ length: 20 }, (_, i) => ({
                     x: i,
                     y: i * 10,
                 }));
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
@@ -369,17 +391,20 @@ describe('DomainManager', () => {
 
         describe('band rebalancing scenarios', () => {
             it('should rebalance bands when data size changes significantly', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y')],
-                    domainBandingConfig: bandingConfig(5, 3),
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                        domainBandingConfig: bandingConfig(5, 3),
+                    },
+                    testLogger
+                );
 
                 // Start with dataset just above banding threshold
                 const initialData = Array.from({ length: 10 }, (_, i) => ({
                     x: i,
                     y: i * 10,
                 }));
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
@@ -445,17 +470,20 @@ describe('DomainManager', () => {
             });
 
             it('should handle transition from non-banded to banded mode', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y')],
-                    domainBandingConfig: bandingConfig(100, 5),
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                        domainBandingConfig: bandingConfig(100, 5),
+                    },
+                    testLogger
+                );
 
                 // Start below banding threshold
                 const initialData = Array.from({ length: 50 }, (_, i) => ({
                     x: i,
                     y: i * 10,
                 }));
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
@@ -524,10 +552,13 @@ describe('DomainManager', () => {
             );
 
             it('should correctly shift and resize bands during scrolling (detailed band verification)', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y')],
-                    domainBandingConfig: bandingConfig(100, 10),
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                        domainBandingConfig: bandingConfig(100, 10),
+                    },
+                    testLogger
+                );
 
                 // Create dataset with 1200 items
                 // Expected bands: 12 bands of 100 items each
@@ -536,7 +567,7 @@ describe('DomainManager', () => {
                     x: i,
                     y: i * 10,
                 }));
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
@@ -607,16 +638,19 @@ describe('DomainManager', () => {
             });
 
             it('should handle multiple scrolling operations efficiently', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y')],
-                    domainBandingConfig: bandingConfig(100, 10),
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                        domainBandingConfig: bandingConfig(100, 10),
+                    },
+                    testLogger
+                );
 
                 let currentData = Array.from({ length: 1200 }, (_, i) => ({
                     x: i,
                     y: i * 10,
                 }));
-                const dataSet = new DataSet(currentData);
+                const dataSet = new DataSet(currentData, testLogger);
                 const sources = basicDataSet(currentData).set('test', dataSet);
 
                 let processedData = dataModel.processData(sources)!;
@@ -665,17 +699,20 @@ describe('DomainManager', () => {
 
             it('should not reinitialize all bands during scrolling when data size is below threshold', () => {
                 // This test specifically verifies the fix for the bug where considerRebalancing()
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('x'), value('y')],
-                    domainBandingConfig: bandingConfig(100, 5),
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('x'), value('y')],
+                        domainBandingConfig: bandingConfig(100, 5),
+                    },
+                    testLogger
+                );
 
                 // Create dataset with 1200 items (above threshold to enable banding)
                 const initialData = Array.from({ length: 1200 }, (_, i) => ({
                     x: i,
                     y: i * 10,
                 }));
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources)!;
@@ -711,17 +748,20 @@ describe('DomainManager', () => {
             it('should only mark affected bands dirty when scrolling (5 bands, 1200 items)', () => {
                 // This test verifies the specific scenario from the user's high-freq-multi-chart example
                 // With 1200 items and 5 bands, scrolling should only dirty 2 bands (first and last)
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('time'), value('value')],
-                    domainBandingConfig: bandingConfig(100, 5),
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('time'), value('value')],
+                        domainBandingConfig: bandingConfig(100, 5),
+                    },
+                    testLogger
+                );
 
                 // Create dataset with 1200 items (will create 5 bands of 240 items each)
                 const initialData = Array.from({ length: 1200 }, (_, i) => ({
                     time: i,
                     value: i * 10,
                 }));
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
@@ -796,10 +836,13 @@ describe('DomainManager', () => {
 
         describe('discrete domains with banding disabled', () => {
             it('should not use banding for category domains', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [categoryKey('category'), value('value')],
-                    domainBandingConfig: bandingConfig(10, 5),
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [categoryKey('category'), value('value')],
+                        domainBandingConfig: bandingConfig(10, 5),
+                    },
+                    testLogger
+                );
 
                 // Large dataset with categories
                 const categories = ['A', 'B', 'C', 'D', 'E'];
@@ -807,7 +850,7 @@ describe('DomainManager', () => {
                     category: categories[i % 5],
                     value: i * 10,
                 }));
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);
@@ -828,17 +871,20 @@ describe('DomainManager', () => {
 
         describe('performance characteristics with banding', () => {
             it('should efficiently handle append-heavy workloads', () => {
-                const dataModel = new DataModel<any, any>({
-                    props: [rangeKey('timestamp'), value('value')],
-                    domainBandingConfig: bandingConfig(100, 10),
-                });
+                const dataModel = new DataModel<any, any>(
+                    {
+                        props: [rangeKey('timestamp'), value('value')],
+                        domainBandingConfig: bandingConfig(100, 10),
+                    },
+                    testLogger
+                );
 
                 // Simulate time-series data
                 const initialData = Array.from({ length: 1000 }, (_, i) => ({
                     timestamp: i * 1000, // Millisecond timestamps
                     value: Math.sin(i / 100) * 100,
                 }));
-                const dataSet = new DataSet(initialData);
+                const dataSet = new DataSet(initialData, testLogger);
                 const sources = basicDataSet(initialData).set('test', dataSet);
 
                 const processedData = dataModel.processData(sources);

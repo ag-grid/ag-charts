@@ -3,7 +3,7 @@ import {
     CallbackCache,
     type DynamicContext,
     EventEmitter,
-    Logger,
+    type Logger,
     ModuleRegistry,
     ModuleType,
     ReactiveState,
@@ -58,6 +58,7 @@ export interface ChartContextVars {
     domMode?: 'normal' | 'minimal';
     withDragInterpretation: boolean;
     fireEvent: <TEvent extends TypedEvent>(event: TEvent) => void;
+    logger: Logger;
     updateMutex: Mutex;
     cssVariables?: Record<string, string>;
 }
@@ -95,10 +96,15 @@ export function createChartContext(chart: ChartHost, vars: ChartContextVars): Dy
         'scene-canvas',
         vars.scene?.canvas.element
     ) as HTMLCanvasElement & StrictHTMLElement;
-    const scene = vars.scene ?? new Scene({ canvasElement, pixelRatio: vars.agDocument.window.devicePixelRatio ?? 1 });
+    const scene =
+        vars.scene ??
+        new Scene({ canvasElement, pixelRatio: vars.agDocument.window.devicePixelRatio ?? 1 }, vars.logger);
     scene.setRoot(vars.root);
 
-    ctx.constant('eventsHub', eventsHub)
+    // Owned by the options processing that created it and shared with the chart that replaces this
+    // one on a type switch, so it must outlive this context's destroy cascade.
+    ctx.ref('logger', vars.logger)
+        .constant('eventsHub', eventsHub)
         .constant('agDocument', vars.agDocument)
         // The chart is the host — it manages its own lifecycle and the context's.
         // Registering as `ref` keeps it readable via `ctx.chartService` without the
@@ -113,14 +119,13 @@ export function createChartContext(chart: ChartHost, vars: ChartContextVars): Dy
         // when transferable resources are preserved across chart-type switches.
         .ref('scene', scene);
 
-    ctx.service('logger', () => new Logger())
-        .service('callbackCache', () => new CallbackCache())
+    ctx.service('callbackCache', (c) => new CallbackCache(c.logger))
         .service('formatManager', () => new FormatManager())
         .service('seriesStateManager', () => new SeriesStateManager())
-        .service('stateManager', () => new StateManager())
+        .service('stateManager', (c) => new StateManager(c.logger))
         .service('labelManager', () => new LabelManager())
         .service('interactionManager', () => new InteractionManager())
-        .service('optionsGraphService', () => new OptionsGraphService())
+        .service('optionsGraphService', (c) => new OptionsGraphService(c.logger))
         .service('chartTypeOriginator', (c) => new ChartTypeOriginator(chart, c.logger))
         .service('widgets', (c) => new WidgetSet(c, { withDragInterpretation: vars.withDragInterpretation }))
         .service('axisManager', (c) => new AxisManager(c.eventsHub, vars.root))
@@ -140,7 +145,8 @@ export function createChartContext(chart: ChartHost, vars: ChartContextVars): Dy
         .service('dataService', (c) => new DataService<any>(c.eventsHub, chart, c.animationManager, c.logger))
         .service('zoomManager', (c) => new ZoomManager(c));
 
-    scene.setLogger(ctx.logger);
+    // A scene transferred from a previous chart still points at that chart's logger.
+    if (vars.scene) scene.setLogger(vars.logger);
 
     // Plugin modules register their own services (e.g. sharedToolbar) after the
     // core registry is complete but before any consumer reads from the context.

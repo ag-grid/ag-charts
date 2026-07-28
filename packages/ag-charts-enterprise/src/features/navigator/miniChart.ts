@@ -203,7 +203,7 @@ export class MiniChart extends AbstractModuleInstance {
     }
 
     updateData(data: unknown[]) {
-        const dataSet = _ModuleSupport.DataSet.wrap(data);
+        const dataSet = _ModuleSupport.DataSet.wrap(data, this.ctx.logger);
         for (const series of this.series) {
             series.setChartData(dataSet);
         }
@@ -228,7 +228,8 @@ export class MiniChart extends AbstractModuleInstance {
             ? new _ModuleSupport.DataController(
                   this.ctx.chartState.getValue('options', 'mode'),
                   this.ctx.chartState.getValue('options', 'suppressFieldDotNotation'),
-                  this.ctx.eventsHub
+                  this.ctx.eventsHub,
+                  this.ctx.logger
               )
             : mainDataController;
 

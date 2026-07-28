@@ -131,6 +131,36 @@ In this configuration:
 }
 ```
 
+## Expander
+
+The expander is displayed on nodes with children and is used to [collapse and expand](#collapse-and-expand) subtrees.
+
+{% chartExampleRunner title="Expander Child Counts" name="org-chart-expander-child-counts" type="generated" /%}
+
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'organization',
+            expander: {
+                text: {
+                    showAllChildren: true,
+                    showDirectChildren: true,
+                },
+            },
+        },
+    ],
+}
+```
+
+In this example:
+
+- `showAllChildren` includes the total count of all descendants in the expander text.
+- `showDirectChildren` includes the count of direct children in the expander text.
+- A `formatter` can be used instead, for full control over the expander text. The params include `allChildren`, `directChildren`, `depth` and `isCollapsed` alongside the datum.
+
+See the [API Reference](#reference-AgOrganizationSeriesOptions-expander-text) for more details.
+
 ## Customisation
 
 ### Node Styling
@@ -204,9 +234,8 @@ In this configuration:
 
 ### Expander
 
-The expander is the button displayed on nodes with children, used to
-[collapse and expand](#collapse-and-expand) subtrees. Its appearance can be customised via the
-`expander` property.
+The expander's appearance can be customised via the `expander` property. See [Expander](#expander) above for
+text-content options like child counts and `formatter`.
 
 {% chartExampleRunner title="Expander Styling" name="org-chart-expander-styling" type="generated" /%}
 
@@ -219,13 +248,6 @@ The expander is the button displayed on nodes with children, used to
                 cornerRadius: 25,
                 strokeWidth: 2,
                 padding: 15,
-                text: {
-                    fontSize: 18,
-                    fontWeight: 'bold',
-                    color: 'red',
-                    showAllChildren: true,
-                    showDirectChildren: true,
-                },
                 itemStyler: ({ datum }) => {
                     if (datum.department === 'Technology') return { fill: '#e8f5e9', stroke: '#2e7d32' };
                     if (datum.department === 'Operations') return { fill: '#fff3e0', stroke: '#e65100' };
@@ -239,7 +261,6 @@ The expander is the button displayed on nodes with children, used to
 In this configuration:
 
 - `cornerRadius`, `strokeWidth`, and `padding` control the button shape and border.
-- `text` options control the text appearance.
 - `expander.itemStyler` provides per-node styling based on the department.
 
 ### Node Spacing
@@ -274,7 +295,7 @@ In this configuration:
 
 ### Collapse and Expand
 
-Nodes with children can be collapsed and expanded by clicking the expander button. They can also be controlled programmatically.
+Nodes with children can be collapsed and expanded by clicking the expander. They can also be controlled programmatically.
 
 {% chartExampleRunner title="Collapse and Expand" name="org-chart-expand-collapse" type="generated" /%}
 
@@ -283,18 +304,36 @@ Nodes with children can be collapsed and expanded by clicking the expander butto
     initialState: {
         collapsed: ['Lawrence Martinez', 'Eric Jensen'],
     },
-    series: [{ type: 'organization' }],
+    series: [
+        {
+            type: 'organization',
+            node: {
+                clickToExpand: true,
+            },
+        },
+    ],
+    listeners: {
+        collapsedChange: ({ collapsed, expanded }) => {
+            console.log(
+                'collapsed:',
+                collapsed.map((item) => item.itemId),
+                'expanded:',
+                expanded.map((item) => item.itemId)
+            );
+        },
+    },
 }
 ```
 
 In this example:
 
 - The subtrees under 'Lawrence Martinez' and 'Eric Jensen' will start in a collapsed state. This uses the `initialState.collapsed` property to specify which subtrees start collapsed.
-- To read or update the collapsed state at runtime, use `getState()` and `setState()`. The `collapsed` array contains the identifiers of all currently collapsed nodes.
-
-See the [State](./api-state/) page for the full state management API.
-
-Changes in the collapsed items can be listened to with the `collapsedChange` event. See the [Events API](./events#collapsedchange) page for more details.
+- Use `node.clickToExpand` to toggle collapsing/expanding by clicking anywhere on the card instead of the expander only.
+    - Defaults to `false` when node has a [click listener](./events/#seriesnodeclick-and-seriesnodedoubleclick) or has [Data Selection](./selection/) enabled,, otherwise defaults to `true`.
+- The `collapsed` array contains the identifiers of all currently collapsed nodes.
+    - See the [State API](./api-state/#collapsed) page for more details.
+- Changes in the collapsed items can be listened to with the `collapsedChange` event, logged to the console here showing the `itemId` of each newly collapsed and expanded node.
+    - See the [Events API](./events/#collapsedchange) page for more details.
 
 ### Zoom
 
@@ -306,12 +345,15 @@ zoom options.
 
 ## Accessibility
 
-Organisation Charts support full keyboard navigation and screen readers. Use the arrow keys to move
-focus between nodes, {% kbd "Alt ↓" /%} and {% kbd "Alt ↑" /%} to expand and collapse the focused
-node, and—when `clickToExpand` is enabled (the default)—{% kbd "↵ Enter" /%} or
-{% kbd "␣ Space" /%} to toggle it.
+Organisation Charts support full keyboard navigation and screen readers.
 
-See [Accessibility](./accessibility/) for details.
+The following keys are available:
+
+- {% kbd "←" /%}{% kbd "→" /%}{% kbd "↑" /%}{% kbd "↓" /%} moves focus between nodes.
+- {% kbd "Alt" /%}+{% kbd "↓" /%} and {% kbd "Alt" /%}+{% kbd "↑" /%} expand and collapse the focused node.
+- {% kbd "↵ Enter" /%} or {% kbd "␣ Space" /%} trigger any click listeners, and also toggle the focused node when `clickToExpand` is enabled.
+
+See [Accessibility](./accessibility/) for more details.
 
 ## API Reference
 

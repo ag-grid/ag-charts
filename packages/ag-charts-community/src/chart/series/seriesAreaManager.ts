@@ -128,6 +128,15 @@ function computeHighlightInViewport(
     return false;
 }
 
+/** Nodes without a datum index cannot be identified by a context-menu item action, so they are dropped. */
+function seriesNodeContexts(pickedNodes: readonly HighlightNodeDatum[]): SeriesNodeDatum[] {
+    const contexts: SeriesNodeDatum[] = [];
+    for (const { datumIndex, ...node } of pickedNodes) {
+        if (datumIndex != null) contexts.push({ ...node, datumIndex });
+    }
+    return contexts;
+}
+
 function computePendingViewportFocus(event: ZoomChangeCompleteEvent): PickViewportFocusInputs['where'] | undefined {
     switch (event.sourceDetail) {
         case 'keyboard-page(1)':
@@ -466,10 +475,12 @@ export class SeriesAreaManager extends BaseManager {
             return;
         }
 
-        let pickedNode: HighlightNodeDatum | undefined;
+        // Every node under the point, not just the topmost: overlapping markers each get their own context.
+        let pickedNodes: readonly HighlightNodeDatum[] = [];
         let position: { x: number; y: number } | undefined;
         if (this.focusIndicator?.isFocusVisible()) {
-            pickedNode = this.chart.ctx.highlightManager.getActiveHighlight();
+            const pickedNode = this.chart.ctx.highlightManager.getActiveHighlight();
+            if (pickedNode) pickedNodes = [pickedNode];
             if (pickedNode && this.seriesRect && pickedNode.midPoint) {
                 position = Transformable.toCanvasPoint(
                     pickedNode.series.contentGroup,
@@ -483,38 +494,47 @@ export class SeriesAreaManager extends BaseManager {
                 this.pickManager.maybeActivate(undefined, (): void => {
                     this.chart.ctx.highlightManager.updateHighlight(this.id);
                 });
-                pickedNode = pick.matches[0];
+                pickedNodes = pick.matches;
             }
         }
-
-        const pickedSeries = pickedNode?.series;
 
         this.clearAll();
         const canvasX = event.currentX + current.cssLeft();
         const canvasY = event.currentY + current.cssTop();
-        const { datumIndex } = pickedNode ?? {};
 
         const regions: AgContextMenuItemShowOn[] = ['series-area'];
         const contexts: ContextMenuRegionContexts = {};
-        if (pickedSeries && pickedNode && datumIndex != null) {
+        const nodeContexts = seriesNodeContexts(pickedNodes);
+        if (nodeContexts.length > 0) {
             regions.push('series-node');
-            contexts['series-node'] = { pickedSeries, pickedNode: { ...pickedNode, datumIndex } };
+            contexts['series-node'] = nodeContexts;
         }
 
         // Ask axis-owning modules whether an axis overlaps this point (mirrors the hover/drag handoff). They
         // annotate `axis` rather than dispatching, so a single menu can offer both the series and axis regions.
-        const collectEvent: Writeable<SeriesAreaContextMenuEvent> = { canvasX, canvasY, widgetEvent: event };
+        const collectEvent: Writeable<SeriesAreaContextMenuEvent> = {
+            canvasX,
+            canvasY,
+            widgetEvent: event,
+            crossLine: [],
+        };
         this.chart.ctx.eventsHub.emit('series-area:contextmenu', collectEvent);
         if (collectEvent.axis) {
             regions.push('axis');
             contexts.axis = collectEvent.axis;
         }
+        if (collectEvent.crossLine.length > 0) {
+            regions.push('cross-line');
+            contexts['cross-line'] = collectEvent.crossLine;
+        }
 
-        // Primary region for backwards-compatible `showOn`: a node wins over an overlapping axis, which wins
-        // over the bare series area (matches the pre-multi-region dispatch precedence).
+        // Primary region for backwards-compatible `showOn`: a node wins over a cross line, which wins over an
+        // overlapping axis, which wins over the bare series area (matches the pre-multi-region dispatch precedence).
         let primary: AgContextMenuItemShowOn = 'series-area';
         if (contexts['series-node']) {
             primary = 'series-node';
+        } else if (collectEvent.crossLine.length > 0) {
+            primary = 'cross-line';
         } else if (collectEvent.axis) {
             primary = 'axis';
         }
@@ -849,8 +869,15 @@ export class SeriesAreaManager extends BaseManager {
 
         const distance = updated.paginationState == null ? pickedNodes.distance : 0;
 
+        // A dedicated control (e.g. the org-chart expander) owns its clicks: it still drives its own
+        // interaction via the `series-area:click` event emitted by the caller, but must not also
+        // reach the user's node click / double-click listeners (AG-17947).
+        const firesUserClickListeners = updated.active.series.firesUserClickListeners(pickedNodes.target);
+
         if (event.type === 'click') {
-            const defaultBehavior = updated.active.series.fireNodeClickEvent(event.sourceEvent, updated.active);
+            const defaultBehavior = firesUserClickListeners
+                ? updated.active.series.fireNodeClickEvent(event.sourceEvent, updated.active)
+                : true;
             if (defaultBehavior) {
                 const next = this.pickManager.nextCandidate();
                 if (next.active !== undefined) {
@@ -879,7 +906,9 @@ export class SeriesAreaManager extends BaseManager {
             // a node.
             event.preventZoomDblClick = distance === 0;
 
-            updated.active.series.fireNodeDoubleClickEvent(event.sourceEvent, updated.active);
+            if (firesUserClickListeners) {
+                updated.active.series.fireNodeDoubleClickEvent(event.sourceEvent, updated.active);
+            }
             return { node: updated.active, target: pickedNodes.target };
         }
 
@@ -1161,7 +1190,8 @@ export class SeriesAreaManager extends BaseManager {
         datum: SeriesNodeDatum,
         tooltipContent: TooltipContent[]
     ): string {
-        const description = tooltipContent == null ? '' : tooltipContentAriaLabel(tooltipContent);
+        const description =
+            tooltipContent == null ? '' : tooltipContentAriaLabel(tooltipContent, this.chart.ctx.logger);
         const ariaMeta = datum.series.getDatumAriaMeta(datum, description);
         const datumText = this.chart.ctx.localeManager.t('ariaAnnounceHoverDatum', {
             datum: ariaMeta?.text ?? description,

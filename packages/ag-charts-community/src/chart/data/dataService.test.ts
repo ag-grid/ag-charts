@@ -1,7 +1,8 @@
+import { testLogger } from '_ag-charts-test';
 import type { MockInstance } from 'vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { AgDocument, EventEmitter, Logger, getDocument } from 'ag-charts-core';
+import { AgDocument, EventEmitter, ambientLog, getDocument } from 'ag-charts-core';
 
 import { Mutex } from '../../util/mutex';
 import { AnimationManager } from '../interaction/animationManager';
@@ -31,9 +32,10 @@ describe('DataService', () => {
         const animationManager = new AnimationManager(
             new AgDocument(getDocument()),
             interactionManager,
-            chartUpdateMutex
+            chartUpdateMutex,
+            testLogger
         );
-        dataService = new DataService(eventsHub, {}, animationManager);
+        dataService = new DataService(eventsHub, {}, animationManager, testLogger);
         dataService.requestThrottle = REQUEST_THROTTLE;
     });
 
@@ -144,7 +146,7 @@ describe('DataService', () => {
             calls.filter((args) => typeof args[0] === 'string' && args[0].includes('request failed'));
 
         beforeEach(() => {
-            Logger.reset();
+            ambientLog.reset();
             consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
         });
 

@@ -108,10 +108,9 @@ export class FlowProportionSeriesNodeEvent<
                 _ModuleSupport.ISeriesProperties
             >;
         },
-        selectionState: SelectionState | undefined,
-        isCollapsed: boolean
+        selectionState: SelectionState | undefined
     ) {
-        super(type, nativeEvent, datum, series, selectionState, isCollapsed);
+        super(type, nativeEvent, datum, series, selectionState);
         const nodeDatum = series.contextNodeData?.nodeData.find(
             (d) => d.type === datum.type && d.datumIndex === datum.datumIndex
         );
@@ -202,20 +201,25 @@ export abstract class FlowProportionSeries<
         const nodesDataController = new DataController(
             'standalone',
             dataController.suppressFieldDotNotation,
-            this.ctx.eventsHub
+            this.ctx.eventsHub,
+            this.ctx.logger
         );
         const nodesDataModelPromise =
             nodes == null
                 ? null
-                : nodesDataController.request<any, any, true>(this.id, DataSet.wrap(nodes) ?? DataSet.empty(), {
-                      props: [
-                          keyProperty(idKey, undefined, { id: 'idValue', includeProperty: false }),
-                          ...(labelKey == null
-                              ? []
-                              : [valueProperty(labelKey, undefined, { id: 'labelValue', includeProperty: false })]),
-                      ],
-                      groupByKeys: true,
-                  });
+                : nodesDataController.request<any, any, true>(
+                      this.id,
+                      DataSet.wrap(nodes, this.ctx.logger) ?? DataSet.empty(this.ctx.logger),
+                      {
+                          props: [
+                              keyProperty(idKey, undefined, { id: 'idValue', includeProperty: false }),
+                              ...(labelKey == null
+                                  ? []
+                                  : [valueProperty(labelKey, undefined, { id: 'labelValue', includeProperty: false })]),
+                          ],
+                          groupByKeys: true,
+                      }
+                  );
 
         const linksDataModelPromise = dataController.request<any, any, false>(this.id, data, {
             props: [
@@ -388,7 +392,8 @@ export abstract class FlowProportionSeries<
             const { links, nodeGraph, maxPathLength } = computeNodeGraph(
                 new Map<string, TNodeDatum>().values(),
                 [],
-                includeCircularReferences
+                includeCircularReferences,
+                this.ctx.logger
             );
 
             this.nodeCount = 0;
@@ -444,7 +449,8 @@ export abstract class FlowProportionSeries<
         const { links, nodeGraph, maxPathLength } = computeNodeGraph(
             nodesById.values(),
             baseLinks,
-            includeCircularReferences
+            includeCircularReferences,
+            this.ctx.logger
         );
 
         for (const node of nodeGraph.values()) {

@@ -111,6 +111,11 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
         if (this.dataService.isLoading()) {
             return 'loading';
         }
+        // Before the first layout there is no processed series data, so the series-derived overlays
+        // cannot be evaluated yet — defer them to the layout pass to avoid a transient no-data flash.
+        if (this.lastSeriesRect == null) {
+            return undefined;
+        }
         if (!this.chartLike.series.some((s) => s.hasData)) {
             return 'no-data';
         }

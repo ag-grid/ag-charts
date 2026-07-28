@@ -1,4 +1,4 @@
-import type { Point } from 'ag-charts-core';
+import type { Logger, Point } from 'ag-charts-core';
 import { DeclaredSceneChangeDetection, DeclaredSceneObjectChangeDetection, TRIPLE_EQ } from 'ag-charts-core';
 import type { AgMarkerShape } from 'ag-charts-types';
 
@@ -114,7 +114,7 @@ class InternalMarker<D = any> extends Path<D> {
         return new BBox(x - size * anchor.x, y - size * anchor.y, size, size);
     }
 
-    override drawPath(ctx: CanvasContext): void {
+    override drawPath(ctx: CanvasContext, logger: Logger): void {
         if (this._sharedPath === undefined) return;
 
         const { shape, x, y, size } = this;
@@ -150,7 +150,7 @@ class InternalMarker<D = any> extends Path<D> {
         ctx.save();
         ctx.translate(tx, ty);
         try {
-            this.fillStroke(ctx, this._sharedPath.getPath2D(), DRAW_BBOX_SCRATCH, fillBBoxOverride);
+            this.fillStroke(ctx, logger, this._sharedPath.getPath2D(), DRAW_BBOX_SCRATCH, fillBBoxOverride);
         } finally {
             ctx.restore();
         }

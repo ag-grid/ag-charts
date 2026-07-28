@@ -1,4 +1,4 @@
-import { type ColorScaleColorStop, type ColorScaleMode, computeColorBins } from 'ag-charts-core';
+import { type ColorScaleColorStop, type ColorScaleMode, type Logger, computeColorBins } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
 
 import type { ColorScale } from './colorScale';
@@ -10,8 +10,11 @@ export function configureColorScale(
         domain?: [number, number];
         mode: ColorScaleMode;
     },
-    dataDomain: AgNumericValue[]
+    dataDomain: AgNumericValue[],
+    logger: Logger
 ): void {
+    colorScale.logger = logger;
+
     if (dataDomain.length < 2) return;
     if (colorScaleProps.fills.length === 0) return;
 

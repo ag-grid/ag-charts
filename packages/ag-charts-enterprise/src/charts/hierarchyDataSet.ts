@@ -34,9 +34,9 @@ export class HierarchyDataSet<T = unknown> extends DataSet<T> {
         data: T[],
         dataIdKey: string | undefined,
         private readonly childrenKey: string,
-        logger?: Logger
+        logger: Logger
     ) {
-        super(data, dataIdKey, logger);
+        super(data, logger, dataIdKey);
     }
 
     private getDfsOrdering(): DFSMemory<T> {

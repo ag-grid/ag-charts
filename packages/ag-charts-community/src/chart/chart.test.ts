@@ -1,6 +1,7 @@
+import { testLogger } from '_ag-charts-test';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { ChartAxisDirection, ChartUpdateType, Logger } from 'ag-charts-core';
+import { ChartAxisDirection, ChartUpdateType, ambientLogger } from 'ag-charts-core';
 import type { AgCartesianChartOptions, AgPolarChartOptions, InteractionRange } from 'ag-charts-types';
 
 import { AgCharts } from '../api/agCharts';
@@ -63,7 +64,7 @@ describe('Chart', () => {
             await waitForChartStability(chart);
 
             const scopedWarnOnce = vi.spyOn(chart.ctx.logger, 'warnOnce').mockImplementation(() => {});
-            const fallbackWarnOnce = vi.spyOn(Logger.default, 'warnOnce').mockImplementation(() => {});
+            const fallbackWarnOnce = vi.spyOn(ambientLogger, 'warnOnce').mockImplementation(() => {});
 
             chart.data.addTransaction({ remove: [{ x: 'not-present', y: 9 }] });
             chart.data.commitPendingTransactions(undefined);
@@ -72,6 +73,24 @@ describe('Chart', () => {
                 'applyTransaction() remove includes items not present in current data; ignoring missing items.'
             );
             expect(fallbackWarnOnce).not.toHaveBeenCalled();
+        });
+
+        it('keeps a single Logger across a chart-type switch', async () => {
+            const chartProxy = AgCharts.create(
+                prepareTestOptions({ series: [{ type: 'bar', xKey: 'x', yKey: 'y' }], data: [{ x: 'a', y: 1 }] })
+            ) as unknown as AgChartProxy;
+            chart = deproxy(chartProxy);
+            await waitForChartStability(chart);
+
+            await chartProxy.update(
+                prepareTestOptions({ series: [{ type: 'line', xKey: 'x', yKey: 'y' }], data: [{ x: 'a', y: 1 }] })
+            );
+            chart = deproxy(chartProxy);
+            await waitForChartStability(chart);
+
+            // The options carry the Logger that validation reported through; the chart owns the one
+            // everything else uses. A pooled instance arrives with its own, so these can diverge.
+            expect(chart.getChartOptions().logger).toBe(chart.ctx.logger);
         });
     });
 
@@ -643,9 +662,9 @@ describe('Chart', () => {
                     },
                 ],
             });
-            expect(chart.data).toEqual(DataSet.wrap(moreData));
-            expect(chart.series[0].data).toEqual(DataSet.wrap(moreData));
-            expect(chart.series[1].data).toEqual(DataSet.wrap(lessData));
+            expect(chart.data).toEqual(DataSet.wrap(moreData, testLogger));
+            expect(chart.series[0].data).toEqual(DataSet.wrap(moreData, testLogger));
+            expect(chart.series[1].data).toEqual(DataSet.wrap(lessData, testLogger));
 
             await updateChart(chartProxy, {
                 data: moreData,
@@ -664,9 +683,9 @@ describe('Chart', () => {
                 ],
             });
 
-            expect(chart.data).toEqual(DataSet.wrap(moreData));
-            expect(chart.series[0].data).toEqual(DataSet.wrap(lessData));
-            expect(chart.series[1].data).toEqual(DataSet.wrap(moreData));
+            expect(chart.data).toEqual(DataSet.wrap(moreData, testLogger));
+            expect(chart.series[0].data).toEqual(DataSet.wrap(lessData, testLogger));
+            expect(chart.series[1].data).toEqual(DataSet.wrap(moreData, testLogger));
 
             await updateChart(chartProxy, {
                 data: moreData,

@@ -101,7 +101,7 @@ export interface ModuleDefinition<
         options: unknown,
         optionsDefs: OptionsDefs<TOptions>,
         path: string,
-        params?: ValidateParams
+        params: ValidateParams
     ): ValidationResult<TOptions>;
 }
 

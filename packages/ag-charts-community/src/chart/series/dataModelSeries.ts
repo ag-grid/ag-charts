@@ -104,7 +104,7 @@ export abstract class DataModelSeries<
         // Merge properties of this series with properties of all the attached series-options
         opts.props.push(...(this.getModulePropertyDefinitions() as PropertyDefinition<K>[]));
 
-        dataSet ??= DataSet.empty();
+        dataSet ??= DataSet.empty(this.ctx.logger);
         const { dataModel, processedData } = await dataController.request<D, K, G>(this.id, dataSet, opts);
 
         this.dataModel = dataModel;

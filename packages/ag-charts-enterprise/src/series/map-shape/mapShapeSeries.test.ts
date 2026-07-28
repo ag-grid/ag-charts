@@ -25,7 +25,7 @@ import {
     testLegendItemName,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { Logger } from 'ag-charts-core';
+import { ambientLogger } from 'ag-charts-core';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 import { ukData } from '../map-test/ukData';
@@ -789,7 +789,7 @@ describe('MapShapeSeries', () => {
             await waitForChartStability(chart);
 
             const scopedWarnOnce = vi.spyOn(chart.ctx.logger, 'warnOnce').mockImplementation(() => {});
-            const fallbackWarnOnce = vi.spyOn(Logger.default, 'warnOnce').mockImplementation(() => {});
+            const fallbackWarnOnce = vi.spyOn(ambientLogger, 'warnOnce').mockImplementation(() => {});
 
             // Updating without a topology re-runs processData, whose no-topology guard emits via this.ctx.logger.
             const noTopologyOptions: AgChartOptions = {

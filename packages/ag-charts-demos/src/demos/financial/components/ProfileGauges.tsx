@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 
 import { type AgGaugeColorStop, type AgLinearGaugeOptions } from 'ag-charts-enterprise';
 import { AgGauge } from 'ag-charts-react';
@@ -83,7 +83,7 @@ interface ProfileGaugesProps {
     metrics: GaugeMetrics;
 }
 
-export function ProfileGauges({ metrics }: ProfileGaugesProps) {
+function ProfileGaugesImpl({ metrics }: ProfileGaugesProps) {
     const { sentiment, beta, analystRating } = metrics;
 
     const sentimentOptions = useMemo(
@@ -184,3 +184,12 @@ export function ProfileGauges({ metrics }: ProfileGaugesProps) {
         </div>
     );
 }
+
+// A fresh metrics object arrives every tick, so skip the re-render unless a value actually moved.
+export const ProfileGauges = memo(
+    ProfileGaugesImpl,
+    (prev, next) =>
+        prev.metrics.sentiment === next.metrics.sentiment &&
+        prev.metrics.beta === next.metrics.beta &&
+        prev.metrics.analystRating === next.metrics.analystRating
+);

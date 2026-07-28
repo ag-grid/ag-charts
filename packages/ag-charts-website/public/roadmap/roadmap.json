@@ -115,7 +115,7 @@
             "id": "AG-16576",
             "title": "Quadrant Chart",
             "q": 3,
-            "status": "planned",
+            "status": "in-progress",
             "why": "Expands AG Charts into analytical and data-comparison use cases.",
             "desc": "A new quadrant chart for comparing items across two dimensions.",
             "link": null
@@ -124,7 +124,7 @@
             "id": "AG-17827",
             "title": "Validation Feedback",
             "q": 3,
-            "status": "planned",
+            "status": "in-progress",
             "why": "Helps developers configure charts correctly from the outset, including when working with AI coding assistants.",
             "desc": "Stronger dev-time validation of chart options, with clearer errors and control of warning levels.",
             "link": null
@@ -168,8 +168,8 @@
         {
             "id": "AG-17948",
             "title": "AI Coding Skill",
-            "q": 4,
-            "status": "planned",
+            "q": 3,
+            "status": "in-progress",
             "why": "Supports developers using AI coding assistants, keeping generated code aligned with the latest AG Charts APIs.",
             "desc": "A lightweight, installable skill that gives AI coding assistants up-to-date guidance for building with AG Charts.",
             "link": null

@@ -157,6 +157,13 @@ export class DOMManager extends BaseManager {
     private pendingContainer?: HTMLElement = undefined;
     private container?: HTMLElement = undefined;
     private shadowDocumentRoot?: HTMLElement = undefined;
+    // OPTIMIZATION: mirrors the registered CSS-variable watchers so `updateCSSVariableWatchers`
+    // skips an O(children) DOM scan. Normal-path watchers are children of `this.element` and move
+    // with it; shadow-path watchers live on the shadow root, so that set is cleared when it changes.
+    private readonly cssVariableWatchers = new Set<string>();
+    private readonly shadowCssVariableWatchers = new Set<string>();
+    private lastThemeParameters?: AgChartAllThemeParams = undefined;
+    private lastThemeParameterCount = 0;
     private initiallyConnected?: boolean = undefined;
     containerSize?: Size = undefined;
     private readonly tabGuards?: GuardedElement;
@@ -175,6 +182,10 @@ export class DOMManager extends BaseManager {
 
     private minWidth: number = 0;
     private minHeight: number = 0;
+    // No explicit options width/height, so the canvas is sized to fill the container rather than to
+    // a size the caller chose. See updateContainerClassName().
+    private autoWidth: boolean = true;
+    private autoHeight: boolean = true;
     private enableRtl?: boolean;
     private _isRtl: boolean = false;
 
@@ -426,6 +437,8 @@ export class DOMManager extends BaseManager {
 
         this.minWidth = optionsWidth ?? minWidth;
         this.minHeight = optionsHeight ?? minHeight;
+        this.autoWidth = optionsWidth == null;
+        this.autoHeight = optionsHeight == null;
 
         style.minWidth = `${this.minWidth}px`;
         style.minHeight = `${this.minHeight}px`;
@@ -497,7 +510,14 @@ export class DOMManager extends BaseManager {
         this.container = pendingContainer;
         this.pendingContainer = undefined;
         this.agDocument.setContainer(pendingContainer);
+        // Shadow-path watchers live on the shadow root, so a container move does not carry them
+        // along. Only drop the mirror when the resolved root actually changes — clearing it for a
+        // move within the same root would re-register duplicates over the existing watchers.
+        const previousShadowRoot = this.shadowDocumentRoot?.getRootNode();
         this.shadowDocumentRoot = this.getShadowDocumentRoot(pendingContainer);
+        if (this.shadowDocumentRoot?.getRootNode() !== previousShadowRoot) {
+            this.shadowCssVariableWatchers.clear();
+        }
         this.initiallyConnected = pendingContainer.isConnected;
         this.observeAttachTransition(pendingContainer);
 
@@ -538,6 +558,14 @@ export class DOMManager extends BaseManager {
     }
 
     setThemeParameters(params: AgChartAllThemeParams) {
+        // OPTIMIZATION: called every layout, but the resolved parameters keep a stable reference
+        // across data-only updates (the options fast path carries them forward). The graph also
+        // lazily adds params to that same object, so the key count guards against a stale skip.
+        const paramCount = Object.keys(params).length;
+        if (params === this.lastThemeParameters && paramCount === this.lastThemeParameterCount) return;
+        this.lastThemeParameters = params;
+        this.lastThemeParameterCount = paramCount;
+
         const variables: Record<string, string | number> = {};
 
         // Flatten theme params into a single object ready for the css variables
@@ -552,6 +580,7 @@ export class DOMManager extends BaseManager {
         }
 
         this.setCSSVariables('--ag-charts', undefined, undefined, variables);
+        this.eventsHub.emit('theme:params-change', null);
     }
 
     setModuleCSSVariables(
@@ -1055,17 +1084,10 @@ export class DOMManager extends BaseManager {
             return;
         }
 
-        const existingWatchers = new Set();
-        for (let i = 0; i < this.element.children.length; i++) {
-            const child = this.element.children.item(i) as HTMLElement | null;
-            if (child?.dataset.variableName != null) {
-                existingWatchers.add(child.dataset.variableName);
-            }
-        }
-
         for (const key of strictObjectKeys(cssVariables)) {
             const property = key.slice(4, -1);
-            if (existingWatchers.has(property)) continue;
+            if (this.cssVariableWatchers.has(property)) continue;
+            this.cssVariableWatchers.add(property);
 
             const styleElement = createElement('style');
             styleElement.dataset.variableName = property;
@@ -1092,17 +1114,9 @@ export class DOMManager extends BaseManager {
         const shadowRoot = this.shadowDocumentRoot?.getRootNode() as HTMLElement | undefined;
         if (!shadowRoot || !('addEventListener' in shadowRoot)) return;
 
-        const existingWatchers = new Set();
-        for (let i = 0; i < shadowRoot.children.length; i++) {
-            const child = shadowRoot.children.item(i) as HTMLElement | null;
-            if (child?.dataset.variableName != null) {
-                existingWatchers.add(child.dataset.variableName);
-            }
-        }
-
         // Attach a single event listener to the shadow root to catch the bubbled events for every property, rather
         // than a different event for each property.
-        if (existingWatchers.size === 0) {
+        if (this.shadowCssVariableWatchers.size === 0) {
             const handleTransitionEnd = () => {
                 this.eventsHub.emit('chart:request-refresh', null);
             };
@@ -1114,7 +1128,8 @@ export class DOMManager extends BaseManager {
 
         for (const key of strictObjectKeys(cssVariables)) {
             const property = key.slice(4, -1);
-            if (existingWatchers.has(property)) continue;
+            if (this.shadowCssVariableWatchers.has(property)) continue;
+            this.shadowCssVariableWatchers.add(property);
 
             // Unlike normal DOM, here we transition directly on the color property since we need to combine the style
             // and sensor into a single element.
@@ -1128,8 +1143,20 @@ export class DOMManager extends BaseManager {
     }
 
     private updateContainerClassName() {
-        const { element, containerSize, minWidth, minHeight } = this;
-        element.classList.toggle(CONTAINER_MODIFIERS.safeHorizontal, minWidth >= (containerSize?.width ?? Infinity));
-        element.classList.toggle(CONTAINER_MODIFIERS.safeVertical, minHeight >= (containerSize?.height ?? Infinity));
+        const { element, containerSize, minWidth, minHeight, autoWidth, autoHeight } = this;
+        // The canvas is centred within this box, so any disagreement between the two displaces the
+        // chart by half the difference. When the size came from the container rather than from an
+        // explicit options width/height the canvas is meant to fill the box exactly, so a
+        // disagreement is only ever a size that has not reconciled yet — centring it renders the
+        // chart partway down the container until it does. Align to the start instead; a caller who
+        // asked for a specific size still gets the smaller canvas centred.
+        element.classList.toggle(
+            CONTAINER_MODIFIERS.safeHorizontal,
+            containerSize != null && (autoWidth || minWidth >= containerSize.width)
+        );
+        element.classList.toggle(
+            CONTAINER_MODIFIERS.safeVertical,
+            containerSize != null && (autoHeight || minHeight >= containerSize.height)
+        );
     }
 }

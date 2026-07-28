@@ -6,6 +6,7 @@ import {
     jsonDiff,
 } from 'ag-charts-core';
 
+import type { SeriesAreaContextMenuEvent } from '../../core/eventsHub';
 import type { AxisContext } from '../../module/axisContext';
 import type { ChartAxisRegistry } from '../../module/moduleContext';
 import { Group } from '../../scene/group';
@@ -48,6 +49,7 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
     private readonly labelGroup = new Group({ name: 'CrossLines-Label' });
     private instances: CrossLine[] = [];
     private lastOptions: NormalisedAxisCrossLineOptions[] | undefined;
+    private readonly removeContextMenuListener: () => void;
 
     constructor(ctx: DynamicContext<ChartAxisRegistry<AxisContext>>) {
         super();
@@ -56,6 +58,28 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
         this.axisCtx.attachAxisOverlay(this.rangeGroup, 'low');
         this.axisCtx.attachAxisOverlay(this.lineGroup, 'mid');
         this.axisCtx.attachAxisOverlay(this.labelGroup, 'high');
+
+        // Annotate the series-area context-menu handoff when the pointer hits one of this axis's cross
+        // lines — mirrors how axis-owning modules annotate `event.axis` (see axisDomProxy). The
+        // series-area dispatch turns the annotation into a `cross-line` context-menu region.
+        this.removeContextMenuListener = this.ctx.eventsHub.on('series-area:contextmenu', (event) =>
+            this.onSeriesAreaContextMenu(event)
+        );
+    }
+
+    private onSeriesAreaContextMenu(event: SeriesAreaContextMenuEvent): void {
+        for (const crossLine of this.instances) {
+            if (crossLine.containsPoint?.(event.canvasX, event.canvasY) !== true) continue;
+
+            event.crossLine.push({
+                crossLineId: crossLine.id ?? crossLine.internalId,
+                axisId: this.axisCtx.axisId,
+                direction: this.axisCtx.direction,
+                type: crossLine.type,
+                value: crossLine.value,
+                range: crossLine.range,
+            });
+        }
     }
 
     applyOptions(options: NormalisedAxisCrossLineOptions[] | undefined): void {
@@ -138,6 +162,7 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
     }
 
     override destroy(): void {
+        this.removeContextMenuListener();
         for (const crossLine of this.instances) {
             this.detachInstance(crossLine);
         }

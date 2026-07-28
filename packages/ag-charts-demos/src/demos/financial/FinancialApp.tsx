@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useState } from 'react';
 
 import { FinancialChart } from './components/FinancialChart';
 import { MostActive } from './components/MostActive';
@@ -9,7 +9,6 @@ import { Toolbar } from './components/Toolbar';
 import { Trending } from './components/Trending';
 import { Watchlist } from './components/Watchlist';
 import { fmtPrice } from './format';
-import { type ChartDatum } from './types';
 import { Button, Select, ToggleGroup } from './ui';
 import { useStreamingMarket } from './useStreamingMarket';
 
@@ -64,8 +63,6 @@ export const FinancialApp = () => {
         },
         [setTicker]
     );
-
-    const chartData = useMemo<ChartDatum[]>(() => bars.map((bar) => ({ ...bar, date: new Date(bar.time) })), [bars]);
 
     const last = bars[bars.length - 1];
     const first = bars[0];
@@ -123,7 +120,7 @@ export const FinancialApp = () => {
                     </div>
                     <div className="fin-detail-card fin-chart-card">
                         <div className="fin-chart-body">
-                            <FinancialChart key={ticker} data={chartData} windowMinutes={rangeMinutes} />
+                            <FinancialChart key={ticker} bars={bars} windowMinutes={rangeMinutes} />
                         </div>
                     </div>
 
@@ -131,12 +128,14 @@ export const FinancialApp = () => {
 
                     <div className="fin-detail-charts">
                         <PeerPerformanceChart
+                            key={`peer-${ticker}`}
                             instrument={instrument}
                             peerFeed={peerFeed}
                             peerTick={peerTick}
                             windowMinutes={rangeMinutes}
                         />
                         <PeerSpreadHeatmap
+                            key={`heatmap-${ticker}`}
                             instrument={instrument}
                             peerFeed={peerFeed}
                             peerTick={peerTick}

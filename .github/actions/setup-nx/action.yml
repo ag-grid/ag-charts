@@ -15,6 +15,13 @@ inputs:
             - 'true'
             - 'false'
             - 'no-install'
+    skip_plugin_build:
+        description: 'Skip the postinstall plugin-build pass on an exact node_modules cache hit (see core action).'
+        required: false
+        default: 'false'
+        options:
+            - 'true'
+            - 'false'
     fetch_base:
         description: 'Shallow fetch latest branch.'
         required: false
@@ -70,6 +77,7 @@ runs:
           uses: ./external/ag-shared/github/actions/setup-nx-core
           with:
               yarn_postinstall: ${{ inputs.yarn_postinstall }}
+              skip_plugin_build: ${{ inputs.skip_plugin_build }}
               fetch_base: ${{ inputs.fetch_base }}
               nx_restore: ${{ inputs.nx_restore }}
               base_ref: ${{ inputs.base_ref }}

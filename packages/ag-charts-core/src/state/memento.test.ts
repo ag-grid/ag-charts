@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import * as Logger from '../logging/logger';
+import { Logger } from '../logging/logger';
+import * as ambientLog from '../logging/logger';
 import { isPlainObject } from '../utils/types/typeGuards';
 import { MementoCaretaker, type MementoOriginator } from './memento';
 
@@ -49,18 +50,20 @@ describe('Memento Caretaker', () => {
 
     let originator: TestOriginator;
     let caretaker: MementoCaretaker;
+    const mementoLogger = new Logger();
 
     beforeEach(() => {
         originator = new TestOriginator();
         caretaker = new MementoCaretaker('10.0.0');
-        Logger.reset();
+        ambientLog.reset();
+        mementoLogger.reset();
     });
 
     it('should save and restore data', () => {
         originator.data = { hello: 'world' };
 
         const blob = caretaker.save(originator);
-        caretaker.restore(blob, originator);
+        caretaker.restore(mementoLogger, blob, originator);
 
         expect(blob).toStrictEqual({ version: '10.0.0', test: { data: { hello: 'world' }, type: 'test' } });
         expect(originator.restored).toStrictEqual({ hello: 'world' });
@@ -70,7 +73,7 @@ describe('Memento Caretaker', () => {
         originator.data = { hello: '🌍' };
 
         const blob = caretaker.save(originator);
-        caretaker.restore(blob, originator);
+        caretaker.restore(mementoLogger, blob, originator);
 
         expect(blob).toStrictEqual({ version: '10.0.0', test: { data: { hello: '🌍' }, type: 'test' } });
         expect(originator.restored).toStrictEqual({ hello: '🌍' });
@@ -80,7 +83,7 @@ describe('Memento Caretaker', () => {
         originator.data = { hello: 'world', time: new Date(2024, 0, 1) };
 
         const blob = caretaker.save(originator);
-        caretaker.restore(blob, originator);
+        caretaker.restore(mementoLogger, blob, originator);
 
         expect(blob).toStrictEqual({
             version: '10.0.0',
@@ -109,7 +112,7 @@ describe('Memento Caretaker', () => {
             },
         };
 
-        caretaker.restore(blobDateTypes, originator);
+        caretaker.restore(mementoLogger, blobDateTypes, originator);
         expect(originator.restored).toStrictEqual({
             longString: new Date(2024, 0, 1),
             isoString: new Date(2024, 0, 1),
@@ -122,7 +125,7 @@ describe('Memento Caretaker', () => {
         originator.data = { hello: 'world', count: bigValue };
 
         const blob = caretaker.save(originator);
-        caretaker.restore(blob, originator);
+        caretaker.restore(mementoLogger, blob, originator);
 
         expect(blob).toStrictEqual({
             version: '10.0.0',
@@ -149,7 +152,7 @@ describe('Memento Caretaker', () => {
             },
         };
 
-        caretaker.restore(blobMalformedBigInt, originator);
+        caretaker.restore(mementoLogger, blobMalformedBigInt, originator);
         // Mirrors invalid-date handling: the payload flows through guardMemento rather than aborting.
         expect(originator.restored).toStrictEqual({
             fractional: { __type: 'bigint', value: '12.3' },
@@ -159,6 +162,7 @@ describe('Memento Caretaker', () => {
 
     it('should migrate older versioned mementos', () => {
         caretaker.restore(
+            mementoLogger,
             {
                 version: '9.3.0',
                 test: {
@@ -193,7 +197,7 @@ describe('Memento Caretaker', () => {
         otherOriginator.data = { hello: 'world' };
 
         const blob = caretaker.save(otherOriginator);
-        caretaker.restore(blob, originator);
+        caretaker.restore(mementoLogger, blob, originator);
 
         expect(console.warn).toHaveBeenCalledWith(
             'AG Charts - Could not restore [test] data, value was invalid, ignoring.',
@@ -208,9 +212,9 @@ describe('Memento Caretaker', () => {
     });
 
     it('should handle invalid blobs', () => {
-        caretaker.restore(null, originator);
-        caretaker.restore('invalid', originator);
-        caretaker.restore({ some: 'nonsense' }, originator);
+        caretaker.restore(mementoLogger, null, originator);
+        caretaker.restore(mementoLogger, 'invalid', originator);
+        caretaker.restore(mementoLogger, { some: 'nonsense' }, originator);
         expect(console.warn).toHaveBeenCalledWith(
             'AG Charts - Could not restore data of type [null], expecting an object, ignoring.'
         );
@@ -223,7 +227,7 @@ describe('Memento Caretaker', () => {
     });
 
     it('should handle an invalid memento', () => {
-        caretaker.restore({ version: '10.0.0', test: { type: 'invalid' } }, originator);
+        caretaker.restore(mementoLogger, { version: '10.0.0', test: { type: 'invalid' } }, originator);
         expect(console.warn).toHaveBeenCalledWith(
             'AG Charts - Could not restore [test] data, value was invalid, ignoring.',
             {
@@ -234,7 +238,7 @@ describe('Memento Caretaker', () => {
     });
 
     it('should ignore an unknown memento', () => {
-        caretaker.restore({ version: '10.0.0', invalid: 'invalid' }, originator);
+        caretaker.restore(mementoLogger, { version: '10.0.0', invalid: 'invalid' }, originator);
         expect(originator.restored).toBeUndefined();
     });
 });

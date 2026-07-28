@@ -104,10 +104,9 @@ class OhlcSeriesNodeEvent<
         nativeEvent: Event,
         datum: OhlcNodeDatum,
         series: OhlcSeriesBase<OhlcSeriesBaseTypes>,
-        selectionState: SelectionState | undefined,
-        isCollapsed: boolean
+        selectionState: SelectionState | undefined
     ) {
-        super(type, nativeEvent, datum, series, selectionState, isCollapsed);
+        super(type, nativeEvent, datum, series, selectionState);
         this.xKey = series.properties.xKey;
         this.openKey = series.properties.openKey;
         this.closeKey = series.properties.closeKey;

@@ -1,5 +1,5 @@
 name: 'PR preview — publish UMD bundles'
-description: Stage caller-supplied bundle files under pr-<N>/ and deploy them to gh-pages (served at https://<owner>.github.io/<repo>/pr-<N>/<bundle>). Skips cleanly when no bundle exists.
+description: Stage caller-supplied bundle files under pr-<N>/ and publish them to gh-pages (served at https://<owner>.github.io/<repo>/pr-<N>/<bundle>). Skips cleanly when no bundle exists. Concurrent publishes (other PRs, or this PR's other publishers) are resolved by a push-retry loop rather than a lock.
 
 inputs:
     pr_number:
@@ -20,22 +20,23 @@ inputs:
 runs:
     using: composite
     steps:
-        - name: Stage publish tree
+        - name: Stage bundle files
           id: stage
           shell: bash
           env:
               PR_NUMBER: ${{ inputs.pr_number }}
               FILES: ${{ inputs.files }}
+              STAGE_DIR: ${{ runner.temp }}/pr-preview-stage
           run: |
               set -euo pipefail
-              DEST="_publish/pr-${PR_NUMBER}"
+              rm -rf "$STAGE_DIR"
+              mkdir -p "$STAGE_DIR"
               found=0
               while IFS= read -r f; do
                   [ -z "$f" ] && continue
                   if [ -f "$f" ]; then
-                      mkdir -p "$DEST"
-                      cp "$f" "$DEST/"
-                      [ -f "${f}.map" ] && cp "${f}.map" "$DEST/"
+                      cp "$f" "$STAGE_DIR/"
+                      [ -f "${f}.map" ] && cp "${f}.map" "$STAGE_DIR/"
                       found=$((found + 1))
                   else
                       echo "::warning::PR preview: listed bundle not found, skipping: $f"
@@ -45,19 +46,18 @@ runs:
               if [ "$found" -eq 0 ]; then
                   echo "::warning::PR preview: no bundles to publish — skipping deploy."
                   echo "publish=false" >> "$GITHUB_OUTPUT"
-                  exit 0
+              else
+                  echo "publish=true" >> "$GITHUB_OUTPUT"
               fi
-              touch _publish/.nojekyll  # disable Jekyll on gh-pages
-              echo "publish=true" >> "$GITHUB_OUTPUT"
 
-        - name: Deploy to ${{ inputs.publish_branch }}
+        - name: Publish to ${{ inputs.publish_branch }}
           if: steps.stage.outputs.publish == 'true'
-          uses: peaceiris/actions-gh-pages@v3
-          with:
-              github_token: ${{ inputs.github_token }}
-              publish_dir: _publish
-              publish_branch: ${{ inputs.publish_branch }}
-              keep_files: true
-              commit_message: 'pr-preview: publish pr-${{ inputs.pr_number }}'
-              user_name: 'github-actions[bot]'
-              user_email: 'github-actions[bot]@users.noreply.github.com'
+          shell: bash
+          env:
+              GH_TOKEN: ${{ inputs.github_token }}
+              MODE: sync
+              TARGET_PREFIX: pr-${{ inputs.pr_number }}
+              SOURCE_DIR: ${{ runner.temp }}/pr-preview-stage
+              COMMIT_MESSAGE: 'pr-preview: publish pr-${{ inputs.pr_number }}'
+              PUBLISH_BRANCH: ${{ inputs.publish_branch }}
+          run: bash "${{ github.action_path }}/../pr-preview-lib/gh-pages-commit.sh"

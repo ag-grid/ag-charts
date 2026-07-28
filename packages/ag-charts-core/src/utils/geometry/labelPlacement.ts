@@ -5,11 +5,15 @@ import type { NormalisedTextOrSegments } from '../../types/normalised-options/no
 import type { Point, SizedPoint } from '../../types/scene';
 import type { FontOptions } from '../../types/text';
 import { toArray } from '../data/arrays';
+import { toTextString } from '../text/textUtils';
+import { type LabelFit, fitLabelText } from '../text/textWrapper';
 import { isArray } from '../types/typeGuards';
 import { toDegrees, toRadians } from './angle';
 import { type BoxBounds, boxCollides, boxContains } from './boxBounds';
 import { getMinOuterRectSize } from './math/shapeUtils';
 import { SpatialIndex, gridCellSize } from './spatialIndex';
+
+export type { LabelFit } from '../text/textWrapper';
 
 export type LabelPlacement =
     | 'inside'
@@ -37,17 +41,6 @@ export interface LabelFitOptions {
     readonly maxHeight?: number;
     readonly wrapping?: TextWrap;
     readonly truncate?: boolean;
-}
-
-/**
- * How a label's text adapts to the region produced by its placement. `maxWidth`/`maxHeight` bound the
- * region explicitly; when omitted the fit step derives a budget from the series or an estimate.
- */
-export interface LabelFit {
-    readonly maxWidth?: number;
-    readonly maxHeight?: number;
-    readonly wrapping?: TextWrap;
-    readonly overflowStrategy?: OverflowStrategy;
 }
 
 /**
@@ -81,6 +74,54 @@ export function resolveLabelFit(
 }
 
 /**
+ * Everything the engine needs to fit a label's text to an individual candidate rather than to one
+ * container chosen up front. Set only when the label opted into overflow control; without it every
+ * candidate reuses the datum's measured {@link PointLabelDatum.label} and no text is ever re-fitted.
+ */
+export interface LabelFitDescriptor {
+    /** Unfitted source text, so a candidate never inherits the truncation an earlier candidate needed. */
+    readonly text: NormalisedTextOrSegments;
+    readonly policy: LabelFit;
+    readonly font: FontOptions;
+    /**
+     * Per-side extent of the drawn box around the glyph. The candidate geometry works in box space, so
+     * this is subtracted from a container to get the glyph budget and added back to the fitted glyph.
+     */
+    readonly boxPadding?: Required<PaddingOptions>;
+}
+
+/**
+ * Resolves a label surface's fit policy once, returning the builder that stamps it onto each label's
+ * source text. Each candidate refits that text to the room it offers, so a placement or orientation
+ * able to hold the whole text is not disqualified by an earlier one's truncation. The builder yields
+ * `undefined` for every text when the label opted out of overflow management.
+ */
+export function resolveLabelFitDescriptors(
+    fit: LabelFitOptions & FontOptions,
+    boxPadding: Required<PaddingOptions>,
+    hideOnOverflow: boolean
+) {
+    const policy = resolveLabelFit(fit, hideOnOverflow);
+    return (text: NormalisedTextOrSegments): LabelFitDescriptor | undefined =>
+        policy == null ? undefined : { text, policy, font: fit, boxPadding };
+}
+
+/**
+ * Per-candidate inputs for {@link LabelFitDescriptor} on the positioned-candidate path, where the series
+ * owns the geometry: `container` is the glyph budget this candidate offers (its region minus the drawn
+ * box, axes swapped when the candidate is rotated) and `anchor`/`padding` rebuild {@link
+ * PositionedLabelCandidate.box} around the newly fitted glyph. A candidate that floats free of any region
+ * leaves `container` unset, so only the fit policy's own bounds apply to it.
+ */
+export interface CandidateFitTarget {
+    readonly container?: { readonly width: number; readonly height: number };
+    /** Anchor the drawn box hangs off, so its centre can be re-derived when the fitted glyph resizes it. */
+    readonly anchor: OrientationAnchor;
+    /** Per-side extent of the drawn box around the glyph. */
+    readonly padding: Required<PaddingOptions>;
+}
+
+/**
  * A pre-positioned label candidate the engine cascades over without computing any geometry itself.
  * The series that produced it owns the placement maths (bar-family labels use rect-relative geometry
  * the compass-vector engine can't express); the engine only runs generic containment, obstacle, flush
@@ -100,11 +141,20 @@ export interface PositionedLabelCandidate {
     readonly flushToRegion?: boolean;
     /** Render rotation in degrees (engine convention, matching {@link PlacedLabel.rotation}); `0`/unset is upright. */
     readonly rotation?: number;
+    /** Fit inputs for this candidate; used only when the datum carries a {@link PointLabelDatum.fit}. */
+    readonly fitTo?: CandidateFitTarget;
 }
 
 export interface PointLabelDatum {
     readonly point: Readonly<SizedPoint>;
     readonly label: MeasuredLabel;
+    /**
+     * Re-fits the text to each candidate in turn instead of to one container picked before the cascade,
+     * so a candidate that can hold the whole text is not disqualified by an earlier candidate's
+     * truncation. The cascade then prefers an untruncated candidate and settles for the least-truncated
+     * one. When unset, {@link label} is used as measured and no candidate is ever re-fitted.
+     */
+    readonly fit?: LabelFitDescriptor;
     readonly anchor: Point | undefined;
     /**
      * Shifts an `inside` label off the marker centre by this fraction of the marker diameter (x, y
@@ -141,9 +191,9 @@ export interface PointLabelDatum {
     /**
      * When no candidate fits its region and clears every obstacle: keep the label at its
      * least-overflowing candidate (`true`) or drop it (`false`). Overrides the series
-     * {@link SeriesLabelDefaults.suppressHide} when set; the engine defaults to keeping the label.
+     * {@link SeriesLabelDefaults.alwaysShow} when set; the engine defaults to keeping the label.
      */
-    readonly suppressHide?: boolean;
+    readonly alwaysShow?: boolean;
     /**
      * Distance in px between the label and its anchor point. Overrides the series
      * {@link SeriesLabelDefaults.spacing} when set, else falls back to the `padding` argument of
@@ -155,6 +205,12 @@ export interface PointLabelDatum {
      * {@link SeriesLabelDefaults.collideWith} when set.
      */
     readonly collideWith?: CollideWith;
+    /**
+     * Collision clearance for this label's box. Overrides the series
+     * {@link SeriesLabelDefaults.threshold} when set — waterfall styles each item type separately, so
+     * one series can carry several.
+     */
+    readonly threshold?: number;
     /**
      * Containment rect for this label's fit test, overriding the shared `bounds`. Bar-family labels
      * constrain to their own bar rect so a candidate that overflows the bar is rejected. Falls back
@@ -206,11 +262,11 @@ export interface CollideWith {
 
 /**
  * Series-level collision defaults shared by every label in a series, resolved once per render from
- * the series' collision config. A datum's own field ({@link PointLabelDatum.suppressHide} etc.)
+ * the series' collision config. A datum's own field ({@link PointLabelDatum.alwaysShow} etc.)
  * overrides the matching default; when unset the engine falls back to these.
  */
 export interface SeriesLabelDefaults {
-    readonly suppressHide?: boolean;
+    readonly alwaysShow?: boolean;
     /** Distance in px between each label and its anchor; a datum's own {@link PointLabelDatum.spacing} overrides it. */
     readonly spacing?: number;
     /** Collision-detection threshold applied to the label's own box: positive grows it, negative shrinks it. */
@@ -227,7 +283,7 @@ export interface SeriesLabels {
 
 /** Structural source of a series' resolved collision config (community `LabelCollision`). */
 export interface LabelCollisionSource {
-    readonly suppressHide?: boolean;
+    readonly alwaysShow?: boolean;
     readonly threshold?: number;
     resolveCollideWith(): CollideWith | undefined;
 }
@@ -239,13 +295,16 @@ export function resolveSeriesLabelDefaults(
     spacing?: number
 ): SeriesLabelDefaults {
     return {
-        suppressHide: src.suppressHide,
+        alwaysShow: src.alwaysShow,
         spacing,
         threshold: src.threshold,
         collideWith: src.resolveCollideWith(),
         placements,
     };
 }
+
+/** Label offset applied at a markerless vertex (size 0), where the marker radius can't supply one. */
+export const DEFAULT_MARKERLESS_LABEL_GAP = 2;
 
 export interface PlacedLabel<PLD = PointLabelDatum> extends MeasuredLabel, Readonly<Point> {
     readonly index: number;
@@ -318,7 +377,8 @@ function circleOverlapsBox(cx: number, cy: number, r: number, x: number, y: numb
     const dx = cx - edgeX;
     const dy = cy - edgeY;
     // Squared-distance compare avoids Math.hypot's overflow-safe scaling on this per-obstacle hot path.
-    return dx * dx + dy * dy <= r * r;
+    // Strict, matching `boxCollides`: a box merely touching the circle is clear of it, not colliding.
+    return dx * dx + dy * dy < r * r;
 }
 
 export function isPointLabelDatum(x: any): x is PointLabelDatum {
@@ -371,30 +431,30 @@ export function insideBarValueInsets(
 }
 
 /**
- * Inside-label containment region: the bar rect inset by `threshold` on the cross axis (wall-clearance
- * from the bar's side edges) and by the {@link insideBarValueInsets} `spacing` reservation on the value
- * axis — the gap the label keeps from the end(s) it is anchored against. The engine flushes and contains
- * labels against this region, so the gap survives orientation/placement resolution, not just the anchor.
+ * Inside-label containment region: the bar rect inset by the {@link insideBarValueInsets} `spacing`
+ * reservation on the value axis — the gap the label keeps from the end(s) it is anchored against. The
+ * engine flushes and contains labels against this region, so the gap survives orientation/placement
+ * resolution, not just the anchor. Collision clearance is not part of it; the engine applies
+ * `collision.threshold` to every region uniformly.
  */
 export function insideBarRegion(
     rect: BoxBounds,
     valueMinInset: number,
     valueMaxInset: number,
-    threshold: number,
     isVertical: boolean
 ): BoxBounds {
     return isVertical
         ? {
-              x: rect.x + threshold,
+              x: rect.x,
               y: rect.y + valueMinInset,
-              width: rect.width - 2 * threshold,
+              width: rect.width,
               height: rect.height - valueMinInset - valueMaxInset,
           }
         : {
               x: rect.x + valueMinInset,
-              y: rect.y + threshold,
+              y: rect.y,
               width: rect.width - valueMinInset - valueMaxInset,
-              height: rect.height - 2 * threshold,
+              height: rect.height,
           };
 }
 
@@ -531,6 +591,8 @@ export interface BarLabelTarget {
     rotation: number;
     offsetX?: number;
     offsetY?: number;
+    /** The text fitted to the chosen candidate, when the label opted into per-candidate overflow control. */
+    fittedText?: NormalisedTextOrSegments;
     // Positioned-candidate writeback (placement-cascade path only): the chosen candidate's anchor and
     // granular placement, copied here so the label renders at the winning candidate rather than the
     // baked first one. Left untouched on the orientation-only path.
@@ -582,6 +644,35 @@ export function labelGlyphCentre(anchor: OrientationAnchor, width: number, heigh
 }
 
 /**
+ * Centre of a bar label's drawn box, written into `out`. The anchor sits on the glyph's edge while the
+ * box protrudes `padding[facing]` past it toward the bar, so the centre is pushed back by that padding —
+ * otherwise the collision footprint reaches further onto a neighbour than what is rendered and the label
+ * collides before its box actually touches.
+ */
+export function writeLabelBoxCentre(
+    out: Point,
+    anchor: OrientationAnchor,
+    boxWidth: number,
+    boxHeight: number,
+    padding: Required<PaddingOptions>
+): Point {
+    const { x, y } = labelGlyphCentre(anchor, boxWidth, boxHeight);
+    out.x = x;
+    out.y = y;
+    if (anchor.textAlign === 'right' || anchor.textAlign === 'end') {
+        out.x += padding.right;
+    } else if (anchor.textAlign === 'left' || anchor.textAlign === 'start') {
+        out.x -= padding.left;
+    }
+    if (anchor.textBaseline === 'bottom') {
+        out.y += padding.bottom;
+    } else if (anchor.textBaseline === 'top') {
+        out.y -= padding.top;
+    }
+    return out;
+}
+
+/**
  * Axis-aligned obstacle footprint of a rendered label: its padded box centred on the glyph — the
  * renderer pivots rotation about that centre — then the rotated box's outer AABB. `padding` is the
  * per-side box extent (padding plus any border) and `rotationRad` the render rotation in radians, so
@@ -620,18 +711,22 @@ export function buildBarLabelDatum(
     orientations: AgChartLabelOrientation[],
     region: BoxBounds | undefined,
     collideWith: CollideWith,
-    target: BarLabelTarget
+    threshold: number,
+    target: BarLabelTarget,
+    fit?: LabelFitDescriptor
 ): BarPlacedLabelDatum {
     const { x, y } = labelGlyphCentre(anchor, width, height);
     return {
         point: { x, y, size: 0 },
         label: { text, width, height },
+        fit,
         anchor: undefined,
         placement: undefined,
         orientation: orientations,
         gap: 0,
         neverDrop: true,
         collideWith,
+        threshold,
         region,
         ownBox: region,
         target,
@@ -641,7 +736,7 @@ export function buildBarLabelDatum(
 /**
  * Builds the {@link PointLabelDatum} routing a bar label through the positioned-candidate engine path:
  * the pre-positioned `candidates` are cascaded in order (each carries its own region), avoiding other
- * labels and bars in other columns. Dropped when no candidate fits unless `suppressHide`. Hands the
+ * labels and bars in other columns. Dropped when no candidate fits unless `alwaysShow`. Hands the
  * engine opaque boxes instead of an orientation array to resolve.
  */
 export function buildBarPositionedLabelDatum(
@@ -651,20 +746,24 @@ export function buildBarPositionedLabelDatum(
     candidates: readonly PositionedLabelCandidate[],
     target: BarLabelTarget,
     ownBox: BoxBounds,
-    suppressHide: boolean,
+    alwaysShow: boolean,
     collideWith: CollideWith,
-    ownBoxLabelsCollide = false
+    threshold: number,
+    ownBoxLabelsCollide = false,
+    fit?: LabelFitDescriptor
 ): BarPlacedLabelDatum {
     return {
         point: { x: 0, y: 0, size: 0 },
         label: { text, width, height },
+        fit,
         anchor: undefined,
         placement: undefined,
         gap: 0,
-        // When labels are hideable (`suppressHide: false`) a no-fit candidate is dropped so the caller
+        // When labels are hideable (`alwaysShow: false`) a no-fit candidate is dropped so the caller
         // can hide it; otherwise the engine keeps the least-overflowing candidate.
-        neverDrop: suppressHide,
+        neverDrop: alwaysShow,
         collideWith,
+        threshold,
         positionedCandidates: candidates,
         ownBox,
         ownBoxLabelsCollide,
@@ -679,11 +778,14 @@ export function buildBarPositionedLabelDatum(
  * {@link buildBarLabelDatum}, so it carries `target`.
  */
 export function applyBarLabelOrientation(placed: readonly PlacedLabel<unknown>[]): void {
-    for (const { datum, rotation, offsetX, offsetY, candidate } of placed) {
-        const { target } = datum as BarPlacedLabelDatum;
+    for (const { datum, rotation, offsetX, offsetY, candidate, text } of placed) {
+        const { target, fit } = datum as BarPlacedLabelDatum;
         target.rotation = toRadians(rotation ?? 0);
         target.offsetX = offsetX ?? 0;
         target.offsetY = offsetY ?? 0;
+        // The engine fitted the text to the candidate it chose, so the node must render that rather than
+        // the unfitted source the datum was built from.
+        target.fittedText = fit == null ? undefined : text;
         // Placement-cascade path: the engine chose a whole candidate (region + rotation may differ per
         // candidate), so also retarget the label to that candidate's anchor and granular placement. The
         // orientation-only path leaves `candidate` unset and keeps the baked anchor/placement.
@@ -711,12 +813,42 @@ export function placedBarLabelTargets(placed: readonly PlacedLabel<unknown>[]): 
 }
 
 /**
+ * Flags each routed bar label hidden when the engine dropped it: a routed label (`candidates` set) the
+ * engine kept is in `placed`, one it dropped is absent. Baked labels (no candidates) are left visible.
+ * `resolveTarget` maps each element to its label object, which doubles as its {@link BarLabelTarget}.
+ */
+export function applyPlacedBarLabelVisibility<T>(
+    elements: Iterable<T> | undefined,
+    placed: readonly PlacedLabel<unknown>[],
+    resolveTarget: (element: T) => (BarLabelTarget & { candidates?: unknown; hidden?: boolean }) | undefined
+): void {
+    const kept = placedBarLabelTargets(placed);
+    for (const element of elements ?? []) {
+        const target = resolveTarget(element);
+        if (target?.candidates != null) target.hidden = !kept.has(target);
+    }
+}
+
+/**
  * True when a `placement` array offers more than one candidate to cascade through. A single value (or
  * unset) has nothing to resolve, so the series keeps its unconditional first-placement bake and never
  * enters the positioned-candidate engine path — leaving existing charts byte-identical.
  */
 export function barLabelResolvesPlacement(placement: unknown): boolean {
     return Array.isArray(placement) && placement.length > 1;
+}
+
+/**
+ * Whether a bar-family label must route through the placement engine rather than take its unconditional
+ * fast-path bake: a multi-entry orientation or placement array cascades through obstacles, and a hideable
+ * label (`alwaysShow: false`) routes even a single placement so a no-fit label can be dropped and hidden.
+ */
+export function barLabelRoutesThroughEngine(
+    orientation: AgChartLabelOrientation | AgChartLabelOrientation[] | undefined,
+    placement: unknown,
+    alwaysShow: boolean
+): boolean {
+    return barLabelResolvesOrientation(orientation) || barLabelResolvesPlacement(placement) || !alwaysShow;
 }
 
 /** Measured size of a label's text or rich-text segments under the given font. */
@@ -734,6 +866,10 @@ export interface BarLabelSource {
     readonly size?: { width: number; height: number };
     /** Resolved obstacle-category toggles for this label, stamped onto the datum. */
     readonly collideWith: CollideWith;
+    /** Collision clearance for this label's box, stamped onto the datum. */
+    readonly threshold: number;
+    /** Per-candidate fit inputs, so each orientation gets the text refitted to the room it actually has. */
+    readonly fit?: LabelFitDescriptor;
 }
 
 /**
@@ -753,7 +889,18 @@ export function buildBarLabelData<T>(
         if (orientations.length <= 1) continue;
         const { width, height } = source.size ?? measureLabelText(label.text, config);
         data.push(
-            buildBarLabelDatum(label, label.text, width, height, orientations, label.region, source.collideWith, label)
+            buildBarLabelDatum(
+                label,
+                label.text,
+                width,
+                height,
+                orientations,
+                label.region,
+                source.collideWith,
+                source.threshold,
+                label,
+                source.fit
+            )
         );
     }
     return data;
@@ -814,6 +961,25 @@ export function bakedLabelObstacles<T>(
     return obstacles.length > 0 ? obstacles : undefined;
 }
 
+/**
+ * Combines a bar-family series' rendered-rect obstacles (`seriesItem`) with the footprints of its baked
+ * labels (`label`) — the obstacle set other series' labels must avoid. `bakeLabels` must be false when the
+ * series routes its labels through {@link placeLabels}: the engine indexes each routed label as it places
+ * it, so baking them here too would double-count them (see the caller's `usesPlacedLabels` guard).
+ */
+export function barLabelObstacles<T>(
+    nodeData: readonly RectObstacleSource[] | undefined,
+    labelData: Iterable<T> | undefined,
+    bakeLabels: boolean,
+    resolveBaked: (element: T) => BakedLabelSource | undefined
+): LabelObstacle[] | undefined {
+    const rects = rectLabelObstacles(nodeData);
+    if (!bakeLabels) return rects;
+    const labels = bakedLabelObstacles(labelData, resolveBaked);
+    if (labels == null) return rects;
+    return rects == null ? labels : rects.concat(labels);
+}
+
 const labelPlacements: Record<LabelPlacement, { x: -1 | 0 | 1; y: -1 | 0 | 1 }> = {
     inside: { x: 0, y: 0 },
     top: { x: 0, y: -1 },
@@ -854,20 +1020,22 @@ const queryBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
 // The marker inscribed rect an `inside` candidate is contained by, co-centred with its label box.
 const insideRegionBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
 const inflatedBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
+// Threshold-adjusted regions, all live at once: the containment region (the datum's own region or the
+// shared bounds), the per-candidate marker rect, and the own region as a glyph budget.
+const deflatedRegionBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
+const deflatedInsideRegionBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
+const fitRegionBox: BoxBounds = { x: 0, y: 0, width: 0, height: 0 };
 // The candidate datum's per-category obstacle config, set before each obstacle query.
 let candidateCollideWith: CollideWith | undefined;
 // Collision-detection threshold applied to the candidate's own box: positive grows it (more clearance),
 // negative shrinks it (tolerates overlap). Set per label before its obstacle queries.
 let candidateThreshold = 0;
-// The directional gap between the label and its anchor marker's edge. The label collides with its own
-// anchor marker only when the threshold demands more clearance than this gap. Set per label.
-let candidateSpacing = 0;
 // The placement of the candidate being tested.
 let candidatePlacement: LabelPlacement | undefined;
-// Centre and radius of the candidate datum's own anchor marker; the label is placed a fixed gap from
-// it, so it is handled by the spacing gate rather than normal collision. The radius disambiguates it
-// from a coincident marker of a different size (e.g. stacked bubbles). Set per datum before its
-// obstacle queries; centre is NaN and radius -1 (never matches) for candidates with no own marker.
+// Centre and radius of the candidate datum's own anchor marker, which an `inside` label is centred on
+// and so never avoids. The radius disambiguates it from a coincident marker of a different size (e.g.
+// stacked bubbles). Set per datum before its obstacle queries; centre is NaN and radius -1 (never
+// matches) for candidates with no own marker.
 let candidateOwnMarkerCx = 0;
 let candidateOwnMarkerCy = 0;
 let candidateOwnMarkerR = -1;
@@ -878,12 +1046,25 @@ let candidateOwnBox: BoxBounds | undefined;
 // When true, `category: 'label'` obstacles overlapping `candidateOwnBox` are not excluded by the
 // own-box gate (range-bar's two labels share one bar rect and must still avoid each other).
 let candidateOwnBoxLabelsCollide = false;
-// The label's text/box after the fit step, reused per label to keep the hot path allocation-free.
-const fittedLabel: { text: NormalisedTextOrSegments; width: number; height: number } = {
+// The label's text/box after the fit step, reused per candidate to keep the hot path allocation-free.
+// `dropped` is how many characters truncation removed, ranking candidates when none holds the full text.
+const fittedLabel: { text: NormalisedTextOrSegments; width: number; height: number; dropped: number } = {
     text: '',
     width: 0,
     height: 0,
+    dropped: 0,
 };
+// The fit policy bounded by the current candidate's container, refilled per candidate.
+const boundedFit: {
+    maxWidth?: number;
+    maxHeight?: number;
+    wrapping?: TextWrap;
+    overflowStrategy?: OverflowStrategy;
+} = {};
+// Glyph budget of the candidate being fitted, refilled per candidate on the compass path.
+const candidateContainer = { width: 0, height: 0 };
+// Drawn-box centre of a positioned candidate whose box a re-fit resized.
+const boxCentre: Point = { x: 0, y: 0 };
 // Rotated axis-aligned footprint, written per candidate to keep the rotation loop allocation-free.
 const rotatedSize = { width: 0, height: 0 };
 
@@ -910,22 +1091,55 @@ function inflateBoxInto(dest: BoxBounds, src: BoxBounds, inflate: number) {
     dest.height = src.height + 2 * inflate;
 }
 
+/**
+ * How much of the collision threshold a containment region takes: only the negative part, which is spill
+ * allowance — the label may overflow the region by that much without counting as a collision. A positive
+ * threshold must not inset a containment region, because the label is flushed against that region's raw
+ * edge and an inset bound could then only ever reject it. Positive clearance is the glyph budget's job
+ * ({@link deflateContainer}), not containment's.
+ */
+function containmentThreshold(threshold: number): number {
+    return Math.min(threshold, 0);
+}
+
+// The collision threshold applied to a containment region: testing a box inflated by the threshold is
+// the same predicate as testing the raw box against the region inset by it, and the region form is what
+// the least-overflow ranking can share.
+function deflateRegion(dest: BoxBounds, src: BoxBounds, threshold: number): BoxBounds {
+    if (threshold === 0) return src;
+    dest.x = src.x + threshold;
+    dest.y = src.y + threshold;
+    dest.width = Math.max(0, src.width - 2 * threshold);
+    dest.height = Math.max(0, src.height - 2 * threshold);
+    return dest;
+}
+
+// The glyph budget an own region leaves once the collision threshold is taken off it. This is the only
+// way a positive threshold reaches an own shape: the text wraps or truncates to the clearance it has to
+// keep, rather than the box being moved to make room for it.
+function deflateContainer(container: { width: number; height: number } | undefined, threshold: number) {
+    if (container == null || threshold === 0) return container;
+    candidateContainer.width = Math.max(0, container.width - 2 * threshold);
+    candidateContainer.height = Math.max(0, container.height - 2 * threshold);
+    return candidateContainer;
+}
+
 function obstacleOverlapsCandidate(o: LabelObstacle): boolean {
     const category = o.category ?? 'seriesItem';
-    // The label's own anchor marker, when the label is offset from it (a directional or `inside`
-    // placement — not the centred default, which genuinely sits over the marker): an `inside` label is
-    // centred on it and never avoids it; a directional label sits a fixed `spacing` gap from it and
-    // avoids it only when the threshold demands more clearance than that gap (`threshold > spacing`),
-    // never at the default threshold of 0.
+    // An `inside` label is centred on its own anchor marker, so it can never be said to avoid it.
+    // A directional label sits `gap + spacing` off the same marker and falls through to the ordinary
+    // circle test below, which measures the clearance it actually has: `spacing` for the axis-aligned
+    // placements, but the longer corner distance for the diagonals, which must not be treated as
+    // colliding until the threshold really reaches the marker.
     if (
-        candidatePlacement != null &&
+        candidatePlacement === 'inside' &&
         category === 'marker' &&
         o.kind === 'circle' &&
         o.cx === candidateOwnMarkerCx &&
         o.cy === candidateOwnMarkerCy &&
         o.r === candidateOwnMarkerR
     ) {
-        return candidatePlacement !== 'inside' && candidateThreshold > candidateSpacing;
+        return false;
     }
 
     // An on-shape (inside) label never collides with the shape it sits on: any obstacle overlapping the
@@ -1043,8 +1257,8 @@ function hasAnyLabels(data: Map<string, SeriesLabels>): boolean {
 
 /** True if the series can drop a label on collision: its default hides, or any datum opts in. */
 function seriesHides(entry: SeriesLabels): boolean {
-    if (entry.defaults?.suppressHide === false) return true;
-    return entry.datums.some((d) => d.suppressHide === false);
+    if (entry.defaults?.alwaysShow === false) return true;
+    return entry.datums.some((d) => d.alwaysShow === false);
 }
 
 /**
@@ -1069,8 +1283,8 @@ function orderKeepFirst(data: Map<string, SeriesLabels>): [string, SeriesLabels]
  * building it is wasted work (see {@link placeLabels}).
  */
 function isSoleCandidateKeep(d: PointLabelDatum, defaults: SeriesLabelDefaults | undefined): boolean {
-    const suppressHide = d.suppressHide ?? defaults?.suppressHide ?? true;
-    if (!suppressHide || d.positionedCandidates != null || d.neverDrop === true) return false;
+    const alwaysShow = d.alwaysShow ?? defaults?.alwaysShow ?? true;
+    if (!alwaysShow || d.positionedCandidates != null || d.neverDrop === true) return false;
     const placements = d.placements ?? defaults?.placements;
     return (placements?.length ?? 1) <= 1 && (orientationsOf(d)?.length ?? 1) <= 1;
 }
@@ -1212,18 +1426,74 @@ function positionLabelBox(
     out.y = y;
 }
 
+/** Number of characters in a label's text, summed across rich-text segments. */
+function textLength(text: NormalisedTextOrSegments): number {
+    if (!isArray(text)) return toTextString(text).length;
+    let length = 0;
+    for (const segment of text) {
+        if (segment.type !== 'image') length += toTextString(segment.text).length;
+    }
+    return length;
+}
+
 /**
- * Fit axis of the two-axis model: adapts the measured label to its region, writing the result into the
- * shared {@link fittedLabel} scratch, and returns that scratch. A pass-through today — text/box are
- * copied unchanged and rotation left unset; the placement axis (below) then tests the box against
- * bounds and obstacles.
+ * Fit axis of the two-axis model: adapts the label's source text to one candidate's glyph budget,
+ * writing the result into the shared {@link fittedLabel} scratch. Returns `false` when the fit policy
+ * hid the text outright, which disqualifies the candidate.
+ *
+ * The source text is measured first and returned untouched when it already fits, so the common case
+ * never pays for wrapping; `source` carries that measurement in from the cascade, which reuses it
+ * across candidates. `fittedLabel.dropped` counts the characters truncation removed, letting the
+ * placement axis prefer the candidate that keeps the most text.
  */
-function fitLabel(d: PointLabelDatum) {
-    const { text, width, height } = d.label;
-    fittedLabel.text = text;
-    fittedLabel.width = width;
-    fittedLabel.height = height;
-    return fittedLabel;
+function fitLabelToCandidate(
+    fit: LabelFitDescriptor,
+    source: { width: number; height: number } | undefined,
+    container: { width: number; height: number } | undefined
+) {
+    const { text, policy, font } = fit;
+    const maxWidth = Math.min(policy.maxWidth ?? Infinity, container?.width ?? Infinity);
+    const maxHeight = Math.min(policy.maxHeight ?? Infinity, container?.height ?? Infinity);
+    const full = source ?? measureLabelText(text, font);
+    if (full.width <= maxWidth && full.height <= maxHeight) {
+        fittedLabel.text = text;
+        fittedLabel.width = full.width;
+        fittedLabel.height = full.height;
+        fittedLabel.dropped = 0;
+        return true;
+    }
+
+    boundedFit.maxWidth = maxWidth === Infinity ? undefined : maxWidth;
+    boundedFit.maxHeight = maxHeight === Infinity ? undefined : maxHeight;
+    boundedFit.wrapping = policy.wrapping;
+    boundedFit.overflowStrategy = policy.overflowStrategy;
+    const fitted = fitLabelText(text, boundedFit, font);
+    // `overflowStrategy: 'hide'` empties the text rather than truncating it; the candidate cannot show
+    // this label at all, so the cascade must move on rather than place an empty box.
+    if (fitted === '') return false;
+
+    const size = measureLabelText(fitted, font);
+    fittedLabel.text = fitted;
+    fittedLabel.width = size.width;
+    fittedLabel.height = size.height;
+    fittedLabel.dropped = Math.max(0, textLength(text) - textLength(fitted));
+    return true;
+}
+
+/**
+ * The glyph budget a compass-path candidate offers: the datum's region minus the drawn box, with the
+ * axes swapped for a rotated candidate (its glyph width runs along the region's height). `undefined`
+ * when the datum has no region, leaving the candidate bound only by the fit policy.
+ */
+function compassCandidateContainer(region: BoxBounds | undefined, fit: LabelFitDescriptor, rotation: number) {
+    if (region == null) return undefined;
+    const pad = fit.boxPadding;
+    const upright = rotation % 180 === 0;
+    const width = upright ? region.width : region.height;
+    const height = upright ? region.height : region.width;
+    candidateContainer.width = Math.max(0, width - (pad == null ? 0 : pad.left + pad.right));
+    candidateContainer.height = Math.max(0, height - (pad == null ? 0 : pad.top + pad.bottom));
+    return candidateContainer;
 }
 
 /**
@@ -1233,9 +1503,10 @@ function fitLabel(d: PointLabelDatum) {
  * from `d.placements`, then the series `defaults.placements`, then the single `d.placement`; orientation
  * from `d.orientation`. The reported box keeps the label's measured `width`/`height`; the rotated
  * footprint is used only for containment and obstacle tests. A sole-candidate label kept on overflow
- * takes its placement unconditionally — never bounds-clipped, never dropped. A multi-candidate
+ * takes its placement unconditionally — never bounds-clipped, and dropped only when its own fit policy
+ * hides the text outright, which no placement can satisfy. A multi-candidate
  * placement or orientation list is a directional fallback set that cascades over obstacles; when none
- * clears them, `suppressHide` decides whether the least-overflow candidate is kept or the label dropped.
+ * clears them, `alwaysShow` decides whether the least-overflow candidate is kept or the label dropped.
  */
 function tryPlaceLabel(
     d: PointLabelDatum,
@@ -1245,72 +1516,171 @@ function tryPlaceLabel(
     bounds: BoxBounds
 ): PlacedLabel | undefined {
     // A datum's own field overrides the series default; when neither is set the label is kept.
-    const suppressHide = d.suppressHide ?? defaults?.suppressHide ?? true;
+    const alwaysShow = d.alwaysShow ?? defaults?.alwaysShow ?? true;
     const placements = d.placements ?? defaults?.placements;
     const collideWith = d.collideWith ?? defaults?.collideWith;
     const gap = d.gap ?? d.point.size / 2;
     const spacing = d.spacing ?? defaults?.spacing ?? padding;
-    const threshold = defaults?.threshold ?? 0;
-    const { text, width, height } = fitLabel(d);
+    const threshold = d.threshold ?? defaults?.threshold ?? 0;
 
     // Sole-candidate keep-forever: one placement, kept on overflow, never dropped. The obstacle query
     // could only ever return this same placement, so skip it and take the placement unconditionally.
     if (isSoleCandidateKeep(d, defaults)) {
         const placement = candidateAt(placements, d.placement, 0);
         const orientation = candidateAt(orientationsOf(d), singleOrientationOf(d), 0);
-        const rotation = positionCandidate(d, placement, orientation, width, height, gap, spacing);
+        const rotation = orientation == null ? 0 : orientationAngles[orientation];
+        let { text, width, height } = d.label;
+        if (d.fit != null) {
+            if (!fitLabelToCandidate(d.fit, undefined, compassCandidateContainer(d.region, d.fit, rotation))) {
+                return undefined;
+            }
+            ({ text } = fittedLabel);
+            width = fittedLabel.width + boxWidthOf(d.fit);
+            height = fittedLabel.height + boxHeightOf(d.fit);
+        }
+        positionCandidate(d, placement, rotation, width, height, gap, spacing);
         const { x, y } = candidateBox;
         return { index, text, x, y, width, height, datum: d, placement, rotation: rotation || undefined };
     }
 
-    return placeAvoidingLabel(
-        d,
-        placements,
-        collideWith,
-        suppressHide,
-        index,
-        bounds,
-        text,
-        width,
-        height,
-        gap,
-        spacing,
-        threshold
-    );
+    return placeAvoidingLabel(d, placements, collideWith, alwaysShow, index, bounds, gap, spacing, threshold);
+}
+
+/** Total horizontal extent the drawn box adds around the glyph. */
+function boxWidthOf(fit: LabelFitDescriptor): number {
+    const pad = fit.boxPadding;
+    return pad == null ? 0 : pad.left + pad.right;
+}
+
+/** Total vertical extent the drawn box adds around the glyph. */
+function boxHeightOf(fit: LabelFitDescriptor): number {
+    const pad = fit.boxPadding;
+    return pad == null ? 0 : pad.top + pad.bottom;
 }
 
 /**
- * Tries each `(placement × orientation)` candidate in order, returning the first whose rotated box
- * fits `d.region ?? bounds` and clears every obstacle in the index. When none fits: a {@link
- * PointLabelDatum.neverDrop} label, or one with `suppressHide` set, keeps the least region-overflowing
+ * The candidate the cascade settles on when no candidate both holds the whole text and clears its
+ * obstacles. Ranked by {@link CandidateChoice.tier} first — a truncated candidate that fits its region
+ * always beats one that overflows it — then by `score` within the tier.
+ */
+interface CandidateChoice {
+    tier: number;
+    score: number;
+    text: NormalisedTextOrSegments;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    rotation: number;
+    offsetX: number;
+    offsetY: number;
+    placement: LabelPlacement | undefined;
+    candidate: PositionedLabelCandidate | undefined;
+}
+
+/** Tier of a candidate that fits its region and clears every obstacle, but only by truncating its text. */
+const TIER_TRUNCATED = 0;
+/** Tier of a candidate that overflows its region or hits an obstacle; kept only to avoid dropping the label. */
+const TIER_OVERFLOWING = 1;
+
+// Best candidate seen so far in the current cascade, reused across passes to keep the loop allocation-free.
+const bestChoice: CandidateChoice = {
+    tier: Infinity,
+    score: Infinity,
+    text: '',
+    x: 0,
+    y: 0,
+    width: 0,
+    height: 0,
+    rotation: 0,
+    offsetX: 0,
+    offsetY: 0,
+    placement: undefined,
+    candidate: undefined,
+};
+
+/** Records the candidate currently in {@link candidateBox} as the cascade's best, if it outranks the incumbent. */
+function recordBestChoice(
+    tier: number,
+    score: number,
+    text: NormalisedTextOrSegments,
+    width: number,
+    height: number,
+    rotation: number,
+    offsetX: number,
+    offsetY: number,
+    placement: LabelPlacement | undefined,
+    candidate: PositionedLabelCandidate | undefined
+) {
+    if (tier > bestChoice.tier || (tier === bestChoice.tier && score >= bestChoice.score)) return;
+    bestChoice.tier = tier;
+    bestChoice.score = score;
+    bestChoice.text = text;
+    bestChoice.x = candidateBox.x;
+    bestChoice.y = candidateBox.y;
+    bestChoice.width = width;
+    bestChoice.height = height;
+    bestChoice.rotation = rotation;
+    bestChoice.offsetX = offsetX;
+    bestChoice.offsetY = offsetY;
+    bestChoice.placement = placement;
+    bestChoice.candidate = candidate;
+}
+
+/** Materialises {@link bestChoice} as the cascade's result, or `undefined` when no candidate was recorded. */
+function placeBestChoice(index: number, d: PointLabelDatum): PlacedLabel | undefined {
+    if (bestChoice.tier === Infinity) return undefined;
+    return {
+        index,
+        text: bestChoice.text,
+        x: bestChoice.x,
+        y: bestChoice.y,
+        width: bestChoice.width,
+        height: bestChoice.height,
+        datum: d,
+        placement: bestChoice.placement,
+        rotation: bestChoice.rotation || undefined,
+        offsetX: bestChoice.offsetX,
+        offsetY: bestChoice.offsetY,
+        candidate: bestChoice.candidate,
+    };
+}
+
+/**
+ * Tries each `(placement × orientation)` candidate in order, returning the first whose rotated box holds
+ * the whole text, fits `d.region ?? bounds` and clears every obstacle in the index. A candidate that
+ * only fits by truncating is remembered and the cascade continues, so the least-truncated candidate wins
+ * over an earlier heavily-truncated one. When no candidate fits at all: a {@link
+ * PointLabelDatum.neverDrop} label, or one with `alwaysShow` set, keeps the least region-overflowing
  * candidate; otherwise the label is dropped (`undefined`). A `neverDrop` label is always rendered
  * (dropping it would revert its orientation to the baked first one), so it is kept regardless of
- * `suppressHide`.
+ * `alwaysShow`.
  */
 function placeAvoidingLabel(
     d: PointLabelDatum,
     placements: readonly LabelPlacement[] | undefined,
     collideWith: CollideWith | undefined,
-    suppressHide: boolean,
+    alwaysShow: boolean,
     index: number,
     bounds: BoxBounds,
-    text: NormalisedTextOrSegments,
-    width: number,
-    height: number,
     gap: number,
     spacing: number,
     threshold: number
 ): PlacedLabel | undefined {
+    bestChoice.tier = Infinity;
+    bestChoice.score = Infinity;
     if (d.positionedCandidates != null) {
-        return placeFromPositionedCandidates(d, collideWith, threshold, index, bounds, text, width, height);
+        return placeFromPositionedCandidates(d, collideWith, threshold, index, bounds);
     }
+    const { fit } = d;
+    // Measured once here rather than per candidate: every candidate refits the same source text.
+    const fitSource = fit == null ? undefined : measureLabelText(fit.text, fit.font);
     const candidates = placements;
     const orientations = orientationsOf(d);
     const singleOrientation = singleOrientationOf(d);
     const inflate = Math.max(threshold, 0);
     candidateCollideWith = collideWith;
     candidateThreshold = threshold;
-    candidateSpacing = spacing;
     markerCentreOf(d);
     candidateOwnMarkerCx = markerCentre.cx;
     candidateOwnMarkerCy = markerCentre.cy;
@@ -1321,107 +1691,116 @@ function placeAvoidingLabel(
     candidateOwnBoxLabelsCollide = d.ownBoxLabelsCollide ?? false;
     const candidateCount = candidates?.length ?? 1;
     const orientationCount = orientations?.length ?? 1;
-    const region = d.region ?? bounds;
+    const rawRegion = d.region ?? bounds;
+    const containThreshold = containmentThreshold(threshold);
+    const region = deflateRegion(deflatedRegionBox, rawRegion, containThreshold);
+    const fitRegion = d.region == null ? undefined : deflateRegion(fitRegionBox, d.region, threshold);
     // Edge-anchored bar labels are centred on their glyph centre, which for inside-start/inside-end
     // sits at the bar's end; a candidate rotated to run along the bar would straddle that end. Slide
     // it flush inside its own bar rect instead (a no-op for inside-center, already centred).
     const flushToRegion = d.region != null && d.neverDrop;
-
-    let bestOverflow = Infinity;
-    let bestX = 0;
-    let bestY = 0;
-    let bestRotation = 0;
-    let bestOffsetX = 0;
-    let bestOffsetY = 0;
-    let bestPlacement: LabelPlacement | undefined;
+    const keepBest = d.neverDrop === true || alwaysShow;
 
     for (let pi = 0; pi < candidateCount; pi++) {
         const placement = candidateAt(candidates, d.placement, pi);
         for (let oi = 0; oi < orientationCount; oi++) {
             const orientation = candidateAt(orientations, singleOrientation, oi);
-            const rotation = positionCandidate(d, placement, orientation, width, height, gap, spacing);
+            const rotation = orientation == null ? 0 : orientationAngles[orientation];
+            let { text, width, height } = d.label;
+            let dropped = 0;
+            if (fit != null) {
+                if (!fitLabelToCandidate(fit, fitSource, compassCandidateContainer(fitRegion, fit, rotation))) continue;
+                ({ text, dropped } = fittedLabel);
+                width = fittedLabel.width + boxWidthOf(fit);
+                height = fittedLabel.height + boxHeightOf(fit);
+            }
+            positionCandidate(d, placement, rotation, width, height, gap, spacing);
             let { x, y } = candidateBox;
             const { width: cw, height: ch } = candidateBox;
             let offsetX = 0;
             let offsetY = 0;
             if (flushToRegion) {
-                const nx = clampAxis(x, cw, region.x, region.width);
-                const ny = clampAxis(y, ch, region.y, region.height);
+                const nx = clampAxis(x, cw, rawRegion.x, rawRegion.width);
+                const ny = clampAxis(y, ch, rawRegion.y, rawRegion.height);
                 offsetX = nx - x;
                 offsetY = ny - y;
                 candidateBox.x = x = nx;
                 candidateBox.y = y = ny;
             }
             candidatePlacement = placement;
-            const containRegion = insideRegionFor(d, placement, x, y, cw, ch, threshold) ?? region;
+            const insideRegion = insideRegionFor(d, placement, x, y, cw, ch);
+            const containRegion =
+                insideRegion == null ? region : deflateRegion(deflatedInsideRegionBox, insideRegion, containThreshold);
             inflateBoxInto(queryBox, candidateBox, inflate);
             if (boxContains(containRegion, x, y, cw, ch) && !obstacleIndex.query(queryBox, obstacleOverlapsCandidate)) {
-                return {
-                    index,
+                if (dropped === 0) {
+                    return {
+                        index,
+                        text,
+                        x,
+                        y,
+                        width,
+                        height,
+                        datum: d,
+                        placement,
+                        rotation: rotation || undefined,
+                        offsetX,
+                        offsetY,
+                    };
+                }
+                recordBestChoice(
+                    TIER_TRUNCATED,
+                    dropped,
                     text,
-                    x,
-                    y,
                     width,
                     height,
-                    datum: d,
-                    placement,
-                    rotation: rotation || undefined,
+                    rotation,
                     offsetX,
                     offsetY,
-                };
-            }
-            const keepBest = d.neverDrop === true || suppressHide;
-            const overflow = keepBest ? regionOverflow(containRegion, x, y, cw, ch) : Infinity;
-            if (overflow < bestOverflow) {
-                bestOverflow = overflow;
-                bestX = x;
-                bestY = y;
-                bestRotation = rotation;
-                bestOffsetX = offsetX;
-                bestOffsetY = offsetY;
-                bestPlacement = placement;
+                    placement,
+                    undefined
+                );
+            } else if (keepBest) {
+                const overflow = regionOverflow(containRegion, x, y, cw, ch);
+                recordBestChoice(
+                    TIER_OVERFLOWING,
+                    overflow,
+                    text,
+                    width,
+                    height,
+                    rotation,
+                    offsetX,
+                    offsetY,
+                    placement,
+                    undefined
+                );
             }
         }
     }
 
-    if (bestOverflow === Infinity) return undefined;
-    return {
-        index,
-        text,
-        x: bestX,
-        y: bestY,
-        width,
-        height,
-        datum: d,
-        placement: bestPlacement,
-        rotation: bestRotation || undefined,
-        offsetX: bestOffsetX,
-        offsetY: bestOffsetY,
-    };
+    return placeBestChoice(index, d);
 }
 
 /**
  * Cascades over {@link PointLabelDatum.positionedCandidates} in order, returning the first candidate
- * whose box fits its own `region` (or the shared `bounds`) and clears every obstacle. Runs only the
- * generic containment/obstacle/flush/least-overflow logic — the series pre-computed each candidate's
- * geometry, so no placement maths happens here. When none fits, a {@link PointLabelDatum.neverDrop}
- * datum keeps the least region-overflowing candidate; otherwise it is dropped (`undefined`).
+ * that holds the whole text, fits its own `region` (or the shared `bounds`) and clears every obstacle.
+ * Runs only the generic containment/obstacle/flush/least-overflow logic — the series pre-computed each
+ * candidate's geometry, so no placement maths happens here beyond resizing a candidate's box around
+ * text it had to truncate. A truncated-but-fitting candidate is remembered and the cascade continues, so
+ * the least-truncated one wins; when none fits at all, a {@link PointLabelDatum.neverDrop} datum keeps
+ * the least region-overflowing candidate and any other is dropped (`undefined`).
  */
 function placeFromPositionedCandidates(
     d: PointLabelDatum,
     collideWith: CollideWith | undefined,
     threshold: number,
     index: number,
-    bounds: BoxBounds,
-    text: NormalisedTextOrSegments,
-    width: number,
-    height: number
+    bounds: BoxBounds
 ): PlacedLabel | undefined {
     const candidates = d.positionedCandidates!;
     const inflate = Math.max(threshold, 0);
     candidateCollideWith = collideWith;
     candidateThreshold = threshold;
-    candidateSpacing = 0;
     // No compass placement and no own marker on this path (bars): the own-marker gate in
     // obstacleOverlapsCandidate must stay inert, so no obstacle centre can match.
     candidatePlacement = undefined;
@@ -1431,20 +1810,28 @@ function placeFromPositionedCandidates(
     candidateOwnBox = d.ownBox;
     candidateOwnBoxLabelsCollide = d.ownBoxLabelsCollide ?? false;
 
-    let bestOverflow = Infinity;
-    let bestX = 0;
-    let bestY = 0;
-    let bestOffsetX = 0;
-    let bestOffsetY = 0;
-    let bestCandidate: PositionedLabelCandidate | undefined;
-
+    const { fit } = d;
+    // Measured once here rather than per candidate: every candidate refits the same source text.
+    const fitSource = fit == null ? undefined : measureLabelText(fit.text, fit.font);
+    const containThreshold = containmentThreshold(threshold);
     for (let ci = 0, ln = candidates.length; ci < ln; ci++) {
         const c = candidates[ci];
-        const region = c.region ?? bounds;
+        const rawRegion = c.region ?? bounds;
+        const region = deflateRegion(deflatedRegionBox, rawRegion, containThreshold);
+        let { text, width, height } = d.label;
+        let dropped = 0;
         candidateBox.x = c.box.x;
         candidateBox.y = c.box.y;
         candidateBox.width = c.box.width;
         candidateBox.height = c.box.height;
+        if (fit != null && c.fitTo != null) {
+            if (!fitLabelToCandidate(fit, fitSource, deflateContainer(c.fitTo.container, threshold))) continue;
+            ({ text, dropped } = fittedLabel);
+            const { padding } = c.fitTo;
+            width = fittedLabel.width + padding.left + padding.right;
+            height = fittedLabel.height + padding.top + padding.bottom;
+            resizeCandidateBox(c, width, height);
+        }
         let { x, y } = candidateBox;
         const { width: cw, height: ch } = candidateBox;
         let offsetX = 0;
@@ -1452,57 +1839,52 @@ function placeFromPositionedCandidates(
         // Slide a region-bound candidate flush inside its own region (matches the orientation path's
         // clampAxis flush); a region-less (outside) candidate floats. A collision-only region
         // (flushToRegion === false) is not flushed — an overflowing box is left to fail containment below.
-        if (c.region != null && d.neverDrop && c.flushToRegion !== false) {
-            const nx = clampAxis(x, cw, region.x, region.width);
-            const ny = clampAxis(y, ch, region.y, region.height);
+        if (c.region != null && c.flushToRegion !== false) {
+            const nx = clampAxis(x, cw, rawRegion.x, rawRegion.width);
+            const ny = clampAxis(y, ch, rawRegion.y, rawRegion.height);
             offsetX = nx - x;
             offsetY = ny - y;
             candidateBox.x = x = nx;
             candidateBox.y = y = ny;
         }
         inflateBoxInto(queryBox, candidateBox, inflate);
+        const rotation = c.rotation ?? 0;
         if (boxContains(region, x, y, cw, ch) && !obstacleIndex.query(queryBox, obstacleOverlapsCandidate)) {
-            return {
-                index,
-                text,
-                x,
-                y,
-                width,
-                height,
-                datum: d,
-                placement: undefined,
-                rotation: c.rotation,
-                offsetX,
-                offsetY,
-                candidate: c,
-            };
-        }
-        const overflow = d.neverDrop ? regionOverflow(region, x, y, cw, ch) : Infinity;
-        if (overflow < bestOverflow) {
-            bestOverflow = overflow;
-            bestX = x;
-            bestY = y;
-            bestOffsetX = offsetX;
-            bestOffsetY = offsetY;
-            bestCandidate = c;
+            if (dropped === 0) {
+                return {
+                    index,
+                    text,
+                    x,
+                    y,
+                    width,
+                    height,
+                    datum: d,
+                    placement: undefined,
+                    rotation: c.rotation,
+                    offsetX,
+                    offsetY,
+                    candidate: c,
+                };
+            }
+            recordBestChoice(TIER_TRUNCATED, dropped, text, width, height, rotation, offsetX, offsetY, undefined, c);
+        } else if (d.neverDrop === true) {
+            const overflow = regionOverflow(region, x, y, cw, ch);
+            recordBestChoice(TIER_OVERFLOWING, overflow, text, width, height, rotation, offsetX, offsetY, undefined, c);
         }
     }
 
-    if (bestCandidate == null) return undefined;
-    return {
-        index,
-        text,
-        x: bestX,
-        y: bestY,
-        width,
-        height,
-        datum: d,
-        placement: undefined,
-        rotation: bestCandidate.rotation,
-        offsetX: bestOffsetX,
-        offsetY: bestOffsetY,
-        candidate: bestCandidate,
-    };
+    return placeBestChoice(index, d);
+}
+
+/** Rebuilds {@link candidateBox} as the rotated footprint of a re-fitted box, recentred on its anchor. */
+function resizeCandidateBox(c: PositionedLabelCandidate, boxWidth: number, boxHeight: number) {
+    const { anchor, padding } = c.fitTo!;
+    writeLabelBoxCentre(boxCentre, anchor, boxWidth, boxHeight, padding);
+    rotatedSizeInto(c.rotation ?? 0, boxWidth, boxHeight);
+    candidateBox.x = boxCentre.x - rotatedSize.width / 2;
+    candidateBox.y = boxCentre.y - rotatedSize.height / 2;
+    candidateBox.width = rotatedSize.width;
+    candidateBox.height = rotatedSize.height;
 }
 
 function orientationsOf(d: PointLabelDatum): AgChartLabelOrientation[] | undefined {
@@ -1537,10 +1919,8 @@ function candidateAt<T>(list: readonly T[] | undefined, single: T | undefined, i
 /**
  * The marker inscribed rect an `inside` candidate must fit, co-centred with the candidate box (which
  * `insideOffset` already placed at that rect's centre), written into the shared {@link insideRegionBox}.
- * `threshold` shrinks the rect on every side (a positive value demands wall clearance; a negative one
- * lets the label bleed past the marker edge), mirroring its obstacle-avoidance sense. Returns
- * `undefined` for directional candidates or when the datum carries no {@link PointLabelDatum.insideSize},
- * so the caller falls back to the shared region.
+ * Returns `undefined` for directional candidates or when the datum carries no
+ * {@link PointLabelDatum.insideSize}, so the caller falls back to the shared region.
  */
 function insideRegionFor(
     d: PointLabelDatum,
@@ -1548,12 +1928,11 @@ function insideRegionFor(
     x: number,
     y: number,
     boxWidth: number,
-    boxHeight: number,
-    threshold: number
+    boxHeight: number
 ): BoxBounds | undefined {
     if (placement !== 'inside' || d.insideSize == null) return undefined;
-    const rw = Math.max(0, d.insideSize.width * d.point.size - 2 * threshold);
-    const rh = Math.max(0, d.insideSize.height * d.point.size - 2 * threshold);
+    const rw = d.insideSize.width * d.point.size;
+    const rh = d.insideSize.height * d.point.size;
     insideRegionBox.x = x + boxWidth / 2 - rw / 2;
     insideRegionBox.y = y + boxHeight / 2 - rh / 2;
     insideRegionBox.width = rw;
@@ -1562,23 +1941,20 @@ function insideRegionFor(
 }
 
 /**
- * Positions one (placement, orientation) candidate into the shared {@link candidateBox} — its
- * top-left offset and its rotated footprint as width/height — and returns the render rotation in
- * degrees (`0` when the orientation is unset).
+ * Positions one (placement, rotation) candidate into the shared {@link candidateBox} — its top-left
+ * offset and its rotated footprint as width/height.
  */
 function positionCandidate(
     d: PointLabelDatum,
     placement: LabelPlacement | undefined,
-    orientation: AgChartLabelOrientation | undefined,
+    rotation: number,
     width: number,
     height: number,
     gap: number,
     spacing: number
-): number {
-    const rotation = orientation == null ? 0 : orientationAngles[orientation];
+) {
     rotatedSizeInto(rotation, width, height);
     positionLabelBox(candidateBox, d, rotatedSize.width, rotatedSize.height, gap, spacing, placement);
     candidateBox.width = rotatedSize.width;
     candidateBox.height = rotatedSize.height;
-    return rotation;
 }

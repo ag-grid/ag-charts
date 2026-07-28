@@ -6,6 +6,11 @@ import { BBox } from './bbox';
 import { Group } from './group';
 import { Node, type RenderContext } from './node';
 
+const sceneTestLogger = new Logger();
+
+// Local to this file: `scene/**` cannot import the shared test library under `ag-isolated-scene`.
+afterEach(() => sceneTestLogger.reset());
+
 class TestNode<D = any> extends Group<D> {
     protected override computeBBox(): BBox | undefined {
         return BBox.merge(Array.from(this.children(), (c) => c.getBBox()));
@@ -124,7 +129,7 @@ class ThrowingNode extends Node {
     }
 }
 
-function stubRenderCtx(logger?: Logger): RenderContext {
+function stubRenderCtx(logger: Logger = sceneTestLogger): RenderContext {
     return {
         ctx: { save() {}, restore() {} } as unknown as CanvasRenderingContext2D,
         direction: 'ltr',
@@ -139,22 +144,15 @@ function stubRenderCtx(logger?: Logger): RenderContext {
 describe('isolatedRender logger routing', () => {
     afterEach(() => vi.restoreAllMocks());
 
-    it('routes render errors to the render-context logger when one is provided', () => {
+    it('routes render errors to the render-context logger', () => {
         const logger = new Logger();
+        const other = new Logger();
         const scoped = vi.spyOn(logger, 'warnOnce').mockImplementation(() => {});
-        const fallback = vi.spyOn(Logger.default, 'warnOnce').mockImplementation(() => {});
+        const unrelated = vi.spyOn(other, 'warnOnce').mockImplementation(() => {});
 
         new ThrowingNode().isolatedRender(stubRenderCtx(logger));
 
         expect(scoped).toHaveBeenCalledOnce();
-        expect(fallback).not.toHaveBeenCalled();
-    });
-
-    it('falls back to Logger.default when the render context carries no logger', () => {
-        const fallback = vi.spyOn(Logger.default, 'warnOnce').mockImplementation(() => {});
-
-        new ThrowingNode().isolatedRender(stubRenderCtx());
-
-        expect(fallback).toHaveBeenCalledOnce();
+        expect(unrelated).not.toHaveBeenCalled();
     });
 });

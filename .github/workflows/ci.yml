@@ -43,7 +43,10 @@ env:
     BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
     AG_LIBRARY: charts
     AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
-    AG_E2E_SHARD_COUNT: 32
+    # PR runs sweep only the vanilla example variant (see AG_E2E_FRAMEWORKS), so each shard
+    # carries roughly a third of the work and fewer, fuller shards waste less on the ~45s of
+    # fixed per-shard setup. Pushes still run all six variants and keep the wider fan-out.
+    AG_E2E_SHARD_COUNT: ${{ github.event_name == 'pull_request' && '16' || '32' }}
     LIBRARY_WEBSITE_STATUS_CHANNEL: '#charts-website-status'
 
 permissions:
@@ -124,12 +127,19 @@ jobs:
     init:
         runs-on: ubuntu-24.04
         name: Initialise Workflow
-        needs: detect-changes
-        if: needs.detect-changes.outputs.run_full_ci == 'true'
+        # Deliberately does not wait for detect-changes (~20-30s off the critical path):
+        # init consumes none of its outputs. On the rare docs-only PR this wastes one
+        # init run — every downstream job is still gated by detect-changes.
         permissions:
             contents: write
         env:
             AG_FORCE_ALL_TESTS: 1
+            # Docs-example sweeps cover only the vanilla variant of the examples this branch did not
+            # touch; changed examples always sweep all six. Everything except PRs — pushes (the
+            # on.push filter admits latest/next/bX.Y.Z only) and manual dispatches, which are run to
+            # verify deliberately — keeps the full six-variant sweep. Must stay in step with the e2e
+            # job below.
+            AG_E2E_FRAMEWORKS: ${{ github.event_name != 'pull_request' && 'vanilla,typescript,reactFunctional,reactFunctionalTs,angular,vue3' || 'vanilla' }}
         outputs:
             nx_base: ${{ steps.setup.outputs.base }}
             test_count: ${{ steps.matrix.outputs.test_count }}
@@ -153,13 +163,22 @@ jobs:
               uses: ./.github/actions/setup-nx
               with:
                   cache_mode: ${{ github.event.inputs.clean_checkout == 'true' && 'off' || 'rw' }}
+                  free_disk_space: false
+                  # Safe for init only: its own build step materialises all plugin outputs.
+                  # Measured net win (~30s): the graph computation moves into the build step,
+                  # but the plugin-build invocation's own fixed overhead is avoided.
+                  skip_plugin_build: true
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref || 'latest' }}
 
             - name: nx build and generate cacheable examples
               id: build
               if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
               run: |
-                  yarn nx run-many -t build,docs-resolved-interfaces,generate-example --exclude tag:skip-gha-cache,all
+                  # generate-thumbnail is deliberately NOT built here. It cost ~80s on this
+                  # critical-path job purely to populate the Nx cache for website_build — which no
+                  # longer waits for init, so it cannot see this run's cache anyway and generates
+                  # the thumbnails itself, in parallel, where it has slack.
+                  yarn nx run-many -t build,docs-resolved-interfaces,generate-example --exclude tag:skip-gha-cache,all --parallel=12
                   # Populate the (rw-cached) staging example outputs here so the ro website_build
                   # job restores them instead of regenerating all examples. Only latest builds the
                   # website with -c staging, so scope the extra generation to that branch.
@@ -204,7 +223,18 @@ jobs:
                     e2e_count=0
                   fi
 
-                  e2e_matrix=$(node ./external/ag-shared/scripts/shard/calculate-shards.js eval --max ${{ env.AG_E2E_SHARD_COUNT }} ${e2e_count})
+                  # Duration-balanced shard assignment (falls back to Playwright count-based
+                  # --shard sharding if the committed timings file is missing or stale).
+                  # One timings file per event type: pushes sweep all six framework variants with
+                  # AG_SCENE_SNAPSHOTS=all, so their docs-example specs cost ~10x what the same
+                  # specs cost on a vanilla-only PR run. Planning either run type from the other's
+                  # timings mis-weights those specs badly enough to overflow the 15-minute job
+                  # timeout, so each file must be regenerated from a run of its own event type.
+                  e2e_matrix=$(node ./external/ag-shared/scripts/shard/assign-e2e-shards.js \
+                    --max ${{ env.AG_E2E_SHARD_COUNT }} \
+                    --count ${e2e_count} \
+                    --timings packages/ag-charts-website/e2e/shard-timings${{ github.event_name == 'pull_request' && '.pr' || '' }}.json \
+                    --test-dir packages/ag-charts-website/e2e)
                   echo "e2e_matrix=${e2e_matrix}" >> $GITHUB_OUTPUT
                   echo "e2e_count=${e2e_count}" >> $GITHUB_OUTPUT
                   echo "E2E matrix determined to be: ${e2e_matrix} (e2e_test_count=${e2e_count})"
@@ -235,11 +265,18 @@ jobs:
               uses: actions/upload-artifact@v4
               with:
                   name: e2e-init-outputs
+                  # Mostly minified JS — heavier compression buys little and costs
+                  # upload/download time on init and every e2e shard.
+                  compression-level: 1
+                  # Sourcemaps (~77MB across 264 files) are only ever fetched by devtools,
+                  # so no e2e assertion depends on them — excluding them trims the upload
+                  # here and the download on every shard.
                   path: |
                       dist/
                       packages/*/dist/
                       external/*/dist/
                       packages/ag-charts-website/e2e/generated/
+                      !packages/*/dist/**/*.map
 
     lint:
         runs-on: ubuntu-24.04
@@ -291,7 +328,9 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                shard: [1, 2]
+                # `generate -c production` is a separate pass from init's `generate-example`, so it
+                # is real work (~940 tasks, almost no cache hits) rather than a cache replay.
+                shard: [1, 2, 3, 4]
         outputs:
             generate: ${{ steps.generate.outcome || '' }}
         steps:
@@ -310,7 +349,9 @@ jobs:
               id: setup
               uses: ./.github/actions/setup-nx
               with:
+                  yarn_postinstall: no-install
                   cache_mode: ro
+                  free_disk_space: false
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
 
             - name: nx generate
@@ -345,7 +386,9 @@ jobs:
               id: setup
               uses: ./.github/actions/setup-nx
               with:
+                  yarn_postinstall: no-install
                   cache_mode: ro
+                  free_disk_space: false
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
 
             - name: nx build
@@ -420,8 +463,17 @@ jobs:
         permissions:
             contents: write
             pull-requests: write
+        # Per-PR lock: stops this PR's publishers (the UMD bundles here and the
+        # snapshot reports in `snapshot_review`) and its close-time cleanup from
+        # running concurrently, which narrows the window in which a late publish
+        # could re-create a pr-<N>/ that cleanup removed. (Job concurrency prevents
+        # overlap but not strict ordering, so it narrows rather than closes that
+        # window.) Cross-PR safety is NOT this lock's job — the push-retry loop in
+        # pr-preview-publish resolves diverged refs between different PRs, so they no
+        # longer contend. Keep this group string byte-identical to the ones in
+        # `snapshot_review` (below) and `gh_pages_cleanup` (pr-cleanup.yml).
         concurrency:
-            group: pr-preview-gh-pages
+            group: pr-preview-gh-pages-${{ github.event.pull_request.number }}
             cancel-in-progress: false
         env:
             PR_NUMBER: ${{ github.event.pull_request.number }}
@@ -568,7 +620,10 @@ jobs:
     website_build:
         runs-on: ubuntu-24.04
         name: Website Build
-        needs: [detect-changes, init]
+        # Deliberately does not wait for init: it consumes no init outputs, only the previous
+        # baseline Nx cache (restore-keys), and rebuilds PR-affected tasks itself. Starting it
+        # immediately takes ~4 minutes off the critical path on code-change PRs.
+        needs: [detect-changes]
         if: needs.detect-changes.outputs.run_full_ci == 'true'
         outputs:
             build: ${{ steps.build.outcome || '' }}
@@ -588,7 +643,9 @@ jobs:
               id: setup
               uses: ./.github/actions/setup-nx
               with:
+                  yarn_postinstall: no-install
                   cache_mode: ro
+                  free_disk_space: false
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
 
             - name: nx build ag-charts-website
@@ -645,7 +702,9 @@ jobs:
               id: setup
               uses: ./.github/actions/setup-nx
               with:
+                  yarn_postinstall: no-install
                   cache_mode: ro
+                  free_disk_space: false
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
 
             - name: nx test
@@ -688,19 +747,45 @@ jobs:
         name: Playwright Image
         needs: [detect-changes]
         if: needs.detect-changes.outputs.run_full_ci == 'true'
+        permissions:
+            packages: write
         env:
             PLAYWRIGHT_IMAGE: mcr.microsoft.com/playwright:v1.60.0-jammy
+            GHCR_IMAGE: ghcr.io/ag-grid/ag-charts/playwright:v1.60.0-jammy
             PLAYWRIGHT_CACHE_KEY: playwright-image-v1.60.0-jammy-v1
+        outputs:
+            # 'true' when shards can `docker pull` the GHCR mirror instead of restoring
+            # the tarball cache. Falls back to the tarball path for fork PRs, whose
+            # tokens cannot push (and may not read) GHCR packages.
+            ghcr_available: ${{ steps.mirror_check.outputs.exists == 'true' || steps.mirror_push.outcome == 'success' }}
         steps:
+            - name: Log in to GHCR
+              id: ghcr_login
+              continue-on-error: true # Fork PR tokens lack packages access; fall back to the tarball cache.
+              run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+            - name: Check GHCR Mirror
+              id: mirror_check
+              if: steps.ghcr_login.outcome == 'success'
+              run: |
+                  if docker manifest inspect "${GHCR_IMAGE}" >/dev/null 2>&1 ; then
+                    echo "exists=true" >> "$GITHUB_OUTPUT"
+                  else
+                    echo "exists=false" >> "$GITHUB_OUTPUT"
+                  fi
+
+            # Tarball cache path — only needed until the GHCR mirror exists for this
+            # Playwright version, and as the fallback for fork PRs.
             - name: Restore Playwright Image Cache
               id: pw_cache
+              if: steps.mirror_check.outputs.exists != 'true'
               uses: actions/cache@v4
               with:
                   path: /tmp/playwright-docker-image.tar
                   key: ${{ env.PLAYWRIGHT_CACHE_KEY }}
 
             - name: Pull Playwright Image
-              if: steps.pw_cache.outputs.cache-hit != 'true'
+              if: steps.mirror_check.outputs.exists != 'true' && steps.pw_cache.outputs.cache-hit != 'true'
               run: |
                   pull_attempts=4
                   for attempt in $(seq 1 ${pull_attempts}) ; do
@@ -718,23 +803,74 @@ jobs:
                   done
                   docker save ${PLAYWRIGHT_IMAGE} -o /tmp/playwright-docker-image.tar
 
+            - name: Load Playwright Image
+              if: steps.mirror_check.outputs.exists != 'true' && steps.pw_cache.outputs.cache-hit == 'true'
+              run: docker load -i /tmp/playwright-docker-image.tar
+
+            # Mirror the exact upstream image to GHCR (retag only — contents are
+            # byte-identical) so shards can pull it instead of restoring the tarball.
+            - name: Push GHCR Mirror
+              id: mirror_push
+              if: steps.ghcr_login.outcome == 'success' && steps.mirror_check.outputs.exists != 'true'
+              continue-on-error: true # Push failure just means shards use the tarball cache.
+              run: |
+                  docker tag "${PLAYWRIGHT_IMAGE}" "${GHCR_IMAGE}"
+                  docker push "${GHCR_IMAGE}"
+
     e2e:
         runs-on: ubuntu-latest
         name: E2E Tests (${{ matrix.shard }}/${{ strategy.job-total }})
         permissions:
             contents: write
+            packages: read
         needs: [detect-changes, init, playwright_image]
         if: needs.detect-changes.outputs.run_full_ci == 'true' && needs.init.outputs.e2e_count > 0
         strategy:
             fail-fast: false
             matrix: ${{ fromJson(needs.init.outputs.e2e_matrix )}}
         env:
+            PLAYWRIGHT_IMAGE: mcr.microsoft.com/playwright:v1.60.0-jammy
+            GHCR_IMAGE: ghcr.io/ag-grid/ag-charts/playwright:v1.60.0-jammy
             NX_BASE: ${{ needs.init.outputs.nx_base }}
             AG_FORCE_ALL_TESTS: 1
+            # Must hold the same value as the init job: init's `playwright test --list` count is what
+            # sizes the shard plan, so a disagreement would plan shards for a workload never run.
+            AG_E2E_FRAMEWORKS: ${{ github.event_name != 'pull_request' && 'vanilla,typescript,reactFunctional,reactFunctionalTs,angular,vue3' || 'vanilla' }}
             # Scene-graph JSON capture alongside E2E screenshots: full dump on baseline-branch pushes,
             # dump-on-diff for PRs (for E2E, both capture — see expectChartScreenshot).
             AG_SCENE_SNAPSHOTS: ${{ github.event_name == 'push' && 'all' || 'diff' }}
         steps:
+            # Registry pull is faster than cache restore + docker load, and it needs
+            # nothing from the working tree — only GITHUB_TOKEN. Running it first and in
+            # the background hides its ~26s (login, layer download, decompression)
+            # behind checkout, the artifact download and setup.
+            - name: Start Playwright Image Pull (GHCR mirror)
+              if: needs.playwright_image.outputs.ghcr_available == 'true'
+              env:
+                  GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  nohup bash -c '
+                    status=1
+                    for attempt in 1 2 3 ; do
+                      # Login is inside the retry: under ~32 concurrent shards the GHCR
+                      # token endpoint itself can time out transiently.
+                      if echo "${GHCR_TOKEN}" | docker login ghcr.io -u "${GITHUB_ACTOR}" --password-stdin \
+                          && docker pull "${GHCR_IMAGE}" ; then
+                        # Retagging to the upstream name means playwright.sh finds the
+                        # image locally and skips its own pull; the rendered environment
+                        # is byte-identical either way.
+                        docker tag "${GHCR_IMAGE}" "${PLAYWRIGHT_IMAGE}"
+                        status=0
+                        break
+                      fi
+                      if [ ${attempt} -lt 3 ] ; then
+                        sleep $((attempt * 10))
+                      fi
+                    done
+                    echo "${status}" > "${RUNNER_TEMP}/playwright-pull.status"
+                  ' > "${RUNNER_TEMP}/playwright-pull.log" 2>&1 < /dev/null &
+                  echo "GHCR pull running in the background as pid $!."
+
             - name: Checkout
               id: checkout
               uses: actions/checkout@v4
@@ -751,24 +887,81 @@ jobs:
                   yarn_postinstall: no-install
                   nx_restore: false # Restored in previous step.
                   cache_mode: ro
+                  free_disk_space: false
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
 
+            # Backgrounded here — the earliest point at which node_modules and the built
+            # packages both exist — so the dev server's boot and its cold compile of the
+            # index overlap the image wait below and the test step's container start-up.
+            # playwright.sh adopts the running server instead of spawning its own.
+            - name: Start Astro Dev Server
+              run: packages/ag-charts-website/playwright.sh --start-dev-server
+
+            - name: Await Playwright Image
+              id: await_image
+              env:
+                  GHCR_AVAILABLE: ${{ needs.playwright_image.outputs.ghcr_available }}
+              run: |
+                  pulled=false
+                  if [ "${GHCR_AVAILABLE}" == "true" ] ; then
+                    # The pull runs in a shell detached from an earlier step, so it is not
+                    # a child of this one — poll for its status file rather than `wait`.
+                    for _ in $(seq 1 300) ; do
+                      if [ -f "${RUNNER_TEMP}/playwright-pull.status" ] ; then
+                        break
+                      fi
+                      sleep 1
+                    done
+                    if docker image inspect "${PLAYWRIGHT_IMAGE}" >/dev/null 2>&1 ; then
+                      pulled=true
+                    else
+                      # Registry flakiness must not fail the shard — the tarball cache below is the fallback.
+                      echo "::warning::GHCR pull did not produce ${PLAYWRIGHT_IMAGE}; falling back to the tarball cache."
+                      cat "${RUNNER_TEMP}/playwright-pull.log" 2>/dev/null || true
+                    fi
+                  fi
+                  echo "pulled=${pulled}" >> "$GITHUB_OUTPUT"
+
+            # Fallback for fork PRs (whose tokens cannot read GHCR) and for transient registry
+            # failures. The tarball cache is only refreshed while the GHCR mirror does not yet
+            # exist, so it may be absent — pull from upstream as a last resort rather than failing.
             - name: Restore Playwright Image Cache
+              id: pw_tarball
+              if: steps.await_image.outputs.pulled != 'true'
               uses: actions/cache/restore@v4
               with:
                   path: /tmp/playwright-docker-image.tar
                   key: playwright-image-v1.60.0-jammy-v1
-                  fail-on-cache-miss: true
 
             - name: Load Playwright Image
-              run: docker load -i /tmp/playwright-docker-image.tar
+              if: steps.await_image.outputs.pulled != 'true'
+              env:
+                  TARBALL_HIT: ${{ steps.pw_tarball.outputs.cache-hit }}
+              run: |
+                  if [ "${TARBALL_HIT}" == "true" ] ; then
+                    docker load -i /tmp/playwright-docker-image.tar
+                    exit 0
+                  fi
+                  echo "No cached image tarball; pulling ${PLAYWRIGHT_IMAGE} from upstream."
+                  for attempt in 1 2 3 4 ; do
+                    if docker pull "${PLAYWRIGHT_IMAGE}" ; then
+                      exit 0
+                    fi
+                    if [ ${attempt} -lt 4 ] ; then
+                      sleep $((attempt * 15))
+                    fi
+                  done
+                  echo "Failed to obtain ${PLAYWRIGHT_IMAGE}."
+                  exit 1
 
             - name: nx test:e2e
               id: test
               run: |
                   cd packages/ag-charts-website/
 
-                  ./playwright.sh --host test -u changed --shard=${{ matrix.shard }}/${{ strategy.job-total }}
+                  # matrix.args is either an explicit duration-balanced spec-file list (optionally
+                  # with an intra-file --shard split) or a plain --shard=n/m fallback.
+                  ./playwright.sh --host test -u changed ${{ matrix.args }}
               timeout-minutes: 15
 
             - name: Snapshot Branch
@@ -793,9 +986,37 @@ jobs:
         name: Demo Apps Smoke
         needs: [detect-changes, init, playwright_image]
         if: needs.detect-changes.outputs.run_full_ci == 'true' && needs.init.outputs.demos_affected != '0'
+        permissions:
+            contents: read
+            packages: read
         env:
             PLAYWRIGHT_IMAGE: mcr.microsoft.com/playwright:v1.60.0-jammy
+            GHCR_IMAGE: ghcr.io/ag-grid/ag-charts/playwright:v1.60.0-jammy
         steps:
+            # First and backgrounded, so the pull overlaps checkout, the artifact download
+            # and setup. See the e2e job for the detail.
+            - name: Start Playwright Image Pull (GHCR mirror)
+              if: needs.playwright_image.outputs.ghcr_available == 'true'
+              env:
+                  GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  nohup bash -c '
+                    status=1
+                    for attempt in 1 2 3 ; do
+                      if echo "${GHCR_TOKEN}" | docker login ghcr.io -u "${GITHUB_ACTOR}" --password-stdin \
+                          && docker pull "${GHCR_IMAGE}" ; then
+                        docker tag "${GHCR_IMAGE}" "${PLAYWRIGHT_IMAGE}"
+                        status=0
+                        break
+                      fi
+                      if [ ${attempt} -lt 3 ] ; then
+                        sleep $((attempt * 10))
+                      fi
+                    done
+                    echo "${status}" > "${RUNNER_TEMP}/playwright-pull.status"
+                  ' > "${RUNNER_TEMP}/playwright-pull.log" 2>&1 < /dev/null &
+                  echo "GHCR pull running in the background as pid $!."
+
             - name: Checkout
               id: checkout
               uses: actions/checkout@v4
@@ -814,17 +1035,65 @@ jobs:
                   yarn_postinstall: no-install
                   nx_restore: false # Restored in previous step.
                   cache_mode: ro
+                  free_disk_space: false
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
 
+            - name: Await Playwright Image
+              id: await_image
+              env:
+                  GHCR_AVAILABLE: ${{ needs.playwright_image.outputs.ghcr_available }}
+              run: |
+                  pulled=false
+                  if [ "${GHCR_AVAILABLE}" == "true" ] ; then
+                    # The pull runs in a shell detached from an earlier step, so it is not
+                    # a child of this one — poll for its status file rather than `wait`.
+                    for _ in $(seq 1 300) ; do
+                      if [ -f "${RUNNER_TEMP}/playwright-pull.status" ] ; then
+                        break
+                      fi
+                      sleep 1
+                    done
+                    if docker image inspect "${PLAYWRIGHT_IMAGE}" >/dev/null 2>&1 ; then
+                      pulled=true
+                    else
+                      # Registry flakiness must not fail the job — the tarball cache below is the fallback.
+                      echo "::warning::GHCR pull did not produce ${PLAYWRIGHT_IMAGE}; falling back to the tarball cache."
+                      cat "${RUNNER_TEMP}/playwright-pull.log" 2>/dev/null || true
+                    fi
+                  fi
+                  echo "pulled=${pulled}" >> "$GITHUB_OUTPUT"
+
+            # Fallback for fork PRs (whose tokens cannot read GHCR) and for transient registry
+            # failures. The tarball cache is only refreshed while the GHCR mirror does not yet
+            # exist, so it may be absent — pull from upstream as a last resort rather than failing.
             - name: Restore Playwright Image Cache
+              id: pw_tarball
+              if: steps.await_image.outputs.pulled != 'true'
               uses: actions/cache/restore@v4
               with:
                   path: /tmp/playwright-docker-image.tar
                   key: playwright-image-v1.60.0-jammy-v1
-                  fail-on-cache-miss: true
 
             - name: Load Playwright Image
-              run: docker load -i /tmp/playwright-docker-image.tar
+              if: steps.await_image.outputs.pulled != 'true'
+              env:
+                  TARBALL_HIT: ${{ steps.pw_tarball.outputs.cache-hit }}
+              run: |
+                  if [ "${TARBALL_HIT}" == "true" ] ; then
+                    docker load -i /tmp/playwright-docker-image.tar
+                    exit 0
+                  fi
+                  echo "No cached image tarball; pulling ${PLAYWRIGHT_IMAGE} from upstream."
+                  for attempt in 1 2 3 4 ; do
+                    if docker pull "${PLAYWRIGHT_IMAGE}" ; then
+                      exit 0
+                    fi
+                    if [ ${attempt} -lt 4 ] ; then
+                      sleep $((attempt * 15))
+                    fi
+                  done
+                  echo "Failed to obtain ${PLAYWRIGHT_IMAGE}."
+                  exit 1
 
             - name: playwright test ag-charts-demos
               id: demos_e2e
@@ -877,7 +1146,9 @@ jobs:
               if: matrix.framework != 'none'
               uses: ./.github/actions/setup-nx
               with:
+                  yarn_postinstall: no-install
                   cache_mode: ro
+                  free_disk_space: false
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
 
             - name: nx package:test
@@ -954,7 +1225,9 @@ jobs:
               id: setup
               uses: ./.github/actions/setup-nx
               with:
+                  yarn_postinstall: no-install
                   cache_mode: ro
+                  free_disk_space: false
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
 
             - name: nx test:bundle-${{ matrix.name }}
@@ -1307,13 +1580,19 @@ jobs:
             github.event.pull_request.head.repo.full_name == github.repository &&
             needs.detect-changes.outputs.run_full_ci == 'true'
         permissions:
-            # write: the HTML reports are published to the gh-pages PR preview (peaceiris/actions-gh-pages
+            # write: the HTML reports are published to the gh-pages PR preview (pr-preview-publish
             # pushes with GITHUB_TOKEN, which is scoped by this job's permissions).
             contents: write
             pull-requests: write
             packages: read
             # scene-graph review (follow-up) downloads CI artifacts via gh — needs actions: read.
             actions: read
+        # This job also publishes into the PR's pr-<N>/ preview, so it shares the
+        # per-PR lock with `pr_preview` and `gh_pages_cleanup` — see the rationale on
+        # `pr_preview`. Byte-identical group string across all three.
+        concurrency:
+            group: pr-preview-gh-pages-${{ github.event.pull_request.number }}
+            cancel-in-progress: false
         env:
             # Report URLs are deterministic (snapshot-<slug>.html), so a previous run's deploy answers
             # 200 at the same URL while this run's is still propagating. Stamp each report with a
@@ -1323,9 +1602,35 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v4
               with:
+                  # Full history topology is needed for snapshot diffing, but blobs can be
+                  # fetched lazily — a blob-less clone cuts checkout from ~80s to ~15s.
                   fetch-depth: 0
+                  filter: blob:none
+
+            # The review can only produce output when the PR touches committed baselines (PNGs)
+            # or CI regenerated baselines onto the snapshot branch. Detecting that up front lets
+            # the no-change path skip the ~65s of ImageMagick + dev-prompts installs.
+            - name: Detect snapshot changes
+              id: detect
+              env:
+                  SNAPSHOT_BRANCH: ${{ needs.init.outputs.snapshot_branch }}
+                  BASE_BRANCH: ${{ github.base_ref }}
+              run: |
+                  set -uo pipefail
+                  changed=false
+                  if git ls-remote --exit-code --heads origin "$SNAPSHOT_BRANCH" >/dev/null 2>&1 ; then
+                    changed=true
+                    echo "Snapshot branch $SNAPSHOT_BRANCH exists on origin."
+                  elif git diff --name-only "origin/${BASE_BRANCH}...HEAD" -- '*.png' | grep -q . ; then
+                    changed=true
+                    echo "PR diff touches committed PNG baselines."
+                  else
+                    echo "No snapshot changes detected; skipping review installs."
+                  fi
+                  echo "changed=${changed}" >> "$GITHUB_OUTPUT"
 
             - name: Install ImageMagick
+              if: steps.detect.outputs.changed == 'true'
               shell: bash
               run: |
                   set -euo pipefail
@@ -1341,11 +1646,13 @@ jobs:
                   magick identify -version | head -1
 
             - name: Install @ag-grid/dev-prompts
+              if: steps.detect.outputs.changed == 'true'
               uses: ./external/ag-shared/github/actions/install-ag-dev-prompts
               with:
                   channel: canary
 
             - name: Generate snapshot-review reports
+              if: steps.detect.outputs.changed == 'true'
               id: review
               uses: ./.github/actions/snapshot-review-run
               with:

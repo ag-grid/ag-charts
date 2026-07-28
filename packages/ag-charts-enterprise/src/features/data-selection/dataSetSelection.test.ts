@@ -1,3 +1,4 @@
+import { testLogger } from '_ag-charts-test';
 import { describe, expect, it } from 'vitest';
 
 import { _ModuleSupport } from 'ag-charts-community';
@@ -10,7 +11,7 @@ function createDataSelectionService() {
 }
 
 function createDataSet<T = unknown>(data: T[], dataIdKey?: string): _ModuleSupport.DataSet<T> {
-    return new _ModuleSupport.DataSet(data, dataIdKey);
+    return new _ModuleSupport.DataSet(data, testLogger, dataIdKey);
 }
 
 function getSelectedCount(sel: DataSetSelection): number {
@@ -211,7 +212,13 @@ describe('DataSet selection transfer', () => {
             sel.select(0); // A
             sel.select(2); // C
 
-            const next = _ModuleSupport.replaceDataSet(service, old, [{ k: 'B' }, { k: 'C' }, { k: 'D' }], 'k');
+            const next = _ModuleSupport.replaceDataSet(
+                service,
+                old,
+                [{ k: 'B' }, { k: 'C' }, { k: 'D' }],
+                'k',
+                testLogger
+            );
             expect(next).not.toBe(old);
 
             const nextSel = service.selections.get('s1');
@@ -224,7 +231,7 @@ describe('DataSet selection transfer', () => {
             const old = createDataSet([{ k: 'A' }, { k: 'B' }], 'k');
             service.enableSelection('s1', old).select(0); // A
 
-            const next = _ModuleSupport.replaceDataSet(service, old, [{ k: 'C' }, { k: 'D' }], 'k');
+            const next = _ModuleSupport.replaceDataSet(service, old, [{ k: 'C' }, { k: 'D' }], 'k', testLogger);
             expect(next).not.toBe(old);
 
             const nextSel = service.selections.get('s1');
@@ -237,7 +244,7 @@ describe('DataSet selection transfer', () => {
             const old = createDataSet([{ v: 1 }, { v: 2 }]);
             service.enableSelection('s1', old).select(0);
 
-            const next = _ModuleSupport.replaceDataSet(service, old, [{ v: 3 }, { v: 4 }], undefined);
+            const next = _ModuleSupport.replaceDataSet(service, old, [{ v: 3 }, { v: 4 }], undefined, testLogger);
             expect(next).not.toBe(old);
             expect(service.selections.size).toBe(1);
         });
@@ -247,7 +254,13 @@ describe('DataSet selection transfer', () => {
             const old = createDataSet([{ v: 1 }, { v: 2 }]);
             service.enableSelection('s1', old).select(0);
 
-            const next = _ModuleSupport.replaceDataSet(service, old, [{ v: 3 }, { v: 4 }, { v: 5 }], undefined);
+            const next = _ModuleSupport.replaceDataSet(
+                service,
+                old,
+                [{ v: 3 }, { v: 4 }, { v: 5 }],
+                undefined,
+                testLogger
+            );
             expect(next).not.toBe(old);
             expect(service.selections.size).toBe(0);
         });
@@ -258,7 +271,7 @@ describe('DataSet selection transfer', () => {
             service.enableSelection('line-1', old).select(0); // A
             service.enableSelection('bar-1', old).select(2); // C
 
-            const next = _ModuleSupport.replaceDataSet(service, old, [{ k: 'A' }, { k: 'C' }], 'k');
+            const next = _ModuleSupport.replaceDataSet(service, old, [{ k: 'A' }, { k: 'C' }], 'k', testLogger);
             expect(next).not.toBe(old);
 
             expect(getSelectedIndices(service.selections.get('line-1')!)).toEqual([0]); // A at idx 0
@@ -268,7 +281,7 @@ describe('DataSet selection transfer', () => {
         it('should handle predecessor with no selections', () => {
             const service = createDataSelectionService();
             const old = createDataSet([{ k: 'A' }], 'k');
-            const next = _ModuleSupport.replaceDataSet(service, old, [{ k: 'A' }], 'k');
+            const next = _ModuleSupport.replaceDataSet(service, old, [{ k: 'A' }], 'k', testLogger);
             expect(next).not.toBe(old);
             expect(service.selections.size).toBe(0);
         });
@@ -280,7 +293,7 @@ describe('DataSet selection transfer', () => {
             const ds = createDataSet([{ k: 'X' }, { k: 'Y' }], 'k');
             service.enableSelection('s1', ds).select(1);
 
-            const clone = _ModuleSupport.deepCloneDataSet(service, ds);
+            const clone = _ModuleSupport.deepCloneDataSet(service, ds, testLogger);
             expect(clone).not.toBe(ds);
 
             const cloneSel = service.selections.get('s1');
@@ -326,7 +339,7 @@ describe('DataSet selection transfer', () => {
             expect(ds.getIdArray()).toEqual(['A', 'C']);
 
             // Now do a replaceWith — selection for A should transfer correctly
-            const next = _ModuleSupport.replaceDataSet(service, ds, [{ k: 'A' }, { k: 'D' }], 'k');
+            const next = _ModuleSupport.replaceDataSet(service, ds, [{ k: 'A' }, { k: 'D' }], 'k', testLogger);
             expect(next).not.toBe(ds);
 
             const sel = service.selections.get('s1');
@@ -390,7 +403,13 @@ describe('DataSet selection transfer', () => {
             sel.select(0); // A — has ID
             sel.select(1); // missing ID — should NOT transfer
 
-            const next = _ModuleSupport.replaceDataSet(service, old, [{ k: 'A' }, { k: '' }, { k: 'C' }], 'k');
+            const next = _ModuleSupport.replaceDataSet(
+                service,
+                old,
+                [{ k: 'A' }, { k: '' }, { k: 'C' }],
+                'k',
+                testLogger
+            );
             expect(next).not.toBe(old);
 
             const nextSel = service.selections.get('s1');
@@ -407,7 +426,7 @@ describe('DataSet selection transfer', () => {
             service.enableSelection('s1', old).select(0);
 
             // New dataset uses a different dataIdKey
-            const next = _ModuleSupport.replaceDataSet(service, old, [{ k: 'A', id: 1 }], 'id');
+            const next = _ModuleSupport.replaceDataSet(service, old, [{ k: 'A', id: 1 }], 'id', testLogger);
             expect(next).not.toBe(old);
 
             // Selections should NOT transfer — key schema changed

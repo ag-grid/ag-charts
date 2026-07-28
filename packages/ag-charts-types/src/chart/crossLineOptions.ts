@@ -3,6 +3,8 @@ import type { AgCssColorOrRef } from './themeParamsOptions';
 import type { AxisValue, CssColor, FontFamilyFull, Opacity, PixelSize } from './types';
 
 export interface AgCommonCrossLineOptions<LabelType = AgBaseCrossLineLabelOptions> {
+    /** A user-supplied identifier for the Cross Line, surfaced as `crossLineId` in callback and event params. Defaults to an internally generated identifier. */
+    id?: string;
     /** Whether to show the Cross Line. */
     enabled?: boolean;
     /** The colour of the stroke for the lines. A colour string, or a theme-colour reference object. */
@@ -45,9 +47,11 @@ export type AgBaseCrossLineOptions<TValue = AxisValue, LabelType = AgBaseCrossLi
     | AgLineCrossLineOptions<TValue, LabelType>
     | AgRangeCrossLineOptions<TValue, LabelType>;
 
-export interface AgCrossLineThemeOptions<
-    LabelType = AgBaseCrossLineLabelOptions,
-> extends AgCommonCrossLineOptions<LabelType> {
+// `id` identifies a single Cross Line, so it is deliberately absent from the themeable surface.
+export interface AgCrossLineThemeOptions<LabelType = AgBaseCrossLineLabelOptions> extends Omit<
+    AgCommonCrossLineOptions<LabelType>,
+    'id'
+> {
     /** The colour to use for the fill of the range. */
     fill?: CssColor;
     /** The opacity of the fill for the range. */

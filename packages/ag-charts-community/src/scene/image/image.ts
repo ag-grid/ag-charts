@@ -39,13 +39,14 @@ export class Image implements Omit<InternalAgImageFill, 'type'> {
         ctx: CanvasRenderingContext2D,
         image: HTMLImageElement | undefined,
         width: number,
-        height: number
+        height: number,
+        logger: Logger
     ): CanvasPattern | null {
         if (!image) return null;
         const [renderedWidth, renderedHeight] = this.getSize(image.width, image.height, width, height);
 
         if (renderedWidth < 1 || renderedHeight < 1) {
-            Logger.default.warnOnce('Image fill is too small to render, ignoring.');
+            logger.warnOnce('Image fill is too small to render, ignoring.');
             return null;
         }
 
@@ -131,7 +132,8 @@ export class Image implements Omit<InternalAgImageFill, 'type'> {
         ctx: CanvasRenderingContext2D,
         shapeWidth: number,
         shapeHeight: number,
-        node: Node
+        node: Node,
+        logger: Logger
     ): CanvasPattern | string | undefined {
         const width = this.width ?? shapeWidth;
         const height = this.height ?? shapeHeight;
@@ -142,7 +144,7 @@ export class Image implements Omit<InternalAgImageFill, 'type'> {
         }
 
         const image = this.imageLoader?.loadImage(this.url, node);
-        const pattern = this.createCanvasImage(ctx, image, width, height);
+        const pattern = this.createCanvasImage(ctx, image, width, height, logger);
 
         if (pattern == null) return;
 

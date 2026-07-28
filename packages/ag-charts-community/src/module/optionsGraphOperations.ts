@@ -1,15 +1,18 @@
 import {
     Color,
     Debug,
-    Logger,
     ModuleRegistry,
     type PlainObject,
     circularSliceArray,
     clamp,
     isArray,
+    isBoolean,
+    isDate,
+    isFunction,
     isGradientFill,
     isImageFill,
     isNumber,
+    isObject,
     isObjectLike,
     isPatternFill,
     isPlainObject,
@@ -64,6 +67,7 @@ type OperationResolver = (
 
 export function getOperation(
     value: unknown,
+    warnings: Pick<OptionsGraphInterface, 'warnOnce'>,
     keys?: Array<string>
 ): { operation: Operation; values: Array<any> } | undefined {
     if (value == null || typeof value !== 'object' || Array.isArray(value)) return;
@@ -71,7 +75,7 @@ export function getOperation(
     keys ??= Object.keys(value);
     if (keys.length === 0) return;
 
-    const publicOperation = getPublicOperation(value, keys);
+    const publicOperation = getPublicOperation(value, warnings, keys);
     if (publicOperation) return publicOperation;
 
     const operation = keys[0] as Operation;
@@ -87,6 +91,7 @@ export function getOperation(
 // Translate public-facing Grid compatible operations into Charts options graph operations.
 function getPublicOperation(
     value: object,
+    warnings: Pick<OptionsGraphInterface, 'warnOnce'>,
     keys: Array<string>
 ): { operation: Operation; values: Array<any> } | undefined {
     //  `{ ref: string; mix?: number; onto?: string }`
@@ -117,7 +122,7 @@ function getPublicOperation(
                 typeof value.ontoColor === 'string' &&
                 keys.length === 4 + privateOperation
             ) {
-                Logger.default.warnOnce('`onto` and `ontoColor` are mutually exclusive, ignoring `ontoColor`.');
+                warnings.warnOnce('`onto` and `ontoColor` are mutually exclusive, ignoring `ontoColor`.');
                 return { operation: ColorOperation.Mix, values: [{ $ref: value.ref }, { $ref: value.onto }, ratio] };
             }
 
@@ -135,7 +140,7 @@ function getPublicOperation(
 }
 
 function getOperationTargetVertex(graph: OptionsGraphInterface, vertex: VertexInterface, valueVertex: VertexInterface) {
-    const operation = getOperation(graph.getVertexValue(valueVertex));
+    const operation = getOperation(graph.getVertexValue(valueVertex), graph);
 
     switch (operation?.operation) {
         case LocationOperation.Path: {
@@ -299,7 +304,7 @@ function foregroundBackgroundMixOperation(
     }
 
     Debug.inDevelopmentMode(() =>
-        Logger.default.warnOnce(
+        graph.warnOnce(
             `\`$foregroundBackgroundMix\` json operation failed on [${String(foregroundRatio)}}}] at [${graph.getPathArray(vertex).join('.')}], expecting a number between 0 and 1.`
         )
     );
@@ -320,7 +325,7 @@ function foregroundOpacityOperation(
     }
 
     Debug.inDevelopmentMode(() =>
-        Logger.default.warnOnce(
+        graph.warnOnce(
             `\`$foregroundOpacity\` json operation failed on [${String(opacity)}}}] at [${graph.getPathArray(vertex).join('.')}], expecting a number between 0 and 1.`
         )
     );
@@ -368,7 +373,7 @@ function mixOperation(graph: OptionsGraphInterface, vertex: VertexInterface, val
     const warningMessage = `${warningPrefix} two colors and a number between 0 and 1.`;
 
     if (typeof colorB !== 'string' || !isRatio(ratio)) {
-        Debug.inDevelopmentMode(() => Logger.default.warnOnce(warningMessage));
+        Debug.inDevelopmentMode(() => graph.warnOnce(warningMessage));
         return;
     }
 
@@ -376,13 +381,13 @@ function mixOperation(graph: OptionsGraphInterface, vertex: VertexInterface, val
         try {
             return Color.mix(Color.fromString(colorA), Color.fromString(colorB), ratio).toString();
         } catch {
-            Debug.inDevelopmentMode(() => Logger.default.warnOnce(warningMessage));
+            Debug.inDevelopmentMode(() => graph.warnOnce(warningMessage));
             return;
         }
     }
 
     if (!isGradientFill(colorA)) {
-        Debug.inDevelopmentMode(() => Logger.default.warnOnce(warningMessage));
+        Debug.inDevelopmentMode(() => graph.warnOnce(warningMessage));
         return;
     }
 
@@ -397,7 +402,7 @@ function mixOperation(graph: OptionsGraphInterface, vertex: VertexInterface, val
         });
     } catch {
         Debug.inDevelopmentMode(() =>
-            Logger.default.warnOnce(`${warningPrefix} a gradient, a color and a number between 0 and 1.`)
+            graph.warnOnce(`${warningPrefix} a gradient, a color and a number between 0 and 1.`)
         );
         return;
     }
@@ -416,7 +421,7 @@ function opacityOperation(graph: OptionsGraphInterface, vertex: VertexInterface,
     }
 
     Debug.inDevelopmentMode(() =>
-        Logger.default.warnOnce(
+        graph.warnOnce(
             `\`$opacity\` operation failed on [${String(colorValue)}, ${String(opacity)}}}] at ` +
                 `[${graph.getPathArray(vertex).join('.')}], expecting a color and a number between 0 and 1.`
         )
@@ -444,7 +449,7 @@ function remOperation(graph: OptionsGraphInterface, vertex: VertexInterface, val
     }
 
     Debug.inDevelopmentMode(() =>
-        Logger.default.warnOnce(
+        graph.warnOnce(
             `\`$rem\` json operation failed on [${String(value)}] at [${graph.getPathArray(vertex).join('.')}], expecting a number.`
         )
     );
@@ -458,6 +463,7 @@ enum LogicOperation {
     Every = '$every',
     GreaterThan = '$greaterThan',
     If = '$if',
+    IsType = '$isType',
     LessThan = '$lessThan',
     Not = '$not',
     Or = '$or',
@@ -471,6 +477,7 @@ const logicOperations: Record<LogicOperation, OperationFns> = {
     $every: everyOperation,
     $greaterThan: greaterThanOperation,
     $if: ifOperation,
+    $isType: isTypeOperation,
     $lessThan: lessThanOperation,
     $not: notOperation,
     $or: orOperation,
@@ -529,18 +536,67 @@ function greaterThanOperation(graph: OptionsGraphInterface, vertex: VertexInterf
 function ifOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
     const [conditionVertex, thenVertex, elseVertex] = values;
 
-    const condition = graph.resolveVertexValue(vertex, conditionVertex);
-    const valueVertex = condition ? thenVertex : elseVertex;
+    const condition = Boolean(graph.resolveVertexValue(vertex, conditionVertex));
+    const branchVertex = condition ? thenVertex : elseVertex;
+    if (!branchVertex) return condition;
 
-    // Attach neighbours from the chosen conditional branch onto the vertex
-    const neighbours = graph.neighboursWithEdgeValue(valueVertex, PATH_EDGE);
+    return resolveConditionalBranch(graph, vertex, branchVertex);
+}
+
+// Re-parent the branch's children onto the vertex so that an object branch expands as a sub-tree.
+function resolveConditionalBranch(
+    graph: OptionsGraphInterface,
+    vertex: VertexInterface,
+    branchVertex: VertexInterface
+) {
+    const neighbours = graph.neighboursWithEdgeValue(branchVertex, PATH_EDGE);
     if (neighbours) {
         for (const neighbour of neighbours) {
             graph.addEdge(vertex, neighbour, PATH_EDGE);
         }
     }
 
-    return graph.resolveVertexValue(vertex, valueVertex);
+    return graph.resolveVertexValue(vertex, branchVertex);
+}
+
+const VALUE_TYPE_GUARDS: Record<string, (value: unknown) => boolean> = {
+    array: isArray,
+    boolean: isBoolean,
+    date: isDate,
+    function: isFunction,
+    nullish: (value) => value == null,
+    number: isNumber,
+    object: isObject,
+    string: isString,
+};
+
+function isTypeOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
+    const [valueVertex, typeVertex, thenVertex, elseVertex] = values;
+
+    const type = graph.resolveVertexValue(vertex, typeVertex);
+    const value = graph.resolveVertexValue(vertex, valueVertex);
+    const matched = isArray(type)
+        ? type.some((typeName) => isValueType(graph, vertex, value, typeName))
+        : isValueType(graph, vertex, value, type);
+
+    const branchVertex = matched ? thenVertex : elseVertex;
+    if (!branchVertex) return matched;
+
+    return resolveConditionalBranch(graph, vertex, branchVertex);
+}
+
+function isValueType(graph: OptionsGraphInterface, vertex: VertexInterface, value: unknown, type: unknown) {
+    if (isString(type) && Object.hasOwn(VALUE_TYPE_GUARDS, type)) {
+        return VALUE_TYPE_GUARDS[type](value);
+    }
+
+    Debug.inDevelopmentMode(() =>
+        graph.warnOnce(
+            `\`$isType\` json operation failed on [${String(type)}] at [${graph.getPathArray(vertex).join('.')}], expecting one of [${Object.keys(VALUE_TYPE_GUARDS).join(', ')}].`
+        )
+    );
+
+    return false;
 }
 
 function lessThanOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
@@ -640,19 +696,24 @@ function circularOperation(graph: OptionsGraphInterface, vertex: VertexInterface
 function isUserOptionOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
     const [relativePathVertices, thenVertex, elseVertex] = values;
 
+    let matched = false;
     const children = graph.neighboursWithEdgeValue(relativePathVertices, PATH_EDGE);
     if (children) {
         for (const child of children) {
             const relativePathVertex = graph.findNeighbour(child, DEFAULTS_EDGE);
             if (relativePathVertex && isUserOptionCheck(graph, vertex, relativePathVertex)) {
-                return graph.resolveVertexValue(vertex, thenVertex);
+                matched = true;
+                break;
             }
         }
-    } else if (isUserOptionCheck(graph, vertex, relativePathVertices)) {
-        return graph.resolveVertexValue(vertex, thenVertex);
+    } else {
+        matched = isUserOptionCheck(graph, vertex, relativePathVertices);
     }
 
-    return graph.resolveVertexValue(vertex, elseVertex);
+    const branchVertex = matched ? thenVertex : elseVertex;
+    if (!branchVertex) return matched;
+
+    return graph.resolveVertexValue(vertex, branchVertex);
 }
 
 function isUserOptionCheck(graph: OptionsGraphInterface, vertex: VertexInterface, relativePathVertex: VertexInterface) {
@@ -908,7 +969,7 @@ function applyOperation(graph: OptionsGraphInterface, vertex: VertexInterface, v
         : undefined;
 
     if (!hasChildren && defaultValue != null) {
-        if (getOperation(defaultValue)) {
+        if (getOperation(defaultValue, graph)) {
             const resolvedDefaultValue = graph.resolveVertexValue(vertex, defaultValueVertex);
             if (isPlainObject(resolvedDefaultValue)) {
                 graph.graftObject(vertex, resolvedDefaultValue, [overridesPath1, overridesPath2]);
@@ -964,8 +1025,6 @@ function applyCycleOperation(graph: OptionsGraphInterface, vertex: VertexInterfa
     return RESOLVED_TO_BRANCH;
 }
 
-// Expand a padding value to a per-side object: a number applies to every side, an object passes through, and
-// anything else is treated as "not supplied".
 function expandPaddingValue(value: unknown) {
     if (typeof value === 'number') {
         return { top: value, right: value, bottom: value, left: value };
@@ -978,10 +1037,6 @@ function applyPaddingOperation(graph: OptionsGraphInterface, vertex: VertexInter
 
     const pathArray = graph.getPathArray(vertex);
     const userOption = graph.dangerouslyGetUserOption(pathArray);
-
-    // Resolve any theme-override padding for this path, mirroring how the user option is read. Resolving through the
-    // graph is not viable here: a nested override (e.g. `{ left: 15, right: 15 }`) builds child vertices rather than a
-    // value on this vertex, and resolving the vertex would re-enter this operation. Read the raw override instead.
     const overrideOption = graph.dangerouslyGetThemeOverride(pathArray);
 
     const defaultValue = graph.resolveVertexValue(vertex, defaultValueVertex);
@@ -992,7 +1047,6 @@ function applyPaddingOperation(graph: OptionsGraphInterface, vertex: VertexInter
     const expandedOverrideOption = expandPaddingValue(overrideOption);
     const expandedUserOption = expandPaddingValue(userOption);
 
-    // Precedence (per side): user option > theme override > theme default, matching EDGE_PRIORITY.
     if (expandedOverrideOption == null && expandedUserOption == null) {
         return expandedDefaultValue;
     }

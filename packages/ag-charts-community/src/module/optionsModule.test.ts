@@ -1,7 +1,7 @@
 import type { Mock } from 'vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { Logger, ModuleRegistry } from 'ag-charts-core';
+import { Logger, ModuleRegistry, ambientLog, ambientLogger } from 'ag-charts-core';
 import type {
     AgAreaSeriesOptions,
     AgBarSeriesOptions,
@@ -421,7 +421,7 @@ describe('ChartOptions', () => {
     beforeEach(() => {
         console.warn = vi.fn();
         console.error = vi.fn();
-        Logger.reset();
+        ambientLog.reset();
     });
 
     describe('structural cache validation issues', () => {
@@ -664,8 +664,8 @@ describe('ChartOptions', () => {
                       "strokeWidth": 1,
                     },
                     "collision": {
+                      "alwaysShow": true,
                       "collideWith": {
-                        "seriesArea": true,
                         "seriesItems": true,
                       },
                       "threshold": 4,
@@ -757,8 +757,8 @@ describe('ChartOptions', () => {
                       "strokeWidth": 1,
                     },
                     "collision": {
+                      "alwaysShow": true,
                       "collideWith": {
-                        "seriesArea": true,
                         "seriesItems": true,
                       },
                       "threshold": 4,
@@ -850,8 +850,8 @@ describe('ChartOptions', () => {
                       "strokeWidth": 1,
                     },
                     "collision": {
+                      "alwaysShow": true,
                       "collideWith": {
-                        "seriesArea": true,
                         "seriesItems": true,
                       },
                       "threshold": 4,
@@ -943,8 +943,8 @@ describe('ChartOptions', () => {
                       "strokeWidth": 1,
                     },
                     "collision": {
+                      "alwaysShow": true,
                       "collideWith": {
-                        "seriesArea": true,
                         "seriesItems": true,
                       },
                       "threshold": 4,
@@ -1032,6 +1032,9 @@ describe('ChartOptions', () => {
                       "stroke": "rgba(24, 29, 31, 0.08)",
                       "strokeWidth": 1,
                     },
+                    "collision": {
+                      "alwaysShow": true,
+                    },
                     "cornerRadius": 4,
                     "enabled": false,
                     "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
@@ -1106,6 +1109,9 @@ describe('ChartOptions', () => {
                       "enabled": false,
                       "stroke": "rgba(24, 29, 31, 0.08)",
                       "strokeWidth": 1,
+                    },
+                    "collision": {
+                      "alwaysShow": true,
                     },
                     "cornerRadius": 4,
                     "enabled": false,
@@ -1197,8 +1203,8 @@ describe('ChartOptions', () => {
                       "strokeWidth": 1,
                     },
                     "collision": {
+                      "alwaysShow": true,
                       "collideWith": {
-                        "seriesArea": true,
                         "seriesItems": true,
                       },
                       "threshold": 4,
@@ -1290,8 +1296,8 @@ describe('ChartOptions', () => {
                       "strokeWidth": 1,
                     },
                     "collision": {
+                      "alwaysShow": true,
                       "collideWith": {
-                        "seriesArea": true,
                         "seriesItems": true,
                       },
                       "threshold": 4,
@@ -1383,8 +1389,8 @@ describe('ChartOptions', () => {
                       "strokeWidth": 1,
                     },
                     "collision": {
+                      "alwaysShow": true,
                       "collideWith": {
-                        "seriesArea": true,
                         "seriesItems": true,
                       },
                       "threshold": 4,
@@ -1476,8 +1482,8 @@ describe('ChartOptions', () => {
                       "strokeWidth": 1,
                     },
                     "collision": {
+                      "alwaysShow": true,
                       "collideWith": {
-                        "seriesArea": true,
                         "seriesItems": true,
                       },
                       "threshold": 4,
@@ -1565,6 +1571,9 @@ describe('ChartOptions', () => {
                       "stroke": "rgba(24, 29, 31, 0.08)",
                       "strokeWidth": 1,
                     },
+                    "collision": {
+                      "alwaysShow": true,
+                    },
                     "cornerRadius": 4,
                     "enabled": false,
                     "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
@@ -1639,6 +1648,9 @@ describe('ChartOptions', () => {
                       "enabled": false,
                       "stroke": "rgba(24, 29, 31, 0.08)",
                       "strokeWidth": 1,
+                    },
+                    "collision": {
+                      "alwaysShow": true,
                     },
                     "cornerRadius": 4,
                     "enabled": false,
@@ -1730,8 +1742,8 @@ describe('ChartOptions', () => {
                       "strokeWidth": 1,
                     },
                     "collision": {
+                      "alwaysShow": true,
                       "collideWith": {
-                        "seriesArea": true,
                         "seriesItems": true,
                       },
                       "threshold": 4,
@@ -1823,8 +1835,8 @@ describe('ChartOptions', () => {
                       "strokeWidth": 1,
                     },
                     "collision": {
+                      "alwaysShow": true,
                       "collideWith": {
-                        "seriesArea": true,
                         "seriesItems": true,
                       },
                       "threshold": 4,
@@ -1916,8 +1928,8 @@ describe('ChartOptions', () => {
                       "strokeWidth": 1,
                     },
                     "collision": {
+                      "alwaysShow": true,
                       "collideWith": {
-                        "seriesArea": true,
                         "seriesItems": true,
                       },
                       "threshold": 4,
@@ -2009,8 +2021,8 @@ describe('ChartOptions', () => {
                       "strokeWidth": 1,
                     },
                     "collision": {
+                      "alwaysShow": true,
                       "collideWith": {
-                        "seriesArea": true,
                         "seriesItems": true,
                       },
                       "threshold": 4,
@@ -2098,6 +2110,9 @@ describe('ChartOptions', () => {
                       "stroke": "rgba(24, 29, 31, 0.08)",
                       "strokeWidth": 1,
                     },
+                    "collision": {
+                      "alwaysShow": true,
+                    },
                     "cornerRadius": 4,
                     "enabled": false,
                     "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
@@ -2172,6 +2187,9 @@ describe('ChartOptions', () => {
                       "enabled": false,
                       "stroke": "rgba(24, 29, 31, 0.08)",
                       "strokeWidth": 1,
+                    },
+                    "collision": {
+                      "alwaysShow": true,
                     },
                     "cornerRadius": 4,
                     "enabled": false,
@@ -3716,14 +3734,14 @@ describe('ChartOptions', () => {
     });
 
     describe('CSS-variable validation warning routing', () => {
-        it('routes the invalid-colour warning through the instance logger, not Logger.default', () => {
+        it('routes the invalid-colour warning through the instance logger', () => {
             const container = document.createElement('div');
             vi.spyOn(container.ownerDocument.defaultView!, 'getComputedStyle').mockReturnValue({
                 getPropertyValue: (key: string) => (key === '--bad' ? 'not-a-color' : ''),
             } as any);
             const logger = new Logger();
             const instanceWarnOnce = vi.spyOn(logger, 'warnOnce');
-            const defaultWarnOnce = vi.spyOn(Logger.default, 'warnOnce');
+            const unrelatedWarnOnce = vi.spyOn(ambientLogger, 'warnOnce').mockImplementation(() => {});
             const chartOptions = new ChartOptions(
                 {},
                 {} as AgChartOptions,
@@ -3741,7 +3759,7 @@ describe('ChartOptions', () => {
 
             const isInvalidColour = ([m]: unknown[]) => String(m).includes('is not a valid color');
             expect(instanceWarnOnce.mock.calls.some(isInvalidColour)).toBe(true);
-            expect(defaultWarnOnce.mock.calls.some(isInvalidColour)).toBe(false);
+            expect(unrelatedWarnOnce.mock.calls.some(isInvalidColour)).toBe(false);
         });
     });
 });

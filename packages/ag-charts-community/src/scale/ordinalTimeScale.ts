@@ -172,8 +172,15 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
         const availableRange = Math.abs(r1 - r0);
 
         const dateTicks =
-            getDateTicksForInterval({ start, stop, interval, availableRange, visibleRange, extend }) ??
-            this.getDefaultTicks(domain, tickCount, visibleRange, extend).ticks;
+            getDateTicksForInterval({
+                start,
+                stop,
+                interval,
+                availableRange,
+                visibleRange,
+                extend,
+                logger: this.logger,
+            }) ?? this.getDefaultTicks(domain, tickCount, visibleRange, extend).ticks;
 
         const ticks: Date[] = [];
         let lastIndex = -1;

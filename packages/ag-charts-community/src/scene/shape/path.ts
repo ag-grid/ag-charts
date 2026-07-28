@@ -1,4 +1,4 @@
-import type { DistantObject, SerializedNodeState, SerializedPathProps } from 'ag-charts-core';
+import type { DistantObject, Logger, SerializedNodeState, SerializedPathProps } from 'ag-charts-core';
 import { SceneChangeDetection, createSvgElement } from 'ag-charts-core';
 
 import type { BBox } from '../bbox';
@@ -204,7 +204,7 @@ export class Path<D = unknown> extends Shape<D> implements DistantObject {
                 ctx.clip(this._clipPath?.getPath2D());
 
                 if (this._clipX > 0 && this._clipY > 0) {
-                    this.drawPath(ctx);
+                    this.drawPath(ctx, renderCtx.logger);
                 }
             } finally {
                 ctx.restore();
@@ -212,15 +212,15 @@ export class Path<D = unknown> extends Shape<D> implements DistantObject {
         } else {
             this._clipPath = undefined;
 
-            this.drawPath(ctx);
+            this.drawPath(ctx, renderCtx.logger);
         }
 
         this.fillShadow?.markClean();
         super.render(renderCtx);
     }
 
-    drawPath(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D): void {
-        this.fillStroke(ctx, this.path.getPath2D());
+    drawPath(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, logger: Logger): void {
+        this.fillStroke(ctx, logger, this.path.getPath2D());
     }
 
     override toSVG(): { elements: SVGElement[]; defs?: SVGElement[] } | undefined {

@@ -23,12 +23,14 @@ import {
     ChartAxisDirection,
     DebugMetrics,
     applyBarLabelOrientation,
+    applyPlacedBarLabelVisibility,
     areScalingEqual,
-    bakedLabelObstacles,
+    barLabelObstacles,
     barLabelOrientation,
     barLabelResolvesOrientation,
     barLabelResolvesPlacement,
     barLabelRotation,
+    barLabelRoutesThroughEngine,
     buildBarLabelData,
     buildBarPositionedLabelDatum,
     isContinuous,
@@ -37,9 +39,8 @@ import {
     measureLabelText,
     mergeDefaults,
     minValue,
-    placedBarLabelTargets,
-    rectLabelObstacles,
     resolveLabelFit,
+    resolveLabelFitDescriptors,
     toArray,
     toNumber,
     zeroLike,
@@ -135,6 +136,8 @@ import { calculateSegments } from './util';
 
 interface BarNodeLabelDatum {
     readonly text: NormalisedTextOrSegments;
+    /** Text the placement engine fitted to its chosen candidate; rendered in place of `text` when set. */
+    fittedText?: NormalisedTextOrSegments;
     // Mutable so the placement engine can retarget the label to a chosen candidate's anchor.
     x: number;
     y: number;
@@ -199,8 +202,6 @@ interface BarSeriesNodeDatumContext {
      */
     readonly plotRegion: { x: number; y: number; width: number; height: number } | undefined;
     readonly bboxBottom: number;
-    /** Cross-axis wall clearance for inside labels; resolved from `label.collision.threshold`. */
-    readonly labelThreshold: number;
     readonly boxPadding: Required<PaddingOptions>;
     /** Per-side extent of the label's drawn box (padding + border stroke) folded into the collision footprint. */
     readonly labelBoxExtent: Required<PaddingOptions>;
@@ -233,7 +234,7 @@ interface BarSeriesNodeDatumContext {
     // Full ordered placement list and whether it resolves (>1 entry); drive the placement-cascade path.
     readonly labelPlacements: AgBarSeriesLabelPlacement[];
     readonly labelResolvesPlacement: boolean;
-    // Hideable labels (`collision.suppressHide: false`) route even single placements through the engine
+    // Hideable labels (`collision.alwaysShow: false`) route even single placements through the engine
     // so a no-fit label is dropped and hidden, rather than baked unconditionally by the fast path.
     readonly labelHideable: boolean;
     readonly labelRotation: number;
@@ -661,12 +662,10 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         this.ensureBucketLookupFeature()?.setActiveFilter(processedData, dataAggregationFilter);
         const filteredValueExceedUnfiltered = processedData.reduced?.filteredValueExceedUnfiltered ?? false;
         const isStacked = dataModel.hasColumnById(this, 'yValue-start');
-        const stackIndex = this.seriesGrouping?.stackIndex ?? 0;
-        const stackCount = this.seriesGrouping?.stackCount ?? 0;
+        // A legend-hidden neighbour contributes no segment, so it must not block a label's outside placement.
+        const stackNeighbours = this.ctx.seriesStateManager.getVisibleStackNeighbours(this);
         const { label } = this.properties;
-        // The series-area clamp is opt-in via `collideWith.seriesArea`; without it outside/beside
-        // candidates fall back to the engine's plot bounds and may overflow the series area.
-        const plotRegion = label.collision.resolveCollideWith().seriesArea ? this.getSeriesPlotRegion() : undefined;
+        const plotRegion = this.resolveLabelPlotRegion(label.collision);
         const labelPlacements = toArray(label.placement);
         if (labelPlacements.length === 0) labelPlacements.push('inside-center');
         const labelPlacement = labelPlacements[0];
@@ -717,12 +716,11 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             range,
             yReversed: yAxis.isReversed(),
             crossReversed: this.getCategoryAxis()?.isReversed() ?? false,
-            stackedTowardStart: isStacked && stackIndex > 0,
-            stackedTowardEnd: isStacked && stackIndex < stackCount - 1,
+            stackedTowardStart: isStacked && stackNeighbours.before,
+            stackedTowardEnd: isStacked && stackNeighbours.after,
             plotRegion,
             // 0n keeps a bigint y-domain on the full-precision convert() path (a numeric 0 narrows to Number).
             bboxBottom: yScale.convert(0n),
-            labelThreshold: label.collision.threshold ?? 0,
             boxPadding,
             labelBoxExtent: expandPlacementLabelBoxExtent(label),
             crisp:
@@ -750,10 +748,10 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             labelPlacement,
             labelPlacements,
             labelResolvesPlacement: barLabelResolvesPlacement(label.placement),
-            labelHideable: !label.collision.suppressHide,
+            labelHideable: !label.collision.alwaysShow,
             labelRotation: barLabelRotation(toArray(label.orientation)[0]),
             labelResolvesOrientation: barLabelResolvesOrientation(label.orientation),
-            labelFit: resolveLabelFit(label, !label.collision.suppressHide),
+            labelFit: resolveLabelFit(label, !label.collision.alwaysShow),
             yDomain: this.getSeriesDomain(ChartAxisDirection.Y).domain,
         };
     }
@@ -1026,32 +1024,12 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             mutableNode.label = undefined;
         } else if (ctx.labelResolvesPlacement || ctx.labelHideable) {
             // Positioned-candidate path: pre-position a candidate per placement × orientation for the
-            // engine to resolve, each footprint inflated by the box (padding + border stroke). A single
-            // hideable placement first fits its text to the bar (wrap/truncate/hide), reserving the box
-            // padding so the padded candidate box — not just the text — fits within the bar; the
-            // multi-placement cascade keeps full text and falls through to the next placement on overflow.
-            // The engine picks the first candidate that fits its region; the first is baked as a
-            // backward-safe default until the engine writes the chosen one back.
-            const { labelBoxExtent: box } = ctx;
-            let labelText = nodeLabelText;
-            if (!ctx.labelResolvesPlacement) {
-                const { labelPlacement: placement } = ctx;
-                const isInside = placement == null || placement.startsWith('inside');
-                // The engine region comes from the candidate below; here we only need the fit container.
-                const container = isInside
-                    ? insideBarLabelBounds(
-                          rect,
-                          placement ?? 'inside-center',
-                          isUpward,
-                          !ctx.barAlongX,
-                          ctx.label.spacing,
-                          ctx.labelThreshold,
-                          box
-                      ).container
-                    : undefined;
-                labelText = fitLabelToContainer(nodeLabelText, ctx.labelFit, ctx.label, container);
-            }
-            const text = measureLabelText(labelText, ctx.label);
+            // engine to resolve, each footprint inflated by the box (padding + border stroke) and — when
+            // an overflow policy applies — carrying the glyph budget its own region offers, so the engine
+            // fits the text per candidate and prefers the one that keeps the most of it. The engine picks
+            // the first candidate that fits its region; the first is baked as a backward-safe default
+            // until the engine writes the chosen one back.
+            const text = measureLabelText(nodeLabelText, ctx.label);
             const orientations = toArray(ctx.label.orientation);
             if (orientations.length === 0) orientations.push('horizontal');
             const candidates = buildBarLabelCandidates({
@@ -1060,7 +1038,6 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 placements: ctx.labelPlacements,
                 orientations,
                 spacing: ctx.label.spacing,
-                threshold: ctx.labelThreshold,
                 label: ctx.label,
                 textWidth: text.width,
                 textHeight: text.height,
@@ -1068,36 +1045,45 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 crossReversed: ctx.crossReversed,
                 rejectOutsideStart: ctx.stackedTowardStart,
                 rejectOutsideEnd: ctx.stackedTowardEnd,
+                hideable: ctx.labelHideable,
                 plotRegion: ctx.plotRegion,
+                fitted: ctx.labelFit != null,
             });
-            const { anchor, region, placement } = candidates[0];
-            const existingLabel = mutableNode.label;
-            if (existingLabel) {
-                existingLabel.text = labelText;
-                existingLabel.x = anchor.x;
-                existingLabel.y = anchor.y;
-                existingLabel.textAlign = anchor.textAlign;
-                existingLabel.textBaseline = anchor.textBaseline;
-                existingLabel.rotation = ctx.labelRotation;
-                existingLabel.region = region;
-                existingLabel.offsetX = 0;
-                existingLabel.offsetY = 0;
-                existingLabel.placement = placement;
-                existingLabel.candidates = candidates;
+            if (candidates.length === 0) {
+                // Every placement points into a stacked neighbour, so there is nowhere left to put a
+                // label that may be hidden.
+                mutableNode.label = undefined;
             } else {
-                mutableNode.label = {
-                    text: labelText,
-                    x: anchor.x,
-                    y: anchor.y,
-                    textAlign: anchor.textAlign,
-                    textBaseline: anchor.textBaseline,
-                    rotation: ctx.labelRotation,
-                    region,
-                    offsetX: 0,
-                    offsetY: 0,
-                    placement,
-                    candidates,
-                };
+                const { anchor, region, placement } = candidates[0];
+                const existingLabel = mutableNode.label;
+                if (existingLabel) {
+                    existingLabel.text = nodeLabelText;
+                    existingLabel.fittedText = undefined;
+                    existingLabel.x = anchor.x;
+                    existingLabel.y = anchor.y;
+                    existingLabel.textAlign = anchor.textAlign;
+                    existingLabel.textBaseline = anchor.textBaseline;
+                    existingLabel.rotation = ctx.labelRotation;
+                    existingLabel.region = region;
+                    existingLabel.offsetX = 0;
+                    existingLabel.offsetY = 0;
+                    existingLabel.placement = placement;
+                    existingLabel.candidates = candidates;
+                } else {
+                    mutableNode.label = {
+                        text: nodeLabelText,
+                        x: anchor.x,
+                        y: anchor.y,
+                        textAlign: anchor.textAlign,
+                        textBaseline: anchor.textBaseline,
+                        rotation: ctx.labelRotation,
+                        region,
+                        offsetX: 0,
+                        offsetY: 0,
+                        placement,
+                        candidates,
+                    };
+                }
             }
         } else {
             // Single-placement fast path: the placement is baked unconditionally; only an orientation
@@ -1115,14 +1101,18 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                           isUpward,
                           !ctx.barAlongX,
                           ctx.label.spacing,
-                          ctx.labelThreshold,
                           ctx.labelBoxExtent
                       )
                     : undefined;
             // The first orientation is baked into `rotation`; an array resolves against the bar region
             // for inside placements — outside labels fall back to the plot bounds via no region.
             const region = ctx.labelResolvesOrientation ? bounds?.region : undefined;
-            const fittedText = fitLabelToContainer(nodeLabelText, ctx.labelFit, ctx.label, bounds?.container);
+            // An orientation array is refitted per orientation by the engine, which knows that a rotated
+            // label measures against the bar's other axis; fitting here would bind every orientation to
+            // the upright budget and leave a rotation that could hold the full text unreachable.
+            const fittedText = ctx.labelResolvesOrientation
+                ? nodeLabelText
+                : fitLabelToContainer(nodeLabelText, ctx.labelFit, ctx.label, bounds?.container);
             // A rotated label's gap to the bar depends on its box size; measure only when it rotates.
             const { width: labelWidth, height: labelHeight } =
                 rotation === 0 ? { width: 0, height: 0 } : measureLabelText(fittedText, ctx.label);
@@ -1153,9 +1143,10 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 existingLabel.offsetY = 0;
                 existingLabel.placement = placement;
                 existingLabel.candidates = undefined;
-                // Clear any hide set while this label was engine-routed, so switching back to the fast
-                // path (e.g. suppressHide toggled on) renders it again.
+                // Clear any hide or engine-chosen text set while this label was engine-routed, so
+                // switching back to the fast path (e.g. alwaysShow toggled on) renders it again in full.
                 existingLabel.hidden = undefined;
+                existingLabel.fittedText = undefined;
             } else {
                 // Create new label object (first time label is added)
                 mutableNode.label = {
@@ -1423,13 +1414,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
      */
     protected override resolveUsesPlacedLabels(): boolean {
         const { label } = this.properties;
-        // Hideable labels route through the engine even for a single placement, so a no-fit label can be
-        // dropped and hidden. A multi-entry orientation/placement array always resolves via the engine.
-        return (
-            barLabelResolvesOrientation(label.orientation) ||
-            barLabelResolvesPlacement(label.placement) ||
-            !label.collision.suppressHide
-        );
+        return barLabelRoutesThroughEngine(label.orientation, label.placement, label.collision.alwaysShow);
     }
 
     protected override populateNodeData(ctx: BarSeriesNodeDatumContext): void {
@@ -1841,25 +1826,14 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
     }
 
     getLabelObstacles() {
-        const rects = rectLabelObstacles(this.contextNodeData?.nodeData);
-        // Baked labels (single placement, `suppressHide: true`) never route through the placement
-        // engine, so they never enter the obstacle index there. Contribute their drawn footprint as
-        // `label` obstacles so other series' labels avoid them; routed labels are excluded because the
-        // engine already inserts them as it places each one.
-        if (this.usesPlacedLabels || !this.isLabelEnabled()) return rects;
-        const labels = this.getBakedLabelObstacles();
-        if (labels == null) return rects;
-        return rects == null ? labels : rects.concat(labels);
-    }
-
-    private getBakedLabelObstacles() {
         const { label } = this.properties;
         const box = expandPlacementLabelBoxExtent(label);
-        return bakedLabelObstacles(this.contextNodeData?.labelData, (node) => ({
-            label: node.label,
-            config: label,
-            box,
-        }));
+        return barLabelObstacles(
+            this.contextNodeData?.nodeData,
+            this.contextNodeData?.labelData,
+            this.isLabelEnabled() && !this.usesPlacedLabels,
+            (node) => ({ label: node.label, config: label, box })
+        );
     }
 
     override getLabelData(): PointLabelDatum[] {
@@ -1872,9 +1846,11 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             const { width, height } = measureLabelText(text, label);
             return { width: width + box.left + box.right, height: height + box.top + box.bottom };
         };
-        const suppressHide = label.collision.suppressHide;
-        const hideable = !suppressHide;
+        const alwaysShow = label.collision.alwaysShow;
+        const hideable = !alwaysShow;
         const collideWith = label.collision.resolveCollideWith();
+        const threshold = label.collision.threshold ?? 0;
+        const fitFor = resolveLabelFitDescriptors(label, box, hideable);
         if (barLabelResolvesPlacement(label.placement) || hideable) {
             const data: PointLabelDatum[] = [];
             for (const node of this.contextNodeData?.labelData ?? []) {
@@ -1892,8 +1868,11 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                         nodeLabel.candidates,
                         nodeLabel,
                         ownBox,
-                        suppressHide,
-                        collideWith
+                        alwaysShow,
+                        collideWith,
+                        threshold,
+                        false,
+                        fitFor(nodeLabel.text)
                     )
                 );
             }
@@ -1904,21 +1883,14 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             config: label,
             size: node.label != null && node.label.text !== '' ? measureBox(node.label.text) : undefined,
             collideWith,
+            threshold,
+            fit: node.label == null ? undefined : fitFor(node.label.text),
         }));
     }
 
     override updatePlacedLabelData(placed: PlacedLabel<BarNodeDatum>[]) {
         applyBarLabelOrientation(placed);
-        // Hideable labels (`neverDrop: false`) the engine dropped are absent from `placed`; flag the
-        // routed labels (`candidates != null`) it kept as visible and the rest as hidden. Fast-path
-        // labels (`candidates == null`) are never routed and stay visible.
-        const placedTargets = placedBarLabelTargets(placed);
-        for (const node of this.contextNodeData?.labelData ?? []) {
-            const nodeLabel = node.label;
-            if (nodeLabel?.candidates != null) {
-                nodeLabel.hidden = !placedTargets.has(nodeLabel);
-            }
-        }
+        applyPlacedBarLabelVisibility(this.contextNodeData?.labelData, placed, (node) => node.label);
         this.refreshPlacedLabelNodes();
     }
 

@@ -1,12 +1,14 @@
 import { type AgCollapsedChangeEventSource, _ModuleSupport } from 'ag-charts-community';
 import {
+    type AxisID,
     type BoxBounds,
     type ChartAnimationPhase,
-    type ChartAxisDirection,
+    ChartAxisDirection,
     ChartUpdateType,
     type DynamicContext,
     type Point,
     Vertex,
+    strictObjectKeys,
 } from 'ag-charts-core';
 
 import { NetworkGraph } from './networkGraph';
@@ -33,6 +35,16 @@ export interface NetworkSeriesContextNodeData<NetworkVertex, TNetworkEdge> exten
 export interface NetworkLinkDatum<NetworkVertex, TNetworkEdge> {
     from: Vertex<NetworkVertex, TNetworkEdge>;
     to: Vertex<NetworkVertex, TNetworkEdge>;
+}
+
+const ISOTROPY_EPSILON = 1e-6;
+
+// Keeps `[mid - range/2, mid + range/2]` inside `[0, 1]`.
+function clampMid(mid: number, range: number): number {
+    const half = range / 2;
+    if (mid - half < 0) return half;
+    if (mid + half > 1) return 1 - half;
+    return mid;
 }
 
 /**
@@ -106,83 +118,18 @@ export abstract class AbstractNetworkSeries<
         this.layout = this.createNetworkLayout();
 
         this.cleanup.register(
-            this.ctx.collapsedManager.setSeriesGetDatumCallback(this.id, this.getDatumById.bind(this))
-        );
+            this.ctx.collapsedManager.setSeriesGetDatumCallback(this.id, this.getDatumById.bind(this)),
 
-        this.cleanup.register(
-            ctx.eventsHub.on('layout:complete', (event) => {
-                this.seriesRect = event.series.rect;
-            })
-        );
+            ctx.chartState.observe((get) => this.activeItemObserver(get('activeItem'))),
 
-        this.cleanup.register(
-            ctx.eventsHub.on('collapsed:restore', ({ collapsed }) => {
-                if (!collapsed) return;
-                if (this.graph.getVertexCount() === 0) {
-                    this.pendingCollapsedIds = collapsed;
-                }
-            })
-        );
-
-        // `active:load-memento` only fires for state-restore / programmatic setState (not hover).
-        this.cleanup.register(
-            ctx.eventsHub.on('active:load-memento', ({ activeItem }) => {
-                if (activeItem?.seriesId !== this.id) return;
-                this.pendingPanToItemId = String(activeItem.itemId);
-            })
-        );
-
-        // Runs on every activeItem change incl. hover — opens collapsed ancestors.
-        this.cleanup.register(
-            ctx.chartState.observe((get) => {
-                const activeItem = get('activeItem');
-                if (activeItem?.seriesId === this.id) {
-                    this.expandNetworkToItem(activeItem.itemId, 'api-call');
-                }
-            })
-        );
-
-        // Zoom is a transform-only update — no re-layout. We don't read the zoom value here
-        // (applyViewportTransform pulls it from chartState), so the event is sufficient and
-        // avoids ReactiveState's initial-fire on subscribe.
-        this.cleanup.register(
-            ctx.eventsHub.on('zoom:change-complete', () => {
-                this.applyViewportTransform();
-                ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
-            })
-        );
-
-        this.cleanup.register(
-            ctx.eventsHub.on('series-area:click', (event) => {
-                const { type, clickedNode, target } = event;
-                if (
-                    type !== 'click' ||
-                    clickedNode?.series !== this ||
-                    clickedNode.itemId == null ||
-                    !this.hasBuiltinListener(target)
-                ) {
-                    return;
-                }
-                if (this.ctx.collapsedManager.isCollapsed(clickedNode.itemId)) {
-                    this.expandItem(clickedNode.itemId, 'user-interaction');
-                } else {
-                    this.collapseItem(clickedNode.itemId, 'user-interaction');
-                }
-            }),
-            ctx.eventsHub.on('series:keynav-expand', (event) => {
-                const { nodeDatum, widgetEvent } = event;
-                if (nodeDatum.itemId == null || nodeDatum.series !== this) return;
-                widgetEvent.sourceEvent.preventDefault();
-                this.expandItem(nodeDatum.itemId, 'user-interaction');
-                this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.PERFORM_LAYOUT });
-            }),
-            ctx.eventsHub.on('series:keynav-collapse', (event) => {
-                const { nodeDatum, widgetEvent } = event;
-                if (nodeDatum.itemId == null || nodeDatum.series !== this) return;
-                widgetEvent.sourceEvent.preventDefault();
-                this.collapseItem(nodeDatum.itemId, 'user-interaction');
-                this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.PERFORM_LAYOUT });
-            })
+            ctx.eventsHub.on('layout:complete', (event) => this.onLayoutComplete(event)),
+            ctx.eventsHub.on('active:load-memento', (event) => this.onActiveLoadMemento(event)),
+            ctx.eventsHub.on('collapsed:restore', (event) => this.onCollapsedRestore(event)),
+            ctx.eventsHub.on('series-area:click', (event) => this.onSeriesAreaClick(event)),
+            ctx.eventsHub.on('series:keynav-expand', (event) => this.onSeriesAreaKeynavExpand(event)),
+            ctx.eventsHub.on('series:keynav-collapse', (event) => this.onSeriesAreaKeynavCollapse(event)),
+            ctx.eventsHub.on('zoom:change-request', (event) => this.onZoomChangeRequest(event)),
+            ctx.eventsHub.on('zoom:change-complete', () => this.onZoomChangeComplete())
         );
     }
 
@@ -387,7 +334,7 @@ export abstract class AbstractNetworkSeries<
     private applyViewportTransform() {
         const zoom = this.ctx.chartState.getValue('zoom');
         const { seriesRect } = this;
-        const contentBBox = this.layout.contentBBox;
+        const contentBBox = this.layout.getContentBBox();
 
         if (!seriesRect || !contentBBox || contentBBox.width <= 0 || contentBBox.height <= 0) {
             this.viewportGroup.translationX = 0;
@@ -419,14 +366,198 @@ export abstract class AbstractNetworkSeries<
         const centerX = Math.max(0, (vw - cw * s) / 2);
         const centerY = Math.max(0, (vh - ch * s) / 2);
 
-        const offsetX = this.dataNodeGroup.translationX;
-        const offsetY = this.dataNodeGroup.translationY;
         const screenTopFractionY = 1 - yMax;
 
         this.viewportGroup.scalingX = s;
         this.viewportGroup.scalingY = s;
-        this.viewportGroup.translationX = -(contentBBox.x + xMin * cw + offsetX) * s + centerX;
-        this.viewportGroup.translationY = -(contentBBox.y + screenTopFractionY * ch + offsetY) * s + centerY;
+        this.viewportGroup.translationX = -(contentBBox.x + xMin * cw) * s + centerX;
+        this.viewportGroup.translationY = -(contentBBox.y + screenTopFractionY * ch) * s + centerY;
+    }
+
+    // Runs on every activeItem change incl. hover — opens collapsed ancestors.
+    private activeItemObserver(activeItem: any) {
+        if (activeItem?.seriesId === this.id) {
+            this.expandNetworkToItem(activeItem.itemId, 'api-call');
+        }
+    }
+
+    private onCollapsedRestore({ collapsed }: _ModuleSupport.CollapsedRestoreEvent) {
+        if (!collapsed) return;
+        if (this.graph.getVertexCount() === 0) {
+            this.pendingCollapsedIds = collapsed;
+        }
+    }
+
+    private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
+        this.seriesRect = event.series.rect;
+    }
+
+    // `active:load-memento` only fires for state-restore / programmatic setState (not hover).
+    private onActiveLoadMemento({ activeItem }: _ModuleSupport.ActiveLoadMementoEvent) {
+        if (activeItem?.seriesId !== this.id) return;
+        this.pendingPanToItemId = String(activeItem.itemId);
+    }
+
+    private onSeriesAreaClick(event: _ModuleSupport.SeriesAreaClickEvent) {
+        const { type, clickedNode, target } = event;
+        if (
+            type !== 'click' ||
+            clickedNode?.series !== this ||
+            clickedNode.itemId == null ||
+            !this.hasBuiltinListener(target)
+        ) {
+            return;
+        }
+        if (this.ctx.collapsedManager.isCollapsed(clickedNode.itemId)) {
+            this.expandItem(clickedNode.itemId, 'user-interaction');
+        } else {
+            this.collapseItem(clickedNode.itemId, 'user-interaction');
+        }
+    }
+
+    private onSeriesAreaKeynavExpand(event: _ModuleSupport.SeriesKeyNavExpandEvent) {
+        const { nodeDatum, widgetEvent } = event;
+        if (nodeDatum.itemId == null || nodeDatum.series !== this) return;
+        widgetEvent.sourceEvent.preventDefault();
+        this.expandItem(nodeDatum.itemId, 'user-interaction');
+        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.PERFORM_LAYOUT });
+    }
+
+    private onSeriesAreaKeynavCollapse(event: _ModuleSupport.SeriesKeyNavCollapseEvent) {
+        const { nodeDatum, widgetEvent } = event;
+        if (nodeDatum.itemId == null || nodeDatum.series !== this) return;
+        widgetEvent.sourceEvent.preventDefault();
+        this.collapseItem(nodeDatum.itemId, 'user-interaction');
+        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.PERFORM_LAYOUT });
+    }
+
+    // Order matters: `constrainZoomToPixelFloor` reads the post-clamp window mutated in-place by
+    // `constrainZoomToBoundary`.
+    private onZoomChangeRequest(event: _ModuleSupport.ZoomChangeRequestEvent) {
+        if (event.isReset) return;
+        this.constrainZoomToBoundary(event);
+        this.constrainZoomToPixelFloor(event);
+    }
+
+    // Zoom is a transform-only update — no re-layout. We don't read the zoom value here
+    // (applyViewportTransform pulls it from chartState), so the event is sufficient and
+    // avoids ReactiveState's initial-fire on subscribe.
+    private onZoomChangeComplete() {
+        this.applyViewportTransform();
+        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
+    }
+
+    // AG-17204: keep some of the zoom window inside `[0, 1]` so content stays visible.
+    private constrainZoomToBoundary(event: _ModuleSupport.ZoomChangeRequestEvent) {
+        const clamped: _ModuleSupport.CoreZoomState = {};
+        let didClamp = false;
+
+        for (const id of strictObjectKeys(event.state)) {
+            const entry = event.state[id];
+            if (entry == null) continue;
+
+            const { min, max, direction } = entry;
+            const size = max - min;
+
+            let clampedMin = min;
+            let clampedMax = max;
+
+            if (min >= 1) {
+                clampedMax = 1;
+                clampedMin = 1 - size;
+                didClamp = true;
+            } else if (max <= 0) {
+                clampedMin = 0;
+                clampedMax = size;
+                didClamp = true;
+            }
+
+            const coreDirection = direction === 'x' ? ChartAxisDirection.X : ChartAxisDirection.Y;
+            clamped[id] = { min: clampedMin, max: clampedMax, direction: coreDirection };
+        }
+
+        if (didClamp) {
+            event.constrainChanges(clamped);
+        }
+    }
+
+    // Caps scale at native pixels (`s ≤ 1`) and projects off-isotropic states onto the
+    // isotropic line `xRange/fitX = yRange/fitY` — less-zoomed axis wins, preserving content.
+    private constrainZoomToPixelFloor(event: _ModuleSupport.ZoomChangeRequestEvent) {
+        const { seriesRect } = this;
+        const contentBBox = this.layout.getContentBBox();
+        if (!seriesRect || !contentBBox || contentBBox.width <= 0 || contentBBox.height <= 0) return;
+
+        const fitX = seriesRect.width / contentBBox.width;
+        const fitY = seriesRect.height / contentBBox.height;
+
+        let xId: AxisID | undefined;
+        let yId: AxisID | undefined;
+        for (const id of strictObjectKeys(event.state)) {
+            const entry = event.state[id];
+            if (entry == null) continue;
+            if (entry.direction === 'x') xId = id;
+            else yId = id;
+        }
+        if (!xId || !yId) return;
+
+        const xEntry = event.state[xId]!;
+        const yEntry = event.state[yId]!;
+        const xRange = xEntry.max - xEntry.min;
+        const yRange = yEntry.max - yEntry.min;
+        if (xRange <= 0 || yRange <= 0) return;
+
+        // AG-17239: at the 1:1 floor, further zoom-in is a no-op — otherwise the
+        // cursor-anchored input mid leaks through `clampMid` and reads as a pan.
+        const oldX = event.oldState[xId];
+        const oldY = event.oldState[yId];
+        if (oldX && oldY) {
+            const oldXRange = oldX.max - oldX.min;
+            const oldYRange = oldY.max - oldY.min;
+
+            const inputT = Math.max(xRange / fitX, yRange / fitY);
+            const oldT = Math.max(oldXRange / fitX, oldYRange / fitY);
+
+            const wantsShrink = xRange < oldXRange - ISOTROPY_EPSILON || yRange < oldYRange - ISOTROPY_EPSILON;
+
+            if (wantsShrink && inputT <= 1 + ISOTROPY_EPSILON && oldT <= 1 + ISOTROPY_EPSILON) {
+                const restored: _ModuleSupport.CoreZoomState = {};
+                restored[xId] = { min: oldX.min, max: oldX.max, direction: ChartAxisDirection.X };
+                restored[yId] = { min: oldY.min, max: oldY.max, direction: ChartAxisDirection.Y };
+                event.constrainChanges(restored);
+                return;
+            }
+        }
+
+        // Project to the isotropic line.
+        const targetT = Math.max(xRange / fitX, yRange / fitY, 1);
+        const targetXRange = Math.min(1, targetT * fitX);
+        const targetYRange = Math.min(1, targetT * fitY);
+
+        const xMid = clampMid((xEntry.min + xEntry.max) / 2, targetXRange);
+        const yMid = clampMid((yEntry.min + yEntry.max) / 2, targetYRange);
+
+        const xChanged =
+            Math.abs(xMid - targetXRange / 2 - xEntry.min) > ISOTROPY_EPSILON ||
+            Math.abs(xMid + targetXRange / 2 - xEntry.max) > ISOTROPY_EPSILON;
+        const yChanged =
+            Math.abs(yMid - targetYRange / 2 - yEntry.min) > ISOTROPY_EPSILON ||
+            Math.abs(yMid + targetYRange / 2 - yEntry.max) > ISOTROPY_EPSILON;
+
+        if (xChanged || yChanged) {
+            const constrained: _ModuleSupport.CoreZoomState = {};
+            constrained[xId] = {
+                min: xMid - targetXRange / 2,
+                max: xMid + targetXRange / 2,
+                direction: ChartAxisDirection.X,
+            };
+            constrained[yId] = {
+                min: yMid - targetYRange / 2,
+                max: yMid + targetYRange / 2,
+                direction: ChartAxisDirection.Y,
+            };
+            event.constrainChanges(constrained);
+        }
     }
 
     // ---

@@ -1,5 +1,7 @@
 import type { AgTimeInterval } from 'ag-charts-types';
 
+import type { Logger } from '../logging/logger';
+
 export type ScaleType = 'number' | 'log' | 'time' | 'unit-time' | 'ordinal-time' | 'category' | 'mercator' | 'color';
 
 /**
@@ -63,6 +65,12 @@ export enum ScaleAlignment {
 }
 
 export interface Scale<D, R, I = number> {
+    /**
+     * The owning chart's logger, injected by the axis (or by `configureColorScale`). Defaults to the
+     * shared ambient instance for scales built outside a chart — AG Grid sparklines and internal
+     * interpolation scales — so a warning is never silently dropped.
+     */
+    logger: Logger;
     readonly type: ScaleType;
     readonly defaultTickCount: number;
     domain: D[];

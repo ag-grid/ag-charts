@@ -34,16 +34,20 @@ describe('series label fit', () => {
     };
 
     // Range-bar and range-area carry the fitted text flat on each `labelData` entry; waterfall, radar and map-marker
-    // nest it under `.label.text`.
+    // nest it under `.label`. Either way `text` is the unfitted source, `fittedText` the text the placement engine
+    // fitted to the candidate it chose, and a label the engine dropped renders nothing at all.
+    type RenderedLabel = { text?: unknown; fittedText?: unknown; hidden?: boolean };
+    const renderedText = (label: RenderedLabel | undefined) =>
+        label == null || label.hidden === true ? '' : (label.fittedText ?? label.text);
     const flatLabelTexts = (seriesIndex = 0): unknown[] => {
-        const series = chart.series[seriesIndex] as { contextNodeData?: { labelData?: { text?: unknown }[] } };
-        return (series.contextNodeData?.labelData ?? []).map((d) => d.text);
+        const series = chart.series[seriesIndex] as { contextNodeData?: { labelData?: RenderedLabel[] } };
+        return (series.contextNodeData?.labelData ?? []).map(renderedText);
     };
     const nestedLabelTexts = (seriesIndex = 0): unknown[] => {
         const series = chart.series[seriesIndex] as {
-            contextNodeData?: { labelData?: { label?: { text?: unknown } }[] };
+            contextNodeData?: { labelData?: { label?: RenderedLabel }[] };
         };
-        return (series.contextNodeData?.labelData ?? []).map((d) => d.label?.text);
+        return (series.contextNodeData?.labelData ?? []).map((d) => renderedText(d.label));
     };
     const someWrapped = (texts: unknown[]) => texts.some((text) => String(text).includes('\n'));
     const someTruncated = (texts: unknown[]) => texts.some((text) => String(text).includes(ELLIPSIS));
@@ -82,6 +86,36 @@ describe('series label fit', () => {
         });
         const texts = flatLabelTexts();
         expect(someWrapped(texts)).toBe(true);
+    });
+
+    it('renders range-bar labels whole when wrapping is set with truncate disabled', async () => {
+        // `wrapping: 'never'` with `truncate: false` leaves nothing to bound the text, so it overhangs the bar rect
+        // untouched; `alwaysShow` is explicit because either option otherwise opts the label into hiding.
+        const data = [
+            { cat: 'A', low: 40, high: 60, label: 'A long range label that overhangs its bar' },
+            { cat: 'B', low: 45, high: 55, label: 'Another overly long range label' },
+            { cat: 'C', low: 42, high: 58, label: 'Short' },
+        ];
+        await renderAndSnapshot({
+            data,
+            legend: { enabled: false },
+            axes: cartesianAxes,
+            series: [
+                {
+                    type: 'range-bar',
+                    xKey: 'cat',
+                    yLowKey: 'low',
+                    yHighKey: 'high',
+                    label: perDatumLabel({
+                        placement: 'inside',
+                        wrapping: 'never',
+                        truncate: false,
+                        collision: { alwaysShow: true },
+                    }),
+                },
+            ],
+        });
+        expect(someTruncated(flatLabelTexts())).toBe(false);
     });
 
     describe('waterfall (fits inside the bar rect)', () => {
@@ -128,19 +162,19 @@ describe('series label fit', () => {
             expect(someTruncated(texts)).toBe(true);
         });
 
-        it('hides oversized labels when suppressHide is false', async () => {
+        it('hides oversized labels when alwaysShow is false', async () => {
             const data = Array.from({ length: 10 }, (_, i) => ({ cat: `Category ${i}`, value: 100 }));
             await renderAndSnapshot(
                 waterfallChart(
                     {
-                        collision: { suppressHide: false },
+                        collision: { alwaysShow: false },
                         formatter: () => 'A very long waterfall label that cannot possibly fit inside the bar',
                     },
                     data
                 )
             );
             const texts = nestedLabelTexts();
-            // suppressHide: false → overflow 'hide': oversized labels drop to empty rather than ellipsising.
+            // alwaysShow: false → overflow 'hide': oversized labels drop to empty rather than ellipsising.
             expect(texts.some((text) => text === '' || text == null)).toBe(true);
             expect(someTruncated(texts)).toBe(false);
         });

@@ -5,10 +5,6 @@
 const SEVERITY = { warn: 1, error: 2 } as const;
 
 export class Logger {
-    // Shared module-default instance backing the `Logger.*` statics and the free functions below, so every
-    // chart-less call path shares one dedup cache and `reset()`. The sanctioned fallback for code with no chart.
-    static readonly default = new Logger();
-
     private readonly doOnceCache = new Set<string>();
 
     constructor(private readonly minSeverity: number = 0) {}
@@ -86,44 +82,31 @@ export class Logger {
             }
         }
     }
-
-    static log(...logContent: any[]) {
-        Logger.default.log(...logContent);
-    }
-    static warn(message: any, ...logContent: any[]) {
-        Logger.default.warn(message, ...logContent);
-    }
-    static error(message: any, ...logContent: any[]) {
-        Logger.default.error(message, ...logContent);
-    }
-    static table(...logContent: any[]) {
-        Logger.default.table(...logContent);
-    }
-    static warnOnce(messageOrError: unknown, ...logContent: any[]) {
-        Logger.default.warnOnce(messageOrError, ...logContent);
-    }
-    static errorOnce(messageOrError: unknown, ...logContent: any[]) {
-        Logger.default.errorOnce(messageOrError, ...logContent);
-    }
-    static reset() {
-        Logger.default.reset();
-    }
-    static logGroup<T>(name: string, cb: () => T): T {
-        return Logger.default.logGroup(name, cb);
-    }
 }
 
 function isPromise(value: unknown): value is Promise<unknown> {
     return typeof value === 'object' && value !== null && 'then' in value;
 }
 
-export const log = (...logContent: any[]) => Logger.default.log(...logContent);
-export const warn = (message: any, ...logContent: any[]) => Logger.default.warn(message, ...logContent);
-export const error = (message: any, ...logContent: any[]) => Logger.default.error(message, ...logContent);
-export const table = (...logContent: any[]) => Logger.default.table(...logContent);
+/**
+ * The single Logger for code that genuinely has no chart, and the instance behind the free functions
+ * below. Exported so chart-less callers can satisfy a required `Logger` — a required parameter that
+ * has to be filled explicitly is a compile error when threading is missed, where an optional one just
+ * swallows the message. Sharing one instance also means one `warnOnce` cache across every chart-less
+ * caller, so N sparklines on one bad config warn once rather than N times.
+ *
+ * This is not an escape hatch: `no-unscoped-logger` governs every import of this module, so reaching
+ * for it outside the sanctioned files is a lint error.
+ */
+export const ambientLogger = new Logger();
+
+export const log = (...logContent: any[]) => ambientLogger.log(...logContent);
+export const warn = (message: any, ...logContent: any[]) => ambientLogger.warn(message, ...logContent);
+export const error = (message: any, ...logContent: any[]) => ambientLogger.error(message, ...logContent);
+export const table = (...logContent: any[]) => ambientLogger.table(...logContent);
 export const warnOnce = (messageOrError: unknown, ...logContent: any[]) =>
-    Logger.default.warnOnce(messageOrError, ...logContent);
+    ambientLogger.warnOnce(messageOrError, ...logContent);
 export const errorOnce = (messageOrError: unknown, ...logContent: any[]) =>
-    Logger.default.errorOnce(messageOrError, ...logContent);
-export const reset = () => Logger.default.reset();
-export const logGroup = <T>(name: string, cb: () => T): T => Logger.default.logGroup(name, cb);
+    ambientLogger.errorOnce(messageOrError, ...logContent);
+export const reset = () => ambientLogger.reset();
+export const logGroup = <T>(name: string, cb: () => T): T => ambientLogger.logGroup(name, cb);

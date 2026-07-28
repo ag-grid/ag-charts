@@ -32,8 +32,8 @@ type DatumType = {
 const baseData: DatumType[] = [
     { year: '2015', usa: 2.9, china: 7.0, india: 8.0 },
     { year: '2016', usa: 1.8, china: 6.9, india: 8.3 },
-    { year: '2017', usa: 2.5, china: 6.9, india: 6.8 },
-    { year: '2018', usa: 3.0, china: 6.7, india: 6.5 },
+    { year: '2017', usa: 2.0, china: 5.9, india: 6.8 },
+    { year: '2018', usa: 3.0, china: 5.7, india: 6.5 },
     { year: '2019', usa: 2.6, china: 6.0, india: 3.9 },
     { year: '2020', usa: -2.2, china: 2.2, india: -5.8 },
     { year: '2021', usa: 5.8, china: 8.4, india: 9.7 },
@@ -87,6 +87,17 @@ function createSeries(): AgLineSeriesOptions<DatumType>[] {
             },
             label: {
                 enabled: true,
+                color: { ref: 'textColor', mix: 0.6, ontoColor: color },
+                fill: { ref: 'chartBackgroundColor', mix: 0.8, ontoColor: color },
+                border: {
+                    enabled: true,
+                    stroke: color,
+                },
+                padding: 4,
+                placement: ['top', 'bottom', 'left', 'right'],
+                collision: {
+                    alwaysShow: true,
+                },
                 itemStyler: ({ seriesId, datum }) => ({
                     enabled: emphasisedPoints.has(pointKey(seriesId, datum.year)),
                 }),

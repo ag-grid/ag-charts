@@ -7,6 +7,8 @@ import {
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
     LABEL_BOXING_TOP_LEVEL_DEFAULTS,
+    LABEL_OVERFLOW_ALWAYS_SHOW,
+    LABEL_OVERFLOW_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
     SEGMENTATION_DEFAULTS,
     SERIES_SELECTION_THEME,
@@ -41,6 +43,7 @@ const themeTemplate: ExtensibleTheme<'bar'> = {
         lineDashOffset: 0,
         label: {
             ...LABEL_BOXING_TOP_LEVEL_DEFAULTS,
+            ...LABEL_OVERFLOW_DEFAULTS,
             enabled: false,
             fontWeight: { $ref: 'fontWeight' },
             fontSize: { $ref: 'fontSize' },
@@ -49,7 +52,8 @@ const themeTemplate: ExtensibleTheme<'bar'> = {
             padding: 8,
             collision: {
                 threshold: 4,
-                ...undocumentedThemeOptions({ collideWith: { seriesItems: true, seriesArea: true } }),
+                alwaysShow: LABEL_OVERFLOW_ALWAYS_SHOW,
+                ...undocumentedThemeOptions({ collideWith: { seriesItems: true } }),
             },
             insideStyle: {
                 color: { $isUserOption: ['../color', { $path: '../color' }, { $ref: 'chartBackgroundColor' }] },

@@ -29,6 +29,7 @@ import remarkBreaks from 'remark-breaks';
 
 import {
     type SpecialTypesMap,
+    buildTypeArguments,
     buildTypeArgumentsFromGenericsMap,
     cleanupName,
     formatTypeToCode,
@@ -44,6 +45,7 @@ import {
     parseJsDocs,
     processMembers,
     resolveAliasedUnion,
+    resolveReferenceType,
 } from '../apiReferenceHelpers';
 import { SelectionContext } from './OptionsNavigation';
 import { type CollapsibleType, PropertyTitle, PropertyType } from './Properties';
@@ -679,31 +681,6 @@ function isUnionTypesDetails(node?: MemberAdditionalDetails): node is UnionTypes
 
 function isInterfaceNode(node?: MemberAdditionalDetails): node is InterfaceNode {
     return Boolean(node && !Array.isArray(node) && 'kind' in node && node.kind === 'interface');
-}
-
-function buildTypeArguments(member: MemberNode, genericsMap?: Record<string, TypeNode>) {
-    if (typeof member.type === 'object' && member.type.kind === 'typeRef') {
-        return member.type.typeArguments?.map((genericType) =>
-            typeof genericType === 'string'
-                ? normalizeType(genericsMap?.[genericType] ?? genericType)
-                : normalizeType(genericType)
-        );
-    }
-    return undefined;
-}
-
-function resolveReferenceType(
-    reference: ReferenceMap | undefined,
-    typeName: string
-): NodeTypes | NodeTypes[] | undefined {
-    if (!reference?.has(typeName) || isInterfaceHidden(typeName)) {
-        return undefined;
-    }
-    const ref = reference.get(typeName)!;
-    if (ref.kind === 'typeAlias' && typeof ref.type === 'string' && reference.has(ref.type)) {
-        return [ref, reference.get(ref.type)!];
-    }
-    return ref;
 }
 
 function scrollToAndHighlightById(id: string) {

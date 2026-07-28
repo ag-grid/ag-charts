@@ -1,5 +1,6 @@
 import type {
     AgCartesianChartOptions,
+    AgChartLabelFitOptions,
     AgHighlightOptions,
     AgHighlightStyleOptions,
     AgMultiSeriesHighlightOptions,
@@ -7,6 +8,7 @@ import type {
     AgSelectionStyleOptions,
     AgSeriesSegmentation,
     LabelBoxOptions,
+    Operation,
     WithThemeParams,
 } from 'ag-charts-types';
 
@@ -380,7 +382,7 @@ export const LABEL_BOXING_DEFAULTS: WithThemeParams<LabelBoxOptions> = {
     padding: 8,
     cornerRadius: 4,
     border: {
-        enabled: { $isUserOption: ['../border', true, false] },
+        enabled: { $isUserOption: '../border' },
         strokeWidth: 1,
         stroke: { $foregroundOpacity: 0.08 },
     },
@@ -397,10 +399,63 @@ export const LABEL_BOXING_TOP_LEVEL_DEFAULTS: WithThemeParams<LabelBoxOptions> =
     ...LABEL_BOXING_FILL_DEFAULTS,
     cornerRadius: 4,
     border: {
-        enabled: { $isUserOption: ['../border', true, false] },
+        enabled: { $isUserOption: '../border' },
         strokeWidth: 1,
         stroke: { $foregroundOpacity: 0.08 },
     },
+};
+
+/**
+ * Setting any one of `maxWidth`, `maxHeight`, `wrapping`, `truncate` or an array-valued
+ * `placement`/`orientation` opts the label into overflow management, so the unset ones resolve to a
+ * coherent set rather than leaving the label to overflow untouched. These are theme defaults, so an
+ * explicit user value on any of them still wins.
+ *
+ * `wrapping` and `truncate` trigger off each other by presence rather than by value; reading either
+ * by value would form a dependency cycle.
+ */
+export const LABEL_OVERFLOW_DEFAULTS: WithThemeParams<AgChartLabelFitOptions> = {
+    wrapping: {
+        $if: [
+            {
+                $or: [
+                    { $isUserOption: [['./maxWidth', './maxHeight', './truncate']] },
+                    { $isType: [{ $path: './placement' }, 'array'] },
+                    { $isType: [{ $path: './orientation' }, 'array'] },
+                ],
+            },
+            'on-space',
+            undefined,
+        ],
+    },
+    truncate: {
+        $if: [
+            {
+                $or: [
+                    { $isUserOption: [['./maxWidth', './maxHeight', './wrapping']] },
+                    { $isType: [{ $path: './placement' }, 'array'] },
+                    { $isType: [{ $path: './orientation' }, 'array'] },
+                ],
+            },
+            true,
+            undefined,
+        ],
+    },
+};
+
+/** Counterpart to {@link LABEL_OVERFLOW_DEFAULTS}, assigned to `label.collision.alwaysShow` one level deeper. */
+export const LABEL_OVERFLOW_ALWAYS_SHOW: Operation = {
+    $if: [
+        {
+            $or: [
+                { $isUserOption: [['../maxWidth', '../maxHeight', '../wrapping', '../truncate']] },
+                { $isType: [{ $path: '../placement' }, 'array'] },
+                { $isType: [{ $path: '../orientation' }, 'array'] },
+            ],
+        },
+        false,
+        true,
+    ],
 };
 
 export const MULTI_SERIES_HIGHLIGHT_STYLE: WithThemeParams<AgMultiSeriesHighlightOptions<AgHighlightStyleOptions>> = {

@@ -10,12 +10,54 @@ import noUnscopedLogger from './libraries/ag-charts-eslint-rules/rules/no-unscop
 import requireExplicitGeneric from './libraries/ag-charts-eslint-rules/rules/require-explicit-generic.mjs';
 import requireSharedRenderer from './libraries/ag-charts-eslint-rules/rules/require-shared-renderer.mjs';
 
-// Path fragments of the files sanctioned to call `new Logger()`; everything else uses `ctx.logger` or
-// the shared `Logger.default`. Tests construct loggers freely.
+// The complete set of files that log without a chart. Each one is here because no chart context
+// reaches it — not because threading one was inconvenient. Anything added here needs the same
+// justification, and anything that gains a reachable chart context should come off the list.
+const SANCTIONED_AMBIENT_LOGGING = [
+    '/logging/logger.ts',
+    '/logging/ambientLog.ts',
+    // The default Logger for a Scene with no owning chart (AG Grid sparklines / mini charts).
+    '/scene/scene.ts',
+    // The default Logger for a scale with no owning axis (sparklines, interpolation scales).
+    '/scale/abstractScale.ts',
+    // Pixel-boundary coercion called from everywhere; a logger parameter would be viral.
+    '/utils/data/numbers.ts',
+    // Pure format-string parser, reached from the static `FormatManager.getFormatter` below.
+    '/utils/format/numberFormat.ts',
+    // `BaseProperties.set()`, reached from programmatic property assignment with no chart to hand.
+    // Option-driven unknown properties are already reported as validation errors.
+    '/state/properties.ts',
+    // Cycle detection in the generic JSON walker.
+    '/utils/data/json.ts',
+    // Runs before any chart exists.
+    '/util/browser.ts',
+    '/util/time-interop.ts',
+    '/chart/factory/processModuleOptions.ts',
+    // Default for the AG Grid `_Theme.getChartTheme(value)` entry point, which takes no logger.
+    '/chart/mapping/themes.ts',
+    // Pure parsers and formatters with no owner.
+    '/util/svg.ts',
+    '/locale/defaultMessageFormatter.ts',
+    // Static `FormatManager.getFormatter`, reached from properties classes with no chart.
+    '/chart/formatter/formatManager.ts',
+    // Global error interception, by definition not attributable to one chart.
+    '/util/listeners.ts',
+    // Development-only diagnostics.
+    '/scene/sceneDebug.ts',
+    // SVG export walks the scene graph outside a render pass.
+    '/scene/shape/text.ts',
+    // Test helpers.
+    '/util/test/mockConsole.ts',
+];
+
+// Path fragments of the files sanctioned to call `new Logger()`; everything else takes one by
+// injection, from `ctx.logger` or the shared `ambientLogger`. Tests construct loggers freely.
 const SANCTIONED_LOGGER_CONSTRUCTION = [
     '/logging/logger.ts',
-    '/chart/chartContext.ts',
+    // The chart's single instance, adopted by the chart context.
     '/module/optionsModule.ts',
+    // The shared Logger for tests that build chart internals directly, rather than through a chart.
+    '/console/test-logger.ts',
     '.test.',
     '.spec.',
 ];
@@ -287,12 +329,21 @@ export default [
         },
     },
     {
-        // Community and enterprise source are fully migrated off the ambient static `Logger.*` API, so
-        // enable the static-emitter ban here. Core is rolled in as it migrates.
-        files: ['packages/ag-charts-community/src/**/*.{ts,tsx}', 'packages/ag-charts-enterprise/src/**/*.{ts,tsx}'],
+        files: [
+            'packages/ag-charts-core/src/**/*.{ts,tsx}',
+            'packages/ag-charts-community/src/**/*.{ts,tsx}',
+            'packages/ag-charts-enterprise/src/**/*.{ts,tsx}',
+        ],
         ignores: ['**/*.{test,spec}.ts'],
         rules: {
-            'aglint/no-unscoped-logger': [2, { allowNewIn: SANCTIONED_LOGGER_CONSTRUCTION, checkStatic: true }],
+            'aglint/no-unscoped-logger': [
+                2,
+                {
+                    allowNewIn: SANCTIONED_LOGGER_CONSTRUCTION,
+                    checkStatic: true,
+                    allowAmbientIn: SANCTIONED_AMBIENT_LOGGING,
+                },
+            ],
         },
     },
 ];

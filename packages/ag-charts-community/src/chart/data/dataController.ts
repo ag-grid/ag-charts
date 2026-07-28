@@ -62,7 +62,7 @@ export class DataController {
         private readonly mode: ChartMode,
         readonly suppressFieldDotNotation: boolean,
         private readonly eventsHub: EventsHub | undefined,
-        private readonly logger: Logger = Logger.default
+        private readonly logger: Logger
     ) {}
 
     public async request<
@@ -138,10 +138,10 @@ export class DataController {
                 try {
                     const dataModel = new DataModel<any>(
                         opts,
+                        this.logger,
                         this.mode,
                         this.suppressFieldDotNotation,
-                        this.eventsHub,
-                        this.logger
+                        this.eventsHub
                     );
                     const sources = new Map(valid.map((v) => [v.id, v.dataSet]));
                     const processedData = dataModel.processData(sources);
@@ -171,10 +171,10 @@ export class DataController {
                 if (Debug.check('data-model:reprocess-diff')) {
                     const baselineModel = new DataModel<any>(
                         opts,
+                        this.logger,
                         this.mode,
                         this.suppressFieldDotNotation,
-                        this.eventsHub,
-                        this.logger
+                        this.eventsHub
                     );
                     const sources = new Map(valid.map((v) => [v.id, v.dataSet]));
                     const baselineData = baselineModel.processData(sources);

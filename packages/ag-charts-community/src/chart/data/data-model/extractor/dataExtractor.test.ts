@@ -1,3 +1,4 @@
+import { testLogger } from '_ag-charts-test';
 import { describe, expect, it } from 'vitest';
 
 import { isFiniteNumber } from 'ag-charts-core';
@@ -34,15 +35,18 @@ describe('DataExtractor', () => {
                 missingValue: null,
                 validation: isFiniteNumber,
             };
-            const dataModel = new DataModel<any, any>({
-                props: [
-                    categoryKey('year'),
-                    { ...DEFAULTS, ...value('ie') },
-                    { ...DEFAULTS, ...value('chrome') },
-                    { ...DEFAULTS, ...value('firefox') },
-                    { ...DEFAULTS, ...value('safari') },
-                ],
-            });
+            const dataModel = new DataModel<any, any>(
+                {
+                    props: [
+                        categoryKey('year'),
+                        { ...DEFAULTS, ...value('ie') },
+                        { ...DEFAULTS, ...value('chrome') },
+                        { ...DEFAULTS, ...value('firefox') },
+                        { ...DEFAULTS, ...value('safari') },
+                    ],
+                },
+                testLogger
+            );
 
             expect(dataModel.processData(data)).toMatchSnapshot({
                 time: expect.any(Number),
@@ -54,16 +58,19 @@ describe('DataExtractor', () => {
         describe('property tests', () => {
             const defaults = { missingValue: null, invalidValue: Number.NaN };
             const validated = { ...defaults, validation: (v: unknown) => typeof v === 'number' };
-            const dataModel = new DataModel<any, any, true>({
-                props: [
-                    categoryKey('kp'),
-                    { ...value('vp1', 'group1'), ...validated },
-                    { ...value('vp2', 'group1'), ...validated },
-                    { ...value('vp3', 'group2'), ...defaults },
-                    sum('group1'),
-                ],
-                groupByKeys: true,
-            });
+            const dataModel = new DataModel<any, any, true>(
+                {
+                    props: [
+                        categoryKey('kp'),
+                        { ...value('vp1', 'group1'), ...validated },
+                        { ...value('vp2', 'group1'), ...validated },
+                        { ...value('vp3', 'group2'), ...defaults },
+                        sum('group1'),
+                    ],
+                    groupByKeys: true,
+                },
+                testLogger
+            );
             const data = basicDataSet([
                 { kp: 'Q1', /* vp1: 5,*/ vp2: 7, vp3: 1 },
                 { kp: 'Q1', vp1: 1, vp2: 'illegal value', vp3: 2 },
@@ -86,23 +93,26 @@ describe('DataExtractor', () => {
         it('should generated the expected results', () => {
             const rawData = mutilatedBrowserData();
             const data = new Map()
-                .set('test', new DataSet(rawData))
-                .set('series-a', new DataSet(rawData))
-                .set('series-b', new DataSet(rawData))
-                .set('series-c', new DataSet(rawData));
+                .set('test', new DataSet(rawData, testLogger))
+                .set('series-a', new DataSet(rawData, testLogger))
+                .set('series-b', new DataSet(rawData, testLogger))
+                .set('series-c', new DataSet(rawData, testLogger));
             const DEFAULTS = {
                 missingValue: null,
                 validation: isFiniteNumber,
             };
-            const dataModel = new DataModel<any, any>({
-                props: [
-                    categoryKey('year'),
-                    { ...DEFAULTS, ...scopedValue('test', 'ie') },
-                    { ...DEFAULTS, ...scopedValue('series-a', 'chrome') },
-                    { ...DEFAULTS, ...scopedValue('series-b', 'firefox') },
-                    { ...DEFAULTS, ...scopedValue('series-c', 'safari') },
-                ],
-            });
+            const dataModel = new DataModel<any, any>(
+                {
+                    props: [
+                        categoryKey('year'),
+                        { ...DEFAULTS, ...scopedValue('test', 'ie') },
+                        { ...DEFAULTS, ...scopedValue('series-a', 'chrome') },
+                        { ...DEFAULTS, ...scopedValue('series-b', 'firefox') },
+                        { ...DEFAULTS, ...scopedValue('series-c', 'safari') },
+                    ],
+                },
+                testLogger
+            );
 
             expect(dataModel.processData(data)).toMatchSnapshot({
                 time: expect.any(Number),
@@ -141,23 +151,28 @@ describe('DataExtractor', () => {
 
         describe('property tests', () => {
             const validated = { validation: (v: unknown) => typeof v === 'number' };
-            const dataModel = new DataModel<any, any, true>({
-                props: [
-                    categoryKey('kp', ['test', 'scope-1', 'scope-2']),
-                    { ...scopedValue('test', 'vp1', 'group1'), ...validated },
-                    { ...scopedValue('scope-1', 'vp2', 'group1'), ...validated },
-                    { ...scopedValue('scope-2', 'vp3', 'group2') },
-                    scopedSum(['scope-1'], 'group1'),
-                ],
-                groupByKeys: true,
-            });
+            const dataModel = new DataModel<any, any, true>(
+                {
+                    props: [
+                        categoryKey('kp', ['test', 'scope-1', 'scope-2']),
+                        { ...scopedValue('test', 'vp1', 'group1'), ...validated },
+                        { ...scopedValue('scope-1', 'vp2', 'group1'), ...validated },
+                        { ...scopedValue('scope-2', 'vp3', 'group2') },
+                        scopedSum(['scope-1'], 'group1'),
+                    ],
+                    groupByKeys: true,
+                },
+                testLogger
+            );
             const rawData = [
                 { kp: 'Q1', vp1: 'illegal value', vp2: 7, vp3: 1 },
                 { kp: 'Q2', vp1: 1, vp2: 'illegal value', vp3: 2 },
                 { kp: 'Q3', vp1: 6, vp2: 9, vp3: 'illegal value' },
                 { kp: 'Q4', vp1: 6, vp2: 9, vp3: 4 },
             ];
-            const data = new Map([...['test', 'scope-1', 'scope-2'].map((s) => [s, new DataSet(rawData)] as const)]);
+            const data = new Map([
+                ...['test', 'scope-1', 'scope-2'].map((s) => [s, new DataSet(rawData, testLogger)] as const),
+            ]);
 
             it('should record per result data validation status per scope', () => {
                 const result = dataModel.processData(data)!;
@@ -213,7 +228,7 @@ describe('DataExtractor', () => {
                     groupByKeys: true,
                 };
 
-                expect(() => new DataModel<any, any, true>(config)).toThrowErrorMatchingInlineSnapshot(
+                expect(() => new DataModel<any, any, true>(config, testLogger)).toThrowErrorMatchingInlineSnapshot(
                     `[Error: AG Charts - scopes missing key for grouping, illegal configuration: scope-1,scope-2]`
                 );
             });
@@ -222,9 +237,12 @@ describe('DataExtractor', () => {
 
     describe('empty data set processing', () => {
         it('should generated the expected results', () => {
-            const dataModel = new DataModel<any, any>({
-                props: [categoryKey('year'), value('ie'), value('chrome'), value('firefox'), value('safari')],
-            });
+            const dataModel = new DataModel<any, any>(
+                {
+                    props: [categoryKey('year'), value('ie'), value('chrome'), value('firefox'), value('safari')],
+                },
+                testLogger
+            );
 
             expect(dataModel.processData(basicDataSet([]))).toMatchSnapshot({
                 time: expect.any(Number),
@@ -234,9 +252,12 @@ describe('DataExtractor', () => {
         });
 
         describe('property tests', () => {
-            const dataModel = new DataModel<any, any>({
-                props: [categoryKey('year'), value('ie'), value('chrome'), value('firefox'), value('safari')],
-            });
+            const dataModel = new DataModel<any, any>(
+                {
+                    props: [categoryKey('year'), value('ie'), value('chrome'), value('firefox'), value('safari')],
+                },
+                testLogger
+            );
 
             it('should not generate data extracts', () => {
                 const result = dataModel.processData(basicDataSet([]))!;

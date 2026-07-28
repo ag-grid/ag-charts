@@ -58,7 +58,7 @@ export class DataService<D extends object> {
         private readonly eventsHub: EventsHub,
         private readonly caller: { readonly context?: unknown },
         private readonly animationManager: AnimationManager,
-        private readonly logger: Logger = Logger.default
+        private readonly logger: Logger
     ) {}
 
     public updateCallback(dataSourceCallback: DataSourceCallback) {

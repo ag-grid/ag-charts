@@ -61,7 +61,7 @@ import type { ChartAxis } from '../../chartAxis';
 import type { DataController } from '../../data/dataController';
 import { DataModel, type ProcessedData, fixNumericExtent } from '../../data/dataModel';
 import { createDatumId, processedDataIsAnimatable, valueProperty } from '../../data/processors';
-import { expandLabelPadding, expandPlacementLabelBoxExtent, resolvePlacementLabelStyle } from '../../label';
+import { expandPlacementLabelBoxExtent, placedLabelTextOffset } from '../../label';
 import { fitLabelToContainer, getLabelStyles, pickPlacementStyle } from '../../labelUtil';
 import {
     type CategoryLegendDatum,
@@ -176,10 +176,9 @@ class BubbleScatterSeriesNodeEvent<
         nativeEvent: Event,
         datum: BubbleScatterNodeDatum,
         series: BubbleSeries,
-        selectionState: PublicSelectionState | undefined,
-        isCollapsed: boolean
+        selectionState: PublicSelectionState | undefined
     ) {
-        super(type, nativeEvent, datum, series, selectionState, isCollapsed);
+        super(type, nativeEvent, datum, series, selectionState);
         this.sizeKey = series.properties.sizeKey;
         this.colorKey = series.properties.colorKey;
     }
@@ -264,6 +263,11 @@ interface BubbleSeriesNodeDatumContext extends CartesianMarkerLikeContext<Bubble
     readonly labelPadding: { left: number; right: number; top: number; bottom: number };
     readonly labelTextMeasurer: { measureLines: (text: string) => { width: number; height: number } };
     readonly labelFit: LabelFit | undefined;
+    /**
+     * Policy without the marker container, applied when {@link labelFit} leaves nothing to draw. Set only
+     * when the label must survive that, so leaving it unset keeps an erased label erased.
+     */
+    readonly labelFitOverflow: LabelFit | undefined;
     readonly label: BubbleScatterSeriesProperties['label'];
     readonly plotRegion: BoxBounds | undefined;
 
@@ -396,7 +400,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             const domain = extent(rawDomain);
 
             if (domain != null) {
-                configureColorScale(this.colorScale, this.properties.colorScale, domain);
+                configureColorScale(this.colorScale, this.properties.colorScale, domain, this.ctx.logger);
                 this.colorScaleValid = true;
             }
         }
@@ -589,6 +593,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         const insideOnly = placements.length > 0 && placements.every((placement) => placement === 'inside');
         const insideRect = placements.includes('inside') ? markerLabelRect(marker.shape) : undefined;
         const collideWith = label.collision.resolveCollideWith();
+        const labelFit = resolveLabelFit(label, !label.collision.alwaysShow, insideOnly);
 
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
@@ -665,7 +670,9 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             labelTextDomain,
             labelPadding: expandPlacementLabelBoxExtent(label),
             labelTextMeasurer: cachedTextMeasurer(label),
-            labelFit: resolveLabelFit(label, !label.collision.suppressHide, insideOnly),
+            labelFit,
+            // Keeps the label on a marker too small to hold even an ellipsis.
+            labelFitOverflow: insideOnly && label.collision.alwaysShow ? labelFit : undefined,
             label,
             // The series-area clamp is opt-in via `collideWith.seriesArea`. Inside-only labels are
             // additionally exempt: fitted to and centred on their marker, an edge marker's label rides
@@ -939,7 +946,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
                   height: Math.max(0, markerSize * rect.height - 2 * threshold),
               }
             : undefined;
-        const fittedText = fitLabelToContainer(labelText, ctx.labelFit, ctx.label, container);
+        const fittedText = fitLabelToContainer(labelText, ctx.labelFit, ctx.label, container, ctx.labelFitOverflow);
         let { width, height } = isArray(fittedText)
             ? measureTextSegments(fittedText, ctx.label)
             : ctx.labelTextMeasurer.measureLines(String(fittedText));
@@ -1244,7 +1251,9 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         this.updateHighlightLabelSelection();
     }
 
-    private updateHighlightLabelSelection() {
+    // Maps the placed labels inline rather than through `getHighlightLabelData`, since a bubble's label
+    // anchor is its `point` (carrying the marker size) rather than a plain `(x, y)`.
+    protected override updateHighlightLabelSelection() {
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
         const highlightItem =
             this.isSeriesHighlighted(highlightedDatum) && highlightedDatum?.datum ? highlightedDatum : undefined;
@@ -1283,28 +1292,31 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         const { isHighlight = false } = opts;
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const params: AgBubbleSeriesLabelFormatterParams = this.makeLabelFormatterParams();
+        const { label } = this.properties;
+        const insideStyle = pickPlacementStyle(label, 'inside');
+        const outsideStyle = pickPlacementStyle(label, 'outside');
+        const insideOffset = placedLabelTextOffset(label, insideStyle);
+        const outsideOffset = placedLabelTextOffset(label, outsideStyle);
 
         opts.labelSelection.each((text, datum) => {
-            const placementStyle = pickPlacementStyle(
-                this.properties.label,
-                datum.placement === 'inside' ? 'inside' : 'outside'
-            );
+            const isInside = datum.placement === 'inside';
+            const placementStyle = isInside ? insideStyle : outsideStyle;
             const style = getLabelStyles(
                 this,
                 datum,
                 params,
-                this.properties.label,
+                label,
                 isHighlight,
                 activeHighlight,
                 undefined,
                 placementStyle,
                 { placement: datum.placement }
             );
-            const labelPadding = expandLabelPadding(resolvePlacementLabelStyle(this.properties.label, placementStyle));
+            const offset = isInside ? insideOffset : outsideOffset;
             text.text = datum.label.text;
             text.fill = style.color;
-            text.x = (datum.point?.x ?? 0) + labelPadding.left;
-            text.y = (datum.point?.y ?? 0) + labelPadding.top;
+            text.x = (datum.point?.x ?? 0) + offset.x;
+            text.y = (datum.point?.y ?? 0) + offset.y;
             text.fontStyle = style.fontStyle;
             text.fontWeight = style.fontWeight;
             text.fontSize = style.fontSize;
@@ -1766,7 +1778,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
     }
 
     protected override initQuadTree(quadtree: QuadtreeNearest<BubbleScatterNodeDatum>) {
-        addHitTestersToQuadtree(quadtree, this.datumNodesIter());
+        addHitTestersToQuadtree(quadtree, this.datumNodesIter(), this.ctx.logger);
     }
 
     protected override pickNodeDataClosestDatum(point: Point): SeriesNodePickMatch | undefined {

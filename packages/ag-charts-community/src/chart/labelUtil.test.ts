@@ -81,6 +81,14 @@ describe('fitLabelToContainer', () => {
         expect(String(result)).toContain('\n');
     });
 
+    it('keeps the text whole when a wrapping mode is set without truncate', () => {
+        expect(fitToContainer(LONG_TEXT, { wrapping: 'never' }, { width: 40, height: 100 })).toBe(LONG_TEXT);
+        const wrapped = String(fitToContainer(LONG_TEXT, { wrapping: 'on-space' }, { width: 60, height: 100 }));
+        expect(wrapped).toContain('\n');
+        expect(wrapped).not.toContain(ELLIPSIS);
+        expect(wrapped.replaceAll('\n', ' ')).toBe(LONG_TEXT);
+    });
+
     it('resolves collision avoidance to a hide overflow', () => {
         const expected: LabelFit = { maxWidth: 30, maxHeight: 100, wrapping: undefined, overflowStrategy: 'hide' };
         expect(fitToContainer(LONG_TEXT, { avoid: true }, { width: 30, height: 100 })).toBe(
@@ -217,18 +225,18 @@ describe('buildBarLabelCandidates', () => {
     // boxless label (no fill/border) yields a zero extent, so the footprint equals the raw text size.
     const makeLabel = (insideStyle: any = {}, outsideStyle: any = {}) =>
         ({ padding: undefined, fill: undefined, border: undefined, insideStyle, outsideStyle }) as any;
-    const build = (placements: any[], orientations: any[], label: any = makeLabel()) =>
+    const build = (placements: any[], orientations: any[], label: any = makeLabel(), overrides: object = {}) =>
         buildBarLabelCandidates({
             isUpward: true,
             isVertical: false,
             placements,
             orientations,
             spacing: 5,
-            threshold: 2,
             label,
             textWidth: 30,
             textHeight: 10,
             rect,
+            ...overrides,
         });
 
     it('emits one candidate per placement (outer) × orientation (inner), in cascade order', () => {
@@ -241,11 +249,12 @@ describe('buildBarLabelCandidates', () => {
         ]);
     });
 
-    it('constrains inside placements to the threshold-inset bar rect and floats outside placements', () => {
-        // Horizontal bar: only threshold (2) insets top/bottom (cross); the length axis stays flush — the
-        // one-sided spacing is delivered by the anchor offset, not by shrinking the containment region.
+    it('constrains inside placements to the bar rect and floats outside placements', () => {
+        // A centred inside label reserves nothing on the length axis (the one-sided spacing is delivered
+        // by the anchor offset) and spans the bar's full cross extent; collision clearance is the
+        // engine's to apply, not the region's.
         const candidates = build(['inside-center', 'outside-end'], ['horizontal']);
-        expect(candidates[0].region).toEqual({ x: 0, y: 2, width: 100, height: 36 });
+        expect(candidates[0].region).toEqual(rect);
         expect(candidates[1].region).toBeUndefined();
     });
 
@@ -276,5 +285,26 @@ describe('buildBarLabelCandidates', () => {
         // outside-end reserves its own 20px padding on every side (30+40 × 10+40).
         expect(outside.box.width).toBeCloseTo(70);
         expect(outside.box.height).toBeCloseTo(50);
+    });
+
+    it('emits no candidate when a hideable label has every placement rejected', () => {
+        // The lone placement points into a stacked neighbour; a hideable label is dropped rather than
+        // mislabelling that neighbour.
+        expect(build(['outside-end'], ['horizontal'], makeLabel(), { rejectOutsideEnd: true, hideable: true })).toEqual(
+            []
+        );
+    });
+
+    it('restores the rejected placements when the label must be shown', () => {
+        const candidates = build(['outside-end'], ['horizontal'], makeLabel(), { rejectOutsideEnd: true });
+        expect(candidates.map((c) => c.placement)).toEqual(['outside-end']);
+    });
+
+    it('keeps the surviving placements when only some are rejected', () => {
+        const candidates = build(['outside-end', 'inside-center'], ['horizontal'], makeLabel(), {
+            rejectOutsideEnd: true,
+            hideable: true,
+        });
+        expect(candidates.map((c) => c.placement)).toEqual(['inside-center']);
     });
 });

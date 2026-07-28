@@ -121,7 +121,9 @@ export class ActiveManager implements MementoOriginator<AgActiveState> {
     public guardMemento(blob: unknown, messages: string[]): blob is AgActiveState | undefined {
         if (blob == undefined) return true;
 
-        const validationResult = validate(blob, commonChartOptions.initialState.active);
+        const validationResult = validate(blob, commonChartOptions.initialState.active, '', {
+            logger: this.ctx.logger,
+        });
         messages.push(...validationResult.invalid.map((err) => err.toString()));
         return validationResult.invalid.length === 0;
     }

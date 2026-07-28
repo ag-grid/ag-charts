@@ -1,4 +1,4 @@
-import { Logger, Vertex } from 'ag-charts-core';
+import { type Logger, Vertex } from 'ag-charts-core';
 
 import { NetworkGraph } from '../network/networkGraph';
 import type { OrganizationEdge, OrganizationVertex } from './organizationTypes';
@@ -6,7 +6,7 @@ import type { OrganizationEdge, OrganizationVertex } from './organizationTypes';
 export class OrganizationGraph extends NetworkGraph<OrganizationVertex, OrganizationEdge> {
     private verticesById: Record<string, Vertex<OrganizationVertex, OrganizationEdge>> = {};
 
-    constructor() {
+    constructor(private readonly logger: Logger) {
         super({
             // Cache the child edges for optimal descendent traversal.
             cachedNeighboursEdge: 'child',
@@ -76,7 +76,7 @@ export class OrganizationGraph extends NetworkGraph<OrganizationVertex, Organiza
 
             const parentVertex = this.verticesById[parentId];
             if (!parentVertex) {
-                Logger.default.warnOnce(`Could not find parentId [${parentId}] on node [${childId}], skipping.`);
+                this.logger.warnOnce(`Could not find parentId [${parentId}] on node [${childId}], skipping.`);
                 return;
             }
 

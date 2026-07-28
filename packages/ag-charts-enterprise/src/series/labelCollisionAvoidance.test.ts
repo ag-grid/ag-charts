@@ -64,7 +64,7 @@ describe('label collision avoidance', () => {
     };
 
     // A tight cluster of lat/lon markers (projection fixed by the UK background) forces overlapping
-    // labels, so placement candidates always resolve real collisions; `suppressHide` only decides the
+    // labels, so placement candidates always resolve real collisions; `alwaysShow` only decides the
     // terminal outcome for a label that fails every candidate.
     describe('map-marker', () => {
         // 4x4 grid of points within a ~1° box; at the UK-wide projection they land in a small pixel
@@ -89,12 +89,35 @@ describe('label collision avoidance', () => {
             ],
         });
 
-        it('reposition overlapping labels around the candidate list (suppressHide: false, default)', async () => {
-            await renderAndSnapshot(markerOptions({}));
+        it('reposition overlapping labels around the candidate list (alwaysShow: false)', async () => {
+            await renderAndSnapshot(markerOptions({ collision: { alwaysShow: false } }));
         });
 
-        it('keeps a label that fails every candidate visible when suppressHide is true', async () => {
-            await renderAndSnapshot(markerOptions({ collision: { suppressHide: true } }));
+        it('keeps a label that fails every candidate visible when alwaysShow is true', async () => {
+            await renderAndSnapshot(markerOptions({ collision: { alwaysShow: true } }));
+        });
+
+        // The theme default is `collision.alwaysShow: false` (map-marker hides on collision), so a chart
+        // with no explicit `collision` option must behave exactly like the explicit `alwaysShow: false` case.
+        it('hides overlapping labels by default, matching the explicit alwaysShow: false count', async () => {
+            const render = async (config: object) => {
+                chart?.destroy();
+                const opts = markerOptions(config);
+                prepareEnterpriseTestOptions(opts as AgChartOptions);
+                chart = deproxy(AgCharts.create(opts as AgChartOptions));
+                await waitForChartStability(chart);
+                const series = chart.series.find((s: any) => s.type === 'map-marker') as unknown as {
+                    labelSelection: { nodes(): { visible: boolean }[] };
+                };
+                return series.labelSelection.nodes().filter((node) => node.visible).length;
+            };
+
+            const defaultVisible = await render({});
+            // Anti-vacuous guard: the dense cluster must actually force some labels to hide.
+            expect(defaultVisible).toBeLessThan(collisionData.length);
+
+            const explicitVisible = await render({ collision: { alwaysShow: false } });
+            expect(defaultVisible).toBe(explicitVisible);
         });
 
         // `label.spacing` is the gap between a marker-based label and its anchor; a larger value pushes
@@ -142,24 +165,43 @@ describe('label collision avoidance', () => {
                     idKey: 'name',
                     labelKey: 'name',
                     // Large bold labels so neighbouring route names genuinely overlap, forcing the
-                    // collision pass to drop some by default (and keep them all with suppressHide: true).
+                    // collision pass to drop some when hideable (and keep them all with alwaysShow: true).
                     label: { enabled: true, fontSize: 24, fontWeight: 'bold', ...config },
                 },
             ],
         });
 
-        it('drops overlapping route labels (suppressHide: false, default)', async () => {
-            await renderAndSnapshot(lineOptions({}));
+        it('drops overlapping route labels (alwaysShow: false)', async () => {
+            await renderAndSnapshot(lineOptions({ collision: { alwaysShow: false } }));
         });
 
-        it('keeps every overlapping route label when suppressHide is true', async () => {
-            await renderAndSnapshot(lineOptions({ collision: { suppressHide: true } }));
+        it('keeps every overlapping route label when alwaysShow is true', async () => {
+            await renderAndSnapshot(lineOptions({ collision: { alwaysShow: true } }));
+        });
+
+        // The theme default is `collision.alwaysShow: false` (map-line hides on collision), so a chart
+        // with no explicit `collision` option must behave exactly like the explicit `alwaysShow: false` case.
+        it('drops overlapping route labels by default, matching the explicit alwaysShow: false count', async () => {
+            const render = async (config: object) => {
+                chart?.destroy();
+                const opts = lineOptions(config);
+                prepareEnterpriseTestOptions(opts as AgChartOptions);
+                chart = deproxy(AgCharts.create(opts as AgChartOptions));
+                await waitForChartStability(chart);
+                return visibleLabelCount();
+            };
+
+            const defaultVisible = await render({});
+            // Anti-vacuous guard: the bold, large route labels must actually force some to hide.
+            expect(defaultVisible).toBeLessThan(ukRoadData.length);
+
+            const explicitVisible = await render({ collision: { alwaysShow: false } });
+            expect(defaultVisible).toBe(explicitVisible);
         });
     });
 
     // A `placement` array is an ordered fallback list: the first candidate that clears its obstacles wins,
     // so an array whose first candidate already fits renders identically to that single placement.
-    // (range-area is not yet cascade-wired, so it simply uses the first candidate — same result here.)
     describe('bar-family placement cascade (first fitting candidate wins)', () => {
         it('waterfall renders an array placement identically to its first candidate', async () => {
             const options = (placement: string | string[]): AgChartOptions => ({
@@ -382,7 +424,7 @@ describe('label collision avoidance', () => {
                     yLowKey: 'low',
                     yHighKey: 'high',
                     data: rangeData,
-                    label: { enabled: true, collision: { suppressHide: true } },
+                    label: { enabled: true, collision: { alwaysShow: true } },
                 },
                 {
                     type: 'scatter',
@@ -393,7 +435,7 @@ describe('label collision avoidance', () => {
                     label: {
                         enabled: true,
                         placement: ['top', 'bottom'],
-                        collision: { suppressHide: false },
+                        collision: { alwaysShow: false },
                     },
                 },
             ],
@@ -444,22 +486,22 @@ describe('label collision avoidance', () => {
         });
 
         it('drops a hideable outside label overflowing the series area', async () => {
-            expect(
-                await renderPlacementCount(options, { suppressHide: false, collideWith: { seriesArea: true } })
-            ).toBe(0);
+            expect(await renderPlacementCount(options, { alwaysShow: false, collideWith: { seriesArea: true } })).toBe(
+                0
+            );
         });
 
-        it('keeps the same label when it is not hideable (suppressHide: true)', async () => {
-            expect(await renderPlacementCount(options, { suppressHide: true, collideWith: { seriesArea: true } })).toBe(
+        it('keeps the same label when it is not hideable (alwaysShow: true)', async () => {
+            expect(await renderPlacementCount(options, { alwaysShow: true, collideWith: { seriesArea: true } })).toBe(
                 1
             );
         });
 
         it('cascades a hideable outside label to an inside placement that fits', async () => {
             // The single `outside-end` label above hides (0); the array falls through to `inside-center`,
-            // which fits inside the tall bar, so the label is kept even though `suppressHide` is false.
+            // which fits inside the tall bar, so the label is kept even though `alwaysShow` is false.
             expect(
-                await renderPlacementCount(options, { suppressHide: false, collideWith: { seriesArea: true } }, [
+                await renderPlacementCount(options, { alwaysShow: false, collideWith: { seriesArea: true } }, [
                     'outside-end',
                     'inside-center',
                 ])
@@ -488,7 +530,7 @@ describe('label collision avoidance', () => {
                                     enabled: true,
                                     formatter: () => 'WWWWWWWWWWWWWWWWWWWW',
                                     placement: ['inside-center', 'outside-end'],
-                                    collision: { suppressHide: false },
+                                    collision: { alwaysShow: false },
                                 },
                             },
                         },
@@ -506,16 +548,17 @@ describe('label collision avoidance', () => {
             expect(labels[0].datum.label?.placement).toBe('outside-end');
         });
 
-        // One render covering every cascade outcome: the short bars keep the `outside-end` label above
-        // the bar; the full-height bar whose `outside-end` overflows the top series area cascades to
-        // `inside-center`; the full-height total bar with a label too wide to fit inside is dropped.
-        it('renders outside, cascaded-inside and dropped labels across a multi-bar chart', async () => {
+        // The short bars keep the `outside-end` label above the bar; the full-height bar whose
+        // `outside-end` overflows the top series area cascades to `inside-center`; the total bar carries
+        // a label too wide to fit inside, which the two cases below resolve differently.
+        const multiBarCascade = (label: object) => {
             const barLabel = {
                 enabled: true,
                 placement: ['outside-end', 'inside-center'],
-                collision: { suppressHide: false, collideWith: { seriesArea: true } },
+                collision: { alwaysShow: false, collideWith: { seriesArea: true } },
+                ...label,
             };
-            await renderAndSnapshot({
+            return {
                 data: [
                     { year: 'Y0', spending: 3 },
                     { year: 'Y1', spending: 3 },
@@ -537,7 +580,19 @@ describe('label collision avoidance', () => {
                         },
                     },
                 ],
-            });
+            };
+        };
+
+        // A placement array turns truncation on, so the total's oversized label is ellipsised into the
+        // candidate that keeps the most of it rather than dropped.
+        it('renders outside, cascaded-inside and dropped labels across a multi-bar chart', async () => {
+            await renderAndSnapshot(multiBarCascade({}));
+        });
+
+        // Opting out of truncation leaves nothing to fall back on: every candidate for the oversized
+        // label overflows at full text, so it is dropped instead.
+        it('drops rather than truncates the oversized label when truncate is off', async () => {
+            await renderAndSnapshot(multiBarCascade({ truncate: false }));
         });
     });
 
@@ -563,13 +618,13 @@ describe('label collision avoidance', () => {
         });
 
         it('drops only the colliding high-end label, keeping the low-end label', async () => {
-            expect(
-                await renderPlacementCount(options, { suppressHide: false, collideWith: { seriesArea: true } })
-            ).toBe(1);
+            expect(await renderPlacementCount(options, { alwaysShow: false, collideWith: { seriesArea: true } })).toBe(
+                1
+            );
         });
 
-        it('keeps both labels when not hideable (suppressHide: true)', async () => {
-            expect(await renderPlacementCount(options, { suppressHide: true, collideWith: { seriesArea: true } })).toBe(
+        it('keeps both labels when not hideable (alwaysShow: true)', async () => {
+            expect(await renderPlacementCount(options, { alwaysShow: true, collideWith: { seriesArea: true } })).toBe(
                 2
             );
         });
@@ -577,7 +632,7 @@ describe('label collision avoidance', () => {
         it('cascades the colliding high-end label to an inside placement, keeping both', async () => {
             // Only the high end overflows: it falls through to `inside`, while the low end stays outside.
             expect(
-                await renderPlacementCount(options, { suppressHide: false, collideWith: { seriesArea: true } }, [
+                await renderPlacementCount(options, { alwaysShow: false, collideWith: { seriesArea: true } }, [
                     'outside',
                     'inside',
                 ])
@@ -588,34 +643,45 @@ describe('label collision avoidance', () => {
         // keeps both labels `outside` (room above the high end and below the low end); bar B's high end
         // reaches the axis top so its overflowing `outside` label cascades to `inside`, while its low
         // label stays outside; bar C's high label is too wide to fit inside and is dropped.
-        it('renders outside, cascaded-inside and dropped labels across a multi-bar chart', async () => {
-            await renderAndSnapshot({
-                data: [
-                    { x: 'A', low: 2, high: 6 },
-                    { x: 'B', low: 1, high: 10 },
-                    { x: 'C', low: 1, high: 10 },
-                ],
-                legend: { enabled: false },
-                padding: { top: 60, right: 10, bottom: 10, left: 10 },
-                axes: { x: { type: 'category' }, y: { type: 'number', min: 0, max: 10 } },
-                series: [
-                    {
-                        type: 'range-bar',
-                        xKey: 'x',
-                        yLowKey: 'low',
-                        yHighKey: 'high',
-                        label: {
-                            enabled: true,
-                            // Range-bar labels default to white (usually drawn inside the bar); force a dark
-                            // colour so the outside labels are legible against the plot background too.
-                            color: 'black',
-                            formatter: ({ datum }: any) => (datum.x === 'C' ? 'WWWWWWWWWWWWWWWWWWWW' : undefined),
-                            placement: ['outside', 'inside'],
-                            collision: { suppressHide: false, collideWith: { seriesArea: true } },
-                        },
+        const multiBarCascade = (label: object) => ({
+            data: [
+                { x: 'A', low: 2, high: 6 },
+                { x: 'B', low: 1, high: 10 },
+                { x: 'C', low: 1, high: 10 },
+            ],
+            legend: { enabled: false },
+            padding: { top: 60, right: 10, bottom: 10, left: 10 },
+            axes: { x: { type: 'category' }, y: { type: 'number', min: 0, max: 10 } },
+            series: [
+                {
+                    type: 'range-bar',
+                    xKey: 'x',
+                    yLowKey: 'low',
+                    yHighKey: 'high',
+                    label: {
+                        enabled: true,
+                        // Range-bar labels default to white (usually drawn inside the bar); force a dark
+                        // colour so the outside labels are legible against the plot background too.
+                        color: 'black',
+                        formatter: ({ datum }: any) => (datum.x === 'C' ? 'WWWWWWWWWWWWWWWWWWWW' : undefined),
+                        placement: ['outside', 'inside'],
+                        collision: { alwaysShow: false, collideWith: { seriesArea: true } },
+                        ...label,
                     },
-                ],
-            });
+                },
+            ],
+        });
+
+        // A placement array turns truncation on, so bar C's oversized high label is ellipsised into the
+        // candidate that keeps the most of it rather than dropped.
+        it('renders outside, cascaded-inside and dropped labels across a multi-bar chart', async () => {
+            await renderAndSnapshot(multiBarCascade({}));
+        });
+
+        // Opting out of truncation leaves nothing to fall back on: every candidate for that label
+        // overflows at full text, so it is dropped instead.
+        it('drops rather than truncates the oversized label when truncate is off', async () => {
+            await renderAndSnapshot(multiBarCascade({ truncate: false }));
         });
     });
 
@@ -631,13 +697,15 @@ describe('label collision avoidance', () => {
                 .map((node) => ({ placement: node.datum.placement, box: node.computeBBox() }))
                 .filter((label): label is { placement: string | undefined; box: Box } => label.box != null);
 
-        // A single short bar (low 48, high 52 on a 0-100 axis) whose two end labels cannot both fit inside
-        // the bar rect. With `placement: ['inside', 'outside']` and hideable labels, neither label may be
-        // dropped for failing to fit inside (both can escape outside), and the second-placed label must
-        // treat its already-placed sibling — sharing the one bar rect — as an obstacle and cascade outside.
+        // A single short bar (low 47, high 53 on a 0-100 axis) whose two end labels cannot both fit inside
+        // the bar rect, but which is deliberately tall enough to hold one — otherwise both ends cascade on
+        // fit alone and the sibling obstacle is not what drives the result. With
+        // `placement: ['inside', 'outside']` and hideable labels, neither label may be dropped for failing
+        // to fit inside (both can escape outside), and the second-placed label must treat its
+        // already-placed sibling — sharing the one bar rect — as an obstacle and cascade outside.
         it('cascades one sibling label outside instead of dropping or overlapping it inside', async () => {
             const opts: any = {
-                data: [{ x: 'A', low: 48, high: 52 }],
+                data: [{ x: 'A', low: 47, high: 53 }],
                 legend: { enabled: false },
                 axes: { x: { type: 'category' }, y: { type: 'number', min: 0, max: 100 } },
                 series: [
@@ -646,7 +714,7 @@ describe('label collision avoidance', () => {
                         xKey: 'x',
                         yLowKey: 'low',
                         yHighKey: 'high',
-                        label: { enabled: true, placement: ['inside', 'outside'], collision: { suppressHide: false } },
+                        label: { enabled: true, placement: ['inside', 'outside'], collision: { alwaysShow: false } },
                     },
                 ],
             };
@@ -662,7 +730,7 @@ describe('label collision avoidance', () => {
             expect(labels.filter((l) => l.placement?.startsWith('outside'))).toHaveLength(1);
         });
 
-        // Visual coverage with default styling (no `color`, default `suppressHide`): three short bars whose
+        // Visual coverage with default styling (no `color`, default `alwaysShow`): three short bars whose
         // two end labels collide inside. With `placement: ['inside', 'outside']` one label per bar renders
         // outside the bar to avoid the sibling, rather than being hidden — and the outside label picks up
         // the legible `outsideStyle` colour (dark on the background) while the inside label stays white.
@@ -726,11 +794,262 @@ describe('label collision avoidance', () => {
             const { low, high } = await reversedLabelEnds({
                 enabled: true,
                 placement: ['outside', 'inside'],
-                collision: { suppressHide: false },
+                collision: { alwaysShow: false },
             });
             expect(low).toBeDefined();
             expect(high).toBeDefined();
             expect(low!.y).toBeLessThan(high!.y);
+        });
+    });
+
+    // Range-area labels are point-anchored on the low and high strokes, so they resolve through the
+    // compass placement engine: the coarse `outside`/`inside` vocabulary maps per datum onto the
+    // direction that faces away from / into the band.
+    describe('range-area label placement', () => {
+        type LabelNode = {
+            visible: boolean;
+            datum: { itemType: string; placement?: string; valueSide: string };
+            computeBBox(): Box | undefined;
+        };
+        /** A visible label node's resolved placement, band side, and rendered box. */
+        type PlacedLabelInfo = { placement?: string; side: string; box: Box };
+        /** Range-area's engine output, in the plot-local coordinates its anchor points also use. */
+        type RangeAreaPlacedLabel = {
+            y: number;
+            height: number;
+            placement?: string;
+            datum: { itemType: string; point: { y: number } };
+        };
+        const placedLabelData = (): RangeAreaPlacedLabel[] => chart.series[0].placedLabelData;
+
+        const placedLabels = async (options: object): Promise<PlacedLabelInfo[]> => {
+            chart?.destroy();
+            const opts = options as AgChartOptions;
+            prepareEnterpriseTestOptions(opts);
+            chart = deproxy(AgCharts.create(opts));
+            await waitForChartStability(chart);
+            const series = chart.series[0] as unknown as { labelSelection: { nodes(): LabelNode[] } };
+            const labels: PlacedLabelInfo[] = [];
+            for (const node of series.labelSelection.nodes()) {
+                const box = node.visible ? node.computeBBox() : undefined;
+                if (box != null) {
+                    labels.push({ placement: node.datum.placement, side: node.datum.valueSide, box });
+                }
+            }
+            return labels;
+        };
+
+        const narrowBand = (label: object) => ({
+            data: [{ x: 'A', low: 46, high: 54 }],
+            legend: { enabled: false },
+            padding: { top: 40, right: 40, bottom: 20, left: 40 },
+            axes: { x: { type: 'category' }, y: { type: 'number', min: 0, max: 100 } },
+            series: [{ type: 'range-area', xKey: 'x', yLowKey: 'low', yHighKey: 'high', label }],
+        });
+
+        // A band too narrow for both end labels to sit inside it. With `placement: ['inside', 'outside']`
+        // the second-placed label must treat its already-placed sibling as an obstacle and cascade
+        // outside, rather than overlapping it or being dropped.
+        it('cascades one sibling label outside instead of dropping or overlapping it inside', async () => {
+            const labels = await placedLabels(
+                narrowBand({ enabled: true, placement: ['inside', 'outside'], collision: { alwaysShow: false } })
+            );
+            // Anti-vacuous guard: both end labels stay visible (neither hidden for failing inside).
+            expect(labels).toHaveLength(2);
+            expect(overlaps(labels[0].box, labels[1].box)).toBe(false);
+            // Both resolved a vertical placement, and exactly one of them cascaded outside.
+            expect(labels.filter((l) => l.placement === 'bottom' || l.placement === 'top')).toHaveLength(2);
+            const outside = labels.filter((l) => (l.placement === 'top') === (l.side === 'high'));
+            expect(outside).toHaveLength(1);
+        });
+
+        // A dense band of long labels: every candidate collides, so `alwaysShow` decides the outcome.
+        const crowded = (collision: object) => ({
+            data: Array.from({ length: 12 }, (_, i) => ({ x: `Category ${i}`, low: 40 + i, high: 44 + i })),
+            legend: { enabled: false },
+            axes: { x: { type: 'category' }, y: { type: 'number', min: 0, max: 100 } },
+            series: [
+                {
+                    type: 'range-area',
+                    xKey: 'x',
+                    yLowKey: 'low',
+                    yHighKey: 'high',
+                    label: {
+                        enabled: true,
+                        formatter: () => 'A very long range-area label',
+                        placement: ['outside', 'inside'],
+                        collision,
+                    },
+                },
+            ],
+        });
+
+        it('drops labels that fit nowhere when alwaysShow is false, keeps them when true', async () => {
+            const hidden = await placedLabels(crowded({ alwaysShow: false }));
+            const kept = await placedLabels(crowded({ alwaysShow: true }));
+            expect(hidden.length).toBeLessThan(kept.length);
+            expect(kept).toHaveLength(24);
+        });
+
+        // `low > high` draws the low value above the high value, so each label's facing side flips: the
+        // `high` label of an inverted datum must render below its own stroke, not above it.
+        it('places every outside label clear of the band, including on an inverted datum', async () => {
+            await placedLabels({
+                data: [
+                    { x: 'A', low: 20, high: 80 },
+                    { x: 'B', low: 80, high: 20 },
+                ],
+                legend: { enabled: false },
+                padding: { top: 40, right: 40, bottom: 20, left: 40 },
+                axes: { x: { type: 'category' }, y: { type: 'number', min: 0, max: 100 } },
+                series: [
+                    {
+                        type: 'range-area',
+                        xKey: 'x',
+                        yLowKey: 'low',
+                        yHighKey: 'high',
+                        invertedStyle: { enabled: true },
+                        label: { enabled: true, placement: 'outside' },
+                    },
+                ],
+            });
+            const placed = placedLabelData();
+            expect(placed).toHaveLength(4);
+            const anchorYs = placed.map((label) => label.datum.point.y);
+            const bandMidY = (Math.min(...anchorYs) + Math.max(...anchorYs)) / 2;
+            for (const label of placed) {
+                const anchorY = label.datum.point.y;
+                if (anchorY < bandMidY) {
+                    // Upper stroke: the label sits entirely above its anchor.
+                    expect(label.placement).toBe('top');
+                    expect(label.y + label.height).toBeLessThanOrEqual(anchorY);
+                } else {
+                    expect(label.placement).toBe('bottom');
+                    expect(label.y).toBeGreaterThanOrEqual(anchorY);
+                }
+            }
+            // Anti-vacuous guard: the inverted datum's `high` label is the one on the lower stroke.
+            const invertedHigh = placed.filter(
+                (label) => label.datum.itemType === 'high' && label.placement === 'bottom'
+            );
+            expect(invertedHigh).toHaveLength(1);
+        });
+
+        // A label sits `gap + spacing` from its anchor, `gap` being the marker radius, so it never
+        // lands on its own marker.
+        it('offsets an outside label from its marker by the marker radius plus label.spacing', async () => {
+            const markerSize = 20;
+            const spacing = 12;
+            await placedLabels({
+                data: [{ x: 'A', low: 20, high: 80 }],
+                legend: { enabled: false },
+                padding: { top: 60, right: 40, bottom: 20, left: 40 },
+                axes: { x: { type: 'category' }, y: { type: 'number', min: 0, max: 100 } },
+                series: [
+                    {
+                        type: 'range-area',
+                        xKey: 'x',
+                        yLowKey: 'low',
+                        yHighKey: 'high',
+                        marker: { enabled: true, size: markerSize },
+                        label: { enabled: true, placement: 'outside', spacing },
+                    },
+                ],
+            });
+            expect(topLabelAnchorGap(chart.series[0] as PlacedLabelGeometry)).toBeCloseTo(markerSize / 2 + spacing, 5);
+        });
+
+        it('reports the resolved coarse placement to the label itemStyler', async () => {
+            const captured: (string | undefined)[] = [];
+            const itemStyler = (params: { placement?: string }) => {
+                captured.push(params.placement);
+                return {};
+            };
+            await placedLabels(
+                narrowBand({
+                    enabled: true,
+                    placement: ['inside', 'outside'],
+                    collision: { alwaysShow: false },
+                    itemStyler,
+                })
+            );
+            expect(new Set(captured)).toEqual(new Set(['inside', 'outside']));
+        });
+
+        // The structural tests above assert the placement the engine resolved; these pin what actually
+        // renders, so a cascade that reports the right placement but draws in the wrong spot still fails.
+        // The first two are a contrast pair over identical data: without a fallback the colliding sibling
+        // is dropped, with one it survives outside the band. Each asserts its label distribution first, so
+        // no baseline can bake in a render where the fallback silently failed to fire.
+        describe('rendered placement fallback', () => {
+            // Bands narrow enough that the two end labels cannot both sit inside at the theme's spacing.
+            const cascadeBands = (placement: string | string[]) => ({
+                data: [
+                    { x: 'A', low: 46, high: 54 },
+                    { x: 'B', low: 44, high: 56 },
+                    { x: 'C', low: 47, high: 53 },
+                ],
+                legend: { enabled: false },
+                padding: { top: 40, right: 40, bottom: 40, left: 40 },
+                axes: { x: { type: 'category' }, y: { type: 'number', min: 0, max: 100 } },
+                series: [
+                    {
+                        type: 'range-area',
+                        xKey: 'x',
+                        yLowKey: 'low',
+                        yHighKey: 'high',
+                        label: { enabled: true, placement, collision: { alwaysShow: false } },
+                    },
+                ],
+            });
+            const isOutside = (l: { placement?: string; side: string }) =>
+                (l.placement === 'top') === (l.side === 'high');
+
+            it('drops the colliding sibling label when inside is the only placement', async () => {
+                const labels = await placedLabels(cascadeBands('inside'));
+                // Two of the six end labels have nowhere to go once their sibling claims the inside slot.
+                expect(labels).toHaveLength(4);
+                expect(labels.filter(isOutside)).toHaveLength(0);
+                await compareImageSnapshot(chart, ctx);
+            });
+
+            it('keeps both sibling labels by cascading one outside when a fallback is offered', async () => {
+                const labels = await placedLabels(cascadeBands(['inside', 'outside']));
+                // Same data as above: the two labels dropped there are recovered outside their bands.
+                expect(labels).toHaveLength(6);
+                expect(labels.filter(isOutside)).toHaveLength(2);
+                await compareImageSnapshot(chart, ctx);
+            });
+
+            // Labels too long for either candidate are dropped rather than overlapped, leaving visible gaps.
+            it('drops labels whose every placement candidate collides', async () => {
+                const labels = await placedLabels({
+                    data: Array.from({ length: 8 }, (_, i) => ({ x: `Category ${i}`, low: 42 + i, high: 50 + i })),
+                    legend: { enabled: false },
+                    padding: { top: 40, right: 40, bottom: 40, left: 40 },
+                    axes: { x: { type: 'category' }, y: { type: 'number', min: 0, max: 100 } },
+                    series: [
+                        {
+                            type: 'range-area',
+                            xKey: 'x',
+                            yLowKey: 'low',
+                            yHighKey: 'high',
+                            label: {
+                                enabled: true,
+                                placement: ['outside', 'inside'],
+                                formatter: () => 'A very long range-area label',
+                                collision: { alwaysShow: false },
+                            },
+                        },
+                    ],
+                });
+                // All three cascade outcomes must be present, so the render shows each of them: some
+                // labels keep `outside`, some fall back to `inside`, and the rest are dropped.
+                expect(labels.filter(isOutside).length).toBeGreaterThan(0);
+                expect(labels.filter((l) => !isOutside(l)).length).toBeGreaterThan(0);
+                expect(labels.length).toBeLessThan(16);
+                await compareImageSnapshot(chart, ctx);
+            });
         });
     });
 });

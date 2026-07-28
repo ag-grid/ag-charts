@@ -402,4 +402,58 @@ describe('ColorScale', () => {
             expect(scale.convert(100)).toBe('green');
         });
     });
+
+    describe('convert memoisation', () => {
+        test('repeated conversions of the same value return equal results', () => {
+            const scale = new ColorScale();
+            scale.domain = [-100, 100];
+            scale.range = ['rgb(0, 0, 0)', 'rgb(255, 255, 255)'];
+            scale.update();
+
+            const first = scale.convert(0);
+            expect(scale.convert(0)).toBe(first);
+            expect(first).toBe('rgb(99, 99, 99)');
+        });
+
+        test('changing the range invalidates the memoised colour', () => {
+            const scale = new ColorScale();
+            scale.domain = [-100, 100];
+            scale.range = ['rgb(0, 0, 0)', 'rgb(255, 255, 255)'];
+            scale.update();
+            expect(scale.convert(0)).toBe('rgb(99, 99, 99)');
+
+            scale.range = ['rgb(0, 0, 0)', 'rgb(0, 0, 0)'];
+            expect(scale.convert(0)).toBe('rgb(0, 0, 0)');
+        });
+
+        test('serves correct colours once the cache cap is exceeded', () => {
+            const scale = new ColorScale();
+            scale.domain = [0, 4200];
+            scale.range = ['rgb(0, 0, 0)', 'rgb(255, 255, 255)'];
+            scale.update();
+
+            const firstColour = scale.convert(1);
+
+            // Fill well past the 4096 cap with distinct values so insertion stops mid-pass.
+            for (let i = 2; i < 4200; i++) {
+                scale.convert(i);
+            }
+
+            // A cached value and a never-seen value must both still resolve correctly.
+            expect(scale.convert(1)).toBe(firstColour);
+            expect(scale.convert(4200)).toBe('rgb(255, 255, 255)');
+        });
+
+        test('changing the domain invalidates the memoised colour', () => {
+            const scale = new ColorScale();
+            scale.domain = [-100, 100];
+            scale.range = ['rgb(0, 0, 0)', 'rgb(255, 255, 255)'];
+            scale.update();
+            expect(scale.convert(0)).toBe('rgb(99, 99, 99)');
+
+            // 0 now sits at the domain floor, so it resolves to the first range colour.
+            scale.domain = [0, 100];
+            expect(scale.convert(0)).toBe('rgb(0, 0, 0)');
+        });
+    });
 });

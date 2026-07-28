@@ -1,4 +1,4 @@
-import type { ScaleTickParams, ScaleTickResult } from 'ag-charts-core';
+import type { Logger, ScaleTickParams, ScaleTickResult } from 'ag-charts-core';
 import {
     TickIntervals,
     dateToNumber,
@@ -46,7 +46,7 @@ export class TimeScale extends ContinuousScale<Date, AgTimeInterval | AgTimeInte
         const maxAttempts = 4;
         const availableRange = this.getPixelRange();
         for (let i = 0; i < maxAttempts; i++) {
-            const [n0, n1] = updateNiceDomainIteration(d0, d1, ticks, availableRange);
+            const [n0, n1] = updateNiceDomainIteration(d0, d1, ticks, availableRange, this.logger);
             if (dateToNumber(d0) === dateToNumber(n0) && dateToNumber(d1) === dateToNumber(n1)) {
                 break;
             }
@@ -76,7 +76,15 @@ export class TimeScale extends ContinuousScale<Date, AgTimeInterval | AgTimeInte
             const availableRange = this.getPixelRange();
             return {
                 ticks:
-                    getDateTicksForInterval({ start, stop, interval, availableRange, visibleRange, extend }) ??
+                    getDateTicksForInterval({
+                        start,
+                        stop,
+                        interval,
+                        availableRange,
+                        visibleRange,
+                        extend,
+                        logger: this.logger,
+                    }) ??
                     getDefaultDateTicks({ start, stop, tickCount, minTickCount, maxTickCount, visibleRange, extend }),
                 count: undefined,
             };
@@ -133,6 +141,7 @@ export function getDateTicksForInterval({
     availableRange,
     visibleRange,
     extend,
+    logger,
 }: {
     start: number;
     stop: number;
@@ -140,6 +149,7 @@ export function getDateTicksForInterval({
     availableRange: number;
     visibleRange: [number, number] | undefined;
     extend: boolean;
+    logger: Logger | undefined;
 }): Date[] | undefined {
     if (!interval) {
         return [];
@@ -147,7 +157,7 @@ export function getDateTicksForInterval({
 
     if (typeof interval !== 'number') {
         const ticks = intervalRange(interval, new Date(start), new Date(stop), { visibleRange, extend });
-        if (isDenseInterval(ticks.length, availableRange)) {
+        if (isDenseInterval(ticks.length, availableRange, logger)) {
             return;
         }
 
@@ -156,7 +166,7 @@ export function getDateTicksForInterval({
 
     const absInterval = Math.abs(interval);
 
-    if (isDenseInterval(Math.abs(stop - start) / absInterval, availableRange)) return;
+    if (isDenseInterval(Math.abs(stop - start) / absInterval, availableRange, logger)) return;
 
     const tickInterval = TickIntervals.findLast((t) => absInterval % t.duration === 0);
 
@@ -186,7 +196,8 @@ function updateNiceDomainIteration(
     d0: Date,
     d1: Date,
     ticks: ScaleTickParams<AgTimeInterval | AgTimeIntervalUnit | number>,
-    availableRange: number
+    availableRange: number,
+    logger: Logger | undefined
 ): [Date, Date] {
     const { interval } = ticks;
     const start = Math.min(dateToNumber(d0), dateToNumber(d1));
@@ -200,7 +211,7 @@ function updateNiceDomainIteration(
         let tickCount: number | undefined;
         if (typeof interval === 'number') {
             tickCount = (stop - start) / Math.max(interval, 1);
-            if (isDenseInterval(tickCount, availableRange)) {
+            if (isDenseInterval(tickCount, availableRange, logger)) {
                 tickCount = undefined;
             }
         }

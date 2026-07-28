@@ -1,5 +1,5 @@
 /* eslint-disable no-restricted-properties */
-import { Debug, DebugMetrics, Logger, TextMeasurer, getWindow, isString, toArray } from 'ag-charts-core';
+import { Debug, DebugMetrics, TextMeasurer, ambientLog, getWindow, isString, toArray } from 'ag-charts-core';
 
 import { BBox } from './bbox';
 import { Group } from './group';
@@ -105,7 +105,7 @@ class StatsAccumulator {
         // Log as single line with count and duration info
         const totalStats = this.stats.get('⏱️');
         const count = totalStats?.count ?? 0;
-        Logger.default.log(`📊 Stats (${timeSinceLastLog.toFixed(0)}s, ${count} renders): ${parts.join(' ')}`);
+        ambientLog.log(`📊 Stats (${timeSinceLastLog.toFixed(0)}s, ${count} renders): ${parts.join(' ')}`);
 
         // Reset stats for next period
         this.stats.clear();
@@ -258,7 +258,7 @@ export function debugStats(
             ctx.fillText(stat, x, y);
         }
     } catch (e) {
-        Logger.default.warnOnce('Error during debug stats rendering', e);
+        ambientLog.warnOnce('Error during debug stats rendering', e);
     } finally {
         ctx.restore();
     }
@@ -285,7 +285,7 @@ export function debugSceneNodeHighlight(ctx: CanvasRenderingContext2D, debugNode
             const bbox = Transformable.toCanvas(node);
 
             if (!bbox) {
-                Logger.default.log(`Scene.render() - no bbox for debugged node [${name}].`);
+                ambientLog.log(`Scene.render() - no bbox for debugged node [${name}].`);
                 continue;
             }
 
@@ -304,7 +304,7 @@ export function debugSceneNodeHighlight(ctx: CanvasRenderingContext2D, debugNode
             ctx.fillText(name, bbox.x, bbox.y, bbox.width);
         }
     } catch (e) {
-        Logger.default.warnOnce('Error during debug rendering', e);
+        ambientLog.warnOnce('Error during debug rendering', e);
     } finally {
         ctx.restore();
     }

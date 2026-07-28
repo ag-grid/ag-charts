@@ -4,11 +4,13 @@ import type {
     AgContextMenuGetItemsParams,
     AgContextMenuGetItemsParamsAxis,
     AgContextMenuGetItemsParamsCaption,
+    AgContextMenuGetItemsParamsCrossLine,
     AgContextMenuGetItemsParamsLegendItem,
     AgContextMenuGetItemsParamsSeriesNode,
     AgContextMenuItem,
     AgContextMenuItemShowOn,
     AgContextMenuShowOnParams,
+    AgCrossLineContextMenuActionEvent,
     ContextDefault,
     DatumDefault,
 } from 'ag-charts-community';
@@ -72,6 +74,7 @@ type PickedNode = _ModuleSupport.SeriesNodeDatum & {
 type ShowOnParams = AgContextMenuShowOnParams<DatumDefault, ContextDefault>;
 type SeriesNodeParams = Extract<ShowOnParams, { showOn: 'series-node' }>;
 type AxisParams = Extract<ShowOnParams, { showOn: 'axis' }>;
+type CrossLineParams = Extract<ShowOnParams, { showOn: 'cross-line' }>;
 type CaptionParams = Extract<ShowOnParams, { showOn: 'caption' }>;
 type LegendItemParams = Extract<ShowOnParams, { showOn: 'legend-item' }>;
 type GetItemsParams = [AgContextMenuGetItemsParams, Caller[]];
@@ -85,10 +88,11 @@ export class ContextMenu extends AbstractModuleInstance {
     private readonly interactionManager: _ModuleSupport.InteractionManager;
 
     // State
-    private pickedNode: PickedNode | undefined = undefined;
+    private pickedNodes?: ContextShowOnMap['series-node']['context'];
     private pickedLegendItem?: _ModuleSupport.CategoryLegendDatum;
     private pickedCaptionCtx?: ContextShowOnMap['caption']['context'];
     private pickedAxisCtx?: _ModuleSupport.AxisValuePick;
+    private pickedCrossLine?: ContextShowOnMap['cross-line']['context'];
     private x: number = 0;
     private y: number = 0;
     private collapsingSubMenus = 0;
@@ -169,12 +173,32 @@ export class ContextMenu extends AbstractModuleInstance {
         return { showOn: 'axis', axisId, boundSeries, direction, domain, value, index };
     }
 
-    // Scopes that can overlap the series area: the area itself, and an axis positioned inside it (e.g. `crossAt`).
-    // `axis` is the only scope that appears both as a primary and as a non-primary overlap, so it lives here.
+    private crossLineRegions(picks: ContextShowOnMap['cross-line']['context']): CrossLineParams[] {
+        const result: CrossLineParams[] = [];
+        for (const pick of picks) {
+            const { crossLineId, axisId, direction, type, value, range } = pick;
+            result.push({
+                showOn: 'cross-line',
+                crossLineId,
+                axisId,
+                direction,
+                crossLineType: type,
+                value: value as CrossLineParams['value'],
+                range: range as CrossLineParams['range'],
+            });
+        }
+        return result;
+    }
+
+    // Scopes that can overlap the series area: the area itself, an axis positioned inside it (e.g. `crossAt`),
+    // and a cross line. These appear both as a primary and as a non-primary overlap, so they live here.
     private plotOverlapRegions(active: ReadonlySet<AgContextMenuItemShowOn>): ShowOnParams[] {
         const params: ShowOnParams[] = [];
         if (active.has('series-area')) params.push({ showOn: 'series-area' });
         if (active.has('axis') && this.pickedAxisCtx != null) params.push(this.axisRegion(this.pickedAxisCtx));
+        if (active.has('cross-line') && this.pickedCrossLine != null) {
+            params.push(...this.crossLineRegions(this.pickedCrossLine));
+        }
         return params;
     }
 
@@ -191,6 +215,8 @@ export class ContextMenu extends AbstractModuleInstance {
                 return this.makeGetItemsParamsSeriesNode(defaultItems, active);
             case 'axis':
                 return this.makeGetItemsParamsAxis(defaultItems, active);
+            case 'cross-line':
+                return this.makeGetItemsParamsCrossLine(defaultItems, active);
             case 'caption':
                 return this.makeGetItemsParamsCaption(defaultItems);
             case 'legend-item':
@@ -200,36 +226,45 @@ export class ContextMenu extends AbstractModuleInstance {
         }
     }
 
-    private makeGetItemsParamsSeriesNode(
-        defaultItems: AgContextMenuItem[],
-        active: ReadonlySet<AgContextMenuItemShowOn>
-    ): GetItemsParams {
-        if (this.pickedNode == null) throw new Error(`this.pickedNode is null`);
+    private seriesNodeRegion(node: PickedNode): SeriesNodeParams {
         // FIXME: Some optional keys like dataIdKey are not set. Is that a concern?
-        const itemId = getItemId(this.pickedNode, this.pickedNode.series.data?.dataIdKey);
+        const itemId = getItemId(node, node.series.data?.dataIdKey);
         const region: SeriesNodeParams = {
             showOn: 'series-node',
-            seriesId: this.pickedNode.series.id,
+            seriesId: node.series.id,
             itemId,
-            datum: this.pickedNode.datum,
-            selectionState: this.pickedNode.series.getSelectionStateString(this.pickedNode.datumIndex),
-            isCollapsed: this.ctx.collapsedManager.isCollapsed(itemId),
+            datum: node.datum,
+            selectionState: node.series.getSelectionStateString(node.datumIndex),
+            isCollapsed: node.series.getCollapsedState(itemId),
         };
 
         for (const k of DATUM_KEYS) {
-            if (this.pickedNode[k] !== undefined) {
-                region[k] = this.pickedNode[k];
+            if (node[k] !== undefined) {
+                region[k] = node[k];
             }
         }
 
         // Histogram bins carry standardised bin metadata; binIndex is always set for histogram nodes.
-        if (this.pickedNode.binIndex !== undefined) {
-            const { datums, binIndex, binRange, aggregatedValue, frequency } = this.pickedNode;
+        if (node.binIndex !== undefined) {
+            const { datums, binIndex, binRange, aggregatedValue, frequency } = node;
             Object.assign(region, { datums, binIndex, binRange, aggregatedValue, frequency });
         }
-        const allShowOnParams: ShowOnParams[] = [...this.plotOverlapRegions(active), region];
-        const params: AgContextMenuGetItemsParamsSeriesNode = { ...region, defaultItems, allShowOnParams };
-        const callers: Caller[] = [this.pickedNode.series.properties, this.ctx.chartService];
+        return region;
+    }
+
+    private makeGetItemsParamsSeriesNode(
+        defaultItems: AgContextMenuItem[],
+        active: ReadonlySet<AgContextMenuItemShowOn>
+    ): GetItemsParams {
+        if (this.pickedNodes == null) throw new Error(`this.pickedNodes is null`);
+        const regions = this.pickedNodes.map((node) => this.seriesNodeRegion(node));
+        if (regions.length === 0) throw new Error(`this.pickedNodes is empty`);
+
+        // The topmost node (hit-test order) wins. Nodes overlapping it at this contextmenu point are broadcast in
+        // the allShowOnParams property.
+        const allShowOnParams: ShowOnParams[] = [...this.plotOverlapRegions(active), ...regions];
+        const params: AgContextMenuGetItemsParamsSeriesNode = { ...regions[0], defaultItems, allShowOnParams };
+        const callers: Caller[] = [this.pickedNodes[0].series.properties, this.ctx.chartService];
         return [params, callers];
     }
 
@@ -241,12 +276,37 @@ export class ContextMenu extends AbstractModuleInstance {
         const region = this.axisRegion(this.pickedAxisCtx);
         const allShowOnParams: ShowOnParams[] = [region];
         if (active.has('series-area')) allShowOnParams.push({ showOn: 'series-area' });
+        if (active.has('cross-line') && this.pickedCrossLine != null) {
+            allShowOnParams.push(...this.crossLineRegions(this.pickedCrossLine));
+        }
         const params: AgContextMenuGetItemsParamsAxis<DatumDefault, ContextDefault> = {
             ...region,
             defaultItems,
             allShowOnParams,
         };
         const callers: Caller[] = [this.pickedAxisCtx.caller, this.ctx.chartService];
+        return [params, callers];
+    }
+
+    private makeGetItemsParamsCrossLine(
+        defaultItems: AgContextMenuItem[],
+        active: ReadonlySet<AgContextMenuItemShowOn>
+    ): GetItemsParams {
+        if (this.pickedCrossLine == null) throw new Error(`this.pickedCrossLine is null`);
+        const regions = this.crossLineRegions(this.pickedCrossLine);
+        if (regions.length === 0) throw new Error(`this.pickedCrossLine is empty`);
+
+        // The first crossline (rendering order) wins. Overlapping crosslines at this contextmenu point will be
+        // broadcast in the allShowOnParams property.
+        const allShowOnParams: ShowOnParams[] = [...regions];
+        if (active.has('series-area')) allShowOnParams.push({ showOn: 'series-area' });
+        if (active.has('axis') && this.pickedAxisCtx != null) allShowOnParams.push(this.axisRegion(this.pickedAxisCtx));
+        const params: AgContextMenuGetItemsParamsCrossLine<DatumDefault, ContextDefault> = {
+            ...regions[0],
+            defaultItems,
+            allShowOnParams,
+        };
+        const callers: Caller[] = [this.ctx.chartService];
         return [params, callers];
     }
 
@@ -310,10 +370,11 @@ export class ContextMenu extends AbstractModuleInstance {
         // Regions can overlap (e.g. a datum node over a crossing axis), so populate every picked context the
         // event carries rather than a single mutually-exclusive one; item actions route by their own showOn.
         const { contexts } = event;
-        this.pickedNode = contexts['series-node']?.pickedNode;
+        this.pickedNodes = contexts['series-node'];
         this.pickedAxisCtx = contexts.axis;
         this.pickedCaptionCtx = contexts.caption;
         this.pickedLegendItem = contexts['legend-item']?.legendItem;
+        this.pickedCrossLine = contexts['cross-line'];
 
         const expandedItems = this.expandItemsOptions(event);
         if (expandedItems.length === 0) return;
@@ -468,7 +529,7 @@ export class ContextMenu extends AbstractModuleInstance {
             return () => {
                 const { chartService: chart } = this.ctx;
 
-                const pickedNode = this.pickedNode;
+                const pickedNode = this.pickedNodes?.[0];
                 const callers: (Caller | undefined)[] = [pickedNode?.series.properties, chart];
                 const apiEvent = pickedNode?.series.createNodeContextMenuActionEvent(showEvent, pickedNode);
                 if (apiEvent) {
@@ -496,6 +557,27 @@ export class ContextMenu extends AbstractModuleInstance {
                     callWithContext(callers, callback, apiEvent);
                 } else {
                     this.ctx.logger.error('axis item not found');
+                }
+                this.hide();
+            };
+        } else if (ContextMenuRegistry.checkCallback('cross-line', showOn, callback)) {
+            return () => {
+                if (this.pickedCrossLine && this.pickedCrossLine.length > 0) {
+                    const { crossLineId, axisId, direction, type, value, range } = this.pickedCrossLine[0];
+                    const callers: Caller = this.ctx.chartService;
+                    const apiEvent: Omit<AgCrossLineContextMenuActionEvent<never>, 'context'> = {
+                        type: 'crossLineContextMenuAction',
+                        event: showEvent,
+                        crossLineId,
+                        axisId,
+                        direction,
+                        crossLineType: type,
+                        value: value as AgCrossLineContextMenuActionEvent<never>['value'],
+                        range: range as AgCrossLineContextMenuActionEvent<never>['range'],
+                    };
+                    callWithContext(callers, callback, apiEvent);
+                } else {
+                    this.ctx.logger.error('cross line item not found');
                 }
                 this.hide();
             };

@@ -1,4 +1,5 @@
 import type { AgAnnotationLineStyleType, _ModuleSupport } from 'ag-charts-community';
+import type { Logger } from 'ag-charts-core';
 
 import type { PointType } from './utils/scale';
 
@@ -118,6 +119,7 @@ export interface AnnotationAxisContext extends Pick<
 }
 
 export interface AnnotationContext {
+    logger: Logger;
     seriesRect: _ModuleSupport.BBox;
     xAxis: AnnotationAxisContext;
     yAxis: AnnotationAxisContext;

@@ -111,10 +111,9 @@ class PieDonutSeriesNodeEvent<TEvent extends string = SeriesNodeEventTypes> exte
         nativeEvent: Event,
         datum: PieDonutNodeDatum,
         series: DonutSeries,
-        selectionState: SelectionState | undefined,
-        isCollapsed: boolean
+        selectionState: SelectionState | undefined
     ) {
-        super(type, nativeEvent, datum, series, selectionState, isCollapsed);
+        super(type, nativeEvent, datum, series, selectionState);
         this.angleKey = series.properties.angleKey;
         this.radiusKey = series.properties.radiusKey;
         this.calloutLabelKey = series.properties.calloutLabelKey;

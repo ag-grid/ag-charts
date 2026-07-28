@@ -4,7 +4,10 @@ import {
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_KEYED_DEFAULTS,
     LABEL_BOXING_TOP_LEVEL_DEFAULTS,
+    LABEL_OVERFLOW_ALWAYS_SHOW,
+    LABEL_OVERFLOW_DEFAULTS,
     SINGLE_SERIES_HIGHLIGHT_STYLE,
+    undocumentedThemeOptions,
 } from 'ag-charts-core';
 import type { ExtensibleTheme } from 'ag-charts-types';
 
@@ -32,6 +35,7 @@ function itemTheme(
         strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
         label: {
             ...LABEL_BOXING_TOP_LEVEL_DEFAULTS,
+            ...LABEL_OVERFLOW_DEFAULTS,
             enabled: false,
             fontStyle: undefined,
             fontWeight: { $ref: 'fontWeight' as const },
@@ -41,8 +45,8 @@ function itemTheme(
             padding: 6,
             collision: {
                 threshold: 4,
-                // @ts-expect-error undocumented option
-                collideWith: { seriesItems: true, seriesArea: true },
+                alwaysShow: LABEL_OVERFLOW_ALWAYS_SHOW,
+                ...undocumentedThemeOptions({ collideWith: { seriesItems: true } }),
             },
             insideStyle: {
                 color: { $isUserOption: ['../color', { $path: '../color' }, { $ref: 'textColor' as const }] },

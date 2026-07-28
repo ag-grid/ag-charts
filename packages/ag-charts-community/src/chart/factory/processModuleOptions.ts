@@ -1,12 +1,12 @@
 import {
     type AxisPluginModuleDefinition,
     Debug,
-    Logger,
     ModuleRegistry,
     ModuleType,
     type PlainObject,
     type PluginModuleDefinition,
     type SeriesPluginModuleDefinition,
+    ambientLog,
     deepClone,
     deepFreeze,
     groupBy,
@@ -190,11 +190,9 @@ export function processModuleOptions<T extends Partial<AgChartOptions>>(
     const missingOptions = groupBy(missingModules, (module) => (module.enterprise ? 'enterprise' : 'community'));
 
     if (ModuleRegistry.isUmd()) {
-        Logger.default.warnOnce(umdMissingModulesMessage(missingOptions.enterprise ?? []));
+        ambientLog.warnOnce(umdMissingModulesMessage(missingOptions.enterprise ?? []));
     } else {
-        Logger.default.errorOnce(
-            bundlerMissingModulesMessage(missingModules, missingOptions, installationReferenceUrl)
-        );
+        ambientLog.errorOnce(bundlerMissingModulesMessage(missingModules, missingOptions, installationReferenceUrl));
     }
 }
 

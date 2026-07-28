@@ -52,7 +52,7 @@ export class AnimationManager {
         private readonly agDocument: AgDocument,
         private readonly interactionManager: InteractionManager,
         private readonly chartUpdateMutex: Mutex,
-        private readonly logger: Logger = Logger.default
+        private readonly logger: Logger
     ) {
         this.batch = new AnimationBatch(this.defaultDuration * 1.5, this.logger);
     }

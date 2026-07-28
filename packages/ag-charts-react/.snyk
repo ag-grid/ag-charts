@@ -1,6 +1,12 @@
 # Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
 version: v1.25.1
 ignore:
+  SNYK-JS-BRACEEXPANSION-18313044:
+    - rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.0.2:
+        reason: >-
+            Used in build & dev - not included in final production build
+        expires: 2026-09-06T00:00:00.000Z
+        created: 2026-07-27T09:08:46.897Z
   SNYK-JS-BRACEEXPANSION-15789759:
     - rimraf@3.0.2 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.0.2:
         reason: Used in build & dev - not included in final production build

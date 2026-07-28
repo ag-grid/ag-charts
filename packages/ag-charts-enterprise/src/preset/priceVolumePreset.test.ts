@@ -1,3 +1,4 @@
+import { testLogger } from '_ag-charts-test';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { AgCharts } from 'ag-charts-community';
@@ -160,8 +161,8 @@ describe('priceVolumePreset', () => {
         ];
 
         const presetButtons = (overrides?: AgThemeOverrides) =>
-            priceVolume({ data: getStockData() }, undefined, () => ({}) as any, overrides).annotations?.toolbar
-                ?.buttons;
+            priceVolume({ data: getStockData() }, undefined, () => ({}) as any, overrides, testLogger).annotations
+                ?.toolbar?.buttons;
 
         it('prefers the user-specified buttons from the theme overrides', () => {
             const buttons = presetButtons({
