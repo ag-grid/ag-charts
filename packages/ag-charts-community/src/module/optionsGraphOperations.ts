@@ -67,15 +67,15 @@ type OperationResolver = (
 
 export function getOperation(
     value: unknown,
-    keys?: Array<string>,
-    warnings?: Pick<OptionsGraphInterface, 'warnOnce'>
+    warnings: Pick<OptionsGraphInterface, 'warnOnce'>,
+    keys?: Array<string>
 ): { operation: Operation; values: Array<any> } | undefined {
     if (value == null || typeof value !== 'object' || Array.isArray(value)) return;
 
     keys ??= Object.keys(value);
     if (keys.length === 0) return;
 
-    const publicOperation = getPublicOperation(value, keys, warnings);
+    const publicOperation = getPublicOperation(value, warnings, keys);
     if (publicOperation) return publicOperation;
 
     const operation = keys[0] as Operation;
@@ -91,8 +91,8 @@ export function getOperation(
 // Translate public-facing Grid compatible operations into Charts options graph operations.
 function getPublicOperation(
     value: object,
-    keys: Array<string>,
-    warnings: Pick<OptionsGraphInterface, 'warnOnce'> | undefined
+    warnings: Pick<OptionsGraphInterface, 'warnOnce'>,
+    keys: Array<string>
 ): { operation: Operation; values: Array<any> } | undefined {
     //  `{ ref: string; mix?: number; onto?: string }`
     if ('ref' in value && typeof value.ref === 'string') {
@@ -122,7 +122,7 @@ function getPublicOperation(
                 typeof value.ontoColor === 'string' &&
                 keys.length === 4 + privateOperation
             ) {
-                warnings?.warnOnce('`onto` and `ontoColor` are mutually exclusive, ignoring `ontoColor`.');
+                warnings.warnOnce('`onto` and `ontoColor` are mutually exclusive, ignoring `ontoColor`.');
                 return { operation: ColorOperation.Mix, values: [{ $ref: value.ref }, { $ref: value.onto }, ratio] };
             }
 
@@ -140,7 +140,7 @@ function getPublicOperation(
 }
 
 function getOperationTargetVertex(graph: OptionsGraphInterface, vertex: VertexInterface, valueVertex: VertexInterface) {
-    const operation = getOperation(graph.getVertexValue(valueVertex), undefined, graph);
+    const operation = getOperation(graph.getVertexValue(valueVertex), graph);
 
     switch (operation?.operation) {
         case LocationOperation.Path: {
@@ -969,7 +969,7 @@ function applyOperation(graph: OptionsGraphInterface, vertex: VertexInterface, v
         : undefined;
 
     if (!hasChildren && defaultValue != null) {
-        if (getOperation(defaultValue, undefined, graph)) {
+        if (getOperation(defaultValue, graph)) {
             const resolvedDefaultValue = graph.resolveVertexValue(vertex, defaultValueVertex);
             if (isPlainObject(resolvedDefaultValue)) {
                 graph.graftObject(vertex, resolvedDefaultValue, [overridesPath1, overridesPath2]);
@@ -1025,8 +1025,6 @@ function applyCycleOperation(graph: OptionsGraphInterface, vertex: VertexInterfa
     return RESOLVED_TO_BRANCH;
 }
 
-// Expand a padding value to a per-side object: a number applies to every side, an object passes through, and
-// anything else is treated as "not supplied".
 function expandPaddingValue(value: unknown) {
     if (typeof value === 'number') {
         return { top: value, right: value, bottom: value, left: value };
@@ -1039,10 +1037,6 @@ function applyPaddingOperation(graph: OptionsGraphInterface, vertex: VertexInter
 
     const pathArray = graph.getPathArray(vertex);
     const userOption = graph.dangerouslyGetUserOption(pathArray);
-
-    // Resolve any theme-override padding for this path, mirroring how the user option is read. Resolving through the
-    // graph is not viable here: a nested override (e.g. `{ left: 15, right: 15 }`) builds child vertices rather than a
-    // value on this vertex, and resolving the vertex would re-enter this operation. Read the raw override instead.
     const overrideOption = graph.dangerouslyGetThemeOverride(pathArray);
 
     const defaultValue = graph.resolveVertexValue(vertex, defaultValueVertex);
@@ -1053,7 +1047,6 @@ function applyPaddingOperation(graph: OptionsGraphInterface, vertex: VertexInter
     const expandedOverrideOption = expandPaddingValue(overrideOption);
     const expandedUserOption = expandPaddingValue(userOption);
 
-    // Precedence (per side): user option > theme override > theme default, matching EDGE_PRIORITY.
     if (expandedOverrideOption == null && expandedUserOption == null) {
         return expandedDefaultValue;
     }

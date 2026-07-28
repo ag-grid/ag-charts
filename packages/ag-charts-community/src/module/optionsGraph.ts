@@ -674,7 +674,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
 
         // If the grafted value is a public operation, let it resolve normally as it will resolve to a unique leaf and
         // does not need to be handled like other values. Private operations will not reach this point.
-        const operation = getOperation(value, undefined, this);
+        const operation = getOperation(value, this);
         if (operation) return;
 
         this.value$1.set(pathArray.join('.'), value);
@@ -730,7 +730,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         ignorePaths?: Set<string>
     ) {
         const keys = Object.keys(object);
-        const operation = getOperation(object, keys, this);
+        const operation = getOperation(object, this, keys);
         if (operation) {
             const valueVertex = this.addVertex(object);
             this.addEdge(parentVertex, valueVertex, edgeValue);
@@ -844,7 +844,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             this.addEdge(pathVertex, pathArrayVertex, PATH_ARRAY_EDGE);
         }
 
-        const operation = getOperation(value, undefined, this);
+        const operation = getOperation(value, this);
         if (operation) {
             const valueVertex = this.addVertex(value);
             this.addEdge(pathVertex, valueVertex, edgeValue);
@@ -910,7 +910,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         this.addEdge(valueVertex, pathArrayVertex, PATH_ARRAY_EDGE);
         this.addEdge(valueVertex, operationValueVertex, OPERATION_VALUE_EDGE);
 
-        const innerOperation = getOperation(operationValue, undefined, this);
+        const innerOperation = getOperation(operationValue, this);
         if (innerOperation) {
             this.buildGraphFromOperation(operationValueVertex, edgeValue, innerOperation, pathArrayVertex);
         } else if (isObjectLike(operationValue)) {
@@ -1060,28 +1060,7 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
     ) {
         const pathLeaf = pathArray.at(-1)!;
         const children = this.neighboursWithEdgeValue(vertex, PATH_EDGE);
-
-        let edgePriority = this.edgePriority;
-
-        // If this path leaf matches the expected "transform user" operation, change the edge priority to resolve
-        // through that operation so it can transform the user option and theme override into the final value.
-        if (pathLeaf in OptionsGraph.TRANSFORM_USER_KEY_OPERATION_PAIRS) {
-            const expectedOperation = OptionsGraph.TRANSFORM_USER_KEY_OPERATION_PAIRS[pathLeaf];
-            const overrideIsOperation =
-                getOperation(this.findNeighbourValue(vertex, OVERRIDES_EDGE), undefined, this)?.operation.valueOf() ===
-                expectedOperation;
-            const defaultIsOperation =
-                getOperation(this.findNeighbourValue(vertex, DEFAULTS_EDGE), undefined, this)?.operation.valueOf() ===
-                expectedOperation;
-            if (overrideIsOperation) {
-                // The override supplies its own operation template; resolve it (falling back to the default operation).
-                edgePriority = [OVERRIDES_EDGE, DEFAULTS_EDGE];
-            } else if (defaultIsOperation) {
-                // Only the default supplies the operation. Resolve through it alone so the operation merges any plain
-                // override and user value, rather than letting a plain override short-circuit and skip the transform.
-                edgePriority = [DEFAULTS_EDGE];
-            }
-        }
+        const edgePriority = this.getEdgePriority(vertex, pathLeaf);
 
         const [highestPriority] = edgePriority;
 
@@ -1113,6 +1092,30 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             }
             break;
         }
+    }
+
+    private getEdgePriority(vertex: Vertex<unknown, unknown>, pathLeaf: string) {
+        let edgePriority = this.edgePriority;
+
+        // If this path leaf matches the expected "transform user" operation, change the edge priority to resolve
+        // through that operation so it can transform the user option and theme override into the final value.
+        if (pathLeaf in OptionsGraph.TRANSFORM_USER_KEY_OPERATION_PAIRS) {
+            const expectedOperation = OptionsGraph.TRANSFORM_USER_KEY_OPERATION_PAIRS[pathLeaf];
+            const overrideIsOperation =
+                getOperation(this.findNeighbourValue(vertex, OVERRIDES_EDGE), this)?.operation.valueOf() ===
+                expectedOperation;
+            const defaultIsOperation =
+                getOperation(this.findNeighbourValue(vertex, DEFAULTS_EDGE), this)?.operation.valueOf() ===
+                expectedOperation;
+
+            if (overrideIsOperation) {
+                edgePriority = [OVERRIDES_EDGE, DEFAULTS_EDGE];
+            } else if (defaultIsOperation) {
+                edgePriority = [DEFAULTS_EDGE];
+            }
+        }
+
+        return edgePriority;
     }
 
     private resolveVertexValueInternal(vertex: Vertex<unknown>, valueVertex: Vertex<unknown>) {
