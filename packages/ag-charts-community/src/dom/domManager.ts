@@ -304,6 +304,16 @@ export class DOMManager extends BaseManager {
         return rootElements;
     }
 
+    // A replacement chart appends its own element to the same container, so anything left in that
+    // container's flow displaces it — this must happen before destroy(), which is queued behind any
+    // in-flight update.
+    detachFromContainer() {
+        if (this.container != null) {
+            this.sizeMonitor.unobserve(this.container);
+        }
+        this.element.remove();
+    }
+
     override destroy() {
         super.destroy();
 

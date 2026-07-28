@@ -827,6 +827,57 @@ describe('Chart', () => {
         });
     });
 
+    describe('chart-type switch DOM handover', () => {
+        it('detaches the outgoing element before the replacement attaches', async () => {
+            const container = document.createElement('div');
+            document.body.appendChild(container);
+
+            const lineOptions: AgCartesianChartOptions = prepareTestOptions(
+                {
+                    series: [
+                        {
+                            type: 'line',
+                            data: datasets.economy.data,
+                            xKey: datasets.economy.categoryKey,
+                            yKey: datasets.economy.valueKey,
+                        },
+                    ],
+                },
+                container
+            );
+            const agChartInstance = AgCharts.create(lineOptions) as AgChartProxy;
+            chart = deproxy(agChartInstance);
+            await waitForChartStability(chart);
+
+            const pieOptions: AgPolarChartOptions = prepareTestOptions(
+                {
+                    series: [
+                        {
+                            type: 'pie',
+                            data: datasets.economy.data,
+                            calloutLabelKey: datasets.economy.categoryKey,
+                            angleKey: datasets.economy.valueKey,
+                        },
+                    ],
+                },
+                container
+            );
+            const updated = agChartInstance.update(pieOptions);
+
+            // The replacement attaches its element synchronously while the outgoing chart's teardown
+            // is queued behind the update mutex, so an outgoing element left in the container's flow
+            // displaces the replacement by its own min-height until that teardown runs.
+            expect(container.querySelectorAll('.ag-charts-wrapper')).toHaveLength(1);
+
+            await updated;
+            chart = deproxy(agChartInstance);
+            await waitForChartStability(chart);
+            expect(container.querySelectorAll('.ag-charts-wrapper')).toHaveLength(1);
+
+            container.remove();
+        });
+    });
+
     describe('Combo chart series visibility updates (AG-13393)', () => {
         let agChartInstance: AgChartProxy;
         let options: AgCartesianChartOptions;

@@ -824,6 +824,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             // Strip synchronously so the scene is safe to hand to a replacement chart
             // even while the rest of the teardown is queued behind any in-flight update.
             this.ctx.scene.strip();
+            this.ctx.domManager.detachFromContainer();
             result = {
                 container: this.container,
                 scene: this.ctx.scene,
