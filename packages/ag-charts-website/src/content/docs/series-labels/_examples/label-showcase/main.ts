@@ -22,12 +22,14 @@ const options: AgCartesianChartOptions<DataType> = {
                 border: { enabled: true, strokeWidth: 1 },
                 insideStyle: {
                     color: 'white',
-                    fill: 'rgba(0, 0, 0, 0.6)',
+                    fill: 'black',
+                    fillOpacity: 0.6,
                     border: { stroke: 'white' },
                 },
                 outsideStyle: {
                     color: 'black',
-                    fill: 'rgba(255, 255, 255, 0.8)',
+                    fill: 'white',
+                    fillOpacity: 0.8,
                     border: { stroke: 'black' },
                 },
             },

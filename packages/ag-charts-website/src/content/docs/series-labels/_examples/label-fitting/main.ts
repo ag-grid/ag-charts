@@ -8,7 +8,7 @@ ModuleRegistry.registerModules([BarSeriesModule, LegendModule, CategoryAxisModul
 
 const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
-    title: { text: 'Quarterly Revenue ($m)' },
+    title: { text: 'Quarterly Revenue by Leading Division' },
     data,
     series: [
         {
@@ -18,10 +18,9 @@ const options: AgCartesianChartOptions<DataType> = {
             label: {
                 enabled: true,
                 placement: 'inside-end',
-                formatter: (params) =>
-                    `${params.datum.quarter} revenue reached $${params.value}m, a new regional record`,
+                formatter: (params) => `$${params.value}m ${params.datum.division}`,
                 maxWidth: 70,
-                maxHeight: 40,
+                maxHeight: 54,
                 wrapping: 'on-space',
                 truncate: true,
             },
