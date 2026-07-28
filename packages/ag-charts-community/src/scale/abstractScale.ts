@@ -7,9 +7,10 @@ import type {
     ScaleTickParams,
     ScaleType,
 } from 'ag-charts-core';
+import { ambientLogger } from 'ag-charts-core';
 
 export abstract class AbstractScale<D, R, I = number> implements Scale<D, R, I> {
-    logger: Logger | undefined;
+    logger: Logger = ambientLogger;
 
     abstract readonly type: ScaleType;
     abstract readonly defaultTickCount: number;

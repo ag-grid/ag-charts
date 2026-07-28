@@ -18,6 +18,8 @@ const SANCTIONED_AMBIENT_LOGGING = [
     '/logging/ambientLog.ts',
     // The default Logger for a Scene with no owning chart (AG Grid sparklines / mini charts).
     '/scene/scene.ts',
+    // The default Logger for a scale with no owning axis (sparklines, interpolation scales).
+    '/scale/abstractScale.ts',
     // Pixel-boundary coercion called from everywhere; a logger parameter would be viral.
     '/utils/data/numbers.ts',
     // Pure format-string parser, reached from the static `FormatManager.getFormatter` below.
