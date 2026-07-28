@@ -182,6 +182,10 @@ export class DOMManager extends BaseManager {
 
     private minWidth: number = 0;
     private minHeight: number = 0;
+    // No explicit options width/height, so the canvas is sized to fill the container rather than to
+    // a size the caller chose. See updateContainerClassName().
+    private autoWidth: boolean = true;
+    private autoHeight: boolean = true;
     private enableRtl?: boolean;
     private _isRtl: boolean = false;
 
@@ -433,6 +437,8 @@ export class DOMManager extends BaseManager {
 
         this.minWidth = optionsWidth ?? minWidth;
         this.minHeight = optionsHeight ?? minHeight;
+        this.autoWidth = optionsWidth == null;
+        this.autoHeight = optionsHeight == null;
 
         style.minWidth = `${this.minWidth}px`;
         style.minHeight = `${this.minHeight}px`;
@@ -1137,8 +1143,20 @@ export class DOMManager extends BaseManager {
     }
 
     private updateContainerClassName() {
-        const { element, containerSize, minWidth, minHeight } = this;
-        element.classList.toggle(CONTAINER_MODIFIERS.safeHorizontal, minWidth >= (containerSize?.width ?? Infinity));
-        element.classList.toggle(CONTAINER_MODIFIERS.safeVertical, minHeight >= (containerSize?.height ?? Infinity));
+        const { element, containerSize, minWidth, minHeight, autoWidth, autoHeight } = this;
+        // The canvas is centred within this box, so any disagreement between the two displaces the
+        // chart by half the difference. When the size came from the container rather than from an
+        // explicit options width/height the canvas is meant to fill the box exactly, so a
+        // disagreement is only ever a size that has not reconciled yet — centring it renders the
+        // chart partway down the container until it does. Align to the start instead; a caller who
+        // asked for a specific size still gets the smaller canvas centred.
+        element.classList.toggle(
+            CONTAINER_MODIFIERS.safeHorizontal,
+            containerSize != null && (autoWidth || minWidth >= containerSize.width)
+        );
+        element.classList.toggle(
+            CONTAINER_MODIFIERS.safeVertical,
+            containerSize != null && (autoHeight || minHeight >= containerSize.height)
+        );
     }
 }
