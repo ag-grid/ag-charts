@@ -9,11 +9,22 @@
  * - `allowNewIn` — path fragments of the sanctioned files permitted to call `new Logger()`.
  * - `checkStatic` — when true, also flag static `Logger.<method>()` calls (off by default so the
  *   `new Logger()` ban can apply repo-wide while the static-emitter ban is rolled out package by package).
- * - `allowAmbientIn` — path fragments of the files permitted to use `ambientLog`. Omit to allow it
- *   everywhere; supply a list to freeze the chart-less residue at exactly those files.
+ * - `allowAmbientIn` — path fragments of the files permitted to reach the ambient logger. Omit to allow
+ *   it everywhere; supply a list to freeze the chart-less residue at exactly those files. Enforcement is
+ *   keyed on the imported module, so every route to the shared instance is covered: the `ambientLog`
+ *   namespace, the `ambientLogger` instance, and direct named imports of the free functions.
  */
 
 const BANNED_STATIC_METHODS = new Set(['log', 'warn', 'error', 'table', 'warnOnce', 'errorOnce', 'logGroup', 'reset']);
+
+// Every name the logging module exports that reaches the process-wide ambient Logger. `Logger` itself is
+// absent deliberately: importing the class is how a file declares a `Logger` parameter, which is the
+// behaviour this rule is steering towards. Construction is policed separately by `allowNewIn`.
+const AMBIENT_EXPORTS = new Set([...BANNED_STATIC_METHODS, 'ambientLog', 'ambientLogger']);
+
+// The logging modules themselves, reached by relative path from inside core. A namespace import of
+// either exposes every ambient emitter, so the whole module is in scope — not just named specifiers.
+const isLoggingModule = (source) => /(^|\/)logging\/(logger|ambientLog)(\.[jt]s)?$/.test(source);
 
 /** @type {import('eslint').Rule.RuleModule} */
 export default {
@@ -62,10 +73,24 @@ export default {
 
             ImportDeclaration(node) {
                 if (allowAmbientIn == null || matches(allowAmbientIn)) return;
+                // Type-only imports erase at compile time and cannot emit anything.
+                if (node.importKind === 'type') return;
+
+                // Keyed on the module rather than the local name: `import { warnOnce } from '../logging/logger'`
+                // reaches the same ambient instance as `ambientLog.warnOnce`, so both must be caught.
+                const fromLoggingModule = isLoggingModule(node.source.value);
+                if (!fromLoggingModule && node.source.value !== 'ag-charts-core') return;
 
                 for (const specifier of node.specifiers) {
-                    const imported = specifier.imported ?? specifier.local;
-                    if (imported?.name === 'ambientLog') {
+                    if (specifier.type === 'ImportSpecifier') {
+                        if (specifier.importKind === 'type') continue;
+                        if (AMBIENT_EXPORTS.has(specifier.imported.name)) {
+                            context.report({ node: specifier, messageId: 'noAmbientLog' });
+                        }
+                    } else if (fromLoggingModule) {
+                        // A namespace or default import of the logging module itself exposes every
+                        // ambient emitter. The `ag-charts-core` barrel is far wider, so a namespace
+                        // import of it says nothing about logging and is left alone.
                         context.report({ node: specifier, messageId: 'noAmbientLog' });
                     }
                 }

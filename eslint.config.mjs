@@ -10,15 +10,18 @@ import noUnscopedLogger from './libraries/ag-charts-eslint-rules/rules/no-unscop
 import requireExplicitGeneric from './libraries/ag-charts-eslint-rules/rules/require-explicit-generic.mjs';
 import requireSharedRenderer from './libraries/ag-charts-eslint-rules/rules/require-shared-renderer.mjs';
 
-// Path fragments of the files sanctioned to call `new Logger()`; everything else uses `ctx.logger` or
-// the shared `Logger.default`. Tests construct loggers freely.
 // The complete set of files that log without a chart. Each one is here because no chart context
 // reaches it — not because threading one was inconvenient. Anything added here needs the same
 // justification, and anything that gains a reachable chart context should come off the list.
 const SANCTIONED_AMBIENT_LOGGING = [
     '/logging/logger.ts',
+    '/logging/ambientLog.ts',
+    // The default Logger for a Scene with no owning chart (AG Grid sparklines / mini charts).
+    '/scene/scene.ts',
     // Pixel-boundary coercion called from everywhere; a logger parameter would be viral.
     '/utils/data/numbers.ts',
+    // Pure format-string parser, reached from the static `FormatManager.getFormatter` below.
+    '/utils/format/numberFormat.ts',
     // `BaseProperties.set()`, reached from programmatic property assignment with no chart to hand.
     // Option-driven unknown properties are already reported as validation errors.
     '/state/properties.ts',
@@ -27,8 +30,9 @@ const SANCTIONED_AMBIENT_LOGGING = [
     // Runs before any chart exists.
     '/util/browser.ts',
     '/util/time-interop.ts',
-    '/chart/mapping/themes.ts',
     '/chart/factory/processModuleOptions.ts',
+    // Default for the AG Grid `_Theme.getChartTheme(value)` entry point, which takes no logger.
+    '/chart/mapping/themes.ts',
     // Pure parsers and formatters with no owner.
     '/util/svg.ts',
     '/locale/defaultMessageFormatter.ts',
@@ -44,12 +48,12 @@ const SANCTIONED_AMBIENT_LOGGING = [
     '/util/test/mockConsole.ts',
 ];
 
+// Path fragments of the files sanctioned to call `new Logger()`; everything else takes one by
+// injection, from `ctx.logger` or the shared `ambientLogger`. Tests construct loggers freely.
 const SANCTIONED_LOGGER_CONSTRUCTION = [
     '/logging/logger.ts',
     // The chart's single instance, adopted by the chart context.
     '/module/optionsModule.ts',
-    // Only for a Scene with no owning chart (AG Grid sparklines / mini charts).
-    '/scene/scene.ts',
     '.test.',
     '.spec.',
 ];
