@@ -4,9 +4,10 @@ import type { AgBarSeriesOptions, AgCartesianChartOptions, AgLineSeriesOptions }
 
 import { ChartOptions } from '../../module/optionsModule';
 
-// Setting any one overflow-control label property (`maxWidth`, `maxHeight`, `wrapping`, `truncate`, or a
-// multi-candidate `placement`/`orientation` list) resolves the other three to a coherent set. These assertions read
-// resolved options rather than pixels, so they pin the theme-template precedence itself rather than a rendering.
+// Setting any one overflow-control label property (`maxWidth`, `maxHeight`, `wrapping`, `truncate`, or an
+// array-valued `placement`/`orientation`) resolves the unset ones to a coherent set; every trigger reads by
+// presence, not by value. These assertions read resolved options rather than pixels, so they pin the
+// theme-template precedence itself rather than a rendering.
 describe('label overflow defaults', () => {
     type SeriesLabel = { wrapping?: unknown; truncate?: unknown; collision?: { alwaysShow?: unknown } };
 
@@ -39,7 +40,7 @@ describe('label overflow defaults', () => {
         expectOverflowManaged(resolveLabel({ maxWidth: 80 }));
     });
 
-    it('forces the overflow set when `wrapping` is set to a value other than `never`', () => {
+    it('forces the overflow set when `wrapping` is set', () => {
         const label = resolveLabel({ wrapping: 'always' });
 
         expect(label.wrapping).toBe('always');
@@ -47,7 +48,7 @@ describe('label overflow defaults', () => {
         expect(label.collision?.alwaysShow).toBe(false);
     });
 
-    it('forces the overflow set when `truncate` is `true`', () => {
+    it('forces the overflow set when `truncate` is set', () => {
         const label = resolveLabel({ truncate: true });
 
         expect(label.wrapping).toBe('on-space');
@@ -77,12 +78,8 @@ describe('label overflow defaults', () => {
     it.each([
         ['placement', ['inside-center']],
         ['orientation', ['horizontal']],
-    ])('does not trigger on a single-candidate %s list', (key, value) => {
-        const label = resolveLabel({ [key]: value });
-
-        expect(label).not.toHaveProperty('wrapping');
-        expect(label).not.toHaveProperty('truncate');
-        expect(label.collision?.alwaysShow).toBe(true);
+    ])('forces the overflow set on a single-candidate %s list', (key, value) => {
+        expectOverflowManaged(resolveLabel({ [key]: value }));
     });
 
     it('keeps an explicit `alwaysShow: true` alongside a trigger', () => {
@@ -109,14 +106,20 @@ describe('label overflow defaults', () => {
         expect(label.collision?.alwaysShow).toBe(false);
     });
 
-    // `truncate` reads `wrapping` by presence rather than by value to keep the dependency graph acyclic, so
-    // `wrapping: 'never'` forces `truncate` even though it is excluded from the `alwaysShow` trigger.
-    it('excludes `wrapping: never` from the `alwaysShow` trigger but still forces `truncate`', () => {
+    it('treats `wrapping: never` as a trigger', () => {
         const label = resolveLabel({ wrapping: 'never' });
 
         expect(label.wrapping).toBe('never');
         expect(label.truncate).toBe(true);
-        expect(label.collision?.alwaysShow).toBe(true);
+        expect(label.collision?.alwaysShow).toBe(false);
+    });
+
+    it('treats `truncate: false` as a trigger', () => {
+        const label = resolveLabel({ truncate: false });
+
+        expect(label.wrapping).toBe('on-space');
+        expect(label.truncate).toBe(false);
+        expect(label.collision?.alwaysShow).toBe(false);
     });
 
     it('applies to line series, which have no collision block of their own', () => {

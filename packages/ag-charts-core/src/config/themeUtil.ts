@@ -405,29 +405,23 @@ export const LABEL_BOXING_TOP_LEVEL_DEFAULTS: WithThemeParams<LabelBoxOptions> =
     },
 };
 
-/** True when the user supplied more than one candidate at `path`; a lone candidate leaves the layout unconstrained. */
-const multiCandidateList = (path: string): Operation => ({
-    $isType: [{ $path: path }, 'array', { $greaterThan: [{ $size: { $path: path } }, 1] }],
-});
-
 /**
- * Setting any one of `maxWidth`, `maxHeight`, `wrapping`, `truncate` or a multi-candidate
- * `placement`/`orientation` list opts the label into overflow management, so the remaining three
- * resolve to a coherent set rather than leaving the label to overflow untouched. These are theme
- * defaults, so an explicit user value on any of them still wins.
+ * Setting any one of `maxWidth`, `maxHeight`, `wrapping`, `truncate` or an array-valued
+ * `placement`/`orientation` opts the label into overflow management, so the unset ones resolve to a
+ * coherent set rather than leaving the label to overflow untouched. These are theme defaults, so an
+ * explicit user value on any of them still wins.
  *
- * `truncate` checks `wrapping` by presence rather than by value: reading it by value would pair with
- * `wrapping`'s own value-read of `truncate` to form a dependency cycle.
+ * `wrapping` and `truncate` trigger off each other by presence rather than by value; reading either
+ * by value would form a dependency cycle.
  */
 export const LABEL_OVERFLOW_DEFAULTS: WithThemeParams<AgChartLabelFitOptions> = {
     wrapping: {
         $if: [
             {
                 $or: [
-                    { $isUserOption: [['./maxWidth', './maxHeight']] },
-                    { $isUserOption: ['./truncate', { $eq: [{ $path: './truncate' }, true] }] },
-                    multiCandidateList('./placement'),
-                    multiCandidateList('./orientation'),
+                    { $isUserOption: [['./maxWidth', './maxHeight', './truncate']] },
+                    { $isType: [{ $path: './placement' }, 'array'] },
+                    { $isType: [{ $path: './orientation' }, 'array'] },
                 ],
             },
             'on-space',
@@ -439,8 +433,8 @@ export const LABEL_OVERFLOW_DEFAULTS: WithThemeParams<AgChartLabelFitOptions> = 
             {
                 $or: [
                     { $isUserOption: [['./maxWidth', './maxHeight', './wrapping']] },
-                    multiCandidateList('./placement'),
-                    multiCandidateList('./orientation'),
+                    { $isType: [{ $path: './placement' }, 'array'] },
+                    { $isType: [{ $path: './orientation' }, 'array'] },
                 ],
             },
             true,
@@ -454,11 +448,9 @@ export const LABEL_OVERFLOW_ALWAYS_SHOW: Operation = {
     $if: [
         {
             $or: [
-                { $isUserOption: [['../maxWidth', '../maxHeight']] },
-                { $isUserOption: ['../wrapping', { $not: { $eq: [{ $path: '../wrapping' }, 'never'] } }] },
-                { $isUserOption: ['../truncate', { $eq: [{ $path: '../truncate' }, true] }] },
-                multiCandidateList('../placement'),
-                multiCandidateList('../orientation'),
+                { $isUserOption: [['../maxWidth', '../maxHeight', '../wrapping', '../truncate']] },
+                { $isType: [{ $path: '../placement' }, 'array'] },
+                { $isType: [{ $path: '../orientation' }, 'array'] },
             ],
         },
         false,

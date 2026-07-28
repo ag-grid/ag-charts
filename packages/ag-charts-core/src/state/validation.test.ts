@@ -37,6 +37,7 @@ import {
     string,
     typeUnion,
     union,
+    unionOrArray,
     validate as validateOptions,
 } from './validation';
 
@@ -245,6 +246,27 @@ describe('Validation utils', () => {
             expect(runValidator(isRedOrBlue, 'red')).toBe(true);
             expect(runValidator(isRedOrBlue, 'blue')).toBe(true);
             expect(runValidator(isRedOrBlue, 'green')).toBe(false);
+        });
+    });
+
+    describe('UnionOrArray Validator', () => {
+        const isRedOrBlue = unionOrArray('red', 'blue');
+
+        test('validates a single keyword or a non-empty array of keywords', () => {
+            expect(runValidator(isRedOrBlue, 'red')).toBe(true);
+            expect(runValidator(isRedOrBlue, ['red'])).toBe(true);
+            expect(runValidator(isRedOrBlue, ['blue', 'red'])).toBe(true);
+            expect(runValidator(isRedOrBlue, 'green')).toBe(false);
+            expect(runValidator(isRedOrBlue, ['blue', 'green'])).toBe(false);
+        });
+
+        test('rejects an empty array', () => {
+            expect(runValidator(isRedOrBlue, [])).toBe(false);
+
+            const { invalid } = validate({ placement: [] }, { placement: isRedOrBlue });
+            expect(invalid.map(String)).toEqual([
+                "Option `placement` cannot be set to `[]`; expecting a keyword such as 'red' or 'blue' or a non-empty array containing these keywords, ignoring.",
+            ]);
         });
     });
 

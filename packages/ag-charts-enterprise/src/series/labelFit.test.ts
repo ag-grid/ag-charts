@@ -89,8 +89,8 @@ describe('series label fit', () => {
     });
 
     it('renders range-bar labels whole when wrapping is set with truncate disabled', async () => {
-        // An explicit `truncate: false` survives the wrapping trigger, and `wrapping: 'never'` leaves `alwaysShow`
-        // on, so nothing bounds the text and it overhangs the bar rect untouched.
+        // `wrapping: 'never'` with `truncate: false` leaves nothing to bound the text, so it overhangs the bar rect
+        // untouched; `alwaysShow` is explicit because either option otherwise opts the label into hiding.
         const data = [
             { cat: 'A', low: 40, high: 60, label: 'A long range label that overhangs its bar' },
             { cat: 'B', low: 45, high: 55, label: 'Another overly long range label' },
@@ -106,7 +106,12 @@ describe('series label fit', () => {
                     xKey: 'cat',
                     yLowKey: 'low',
                     yHighKey: 'high',
-                    label: perDatumLabel({ placement: 'inside', wrapping: 'never', truncate: false }),
+                    label: perDatumLabel({
+                        placement: 'inside',
+                        wrapping: 'never',
+                        truncate: false,
+                        collision: { alwaysShow: true },
+                    }),
                 },
             ],
         });

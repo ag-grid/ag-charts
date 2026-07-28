@@ -651,15 +651,18 @@ export function union(...allowed: any[]) {
 }
 
 /**
- * Like `union`, but also accepts an array of the allowed keywords (an ordered fallback list).
+ * Like `union`, but also accepts a non-empty array of the allowed keywords (an ordered fallback list).
  * @param allowed The allowed keywords, or an object whose values are the allowed keywords.
- * @returns A validator accepting a single keyword or an array of keywords.
+ * @returns A validator accepting a single keyword or a non-empty array of keywords.
  */
 export function unionOrArray(allowed: object): Validator;
 export function unionOrArray(...allowed: any[]): Validator;
 export function unionOrArray(...allowed: any[]) {
     const validator = union(...allowed);
-    return or(validator, arrayOf(validator, 'an array containing these keywords'));
+    return or(
+        validator,
+        attachDescription(and(arrayOf(validator), arrayLength(1)), 'a non-empty array containing these keywords')
+    );
 }
 
 /**
