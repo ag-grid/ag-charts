@@ -7,6 +7,7 @@ import { Logger, reset as resetLogger } from '../logging/logger';
 import { RegistryMode, reset as resetRegistry, setRegistryMode } from '../modules/moduleRegistry';
 import {
     type OptionsDefs,
+    type ValidateParams,
     type Validator,
     type ValidatorContext,
     type ValidatorResult,
@@ -36,8 +37,14 @@ import {
     string,
     typeUnion,
     union,
-    validate,
+    validate as validateOptions,
 } from './validation';
+
+const validationLogger = new Logger();
+
+// Every case validates through the suite's Logger, so advisory output is captured rather than ambient.
+const validate = <T>(options: unknown, defs: OptionsDefs<T>, path = '', params: Partial<ValidateParams> = {}) =>
+    validateOptions<T>(options, defs, path, { logger: validationLogger, ...params });
 
 function isValid<T extends object>(options: unknown, defs: OptionsDefs<T>, path?: string): options is T {
     const { invalid } = validate(options, defs, path);
@@ -45,9 +52,11 @@ function isValid<T extends object>(options: unknown, defs: OptionsDefs<T>, path?
 }
 
 describe('Validation utils', () => {
-    const validationLogger = new Logger();
-
-    const mockContext = (): ValidatorContext => ({ options: {}, path: 'pathTo' });
+    const mockContext = (): ValidatorContext => ({
+        options: {},
+        path: 'pathTo',
+        params: { logger: validationLogger },
+    });
     const isValidatorResultValid = (result: ValidatorResult | boolean) =>
         typeof result === 'object' ? result.valid : result;
     const runValidator = (validator: Validator, value: unknown, context: ValidatorContext = mockContext()) =>
@@ -99,7 +108,13 @@ describe('Validation utils', () => {
                 [lessThan('contextKey'), 420n, false],
                 [greaterThan('contextKey'), 420n, true],
             ])('%p validates %p as %p', (validator, input, expected) => {
-                expect(runValidator(validator, input, { options: { contextKey: 42 }, path: '' })).toBe(expected);
+                expect(
+                    runValidator(validator, input, {
+                        options: { contextKey: 42 },
+                        path: '',
+                        params: { logger: validationLogger },
+                    })
+                ).toBe(expected);
             });
         });
 

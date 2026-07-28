@@ -85,22 +85,17 @@ export interface ValidatorResult extends ValidationResult<any> {
 export interface ValidatorContext {
     path: string;
     options: any;
-    params?: ValidateParams;
-}
-
-/** The logger a validation pass reports advisory warnings through. */
-function contextLogger(context: ValidatorContext): Logger | undefined {
-    return context.params?.logger;
+    params: ValidateParams;
 }
 
 export interface ValidateParams {
     /**
-     * The owning chart's Logger, used for the advisory warnings that validators emit directly
-     * (enterprise gating, deprecations, callback-return diagnostics) rather than returning as
-     * `ValidationError`s. Unset only for validation runs with no chart, which have no console
-     * output of their own.
+     * The Logger for the advisory warnings validators emit directly (enterprise gating, deprecations,
+     * callback-return diagnostics) rather than returning as `ValidationError`s. Required so that a
+     * pass which fails to thread one is a compile error rather than a silently discarded warning;
+     * chart-less callers pass `ambientLogger`.
      */
-    logger?: Logger;
+    logger: Logger;
     /**
      * Skip required-field and discriminant enforcement on nodes with `enabled: false`. The second
      * validation pass in `optionsModule` opts in: `removeDisabledOptions` has by then stripped a
@@ -207,7 +202,7 @@ export function validate<T>(
     options: unknown,
     optionsDefs: OptionsDefs<T>,
     path = '',
-    params: ValidateParams = {}
+    params: ValidateParams
 ): ValidationResult<T> {
     if (!isObject(options)) {
         return { cleared: null, invalid: [new ValidationError(ErrorType.Required, 'an object', options, path)] };
@@ -415,7 +410,7 @@ export function enterprise<T extends Validator | OptionsDefs<any>>(validatorOrDe
         if (value !== undefined && !isEnterprise()) {
             // Fire warnOnce directly rather than returning a ValidationError — the enterprise
             // gate is static within a session, so logging on every validate pass would spam.
-            contextLogger(context)?.warnOnce(
+            context.params.logger.warnOnce(
                 new ValidationError(ErrorType.Enterprise, description, value, context.path).toString()
             );
             return { valid: true, cleared: null, invalid: [] };
@@ -441,7 +436,7 @@ export function deprecated<T extends Validator | OptionsDefs<any>>(validatorOrDe
     const description = (validatorOrDefs as PrivateSymbols)[descriptionSymbol];
     const gated: Validator = (value, context) => {
         if (value !== undefined && !context.params?.silentAdvisories) {
-            contextLogger(context)?.warnOnce(`Option \`${context.path}\` is deprecated. ${message}`);
+            context.params.logger.warnOnce(`Option \`${context.path}\` is deprecated. ${message}`);
         }
         return inner(value, context);
     };
@@ -777,7 +772,7 @@ export const callbackOf = (validator: Validator, description?: string) =>
 
         const cbWithValidation = Object.assign(
             (...args: any[]) => {
-                const result = safeCall(value, args, contextLogger(context));
+                const result = safeCall(value, args, context.params.logger);
                 if (result == null) return;
                 const validatorResult = validator(result, { options: result, path: '', params: context.params });
                 if (typeof validatorResult === 'object') {
@@ -788,7 +783,7 @@ export const callbackOf = (validator: Validator, description?: string) =>
                 } else if (validatorResult) {
                     return result;
                 } else {
-                    contextLogger(context)?.warnOnce(
+                    context.params.logger.warnOnce(
                         `Callback \`${context.path}\` returned an invalid value \`${stringifyValue(result, 50)}\`; expecting ${validatorDescription}, ignoring.`
                     );
                 }
@@ -808,7 +803,7 @@ export const callbackDefs = <T>(defs: OptionsDefs<T>, description = 'an object')
 
         const cbWithValidation = Object.assign(
             (...args: any[]) => {
-                const result = safeCall(value, args, contextLogger(context), context.path);
+                const result = safeCall(value, args, context.params.logger, context.path);
                 if (result == null) return;
                 const validatorResult = validate(result, defs, context.path, context.params);
                 warnCallbackErrors(validatorResult, context, validatorDescription);
@@ -833,12 +828,12 @@ function warnCallbackErrors(
 
     for (const error of validatorResult.invalid) {
         if (error instanceof UnknownError) {
-            return contextLogger(context)?.warnOnce(
+            return context.params.logger.warnOnce(
                 `Callback \`${context.path}\` returned an unknown property \`${extendPath(error.path, error.key)}\`${error.getPostfix()}`
             );
         }
         const errorValue = stringifyValue(error.value, 50);
-        contextLogger(context)?.warnOnce(
+        context.params.logger.warnOnce(
             error.key
                 ? `Callback \`${context.path}\` returned an invalid property \`${extendPath(error.path, error.key)}\`: \`${errorValue}\`; expecting ${error.description}, ignoring.`
                 : `Callback \`${context.path}\` returned an invalid value \`${errorValue}\`; expecting ${description ?? error.description}, ignoring.`
