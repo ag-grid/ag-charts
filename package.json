@@ -19,7 +19,7 @@
     "postinstall:plugin-build": "[ \"$AG_WORKTREE_FAST_PATH\" = \"1\" ] || [ -n \"$AG_SKIP_PLUGIN_BUILD\" ] || nx run-many -p tag:plugin -t build",
     "postinstall:nx-daemon-restart": "[ \"$AG_WORKTREE_FAST_PATH\" = \"1\" ] || (test -e .nx/workspace-data/d/server-process.json && nx daemon --stop) || echo \"Nx Daemon not running\"",
     "postinstall:setup-git-hooks": "[ -n \"$CI\" ] || ./external/ag-shared/scripts/git-hooks/setup-hooks.sh",
-    "postinstall:setup-prompts": "[ -n \"$CI\" ] || AG_DEV_PROMPTS_REF=canary ./external/ag-shared/scripts/setup-prompts/setup-prompts.sh --postinstall"
+    "postinstall:setup-prompts": "AG_DEV_PROMPTS_REF=canary ./external/ag-shared/scripts/setup-prompts/setup-prompts.sh --postinstall"
   },
   "private": true,
   "engines": {
