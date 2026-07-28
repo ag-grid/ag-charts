@@ -101,7 +101,9 @@ export function createChartContext(chart: ChartHost, vars: ChartContextVars): Dy
         new Scene({ canvasElement, pixelRatio: vars.agDocument.window.devicePixelRatio ?? 1 }, vars.logger);
     scene.setRoot(vars.root);
 
-    ctx.constant('logger', vars.logger)
+    // Owned by the options processing that created it and shared with the chart that replaces this
+    // one on a type switch, so it must outlive this context's destroy cascade.
+    ctx.ref('logger', vars.logger)
         .constant('eventsHub', eventsHub)
         .constant('agDocument', vars.agDocument)
         // The chart is the host — it manages its own lifecycle and the context's.

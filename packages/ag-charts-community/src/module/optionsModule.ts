@@ -244,7 +244,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
     // Validation runs synchronously in this constructor, before a chart exists on initial create.
     // The chart then adopts this instance as `ctx.logger`, so a chart has exactly one Logger.
-    readonly logger: Logger;
+    logger: Logger;
 
     private static readonly debug = Debug.create(true, 'opts');
 
@@ -448,7 +448,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             }
         }
 
-        let activeTheme = sanitizeThemeModules(getChartTheme(options.theme));
+        let activeTheme = sanitizeThemeModules(getChartTheme(options.theme, this.logger));
 
         const { presetType } = this.optionMetadata;
         if (presetType != null) {
@@ -477,7 +477,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                         activeTheme.overrides,
                         this.logger
                     );
-                    activeTheme = sanitizeThemeModules(getChartTheme(options.theme));
+                    activeTheme = sanitizeThemeModules(getChartTheme(options.theme, this.logger));
                 }
             }
         }
@@ -596,7 +596,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private slowSetupCached(cached: StructuralCacheEntry) {
-        const activeTheme = sanitizeThemeModules(getChartTheme((this.userOptions as any).theme));
+        const activeTheme = sanitizeThemeModules(getChartTheme((this.userOptions as any).theme, this.logger));
         this.chartDef = cached.chartDef;
 
         // A cache hit skips the validate loops that populate `validationIssues`, so replay the
@@ -642,10 +642,19 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         };
     }
 
-    // Every option-validation error goes to both the console log and the per-chart overlay collector.
+    /**
+     * Point these options at the Logger of the chart that ended up owning them, which is not knowable
+     * until the chart type is resolved and the pool consulted.
+     */
+    adoptLogger(logger: Logger) {
+        this.logger = logger;
+    }
+
     private get validateParams(): ValidateParams {
         return { logger: this.logger };
     }
+
+    // Every option-validation error goes to both the console log and the per-chart overlay collector.
 
     private recordValidationErrors(invalid: ValidationError[]) {
         for (const error of invalid) {

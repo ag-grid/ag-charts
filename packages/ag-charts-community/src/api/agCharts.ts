@@ -241,6 +241,11 @@ class AgChartsInternal {
             }
         }
 
+        // A chart taken from the pool already exists and keeps the Logger it was built with, so the
+        // one these options were validated against is a different instance. Adopt the chart's to keep
+        // a chart's console output and `warnOnce` dedup on a single Logger.
+        chartOptions.adoptLogger(chart.ctx.logger);
+
         if (chartOptions.optionsGraph) {
             chart.ctx.optionsGraphService.updateCallback((logger, path, partialOptions, resolveOptions) => {
                 const processedCSSVariables = chartOptions.processCSSVariablesPartial(
