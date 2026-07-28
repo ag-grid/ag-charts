@@ -1743,25 +1743,21 @@ describe('placeLabels positioned candidates', () => {
     });
 
     describe('hideable (alwaysShow: false)', () => {
+        // Wider than its region on the cross axis, so no amount of sliding can contain the padded box.
+        const overflowingCandidate = (): BarCandidate => ({
+            box: { x: 180, y: 90, width: 40, height: 16 },
+            region: { x: 180, y: 80, width: 30, height: 40 },
+            anchor: anchorOf(200, 98),
+            placement: 'inside-center',
+        });
+
         it('drops a sole candidate whose box overflows its region', () => {
-            const overflowing: BarCandidate = {
-                // Wider than the region on the cross axis: the full padded box cannot be contained.
-                box: { x: 180, y: 90, width: 40, height: 16 },
-                region: bounds,
-                anchor: anchorOf(200, 98),
-                placement: 'inside-center',
-            };
-            const { placed } = place([overflowing], [], { x: 0, y: 0, width: 0, height: 0 }, false);
+            const { placed } = place([overflowingCandidate()], [], { x: 0, y: 0, width: 0, height: 0 }, false);
             expect(placed).toHaveLength(0);
         });
 
         it('keeps that same overflowing candidate when not hideable (least overflow)', () => {
-            const overflowing: BarCandidate = {
-                box: { x: 180, y: 90, width: 40, height: 16 },
-                region: bounds,
-                anchor: anchorOf(200, 98),
-                placement: 'inside-center',
-            };
+            const overflowing = overflowingCandidate();
             const { placed } = place([overflowing]);
             expect(placed).toHaveLength(1);
             expect(placed[0].candidate).toBe(overflowing);
@@ -1904,5 +1900,156 @@ describe('sectorLabelContainer', () => {
             14
         );
         expect(box).toEqual({ width: 0, height: 0 });
+    });
+});
+
+// A datum carrying a fit descriptor has its text refitted to every candidate in turn, so a candidate
+// that can hold the whole text is not disqualified by an earlier candidate's truncation. The mocked
+// measurer above makes each character 10px wide and every line 20px tall.
+describe('placeLabels per-candidate fit', () => {
+    const bounds: BoxBounds = { x: 0, y: 0, width: 400, height: 400 };
+    const FONT = { fontSize: 12, fontFamily: 'sans-serif' };
+    const TEXT = 'WWWWW';
+
+    /** A `TEXT` label centred in `region`, cascading through `orientation`, refitted per candidate. */
+    const fittedLabel = (region: BoxBounds, overrides: Partial<PointLabelDatum> = {}): PointLabelDatum => ({
+        point: { x: region.x + region.width / 2, y: region.y + region.height / 2, size: 0 },
+        label: { text: TEXT, width: 50, height: 20 },
+        fit: { text: TEXT, policy: { overflowStrategy: 'ellipsis' }, font: FONT },
+        anchor: undefined,
+        placement: undefined,
+        orientation: ['horizontal', 'vertical'],
+        gap: 0,
+        region,
+        alwaysShow: true,
+        ...overrides,
+    });
+
+    const placeOne = (datum: PointLabelDatum, obstacles: LabelObstacle[] = []) =>
+        placeLabels(new Map([['s', seriesLabels([datum])]]), bounds, 0, obstacles).get('s')![0];
+
+    it('prefers a later untruncated candidate over an earlier truncated one', () => {
+        // 34px of width truncates the horizontal candidate to 'WW…'; rotated, the label measures against
+        // the region's 200px height instead and holds the whole text.
+        const placed = placeOne(fittedLabel({ x: 0, y: 0, width: 34, height: 200 }));
+        expect(placed.text).toBe(TEXT);
+        expect(placed.rotation).toBe(-90);
+    });
+
+    it('keeps the least-truncated candidate when every candidate truncates', () => {
+        // Horizontal fits 34px of text ('WW…'), vertical 44px ('WWW…'); neither holds all five characters.
+        const placed = placeOne(fittedLabel({ x: 0, y: 0, width: 34, height: 44 }));
+        expect(placed.text).toBe('WWW…');
+        expect(placed.rotation).toBe(-90);
+    });
+
+    it('resolves equally-truncated candidates in cascade order', () => {
+        const placed = placeOne(fittedLabel({ x: 0, y: 0, width: 34, height: 34 }));
+        expect(placed.text).toBe('WW…');
+        expect(placed.rotation).toBeUndefined();
+    });
+
+    it('does not let an obstacle-blocked untruncated candidate pre-empt a clear truncated one', () => {
+        // 60px of width holds the whole text horizontally, so that candidate wins outright; an obstacle
+        // over its (wider) box leaves only the vertical candidate, which the 34px height truncates.
+        const region = { x: 0, y: 0, width: 60, height: 34 };
+        const blocker: LabelObstacle = { kind: 'rect', box: { x: 0, y: 7, width: 8, height: 20 }, category: 'label' };
+        expect(placeOne(fittedLabel(region)).rotation).toBeUndefined();
+
+        const blocked = placeOne(fittedLabel(region), [blocker]);
+        expect(blocked.rotation).toBe(-90);
+        expect(blocked.text).toBe('WW…');
+    });
+
+    it('leaves the text unfitted when the datum carries no fit descriptor', () => {
+        const region = { x: 0, y: 0, width: 34, height: 200 };
+        const placed = placeOne(fittedLabel(region, { fit: undefined }));
+        expect(placed.text).toBe(TEXT);
+        expect(placed.width).toBe(50);
+        expect(placed.height).toBe(20);
+    });
+
+    it('bounds an unregioned label by the fit policy alone', () => {
+        const placed = placeOne(
+            fittedLabel(
+                { x: 0, y: 0, width: 400, height: 400 },
+                {
+                    region: undefined,
+                    fit: { text: TEXT, policy: { maxWidth: 34, overflowStrategy: 'ellipsis' }, font: FONT },
+                }
+            )
+        );
+        expect(placed.text).toBe('WW…');
+    });
+
+    it('drops a sole-candidate label whose fit policy hides the text', () => {
+        // `overflowStrategy: 'hide'` empties the text instead of truncating it, and one placement leaves
+        // nowhere else to try; rendering the unfitted text would defeat the policy.
+        const placed = placeOne(
+            fittedLabel(
+                { x: 0, y: 0, width: 34, height: 34 },
+                {
+                    orientation: 'horizontal',
+                    fit: { text: TEXT, policy: { overflowStrategy: 'hide' }, font: FONT },
+                }
+            )
+        );
+        expect(placed).toBeUndefined();
+    });
+
+    describe('positioned candidates', () => {
+        const target = (): BarLabelTarget => ({ rotation: 0 });
+        const anchor: OrientationAnchor = { x: 50, y: 50, textAlign: 'center', textBaseline: 'middle' };
+        const padding = { top: 0, right: 0, bottom: 0, left: 0 };
+
+        /** Two candidates at the same anchor: a narrow first one and an unbounded (floating) fallback. */
+        const candidates = (firstContainerWidth: number): PositionedLabelCandidate[] => [
+            {
+                box: { x: 25, y: 40, width: 50, height: 20 },
+                region: { x: 20, y: 20, width: 60, height: 60 },
+                fitTo: { container: { width: firstContainerWidth, height: 60 }, anchor, padding },
+            },
+            {
+                box: { x: 25, y: 140, width: 50, height: 20 },
+                fitTo: { anchor: { ...anchor, y: 150 }, padding },
+            },
+        ];
+
+        const placePositioned = (firstContainerWidth: number) =>
+            placeLabels(
+                new Map([
+                    [
+                        's',
+                        seriesLabels([
+                            buildBarPositionedLabelDatum(
+                                TEXT,
+                                50,
+                                20,
+                                candidates(firstContainerWidth),
+                                target(),
+                                { x: 20, y: 20, width: 60, height: 60 },
+                                true,
+                                {},
+                                false,
+                                { text: TEXT, policy: { overflowStrategy: 'ellipsis' }, font: FONT }
+                            ),
+                        ]),
+                    ],
+                ]),
+                bounds,
+                0
+            ).get('s')![0];
+
+        it('takes the first candidate whole when its container holds the text', () => {
+            const placed = placePositioned(60);
+            expect(placed.text).toBe(TEXT);
+            expect(placed.y).toBe(40);
+        });
+
+        it('falls through to the unbounded candidate rather than truncating into the first', () => {
+            const placed = placePositioned(34);
+            expect(placed.text).toBe(TEXT);
+            expect(placed.y).toBe(140);
+        });
     });
 });

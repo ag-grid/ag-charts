@@ -45,6 +45,7 @@ import {
     measureLabelText,
     mergeDefaults,
     resolveLabelFit,
+    resolveLabelFitDescriptors,
     rotatedGlyphDrift,
     rotatedLabelInset,
     toArray,
@@ -167,6 +168,7 @@ interface RangeBarSeriesNodeDatumContext extends _ModuleSupport.CartesianCreateN
     // Orientation derived once (series-constant) to keep the per-datum label build allocation-free.
     readonly labelRotation: number;
     readonly labelResolvesOrientation: boolean;
+    readonly labelRoutesThroughEngine: boolean;
     readonly labelFit: LabelFit | undefined;
 
     // Incremental update support
@@ -545,6 +547,11 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             labelPlacement,
             labelRotation,
             labelResolvesOrientation: barLabelResolvesOrientation(this.properties.label.orientation),
+            labelRoutesThroughEngine: barLabelRoutesThroughEngine(
+                this.properties.label.orientation,
+                this.properties.label.placement,
+                this.properties.label.collision.alwaysShow
+            ),
             labelFit: resolveLabelFit(this.properties.label, !this.properties.label.collision.alwaysShow),
             yLowPadding: (labelProps.spacing + boxPadding[yLowFacing]) * sign,
             yHighPadding: (labelProps.spacing + boxPadding[yHighFacing]) * sign,
@@ -994,26 +1001,26 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const labelTextParams = { datum, xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName, legendItemName };
         const yDomain = this.getSeriesDomain(ChartAxisDirection.Y).domain;
 
-        const yLowText = fitLabelToContainer(
+        // The engine refits a routed label to each candidate, knowing a rotated label measures against
+        // the bar's other axis and that each placement offers its own room; fitting here would bind every
+        // candidate to the first placement's upright budget (see barSeries).
+        const fitText = (text: NormalisedTextOrSegments) =>
+            ctx.labelRoutesThroughEngine ? text : fitLabelToContainer(text, ctx.labelFit, label, container);
+
+        const yLowText = fitText(
             this.getLabelText<AgRangeBarSeriesLabelFormatterParams>(yLowValue, datum, yLowKey, 'y', yDomain, label, {
                 itemType: 'low',
                 value: yLowValue,
                 ...labelTextParams,
-            }),
-            ctx.labelFit,
-            label,
-            container
+            })
         );
 
-        const yHighText = fitLabelToContainer(
+        const yHighText = fitText(
             this.getLabelText<AgRangeBarSeriesLabelFormatterParams>(yHighValue, datum, yHighKey, 'y', yDomain, label, {
                 itemType: 'high',
                 value: yHighValue,
                 ...labelTextParams,
-            }),
-            ctx.labelFit,
-            label,
-            container
+            })
         );
 
         // Signed reach from the bar edge to the anchor. Unrotated it is the series-constant facing
@@ -1184,6 +1191,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                     textHeight: size.height,
                     rect: rectBox,
                     plotRegion,
+                    fitted: ctx.labelFit != null,
                 });
             };
             bakeFirstCandidate(low, buildCandidates(yLowText, 'start'));
@@ -1446,6 +1454,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const box = expandPlacementLabelBoxExtent(label);
         const collideWith = label.collision.resolveCollideWith();
         const alwaysShow = label.collision.alwaysShow;
+        const fitFor = resolveLabelFitDescriptors(label, box, !alwaysShow);
         const data: PointLabelDatum[] = [];
         for (const labelDatum of this.contextNodeData?.labelData ?? []) {
             if (labelDatum.text === '') {
@@ -1460,7 +1469,13 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             // orientation against the bar region via the baked path.
             if (labelDatum.candidates == null) {
                 data.push(
-                    ...buildBarLabelData([labelDatum], () => ({ label: labelDatum, config: label, size, collideWith }))
+                    ...buildBarLabelData([labelDatum], () => ({
+                        label: labelDatum,
+                        config: label,
+                        size,
+                        collideWith,
+                        fit: fitFor(labelDatum.text),
+                    }))
                 );
             } else {
                 const ownBox = labelDatum.ownBox ?? { x: labelDatum.x, y: labelDatum.y, width: 0, height: 0 };
@@ -1474,7 +1489,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                         ownBox,
                         alwaysShow,
                         collideWith,
-                        true
+                        true,
+                        fitFor(labelDatum.text)
                     )
                 );
             }

@@ -37,12 +37,17 @@ describe('series label fit', () => {
         await compareImageSnapshot(chart, ctx);
     };
 
-    // Bar, histogram and line all expose their fitted label as `node.label.text` on `contextNodeData.labelData`.
+    // The text each label actually renders: `label.text` is the unfitted source, `label.fittedText` the text the
+    // placement engine fitted to the candidate it chose, and a label the engine dropped renders nothing at all.
     const labelTexts = (seriesIndex = 0): unknown[] => {
         const series = deproxy(chart as any).series[seriesIndex] as unknown as {
-            contextNodeData?: { labelData?: { label?: { text?: unknown } }[] };
+            contextNodeData?: {
+                labelData?: { label?: { text?: unknown; fittedText?: unknown; hidden?: boolean } }[];
+            };
         };
-        return (series.contextNodeData?.labelData ?? []).map((d) => d.label?.text);
+        return (series.contextNodeData?.labelData ?? []).map((d) =>
+            d.label == null || d.label.hidden === true ? '' : (d.label.fittedText ?? d.label.text)
+        );
     };
     const someWrapped = (texts: unknown[]) => texts.some((text) => String(text).includes('\n'));
     const someTruncated = (texts: unknown[]) => texts.some((text) => String(text).includes(ELLIPSIS));
@@ -141,23 +146,30 @@ describe('series label fit', () => {
         });
 
         it('renders every label whole when wrapping is set with truncate disabled', async () => {
-            // `wrapping` alone must not imply truncation: with truncate off the text overhangs its bar untouched.
+            // An explicit `truncate: false` survives the wrapping trigger, and `wrapping: 'never'` is excluded
+            // from the `alwaysShow` trigger, so nothing bounds the text and it overhangs its bar untouched.
             await renderAndSnapshot(barChart({ wrapping: 'never', truncate: false }));
             expect(labelTexts()).toEqual(barData.map((d) => d.label));
         });
 
-        it('wraps without truncating when truncate is disabled', async () => {
+        it('drops rather than truncates an oversized label when truncate is disabled', async () => {
+            // A wrapping mode turns `alwaysShow` off, so `truncate: false` leaves hiding as the only way to
+            // honour the bar: labels that fit wrap, and those that cannot are dropped rather than ellipsised.
             await renderAndSnapshot(barChart({ wrapping: 'on-space', truncate: false }));
             const texts = labelTexts();
             expect(someWrapped(texts)).toBe(true);
             expect(someTruncated(texts)).toBe(false);
+            expect(texts.some((text) => text === '' || text == null)).toBe(true);
         });
 
-        it('hides oversized labels when alwaysShow is false even with a wrapping mode set', async () => {
+        it('truncates rather than hides an oversized label when a wrapping mode opts into truncation', async () => {
+            // The wrapping mode resolves `truncate` to true, which outranks `alwaysShow: false`: every label is
+            // kept, the oversized ones ellipsised rather than dropped.
             await renderAndSnapshot(barChart({ wrapping: 'on-space', collision: { alwaysShow: false } }));
             const texts = labelTexts();
-            expect(texts.some((text) => text === '' || text == null)).toBe(true);
-            expect(someTruncated(texts)).toBe(false);
+            expect(texts.every((text) => typeof text === 'string' && text.length > 0)).toBe(true);
+            expect(someWrapped(texts)).toBe(true);
+            expect(someTruncated(texts)).toBe(true);
         });
     });
 

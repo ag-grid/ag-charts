@@ -8,6 +8,8 @@ import {
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
     LABEL_BOXING_TOP_LEVEL_DEFAULTS,
+    LABEL_OVERFLOW_ALWAYS_SHOW,
+    LABEL_OVERFLOW_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
@@ -39,6 +41,7 @@ const themeTemplate: ExtensibleTheme<'histogram'> = {
         lineDashOffset: 0,
         label: {
             ...LABEL_BOXING_TOP_LEVEL_DEFAULTS,
+            ...LABEL_OVERFLOW_DEFAULTS,
             enabled: false,
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },
@@ -47,6 +50,7 @@ const themeTemplate: ExtensibleTheme<'histogram'> = {
             padding: 8,
             collision: {
                 threshold: 4,
+                alwaysShow: LABEL_OVERFLOW_ALWAYS_SHOW,
                 ...undocumentedThemeOptions({ collideWith: { seriesItems: true } }),
             },
             insideStyle: {

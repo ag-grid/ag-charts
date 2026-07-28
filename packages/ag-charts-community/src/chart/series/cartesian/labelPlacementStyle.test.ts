@@ -397,11 +397,18 @@ describe('resolved placement/orientation in itemStyler params', () => {
     });
 
     it('reports the resolved (not first) placement when a bar placement array cascades', async () => {
-        // A label far too long to fit inside any bar forces the cascade off the first candidate
+        // Bars far too short to hold a label at any width force the cascade off the first candidate
         // (inside-center) onto the fallback (outside-end), which floats free of the bar rect.
-        const params = await captureLabelParams(
-            barChart({ placement: ['inside-center', 'outside-end'], formatter: () => 'x'.repeat(80) })
-        );
+        const flatBars = {
+            ...barChart({ placement: ['inside-center', 'outside-end'] }),
+            data: [
+                { cat: 'A', value: 2 },
+                { cat: 'B', value: 1 },
+                { cat: 'C', value: 2 },
+            ],
+            axes: { x: { type: 'category', position: 'bottom' }, y: { type: 'number', position: 'left', max: 100 } },
+        };
+        const params = await captureLabelParams(flatBars);
         expect(params.every((p) => p.placement === 'outside-end')).toBe(true);
         expect(params.every((p) => p.orientation === 'horizontal')).toBe(true);
     });

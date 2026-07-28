@@ -37,6 +37,7 @@ import {
     measureLabelText,
     mergeDefaults,
     resolveLabelFit,
+    resolveLabelFitDescriptors,
     tickStep,
     toArray,
     toNumber,
@@ -566,24 +567,20 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                   expandPlacementLabelBoxExtent(label)
               )
             : undefined;
-        const text = fitLabelToContainer(
-            this.getLabelText<AgHistogramSeriesLabelFormatterParams>(total, datum, yKey!, 'y', [], label, {
-                ...this.binParams(bin),
-                value: total,
-                xKey,
-                yKey,
-                xName,
-                yName,
-            }),
-            labelFit,
+        const sourceText = this.getLabelText<AgHistogramSeriesLabelFormatterParams>(
+            total,
+            datum,
+            yKey!,
+            'y',
+            [],
             label,
-            bounds?.container
+            { ...this.binParams(bin), value: total, xKey, yKey, xName, yName }
         );
         // A placement/orientation array (or a hideable label) pre-positions a candidate per
         // placement × orientation the engine cascades through until one fits; a hideable no-fit label is
         // dropped so it can be hidden. A single fixed, non-hideable placement bakes directly.
         if (!label.collision.alwaysShow || barLabelResolvesPlacement(label.placement)) {
-            const measured = measureLabelText(text, label);
+            const measured = measureLabelText(sourceText, label);
             const placements = toArray(label.placement);
             if (placements.length === 0) placements.push('inside-center');
             const orientations = toArray(label.orientation);
@@ -601,6 +598,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                 textHeight: measured.height,
                 rect,
                 plotRegion,
+                fitted: labelFit != null,
             });
             // The engine picks the first candidate that fits; the first is baked as a backward-safe default
             // until the engine writes the chosen one back.
@@ -615,11 +613,17 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                 offsetX: 0,
                 offsetY: 0,
                 region,
-                text,
+                text: sourceText,
                 candidates,
             };
         }
 
+        // An orientation array is refitted per orientation by the engine, which knows a rotated label
+        // measures against the bin's other axis; fitting here would bind every orientation to the
+        // upright budget (see barSeries).
+        const text = resolvesOrientation
+            ? sourceText
+            : fitLabelToContainer(sourceText, labelFit, label, bounds?.container);
         // A rotated label's gap to the bar depends on its box size; measure only when it rotates.
         const { width: labelWidth, height: labelHeight } =
             rotation === 0 ? { width: 0, height: 0 } : measureLabelText(text, label);
@@ -1071,6 +1075,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         };
         const alwaysShow = label.collision.alwaysShow;
         const collideWith = label.collision.resolveCollideWith();
+        const fitFor = resolveLabelFitDescriptors(label, box, !alwaysShow);
         // The positioned path drives both a hideable label (dropped on no fit) and a placement cascade
         // (kept at the best candidate when `alwaysShow`); an orientation-only array stays on the baked
         // path below, which resolves orientation against the bar region.
@@ -1091,7 +1096,9 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                         nodeLabel,
                         ownBox,
                         alwaysShow,
-                        collideWith
+                        collideWith,
+                        false,
+                        fitFor(nodeLabel.text)
                     )
                 );
             }
@@ -1102,6 +1109,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             config: label,
             size: node.label != null && node.label.text !== '' ? measureBox(node.label.text) : undefined,
             collideWith,
+            fit: node.label == null ? undefined : fitFor(node.label.text),
         }));
     }
 
