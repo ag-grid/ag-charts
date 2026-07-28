@@ -13,16 +13,24 @@ import {
     CATEGORY_CENTRE_GRIDLINE_AXES,
     IMAGE_SNAPSHOT_DEFAULTS,
     NEG_BIG,
+    type PhasedPropertyExpectation,
+    type SceneGeometrySample,
+    type SceneNodeExpectation,
+    type TrajectoryExpectation,
     compareImageSnapshot,
+    createSceneGeometrySampler,
     deproxy,
+    expectAnimatedEndpointsMatchStatic,
     expectBarCentresOnCategoryGridlines,
     expectPixelIdenticalAcrossMagnitude,
+    expectProgresses,
+    expectSceneTrajectory,
     expectWarningsCalls,
     hoverAction,
     magnitudePair,
     setupMockCanvas,
     setupMockConsole,
-    spyOnAnimationManager,
+    spyOnAnimationFrames,
     stripAxes,
     waitForChartStability,
 } from 'ag-charts-community-test';
@@ -582,32 +590,182 @@ describe('WaterfallSeries', () => {
 `);
     });
 
-    describe('initial animation', () => {
-        const animate = spyOnAnimationManager();
+    // Initial-load animation is covered by the `animation -test page actions` block below
+    // (`initial load (vertical|horizontal): bars and the connector reveal from the baseline`).
 
-        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-            it(`for WATERFALL_COLUMN_OPTIONS should animate at ${ratio * 100}%`, async () => {
-                animate(1200, ratio);
+    // Frame-trajectory coverage for waterfall animation, replacing the legacy per-ratio image
+    // snapshots. On initial load both the value bars (Rect) and the connector line (a Path, keyed
+    // `series[0]/path[stroke]`) reveal together from a collapsed baseline via `animateEmptyUpdateReady`.
+    // Waterfall overrides no waiting-update hook, so a later data change SNAPS to its end state on the
+    // first frame (as candlestick does). The endpoint guards pin the settled pixels the deleted
+    // 0%/100% snapshots used to.
+    describe('animation -test page actions', () => {
+        const frames = spyOnAnimationFrames();
 
-                const options: AgChartOptions = { ...WATERFALL_COLUMN_OPTIONS };
-                prepareEnterpriseTestOptions(options);
+        const DATA = [
+            { type: 'A', value: 30 },
+            { type: 'B', value: -20 },
+            { type: 'C', value: 40 },
+            { type: 'D', value: -10 },
+        ];
 
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
-                await compare();
-            });
+        // A pinned value axis keeps every mutation below provably non-rescaling: only the marks move,
+        // so a reflow or a value change is the series animation, never a rescale.
+        const options = (direction: 'horizontal' | 'vertical', data: object[] = DATA): AgCartesianChartOptions => {
+            const valueAxis = { type: 'number' as const, min: -20, max: 80 };
+            const catAxis = { type: 'category' as const };
+            return prepareEnterpriseTestOptions({
+                data,
+                series: [{ type: 'waterfall', direction, xKey: 'type', yKey: 'value' }],
+                axes:
+                    direction === 'vertical'
+                        ? { x: { ...catAxis, position: 'bottom' }, y: { ...valueAxis, position: 'left' } }
+                        : { y: { ...catAxis, position: 'left' }, x: { ...valueAxis, position: 'bottom' } },
+            }) as AgCartesianChartOptions;
+        };
 
-            it(`for horizontal WATERFALL_COLUMN_OPTIONS should animate at ${ratio * 100}%`, async () => {
-                animate(1200, ratio);
+        // The reveal grows along the value axis (height when vertical, width when horizontal) while the
+        // band axis holds. Naming the dimension per-direction keeps the initial-load specs symmetric.
+        const valueDim = (direction: 'horizontal' | 'vertical') => (direction === 'vertical' ? 'height' : 'width');
+        const bandDim = (direction: 'horizontal' | 'vertical') => (direction === 'vertical' ? 'width' : 'height');
 
-                const options: AgChartOptions = { ...switchSeriesType(WATERFALL_COLUMN_OPTIONS, 'horizontal') };
-                prepareEnterpriseTestOptions(options);
+        const phased = (
+            during: string | readonly string[],
+            ...expectations: readonly TrajectoryExpectation[]
+        ): PhasedPropertyExpectation => ({
+            during: during as PhasedPropertyExpectation['during'],
+            expect: expectations,
+        });
 
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
-                await compare();
+        const rectKeys = (sample: SceneGeometrySample) =>
+            [...sample.keys()].filter((k) => /^series\[0\]\/rect\[/.test(k));
+        const rectCount = (sample: SceneGeometrySample) => rectKeys(sample).length;
+
+        for (const direction of ['vertical', 'horizontal'] as const) {
+            const value = valueDim(direction);
+            const band = bandDim(direction);
+
+            // Initial-load reveal: every bar and the connector line grow from the collapsed baseline
+            // along the value axis while their bands hold. The near edge slides for floating/negative
+            // bars, so it is `bounded` by its own endpoints, not pinned constant.
+            it(`initial load (${direction}): bars and the connector reveal from the baseline`, async () => {
+                chart = AgCharts.create(options(direction));
+                const sampleScene = createSceneGeometrySampler(chart);
+                const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
+
+                // Anti-vacuity: a named bar AND the connector genuinely start collapsed to ~0 extent (a
+                // snap would already sit at full extent on frame 0, which `increases` then rejects).
+                expect(trajectory[0].get('series[0]/rect[A]')![value]).toBeLessThanOrEqual(0.1);
+                // The connector's per-subpath `top@n` props blink in and out as subpaths clip in, so it
+                // can't pass through the constant-by-default scene spec; assert its value dimension grows
+                // through real intermediate frames directly instead.
+                const connector = trajectory.map((f) => f.get('series[0]/path[stroke]')![value]);
+                expect(connector[0]).toBeLessThanOrEqual(0.1);
+                expectProgresses(connector);
+                expect(connector.at(-1)!).toBeGreaterThan(connector[0] + 20);
+
+                expectSceneTrajectory(trajectory, {
+                    'series[0]/rect[*]': {
+                        [value]: phased('initial', 'increases', 'progresses', 'bounded'),
+                        [band]: phased(['initial', 'trailing'], 'bounded'),
+                        x: phased(['initial', 'trailing'], 'bounded'),
+                        y: phased(['initial', 'trailing'], 'bounded'),
+                    },
+                    // Value dimension pinned directly above; exempt here so its blinking subpath tops
+                    // don't trip the default-constant rule.
+                    'series[0]/path[stroke]': 'any',
+                });
             });
         }
+
+        // Data mutations SNAP — waterfall overrides no waiting-update animation hook, so the whole
+        // layout (revalued bars, reflowed bands, entrants and leavers) already sits at its settled state
+        // on the first captured frame.
+        const captureSnap = (opts: AgCartesianChartOptions, action: () => void) => {
+            chart = AgCharts.create(opts);
+            return frames.captureSnap(chart, createSceneGeometrySampler(chart), action);
+        };
+
+        // Every node must hold constant across the captured frames (the snap) — except the connector,
+        // whose per-subpath `top@n` stations legitimately go non-finite where a segment has no crossing,
+        // which the default constant check can't express. Its settled pixels ride the endpoint guards.
+        const layoutSnaps: Record<string, SceneNodeExpectation> = { 'series[0]/path[stroke]': 'any' };
+
+        it('update value: the changed bar snaps to its new height', async () => {
+            const raised = DATA.map((d) => (d.type === 'A' ? { ...d, value: 50 } : d));
+            const { before, trajectory, after } = await captureSnap(options('vertical'), () =>
+                chart.updateDelta({ data: raised })
+            );
+            const bar = 'series[0]/rect[A]';
+            // Anti-vacuity: bar A genuinely grew, and it is already at that taller height on frame 0.
+            expect(after.get(bar)!.height).toBeGreaterThan(before.get(bar)!.height + 30);
+            expect(Math.abs(trajectory[0].get(bar)!.height - after.get(bar)!.height)).toBeLessThan(1);
+            expectSceneTrajectory(trajectory, layoutSnaps);
+        });
+
+        it('add data: a new bar appears instantly and the layout snaps', async () => {
+            const { before, trajectory, after } = await captureSnap(options('vertical', DATA.slice(0, 3)), () =>
+                chart.updateDelta({ data: DATA })
+            );
+            expect(rectCount(before)).toBe(3);
+            expect(rectCount(after)).toBe(4);
+            expect(rectCount(trajectory[0])).toBe(4);
+            // The bands genuinely re-flowed: a survivor moved from its 3-band slot, yet it is already at
+            // its new band on frame 0 (snapped, not sliding across).
+            const survivor = 'series[0]/rect[C]';
+            expect(Math.abs(after.get(survivor)!.x - before.get(survivor)!.x)).toBeGreaterThan(5);
+            expect(Math.abs(trajectory[0].get(survivor)!.x - after.get(survivor)!.x)).toBeLessThan(1);
+            expectSceneTrajectory(trajectory, layoutSnaps);
+        });
+
+        it('remove data: the last bar disappears instantly and the layout snaps', async () => {
+            const { before, trajectory, after } = await captureSnap(options('vertical'), () =>
+                chart.updateDelta({ data: DATA.slice(0, 3) })
+            );
+            expect(rectCount(before)).toBe(4);
+            expect(rectCount(after)).toBe(3);
+            expect(rectCount(trajectory[0])).toBe(3);
+            const survivor = 'series[0]/rect[C]';
+            expect(Math.abs(after.get(survivor)!.x - before.get(survivor)!.x)).toBeGreaterThan(5);
+            expect(Math.abs(trajectory[0].get(survivor)!.x - after.get(survivor)!.x)).toBeLessThan(1);
+            expectSceneTrajectory(trajectory, layoutSnaps);
+        });
+
+        // Pixel endpoint guards: the settled scene must match a static render of the same options
+        // (replacing the deleted 0%/100% image snapshots). One chart per test — the mock canvas only
+        // snapshots the first chart created.
+        it('endpoints: update value settles at the static render', async () => {
+            const before = options('vertical');
+            chart = AgCharts.create(before);
+            await expectAnimatedEndpointsMatchStatic(
+                frames,
+                () => ctx.snapshot(),
+                chart,
+                before,
+                options(
+                    'vertical',
+                    DATA.map((d) => (d.type === 'A' ? { ...d, value: 50 } : d))
+                )
+            );
+        });
+
+        it('endpoints: add data settles at the static render', async () => {
+            const before = options('vertical', DATA.slice(0, 3));
+            chart = AgCharts.create(before);
+            await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, before, options('vertical'));
+        });
+
+        it('endpoints: remove data settles at the static render', async () => {
+            const before = options('vertical');
+            chart = AgCharts.create(before);
+            await expectAnimatedEndpointsMatchStatic(
+                frames,
+                () => ctx.snapshot(),
+                chart,
+                before,
+                options('vertical', DATA.slice(0, 3))
+            );
+        });
     });
 
     describe('gradient fill', () => {
