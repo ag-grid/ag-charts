@@ -58,6 +58,4 @@ export interface AgChartLabelCollisionOptions {
      * Whether to keep a colliding label visible when a collision remains after every avoidance strategy has been applied. When `true` the label stays at the best available position; when `false` it is hidden instead.
      */
     alwaysShow?: boolean;
-    // Undocumented `collideWith` (markers/labels/seriesItems/seriesArea) is accepted by the runtime
-    // validator but deliberately kept off the public type contract.
 }
