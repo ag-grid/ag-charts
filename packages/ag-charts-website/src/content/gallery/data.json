@@ -288,12 +288,12 @@
                 "enterprise": true,
                 "examples": [
                     {
-                        "title": "Org Chart With Categories",
-                        "name": "simple-org-chart-with-categories"
-                    },
-                    {
                         "title": "Org Chart With Images",
                         "name": "simple-org-chart-with-images"
+                    },
+                    {
+                        "title": "Org Chart With Categories",
+                        "name": "simple-org-chart-with-categories"
                     },
                     {
                         "title": "Org Chart With Many Nodes",

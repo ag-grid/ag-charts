@@ -61,7 +61,7 @@ const options: AgChartOptions = {
                             fontStyle: 'italic',
                         },
                         {
-                            text: `  |  `,
+                            text: `  •  `,
                         },
                         {
                             type: 'image',
@@ -91,6 +91,13 @@ const options: AgChartOptions = {
             expander: {
                 text: {
                     color: mixForeground(0.7),
+                    formatter: ({ allChildren, directChildren }) => {
+                        const directs = directChildren === 1 ? '1 direct' : `${directChildren} directs`;
+                        return `${directs} • ${allChildren} total`;
+                    },
+                },
+                itemStyler: ({ isCollapsed }) => {
+                    return { strokeWidth: isCollapsed ? 1 : 2 };
                 },
             },
             link: {

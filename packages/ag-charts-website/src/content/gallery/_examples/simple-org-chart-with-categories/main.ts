@@ -42,7 +42,7 @@ const options: AgChartOptions = {
             idKey: 'id',
             parentIdKey: 'parentId',
             node: {
-                maxWidth: 140,
+                maxWidth: 160,
                 title: {
                     key: 'name',
                     textAlign: 'center',
@@ -58,8 +58,10 @@ const options: AgChartOptions = {
                         fillOpacity: depth <= 2 ? 1 : 0.2,
                     };
                 },
+                clickToExpand: false,
             },
             expander: {
+                strokeWidth: 2,
                 itemStyler: ({ datum }) => {
                     const color = familyColors[datum.productFamily];
                     return { stroke: color, text: { color } };
@@ -70,6 +72,10 @@ const options: AgChartOptions = {
                     stroke: familyColors[fromDatum.productFamily],
                     lineDash: fromDatum.status === 'beta' ? [6, 2] : [],
                 }),
+            },
+            direction: 'horizontal',
+            highlight: {
+                enabled: false,
             },
         },
     ],
