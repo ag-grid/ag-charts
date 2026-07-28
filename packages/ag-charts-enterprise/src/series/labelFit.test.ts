@@ -88,6 +88,31 @@ describe('series label fit', () => {
         expect(someWrapped(texts)).toBe(true);
     });
 
+    it('renders range-bar labels whole when wrapping is set with truncate disabled', async () => {
+        // An explicit `truncate: false` survives the wrapping trigger, and `wrapping: 'never'` leaves `alwaysShow`
+        // on, so nothing bounds the text and it overhangs the bar rect untouched.
+        const data = [
+            { cat: 'A', low: 40, high: 60, label: 'A long range label that overhangs its bar' },
+            { cat: 'B', low: 45, high: 55, label: 'Another overly long range label' },
+            { cat: 'C', low: 42, high: 58, label: 'Short' },
+        ];
+        await renderAndSnapshot({
+            data,
+            legend: { enabled: false },
+            axes: cartesianAxes,
+            series: [
+                {
+                    type: 'range-bar',
+                    xKey: 'cat',
+                    yLowKey: 'low',
+                    yHighKey: 'high',
+                    label: perDatumLabel({ placement: 'inside', wrapping: 'never', truncate: false }),
+                },
+            ],
+        });
+        expect(someTruncated(flatLabelTexts())).toBe(false);
+    });
+
     describe('waterfall (fits inside the bar rect)', () => {
         // Waterfall labels are configured per item type (positive/negative/total), not at the series root, and default
         // to an outside placement — force `inside-center` so the label fits the bar rect container.

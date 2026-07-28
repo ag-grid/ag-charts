@@ -81,6 +81,14 @@ describe('fitLabelToContainer', () => {
         expect(String(result)).toContain('\n');
     });
 
+    it('keeps the text whole when a wrapping mode is set without truncate', () => {
+        expect(fitToContainer(LONG_TEXT, { wrapping: 'never' }, { width: 40, height: 100 })).toBe(LONG_TEXT);
+        const wrapped = String(fitToContainer(LONG_TEXT, { wrapping: 'on-space' }, { width: 60, height: 100 }));
+        expect(wrapped).toContain('\n');
+        expect(wrapped).not.toContain(ELLIPSIS);
+        expect(wrapped.replaceAll('\n', ' ')).toBe(LONG_TEXT);
+    });
+
     it('resolves collision avoidance to a hide overflow', () => {
         const expected: LabelFit = { maxWidth: 30, maxHeight: 100, wrapping: undefined, overflowStrategy: 'hide' };
         expect(fitToContainer(LONG_TEXT, { avoid: true }, { width: 30, height: 100 })).toBe(
@@ -217,7 +225,7 @@ describe('buildBarLabelCandidates', () => {
     // boxless label (no fill/border) yields a zero extent, so the footprint equals the raw text size.
     const makeLabel = (insideStyle: any = {}, outsideStyle: any = {}) =>
         ({ padding: undefined, fill: undefined, border: undefined, insideStyle, outsideStyle }) as any;
-    const build = (placements: any[], orientations: any[], label: any = makeLabel()) =>
+    const build = (placements: any[], orientations: any[], label: any = makeLabel(), overrides: object = {}) =>
         buildBarLabelCandidates({
             isUpward: true,
             isVertical: false,
@@ -229,6 +237,7 @@ describe('buildBarLabelCandidates', () => {
             textWidth: 30,
             textHeight: 10,
             rect,
+            ...overrides,
         });
 
     it('emits one candidate per placement (outer) × orientation (inner), in cascade order', () => {
@@ -276,5 +285,26 @@ describe('buildBarLabelCandidates', () => {
         // outside-end reserves its own 20px padding on every side (30+40 × 10+40).
         expect(outside.box.width).toBeCloseTo(70);
         expect(outside.box.height).toBeCloseTo(50);
+    });
+
+    it('emits no candidate when a hideable label has every placement rejected', () => {
+        // The lone placement points into a stacked neighbour; a hideable label is dropped rather than
+        // mislabelling that neighbour.
+        expect(build(['outside-end'], ['horizontal'], makeLabel(), { rejectOutsideEnd: true, hideable: true })).toEqual(
+            []
+        );
+    });
+
+    it('restores the rejected placements when the label must be shown', () => {
+        const candidates = build(['outside-end'], ['horizontal'], makeLabel(), { rejectOutsideEnd: true });
+        expect(candidates.map((c) => c.placement)).toEqual(['outside-end']);
+    });
+
+    it('keeps the surviving placements when only some are rejected', () => {
+        const candidates = build(['outside-end', 'inside-center'], ['horizontal'], makeLabel(), {
+            rejectOutsideEnd: true,
+            hideable: true,
+        });
+        expect(candidates.map((c) => c.placement)).toEqual(['inside-center']);
     });
 });

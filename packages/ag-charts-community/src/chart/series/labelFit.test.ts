@@ -144,6 +144,33 @@ describe('series label fit', () => {
             expect(texts.some((text) => text === '' || text == null)).toBe(true);
             expect(someTruncated(texts)).toBe(false);
         });
+
+        it('renders every label whole when wrapping is set with truncate disabled', async () => {
+            // An explicit `truncate: false` survives the wrapping trigger, and `wrapping: 'never'` is excluded
+            // from the `alwaysShow` trigger, so nothing bounds the text and it overhangs its bar untouched.
+            await renderAndSnapshot(barChart({ wrapping: 'never', truncate: false }));
+            expect(labelTexts()).toEqual(barData.map((d) => d.label));
+        });
+
+        it('drops rather than truncates an oversized label when truncate is disabled', async () => {
+            // A wrapping mode turns `alwaysShow` off, so `truncate: false` leaves hiding as the only way to
+            // honour the bar: labels that fit wrap, and those that cannot are dropped rather than ellipsised.
+            await renderAndSnapshot(barChart({ wrapping: 'on-space', truncate: false }));
+            const texts = labelTexts();
+            expect(someWrapped(texts)).toBe(true);
+            expect(someTruncated(texts)).toBe(false);
+            expect(texts.some((text) => text === '' || text == null)).toBe(true);
+        });
+
+        it('truncates rather than hides an oversized label when a wrapping mode opts into truncation', async () => {
+            // The wrapping mode resolves `truncate` to true, which outranks `alwaysShow: false`: every label is
+            // kept, the oversized ones ellipsised rather than dropped.
+            await renderAndSnapshot(barChart({ wrapping: 'on-space', collision: { alwaysShow: false } }));
+            const texts = labelTexts();
+            expect(texts.every((text) => typeof text === 'string' && text.length > 0)).toBe(true);
+            expect(someWrapped(texts)).toBe(true);
+            expect(someTruncated(texts)).toBe(true);
+        });
     });
 
     it('wraps and truncates histogram bin labels across bins of varied frequency', async () => {
