@@ -88,18 +88,25 @@ function isPromise(value: unknown): value is Promise<unknown> {
     return typeof value === 'object' && value !== null && 'then' in value;
 }
 
-// The single instance behind the free functions below. Deliberately module-private: a chart's Logger
-// comes from its context, and code with no chart calls these functions rather than getting hold of a
-// shared Logger it could pass around. See `no-unscoped-logger` for the files allowed to use them.
-const ambient = new Logger();
+/**
+ * The single Logger for code that genuinely has no chart, and the instance behind the free functions
+ * below. Exported so chart-less callers can satisfy a required `Logger` — a required parameter that
+ * has to be filled explicitly is a compile error when threading is missed, where an optional one just
+ * swallows the message. Sharing one instance also means one `warnOnce` cache across every chart-less
+ * caller, so N sparklines on one bad config warn once rather than N times.
+ *
+ * This is not an escape hatch: `no-unscoped-logger` governs every import of this module, so reaching
+ * for it outside the sanctioned files is a lint error.
+ */
+export const ambientLogger = new Logger();
 
-export const log = (...logContent: any[]) => ambient.log(...logContent);
-export const warn = (message: any, ...logContent: any[]) => ambient.warn(message, ...logContent);
-export const error = (message: any, ...logContent: any[]) => ambient.error(message, ...logContent);
-export const table = (...logContent: any[]) => ambient.table(...logContent);
+export const log = (...logContent: any[]) => ambientLogger.log(...logContent);
+export const warn = (message: any, ...logContent: any[]) => ambientLogger.warn(message, ...logContent);
+export const error = (message: any, ...logContent: any[]) => ambientLogger.error(message, ...logContent);
+export const table = (...logContent: any[]) => ambientLogger.table(...logContent);
 export const warnOnce = (messageOrError: unknown, ...logContent: any[]) =>
-    ambient.warnOnce(messageOrError, ...logContent);
+    ambientLogger.warnOnce(messageOrError, ...logContent);
 export const errorOnce = (messageOrError: unknown, ...logContent: any[]) =>
-    ambient.errorOnce(messageOrError, ...logContent);
-export const reset = () => ambient.reset();
-export const logGroup = <T>(name: string, cb: () => T): T => ambient.logGroup(name, cb);
+    ambientLogger.errorOnce(messageOrError, ...logContent);
+export const reset = () => ambientLogger.reset();
+export const logGroup = <T>(name: string, cb: () => T): T => ambientLogger.logGroup(name, cb);

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { Logger } from 'ag-charts-core';
+import { Logger, ambientLogger } from 'ag-charts-core';
 
 import { setupMockCanvas } from '../util/test/mockCanvas';
 import { Group } from './group';
@@ -33,11 +33,12 @@ describe('Scene', () => {
             expect(renderCapturingScene(1, logger)?.logger).toBe(logger);
         });
 
-        it('supplies a self-owned logger when constructed without one (grid sparkline use)', () => {
+        it('shares the ambient logger when constructed without one (grid sparkline use)', () => {
             const first = renderCapturingScene(1)?.logger;
-            expect(first).toBeInstanceOf(Logger);
-            // Each context-less Scene owns its logger rather than sharing an ambient one.
-            expect(renderCapturingScene(1)?.logger).not.toBe(first);
+            expect(first).toBe(ambientLogger);
+            // One `warnOnce` cache across every context-less Scene, so a grid of sparklines sharing
+            // a bad config warns once rather than once per cell.
+            expect(renderCapturingScene(1)?.logger).toBe(first);
         });
     });
 
