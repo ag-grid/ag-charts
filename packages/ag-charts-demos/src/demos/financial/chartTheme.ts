@@ -38,6 +38,11 @@ export const THEME = {
     },
     overrides: {
         common: {
+            // Per-tick tweens never let the page idle while streaming. Presets omit `animation` from
+            // their option types, so the theme is the only lever.
+            animation: {
+                enabled: false,
+            },
             highlight: {
                 enabled: false,
             },

@@ -15,6 +15,7 @@ const convertColorStringToOklcha = (v: string): OKLCHA => {
 };
 
 const delta = 1e-6;
+const MAX_CONVERT_CACHE_SIZE = 4096;
 const isAchromatic = (x: OKLCHA) => x.c < delta || x.l < delta || x.l > 1 - delta;
 const interpolateOklch = (x: OKLCHA, y: OKLCHA, d: number): Color => {
     d = clamp(0, d, 1);
@@ -67,7 +68,13 @@ export class ColorScale extends AbstractScale<number, string> {
 
     private parsedRange = this.range.map(convertColorStringToOklcha);
 
+    // OPTIMIZATION: OKLCH interpolation and RGBA-string allocation dominate heat-map redraws, where
+    // the same value recurs across cells and frames. Cleared in update() on any domain/range/mode
+    // change. At the cap we stop inserting rather than clearing, which would thrash mid-redraw.
+    private readonly convertCache = new Map<number, string>();
+
     update() {
+        this.convertCache.clear();
         const { domain, range } = this;
 
         if (domain.length < 2) {
@@ -114,6 +121,20 @@ export class ColorScale extends AbstractScale<number, string> {
         // Colour derives from the value's position in the Number domain, so finite precision suffices.
         const xn = toNumber(x);
 
+        // Lookup sits after refresh() so a reconfigured scale never serves a stale colour.
+        const cached = this.convertCache.get(xn);
+        if (cached !== undefined) {
+            return cached;
+        }
+
+        const result = this.computeColor(xn);
+        if (this.convertCache.size < MAX_CONVERT_CACHE_SIZE) {
+            this.convertCache.set(xn, result);
+        }
+        return result;
+    }
+
+    private computeColor(xn: number): string {
         const { domain, range, parsedRange } = this;
         const d0 = domain[0];
         const d1 = domain.at(-1)!;

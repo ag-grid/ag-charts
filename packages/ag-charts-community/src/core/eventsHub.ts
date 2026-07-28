@@ -167,6 +167,8 @@ export interface EventsHubMap {
     'series-area:contextmenu': SeriesAreaContextMenuEvent;
     'series:redo': null;
     'series:undo': null;
+    /** Emitted when resolved theme parameters change, i.e. the theme CSS variables have been rewritten. */
+    'theme:params-change': null;
     'update:complete': UpdateCompleteEvent;
     'update:pre-dom': null;
     'update:pre-series': PreSeriesUpdateEvent;
