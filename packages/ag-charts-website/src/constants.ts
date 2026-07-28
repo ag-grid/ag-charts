@@ -6,6 +6,10 @@ export const DEFAULT_INTERNAL_FRAMEWORK: InternalFramework =
     import.meta.env?.PUBLIC_DEFAULT_FRAMEWORK ?? 'reactFunctional';
 export const ENABLE_HOT_RELOAD = import.meta.env?.PUBLIC_ENABLE_HOT_RELOAD === 'true';
 
+// Turn off per-page markdown (`.md`) generation for LLMs. When set, no `.md` routes are
+// emitted and docs pages omit the markdown affordances (see the docs Header / Layout).
+export const DISABLE_MARKDOWN_DOCS = ['1', 'true'].includes(import.meta.env?.DISABLE_MARKDOWN_DOCS);
+
 export const INTERNAL_FRAMEWORKS: readonly InternalFramework[] = [
     'vanilla',
     'typescript',

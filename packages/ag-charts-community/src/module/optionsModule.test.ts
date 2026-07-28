@@ -664,6 +664,10 @@ describe('ChartOptions', () => {
                       "strokeWidth": 1,
                     },
                     "collision": {
+                      "alwaysShow": true,
+                      "collideWith": {
+                        "seriesItems": true,
+                      },
                       "threshold": 4,
                     },
                     "cornerRadius": 4,
@@ -753,6 +757,10 @@ describe('ChartOptions', () => {
                       "strokeWidth": 1,
                     },
                     "collision": {
+                      "alwaysShow": true,
+                      "collideWith": {
+                        "seriesItems": true,
+                      },
                       "threshold": 4,
                     },
                     "cornerRadius": 4,
@@ -842,6 +850,10 @@ describe('ChartOptions', () => {
                       "strokeWidth": 1,
                     },
                     "collision": {
+                      "alwaysShow": true,
+                      "collideWith": {
+                        "seriesItems": true,
+                      },
                       "threshold": 4,
                     },
                     "cornerRadius": 4,
@@ -931,6 +943,10 @@ describe('ChartOptions', () => {
                       "strokeWidth": 1,
                     },
                     "collision": {
+                      "alwaysShow": true,
+                      "collideWith": {
+                        "seriesItems": true,
+                      },
                       "threshold": 4,
                     },
                     "cornerRadius": 4,
@@ -1016,6 +1032,9 @@ describe('ChartOptions', () => {
                       "stroke": "rgba(24, 29, 31, 0.08)",
                       "strokeWidth": 1,
                     },
+                    "collision": {
+                      "alwaysShow": true,
+                    },
                     "cornerRadius": 4,
                     "enabled": false,
                     "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
@@ -1090,6 +1109,9 @@ describe('ChartOptions', () => {
                       "enabled": false,
                       "stroke": "rgba(24, 29, 31, 0.08)",
                       "strokeWidth": 1,
+                    },
+                    "collision": {
+                      "alwaysShow": true,
                     },
                     "cornerRadius": 4,
                     "enabled": false,
@@ -1181,6 +1203,10 @@ describe('ChartOptions', () => {
                       "strokeWidth": 1,
                     },
                     "collision": {
+                      "alwaysShow": true,
+                      "collideWith": {
+                        "seriesItems": true,
+                      },
                       "threshold": 4,
                     },
                     "cornerRadius": 4,
@@ -1270,6 +1296,10 @@ describe('ChartOptions', () => {
                       "strokeWidth": 1,
                     },
                     "collision": {
+                      "alwaysShow": true,
+                      "collideWith": {
+                        "seriesItems": true,
+                      },
                       "threshold": 4,
                     },
                     "cornerRadius": 4,
@@ -1359,6 +1389,10 @@ describe('ChartOptions', () => {
                       "strokeWidth": 1,
                     },
                     "collision": {
+                      "alwaysShow": true,
+                      "collideWith": {
+                        "seriesItems": true,
+                      },
                       "threshold": 4,
                     },
                     "cornerRadius": 4,
@@ -1448,6 +1482,10 @@ describe('ChartOptions', () => {
                       "strokeWidth": 1,
                     },
                     "collision": {
+                      "alwaysShow": true,
+                      "collideWith": {
+                        "seriesItems": true,
+                      },
                       "threshold": 4,
                     },
                     "cornerRadius": 4,
@@ -1533,6 +1571,9 @@ describe('ChartOptions', () => {
                       "stroke": "rgba(24, 29, 31, 0.08)",
                       "strokeWidth": 1,
                     },
+                    "collision": {
+                      "alwaysShow": true,
+                    },
                     "cornerRadius": 4,
                     "enabled": false,
                     "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
@@ -1607,6 +1648,9 @@ describe('ChartOptions', () => {
                       "enabled": false,
                       "stroke": "rgba(24, 29, 31, 0.08)",
                       "strokeWidth": 1,
+                    },
+                    "collision": {
+                      "alwaysShow": true,
                     },
                     "cornerRadius": 4,
                     "enabled": false,
@@ -1698,6 +1742,10 @@ describe('ChartOptions', () => {
                       "strokeWidth": 1,
                     },
                     "collision": {
+                      "alwaysShow": true,
+                      "collideWith": {
+                        "seriesItems": true,
+                      },
                       "threshold": 4,
                     },
                     "cornerRadius": 4,
@@ -1787,6 +1835,10 @@ describe('ChartOptions', () => {
                       "strokeWidth": 1,
                     },
                     "collision": {
+                      "alwaysShow": true,
+                      "collideWith": {
+                        "seriesItems": true,
+                      },
                       "threshold": 4,
                     },
                     "cornerRadius": 4,
@@ -1876,6 +1928,10 @@ describe('ChartOptions', () => {
                       "strokeWidth": 1,
                     },
                     "collision": {
+                      "alwaysShow": true,
+                      "collideWith": {
+                        "seriesItems": true,
+                      },
                       "threshold": 4,
                     },
                     "cornerRadius": 4,
@@ -1965,6 +2021,10 @@ describe('ChartOptions', () => {
                       "strokeWidth": 1,
                     },
                     "collision": {
+                      "alwaysShow": true,
+                      "collideWith": {
+                        "seriesItems": true,
+                      },
                       "threshold": 4,
                     },
                     "cornerRadius": 4,
@@ -2050,6 +2110,9 @@ describe('ChartOptions', () => {
                       "stroke": "rgba(24, 29, 31, 0.08)",
                       "strokeWidth": 1,
                     },
+                    "collision": {
+                      "alwaysShow": true,
+                    },
                     "cornerRadius": 4,
                     "enabled": false,
                     "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
@@ -2124,6 +2187,9 @@ describe('ChartOptions', () => {
                       "enabled": false,
                       "stroke": "rgba(24, 29, 31, 0.08)",
                       "strokeWidth": 1,
+                    },
+                    "collision": {
+                      "alwaysShow": true,
                     },
                     "cornerRadius": 4,
                     "enabled": false,
@@ -3664,6 +3730,36 @@ describe('ChartOptions', () => {
             expect((console.warn as Mock).mock.calls.some(([m]) => String(m).includes('is not a valid color'))).toBe(
                 true
             );
+        });
+    });
+
+    describe('CSS-variable validation warning routing', () => {
+        it('routes the invalid-colour warning through the instance logger, not Logger.default', () => {
+            const container = document.createElement('div');
+            vi.spyOn(container.ownerDocument.defaultView!, 'getComputedStyle').mockReturnValue({
+                getPropertyValue: (key: string) => (key === '--bad' ? 'not-a-color' : ''),
+            } as any);
+            const logger = new Logger();
+            const instanceWarnOnce = vi.spyOn(logger, 'warnOnce');
+            const defaultWarnOnce = vi.spyOn(Logger.default, 'warnOnce');
+            const chartOptions = new ChartOptions(
+                {},
+                {} as AgChartOptions,
+                {},
+                {},
+                {},
+                undefined,
+                false,
+                false,
+                undefined,
+                logger
+            );
+
+            chartOptions.processCSSVariablesPartial({ foregroundColor: 'var(--bad)' }, container);
+
+            const isInvalidColour = ([m]: unknown[]) => String(m).includes('is not a valid color');
+            expect(instanceWarnOnce.mock.calls.some(isInvalidColour)).toBe(true);
+            expect(defaultWarnOnce.mock.calls.some(isInvalidColour)).toBe(false);
         });
     });
 });

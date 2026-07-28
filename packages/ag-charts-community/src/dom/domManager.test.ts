@@ -596,6 +596,50 @@ describe('DOMManager', () => {
         });
     });
 
+    describe('setThemeParameters()', () => {
+        // Consumers cache DOM measurements that the theme CSS variables feed into, so the event
+        // must track the variable writes exactly: fired whenever they happen, silent otherwise.
+        function setup() {
+            const ownEventsHub: EventsHub = new EventEmitter();
+            const container = doc.createElement('div');
+            doc.body.append(container);
+            const dm = new DOMManager(ownEventsHub, undefined, doc, container);
+            const handler = vi.fn();
+            ownEventsHub.on('theme:params-change', handler);
+            return { dm, handler };
+        }
+
+        it('emits theme:params-change when the resolved parameters change', () => {
+            const { dm, handler } = setup();
+
+            dm.setThemeParameters({ chromeFontSize: 12 });
+            dm.setThemeParameters({ chromeFontSize: 14 });
+
+            expect(handler).toHaveBeenCalledTimes(2);
+        });
+
+        it('stays silent when called again with the same parameters', () => {
+            const { dm, handler } = setup();
+            const params = { chromeFontSize: 12 };
+
+            dm.setThemeParameters(params);
+            dm.setThemeParameters(params);
+
+            expect(handler).toHaveBeenCalledTimes(1);
+        });
+
+        it('emits when a parameter is lazily added to the same object', () => {
+            const { dm, handler } = setup();
+            const params: { chromeFontSize?: number; chromeFontFamily?: string } = { chromeFontSize: 12 };
+
+            dm.setThemeParameters(params);
+            params.chromeFontFamily = 'Verdana';
+            dm.setThemeParameters(params);
+
+            expect(handler).toHaveBeenCalledTimes(2);
+        });
+    });
+
     describe('destroy()', () => {
         it('removes children it owns but leaves a transferred (re-homed) child intact', () => {
             const container = doc.createElement('div');

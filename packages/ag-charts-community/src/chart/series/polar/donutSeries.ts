@@ -17,6 +17,7 @@ import {
     type RequireOptional,
     type WrapOptions,
     anyOverlap,
+    cachedTextMeasurer,
     extractDomain,
     fitLabelText,
     formatValue,
@@ -72,7 +73,7 @@ import {
     valueProperty,
 } from '../../data/processors';
 import { Label, expandLabelPadding } from '../../label';
-import { fitLabelToContainer, getLabelStyles } from '../../labelUtil';
+import { fitLabelToContainer, fitSectorLabelRect, getLabelStyles } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
@@ -110,10 +111,9 @@ class PieDonutSeriesNodeEvent<TEvent extends string = SeriesNodeEventTypes> exte
         nativeEvent: Event,
         datum: PieDonutNodeDatum,
         series: DonutSeries,
-        selectionState: SelectionState | undefined,
-        isCollapsed: boolean
+        selectionState: SelectionState | undefined
     ) {
-        super(type, nativeEvent, datum, series, selectionState, isCollapsed);
+        super(type, nativeEvent, datum, series, selectionState);
         this.angleKey = series.properties.angleKey;
         this.radiusKey = series.properties.radiusKey;
         this.calloutLabelKey = series.properties.calloutLabelKey;
@@ -1594,6 +1594,9 @@ export class DonutSeries extends PolarSeries<
     private updateSectorLabelNodes() {
         const { properties } = this;
         const { positionOffset, positionRatio } = this.properties.sectorLabel;
+        // Fitting only engages when the user opts into wrapping/truncation; otherwise the sector text renders in
+        // full (and hides if it overruns the wedge, as before), so the default path stays untouched.
+        const sectorFit = resolveLabelFit(this.properties.sectorLabel, false);
 
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
         const seriesHighlighted = this.isSeriesHighlighted(highlightedDatum);
@@ -1616,16 +1619,28 @@ export class DonutSeries extends PolarSeries<
                     const style = this.getLabelStyle(datum, properties.sectorLabel, 'sectorLabel', isDatumHighlighted);
                     const labelRadius =
                         innerRadius * (1 - positionRatio) + outerRadius * positionRatio + positionOffset;
+                    const sectorBounds = { startAngle, endAngle, innerRadius, outerRadius };
 
                     text.fill = style.color;
                     text.fillOpacity = this.getHighlightStyle(isDatumHighlighted, datum.datumIndex).opacity ?? 1;
-                    text.text = datum.sectorLabel.text;
-                    if (shouldPutTextInCenter) {
+                    if (sectorFit == null) {
+                        text.x = shouldPutTextInCenter ? 0 : datum.midCos * labelRadius;
+                        text.y = shouldPutTextInCenter ? 0 : datum.midSin * labelRadius;
+                        text.text = datum.sectorLabel.text;
+                    } else if (shouldPutTextInCenter) {
+                        // A centred single-sector label fits the square inscribed in the pie, like the inner label.
                         text.x = 0;
                         text.y = 0;
+                        const holeExtent = outerRadius * Math.SQRT2;
+                        const container = { width: holeExtent, height: holeExtent };
+                        text.text = fitLabelToContainer(datum.sectorLabel.text, sectorFit, style, container);
                     } else {
-                        text.x = datum.midCos * labelRadius;
-                        text.y = datum.midSin * labelRadius;
+                        const anchor = { x: datum.midCos * labelRadius, y: datum.midSin * labelRadius };
+                        const rect = fitSectorLabelRect(anchor, sectorBounds, cachedTextMeasurer(style).lineHeight());
+                        text.x = rect.centerX;
+                        text.y = rect.centerY;
+                        const container = { width: rect.width, height: rect.height };
+                        text.text = fitLabelToContainer(datum.sectorLabel.text, sectorFit, style, container);
                     }
                     text.setFont(style);
                     text.setAlign(align);
@@ -1638,7 +1653,6 @@ export class DonutSeries extends PolarSeries<
                         [bbox.x + bbox.width, bbox.y + bbox.height],
                         [bbox.x, bbox.y + bbox.height],
                     ];
-                    const sectorBounds = { startAngle, endAngle, innerRadius, outerRadius };
                     if (corners.every(([x, y]) => isPointInSector(x, y, sectorBounds))) {
                         isTextVisible = true;
                     }

@@ -25,6 +25,7 @@ export const AG_CHARTS_LOCALE_EL_GR: Record<string, string> = {
     ariaOrgChartExpanded: 'αναπτυγμένο',
     ariaDescriptionExpandNode: 'Πατήστε Alt + Κάτω βέλος για ανάπτυξη αυτού του κόμβου',
     ariaDescriptionCollapseNode: 'Πατήστε Alt + Πάνω βέλος για σύμπτυξη αυτού του κόμβου',
+    ariaDescriptionToggleNode: 'Πατήστε Space ή Enter για ανάπτυξη ή σύμπτυξη αυτού του κόμβου',
     ariaAnnounceGaugeChart: 'διάγραμμα δείκτη, ${caption}',
     ariaAnnounceHierarchyChart: 'διάγραμμα ιεραρχίας, ${caption}',
     ariaAnnounceHierarchyDatum: 'επίπεδο ${level}[number], ${count}[number] παιδιά, ${description}',

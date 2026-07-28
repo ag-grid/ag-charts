@@ -25,6 +25,7 @@ export const AG_CHARTS_LOCALE_UK_UA: Record<string, string> = {
     ariaOrgChartExpanded: 'розгорнуто',
     ariaDescriptionExpandNode: 'Натисніть Alt + стрілку вниз, щоб розгорнути цей вузол',
     ariaDescriptionCollapseNode: 'Натисніть Alt + стрілку вгору, щоб згорнути цей вузол',
+    ariaDescriptionToggleNode: 'Натисніть Space або Enter, щоб розгорнути або згорнути цей вузол',
     ariaAnnounceGaugeChart: 'діаграма циферблата, ${caption}',
     ariaAnnounceHierarchyChart: 'ієрархічна діаграма, ${caption}',
     ariaAnnounceHierarchyDatum: 'рівень ${level}[number], ${count}[number] дочірні, ${description}',

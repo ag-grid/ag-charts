@@ -105,6 +105,7 @@ export type {
     AxisDOMProxyMouseLeaveEvent,
     AxisDOMProxyUpdateEvent,
     AxisDOMProxyWheelEvent,
+    CollapsedRestoreEvent,
     ContextMenuEvent,
     DataModelDiff,
     DataModelDiffEvent,
@@ -117,6 +118,8 @@ export type {
     SeriesAreaClickEvent,
     SeriesAreaContextMenuEvent,
     SeriesAreaHoverEvent,
+    SeriesKeyNavCollapseEvent,
+    SeriesKeyNavExpandEvent,
     SeriesKeyNavZoomEvent,
     SeriesKeyNavPanXEvent,
     ZoomInteractionRequestAxisWheelEvent,
@@ -180,12 +183,15 @@ export {
 export type { PreSceneRenderEvent, ProcessDataEvent } from './core/eventsHub';
 export {
     adjustLabelPlacement,
+    buildBarLabelCandidates,
     fitLabelToContainer,
     getLabelStyles,
+    insideBarLabelBounds,
     pickPlacementStyle,
+    toResolvedPlacement,
     updateLabelNode,
 } from './chart/labelUtil';
-export type { ResolvedLabelPlacement } from './chart/labelUtil';
+export type { BarLabelPlacement, BarPositionedCandidate, ResolvedLabelPlacement } from './chart/labelUtil';
 export { LayoutElement } from './chart/layout/layoutManager';
 export type { LayoutContext } from './chart/layout/layoutManager';
 export { AnnotationManager } from './chart/annotation/annotationManager';
@@ -425,7 +431,8 @@ export {
     PlacedSeriesLabel,
     expandLabelBoxExtent,
     expandPlacementLabelBoxExtent,
-    resolvePlacementLabelPadding,
+    placedLabelTextOffset,
+    resolvePlacementLabelBoxExtent,
 } from './chart/label';
 export { Marker } from './chart/marker/marker';
 export { drawMarkerUnitPolygon } from './chart/marker/shapes';

@@ -19,7 +19,6 @@ import {
     DebugMetrics,
     type DynamicContext,
     type FillStrokeMorph,
-    Logger,
     type Mutable,
     type Normalised,
     type NormalisedColorType,
@@ -105,10 +104,9 @@ class OhlcSeriesNodeEvent<
         nativeEvent: Event,
         datum: OhlcNodeDatum,
         series: OhlcSeriesBase<OhlcSeriesBaseTypes>,
-        selectionState: SelectionState | undefined,
-        isCollapsed: boolean
+        selectionState: SelectionState | undefined
     ) {
-        super(type, nativeEvent, datum, series, selectionState, isCollapsed);
+        super(type, nativeEvent, datum, series, selectionState);
         this.xKey = series.properties.xKey;
         this.openKey = series.properties.openKey;
         this.closeKey = series.properties.closeKey;
@@ -523,14 +521,14 @@ export abstract class OhlcSeriesBase<
         const validHighValue = highValue != null && highValue >= openValue && highValue >= closeValue;
 
         if (!validLowValue) {
-            Logger.warnOnce(
+            this.ctx.logger.warnOnce(
                 `invalid low value for key [${ctx.lowKey}] in data element, low value cannot be higher than datum open or close values`
             );
             return undefined;
         }
 
         if (!validHighValue) {
-            Logger.warnOnce(
+            this.ctx.logger.warnOnce(
                 `invalid high value for key [${ctx.highKey}] in data element, high value cannot be lower than datum open or close values.`
             );
             return undefined;

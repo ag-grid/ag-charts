@@ -12,7 +12,6 @@ import type {
 import {
     type ITextMeasurer,
     type LabelFit,
-    Logger,
     type Point,
     cachedTextMeasurer,
     findDiscreteColorBinLabel,
@@ -230,11 +229,11 @@ export class MapLineSeries
         if (this.isColorScaleValid()) {
             const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue');
             const domain = processedData.domain.values[colorKeyIdx];
-            configureColorScale(colorScale, this.properties.colorScale, domain);
+            configureColorScale(colorScale, this.properties.colorScale, domain, this.ctx.logger);
         }
 
         if (topology == null) {
-            Logger.warnOnce(`no topology was provided for [MapLineSeries]; nothing will be rendered.`);
+            this.ctx.logger.warnOnce(`no topology was provided for [MapLineSeries]; nothing will be rendered.`);
         }
     }
 
@@ -375,7 +374,7 @@ export class MapLineSeries
             missingGeometries.push(`(+${excessItems} more)`);
         }
 
-        Logger.warnOnce(`some data items do not have matches in the provided topology`, missingGeometries);
+        this.ctx.logger.warnOnce(`some data items do not have matches in the provided topology`, missingGeometries);
     }
 
     override createNodeData() {
@@ -396,7 +395,7 @@ export class MapLineSeries
         const maxStrokeWidth = properties.maxStrokeWidth ?? properties.strokeWidth;
         sizeScale.range = [minStrokeWidth, Math.max(minStrokeWidth, maxStrokeWidth)];
         const measurer = cachedTextMeasurer(label);
-        const labelFit = resolveLabelFit(label, !label.collision.suppressHide);
+        const labelFit = resolveLabelFit(label, !label.collision.alwaysShow);
 
         const projectedGeometries = this.prepareProjectedLineGeometries(
             columns.idValues,

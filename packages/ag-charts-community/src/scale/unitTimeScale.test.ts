@@ -1,4 +1,6 @@
-import type { ScaleTickParams } from 'ag-charts-core';
+import { vi } from 'vitest';
+
+import { Logger, type ScaleTickParams } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
 import { UnitTimeScale } from './unitTimeScale';
@@ -232,6 +234,43 @@ describe('UnitTimeScale', () => {
             const elapsed = performance.now() - t0;
 
             expect(elapsed).toBeLessThan(100);
+        });
+    });
+
+    describe('too-many-bands warning routing', () => {
+        // A ~54-year span at millisecond granularity yields ~1.7e12 bands, far past MAX_BANDS.
+        const HUGE_DOMAIN: [Date, Date] = [new Date(1970, 0, 1), new Date(2024, 0, 1)];
+        const WARNING = 'the configured unit results in too many bands, ignoring. Supply a larger unit.';
+
+        it('routes the warning through the threaded per-chart logger, not the module default', () => {
+            const scale = new UnitTimeScale();
+            const logger = new Logger();
+            const scopedWarn = vi.spyOn(logger, 'warnOnce').mockImplementation(() => {});
+            const defaultWarn = vi.spyOn(Logger.default, 'warnOnce').mockImplementation(() => {});
+
+            scale.logger = logger;
+            scale.domain = HUGE_DOMAIN;
+            scale.interval = 'millisecond';
+            scale.getBandCountForUpdate();
+
+            expect(scopedWarn).toHaveBeenCalledWith(WARNING);
+            expect(defaultWarn).not.toHaveBeenCalled();
+
+            scopedWarn.mockRestore();
+            defaultWarn.mockRestore();
+        });
+
+        it('falls back to the module default logger when none is threaded', () => {
+            const scale = new UnitTimeScale();
+            const defaultWarn = vi.spyOn(Logger.default, 'warnOnce').mockImplementation(() => {});
+
+            scale.domain = HUGE_DOMAIN;
+            scale.interval = 'millisecond';
+            scale.getBandCountForUpdate();
+
+            expect(defaultWarn).toHaveBeenCalledWith(WARNING);
+
+            defaultWarn.mockRestore();
         });
     });
 });

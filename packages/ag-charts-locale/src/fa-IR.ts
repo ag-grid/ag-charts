@@ -25,6 +25,7 @@ export const AG_CHARTS_LOCALE_FA_IR: Record<string, string> = {
     ariaOrgChartExpanded: 'بازشده',
     ariaDescriptionExpandNode: 'برای گسترش این گره، Alt + پیکان پایین را فشار دهید',
     ariaDescriptionCollapseNode: 'برای جمع کردن این گره، Alt + پیکان بالا را فشار دهید',
+    ariaDescriptionToggleNode: 'برای گسترش یا جمع کردن این گره، Space یا Enter را فشار دهید',
     ariaAnnounceGaugeChart: 'چارت سنجشی، ${caption}',
     ariaAnnounceHierarchyChart: 'نمودار سلسله مراتبی، ${caption}',
     ariaAnnounceHierarchyDatum: 'سطح ${level}[number]، ${count}[number] فرزند، ${description}',

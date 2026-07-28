@@ -190,9 +190,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         // processing branches on it, so context-only deltas can take the fast path.
         'context',
     ]);
-    private static isFastPathDelta(deltaOptions: DeepPartial<AgChartOptions> | null) {
+    private static isFastPathDelta(
+        deltaOptions: DeepPartial<AgChartOptions> | null,
+        presetFastUpdateKeys?: ReadonlySet<string>
+    ) {
         for (const key of Object.keys(deltaOptions ?? {})) {
-            if (!this.FAST_PATH_OPTIONS.has(key as keyof AgChartOptions)) {
+            if (!this.FAST_PATH_OPTIONS.has(key as keyof AgChartOptions) && !presetFastUpdateKeys?.has(key)) {
                 ChartOptions.perfDebug('ChartOptions.isFastPathDelta() - slow path required due to presence of: ', key);
                 return false;
             }
@@ -319,12 +322,16 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             googleFonts,
             fonts,
             optionsGraph;
+        const presetDef =
+            this.optionMetadata.presetType == null
+                ? undefined
+                : ModuleRegistry.getPresetModule(this.optionMetadata.presetType);
         if (
             !stripSymbols &&
             !refreshCSSVariables &&
             this.seriesWithUserVisibility == undefined &&
             deltaOptions !== undefined &&
-            ChartOptions.isFastPathDelta(deltaOptions) &&
+            ChartOptions.isFastPathDelta(deltaOptions, presetDef?.fastUpdateKeys) &&
             baseChartOptions != null &&
             !dataChangedLength
         ) {
@@ -385,12 +392,16 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const { activeTheme, processedOptions: baseOptions } = baseChartOptions;
         const { presetType } = this.optionMetadata;
 
-        if (presetType != null && deltaOptions?.data != null) {
+        if (presetType != null && deltaOptions != null) {
             const presetDef = ModuleRegistry.getPresetModule(presetType);
             // Handle preset data transforms gracefully.
-            if (presetDef?.processData) {
+            if (presetDef?.processData && deltaOptions.data != null) {
                 const { series, data } = presetDef.processData(deltaOptions.data);
                 deltaOptions = mergeDefaults({ series, data }, deltaOptions) as DeepPartial<T>;
+            }
+            // Map preset-owned root keys (e.g. a gauge's `value`) onto the internal series shape.
+            if (presetDef?.processFastUpdate) {
+                deltaOptions = presetDef.processFastUpdate(deltaOptions) as DeepPartial<T>;
             }
         }
 
@@ -1525,11 +1536,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this: void,
         optionsNode: any,
         _parallelNode: any,
-        container: HTMLElement | undefined,
+        ctx: { container: HTMLElement | null | undefined; logger: Logger } | undefined,
         processedCSSVariables: Record<string, string> | undefined
     ) {
         processedCSSVariables ??= {};
 
+        const container = ctx?.container;
         if (!optionsNode || !isObjectLike(optionsNode) || !container) {
             return processedCSSVariables;
         }
@@ -1543,7 +1555,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             if (!resolved) continue;
 
             if (!resolved.isValid) {
-                Logger.default.warnOnce(`CSS property [${value}] is not a valid color, ignoring.`);
+                (ctx?.logger ?? Logger.default).warnOnce(`CSS property [${value}] is not a valid color, ignoring.`);
                 delete optionsNode[key];
                 continue;
             }
@@ -1587,17 +1599,21 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         if (container == null) return;
 
         const skip = new Set(['data']);
-        let processed = jsonWalk(options, ChartOptions.processCSSVariablesJSON, skip, undefined, container);
+        const ctx = { container, logger: this.logger };
+        let processed = jsonWalk(options, ChartOptions.processCSSVariablesJSON, skip, undefined, ctx);
         // The options graph resolves theme params from `activeTheme.params`, a distinct object from `options`, so an
         // invalid `var()` colour there must be dropped here too — otherwise it reaches the blend engine unresolved.
-        processed = jsonWalk(themeParams, ChartOptions.processCSSVariablesJSON, skip, undefined, container, processed);
+        processed = jsonWalk(themeParams, ChartOptions.processCSSVariablesJSON, skip, undefined, ctx, processed);
         return processed;
     }
 
     processCSSVariablesPartial(partialOptions: PlainObject | undefined, container: HTMLElement | null | undefined) {
         if (partialOptions == null || container == null) return;
 
-        return jsonWalk(partialOptions, ChartOptions.processCSSVariablesJSON, new Set(['data']), undefined, container);
+        return jsonWalk(partialOptions, ChartOptions.processCSSVariablesJSON, new Set(['data']), undefined, {
+            container,
+            logger: this.logger,
+        });
     }
 
     private specialOverridesDefaults(options: Partial<ChartSpecialOverrides>) {

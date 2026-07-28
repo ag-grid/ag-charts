@@ -14,7 +14,7 @@ export interface Quote {
     changePct: number;
     /** Recent close prices, oldest first — drives the trend sparkline. */
     history: number[];
-    /** First value of the full history (the session open) — the sparkline's up/down baseline. */
+    /** The session open, fixed for the session — the sparkline's up/down baseline. */
     baseline: number;
 }
 
@@ -28,6 +28,6 @@ export interface MoverRow {
     volume: number;
     /** Recent close prices, oldest first — drives the trend sparkline. */
     history: number[];
-    /** First value of the full history (the session open) — the sparkline's up/down baseline. */
+    /** The session open, fixed for the session — the sparkline's up/down baseline. */
     baseline: number;
 }

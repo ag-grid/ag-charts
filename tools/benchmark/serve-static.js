@@ -79,15 +79,6 @@ if (!fs.existsSync(root)) {
 const baseSegment = base.slice(1);
 const baseIsRealDir = baseSegment.length > 0 && fs.existsSync(path.join(root, baseSegment));
 
-function escapeHtml(value) {
-    return value
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-}
-
 function resolveFile(urlPath) {
     let relPath = decodeURIComponent(urlPath.split('?')[0]);
 
@@ -119,8 +110,11 @@ function resolveFile(urlPath) {
 const server = http.createServer((req, res) => {
     const filePath = resolveFile(req.url ?? '/');
     if (!filePath) {
+        // Do not reflect the requested URL back into the response body — echoing
+        // untrusted request input is an XSS vector (and trips SAST scanners) for no
+        // real benefit in a benchmark file server.
         res.writeHead(404, { 'content-type': 'text/plain' });
-        res.end(`Not found: ${escapeHtml(req.url ?? '')}`);
+        res.end('Not found');
         return;
     }
 

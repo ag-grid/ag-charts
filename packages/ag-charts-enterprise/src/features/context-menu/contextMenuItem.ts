@@ -10,24 +10,22 @@ import { isKeyOf } from 'ag-charts-core';
 type Options = Partial<_ModuleSupport.ContextMenuItemContractNonRecursive>;
 type AgContextMenuItem_NoLists = Exclude<AgContextMenuItem, keyof _ModuleSupport.ContextMenuBuiltins['lists']>;
 
-function showsFor(showOn: AgContextMenuItemShowOn, showing: AgContextMenuItemShowOn): boolean {
+type ActiveRegions = ReadonlySet<AgContextMenuItemShowOn>;
+
+function showsFor(showOn: AgContextMenuItemShowOn, active: ActiveRegions): boolean {
     if (showOn === 'always') return true;
-    if (showOn === 'series-area') return showing === 'series-area' || showing === 'series-node';
-    return showOn === showing;
+    if (showOn === 'series-area') return active.has('series-area') || active.has('series-node');
+    return active.has(showOn);
 }
 
-function appendItem(
-    showing: AgContextMenuItemShowOn,
-    item: Options,
-    result: ContextMenuItem[]
-): ContextMenuItem | undefined {
+function appendItem(active: ActiveRegions, item: Options, result: ContextMenuItem[]): ContextMenuItem | undefined {
     let mustShow: boolean = true;
     if (item.type === 'separator') {
         const last: ContextMenuItem | undefined = result.at(-1);
         mustShow = last !== undefined && last.type !== 'separator';
     }
 
-    mustShow &&= showsFor(item.showOn ?? 'always', showing);
+    mustShow &&= showsFor(item.showOn ?? 'always', active);
     if (mustShow) {
         const menuItem = new ContextMenuItem(item);
         result.push(menuItem);
@@ -36,18 +34,18 @@ function appendItem(
 }
 
 function appendBuiltinItem(
-    showing: AgContextMenuItemShowOn,
+    active: ActiveRegions,
     registry: _ModuleSupport.ContextMenuRegistry,
     keyword: keyof _ModuleSupport.ContextMenuRegistry['builtins']['items'],
     result: ContextMenuItem[]
 ) {
     if (registry.isVisible(keyword)) {
-        appendItem(showing, registry.builtins.items[keyword], result);
+        appendItem(active, registry.builtins.items[keyword], result);
     }
 }
 
 function expandBuiltin(
-    showing: AgContextMenuItemShowOn,
+    active: ActiveRegions,
     registry: _ModuleSupport.ContextMenuRegistry,
     keyword: AgContextMenuItemLiteral,
     result: ContextMenuItem[]
@@ -55,15 +53,15 @@ function expandBuiltin(
     const { builtins } = registry;
     if (isKeyOf(keyword, builtins.lists)) {
         for (const childKeyword of builtins.lists[keyword]) {
-            appendBuiltinItem(showing, registry, childKeyword, result);
+            appendBuiltinItem(active, registry, childKeyword, result);
         }
     } else {
-        appendBuiltinItem(showing, registry, keyword, result);
+        appendBuiltinItem(active, registry, keyword, result);
     }
 }
 
 export function expandBuiltinLists(
-    showing: AgContextMenuItemShowOn,
+    active: ActiveRegions,
     items: readonly Readonly<AgContextMenuItem>[],
     registry: _ModuleSupport.ContextMenuRegistry
 ): AgContextMenuItem_NoLists[] {
@@ -82,26 +80,26 @@ export function expandBuiltinLists(
     return unfiltered.filter((it) => {
         if (typeof it === 'string') {
             const showOn = registry.builtins.items[it].showOn ?? 'always';
-            return registry.isVisible(it) && showsFor(showOn, showing);
+            return registry.isVisible(it) && showsFor(showOn, active);
         } else {
-            return showsFor(it.showOn ?? 'always', showing);
+            return showsFor(it.showOn ?? 'always', active);
         }
     });
 }
 
 export function expandItems(
-    showing: AgContextMenuItemShowOn,
+    active: ActiveRegions,
     registry: _ModuleSupport.ContextMenuRegistry,
     items: readonly Readonly<AgContextMenuItem>[],
     result: ContextMenuItem[]
 ) {
     for (const item of items) {
         if (typeof item === 'string') {
-            expandBuiltin(showing, registry, item, result);
+            expandBuiltin(active, registry, item, result);
         } else {
-            const menuItem = appendItem(showing, item, result);
+            const menuItem = appendItem(active, item, result);
             if (item.items && menuItem && item.items.length > 0) {
-                expandItems(showing, registry, item.items, menuItem.items);
+                expandItems(active, registry, item.items, menuItem.items);
             }
         }
     }

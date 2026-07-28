@@ -46,8 +46,11 @@ export function check(...debugSelectors: Array<boolean | string>) {
     if (debugSelectors.length === 0) {
         debugSelectors.push(true);
     }
-    const chartDebug = toArray(getWindow<boolean | string>('agChartsDebug'));
-    return chartDebug.some((selector) => debugSelectors.includes(selector));
+    const chartDebug = getWindow<boolean | string | Array<boolean | string>>('agChartsDebug');
+    if (chartDebug == null) {
+        return false;
+    }
+    return toArray(chartDebug).some((selector) => debugSelectors.includes(selector));
 }
 
 export function inDevelopmentMode<R>(fn: () => R): R | undefined {

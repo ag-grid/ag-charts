@@ -2,6 +2,7 @@
 // cspell:ignore whats
 import Layout from '@layouts/Layout.astro';
 import styles from '@pages-styles/homepage.module.scss';
+import { DISABLE_MARKDOWN_DOCS } from '@constants';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import { getEntry, type CollectionEntry } from 'astro:content';
 import { Icon } from '@ag-website-shared/components/icon/Icon';
@@ -25,6 +26,9 @@ const { blogPrefix } = whatsNewData['charts'];
 const { data: FAQData } = (await getEntry('faqs', 'homepage')) as CollectionEntry<'faqs'>;
 const renderedFAQData = renderFAQAnswers(FAQData);
 const { data: versionsData } = (await getEntry('versions', 'ag-charts-versions')) as CollectionEntry<'versions'>;
+const { data: homepageData } = (await getEntry('homepage', 'homepage')) as CollectionEntry<'homepage'>;
+
+const { hero, sections } = homepageData;
 
 const frameworksData = [
     {
@@ -58,18 +62,21 @@ const frameworksData = [
 ];
 
 const mapExampleHeights = 360;
+
+const markdownUrl = DISABLE_MARKDOWN_DOCS ? undefined : urlWithBaseUrl('/index.md');
 ---
 
 <Layout
     title="JavaScript Charts | AG Charts"
     description="Create beautiful, high-performance JavaScript Charts quickly with AG Charts. Free forever; upgrade to enterprise for advanced features and dedicated support."
+    markdownUrl={markdownUrl}
 >
     <div class:list={[styles.container]}>
         <div class={styles.homepageHero}>
             <div class:list={[styles.heroInner, 'layout-max-width-small']}>
                 <div class={styles.heroHeadings}>
                     <noscript>
-                        <h1>The Best JavaScript Charts in the World</h1>
+                        <h1>{hero.heading}</h1>
                         <style>
                             .only-script {
                                 display: none !important;
@@ -82,14 +89,10 @@ const mapExampleHeights = 360;
                         <span>Charts in the World</span>
                     </h1>
 
-                    <h2>The professional choice for developers building enterprise applications</h2>
+                    <h2>{hero.subHeading}</h2>
 
-                    <a
-                        id="view-gallery"
-                        href={urlWithBaseUrl(
-                            '/gallery?utm_source=charts-homepage&utm_medium=hero-section&utm_campaign=homepage-cta'
-                        )}
-                        class="button-secondary">See the charts <Icon name="chevronRight" /></a
+                    <a id="view-gallery" href={urlWithBaseUrl(hero.cta.url)} class="button-secondary"
+                        >{hero.cta.title} <Icon name="chevronRight" /></a
                     >
                 </div>
 
@@ -104,26 +107,22 @@ const mapExampleHeights = 360;
         </div>
 
         <LandingPageSection
-            tag="AG Charts JavaScript Charting Library"
-            heading="JavaScript Charts Designed for Every Use Case"
-            ctaTitle="Get Started For Free"
-            ctaUrl={urlWithBaseUrl(
-                '/react/quick-start/?utm_source=charts-homepage&utm_medium=features-section&utm_campaign=homepage-cta'
-            )}
-            ctaId="get-started-for-free"
+            tag={sections.gallery.tag}
+            heading={sections.gallery.heading}
+            ctaTitle={sections.gallery.ctaTitle}
+            ctaUrl={urlWithBaseUrl(sections.gallery.ctaUrl)}
+            ctaId={sections.gallery.ctaId}
         >
             <HomepageGalleryExamples />
         </LandingPageSection>
 
         <LandingPageSection
-            tag="JavaScript Financial Charts - Create Trading Views in Minutes"
-            heading="Interactive Financial Charts for Trading and Analysis"
-            subHeading="Build interactive financial charts featuring advanced annotations with minimal configuration - just provide your data. Use the toolbar in the example below to add annotations, change the chart type, and interact with the data in real-time."
-            ctaTitle="View Financial Charts Features"
-            ctaUrl={urlWithBaseUrl(
-                '/react/financial-charts/?utm_source=charts-homepage&utm_medium=financial-charts-section&utm_campaign=homepage-cta'
-            )}
-            ctaId="financial-charts-cta"
+            tag={sections.financial.tag}
+            heading={sections.financial.heading}
+            subHeading={sections.financial.subHeading}
+            ctaTitle={sections.financial.ctaTitle}
+            ctaUrl={urlWithBaseUrl(sections.financial.ctaUrl)}
+            ctaId={sections.financial.ctaId}
         >
             <div>
                 <HomepageDocsExample
@@ -135,22 +134,17 @@ const mapExampleHeights = 360;
         </LandingPageSection>
 
         <LandingPageSection
-            tag="JavaScript Map Charts - Easily Visualise Geographical Data"
-            heading="Customisable JavaScript Map Charts for Geographical Data Visualisation"
-            subHeading="Visualise Geographical Areas, Overlay Routes & Connections, Add Markers & Points Of Interest."
-            ctaTitle="View Map Charts Features"
-            ctaUrl={urlWithBaseUrl(
-                '/react/maps/?utm_source=charts-homepage&utm_medium=maps-section&utm_campaign=homepage-cta'
-            )}
-            ctaId="map-charts-cta"
+            tag={sections.maps.tag}
+            heading={sections.maps.heading}
+            subHeading={sections.maps.subHeading}
+            ctaTitle={sections.maps.ctaTitle}
+            ctaUrl={urlWithBaseUrl(sections.maps.ctaUrl)}
+            ctaId={sections.maps.ctaId}
         >
             <div class={styles.cardContainer}>
                 <div class={styles.card}>
-                    <h4>Geographic Areas</h4>
-                    <p>
-                        Visualise data representing geographic areas such as countries, using colours to denote distinct
-                        series or the magnitude of the values.
-                    </p>
+                    <h4>{sections.maps.cards[0].heading}</h4>
+                    <p>{sections.maps.cards[0].description}</p>
                     <HomepageDocsExample
                         pageName="map-shapes"
                         exampleName="multiple-series"
@@ -158,11 +152,8 @@ const mapExampleHeights = 360;
                     />
                 </div>
                 <div class={styles.card}>
-                    <h4>Routes & Connections</h4>
-                    <p>
-                        Draw geographic lines, such as roads or flight paths, with the ability to vary width and colour
-                        to represent data values.
-                    </p>
+                    <h4>{sections.maps.cards[1].heading}</h4>
+                    <p>{sections.maps.cards[1].description}</p>
                     <HomepageDocsExample
                         pageName="map-lines"
                         exampleName="map-shapes-lines"
@@ -170,11 +161,8 @@ const mapExampleHeights = 360;
                     />
                 </div>
                 <div class={styles.card}>
-                    <h4>Markers & POIs</h4>
-                    <p>
-                        Add markers data for geographic points, with the ability to vary the size to represent data
-                        values.
-                    </p>
+                    <h4>{sections.maps.cards[2].heading}</h4>
+                    <p>{sections.maps.cards[2].description}</p>
                     <HomepageDocsExample
                         pageName="map-markers"
                         exampleName="marker-size"
@@ -185,22 +173,20 @@ const mapExampleHeights = 360;
         </LandingPageSection>
 
         <LandingPageSection
-            tag="AG Grid Integrated JavaScript Charts"
-            heading="AG Grid Integrated Charts, Powered by AG Charts"
-            subHeadingHtml='AG Charts powers the <a href="https://www.ag-grid.com/react-data-grid/integrated-charts/">Integrated Charts</a> feature in <a href="https://www.ag-grid.com/">AG Grid</a> - our market leading data grid library which is used by 90% of the Fortune 500. Purchase an <a href="https://www.ag-grid.com/license-pricing">Enterprise Bundle License</a> to access all of the Enterprise features in both AG Grid and AG Charts.'
+            tag={sections.integrated.tag}
+            heading={sections.integrated.heading}
+            subHeadingHtml={sections.integrated.subHeadingHtml}
         >
             <AutomatedIntegratedChartsWithPackages client:visible visibilityThreshold={0.8} />
         </LandingPageSection>
 
         <LandingPageSection
-            tag="Latest JavaScript Charting Releases from AG Charts"
-            heading="Regular Releases, Updates, and Enhancements"
-            subHeading="Browse the latest updates to AG Charts JavaScript Charting Library, including new features, series types, functionality and more."
-            ctaTitle="See What's New"
-            ctaUrl={urlWithBaseUrl(
-                '/whats-new/?utm_source=charts-homepage&utm_medium=whats-new-section&utm_campaign=homepage-cta'
-            )}
-            ctaId="whats-new-cta"
+            tag={sections.releases.tag}
+            heading={sections.releases.heading}
+            subHeading={sections.releases.subHeading}
+            ctaTitle={sections.releases.ctaTitle}
+            ctaUrl={urlWithBaseUrl(sections.releases.ctaUrl)}
+            ctaId={sections.releases.ctaId}
         >
             <div class={styles.latestNewsVersions}>
                 {
@@ -229,9 +215,9 @@ const mapExampleHeights = 360;
         </LandingPageSection>
 
         <LandingPageSection
-            tag="JavaScript Charts Frequently Asked Questions"
-            heading="FAQs"
-            subHeading="Answers to common questions about AG Charts, and JavaScript Charting in general."
+            tag={sections.faqs.tag}
+            heading={sections.faqs.heading}
+            subHeading={sections.faqs.subHeading}
         >
             <LandingPageFAQ client:load FAQData={renderedFAQData} />
         </LandingPageSection>

@@ -187,6 +187,70 @@ describe('htaccessRules redirects (SE-60/SE-61)', () => {
     });
 });
 
+describe('htaccessRules markdown content negotiation', () => {
+    const production = getHtaccessContent({ env: 'production' });
+    const staging = getHtaccessContent({ env: 'staging' });
+    // Rendered under the pinned `/charts` base (see vi.mock above), so the negotiated paths carry
+    // the deployed prefix. %1 (base included, leading slash excluded) is the document-root-relative
+    // path reused in the -f test and the rewrite target.
+    const negotiationRules = [
+        'RewriteCond %{HTTP_ACCEPT} text/markdown',
+        'RewriteCond %{REQUEST_URI} ^/(charts/(?:(?:react|angular|vue|javascript)/[^/]+?|license-pricing|community(?:/(?:events|showcase|tools-extensions|media|beyond-the-prompt))?|documentation-archive|gallery))/?$',
+        'RewriteCond %{DOCUMENT_ROOT}/%1.md -f',
+        'RewriteRule ^ /%1.md [L]',
+    ];
+
+    it('serves the per-page .md variant when Accept: text/markdown, gated by an on-disk check', () => {
+        for (const content of [production, staging]) {
+            expect(content).toContain('<IfModule mod_rewrite.c>');
+            expect(content).toContain('RewriteEngine On');
+            for (const rule of negotiationRules) {
+                expect(content).toContain(rule);
+            }
+        }
+    });
+
+    it('negotiates the top-level twins (license-pricing, community + subpages, documentation-archive) alongside framework docs pages', () => {
+        for (const content of [production, staging]) {
+            expect(content).toContain(
+                '|license-pricing|community(?:/(?:events|showcase|tools-extensions|media|beyond-the-prompt))?|documentation-archive|gallery))/?$'
+            );
+            // changelog/pipeline are out of scope for this branch — they must not be negotiated.
+            expect(content).not.toContain('changelog');
+            expect(content).not.toContain('pipeline');
+        }
+    });
+
+    it('adds Vary: Accept for negotiated paths (both envs) so shared caches key on the negotiated representation', () => {
+        for (const content of [production, staging]) {
+            expect(content).toContain(
+                '<If "%{REQUEST_URI} =~ m#^/charts/(?:(?:react|angular|vue|javascript)/[^/]+|license-pricing|community(?:/(?:events|showcase|tools-extensions|media|beyond-the-prompt))?|documentation-archive|gallery)/?$#'
+            );
+            expect(content).toContain('Header append Vary Accept');
+        }
+    });
+
+    it('negotiates the homepage (site root) to its index.md twin', () => {
+        for (const content of [production, staging]) {
+            expect(content).toContain('RewriteCond %{REQUEST_URI} ^/charts/?$');
+            expect(content).toContain('RewriteCond %{DOCUMENT_ROOT}/charts/index.md -f');
+            expect(content).toContain('RewriteRule ^ /charts/index.md [L]');
+            // The Vary <If> also keys the site root on Accept.
+            expect(content).toContain('|| %{REQUEST_URI} =~ m#^/charts/?$#');
+        }
+    });
+
+    it('registers the markdown MIME type so the .md files are served as text/markdown', () => {
+        expect(production).toContain('AddType text/markdown md');
+        expect(staging).toContain('AddType text/markdown md');
+    });
+
+    it('serves .md as UTF-8 so table glyphs (✓/✗) are not mojibaked', () => {
+        expect(production).toContain('AddCharset utf-8 .md');
+        expect(staging).toContain('AddCharset utf-8 .md');
+    });
+});
+
 describe('generated redirect rules snapshot', () => {
     // Full-output regression guard. Renders under the pinned `/charts` base (see vi.mock above), so
     // the snapshots show the production-prefixed rules, e.g. `RedirectMatch 410 "^/charts/archive(/.*)?$"`.

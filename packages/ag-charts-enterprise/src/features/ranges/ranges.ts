@@ -76,6 +76,15 @@ export class Ranges extends AbstractModuleInstance {
     private dropdownLabel = DEFAULT_DROPDOWN_LABEL;
     private dropdownMinWidth?: number;
 
+    // OPTIMIZATION: `getBounds()` has no inline height, so it forces a sync reflow every layout.
+    // The height depends on the resolved options, the shown toolbar, text metrics, and the theme
+    // CSS variables the button styles read — the first two form the key below, the rest are
+    // covered by the resets registered in the constructor.
+    private cachedToolbarHeight?: number;
+    private cachedToolbarHeightOpts?: _ModuleSupport.NormalisedRangesOptions;
+    private cachedToolbarHeightIsDropdown?: boolean;
+    private cachedToolbarHeightLabel?: string;
+
     // Ranges is only created when the `ranges` subtree is configured, so assert
     // presence here and rely on rangesTheme for field-level defaults.
     private get opts(): _ModuleSupport.NormalisedRangesOptions {
@@ -90,6 +99,8 @@ export class Ranges extends AbstractModuleInstance {
             ctx.eventsHub.on('layout:complete', this.onLayoutComplete.bind(this)),
             ctx.widgets.chartWidget.addListener('click', this.onChartWidgetClick.bind(this)),
             ctx.eventsHub.on('zoom:change-complete', this.onZoomChanged.bind(this)),
+            ctx.eventsHub.on('font:load', () => this.invalidateToolbarHeightCache()),
+            ctx.eventsHub.on('theme:params-change', () => this.invalidateToolbarHeightCache()),
             ctx.chartState.observe((get) => {
                 const enabled = get('options', 'ranges.enabled') ?? false;
                 // Reset `isDropdown` state when the ranges module is disabled, to ensure the buttons are
@@ -157,7 +168,7 @@ export class Ranges extends AbstractModuleInstance {
             this.swapDropdownOut();
         }
 
-        const { height } = this.isDropdown ? dropdownToolbar.getBounds() : buttonsToolbar.getBounds();
+        const height = this.getToolbarHeight(opts, this.isDropdown ? dropdownToolbar : buttonsToolbar);
         const bounds = { x: layoutBox.x, y: layoutBox.y };
 
         if (position === 'top' || position === 'top-left' || position === 'top-right') {
@@ -169,6 +180,34 @@ export class Ranges extends AbstractModuleInstance {
 
         buttonsToolbar.setBounds(bounds);
         dropdownToolbar.setBounds(bounds);
+    }
+
+    private invalidateToolbarHeightCache() {
+        this.cachedToolbarHeight = undefined;
+    }
+
+    private getToolbarHeight(
+        opts: _ModuleSupport.NormalisedRangesOptions,
+        toolbar: _ModuleSupport.BaseToolbar
+    ): number {
+        if (
+            this.cachedToolbarHeight !== undefined &&
+            this.cachedToolbarHeightOpts === opts &&
+            this.cachedToolbarHeightIsDropdown === this.isDropdown &&
+            this.cachedToolbarHeightLabel === this.dropdownLabel
+        ) {
+            return this.cachedToolbarHeight;
+        }
+
+        const { height } = toolbar.getBounds();
+        // A zero height means the toolbar isn't laid out yet; don't pin the cache to it.
+        if (height === 0) return height;
+
+        this.cachedToolbarHeight = height;
+        this.cachedToolbarHeightOpts = opts;
+        this.cachedToolbarHeightIsDropdown = this.isDropdown;
+        this.cachedToolbarHeightLabel = this.dropdownLabel;
+        return height;
     }
 
     private onLayoutComplete({ series: { rect: seriesRect }, layoutBox }: _ModuleSupport.LayoutCompleteEvent) {

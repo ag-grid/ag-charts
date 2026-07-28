@@ -7,9 +7,13 @@ import {
     circularSliceArray,
     clamp,
     isArray,
+    isBoolean,
+    isDate,
+    isFunction,
     isGradientFill,
     isImageFill,
     isNumber,
+    isObject,
     isObjectLike,
     isPatternFill,
     isPlainObject,
@@ -458,6 +462,7 @@ enum LogicOperation {
     Every = '$every',
     GreaterThan = '$greaterThan',
     If = '$if',
+    IsType = '$isType',
     LessThan = '$lessThan',
     Not = '$not',
     Or = '$or',
@@ -471,6 +476,7 @@ const logicOperations: Record<LogicOperation, OperationFns> = {
     $every: everyOperation,
     $greaterThan: greaterThanOperation,
     $if: ifOperation,
+    $isType: isTypeOperation,
     $lessThan: lessThanOperation,
     $not: notOperation,
     $or: orOperation,
@@ -529,18 +535,67 @@ function greaterThanOperation(graph: OptionsGraphInterface, vertex: VertexInterf
 function ifOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
     const [conditionVertex, thenVertex, elseVertex] = values;
 
-    const condition = graph.resolveVertexValue(vertex, conditionVertex);
-    const valueVertex = condition ? thenVertex : elseVertex;
+    const condition = Boolean(graph.resolveVertexValue(vertex, conditionVertex));
+    const branchVertex = condition ? thenVertex : elseVertex;
+    if (!branchVertex) return condition;
 
-    // Attach neighbours from the chosen conditional branch onto the vertex
-    const neighbours = graph.neighboursWithEdgeValue(valueVertex, PATH_EDGE);
+    return resolveConditionalBranch(graph, vertex, branchVertex);
+}
+
+// Re-parent the branch's children onto the vertex so that an object branch expands as a sub-tree.
+function resolveConditionalBranch(
+    graph: OptionsGraphInterface,
+    vertex: VertexInterface,
+    branchVertex: VertexInterface
+) {
+    const neighbours = graph.neighboursWithEdgeValue(branchVertex, PATH_EDGE);
     if (neighbours) {
         for (const neighbour of neighbours) {
             graph.addEdge(vertex, neighbour, PATH_EDGE);
         }
     }
 
-    return graph.resolveVertexValue(vertex, valueVertex);
+    return graph.resolveVertexValue(vertex, branchVertex);
+}
+
+const VALUE_TYPE_GUARDS: Record<string, (value: unknown) => boolean> = {
+    array: isArray,
+    boolean: isBoolean,
+    date: isDate,
+    function: isFunction,
+    nullish: (value) => value == null,
+    number: isNumber,
+    object: isObject,
+    string: isString,
+};
+
+function isTypeOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
+    const [valueVertex, typeVertex, thenVertex, elseVertex] = values;
+
+    const type = graph.resolveVertexValue(vertex, typeVertex);
+    const value = graph.resolveVertexValue(vertex, valueVertex);
+    const matched = isArray(type)
+        ? type.some((typeName) => isValueType(graph, vertex, value, typeName))
+        : isValueType(graph, vertex, value, type);
+
+    const branchVertex = matched ? thenVertex : elseVertex;
+    if (!branchVertex) return matched;
+
+    return resolveConditionalBranch(graph, vertex, branchVertex);
+}
+
+function isValueType(graph: OptionsGraphInterface, vertex: VertexInterface, value: unknown, type: unknown) {
+    if (isString(type) && Object.hasOwn(VALUE_TYPE_GUARDS, type)) {
+        return VALUE_TYPE_GUARDS[type](value);
+    }
+
+    Debug.inDevelopmentMode(() =>
+        Logger.default.warnOnce(
+            `\`$isType\` json operation failed on [${String(type)}] at [${graph.getPathArray(vertex).join('.')}], expecting one of [${Object.keys(VALUE_TYPE_GUARDS).join(', ')}].`
+        )
+    );
+
+    return false;
 }
 
 function lessThanOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
@@ -640,19 +695,24 @@ function circularOperation(graph: OptionsGraphInterface, vertex: VertexInterface
 function isUserOptionOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
     const [relativePathVertices, thenVertex, elseVertex] = values;
 
+    let matched = false;
     const children = graph.neighboursWithEdgeValue(relativePathVertices, PATH_EDGE);
     if (children) {
         for (const child of children) {
             const relativePathVertex = graph.findNeighbour(child, DEFAULTS_EDGE);
             if (relativePathVertex && isUserOptionCheck(graph, vertex, relativePathVertex)) {
-                return graph.resolveVertexValue(vertex, thenVertex);
+                matched = true;
+                break;
             }
         }
-    } else if (isUserOptionCheck(graph, vertex, relativePathVertices)) {
-        return graph.resolveVertexValue(vertex, thenVertex);
+    } else {
+        matched = isUserOptionCheck(graph, vertex, relativePathVertices);
     }
 
-    return graph.resolveVertexValue(vertex, elseVertex);
+    const branchVertex = matched ? thenVertex : elseVertex;
+    if (!branchVertex) return matched;
+
+    return graph.resolveVertexValue(vertex, branchVertex);
 }
 
 function isUserOptionCheck(graph: OptionsGraphInterface, vertex: VertexInterface, relativePathVertex: VertexInterface) {

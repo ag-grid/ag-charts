@@ -18,7 +18,6 @@ import {
     interpolationOptionsDefs,
     labelCollisionFitOptionsDefs,
     labelCollisionPlacementDef,
-    labelFitOptionsDefs,
     labelOrientationDef,
     labelPlacementStyleDefs,
     lessThanOrEqual,
@@ -41,6 +40,7 @@ import {
     string,
     strokeOptionsDef,
     tooltipOptionsDefs,
+    undocumentedLabelFitOptionsDefs,
     union,
     unionOrArray,
     without,
@@ -204,8 +204,8 @@ export const chordSeriesThemeableOptionsDef: OptionsDefs<AgChordSeriesThemeableO
     strokes: arrayOf(colorOrRef),
     label: {
         spacing: positiveNumber,
+        maxWidth: positiveNumber,
         ...seriesLabelOptionsDefs,
-        ...labelFitOptionsDefs,
     },
     link: {
         tension: ratio,
@@ -234,6 +234,8 @@ export const chordSeriesThemeableOptionsDef: OptionsDefs<AgChordSeriesThemeableO
     tooltip: tooltipOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
 };
+
+Object.assign(chordSeriesThemeableOptionsDef.label, without(undocumentedLabelFitOptionsDefs, ['maxWidth']));
 
 export const coneFunnelSeriesThemeableOptionsDef: OptionsDefs<AgConeFunnelSeriesThemeableOptions> = {
     direction: union('horizontal', 'vertical'),
@@ -469,7 +471,6 @@ export const radarAreaSeriesThemeableOptionsDef: OptionsDefs<AgRadarAreaSeriesTh
     }),
     label: {
         ...seriesLabelOptionsDefs,
-        ...labelFitOptionsDefs,
     },
     tooltip: tooltipOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
@@ -478,6 +479,8 @@ export const radarAreaSeriesThemeableOptionsDef: OptionsDefs<AgRadarAreaSeriesTh
     ...lineDashOptionsDef,
     highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
 };
+
+Object.assign(radarAreaSeriesThemeableOptionsDef.label, undocumentedLabelFitOptionsDefs);
 
 export const radarLineSeriesThemeableOptionsDef: OptionsDefs<AgRadarSeriesThemeableOptions> = {
     connectMissingData: boolean,
@@ -489,7 +492,6 @@ export const radarLineSeriesThemeableOptionsDef: OptionsDefs<AgRadarSeriesThemea
     }),
     label: {
         ...seriesLabelOptionsDefs,
-        ...labelFitOptionsDefs,
     },
     tooltip: tooltipOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
@@ -497,6 +499,8 @@ export const radarLineSeriesThemeableOptionsDef: OptionsDefs<AgRadarSeriesThemea
     ...lineDashOptionsDef,
     highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, lineHighlightOptionsDef),
 };
+
+Object.assign(radarLineSeriesThemeableOptionsDef.label, undocumentedLabelFitOptionsDefs);
 
 export const radialBarSeriesThemeableOptionsDef: OptionsDefs<AgRadialBarSeriesThemeableOptions> = {
     cornerRadius: positiveNumber,
@@ -632,7 +636,6 @@ export const sankeySeriesThemeableOptionsDef: OptionsDefs<AgSankeySeriesThemeabl
     strokes: arrayOf(colorOrRef),
     label: {
         ...seriesLabelOptionsDefs,
-        ...labelFitOptionsDefs,
         spacing: positiveNumber,
         placement: union('left', 'right', 'center'),
         edgePlacement: union('inside', 'outside'),
@@ -666,6 +669,8 @@ export const sankeySeriesThemeableOptionsDef: OptionsDefs<AgSankeySeriesThemeabl
     tooltip: tooltipOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
 };
+
+Object.assign(sankeySeriesThemeableOptionsDef.label, undocumentedLabelFitOptionsDefs);
 
 export const sunburstSeriesThemeableOptionsDef: OptionsDefs<AgSunburstSeriesThemeableOptions> = {
     fills: arrayOf(colorUnion),

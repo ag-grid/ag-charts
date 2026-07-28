@@ -4,7 +4,6 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import type { DynamicContext, FeatureCollection, FillStrokeMorph, Normalised } from 'ag-charts-core';
-import { Logger } from 'ag-charts-core';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { geometryBbox, projectGeometry } from '../map-util/geometryUtil';
@@ -124,7 +123,9 @@ export class MapShapeBackgroundSeries
         }, undefined);
 
         if (topology == null) {
-            Logger.warnOnce(`no topology was provided for [MapShapeBackgroundSeries]; nothing will be rendered.`);
+            this.ctx.logger.warnOnce(
+                `no topology was provided for [MapShapeBackgroundSeries]; nothing will be rendered.`
+            );
         }
     }
 

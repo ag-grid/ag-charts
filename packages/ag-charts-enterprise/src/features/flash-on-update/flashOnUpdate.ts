@@ -4,7 +4,6 @@ import {
     type BoxBounds,
     ChartAxisDirection,
     type DynamicContext,
-    Logger,
     ZIndexMap,
     createId,
     easeOut,
@@ -319,7 +318,7 @@ export class FlashOnUpdate extends AbstractModuleInstance {
 
     private createBandFlashData(categoryPhases: Map<string, FlashAnimationPhase>): BandFlashDatum[] | undefined {
         if (!this.axisCtx || !this.seriesRect) {
-            Logger.warnOnce(
+            this.ctx.logger.warnOnce(
                 `flashOnUpdate item 'category' requires a cartesian category based axis such as 'category', 'ordinal-time', 'unit-time'`
             );
             return;

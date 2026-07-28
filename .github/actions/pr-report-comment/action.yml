@@ -1,0 +1,222 @@
+name: PR Report Comment
+description: >-
+    Upsert one or more sections into a single consolidated PR comment. Each caller owns a
+    disjoint set of sections and only ever edits its own delimited blocks, so multiple jobs
+    can write to the same comment concurrently. Writes are conflict-tolerant: the body is
+    re-read immediately before each update and the write is verified + retried, so a
+    concurrent writer editing a different section cannot silently drop this caller's section.
+
+inputs:
+    sections_dir:
+        description: >-
+            Directory holding this caller's section fragments, named `NN-<id>.md` (NN = a
+            two-digit sort order, id = the section identifier). The first line of each file
+            must be a `## <Title>` heading used as the collapsible summary; the remainder is
+            the section body. Only files present here are upserted — sections this caller does
+            not own must not appear. Defaults to `$RUNNER_TEMP/pr-sections`, resolved inside the
+            action — callers need not pass it.
+        required: false
+        default: ''
+    pr_number:
+        description: 'PR number to comment on. When empty the action no-ops (logs to the job log).'
+        required: false
+        default: ''
+    remove_sections:
+        description: >-
+            Space/comma-separated section ids to REMOVE from the comment (for when an aspect that
+            previously wrote a section is no longer relevant on this build — e.g. snapshots were
+            regenerated then fixed). Ids also being written this run (present in sections_dir) take
+            precedence and are kept. If removal empties the comment, the comment is deleted.
+        required: false
+        default: ''
+    github_token:
+        description: 'Token with pull-requests: write.'
+        required: true
+
+runs:
+    using: composite
+    steps:
+        - name: Upsert consolidated PR comment sections
+          uses: actions/github-script@v7
+          # Advisory surface — a comment failure must never fail the job that produced real work.
+          continue-on-error: true
+          env:
+              SECTIONS_DIR: ${{ inputs.sections_dir }}
+              PR_NUMBER: ${{ inputs.pr_number }}
+              REMOVE_SECTIONS: ${{ inputs.remove_sections }}
+          with:
+              github-token: ${{ inputs.github_token }}
+              script: |
+                  const fs = require('fs');
+                  const path = require('path');
+
+                  const PARENT_MARKER = '<!-- pr-report -->';
+                  // Resolve the sections dir here rather than via an input-default expression —
+                  // `${{ runner.temp }}` is not reliably interpolated in composite input defaults.
+                  const SECTIONS_DIR = process.env.SECTIONS_DIR || path.join(process.env.RUNNER_TEMP, 'pr-sections');
+                  const prNumber = Number(process.env.PR_NUMBER || '') || undefined;
+
+                  if (!prNumber) {
+                      core.info('No PR number resolved; nothing to upsert. Skipping.');
+                      return;
+                  }
+
+                  // Collect the sections this caller owns: NN-<id>.md (only if the dir exists).
+                  const owned =
+                      SECTIONS_DIR && fs.existsSync(SECTIONS_DIR)
+                          ? fs
+                                .readdirSync(SECTIONS_DIR)
+                                .map((file) => ({ file, match: /^(\d{2})-(.+)\.md$/.exec(file) }))
+                                .filter(({ match }) => match)
+                                .map(({ file, match }) => {
+                                    const [, order, id] = match;
+                                    const raw = fs.readFileSync(path.join(SECTIONS_DIR, file), 'utf8').replace(/\s+$/, '');
+                                    const nl = raw.indexOf('\n');
+                                    const first = (nl === -1 ? raw : raw.slice(0, nl)).trim();
+                                    // A heading may carry a leading status token: `## [ok|warn|error] Title`.
+                                    // It is stripped from the visible title and drives the summary icon.
+                                    let heading = first.replace(/^#+\s*/, '');
+                                    const sm = /^\[(ok|warn|error)\]\s*/i.exec(heading);
+                                    const status = sm ? sm[1].toLowerCase() : '';
+                                    if (sm) heading = heading.slice(sm[0].length);
+                                    const title = heading || id;
+                                    const rest = (nl === -1 ? '' : raw.slice(nl + 1)).replace(/^\s+/, '');
+                                    return { id, order, status, title, rest };
+                                })
+                          : [];
+
+                  const ownedIds = new Set(owned.map((s) => s.id));
+                  // Ids to remove — but never remove one we are also writing this run.
+                  const removeIds = (process.env.REMOVE_SECTIONS || '')
+                      .split(/[\s,]+/)
+                      .filter(Boolean)
+                      .filter((id) => !ownedIds.has(id));
+
+                  if (owned.length === 0 && removeIds.length === 0) {
+                      core.info('No section fragments to upsert and nothing to remove; skipping.');
+                      return;
+                  }
+                  core.info(
+                      `Owned: [${owned.map((s) => `${s.order}-${s.id}`).join(', ')}]  Remove: [${removeIds.join(', ')}]`
+                  );
+
+                  const { owner, repo } = context.repo;
+
+                  // At-a-glance status icon rendered into each section's <summary>, so a reader sees
+                  // the section's state without expanding it. Unknown/legacy status renders icon-less.
+                  const ICON = { ok: '✅', warn: '⚠️', error: '❌' };
+                  const iconFor = (status) => ICON[status] || '';
+                  const begin = (id, order, status) =>
+                      `<!-- section:${id} order=${order}${status ? ` status=${status}` : ''} -->`;
+                  const end = (id) => `<!-- /section:${id} -->`;
+                  const renderBlock = ({ id, order, status, title, rest }) => {
+                      const icon = iconFor(status);
+                      const summary = `<summary>${icon ? `${icon} ` : ''}<b>${title}</b></summary>`;
+                      return [begin(id, order, status), '<details>', summary, '', rest, '', '</details>', end(id)].join('\n');
+                  };
+
+                  // Parse a body into ordered section entries so we can splice by id and keep order.
+                  // `status=` is optional so comments written before status icons still parse cleanly.
+                  const SECTION_RE = /<!-- section:([\w.-]+) order=(\d{2})(?: status=(\w+))? -->([\s\S]*?)<!-- \/section:\1 -->/g;
+                  function parse(body) {
+                      const sections = [];
+                      if (!body) return sections;
+                      let m;
+                      SECTION_RE.lastIndex = 0;
+                      while ((m = SECTION_RE.exec(body)) !== null) {
+                          sections.push({ id: m[1], order: m[2], status: m[3], block: m[0] });
+                      }
+                      return sections;
+                  }
+
+                  // Merge this caller's owned blocks into an existing section list (replace by id,
+                  // else insert at the position dictated by `order`), and drop any removeIds. Other
+                  // sections are untouched. Returns the ordered section list.
+                  function compose(existing) {
+                      const byId = new Map(existing.map((s) => [s.id, s]));
+                      for (const id of removeIds) byId.delete(id);
+                      for (const s of owned) {
+                          byId.set(s.id, { id: s.id, order: s.order, block: renderBlock(s) });
+                      }
+                      return [...byId.values()].sort((a, b) =>
+                          a.order === b.order ? a.id.localeCompare(b.id) : a.order.localeCompare(b.order)
+                      );
+                  }
+                  const bodyOf = (ordered) => [PARENT_MARKER, ...ordered.map((s) => s.block)].join('\n\n') + '\n';
+
+                  async function findComment() {
+                      const comments = await github.paginate(github.rest.issues.listComments, {
+                          owner,
+                          repo,
+                          issue_number: prNumber,
+                          per_page: 100,
+                      });
+                      // Oldest-first so double-creates converge on one canonical comment.
+                      const mine = comments
+                          .filter((c) => c.body && c.body.includes(PARENT_MARKER))
+                          .sort((a, b) => a.id - b.id);
+                      return mine[0];
+                  }
+
+                  // The live body reflects our intent: every owned block present, every removed id absent.
+                  function verify(body) {
+                      const live = new Map(parse(body).map((s) => [s.id, s.block]));
+                      return (
+                          owned.every((s) => live.get(s.id) === renderBlock(s)) &&
+                          removeIds.every((id) => !live.has(id))
+                      );
+                  }
+
+                  const MAX_ATTEMPTS = 5;
+                  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+                      const existing = await findComment();
+                      const ordered = compose(existing ? parse(existing.body) : []);
+
+                      // Removal emptied the comment — delete it rather than leave a blank shell.
+                      if (ordered.length === 0) {
+                          if (existing) {
+                              await github.rest.issues.deleteComment({ owner, repo, comment_id: existing.id });
+                          }
+                          if (!(await findComment())) {
+                              core.info(`Consolidated comment cleared (attempt ${attempt}).`);
+                              return;
+                          }
+                          await new Promise((r) => setTimeout(r, 500 * attempt));
+                          continue;
+                      }
+
+                      const nextBody = bodyOf(ordered);
+                      if (!existing) {
+                          const created = await github.rest.issues.createComment({
+                              owner,
+                              repo,
+                              issue_number: prNumber,
+                              body: nextBody,
+                          });
+                          // Another writer may have created one concurrently — reconcile to the oldest.
+                          const canonical = await findComment();
+                          if (canonical && canonical.id !== created.data.id) {
+                              await github.rest.issues.deleteComment({ owner, repo, comment_id: created.data.id });
+                              continue; // re-splice our sections into the canonical comment
+                          }
+                      } else {
+                          await github.rest.issues.updateComment({
+                              owner,
+                              repo,
+                              comment_id: existing.id,
+                              body: nextBody,
+                          });
+                      }
+
+                      // Verify our intent survived (a concurrent writer editing a different section
+                      // could have clobbered us between read and write). Retry if so.
+                      const check = await findComment();
+                      if (check && verify(check.body)) {
+                          core.info(`Consolidated comment updated (attempt ${attempt}).`);
+                          return;
+                      }
+                      core.info(`Concurrent write detected; retrying (attempt ${attempt}/${MAX_ATTEMPTS}).`);
+                      await new Promise((r) => setTimeout(r, 500 * attempt));
+                  }
+
+                  core.warning('Could not confirm consolidated comment sections after retries.');

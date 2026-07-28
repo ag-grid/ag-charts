@@ -43,7 +43,10 @@ env:
     BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
     AG_LIBRARY: charts
     AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
-    AG_E2E_SHARD_COUNT: 32
+    # PR runs sweep only the vanilla example variant (see AG_E2E_FRAMEWORKS), so each shard
+    # carries roughly a third of the work and fewer, fuller shards waste less on the ~45s of
+    # fixed per-shard setup. Pushes still run all six variants and keep the wider fan-out.
+    AG_E2E_SHARD_COUNT: ${{ github.event_name == 'pull_request' && '16' || '32' }}
     LIBRARY_WEBSITE_STATUS_CHANNEL: '#charts-website-status'
 
 permissions:
@@ -60,6 +63,7 @@ jobs:
         name: Detect Changes
         outputs:
             run_full_ci: ${{ steps.decide.outputs.run_full_ci }}
+            locale: ${{ steps.filter.outputs.locale }}
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -97,6 +101,8 @@ jobs:
                         - '**/vitest.setup.ts'
                       ci:
                         - '.github/**'
+                      locale:
+                        - 'packages/ag-charts-locale/src/**'
 
             - name: Decide what to run
               id: decide
@@ -121,12 +127,19 @@ jobs:
     init:
         runs-on: ubuntu-24.04
         name: Initialise Workflow
-        needs: detect-changes
-        if: needs.detect-changes.outputs.run_full_ci == 'true'
+        # Deliberately does not wait for detect-changes (~20-30s off the critical path):
+        # init consumes none of its outputs. On the rare docs-only PR this wastes one
+        # init run — every downstream job is still gated by detect-changes.
         permissions:
             contents: write
         env:
             AG_FORCE_ALL_TESTS: 1
+            # Docs-example sweeps cover only the vanilla variant of the examples this branch did not
+            # touch; changed examples always sweep all six. Everything except PRs — pushes (the
+            # on.push filter admits latest/next/bX.Y.Z only) and manual dispatches, which are run to
+            # verify deliberately — keeps the full six-variant sweep. Must stay in step with the e2e
+            # job below.
+            AG_E2E_FRAMEWORKS: ${{ github.event_name != 'pull_request' && 'vanilla,typescript,reactFunctional,reactFunctionalTs,angular,vue3' || 'vanilla' }}
         outputs:
             nx_base: ${{ steps.setup.outputs.base }}
             test_count: ${{ steps.matrix.outputs.test_count }}
@@ -150,13 +163,22 @@ jobs:
               uses: ./.github/actions/setup-nx
               with:
                   cache_mode: ${{ github.event.inputs.clean_checkout == 'true' && 'off' || 'rw' }}
+                  free_disk_space: false
+                  # Safe for init only: its own build step materialises all plugin outputs.
+                  # Measured net win (~30s): the graph computation moves into the build step,
+                  # but the plugin-build invocation's own fixed overhead is avoided.
+                  skip_plugin_build: true
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref || 'latest' }}
 
             - name: nx build and generate cacheable examples
               id: build
               if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
               run: |
-                  yarn nx run-many -t build,docs-resolved-interfaces,generate-example --exclude tag:skip-gha-cache,all
+                  # generate-thumbnail is deliberately NOT built here. It cost ~80s on this
+                  # critical-path job purely to populate the Nx cache for website_build — which no
+                  # longer waits for init, so it cannot see this run's cache anyway and generates
+                  # the thumbnails itself, in parallel, where it has slack.
+                  yarn nx run-many -t build,docs-resolved-interfaces,generate-example --exclude tag:skip-gha-cache,all --parallel=12
                   # Populate the (rw-cached) staging example outputs here so the ro website_build
                   # job restores them instead of regenerating all examples. Only latest builds the
                   # website with -c staging, so scope the extra generation to that branch.
@@ -201,7 +223,18 @@ jobs:
                     e2e_count=0
                   fi
 
-                  e2e_matrix=$(node ./external/ag-shared/scripts/shard/calculate-shards.js eval --max ${{ env.AG_E2E_SHARD_COUNT }} ${e2e_count})
+                  # Duration-balanced shard assignment (falls back to Playwright count-based
+                  # --shard sharding if the committed timings file is missing or stale).
+                  # One timings file per event type: pushes sweep all six framework variants with
+                  # AG_SCENE_SNAPSHOTS=all, so their docs-example specs cost ~10x what the same
+                  # specs cost on a vanilla-only PR run. Planning either run type from the other's
+                  # timings mis-weights those specs badly enough to overflow the 15-minute job
+                  # timeout, so each file must be regenerated from a run of its own event type.
+                  e2e_matrix=$(node ./external/ag-shared/scripts/shard/assign-e2e-shards.js \
+                    --max ${{ env.AG_E2E_SHARD_COUNT }} \
+                    --count ${e2e_count} \
+                    --timings packages/ag-charts-website/e2e/shard-timings${{ github.event_name == 'pull_request' && '.pr' || '' }}.json \
+                    --test-dir packages/ag-charts-website/e2e)
                   echo "e2e_matrix=${e2e_matrix}" >> $GITHUB_OUTPUT
                   echo "e2e_count=${e2e_count}" >> $GITHUB_OUTPUT
                   echo "E2E matrix determined to be: ${e2e_matrix} (e2e_test_count=${e2e_count})"
@@ -232,11 +265,18 @@ jobs:
               uses: actions/upload-artifact@v4
               with:
                   name: e2e-init-outputs
+                  # Mostly minified JS — heavier compression buys little and costs
+                  # upload/download time on init and every e2e shard.
+                  compression-level: 1
+                  # Sourcemaps (~77MB across 264 files) are only ever fetched by devtools,
+                  # so no e2e assertion depends on them — excluding them trims the upload
+                  # here and the download on every shard.
                   path: |
                       dist/
                       packages/*/dist/
                       external/*/dist/
                       packages/ag-charts-website/e2e/generated/
+                      !packages/*/dist/**/*.map
 
     lint:
         runs-on: ubuntu-24.04
@@ -288,7 +328,9 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                shard: [1, 2]
+                # `generate -c production` is a separate pass from init's `generate-example`, so it
+                # is real work (~940 tasks, almost no cache hits) rather than a cache replay.
+                shard: [1, 2, 3, 4]
         outputs:
             generate: ${{ steps.generate.outcome || '' }}
         steps:
@@ -307,7 +349,9 @@ jobs:
               id: setup
               uses: ./.github/actions/setup-nx
               with:
+                  yarn_postinstall: no-install
                   cache_mode: ro
+                  free_disk_space: false
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
 
             - name: nx generate
@@ -342,7 +386,9 @@ jobs:
               id: setup
               uses: ./.github/actions/setup-nx
               with:
+                  yarn_postinstall: no-install
                   cache_mode: ro
+                  free_disk_space: false
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
 
             - name: nx build
@@ -417,8 +463,17 @@ jobs:
         permissions:
             contents: write
             pull-requests: write
+        # Per-PR lock: stops this PR's publishers (the UMD bundles here and the
+        # snapshot reports in `snapshot_review`) and its close-time cleanup from
+        # running concurrently, which narrows the window in which a late publish
+        # could re-create a pr-<N>/ that cleanup removed. (Job concurrency prevents
+        # overlap but not strict ordering, so it narrows rather than closes that
+        # window.) Cross-PR safety is NOT this lock's job — the push-retry loop in
+        # pr-preview-publish resolves diverged refs between different PRs, so they no
+        # longer contend. Keep this group string byte-identical to the ones in
+        # `snapshot_review` (below) and `gh_pages_cleanup` (pr-cleanup.yml).
         concurrency:
-            group: pr-preview-gh-pages
+            group: pr-preview-gh-pages-${{ github.event.pull_request.number }}
             cancel-in-progress: false
         env:
             PR_NUMBER: ${{ github.event.pull_request.number }}
@@ -471,27 +526,104 @@ jobs:
                   files: ${{ steps.stage.outputs.files }}
                   github_token: ${{ secrets.GITHUB_TOKEN }}
 
-            - name: Post sticky PR comment
+            - name: Write live-test section
               if: steps.stage.outputs.publish == 'true'
-              uses: marocchino/sticky-pull-request-comment@v2
+              shell: bash
+              run: |
+                  mkdir -p "${RUNNER_TEMP}/pr-sections"
+                  cat > "${RUNNER_TEMP}/pr-sections/10-preview.md" <<EOF
+                  ## [ok] Live-test this PR in Plunker
+
+                  Paste these two \`<script>\` tags into a Plunker (or any vanilla-JS host) to load the UMD bundles built from this PR:
+
+                  \`\`\`html
+                  <script src="https://ag-grid.github.io/ag-charts/pr-${PR_NUMBER}/ag-charts-community.min.js"></script>
+                  <script src="https://ag-grid.github.io/ag-charts/pr-${PR_NUMBER}/ag-charts-enterprise.min.js"></script>
+                  \`\`\`
+
+                  Bundles are removed automatically when the PR is closed. Updated on every push.
+                  EOF
+
+            - name: Upsert live-test section
+              if: steps.stage.outputs.publish == 'true'
+              uses: ./.github/actions/pr-report-comment
               with:
-                  header: pr-preview-umd
-                  message: |
-                      ### Live-test this PR in Plunker
+                  pr_number: ${{ env.PR_NUMBER }}
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
 
-                      Paste these two `<script>` tags into a Plunker (or any vanilla-JS host) to load the UMD bundles built from this PR:
+    l10n_review:
+        runs-on: ubuntu-24.04
+        name: L10n Review
+        # Advisory only — a review failure must never gate the build (mirrors the old standalone
+        # workflow, which ran off the critical path).
+        continue-on-error: true
+        needs: [detect-changes]
+        # Advisory semantic review of translation changes, folded into the consolidated PR
+        # comment. Same-repo PRs that touched locale source only — never run repo code with the
+        # API key in scope for a fork PR (mirrors the ci.yml/pr-review.yml fork gate). Deterministic
+        # structural checks live in the package tests; this never gates the build.
+        if: |
+            github.event_name == 'pull_request' &&
+            needs.detect-changes.outputs.locale == 'true' &&
+            github.event.pull_request.head.repo.full_name == github.repository
+        permissions:
+            contents: read
+            pull-requests: write
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
 
-                      ```html
-                      <script src="https://ag-grid.github.io/ag-charts/pr-${{ env.PR_NUMBER }}/ag-charts-community.min.js"></script>
-                      <script src="https://ag-grid.github.io/ag-charts/pr-${{ env.PR_NUMBER }}/ag-charts-enterprise.min.js"></script>
-                      ```
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 22
 
-                      Bundles are removed automatically when the PR is closed. Updated on every push.
+            - name: Review translations
+              env:
+                  LOCALE_SRC_DIR: packages/ag-charts-locale/src
+                  ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+                  BASE_SHA: ${{ github.event.pull_request.base.sha }}
+                  HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+                  REPORT_PATH: l10n-review.md
+              run: |
+                  # Defense-in-depth: execute the review script as it exists at the base ref,
+                  # never the PR head, so PR-controlled code can't run with the API key in scope.
+                  script=external/ag-shared/scripts/l10n/review-translations.mjs
+                  if git cat-file -e "$BASE_SHA:$script" 2>/dev/null; then
+                      git show "$BASE_SHA:$script" > "$RUNNER_TEMP/review-translations.mjs"
+                  else
+                      echo "Script absent at base ref; using checked-out copy (the PR introducing it)."
+                      cp "$script" "$RUNNER_TEMP/review-translations.mjs"
+                  fi
+                  node "$RUNNER_TEMP/review-translations.mjs"
+
+            - name: Build L10n section
+              run: |
+                  mkdir -p "${RUNNER_TEMP}/pr-sections"
+                  out="${RUNNER_TEMP}/pr-sections/30-l10n.md"
+                  if [ -f l10n-review.md ]; then
+                      # Drop the standalone marker the generator prepends (review-translations.mjs);
+                      # the consolidated comment owns the parent marker. Prepend our section heading.
+                      # [warn]: the reviewer flagged translations to read before merge.
+                      { echo '## [warn] Translation review'; echo; sed '/<!-- l10n-translation-review -->/d' l10n-review.md; } > "$out"
+                  else
+                      # [ok]: nothing to action.
+                      printf '## [ok] Translation review\n\nNo translation issues found.\n' > "$out"
+                  fi
+
+            - name: Upsert L10n section
+              uses: ./.github/actions/pr-report-comment
+              with:
+                  pr_number: ${{ github.event.pull_request.number }}
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
 
     website_build:
         runs-on: ubuntu-24.04
         name: Website Build
-        needs: [detect-changes, init]
+        # Deliberately does not wait for init: it consumes no init outputs, only the previous
+        # baseline Nx cache (restore-keys), and rebuilds PR-affected tasks itself. Starting it
+        # immediately takes ~4 minutes off the critical path on code-change PRs.
+        needs: [detect-changes]
         if: needs.detect-changes.outputs.run_full_ci == 'true'
         outputs:
             build: ${{ steps.build.outcome || '' }}
@@ -511,7 +643,9 @@ jobs:
               id: setup
               uses: ./.github/actions/setup-nx
               with:
+                  yarn_postinstall: no-install
                   cache_mode: ro
+                  free_disk_space: false
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
 
             - name: nx build ag-charts-website
@@ -568,7 +702,9 @@ jobs:
               id: setup
               uses: ./.github/actions/setup-nx
               with:
+                  yarn_postinstall: no-install
                   cache_mode: ro
+                  free_disk_space: false
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
 
             - name: nx test
@@ -611,19 +747,45 @@ jobs:
         name: Playwright Image
         needs: [detect-changes]
         if: needs.detect-changes.outputs.run_full_ci == 'true'
+        permissions:
+            packages: write
         env:
             PLAYWRIGHT_IMAGE: mcr.microsoft.com/playwright:v1.60.0-jammy
+            GHCR_IMAGE: ghcr.io/ag-grid/ag-charts/playwright:v1.60.0-jammy
             PLAYWRIGHT_CACHE_KEY: playwright-image-v1.60.0-jammy-v1
+        outputs:
+            # 'true' when shards can `docker pull` the GHCR mirror instead of restoring
+            # the tarball cache. Falls back to the tarball path for fork PRs, whose
+            # tokens cannot push (and may not read) GHCR packages.
+            ghcr_available: ${{ steps.mirror_check.outputs.exists == 'true' || steps.mirror_push.outcome == 'success' }}
         steps:
+            - name: Log in to GHCR
+              id: ghcr_login
+              continue-on-error: true # Fork PR tokens lack packages access; fall back to the tarball cache.
+              run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+            - name: Check GHCR Mirror
+              id: mirror_check
+              if: steps.ghcr_login.outcome == 'success'
+              run: |
+                  if docker manifest inspect "${GHCR_IMAGE}" >/dev/null 2>&1 ; then
+                    echo "exists=true" >> "$GITHUB_OUTPUT"
+                  else
+                    echo "exists=false" >> "$GITHUB_OUTPUT"
+                  fi
+
+            # Tarball cache path — only needed until the GHCR mirror exists for this
+            # Playwright version, and as the fallback for fork PRs.
             - name: Restore Playwright Image Cache
               id: pw_cache
+              if: steps.mirror_check.outputs.exists != 'true'
               uses: actions/cache@v4
               with:
                   path: /tmp/playwright-docker-image.tar
                   key: ${{ env.PLAYWRIGHT_CACHE_KEY }}
 
             - name: Pull Playwright Image
-              if: steps.pw_cache.outputs.cache-hit != 'true'
+              if: steps.mirror_check.outputs.exists != 'true' && steps.pw_cache.outputs.cache-hit != 'true'
               run: |
                   pull_attempts=4
                   for attempt in $(seq 1 ${pull_attempts}) ; do
@@ -641,23 +803,74 @@ jobs:
                   done
                   docker save ${PLAYWRIGHT_IMAGE} -o /tmp/playwright-docker-image.tar
 
+            - name: Load Playwright Image
+              if: steps.mirror_check.outputs.exists != 'true' && steps.pw_cache.outputs.cache-hit == 'true'
+              run: docker load -i /tmp/playwright-docker-image.tar
+
+            # Mirror the exact upstream image to GHCR (retag only — contents are
+            # byte-identical) so shards can pull it instead of restoring the tarball.
+            - name: Push GHCR Mirror
+              id: mirror_push
+              if: steps.ghcr_login.outcome == 'success' && steps.mirror_check.outputs.exists != 'true'
+              continue-on-error: true # Push failure just means shards use the tarball cache.
+              run: |
+                  docker tag "${PLAYWRIGHT_IMAGE}" "${GHCR_IMAGE}"
+                  docker push "${GHCR_IMAGE}"
+
     e2e:
         runs-on: ubuntu-latest
         name: E2E Tests (${{ matrix.shard }}/${{ strategy.job-total }})
         permissions:
             contents: write
+            packages: read
         needs: [detect-changes, init, playwright_image]
         if: needs.detect-changes.outputs.run_full_ci == 'true' && needs.init.outputs.e2e_count > 0
         strategy:
             fail-fast: false
             matrix: ${{ fromJson(needs.init.outputs.e2e_matrix )}}
         env:
+            PLAYWRIGHT_IMAGE: mcr.microsoft.com/playwright:v1.60.0-jammy
+            GHCR_IMAGE: ghcr.io/ag-grid/ag-charts/playwright:v1.60.0-jammy
             NX_BASE: ${{ needs.init.outputs.nx_base }}
             AG_FORCE_ALL_TESTS: 1
+            # Must hold the same value as the init job: init's `playwright test --list` count is what
+            # sizes the shard plan, so a disagreement would plan shards for a workload never run.
+            AG_E2E_FRAMEWORKS: ${{ github.event_name != 'pull_request' && 'vanilla,typescript,reactFunctional,reactFunctionalTs,angular,vue3' || 'vanilla' }}
             # Scene-graph JSON capture alongside E2E screenshots: full dump on baseline-branch pushes,
             # dump-on-diff for PRs (for E2E, both capture — see expectChartScreenshot).
             AG_SCENE_SNAPSHOTS: ${{ github.event_name == 'push' && 'all' || 'diff' }}
         steps:
+            # Registry pull is faster than cache restore + docker load, and it needs
+            # nothing from the working tree — only GITHUB_TOKEN. Running it first and in
+            # the background hides its ~26s (login, layer download, decompression)
+            # behind checkout, the artifact download and setup.
+            - name: Start Playwright Image Pull (GHCR mirror)
+              if: needs.playwright_image.outputs.ghcr_available == 'true'
+              env:
+                  GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  nohup bash -c '
+                    status=1
+                    for attempt in 1 2 3 ; do
+                      # Login is inside the retry: under ~32 concurrent shards the GHCR
+                      # token endpoint itself can time out transiently.
+                      if echo "${GHCR_TOKEN}" | docker login ghcr.io -u "${GITHUB_ACTOR}" --password-stdin \
+                          && docker pull "${GHCR_IMAGE}" ; then
+                        # Retagging to the upstream name means playwright.sh finds the
+                        # image locally and skips its own pull; the rendered environment
+                        # is byte-identical either way.
+                        docker tag "${GHCR_IMAGE}" "${PLAYWRIGHT_IMAGE}"
+                        status=0
+                        break
+                      fi
+                      if [ ${attempt} -lt 3 ] ; then
+                        sleep $((attempt * 10))
+                      fi
+                    done
+                    echo "${status}" > "${RUNNER_TEMP}/playwright-pull.status"
+                  ' > "${RUNNER_TEMP}/playwright-pull.log" 2>&1 < /dev/null &
+                  echo "GHCR pull running in the background as pid $!."
+
             - name: Checkout
               id: checkout
               uses: actions/checkout@v4
@@ -674,24 +887,81 @@ jobs:
                   yarn_postinstall: no-install
                   nx_restore: false # Restored in previous step.
                   cache_mode: ro
+                  free_disk_space: false
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
 
+            # Backgrounded here — the earliest point at which node_modules and the built
+            # packages both exist — so the dev server's boot and its cold compile of the
+            # index overlap the image wait below and the test step's container start-up.
+            # playwright.sh adopts the running server instead of spawning its own.
+            - name: Start Astro Dev Server
+              run: packages/ag-charts-website/playwright.sh --start-dev-server
+
+            - name: Await Playwright Image
+              id: await_image
+              env:
+                  GHCR_AVAILABLE: ${{ needs.playwright_image.outputs.ghcr_available }}
+              run: |
+                  pulled=false
+                  if [ "${GHCR_AVAILABLE}" == "true" ] ; then
+                    # The pull runs in a shell detached from an earlier step, so it is not
+                    # a child of this one — poll for its status file rather than `wait`.
+                    for _ in $(seq 1 300) ; do
+                      if [ -f "${RUNNER_TEMP}/playwright-pull.status" ] ; then
+                        break
+                      fi
+                      sleep 1
+                    done
+                    if docker image inspect "${PLAYWRIGHT_IMAGE}" >/dev/null 2>&1 ; then
+                      pulled=true
+                    else
+                      # Registry flakiness must not fail the shard — the tarball cache below is the fallback.
+                      echo "::warning::GHCR pull did not produce ${PLAYWRIGHT_IMAGE}; falling back to the tarball cache."
+                      cat "${RUNNER_TEMP}/playwright-pull.log" 2>/dev/null || true
+                    fi
+                  fi
+                  echo "pulled=${pulled}" >> "$GITHUB_OUTPUT"
+
+            # Fallback for fork PRs (whose tokens cannot read GHCR) and for transient registry
+            # failures. The tarball cache is only refreshed while the GHCR mirror does not yet
+            # exist, so it may be absent — pull from upstream as a last resort rather than failing.
             - name: Restore Playwright Image Cache
+              id: pw_tarball
+              if: steps.await_image.outputs.pulled != 'true'
               uses: actions/cache/restore@v4
               with:
                   path: /tmp/playwright-docker-image.tar
                   key: playwright-image-v1.60.0-jammy-v1
-                  fail-on-cache-miss: true
 
             - name: Load Playwright Image
-              run: docker load -i /tmp/playwright-docker-image.tar
+              if: steps.await_image.outputs.pulled != 'true'
+              env:
+                  TARBALL_HIT: ${{ steps.pw_tarball.outputs.cache-hit }}
+              run: |
+                  if [ "${TARBALL_HIT}" == "true" ] ; then
+                    docker load -i /tmp/playwright-docker-image.tar
+                    exit 0
+                  fi
+                  echo "No cached image tarball; pulling ${PLAYWRIGHT_IMAGE} from upstream."
+                  for attempt in 1 2 3 4 ; do
+                    if docker pull "${PLAYWRIGHT_IMAGE}" ; then
+                      exit 0
+                    fi
+                    if [ ${attempt} -lt 4 ] ; then
+                      sleep $((attempt * 15))
+                    fi
+                  done
+                  echo "Failed to obtain ${PLAYWRIGHT_IMAGE}."
+                  exit 1
 
             - name: nx test:e2e
               id: test
               run: |
                   cd packages/ag-charts-website/
 
-                  ./playwright.sh --host test -u changed --shard=${{ matrix.shard }}/${{ strategy.job-total }}
+                  # matrix.args is either an explicit duration-balanced spec-file list (optionally
+                  # with an intra-file --shard split) or a plain --shard=n/m fallback.
+                  ./playwright.sh --host test -u changed ${{ matrix.args }}
               timeout-minutes: 15
 
             - name: Snapshot Branch
@@ -716,9 +986,37 @@ jobs:
         name: Demo Apps Smoke
         needs: [detect-changes, init, playwright_image]
         if: needs.detect-changes.outputs.run_full_ci == 'true' && needs.init.outputs.demos_affected != '0'
+        permissions:
+            contents: read
+            packages: read
         env:
             PLAYWRIGHT_IMAGE: mcr.microsoft.com/playwright:v1.60.0-jammy
+            GHCR_IMAGE: ghcr.io/ag-grid/ag-charts/playwright:v1.60.0-jammy
         steps:
+            # First and backgrounded, so the pull overlaps checkout, the artifact download
+            # and setup. See the e2e job for the detail.
+            - name: Start Playwright Image Pull (GHCR mirror)
+              if: needs.playwright_image.outputs.ghcr_available == 'true'
+              env:
+                  GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  nohup bash -c '
+                    status=1
+                    for attempt in 1 2 3 ; do
+                      if echo "${GHCR_TOKEN}" | docker login ghcr.io -u "${GITHUB_ACTOR}" --password-stdin \
+                          && docker pull "${GHCR_IMAGE}" ; then
+                        docker tag "${GHCR_IMAGE}" "${PLAYWRIGHT_IMAGE}"
+                        status=0
+                        break
+                      fi
+                      if [ ${attempt} -lt 3 ] ; then
+                        sleep $((attempt * 10))
+                      fi
+                    done
+                    echo "${status}" > "${RUNNER_TEMP}/playwright-pull.status"
+                  ' > "${RUNNER_TEMP}/playwright-pull.log" 2>&1 < /dev/null &
+                  echo "GHCR pull running in the background as pid $!."
+
             - name: Checkout
               id: checkout
               uses: actions/checkout@v4
@@ -737,17 +1035,65 @@ jobs:
                   yarn_postinstall: no-install
                   nx_restore: false # Restored in previous step.
                   cache_mode: ro
+                  free_disk_space: false
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
 
+            - name: Await Playwright Image
+              id: await_image
+              env:
+                  GHCR_AVAILABLE: ${{ needs.playwright_image.outputs.ghcr_available }}
+              run: |
+                  pulled=false
+                  if [ "${GHCR_AVAILABLE}" == "true" ] ; then
+                    # The pull runs in a shell detached from an earlier step, so it is not
+                    # a child of this one — poll for its status file rather than `wait`.
+                    for _ in $(seq 1 300) ; do
+                      if [ -f "${RUNNER_TEMP}/playwright-pull.status" ] ; then
+                        break
+                      fi
+                      sleep 1
+                    done
+                    if docker image inspect "${PLAYWRIGHT_IMAGE}" >/dev/null 2>&1 ; then
+                      pulled=true
+                    else
+                      # Registry flakiness must not fail the job — the tarball cache below is the fallback.
+                      echo "::warning::GHCR pull did not produce ${PLAYWRIGHT_IMAGE}; falling back to the tarball cache."
+                      cat "${RUNNER_TEMP}/playwright-pull.log" 2>/dev/null || true
+                    fi
+                  fi
+                  echo "pulled=${pulled}" >> "$GITHUB_OUTPUT"
+
+            # Fallback for fork PRs (whose tokens cannot read GHCR) and for transient registry
+            # failures. The tarball cache is only refreshed while the GHCR mirror does not yet
+            # exist, so it may be absent — pull from upstream as a last resort rather than failing.
             - name: Restore Playwright Image Cache
+              id: pw_tarball
+              if: steps.await_image.outputs.pulled != 'true'
               uses: actions/cache/restore@v4
               with:
                   path: /tmp/playwright-docker-image.tar
                   key: playwright-image-v1.60.0-jammy-v1
-                  fail-on-cache-miss: true
 
             - name: Load Playwright Image
-              run: docker load -i /tmp/playwright-docker-image.tar
+              if: steps.await_image.outputs.pulled != 'true'
+              env:
+                  TARBALL_HIT: ${{ steps.pw_tarball.outputs.cache-hit }}
+              run: |
+                  if [ "${TARBALL_HIT}" == "true" ] ; then
+                    docker load -i /tmp/playwright-docker-image.tar
+                    exit 0
+                  fi
+                  echo "No cached image tarball; pulling ${PLAYWRIGHT_IMAGE} from upstream."
+                  for attempt in 1 2 3 4 ; do
+                    if docker pull "${PLAYWRIGHT_IMAGE}" ; then
+                      exit 0
+                    fi
+                    if [ ${attempt} -lt 4 ] ; then
+                      sleep $((attempt * 15))
+                    fi
+                  done
+                  echo "Failed to obtain ${PLAYWRIGHT_IMAGE}."
+                  exit 1
 
             - name: playwright test ag-charts-demos
               id: demos_e2e
@@ -800,7 +1146,9 @@ jobs:
               if: matrix.framework != 'none'
               uses: ./.github/actions/setup-nx
               with:
+                  yarn_postinstall: no-install
                   cache_mode: ro
+                  free_disk_space: false
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
 
             - name: nx package:test
@@ -877,7 +1225,9 @@ jobs:
               id: setup
               uses: ./.github/actions/setup-nx
               with:
+                  yarn_postinstall: no-install
                   cache_mode: ro
+                  free_disk_space: false
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
 
             - name: nx test:bundle-${{ matrix.name }}
@@ -937,6 +1287,22 @@ jobs:
                   branch: ${{ needs.init.outputs.snapshot_branch }}
                   github_token: ${{ secrets.GITHUB_TOKEN }}
                   slack_webhook: ${{ secrets.SLACK_WEBHOOK }}
+
+            # Upsert or clear the snapshot-status section. When Snapshot Notify wrote a fragment
+            # (snapshots regenerated) it is upserted; otherwise the section is removed so a stale
+            # "snapshots regenerated" note from an earlier push can't linger after a fix.
+            - name: Upsert snapshot-status section
+              if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+              uses: ./.github/actions/pr-report-comment
+              with:
+                  pr_number: ${{ github.event.pull_request.number }}
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
+                  # Clear snapshot-status when snapshots weren't regenerated, and clear snapshot-review
+                  # when full CI (hence the snapshot_review job) didn't run — the report job is the
+                  # always-running GC point for sections whose producing job was skipped this build.
+                  remove_sections: >-
+                      ${{ steps.snapshot-notify.outputs.updated != 'true' && 'snapshot-status' || '' }}
+                      ${{ needs.detect-changes.outputs.run_full_ci != 'true' && 'snapshot-review' || '' }}
 
             - name: Merge JUnit Report XMLs
               if: needs.test.result != 'skipped' || needs.e2e.result != 'skipped' || needs.demos_e2e.result != 'skipped'
@@ -1197,6 +1563,208 @@ jobs:
               run: |
                   echo "Workflow failed, failing the build."
                   exit 1
+
+    # Asynchronous, NON-GATING snapshot review. Runs the /snapshot-review reports for the PR and
+    # writes the `snapshot-review` section of the consolidated PR comment. `report` does NOT depend
+    # on this job and it must be excluded from branch-protection required checks — merge never waits
+    # on it. `continue-on-error` + `!cancelled()` keep it off the critical path (the snapshot jobs
+    # deliberately exit 1 when they regenerate baselines, so this must tolerate their failure).
+    snapshot_review:
+        runs-on: ubuntu-24.04
+        name: Snapshot Review
+        continue-on-error: true
+        needs: [detect-changes, init, test, e2e, fw_pkg_test]
+        if: |
+            !cancelled() &&
+            github.event_name == 'pull_request' &&
+            github.event.pull_request.head.repo.full_name == github.repository &&
+            needs.detect-changes.outputs.run_full_ci == 'true'
+        permissions:
+            # write: the HTML reports are published to the gh-pages PR preview (pr-preview-publish
+            # pushes with GITHUB_TOKEN, which is scoped by this job's permissions).
+            contents: write
+            pull-requests: write
+            packages: read
+            # scene-graph review (follow-up) downloads CI artifacts via gh — needs actions: read.
+            actions: read
+        # This job also publishes into the PR's pr-<N>/ preview, so it shares the
+        # per-PR lock with `pr_preview` and `gh_pages_cleanup` — see the rationale on
+        # `pr_preview`. Byte-identical group string across all three.
+        concurrency:
+            group: pr-preview-gh-pages-${{ github.event.pull_request.number }}
+            cancel-in-progress: false
+        env:
+            # Report URLs are deterministic (snapshot-<slug>.html), so a previous run's deploy answers
+            # 200 at the same URL while this run's is still propagating. Stamp each report with a
+            # per-commit marker and gate the reachability check on it, so a stale deploy can't pass.
+            REPORT_DEPLOY_MARKER: '<!-- snapshot-review-deploy ${{ github.event.pull_request.head.sha }} -->'
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                  # Full history topology is needed for snapshot diffing, but blobs can be
+                  # fetched lazily — a blob-less clone cuts checkout from ~80s to ~15s.
+                  fetch-depth: 0
+                  filter: blob:none
+
+            # The review can only produce output when the PR touches committed baselines (PNGs)
+            # or CI regenerated baselines onto the snapshot branch. Detecting that up front lets
+            # the no-change path skip the ~65s of ImageMagick + dev-prompts installs.
+            - name: Detect snapshot changes
+              id: detect
+              env:
+                  SNAPSHOT_BRANCH: ${{ needs.init.outputs.snapshot_branch }}
+                  BASE_BRANCH: ${{ github.base_ref }}
+              run: |
+                  set -uo pipefail
+                  changed=false
+                  if git ls-remote --exit-code --heads origin "$SNAPSHOT_BRANCH" >/dev/null 2>&1 ; then
+                    changed=true
+                    echo "Snapshot branch $SNAPSHOT_BRANCH exists on origin."
+                  elif git diff --name-only "origin/${BASE_BRANCH}...HEAD" -- '*.png' | grep -q . ; then
+                    changed=true
+                    echo "PR diff touches committed PNG baselines."
+                  else
+                    echo "No snapshot changes detected; skipping review installs."
+                  fi
+                  echo "changed=${changed}" >> "$GITHUB_OUTPUT"
+
+            - name: Install ImageMagick
+              if: steps.detect.outputs.changed == 'true'
+              shell: bash
+              run: |
+                  set -euo pipefail
+                  # snapshot-collect.sh drives ImageMagick via the v7-style `magick <subcommand>`
+                  # entrypoint (`magick identify`, `magick compare`). ubuntu-24.04 ships ImageMagick 6,
+                  # which exposes those as standalone `identify`/`compare` and has no `magick` binary.
+                  # Install v6 and provide a thin shim that dispatches `magick <sub> …` -> `<sub> …`
+                  # (self-contained; no fragile AppImage download).
+                  sudo apt-get update -qq
+                  sudo apt-get install -y -qq imagemagick
+                  printf '#!/usr/bin/env bash\nexec "$@"\n' | sudo tee /usr/local/bin/magick >/dev/null
+                  sudo chmod +x /usr/local/bin/magick
+                  magick identify -version | head -1
+
+            - name: Install @ag-grid/dev-prompts
+              if: steps.detect.outputs.changed == 'true'
+              uses: ./external/ag-shared/github/actions/install-ag-dev-prompts
+              with:
+                  channel: canary
+
+            - name: Generate snapshot-review reports
+              if: steps.detect.outputs.changed == 'true'
+              id: review
+              uses: ./.github/actions/snapshot-review-run
+              with:
+                  snapshot_branch: ${{ needs.init.outputs.snapshot_branch }}
+                  base_branch: ${{ github.base_ref }}
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
+                  # Reports are published to the PR preview below; link straight to them (one click).
+                  # Deterministic URL — the report filenames are snapshot-<slug>.html.
+                  report_base_url: https://ag-grid.github.io/ag-charts/pr-${{ github.event.pull_request.number }}/
+
+            # Post the summary immediately (the report link is a "publishing…" placeholder at this
+            # point). Also the GC point: clears a stale section when this build produced no report.
+            - name: Upsert snapshot-review section (summary)
+              uses: ./.github/actions/pr-report-comment
+              with:
+                  pr_number: ${{ github.event.pull_request.number }}
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
+                  remove_sections: ${{ steps.review.outputs.produced != 'true' && 'snapshot-review' || '' }}
+
+            - name: Upload snapshot-review HTML reports
+              if: steps.review.outputs.produced == 'true'
+              uses: actions/upload-artifact@v4
+              with:
+                  name: snapshot-review-html
+                  path: ${{ steps.review.outputs.html_dir }}/*.html
+                  if-no-files-found: ignore
+
+            # Stamp each report with the per-commit deploy marker, then resolve the file paths for the
+            # PR-preview publish (the publish action takes explicit newline-separated paths, not a glob).
+            - name: Stage report files
+              id: reports
+              if: steps.review.outputs.produced == 'true'
+              shell: bash
+              run: |
+                  set -euo pipefail
+                  files=$(find "${{ steps.review.outputs.html_dir }}" -maxdepth 1 -type f -name '*.html')
+                  while IFS= read -r f; do
+                      [[ -n "$f" ]] && printf '\n%s\n' "$REPORT_DEPLOY_MARKER" >> "$f"
+                  done <<< "$files"
+                  {
+                      echo "files<<__FILES_EOF__"
+                      echo "$files"
+                      echo "__FILES_EOF__"
+                  } >> "$GITHUB_OUTPUT"
+
+            # Publish the self-contained reports under pr-<N>/ (served at
+            # https://ag-grid.github.io/ag-charts/pr-<N>/snapshot-<slug>.html). Removed with the rest
+            # of the PR preview when the PR closes.
+            - name: Publish reports to PR preview
+              id: publish
+              if: steps.review.outputs.produced == 'true'
+              uses: ./external/ag-shared/github/actions/pr-preview-publish
+              with:
+                  pr_number: ${{ github.event.pull_request.number }}
+                  files: ${{ steps.reports.outputs.files }}
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
+
+            # Wait for THIS run's reports to become reachable on gh-pages before linking them, so the
+            # comment never carries a link that 404s while the deploy propagates. Gate on the deploy
+            # marker (not status alone): a deterministic URL can answer 200 from a previous run's
+            # deploy while this run's is still propagating. Best-effort — if the current deploy is
+            # still not served after the budget, the failure path below falls back to artifacts.
+            - name: Wait for published reports
+              id: wait
+              if: steps.review.outputs.produced == 'true'
+              shell: bash
+              run: |
+                  set -uo pipefail
+                  base="https://ag-grid.github.io/ag-charts/pr-${{ github.event.pull_request.number }}"
+                  reachable=true
+                  for f in "${{ steps.review.outputs.html_dir }}"/*.html; do
+                      url="${base}/$(basename "$f")"
+                      echo "Waiting for ${url}"
+                      for attempt in $(seq 1 40); do
+                          if curl -sf "$url" 2>/dev/null | grep -qF "$REPORT_DEPLOY_MARKER"; then
+                              echo "  reachable (current deploy)"; break
+                          fi
+                          if [[ "$attempt" == "40" ]]; then
+                              echo "::warning::${url} did not serve this run's deploy after retries."
+                              reachable=false
+                          fi
+                          sleep 5
+                      done
+                  done
+                  echo "reachable=${reachable}" >> "$GITHUB_OUTPUT"
+
+            # Replace the deferred-link sentinel. always(): even if upload/stage/publish/wait failed,
+            # the sentinel MUST be resolved so the comment never sticks on "Publishing…". Link the live
+            # report only when it published AND is serving this run's deploy; otherwise fall back to the
+            # run artifacts (never a link that 404s or serves a stale comparison).
+            - name: Finalize snapshot-review links
+              if: always() && steps.review.outputs.produced == 'true'
+              shell: bash
+              env:
+                  RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+              run: |
+                  set -euo pipefail
+                  frag="${RUNNER_TEMP}/pr-sections/25-snapshot-review.md"
+                  [[ -f "$frag" ]] || exit 0
+                  if [[ "${{ steps.publish.outcome }}" == "success" && "${{ steps.wait.outputs.reachable }}" == "true" ]]; then
+                      sed -E -i 's#<!-- report-link href="([^"]+)" -->.*#[Open the full interactive report](\1)#' "$frag"
+                  else
+                      sed -E -i "s|<!-- report-link href=\"[^\"]+\" -->.*|:warning: Report publish failed — download the \`snapshot-review-html\` artifact from the [workflow run](${RUN_URL}#artifacts).|" "$frag"
+                  fi
+
+            # Re-upsert with the resolved report link (live or fallback) in place.
+            - name: Upsert snapshot-review section (with report link)
+              if: always() && steps.review.outputs.produced == 'true'
+              uses: ./.github/actions/pr-report-comment
+              with:
+                  pr_number: ${{ github.event.pull_request.number }}
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
 
     sonarqube:
         # Org-scoped GHA variable kill-switch: set SONARCLOUD_ENABLED=false to

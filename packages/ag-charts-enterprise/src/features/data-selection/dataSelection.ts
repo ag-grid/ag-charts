@@ -11,7 +11,6 @@ import {
     type AreMutuallyExclusive,
     ChartUpdateType,
     type DynamicContext,
-    Logger,
     type NormalisedSelectionOptions,
 } from 'ag-charts-core';
 
@@ -158,31 +157,31 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         clearAllSelections(changes, this.service);
 
         if (!isUnknownIterable(items)) {
-            Logger.warn('Selection items is not iterable');
+            this.ctx.logger.warn('Selection items is not iterable');
             return;
         }
 
         for (const item of items) {
             if (!isAgSelectionItem(item)) {
-                Logger.warn('Skipping invalid AgSelectionItemIds object: ', item);
+                this.ctx.logger.warn('Skipping invalid AgSelectionItemIds object: ', item);
                 continue;
             }
 
             const series = this.ctx.chartService.series.find((s) => s.id == item.seriesId);
             if (series === undefined) {
-                Logger.warn('Skipping seriesId (series not found)', item.seriesId);
+                this.ctx.logger.warn('Skipping seriesId (series not found)', item.seriesId);
                 continue;
             }
 
             const data = series.data;
             if (data === undefined) {
-                Logger.warn('Skipping seriesId (data not found):', item.seriesId);
+                this.ctx.logger.warn('Skipping seriesId (data not found):', item.seriesId);
                 continue;
             }
 
             const datumIndex = data.getIndexFromItemId(item.itemId);
             if (datumIndex === undefined) {
-                Logger.warn('Skipping itemId (datum not found):', item.itemId);
+                this.ctx.logger.warn('Skipping itemId (datum not found):', item.itemId);
                 continue;
             }
 

@@ -26,13 +26,6 @@ const options: AgChartOptions = {
                 cornerRadius: 25,
                 strokeWidth: 2,
                 padding: 15,
-                text: {
-                    fontSize: 18,
-                    fontWeight: 'bold',
-                    color: 'red',
-                    showAllChildren: true,
-                    showDirectChildren: true,
-                },
                 itemStyler: ({ datum }) => {
                     if (datum.department === 'Technology') return { fill: '#e8f5e9', stroke: '#2e7d32' };
                     if (datum.department === 'Operations') return { fill: '#fff3e0', stroke: '#e65100' };

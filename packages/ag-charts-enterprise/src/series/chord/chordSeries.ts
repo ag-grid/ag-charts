@@ -3,7 +3,6 @@ import {
     type CallbackParamRules,
     type DynamicContext,
     type FillStrokeMorph,
-    Logger,
     type Normalised,
     type RequireOptional,
     angleBetween,
@@ -229,7 +228,7 @@ export class ChordSeries extends FlowProportionSeries<
         }
 
         if (nodeCount * spacingSweep >= 2 * Math.PI || radius <= 0) {
-            Logger.warnOnce('There was insufficient space to display the Chord Series.');
+            this.ctx.logger.warnOnce('There was insufficient space to display the Chord Series.');
             return;
         }
 

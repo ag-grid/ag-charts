@@ -5,6 +5,7 @@ import {
     type AgChartAutoSizedBaseLabelOptions,
     type AgChartCaptionOptions,
     type AgChartLabelCollisionFitOptions,
+    type AgChartLabelCollisionOptions,
     type AgChartLabelFitOptions,
     type AgChartLabelOptions,
     type AgChartLabelPlacementStyleOptions,
@@ -239,6 +240,7 @@ const contextMenuItemObjectDef: OptionsDefs<Extract<AgContextMenuItem, object>> 
         'always',
         'axis',
         'caption',
+        'cross-line',
         'series-area',
         'series-node',
         'legend-item'
@@ -759,9 +761,9 @@ export const labelCollisionPlacementDef = unionOrArray(
 /** Label orientation accepting a single value or an ordered fallback list. */
 export const labelOrientationDef = unionOrArray('horizontal', 'vertical', 'vertical-reversed');
 
-export const collisionOptionsDef = {
+export const collisionOptionsDef: OptionsDefs<AgChartLabelCollisionOptions> = {
     threshold: number,
-    suppressHide: boolean,
+    alwaysShow: boolean,
 };
 
 // @ts-expect-error undocumented option
@@ -769,6 +771,7 @@ collisionOptionsDef.collideWith = undocumented({
     markers: boolean,
     labels: boolean,
     seriesItems: boolean,
+    seriesArea: boolean,
 });
 
 export const seriesLabelOptionsDefs: OptionsDefs<AgChartLabelOptions<any, any>> = {
@@ -790,6 +793,14 @@ export const labelFitOptionsDefs: OptionsDefs<AgChartLabelFitOptions> = {
     maxHeight: positiveNumber,
     wrapping: textWrap,
     truncate: boolean,
+};
+
+/** Label-fit defs kept usable internally while withheld from the documented option surface. */
+export const undocumentedLabelFitOptionsDefs: OptionsDefs<AgChartLabelFitOptions> = {
+    maxWidth: undocumented(positiveNumber),
+    maxHeight: undocumented(positiveNumber),
+    wrapping: undocumented(textWrap),
+    truncate: undocumented(boolean),
 };
 
 /** Label-fit defs plus the collision object, for series that place their labels against obstacles. */

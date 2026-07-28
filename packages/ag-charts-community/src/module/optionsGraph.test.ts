@@ -369,6 +369,52 @@ describe('OptionsGraph', () => {
             });
         });
 
+        describe('$isUserOption', () => {
+            const resolveWithMaxWidth = (themeConfig: PlainObject, maxWidth?: number) =>
+                new OptionsGraph(themeConfig, prepareOptions(maxWidth === undefined ? {} : { maxWidth })).resolve();
+
+            it('should resolve omitted branches to the check outcome', () => {
+                const themeConfig = {
+                    line: {
+                        one: { $isUserOption: './maxWidth' },
+                        two: { $isUserOption: ['./maxWidth'] },
+                        three: { $isUserOption: ['./maxWidth', 2] },
+                    },
+                };
+
+                expect(resolveWithMaxWidth(themeConfig, 10)).toMatchObject({ one: true, two: true, three: 2 });
+                expect(resolveWithMaxWidth(themeConfig)).toMatchObject({ one: false, two: false, three: false });
+            });
+
+            it('should resolve an explicit `undefined` branch to `undefined`', () => {
+                const themeConfig = { line: { one: { $isUserOption: ['./maxWidth', 2, undefined] } } };
+
+                expect(resolveWithMaxWidth(themeConfig, 10)).toMatchObject({ one: 2 });
+                expect(resolveWithMaxWidth(themeConfig)).not.toHaveProperty('one');
+            });
+
+            it('should match any path of a path list', () => {
+                const themeConfig = {
+                    line: {
+                        one: { $isUserOption: [['./minWidth', './maxWidth']] },
+                        two: { $isUserOption: [['./minWidth', './maxWidth'], 'yes'] },
+                        three: { $isUserOption: [['./minWidth', './maxWidth'], 'yes', 'no'] },
+                    },
+                };
+
+                expect(resolveWithMaxWidth(themeConfig, 10)).toMatchObject({
+                    one: true,
+                    two: 'yes',
+                    three: 'yes',
+                });
+                expect(resolveWithMaxWidth(themeConfig)).toMatchObject({
+                    one: false,
+                    two: false,
+                    three: 'no',
+                });
+            });
+        });
+
         describe('$palette', () => {
             it('should resolve `$palette` operations', () => {
                 const themeConfig = {
@@ -675,6 +721,164 @@ describe('OptionsGraph', () => {
                 seven: { five: 'yes-yes' },
                 axes: expect.any(Object),
             });
+        });
+
+        it('should resolve omitted `$if` branches to the condition outcome', () => {
+            const themeConfig = {
+                line: {
+                    one: { $if: [true] },
+                    two: { $if: [false] },
+                    three: { $if: ['hello'] },
+                    four: { $if: [true, 'yes'] },
+                    five: { $if: [false, 'yes'] },
+                    six: { $if: [false, 'yes', undefined] },
+                },
+            };
+            const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve();
+            expect(options).toStrictEqual({
+                one: true,
+                two: false,
+                three: true,
+                four: 'yes',
+                five: false,
+                axes: expect.any(Object),
+            });
+            expect(options).not.toHaveProperty('six');
+        });
+
+        it('should resolve `$isType` operations', () => {
+            const themeConfig = {
+                line: {
+                    arrayValue: [1, 2],
+                    objectValue: { a: 1 },
+                    stringValue: 'hello',
+                    numberValue: 42,
+                    booleanValue: false,
+                    dateValue: new Date(0),
+                    functionValue: () => 'called',
+                    one: { $isType: [{ $path: './arrayValue' }, 'array', 'yes', 'no'] },
+                    two: { $isType: [{ $path: './objectValue' }, 'array', 'yes', 'no'] },
+                    three: { $isType: [{ $path: './objectValue' }, 'object', 'yes', 'no'] },
+                    four: { $isType: [{ $path: './arrayValue' }, 'object', 'yes', 'no'] },
+                    five: { $isType: [{ $path: './stringValue' }, 'string', 'yes', 'no'] },
+                    six: { $isType: [{ $path: './numberValue' }, 'number', 'yes', 'no'] },
+                    seven: { $isType: [{ $path: './booleanValue' }, 'boolean', 'yes', 'no'] },
+                    eight: { $isType: [{ $path: './dateValue' }, 'date', 'yes', 'no'] },
+                    nine: { $isType: [{ $path: './functionValue' }, 'function', 'yes', 'no'] },
+                    ten: { $isType: [{ $path: './missingValue' }, 'nullish', 'yes', 'no'] },
+                    eleven: { $isType: [{ $path: './stringValue' }, 'nullish', 'yes', 'no'] },
+                    twelve: { $isType: [{ $path: './stringValue' }, ['number', 'string'], 'yes', 'no'] },
+                    thirteen: { $isType: [{ $path: './stringValue' }, ['array', 'object'], 'yes', 'no'] },
+                    fourteen: { $isType: [{ $path: './numberValue' }, 'number', { $path: './stringValue' }, 'no'] },
+                    fifteen: { $isType: [{ $path: './stringValue' }, 'number', 'yes'] },
+                    sixteen: {
+                        $isType: [
+                            { $path: './arrayValue' },
+                            'array',
+                            {
+                                seventeen: { $isType: [{ $path: '/stringValue' }, 'string', 'yes-yes', 'yes-no'] },
+                                eighteen: 'eighteen',
+                            },
+                            'no',
+                        ],
+                    },
+                },
+            };
+            const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve();
+            expect(options).toStrictEqual({
+                arrayValue: expect.anything(),
+                objectValue: expect.anything(),
+                stringValue: 'hello',
+                numberValue: 42,
+                booleanValue: false,
+                dateValue: expect.any(Date),
+                functionValue: expect.any(Function),
+                one: 'yes',
+                two: 'no',
+                three: 'yes',
+                four: 'no',
+                five: 'yes',
+                six: 'yes',
+                seven: 'yes',
+                eight: 'yes',
+                nine: 'yes',
+                ten: 'yes',
+                eleven: 'no',
+                twelve: 'yes',
+                thirteen: 'no',
+                fourteen: 'hello',
+                fifteen: false,
+                sixteen: { seventeen: 'yes-yes', eighteen: 'eighteen' },
+                axes: expect.any(Object),
+            });
+        });
+
+        it('should resolve omitted `$isType` branches to the match outcome', () => {
+            const themeConfig = {
+                line: {
+                    arrayValue: [1, 2],
+                    one: { $isType: [{ $path: './arrayValue' }, 'array'] },
+                    two: { $isType: [{ $path: './arrayValue' }, 'string'] },
+                    three: { $isType: [{ $path: './arrayValue' }, 'array', 'yes'] },
+                    four: { $isType: [{ $path: './arrayValue' }, 'string', 'yes'] },
+                    five: { $isType: [{ $path: './arrayValue' }, 'string', 'yes', undefined] },
+                },
+            };
+            const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve();
+            expect(options).toStrictEqual({
+                arrayValue: expect.anything(),
+                one: true,
+                two: false,
+                three: 'yes',
+                four: false,
+                axes: expect.any(Object),
+            });
+            expect(options).not.toHaveProperty('five');
+        });
+
+        it('should resolve the `else` branch of `$isType` on an unrecognised type name', () => {
+            (globalThis as any).agChartsDebug = 'dev';
+
+            try {
+                const themeConfig = {
+                    line: {
+                        stringValue: 'hello',
+                        one: { $isType: [{ $path: './stringValue' }, 'symbol', 'yes', 'no'] },
+                    },
+                };
+                const options = new OptionsGraph(themeConfig, prepareOptions({})).resolve();
+                expect(options).toStrictEqual({
+                    stringValue: 'hello',
+                    one: 'no',
+                    axes: expect.any(Object),
+                });
+                expectWarningsCalls().toMatchInlineSnapshot(`
+                  [
+                    [
+                      "AG Charts - \`$isType\` json operation failed on [symbol] at [one], expecting one of [array, boolean, date, function, nullish, number, object, string].",
+                    ],
+                  ]
+                `);
+            } finally {
+                delete (globalThis as any).agChartsDebug;
+            }
+        });
+
+        it('should resolve `$isType` nested within `$isUserOption`', () => {
+            const themeConfig = {
+                line: {
+                    strokeWidth: {
+                        $isUserOption: ['./stroke', { $isType: [{ $path: './stroke' }, 'object', 4, 2] }, 0],
+                    },
+                },
+            };
+
+            const resolveWithStroke = (stroke?: unknown) =>
+                new OptionsGraph(themeConfig, prepareOptions(stroke === undefined ? {} : { stroke })).resolve();
+
+            expect(resolveWithStroke({ type: 'gradient' })).toMatchObject({ strokeWidth: 4 });
+            expect(resolveWithStroke('red')).toMatchObject({ strokeWidth: 2 });
+            expect(resolveWithStroke()).toMatchObject({ strokeWidth: 0 });
         });
 
         it('should resolve `$not` operations', () => {
@@ -1267,6 +1471,27 @@ describe('OptionsGraph', () => {
                     other: 'other-value',
                     third: 'third-value',
                 },
+                axes: expect.any(Object),
+            });
+        });
+    });
+
+    describe('css variables', () => {
+        it('should not treat `Object.prototype` member names as CSS variables', () => {
+            const themeConfig = { line: { themeValue: 'valueOf' } };
+            const userOptions = prepareOptions({
+                title: { text: 'constructor' },
+                userValue: 'toString',
+                inherited: '__proto__',
+            });
+            const options = new OptionsGraph(themeConfig, userOptions, {}, {}, {}, undefined, new Map(), {
+                'var(--brand)': '#00ff00',
+            }).resolve();
+            expect(options).toStrictEqual({
+                themeValue: 'valueOf',
+                title: { text: 'constructor' },
+                userValue: 'toString',
+                inherited: '__proto__',
                 axes: expect.any(Object),
             });
         });

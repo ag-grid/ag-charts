@@ -25,6 +25,7 @@ export const AG_CHARTS_LOCALE_FR_FR: Record<string, string> = {
     ariaOrgChartExpanded: 'développé',
     ariaDescriptionExpandNode: 'Appuyez sur Alt + Flèche bas pour développer ce nœud',
     ariaDescriptionCollapseNode: 'Appuyez sur Alt + Flèche haut pour réduire ce nœud',
+    ariaDescriptionToggleNode: 'Appuyez sur Space ou Enter pour développer ou réduire ce nœud',
     ariaAnnounceGaugeChart: 'graphique en jauge, ${caption}',
     ariaAnnounceHierarchyChart: 'graphique hiérarchique, ${caption}',
     ariaAnnounceHierarchyDatum: 'niveau ${level}[number], ${count}[number] enfants, ${description}',

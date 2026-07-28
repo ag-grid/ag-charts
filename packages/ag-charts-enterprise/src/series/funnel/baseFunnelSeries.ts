@@ -120,10 +120,9 @@ class FunnelSeriesNodeEvent<
         nativeEvent: Event,
         datum: FunnelNodeDatum,
         series: BaseFunnelSeries<BaseFunnelSeriesTypes>,
-        selectionState: SelectionState | undefined,
-        isCollapsed: boolean
+        selectionState: SelectionState | undefined
     ) {
-        super(type, nativeEvent, datum, series, selectionState, isCollapsed);
+        super(type, nativeEvent, datum, series, selectionState);
         this.xKey = series.properties.stageKey;
         this.yKey = series.properties.valueKey;
     }
@@ -350,7 +349,7 @@ export abstract class BaseFunnelSeries<
 
             const xConverted = xScale.convert(xDatum);
             if (!Number.isFinite(xConverted)) continue;
-            const x = Math.round(xConverted) + groupOffset + barOffset;
+            const x = xConverted + groupOffset + barOffset;
 
             const yDatum = yValues[datumIndex];
             const yNegative = Math.round(yScale.convert(-yDatum));

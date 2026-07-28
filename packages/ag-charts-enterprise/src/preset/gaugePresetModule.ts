@@ -16,7 +16,7 @@ import {
 import type { AgBaseGaugePresetOptions, AgChartTooltipOptions, AgGaugeOptions, AgSeriesTooltip } from 'ag-charts-types';
 
 import { StandaloneChartModule } from '../charts/standaloneChartModule';
-import { createGauge } from './gaugePreset';
+import { GAUGE_FAST_UPDATE_KEYS, createGauge, gaugeFastUpdate } from './gaugePreset';
 
 const commonGaugeOptions: OptionsDefs<AgBaseGaugePresetOptions & { tooltip?: AgSeriesTooltip<any> }> = {
     // Valid pass-through options
@@ -71,4 +71,6 @@ export const GaugePresetModule: PresetModuleDefinition<AgGaugeOptions> = {
     ),
 
     create: createGauge,
+    fastUpdateKeys: GAUGE_FAST_UPDATE_KEYS,
+    processFastUpdate: gaugeFastUpdate,
 };

@@ -33,10 +33,21 @@ export class SharedToolbar extends AbstractModuleInstance {
     };
     private firstLayoutSection?: SharedToolbarSection;
 
+    // OPTIMIZATION: `getBounds().width` has no inline width, so it forces a sync reflow every
+    // layout. The width depends on the rendered button content (the signature below), on text
+    // metrics, and on the theme CSS variables the button styles read — the latter two are covered
+    // by the resets below rather than the signature.
+    private cachedWidth?: number;
+    private cachedWidthSignature?: string;
+
     constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
         this.container = this.ctx.domManager.addChild('canvas-overlay', 'shared-toolbar');
         this.container.role = 'presentation';
+        this.cleanup.register(
+            ctx.eventsHub.on('font:load', () => this.invalidateWidthCache()),
+            ctx.eventsHub.on('theme:params-change', () => this.invalidateWidthCache())
+        );
     }
 
     public getSharedToolbar<ButtonOptions extends _ModuleSupport.ToolbarButtonOptions>(section: SharedToolbarSection) {
@@ -81,7 +92,7 @@ export class SharedToolbar extends AbstractModuleInstance {
                 }
                 this.firstLayoutSection = section;
 
-                const width = sharedToolbar.getBounds().width;
+                const width = this.measureWidth(sharedToolbar);
                 const { isRtl } = this.ctx.domManager;
                 sharedToolbar.setBounds({
                     x: isRtl ? layoutBox.x + layoutBox.width - width : layoutBox.x,
@@ -153,6 +164,35 @@ export class SharedToolbar extends AbstractModuleInstance {
         withSection.setHidden(false);
 
         return withSection;
+    }
+
+    private invalidateWidthCache() {
+        this.cachedWidth = undefined;
+    }
+
+    private measureWidth(sharedToolbar: _ModuleSupport.Toolbar<_ModuleSupport.ToolbarButtonOptions>): number {
+        const signature = this.widthSignature();
+        if (this.cachedWidth !== undefined && this.cachedWidthSignature === signature) {
+            return this.cachedWidth;
+        }
+
+        const width = sharedToolbar.getBounds().width;
+        // A zero width means the toolbar isn't laid out yet; don't pin the cache to it.
+        if (width === 0) return width;
+
+        this.cachedWidth = width;
+        this.cachedWidthSignature = signature;
+        return width;
+    }
+
+    private widthSignature(): string {
+        return SharedToolbar.SECTION_ORDER.map((section) => {
+            const active = this.activeSections.has(section) ? '1' : '0';
+            const buttons = this.sectionButtons[section]
+                .map((b) => `${b.label ?? ''}~${b.icon ?? ''}~${b.iconPosition ?? ''}`)
+                .join(',');
+            return `${section}:${active}:${buttons}`;
+        }).join('|');
     }
 
     private getIndex(section: SharedToolbarSection, index: number) {

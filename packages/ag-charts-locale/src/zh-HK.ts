@@ -25,6 +25,7 @@ export const AG_CHARTS_LOCALE_ZH_HK: Record<string, string> = {
     ariaOrgChartExpanded: '已展開',
     ariaDescriptionExpandNode: '按 Alt + 向下箭嘴展開此節點',
     ariaDescriptionCollapseNode: '按 Alt + 向上箭嘴摺疊此節點',
+    ariaDescriptionToggleNode: '按 Space 或 Enter 展開或摺疊此節點',
     ariaAnnounceGaugeChart: '儀表圖, ${caption}',
     ariaAnnounceHierarchyChart: '層次圖, ${caption}',
     ariaAnnounceHierarchyDatum: '層級 ${level}[number]，${count}[number] 個子項，${description}',

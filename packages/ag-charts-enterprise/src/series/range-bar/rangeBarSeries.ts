@@ -29,16 +29,23 @@ import {
     type PointLabelDatum,
     type RequireOptional,
     applyBarLabelOrientation,
+    applyPlacedBarLabelVisibility,
     areScalingEqual,
+    barLabelObstacles,
     barLabelResolvesOrientation,
+    barLabelResolvesPlacement,
     barLabelRotation,
+    barLabelRoutesThroughEngine,
     buildBarLabelData,
+    buildBarPositionedLabelDatum,
     findMinMax,
+    insideBarContainer,
     insideBarRegion,
     isContinuous,
     measureLabelText,
     mergeDefaults,
     resolveLabelFit,
+    resolveLabelFitDescriptors,
     rotatedGlyphDrift,
     rotatedLabelInset,
     toArray,
@@ -59,10 +66,12 @@ const {
     keyProperty,
     checkCrisp,
     fitLabelToContainer,
+    buildBarLabelCandidates,
+    toResolvedPlacement,
     updateLabelNode,
     pickPlacementStyle,
     expandPlacementLabelBoxExtent,
-    resolvePlacementLabelPadding,
+    resolvePlacementLabelBoxExtent,
     SMALLEST_KEY_INTERVAL,
     LARGEST_KEY_INTERVAL,
     diff,
@@ -100,8 +109,14 @@ interface RangeBarNodeLabelDatum extends Readonly<Point> {
     /** Flush offset written by the placement engine to keep a rotated label inside its region. */
     offsetX?: number;
     offsetY?: number;
-    /** Resolved inside/outside placement, selecting the `insideStyle`/`outsideStyle` overrides. */
-    placement?: _ModuleSupport.ResolvedLabelPlacement;
+    /** Granular resolved placement, coarsened via {@link toResolvedPlacement} to select placement styles. */
+    placement?: _ModuleSupport.BarLabelPlacement;
+    /** Pre-positioned cascade candidates, present only when the label routes through the engine. */
+    candidates?: readonly _ModuleSupport.BarPositionedCandidate[];
+    /** Own bar rect, so a positioned candidate avoids neighbouring bars but never its own. */
+    ownBox?: BoxBounds;
+    /** Engine-routed label the placement engine dropped (no candidate fit); rendered invisible. */
+    hidden?: boolean;
     datum: any;
     itemType: 'high' | 'low';
     series: _ModuleSupport.CartesianSeriesNodeDatum['series'];
@@ -129,6 +144,8 @@ interface RangeBarSeriesNodeDatumContext extends _ModuleSupport.CartesianCreateN
 
     // Pre-computed values
     readonly barAlongX: boolean;
+    // Value axis reversed: low then sits at the rect's far edge, so the low/high labels swap ends.
+    readonly yReversed: boolean;
     readonly crisp: boolean;
 
     // Property keys (constant across all datums - worth caching)
@@ -142,8 +159,6 @@ interface RangeBarSeriesNodeDatumContext extends _ModuleSupport.CartesianCreateN
     // Valid only for unrotated labels; a rotated label's reach is per-datum (see labelBoxPadding et al.).
     readonly yLowPadding: number;
     readonly yHighPadding: number;
-    // Unsigned margin for the inside-fit container (box-clear on any side).
-    readonly labelInsetPadding: number;
     // Pieces to recompute a rotated label's per-datum reach: reach folds in the box's cross-axis extent.
     readonly labelSpacing: number;
     readonly labelSign: number;
@@ -153,6 +168,7 @@ interface RangeBarSeriesNodeDatumContext extends _ModuleSupport.CartesianCreateN
     // Orientation derived once (series-constant) to keep the per-datum label build allocation-free.
     readonly labelRotation: number;
     readonly labelResolvesOrientation: boolean;
+    readonly labelRoutesThroughEngine: boolean;
     readonly labelFit: LabelFit | undefined;
 
     // Incremental update support
@@ -236,10 +252,9 @@ class RangeBarSeriesNodeEvent<
         nativeEvent: Event,
         datum: RangeBarNodeDatum,
         series: RangeBarSeries,
-        selectionState: SelectionState | undefined,
-        isCollapsed: boolean
+        selectionState: SelectionState | undefined
     ) {
-        super(type, nativeEvent, datum, series, selectionState, isCollapsed);
+        super(type, nativeEvent, datum, series, selectionState);
         this.xKey = series.properties.xKey;
         this.yLowKey = series.properties.yLowKey;
         this.yHighKey = series.properties.yHighKey;
@@ -267,6 +282,27 @@ interface RangeBarSeriesTypes extends _ModuleSupport.AbstractBarSeriesTypes {
     readonly context: RangeBarSeriesNodeDataContext;
     readonly stackContext: never;
     readonly createNodeDataContext: RangeBarSeriesNodeDatumContext;
+}
+
+/**
+ * Bakes a cascade candidate list onto a label, adopting the first candidate's anchor/region/placement as
+ * the backward-safe default the engine overwrites once it picks a fitting candidate. Rotation is left as
+ * the baked first-orientation value.
+ */
+function bakeFirstCandidate(
+    labelDatum: Mutable<RangeBarNodeLabelDatum>,
+    candidates: _ModuleSupport.BarPositionedCandidate[]
+): void {
+    const [first] = candidates;
+    labelDatum.x = first.anchor.x;
+    labelDatum.y = first.anchor.y;
+    labelDatum.textAlign = first.anchor.textAlign;
+    labelDatum.textBaseline = first.anchor.textBaseline;
+    labelDatum.region = first.region;
+    labelDatum.offsetX = 0;
+    labelDatum.offsetY = 0;
+    labelDatum.placement = first.placement;
+    labelDatum.candidates = candidates;
 }
 
 export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSeriesTypes> {
@@ -478,7 +514,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const labelPlacement = toArray(this.properties.label.placement)[0];
         const labelProps = this.properties.label;
         const placementStyle = labelPlacement === 'outside' ? labelProps.outsideStyle : labelProps.insideStyle;
-        const boxPadding = resolvePlacementLabelPadding(labelProps, placementStyle);
+        const boxPadding = resolvePlacementLabelBoxExtent(labelProps, placementStyle);
         const isOutside = labelPlacement === 'outside';
         const sign = isOutside ? 1 : -1;
         // yLow and yHigh sit on opposite edges of the same axis, so one's outer side is the other's inner side.
@@ -500,6 +536,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             barOffset,
             barWidth,
             barAlongX,
+            yReversed: yAxis.isReversed(),
             crisp,
             dataAggregationFilter,
             animationEnabled,
@@ -510,7 +547,12 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             labelPlacement,
             labelRotation,
             labelResolvesOrientation: barLabelResolvesOrientation(this.properties.label.orientation),
-            labelFit: resolveLabelFit(this.properties.label, !this.properties.label.collision.suppressHide),
+            labelRoutesThroughEngine: barLabelRoutesThroughEngine(
+                this.properties.label.orientation,
+                this.properties.label.placement,
+                this.properties.label.collision.alwaysShow
+            ),
+            labelFit: resolveLabelFit(this.properties.label, !this.properties.label.collision.alwaysShow),
             yLowPadding: (labelProps.spacing + boxPadding[yLowFacing]) * sign,
             yHighPadding: (labelProps.spacing + boxPadding[yHighFacing]) * sign,
             labelSpacing: labelProps.spacing,
@@ -518,8 +560,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             labelBoxPadding: boxPadding,
             yLowFacing,
             yHighFacing,
-            labelInsetPadding:
-                labelProps.spacing + Math.max(boxPadding.top, boxPadding.right, boxPadding.bottom, boxPadding.left),
             canIncrementallyUpdate,
             nodes: canIncrementallyUpdate ? this.contextNodeData.nodeData : [],
             nodeIndex: 0,
@@ -813,7 +853,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const xPosition = (datumIndex: number) => {
             const x = ctx.xScale.convert(ctx.xValues[datumIndex]);
             if (!Number.isFinite(x)) return Number.NaN;
-            return Math.round(x) + ctx.groupOffset + ctx.barOffset;
+            return x + ctx.groupOffset + ctx.barOffset;
         };
 
         // Scratch object for node datum parameters - avoid memory churn whilst minimizing parameter sprawl.
@@ -933,18 +973,25 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const rectWidth = params.rectWidth;
         const rectHeight = params.rectHeight;
 
-        // Inside labels fit within the bar rect; outside labels sit beside it. The rect is only needed to
-        // bound the fit or to resolve orientation, so skip it otherwise.
-        const container =
-            placement === 'inside' && (ctx.labelFit != null || ctx.labelResolvesOrientation)
-                ? insideBarRegion(
-                      { x: rectX, y: rectY, width: rectWidth, height: rectHeight },
-                      ctx.labelInsetPadding,
-                      label.collision.threshold ?? 0,
-                      !barAlongX
-                  )
+        const rect = { x: rectX, y: rectY, width: rectWidth, height: rectHeight };
+        const threshold = label.collision.threshold ?? 0;
+        // Inside labels fit within the bar rect (each end reserves the one-sided spacing and drawn box);
+        // outside labels sit beside it, so leave them unbound.
+        const isInside = placement === 'inside';
+        // A range bar carries a label at each value end (low and high), so the region reserves the
+        // `spacing` gap on both value ends; cross-axis wall-clearance comes from `threshold`.
+        const barRegion =
+            isInside && (ctx.labelFit != null || ctx.labelResolvesOrientation)
+                ? insideBarRegion(rect, label.spacing, label.spacing, threshold, !barAlongX)
                 : undefined;
-        const region = ctx.labelResolvesOrientation ? container : undefined;
+        // Only bind the text to the bar (and hide it when it overflows) when `inside` is the sole
+        // placement. A cascade with a non-inside fallback lets a label that cannot fit inside escape to
+        // that placement, so hiding it for failing the inside fit would wrongly drop a placeable label.
+        const insideOnly = toArray(label.placement).every((p) => p === 'inside');
+        const container =
+            barRegion && insideOnly ? insideBarContainer(barRegion, expandPlacementLabelBoxExtent(label)) : undefined;
+        // Orientation resolution flushes/contains an inside label against the same region.
+        const region = ctx.labelResolvesOrientation ? barRegion : undefined;
 
         const datum = params.datum;
         const yLowValue = params.yLowValue;
@@ -954,26 +1001,26 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const labelTextParams = { datum, xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName, legendItemName };
         const yDomain = this.getSeriesDomain(ChartAxisDirection.Y).domain;
 
-        const yLowText = fitLabelToContainer(
+        // The engine refits a routed label to each candidate, knowing a rotated label measures against
+        // the bar's other axis and that each placement offers its own room; fitting here would bind every
+        // candidate to the first placement's upright budget (see barSeries).
+        const fitText = (text: NormalisedTextOrSegments) =>
+            ctx.labelRoutesThroughEngine ? text : fitLabelToContainer(text, ctx.labelFit, label, container);
+
+        const yLowText = fitText(
             this.getLabelText<AgRangeBarSeriesLabelFormatterParams>(yLowValue, datum, yLowKey, 'y', yDomain, label, {
                 itemType: 'low',
                 value: yLowValue,
                 ...labelTextParams,
-            }),
-            ctx.labelFit,
-            label,
-            container
+            })
         );
 
-        const yHighText = fitLabelToContainer(
+        const yHighText = fitText(
             this.getLabelText<AgRangeBarSeriesLabelFormatterParams>(yHighValue, datum, yHighKey, 'y', yDomain, label, {
                 itemType: 'high',
                 value: yHighValue,
                 ...labelTextParams,
-            }),
-            ctx.labelFit,
-            label,
-            container
+            })
         );
 
         // Signed reach from the bar edge to the anchor. Unrotated it is the series-constant facing
@@ -1102,8 +1149,61 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         // Ensure labels array has exactly 2 items
         labels.length = 2;
 
-        labels[0].placement = placement;
-        labels[1].placement = placement;
+        const low = labels[0] as Mutable<RangeBarNodeLabelDatum>;
+        const high = labels[1] as Mutable<RangeBarNodeLabelDatum>;
+        // On a reversed value axis the low value sits at the rect's high edge and vice versa, so the two
+        // baked anchors belong to the opposite labels; swap their positions (each keeps its own value text).
+        // The cascade path below re-bakes reversed-aware candidates, so this only affects the direct path.
+        if (ctx.yReversed) {
+            [low.x, high.x] = [high.x, low.x];
+            [low.y, high.y] = [high.y, low.y];
+            [low.textAlign, high.textAlign] = [high.textAlign, low.textAlign];
+            [low.textBaseline, high.textBaseline] = [high.textBaseline, low.textBaseline];
+        }
+        const rectBox = { x: rectX, y: rectY, width: rectWidth, height: rectHeight };
+        // yLow and yHigh share the bar rect, so each ignores its own bar when avoiding series items.
+        low.ownBox = rectBox;
+        high.ownBox = rectBox;
+
+        // yLow anchors at the value-axis start end, yHigh at the end end, so each maps its coarse
+        // inside/outside to the granular start/end placement at its own end.
+        const coarse = placement ?? 'inside';
+        // A placement/orientation array cascades through the engine; a hideable label routes even for a
+        // single placement so a no-fit label can be dropped and hidden.
+        if (barLabelResolvesPlacement(label.placement) || !label.collision.alwaysShow) {
+            const coarseList = toArray(label.placement);
+            if (coarseList.length === 0) coarseList.push('inside');
+            const orientations = toArray(label.orientation);
+            if (orientations.length === 0) orientations.push('horizontal');
+            const plotRegion = this.resolveLabelPlotRegion(label.collision);
+            const buildCandidates = (text: NormalisedTextOrSegments, end: 'start' | 'end') => {
+                const size = measureLabelText(text, label);
+                return buildBarLabelCandidates({
+                    // A reversed value axis flips which rect edge the start/end candidates anchor to.
+                    isUpward: !ctx.yReversed,
+                    isVertical: !barAlongX,
+                    placements: coarseList.map((c): _ModuleSupport.BarLabelPlacement => `${c}-${end}`),
+                    orientations,
+                    spacing: label.spacing,
+                    threshold,
+                    label,
+                    textWidth: size.width,
+                    textHeight: size.height,
+                    rect: rectBox,
+                    plotRegion,
+                    fitted: ctx.labelFit != null,
+                });
+            };
+            bakeFirstCandidate(low, buildCandidates(yLowText, 'start'));
+            bakeFirstCandidate(high, buildCandidates(yHighText, 'end'));
+        } else {
+            low.candidates = undefined;
+            high.candidates = undefined;
+            low.placement = `${coarse}-start`;
+            high.placement = `${coarse}-end`;
+        }
+        low.hidden = false;
+        high.hidden = false;
     }
 
     protected override nodeFactory() {
@@ -1308,6 +1408,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
+        const crispCentreDirection = this.getCategoryCrispDirection();
 
         const fillBBox = this.getShapeFillBBox();
 
@@ -1329,7 +1430,20 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                 datum.crisp,
                 undefined
             );
+            rect.crispCentreDirection = crispCentreDirection;
         });
+    }
+
+    getLabelObstacles() {
+        const { label } = this.properties;
+        const box = expandPlacementLabelBoxExtent(label);
+        // labelData is the flattened low+high labels, so each element is itself a baked label.
+        return barLabelObstacles(
+            this.contextNodeData?.nodeData,
+            this.contextNodeData?.labelData,
+            this.isLabelEnabled() && !this.usesPlacedLabels,
+            (labelDatum) => ({ label: labelDatum, config: label, box })
+        );
     }
 
     override getLabelData(): PointLabelDatum[] {
@@ -1338,24 +1452,66 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         // Inflate the measured text by the label's drawn box (padding + border stroke) so orientation
         // resolution avoids the box, not just the text.
         const box = expandPlacementLabelBoxExtent(label);
-        return buildBarLabelData(this.contextNodeData?.labelData, (labelDatum) => {
-            if (labelDatum.text === '') return { label: labelDatum, config: label };
+        const collideWith = label.collision.resolveCollideWith();
+        const alwaysShow = label.collision.alwaysShow;
+        const fitFor = resolveLabelFitDescriptors(label, box, !alwaysShow);
+        const data: PointLabelDatum[] = [];
+        for (const labelDatum of this.contextNodeData?.labelData ?? []) {
+            if (labelDatum.text === '') {
+                data.push(
+                    ...buildBarLabelData([labelDatum], () => ({ label: labelDatum, config: label, collideWith }))
+                );
+                continue;
+            }
             const { width, height } = measureLabelText(labelDatum.text, label);
-            return {
-                label: labelDatum,
-                config: label,
-                size: { width: width + box.left + box.right, height: height + box.top + box.bottom },
-            };
-        });
+            const size = { width: width + box.left + box.right, height: height + box.top + box.bottom };
+            // A cascading label carries pre-positioned candidates; an orientation-only array resolves its
+            // orientation against the bar region via the baked path.
+            if (labelDatum.candidates == null) {
+                data.push(
+                    ...buildBarLabelData([labelDatum], () => ({
+                        label: labelDatum,
+                        config: label,
+                        size,
+                        collideWith,
+                        fit: fitFor(labelDatum.text),
+                    }))
+                );
+            } else {
+                const ownBox = labelDatum.ownBox ?? { x: labelDatum.x, y: labelDatum.y, width: 0, height: 0 };
+                data.push(
+                    buildBarPositionedLabelDatum(
+                        labelDatum.text,
+                        size.width,
+                        size.height,
+                        labelDatum.candidates,
+                        labelDatum,
+                        ownBox,
+                        alwaysShow,
+                        collideWith,
+                        true,
+                        fitFor(labelDatum.text)
+                    )
+                );
+            }
+        }
+        return data;
     }
 
     override updatePlacedLabelData(placed: PlacedLabel<RangeBarNodeLabelDatum>[]) {
         applyBarLabelOrientation(placed);
+        // yLow and yHigh route independently, so only the colliding end is hidden.
+        applyPlacedBarLabelVisibility(
+            this.contextNodeData?.labelData,
+            placed,
+            (labelDatum) => labelDatum as Mutable<RangeBarNodeLabelDatum>
+        );
         this.refreshPlacedLabelNodes();
     }
 
     protected override resolveUsesPlacedLabels(): boolean {
-        return barLabelResolvesOrientation(this.properties.label.orientation);
+        const { label } = this.properties;
+        return barLabelRoutesThroughEngine(label.orientation, label.placement, label.collision.alwaysShow);
     }
 
     protected override updateLabelSelection(opts: {
@@ -1386,8 +1542,15 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const { label } = this.properties;
         opts.labelSelection.each((textNode, datum) => {
+            if (datum.hidden) {
+                textNode.visible = false;
+                return;
+            }
             textNode.fillOpacity = this.getHighlightStyle(isHighlight, datum?.datumIndex).opacity ?? 1;
-            const placementStyle = pickPlacementStyle(label, datum.placement);
+            const placementStyle = pickPlacementStyle(
+                label,
+                datum.placement == null ? undefined : toResolvedPlacement(datum.placement)
+            );
             updateLabelNode(
                 this,
                 textNode,

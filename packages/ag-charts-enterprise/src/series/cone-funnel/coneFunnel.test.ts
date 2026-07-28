@@ -10,9 +10,13 @@ import { AgCharts, _ModuleSupport } from 'ag-charts-community';
 import {
     type Chart,
     MIN_TOOLTIP_HIDE_DELAY,
+    type SceneGeometrySample,
     clickAction,
     compareImageSnapshot,
+    createSceneGeometrySampler,
     deproxy,
+    expectAnimatedEndpointsMatchStatic,
+    expectSceneTrajectory,
     expectWarningsCalls,
     hoverAction,
     setupMockCanvas,
@@ -21,7 +25,12 @@ import {
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { prepareEnterpriseTestOptions } from '../../test/utils';
+import {
+    funnelLabelFadeIn,
+    funnelLabelOpacities,
+    funnelPathReveal,
+    prepareEnterpriseTestOptions,
+} from '../../test/utils';
 
 const CONE_FUNNEL_EXAMPLE: AgChartOptions = {
     title: {
@@ -452,6 +461,105 @@ describe('ConeFunnelSeries', () => {
 
             expectWarningsCalls().toEqual([]);
             await compare();
+        });
+    });
+
+    describe('animation', () => {
+        const frames = spyOnAnimationFrames();
+
+        const DATA = [
+            { group: 'Qualify', value: 7910 },
+            { group: 'Develop', value: 8170 },
+            { group: 'Propose', value: 7260 },
+            { group: 'Close', value: 4460 },
+        ];
+        const UPDATED = [
+            { group: 'Qualify', value: 9500 },
+            { group: 'Develop', value: 5000 },
+            { group: 'Propose', value: 7260 },
+            { group: 'Close', value: 4460 },
+        ];
+
+        const animated = (data: object[]): AgChartOptions =>
+            prepareEnterpriseTestOptions({
+                animation: { enabled: true },
+                data,
+                series: [{ type: 'cone-funnel', stageKey: 'group', valueKey: 'value' }],
+                legend: { enabled: true },
+            });
+
+        const isLabelKey = (key: string) => /^series\[0\]\/labels\/text\[/.test(key);
+        const expectLabelsStartHidden = (frame0: SceneGeometrySample) => {
+            const opacities = funnelLabelOpacities(frame0, isLabelKey);
+            expect(opacities.length, 'labels present at frame 0').toBeGreaterThan(0);
+            expect(Math.max(...opacities), 'labels hidden at frame 0').toBeLessThanOrEqual(0.01);
+        };
+        const lineSpan = (sample: SceneGeometrySample, key: string) => {
+            const line = sample.get(key)!;
+            return line.x2 - line.x1;
+        };
+
+        // Initial load: the connector fan opens out (funnelPathReveal) and the labels fade in — the
+        // shared BaseFunnelSeries animation — while the stage `Line` nodes snap straight to their final
+        // geometry (ConeFunnelSeries does not tween its datum lines).
+        it('initial load: connectors fan out and labels fade in while the stage lines snap', async () => {
+            chart = deproxy(AgCharts.create(animated(DATA)));
+            const sampler = createSceneGeometrySampler(chart);
+            const trajectory = await frames.captureAnimationFrames(chart, sampler);
+            await frames.runToEnd(chart);
+
+            // Anti-vacuity: every connector starts collapsed to a zero-width edge, every label invisible.
+            for (const [key, props] of trajectory[0]) {
+                if (/^series\[0\]\/path\[/.test(key) && props.width != null) {
+                    expect(props.width, `${key} width at frame 0`).toBeLessThanOrEqual(0.5);
+                }
+            }
+            expectLabelsStartHidden(trajectory[0]);
+
+            expectSceneTrajectory(trajectory, {
+                'series[0]/path[]': funnelPathReveal('initial'),
+                'series[0]/path[#2]': funnelPathReveal('initial'),
+                'series[0]/path[#3]': funnelPathReveal('initial'),
+                'series[0]/labels/text[*]': { opacity: funnelLabelFadeIn },
+                // The datum lines hold at their settled geometry from the first frame (they snap).
+                'series[0]/line[*]': 'constant',
+            });
+        });
+
+        // Data update: the labels re-fade; the stage lines and the connectors both snap to their new
+        // positions on the first frame (base halts the connector motion on a waiting update, and the
+        // cone lines never tween). captureSnap because those snaps trip captureUpdate's start anchor.
+        it('data update: labels re-fade while the lines and connectors snap', async () => {
+            const proxy = AgCharts.create(animated(DATA));
+            chart = deproxy(proxy);
+            const sampler = createSceneGeometrySampler(chart);
+            const { trajectory, before, after } = await frames.captureSnap(chart, sampler, () =>
+                proxy.updateDelta({ data: UPDATED })
+            );
+
+            // Anti-vacuity: labels re-fade from 0, and a stage line genuinely reshapes end-to-end.
+            expectLabelsStartHidden(trajectory[0]);
+            expect(
+                Math.abs(lineSpan(after, 'series[0]/line[Develop]') - lineSpan(before, 'series[0]/line[Develop]'))
+            ).toBeGreaterThan(20);
+
+            expectSceneTrajectory(trajectory, {
+                'series[0]/labels/text[*]': { opacity: funnelLabelFadeIn },
+                'series[0]/line[*]': 'constant',
+                'series[0]/path[]': 'constant',
+                'series[0]/path[#2]': 'constant',
+                'series[0]/path[#3]': 'constant',
+                'axis[left]/*': 'any',
+                'axis[bottom]/*': 'any',
+            });
+        });
+
+        // Pixel endpoint guard: the animated reveal and the data update must each settle at exactly the
+        // pixels a snapped render of the same options produces.
+        it('animated endpoints match a static render (initial load + data update)', async () => {
+            const opts = animated(DATA);
+            chart = AgCharts.create(opts);
+            await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, opts, animated(UPDATED));
         });
     });
 });

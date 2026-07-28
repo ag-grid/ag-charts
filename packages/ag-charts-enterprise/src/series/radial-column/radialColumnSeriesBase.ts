@@ -60,10 +60,9 @@ class RadialColumnSeriesNodeEvent<
         nativeEvent: Event,
         datum: RadialColumnNodeDatum,
         series: RadialColumnSeriesBase<any>,
-        selectionState: SelectionState | undefined,
-        isCollapsed: boolean
+        selectionState: SelectionState | undefined
     ) {
-        super(type, nativeEvent, datum, series, selectionState, isCollapsed);
+        super(type, nativeEvent, datum, series, selectionState);
         this.angleKey = series.properties.angleKey;
         this.radiusKey = series.properties.radiusKey;
     }

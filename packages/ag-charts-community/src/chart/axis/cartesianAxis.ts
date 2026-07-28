@@ -396,9 +396,18 @@ export abstract class CartesianAxis<
             }
         }
 
-        const { ticks, tickDomain, rawTicks, rawTickCount, fractionDigits, timeInterval, niceDomain } = tickData;
+        const {
+            ticks,
+            tickDomain,
+            rawTicks,
+            rawTickCount,
+            fractionDigits,
+            timeInterval,
+            niceDomain,
+            rawFirstTickIndex,
+        } = tickData;
 
-        this.setPickTickData(ticks);
+        this.setPickTickData(ticks, rawFirstTickIndex);
 
         const labels = ticks.map((d) => this.getTickLabelProps(d, tickGenerationResult, scrollbarThickness));
 

@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
 import {
+    type AgChartInstance,
     type AgChartOptions,
     AgCharts,
     type AgPolarChartOptions,
@@ -14,14 +15,21 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     MIN_UNHIGHLIGHT_DELAY,
     type MockRadialColumnStyler,
+    type SceneFrameInvariant,
+    type SceneGeometrySample,
     compareImageSnapshot,
+    createSceneGeometrySampler,
     deproxy,
+    expectAnimatedEndpointsMatchStatic,
+    expectMonotonic,
+    expectProgresses,
+    expectSceneTrajectory,
     expectWarningsCalls,
     hoverAction,
     newFreezableMock,
     setupMockCanvas,
     setupMockConsole,
-    spyOnAnimationManager,
+    spyOnAnimationFrames,
     testLegendItemName,
     waitForChartStability,
 } from 'ag-charts-community-test';
@@ -216,98 +224,195 @@ describe('RadialBarSeries', () => {
         await compare();
     });
 
-    describe('initial animation', () => {
-        const animate = spyOnAnimationManager();
+    // The public animation data actions — initial load, add/remove/update data — asserted over the whole
+    // animation trajectory (see the animation-trajectory-tests rule) rather than as per-ratio image
+    // snapshots. Only the empty→ready reveal animates: each bar sweeps its angular span out from a shared
+    // start-angle anchor (the angle-axis origin) while its radius band holds. A data update, add, or
+    // partial remove on an already-populated series snaps to the settled state with no tween.
+    describe('animation -test page actions', () => {
+        const frames = spyOnAnimationFrames();
 
-        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-            it(`for EXAMPLE_OPTIONS should animate at ${ratio * 100}%`, async () => {
-                animate(1200, ratio);
-
-                const options: AgChartOptions = { ...EXAMPLE_OPTIONS };
-                prepareEnterpriseTestOptions(options);
-
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
-                await compare();
+        type Row = { quarter: string; air: number; winds: number };
+        const RB_DATA: Row[] = [
+            { quarter: `Q1'22`, air: 4.35, winds: 2.14 },
+            { quarter: `Q2'22`, air: 4.28, winds: 3.13 },
+            { quarter: `Q3'22`, air: 4.14, winds: 3.34 },
+            { quarter: `Q4'22`, air: 3.48, winds: 3.56 },
+        ];
+        // A pinned angle axis keeps the value→angle scaling fixed across data mutations, so a bar's span
+        // tracks its value directly and the radius bands only re-layout when categories are added/removed.
+        const radialBarOptions = (data: Row[] = RB_DATA): AgPolarChartOptions =>
+            prepareEnterpriseTestOptions<AgPolarChartOptions>({
+                data: [...data],
+                series: [
+                    { type: 'radial-bar', angleKey: 'air', radiusKey: 'quarter' },
+                    { type: 'radial-bar', angleKey: 'winds', radiusKey: 'quarter' },
+                ],
+                axes: {
+                    angle: { type: 'angle-number', min: 0, max: 10, nice: false },
+                    radius: { type: 'radius-category' },
+                },
+                legend: { enabled: true },
             });
-        }
-    });
+        const grow = (data: Row[]) => data.map((d) => ({ ...d, air: d.air * 1.8 }));
 
-    describe('remove animation', () => {
-        const animate = spyOnAnimationManager();
+        const sectorEntries = (sample: SceneGeometrySample) =>
+            [...sample].filter(([key]) => /^series\[\d+\]\/sector\[/.test(key));
+        const sectorCount = (sample: SceneGeometrySample) => sectorEntries(sample).length;
+        const spanOf = (sample: SceneGeometrySample, key: string): number | undefined => {
+            const s = sample.get(key);
+            return s == null ? undefined : s.endAngle - s.startAngle;
+        };
+        const spans = (trajectory: SceneGeometrySample[], key: string): number[] =>
+            trajectory.map((f) => spanOf(f, key)).filter((v): v is number => v != null && Number.isFinite(v));
+        const maxSpan = (sample: SceneGeometrySample) =>
+            Math.max(...sectorEntries(sample).map(([, v]) => v.endAngle - v.startAngle));
+        // The per-bar labels start collapsed at opacity ~0 on the first captured frame, so the
+        // trailing-phase fade-in specs cannot pass vacuously — a regression that snapped them straight
+        // to full opacity would trip this.
+        const expectLabelsStartHidden = (trajectory: SceneGeometrySample[]) => {
+            const hidden = [...trajectory[0]].filter(([key]) => /^series\[\d+\]\/labels\/text\[.+\]$/.test(key));
+            expect(hidden.length, 'label nodes at frame 0').toBeGreaterThan(0);
+            for (const [key, props] of hidden) {
+                expect(props.opacity, `${key} opacity at frame 0`).toBeLessThanOrEqual(0.01);
+            }
+        };
 
-        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-            it(`for EXAMPLE_OPTIONS should animate at ${ratio * 100}%`, async () => {
-                animate(1200, 1);
+        it('initial load: each bar sweeps its span from a shared start-angle anchor', async () => {
+            const proxy = AgCharts.create(radialBarOptions());
+            chart = deproxy(proxy);
+            const sampleScene = createSceneGeometrySampler(proxy);
+            const trajectory = await frames.captureAnimationFrames(proxy, sampleScene);
+            await frames.runToEnd(proxy);
+            const sectorKeys = sectorEntries(sampleScene()).map(([key]) => key);
+            expect(sectorKeys).toHaveLength(8);
 
-                const options: AgChartOptions = { ...EXAMPLE_OPTIONS };
-                prepareEnterpriseTestOptions(options);
+            // Every bar advances by one shared sweep fraction on each frame — the desync detector.
+            const barsSweepInSync: SceneFrameInvariant = {
+                name: 'all bars share one angular sweep fraction',
+                check: (frame) => {
+                    const fractions: number[] = [];
+                    for (const key of sectorKeys) {
+                        const current = spanOf(frame, key);
+                        const target = spans(trajectory, key).at(-1);
+                        if (current == null || target == null || target < 0.2) continue;
+                        fractions.push(current / target);
+                    }
+                    if (fractions.length < 2) return undefined;
+                    const spread = Math.max(...fractions) - Math.min(...fractions);
+                    return spread > 0.1 ? `sweep fractions desynced by ${spread.toFixed(3)}` : undefined;
+                },
+            };
 
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
+            // Each bar's endAngle sweeps out during 'initial' from the fixed startAngle anchor; the anchor
+            // and the radius band (unlisted props) hold constant. The per-bar labels fade in during the
+            // trailing phase, after the sweep.
+            const angularSweep = {
+                startAngle: 'constant',
+                endAngle: { during: 'initial', expect: ['increases', 'bounded'] },
+            } as const;
+            const labelFadeIn = {
+                opacity: { during: 'trailing', expect: ['increases', 'bounded'] },
+                x: 'any',
+                y: 'any',
+            } as const;
+            expectSceneTrajectory(
+                trajectory,
+                {
+                    'series[0]/sector[*]': angularSweep,
+                    'series[1]/sector[*]': angularSweep,
+                    'series[0]/labels/text[*]': labelFadeIn,
+                    'series[1]/labels/text[*]': labelFadeIn,
+                },
+                { frameInvariants: [barsSweepInSync] }
+            );
+            expectLabelsStartHidden(trajectory);
 
-                chart.updateDelta({
-                    data: options.data!.slice(0, 4),
-                });
-                animate(1200, ratio);
+            // Anti-vacuity: every bar's span starts collapsed (~0) at the anchor and sweeps to a real
+            // angle — a snap regression would show frame 0 already at the target span.
+            for (const key of sectorKeys) {
+                const span = spans(trajectory, key);
+                expect(span[0], `${key} span collapsed at frame 0`).toBeLessThanOrEqual(0.02);
+                expectMonotonic(span, 'increasing');
+                expectProgresses(span);
+                expect(span.at(-1)! - span[0], `${key} angular sweep`).toBeGreaterThan(0.2);
+            }
+        });
 
-                await waitForChartStability(chart);
-                await compare();
+        it('update data: value changes snap into place without a tween', async () => {
+            const options = radialBarOptions();
+            const proxy = AgCharts.create(options);
+            chart = deproxy(proxy);
+            const sampleScene = createSceneGeometrySampler(proxy);
+            const { before, trajectory, after } = await frames.captureSnap(proxy, sampleScene, () =>
+                (proxy as AgChartInstance).update({ ...options, data: grow(RB_DATA) } as AgPolarChartOptions)
+            );
+            // The update actually swept the air bars wider (anti-vacuity for the snap assertion)...
+            expect(maxSpan(after) - maxSpan(before), 'bars swept wider').toBeGreaterThan(0.5);
+            // ...and the whole scene held constant across the captured frames: it landed fully formed on
+            // frame 0 with no tween anywhere (a regression that tweened the sweep would break this).
+            expectSceneTrajectory(trajectory);
+        });
+
+        it('add data: new bars appear fully formed without animating in', async () => {
+            const options = radialBarOptions();
+            const proxy = AgCharts.create({ ...options, data: RB_DATA.slice(0, 3) } as AgPolarChartOptions);
+            chart = deproxy(proxy);
+            const sampleScene = createSceneGeometrySampler(proxy);
+            const { before, trajectory, after } = await frames.captureSnap(proxy, sampleScene, () =>
+                (proxy as AgChartInstance).update({ ...options, data: [...RB_DATA] } as AgPolarChartOptions)
+            );
+            expect(sectorCount(before), 'three quarters before').toBe(6);
+            expect(sectorCount(after), 'four quarters after').toBe(8);
+            expect(sectorCount(trajectory[0]), 'added bars present from frame 0').toBe(8);
+            expectSceneTrajectory(trajectory);
+        });
+
+        it('remove data: dropped bars disappear without collapsing', async () => {
+            const options = radialBarOptions();
+            const proxy = AgCharts.create(options);
+            chart = deproxy(proxy);
+            const sampleScene = createSceneGeometrySampler(proxy);
+            const { before, trajectory, after } = await frames.captureSnap(proxy, sampleScene, () =>
+                (proxy as AgChartInstance).update({ ...options, data: RB_DATA.slice(0, 3) } as AgPolarChartOptions)
+            );
+            expect(sectorCount(before), 'four quarters before').toBe(8);
+            expect(sectorCount(after), 'three quarters after').toBe(6);
+            expect(sectorCount(trajectory[0]), 'dropped bars gone from frame 0').toBe(6);
+            expectSceneTrajectory(trajectory);
+        });
+
+        // Endpoint sanity guards: the animated reveal into `before` and the snapped transition into
+        // `after` must settle at exactly the pixels a non-animated render of the same options produces.
+        it('sanity: update-data endpoints match static renders', async () => {
+            const before = radialBarOptions();
+            const proxy = AgCharts.create(before);
+            chart = deproxy(proxy);
+            await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), proxy, before, {
+                ...before,
+                data: grow(RB_DATA),
             });
-        }
-    });
+        });
 
-    describe('add animation', () => {
-        const animate = spyOnAnimationManager();
-
-        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-            it(`for EXAMPLE_OPTIONS should animate at ${ratio * 100}%`, async () => {
-                animate(1200, 1);
-
-                const { data: fullData } = EXAMPLE_OPTIONS;
-                const options: AgChartOptions = { ...EXAMPLE_OPTIONS, data: fullData?.slice(0, 4) };
-                prepareEnterpriseTestOptions(options);
-
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
-
-                chart.updateDelta({
-                    data: fullData,
-                });
-                animate(1200, ratio);
-
-                await waitForChartStability(chart);
-                await compare();
+        it('sanity: add-data endpoints match static renders', async () => {
+            const before = { ...radialBarOptions(), data: RB_DATA.slice(0, 3) } as AgPolarChartOptions;
+            const proxy = AgCharts.create(before);
+            chart = deproxy(proxy);
+            await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), proxy, before, {
+                ...radialBarOptions(),
+                data: [...RB_DATA],
             });
-        }
-    });
+        });
 
-    describe('update animation', () => {
-        const animate = spyOnAnimationManager();
-
-        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-            it(`for EXAMPLE_OPTIONS should animate at ${ratio * 100}%`, async () => {
-                animate(1200, 1);
-
-                const options: AgChartOptions = { ...EXAMPLE_OPTIONS };
-                prepareEnterpriseTestOptions(options);
-
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
-
-                chart.updateDelta({
-                    data: options.data!.map((d: any) => {
-                        return Object.entries(d).reduce((obj, [key, value], i) => {
-                            return Object.assign(obj, { [key]: typeof value === 'number' ? value * i : value });
-                        }, {});
-                    }),
-                });
-                animate(1200, ratio);
-
-                await waitForChartStability(chart);
-                await compare();
+        it('sanity: remove-data endpoints match static renders', async () => {
+            const before = radialBarOptions();
+            const proxy = AgCharts.create(before);
+            chart = deproxy(proxy);
+            await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), proxy, before, {
+                ...before,
+                data: RB_DATA.slice(0, 3),
             });
-        }
+        });
     });
 
     describe('gradient fill', () => {

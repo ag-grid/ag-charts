@@ -1,15 +1,19 @@
-import type { DynamicContext, SeriesModuleDefinition } from 'ag-charts-core';
 import {
     ChartAxisDirection,
     DEFAULT_SHADOW_COLOUR,
     DIRECTION_SWAP_AXES,
+    type DynamicContext,
     FILL_GRADIENT_LINEAR_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
     LABEL_BOXING_TOP_LEVEL_DEFAULTS,
+    LABEL_OVERFLOW_ALWAYS_SHOW,
+    LABEL_OVERFLOW_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
     SEGMENTATION_DEFAULTS,
     SERIES_SELECTION_THEME,
+    type SeriesModuleDefinition,
+    undocumentedThemeOptions,
 } from 'ag-charts-core';
 import type { AgBarSeriesOptions, ExtensibleTheme } from 'ag-charts-types';
 
@@ -39,13 +43,18 @@ const themeTemplate: ExtensibleTheme<'bar'> = {
         lineDashOffset: 0,
         label: {
             ...LABEL_BOXING_TOP_LEVEL_DEFAULTS,
+            ...LABEL_OVERFLOW_DEFAULTS,
             enabled: false,
             fontWeight: { $ref: 'fontWeight' },
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },
             spacing: 8,
             padding: 8,
-            collision: { threshold: 4 },
+            collision: {
+                threshold: 4,
+                alwaysShow: LABEL_OVERFLOW_ALWAYS_SHOW,
+                ...undocumentedThemeOptions({ collideWith: { seriesItems: true } }),
+            },
             insideStyle: {
                 color: { $isUserOption: ['../color', { $path: '../color' }, { $ref: 'chartBackgroundColor' }] },
             },

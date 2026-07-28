@@ -1,5 +1,12 @@
 import { type AgRangeAreaSeriesItemType, type AgSeriesMarkerStyle, _ModuleSupport } from 'ag-charts-community';
-import { type NormalisedTextOrSegments, type Point, areScalingEqual, isScaleValid } from 'ag-charts-core';
+import {
+    type LabelPlacement,
+    type NormalisedTextOrSegments,
+    type Point,
+    type PointLabelDatum,
+    areScalingEqual,
+    isScaleValid,
+} from 'ag-charts-core';
 
 import { type RangeAreaMarkerDatum } from './rangeAreaProperties';
 
@@ -11,14 +18,16 @@ const {
     prepareLinePathPropertyAnimation,
 } = _ModuleSupport;
 
-export interface RangeAreaLabelDatum extends Readonly<Point> {
+export interface RangeAreaLabelDatum extends Readonly<Point>, PointLabelDatum {
     datumIndex: number;
     text: NormalisedTextOrSegments;
     textAlign: CanvasTextAlign;
     textBaseline: CanvasTextBaseline;
     rotation: number;
-    /** Resolved inside/outside placement, selecting the `insideStyle`/`outsideStyle` overrides. */
-    placement?: _ModuleSupport.ResolvedLabelPlacement;
+    /** Compass placement the engine resolved, coarsened back to inside/outside for the placement styles. */
+    readonly placement: LabelPlacement | undefined;
+    /** The band side this label draws against, already flipped for an inverted datum. */
+    readonly valueSide: AgRangeAreaSeriesItemType;
     datum: any;
     readonly itemId?: never;
     readonly itemType: AgRangeAreaSeriesItemType;

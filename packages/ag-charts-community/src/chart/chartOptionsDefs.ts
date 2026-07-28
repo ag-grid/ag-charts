@@ -43,9 +43,9 @@ export const commonChartOptions = {
     mode: undocumented(union('integrated', 'standalone')),
     withinStudio: undocumented(boolean),
     loading: boolean,
-    validations: {
+    validations: undocumented({
         overlayLevel: union('error', 'warning', 'deprecation', 'none'),
-    },
+    }),
     container: htmlElement,
     context: () => true,
     theme: defined,

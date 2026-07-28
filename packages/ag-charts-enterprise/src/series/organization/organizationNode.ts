@@ -2,7 +2,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 import { type NormalisedTextOrSegments, wrapTextOrSegments } from 'ag-charts-core';
 import type { AgNetworkSeriesTreeLayoutDirection, TextAlign } from 'ag-charts-types';
 
-import { layoutScenesColumn, layoutScenesRow } from '../../utils/sceneLayout';
+import { type PositionedScene, layoutScenesColumn, layoutScenesRow } from '../../utils/sceneLayout';
 import type {
     NormalisedOrganizationNodeStyle,
     NormalisedOrganizationNodeTextStyle,
@@ -448,20 +448,38 @@ class OrganizationExpanderNode extends _ModuleSupport.TranslatableGroup {
         direction: AgNetworkSeriesTreeLayoutDirection,
         styles: NormalisedOrganizationNodeStyle
     ) {
-        const horizontalLayout = direction === 'left' || direction === 'right';
-
         this.shapeNode ??= this.appendChild(new _ModuleSupport.Rect({ tag: OrganizationNodeTag.Expander }));
 
-        this.countNode ??= this.appendChild(new _ModuleSupport.Text({ tag: OrganizationNodeTag.Expander }));
-        if (horizontalLayout) {
-            this.countNode.x = styles.expander.padding.left;
+        if (expanderText == '') {
+            this.removeCountNode();
         } else {
-            this.countNode.y = styles.expander.padding.top;
+            this.updateCountNode(expanderText, styles);
         }
 
-        this.countNode.text = expanderText;
-        applyTextStyles(this.countNode, styles.expander.text);
+        this.updateChevronNode(isCollapsed, direction, styles);
+        const bbox = this.layoutNodes(isRtl, direction, styles);
+        this.updateShapeNode(bbox, styles);
+    }
 
+    private updateCountNode(expanderText: NormalisedTextOrSegments, styles: NormalisedOrganizationNodeStyle) {
+        this.countNode ??= this.appendChild(new _ModuleSupport.Text({ tag: OrganizationNodeTag.Expander }));
+        this.countNode.text = expanderText;
+
+        this.countNode.y = styles.expander.padding.top;
+        applyTextStyles(this.countNode, styles.expander.text);
+    }
+
+    private removeCountNode() {
+        if (!this.countNode) return;
+        this.countNode.remove();
+        this.countNode = undefined;
+    }
+
+    private updateChevronNode(
+        isCollapsed: boolean,
+        direction: AgNetworkSeriesTreeLayoutDirection,
+        styles: NormalisedOrganizationNodeStyle
+    ) {
         this.chevronNode ??= this.appendChild(new ChevronPath({ tag: OrganizationNodeTag.Expander }));
 
         let chevronDirection: 'up' | 'down' | 'left' | 'right' = 'down';
@@ -490,32 +508,10 @@ class OrganizationExpanderNode extends _ModuleSupport.TranslatableGroup {
             chevronDirection,
             styles
         );
+    }
 
-        if (horizontalLayout) {
-            this.chevronNode.translationX =
-                styles.expander.padding.left + this.countNode.getBBox().width / 2 - this.chevronNode.getBBox().width;
-        } else {
-            this.chevronNode.translationY = styles.expander.padding.top + styles.expander.text.fontSize / 2;
-        }
-
-        const padding = { ...styles.expander.padding };
-
-        if (horizontalLayout) {
-            layoutScenesColumn([this.countNode, this.chevronNode], styles.expander.padding.top, [
-                this.chevronNode.getBBox().height,
-            ]);
-
-            // Adjust the padding bottom slightly to account for differences in bounding boxes of the two nodes
-            padding.bottom += 3;
-        } else {
-            layoutScenesRow(
-                isRtl ? [this.chevronNode, this.countNode] : [this.countNode, this.chevronNode],
-                styles.expander.padding.left,
-                [styles.expander.text.fontSize]
-            );
-        }
-
-        const bbox = _ModuleSupport.Group.computeChildrenBBox([this.countNode, this.chevronNode]).grow(padding);
+    private updateShapeNode(bbox: _ModuleSupport.BBox, styles: NormalisedOrganizationNodeStyle) {
+        if (!this.shapeNode) return;
 
         this.shapeNode.x = 0;
         this.shapeNode.y = 0;
@@ -525,6 +521,43 @@ class OrganizationExpanderNode extends _ModuleSupport.TranslatableGroup {
         applyFillStyles(this.shapeNode, styles.expander);
         applyStrokeStyles(this.shapeNode, styles.expander);
         this.shapeNode.cornerRadius = styles.expander.cornerRadius;
+    }
+
+    private layoutNodes(
+        isRtl: boolean,
+        direction: AgNetworkSeriesTreeLayoutDirection,
+        styles: NormalisedOrganizationNodeStyle
+    ) {
+        const padding = { ...styles.expander.padding };
+
+        const nodes: PositionedScene[] = [];
+        if (this.countNode) nodes.push(this.countNode);
+        if (this.chevronNode) nodes.push(this.chevronNode);
+        if (isRtl) nodes.reverse();
+
+        layoutScenesRow(nodes, styles.expander.padding.left, [styles.expander.text.fontSize]);
+
+        // Vertically center the chevron node.
+        if (this.chevronNode) {
+            const countHeight = this.countNode ? this.countNode.getBBox().height : styles.expander.text.fontSize;
+
+            // When the chevron is rotated, its height is actually its width.
+            const chevronHeight =
+                direction === 'left' || direction === 'right'
+                    ? this.chevronNode.getBBox().width
+                    : this.chevronNode.getBBox().height;
+
+            this.chevronNode.translationY = styles.expander.padding.top + (countHeight - chevronHeight) / 2;
+        }
+
+        const bbox = _ModuleSupport.Group.computeChildrenBBox(nodes).grow(padding);
+
+        // Fix the height of the expander when there is no count node, since the chevron is smaller than the text.
+        if (this.countNode == null) {
+            bbox.height = styles.expander.padding.top + styles.expander.padding.bottom + styles.expander.text.fontSize;
+        }
+
+        return bbox;
     }
 }
 

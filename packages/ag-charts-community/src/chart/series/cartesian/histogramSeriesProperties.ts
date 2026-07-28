@@ -23,7 +23,7 @@ import type {
 import type { BBox } from '../../../scene/bbox';
 import { DropShadow } from '../../../scene/dropShadow';
 import { Label, LabelPlacementStyle } from '../../label';
-import type { ResolvedLabelPlacement } from '../../labelUtil';
+import type { BarLabelPlacement, BarPositionedCandidate } from '../../labelUtil';
 import { makeSeriesTooltip } from '../seriesTooltip';
 import { CartesianSeriesProperties } from './cartesianSeries';
 import type { CartesianSeriesNodeDatum } from './cartesianSeriesTypes';
@@ -48,17 +48,23 @@ export interface HistogramNodeDatum extends CartesianSeriesNodeDatum {
     readonly frequency: number;
     readonly label?: {
         readonly text: NormalisedTextOrSegments;
-        readonly x: number;
-        readonly y: number;
-        readonly textAlign: CanvasTextAlign;
-        readonly textBaseline: CanvasTextBaseline;
+        // Mutable so the placement engine can retarget the label to a chosen candidate's anchor.
+        x: number;
+        y: number;
+        textAlign: CanvasTextAlign;
+        textBaseline: CanvasTextBaseline;
         rotation: number;
         /** Bar rect an orientation candidate must fit within; unset for outside placements. */
         readonly region?: BoxBounds;
         /** Flush offset written by the placement engine to keep a rotated label inside its region. */
         offsetX?: number;
         offsetY?: number;
-        placement?: ResolvedLabelPlacement;
+        /** Granular resolved placement, coarsened to select placement styles. */
+        placement?: BarLabelPlacement;
+        /** Pre-positioned cascade candidates, present only when the label routes through the engine. */
+        candidates?: BarPositionedCandidate[];
+        /** Engine-routed label the placement engine dropped (no candidate fit); rendered invisible. */
+        hidden?: boolean;
     };
     // Required for types
     readonly crisp: boolean;

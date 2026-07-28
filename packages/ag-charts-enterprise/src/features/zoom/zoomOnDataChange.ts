@@ -7,7 +7,7 @@ import type {
     ZoomMinMax,
     ZoomMinMaxDirection,
 } from 'ag-charts-core';
-import { ChartAxisDirection, Logger, clamp, definedZoomState, isNumericValue, toNumber } from 'ag-charts-core';
+import { ChartAxisDirection, clamp, definedZoomState, isNumericValue, toNumber } from 'ag-charts-core';
 
 const { userInteraction } = _ModuleSupport;
 
@@ -72,7 +72,7 @@ function fromVisibleMinMax(domainMinMax: DomainMinMax, visibleMinMax: VisibleMin
 
 export interface ZoomOnDataChangeCtx extends Pick<
     _ModuleSupport.ChartRegistry,
-    'chartState' | 'eventsHub' | 'axisManager'
+    'chartState' | 'eventsHub' | 'axisManager' | 'logger'
 > {
     // `zoomManager` is optional on _ModuleSupport.ChartRegistry, but ZoomOnDataChange is only ever
     // instantiated by the zoom module, which guarantees its presence. Narrow once at
@@ -143,7 +143,7 @@ export class ZoomOnDataChange {
         } else if (min instanceof Date && max instanceof Date) {
             domainMinMax = { domainMin: min.getTime(), domainMax: max.getTime() };
         } else {
-            Logger.error(`Unexpected range types: start (${typeof min}), end (${typeof max})`);
+            this.ctx.logger.error(`Unexpected range types: start (${typeof min}), end (${typeof max})`);
             return;
         }
 

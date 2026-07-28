@@ -1,0 +1,152 @@
+name: Snapshot Review Run
+description: >-
+    Generate the asynchronous /snapshot-review reports for a PR and write the `snapshot-review`
+    section fragment for the consolidated PR comment. Produces up to two reports: "current PR
+    state" (committed baselines vs the merge-base with the base branch) and, when CI regenerated
+    baselines onto the snapshot branch, "regenerated" (committed baselines vs the snapshot branch).
+    Pixel review is the backbone; scene-graph review is attempted best-effort and skipped cleanly
+    when the CI scene captures are unavailable. Never fails the caller — this is advisory only.
+
+inputs:
+    snapshot_branch:
+        description: 'The gha/snapshots-<head-ref> branch name (from the init job).'
+        required: true
+    base_branch:
+        description: 'Base branch to diff the current PR state against.'
+        required: false
+        default: latest
+    scripts_root:
+        description: 'Directory containing the installed snapshot-review scripts.'
+        required: false
+        default: .ag-dev-prompts/node_modules/@ag-grid/dev-prompts/plugins/ag-eng/skills/snapshot-review
+    github_token:
+        description: 'Token for gh (scene-fetch downloads CI artifacts).'
+        required: true
+    report_base_url:
+        description: >-
+            Public base URL the HTML reports are published under (e.g. the PR-preview
+            https://<owner>.github.io/<repo>/pr-<N>/). When set, the section links straight to
+            `<base>/snapshot-<slug>.html` — one click. Leave empty to fall back to the run's
+            artifacts page (the report then has to be downloaded and unzipped).
+        required: false
+        default: ''
+
+outputs:
+    html_dir:
+        description: 'Directory holding the generated HTML report(s), for artifact upload.'
+        value: ${{ steps.run.outputs.html_dir }}
+    produced:
+        description: "'true' when a snapshot-review section was written."
+        value: ${{ steps.run.outputs.produced }}
+
+runs:
+    using: composite
+    steps:
+        - name: Generate snapshot-review reports
+          id: run
+          shell: bash
+          env:
+              SNAPSHOT_BRANCH: ${{ inputs.snapshot_branch }}
+              BASE_BRANCH: ${{ inputs.base_branch }}
+              SCRIPTS: ${{ inputs.scripts_root }}
+              GH_TOKEN: ${{ inputs.github_token }}
+              # Point the run's artifacts page from inside the section text (fallback link).
+              RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+              # Public base URL the reports are published under, when available (one-click link).
+              REPORT_BASE_URL: ${{ inputs.report_base_url }}
+          run: |
+              set -uo pipefail
+
+              COLLECT="${SCRIPTS}/snapshot-collect.sh"
+              REPORT="${SCRIPTS}/snapshot-report.py"
+              WORK="${RUNNER_TEMP}/snapreview"
+              HTML_DIR="${WORK}/html"
+              SECTIONS="${RUNNER_TEMP}/pr-sections"
+              mkdir -p "$HTML_DIR" "$SECTIONS"
+              echo "html_dir=${HTML_DIR}" >> "$GITHUB_OUTPUT"
+              echo "produced=false" >> "$GITHUB_OUTPUT"
+
+              if [[ ! -f "$COLLECT" || ! -f "$REPORT" ]]; then
+                  echo "::warning::snapshot-review scripts not found under ${SCRIPTS}; skipping."
+                  exit 0
+              fi
+
+              # PNG families: unit image snapshots (__image_snapshots__) and e2e/package (*-snapshots).
+              # These are git pathspecs — '*' matches '/', so they scope to the two snapshot dir shapes.
+              INCLUDES=(--include '*__image_snapshots__/*.png' --include '*-snapshots/*.png')
+
+              # Build one report; append its summary to the section body. Args: <label> <before> <after> <slug>
+              SECTION="${SECTIONS}/25-snapshot-review.md"
+              : > "${WORK}/section-body.md"
+              ANY=0
+
+              build_report() {
+                  local label="$1" before="$2" after="$3" slug="$4"
+                  local dir="${WORK}/${slug}"
+                  mkdir -p "$dir"
+                  echo "--- ${label}: collecting ${before}...${after}" >&2
+                  bash "$COLLECT" --before "$before" --after "$after" --out "$dir" "${INCLUDES[@]}" >&2 || {
+                      echo "::warning::collect failed for ${label}; skipping."; return 1; }
+
+                  # Skip a report with no changed images (keeps the section relevant, not noisy).
+                  if [[ ! -s "${dir}/diffs.tsv" ]]; then
+                      echo "--- ${label}: no changed snapshots" >&2
+                      return 1
+                  fi
+
+                  local html="${HTML_DIR}/snapshot-${slug}.html"
+                  local md="${dir}/summary.md"
+                  if ! python3 "$REPORT" --in "$dir" --out "$html" --summary-md "$md" \
+                        --title "Snapshot review — ${label}" >&2; then
+                      echo "::warning::report builder failed for ${label} (needs --summary-md support); skipping."
+                      return 1
+                  fi
+
+                  # For a published report, emit a deferred-link sentinel rather than the link itself:
+                  # the summary can post immediately while the report is still propagating to gh-pages,
+                  # and the caller rewrites the sentinel into a live link once the URL is reachable
+                  # (avoids a transient 404 on the freshly-posted comment). The artifacts fallback is
+                  # reachable at once, so it is linked directly.
+                  local link
+                  if [[ -n "${REPORT_BASE_URL}" ]]; then
+                      link="<!-- report-link href=\"${REPORT_BASE_URL%/}/snapshot-${slug}.html\" -->⏳ _Publishing interactive report…_"
+                  else
+                      link="[Full interactive report: \`snapshot-${slug}.html\` in run artifacts](${RUN_URL}#artifacts)"
+                  fi
+                  {
+                      echo "### ${label}"
+                      echo
+                      cat "$md"
+                      echo
+                      echo "${link}"
+                      echo
+                  } >> "${WORK}/section-body.md"
+                  ANY=1
+                  return 0
+              }
+
+              # Report A — current PR state: merge-base(base, HEAD) .. HEAD (committed baselines).
+              git fetch --no-tags --quiet origin "$BASE_BRANCH" || true
+              MB="$(git merge-base "origin/${BASE_BRANCH}" HEAD 2>/dev/null || true)"
+              if [[ -n "$MB" ]]; then
+                  build_report "Current PR state" "$MB" "HEAD" "current" || true
+              else
+                  echo "::warning::could not resolve merge-base with ${BASE_BRANCH}; skipping current-state report."
+              fi
+
+              # Report B — regenerated snapshots: HEAD .. gha/snapshots-<head-ref> (when CI pushed to it).
+              if [[ -n "${SNAPSHOT_BRANCH}" ]] && git ls-remote --exit-code --heads origin "${SNAPSHOT_BRANCH}" >/dev/null 2>&1; then
+                  git fetch --no-tags --force --quiet origin "${SNAPSHOT_BRANCH}:refs/snap/review" || true
+                  if git rev-parse --verify --quiet refs/snap/review >/dev/null; then
+                      build_report "Regenerated by CI" "HEAD" "refs/snap/review" "regenerated" || true
+                  fi
+              fi
+
+              if [[ "$ANY" -eq 1 ]]; then
+                  # [warn]: visual changes to read and confirm before merge (not a hard blocker).
+                  { echo '## [warn] Snapshot review'; echo; cat "${WORK}/section-body.md"; } > "$SECTION"
+                  echo "produced=true" >> "$GITHUB_OUTPUT"
+                  echo "Wrote ${SECTION}"
+              else
+                  echo "No snapshot changes to review; no section written."
+              fi

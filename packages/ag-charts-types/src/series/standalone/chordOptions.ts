@@ -1,5 +1,5 @@
 import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from '../../chart/callbackOptions';
-import type { AgChartLabelFitOptions, AgChartLabelOptions } from '../../chart/labelOptions';
+import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, CssColor, DatumDefault, PixelSize, Ratio } from '../../chart/types';
 import type { AgColorType, FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
@@ -73,10 +73,15 @@ export interface AgChordSeriesThemeableOptions<TDatum = DatumDefault, TContext =
     tooltip?: AgSeriesTooltip<AgChordSeriesTooltipRendererParams<TDatum, TContext>>;
 }
 
-export interface AgChordSeriesLabelOptions<TDatum, TContext = ContextDefault>
-    extends AgChartLabelOptions<TDatum, AgChordSeriesLabelFormatterParams<TDatum>, TContext>, AgChartLabelFitOptions {
+export interface AgChordSeriesLabelOptions<TDatum, TContext = ContextDefault> extends AgChartLabelOptions<
+    TDatum,
+    AgChordSeriesLabelFormatterParams<TDatum>,
+    TContext
+> {
     /** Spacing between a node and its label. */
     spacing?: PixelSize;
+    /** If the label text exceeds the maximum length, it will be truncated and an ellipsis will be appended to indicate this. */
+    maxWidth?: PixelSize;
 }
 
 export interface AgChordSeriesLinkStyle extends FillOptions, StrokeOptions, LineDashOptions {

@@ -1,6 +1,6 @@
 import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
-import type { AgChartLabelFitOptions, AgChartLabelOptions } from '../../chart/labelOptions';
+import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type {
     ContextDefault,
@@ -27,8 +27,11 @@ import type {
     AgMultiSeriesHighlightOptions,
 } from '../seriesOptions';
 
-export interface AgPieSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault>
-    extends AgChartLabelOptions<TDatum, TParams, TContext>, AgChartLabelFitOptions {
+export interface AgPieSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault> extends AgChartLabelOptions<
+    TDatum,
+    TParams,
+    TContext
+> {
     /** Distance in pixels between the callout line and the label text. */
     offset?: PixelSize;
     /** Minimum angle in degrees required for a sector to show a label. */
@@ -37,8 +40,11 @@ export interface AgPieSeriesLabelOptions<TDatum, TParams, TContext = ContextDefa
     avoidCollisions?: boolean;
 }
 
-export interface AgPieSeriesSectorLabelOptions<TDatum, TParams, TContext = ContextDefault>
-    extends AgChartLabelOptions<TDatum, TParams, TContext>, AgChartLabelFitOptions {
+export interface AgPieSeriesSectorLabelOptions<TDatum, TParams, TContext = ContextDefault> extends AgChartLabelOptions<
+    TDatum,
+    TParams,
+    TContext
+> {
     /** Distance in pixels, used to make the label text closer to or further from the center. This offset is applied after positionRatio. */
     positionOffset?: PixelSize;
     /** Position of labels as a ratio proportional to pie radius. Additional offset in pixels can be applied by using positionOffset. */

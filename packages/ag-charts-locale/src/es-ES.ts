@@ -25,6 +25,7 @@ export const AG_CHARTS_LOCALE_ES_ES: Record<string, string> = {
     ariaOrgChartExpanded: 'expandido',
     ariaDescriptionExpandNode: 'Presiona Alt + Flecha abajo para expandir este nodo',
     ariaDescriptionCollapseNode: 'Presiona Alt + Flecha arriba para contraer este nodo',
+    ariaDescriptionToggleNode: 'Presiona Space o Enter para expandir o contraer este nodo',
     ariaAnnounceGaugeChart: 'gráfico de velocímetro, ${caption}',
     ariaAnnounceHierarchyChart: 'gráfico de jerarquía, ${caption}',
     ariaAnnounceHierarchyDatum: 'nivel ${level}[number], ${count}[number] hijos, ${description}',

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { ChartAxisDirection, ChartUpdateType } from 'ag-charts-core';
+import { ChartAxisDirection, ChartUpdateType, Logger } from 'ag-charts-core';
 import type { AgCartesianChartOptions, AgPolarChartOptions, InteractionRange } from 'ag-charts-types';
 
 import { AgCharts } from '../api/agCharts';
@@ -41,6 +41,39 @@ describe('Chart', () => {
     });
 
     setupMockCanvas();
+
+    describe('DataSet logger threading', () => {
+        it('routes DataSet validation warnings through the chart-scoped logger, not the module fallback', async () => {
+            const chartProxy = AgCharts.create(
+                prepareTestOptions({
+                    data: [],
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                } as AgCartesianChartOptions)
+            );
+            chart = deproxy(chartProxy);
+            await waitForChartStability(chart);
+
+            // updateDelta re-creates chart.data via createDataSet, wiring the chart's ctx.logger into the DataSet.
+            await chartProxy.updateDelta({
+                data: [
+                    { x: 'a', y: 1 },
+                    { x: 'b', y: 2 },
+                ],
+            });
+            await waitForChartStability(chart);
+
+            const scopedWarnOnce = vi.spyOn(chart.ctx.logger, 'warnOnce').mockImplementation(() => {});
+            const fallbackWarnOnce = vi.spyOn(Logger.default, 'warnOnce').mockImplementation(() => {});
+
+            chart.data.addTransaction({ remove: [{ x: 'not-present', y: 9 }] });
+            chart.data.commitPendingTransactions(undefined);
+
+            expect(scopedWarnOnce).toHaveBeenCalledWith(
+                'applyTransaction() remove includes items not present in current data; ignoring missing items.'
+            );
+            expect(fallbackWarnOnce).not.toHaveBeenCalled();
+        });
+    });
 
     const datasets = {
         economy: {

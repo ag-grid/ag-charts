@@ -2,6 +2,18 @@
 version: v1.25.1
 
 ignore:
+    SNYK-JS-POSTCSS-18313038:
+        - vitest@2.1.9 > vite@6.3.5 > postcss@8.5.3:
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-07-27T10:17:20.154Z
+    SNYK-JS-POSTCSS-18313036:
+        - vitest@2.1.9 > vite@6.3.5 > postcss@8.5.3:
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-09-06T00:00:00.000Z
+              created: 2026-07-27T10:16:26.712Z
     SNYK-JS-ESBUILD-17750822:
         - vitest@2.1.9 > vite@6.3.5 > esbuild@0.25.0:
               reason: >-

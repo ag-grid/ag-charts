@@ -1414,4 +1414,68 @@ describe('CartesianAxis', () => {
             expect(bottomAxisLabelNodes()).toHaveLength(0);
         });
     });
+
+    describe('AG-17637 picked index matches the label formatter index', () => {
+        const REVERSE_DATA = [
+            { category: 'Jan', value: 8 },
+            { category: 'Mar', value: 6 },
+            { category: 'Jun', value: 18 },
+            { category: 'Aug', value: 14 },
+        ];
+
+        // Drive the real label formatter and record the index it reports for each tick value (last write wins,
+        // since the formatter runs once per layout pass).
+        const formatterIndexByValue = new Map<number, number>();
+        const baseOptions = (reverse: boolean): AgCartesianChartOptions => ({
+            data: REVERSE_DATA,
+            series: [{ type: 'line', xKey: 'category', yKey: 'value' }],
+            axes: {
+                x: { type: 'category', position: 'bottom' },
+                y: {
+                    type: 'number',
+                    position: 'left',
+                    reverse,
+                    label: {
+                        formatter: (p) => {
+                            formatterIndexByValue.set(p.value, p.index);
+                            return String(p.value);
+                        },
+                    },
+                },
+            },
+        });
+
+        beforeEach(() => formatterIndexByValue.clear());
+
+        const expectPickIndexMatchesFormatter = async (reverse: boolean) => {
+            const options = baseOptions(reverse);
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const chartInstance = deproxy(chart as any) as any;
+            const yAxis = chartInstance.axes.find((axis: any) => axis.position === 'left');
+            expect(yAxis).toBeDefined();
+            expect(formatterIndexByValue.size).toBeGreaterThan(0);
+
+            for (const [value, formatterIndex] of formatterIndexByValue) {
+                const pick = yAxis.pickValue({ currentX: 0, currentY: yAxis.scale.convert(value) });
+                expect(pick).toBeDefined();
+                expect(pick.index).toBe(formatterIndex);
+            }
+        };
+
+        it('matches for a normal axis', async () => {
+            await expectPickIndexMatchesFormatter(false);
+        });
+
+        it('matches for a reversed axis', async () => {
+            await expectPickIndexMatchesFormatter(true);
+
+            // Guard the concrete regression: on the reversed axis the lowest-value tick must still be index 0,
+            // not the negative offset (i + rawFirstTickIndex) the pick previously returned.
+            const [minValue] = [...formatterIndexByValue.keys()].sort((a, b) => a - b);
+            expect(formatterIndexByValue.get(minValue)).toBe(0);
+        });
+    });
 });

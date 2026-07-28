@@ -155,6 +155,7 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
         const { shadow } = this.properties;
 
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
+        const crispCentreDirection = this.getCategoryCrispDirection();
 
         const fillBBox = this.getShapeFillBBox();
 
@@ -164,6 +165,7 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
 
             rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
             rect.crisp = datum.crisp;
+            rect.crispCentreDirection = crispCentreDirection;
             rect.fillShadow = shadow;
         });
     }

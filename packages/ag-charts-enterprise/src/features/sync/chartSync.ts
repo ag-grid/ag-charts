@@ -7,7 +7,6 @@ import {
     Debug,
     type DefinedZoomState,
     type DynamicContext,
-    Logger,
     type Scale,
     arraysEqual,
     definedZoomState,
@@ -469,7 +468,7 @@ export class ChartSync extends AbstractModuleInstance {
                 firstAxis.nice !== nice ||
                 firstAxis.reverse !== reverse
             ) {
-                Logger.warnOnce(
+                this.moduleContext.logger.warnOnce(
                     'To allow synchronization, ensure that all synchronized axes with matching keys have matching min, max, nice, and reverse properties.'
                 );
                 this.disableSelf();
@@ -495,7 +494,7 @@ export class ChartSync extends AbstractModuleInstance {
                 (min !== nextAxis.min && (isFiniteNumber(min) || isFiniteNumber(nextAxis.min))) ||
                 (max !== nextAxis.max && (isFiniteNumber(max) || isFiniteNumber(nextAxis.max)))
             ) {
-                Logger.warnOnce(
+                this.moduleContext.logger.warnOnce(
                     'To allow synchronization, ensure that all charts have matching min, max, nice, and reverse properties on the synchronized axes.'
                 );
                 this.disableSelf();

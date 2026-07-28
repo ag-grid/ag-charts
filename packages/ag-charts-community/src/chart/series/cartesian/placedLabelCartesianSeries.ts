@@ -1,5 +1,5 @@
 import type {
-    LabelFit,
+    LabelMeasureContext,
     MeasuredLabel,
     NormalisedTextOrSegments,
     PlacedLabel,
@@ -8,12 +8,12 @@ import type {
     SeriesLabelDefaults,
     Writeable,
 } from 'ag-charts-core';
-import { fitLabelText, isArray, measureTextSegments, resolveSeriesLabelDefaults, toArray } from 'ag-charts-core';
+import { measurePlacedLabel, resolveSeriesLabelDefaults, toArray } from 'ag-charts-core';
 
 import { PointerEvents } from '../../../scene/node';
 import type { Text } from '../../../scene/shape/text';
 import type { PlacedSeriesLabel } from '../../label';
-import { expandLabelPadding, resolvePlacementLabelStyle } from '../../label';
+import { placedLabelTextOffset } from '../../label';
 import { getLabelStyles, pickPlacementStyle } from '../../labelUtil';
 import type { SeriesNodeDatum } from '../seriesTypes';
 import { CartesianSeries } from './cartesianSeries';
@@ -22,14 +22,8 @@ import type { CartesianSeriesTypes, DatumOf, LabelOf, LabelSelectionOf } from '.
 /** The mutable subset of {@link PointLabelDatum} a placed-label series populates on each datum. */
 export type MutablePlacedLabelFields = Writeable<Omit<PointLabelDatum, 'point'>>;
 
-/** Label offset applied at a markerless vertex (size 0), where the marker radius can't supply one. */
-export const DEFAULT_MARKERLESS_LABEL_GAP = 2;
-
 /** Pre-computed label config a placed-label series caches on its node-data context. */
-export interface PlacedLabelContext {
-    readonly labelPadding: { left: number; right: number; top: number; bottom: number };
-    readonly labelTextMeasurer: { measureLines: (text: string) => { width: number; height: number } };
-    readonly labelFit: LabelFit | undefined;
+export interface PlacedLabelContext extends LabelMeasureContext {
     /** Marker-shape rectangle offset centring an `inside` label; set whenever `inside` is a placement. */
     readonly labelInsideOffset: Point | undefined;
     /** Marker inscribed-rect size for a mixed `inside`+directional list, so an oversized inside candidate cascades. */
@@ -77,17 +71,7 @@ export abstract class PlacedLabelCartesianSeries<
     protected abstract get labelProperty(): PlacedSeriesLabel<TTypes['labelParams']>;
 
     protected measureLabel(ctx: PlacedLabelContext, labelText: NormalisedTextOrSegments | undefined): MeasuredLabel {
-        if (labelText == null) {
-            return { text: '', width: 0, height: 0 };
-        }
-        const label = this.labelProperty;
-        const fittedText = fitLabelText(labelText, ctx.labelFit, label);
-        let { width, height } = isArray(fittedText)
-            ? measureTextSegments(fittedText, label)
-            : ctx.labelTextMeasurer.measureLines(String(fittedText));
-        width += ctx.labelPadding.left + ctx.labelPadding.right;
-        height += ctx.labelPadding.top + ctx.labelPadding.bottom;
-        return { text: fittedText, width, height };
+        return measurePlacedLabel(labelText, this.labelProperty, ctx);
     }
 
     override getLabelData(): (LabelOf<TTypes> & PointLabelDatum)[] {
@@ -122,24 +106,6 @@ export abstract class PlacedLabelCartesianSeries<
         this.updateHighlightLabelSelection();
     }
 
-    protected updateHighlightLabelSelection() {
-        const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
-        const highlightItem =
-            this.isSeriesHighlighted(highlightedDatum) && highlightedDatum?.datum ? highlightedDatum : undefined;
-        const highlightLabelData = highlightItem == null ? [] : (this.getHighlightLabelData([], highlightItem) ?? []);
-
-        this.highlightLabelSelection =
-            this.updateLabelSelection({
-                labelData: highlightLabelData,
-                labelSelection: this.highlightLabelSelection,
-            }) ?? this.highlightLabelSelection;
-
-        this.highlightLabelGroup.visible = highlightLabelData.length > 0;
-        this.highlightLabelGroup.batchedUpdate(() => {
-            this.updateLabelNodes({ labelSelection: this.highlightLabelSelection, isHighlight: true });
-        });
-    }
-
     protected override updateLabelSelection(opts: {
         labelData: LabelOf<TTypes>[];
         labelSelection: LabelSelectionOf<TTypes>;
@@ -152,9 +118,14 @@ export abstract class PlacedLabelCartesianSeries<
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const params = this.makeLabelFormatterParams();
         const label = this.labelProperty;
+        const insideStyle = pickPlacementStyle(label, 'inside');
+        const outsideStyle = pickPlacementStyle(label, 'outside');
+        const insideOffset = placedLabelTextOffset(label, insideStyle);
+        const outsideOffset = placedLabelTextOffset(label, outsideStyle);
 
         opts.labelSelection.each((text, datum) => {
-            const placementStyle = pickPlacementStyle(label, datum.placement === 'inside' ? 'inside' : 'outside');
+            const isInside = datum.placement === 'inside';
+            const placementStyle = isInside ? insideStyle : outsideStyle;
             const style = getLabelStyles(
                 this,
                 datum,
@@ -169,15 +140,15 @@ export abstract class PlacedLabelCartesianSeries<
             const { enabled, fontStyle, fontWeight, fontSize, fontFamily, color } = style;
             if (enabled && datum?.labelText) {
                 const point = this.readLabelPoint(datum);
-                const labelPadding = expandLabelPadding(resolvePlacementLabelStyle(label, placementStyle));
+                const offset = isInside ? insideOffset : outsideOffset;
                 text.fontStyle = fontStyle;
                 text.fontWeight = fontWeight;
                 text.fontSize = fontSize;
                 text.fontFamily = fontFamily;
                 text.textBaseline = 'top';
                 text.text = datum.label.text;
-                text.x = point.x + labelPadding.left;
-                text.y = point.y + labelPadding.top;
+                text.x = point.x + offset.x;
+                text.y = point.y + offset.y;
                 text.fill = color;
                 text.visible = true;
                 text.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;

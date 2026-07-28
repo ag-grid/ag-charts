@@ -98,6 +98,9 @@ export interface TickData<D = any> {
     fractionDigits: number;
     ticks: TickDatum[];
     timeInterval: AnyTimeInterval | undefined;
+    // Absolute index of the first generated tick. TickDatum.index is offset by this (non-zero on
+    // reversed/zoomed axes), so subtract it to recover the 0-based index the label formatter reports.
+    rawFirstTickIndex: number;
 }
 
 enum ParentLevelMode {
@@ -275,7 +278,7 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
                 textMetrics: isSegmented
                     ? measureTextSegments(tickLabel, label)
                     : measurer.measureLines(toTextString(tickLabel)),
-                translation: Math.floor(translation),
+                translation: BandScale.is(scale) ? translation : Math.floor(translation),
             });
         }
     });

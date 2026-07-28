@@ -12,17 +12,28 @@ import {
     type Chart,
     IMAGE_SNAPSHOT_DEFAULTS,
     MIN_TOOLTIP_HIDE_DELAY,
+    type SceneGeometrySample,
     clickAction,
     compareImageSnapshot,
+    createSceneGeometrySampler,
     deproxy,
+    expectAnimatedEndpointsMatchStatic,
+    expectSceneTrajectory,
     expectWarningsCalls,
     hoverAction,
     setupMockCanvas,
     setupMockConsole,
+    spyOnAnimationFrames,
     waitForChartStability,
 } from 'ag-charts-community-test';
 
-import { prepareEnterpriseTestOptions, renderEnterpriseChartImage } from '../../test/utils';
+import {
+    funnelLabelFadeIn,
+    funnelLabelOpacities,
+    funnelPathReveal,
+    prepareEnterpriseTestOptions,
+    renderEnterpriseChartImage,
+} from '../../test/utils';
 
 const FUNNEL_EXAMPLE: AgChartOptions = {
     title: {
@@ -697,6 +708,108 @@ describe('FunnelSeries', () => {
 
             expectWarningsCalls().toEqual([]);
             await compare();
+        });
+    });
+
+    describe('animation', () => {
+        const frames = spyOnAnimationFrames();
+
+        const DATA = [
+            { group: 'Qualify', value: 7910 },
+            { group: 'Develop', value: 8170 },
+            { group: 'Propose', value: 7260 },
+            { group: 'Close', value: 4460 },
+        ];
+        const UPDATED = [
+            { group: 'Qualify', value: 9500 },
+            { group: 'Develop', value: 5000 },
+            { group: 'Propose', value: 7260 },
+            { group: 'Close', value: 4460 },
+        ];
+
+        const animated = (data: object[]): AgChartOptions =>
+            prepareEnterpriseTestOptions({
+                animation: { enabled: true },
+                data,
+                series: [{ type: 'funnel', stageKey: 'group', valueKey: 'value' }],
+                legend: { enabled: true },
+            });
+
+        const isLabelKey = (key: string) => /^series\[0\]\/labels\/text\[/.test(key);
+        const expectLabelsStartHidden = (frame0: SceneGeometrySample) => {
+            const opacities = funnelLabelOpacities(frame0, isLabelKey);
+            expect(opacities.length, 'labels present at frame 0').toBeGreaterThan(0);
+            expect(Math.max(...opacities), 'labels hidden at frame 0').toBeLessThanOrEqual(0.01);
+        };
+
+        // Initial load: each bar expands from its midpoint along the value axis (width grows, near edge
+        // recedes), the connector fan opens out (funnelPathReveal), and the labels fade in — the shared
+        // BaseFunnelSeries animation reused across the funnel-family suites.
+        it('initial load: bars grow from the midpoint, connectors fan out and labels fade in', async () => {
+            chart = deproxy(AgCharts.create(animated(DATA)));
+            const sampler = createSceneGeometrySampler(chart);
+            const trajectory = await frames.captureAnimationFrames(chart, sampler);
+            await frames.runToEnd(chart);
+
+            // Anti-vacuity: every bar starts collapsed to a zero-width line, every label invisible.
+            for (const [key, props] of trajectory[0]) {
+                if (/^series\[0\]\/rect\[/.test(key)) {
+                    expect(props.width, `${key} width at frame 0`).toBeLessThanOrEqual(0.5);
+                }
+            }
+            expectLabelsStartHidden(trajectory[0]);
+
+            expectSceneTrajectory(trajectory, {
+                'series[0]/rect[*]': {
+                    width: { during: 'initial', expect: ['increases', 'progresses', 'bounded'] },
+                    x: { during: 'initial', expect: ['decreases', 'bounded'] },
+                },
+                'series[0]/path[]': funnelPathReveal('initial'),
+                'series[0]/path[#2]': funnelPathReveal('initial'),
+                'series[0]/path[#3]': funnelPathReveal('initial'),
+                'series[0]/labels/text[*]': { opacity: funnelLabelFadeIn },
+            });
+        });
+
+        // Data update: every bar tweens its width to the new value during the `update` phase and the
+        // labels re-fade; the connectors snap to their new positions on the first frame (base halts the
+        // connector motion on a waiting update). captureSnap because that connector snap trips
+        // captureUpdate's whole-scene start anchor.
+        it('data update: bars tween to the new values while labels re-fade', async () => {
+            const proxy = AgCharts.create(animated(DATA));
+            chart = deproxy(proxy);
+            const sampler = createSceneGeometrySampler(chart);
+            const { trajectory, before, after } = await frames.captureSnap(chart, sampler, () =>
+                proxy.updateDelta({ data: UPDATED })
+            );
+
+            // Anti-vacuity: a named bar's width genuinely changes end-to-end, and labels re-fade from 0.
+            const develop = 'series[0]/rect[Develop]';
+            expect(Math.abs(after.get(develop)!.width - before.get(develop)!.width)).toBeGreaterThan(50);
+            expectLabelsStartHidden(trajectory[0]);
+
+            expectSceneTrajectory(trajectory, {
+                'series[0]/rect[*]': {
+                    width: { during: 'update', expect: ['monotonic', 'bounded'] },
+                    x: { during: 'update', expect: ['bounded'] },
+                },
+                'series[0]/labels/text[*]': { opacity: funnelLabelFadeIn },
+                'series[0]/path[]': 'constant',
+                'series[0]/path[#2]': 'constant',
+                'series[0]/path[#3]': 'constant',
+                // The category axis redraws its tick lines as the bars revalue; that reflow is incidental
+                // to the bar animation under test (the endpoint guard covers its settled pixels).
+                'axis[left]/*': 'any',
+                'axis[bottom]/*': 'any',
+            });
+        });
+
+        // Pixel endpoint guard: the animated reveal and the data update must each settle at exactly the
+        // pixels a snapped render of the same options produces.
+        it('animated endpoints match a static render (initial load + data update)', async () => {
+            const opts = animated(DATA);
+            chart = AgCharts.create(opts);
+            await expectAnimatedEndpointsMatchStatic(frames, () => ctx.snapshot(), chart, opts, animated(UPDATED));
         });
     });
 });

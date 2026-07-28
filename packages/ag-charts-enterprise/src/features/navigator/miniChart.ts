@@ -4,7 +4,6 @@ import {
     ActionOnSet,
     ChartAxisDirection,
     type DynamicContext,
-    Logger,
     Padding,
     ProxyProperty,
     ZIndexMap,
@@ -193,7 +192,7 @@ export class MiniChart extends AbstractModuleInstance {
                 const seriesAxisId = series.getKeyAxis(direction) ?? direction;
                 const newAxis = this.axes.findById(seriesAxisId);
                 if (!newAxis) {
-                    Logger.warnOnce(
+                    this.ctx.logger.warnOnce(
                         `no matching axis for direction [${direction}] and id [${seriesAxisId}]; check series and axes configuration.`
                     );
                     return;

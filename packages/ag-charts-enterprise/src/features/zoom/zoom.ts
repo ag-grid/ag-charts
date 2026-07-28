@@ -102,6 +102,7 @@ export class Zoom extends AbstractModuleInstance {
     private readonly buttons: ZoomToolbar;
 
     private hoveredAxisId?: AxisID;
+    private hoveredAxisDirection?: ChartAxisDirection;
 
     // State
     private dragState = DragState.None;
@@ -150,6 +151,7 @@ export class Zoom extends AbstractModuleInstance {
             eventsHub: ctx.eventsHub,
             zoomManager: ctx.zoomManager,
             axisManager: ctx.axisManager,
+            logger: ctx.logger,
             cleanup: this.cleanup,
             onConstrainChanges: minVisibleItemsCallback,
             get opts() {
@@ -422,9 +424,20 @@ export class Zoom extends AbstractModuleInstance {
     }
 
     private onAxisMouseEnter(event: _ModuleSupport.ZoomInteractionAxisMouseEvent<'mouseenter'>) {
-        const { anchorPointX, anchorPointY, axisDraggingMode, enabled, enableAxisDragging } = this.opts;
-
         this.hoveredAxisId = event.axisId;
+        this.hoveredAxisDirection = event.direction;
+        this.updateAxisCursor(event.direction, event);
+    }
+
+    // Computes and applies the axis-hover cursor (ew/ns-resize, or grab in pan mode). Extracted from the
+    // mouseenter handler so it can also be re-applied on drag end: releasing the mouse while still hovering
+    // the axis must keep the resize cursor, but no fresh `mouseenter` fires because the pointer never left
+    // the axis region. The optional `event` is only present on the mouseenter path.
+    private updateAxisCursor(
+        direction: ChartAxisDirection,
+        event?: _ModuleSupport.ZoomInteractionAxisMouseEvent<'mouseenter'>
+    ) {
+        const { anchorPointX, anchorPointY, axisDraggingMode, enabled, enableAxisDragging } = this.opts;
 
         if (!enabled || !enableAxisDragging) {
             this.ctx.domManager.updateCursor(CURSOR_ID);
@@ -436,7 +449,7 @@ export class Zoom extends AbstractModuleInstance {
         let cursor: BaseStyleTypeMap['cursor'];
         let showCursor = false;
 
-        if (event.direction === ChartAxisDirection.X) {
+        if (direction === ChartAxisDirection.X) {
             cursor = 'ew-resize';
             showCursor = !isNumberEqual(dx(zoom), UNIT_SIZE);
 
@@ -461,7 +474,7 @@ export class Zoom extends AbstractModuleInstance {
         }
 
         if (showCursor) {
-            event.stopProcessing();
+            event?.stopProcessing();
             this.ctx.domManager.updateCursor(CURSOR_ID, cursor);
         } else {
             this.ctx.domManager.updateCursor(CURSOR_ID);
@@ -470,6 +483,7 @@ export class Zoom extends AbstractModuleInstance {
 
     private onAxisMouseLeave() {
         this.hoveredAxisId = undefined;
+        this.hoveredAxisDirection = undefined;
         this.ctx.domManager.updateCursor(CURSOR_ID);
 
         const { enabled, enableAxisDragging } = this.opts;
@@ -570,7 +584,15 @@ export class Zoom extends AbstractModuleInstance {
         }
 
         axisDragger.stop();
-        domManager.updateCursor(CURSOR_ID);
+        // The pointer never left the axis region during the drag, so no `mouseenter` will re-fire to restore
+        // the hover cursor. Re-apply it here when still hovering an axis; otherwise clear it. In the released-
+        // off-axis case `hoveredAxisId` may momentarily be stale, but the drag machinery synthesises a
+        // `mouseleave` immediately after this handler, which clears it again.
+        if (this.hoveredAxisId != null && this.hoveredAxisDirection != null) {
+            this.updateAxisCursor(this.hoveredAxisDirection);
+        } else {
+            domManager.updateCursor(CURSOR_ID);
+        }
         tooltipManager.removeTooltip(TOOLTIP_ID);
     }
 

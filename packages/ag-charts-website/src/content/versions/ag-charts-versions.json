@@ -4,15 +4,22 @@
         "date": "August 5th, 2026",
         "highlights": [
             {
-                "text": "Series Label Collisions"
+                "text": "Additional Label Placement Options"
             },
             {
-                "text": "Org Chart Improvements",
+                "text": "Label Collision Avoidance"
+            },
+            {
+                "text": "Extended Context Menu Scopes",
+                "path": "./context-menu/#custom-actions"
+            },
+            {
+                "text": "Org Chart Interactivity Improvements",
                 "path": "./org-chart/"
             },
             {
-                "text": "Context Menu Improvements",
-                "path": "./context-menu/"
+                "text": "AI Coding",
+                "path": "./skills/"
             }
         ],
         "notesPath": "./upgrade-to-ag-charts-14-1"

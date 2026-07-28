@@ -1,4 +1,10 @@
-import type { ChartAnimationPhase, NormalisedSeriesSegmentation, Scaling } from 'ag-charts-core';
+import type {
+    BoxBounds,
+    ChartAnimationPhase,
+    CollideWith,
+    NormalisedSeriesSegmentation,
+    Scaling,
+} from 'ag-charts-core';
 import {
     ChartAxisDirection,
     Debug,
@@ -106,10 +112,9 @@ export class CartesianSeriesNodeEvent<TEvent extends string = SeriesNodeEventTyp
         nativeEvent: Event,
         datum: SeriesNodeDatum,
         series: ISeries<SeriesNodeDatum, ISeriesProperties & { xKey?: string; yKey?: string }>,
-        selectionState: SelectionState | undefined,
-        isCollapsed: boolean
+        selectionState: SelectionState | undefined
     ) {
-        super(type, nativeEvent, datum, series, selectionState, isCollapsed);
+        super(type, nativeEvent, datum, series, selectionState);
         this.xKey = series.properties.xKey;
         this.yKey = series.properties.yKey;
     }
@@ -577,6 +582,28 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         throw new Error(
             `${this.constructor.name}: createNodeDatumContext() must be implemented when using the template method pattern`
         );
+    }
+
+    /**
+     * The series plot area as a label containment rect, in plot-local coordinates, so the
+     * seriesArea padding extends the rect into a negative origin. A label overflowing this rect
+     * spills past the series area (into the axis/padding zone) and must fail collision containment.
+     */
+    protected getSeriesPlotRegion(): BoxBounds | undefined {
+        const seriesRect = this.chart?.seriesRect;
+        if (seriesRect == null) return undefined;
+        const padding = this.chart?.seriesAreaPadding;
+        return {
+            x: -(padding?.left ?? 0),
+            y: -(padding?.top ?? 0),
+            width: seriesRect.width + (padding?.left ?? 0) + (padding?.right ?? 0),
+            height: seriesRect.height + (padding?.top ?? 0) + (padding?.bottom ?? 0),
+        };
+    }
+
+    /** The plot-area containment rect when the label opts into `collideWith.seriesArea`, else `undefined`. */
+    protected resolveLabelPlotRegion(collision: { resolveCollideWith(): CollideWith }): BoxBounds | undefined {
+        return collision.resolveCollideWith().seriesArea ? this.getSeriesPlotRegion() : undefined;
     }
 
     /**
@@ -1672,6 +1699,26 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
     // their `orientation` option each render.
     protected resolveUsesPlacedLabels(): boolean {
         return this.usesPlacedLabels;
+    }
+
+    // Rebuilds the highlight label selection from whatever the placement engine wrote back, so a hover
+    // cannot resurface a label the collision pass dropped.
+    protected updateHighlightLabelSelection() {
+        const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
+        const highlightItem =
+            this.isSeriesHighlighted(highlightedDatum) && highlightedDatum?.datum ? highlightedDatum : undefined;
+        const highlightLabelData = highlightItem == null ? [] : (this.getHighlightLabelData([], highlightItem) ?? []);
+
+        this.highlightLabelSelection =
+            this.updateLabelSelection({
+                labelData: highlightLabelData,
+                labelSelection: this.highlightLabelSelection,
+            }) ?? this.highlightLabelSelection;
+
+        this.highlightLabelGroup.visible = highlightLabelData.length > 0;
+        this.highlightLabelGroup.batchedUpdate(() => {
+            this.updateLabelNodes({ labelSelection: this.highlightLabelSelection, isHighlight: true });
+        });
     }
 
     // Re-renders both label selections after the placement engine has written back the chosen

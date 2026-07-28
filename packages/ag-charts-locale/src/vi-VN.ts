@@ -25,6 +25,7 @@ export const AG_CHARTS_LOCALE_VI_VN: Record<string, string> = {
     ariaOrgChartExpanded: 'đã mở rộng',
     ariaDescriptionExpandNode: 'Nhấn Alt + Mũi tên xuống để mở rộng nút này',
     ariaDescriptionCollapseNode: 'Nhấn Alt + Mũi tên lên để thu gọn nút này',
+    ariaDescriptionToggleNode: 'Nhấn Space hoặc Enter để mở rộng hoặc thu gọn nút này',
     ariaAnnounceGaugeChart: 'biểu đồ đồng hồ đo, ${caption}',
     ariaAnnounceHierarchyChart: 'biểu đồ phân cấp, ${caption}',
     ariaAnnounceHierarchyDatum: 'cấp độ ${level}[number], ${count}[number] con, ${description}',

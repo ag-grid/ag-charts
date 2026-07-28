@@ -37,12 +37,17 @@ describe('series label fit', () => {
         await compareImageSnapshot(chart, ctx);
     };
 
-    // Bar, histogram and line all expose their fitted label as `node.label.text` on `contextNodeData.labelData`.
+    // The text each label actually renders: `label.text` is the unfitted source, `label.fittedText` the text the
+    // placement engine fitted to the candidate it chose, and a label the engine dropped renders nothing at all.
     const labelTexts = (seriesIndex = 0): unknown[] => {
         const series = deproxy(chart as any).series[seriesIndex] as unknown as {
-            contextNodeData?: { labelData?: { label?: { text?: unknown } }[] };
+            contextNodeData?: {
+                labelData?: { label?: { text?: unknown; fittedText?: unknown; hidden?: boolean } }[];
+            };
         };
-        return (series.contextNodeData?.labelData ?? []).map((d) => d.label?.text);
+        return (series.contextNodeData?.labelData ?? []).map((d) =>
+            d.label == null || d.label.hidden === true ? '' : (d.label.fittedText ?? d.label.text)
+        );
     };
     const someWrapped = (texts: unknown[]) => texts.some((text) => String(text).includes('\n'));
     const someTruncated = (texts: unknown[]) => texts.some((text) => String(text).includes(ELLIPSIS));
@@ -131,13 +136,40 @@ describe('series label fit', () => {
             expect(labelTexts()).toEqual(showData.map((d) => d.label));
         });
 
-        it('hides oversized labels when suppressHide is false', async () => {
-            await renderAndSnapshot(barChart({ collision: { suppressHide: false } }));
+        it('hides oversized labels when alwaysShow is false', async () => {
+            await renderAndSnapshot(barChart({ collision: { alwaysShow: false } }));
             const texts = labelTexts();
-            // suppressHide: false → overflow 'hide': oversized labels are dropped to empty rather than ellipsised,
+            // alwaysShow: false → overflow 'hide': oversized labels are dropped to empty rather than ellipsised,
             // while labels that already fit their bar survive intact.
             expect(texts.some((text) => text === '' || text == null)).toBe(true);
             expect(someTruncated(texts)).toBe(false);
+        });
+
+        it('renders every label whole when wrapping is set with truncate disabled', async () => {
+            // An explicit `truncate: false` survives the wrapping trigger, and `wrapping: 'never'` is excluded
+            // from the `alwaysShow` trigger, so nothing bounds the text and it overhangs its bar untouched.
+            await renderAndSnapshot(barChart({ wrapping: 'never', truncate: false }));
+            expect(labelTexts()).toEqual(barData.map((d) => d.label));
+        });
+
+        it('drops rather than truncates an oversized label when truncate is disabled', async () => {
+            // A wrapping mode turns `alwaysShow` off, so `truncate: false` leaves hiding as the only way to
+            // honour the bar: labels that fit wrap, and those that cannot are dropped rather than ellipsised.
+            await renderAndSnapshot(barChart({ wrapping: 'on-space', truncate: false }));
+            const texts = labelTexts();
+            expect(someWrapped(texts)).toBe(true);
+            expect(someTruncated(texts)).toBe(false);
+            expect(texts.some((text) => text === '' || text == null)).toBe(true);
+        });
+
+        it('truncates rather than hides an oversized label when a wrapping mode opts into truncation', async () => {
+            // The wrapping mode resolves `truncate` to true, which outranks `alwaysShow: false`: every label is
+            // kept, the oversized ones ellipsised rather than dropped.
+            await renderAndSnapshot(barChart({ wrapping: 'on-space', collision: { alwaysShow: false } }));
+            const texts = labelTexts();
+            expect(texts.every((text) => typeof text === 'string' && text.length > 0)).toBe(true);
+            expect(someWrapped(texts)).toBe(true);
+            expect(someTruncated(texts)).toBe(true);
         });
     });
 
@@ -204,6 +236,48 @@ describe('series label fit', () => {
         expect(someWrapped(texts)).toBe(true);
         expect(someTruncated(texts)).toBe(true);
     });
+
+    // Pie/donut sector labels auto-fit the wedge: the series computes the room each sector offers a horizontal
+    // label and fits the text to it, so wrapping/truncate alone shrink the label to its sector without any
+    // explicit maxWidth (mirroring how a bar label fits its rect). Mixed sector sizes and label lengths show the
+    // spectrum in one image — short labels whole, longer ones wrapped, the longest wrapped-then-ellipsised.
+    const sectorLabelData = [
+        { value: 26, label: 'Q1' },
+        { value: 22, label: 'Two words here' },
+        { value: 20, label: 'A medium length label' },
+        { value: 18, label: 'A rather long label that wraps across several lines then runs out of room' },
+        { value: 14, label: 'Another fairly long caption spanning multiple words and lines here too' },
+    ];
+    // Donut fits the sector text into the rendered label node at draw time (not the datum), so read the visible
+    // label nodes rather than getNodeData(), which still holds the original unfitted text.
+    const sectorTexts = (seriesIndex = 0): unknown[] => {
+        const series = deproxy(chart as any).series[seriesIndex] as unknown as {
+            labelSelection?: { nodes: () => { visible: boolean; text?: unknown }[] };
+        };
+        return (series.labelSelection?.nodes() ?? []).filter((node) => node.visible).map((node) => node.text);
+    };
+
+    for (const type of ['pie', 'donut'] as const) {
+        it(`auto-fits ${type} sector labels to the wedge with wrapping and truncation`, async () => {
+            await renderAndSnapshot({
+                data: sectorLabelData,
+                legend: { enabled: false },
+                series: [
+                    {
+                        type,
+                        angleKey: 'value',
+                        sectorLabelKey: 'label',
+                        // Widen the donut ring so a label has radial room to wrap before truncating (donut-only option).
+                        ...(type === 'donut' ? { innerRadiusRatio: 0.3 } : {}),
+                        sectorLabel: { enabled: true, wrapping: 'on-space', truncate: true },
+                    },
+                ],
+            });
+            const texts = sectorTexts();
+            expect(someWrapped(texts)).toBe(true);
+            expect(someTruncated(texts)).toBe(true);
+        });
+    }
 
     it('centres bubble labels inside large markers and truncates those overflowing small markers', async () => {
         // `placement: 'inside'` fits each label to its marker: big bubbles hold their label, small bubbles

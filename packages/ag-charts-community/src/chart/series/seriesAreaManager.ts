@@ -1,6 +1,12 @@
-import type { CallbackParamRules, DynamicContext, Point } from 'ag-charts-core';
+import type { CallbackParamRules, DynamicContext, Point, Writeable } from 'ag-charts-core';
 import { ChartUpdateType, Vec4, clamp, createId } from 'ag-charts-core';
-import type { AgActiveItemState, AgChartClickEvent, AgChartDoubleClickEvent, AgInitialFocus } from 'ag-charts-types';
+import type {
+    AgActiveItemState,
+    AgChartClickEvent,
+    AgChartDoubleClickEvent,
+    AgContextMenuItemShowOn,
+    AgInitialFocus,
+} from 'ag-charts-types';
 
 import type {
     ActiveLoadMementoEvent,
@@ -9,6 +15,7 @@ import type {
     HighlightSelectionUpdatedEvent,
     LayoutCompleteEvent,
     SeriesAreaClickEvent,
+    SeriesAreaContextMenuEvent,
     SeriesAreaHoverEvent,
     SeriesKeyNavPanXEvent,
     UpdateOpts,
@@ -36,6 +43,7 @@ import type {
 } from '../../widget/widgetEvents';
 import type { ChartHighlight } from '../chartHighlight';
 import type { ChartType } from '../chartType';
+import type { ContextMenuRegionContexts } from '../interaction/contextMenuTypes';
 import { InteractionState } from '../interaction/interactionManager';
 import { mapKeyboardEventToAction } from '../interaction/keyBindings';
 import { TooltipManager } from '../interaction/tooltipManager';
@@ -118,6 +126,15 @@ function computeHighlightInViewport(
         }
     }
     return false;
+}
+
+/** Nodes without a datum index cannot be identified by a context-menu item action, so they are dropped. */
+function seriesNodeContexts(pickedNodes: readonly HighlightNodeDatum[]): SeriesNodeDatum[] {
+    const contexts: SeriesNodeDatum[] = [];
+    for (const { datumIndex, ...node } of pickedNodes) {
+        if (datumIndex != null) contexts.push({ ...node, datumIndex });
+    }
+    return contexts;
 }
 
 function computePendingViewportFocus(event: ZoomChangeCompleteEvent): PickViewportFocusInputs['where'] | undefined {
@@ -458,10 +475,12 @@ export class SeriesAreaManager extends BaseManager {
             return;
         }
 
-        let pickedNode: HighlightNodeDatum | undefined;
+        // Every node under the point, not just the topmost: overlapping markers each get their own context.
+        let pickedNodes: readonly HighlightNodeDatum[] = [];
         let position: { x: number; y: number } | undefined;
         if (this.focusIndicator?.isFocusVisible()) {
-            pickedNode = this.chart.ctx.highlightManager.getActiveHighlight();
+            const pickedNode = this.chart.ctx.highlightManager.getActiveHighlight();
+            if (pickedNode) pickedNodes = [pickedNode];
             if (pickedNode && this.seriesRect && pickedNode.midPoint) {
                 position = Transformable.toCanvasPoint(
                     pickedNode.series.contentGroup,
@@ -475,39 +494,58 @@ export class SeriesAreaManager extends BaseManager {
                 this.pickManager.maybeActivate(undefined, (): void => {
                     this.chart.ctx.highlightManager.updateHighlight(this.id);
                 });
-                pickedNode = pick.matches[0];
+                pickedNodes = pick.matches;
             }
         }
-
-        const pickedSeries = pickedNode?.series;
 
         this.clearAll();
         const canvasX = event.currentX + current.cssLeft();
         const canvasY = event.currentY + current.cssTop();
-        const { datumIndex } = pickedNode ?? {};
-        if (pickedSeries && pickedNode && datumIndex != null) {
-            this.chart.ctx.contextMenuRegistry?.dispatchContext(
-                'series-node',
-                { widgetEvent: event, canvasX, canvasY },
-                { pickedSeries, pickedNode: { ...pickedNode, datumIndex } },
-                position
-            );
-        } else {
-            // Offer the menu to an overlapping axis first; a claim calls preventDefault, so the series-area
-            // dispatch below then no-ops. Must be emitted before that dispatch (mirrors the hover/drag handoff).
-            this.chart.ctx.eventsHub.emit('series-area:contextmenu', {
-                consumed: false,
-                canvasX,
-                canvasY,
-                widgetEvent: event,
-            });
-            this.chart.ctx.contextMenuRegistry?.dispatchContext(
-                'series-area',
-                { widgetEvent: event, canvasX, canvasY },
-                undefined,
-                position
-            );
+
+        const regions: AgContextMenuItemShowOn[] = ['series-area'];
+        const contexts: ContextMenuRegionContexts = {};
+        const nodeContexts = seriesNodeContexts(pickedNodes);
+        if (nodeContexts.length > 0) {
+            regions.push('series-node');
+            contexts['series-node'] = nodeContexts;
         }
+
+        // Ask axis-owning modules whether an axis overlaps this point (mirrors the hover/drag handoff). They
+        // annotate `axis` rather than dispatching, so a single menu can offer both the series and axis regions.
+        const collectEvent: Writeable<SeriesAreaContextMenuEvent> = {
+            canvasX,
+            canvasY,
+            widgetEvent: event,
+            crossLine: [],
+        };
+        this.chart.ctx.eventsHub.emit('series-area:contextmenu', collectEvent);
+        if (collectEvent.axis) {
+            regions.push('axis');
+            contexts.axis = collectEvent.axis;
+        }
+        if (collectEvent.crossLine.length > 0) {
+            regions.push('cross-line');
+            contexts['cross-line'] = collectEvent.crossLine;
+        }
+
+        // Primary region for backwards-compatible `showOn`: a node wins over a cross line, which wins over an
+        // overlapping axis, which wins over the bare series area (matches the pre-multi-region dispatch precedence).
+        let primary: AgContextMenuItemShowOn = 'series-area';
+        if (contexts['series-node']) {
+            primary = 'series-node';
+        } else if (collectEvent.crossLine.length > 0) {
+            primary = 'cross-line';
+        } else if (collectEvent.axis) {
+            primary = 'axis';
+        }
+
+        this.chart.ctx.contextMenuRegistry?.dispatchContextRegions(
+            primary,
+            regions,
+            contexts,
+            { widgetEvent: event, canvasX, canvasY },
+            position
+        );
     }
 
     private onLeave(event: MouseWidgetEvent<'mouseleave'>): void {

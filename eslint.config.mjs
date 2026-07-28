@@ -287,9 +287,9 @@ export default [
         },
     },
     {
-        // Community source is fully migrated off the ambient static `Logger.*` API, so enable the
-        // static-emitter ban here. Enterprise and core are rolled in as they migrate.
-        files: ['packages/ag-charts-community/src/**/*.{ts,tsx}'],
+        // Community and enterprise source are fully migrated off the ambient static `Logger.*` API, so
+        // enable the static-emitter ban here. Core is rolled in as it migrates.
+        files: ['packages/ag-charts-community/src/**/*.{ts,tsx}', 'packages/ag-charts-enterprise/src/**/*.{ts,tsx}'],
         ignores: ['**/*.{test,spec}.ts'],
         rules: {
             'aglint/no-unscoped-logger': [2, { allowNewIn: SANCTIONED_LOGGER_CONSTRUCTION, checkStatic: true }],

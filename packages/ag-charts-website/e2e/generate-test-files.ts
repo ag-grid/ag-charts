@@ -1,15 +1,22 @@
 #!/usr/bin/env ts-node
 /* eslint-disable no-console */
-import { execSync } from 'child_process';
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import * as glob from 'glob';
 import { dirname, join } from 'path';
+
+import { getChangedExamples, isExampleChanged } from './changed-examples';
 
 const __dirname = dirname(require.main?.filename ?? '.');
 
 interface Example {
     path: string;
     affected: boolean;
+    /**
+     * Any file in the example changed relative to `NX_BASE` (true for everything when no diff is
+     * computable). Changed examples keep the full framework sweep even when CI scopes the run to a
+     * subset of frameworks — see `scopeFrameworks` in `examples-util.ts`.
+     */
+    changed: boolean;
     category: string;
     pagePath: string;
     example: string;
@@ -37,6 +44,10 @@ function toBasePageCategory(page: string): string {
 }
 
 function getExamples(): Example[] {
+    // Framework scoping escalates changed examples regardless of AG_FORCE_ALL_TESTS, so the diff is
+    // computed up front and the affected logic below reuses it.
+    const changedExamples = getChangedExamples();
+
     const examples = glob
         .sync('./src/content/**/_examples/*/main.ts')
         .map((path) => {
@@ -50,6 +61,7 @@ function getExamples(): Example[] {
             return {
                 path,
                 affected: true, // Will be updated by affected logic
+                changed: changedExamples == null || isExampleChanged(changedExamples, path),
                 category,
                 pagePath: page,
                 example,
@@ -58,28 +70,19 @@ function getExamples(): Example[] {
         .filter((example) => example.pagePath !== 'gallery' && example.pagePath !== 'benchmarks');
 
     // Apply affected logic if NX_BASE is set
-    if (process.env.NX_BASE && process.env.AG_FORCE_ALL_TESTS !== '1') {
-        const exampleGenChanged = execSync(
-            `git diff --name-only ${process.env.NX_BASE} -- ../../plugins/ag-charts-generate-example-files/`
-        )
-            .toString()
-            .split('\n')
-            .some((t) => t.trim().length > 0);
-
-        const changedFiles = new Set(
-            execSync(`git diff --name-only ${process.env.NX_BASE} -- ./src/content/`)
-                .toString()
-                .split('\n')
-                .map((v) => v.replace(/^packages\/ag-charts-website\//, './'))
-        );
-
+    if (changedExamples != null && process.env.AG_FORCE_ALL_TESTS !== '1') {
         let affectedCount = 0;
         for (const example of examples) {
-            example.affected = exampleGenChanged || changedFiles.has(example.path);
+            example.affected = example.changed;
             affectedCount += example.affected ? 1 : 0;
         }
 
         console.warn(`NX_BASE set - applied changed example processing, ${affectedCount} changed examples found.`);
+    }
+
+    if (changedExamples != null) {
+        const changedCount = examples.filter((example) => example.changed).length;
+        console.warn(`Framework scoping - ${changedCount} changed examples will sweep every framework.`);
     }
 
     return examples;
@@ -132,11 +135,14 @@ contextTest.describe('examples-${category.name}', () => {
     // Category: ${category.name}
     // Examples in this category: ${category.examples.length}
     const categoryExamples = [
-${category.examples.map((ex) => `        { path: '${ex.path}', affected: ${ex.affected} },`).join('\n')}
+${category.examples
+    .map((ex) => `        { path: '${ex.path}', affected: ${ex.affected}, changed: ${ex.changed} },`)
+    .join('\n')}
     ];
 
-    for (const { path, affected } of categoryExamples) {
-        for (const opts of convertPageUrls(path, EXAMPLE_OPTIONS)) {
+    for (const { path, affected, changed } of categoryExamples) {
+        // Changed examples sweep every framework; the rest follow the run's framework scope.
+        for (const opts of convertPageUrls(path, EXAMPLE_OPTIONS, undefined, changed)) {
             const { framework, pagePath, example } = opts;
 
             const testFn = affected ? contextTest : contextTest.skip;
