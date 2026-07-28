@@ -223,10 +223,9 @@ class RangeAreaSeriesNodeEvent<
         nativeEvent: Event,
         datum: RangeAreaMarkerDatum,
         series: RangeAreaSeries,
-        selectionState: SelectionState | undefined,
-        isCollapsed: boolean
+        selectionState: SelectionState | undefined
     ) {
-        super(type, nativeEvent, datum, series, selectionState, isCollapsed);
+        super(type, nativeEvent, datum, series, selectionState);
         this.xKey = series.properties.xKey;
         this.yLowKey = series.properties.yLowKey;
         this.yHighKey = series.properties.yHighKey;

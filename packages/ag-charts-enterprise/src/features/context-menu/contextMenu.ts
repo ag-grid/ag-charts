@@ -235,7 +235,7 @@ export class ContextMenu extends AbstractModuleInstance {
             itemId,
             datum: node.datum,
             selectionState: node.series.getSelectionStateString(node.datumIndex),
-            isCollapsed: this.ctx.collapsedManager.isCollapsed(itemId),
+            isCollapsed: node.series.getCollapsedState(itemId),
         };
 
         for (const k of DATUM_KEYS) {

@@ -176,10 +176,9 @@ class BubbleScatterSeriesNodeEvent<
         nativeEvent: Event,
         datum: BubbleScatterNodeDatum,
         series: BubbleSeries,
-        selectionState: PublicSelectionState | undefined,
-        isCollapsed: boolean
+        selectionState: PublicSelectionState | undefined
     ) {
-        super(type, nativeEvent, datum, series, selectionState, isCollapsed);
+        super(type, nativeEvent, datum, series, selectionState);
         this.sizeKey = series.properties.sizeKey;
         this.colorKey = series.properties.colorKey;
     }

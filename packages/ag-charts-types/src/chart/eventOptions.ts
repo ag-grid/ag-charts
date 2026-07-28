@@ -43,7 +43,7 @@ export interface AgNodeClickEvent<TEvent extends string, TDatum, TContext = Cont
     /** The current selection state of this datum. Set to `undefined` if the selection module is not enabled. */
     selectionState?: SelectionState;
     /** Whether the clicked item is collapsed. */
-    isCollapsed: boolean;
+    isCollapsed?: boolean;
     /** xKey as specified on series options */
     xKey?: ResolvedDatumKey<TDatum>;
     /** yKey as specified on series options */

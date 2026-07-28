@@ -105,7 +105,7 @@ export interface INodeEvent<TEvent extends string = SeriesNodeEventTypes> extend
     readonly dataIdKey: string | undefined;
     readonly defaultPrevented: boolean;
     readonly selectionState: PublicSelectionState | undefined;
-    readonly isCollapsed: boolean;
+    readonly isCollapsed: boolean | undefined;
 }
 
 export interface ISeriesProperties {
@@ -149,6 +149,7 @@ export interface ISeries<TDatum extends SeriesNodeDatum, TProps extends ISeriesP
         datumIndex: DatumIndex | undefined,
         selectionState?: SelectionState
     ): PublicSelectionState | undefined;
+    getCollapsedState(itemId: string | number): boolean | undefined;
     // BoundSeries
     getBandScalePadding?(): { inner: number; outer: number };
     getDomain(direction: ChartAxisDirection): DomainWithMetadata<any>;

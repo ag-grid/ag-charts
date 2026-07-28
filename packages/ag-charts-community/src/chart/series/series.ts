@@ -168,7 +168,7 @@ export type INodeEventConstructor<
     nodeDatum: TDatum,
     series: TSeries,
     selectionState: PublicSelectionState | undefined,
-    isCollapsed: boolean
+    isCollapsed: boolean | undefined
 ) => INodeEvent<T>;
 
 const CROSS_FILTER_MARKER_FILL_OPACITY_FACTOR = 0.25;
@@ -185,7 +185,7 @@ export class SeriesNodeEvent<
     readonly itemId: string | number;
     readonly dataIdKey: string | undefined;
     readonly selectionState: PublicSelectionState | undefined;
-    readonly isCollapsed: boolean;
+    readonly isCollapsed: boolean | undefined;
     defaultPrevented = false;
 
     constructor(
@@ -194,7 +194,7 @@ export class SeriesNodeEvent<
         nodeDatum: TDatum,
         series: ISeries<TDatum, ISeriesProperties, unknown>,
         selectionState: PublicSelectionState | undefined,
-        isCollapsed: boolean
+        isCollapsed: boolean | undefined = undefined
     ) {
         this.datum = nodeDatum.datum;
         this.datums = nodeDatum.datums;
@@ -934,6 +934,10 @@ export abstract class Series<
         return toSelectionString(candidateState);
     }
 
+    public getCollapsedState(_itemId: string | number): boolean | undefined {
+        return undefined;
+    }
+
     protected onChangeHighlight(event: HighlightChangeEvent) {
         const previousHighlightedDatum = event.previousHighlight;
         const currentHighlightedDatum = event.currentHighlight;
@@ -1224,7 +1228,7 @@ export abstract class Series<
 
     fireNodeClickEvent(event: Event, datum: TDatum): boolean {
         const selectionState = this.getSelectionStateString(datum.datumIndex);
-        const isCollapsed = datum.itemId == null ? false : this.ctx.collapsedManager.isCollapsed(datum.itemId);
+        const isCollapsed = datum.itemId == null ? undefined : this.getCollapsedState(datum.itemId);
         const clickEvent = new this.NodeEvent('seriesNodeClick', event, datum, this, selectionState, isCollapsed);
         this.fireEvent(clickEvent);
         return !clickEvent.defaultPrevented;
@@ -1232,7 +1236,7 @@ export abstract class Series<
 
     fireNodeDoubleClickEvent(event: Event, datum: TDatum): boolean {
         const selectionState = this.getSelectionStateString(datum.datumIndex);
-        const isCollapsed = datum.itemId == null ? false : this.ctx.collapsedManager.isCollapsed(datum.itemId);
+        const isCollapsed = datum.itemId == null ? undefined : this.getCollapsedState(datum.itemId);
         const clickEvent = new this.NodeEvent('seriesNodeDoubleClick', event, datum, this, selectionState, isCollapsed);
         this.fireEvent(clickEvent);
         return !clickEvent.defaultPrevented;
@@ -1240,7 +1244,7 @@ export abstract class Series<
 
     createNodeContextMenuActionEvent(event: Event, datum: TDatum): INodeEvent<'nodeContextMenuAction'> {
         const selectionState = this.getSelectionStateString(datum.datumIndex);
-        const isCollapsed = datum.itemId == null ? false : this.ctx.collapsedManager.isCollapsed(datum.itemId);
+        const isCollapsed = datum.itemId == null ? undefined : this.getCollapsedState(datum.itemId);
         return new this.NodeEvent('nodeContextMenuAction', event, datum, this, selectionState, isCollapsed);
     }
 

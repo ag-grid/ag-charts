@@ -112,10 +112,9 @@ export class CartesianSeriesNodeEvent<TEvent extends string = SeriesNodeEventTyp
         nativeEvent: Event,
         datum: SeriesNodeDatum,
         series: ISeries<SeriesNodeDatum, ISeriesProperties & { xKey?: string; yKey?: string }>,
-        selectionState: SelectionState | undefined,
-        isCollapsed: boolean
+        selectionState: SelectionState | undefined
     ) {
-        super(type, nativeEvent, datum, series, selectionState, isCollapsed);
+        super(type, nativeEvent, datum, series, selectionState);
         this.xKey = series.properties.xKey;
         this.yKey = series.properties.yKey;
     }

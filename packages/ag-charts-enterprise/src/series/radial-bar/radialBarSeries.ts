@@ -64,10 +64,9 @@ class RadialBarSeriesNodeEvent<
         nativeEvent: Event,
         datum: RadialBarNodeDatum,
         series: RadialBarSeries,
-        selectionState: SelectionState | undefined,
-        isCollapsed: boolean
+        selectionState: SelectionState | undefined
     ) {
-        super(type, nativeEvent, datum, series, selectionState, isCollapsed);
+        super(type, nativeEvent, datum, series, selectionState);
         this.angleKey = series.properties.angleKey;
         this.radiusKey = series.properties.radiusKey;
     }
