@@ -7,8 +7,6 @@ export interface VertexInterface {}
 export interface OptionsGraphInterface {
     readonly palette: PlainObject;
     readonly paletteType: PaletteType;
-    /** Warn through the resolving chart's logger, deferring warnings raised before any resolve. */
-    warnOnce(message: string): void;
 
     addEdge(from: VertexInterface, to: VertexInterface, edge?: string): void;
     addVertex(value: unknown): VertexInterface;
@@ -48,6 +46,8 @@ export interface OptionsGraphInterface {
     resolveVertexValue(vertex: VertexInterface, valueVertex: VertexInterface): unknown;
     setResolveFresh(fresh: boolean): void;
     setCachedValue(path: Array<string>, key: string, value: unknown): void;
+    /** Warn through the resolving chart's logger, deferring warnings raised before any resolve. */
+    warnOnce(message: string): void;
 }
 
 // The edge that connects two options keys, e.g. `parent` to `child` in the object `{ parent: { child: 'some value' } }`.

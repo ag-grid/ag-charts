@@ -371,23 +371,6 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         );
     }
 
-    private withLogger<T>(logger: Logger | undefined, fn: () => T): T {
-        const previous = this.activeLogger;
-        this.activeLogger = logger;
-        try {
-            // Drain only when there is somewhere to drain to; the graph is memoised, so discarding the
-            // queue here would lose those warnings for every later chart resolving the same options.
-            if (logger != null) {
-                for (const message of this.pendingWarnings.splice(0)) {
-                    logger.warnOnce(message);
-                }
-            }
-            return fn();
-        } finally {
-            this.activeLogger = previous;
-        }
-    }
-
     resolveParams() {
         return this.resolvedParams;
     }
@@ -434,121 +417,6 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         return this.withLogger(logger, () =>
             this.resolvePartialInternal(path, partialOptions, resolveOptions, cssVariables)
         );
-    }
-
-    private resolvePartialInternal<T extends PlainObject>(
-        path: Array<string>,
-        partialOptions: T,
-        resolveOptions?: {
-            permissivePath?: boolean;
-            pick?: boolean;
-            proxyPaths?: Record<string, Array<string>>;
-        },
-        cssVariables?: Record<string, string>
-    ): Resolved<Partial<T>> | undefined {
-        // If the graph has been cleared, do not attempt to resolve. This will occur when no `styler` options are provided.
-        if (!this.root) return;
-
-        const { permissivePath, proxyPaths } = resolveOptions ?? {};
-
-        const partialKeys = Object.keys(partialOptions);
-
-        if (debug.check()) {
-            // eslint-disable-next-line no-console
-            console.groupCollapsed(`OptionsGraph.resolvePartial() - ${path.join('.')} [${partialKeys}]`);
-        }
-
-        if (partialKeys.length === 0) return {} as Resolved<Partial<T>>;
-
-        if (cssVariables) {
-            this.cssVariables = { ...this.cssVariables, ...cssVariables };
-        }
-
-        const parentVertex = this.findVertexAtPath(path);
-        if (!parentVertex) {
-            if (permissivePath) {
-                return undefined;
-            } else {
-                throw new Error(`Could not find vertex in OptionsGraph at path [${path.join('.')}].`);
-            }
-        }
-        const pathArrayVertex = this.findNeighbour(parentVertex, PATH_ARRAY_EDGE);
-
-        this.userPartialOptions = {};
-        setPathSafe(this.userPartialOptions, path, partialOptions);
-
-        // Copy the given paths into the correct option structure to be built into the graph.
-        if (proxyPaths) {
-            for (const proxyFrom of Object.keys(proxyPaths)) {
-                const proxyTo = proxyPaths[proxyFrom];
-                const proxyValue = getPathSafe(partialOptions, [proxyFrom]);
-                if (proxyValue != null) {
-                    setPathSafe(partialOptions, proxyTo, proxyValue);
-                    setPathSafe(this.userPartialOptions, [...path, ...proxyTo], proxyValue);
-                    delete partialOptions[proxyFrom];
-                    delete this.userPartialOptions[proxyFrom];
-                }
-            }
-        }
-
-        // Default to grafting new values onto the 'userPartial' edge, however some operations force this onto other
-        // edges so as to not override any user partial vertices.
-        this.graftEdge = USER_PARTIAL_OPTIONS_EDGE;
-
-        // Temporarily use the 'userPartial' edge in-place of 'user' when building and resolving this partial graph.
-        this.edgePriority = [USER_PARTIAL_OPTIONS_EDGE, ...OptionsGraph.EDGE_PRIORITY];
-
-        this.snapshot();
-
-        this.buildGraphFromObject(parentVertex, USER_PARTIAL_OPTIONS_EDGE, partialOptions, pathArrayVertex);
-
-        // Refresh all the pending processing edges within the given partial options.
-        for (const key of partialKeys) {
-            const childVertex = proxyPaths?.[key]
-                ? this.findVertexAtPath([...path, ...proxyPaths[key]])
-                : this.findNeighbourWithValue(parentVertex, key, PATH_EDGE);
-
-            if (childVertex) {
-                this.refreshPendingProcessingEdges(childVertex);
-            }
-        }
-
-        this.buildDependencyGraph();
-
-        const resolved = {};
-        this.resolveVertex(parentVertex, resolved);
-
-        this.rollback();
-
-        this.graftEdge = OptionsGraph.GRAFT_EDGE;
-        this.edgePriority = OptionsGraph.EDGE_PRIORITY;
-        this.userPartialOptions = undefined;
-
-        // Copy the resolved values from the correct option structure back into the given paths.
-        if (proxyPaths) {
-            for (const proxyFrom of Object.keys(proxyPaths)) {
-                const proxyTo = proxyPaths[proxyFrom];
-                const proxyValue = getPathSafe(resolved, [...path, ...proxyTo]);
-                setPathSafe(resolved, [...path, proxyFrom], proxyValue);
-            }
-        }
-
-        const pathed = getPathSafe(resolved, path) as Partial<T>;
-
-        // Only pick the keys that have been requested to prevent overwriting other values with the graph.
-        const shouldPick: boolean = resolveOptions?.pick ?? true;
-        const partial = shouldPick ? (pick(getPathSafe(resolved, path) as T, partialKeys) as Partial<T>) : pathed;
-
-        debug('vertex count', this.getVertexCount());
-        debug('edge count', this.getEdgeCount());
-        debug('resolved partial', partial);
-
-        if (debug.check()) {
-            // eslint-disable-next-line no-console
-            console.groupEnd();
-        }
-
-        return partial as Resolved<Partial<T>>;
     }
 
     findVertexAtPath(path: Array<string>) {
@@ -1414,6 +1282,138 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         this.rollbackEdgesTo = [];
         this.rollbackEdgesValue = [];
         this.isRollingBack = false;
+    }
+
+    private withLogger<T>(logger: Logger | undefined, fn: () => T): T {
+        const previous = this.activeLogger;
+        this.activeLogger = logger;
+        try {
+            // Drain only when there is somewhere to drain to; the graph is memoised, so discarding the
+            // queue here would lose those warnings for every later chart resolving the same options.
+            if (logger != null) {
+                for (const message of this.pendingWarnings.splice(0)) {
+                    logger.warnOnce(message);
+                }
+            }
+            return fn();
+        } finally {
+            this.activeLogger = previous;
+        }
+    }
+
+    private resolvePartialInternal<T extends PlainObject>(
+        path: Array<string>,
+        partialOptions: T,
+        resolveOptions?: {
+            permissivePath?: boolean;
+            pick?: boolean;
+            proxyPaths?: Record<string, Array<string>>;
+        },
+        cssVariables?: Record<string, string>
+    ): Resolved<Partial<T>> | undefined {
+        // If the graph has been cleared, do not attempt to resolve. This will occur when no `styler` options are provided.
+        if (!this.root) return;
+
+        const { permissivePath, proxyPaths } = resolveOptions ?? {};
+
+        const partialKeys = Object.keys(partialOptions);
+
+        if (debug.check()) {
+            // eslint-disable-next-line no-console
+            console.groupCollapsed(`OptionsGraph.resolvePartial() - ${path.join('.')} [${partialKeys}]`);
+        }
+
+        if (partialKeys.length === 0) return {} as Resolved<Partial<T>>;
+
+        if (cssVariables) {
+            this.cssVariables = { ...this.cssVariables, ...cssVariables };
+        }
+
+        const parentVertex = this.findVertexAtPath(path);
+        if (!parentVertex) {
+            if (permissivePath) {
+                return undefined;
+            } else {
+                throw new Error(`Could not find vertex in OptionsGraph at path [${path.join('.')}].`);
+            }
+        }
+        const pathArrayVertex = this.findNeighbour(parentVertex, PATH_ARRAY_EDGE);
+
+        this.userPartialOptions = {};
+        setPathSafe(this.userPartialOptions, path, partialOptions);
+
+        // Copy the given paths into the correct option structure to be built into the graph.
+        if (proxyPaths) {
+            for (const proxyFrom of Object.keys(proxyPaths)) {
+                const proxyTo = proxyPaths[proxyFrom];
+                const proxyValue = getPathSafe(partialOptions, [proxyFrom]);
+                if (proxyValue != null) {
+                    setPathSafe(partialOptions, proxyTo, proxyValue);
+                    setPathSafe(this.userPartialOptions, [...path, ...proxyTo], proxyValue);
+                    delete partialOptions[proxyFrom];
+                    delete this.userPartialOptions[proxyFrom];
+                }
+            }
+        }
+
+        // Default to grafting new values onto the 'userPartial' edge, however some operations force this onto other
+        // edges so as to not override any user partial vertices.
+        this.graftEdge = USER_PARTIAL_OPTIONS_EDGE;
+
+        // Temporarily use the 'userPartial' edge in-place of 'user' when building and resolving this partial graph.
+        this.edgePriority = [USER_PARTIAL_OPTIONS_EDGE, ...OptionsGraph.EDGE_PRIORITY];
+
+        this.snapshot();
+
+        this.buildGraphFromObject(parentVertex, USER_PARTIAL_OPTIONS_EDGE, partialOptions, pathArrayVertex);
+
+        // Refresh all the pending processing edges within the given partial options.
+        for (const key of partialKeys) {
+            const childVertex = proxyPaths?.[key]
+                ? this.findVertexAtPath([...path, ...proxyPaths[key]])
+                : this.findNeighbourWithValue(parentVertex, key, PATH_EDGE);
+
+            if (childVertex) {
+                this.refreshPendingProcessingEdges(childVertex);
+            }
+        }
+
+        this.buildDependencyGraph();
+
+        const resolved = {};
+        this.resolveVertex(parentVertex, resolved);
+
+        this.rollback();
+
+        this.graftEdge = OptionsGraph.GRAFT_EDGE;
+        this.edgePriority = OptionsGraph.EDGE_PRIORITY;
+        this.userPartialOptions = undefined;
+
+        // Copy the resolved values from the correct option structure back into the given paths.
+        if (proxyPaths) {
+            for (const proxyFrom of Object.keys(proxyPaths)) {
+                const proxyTo = proxyPaths[proxyFrom];
+                const proxyValue = getPathSafe(resolved, [...path, ...proxyTo]);
+                setPathSafe(resolved, [...path, proxyFrom], proxyValue);
+            }
+        }
+
+        const pathed = getPathSafe(resolved, path) as Partial<T>;
+
+        // Only pick the keys that have been requested to prevent overwriting other values with the graph.
+        const shouldPick: boolean = resolveOptions?.pick ?? true;
+        const partial = shouldPick ? (pick(getPathSafe(resolved, path) as T, partialKeys) as Partial<T>) : pathed;
+
+        debug('vertex count', this.getVertexCount());
+        debug('edge count', this.getEdgeCount());
+        debug('resolved partial', partial);
+
+        if (debug.check()) {
+            // eslint-disable-next-line no-console
+            console.groupEnd();
+        }
+
+        return partial as Resolved<Partial<T>>;
     }
 
     private diagramKeys?: Map<string, string>;
