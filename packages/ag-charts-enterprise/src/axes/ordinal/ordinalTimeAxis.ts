@@ -60,6 +60,8 @@ export class OrdinalTimeAxis extends _ModuleSupport.DiscreteTimeAxis<
         super(moduleCtx, id, accurateScale, options);
         this.accurateScale = accurateScale;
         this.approximateScale = new ApproximateOrdinalTimeScale();
+        // `getActiveScale()` swaps to this one for large uniform datasets, so it needs the logger too.
+        this.approximateScale.logger = moduleCtx.logger;
 
         // Set up delegation so approximate scale reads/writes go to accurate scale
         this.approximateScale.setSourceScale(accurateScale);
