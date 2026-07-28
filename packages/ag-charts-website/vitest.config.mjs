@@ -33,6 +33,7 @@ export default getViteConfig({
             'ag-charts-community': resolvePath('../ag-charts-community/src/main.ts'),
             'ag-charts-types': resolvePath('../ag-charts-types/src/main.ts'),
             'ag-charts-locale': resolvePath('../ag-charts-locale/src/main.ts'),
+            'ag-charts-core': resolvePath('../ag-charts-core/src/main.ts'),
         },
     },
 });
