@@ -92,45 +92,47 @@ abstract class NetworkTreeDirectionalLayout<TVertex, TEdge> {
         bottom: 0,
     };
 
-    abstract updateNodes(
+    protected abstract addNodesGroupBBoxOuterSpacing(
         options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>,
-        groupBBox?: TBBox,
-        regularBBox?: TBBox
-    ): {
-        containerBBox: TBBox;
-        childrenBBoxes: { vertex: Vertex<TVertex, TEdge>; bbox: TBBox }[];
-    };
+        groupBBox: TBBox,
+        prevHasVisibleChildren: boolean
+    ): void;
 
-    resetContentBBox() {
-        this.contentBoundsAccumulator.count = 0;
-    }
+    protected abstract addNodesGroupBBoxInnerSpacing(
+        options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>,
+        groupBBox: TBBox,
+        vertices: Vertex<TVertex, TEdge>[],
+        index: number,
+        hasVisibleChildren: boolean
+    ): void;
 
-    getContentBBox() {
-        const acc = this.contentBoundsAccumulator;
-        if (acc.count === 0) return;
+    protected abstract getNodesLayoutBBox(
+        mergedChildrenBBoxes: TBBox | undefined,
+        nodeBBox: TBBox,
+        groupBBox: TBBox
+    ): TBBox;
 
-        return new BBox(acc.left, acc.top, acc.right - acc.left, acc.bottom - acc.top);
-    }
+    protected abstract getChildrenGroupBBox(
+        options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>,
+        nodeBBox: TBBox,
+        groupBBox: TBBox,
+        prevHasVisibleChildren: boolean
+    ): TBBox;
 
-    protected accumulateContentBounds(bbox: TBBox) {
-        const acc = this.contentBoundsAccumulator;
-        if (acc.count === 0) {
-            acc.left = bbox.x;
-            acc.top = bbox.y;
-            acc.right = bbox.x + bbox.width;
-            acc.bottom = bbox.y + bbox.height;
-            acc.count = 1;
-            return;
-        }
-        if (bbox.x < acc.left) acc.left = bbox.x;
-        if (bbox.y < acc.top) acc.top = bbox.y;
-        if (bbox.x + bbox.width > acc.right) acc.right = bbox.x + bbox.width;
-        if (bbox.y + bbox.height > acc.bottom) acc.bottom = bbox.y + bbox.height;
-        acc.count++;
-    }
-}
+    protected abstract getNodesContainerBBox(
+        options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>,
+        groupBBox: TBBox,
+        descendentsContainerBBox: TBBox
+    ): TBBox;
 
-class NetworkTreeVerticalLayout<TVertex, TEdge> extends NetworkTreeDirectionalLayout<TVertex, TEdge> {
+    protected abstract drawLink(
+        path: _ModuleSupport.ExtendedPath2D,
+        parentBBox: TBBox,
+        childBBox: TBBox,
+        interpolation: NetworkLinkInterpolation,
+        options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>
+    ): void;
+
     updateNodes(
         options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>,
         groupBBox: TBBox = new BBox(0, 0, 0, 0),
@@ -154,10 +156,7 @@ class NetworkTreeVerticalLayout<TVertex, TEdge> extends NetworkTreeDirectionalLa
             nodeBBox = regularBBox ?? nodeBBox;
             if (!nodeBBox) continue;
 
-            // Add spacing to the left if the previous sibling has visible children.
-            if (prevHasVisibleChildren) {
-                groupBBox.width += options.outerSpacing;
-            }
+            this.addNodesGroupBBoxOuterSpacing(options, groupBBox, prevHasVisibleChildren);
 
             // Layout children before their parent so that the parent can be aligned to match the children.
             const { descendentsContainerBBox, childrenBBoxes, mergedChildrenBBoxes, childrenCount } =
@@ -174,13 +173,7 @@ class NetworkTreeVerticalLayout<TVertex, TEdge> extends NetworkTreeDirectionalLa
                 childrenCount > 0 && mergedChildrenBBoxes != null && mergedChildrenBBoxes.width > 0;
             prevHasVisibleChildren = hasVisibleChildren;
 
-            const x = mergedChildrenBBoxes
-                ? // When a node has children, align it centred to those immediate children, but not all descendents.
-                  mergedChildrenBBoxes.x + mergedChildrenBBoxes.width / 2 - nodeBBox.width / 2
-                : // Otherwise justify the node to the left against its siblings.
-                  groupBBox.x + groupBBox.width;
-
-            const layoutBBox = new BBox(x, groupBBox.y, nodeBBox.width, nodeBBox.height);
+            const layoutBBox = this.getNodesLayoutBBox(mergedChildrenBBoxes, nodeBBox, groupBBox);
 
             // Request the series to layout the node per the calculated bbox. Override the layoutBBox for the accumulator
             // if the node extends outside its default size, e.g. for an expander pill.
@@ -191,21 +184,13 @@ class NetworkTreeVerticalLayout<TVertex, TEdge> extends NetworkTreeDirectionalLa
 
             // Merge the bboxes into the group.
             if (descendentsContainerBBox) {
-                const containerBBox = new BBox(
-                    descendentsContainerBBox.x,
-                    options.direction === 'up' ? groupBBox.y : descendentsContainerBBox.y,
-                    descendentsContainerBBox.width,
-                    descendentsContainerBBox.height
-                );
+                const containerBBox = this.getNodesContainerBBox(options, groupBBox, descendentsContainerBBox);
                 groupBBox = BBox.merge([groupBBox, containerBBox, layoutBBox]);
             } else {
                 groupBBox = BBox.merge([groupBBox, layoutBBox]);
             }
 
-            // Add inner padding to childless siblings in the group except for the last node.
-            if (index < vertices.length - 1 && !hasVisibleChildren) {
-                groupBBox.width += options.innerSpacing;
-            }
+            this.addNodesGroupBBoxInnerSpacing(options, groupBBox, vertices, index, hasVisibleChildren);
 
             // Request the series to layout the links between children and their parents.
             if (childrenBBoxes) {
@@ -221,7 +206,18 @@ class NetworkTreeVerticalLayout<TVertex, TEdge> extends NetworkTreeDirectionalLa
         return { containerBBox: groupBBox, childrenBBoxes: layoutBBoxes };
     }
 
-    private updateChildren(
+    resetContentBBox() {
+        this.contentBoundsAccumulator.count = 0;
+    }
+
+    getContentBBox() {
+        const acc = this.contentBoundsAccumulator;
+        if (acc.count === 0) return;
+
+        return new BBox(acc.left, acc.top, acc.right - acc.left, acc.bottom - acc.top);
+    }
+
+    protected updateChildren(
         options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>,
         vertex: Vertex<TVertex, TEdge>,
         groupBBox: TBBox,
@@ -234,15 +230,7 @@ class NetworkTreeVerticalLayout<TVertex, TEdge> extends NetworkTreeDirectionalLa
         const isCollapsed = options.isVertexCollapsed(vertex);
         if (!children || children.length == 0 || isCollapsed) return { childrenCount: 0 };
 
-        let adjustY = nodeBBox.height + options.depthSpacing + options.verticalSpacingExtra;
-        if (options.direction === 'up') adjustY *= -1;
-        const childrenGroupBBox = new BBox(groupBBox.x, groupBBox.y + adjustY, groupBBox.width, groupBBox.height);
-
-        // Add spacing to the left if the parent's previous sibling does not have visible children.
-        if (!prevHasVisibleChildren) {
-            childrenGroupBBox.x += options.outerSpacing - options.innerSpacing;
-        }
-
+        const childrenGroupBBox = this.getChildrenGroupBBox(options, nodeBBox, groupBBox, prevHasVisibleChildren);
         const { containerBBox, childrenBBoxes } = this.updateNodes(
             { ...options, vertices: children },
             childrenGroupBBox,
@@ -258,7 +246,91 @@ class NetworkTreeVerticalLayout<TVertex, TEdge> extends NetworkTreeDirectionalLa
         };
     }
 
-    private drawLink(
+    protected accumulateContentBounds(bbox: TBBox) {
+        const acc = this.contentBoundsAccumulator;
+        if (acc.count === 0) {
+            acc.left = bbox.x;
+            acc.top = bbox.y;
+            acc.right = bbox.x + bbox.width;
+            acc.bottom = bbox.y + bbox.height;
+            acc.count = 1;
+            return;
+        }
+        if (bbox.x < acc.left) acc.left = bbox.x;
+        if (bbox.y < acc.top) acc.top = bbox.y;
+        if (bbox.x + bbox.width > acc.right) acc.right = bbox.x + bbox.width;
+        if (bbox.y + bbox.height > acc.bottom) acc.bottom = bbox.y + bbox.height;
+        acc.count++;
+    }
+}
+
+class NetworkTreeVerticalLayout<TVertex, TEdge> extends NetworkTreeDirectionalLayout<TVertex, TEdge> {
+    protected override addNodesGroupBBoxOuterSpacing(
+        options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>,
+        groupBBox: TBBox,
+        prevHasVisibleChildren: boolean
+    ) {
+        // Add spacing to the left if the previous sibling has visible children.
+        if (prevHasVisibleChildren) {
+            groupBBox.width += options.outerSpacing;
+        }
+    }
+
+    protected override addNodesGroupBBoxInnerSpacing(
+        options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>,
+        groupBBox: TBBox,
+        vertices: Vertex<TVertex, TEdge>[],
+        index: number,
+        hasVisibleChildren: boolean
+    ) {
+        // Add inner padding to childless siblings in the group except for the last node.
+        if (index < vertices.length - 1 && !hasVisibleChildren) {
+            groupBBox.width += options.innerSpacing;
+        }
+    }
+
+    protected override getNodesLayoutBBox(mergedChildrenBBoxes: TBBox | undefined, nodeBBox: TBBox, groupBBox: TBBox) {
+        const x = mergedChildrenBBoxes
+            ? // When a node has children, align it centred to those immediate children, but not all descendents.
+              mergedChildrenBBoxes.x + mergedChildrenBBoxes.width / 2 - nodeBBox.width / 2
+            : // Otherwise justify the node to the left against its siblings.
+              groupBBox.x + groupBBox.width;
+
+        return new BBox(x, groupBBox.y, nodeBBox.width, nodeBBox.height);
+    }
+
+    protected override getChildrenGroupBBox(
+        options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>,
+        nodeBBox: TBBox,
+        groupBBox: TBBox,
+        prevHasVisibleChildren: boolean
+    ) {
+        let adjustY = nodeBBox.height + options.depthSpacing + options.verticalSpacingExtra;
+        if (options.direction === 'up') adjustY *= -1;
+        const childrenGroupBBox = new BBox(groupBBox.x, groupBBox.y + adjustY, groupBBox.width, groupBBox.height);
+
+        // Add spacing to the left if the parent's previous sibling does not have visible children.
+        if (!prevHasVisibleChildren) {
+            childrenGroupBBox.x += options.outerSpacing - options.innerSpacing;
+        }
+
+        return childrenGroupBBox;
+    }
+
+    protected override getNodesContainerBBox(
+        options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>,
+        groupBBox: TBBox,
+        descendentsContainerBBox: TBBox
+    ): TBBox {
+        return new BBox(
+            descendentsContainerBBox.x,
+            options.direction === 'up' ? groupBBox.y : descendentsContainerBBox.y,
+            descendentsContainerBBox.width,
+            descendentsContainerBBox.height
+        );
+    }
+
+    protected override drawLink(
         path: _ModuleSupport.ExtendedPath2D,
         parentBBox: TBBox,
         childBBox: TBBox,
@@ -328,108 +400,59 @@ class NetworkTreeVerticalLayout<TVertex, TEdge> extends NetworkTreeDirectionalLa
 }
 
 class NetworkTreeHorizontalLayout<TVertex, TEdge> extends NetworkTreeDirectionalLayout<TVertex, TEdge> {
-    updateNodes(
+    protected override addNodesGroupBBoxOuterSpacing(
         options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>,
-        groupBBox: TBBox = new BBox(0, 0, 0, 0),
-        regularBBox?: TBBox
-    ): {
-        containerBBox: TBBox;
-        childrenBBoxes: { vertex: Vertex<TVertex, TEdge>; bbox: TBBox }[];
-    } {
-        const { getDatumNodeBBox, getLinkInterpolation, layoutDatumNode, layoutLinkNode, vertices } = options;
-        const layoutBBoxes = [];
-
-        // Iterate through the sibling vertices calculating their layout positions.
-        let index = -1;
-        let prevHasVisibleChildren = false;
-        for (const vertex of vertices) {
-            index++;
-
-            let nodeBBox = getDatumNodeBBox(vertex);
-            if (!nodeBBox && options.hiddenOnCollapse) continue;
-
-            nodeBBox = regularBBox ?? nodeBBox;
-            if (!nodeBBox) continue;
-
-            // Add spacing to the top if the previous sibling has visible children.
-            if (prevHasVisibleChildren) {
-                groupBBox.height += options.outerSpacing;
-            }
-
-            // Layout children before their parent so that the parent can be aligned to match the children.
-            const { descendentsContainerBBox, childrenBBoxes, mergedChildrenBBoxes, childrenCount } =
-                this.updateChildren(
-                    options,
-                    vertex,
-                    groupBBox,
-                    nodeBBox,
-                    regularBBox,
-                    prevHasVisibleChildren || index === 0
-                );
-
-            const hasVisibleChildren =
-                childrenCount > 0 && mergedChildrenBBoxes != null && mergedChildrenBBoxes.width > 0;
-            prevHasVisibleChildren = hasVisibleChildren;
-
-            const y = mergedChildrenBBoxes
-                ? // When a node has children, align it centred to those immediate children, but not all descendents.
-                  mergedChildrenBBoxes.y + mergedChildrenBBoxes.height / 2 - nodeBBox.height / 2
-                : // Otherwise justify the node to the top against its siblings.
-                  groupBBox.y + groupBBox.height;
-
-            const layoutBBox = new BBox(groupBBox.x, y, nodeBBox.width, nodeBBox.height);
-
-            // Request the series to layout the node per the calculated bbox. Override the layoutBBox for the accumulator
-            // if the node extends outside its default size, e.g. for an expander pill.
-            const overrideAccumulateBBox = layoutDatumNode(vertex, layoutBBox, regularBBox);
-
-            layoutBBoxes.push({ vertex, bbox: layoutBBox });
-            this.accumulateContentBounds(overrideAccumulateBBox ?? layoutBBox);
-
-            // Merge the bboxes into the group.
-            if (descendentsContainerBBox) {
-                const containerBBox = new BBox(
-                    options.direction === 'left' ? groupBBox.x : descendentsContainerBBox.x,
-                    descendentsContainerBBox.y,
-                    descendentsContainerBBox.width,
-                    descendentsContainerBBox.height
-                );
-                groupBBox = BBox.merge([groupBBox, containerBBox, layoutBBox]);
-            } else {
-                groupBBox = BBox.merge([groupBBox, layoutBBox]);
-            }
-
-            // Add inner padding to childless siblings in the group except for the last node.
-            if (index < vertices.length - 1 && !hasVisibleChildren) {
-                groupBBox.height += options.innerSpacing;
-            }
-
-            // Request the series to layout the links between children and their parents.
-            if (childrenBBoxes) {
-                for (const { vertex: childVertex, bbox } of childrenBBoxes) {
-                    const interpolation = getLinkInterpolation(vertex, childVertex);
-                    layoutLinkNode(childVertex, (path: _ModuleSupport.ExtendedPath2D) =>
-                        this.drawLink(path, layoutBBox, bbox, interpolation, options)
-                    );
-                }
-            }
-        }
-
-        return { containerBBox: groupBBox, childrenBBoxes: layoutBBoxes };
-    }
-
-    private updateChildren(
-        options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>,
-        vertex: Vertex<TVertex, TEdge>,
         groupBBox: TBBox,
-        nodeBBox: TBBox,
-        regularBBox: TBBox | undefined,
         prevHasVisibleChildren: boolean
     ) {
-        const { graph } = options;
-        const children = graph.neighboursWithEdgeValue(vertex, 'child' as TEdge) as Vertex<TVertex, TEdge>[];
-        if (!children || children.length == 0) return { childrenCount: 0 };
+        // Add spacing to the top if the previous sibling has visible children.
+        if (prevHasVisibleChildren) {
+            groupBBox.height += options.outerSpacing;
+        }
+    }
 
+    protected override addNodesGroupBBoxInnerSpacing(
+        options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>,
+        groupBBox: TBBox,
+        vertices: Vertex<TVertex, TEdge>[],
+        index: number,
+        hasVisibleChildren: boolean
+    ) {
+        // Add inner padding to childless siblings in the group except for the last node.
+        if (index < vertices.length - 1 && !hasVisibleChildren) {
+            groupBBox.height += options.innerSpacing;
+        }
+    }
+
+    protected override getNodesLayoutBBox(mergedChildrenBBoxes: TBBox | undefined, nodeBBox: TBBox, groupBBox: TBBox) {
+        const y = mergedChildrenBBoxes
+            ? // When a node has children, align it centred to those immediate children, but not all descendents.
+              mergedChildrenBBoxes.y + mergedChildrenBBoxes.height / 2 - nodeBBox.height / 2
+            : // Otherwise justify the node to the top against its siblings.
+              groupBBox.y + groupBBox.height;
+
+        return new BBox(groupBBox.x, y, nodeBBox.width, nodeBBox.height);
+    }
+
+    protected override getNodesContainerBBox(
+        options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>,
+        groupBBox: TBBox,
+        descendentsContainerBBox: TBBox
+    ) {
+        return new BBox(
+            options.direction === 'left' ? groupBBox.x : descendentsContainerBBox.x,
+            descendentsContainerBBox.y,
+            descendentsContainerBBox.width,
+            descendentsContainerBBox.height
+        );
+    }
+
+    protected override getChildrenGroupBBox(
+        options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>,
+        nodeBBox: TBBox,
+        groupBBox: TBBox,
+        prevHasVisibleChildren: boolean
+    ) {
         let adjustX = nodeBBox.width + options.depthSpacing + options.verticalSpacingExtra;
         if (options.direction === 'left') adjustX *= -1;
         const childrenGroupBBox = new BBox(groupBBox.x + adjustX, groupBBox.y, groupBBox.width, groupBBox.height);
@@ -439,22 +462,10 @@ class NetworkTreeHorizontalLayout<TVertex, TEdge> extends NetworkTreeDirectional
             childrenGroupBBox.y += options.outerSpacing - options.innerSpacing;
         }
 
-        const { containerBBox, childrenBBoxes } = this.updateNodes(
-            { ...options, vertices: children },
-            childrenGroupBBox,
-            regularBBox
-        );
-
-        return {
-            descendentsContainerBBox: containerBBox,
-            childrenBBoxes,
-            mergedChildrenBBoxes:
-                childrenBBoxes.length > 0 ? BBox.merge(childrenBBoxes.map(({ bbox }) => bbox)) : undefined,
-            childrenCount: children.length,
-        };
+        return childrenGroupBBox;
     }
 
-    private drawLink(
+    protected override drawLink(
         path: _ModuleSupport.ExtendedPath2D,
         parentBBox: TBBox,
         childBBox: TBBox,
