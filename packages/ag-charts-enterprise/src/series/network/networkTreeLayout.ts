@@ -56,7 +56,7 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
 
         this.directionalLayout.resetContentBBox();
         const { containerBBox } = this.directionalLayout.updateNodes(options, undefined, this.regularBBox);
-        this._contentBBox = this.directionalLayout.getContentBBox() ?? containerBBox;
+        this.contentBBox = this.directionalLayout.getContentBBox() ?? containerBBox;
     }
 
     protected override calculateRegularDimensions(options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>) {
