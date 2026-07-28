@@ -3,7 +3,7 @@ import type { AgCssColorOrRef } from './themeParamsOptions';
 import type { AxisValue, CssColor, FontFamilyFull, Opacity, PixelSize } from './types';
 
 export interface AgCommonCrossLineOptions<LabelType = AgBaseCrossLineLabelOptions> {
-    /** A user-supplied identifier for the Cross Line, surfaced as `crossLineId` in Context Menu params and events. Defaults to an internally generated identifier. */
+    /** A user-supplied identifier for the Cross Line, surfaced as `crossLineId` in callback and event params. Defaults to an internally generated identifier. */
     id?: string;
     /** Whether to show the Cross Line. */
     enabled?: boolean;
