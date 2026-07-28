@@ -16,6 +16,10 @@
             {
                 "text": "Org Chart Interactivity Improvements",
                 "path": "./org-chart/"
+            },
+            {
+                "text": "AI Coding",
+                "path": "./skills/"
             }
         ],
         "notesPath": "./upgrade-to-ag-charts-14-1"
