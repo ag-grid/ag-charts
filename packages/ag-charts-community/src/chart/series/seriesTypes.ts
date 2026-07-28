@@ -125,6 +125,12 @@ export interface ISeries<TDatum extends SeriesNodeDatum, TProps extends ISeriesP
     hasEventListener(type: string): boolean;
     /** Whether a click on `target` triggers a built-in interaction (e.g. the org-chart expander). */
     hasBuiltinListener(target: Node<unknown> | undefined): boolean;
+    /**
+     * Whether a pointer event on `target` should reach the user's `seriesNodeClick` and
+     * `seriesNodeDoubleClick` listeners. `false` for dedicated controls that own their clicks
+     * outright, such as the org-chart expander pill.
+     */
+    firesUserClickListeners(target: Node<unknown> | undefined): boolean;
     hasData: boolean;
     update(opts: { seriesRect?: BBox }): Promise<void> | void;
     updatePlacedLabelData?(labels: PlacedLabel<TLabel>[]): void;
