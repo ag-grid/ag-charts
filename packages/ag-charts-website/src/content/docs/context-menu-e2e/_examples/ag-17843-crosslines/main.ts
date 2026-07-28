@@ -10,6 +10,7 @@ ModuleRegistry.registerModules([AllEnterpriseModule]);
 
 // The x-axis is positioned with `crossAt` and the y-axis carries a crossline so that both overlap the
 // series area near the 'Feb' node. Right-clicking that node must offer every region it intersects.
+// Each cross line sets an explicit `id`, which is surfaced back as `crossLineId`.
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: [
@@ -34,12 +35,13 @@ const options: AgCartesianChartOptions = {
             type: 'category',
             crossAt: { value: 0 },
             crossLines: [
-                { type: 'line', value: 'May', stroke: 'blue', strokeWidth: 2 },
-                { type: 'range', range: ['Mar', 'Jun'], strokeWidth: 2 },
+                { id: 'blue-line', type: 'line', value: 'May', stroke: 'blue', strokeWidth: 2 },
+                { id: 'grey-range', type: 'range', range: ['Mar', 'Jun'], strokeWidth: 2 },
             ],
         },
         y: {
             type: 'number',
+            // No `id`, so `crossLineId` falls back to an internally generated identifier.
             crossLines: [{ type: 'line', value: 8, stroke: 'lime', strokeWidth: 2 }],
         },
     },

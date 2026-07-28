@@ -72,7 +72,7 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
             if (crossLine.containsPoint?.(event.canvasX, event.canvasY) !== true) continue;
 
             event.crossLine.push({
-                crossLineId: crossLine.id,
+                crossLineId: crossLine.id ?? crossLine.internalId,
                 axisId: this.axisCtx.axisId,
                 direction: this.axisCtx.direction,
                 type: crossLine.type,
