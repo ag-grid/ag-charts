@@ -140,6 +140,12 @@ export class Caster<T> {
         const property = this.findProperty(propertyName).value[propertyName];
         return new Caster(property);
     }
+
+    assertNonNullish() {
+        expect(this.value).toBeDefined();
+        expect(this.value).not.toBeNull();
+        return convert<NonNullable<T>>(this);
+    }
 }
 
 export function classCast<C extends AnyCtor>(value: unknown, ctor: C) {
