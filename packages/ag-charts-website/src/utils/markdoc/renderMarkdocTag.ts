@@ -2,6 +2,7 @@ import type { Library } from '@ag-grid-types';
 import featuresData from '@ag-website-shared/components/features-section/DocsFeaturesSection.json';
 import { FEATURE_MAP } from '@ag-website-shared/components/getting-started/gettingStartedData';
 import whatsNewData from '@ag-website-shared/content/whats-new/data.json';
+import { type MajorTableVersionEntry, buildMajorTable } from '@ag-website-shared/markdoc/buildMajorTable';
 import { type MarkdownFramework, fencedCodeBlock } from '@ag-website-shared/markdoc/renderMarkdocToMarkdown';
 import { toAbsoluteUrl } from '@ag-website-shared/markdoc/toAbsoluteUrl';
 import { getDocumentationArchiveUrl } from '@ag-website-shared/utils/getArchiveUrl';
@@ -16,7 +17,6 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { renderApiReferenceTable } from './renderApiReferenceTable';
-import { type VersionEntry, buildMajorTable } from './renderMajorTable';
 import { type ModuleNode, buildModuleMappingsTable } from './renderModuleMappings';
 
 interface RenderMarkdocTagParams {
@@ -87,7 +87,12 @@ async function renderMajorTable(
     if (!entry) {
         return '';
     }
-    return buildMajorTable(entry.data as VersionEntry[], attributes, framework, siteRoot);
+    return buildMajorTable({
+        versions: entry.data as MajorTableVersionEntry[],
+        attributes,
+        defaultLibrary: 'charts',
+        resolveNotesUrl: (notesPath) => toAbsoluteUrl(urlWithPrefix({ url: notesPath, framework }), siteRoot),
+    });
 }
 
 function renderEmbedSnippet(attributes: Record<string, any>, pageName: string, siteRoot?: string): string {
