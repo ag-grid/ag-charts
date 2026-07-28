@@ -121,6 +121,24 @@ export class SeriesStateManager {
         };
     }
 
+    /** Whether a visible series sits at a lower / higher `stackIndex` than this one in the same stack. */
+    public getVisibleStackNeighbours({ type, seriesGrouping }: SeriesLike): { before: boolean; after: boolean } {
+        let before = false;
+        let after = false;
+        if (!seriesGrouping) return { before, after };
+
+        const group = this.groups.get(type);
+        for (const entry of group?.values() ?? []) {
+            if (!entry.visible) continue;
+            if (entry.grouping.groupIndex !== seriesGrouping.groupIndex) continue;
+
+            before ||= entry.grouping.stackIndex < seriesGrouping.stackIndex;
+            after ||= entry.grouping.stackIndex > seriesGrouping.stackIndex;
+        }
+
+        return { before, after };
+    }
+
     public updateGroupScale(
         { type }: SeriesLike,
         bandwidth: number,
