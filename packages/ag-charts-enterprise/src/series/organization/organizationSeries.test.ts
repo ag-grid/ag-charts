@@ -775,6 +775,40 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
         },
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
     },
+    EXPANDER_ALL_AND_DIRECT_CHILDREN: {
+        options: {
+            ...SIMPLE_ORG_CHART,
+            series: [
+                {
+                    ...SIMPLE_ORG_CHART.series![0],
+                    expander: {
+                        text: {
+                            showDirectChildren: true,
+                            showAllChildren: true,
+                        },
+                    },
+                },
+            ],
+        } as any,
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    EXPANDER_NO_CHILDREN: {
+        options: {
+            ...SIMPLE_ORG_CHART,
+            series: [
+                {
+                    ...SIMPLE_ORG_CHART.series![0],
+                    expander: {
+                        text: {
+                            showDirectChildren: false,
+                            showAllChildren: false,
+                        },
+                    },
+                },
+            ],
+        } as any,
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
     DIRECTION_HORIZONTAL_IMAGE_TOP: {
         options: {
             ...createTextImageExample('center', 'top'),
