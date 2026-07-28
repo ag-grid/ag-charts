@@ -477,7 +477,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                         activeTheme.overrides,
                         this.logger
                     );
-                    activeTheme = sanitizeThemeModules(getChartTheme(options.theme, this.logger));
+                    activeTheme = sanitizeThemeModules(getChartTheme(options.theme, this.logger, presetDef.name));
                 }
             }
         }

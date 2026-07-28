@@ -377,9 +377,9 @@ export class ChartTheme {
         };
     }
 
-    constructor(options: AgChartTheme = {}) {
+    constructor(options: AgChartTheme = {}, presetName?: string) {
         const { overrides, palette, params } = deepClone(options) as AgChartThemeOptions;
-        const defaults = this.createChartConfigPerChartType(this.getDefaults());
+        const defaults = this.createChartConfigPerChartType(this.getDefaults(presetName));
         const presets: Record<string, any> = {};
 
         if (overrides) {
@@ -426,7 +426,7 @@ export class ChartTheme {
         return config;
     }
 
-    private getDefaults(): AgChartThemeOverrides {
+    private getDefaults(presetName?: string): AgChartThemeOverrides {
         const getOverridesByType = (chartType: ChartType, seriesTypes: string[]) => {
             const result: Record<string, { series?: object; axes?: object }> = {};
             const chartTypeDefaults = mergeDefaults(
@@ -434,6 +434,7 @@ export class ChartTheme {
                 ...Array.from(ModuleRegistry.listModulesByType(ModuleType.Plugin), (p) => ({
                     [p.name]: p.themeTemplate,
                 })),
+                presetName == null ? undefined : ModuleRegistry.getPresetModule(presetName)?.themeTemplate,
                 ModuleRegistry.getChartModule(chartType)?.themeTemplate,
                 this.getChartDefaults()
             );
