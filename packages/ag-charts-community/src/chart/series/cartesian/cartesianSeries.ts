@@ -847,11 +847,9 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
 
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
         const seriesHighlighted = this.isSeriesHighlighted(highlightedDatum);
-        // Item highlights are identified by a concrete datumIndex (series-level highlights use NaN);
-        // synthetic bars (e.g. waterfall totals) carry `datum: undefined`, so datum can't gate the overlay.
-        const datumIndex = highlightedDatum?.datumIndex;
-        const isItemHighlight = typeof datumIndex === 'number' && !Number.isNaN(datumIndex);
-        const item = seriesHighlighted && isItemHighlight ? highlightedDatum : undefined;
+        // Synthetic bars (e.g. waterfall totals) carry `datum: undefined`, so the datum itself can't gate
+        // the overlay — whether the highlight is datum-level is what decides it.
+        const item = seriesHighlighted && this.isDatumHighlight(highlightedDatum) ? highlightedDatum : undefined;
 
         if (item == null) return false;
 
