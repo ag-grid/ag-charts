@@ -19,6 +19,9 @@ for harness vocabulary. Work one series per PR against `latest`, under the AG-17
    control on those examples becomes at least one trajectory CASE, in both `standalone` and
    `integrated` mode where the page has an integrated variant (`options.mode: 'integrated'`).
    Non-animation examples on the same page (missing-data rendering, layout variants) stay put.
+   Some series never had a `-test` page — skip this sub-step and Step 7 entirely for those, and
+   drive the CASEs from the public `animation` docs-page actions plus the existing
+   `spyOnAnimationManager` snapshot describes instead of hunting for pages that do not exist.
 2. Add the relevant public `animation` docs-page actions (initial load, add/remove/update data,
    legend toggle) if the page lacks a button for them — same code path, cheap coverage.
 3. List the existing snapshot animation describes in the series' `*.test.ts` and classify each:
@@ -32,6 +35,11 @@ For each behaviour, add a temporary probe test that runs the action under
 per-frame values and phases; only then write the CASE. Reuse the suite's spec fragments
 (`fadeIn`, `markersReflow`, `revealFromBaseline`, `axisReflowSpec`, `survivorBands`) or add
 equivalents; shared helpers used by 2+ files belong in `chart/test/utils.ts`.
+
+The moving reveal property varies by series family — box-plot uses `scalingY`, radar the bbox
+`width`/`height`, range a `clip:x` swipe plus marker `width`/`height`. Derive it from the probe;
+do NOT copy it from a sibling series' precedent. Probe the whole sampled scene, not just the mark
+nodes: labels, containers and stacked inner edges animate too.
 
 Every CASE needs:
 
@@ -58,7 +66,10 @@ CASE or invariant. Restore the source exactly (`git status` must be clean) befor
 ## Step 5 — Convert the snapshot blocks
 
 Delete each trajectory-covered snapshot describe, leaving a one-line pointer comment naming the
-covering CASE(s). Trim kept pixel-only blocks' ratio lists. `git rm` the matching PNGs under the
+covering CASE(s). `spyOnAnimationManager()` and `spyOnAnimationFrames()` cannot coexist under a
+shared parent scope — a `spyOnAnimationManager()` at a top-level describe cascades into a sibling
+`spyOnAnimationFrames()` describe. Keep any retained snapshot block's spy inside its own describe
+rather than hoisted above both. Trim kept pixel-only blocks' ratio lists. `git rm` the matching PNGs under the
 suite's `__image_snapshots__/` (they are never auto-pruned), then run the suite and confirm no
 `*-diff.png` artifacts and no "new snapshot written" output. Snapshot deletion needs explicit
 user authorisation — get it before this step.
