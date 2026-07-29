@@ -31,7 +31,7 @@ Use `DOMElementProxy` (from `ag-charts-community/src/dom/domElementProxy.ts`) as
 -   **`setInnerHTML(html): boolean`** — cached `innerHTML` write. Returns `true` if the write happened. Auto-invalidates `contentStyles` so that the next `setContentStyles` call re-applies styles to the new child elements.
 -   **`setContentStyles(styles)`** — cached style assignment to the first child element (or the container itself if no children). Compared via `JSON.stringify`; skipped if unchanged. Auto-invalidated by `setInnerHTML` — callers no longer need manual `invalidate()` calls.
 -   **`innerHTML`** — getter reading from DOM. Use for read-side checks (e.g., `dom.innerHTML === ''`).
--   **`appendChild(child)`** — delegates to `element.appendChild()`. No caching — structural mutation.
+-   **`replaceChildren(...children)`** — delegates to `element.replaceChildren()`. No caching — structural mutation. Invalidates the `innerHTML` cache key.
 -   **`set innerText(text)`** — delegates to setting `element.innerText`. Invalidates the `innerHTML` cache key since setting innerText changes DOM content.
 -   **`togglePopover(force)`** — delegates to `element.togglePopover()`. Not cached (side effects beyond attribute state).
 -   **`changed(key, value)`** — escape hatch for writes not covered above. Uses `===`; callers must serialise objects first.

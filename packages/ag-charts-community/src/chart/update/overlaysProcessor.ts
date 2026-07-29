@@ -145,7 +145,10 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
 
     private showOverlay(overlay: Overlay, seriesRect: BBox) {
         const element = overlay.getElement(this.chartLike, this.animationManager, this.localeManager, seriesRect);
-        this.overlayElem.appendChild(element);
+        // The content is absolutely positioned with no `top`, so a placeholder text node (see hideOverlay)
+        // left in the container's flow displaces it by one line box. Clearing has to follow getElement(),
+        // which can itself write that placeholder by stopping the pending remove animation.
+        this.overlayElem.replaceChildren(element);
     }
 
     private hideOverlay(overlay: Overlay) {
