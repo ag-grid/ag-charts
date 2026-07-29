@@ -23,7 +23,7 @@ describe('OverlaysProcessor', () => {
         doc.body.innerHTML = '';
     });
 
-    function build() {
+    function build(isLoading: () => boolean = () => false) {
         const container = doc.createElement('div');
         doc.body.append(container);
 
@@ -37,7 +37,7 @@ describe('OverlaysProcessor', () => {
         const validationCollector = new ValidationIssueCollector();
 
         const chartLike = { series: [], axes: [], seriesRoot: {} } as unknown as ChartLike;
-        const dataService = { isLoading: () => false } as unknown as DataService<any>;
+        const dataService = { isLoading } as unknown as DataService<any>;
         const localeManager = { t: (key: string) => key } as unknown as LocaleManager;
         const animationManager = { animate: () => {} } as unknown as AnimationManager;
 
@@ -55,8 +55,7 @@ describe('OverlaysProcessor', () => {
         return { overlays, validationCollector, eventsHub };
     }
 
-    function emitLayout(eventsHub: EventsHub) {
-        const rect = new BBox(0, 0, 800, 600);
+    function emitLayout(eventsHub: EventsHub, rect = new BBox(0, 0, 800, 600)) {
         eventsHub.emit('layout:complete', {
             chart: { width: 800, height: 600 },
             series: { rect, paddedRect: rect, visible: true },
@@ -84,5 +83,63 @@ describe('OverlaysProcessor', () => {
         emitLayout(eventsHub);
 
         expect(noDataSpy).toHaveBeenCalled();
+    });
+
+    it('mounts the loading overlay once across repeated layouts while loading stays active', () => {
+        const { overlays, eventsHub } = build(() => true);
+        const loadingSpy = vi.spyOn(overlays.loading, 'getElement');
+
+        emitLayout(eventsHub);
+        emitLayout(eventsHub);
+        emitLayout(eventsHub);
+
+        // Re-mounting on every layout restarts the fade-in animation and makes the overlay flash;
+        // a continuous loading state must surface one steady overlay.
+        expect(loadingSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('re-mounts the loading overlay only after the state has toggled off and on again', () => {
+        let loading = true;
+        const { overlays, eventsHub } = build(() => loading);
+        const loadingSpy = vi.spyOn(overlays.loading, 'getElement');
+        const hideSpy = vi.spyOn(overlays.loading, 'removeElement');
+
+        emitLayout(eventsHub);
+        emitLayout(eventsHub);
+        expect(loadingSpy).toHaveBeenCalledTimes(1);
+
+        loading = false;
+        emitLayout(eventsHub);
+        expect(hideSpy).toHaveBeenCalledTimes(1);
+
+        loading = true;
+        emitLayout(eventsHub);
+        expect(loadingSpy).toHaveBeenCalledTimes(2);
+    });
+
+    it('still re-renders a non-loading overlay on every refresh so live content stays current', () => {
+        const { overlays, eventsHub } = build();
+        const noDataSpy = vi.spyOn(overlays.noData, 'getElement');
+
+        emitLayout(eventsHub);
+        emitLayout(eventsHub);
+
+        // Only the loading overlay has content fixed for the duration of its state; the others derive
+        // content from live state (e.g. validation lists its current issues) and must refresh.
+        expect(noDataSpy).toHaveBeenCalledTimes(2);
+    });
+
+    it('keeps the mounted overlay focus rect in sync on a rect change without remounting', () => {
+        const { overlays, eventsHub } = build(() => true);
+        const loadingSpy = vi.spyOn(overlays.loading, 'getElement');
+
+        emitLayout(eventsHub, new BBox(0, 0, 800, 600));
+        expect(loadingSpy).toHaveBeenCalledTimes(1);
+        expect(overlays.loading.focusBox).toEqual(new BBox(0, 0, 800, 600));
+
+        // A resize while loading must update the focus rect but not remount (which would re-fade).
+        emitLayout(eventsHub, new BBox(10, 20, 400, 300));
+        expect(loadingSpy).toHaveBeenCalledTimes(1);
+        expect(overlays.loading.focusBox).toEqual(new BBox(10, 20, 400, 300));
     });
 });
