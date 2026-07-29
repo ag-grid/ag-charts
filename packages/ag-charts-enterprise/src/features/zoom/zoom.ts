@@ -382,15 +382,9 @@ export class Zoom extends AbstractModuleInstance {
     }
 
     private onSeriesAreaDragEnd() {
-        const {
-            ctx: { interactionManager },
-        } = this;
+        this.ctx.interactionManager.popState(_ModuleSupport.InteractionState.ZoomDrag);
 
-        if (this.hoveredAxisId) return;
-
-        interactionManager.popState(_ModuleSupport.InteractionState.ZoomDrag);
-
-        if (!this.opts.enabled || this.dragState === DragState.None) return;
+        if (this.hoveredAxisId || !this.opts.enabled || this.dragState === DragState.None) return;
 
         this.handleRegularDragEnd();
         this.resetDragState();

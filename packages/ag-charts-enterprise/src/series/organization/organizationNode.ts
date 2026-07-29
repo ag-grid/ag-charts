@@ -533,7 +533,12 @@ class OrganizationExpanderNode extends _ModuleSupport.TranslatableGroup {
         const nodes: PositionedScene[] = [];
         if (this.countNode) nodes.push(this.countNode);
         if (this.chevronNode) nodes.push(this.chevronNode);
-        if (isRtl) nodes.reverse();
+
+        // Swap the nodes on vertical layouts with rtl, but ignore rtl on horizontal layouts so the chevron is always
+        // towards the children.
+        if ((isRtl && (direction === 'up' || direction === 'down')) || direction === 'left') {
+            nodes.reverse();
+        }
 
         layoutScenesRow(nodes, styles.expander.padding.left, [styles.expander.text.fontSize]);
 
