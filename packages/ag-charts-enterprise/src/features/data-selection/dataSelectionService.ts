@@ -12,6 +12,8 @@ type DataSet<T = unknown> = _ModuleSupport.DataSet<T>;
 type IDataSelectionService = _ModuleSupport.IDataSelectionService;
 type SelectionStateEnum = _ModuleSupport.SelectionState;
 type SeriesLike = Parameters<IDataSelectionService['getDataSelectionState']>[0];
+type Observer = Parameters<DynamicContext<ChartRegistry>['chartState']['observe']>[0];
+type ObserveGetter = Parameters<Observer>[0];
 
 const selectionInserter = (len: number) => new DataSetSelection(len);
 const candidacyInserter = (len: number) => new Bitfield(len);
@@ -51,11 +53,20 @@ export class DataSelectionService extends AbstractModuleInstance implements IDat
             () => this.clearSelection(),
             () => this.clearCandidacy(),
             ctx?.eventsHub.on('data:load', () => this.recountTotalSelections()),
-            ctx?.eventsHub.on('data:update', () => this.recountTotalSelections())
+            ctx?.eventsHub.on('data:update', () => this.recountTotalSelections()),
+            ctx?.chartState.observe(() => this.recountTotalSelections())
         );
     }
 
     private recountTotalSelections() {
+        const shownIds = new Set(this.ctx?.chartService.series.map((s) => s.id));
+        const savedIds = Array.from(this.selections.keys());
+        for (const id of savedIds) {
+            if (!shownIds.has(id)) {
+                this.selections.delete(id);
+            }
+        }
+
         let sum = 0;
         for (const [_seriesId, selection] of this.selections) {
             sum += selection.getSelectedCount();
