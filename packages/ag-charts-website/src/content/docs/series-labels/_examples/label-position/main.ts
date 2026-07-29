@@ -89,20 +89,21 @@ function setSeriesType(seriesType: SeriesType) {
                       x: { type: 'category' },
                       y: { type: 'number', title: { text: 'Profit Change ($m)' } },
                   };
-        const barSeries: AgBarSeriesOptions<BarDataType> = {
-            type: 'bar',
-            direction: seriesType === 'bar-horizontal' ? 'horizontal' : 'vertical',
-            xKey: 'quarter',
-            yKey: 'profitChange',
-            label: {
-                enabled: true,
-                placement: 'outside-end',
-                spacing: 6,
-                truncate: false,
-                formatter: (params) => `$${params.value}m`,
+        options.series = [
+            {
+                type: 'bar',
+                direction: seriesType === 'bar-horizontal' ? 'horizontal' : 'vertical',
+                xKey: 'quarter',
+                yKey: 'profitChange',
+                label: {
+                    enabled: true,
+                    placement: 'outside-end',
+                    spacing: 6,
+                    truncate: false,
+                    formatter: (params) => `$${params.value}m`,
+                },
             },
-        };
-        options.series = [barSeries];
+        ];
     }
 
     chart.update(options);
