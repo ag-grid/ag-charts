@@ -6,11 +6,12 @@ import {
     LegendModule,
     ModuleRegistry,
     NumberAxisModule,
-} from 'ag-charts-community';
+    ScrollbarModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, LegendModule, NumberAxisModule]);
+ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, LegendModule, NumberAxisModule, ScrollbarModule]);
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
@@ -18,6 +19,7 @@ const options: AgCartesianChartOptions = {
     title: {
         text: 'Quarterly Revenue by Product Line',
     },
+    scrollbar: { enabled: true },
     series: [
         {
             type: 'bar',
