@@ -757,7 +757,7 @@ export abstract class FlowProportionSeries<
         const currentNodeDatum = this.contextNodeData?.nodeData[opts.datumIndex - opts.datumIndexDelta];
         let nextNodeDatum: TNodeDatum | TLinkDatum | undefined = currentNodeDatum;
 
-        if (depthDelta !== 0 || childDelta === 0) return;
+        if (depthDelta !== 0) return;
 
         if (currentNodeDatum?.type === FlowProportionDatumType.Link) {
             const allLinks = Array.from(this.linkSelection, (link) => link.datum);
