@@ -110,12 +110,19 @@ This is fired when an item in an [Org Chart](./org-chart/) is expanded or collap
 
 The event contains:
 
-- `collapsed` - array of collapsed items each with `itemId` and `datum`:
+- `collapsed` - array of the items newly collapsed by this change, each with `itemId` and `datum`:
     - `itemId` - the unique identifier of the datum.
     - `datum` - the data from the chart data array for the collapsed item.
+- `expanded` - array of the items newly expanded by this change, each with `itemId` and `datum`:
+    - `itemId` - the unique identifier of the datum.
+    - `datum` - the data from the chart data array for the expanded item.
 - `source` - the source of the event, either `'user-interaction'` or `'api-call'`.
 
-{% chartExampleRunner title="Annotations" name="collapsed-change-event" type="generated" /%}
+{% note %}
+`collapsed` and `expanded` contain only the items changed by this event, not the full set of collapsed or expanded items.
+{% /note %}
+
+{% chartExampleRunner title="Collapsed Change Event" name="collapsed-change-event" type="generated" /%}
 
 In this example:
 
