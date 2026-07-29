@@ -119,7 +119,7 @@ The event contains:
 - `source` - the source of the event, either `'user-interaction'` or `'api-call'`.
 
 {% note %}
-`collapsed` and `expanded` contain only the items changed by this event, not the full set of collapsed or expanded items.
+`collapsed` and `expanded` contain only the items changed by this event, not the full set of collapsed or expanded items. Use `chart.getState()` to get the current state of all items.
 {% /note %}
 
 {% chartExampleRunner title="Collapsed Change Event" name="collapsed-change-event" type="generated" /%}
