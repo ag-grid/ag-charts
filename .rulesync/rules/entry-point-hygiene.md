@@ -1,5 +1,8 @@
 ---
-paths: 'packages/ag-charts-*/src/main.ts'
+root: false
+targets: ['*']
+description: 'Default entry-point hygiene — keep internals out of the documented public API surface'
+globs: ['packages/ag-charts-*/src/main.ts']
 ---
 
 # Default entry-point hygiene
