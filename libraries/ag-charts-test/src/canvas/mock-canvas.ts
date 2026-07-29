@@ -21,26 +21,6 @@ export const ConfiguredCanvas = ConfiguredCanvasMixin(Canvas);
 
 export { CANVAS_TO_BUFFER_DEFAULTS } from 'ag-charts-core';
 
-/**
- * Backs `HTMLCanvasElement.prototype.getContext` with skia, which jsdom leaves unimplemented. Text
- * measurement needs a document canvas in every test file, not only those calling `setup`.
- */
-export function installCanvasElementContext() {
-    const contexts = new WeakMap<any, any>();
-    const canvasPrototype: any = globalThis.HTMLCanvasElement.prototype;
-
-    canvasPrototype.getContext = function (this: any, contextId: string) {
-        if (contextId !== '2d') return null;
-
-        let context = contexts.get(this);
-        if (context == null) {
-            context = new ConfiguredCanvas(Math.max(this.width, 1), Math.max(this.height, 1)).getContext('2d');
-            contexts.set(this, context);
-        }
-        return context;
-    };
-}
-
 export class MockContext {
     ctx: {
         nodeCanvas: Canvas;
@@ -137,9 +117,9 @@ function proxyGetContext2D(_mockCtx: MockContext, canvas: Canvas, target: any) {
 }
 
 function proxyCanvasElement(mockCtx: MockContext, target: any, width: number, height: number) {
+    // Dimensions are assigned after creation, so the backing canvas is claimed on first use: a
+    // zero-sized canvas is scratch space for text measurement and must not take the render target.
     let backingCanvas: Canvas | undefined;
-    // Claimed on first use so the snapshot canvas goes to a real render target: a zero-sized
-    // canvas has no bitmap and is only ever scratch space for text measurement.
     const backing = (): Canvas => {
         if (backingCanvas == null) {
             backingCanvas =
@@ -151,8 +131,7 @@ function proxyCanvasElement(mockCtx: MockContext, target: any, width: number, he
         return backingCanvas;
     };
 
-    const originalGetContext = target.getContext.bind(target);
-    target.getContext = (type: '2d') => (type === '2d' ? backing().getContext(type) : originalGetContext(type));
+    target.getContext = (type: '2d') => (type === '2d' ? backing().getContext(type) : null);
     target.toDataURL = (mimeType = 'image/png') => backing().toDataURL(mimeType.split('/')[1] as ExportFormat);
 }
 

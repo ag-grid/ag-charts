@@ -1,5 +1,5 @@
 import type { SerializedGroupProps, SerializedNodeState } from 'ag-charts-core';
-import { clamp, toIterable } from 'ag-charts-core';
+import { canRenderTextOffscreen, clamp, toIterable } from 'ag-charts-core';
 
 import { BBox } from './bbox';
 import { HdpiOffscreenCanvas } from './canvas/hdpiOffscreenCanvas';
@@ -69,6 +69,11 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
     // Used when renderToOffscreenCanvas: true
     private layer: HdpiOffscreenCanvas | undefined = undefined; // optimizeForInfrequentRedraws: false
     private image: OffscreenImageBitmap | undefined = undefined; // optimizeForInfrequentRedraws: true
+
+    // Consistency with the rest of the scene outweighs the compositing optimisation.
+    private get useOffscreenCanvas() {
+        return this.renderToOffscreenCanvas && canRenderTextOffscreen();
+    }
 
     constructor(opts?: {
         readonly name?: string;
@@ -149,7 +154,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         // the parent's resolveChildFont() skips past this group. The group's own
         // renderInContext() still calls resolveChildFont() to pre-set the font
         // on its offscreen context.
-        if (this.renderToOffscreenCanvas) return undefined;
+        if (this.useOffscreenCanvas) return undefined;
         return this.resolveChildFont();
     }
 
@@ -307,7 +312,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         }
 
         if (
-            this.renderToOffscreenCanvas &&
+            this.useOffscreenCanvas &&
             !this.optimizeForInfrequentRedraws &&
             counts.nonGroups > 0 &&
             this.getVisibility()
@@ -322,13 +327,13 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
     }
 
     override render(renderCtx: RenderContext) {
-        const { layer, renderToOffscreenCanvas } = this;
+        const { layer, useOffscreenCanvas } = this;
         const childRenderCtx: RenderContext = { ...renderCtx };
 
         const dirty = this.isDirty(renderCtx);
         this.dirty = false;
 
-        if (!renderToOffscreenCanvas) {
+        if (!useOffscreenCanvas) {
             this.renderInContext(childRenderCtx);
             super.render(childRenderCtx); // Calls markClean().
             return;
