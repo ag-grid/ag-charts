@@ -117,6 +117,18 @@ describe('OverlaysProcessor', () => {
         expect(loadingSpy).toHaveBeenCalledTimes(2);
     });
 
+    it('still re-renders a non-loading overlay on every refresh so live content stays current', () => {
+        const { overlays, eventsHub } = build();
+        const noDataSpy = vi.spyOn(overlays.noData, 'getElement');
+
+        emitLayout(eventsHub);
+        emitLayout(eventsHub);
+
+        // Only the loading overlay has content fixed for the duration of its state; the others derive
+        // content from live state (e.g. validation lists its current issues) and must refresh.
+        expect(noDataSpy).toHaveBeenCalledTimes(2);
+    });
+
     it('keeps the mounted overlay focus rect in sync on a rect change without remounting', () => {
         const { overlays, eventsHub } = build(() => true);
         const loadingSpy = vi.spyOn(overlays.loading, 'getElement');

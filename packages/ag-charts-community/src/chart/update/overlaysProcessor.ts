@@ -92,20 +92,22 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
             this.overlayMounted = false;
         }
 
-        // Re-creating the overlay element restarts its fade-in animation, so mount it only when it
-        // first appears — never on subsequent refreshes for the same state. Otherwise a continuous
-        // state (e.g. loading across a burst of async requests) flashes as the element re-fades on
-        // every layout. Repositioning is handled by the container element sized above.
+        // The loading overlay's content is fixed for as long as the state holds, and re-creating the
+        // element restarts its fade-in animation — so while loading it is mounted once and then only
+        // repositioned, otherwise a burst of async requests re-fades it on every layout. Every other
+        // overlay derives its content from live state (validation lists its current issues) and must
+        // re-render on each refresh.
         const next = this.getOverlayFromState(this.overlayState);
         if (next) {
-            if (next.enabled && !this.overlayMounted) {
+            const mountOnce = this.overlayState === 'loading';
+            if (next.enabled && !(mountOnce && this.overlayMounted)) {
                 this.showOverlay(next, overlayRect);
                 this.overlayMounted = true;
             } else if (!next.enabled && this.overlayMounted) {
                 this.hideOverlay(next);
                 this.overlayMounted = false;
             } else if (this.overlayMounted) {
-                // Already mounted for this state: keep the focus rect current without remounting.
+                // Mounted and intentionally not re-rendered: keep the focus rect current.
                 next.reposition(overlayRect);
             }
         }
