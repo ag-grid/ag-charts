@@ -8,7 +8,7 @@
     <div class="controls-row">
         <span>Placement:</span>
         <span id="bubblePlacementRow">
-            <select class="gap-right" onchange="setPlacement(event.target.value)">
+            <select id="bubblePlacementSelect" class="gap-right" onchange="setPlacement(event.target.value)">
                 <option value="top" selected>Top</option>
                 <option value="top-right">Top Right</option>
                 <option value="right">Right</option>
@@ -24,7 +24,7 @@
             </select>
         </span>
         <span id="barPlacementRow" style="display: none">
-            <select class="gap-right" onchange="setPlacement(event.target.value)">
+            <select id="barPlacementSelect" class="gap-right" onchange="setPlacement(event.target.value)">
                 <option value="outside-end" selected>Outside End</option>
                 <option value="outside-start">Outside Start</option>
                 <option value="inside-end">Inside End</option>

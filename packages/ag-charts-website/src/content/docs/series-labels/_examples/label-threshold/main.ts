@@ -38,6 +38,8 @@ const options: AgCartesianChartOptions<DataType> = {
 
 const chart = AgCharts.create(options);
 
+updateThresholdSlider();
+
 function setThreshold(event: Event) {
     const value = Number((event.target as HTMLInputElement).value);
     document.getElementById('thresholdValue')!.textContent = String(value);
@@ -48,4 +50,13 @@ function setThreshold(event: Event) {
 function setAlwaysShow(value: string) {
     (options.series![0] as AgBubbleSeriesOptions<DataType>).label!.collision!.alwaysShow = value === 'show';
     chart.update(options);
+    updateThresholdSlider();
+}
+
+/** inScope */
+function updateThresholdSlider() {
+    const series = options.series![0] as AgBubbleSeriesOptions<DataType>;
+    (document.getElementById('thresholdSlider') as HTMLInputElement).disabled = Boolean(
+        series.label!.collision!.alwaysShow
+    );
 }

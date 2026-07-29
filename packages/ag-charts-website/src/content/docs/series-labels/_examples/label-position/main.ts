@@ -53,6 +53,15 @@ const options: AgCartesianChartOptions<BubbleDataType | BarDataType> = {
 
 const chart = AgCharts.create(options);
 
+function parsePlacement(value: string) {
+    const placements = value.split(/,\s*/g);
+    return (placements.length > 1 ? placements : placements[0]) as
+        | AgChartLabelCollisionPlacement
+        | AgChartLabelCollisionPlacement[]
+        | AgBarSeriesLabelPlacement
+        | AgBarSeriesLabelPlacement[];
+}
+
 function setSeriesType(seriesType: SeriesType) {
     document.getElementById('bubblePlacementRow')!.style.display = seriesType === 'bubble' ? '' : 'none';
     document.getElementById('barPlacementRow')!.style.display = seriesType === 'bubble' ? 'none' : '';
@@ -64,6 +73,7 @@ function setSeriesType(seriesType: SeriesType) {
             x: { type: 'number', title: { text: 'Temperature (°C)' } },
             y: { type: 'number', title: { text: 'Humidity (%)' } },
         };
+        const bubblePlacementSelect = document.getElementById('bubblePlacementSelect') as HTMLSelectElement;
         options.series = [
             {
                 type: 'bubble',
@@ -72,7 +82,13 @@ function setSeriesType(seriesType: SeriesType) {
                 sizeKey: 'windSpeed',
                 labelKey: 'station',
                 maxSize: 60,
-                label: { enabled: true, placement: 'top', spacing: 6 },
+                label: {
+                    enabled: true,
+                    placement: parsePlacement(bubblePlacementSelect.value) as
+                        | AgChartLabelCollisionPlacement
+                        | AgChartLabelCollisionPlacement[],
+                    spacing: 6,
+                },
             },
         ];
     } else {
@@ -89,6 +105,7 @@ function setSeriesType(seriesType: SeriesType) {
                       x: { type: 'category' },
                       y: { type: 'number', title: { text: 'Profit Change ($m)' } },
                   };
+        const barPlacementSelect = document.getElementById('barPlacementSelect') as HTMLSelectElement;
         options.series = [
             {
                 type: 'bar',
@@ -97,7 +114,9 @@ function setSeriesType(seriesType: SeriesType) {
                 yKey: 'profitChange',
                 label: {
                     enabled: true,
-                    placement: 'outside-end',
+                    placement: parsePlacement(barPlacementSelect.value) as
+                        | AgBarSeriesLabelPlacement
+                        | AgBarSeriesLabelPlacement[],
                     spacing: 6,
                     truncate: false,
                     formatter: (params) => `$${params.value}m`,
@@ -112,12 +131,7 @@ function setSeriesType(seriesType: SeriesType) {
 
 function setPlacement(placement: string) {
     const series = options.series![0] as AgBubbleSeriesOptions<BubbleDataType> | AgBarSeriesOptions<BarDataType>;
-    const placements = placement.split(/,\s*/g);
-    series.label!.placement = (placements.length > 1 ? placements : placements[0]) as
-        | AgChartLabelCollisionPlacement
-        | AgChartLabelCollisionPlacement[]
-        | AgBarSeriesLabelPlacement
-        | AgBarSeriesLabelPlacement[];
+    series.label!.placement = parsePlacement(placement);
     chart.update(options);
     updateSpacingSlider();
 }
@@ -130,6 +144,7 @@ function setSpacing(event: Event) {
     chart.update(options);
 }
 
+/** inScope */
 function updateSpacingSlider() {
     const series = options.series![0] as AgBubbleSeriesOptions<BubbleDataType> | AgBarSeriesOptions<BarDataType>;
     const placement = series.label!.placement;
