@@ -1,5 +1,8 @@
 ---
-paths: 'packages/ag-charts-types/**/*.ts, packages/ag-charts-*/src/config/**/*.ts'
+root: false
+targets: ['*']
+description: 'Public API contract boundaries and the undocumented-options validator pattern'
+globs: ['packages/ag-charts-types/**/*.ts', 'packages/ag-charts-*/src/config/**/*.ts']
 ---
 
 # API Contracts and Undocumented Options
