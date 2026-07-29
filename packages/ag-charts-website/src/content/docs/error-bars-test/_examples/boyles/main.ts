@@ -135,16 +135,33 @@ function randomiseErrors() {
 
 function removeRandomElem() {
     const { series } = options;
-    if (series !== undefined) {
-        const meta: { seriesIndex: number; datumIndex: number }[] = [];
-        for (let seriesIndex = 0; seriesIndex < series.length; seriesIndex++) {
-            const { data } = series[seriesIndex];
-            for (let datumIndex = 0; datumIndex < (data?.length ?? 0); datumIndex++) {
-                meta.push({ seriesIndex, datumIndex });
-            }
-        }
-        const { seriesIndex, datumIndex } = meta[randomIndex(meta.length)];
-        series[seriesIndex].data?.splice(datumIndex, 1);
+    if (series === undefined) {
+        return;
     }
+
+    const meta: { seriesIndex: number; datumIndex: number }[] = [];
+    for (let seriesIndex = 0; seriesIndex < series.length; seriesIndex++) {
+        const { data } = series[seriesIndex];
+        for (let datumIndex = 0; datumIndex < (data?.length ?? 0); datumIndex++) {
+            meta.push({ seriesIndex, datumIndex });
+        }
+    }
+
+    // Nothing left to remove - bail out rather than indexing an empty array.
+    if (meta.length === 0) {
+        return;
+    }
+
+    const { seriesIndex, datumIndex } = meta[randomIndex(meta.length)];
+    const data = series[seriesIndex].data;
+    if (data === undefined) {
+        return;
+    }
+
+    // Assign a new array rather than splicing in place: `update()` diffs data arrays by
+    // reference, so an in-place mutation of the array the chart already holds is not
+    // detected as a change and nothing would re-render.
+    series[seriesIndex].data = data.filter((_, index) => index !== datumIndex);
+
     chart.update(options);
 }
