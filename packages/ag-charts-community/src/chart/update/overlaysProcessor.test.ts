@@ -55,8 +55,7 @@ describe('OverlaysProcessor', () => {
         return { overlays, validationCollector, eventsHub };
     }
 
-    function emitLayout(eventsHub: EventsHub) {
-        const rect = new BBox(0, 0, 800, 600);
+    function emitLayout(eventsHub: EventsHub, rect = new BBox(0, 0, 800, 600)) {
         eventsHub.emit('layout:complete', {
             chart: { width: 800, height: 600 },
             series: { rect, paddedRect: rect, visible: true },
@@ -116,5 +115,19 @@ describe('OverlaysProcessor', () => {
         loading = true;
         emitLayout(eventsHub);
         expect(loadingSpy).toHaveBeenCalledTimes(2);
+    });
+
+    it('keeps the mounted overlay focus rect in sync on a rect change without remounting', () => {
+        const { overlays, eventsHub } = build(() => true);
+        const loadingSpy = vi.spyOn(overlays.loading, 'getElement');
+
+        emitLayout(eventsHub, new BBox(0, 0, 800, 600));
+        expect(loadingSpy).toHaveBeenCalledTimes(1);
+        expect(overlays.loading.focusBox).toEqual(new BBox(0, 0, 800, 600));
+
+        // A resize while loading must update the focus rect but not remount (which would re-fade).
+        emitLayout(eventsHub, new BBox(10, 20, 400, 300));
+        expect(loadingSpy).toHaveBeenCalledTimes(1);
+        expect(overlays.loading.focusBox).toEqual(new BBox(10, 20, 400, 300));
     });
 });

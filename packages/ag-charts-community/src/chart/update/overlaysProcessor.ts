@@ -104,6 +104,9 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
             } else if (!next.enabled && this.overlayMounted) {
                 this.hideOverlay(next);
                 this.overlayMounted = false;
+            } else if (this.overlayMounted) {
+                // Already mounted for this state: keep the focus rect current without remounting.
+                next.reposition(overlayRect);
             }
         }
 
