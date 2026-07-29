@@ -755,7 +755,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             nodeDatumParamsScratch.width = Math.abs(xPosition(xMinIndex) - xPosition(xMaxIndex)) + ctx.barWidth;
             nodeDatumParamsScratch.yLow = ctx.yLowValues[yMinIndex];
             nodeDatumParamsScratch.yHigh = ctx.yHighValues[yMaxIndex];
-            nodeDatumParamsScratch.crisp = false;
+            nodeDatumParamsScratch.crisp = ctx.crisp;
 
             // Use shared utility for create/update logic
             upsertNodeDatum(
