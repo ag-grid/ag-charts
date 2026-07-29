@@ -21,6 +21,24 @@ export const ConfiguredCanvas = ConfiguredCanvasMixin(Canvas);
 
 export { CANVAS_TO_BUFFER_DEFAULTS } from 'ag-charts-core';
 
+/**
+ * Backs `HTMLCanvasElement.prototype.getContext` with skia, which jsdom leaves unimplemented. Text
+ * measurement needs a document canvas in every test file, not only those calling `setup`.
+ */
+export function installCanvasElementContext() {
+    const contexts = new WeakMap<any, any>();
+    const canvasPrototype: any = globalThis.HTMLCanvasElement.prototype;
+
+    canvasPrototype.getContext = function (this: any) {
+        let context = contexts.get(this);
+        if (context == null) {
+            context = new ConfiguredCanvas(Math.max(this.width, 1), Math.max(this.height, 1)).getContext('2d');
+            contexts.set(this, context);
+        }
+        return context;
+    };
+}
+
 export class MockContext {
     ctx: {
         nodeCanvas: Canvas;
@@ -116,6 +134,25 @@ function proxyGetContext2D(_mockCtx: MockContext, canvas: Canvas, target: any) {
     };
 }
 
+function proxyCanvasElement(mockCtx: MockContext, target: any, width: number, height: number) {
+    let backingCanvas: Canvas | undefined;
+    // Claimed on first use so the snapshot canvas goes to a real render target: a zero-sized
+    // canvas has no bitmap and is only ever scratch space for text measurement.
+    const backing = (): Canvas => {
+        if (backingCanvas == null) {
+            backingCanvas =
+                target.width > 0 && target.height > 0
+                    ? (mockCtx.canvasStack.shift() ?? new ConfiguredCanvas(width, height))
+                    : new ConfiguredCanvas(1, 1);
+            mockCtx.registerCanvasInstance(backingCanvas);
+        }
+        return backingCanvas;
+    };
+
+    target.getContext = (type: '2d') => backing().getContext(type);
+    target.toDataURL = (mimeType = 'image/png') => backing().toDataURL(mimeType.split('/')[1] as ExportFormat);
+}
+
 export function setup(opts: { width?: number; height?: number; document?: Document } | MockContext) {
     let mockCtx: MockContext;
     if (opts instanceof MockContext) {
@@ -135,14 +172,7 @@ export function setup(opts: { width?: number; height?: number; document?: Docume
         if (element === 'canvas') {
             const mockedElement = realCreateElement.call(document, element, options) as HTMLCanvasElement;
 
-            const nextCanvas = mockCtx.canvasStack.shift() ?? new ConfiguredCanvas(width, height);
-            mockCtx.registerCanvasInstance(nextCanvas);
-
-            proxyGetContext2D(mockCtx, nextCanvas, mockedElement);
-
-            mockedElement.toDataURL = (mimeType = 'image/png') => {
-                return nextCanvas.toDataURL(mimeType.split('/')[1] as ExportFormat);
-            };
+            proxyCanvasElement(mockCtx, mockedElement, width, height);
 
             return mockedElement;
         } else if (element === 'img') {

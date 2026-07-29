@@ -1,7 +1,7 @@
 import type { ExportFormat } from 'skia-canvas';
 import { Image } from 'skia-canvas';
 
-import type { NodeCanvasInstance } from './canvasConfig';
+import { NodeCanvas, type NodeCanvasInstance } from './canvasConfig';
 
 /** Document with overridable createElement for canvas injection */
 export interface MockableDocument extends Document {
@@ -28,14 +28,21 @@ export function patchDocumentCreateElement(document: Document, options: Document
 
     doc.createElement = (tag: string, opts?: ElementCreationOptions): HTMLElement => {
         if (tag === 'canvas') {
-            const canvas = options.getCanvas();
             const mockElement = realCreateElement(tag, opts);
+
+            // Claimed on first use so the render canvas goes to a real render target: a zero-sized
+            // canvas has no bitmap and is only ever scratch space for text measurement.
+            let canvas: NodeCanvasInstance | undefined;
+            const backing = (): NodeCanvasInstance => {
+                canvas ??= mockElement.width > 0 && mockElement.height > 0 ? options.getCanvas() : new NodeCanvas(1, 1);
+                return canvas;
+            };
 
             const originalGetContext = mockElement.getContext.bind(mockElement);
             Object.defineProperty(mockElement, 'getContext', {
                 value: (contextId: string, _options?: unknown) => {
                     if (contextId === '2d') {
-                        return canvas.getContext('2d');
+                        return backing().getContext('2d');
                     }
                     return originalGetContext(contextId as '2d');
                 },
@@ -45,7 +52,7 @@ export function patchDocumentCreateElement(document: Document, options: Document
 
             Object.defineProperty(mockElement, 'toDataURL', {
                 value: (mimeType = 'image/png') => {
-                    return canvas.toDataURL(mimeType.split('/')[1] as ExportFormat);
+                    return backing().toDataURL(mimeType.split('/')[1] as ExportFormat);
                 },
                 writable: true,
                 configurable: true,

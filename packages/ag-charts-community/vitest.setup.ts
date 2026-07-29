@@ -15,6 +15,8 @@ globalThis.Canvas = mockCanvas.ConfiguredCanvas;
 // @ts-expect-error types don't exactly align
 globalThis.OffscreenCanvas = mockCanvas.ConfiguredCanvas;
 
+mockCanvas.installCanvasElementContext();
+
 // @ts-expect-error types don't exactly align
 globalThis.DOMMatrix = DOMMatrix;
 
