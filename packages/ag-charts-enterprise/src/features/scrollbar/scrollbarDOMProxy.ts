@@ -7,6 +7,8 @@ const { SliderWidget } = _ModuleSupport;
 const STEP_REPEAT_DELAY_MS = 400;
 const STEP_REPEAT_INTERVAL_MS = 50;
 
+const DRAG_CURSOR_ID = 'scrollbar-drag-cursor';
+
 type ScrollbarRange = {
     min: number;
     max: number;
@@ -209,6 +211,7 @@ export class ScrollbarDOMProxy {
     destroy() {
         this.interactionBounds = undefined;
 
+        this.ctx.domManager.unlockCursor(DRAG_CURSOR_ID);
         this.repeater.stop();
         this.container.destroy();
     }
@@ -314,6 +317,7 @@ export class ScrollbarDOMProxy {
     private onDragEnd(event: _ModuleSupport.DragWidgetEvent<'drag-end'>) {
         event.sourceEvent.preventDefault();
 
+        this.ctx.domManager.unlockCursor(DRAG_CURSOR_ID);
         this.interactionBounds = undefined;
         this.setInteraction('none');
         this.onHoverChange(false);
@@ -326,6 +330,10 @@ export class ScrollbarDOMProxy {
         const click = this.getClickInfo(event);
 
         if (!click?.inBounds) return;
+
+        // Scrolling shows no special cursor of its own, so pin the default: regions the pointer
+        // crosses while the mouse is held must not restyle it.
+        this.ctx.domManager.lockCursor(DRAG_CURSOR_ID, 'default');
 
         if (click.inThumb) {
             this.dragStartRatio = this.slider.getValueRatio();
