@@ -29,7 +29,9 @@ export function installCanvasElementContext() {
     const contexts = new WeakMap<any, any>();
     const canvasPrototype: any = globalThis.HTMLCanvasElement.prototype;
 
-    canvasPrototype.getContext = function (this: any) {
+    canvasPrototype.getContext = function (this: any, contextId: string) {
+        if (contextId !== '2d') return null;
+
         let context = contexts.get(this);
         if (context == null) {
             context = new ConfiguredCanvas(Math.max(this.width, 1), Math.max(this.height, 1)).getContext('2d');
@@ -149,7 +151,8 @@ function proxyCanvasElement(mockCtx: MockContext, target: any, width: number, he
         return backingCanvas;
     };
 
-    target.getContext = (type: '2d') => backing().getContext(type);
+    const originalGetContext = target.getContext.bind(target);
+    target.getContext = (type: '2d') => (type === '2d' ? backing().getContext(type) : originalGetContext(type));
     target.toDataURL = (mimeType = 'image/png') => backing().toDataURL(mimeType.split('/')[1] as ExportFormat);
 }
 

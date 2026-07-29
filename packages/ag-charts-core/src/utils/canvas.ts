@@ -7,7 +7,9 @@ export function createCanvasContext(width = 0, height = 0): CanvasRenderingConte
     if (canvasElement) {
         canvasElement.width = width;
         canvasElement.height = height;
-        return canvasElement.getContext('2d')!;
+        // A document can exist without canvas support, so fall through when there is no context.
+        const context = canvasElement.getContext('2d');
+        if (context) return context;
     }
 
     const OffscreenCanvasCtor = getOffscreenCanvas();
