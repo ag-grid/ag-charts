@@ -1378,6 +1378,88 @@ describe('DataSelection', () => {
             expect(selected[0].seriesId).toBe(seriesB.id);
             await compare();
         });
+
+        // CRT-1186: error bars express series-level dimming as group opacity. That opacity used to be
+        // maintained only by the highlight-change handler, so a selection change left the group at
+        // whatever opacity a previous highlight happened to set — error bars stayed dimmed after
+        // deselection until the next hover repaired them.
+        describe('CRT-1186 group opacity follows selection state', () => {
+            // The default theme sets selection.unselectedSeries.opacity = 0.2.
+            const DIMMED_OPACITY = 0.2;
+
+            const barSeries = (data: any[], yName: string): NonNullable<AgCartesianChartOptions['series']>[number] => ({
+                type: 'bar',
+                data,
+                xKey: 'month',
+                yKey: 't',
+                yName,
+                errorBar: { yLowerKey: 'lo', yUpperKey: 'hi', itemStyler: errorBarStyler },
+                selection: { enabled: true, selectedItem: { stroke: 'steelblue', strokeWidth: 3 } },
+            });
+
+            function getErrorBarGroupOpacity(seriesIndex = 0) {
+                const series = deproxy(chart).series[seriesIndex] as any;
+                const errorBars = series.moduleMap.getModule('errorBar');
+                expect(errorBars).toBeDefined();
+                return errorBars.groupNode.opacity;
+            }
+
+            async function setHighlight(datumIndex: number | undefined) {
+                const chartInstance = deproxy(chart) as any;
+                const series = chartInstance.series[0];
+                const nodeData = series.contextNodeData?.nodeData;
+                expect(nodeData?.length).toBeGreaterThan(0);
+                chartInstance.ctx.highlightManager.updateHighlight(
+                    chartInstance.id,
+                    datumIndex === undefined ? undefined : nodeData[datumIndex]
+                );
+                await waitForChartStability(chart);
+            }
+
+            for (const [seriesType, seriesFactory] of [
+                ['bar', (data: any[]) => barSeries(data, 'A')],
+                ['line', (data: any[]) => lineSeries(data, 'A', { stroke: 'steelblue', strokeWidth: 3 })],
+            ] as const) {
+                it(`dims and restores error bars on a ${seriesType} series without an intervening highlight`, async () => {
+                    chart = AgCharts.create(buildOptions([seriesFactory(monthsData)]));
+                    await waitForChartStability(chart);
+                    expect(getErrorBarGroupOpacity()).toBe(1);
+
+                    const series = deproxy(chart).series[0];
+                    chart.setSelection([{ seriesId: series.id, itemId: series.data!.getItemIdFromIndex(2) }]);
+                    await waitForChartStability(chart);
+
+                    // Selecting must dim on its own — no hover required.
+                    expect(getErrorBarGroupOpacity()).toBe(DIMMED_OPACITY);
+
+                    chart.clearSelection();
+                    await waitForChartStability(chart);
+
+                    expect(getErrorBarGroupOpacity()).toBe(1);
+                });
+
+                it(`restores error bars on a ${seriesType} series when deselecting after the highlight has cleared`, async () => {
+                    chart = AgCharts.create(buildOptions([seriesFactory(monthsData)]));
+                    await waitForChartStability(chart);
+
+                    const series = deproxy(chart).series[0];
+                    chart.setSelection([{ seriesId: series.id, itemId: series.data!.getItemIdFromIndex(2) }]);
+                    await waitForChartStability(chart);
+
+                    // Mirrors the reported interaction: the pointer moves onto a datum and then off it
+                    // again while the selection is still active, so the last highlight change wrote the
+                    // dimmed opacity. Deselecting must then restore it with no further pointer input.
+                    await setHighlight(2);
+                    await setHighlight(undefined);
+                    expect(getErrorBarGroupOpacity()).toBe(DIMMED_OPACITY);
+
+                    chart.clearSelection();
+                    await waitForChartStability(chart);
+
+                    expect(getErrorBarGroupOpacity()).toBe(1);
+                });
+            }
+        });
     });
 
     describe('click', () => {
