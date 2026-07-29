@@ -269,9 +269,10 @@ export class DOMElementProxy {
         }
     }
 
-    /** Delegates to element.appendChild(). No caching — structural mutation. */
-    appendChild(child: Node): void {
-        this.element.appendChild(child);
+    /** Delegates to element.replaceChildren(). No caching — structural mutation. */
+    replaceChildren(...children: Node[]): void {
+        this.element.replaceChildren(...children);
+        this.invalidate('innerHTML');
     }
 
     /** Delegates to setting element.innerText. Invalidates innerHTML cache. */
