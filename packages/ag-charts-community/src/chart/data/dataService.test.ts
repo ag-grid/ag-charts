@@ -15,6 +15,12 @@ function sleep() {
     return new Promise((resolve) => setTimeout(resolve, REQUEST_THROTTLE));
 }
 
+function deferred<T>() {
+    let resolve!: (value: T) => void;
+    const promise = new Promise<T>((r) => (resolve = r));
+    return { promise, resolve };
+}
+
 describe('DataService', () => {
     let dataService: DataService<any>;
     let eventsHub: EventEmitter<any>;
@@ -331,5 +337,106 @@ describe('DataService', () => {
         await sleep();
 
         expect(eventEmitSpy).toHaveBeenCalledWith('data:load', { data, requestId: 7 });
+    });
+
+    describe('loading state', () => {
+        const inFlightCount = () => (dataService as any).inFlightCount as number;
+
+        let consoleWarnSpy: MockInstance;
+        beforeEach(() => {
+            consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+        });
+        afterEach(() => {
+            consoleWarnSpy.mockRestore();
+        });
+
+        it('should report loading immediately after `load()`, before the throttled fetch fires', async () => {
+            dataService.updateCallback(vi.fn((_params) => Promise.resolve([{ datum: 'value' }])));
+            dataService.load(definedWindow);
+
+            expect(dataService.isLoading()).toBe(true);
+
+            // Let the throttled fetch settle so no pending request outlives the test.
+            await sleep();
+            expect(dataService.isLoading()).toBe(false);
+        });
+
+        it('should stay loading until ALL overlapping requests settle, even when the latest resolves first', async () => {
+            const requests = [deferred<any>(), deferred<any>(), deferred<any>()];
+            let call = 0;
+            const dataSourceCallback = vi.fn((_params) => requests[call++].promise);
+            dataService.updateCallback(dataSourceCallback);
+
+            dataService.load({ windowStart: new Date('2025-01-01'), windowEnd: new Date('2025-02-01') });
+            await sleep();
+            dataService.load({ windowStart: new Date('2025-01-01'), windowEnd: new Date('2025-03-01') });
+            await sleep();
+            dataService.load({ windowStart: new Date('2025-01-01'), windowEnd: new Date('2025-04-01') });
+            await sleep();
+
+            expect(dataSourceCallback).toHaveBeenCalledTimes(3);
+            expect(dataService.isLoading()).toBe(true);
+
+            // The newest request resolving first must NOT clear the loading state while the two earlier
+            // overlapping requests are still in flight — otherwise the spinner flashes.
+            requests[2].resolve([{ datum: 3 }]);
+            await sleep();
+            expect(dataService.isLoading()).toBe(true);
+
+            requests[0].resolve([{ datum: 1 }]);
+            await sleep();
+            expect(dataService.isLoading()).toBe(true);
+
+            requests[1].resolve([{ datum: 2 }]);
+            await sleep();
+            expect(dataService.isLoading()).toBe(false);
+            expect(inFlightCount()).toBe(0);
+        });
+
+        it('should clear the loading state after an invalid response (no stuck spinner)', async () => {
+            const dataSourceCallback = vi.fn((_params) => Promise.resolve(undefined));
+            dataService.updateCallback(dataSourceCallback);
+            dataService.load(definedWindow);
+
+            await sleep();
+
+            expect(dataService.isLoading()).toBe(false);
+            expect(inFlightCount()).toBe(0);
+        });
+
+        it('should clear the loading state after the callback rejects (no stuck spinner)', async () => {
+            const dataSourceCallback = vi.fn((_params) => Promise.reject(new Error('boom')));
+            dataService.updateCallback(dataSourceCallback);
+            dataService.load(definedWindow);
+
+            await sleep();
+
+            expect(dataService.isLoading()).toBe(false);
+            expect(inFlightCount()).toBe(0);
+        });
+
+        it('should hold the loading state open until a secondary (mini-chart) request settles', async () => {
+            const primary = deferred<any>();
+            const secondary = deferred<any>();
+            const dataSourceCallback = vi.fn(({ source }) =>
+                source === 'mini-chart' ? secondary.promise : primary.promise
+            );
+            dataService.updateCallback(dataSourceCallback);
+            dataService.registerSecondaryLoader('mini-chart', ['chart-update'], vi.fn());
+            dataService.load({ ...undefinedWindow, source: 'chart-update' });
+
+            await sleep();
+            expect(dataService.isLoading()).toBe(true);
+
+            // Primary settled but the mini-chart request is still outstanding.
+            primary.resolve([{ datum: 'value' }]);
+            await sleep();
+            expect(dataService.isLoading()).toBe(true);
+
+            secondary.resolve([{ datum: 'mini' }]);
+            await sleep();
+            expect(dataService.isLoading()).toBe(false);
+            expect(inFlightCount()).toBe(0);
+        });
     });
 });

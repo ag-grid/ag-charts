@@ -23,7 +23,7 @@ describe('OverlaysProcessor', () => {
         doc.body.innerHTML = '';
     });
 
-    function build() {
+    function build(isLoading: () => boolean = () => false) {
         const container = doc.createElement('div');
         doc.body.append(container);
 
@@ -37,7 +37,7 @@ describe('OverlaysProcessor', () => {
         const validationCollector = new ValidationIssueCollector();
 
         const chartLike = { series: [], axes: [], seriesRoot: {} } as unknown as ChartLike;
-        const dataService = { isLoading: () => false } as unknown as DataService<any>;
+        const dataService = { isLoading } as unknown as DataService<any>;
         const localeManager = { t: (key: string) => key } as unknown as LocaleManager;
         const animationManager = { animate: () => {} } as unknown as AnimationManager;
 
@@ -84,5 +84,37 @@ describe('OverlaysProcessor', () => {
         emitLayout(eventsHub);
 
         expect(noDataSpy).toHaveBeenCalled();
+    });
+
+    it('mounts the loading overlay once across repeated layouts while loading stays active', () => {
+        const { overlays, eventsHub } = build(() => true);
+        const loadingSpy = vi.spyOn(overlays.loading, 'getElement');
+
+        emitLayout(eventsHub);
+        emitLayout(eventsHub);
+        emitLayout(eventsHub);
+
+        // Re-mounting on every layout restarts the fade-in animation and makes the overlay flash;
+        // a continuous loading state must surface one steady overlay.
+        expect(loadingSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('re-mounts the loading overlay only after the state has toggled off and on again', () => {
+        let loading = true;
+        const { overlays, eventsHub } = build(() => loading);
+        const loadingSpy = vi.spyOn(overlays.loading, 'getElement');
+        const hideSpy = vi.spyOn(overlays.loading, 'removeElement');
+
+        emitLayout(eventsHub);
+        emitLayout(eventsHub);
+        expect(loadingSpy).toHaveBeenCalledTimes(1);
+
+        loading = false;
+        emitLayout(eventsHub);
+        expect(hideSpy).toHaveBeenCalledTimes(1);
+
+        loading = true;
+        emitLayout(eventsHub);
+        expect(loadingSpy).toHaveBeenCalledTimes(2);
     });
 });

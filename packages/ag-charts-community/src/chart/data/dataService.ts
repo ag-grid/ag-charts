@@ -34,7 +34,9 @@ export class DataService<D extends object> {
 
     private dataSourceCallback?: DataSourceCallback;
     private isLoadingInitialData = false;
-    private isLoadingData = false;
+
+    private fetchPending = false;
+    private inFlightCount = 0;
     private isForcedLoadingData: boolean | undefined = undefined;
     private latestRequest?: { params: AgDataSourceCallbackParams; fetchRequest: Promise<unknown> };
     private freshRequests: Promise<unknown>[] = [];
@@ -95,7 +97,7 @@ export class DataService<D extends object> {
             return;
         }
 
-        this.isLoadingData = true;
+        this.fetchPending = true;
 
         // Update to show the loading spinner.
         this.eventsHub.emit('chart:request-update', { type: ChartUpdateType.PERFORM_LAYOUT });
@@ -123,7 +125,7 @@ export class DataService<D extends object> {
             return this.isForcedLoadingData;
         }
 
-        return this.isLazy() && (this.isLoadingInitialData || this.isLoadingData);
+        return this.isLazy() && (this.isLoadingInitialData || this.fetchPending || this.inFlightCount > 0);
     }
 
     public setForcedLoading(forcedLoading: boolean | undefined) {
@@ -171,6 +173,19 @@ export class DataService<D extends object> {
     }
 
     private async fetch(params: AgDataSourceCallbackParams, requestId?: number) {
+        // The throttled request has fired, so release the bridge latch and hold the in-flight count
+        // until the whole operation (primary, secondaries, dispatch) settles. The `finally` must
+        // always release the count, otherwise a failed fetch would wedge the spinner on permanently.
+        this.fetchPending = false;
+        this.inFlightCount++;
+        try {
+            await this.fetchAndDispatch(params, requestId);
+        } finally {
+            this.inFlightCount--;
+        }
+    }
+
+    private async fetchAndDispatch(params: AgDataSourceCallbackParams, requestId?: number) {
         if ('context' in this.caller) {
             params.context = this.caller.context;
         }
@@ -198,10 +213,6 @@ export class DataService<D extends object> {
                 }
 
                 this.freshRequests = this.freshRequests.slice(requestIndex + 1);
-
-                if (this.freshRequests.length === 0) {
-                    this.isLoadingData = false;
-                }
 
                 return { id, response, threw };
             }

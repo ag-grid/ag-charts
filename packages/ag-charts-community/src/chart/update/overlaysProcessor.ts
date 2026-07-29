@@ -22,6 +22,7 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
     private readonly overlayElem: DOMElementProxy;
 
     private overlayState: OverlayState = undefined;
+    private overlayMounted = false;
     private lastSeriesRect?: BBox;
 
     constructor(
@@ -88,15 +89,21 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
             if (prev) this.hideOverlay(prev);
 
             this.overlayState = newOverlayState;
+            this.overlayMounted = false;
         }
 
-        // Always update the overlay to reposition it if the rect changes.
+        // Re-creating the overlay element restarts its fade-in animation, so mount it only when it
+        // first appears — never on subsequent refreshes for the same state. Otherwise a continuous
+        // state (e.g. loading across a burst of async requests) flashes as the element re-fades on
+        // every layout. Repositioning is handled by the container element sized above.
         const next = this.getOverlayFromState(this.overlayState);
         if (next) {
-            if (next.enabled) {
+            if (next.enabled && !this.overlayMounted) {
                 this.showOverlay(next, overlayRect);
-            } else {
+                this.overlayMounted = true;
+            } else if (!next.enabled && this.overlayMounted) {
                 this.hideOverlay(next);
+                this.overlayMounted = false;
             }
         }
 
