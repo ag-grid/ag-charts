@@ -1,26 +1,37 @@
 @use 'design-system' as *;
+@use 'site-header-tokens' as tokens;
 
 :root {
-    @media screen and (max-width: $breakpoint-docs-nav-medium) {
-        --layout-scroll-offset: 140px !important;
-    }
+    // The header wraps to two rows until the docs/search cluster goes inline (below),
+    // and the gallery always shows the search bar — so it renders at the wrapped height.
+    --gallery-header-offset: 120px;
+    --gallery-toolbar-height: 64px;
+    --gallery-sticky-top: calc(var(--gallery-header-offset) + var(--gallery-toolbar-height));
+    --layout-scroll-offset: calc(var(--gallery-sticky-top) + #{$spacing-size-4}) !important;
 
-    @media screen and (max-width: $breakpoint-gallery-small) {
-        --layout-scroll-offset: 204px !important;
+    @media screen and (min-width: tokens.$docs-search-inline) {
+        --gallery-header-offset: var(--layout-site-header-height);
     }
 }
 
-.toolPanel {
+.toolbar {
+    position: sticky;
+    top: var(--gallery-header-offset);
+    z-index: 10001; // below .site-header (10002), above the gallery cards
+    // Keeps the border inside --gallery-toolbar-height, which the menu stacks on.
+    box-sizing: border-box;
+    height: var(--gallery-toolbar-height);
+    background-color: var(--color-bg-primary);
+    border-bottom: 1px solid var(--color-border-primary);
+}
+
+.toolbarInner {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-top: $spacing-size-4;
+    height: 100%;
 
     h1 {
         margin-bottom: 0px;
-    }
-
-    @media screen and (min-width: $breakpoint-site-header-small) {
-        margin-top: 0;
     }
 }
