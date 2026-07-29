@@ -61,6 +61,34 @@ test.describe('keyboard-nav', () => {
         });
     }
 
+    test("CRT-1155 Tab from a datum to that same series' legend item clears item dimming", async ({ page }) => {
+        // The 'basic keyboard navigation' case above also Tabs to the legend, but it presses ArrowDown
+        // first, so the datum highlight it leaves behind belongs to a *different* series than the legend
+        // item it lands on. Staying within the first series is what exercises the datum-level ->
+        // series-level transition on one series, which used to leave the whole series dimmed.
+        await gotoExample(page, toExamplePageUrl('accessibility', 'keyboard-navigation', 'vanilla').url);
+
+        await page.locator('input').first().click();
+
+        // Tab into the chart and move along the first series only.
+        await page.keyboard.press('Tab');
+        await page.keyboard.press('ArrowRight');
+        await page.keyboard.press('ArrowRight');
+
+        // Tab to the legend, whose first item is the series we were just navigating.
+        await page.keyboard.press('Tab');
+        await expect(page.locator(SELECTORS.legendItems).first()).toBeFocused();
+
+        // Expected rendering: 'Onshore Wind' bars at full opacity, the other five series dimmed by
+        // `unhighlightedSeries` — i.e. identical to the existing 'legend-focus.png' baseline. Before the
+        // fix, the first series' bars stayed dimmed by `unhighlightedItem` with nothing highlighted.
+        await expectChartScreenshot(
+            page,
+            page.locator(SELECTORS.canvasCenter),
+            'CRT-1155-legend-focus-same-series.png'
+        );
+    });
+
     test('Home/End keys', async ({ page }) => {
         await gotoExample(page, toExamplePageUrl('accessibility', 'keyboard-navigation', 'vanilla').url);
 
