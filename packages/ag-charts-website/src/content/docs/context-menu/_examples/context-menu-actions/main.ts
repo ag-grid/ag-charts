@@ -6,6 +6,7 @@ import {
     BarSeriesModule,
     CategoryAxisModule,
     ContextMenuModule,
+    CrossLinesModule,
     CrosshairModule,
     LegendModule,
     ModuleRegistry,
@@ -19,6 +20,7 @@ ModuleRegistry.registerModules([
     BarSeriesModule,
     CategoryAxisModule,
     ContextMenuModule,
+    CrossLinesModule,
     CrosshairModule,
     LegendModule,
     NumberAxisModule,
@@ -85,6 +87,13 @@ const options: AgCartesianChartOptions<DataType> = {
                     console.log(`Hello ${itemId}!`);
                 },
             },
+            {
+                showOn: 'cross-line',
+                label: 'Say hello to a cross line',
+                action: ({ value, direction, crossLineType }) => {
+                    console.log(`Hello ${direction}-${crossLineType} ${value}!`);
+                },
+            },
         ],
     },
     data: getData(),
@@ -102,6 +111,23 @@ const options: AgCartesianChartOptions<DataType> = {
             yName: 'Hats Made',
         },
     ],
+    axes: {
+        y: {
+            type: 'number',
+            crossLines: [
+                {
+                    type: 'line',
+                    value: 53,
+                    label: {
+                        text: 'Target',
+                        position: 'top-right',
+                        fontStyle: 'italic',
+                    },
+                    lineDash: [2, 4],
+                },
+            ],
+        },
+    },
 };
 
 AgCharts.create(options);

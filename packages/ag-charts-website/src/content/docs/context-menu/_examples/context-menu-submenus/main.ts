@@ -5,6 +5,7 @@ import {
     AnimationModule,
     CategoryAxisModule,
     ContextMenuModule,
+    CrossLinesModule,
     CrosshairModule,
     LegendModule,
     LineSeriesModule,
@@ -20,6 +21,7 @@ ModuleRegistry.registerModules([
     AnimationModule,
     CategoryAxisModule,
     ContextMenuModule,
+    CrossLinesModule,
     CrosshairModule,
     LegendModule,
     LineSeriesModule,
@@ -79,22 +81,43 @@ const options: AgCartesianChartOptions<DataType> = {
                         label: `On 'legend-item'`,
                         action: ({ itemId }) => console.log(`On 'legend-item' clicked -`, itemId),
                     },
+                    {
+                        showOn: 'cross-line',
+                        label: `On 'cross-line'`,
+                        action: ({ crossLineType, value }) =>
+                            console.log(`On 'cross-line' clicked -`, crossLineType, value),
+                    },
                 ],
             },
         ],
     },
     data: getData(),
-    legend: { position: 'left' },
+    legend: { position: 'bottom' },
     zoom: { enabled: true },
     series: [
-        { type: 'line', marker: { size: 14 }, tooltip: { range: 'exact' }, xKey: 'year', yKey: 'USA' },
-        { type: 'line', marker: { size: 14 }, tooltip: { range: 'exact' }, xKey: 'year', yKey: 'EU' },
-        { type: 'line', marker: { size: 14 }, tooltip: { range: 'exact' }, xKey: 'year', yKey: 'China' },
-        { type: 'line', marker: { size: 14 }, tooltip: { range: 'exact' }, xKey: 'year', yKey: 'India' },
+        { type: 'line', marker: { size: 12 }, tooltip: { range: 'exact' }, xKey: 'year', yKey: 'USA' },
+        { type: 'line', marker: { size: 12 }, tooltip: { range: 'exact' }, xKey: 'year', yKey: 'EU' },
+        { type: 'line', marker: { size: 12 }, tooltip: { range: 'exact' }, xKey: 'year', yKey: 'China' },
+        { type: 'line', marker: { size: 12 }, tooltip: { range: 'exact' }, xKey: 'year', yKey: 'India' },
     ],
     axes: {
         y: { type: 'number', title: { text: 'GDP (Trillions USD)' } },
-        x: { type: 'category', title: { text: 'Year' }, label: { autoRotate: false } },
+        x: {
+            type: 'category',
+            label: { autoRotate: false },
+            crossLines: [
+                {
+                    type: 'line',
+                    value: 2020,
+                    label: {
+                        text: 'China overtakes EU',
+                        position: 'top',
+                        fontStyle: 'italic',
+                    },
+                    lineDash: [2, 4],
+                },
+            ],
+        },
     },
 };
 
