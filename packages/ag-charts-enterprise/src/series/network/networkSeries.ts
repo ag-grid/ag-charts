@@ -97,12 +97,10 @@ export abstract class AbstractNetworkSeries<
     >(this.linkGroup, () => this.linkFactory());
 
     protected contextNodeData?: NetworkSeriesContextNodeData<TVertex, TEdge>;
-    protected vertexDatumIndex: Record<string, number> = {};
-
-    private pendingCollapsedIds?: NetworkSeriesVertexID[];
-
     protected seriesRect?: _ModuleSupport.BBox;
 
+    private vertexNodeDatumIndices: Record<string, number> = {};
+    private pendingCollapsedIds?: NetworkSeriesVertexID[];
     private pendingPanToItemId?: string;
 
     constructor(ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
@@ -222,8 +220,20 @@ export abstract class AbstractNetworkSeries<
         return node.getBBox();
     }
 
+    /**
+     * Get the index within the node selection for the node datum related to the vertex. Note, this is not the same
+     * as the 'datumIndex' edge on the graph which is instead the index within the original data array.
+     */
+    protected getNodeDatumIndex(vertex: Vertex<TVertex, TEdge>) {
+        return this.vertexNodeDatumIndices[this.graph.getVertexValue(vertex) as string] as number | undefined;
+    }
+
+    protected setNodeDatumIndex(vertex: Vertex<TVertex, TEdge>, index: number) {
+        this.vertexNodeDatumIndices[vertex.value as string] = index;
+    }
+
     protected getDatumById(id: NetworkSeriesVertexID) {
-        return this.datumSelection.at(this.vertexDatumIndex[id])?.datum?.datum;
+        return this.datumSelection.at(this.vertexNodeDatumIndices[id])?.datum?.datum;
     }
 
     private linkFactory(): NetworkLinkNode<NetworkLinkDatum<TVertex, TEdge>> {
@@ -235,6 +245,8 @@ export abstract class AbstractNetworkSeries<
         // tricks HighlightManager's `a.datum === b.datum` check into a spurious change → loop.
         if (!this.nodeDataRefresh) return;
         this.nodeDataRefresh = false;
+
+        this.vertexNodeDatumIndices = {};
 
         this.contextNodeData = this.createNodeData();
         if (!this.contextNodeData) return;
@@ -260,7 +272,7 @@ export abstract class AbstractNetworkSeries<
     }
 
     private getDatumNodeBBox(vertex: Vertex<TVertex, TEdge>) {
-        const nodeDatumIndex = this.vertexDatumIndex[vertex.value as string];
+        const nodeDatumIndex = this.getNodeDatumIndex(vertex);
         if (typeof nodeDatumIndex !== 'number') return;
 
         const node = this.datumSelection.at(nodeDatumIndex);
@@ -274,7 +286,7 @@ export abstract class AbstractNetworkSeries<
         groupBBox: _ModuleSupport.BBox,
         regularBBox?: _ModuleSupport.BBox
     ) {
-        const nodeDatumIndex = this.vertexDatumIndex[vertex.value as string];
+        const nodeDatumIndex = this.getNodeDatumIndex(vertex);
         if (typeof nodeDatumIndex !== 'number') return;
 
         const node = this.datumSelection.at(nodeDatumIndex);
@@ -284,7 +296,7 @@ export abstract class AbstractNetworkSeries<
     }
 
     private layoutLinkNode(vertex: Vertex<TVertex, TEdge>, drawLink: (path: _ModuleSupport.ExtendedPath2D) => void) {
-        const nodeDatumIndex = this.vertexDatumIndex[vertex.value as string];
+        const nodeDatumIndex = this.getNodeDatumIndex(vertex);
         if (typeof nodeDatumIndex !== 'number') return;
 
         const link = this.linkSelection.at(nodeDatumIndex);
@@ -304,7 +316,7 @@ export abstract class AbstractNetworkSeries<
         // Clear unconditionally — never retry on failure.
         this.pendingPanToItemId = undefined;
 
-        const nodeDatumIndex = this.vertexDatumIndex[pendingPanToItemId];
+        const nodeDatumIndex = this.vertexNodeDatumIndices[pendingPanToItemId];
         if (typeof nodeDatumIndex !== 'number') return;
 
         const node = this.datumSelection.at(nodeDatumIndex);
