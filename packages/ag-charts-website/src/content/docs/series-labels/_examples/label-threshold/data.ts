@@ -16,7 +16,7 @@ export const data: DataType[] = [
     { station: 'Hexham', temperature: 20.2, humidity: 62, windSpeed: 10 },
     { station: 'Ilkley', temperature: 19.7, humidity: 60, windSpeed: 15 },
     { station: 'Jarrow', temperature: 19.3, humidity: 63, windSpeed: 9 },
-    { station: 'Kendal', temperature: 20.1, humidity: 65, windSpeed: 12 },
+    { station: 'Kendal', temperature: 20.055, humidity: 65, windSpeed: 12 },
     { station: 'Looe', temperature: 19.6, humidity: 62, windSpeed: 10 },
     { station: 'Marlow', temperature: 20.3, humidity: 59, windSpeed: 11 },
     { station: 'Napton', temperature: 19.4, humidity: 63, windSpeed: 14 },

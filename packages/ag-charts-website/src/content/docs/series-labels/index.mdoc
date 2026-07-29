@@ -28,9 +28,9 @@ Enable labels with `label.enabled`, then style them with the following options.
 
 In this example:
 
-- Text is styled with `color`, `fontSize`, `fontWeight`, `fontStyle` and `fontFamily`.
-- The label itself has a fill and border using with `fill`, `fillOpacity`, `cornerRadius`, `padding` and `border` properties. See [Fills & Borders](./fills-borders/) for more details.
-- The `insideStyle` and `outsideStyle` properties provide overrides for when the resolved label placement sits inside or outside the series node.
+- The label text is styled with properties such as `color` and `fontWeight`. Other available options include `fontSize`, `fontStyle` and `fontFamily`.
+- The label itself has a fill and border, configured with properties such as `fill` and `border`. Other available options include `fillOpacity`, `cornerRadius` and `padding`. See [Fills & Borders](./fills-borders/) for more details.
+- The `insideStyle` and `outsideStyle` properties override these text and box styles for when the resolved label placement sits inside or outside the series node — used here to swap between a dark-on-light and light-on-dark treatment.
 - Bar-family labels can additionally be rotated with `orientation`. See [Orientation](#orientation) for more details.
 - Providing `placement` as an ordered array lets a label fall back to an alternative position. See [Placement](#placement) for more details.
 
@@ -128,7 +128,7 @@ Series label collision avoidance is separate from [axis label collision avoidanc
 
 When any of these strategies are used but fail to find a satisfactory resolution, the label is hidden by default.
 
-Use `collision.alwaysShow: true` to force the label to remain visible, or use `collision.alwaysShow: false` to enable the hiding the labels if other strategies are not enabled.
+Use `collision.alwaysShow: true` to force the label to remain visible, or `collision.alwaysShow: false` to allow labels to be hidden even when no other strategies are enabled.
 
 {% chartExampleRunner title="Label Collision Threshold" name="label-threshold" type="generated" /%}
 
@@ -150,7 +150,7 @@ Use `collision.alwaysShow: true` to force the label to remain visible, or use `c
 
 ### Threshold
 
-Collisions are defined as the edge of one label hitting another the edge of another element.
+Collisions are defined as the edge of one label hitting the edge of another element.
 
 Use a `collision.threshold` value to ensure labels are a minimum pixel distance from obstacles, or a negative value to allow labels to overlap somewhat.
 
