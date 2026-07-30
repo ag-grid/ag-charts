@@ -169,16 +169,14 @@ function getItems(params: AgContextMenuGetItemsParams<DatumType>): AgContextMenu
     for (const paramsEntry of params.allShowOnParams) {
         if (paramsEntry.showOn === 'series-node') {
             const { yKey, xKey, seriesId } = paramsEntry;
-            // Series types without x/y keys (e.g. pie) cannot identify a data point this way.
-            if (xKey == null || yKey == null) continue;
-            const year = String(paramsEntry.datum[xKey]);
+            const year = String(paramsEntry.datum[xKey!]);
             const yKeyFormatting: Record<keyof DatumType, string | undefined> = {
                 china: 'China',
                 india: 'India',
                 usa: 'USA',
                 year: undefined,
             };
-            const formattedDatum = `${yKeyFormatting[yKey]} ${year}`;
+            const formattedDatum = `${yKeyFormatting[yKey!]} ${year}`;
             const isEmphasised = emphasisedPoints.has(pointKey(seriesId, year));
             result.push(
                 {
@@ -191,7 +189,7 @@ function getItems(params: AgContextMenuGetItemsParams<DatumType>): AgContextMenu
                     type: 'action',
                     showOn: 'series-node',
                     label: `Remove "${formattedDatum}" Point`,
-                    action: () => removeDataPoint(year, yKey),
+                    action: () => removeDataPoint(year, yKey!),
                 }
             );
         }
