@@ -169,6 +169,8 @@ function getItems(params: AgContextMenuGetItemsParams<DatumType>): AgContextMenu
     for (const paramsEntry of params.allShowOnParams) {
         if (paramsEntry.showOn === 'series-node') {
             const { yKey, xKey, seriesId } = paramsEntry;
+            // Series types without x/y keys (e.g. pie) cannot identify a data point this way.
+            if (xKey == null || yKey == null) continue;
             const year = String(paramsEntry.datum[xKey]);
             const yKeyFormatting: Record<keyof DatumType, string | undefined> = {
                 china: 'China',
