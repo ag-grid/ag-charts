@@ -7,4 +7,6 @@ export * from './console/test-logger';
 export * from './benchmarks/timing';
 export * from './benchmarks/size-of';
 export * from './caster';
+export * from './options/theme-provenance';
+export * from './options/themeable-contract';
 export * from './scene/scene-sample';
