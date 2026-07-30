@@ -262,7 +262,7 @@ export async function vanillaToAngular(
                 bindings.init.length !== 0
                     ? `
             ngOnInit() {
-                ${bindings.init.join(';\n    ')}
+                ${prefixInstanceMethodCalls(bindings.init.join(';\n    '), methodNames)}
             }
             `
                     : ''

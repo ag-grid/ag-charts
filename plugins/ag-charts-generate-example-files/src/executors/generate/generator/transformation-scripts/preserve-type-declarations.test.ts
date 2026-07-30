@@ -122,6 +122,34 @@ function refresh(): boolean | undefined {
         expect(reactOutput).toMatch(/const refresh = \(\): boolean \| undefined => \{/);
     });
 
+    test('angular output prefixes inScope function calls in top-level init code with this.', async () => {
+        const src = `
+import { AgChartOptions, AgCharts } from 'ag-charts-community';
+
+const options: AgChartOptions = {
+    container: document.getElementById('myChart'),
+    data: [{ quarter: 'Q1', value: 1 }],
+    series: [{ type: 'bar', xKey: 'quarter', yKey: 'value' }],
+};
+
+const chart = AgCharts.create(options);
+
+refresh();
+
+/** inScope */
+function refresh() {
+    options.data = [{ quarter: 'Q1', value: 2 }];
+    chart.update(options);
+}
+`;
+        const { typedBindings } = parse(src);
+        const output = await vanillaToAngular(typedBindings, [], false);
+
+        // Top-level statements land in ngOnInit, where the function is a component member.
+        expect(output).toContain('this.refresh()');
+        expect(output).not.toMatch(/(?<!\.)\brefresh\(\)/);
+    });
+
     test('angular output expands object shorthand references to inScope functions', async () => {
         const src = `
 import { AgChartOptions, AgCharts } from 'ag-charts-community';

@@ -18,9 +18,9 @@ const options: AgCartesianChartOptions<DataType> = {
             label: {
                 enabled: true,
                 placement: 'inside-end',
-                orientation: ['horizontal', 'vertical'],
+                orientation: 'horizontal',
                 wrapping: 'never',
-                formatter: (params) => `$${params.value}m profit`,
+                formatter: (params) => `$${params.value}m profit${params.datum.note ? ` (${params.datum.note})` : ''}`,
             },
         },
     ],
