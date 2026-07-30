@@ -212,8 +212,12 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         const { enableClick, enableClickAwayToClear, clickMode } = this.opts;
         if (!this.enabled() || !enableClick) return;
 
-        const { type, clickedNode } = event;
+        const { type, clickedNode, target } = event;
         if (type !== 'click') return;
+
+        // Dedicated controls (e.g. the org-chart expander pill) own their clicks outright and must
+        // not disturb selection. Must precede `clickMiss`, which would clear via click-away.
+        if (clickedNode !== undefined && !clickedNode.series.firesUserClickListeners(target)) return;
 
         const modifierPressed = hasAddToSelectionModifier(event);
         const clickMiss = clickedNode === undefined || (!clickedNode.series.isSelectionEnabled() satisfies boolean);
