@@ -1,6 +1,7 @@
 export class StateTracker<T, K = string> extends Map<K, T> {
     protected cachedState?: K;
     protected cachedValue?: T;
+    private locked?: { key: K; value: T };
 
     constructor(
         protected readonly defaultValue?: T,
@@ -25,12 +26,37 @@ export class StateTracker<T, K = string> extends Map<K, T> {
         return super.delete(key);
     }
 
+    /**
+     * Pins `value` as the reported state until {@link unlock}, so a caller owning an ongoing
+     * interaction is not overridden by others. Their updates are still recorded, so releasing the
+     * lock resumes whichever state is current by then.
+     */
+    lock(key: K, value: T) {
+        this.locked = { key, value };
+        delete this.cachedState;
+        delete this.cachedValue;
+    }
+
+    /** Releases a lock; a no-op unless `key` is the lock holder, so one owner cannot release another's. */
+    unlock(key: K) {
+        if (this.locked?.key !== key) return;
+        this.locked = undefined;
+        delete this.cachedState;
+        delete this.cachedValue;
+    }
+
+    isLocked() {
+        return this.locked !== undefined;
+    }
+
     stateId(): K | undefined {
+        if (this.locked) return this.locked.key;
         this.cachedState ??= Array.from(this.keys()).pop() ?? this.defaultState;
         return this.cachedState;
     }
 
     stateValue(): T | undefined {
+        if (this.locked) return this.locked.value;
         this.cachedValue ??= Array.from(this.values()).pop() ?? this.defaultValue;
         return this.cachedValue;
     }

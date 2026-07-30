@@ -50,6 +50,8 @@ const { userInteraction, InteractionState } = _ModuleSupport;
 const round = (value: number) => roundTo(value, 10);
 
 const CURSOR_ID = 'zoom-cursor';
+// Separate from CURSOR_ID so the hover updates that keep flowing during a drag cannot disturb the lock.
+const DRAG_CURSOR_ID = 'zoom-drag-cursor';
 const TOOLTIP_ID = 'zoom-tooltip';
 
 enum DragState {
@@ -256,6 +258,7 @@ export class Zoom extends AbstractModuleInstance {
 
     private teardown() {
         this.ctx.zoomManager.setZoomModuleEnabled(false);
+        this.ctx.domManager.unlockCursor(DRAG_CURSOR_ID);
         this.buttons.destroy();
         this.destroyContextMenuActions?.();
     }
@@ -324,7 +327,7 @@ export class Zoom extends AbstractModuleInstance {
         const modifierlessDragInUse = enableSelecting || hasDataSelection;
         // Allow panning if either selection is disabled or the panning key is pressed.
         if (enablePanning && (!modifierlessDragInUse || panKeyPressed)) {
-            domManager.updateCursor(CURSOR_ID, 'grabbing');
+            domManager.lockCursor(DRAG_CURSOR_ID, 'grabbing');
             newDragState = DragState.Pan;
             this.panner.start();
         } else if (enableSelecting && !panKeyPressed) {
@@ -383,6 +386,9 @@ export class Zoom extends AbstractModuleInstance {
 
     private onSeriesAreaDragEnd() {
         this.ctx.interactionManager.popState(_ModuleSupport.InteractionState.ZoomDrag);
+        // Released before the early returns below: any path that leaves the cursor pinned would strand
+        // it for the rest of the session.
+        this.ctx.domManager.unlockCursor(DRAG_CURSOR_ID);
 
         if (this.hoveredAxisId || !this.opts.enabled || this.dragState === DragState.None) return;
 
@@ -504,13 +510,16 @@ export class Zoom extends AbstractModuleInstance {
         panner.stopInteractions();
 
         if (axisDraggingMode === 'pan') {
-            this.ctx.domManager.updateCursor(CURSOR_ID, 'grabbing');
+            this.ctx.domManager.lockCursor(DRAG_CURSOR_ID, 'grabbing');
 
             this.dragState = DragState.Pan;
             this.panner.start(direction);
 
             zoomManager.fireZoomPanStartEvent('zoom');
         } else {
+            const resizeCursor = direction === ChartAxisDirection.X ? 'ew-resize' : 'ns-resize';
+            this.ctx.domManager.lockCursor(DRAG_CURSOR_ID, resizeCursor);
+
             this.dragState = DragState.Axis;
         }
     }
@@ -567,6 +576,7 @@ export class Zoom extends AbstractModuleInstance {
         } = this;
 
         interactionManager.popState(_ModuleSupport.InteractionState.ZoomDrag);
+        domManager.unlockCursor(DRAG_CURSOR_ID);
 
         // Stop single clicks from triggering drag end and resetting the zoom
         if (!enabled || !enableAxisDragging || dragState === DragState.None) return;
