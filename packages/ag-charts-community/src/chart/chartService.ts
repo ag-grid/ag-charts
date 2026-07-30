@@ -1,4 +1,4 @@
-import type { RequireOptional } from 'ag-charts-core';
+import type { BoxBounds, RequireOptional } from 'ag-charts-core';
 import type { AgChartInstance, AgCollapsedChangeEvent, AgSelectionChangeEvent } from 'ag-charts-types';
 
 import { Group } from '../scene/group';
@@ -21,6 +21,7 @@ export interface ChartService {
     readonly title: CaptionLike;
     readonly series: BaseSeries[];
     readonly seriesRoot: Group;
+    readonly seriesRect?: Readonly<BoxBounds>;
     readonly selectionRoot: Group;
     readonly publicApi?: AgChartInstance;
     readonly context?: unknown;

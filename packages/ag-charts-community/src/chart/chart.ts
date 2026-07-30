@@ -1628,7 +1628,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     protected abstract performLayout(ctx: LayoutContext): Promise<void> | void;
 
     // Should be available after the first layout.
-    protected seriesRect?: BBox;
+    public seriesRect?: BBox;
     // BBox of the chart area containing animatable elements; if this changes, we skip animations.
     protected animationRect?: BBox;
 

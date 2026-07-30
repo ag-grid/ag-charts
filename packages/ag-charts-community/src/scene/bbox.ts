@@ -1,5 +1,5 @@
 import type { DistantObject, NearestResult } from 'ag-charts-core';
-import { type BoxBounds, boxContains, boxesEqual, clamp, nearestSquared } from 'ag-charts-core';
+import { type BoxBounds, Vec4, boxContains, boxesEqual, clamp, nearestSquared } from 'ag-charts-core';
 
 import { type Interpolating, interpolate } from '../util/interpolating';
 
@@ -182,6 +182,16 @@ export class BBox implements BoxBounds, DistantObject, Interpolating<BBox> {
             }
         }
 
+        return this;
+    }
+
+    clip(clipBounds: Readonly<BoxBounds> | undefined) {
+        const a = Vec4.from(this);
+        const b = Vec4.from(clipBounds ?? this);
+        this.x = Math.max(a.x1, b.x1);
+        this.y = Math.max(a.y1, b.y1);
+        this.width = Math.min(a.x2, b.x2) - this.x;
+        this.height = Math.min(a.y2, b.y2) - this.y;
         return this;
     }
 

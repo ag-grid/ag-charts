@@ -276,7 +276,8 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
             return;
         }
 
-        const canvasBounds = toCanvasBBox(this.ctx.chartService.seriesRoot, dragStartEvent, dragMoveEvent);
+        const { seriesRoot, seriesRect } = this.ctx.chartService;
+        const canvasBounds = toCanvasBBox(seriesRoot, dragStartEvent, dragMoveEvent).clip(seriesRect);
 
         this.service.totalCandidacyCount = 0;
         this.service.candidacyInProgress ||= canvasBounds.width > 0 || canvasBounds.height > 0;
