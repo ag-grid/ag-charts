@@ -1299,6 +1299,10 @@ jobs:
               run: |
                   git fetch origin --depth 1 latest next
                   git fetch origin --depth 1 tag latest-success
+                  # Commit History below diffs against init's nx_base, which on a release branch is
+                  # <branch>-success rather than latest-success. Tolerate its absence: a release
+                  # branch has no success tag until its first green build.
+                  git fetch origin --depth 1 tag "${BRANCH_NAME}-success" || true
 
             - uses: actions/download-artifact@v4
               with:
@@ -1403,7 +1407,19 @@ jobs:
               id: commits
               if: always() && job.status != 'cancelled' && needs.init.result == 'success' && needs.init.outputs.build_type != 'pr' && steps.lastJobStatus.outputs.changedState == 'true'
               run: |
-                  GIT_LOG=$(git log HEAD ^${{ needs.init.outputs.nx_base }} --format="%an (%h) %s")
+                  # Fall back through the bases that may not exist in this shallow checkout, so a
+                  # missing success tag degrades the Slack commit list rather than failing the job.
+                  GIT_LOG=""
+                  for base in "${{ needs.init.outputs.nx_base }}" latest-success ; do
+                    if git rev-parse --verify --quiet "${base}^{commit}" > /dev/null ; then
+                      GIT_LOG=$(git log HEAD "^${base}" --format="%an (%h) %s")
+                      break
+                    fi
+                    echo "Base '${base}' not resolvable in this checkout, trying next."
+                  done
+                  if [[ -z "$GIT_LOG" ]] ; then
+                    GIT_LOG=$(git log HEAD -1 --format="%an (%h) %s")
+                  fi
                   echo "GIT_LOG<<EOF" >> $GITHUB_ENV
                   echo "$GIT_LOG" >> $GITHUB_ENV
                   echo "EOF" >> $GITHUB_ENV
