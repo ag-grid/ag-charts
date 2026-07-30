@@ -32,9 +32,9 @@ type DatumType = {
 const baseData: DatumType[] = [
     { year: '2015', usa: 2.9, china: 7.0, india: 8.0 },
     { year: '2016', usa: 1.8, china: 6.9, india: 8.3 },
-    { year: '2017', usa: 2.0, china: 5.9, india: 6.8 },
-    { year: '2018', usa: 3.0, china: 5.7, india: 6.5 },
-    { year: '2019', usa: 2.6, china: 6.0, india: 3.9 },
+    { year: '2017', usa: 2.0, china: 5.9, india: 6.0 },
+    { year: '2018', usa: 3.0, china: 5.7, india: 5.6 },
+    { year: '2019', usa: 3.2, china: 6.0, india: 3.4 },
     { year: '2020', usa: -2.2, china: 2.2, india: -5.8 },
     { year: '2021', usa: 5.8, china: 8.4, india: 9.7 },
     { year: '2022', usa: 1.9, china: 3.0, india: 7.0 },
@@ -142,26 +142,6 @@ const chart = AgCharts.create(options);
 
 /** inScope */
 function getItems(params: AgContextMenuGetItemsParams<DatumType>): AgContextMenuItem<DatumType>[] | undefined {
-    if (params.showOn === 'series-node') {
-        const { seriesId } = params;
-        const year = String(params.datum[params.xKey!]);
-        const yKey = params.yKey!;
-        const isEmphasised = emphasisedPoints.has(pointKey(seriesId, year));
-        return [
-            {
-                type: 'action',
-                showOn: 'series-node',
-                label: `${isEmphasised ? 'Remove Emphasis from' : 'Emphasise'} "${year}" Point`,
-                action: () => toggleEmphasis(seriesId, year),
-            },
-            {
-                type: 'action',
-                showOn: 'series-node',
-                label: `Remove "${year}" Point`,
-                action: () => removeDataPoint(year, yKey),
-            },
-        ];
-    }
     if (params.showOn === 'legend-item') {
         const { seriesId } = params;
         return [
@@ -185,6 +165,36 @@ function getItems(params: AgContextMenuGetItemsParams<DatumType>): AgContextMenu
             },
         ];
     }
+    const result: AgContextMenuItem<DatumType>[] = [];
+    for (const paramsEntry of params.allShowOnParams) {
+        if (paramsEntry.showOn === 'series-node') {
+            const { yKey, xKey, seriesId } = paramsEntry;
+            const year = String(paramsEntry.datum[xKey!]);
+            const yKeyFormatting: Record<keyof DatumType, string | undefined> = {
+                china: 'China',
+                india: 'India',
+                usa: 'USA',
+                year: undefined,
+            };
+            const formattedDatum = `${yKeyFormatting[yKey!]} ${year}`;
+            const isEmphasised = emphasisedPoints.has(pointKey(seriesId, year));
+            result.push(
+                {
+                    type: 'action',
+                    showOn: 'series-node',
+                    label: `${isEmphasised ? 'Remove Emphasis from' : 'Emphasise'} "${formattedDatum}" Point`,
+                    action: () => toggleEmphasis(seriesId, year),
+                },
+                {
+                    type: 'action',
+                    showOn: 'series-node',
+                    label: `Remove "${formattedDatum}" Point`,
+                    action: () => removeDataPoint(year, yKey!),
+                }
+            );
+        }
+    }
+    return result;
 }
 
 /** inScope */
