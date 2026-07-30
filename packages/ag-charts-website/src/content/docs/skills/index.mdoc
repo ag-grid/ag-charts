@@ -1,47 +1,103 @@
 ---
 title: 'AG Skills'
+description: 'Give coding agents the expertise to build and maintain your $framework charts using AG Charts official guidance.'
 ---
 
-We are building a set of AI skills for developing grid and charts applications using coding agents such as Claude and Codex.
-
-We currently publish one skill, [ag-update](#using-ag-update), which handles version upgrades. We plan to add more over time.
+Our [AI skills](https://github.com/ag-grid/skills) give coding agents such as Claude and Codex the expertise to build and maintain your AG Charts and AG Grid applications from our official guidance.
 
 {% note %}
 We are actively developing and releasing new versions of our skills. Feedback is welcome - [open an issue](https://github.com/ag-grid/skills/issues) on GitHub.
 {% /note %}
 
-## Installation
+## Setup
 
-A skill is just a folder of files that can be installed in your project repo, or your home directory. Use the skills CLI to copy the files to your computer:
+One skills package covers all of our products: [AG Charts](https://www.ag-grid.com/charts/), [AG Grid](https://www.ag-grid.com/) and [AG Studio](https://www.ag-grid.com/studio/).
 
-```
+### Installation
+
+A skill is a folder of files that you install in your project repository or your home directory. Use the skills CLI to copy the files from the [ag-grid/skills](https://github.com/ag-grid/skills) repository to your machine:
+
+```bash
 npx skills add ag-grid/skills
 ```
 
-## Updating
+### Updating
 
-Update to the latest version at any time:
+We refine the skills and extend them to cover new Charts, Grid and Studio releases, so update at any time to pick up the latest guidance:
 
-```
+```bash
 npx skills update ag-grid/skills
 ```
 
-## Using ag-update
+## Skills
 
-The skill produces a markdown file detailing all the changes that need to be applied to your project in order to update to a new version.
+We currently provide two skills. If there's something else you'd like to see, [open an issue](https://github.com/ag-grid/skills/issues) to suggest a skill.
 
-In your coding agent you can invoke the skill and it will analyse your codebase and propose what updates can be applied:
+### ag-dev
 
+`ag-dev` is a general development assistant that helps agents write correct code on the first attempt.
+
+Coding harnesses like Claude Code and Codex will often automatically use it when planning or writing code that interacts with our libraries - simply installing the skill will improve the results you get during development. However, because automatic triggering is best-effort, for the most consistent results we recommend explicitly telling your agent to use the ag-dev skill, especially when working on complicated tasks:
+
+```bash
+Create a custom theme that applies our brand palette and axis label
+formatting to every chart (use the ag-dev skill)
 ```
-Use the ag-update skill
+
+It includes a list of rules for the agent to follow to avoid common LLM pitfalls, debugging guidance, and instructions for accessing version-matched documentation to ensure that your agent uses the APIs for the installed version of the library.
+
+### ag-update
+
+Upgrading across major versions normally means reading every release's breaking changes and working out which ones touch your code. The `ag-update` skill hands that work to your coding agent: it reads the AG Charts migration documentation, checks it against your repository, and produces a Markdown file listing the changes needed to move to a new version.
+
+To let the skill detect everything for you, invoke it from your coding agent:
+
+```bash
+Use the ag-update skill to upgrade my-app
 ```
 
-Alternatively, tell the skill exactly what you want to update:
+You can also tell it exactly what to update, down to individual projects and target versions.
 
+```bash
+Use the ag-update skill to update all projects in this monorepo
+except apps/demo-app to AG Charts v14
 ```
-Use the ag-update skill to update all projects in this monorepo except apps/demo-app to ag charts v14
+
+#### Example run
+
+A typical run, updating a single project to AG Charts v14, looks like this:
+
+```bash
+> Use the ag-update skill to update the dashboard/typescript project to AG Charts v14
+
+Determining scope → AG_UPDATE_SCOPE.md
+  - dashboard/typescript
+    - ag-charts-community@13.3.1 -> 14.0.0
+    - ag-charts-enterprise@13.3.1 -> 14.0.0
+
+Determining changes → AG_UPDATE_CHANGES.md
+  Found changes to review before applying.
+
+Apply changes? yes
+  Updated package.json
+  $ pnpm install     ✓
+  $ pnpm typecheck   ✓
+  $ pnpm build       ✓
+
+Done — dashboard/typescript is on AG Charts 14.0.0.
 ```
 
-The skill will analyse your repo and our breaking change documentation and produce a markdown file containing a list of changes to apply. In the case of optional changes you'll be asked whether you want to apply them.
+`AG_UPDATE_CHANGES.md` contains an entry for each change, grouped by product and version transition, labelled `BREAKING` or `BEHAVIOUR`, and paired with how to mitigate it:
 
-You can then review the generated file and ask your agent to make an implementation plan based on it.
+```bash
+## Charts v13.x -> v14.x
+
+### BREAKING: Bubble Series size options renamed
+
+Change: `size` and `domain` are removed from Bubble Series options.
+
+Mitigation: Use `minSize` in place of `size`, and `sizeDomain` in place
+of `domain`.
+```
+
+Review the generated files, then ask the agent to apply the plan. It bumps the versions in `package.json`, reinstalls dependencies, and validates the result against your build, typecheck, and dev server.
