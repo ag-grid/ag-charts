@@ -61,7 +61,7 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
     private onValidationChange() {
         const rect = this.lastSeriesRect ?? this.fullContainerRect();
         if (rect) {
-            this.refresh(rect);
+            this.refresh(rect, false);
         }
     }
 
@@ -70,8 +70,8 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
         return size ? new BBox(0, 0, size.width, size.height) : undefined;
     }
 
-    private refresh(rect: BBox) {
-        const newOverlayState = this.selectOverlayState();
+    private refresh(rect: BBox, seriesStateCurrent = true) {
+        const newOverlayState = this.selectOverlayState(seriesStateCurrent);
 
         // The validation overlay is a modal dialog that centres over the whole chart, matching AG Grid's
         // full-grid overlay; the other overlays occupy just the series rect.
@@ -116,15 +116,22 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
     }
 
     // Validation takes strict priority and suppresses the loading/no-data/no-visible-series overlays.
-    private selectOverlayState(): OverlayState {
+    private selectOverlayState(seriesStateCurrent: boolean): OverlayState {
         if (this.validationCollector.hasVisibleIssues()) {
             return 'validation';
         }
         if (this.dataService.isLoading()) {
             return 'loading';
         }
-        // Before the first layout there is no processed series data, so the series-derived overlays
-        // cannot be evaluated yet — defer them to the layout pass to avoid a transient no-data flash.
+        // Series-derived states are only meaningful once a layout has settled with the current
+        // options: option application dispatches a validation change before the new series are
+        // attached, so off-cycle the series still describe the previous update. Hold whatever the
+        // last layout concluded and let the next one revise it.
+        if (!seriesStateCurrent) {
+            return this.overlayState === 'validation' || this.overlayState === 'loading'
+                ? undefined
+                : this.overlayState;
+        }
         if (this.lastSeriesRect == null) {
             return undefined;
         }

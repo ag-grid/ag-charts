@@ -52,7 +52,7 @@ describe('OverlaysProcessor', () => {
             validationCollector
         );
 
-        return { overlays, validationCollector, eventsHub };
+        return { overlays, validationCollector, eventsHub, chartLike };
     }
 
     function emitLayout(eventsHub: EventsHub, rect = new BBox(0, 0, 800, 600)) {
@@ -80,6 +80,33 @@ describe('OverlaysProcessor', () => {
         validationCollector.setIssues([]);
 
         const noDataSpy = vi.spyOn(overlays.noData, 'getElement');
+        emitLayout(eventsHub);
+
+        expect(noDataSpy).toHaveBeenCalled();
+    });
+
+    it('holds the settled overlay state when a validation change arrives with stale series', () => {
+        const { overlays, validationCollector, eventsHub, chartLike } = build();
+        chartLike.series = [{ type: 'bar', hasData: true, visible: true }];
+        emitLayout(eventsHub);
+
+        const noDataSpy = vi.spyOn(overlays.noData, 'getElement');
+
+        // Chart.applyOptions() dispatches the validation change before attaching the incoming
+        // series, so the series still describe the previous update at this point.
+        chartLike.series = [];
+        validationCollector.setIssues([]);
+
+        expect(noDataSpy).not.toHaveBeenCalled();
+    });
+
+    it('surfaces no-data once a layout settles with series that have no data', () => {
+        const { overlays, eventsHub, chartLike } = build();
+        chartLike.series = [{ type: 'bar', hasData: true, visible: true }];
+        emitLayout(eventsHub);
+
+        const noDataSpy = vi.spyOn(overlays.noData, 'getElement');
+        chartLike.series = [];
         emitLayout(eventsHub);
 
         expect(noDataSpy).toHaveBeenCalled();
