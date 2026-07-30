@@ -726,7 +726,8 @@ function isUserOptionCheck(graph: OptionsGraphInterface, vertex: VertexInterface
     const path = resolvePath(pathArray, relativePath);
     if (path === UNRESOLVABLE_PATH) return false;
 
-    return graph.hasUserOption(path);
+    // Theme overrides are user-authored, so they satisfy the check even though they resolve on their own edge.
+    return graph.hasUserOption(path) || graph.hasThemeOverride(path);
 }
 
 const PALETTE_INDEX_KEYS = new Set(['fill', 'fillFallback', 'stroke', 'gradient', 'range2']);

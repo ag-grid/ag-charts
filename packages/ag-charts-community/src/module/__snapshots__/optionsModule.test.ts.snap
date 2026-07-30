@@ -1398,7 +1398,7 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
     "wrapping": "hyphenate",
   },
   "highlight": {
-    "drawingMode": "cutout",
+    "drawingMode": "overlap",
     "enabled": true,
   },
   "keyboard": {
@@ -4415,7 +4415,7 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
     "wrapping": "hyphenate",
   },
   "highlight": {
-    "drawingMode": "cutout",
+    "drawingMode": "overlap",
     "enabled": true,
   },
   "keyboard": {
@@ -8835,7 +8835,7 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
     "wrapping": "hyphenate",
   },
   "highlight": {
-    "drawingMode": "cutout",
+    "drawingMode": "overlap",
     "enabled": true,
   },
   "keyboard": {
@@ -10885,7 +10885,7 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
     "wrapping": "hyphenate",
   },
   "highlight": {
-    "drawingMode": "cutout",
+    "drawingMode": "overlap",
     "enabled": true,
   },
   "keyboard": {
@@ -13440,7 +13440,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
     "wrapping": "hyphenate",
   },
   "highlight": {
-    "drawingMode": "cutout",
+    "drawingMode": "overlap",
     "enabled": true,
   },
   "keyboard": {
@@ -14922,7 +14922,7 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
     "wrapping": "hyphenate",
   },
   "highlight": {
-    "drawingMode": "cutout",
+    "drawingMode": "overlap",
     "enabled": true,
   },
   "keyboard": {
@@ -16135,7 +16135,7 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
     "wrapping": "hyphenate",
   },
   "highlight": {
-    "drawingMode": "cutout",
+    "drawingMode": "overlap",
     "enabled": true,
   },
   "keyboard": {
