@@ -1,4 +1,9 @@
-import { type ColDef, type RowClassRules } from 'ag-grid-community';
+import {
+    type CellKeyDownEvent,
+    type ColDef,
+    type FullWidthCellKeyDownEvent,
+    type RowClassRules,
+} from 'ag-grid-community';
 import { AgGridReact } from 'ag-grid-react';
 import { useEffect, useMemo, useRef } from 'react';
 
@@ -53,6 +58,14 @@ export function TickerGrid<T extends { ticker: string }>({
         gridRef.current?.api?.redrawRows();
     }, [activeTicker]);
 
+    const onCellKeyDown = ({ event, data }: CellKeyDownEvent<T> | FullWidthCellKeyDownEvent<T>) => {
+        if (!data || !(event instanceof KeyboardEvent)) return;
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            onSelect(data.ticker);
+        }
+    };
+
     return (
         <div className="fin-section">
             <h3 className="fin-section-title">{title}</h3>
@@ -65,10 +78,11 @@ export function TickerGrid<T extends { ticker: string }>({
                     columnDefs={columnDefs}
                     defaultColDef={defaultColDef}
                     rowClassRules={rowClassRules}
+                    domLayout="autoHeight"
                     rowHeight={28}
                     headerHeight={30}
-                    suppressCellFocus
                     onRowClicked={({ data }) => data && onSelect(data.ticker)}
+                    onCellKeyDown={onCellKeyDown}
                 />
             </div>
         </div>

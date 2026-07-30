@@ -69,26 +69,53 @@
     color: var(--fin-down);
 }
 
-.fin-search {
-    box-sizing: border-box;
-    height: 30px;
-    width: 220px;
-    padding: 0 10px;
-    border: 1px solid var(--fin-border);
-    background: var(--fin-panel-2);
-    color: var(--fin-text);
-    font: inherit;
-}
-.fin-search::placeholder {
-    color: var(--fin-muted);
-}
-.fin-search:focus {
-    outline: none;
-    border-color: var(--fin-accent);
-}
-
 .fin-toolbar-spacer {
     flex: 1 1 auto;
+}
+
+/* ---- demo notice banner ---- */
+.fin-banner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 6px 14px;
+    background: color-mix(in srgb, var(--fin-accent) 12%, var(--fin-panel));
+    border-bottom: 1px solid var(--fin-border);
+    color: var(--fin-text);
+    font-size: 12px;
+    flex: 0 0 auto;
+}
+
+.fin-banner-icon {
+    flex: none;
+    color: var(--fin-accent);
+}
+
+.fin-banner-text {
+    flex: 1 1 auto;
+}
+
+.fin-banner-dismiss {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--fin-muted);
+    font: inherit;
+    line-height: 1;
+    cursor: pointer;
+}
+.fin-banner-dismiss:hover {
+    color: var(--fin-text);
+}
+.fin-banner-dismiss:focus-visible {
+    outline: 1px solid var(--fin-accent);
+    outline-offset: 1px;
 }
 
 .fin-clock {
@@ -115,9 +142,8 @@
     min-height: 0;
     min-width: 0;
     overflow-y: auto;
-    padding: 8px;
+    padding: 8px 12px;
     background: var(--fin-panel);
-    border-top: 1px solid var(--fin-border);
 }
 
 /* The main financial chart fills the remaining viewport height; the sections
@@ -133,17 +159,18 @@
     min-height: 0;
     overflow-y: auto;
     background: var(--fin-panel);
+    padding: 8px 12px;
 }
 
 .fin-section {
-    padding: 12px 14px;
+    margin-bottom: 12px;
 }
+
 .fin-section-title {
     text-transform: uppercase;
     letter-spacing: 0.6px;
     font-size: 11px;
     color: var(--fin-text);
-    margin: 0 0 10px;
 }
 
 /* ---- generic controls ---- */
@@ -154,7 +181,7 @@
     align-items: center;
     justify-content: center;
     gap: 6px;
-    height: 30px;
+    height: 26px;
     padding: 0 8px;
     border-radius: 0;
     border: 1px solid var(--fin-border);
@@ -221,8 +248,8 @@
 }
 .fin-toggle-item {
     all: unset;
-    padding: 0 10px;
-    height: 30px;
+    padding: 0 8px;
+    height: 26px;
     display: inline-flex;
     align-items: center;
     cursor: pointer;
@@ -247,7 +274,7 @@
 .fin-title-controls {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 24px;
 }
 .fin-title-left {
     display: flex;
@@ -396,12 +423,6 @@
     height: 100%;
 }
 
-.fin-watchlist-grid {
-    height: 310px;
-}
-.fin-trending-grid {
-    height: 310px;
-}
 .fin-watchlist-grid .ag-row,
 .fin-trending-grid .ag-row {
     cursor: pointer;
@@ -409,6 +430,14 @@
 .fin-watchlist-grid .ag-row.fin-grid-active,
 .fin-trending-grid .ag-row.fin-grid-active {
     box-shadow: inset 2px 0 0 var(--fin-accent);
+}
+/* Keyboard focus only (:focus-visible): ring the whole row rather than the cell.
+   A mouse click focuses a cell too, but :focus-visible won't match, so pointer
+   users see no ring — selection stays pointer-driven and chrome-free. */
+.fin-watchlist-grid .ag-row:has(.ag-cell:focus-visible),
+.fin-trending-grid .ag-row:has(.ag-cell:focus-visible) {
+    outline: 1px solid var(--fin-accent);
+    outline-offset: -1px;
 }
 .fin-watchlist-grid .fin-grid-active .ag-cell:first-child,
 .fin-trending-grid .fin-grid-active .ag-cell:first-child {
