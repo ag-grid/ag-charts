@@ -26,6 +26,8 @@ ModuleRegistry.registerModules([
 
 type SeriesType = 'bubble' | 'bar' | 'bar-horizontal';
 
+let spacing = 6;
+
 const options: AgCartesianChartOptions<BubbleDataType | BarDataType> = {
     container: document.getElementById('myChart'),
     title: { text: 'Weather Station Readings' },
@@ -41,7 +43,7 @@ const options: AgCartesianChartOptions<BubbleDataType | BarDataType> = {
             label: {
                 enabled: true,
                 placement: 'top',
-                spacing: 6,
+                spacing,
             },
         },
     ],
@@ -87,7 +89,7 @@ function setSeriesType(seriesType: SeriesType) {
                     placement: parsePlacement(bubblePlacementSelect.value) as
                         | AgChartLabelCollisionPlacement
                         | AgChartLabelCollisionPlacement[],
-                    spacing: 6,
+                    spacing,
                 },
             },
         ];
@@ -117,7 +119,7 @@ function setSeriesType(seriesType: SeriesType) {
                     placement: parsePlacement(barPlacementSelect.value) as
                         | AgBarSeriesLabelPlacement
                         | AgBarSeriesLabelPlacement[],
-                    spacing: 6,
+                    spacing,
                     truncate: false,
                     formatter: (params) => `$${params.value}m`,
                 },
@@ -137,10 +139,10 @@ function setPlacement(placement: string) {
 }
 
 function setSpacing(event: Event) {
-    const value = Number((event.target as HTMLInputElement).value);
-    document.getElementById('spacingValue')!.textContent = String(value);
+    spacing = Number((event.target as HTMLInputElement).value);
+    document.getElementById('spacingValue')!.textContent = String(spacing);
     const series = options.series![0] as AgBubbleSeriesOptions<BubbleDataType> | AgBarSeriesOptions<BarDataType>;
-    series.label!.spacing = value;
+    series.label!.spacing = spacing;
     chart.update(options);
 }
 
