@@ -700,6 +700,142 @@ describe('Chart highlighting', () => {
         });
     });
 
+    describe('Datum-level to series-level highlight transition', () => {
+        // A legend item's highlight is series-level: `datumIndex` is NaN (see `toHighlightNodeDatum`
+        // in legend.ts, string-itemId branch). Keyboard focus moving from a bar to the legend
+        // therefore transitions datum-level -> series-level on the same series.
+        const legendStyleHighlight = (series: Chart['series'][number], itemId: string): HighlightNodeDatum => ({
+            series,
+            itemId,
+            datum: undefined,
+            datumIndex: Number.NaN,
+        });
+
+        // The base render layer of a cartesian series; the highlighted item itself is painted
+        // separately by `highlightGroup`, so every base node reflects the "unhighlighted" style.
+        const baseLayerFillOpacities = (chartInstance: Chart, seriesIndex: number): number[] => {
+            const series = chartInstance.series[seriesIndex] as unknown as {
+                datumSelection: { nodes(): Array<{ fillOpacity: number }> };
+            };
+            return series.datumSelection.nodes().map((node) => node.fillOpacity);
+        };
+
+        const twoSeriesOptions = () =>
+            prepareTestOptions<AgCartesianChartOptions>({
+                data: categoryData,
+                axes: {
+                    x: { position: 'bottom', type: 'category' },
+                    y: { position: 'left', type: 'number' },
+                },
+                series: [
+                    { type: 'bar', xKey: 'category', yKey: 'apples' },
+                    { type: 'bar', xKey: 'category', yKey: 'oranges' },
+                ],
+            });
+
+        it('clears item dimming when a datum highlight is replaced by a series highlight of the same series', async () => {
+            const options = twoSeriesOptions();
+            chart = await createChart(options);
+            await waitForChartStability(chart);
+
+            // Baseline: the bar theme's `unhighlightedItem`/`unhighlightedSeries` are not applied yet.
+            expect(baseLayerFillOpacities(chart, 0)).toEqual([1, 1, 1, 1]);
+
+            const datumHighlight = defaultHighlightDatum(chart, {
+                name: 'datum-level',
+                options,
+                seriesIndex: 0,
+                datumIndex: 1,
+            });
+            expect(datumHighlight).toBeDefined();
+
+            // Datum-level highlight, as produced by hovering or arrow-key focusing a bar.
+            chart.ctx.highlightManager.updateHighlight('series-area', datumHighlight);
+            await waitForChartStability(chart);
+            for (const fillOpacity of baseLayerFillOpacities(chart, 0)) {
+                expect(fillOpacity).toBeLessThan(1);
+            }
+
+            // Series-level highlight of the *same* series, from a different caller — this mirrors
+            // Tab moving focus out of the series area and into a legend item.
+            chart.ctx.highlightManager.updateHighlight('legend', legendStyleHighlight(chart.series[0], 'apples'));
+            await waitForChartStability(chart);
+
+            // Regression (CRT-1155): the stale `unhighlightedItem` dimming used to be left on screen.
+            expect(baseLayerFillOpacities(chart, 0)).toEqual([1, 1, 1, 1]);
+        });
+
+        it('restores item dimming when a series highlight is replaced by a datum highlight of the same series', async () => {
+            const options = twoSeriesOptions();
+            chart = await createChart(options);
+            await waitForChartStability(chart);
+
+            chart.ctx.highlightManager.updateHighlight('legend', legendStyleHighlight(chart.series[0], 'apples'));
+            await waitForChartStability(chart);
+            expect(baseLayerFillOpacities(chart, 0)).toEqual([1, 1, 1, 1]);
+
+            const datumHighlight = defaultHighlightDatum(chart, {
+                name: 'datum-level',
+                options,
+                seriesIndex: 0,
+                datumIndex: 1,
+            });
+            expect(datumHighlight).toBeDefined();
+
+            chart.ctx.highlightManager.updateHighlight('series-area', datumHighlight);
+            await waitForChartStability(chart);
+            for (const fillOpacity of baseLayerFillOpacities(chart, 0)) {
+                expect(fillOpacity).toBeLessThan(1);
+            }
+        });
+
+        it('keeps other series dimmed across the transition', async () => {
+            const options = twoSeriesOptions();
+            chart = await createChart(options);
+            await waitForChartStability(chart);
+
+            const datumHighlight = defaultHighlightDatum(chart, {
+                name: 'datum-level',
+                options,
+                seriesIndex: 0,
+                datumIndex: 1,
+            });
+
+            chart.ctx.highlightManager.updateHighlight('series-area', datumHighlight);
+            await waitForChartStability(chart);
+            for (const fillOpacity of baseLayerFillOpacities(chart, 1)) {
+                expect(fillOpacity).toBeLessThan(1);
+            }
+
+            chart.ctx.highlightManager.updateHighlight('legend', legendStyleHighlight(chart.series[0], 'apples'));
+            await waitForChartStability(chart);
+            for (const fillOpacity of baseLayerFillOpacities(chart, 1)) {
+                expect(fillOpacity).toBeLessThan(1);
+            }
+        });
+
+        it('hides the highlight overlay for a series-level highlight but shows it for a datum-level one', async () => {
+            const options = twoSeriesOptions();
+            chart = await createChart(options);
+            await waitForChartStability(chart);
+
+            const datumHighlight = defaultHighlightDatum(chart, {
+                name: 'datum-level',
+                options,
+                seriesIndex: 0,
+                datumIndex: 1,
+            });
+
+            chart.ctx.highlightManager.updateHighlight('series-area', datumHighlight);
+            await waitForChartStability(chart);
+            expect(chart.series[0].highlightGroup.visible).toBe(true);
+
+            chart.ctx.highlightManager.updateHighlight('legend', legendStyleHighlight(chart.series[0], 'apples'));
+            await waitForChartStability(chart);
+            expect(chart.series[0].highlightGroup.visible).toBe(false);
+        });
+    });
+
     describe('Delayed unhighlight', () => {
         afterEach(() => {
             vi.useRealTimers();

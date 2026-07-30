@@ -4,10 +4,12 @@
         "date": "August 5th, 2026",
         "highlights": [
             {
-                "text": "Additional Label Placement Options"
+                "text": "Additional Label Placement Options",
+                "path": "./series-labels/#placement"
             },
             {
-                "text": "Label Collision Avoidance"
+                "text": "Label Collision Avoidance",
+                "path": "./series-labels/#collision-avoidance"
             },
             {
                 "text": "Extended Context Menu Scopes",

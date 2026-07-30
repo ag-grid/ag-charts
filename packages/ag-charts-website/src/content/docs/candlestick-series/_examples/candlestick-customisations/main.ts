@@ -76,7 +76,7 @@ const options: AgChartOptions = {
             },
             crosshair: {
                 label: {
-                    format: ',f',
+                    format: ',.2f',
                 },
             },
         },

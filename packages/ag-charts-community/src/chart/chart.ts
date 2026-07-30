@@ -824,6 +824,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             // Strip synchronously so the scene is safe to hand to a replacement chart
             // even while the rest of the teardown is queued behind any in-flight update.
             this.ctx.scene.strip();
+            this.ctx.domManager.detachFromContainer();
             result = {
                 container: this.container,
                 scene: this.ctx.scene,
@@ -1627,7 +1628,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     protected abstract performLayout(ctx: LayoutContext): Promise<void> | void;
 
     // Should be available after the first layout.
-    protected seriesRect?: BBox;
+    public seriesRect?: BBox;
     // BBox of the chart area containing animatable elements; if this changes, we skip animations.
     protected animationRect?: BBox;
 

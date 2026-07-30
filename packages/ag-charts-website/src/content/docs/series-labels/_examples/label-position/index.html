@@ -1,0 +1,59 @@
+<div class="example-controls">
+    <div class="controls-row">
+        <span>Series:</span>
+        <button onclick="setSeriesType('bubble')"><code>Bubble</code></button>
+        <button onclick="setSeriesType('bar')"><code>Bar</code></button>
+        <button onclick="setSeriesType('bar-horizontal')"><code>Horizontal Bar</code></button>
+    </div>
+    <div class="controls-row">
+        <span>Placement:</span>
+        <span id="bubblePlacementRow">
+            <select id="bubblePlacementSelect" class="gap-right" onchange="setPlacement(event.target.value)">
+                <option value="top" selected>Top</option>
+                <option value="top-right">Top Right</option>
+                <option value="right">Right</option>
+                <option value="bottom-right">Bottom Right</option>
+                <option value="bottom">Bottom</option>
+                <option value="bottom-left">Bottom Left</option>
+                <option value="left">Left</option>
+                <option value="top-left">Top Left</option>
+                <option value="inside">Centre (Inside)</option>
+                <hr />
+                <option value="top, bottom, left, right">Top + Bottom + Left + Right fallback</option>
+                <option value="left, right">Left + Right fallback</option>
+            </select>
+        </span>
+        <span id="barPlacementRow" style="display: none">
+            <select id="barPlacementSelect" class="gap-right" onchange="setPlacement(event.target.value)">
+                <option value="outside-end" selected>Outside End</option>
+                <option value="outside-start">Outside Start</option>
+                <option value="inside-end">Inside End</option>
+                <option value="inside-start">Inside Start</option>
+                <option value="inside-center">Centre (Inside)</option>
+                <option value="beside-before-start">Beside Before Start</option>
+                <option value="beside-before-center">Beside Before Centre</option>
+                <option value="beside-before-end">Beside Before End</option>
+                <option value="beside-after-start">Beside After Start</option>
+                <option value="beside-after-center">Beside After Centre</option>
+                <option value="beside-after-end">Beside After End</option>
+                <hr />
+                <option value="outside-end, inside-end">Outside End + Inside End fallback</option>
+                <option value="inside-center, beside-after-center">Inside Centre + Beside After Centre fallback</option>
+            </select>
+        </span>
+        <label for="spacingSlider">Spacing:</label>
+        <input
+            type="range"
+            id="spacingSlider"
+            min="0"
+            max="20"
+            value="6"
+            oninput="setSpacing(event)"
+            onchange="setSpacing(event)"
+        />
+        <span id="spacingValue" style="display: inline-block; min-width: 3ch; text-align: right">6</span>
+    </div>
+</div>
+<div class="resizable-container">
+    <div id="myChart" class="resizable"></div>
+</div>

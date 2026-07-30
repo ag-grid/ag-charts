@@ -217,6 +217,11 @@
                         },
                         {
                             "type": "item",
+                            "title": "Series Labels",
+                            "path": "series-labels"
+                        },
+                        {
+                            "type": "item",
                             "title": "Series Markers",
                             "path": "markers"
                         },

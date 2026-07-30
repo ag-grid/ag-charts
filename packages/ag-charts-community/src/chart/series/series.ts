@@ -952,8 +952,19 @@ export abstract class Series<
         const hasItemStylers = this.hasItemStylers();
 
         if (!hasItemStylers && currentHighlightState === previousHighlightState) {
-            this.hasChangesOnHighlight = false;
-            return;
+            // `getHighlightState` is probed above without a datumIndex, so a datum-level highlight of
+            // this series and a series-level one (e.g. from focusing a legend item) both report
+            // HighlightState.Series. They style the series' *other* items differently — dimmed with
+            // `unhighlightedItem` vs not dimmed at all — so a transition between the two still needs a
+            // redraw, otherwise the previous state's dimming is left on screen.
+            const datumLevelnessChanged =
+                currentHighlightState === HighlightState.Series &&
+                this.isDatumHighlight(currentHighlightedDatum) !== this.isDatumHighlight(previousHighlightedDatum);
+
+            if (!datumLevelnessChanged) {
+                this.hasChangesOnHighlight = false;
+                return;
+            }
         }
 
         const { highlightedSeries, unhighlightedItem, unhighlightedSeries } = this.properties.highlight;
@@ -986,6 +997,15 @@ export abstract class Series<
         // If this function is being invoked, we have already determined that the series is highlighted.
         if (highlightedDatum == null || Number.isNaN(highlightedDatum.datumIndex) || datumIndex == null) return;
         return highlightedDatum.datumIndex === datumIndex;
+    }
+
+    /**
+     * Whether a highlight targets one specific datum, as opposed to a whole series. Datum-level
+     * highlights carry a concrete `datumIndex`; series-level ones (e.g. a focused legend item) use NaN.
+     */
+    protected isDatumHighlight(highlightedDatum: HighlightNodeDatum | undefined): boolean {
+        const datumIndex = highlightedDatum?.datumIndex;
+        return typeof datumIndex === 'number' && !Number.isNaN(datumIndex);
     }
 
     private hasDataSelection(): boolean {

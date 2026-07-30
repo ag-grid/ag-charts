@@ -1,7 +1,14 @@
 import { afterEach, describe, expect } from 'vitest';
 
 import type { Chart } from '../chart';
-import { createChart, expectWarningsCalls, setupMockCanvas, setupMockConsole } from '../test/utils';
+import {
+    createChart,
+    expectWarningsCalls,
+    prepareTestOptions,
+    setupMockCanvas,
+    setupMockConsole,
+    waitForChartStability,
+} from '../test/utils';
 import { imageSegmentStyle } from './overlay';
 
 describe('Overlay', () => {
@@ -446,6 +453,48 @@ HTMLCollection [
         // 'img' tag, which has no `.style` and is not a DOM node, so it cannot host an overlay
         // <img>. The CSS-mapping logic (the bug-prone part) is unit-tested via `imageSegmentStyle`
         // below; accessibility (alt text → plain text) is covered by `toPlainText`.
+    });
+
+    // The content element is absolutely positioned with no `top`, so it resolves to its static
+    // position — any stray text node left in the container's flow displaces it vertically.
+    describe('#hide and re-show', () => {
+        const seriesOptions = (firstSeriesVisible: boolean) =>
+            prepareTestOptions({
+                data: [
+                    { x: 'a', y1: 2, y2: 1 },
+                    { x: 'b', y1: 3, y2: 1 },
+                ],
+                series: [
+                    { type: 'line' as const, xKey: 'x', yKey: 'y1', visible: firstSeriesVisible },
+                    { type: 'line' as const, xKey: 'x', yKey: 'y2', visible: false },
+                ],
+            });
+
+        const overlayContainer = () => chart.ctx.agDocument.body.querySelector('.ag-charts-overlay');
+
+        test('leaves the content element as the only child of the overlay container', async () => {
+            chart = await createChart(seriesOptions(false));
+            const { publicApi } = chart;
+            if (!publicApi) throw new Error('chart has no public API');
+
+            expect(overlayContainer()?.childNodes).toHaveLength(1);
+
+            await publicApi.update(seriesOptions(true));
+            await waitForChartStability(chart);
+
+            // The no-break space must survive the whole hidden interval so that Chromium detects an
+            // aria-live change when the overlay re-appears. Asserted via `innerText` because jsdom does
+            // not implement it — the write lands as a plain property, so `textContent` stays empty here
+            // even though a real browser replaces the container's children.
+            expect((overlayContainer() as HTMLElement | null)?.innerText).toEqual('\xA0');
+
+            await publicApi.update(seriesOptions(false));
+            await waitForChartStability(chart);
+
+            const container = overlayContainer();
+            expect(container?.childNodes).toHaveLength(1);
+            expect((container?.firstChild as HTMLElement | null)?.innerText).toEqual('No visible series');
+        });
     });
 });
 

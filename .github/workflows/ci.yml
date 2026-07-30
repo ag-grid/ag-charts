@@ -43,10 +43,6 @@ env:
     BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
     AG_LIBRARY: charts
     AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
-    # PR runs sweep only the vanilla example variant (see AG_E2E_FRAMEWORKS), so each shard
-    # carries roughly a third of the work and fewer, fuller shards waste less on the ~45s of
-    # fixed per-shard setup. Pushes still run all six variants and keep the wider fan-out.
-    AG_E2E_SHARD_COUNT: ${{ github.event_name == 'pull_request' && '16' || '32' }}
     LIBRARY_WEBSITE_STATUS_CHANNEL: '#charts-website-status'
 
 permissions:
@@ -225,15 +221,43 @@ jobs:
 
                   # Duration-balanced shard assignment (falls back to Playwright count-based
                   # --shard sharding if the committed timings file is missing or stale).
-                  # One timings file per event type: pushes sweep all six framework variants with
-                  # AG_SCENE_SNAPSHOTS=all, so their docs-example specs cost ~10x what the same
-                  # specs cost on a vanilla-only PR run. Planning either run type from the other's
-                  # timings mis-weights those specs badly enough to overflow the 15-minute job
-                  # timeout, so each file must be regenerated from a run of its own event type.
+                  #
+                  # The plan is sized by the workload's *shape*, not by the event type. A PR run
+                  # normally sweeps only the vanilla example variant (see AG_E2E_FRAMEWORKS), so it
+                  # is planned from the PR timings, and its lighter shards are packed into a
+                  # narrower fan-out — fewer, fuller shards waste less on the ~45s of fixed
+                  # per-shard setup. Pushes sweep all six variants with AG_SCENE_SNAPSHOTS=all,
+                  # making their docs-example specs cost ~10x as much, so they need both the push
+                  # timings and the wider fan-out.
+                  #
+                  # A change under the example generator plugin invalidates the output of every
+                  # example, so the runtime sweeps escalate all of them to the full six-variant
+                  # matrix even on a PR (see e2e/changed-examples.ts). Such a run is push-shaped
+                  # and must be planned as one: the PR timings under-weight those specs ~3x, which
+                  # packs them together until the bins overflow the 15-minute job timeout. The push
+                  # timings over-weight them instead, by the snapshot capture a PR does not pay —
+                  # the safe direction, since shards then finish early rather than time out.
+                  e2e_full_sweep=1
+                  if [[ "${{ github.event_name }}" == "pull_request" ]] ; then
+                    if git diff --quiet ${{ steps.setup.outputs.base }} -- plugins/ag-charts-generate-example-files/ ; then
+                      e2e_full_sweep=0
+                    else
+                      echo "Example generator changed - every example escalates to the full framework sweep; planning this PR run as push-shaped."
+                    fi
+                  fi
+
+                  if [[ ${e2e_full_sweep} -eq 1 ]] ; then
+                    e2e_timings=shard-timings.json
+                    e2e_shards=32
+                  else
+                    e2e_timings=shard-timings.pr.json
+                    e2e_shards=16
+                  fi
+
                   e2e_matrix=$(node ./external/ag-shared/scripts/shard/assign-e2e-shards.js \
-                    --max ${{ env.AG_E2E_SHARD_COUNT }} \
+                    --max ${e2e_shards} \
                     --count ${e2e_count} \
-                    --timings packages/ag-charts-website/e2e/shard-timings${{ github.event_name == 'pull_request' && '.pr' || '' }}.json \
+                    --timings packages/ag-charts-website/e2e/${e2e_timings} \
                     --test-dir packages/ag-charts-website/e2e)
                   echo "e2e_matrix=${e2e_matrix}" >> $GITHUB_OUTPUT
                   echo "e2e_count=${e2e_count}" >> $GITHUB_OUTPUT
@@ -1275,6 +1299,10 @@ jobs:
               run: |
                   git fetch origin --depth 1 latest next
                   git fetch origin --depth 1 tag latest-success
+                  # Commit History below diffs against init's nx_base, which on a release branch is
+                  # <branch>-success rather than latest-success. Tolerate its absence: a release
+                  # branch has no success tag until its first green build.
+                  git fetch origin --depth 1 tag "${BRANCH_NAME}-success" || true
 
             - uses: actions/download-artifact@v4
               with:
@@ -1379,7 +1407,19 @@ jobs:
               id: commits
               if: always() && job.status != 'cancelled' && needs.init.result == 'success' && needs.init.outputs.build_type != 'pr' && steps.lastJobStatus.outputs.changedState == 'true'
               run: |
-                  GIT_LOG=$(git log HEAD ^${{ needs.init.outputs.nx_base }} --format="%an (%h) %s")
+                  # Fall back through the bases that may not exist in this shallow checkout, so a
+                  # missing success tag degrades the Slack commit list rather than failing the job.
+                  GIT_LOG=""
+                  for base in "${{ needs.init.outputs.nx_base }}" latest-success ; do
+                    if git rev-parse --verify --quiet "${base}^{commit}" > /dev/null ; then
+                      GIT_LOG=$(git log HEAD "^${base}" --format="%an (%h) %s")
+                      break
+                    fi
+                    echo "Base '${base}' not resolvable in this checkout, trying next."
+                  done
+                  if [[ -z "$GIT_LOG" ]] ; then
+                    GIT_LOG=$(git log HEAD -1 --format="%an (%h) %s")
+                  fi
                   echo "GIT_LOG<<EOF" >> $GITHUB_ENV
                   echo "$GIT_LOG" >> $GITHUB_ENV
                   echo "EOF" >> $GITHUB_ENV

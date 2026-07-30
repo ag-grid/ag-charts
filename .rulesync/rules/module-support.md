@@ -1,5 +1,8 @@
 ---
-paths: 'packages/ag-charts-community/src/module-support.ts'
+root: false
+targets: ['*']
+description: 'module-support.ts barrel export guidelines — bundle-size discipline for the enterprise API surface'
+globs: ['packages/ag-charts-community/src/module-support.ts']
 ---
 
 # module-support.ts — Barrel Export Guidelines

@@ -56,6 +56,17 @@ covers day-to-day usage.
 -   `degenerate` is for a value that legitimately goes non-finite for part of the trajectory — a
     per-station crossing that vanishes as a point enters or leaves at that edge. Pin those stations
     `degenerate`, not `any`, so the non-finite window is expected rather than silently swallowed.
+-   A degenerate x-extent (vertical step connectors, organization layouts) makes the sampler emit
+    non-finite `top@<i>` stations, so `expectNoAnimation` fails and reads as a false "it animates".
+    For a series that snaps under degenerate geometry, pin constancy with
+    `expectSceneSamplesMatch(frame, trajectory[0])` and mark the collapsed or polar `top@N` stations
+    `degenerate`.
+-   Probe output cannot be trusted to reveal non-finite values: `JSON.stringify` prints `NaN` as
+    `null`, and a property-level `'any'` does not bypass the non-finite guard. Test
+    `Number.isFinite` in the probe rather than eyeballing the dump.
+-   `rotation` is not in `EXACT_MATCH_PROPS`, so at the default `monotonicTol` (0.5) a real ~0.4 rad
+    per-frame step satisfies BOTH `increases` and `decreases`. Pass a tighter `monotonicTol` (~0.05)
+    for radian and angle properties, then negative-test by flipping the direction.
 -   `during: '<phase>'` windows (`remove`/`update`/`add`/`trailing`/`initial`) also enforce
     constancy OUTSIDE the window — they are the detector for desynchronised-phase regressions.
 -   **Negative-test every new spec**: flip a direction or phase, confirm the CASE fails loudly,
@@ -82,6 +93,13 @@ To tell a snap from a tween, dump `before`, `trajectory[0]`, and `after` for the
 `trajectory[0]` already equals `after` while both differ from `before`, the change snapped on the
 first frame — pin `constant`. If the samples interpolate between the endpoints, pin a direction or
 `progresses`.
+
+Sample the WHOLE scene, not just the mark nodes — labels, containers and stacked inner edges animate
+too, and filtering the probe to the marks hides them until the CASE fails.
+
+`createSceneGeometrySampler` keys shape nodes FLAT as `series[i]/<label>[id]` regardless of the
+enclosing sub-group; only groups nest. Do not predict a nested key such as
+`series[0]/group[itemNeedleGroup]/path[]` — read the key off the probe.
 
 ## Related contracts
 

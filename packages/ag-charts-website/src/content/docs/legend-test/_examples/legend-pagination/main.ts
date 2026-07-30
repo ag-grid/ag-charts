@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgChartLegendPosition, AgCharts } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgChartLegendPlacement, AgCharts } from 'ag-charts-community';
 
 import { getData } from './data';
 
@@ -116,16 +116,25 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function updateLegendPosition(value: AgChartLegendPosition) {
+function updateLegendPosition(value: AgChartLegendPlacement) {
     options.legend!.position = value;
+    // Placements are grouped by orientation, mirroring Legend.calculateLegendDimensions().
     switch (value) {
         case 'top':
+        case 'top-left':
+        case 'top-right':
         case 'bottom':
+        case 'bottom-left':
+        case 'bottom-right':
             options.legend!.maxHeight = 40;
             options.legend!.maxWidth = 800;
             break;
-        case 'right':
         case 'left':
+        case 'left-top':
+        case 'left-bottom':
+        case 'right':
+        case 'right-top':
+        case 'right-bottom':
             options.legend!.maxHeight = 200;
             options.legend!.maxWidth = 200;
             break;

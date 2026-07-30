@@ -182,8 +182,6 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const nodeData: OrganizationDatum[] = [];
         const linkData: OrganizationLinkDatum[] = [];
 
-        this.vertexDatumIndex = {};
-
         if (this.rootVertex) {
             const vertices = this.graph.neighboursWithEdgeValue(this.rootVertex, 'child');
             if (vertices) {
@@ -295,7 +293,9 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             const fromIndex = this.graph.findNeighbourValue(datum.from, 'datumIndex') as number;
             const toIndex = this.graph.findNeighbourValue(datum.to, 'datumIndex') as number;
 
-            const parentItemId = fromIndex == null ? undefined : this.contextNodeData?.nodeData[fromIndex].itemId;
+            const parentDatumIndex = this.getNodeDatumIndex(datum.from);
+            const parentItemId =
+                parentDatumIndex == null ? undefined : this.contextNodeData?.nodeData[parentDatumIndex].itemId;
             const visible = parentItemId == null || !this.ctx.collapsedManager.isCollapsed(parentItemId);
 
             node.visible = visible;
@@ -408,7 +408,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const next = this.resolveFocusVertex(currentVertex, opts.datumIndexDelta, opts.otherIndexDelta);
         if (!next) return;
 
-        const nextDatumIdx = this.vertexDatumIndex[next.value as string];
+        const nextDatumIdx = this.getNodeDatumIndex(next);
         if (nextDatumIdx == null) return;
 
         const node = this.datumSelection.at(nextDatumIdx);
@@ -695,7 +695,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         depth: number
     ) {
         const nodeDatumIndex = nodeData.length;
-        this.vertexDatumIndex[vertex.value as string] = nodeDatumIndex;
+        this.setNodeDatumIndex(vertex, nodeDatumIndex);
 
         this.graph.addEdge(vertex, this.graph.addVertex(depth), 'depth');
 
@@ -1286,7 +1286,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const vertex = this.graph.findVertexById(idValues[datumIndex]);
         if (!vertex) return;
 
-        const nodeDatumIndex = this.vertexDatumIndex[vertex.value as string];
+        const nodeDatumIndex = this.getNodeDatumIndex(vertex);
         if (nodeDatumIndex == null) return;
 
         return nodeDatumIndex;

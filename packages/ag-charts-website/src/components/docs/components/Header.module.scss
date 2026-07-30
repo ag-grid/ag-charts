@@ -15,12 +15,6 @@
     margin-bottom: $spacing-size-4;
     color: var(--color-fg-primary);
 
-    // The title is the only span left in the heading now that the framework name
-    // and version sit above it.
-    span {
-        letter-spacing: -1.2px;
-    }
-
     @media screen and (min-width: $breakpoint-docs-nav-medium) {
         line-height: var(--line-height-ultra-tight);
     }

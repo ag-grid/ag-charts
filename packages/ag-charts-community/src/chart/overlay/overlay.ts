@@ -178,6 +178,14 @@ export class Overlay extends BaseProperties {
         container.appendChild(img);
     }
 
+    // Keeps the keyboard-focus rect aligned with the series/container rect while the element stays
+    // mounted, so a resize does not need a remount (which would restart the fade-in animation).
+    reposition(rect: BBox) {
+        if (this.content) {
+            this.focusBox = rect;
+        }
+    }
+
     removeElement(cleanup = () => this.content?.remove(), animationManager?: AnimationManager) {
         if (!this.content) return;
 

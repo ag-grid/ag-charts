@@ -174,6 +174,7 @@ export class DOMManager extends BaseManager {
     private readonly sizeMonitor: SizeMonitor;
     private readonly cursorState = new StateTracker('default');
     private _lastCursor: string = 'default';
+    private _cursorLocked = false;
     private _lastCenterSize: { visibility: string; width: string; height: string } | undefined = undefined;
 
     private readonly deferredProxies = new Map<string, DOMElementProxy>();
@@ -302,6 +303,16 @@ export class DOMManager extends BaseManager {
         }
 
         return rootElements;
+    }
+
+    // A replacement chart appends its own element to the same container, so anything left in that
+    // container's flow displaces it — this must happen before destroy(), which is queued behind any
+    // in-flight update.
+    detachFromContainer() {
+        if (this.container != null) {
+            this.sizeMonitor.unobserve(this.container);
+        }
+        this.element.remove();
     }
 
     override destroy() {
@@ -908,10 +919,35 @@ export class DOMManager extends BaseManager {
 
     updateCursor(callerId: string, style?: string) {
         this.cursorState.set(callerId, style);
+        this.applyCursor();
+    }
+
+    /**
+     * Pins the cursor for the duration of an interaction the caller owns, such as a drag: other
+     * regions the pointer passes over cannot change it until {@link unlockCursor}. Their updates are
+     * still recorded, so releasing resumes whatever the pointer is over by then.
+     */
+    lockCursor(callerId: string, style: string) {
+        this.cursorState.lock(callerId, style);
+        this.applyCursor();
+    }
+
+    unlockCursor(callerId: string) {
+        this.cursorState.unlock(callerId);
+        this.applyCursor();
+    }
+
+    private applyCursor() {
         const cursor = this.cursorState.stateValue()!;
         if (cursor !== this._lastCursor) {
             this._lastCursor = cursor;
             this.element.style.cursor = cursor;
+        }
+        // Descendants styling their own cursor must defer to the pinned one; see container.css.
+        const locked = this.cursorState.isLocked();
+        if (locked !== this._cursorLocked) {
+            this._cursorLocked = locked;
+            this.element.classList.toggle('ag-charts-wrapper--cursor-locked', locked);
         }
     }
 

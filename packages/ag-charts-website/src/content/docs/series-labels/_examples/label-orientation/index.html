@@ -1,0 +1,16 @@
+<div class="example-controls">
+    <div class="controls-row">
+        <span>Orientation:</span>
+        <select class="gap-right" onchange="setOrientation(event.target.value)">
+            <option value="horizontal" selected>Horizontal</option>
+            <option value="vertical">Vertical</option>
+            <option value="vertical-reversed">Vertical Reversed</option>
+            <hr />
+            <option value="horizontal, vertical">Horizontal, Vertical fallback</option>
+            <option value="vertical, horizontal">Vertical, Horizontal fallback</option>
+        </select>
+    </div>
+</div>
+<div class="resizable-container">
+    <div id="myChart" class="resizable"></div>
+</div>

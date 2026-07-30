@@ -1,3 +1,4 @@
+import { EXAMPLE_RELOADING_MESSAGE_TYPE } from '@ag-website-shared/components/loading-logo/messages';
 import { useIntersectionObserver } from '@ag-website-shared/utils/hooks/useIntersectionObserver';
 import classnames from 'classnames';
 import { type FunctionComponent, useEffect, useRef, useState } from 'react';
@@ -32,8 +33,14 @@ export const ExampleIFrame: FunctionComponent<Props> = ({ title, isHidden, url, 
             return;
         }
 
+        if (currentSrc) {
+            // Post before navigating, otherwise the stale example stays visible until the loading
+            // logo island handles the message
+            window.postMessage({ type: EXAMPLE_RELOADING_MESSAGE_TYPE, loadingIFrameId });
+        }
+
         iFrameRef.current.src = url;
-    }, [isIntersecting, url]);
+    }, [isIntersecting, url, loadingIFrameId]);
 
     return (
         <div
