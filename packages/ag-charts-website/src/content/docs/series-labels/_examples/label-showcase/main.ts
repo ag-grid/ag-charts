@@ -9,7 +9,7 @@ function seriesLabel(): AgBarSeriesOptions<DataType>['label'] {
     return {
         enabled: true,
         fontWeight: 'bold',
-        placement: ['inside-center', 'beside-after-center', 'beside-before-center'],
+        placement: ['outside-end', 'inside-center', 'beside-after-center', 'beside-before-center'],
         orientation: 'horizontal',
         border: { enabled: true, strokeWidth: 1 },
         insideStyle: {
@@ -38,7 +38,7 @@ const options: AgCartesianChartOptions<DataType> = {
     ],
     axes: {
         x: { type: 'category' },
-        y: { type: 'number', title: { text: 'Revenue ($m)' } },
+        y: { type: 'number', max: 90, title: { text: 'Revenue ($m)' } },
     },
 };
 
