@@ -126,9 +126,9 @@ export interface ISeries<TDatum extends SeriesNodeDatum, TProps extends ISeriesP
     /** Whether a click on `target` triggers a built-in interaction (e.g. the org-chart expander). */
     hasBuiltinListener(target: Node<unknown> | undefined): boolean;
     /**
-     * Whether a pointer event on `target` should reach the user's `seriesNodeClick` and
-     * `seriesNodeDoubleClick` listeners. `false` for dedicated controls that own their clicks
-     * outright, such as the org-chart expander pill.
+     * Whether a pointer event on `target` counts as activating the datum — reaching the user's
+     * `seriesNodeClick` and `seriesNodeDoubleClick` listeners, and updating data selection. `false`
+     * for dedicated controls that own their clicks outright, such as the org-chart expander pill.
      */
     firesUserClickListeners(target: Node<unknown> | undefined): boolean;
     hasData: boolean;

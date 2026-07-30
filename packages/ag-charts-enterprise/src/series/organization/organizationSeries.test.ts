@@ -2035,8 +2035,9 @@ describe('OrganizationSeries', () => {
     });
 
     // AG-17947: expanding/collapsing is a distinct interaction from activating a node, so a pointer
-    // event on the expander pill must not also reach the user's node click/double-click listeners.
-    describe('AG-17947 expander clicks do not fire node events', () => {
+    // event on the expander pill must neither reach the user's node click/double-click listeners nor
+    // change the data selection.
+    describe('AG-17947 expander clicks do not activate the node', () => {
         type Node<T = unknown> = _ModuleSupport.Node<T>;
         type Fn = ReturnType<(typeof vi)['fn']>;
         type CollapsedManager = ReturnType<typeof deproxy>['ctx']['collapsedManager'];
@@ -2045,7 +2046,8 @@ describe('OrganizationSeries', () => {
         let chartSeriesNodeClick: Fn;
         let collapsedManager: CollapsedManager;
 
-        async function setupChart(opts: { clickToExpand: boolean }) {
+        async function setupChart(opts: { clickToExpand: boolean; selection?: boolean }) {
+            const { selection, ...nodeOpts } = opts;
             seriesNodeClick = vi.fn();
             seriesNodeDoubleClick = vi.fn();
             chartSeriesNodeClick = vi.fn();
@@ -2055,11 +2057,12 @@ describe('OrganizationSeries', () => {
                 series: [
                     {
                         ...baseSeries,
-                        node: { ...baseSeries.node, ...opts },
+                        node: { ...baseSeries.node, ...nodeOpts },
                         listeners: { seriesNodeClick, seriesNodeDoubleClick },
                     },
                 ],
                 listeners: { seriesNodeClick: chartSeriesNodeClick },
+                ...(selection && { selection: { enabled: true, enableClick: true } }),
             };
             prepareEnterpriseTestOptions(options);
             chart = AgCharts.create(options);
@@ -2098,9 +2101,9 @@ describe('OrganizationSeries', () => {
             return _ModuleSupport.Transformable.toCanvas(target).computeCenter();
         }
 
-        async function clickItem(itemId: string, tag: OrganizationNodeTag): Promise<void> {
+        async function clickItem(itemId: string, tag: OrganizationNodeTag, opts?: { ctrlKey: boolean }): Promise<void> {
             const expander = centreOf(itemId, tag);
-            await clickAction(expander.x, expander.y)(chart);
+            await clickAction(expander.x, expander.y, opts)(chart);
             await waitForChartStability(chart);
         }
 
@@ -2162,6 +2165,74 @@ describe('OrganizationSeries', () => {
                 await clickItem('cto', OrganizationNodeTag.Expander);
                 expect(collapsedManager.isCollapsed('cto')).toBe(true);
                 expect(seriesNodeClick).not.toHaveBeenCalled();
+            });
+        });
+
+        // Collapsing to declutter a large chart is the most natural way to combine the two features,
+        // so an expander click must leave the selection alone in both directions — including the
+        // selection of nodes the collapse hides.
+        describe('data selection', () => {
+            const nodeIds = new Caster(SIMPLE_ORG_CHART.data).assertNonNullish().value.map((datum) => datum.id);
+
+            beforeEach(async () => {
+                await setupChart({ clickToExpand: false, selection: true });
+            });
+
+            function dataSet() {
+                return new Caster(deproxy(chart).series[0].data).assertNonNullish().value;
+            }
+
+            // Selection is keyed by DataSet item id; translating via each node's data row lets the
+            // expectations — and any failure message — speak in org node ids.
+            function selectedNodeIds(): string[] {
+                const ds = dataSet();
+                const byItemId = new Map(nodeIds.map((id, index) => [ds.getItemIdFromIndex(index), id]));
+                return [...chart.getSelection()]
+                    .map((item: { itemId: string | number }) => String(byItemId.get(item.itemId) ?? item.itemId))
+                    .sort((a, b) => a.localeCompare(b));
+            }
+
+            async function setSelectedNodes(...ids: string[]): Promise<void> {
+                const { id: seriesId } = deproxy(chart).series[0];
+                chart.setSelection(
+                    ids.map((nodeId) => ({ seriesId, itemId: dataSet().getItemIdFromIndex(nodeIds.indexOf(nodeId)) }))
+                );
+                await waitForChartStability(chart);
+            }
+
+            it('leaves the selection untouched when an expander is clicked', async () => {
+                await clickItem('ceo', OrganizationNodeTag.Card);
+                await clickItem('cfo', OrganizationNodeTag.Card, { ctrlKey: true });
+                expect(selectedNodeIds()).toEqual(['ceo', 'cfo']);
+
+                await clickItem('cto', OrganizationNodeTag.Expander);
+
+                expect(collapsedManager.isCollapsed('cto')).toBe(true);
+                expect(selectedNodeIds()).toEqual(['ceo', 'cfo']);
+            });
+
+            // Clicking a card makes it the active item, whose ancestors are reopened by design — so
+            // seed the selection through the API to keep `cto` collapsed.
+            it('keeps nodes selected once a collapse has hidden them', async () => {
+                await setSelectedNodes('dev', 'qa');
+                expect(selectedNodeIds()).toEqual(['dev', 'qa']);
+
+                await clickItem('cto', OrganizationNodeTag.Expander);
+
+                expect(collapsedManager.isCollapsed('cto')).toBe(true);
+                expect(selectedNodeIds()).toEqual(['dev', 'qa']);
+            });
+
+            it('does not select a node when its own expander is clicked', async () => {
+                await clickItem('cto', OrganizationNodeTag.Expander);
+                expect(collapsedManager.isCollapsed('cto')).toBe(true);
+                expect(selectedNodeIds()).toEqual([]);
+            });
+
+            it('does not change collapse state when a card is clicked', async () => {
+                await clickItem('cto', OrganizationNodeTag.Card);
+                expect(selectedNodeIds()).toEqual(['cto']);
+                expect(collapsedManager.isCollapsed('cto')).toBe(false);
             });
         });
     });
