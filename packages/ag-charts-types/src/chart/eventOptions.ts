@@ -2,7 +2,7 @@ import type { AgActiveState } from '../api/activeState';
 import type { AgStateGroupingValueType, AgStateValueType } from '../api/stateTypes';
 import type { TextOrSegments } from '../series/cartesian/commonOptions';
 import type { AgAnnotation } from './annotationsOptions';
-import type { AgAxisBoundSeries, AgAxisDirection, AgAxisDomain, AgAxisValue } from './axisOptions';
+import type { AgAxisCoordinate, AgAxisDirection, AgAxisValue } from './axisOptions';
 import type { AgItemType, Listener, SelectionState } from './callbackOptions';
 import type { AgNumericValue } from './dataValues';
 import type { ContextDefault, DatumDefault, Ratio, ResolvedDatumKey } from './types';
@@ -184,32 +184,36 @@ export interface AgZoomEventRatio {
     end: Ratio;
 }
 
-export type AgChartClickEvent<TContext = ContextDefault> = AgChartEvent<'click', TContext>;
-export type AgChartDoubleClickEvent<TContext = ContextDefault> = AgChartEvent<'doubleClick', TContext>;
-export type AgChartContextMenuEvent<TContext = ContextDefault> = AgChartEvent<'contextMenuEvent', TContext>;
-export type AgSeriesAreaContextMenuActionEvent<TContext = ContextDefault> = AgChartEvent<
-    'seriesContextMenuAction',
-    TContext
->;
+export type AgCoordinates = Record<string, AgAxisCoordinate> & {
+    x?: AgAxisCoordinate;
+    y?: AgAxisCoordinate;
+    angle?: AgAxisCoordinate;
+    radius?: AgAxisCoordinate;
+};
+
+type CoordinatesMixin = {
+    /* Domain-space coordinates of this event. */
+    coordinates: AgCoordinates;
+};
+
+export interface AgChartClickEvent<TContext = ContextDefault>
+    extends AgChartEvent<'click', TContext>, CoordinatesMixin {}
+
+export interface AgChartDoubleClickEvent<TContext = ContextDefault>
+    extends AgChartEvent<'doubleClick', TContext>, CoordinatesMixin {}
+
+export interface AgChartContextMenuEvent<TContext = ContextDefault>
+    extends AgChartEvent<'contextMenuEvent', TContext>, CoordinatesMixin {}
+
+export interface AgSeriesAreaContextMenuActionEvent<TContext = ContextDefault>
+    extends AgChartEvent<'seriesContextMenuAction', TContext>, CoordinatesMixin {}
 
 export type AgCaptionType = 'title' | 'subtitle' | 'footnote';
 
-export interface AgAxisContextMenuActionEvent<TContext = ContextDefault> extends AgChartEvent<
-    'axisContextMenuAction',
-    TContext
-> {
+export interface AgAxisContextMenuActionEvent<TContext = ContextDefault>
+    extends AgChartEvent<'axisContextMenuAction', TContext>, AgAxisCoordinate {
     /** Axis ID, as specified in `axes`. */
     axisId: string;
-    /** The scale value of the axis at this point. */
-    value: AgAxisValue;
-    /** Direction of the axis the title belongs to. */
-    direction: AgAxisDirection;
-    /** The index of the resolved value */
-    index: number;
-    /** Metadata about series bound to the axis the title belongs to. */
-    boundSeries: AgAxisBoundSeries[];
-    /** Computed domain of the axis */
-    domain: AgAxisDomain;
 }
 
 export interface AgCrossLineContextMenuActionEvent<TContext = ContextDefault> extends AgChartEvent<
