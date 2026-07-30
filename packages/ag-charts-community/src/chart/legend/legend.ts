@@ -250,7 +250,10 @@ export class Legend {
     }
 
     private checkInteractionState(): boolean {
-        return this.ctx.interactionManager.isState(InteractionState.Frozen);
+        const { interactionManager } = this.ctx;
+        return (
+            interactionManager.isState(InteractionState.Frozen) || interactionManager.isState(InteractionState.ZoomDrag)
+        );
     }
 
     attachLegend(scene: Scene) {
