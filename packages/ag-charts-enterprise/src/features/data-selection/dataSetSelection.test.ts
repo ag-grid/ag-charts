@@ -321,35 +321,6 @@ describe('DataSet selection transfer', () => {
     });
 
     describe('idArray after ID-changing update', () => {
-        // Skip this test for now: This flow is working in production, but failing here because the test `services` is
-        // missing a `ctx.chartService` instance, and therefore delete the DataSetSelection because it thinks that 's1'
-        // is a stale seriesId. Long-term: fix or remove this test.
-        it.skip('should refresh idArrayCache when a datum ID changes via update transaction', () => {
-            const service = createDataSelectionService();
-            const ds = createDataSet([{ k: 'A' }, { k: 'B' }, { k: 'C' }], 'k');
-            service.enableSelection('s1', ds).select(0); // Select A
-
-            // Warm the idArray cache
-            expect(ds.getIdArray()).toEqual(['A', 'B', 'C']);
-
-            // Update datum at index 1: change its ID from B to X
-            ds.addTransaction({ update: [{ k: 'X' }], remove: [{ k: 'B' }] });
-            // Use prepend to add the replacement (simulates ID-changing update via remove+add)
-            // Actually, test the real ID-based update path: update replaces the datum in-place
-            ds.commitPendingTransactions(service);
-
-            // After removing B, data is [A, C], idArray should reflect this
-            expect(ds.getIdArray()).toEqual(['A', 'C']);
-
-            // Now do a replaceWith — selection for A should transfer correctly
-            const next = _ModuleSupport.replaceDataSet(service, ds, [{ k: 'A' }, { k: 'D' }], 'k', testLogger);
-            expect(next).not.toBe(ds);
-
-            const sel = service.selections.get('s1');
-            expect(sel).toBeDefined();
-            expect(getSelectedIndices(sel!)).toEqual([0]); // A is at index 0
-        });
-
         it('should refresh idArrayCache for in-place ID updates via pendingReplacements', () => {
             const service = createDataSelectionService();
             const ds = createDataSet(
