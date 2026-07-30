@@ -54,8 +54,13 @@ export class DataSelectionService extends AbstractModuleInstance implements IDat
             () => this.clearCandidacy(),
             ctx?.eventsHub.on('data:load', () => this.recountTotalSelections()),
             ctx?.eventsHub.on('data:update', () => this.recountTotalSelections()),
-            ctx?.chartState.observe(() => this.recountTotalSelections())
+            ctx?.chartState.observe((get) => this.onObservation(get))
         );
+    }
+
+    private onObservation(get: ObserveGetter): void {
+        get('options', 'series');
+        this.recountTotalSelections();
     }
 
     private recountTotalSelections() {
