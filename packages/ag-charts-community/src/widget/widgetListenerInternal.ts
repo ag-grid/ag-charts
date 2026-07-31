@@ -1,11 +1,5 @@
-import {
-    type AnyFn,
-    CleanupRegistry,
-    type OffsetPoint,
-    attachListener,
-    boxContains,
-    partialAssign,
-} from 'ag-charts-core';
+import type { AnyFn, OffsetPoint } from 'ag-charts-core';
+import { CleanupRegistry, attachListener, boxContains, partialAssign } from 'ag-charts-core';
 
 import { type MouseDragCallbacks, type MouseDragger, startMouseDrag } from './mouseDragger';
 import { type TouchDragCallbacks, type TouchDragger, startOneFingerTouch } from './touchDragger';

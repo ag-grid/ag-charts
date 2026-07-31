@@ -1,4 +1,5 @@
-import { CleanupRegistry, type ClientPoint, EventEmitter } from 'ag-charts-core';
+import type { ClientPoint } from 'ag-charts-core';
+import { CleanupRegistry, EventEmitter } from 'ag-charts-core';
 
 import type { Widget } from '../../widget/widget';
 import type {

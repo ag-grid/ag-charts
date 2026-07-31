@@ -1,4 +1,5 @@
-import { type BoxBounds, type CanvasPoint, Color, findMaxIndex, findMinIndex, isString } from 'ag-charts-core';
+import type { BoxBounds, CanvasPoint } from 'ag-charts-core';
+import { Color, findMaxIndex, findMinIndex, isString } from 'ag-charts-core';
 import type { AgActiveItemState, AgDrawingMode } from 'ag-charts-types';
 
 import { Transformable } from '../../scene/transformable';

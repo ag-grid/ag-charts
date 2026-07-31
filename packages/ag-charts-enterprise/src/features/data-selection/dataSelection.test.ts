@@ -34,7 +34,7 @@ import {
     waitForChartStability,
     withPreventDefault,
 } from 'ag-charts-community-test';
-import { CanvasPoint } from 'ag-charts-core';
+import type { CanvasPoint } from 'ag-charts-core';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 

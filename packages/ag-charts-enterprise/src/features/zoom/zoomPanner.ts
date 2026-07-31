@@ -1,14 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import {
-    type BoxBounds,
-    ChartAxisDirection,
-    type CurrentPoint,
-    type DynamicContext,
-    UNIT_MAX,
-    UNIT_MIN,
-    definedZoomState,
-    entries,
-} from 'ag-charts-core';
+import type { BoxBounds, CurrentPoint, DynamicContext } from 'ag-charts-core';
+import { ChartAxisDirection, UNIT_MAX, UNIT_MIN, definedZoomState, entries } from 'ag-charts-core';
 
 import type { ZoomCoords } from './zoomTypes';
 import { constrainZoom, dx, dy, pointToRatio, translateZoom } from './zoomUtils';

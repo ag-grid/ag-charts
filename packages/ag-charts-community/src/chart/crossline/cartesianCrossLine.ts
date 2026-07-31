@@ -1,13 +1,5 @@
-import {
-    BaseProperties,
-    type CanvasPoint,
-    Property,
-    type Scale,
-    clampArray,
-    createId,
-    findMinMax,
-    toRadians,
-} from 'ag-charts-core';
+import { BaseProperties, Property, clampArray, createId, findMinMax, toRadians } from 'ag-charts-core';
+import type { CanvasPoint, Scale } from 'ag-charts-core';
 import type {
     AgCartesianAxisPosition,
     AgCartesianCrossLineLabelOptions,

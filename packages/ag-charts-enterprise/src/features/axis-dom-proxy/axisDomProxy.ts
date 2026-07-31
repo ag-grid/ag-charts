@@ -1,12 +1,6 @@
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
-import {
-    AbstractModuleInstance,
-    type AxisID,
-    type CanvasPoint,
-    ChartAxisDirection,
-    type DynamicContext,
-    boxEmpty,
-} from 'ag-charts-core';
+import type { AxisID, CanvasPoint, DynamicContext } from 'ag-charts-core';
+import { AbstractModuleInstance, ChartAxisDirection, boxEmpty } from 'ag-charts-core';
 
 type AxisHit = { axisId: AxisID; direction: ChartAxisDirection };
 
