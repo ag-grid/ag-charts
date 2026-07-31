@@ -59,6 +59,10 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
         this.contentBBox = this.directionalLayout.getContentBBox() ?? containerBBox;
     }
 
+    getNodeBBox(vertex: Vertex<TVertex, TEdge>) {
+        return this.directionalLayout?.getNodeBBox(vertex);
+    }
+
     protected override calculateRegularDimensions(options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>) {
         if (options.regularDimensions && (options.nodeWidth == null || options.nodeHeight == null)) {
             super.calculateRegularDimensions(options);
@@ -91,6 +95,8 @@ abstract class NetworkTreeDirectionalLayout<TVertex, TEdge> {
         right: 0,
         bottom: 0,
     };
+
+    protected nodeBBoxes: Map<Vertex<TVertex, TEdge>, TBBox> = new Map();
 
     protected abstract addNodesGroupBBoxOuterSpacing(
         options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>,
@@ -132,6 +138,10 @@ abstract class NetworkTreeDirectionalLayout<TVertex, TEdge> {
         interpolation: NetworkLinkInterpolation,
         options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>
     ): void;
+
+    getNodeBBox(vertex: Vertex<TVertex, TEdge>) {
+        return this.nodeBBoxes.get(vertex);
+    }
 
     updateNodes(
         options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>,
@@ -177,10 +187,11 @@ abstract class NetworkTreeDirectionalLayout<TVertex, TEdge> {
 
             // Request the series to layout the node per the calculated bbox. Override the layoutBBox for the accumulator
             // if the node extends outside its default size, e.g. for an expander pill.
-            const overrideAccumulateBBox = layoutDatumNode(vertex, layoutBBox, regularBBox);
+            const positionedBBox = layoutDatumNode(vertex, layoutBBox, regularBBox);
+            if (positionedBBox) this.nodeBBoxes.set(vertex, positionedBBox);
 
             layoutBBoxes.push({ vertex, bbox: layoutBBox });
-            this.accumulateContentBounds(overrideAccumulateBBox ?? layoutBBox);
+            this.accumulateContentBounds(positionedBBox ?? layoutBBox);
 
             // Merge the bboxes into the group.
             if (descendentsContainerBBox) {
@@ -217,7 +228,7 @@ abstract class NetworkTreeDirectionalLayout<TVertex, TEdge> {
         return new BBox(acc.left, acc.top, acc.right - acc.left, acc.bottom - acc.top);
     }
 
-    protected updateChildren(
+    private updateChildren(
         options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>,
         vertex: Vertex<TVertex, TEdge>,
         groupBBox: TBBox,
@@ -246,7 +257,7 @@ abstract class NetworkTreeDirectionalLayout<TVertex, TEdge> {
         };
     }
 
-    protected accumulateContentBounds(bbox: TBBox) {
+    private accumulateContentBounds(bbox: TBBox) {
         const acc = this.contentBoundsAccumulator;
         if (acc.count === 0) {
             acc.left = bbox.x;

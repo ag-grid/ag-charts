@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import type { Point, Vertex } from 'ag-charts-core';
+import type { Vertex } from 'ag-charts-core';
 
 import type { NetworkGraph } from './networkGraph';
 import type { NetworkLinkInterpolation } from './networkTypes';
@@ -11,27 +11,23 @@ export interface NetworkLayoutUpdateOptions<TVertex, TEdge> {
     vertices: Vertex<TVertex, TEdge>[];
     getDatumNodeBBox: (vertex: Vertex<TVertex, TEdge>) => _ModuleSupport.BBox | undefined;
     getLinkInterpolation: (from: Vertex<TVertex, TEdge>, to: Vertex<TVertex, TEdge>) => NetworkLinkInterpolation;
-    getFocusedVertex: () => Vertex<TVertex, TEdge> | undefined;
-    getDefaultFocusedVertices: () => Vertex<TVertex, TEdge>[] | undefined;
     layoutDatumNode: (
         vertex: Vertex<TVertex, TEdge>,
         groupBBox: _ModuleSupport.BBox,
         regularBBox?: _ModuleSupport.BBox
     ) => _ModuleSupport.BBox | undefined;
     layoutLinkNode: (vertex: Vertex<TVertex, TEdge>, drawLink: (path: _ModuleSupport.ExtendedPath2D) => void) => void;
-    updateOffset: (offset: Point) => void;
     isVertexCollapsed: (vertex: Vertex<TVertex, TEdge>) => boolean;
 }
 
 export abstract class NetworkLayout<TVertex, TEdge> {
-    // Native-size bounds of laid-out nodes, populated by `update()`. Read by
-    // `NetworkSeries.applyViewportTransform` to compute fit-to-viewport scale.
     protected contentBBox?: _ModuleSupport.BBox;
     protected regularBBox?: _ModuleSupport.BBox;
 
     private readonly maxRegularDimensionsCount = 1000;
 
     abstract update(options: NetworkLayoutUpdateOptions<TVertex, TEdge>): void;
+    abstract getNodeBBox(vertex: Vertex<TVertex, TEdge>): _ModuleSupport.BBox | undefined;
 
     getContentBBox(): _ModuleSupport.BBox | undefined {
         return this.contentBBox;

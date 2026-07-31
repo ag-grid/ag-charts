@@ -25,7 +25,6 @@ import {
     type Normalised,
     type NormalisedColorType,
     type NormalisedTextOrSegments,
-    type Point,
     Vertex,
     boxCollides,
     boxContains,
@@ -93,26 +92,6 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                 OrganizationEdge
             >[]) ?? []
         );
-    }
-
-    getFocusedVertex() {
-        return undefined;
-    }
-
-    getDefaultFocusedVertices() {
-        if (!this.rootVertex) return undefined;
-        return this.graph.neighboursWithEdgeValue(this.rootVertex, 'child') as Vertex<
-            OrganizationVertex,
-            OrganizationEdge
-        >[];
-    }
-
-    updateOffset(offset: Point) {
-        this.dataNodeGroup.translationX = offset.x;
-        this.dataNodeGroup.translationY = offset.y;
-
-        this.linkGroup.translationX = offset.x;
-        this.linkGroup.translationY = offset.y;
     }
 
     override isVertexCollapsed(vertex: Vertex<OrganizationVertex, OrganizationEdge>): boolean {
@@ -684,7 +663,9 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             this.rootVertex
         );
 
-        this.graph.computeDescendants(this.getRootVertices());
+        const rootVertices = this.getRootVertices();
+        this.graph.computeDescendants(rootVertices);
+        this.centreInitialVertex(rootVertices.at(0));
     }
 
     private createNodeDataFromVertex(

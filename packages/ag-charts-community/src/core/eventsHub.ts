@@ -379,6 +379,7 @@ export type ZoomEventSourceDetail =
     | `dataSource`
     | `internal-applyOptions`
     | `internal-autoScaling`
+    | `internal-networkSeriesFocusChange`
     | `internal-panToBBox`
     | `internal-prepareResizedChart`
     | `internal-restoreMemento`

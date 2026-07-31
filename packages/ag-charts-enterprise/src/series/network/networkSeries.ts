@@ -1,13 +1,14 @@
 import { type AgCollapsedChangeEventSource, _ModuleSupport } from 'ag-charts-community';
 import {
-    type AxisID,
     type BoxBounds,
     type ChartAnimationPhase,
     ChartAxisDirection,
     ChartUpdateType,
+    type DefinedZoomState,
     type DynamicContext,
-    type Point,
+    Vec2,
     Vertex,
+    definedZoomState,
     strictObjectKeys,
 } from 'ag-charts-core';
 
@@ -37,7 +38,7 @@ export interface NetworkLinkDatum<NetworkVertex, TNetworkEdge> {
     to: Vertex<NetworkVertex, TNetworkEdge>;
 }
 
-const ISOTROPY_EPSILON = 1e-6;
+const ZOOM_EPSILON = 1e-6;
 
 // Keeps `[mid - range/2, mid + range/2]` inside `[0, 1]`.
 function clampMid(mid: number, range: number): number {
@@ -45,6 +46,22 @@ function clampMid(mid: number, range: number): number {
     if (mid - half < 0) return half;
     if (mid + half > 1) return 1 - half;
     return mid;
+}
+
+// Zoom ratios address a padded space — the content plus half `ZOOM_PADDING - 1` content-widths on
+// each side — so that any node, including those at the very edges, can be panned to the centre of
+// the viewport.
+const ZOOM_PADDING = 3;
+
+// Share of the padded space occupied by the content, and so the widest zoom window that shows the
+// content edge-to-edge without revealing the surrounding padding.
+const CONTENT_ZOOM_RATIO = 1 / ZOOM_PADDING;
+
+// Positions a window of `size` to centre `ratio`, without letting it leave `[0, 1]`.
+function centredZoomWindow(ratio: number, size: number) {
+    const clampedSize = Math.min(size, CONTENT_ZOOM_RATIO);
+    const mid = clampMid(ratio, clampedSize);
+    return { min: mid - clampedSize / 2, max: mid + clampedSize / 2 };
 }
 
 /**
@@ -101,7 +118,7 @@ export abstract class AbstractNetworkSeries<
 
     private vertexNodeDatumIndices: Record<string, number> = {};
     private pendingCollapsedIds?: NetworkSeriesVertexID[];
-    private pendingPanToItemId?: string;
+    private hasCentredInitialVertex = false;
 
     constructor(ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
@@ -116,18 +133,19 @@ export abstract class AbstractNetworkSeries<
         this.layout = this.createNetworkLayout();
 
         this.cleanup.register(
-            this.ctx.collapsedManager.setSeriesGetDatumCallback(this.id, this.getDatumById.bind(this)),
+            ctx.collapsedManager.setSeriesGetDatumCallback(this.id, this.getDatumById.bind(this)),
 
             ctx.chartState.observe((get) => this.activeItemObserver(get('activeItem'))),
 
             ctx.eventsHub.on('layout:complete', (event) => this.onLayoutComplete(event)),
+            ctx.eventsHub.on('update:complete', () => this.onUpdateComplete()),
             ctx.eventsHub.on('active:load-memento', (event) => this.onActiveLoadMemento(event)),
             ctx.eventsHub.on('collapsed:restore', (event) => this.onCollapsedRestore(event)),
             ctx.eventsHub.on('series-area:click', (event) => this.onSeriesAreaClick(event)),
             ctx.eventsHub.on('series:keynav-expand', (event) => this.onSeriesAreaKeynavExpand(event)),
             ctx.eventsHub.on('series:keynav-collapse', (event) => this.onSeriesAreaKeynavCollapse(event)),
             ctx.eventsHub.on('zoom:change-request', (event) => this.onZoomChangeRequest(event)),
-            ctx.eventsHub.on('zoom:change-complete', () => this.onZoomChangeComplete())
+            ctx.eventsHub.on('zoom:change-complete', (event) => this.onZoomChangeComplete(event))
         );
     }
 
@@ -146,14 +164,11 @@ export abstract class AbstractNetworkSeries<
 
     abstract getRootVertices(): Vertex<TVertex, TEdge>[];
     abstract getLinkInterpolation(from: Vertex<TVertex, TEdge>, to: Vertex<TVertex, TEdge>): NetworkLinkInterpolation;
-    abstract getFocusedVertex(): Vertex<TVertex, TEdge> | undefined;
-    abstract getDefaultFocusedVertices(): Vertex<TVertex, TEdge>[] | undefined;
     abstract positionDatumNode(
         node: TNode,
         groupBBox: _ModuleSupport.BBox,
         regularBBox?: _ModuleSupport.BBox
     ): _ModuleSupport.BBox | undefined;
-    abstract updateOffset(offset: Point): void;
     abstract isVertexCollapsed(vertex: Vertex<TVertex, TEdge>): boolean;
 
     abstract expandNetworkToItem(itemId: NetworkSeriesVertexID, source: AgCollapsedChangeEventSource): void;
@@ -170,7 +185,6 @@ export abstract class AbstractNetworkSeries<
         this.updateNodes();
         // Re-apply now that contentBBox is current (the zoom observer early-returned earlier).
         this.applyViewportTransform();
-        this.maybePanToItem();
     }
 
     // FIXME(AG-17179 follow-up): mirror y because `calcPanToBBoxRatios` is y-down and we
@@ -204,13 +218,10 @@ export abstract class AbstractNetworkSeries<
             width: this.seriesRect?.width ?? 0,
             graph: this.graph,
             vertices: this.getRootVertices(),
-            getFocusedVertex: this.getFocusedVertex.bind(this),
-            getDefaultFocusedVertices: this.getDefaultFocusedVertices.bind(this),
             getDatumNodeBBox: this.getDatumNodeBBox.bind(this),
             getLinkInterpolation: this.getLinkInterpolation.bind(this),
             layoutDatumNode: this.layoutDatumNode.bind(this),
             layoutLinkNode: this.layoutLinkNode.bind(this),
-            updateOffset: this.updateOffset.bind(this),
             isVertexCollapsed: this.isVertexCollapsed.bind(this),
         };
     }
@@ -309,81 +320,95 @@ export abstract class AbstractNetworkSeries<
         path.visible = true;
     }
 
-    private maybePanToItem() {
-        const { pendingPanToItemId, seriesRect } = this;
-        if (!pendingPanToItemId || !seriesRect) return;
+    private applyViewportTransform() {
+        const scaling = this.getViewportScaling();
+        const translation = this.getViewportTranslation(scaling);
 
-        // Clear unconditionally — never retry on failure.
-        this.pendingPanToItemId = undefined;
-
-        const nodeDatumIndex = this.vertexNodeDatumIndices[pendingPanToItemId];
-        if (typeof nodeDatumIndex !== 'number') return;
-
-        const node = this.datumSelection.at(nodeDatumIndex);
-        if (!node) return;
-
-        const canvasBBox = _ModuleSupport.Transformable.toCanvas(node);
-        if (!canvasBBox?.isFinite()) return;
-
-        // Centre-based check — bbox-based would jitter for nodes near the boundary.
-        const cx = canvasBBox.x + canvasBBox.width / 2;
-        const cy = canvasBBox.y + canvasBBox.height / 2;
-        if (seriesRect.containsPoint(cx, cy)) return;
-
-        const { zoomManager } = this.ctx;
-        if (!zoomManager) return;
-
-        const panSuccess = zoomManager.panToBBox(seriesRect, this.mapFocusBBoxToPanTarget(seriesRect, canvasBBox));
-        if (!panSuccess) {
-            this.ctx.logger.warnOnce(`${this.id}: panToBBox failed — chart may be too small.`);
-        }
+        this.viewportGroup.scalingX = scaling;
+        this.viewportGroup.scalingY = scaling;
+        this.viewportGroup.translationX = translation.x;
+        this.viewportGroup.translationY = translation.y;
     }
 
-    // Y is mirrored (`1 − yMax`) because Zoom publishes y-up ratios but we render y-down.
-    // `seriesRect.x/y` lives on `seriesRoot`, not here. The `s ≤ 1` cap preserves fit
-    // semantics for small content; subtracting the dataNodeGroup offset cancels the
-    // layout's auto-centre so this transform owns final placement.
-    private applyViewportTransform() {
-        const zoom = this.ctx.chartState.getValue('zoom');
-        const { seriesRect } = this;
+    private setFocusedVertex(vertex: Vertex<TVertex, TEdge> | undefined) {
+        if (!vertex) return;
+        this.focusedVertex = vertex;
+    }
+
+    // Rebuilds re-run on every state change, so the initial centring must not steal focus from an
+    // active item that has already been requested.
+    protected centreInitialVertex(vertex: Vertex<TVertex, TEdge> | undefined) {
+        if (this.hasCentredInitialVertex) return;
+        this.hasCentredInitialVertex = true;
+        if (this.focusedVertex != null) return;
+        this.setFocusedVertex(vertex);
+    }
+
+    /** Content bounds grown by `ZOOM_PADDING` — the space that zoom ratios `[0, 1]` address. */
+    private getPaddedContentBounds() {
         const contentBBox = this.layout.getContentBBox();
+        if (!contentBBox || contentBBox.width <= 0 || contentBBox.height <= 0) return;
 
-        if (!seriesRect || !contentBBox || contentBBox.width <= 0 || contentBBox.height <= 0) {
-            this.viewportGroup.translationX = 0;
-            this.viewportGroup.translationY = 0;
-            this.viewportGroup.scalingX = 1;
-            this.viewportGroup.scalingY = 1;
-            return;
-        }
+        const padX = (contentBBox.width * (ZOOM_PADDING - 1)) / 2;
+        const padY = (contentBBox.height * (ZOOM_PADDING - 1)) / 2;
 
-        const vw = seriesRect.width;
-        const vh = seriesRect.height;
-        const cw = contentBBox.width;
-        const ch = contentBBox.height;
+        return {
+            x: contentBBox.x - padX,
+            y: contentBBox.y - padY,
+            width: contentBBox.width * ZOOM_PADDING,
+            height: contentBBox.height * ZOOM_PADDING,
+        };
+    }
 
-        const xMin = zoom?.x?.min ?? 0;
-        const xMax = zoom?.x?.max ?? 1;
-        const yMin = zoom?.y?.min ?? 0;
-        const yMax = zoom?.y?.max ?? 1;
+    private getViewportScaling() {
+        const fit = this.getContentFit();
+        if (!fit) return 1;
 
-        const xRange = xMax - xMin;
-        const yRange = yMax - yMin;
+        const zoom = definedZoomState(this.ctx.chartState.getValue('zoom'));
 
-        const fitX = vw / cw;
-        const fitY = vh / ch;
-        const sX = xRange > 0 ? fitX / xRange : fitX;
-        const sY = yRange > 0 ? fitY / yRange : fitY;
-        const s = Math.min(sX, sY, 1);
+        // Capped at 1 so content is never drawn larger than its native size.
+        return Math.min(fit.x / (zoom.x.max - zoom.x.min), fit.y / (zoom.y.max - zoom.y.min), 1);
+    }
 
-        const centerX = Math.max(0, (vw - cw * s) / 2);
-        const centerY = Math.max(0, (vh - ch * s) / 2);
+    private getViewportTranslation(scaling: number) {
+        const { seriesRect } = this;
+        const padded = this.getPaddedContentBounds();
+        if (!seriesRect || !padded) return Vec2.from(0, 0);
 
-        const screenTopFractionY = 1 - yMax;
+        const zoom = definedZoomState(this.ctx.chartState.getValue('zoom'));
 
-        this.viewportGroup.scalingX = s;
-        this.viewportGroup.scalingY = s;
-        this.viewportGroup.translationX = -(contentBBox.x + xMin * cw) * s + centerX;
-        this.viewportGroup.translationY = -(contentBBox.y + screenTopFractionY * ch) * s + centerY;
+        // Zoom publishes y-up ratios while the scene renders y-down, so `y.max` is the top edge.
+        const left = padded.x + zoom.x.min * padded.width;
+        const top = padded.y + (1 - zoom.y.max) * padded.height;
+
+        // Whichever axis `scaling` was not taken from has room to spare in the viewport; centre it.
+        const slackX = Math.max(0, seriesRect.width - (zoom.x.max - zoom.x.min) * padded.width * scaling);
+        const slackY = Math.max(0, seriesRect.height - (zoom.y.max - zoom.y.min) * padded.height * scaling);
+
+        return Vec2.from(-left * scaling + slackX / 2, -top * scaling + slackY / 2);
+    }
+
+    // ZoomManager's `panToBBox()` only brings the bbox into view, whereas the focused node must end
+    // up at the centre of the viewport.
+    private getFocusedZoom(): DefinedZoomState | undefined {
+        const padded = this.getPaddedContentBounds();
+        const focusedBBox = this.getFocusedBBox();
+        if (!padded || !focusedBBox) return;
+
+        const zoom = definedZoomState(this.ctx.chartState.getValue('zoom'));
+
+        const ratioX = (focusedBBox.x + focusedBBox.width / 2 - padded.x) / padded.width;
+        const ratioY = 1 - (focusedBBox.y + focusedBBox.height / 2 - padded.y) / padded.height;
+
+        return {
+            x: centredZoomWindow(ratioX, zoom.x.max - zoom.x.min),
+            y: centredZoomWindow(ratioY, zoom.y.max - zoom.y.min),
+        };
+    }
+
+    private getFocusedBBox() {
+        if (this.focusedVertex == null) return;
+        return this.layout.getNodeBBox(this.focusedVertex);
     }
 
     // Runs on every activeItem change incl. hover — opens collapsed ancestors.
@@ -404,10 +429,21 @@ export abstract class AbstractNetworkSeries<
         this.seriesRect = event.series.rect;
     }
 
+    private onUpdateComplete() {
+        const zoom = this.getFocusedZoom();
+        if (!zoom) return;
+
+        this.focusedVertex = undefined;
+        this.ctx.zoomManager?.updateZoom(
+            { source: 'chart-update', sourceDetail: 'internal-networkSeriesFocusChange' },
+            zoom
+        );
+    }
+
     // `active:load-memento` only fires for state-restore / programmatic setState (not hover).
     private onActiveLoadMemento({ activeItem }: _ModuleSupport.ActiveLoadMementoEvent) {
         if (activeItem?.seriesId !== this.id) return;
-        this.pendingPanToItemId = String(activeItem.itemId);
+        this.focusedVertex = this.graph.findVertexById(activeItem.itemId);
     }
 
     private onSeriesAreaClick(event: _ModuleSupport.SeriesAreaClickEvent) {
@@ -443,133 +479,66 @@ export abstract class AbstractNetworkSeries<
         this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.PERFORM_LAYOUT });
     }
 
-    // Order matters: `constrainZoomToPixelFloor` reads the post-clamp window mutated in-place by
-    // `constrainZoomToBoundary`.
     private onZoomChangeRequest(event: _ModuleSupport.ZoomChangeRequestEvent) {
         if (event.isReset) return;
-        this.constrainZoomToBoundary(event);
-        this.constrainZoomToPixelFloor(event);
+        this.constrainZoomWindow(event);
     }
 
-    // Zoom is a transform-only update — no re-layout. We don't read the zoom value here
-    // (applyViewportTransform pulls it from chartState), so the event is sufficient and
-    // avoids ReactiveState's initial-fire on subscribe.
-    private onZoomChangeComplete() {
+    protected focusedVertex: Vertex<TVertex, TEdge> | undefined = undefined;
+    private onZoomChangeComplete(event: _ModuleSupport.ZoomChangeCompleteEvent) {
+        // Stop focusing on a vertex when the user changes the zoom to allow the viewport to be panned.
+        if (event.source === 'user-interaction') {
+            this.focusedVertex = undefined;
+        }
+
         this.applyViewportTransform();
         this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
     }
 
-    // AG-17204: keep some of the zoom window inside `[0, 1]` so content stays visible.
-    private constrainZoomToBoundary(event: _ModuleSupport.ZoomChangeRequestEvent) {
-        const clamped: _ModuleSupport.CoreZoomState = {};
-        let didClamp = false;
+    // Holds each window between the native-pixel floor and the content edges, then slides it back
+    // inside `[0, 1]` so the padding can never be scrolled fully into view.
+    private constrainZoomWindow(event: _ModuleSupport.ZoomChangeRequestEvent) {
+        const fit = this.getContentFit();
+        if (!fit) return;
+
+        const constrained: _ModuleSupport.CoreZoomState = {};
+        let didConstrain = false;
 
         for (const id of strictObjectKeys(event.state)) {
             const entry = event.state[id];
             if (entry == null) continue;
 
             const { min, max, direction } = entry;
-            const size = max - min;
+            const isX = direction === 'x';
 
-            let clampedMin = min;
-            let clampedMax = max;
+            // A window narrower than `fit` would scale content beyond its native size.
+            const size = Math.min(Math.max(max - min, isX ? fit.x : fit.y), CONTENT_ZOOM_RATIO);
+            const mid = clampMid((min + max) / 2, size);
 
-            if (min >= 1) {
-                clampedMax = 1;
-                clampedMin = 1 - size;
-                didClamp = true;
-            } else if (max <= 0) {
-                clampedMin = 0;
-                clampedMax = size;
-                didClamp = true;
-            }
+            const constrainedMin = mid - size / 2;
+            const constrainedMax = mid + size / 2;
 
-            const coreDirection = direction === 'x' ? ChartAxisDirection.X : ChartAxisDirection.Y;
-            clamped[id] = { min: clampedMin, max: clampedMax, direction: coreDirection };
+            constrained[id] = {
+                min: constrainedMin,
+                max: constrainedMax,
+                direction: isX ? ChartAxisDirection.X : ChartAxisDirection.Y,
+            };
+
+            didConstrain ||=
+                Math.abs(constrainedMin - min) > ZOOM_EPSILON || Math.abs(constrainedMax - max) > ZOOM_EPSILON;
         }
 
-        if (didClamp) {
-            event.constrainChanges(clamped);
+        if (didConstrain) {
+            event.constrainChanges(constrained);
         }
     }
 
-    // Caps scale at native pixels (`s ≤ 1`) and projects off-isotropic states onto the
-    // isotropic line `xRange/fitX = yRange/fitY` — less-zoomed axis wins, preserving content.
-    private constrainZoomToPixelFloor(event: _ModuleSupport.ZoomChangeRequestEvent) {
+    private getContentFit() {
         const { seriesRect } = this;
-        const contentBBox = this.layout.getContentBBox();
-        if (!seriesRect || !contentBBox || contentBBox.width <= 0 || contentBBox.height <= 0) return;
+        const padded = this.getPaddedContentBounds();
+        if (!seriesRect || !padded) return;
 
-        const fitX = seriesRect.width / contentBBox.width;
-        const fitY = seriesRect.height / contentBBox.height;
-
-        let xId: AxisID | undefined;
-        let yId: AxisID | undefined;
-        for (const id of strictObjectKeys(event.state)) {
-            const entry = event.state[id];
-            if (entry == null) continue;
-            if (entry.direction === 'x') xId = id;
-            else yId = id;
-        }
-        if (!xId || !yId) return;
-
-        const xEntry = event.state[xId]!;
-        const yEntry = event.state[yId]!;
-        const xRange = xEntry.max - xEntry.min;
-        const yRange = yEntry.max - yEntry.min;
-        if (xRange <= 0 || yRange <= 0) return;
-
-        // AG-17239: at the 1:1 floor, further zoom-in is a no-op — otherwise the
-        // cursor-anchored input mid leaks through `clampMid` and reads as a pan.
-        const oldX = event.oldState[xId];
-        const oldY = event.oldState[yId];
-        if (oldX && oldY) {
-            const oldXRange = oldX.max - oldX.min;
-            const oldYRange = oldY.max - oldY.min;
-
-            const inputT = Math.max(xRange / fitX, yRange / fitY);
-            const oldT = Math.max(oldXRange / fitX, oldYRange / fitY);
-
-            const wantsShrink = xRange < oldXRange - ISOTROPY_EPSILON || yRange < oldYRange - ISOTROPY_EPSILON;
-
-            if (wantsShrink && inputT <= 1 + ISOTROPY_EPSILON && oldT <= 1 + ISOTROPY_EPSILON) {
-                const restored: _ModuleSupport.CoreZoomState = {};
-                restored[xId] = { min: oldX.min, max: oldX.max, direction: ChartAxisDirection.X };
-                restored[yId] = { min: oldY.min, max: oldY.max, direction: ChartAxisDirection.Y };
-                event.constrainChanges(restored);
-                return;
-            }
-        }
-
-        // Project to the isotropic line.
-        const targetT = Math.max(xRange / fitX, yRange / fitY, 1);
-        const targetXRange = Math.min(1, targetT * fitX);
-        const targetYRange = Math.min(1, targetT * fitY);
-
-        const xMid = clampMid((xEntry.min + xEntry.max) / 2, targetXRange);
-        const yMid = clampMid((yEntry.min + yEntry.max) / 2, targetYRange);
-
-        const xChanged =
-            Math.abs(xMid - targetXRange / 2 - xEntry.min) > ISOTROPY_EPSILON ||
-            Math.abs(xMid + targetXRange / 2 - xEntry.max) > ISOTROPY_EPSILON;
-        const yChanged =
-            Math.abs(yMid - targetYRange / 2 - yEntry.min) > ISOTROPY_EPSILON ||
-            Math.abs(yMid + targetYRange / 2 - yEntry.max) > ISOTROPY_EPSILON;
-
-        if (xChanged || yChanged) {
-            const constrained: _ModuleSupport.CoreZoomState = {};
-            constrained[xId] = {
-                min: xMid - targetXRange / 2,
-                max: xMid + targetXRange / 2,
-                direction: ChartAxisDirection.X,
-            };
-            constrained[yId] = {
-                min: yMid - targetYRange / 2,
-                max: yMid + targetYRange / 2,
-                direction: ChartAxisDirection.Y,
-            };
-            event.constrainChanges(constrained);
-        }
+        return { x: seriesRect.width / padded.width, y: seriesRect.height / padded.height };
     }
 
     // ---
