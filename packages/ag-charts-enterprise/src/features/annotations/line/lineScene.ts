@@ -1,4 +1,3 @@
-import { _ModuleSupport } from 'ag-charts-community';
 import type { Bounds4, BoxBounds, Point } from 'ag-charts-core';
 import { Vec2, Vec4 } from 'ag-charts-core';
 
