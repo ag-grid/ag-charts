@@ -140,6 +140,22 @@ describe('label placement style (insideStyle/outsideStyle)', () => {
             expect(firstVisibleLabelStyle().color).toBe(expected);
         });
 
+        // A colour reaching `label.color` via `theme.overrides` must beat the per-placement default just
+        // as a series-level `label.color` does — the default applies only when no colour was supplied.
+        it.each(['inside-center', 'outside-end'])(
+            'applies a theme-override label colour for a %s placement',
+            async (placement) => {
+                const options = {
+                    ...barOptions({ placement }),
+                    theme: { overrides: { bar: { series: { label: { color: 'rgb(190, 55, 55)' } } } } },
+                };
+                prepareTestOptions(options as any);
+                chart = AgCharts.create(options as any);
+                await waitForChartStability(chart);
+                expect(firstVisibleLabelStyle().color).toBe('rgb(190, 55, 55)');
+            }
+        );
+
         // The repro: a rotated (vertical) khaki-boxed label must float clear of the bar AND stay centred
         // on it, whatever the per-side padding. Each variant renders its own baseline for eyeballing.
         const ROTATED_PADDINGS: Record<string, object> = {
