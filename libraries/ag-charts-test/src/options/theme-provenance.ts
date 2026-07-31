@@ -73,16 +73,17 @@ export function getPath(object: unknown, path: Array<string>) {
 function nest(path: Array<string>, value: unknown): PlainObject {
     const root: PlainObject = {};
     let node = root;
-    path.forEach((key, index) => {
+    for (const [index, key] of path.entries()) {
         if (index === path.length - 1) node[key] = value;
         else node = node[key] = {};
-    });
+    }
     return root;
 }
 
 function leafPaths(object: unknown, prefix: Array<string> = [], out: Array<Array<string>> = []) {
     if (!isPlainObject(object)) return out;
-    for (const [key, value] of Object.entries(object)) {
+    for (const key of Object.keys(object)) {
+        const value = object[key];
         if (typeof value === 'function') continue;
         if (isPlainObject(value)) leafPaths(value, [...prefix, key], out);
         else out.push([...prefix, key]);
@@ -106,7 +107,7 @@ function fromTypeNode(type: TypeNode): unknown {
 
     if (isPlainObject(type) && type.kind === 'union' && Array.isArray(type.type)) {
         for (const branch of type.type) {
-            if (typeof branch === 'string' && /^'.*'$/.test(branch)) return branch.replace(/^'|'$/g, '');
+            if (typeof branch === 'string' && /^'.*'$/.test(branch)) return branch.replace(/(?:^')|(?:'$)/g, '');
         }
     }
 
@@ -398,7 +399,7 @@ export function defineProvenanceSuite(
 
         it.each(cases)('$seriesType resolves theme overrides as user options', (testCase) => {
             const report = runProvenanceChecks(ctx, testCase);
-            report.matchedAsymmetries.forEach((entry) => matched.add(entry));
+            for (const entry of report.matchedAsymmetries) matched.add(entry);
 
             console.info(
                 `[${report.seriesType}] checked=${report.checked} skipped=${report.skipped.length} ` +
@@ -412,7 +413,9 @@ export function defineProvenanceSuite(
 
         it('observes exactly the documented asymmetries', () => {
             const describeEntry = (path: string) => `${path} (${KNOWN_ASYMMETRIES[path]})`;
-            expect([...matched].sort().map(describeEntry)).toEqual([...expectedAsymmetries].sort().map(describeEntry));
+            expect([...matched].sort((a, b) => a.localeCompare(b)).map(describeEntry)).toEqual(
+                [...expectedAsymmetries].sort((a, b) => a.localeCompare(b)).map(describeEntry)
+            );
         });
     });
 }

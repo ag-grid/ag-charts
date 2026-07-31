@@ -72,11 +72,13 @@ function omittedKeys(keys: unknown): Set<string> {
     const collect = (node: unknown) => {
         if (typeof node === 'string') {
             for (const part of node.split('|')) {
-                literals.add(part.trim().replace(/^'|'$/g, ''));
+                literals.add(part.trim().replace(/(?:^')|(?:'$)/g, ''));
             }
         } else if (node != null && typeof node === 'object') {
             const union = node as { type?: unknown };
-            if (Array.isArray(union.type)) union.type.forEach(collect);
+            if (Array.isArray(union.type)) {
+                for (const branch of union.type) collect(branch);
+            }
         }
     };
     collect(keys);
@@ -95,7 +97,7 @@ function expand(
     for (const heritage of entry.heritage ?? []) {
         const name = typeName(heritage);
         if (name === 'Omit') {
-            const [target, keys] = ((heritage as { typeArguments?: unknown[] }).typeArguments ?? []) as unknown[];
+            const [target, keys] = (heritage as { typeArguments?: unknown[] }).typeArguments ?? [];
             const targetEntry = contract[typeName(target) ?? ''];
             if (targetEntry && !seen.has(targetEntry.name)) {
                 const nextSeen = new Set(seen).add(targetEntry.name);
