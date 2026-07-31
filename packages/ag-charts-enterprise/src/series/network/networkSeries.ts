@@ -136,9 +136,9 @@ export abstract class AbstractNetworkSeries<
     private zoomedPaddedBounds?: PaddedBounds;
 
     // What the next update should centre. Starts as the content so the chart opens showing all of
-    // itself, and is only set to a vertex when one is explicitly requested. Consumed once applied,
+    // itself, and is only set to an item when one is explicitly requested. Consumed once applied,
     // which is what stops later updates from re-centring.
-    private pendingView?: { vertex: Vertex<TVertex, TEdge> } = undefined;
+    private pendingView?: { itemId: NetworkSeriesVertexID };
     private hasCentredContent = false;
 
     constructor(ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
@@ -351,9 +351,19 @@ export abstract class AbstractNetworkSeries<
         this.viewportGroup.translationY = translation.y;
     }
 
-    private centreVertex(vertex: Vertex<TVertex, TEdge> | undefined) {
-        if (!vertex) return;
-        this.pendingView = { vertex };
+    private centreItem(itemId: NetworkSeriesVertexID | undefined) {
+        if (itemId == null) return;
+        this.pendingView = { itemId };
+    }
+
+    /**
+     * Resolved at use time rather than when requested: state restoration can name an item before the
+     * data it belongs to has been processed, so the vertex may not exist in the graph yet.
+     */
+    private getPendingVertex() {
+        const { pendingView } = this;
+        if (!pendingView) return;
+        return this.graph.findVertexById(pendingView.itemId);
     }
 
     /** Scale at which the content exactly fills the viewport — the most zoomed-out the chart gets. */
@@ -478,8 +488,11 @@ export abstract class AbstractNetworkSeries<
     }
 
     private getPendingViewBounds() {
-        const { pendingView } = this;
-        if (pendingView) return this.layout.getNodeBBox(pendingView.vertex);
+        const pendingVertex = this.getPendingVertex();
+        if (pendingVertex) return this.layout.getNodeBBox(pendingVertex);
+
+        // Falling back to the content keeps the chart off the raw `[0, 1]` default while a requested
+        // item stays unresolvable; the item still centres later, once it can be found.
         if (!this.hasCentredContent) return this.layout.getContentBBox();
     }
 
@@ -505,7 +518,10 @@ export abstract class AbstractNetworkSeries<
         const zoom = this.getCentringZoom() ?? this.getContentChangeZoom();
         if (!zoom) return;
 
-        this.pendingView = undefined;
+        // Only spent once the requested item actually resolved, so an unresolvable one is retried.
+        if (this.getPendingVertex()) {
+            this.pendingView = undefined;
+        }
         this.hasCentredContent = true;
         this.ctx.zoomManager?.updateZoom(
             { source: 'chart-update', sourceDetail: 'internal-networkSeriesFocusChange' },
@@ -516,7 +532,7 @@ export abstract class AbstractNetworkSeries<
     // `active:load-memento` only fires for state-restore / programmatic setState (not hover).
     private onActiveLoadMemento({ activeItem }: _ModuleSupport.ActiveLoadMementoEvent) {
         if (activeItem?.seriesId !== this.id) return;
-        this.centreVertex(this.graph.findVertexById(activeItem.itemId));
+        this.centreItem(activeItem.itemId);
     }
 
     private onSeriesAreaClick(event: _ModuleSupport.SeriesAreaClickEvent) {

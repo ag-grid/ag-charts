@@ -55,6 +55,7 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
         }
 
         this.directionalLayout.resetContentBBox();
+        this.directionalLayout.resetNodeBBoxes();
         const { containerBBox } = this.directionalLayout.updateNodes(options, undefined, this.regularBBox);
         this.contentBBox = this.directionalLayout.getContentBBox() ?? containerBBox;
     }
@@ -219,6 +220,12 @@ abstract class NetworkTreeDirectionalLayout<TVertex, TEdge> {
 
     resetContentBBox() {
         this.contentBoundsAccumulator.count = 0;
+    }
+
+    // Vertices omitted by this layout pass — collapsed, or gone with replaced data — must not leave
+    // stale coordinates behind for `getNodeBBox` to hand back, nor keep their graph objects alive.
+    resetNodeBBoxes() {
+        this.nodeBBoxes.clear();
     }
 
     getContentBBox() {
