@@ -415,6 +415,56 @@ describe('OptionsGraph', () => {
                     three: 'no',
                 });
             });
+
+            it('should consider theme overrides as user options', () => {
+                const themeConfig = {
+                    bar: {
+                        series: {
+                            label: {
+                                insideStyle: {
+                                    color: {
+                                        $isUserOption: ['../color', { $path: '../color' }, 'pink'],
+                                    },
+                                },
+                            },
+                        },
+                    },
+                };
+                const userOptions = prepareOptions({
+                    series: [
+                        {
+                            type: 'bar',
+                            label: { enabled: true },
+                        },
+                    ],
+                });
+                const overrides = {
+                    bar: {
+                        series: {
+                            label: {
+                                color: 'blue', // This is considered a user option for the purposes of `$isUserOption`.
+                            },
+                        },
+                    },
+                };
+
+                const options = new OptionsGraph(themeConfig, userOptions, undefined, {}, {}, overrides).resolve(
+                    testLogger
+                );
+                expect(options).toStrictEqual({
+                    series: [
+                        {
+                            type: 'bar',
+                            label: {
+                                enabled: true,
+                                color: 'blue',
+                                insideStyle: { color: 'blue' },
+                            },
+                        },
+                    ],
+                    axes: expect.any(Object),
+                });
+            });
         });
 
         describe('$palette', () => {

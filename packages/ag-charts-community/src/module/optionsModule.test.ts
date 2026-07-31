@@ -3762,4 +3762,36 @@ describe('ChartOptions', () => {
             expect(unrelatedWarnOnce.mock.calls.some(isInvalidColour)).toBe(false);
         });
     });
+
+    describe('theme overrides and conditional defaults', () => {
+        const barOptions = (overrides: object) => ({
+            data: [{ category: 'A', value: 5 }],
+            series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+            theme: { overrides: { bar: { series: overrides } } },
+        });
+
+        it('resolves a conditional default from a value supplied through theme overrides', () => {
+            const prepared: any = prepareOptions(barOptions({ stroke: 'rgb(190, 55, 55)' }) as any);
+
+            expect(prepared.series[0].strokeWidth).toBe(2);
+        });
+
+        // Themes style; they do not activate. Styling a border through a theme must not switch it on, while an
+        // explicit `enabled` still decides — integrated charts configure exclusively through overrides.
+        it('does not enable a feature from styling supplied through theme overrides', () => {
+            const prepared: any = prepareOptions(
+                barOptions({ label: { border: { stroke: 'rgb(190, 55, 55)' } } }) as any
+            );
+
+            expect(prepared.series[0].label.border?.enabled ?? false).toBe(false);
+        });
+
+        it('honours an explicit enabled supplied through theme overrides', () => {
+            const prepared: any = prepareOptions(
+                barOptions({ label: { border: { enabled: true, stroke: 'rgb(190, 55, 55)' } } }) as any
+            );
+
+            expect(prepared.series[0].label.border.enabled).toBe(true);
+        });
+    });
 });
