@@ -1,6 +1,8 @@
 import type {
     AgAxisContextMenuActionEvent,
     AgCaptionContextMenuActionEvent,
+    AgChartContextMenuEvent,
+    AgChartLegendContextMenuEvent,
     AgContextMenuGetItemsParams,
     AgContextMenuGetItemsParamsAlways,
     AgContextMenuGetItemsParamsAxis,
@@ -13,11 +15,13 @@ import type {
     AgContextMenuItemShowOn,
     AgContextMenuShowOnParams,
     AgCrossLineContextMenuActionEvent,
+    AgNodeContextMenuActionEvent,
+    AgSeriesAreaContextMenuActionEvent,
     ContextDefault,
     DatumDefault,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
-import type { DynamicContext } from 'ag-charts-core';
+import type { CallbackParamRules, DynamicContext } from 'ag-charts-core';
 import {
     AbstractModuleInstance,
     callWithContext,
@@ -212,6 +216,8 @@ export class ContextMenu extends AbstractModuleInstance {
             defaultItems: expandBuiltinLists(active, items, this.ctx.contextMenuRegistry),
             active,
         };
+        // Agents: These params will be passed into user-options getItems() callback. makeGetItemsParams*() must use
+        // `CallbackParamRules` to ensure that these params comply with the user API contract.
         switch (showOn) {
             case 'always':
                 return this.makeGetItemsParamsAlways(opts);
@@ -234,7 +240,7 @@ export class ContextMenu extends AbstractModuleInstance {
 
     private makeGetItemsParamsAlways(opts: GetItemsOpts): GetItemsParams {
         const { defaultItems, active } = opts;
-        const params: AgContextMenuGetItemsParamsAlways<unknown, unknown> = {
+        const params: CallbackParamRules<AgContextMenuGetItemsParamsAlways<unknown, unknown>> = {
             showOn: 'always',
             defaultItems,
             allShowOnParams: this.plotOverlapRegions(active),
@@ -245,7 +251,7 @@ export class ContextMenu extends AbstractModuleInstance {
 
     private makeGetItemsParamsSeriesArea(opts: GetItemsOpts): GetItemsParams {
         const { defaultItems, active } = opts;
-        const params: AgContextMenuGetItemsParamsSeriesArea<unknown, unknown> = {
+        const params: CallbackParamRules<AgContextMenuGetItemsParamsSeriesArea<unknown, unknown>> = {
             showOn: 'series-area',
             defaultItems,
             allShowOnParams: this.plotOverlapRegions(active),
@@ -287,7 +293,12 @@ export class ContextMenu extends AbstractModuleInstance {
         // The topmost node (hit-test order) wins. Nodes overlapping it at this contextmenu point are broadcast in
         // the allShowOnParams property.
         const allShowOnParams: ShowOnParams[] = [...this.plotOverlapRegions(active), ...regions];
-        const params: AgContextMenuGetItemsParamsSeriesNode = { ...regions[0], defaultItems, allShowOnParams };
+        // FIXME: params should be of type CallbackParamRules<AgContextMenuGetItemsParamsSeriesNode>
+        const params: AgContextMenuGetItemsParamsSeriesNode = {
+            ...regions[0],
+            defaultItems,
+            allShowOnParams,
+        };
         const callers: Caller[] = [this.pickedNodes[0].series.properties, this.ctx.chartService];
         return [params, callers];
     }
@@ -301,7 +312,7 @@ export class ContextMenu extends AbstractModuleInstance {
         if (active.has('cross-line') && this.pickedCrossLine != null) {
             allShowOnParams.push(...this.crossLineRegions(this.pickedCrossLine));
         }
-        const params: AgContextMenuGetItemsParamsAxis<DatumDefault, ContextDefault> = {
+        const params: CallbackParamRules<AgContextMenuGetItemsParamsAxis<DatumDefault, ContextDefault>> = {
             ...region,
             defaultItems,
             allShowOnParams,
@@ -321,8 +332,14 @@ export class ContextMenu extends AbstractModuleInstance {
         const allShowOnParams: ShowOnParams[] = [...regions];
         if (active.has('series-area')) allShowOnParams.push({ showOn: 'series-area' });
         if (active.has('axis') && this.pickedAxisCtx != null) allShowOnParams.push(this.axisRegion(this.pickedAxisCtx));
-        const params: AgContextMenuGetItemsParamsCrossLine<DatumDefault, ContextDefault> = {
-            ...regions[0],
+        const params: CallbackParamRules<AgContextMenuGetItemsParamsCrossLine<DatumDefault, ContextDefault>> = {
+            showOn: 'cross-line',
+            axisId: regions[0].axisId,
+            crossLineId: regions[0].crossLineId,
+            crossLineType: regions[0].crossLineType,
+            direction: regions[0].direction,
+            value: regions[0].value,
+            range: regions[0].range,
             defaultItems,
             allShowOnParams,
         };
@@ -335,7 +352,7 @@ export class ContextMenu extends AbstractModuleInstance {
         const ctx = this.pickedCaptionCtx;
         if (ctx == null) throw new Error(`this.pickedCaptionCtx is null`);
         const region: CaptionParams = { showOn: 'caption', captionType: ctx.captionType, text: ctx.text };
-        const params: AgContextMenuGetItemsParamsCaption<DatumDefault, ContextDefault> = {
+        const params: CallbackParamRules<AgContextMenuGetItemsParamsCaption<DatumDefault, ContextDefault>> = {
             ...region,
             defaultItems,
             allShowOnParams: [region],
@@ -356,7 +373,7 @@ export class ContextMenu extends AbstractModuleInstance {
             text,
             visible: enabled,
         };
-        const params: AgContextMenuGetItemsParamsLegendItem<DatumDefault, ContextDefault> = {
+        const params: CallbackParamRules<AgContextMenuGetItemsParamsLegendItem<DatumDefault, ContextDefault>> = {
             ...region,
             defaultItems,
             allShowOnParams: [region],
@@ -519,6 +536,8 @@ export class ContextMenu extends AbstractModuleInstance {
         showOn: AgContextMenuItemShowOn,
         callback: ContextMenuCallback
     ): (event: _Widget.WidgetEvent) => void {
+        // Agents: These params will be passed into user-options actions() callbacks. Returned functions must use
+        // `CallbackParamRules` to ensure that these params comply with the user API contract.
         if (ContextMenuRegistry.checkCallback('legend-item', showOn, callback)) {
             return (widgetEvent: _ModuleSupport.WidgetEvent) => {
                 const event: Event = widgetEvent.sourceEvent;
@@ -527,13 +546,13 @@ export class ContextMenu extends AbstractModuleInstance {
                     const { chartService: chart } = this.ctx;
                     const series: UnknownSeries | undefined = chart.series.find((s) => s.id === seriesId);
                     const callers: Caller[] = [series?.properties, chart];
-                    const apiEvent = {
+                    const apiEvent: CallbackParamRules<AgChartLegendContextMenuEvent> = {
                         type: 'contextmenu',
                         seriesId,
                         itemId,
                         text: toPlainText(label.text),
                         event,
-                    } as const;
+                    };
                     callWithContext(callers, callback, apiEvent);
                     this.hide();
                 } else {
@@ -543,7 +562,10 @@ export class ContextMenu extends AbstractModuleInstance {
         } else if (ContextMenuRegistry.checkCallback('series-area', showOn, callback)) {
             return () => {
                 const caller: Caller = this.ctx.chartService;
-                const apiEvent = { type: 'seriesContextMenuAction', event: showEvent } as const;
+                const apiEvent: CallbackParamRules<AgSeriesAreaContextMenuActionEvent> = {
+                    type: 'seriesContextMenuAction',
+                    event: showEvent,
+                };
                 callWithContext(caller, callback, apiEvent);
                 this.hide();
             };
@@ -553,7 +575,9 @@ export class ContextMenu extends AbstractModuleInstance {
 
                 const pickedNode = this.pickedNodes?.[0];
                 const callers: (Caller | undefined)[] = [pickedNode?.series.properties, chart];
-                const apiEvent = pickedNode?.series.createNodeContextMenuActionEvent(showEvent, pickedNode);
+                // FIXME: apiEvent should be of type CallbackParamRules<AgNodeContextMenuActionEvent>
+                const apiEvent: AgNodeContextMenuActionEvent | undefined =
+                    pickedNode?.series.createNodeContextMenuActionEvent(showEvent, pickedNode);
                 if (apiEvent) {
                     callWithContext(callers, callback, apiEvent);
                 } else {
@@ -566,7 +590,7 @@ export class ContextMenu extends AbstractModuleInstance {
                 if (this.pickedAxisCtx) {
                     const { axisId, direction, boundSeries, domain, value, index } = this.pickedAxisCtx;
                     const callers: Caller[] = [this.pickedAxisCtx.caller, this.ctx.chartService];
-                    const apiEvent: Omit<AgAxisContextMenuActionEvent<never>, 'context'> = {
+                    const apiEvent: CallbackParamRules<AgAxisContextMenuActionEvent<never>> = {
                         type: 'axisContextMenuAction',
                         event: showEvent,
                         axisId,
@@ -587,7 +611,7 @@ export class ContextMenu extends AbstractModuleInstance {
                 if (this.pickedCrossLine && this.pickedCrossLine.length > 0) {
                     const { crossLineId, axisId, direction, type, value, range } = this.pickedCrossLine[0];
                     const callers: Caller = this.ctx.chartService;
-                    const apiEvent: Omit<AgCrossLineContextMenuActionEvent<never>, 'context'> = {
+                    const apiEvent: CallbackParamRules<AgCrossLineContextMenuActionEvent<never>> = {
                         type: 'crossLineContextMenuAction',
                         event: showEvent,
                         crossLineId,
@@ -608,7 +632,7 @@ export class ContextMenu extends AbstractModuleInstance {
                 if (this.pickedCaptionCtx) {
                     const { captionType, text } = this.pickedCaptionCtx;
                     const callers: Caller = this.ctx.chartService;
-                    const apiEvent: Omit<AgCaptionContextMenuActionEvent<never>, 'context'> = {
+                    const apiEvent: CallbackParamRules<AgCaptionContextMenuActionEvent<never>> = {
                         type: 'captionContextMenuAction',
                         captionType,
                         text,
@@ -623,7 +647,10 @@ export class ContextMenu extends AbstractModuleInstance {
         } else {
             return () => {
                 const caller: Caller = this.ctx.chartService;
-                const apiEvent = { type: 'contextMenuEvent', event: showEvent } as const;
+                const apiEvent: CallbackParamRules<AgChartContextMenuEvent> = {
+                    type: 'contextMenuEvent',
+                    event: showEvent,
+                };
                 // Use `satisfies` to check that all other callback types (those with additional context-based parameters)
                 // have been accounted for.
                 callWithContext(caller, callback satisfies ContextMenuCallback<'always'>, apiEvent);
