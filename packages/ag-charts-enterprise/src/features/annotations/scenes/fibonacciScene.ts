@@ -1,5 +1,5 @@
 import { type TextOptions, _ModuleSupport } from 'ag-charts-community';
-import { type Bounds4, type Point, Vec2, Vec4 } from 'ag-charts-core';
+import { type Bounds4, type Point, Vec4 } from 'ag-charts-core';
 
 import type { AnnotationAxisContext, AnnotationContext, LineTextAlignment } from '../annotationTypes';
 import type { FibonacciProperties } from '../properties/fibonacciProperties';

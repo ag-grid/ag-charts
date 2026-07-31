@@ -110,8 +110,8 @@ export function getDatumRefPoint(
     // Using datum.yBar.upperPoint renders the tooltip higher up.
     const refPoint = datum.yBar?.upperPoint ?? datum.midPoint ?? series.datumMidPoint?.(datum);
     if (refPoint) {
-        const { x, y } = Transformable.toCanvasPoint(series.contentGroup, refPoint.x, refPoint.y);
-        return { canvasX: Math.round(x), canvasY: Math.round(y) };
+        const point = Transformable.toCanvasPoint(series.contentGroup, refPoint.x, refPoint.y);
+        return { canvasX: Math.round(point.canvasX), canvasY: Math.round(point.canvasY) };
     }
 }
 

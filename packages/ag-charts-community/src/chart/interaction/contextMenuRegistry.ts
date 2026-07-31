@@ -35,10 +35,9 @@ export class ContextMenuRegistry {
     public dispatchContext<T extends AgContextMenuItemShowOn>(
         showOn: T,
         pointerEvent: { widgetEvent: MouseWidgetEvent<'contextmenu'> } & CanvasPoint,
-        context: ContextShowOnMap[T]['context'],
-        position?: { x: number; y: number }
+        context: ContextShowOnMap[T]['context']
     ) {
-        this.dispatchContextRegions(showOn, [showOn], { [showOn]: context }, pointerEvent, position);
+        this.dispatchContextRegions(showOn, [showOn], { [showOn]: context }, pointerEvent, undefined);
     }
 
     public dispatchContextRegions(
@@ -46,20 +45,17 @@ export class ContextMenuRegistry {
         regions: readonly AgContextMenuItemShowOn[],
         contexts: ContextMenuRegionContexts,
         pointerEvent: { widgetEvent: MouseWidgetEvent<'contextmenu'> } & CanvasPoint,
-        position?: { x: number; y: number }
+        position?: CanvasPoint
     ) {
         const { widgetEvent } = pointerEvent;
         if (widgetEvent.sourceEvent.defaultPrevented) {
             // AG-12894 'contextmenu' event bubbles, do not re-dispatch ContextMenuEvent if we're already draw own menu
             return;
         }
-        const x = position?.x ?? pointerEvent.canvasX;
-        const y = position?.y ?? pointerEvent.canvasY;
-
         const event: Writeable<ContextMenuEvent> = {
             showOn: primaryShowOn,
-            x,
-            y,
+            canvasX: position?.canvasX ?? pointerEvent.canvasX,
+            canvasY: position?.canvasY ?? pointerEvent.canvasY,
             context: contexts[primaryShowOn],
             widgetEvent,
             regions,

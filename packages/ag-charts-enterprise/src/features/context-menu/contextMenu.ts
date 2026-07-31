@@ -364,8 +364,8 @@ export class ContextMenu extends AbstractModuleInstance {
         if (!(this.opts.enabled ?? true)) return;
 
         event.widgetEvent.sourceEvent.preventDefault();
-        this.x = event.x;
-        this.y = event.y;
+        this.x = event.canvasX;
+        this.y = event.canvasY;
 
         // Regions can overlap (e.g. a datum node over a crossing axis), so populate every picked context the
         // event carries rather than a single mutually-exclusive one; item actions route by their own showOn.

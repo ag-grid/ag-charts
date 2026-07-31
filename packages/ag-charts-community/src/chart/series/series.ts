@@ -1,28 +1,29 @@
 import type {
     BoxBounds,
+    Callback,
+    CallbackParam,
+    CanvasPoint,
     ChartAnimationPhase,
+    DistantObject,
     DomainWithMetadata,
     DynamicContext,
     NormalisedColorType,
     NormalisedSeriesMarkerStyle,
     NormalisedTextOrSegments,
     PlacedLabel,
+    Point,
     PointLabelDatum,
+    RequireOptional,
     SeriesLabelDefaults,
+    SeriesPluginModuleInstance,
 } from 'ag-charts-core';
 import {
     ActionOnSet,
-    type Callback,
-    type CallbackParam,
     ChartAxisDirection,
     CleanupRegistry,
-    type DistantObject,
     EventEmitter,
     LRUCache,
-    type Point,
-    type RequireOptional,
     SeriesContentZIndexMap,
-    type SeriesPluginModuleInstance,
     SeriesZIndexMap,
     boxCollides,
     boxContains,
@@ -791,7 +792,7 @@ export abstract class Series<
 
     abstract findNodeDatum(itemIdOrIndex: AgActiveItemState['itemId']): SeriesNodeDatum | undefined;
 
-    toCanvasFromMidPoint(nodeDatum: { midPoint?: Point }): Point {
+    toCanvasFromMidPoint(nodeDatum: { midPoint?: Point }): CanvasPoint {
         const { x = 0, y = 0 } = nodeDatum.midPoint ?? {};
         return Transformable.toCanvasPoint(this.contentGroup, x, y);
     }

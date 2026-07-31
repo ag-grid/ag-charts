@@ -477,7 +477,7 @@ export class SeriesAreaManager extends BaseManager {
 
         // Every node under the point, not just the topmost: overlapping markers each get their own context.
         let pickedNodes: readonly HighlightNodeDatum[] = [];
-        let position: { x: number; y: number } | undefined;
+        let position: CanvasPoint | undefined;
         if (this.focusIndicator?.isFocusVisible()) {
             const pickedNode = this.chart.ctx.highlightManager.getActiveHighlight();
             if (pickedNode) pickedNodes = [pickedNode];

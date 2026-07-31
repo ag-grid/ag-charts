@@ -150,5 +150,6 @@ export function translate<VectorName extends string>(
 
 export function applySceneNodeTopCenterAnchor(sceneNode: Node, anchor: Partial<Point>, coords: Bounds4): void {
     const point = Vec4.topCenter(coords);
-    Vec2.apply(anchor, Transformable.toCanvasPoint(sceneNode, point.x, point.y));
+    const { canvasX: x, canvasY: y } = Transformable.toCanvasPoint(sceneNode, point.x, point.y);
+    Vec2.apply(anchor, { x, y });
 }

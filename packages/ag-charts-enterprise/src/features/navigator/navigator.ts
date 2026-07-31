@@ -11,7 +11,6 @@ interface BBoxProvider {
     id: string;
     visible?: boolean;
     toCanvasBBox(): BoxBounds;
-    fromCanvasPoint(x: number, y: number): { x: number; y: number };
     getBBox(): _ModuleSupport.BBox;
 }
 
@@ -36,7 +35,6 @@ export class Navigator extends AbstractModuleInstance {
         id: 'navigator-mask-visible-range',
         getBBox: (): _ModuleSupport.BBox => this.mask.computeVisibleRangeBBox(),
         toCanvasBBox: (): _ModuleSupport.BBox => this.mask.computeVisibleRangeBBox(),
-        fromCanvasPoint: (x: number, y: number) => ({ x, y }),
     };
 
     protected x = 0;

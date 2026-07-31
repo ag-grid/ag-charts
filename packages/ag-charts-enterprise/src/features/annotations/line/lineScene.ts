@@ -14,8 +14,6 @@ import { updateLineText } from '../utils/lineWithText';
 import { convertLine } from '../utils/values';
 import type { LineTypeProperties } from './lineProperties';
 
-const { Transformable } = _ModuleSupport;
-
 export class LineScene extends StartEndScene<LineTypeProperties> {
     static override is(value: unknown): value is LineScene {
         return AnnotationScene.isCheck(value, 'line');

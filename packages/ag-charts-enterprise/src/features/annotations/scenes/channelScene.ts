@@ -145,14 +145,14 @@ export abstract class ChannelScene<
     protected readonly updateBackground = WithBackgroundScene.updateBackground.bind(this);
 
     protected updateAnchor(top: Bounds4, bottom: Bounds4) {
-        const { x, y } = _ModuleSupport.Transformable.toCanvasPoint(
+        const point = _ModuleSupport.Transformable.toCanvasPoint(
             this.topLine,
             (top.x1 + top.x2) / 2,
             Math.min(top.y1, top.y2, bottom.y1, bottom.y2)
         );
 
-        this.anchor.x = x;
-        this.anchor.y = y;
+        this.anchor.x = point.canvasX;
+        this.anchor.y = point.canvasY;
     }
 
     public abstract getBackgroundPoints(datum: Datum, top: Bounds4, bottom: Bounds4, bounds: Bounds4): Point[];
