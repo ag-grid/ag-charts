@@ -48,6 +48,11 @@ function clampMid(mid: number, range: number): number {
     return mid;
 }
 
+interface WindowSizes {
+    x: number;
+    y: number;
+}
+
 interface PaddedBounds {
     x: number;
     y: number;
@@ -595,12 +600,12 @@ export abstract class AbstractNetworkSeries<
         return Math.min(Math.max(scale, Math.min(fitScale, 1)), 1);
     }
 
-    private getRequestedWindowSizes(event: _ModuleSupport.ZoomChangeRequestEvent) {
+    private getStateWindowSizes(state: _ModuleSupport.ZoomChangeState) {
         let x;
         let y;
 
-        for (const id of strictObjectKeys(event.state)) {
-            const entry = event.state[id];
+        for (const id of strictObjectKeys(state)) {
+            const entry = state[id];
             if (entry == null) continue;
             if (entry.direction === 'x') {
                 x ??= entry.max - entry.min;
@@ -613,14 +618,53 @@ export abstract class AbstractNetworkSeries<
         return { x, y };
     }
 
+    /**
+     * A zoom already at a limit has its size change absorbed entirely by the clamp, leaving only the
+     * cursor-anchored midpoint to be applied — which reads as a pan. Such a request is dropped rather
+     * than constrained. Pans are unaffected, as they do not change the window size.
+     */
+    private isZoomAtLimit(event: _ModuleSupport.ZoomChangeRequestEvent, requested: WindowSizes, sizes: WindowSizes) {
+        const previous = this.getStateWindowSizes(event.oldState);
+        if (!previous) return false;
+
+        const wantsZoom =
+            Math.abs(requested.x - previous.x) > ZOOM_EPSILON || Math.abs(requested.y - previous.y) > ZOOM_EPSILON;
+
+        return (
+            wantsZoom && Math.abs(sizes.x - previous.x) < ZOOM_EPSILON && Math.abs(sizes.y - previous.y) < ZOOM_EPSILON
+        );
+    }
+
+    private restoreZoomWindow(event: _ModuleSupport.ZoomChangeRequestEvent) {
+        const restored: _ModuleSupport.CoreZoomState = {};
+
+        for (const id of strictObjectKeys(event.oldState)) {
+            const entry = event.oldState[id];
+            if (entry == null) continue;
+
+            restored[id] = {
+                min: entry.min,
+                max: entry.max,
+                direction: entry.direction === 'x' ? ChartAxisDirection.X : ChartAxisDirection.Y,
+            };
+        }
+
+        event.constrainChanges(restored);
+    }
+
     // Holds the zoom to a single shared scale between the content fitting the viewport and native
     // pixel size, then slides each window back inside `[0, 1]`.
     private constrainZoomWindow(event: _ModuleSupport.ZoomChangeRequestEvent) {
-        const requested = this.getRequestedWindowSizes(event);
+        const requested = this.getStateWindowSizes(event.state);
         if (!requested) return;
 
         const sizes = this.getSharedScaleWindowSizes(requested.x, requested.y);
         if (!sizes) return;
+
+        if (this.isZoomAtLimit(event, requested, sizes)) {
+            this.restoreZoomWindow(event);
+            return;
+        }
 
         const constrained: _ModuleSupport.CoreZoomState = {};
         let didConstrain = false;
