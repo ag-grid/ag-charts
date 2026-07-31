@@ -37,7 +37,7 @@ export class ContextMenuRegistry {
         pointerEvent: { widgetEvent: MouseWidgetEvent<'contextmenu'> } & CanvasPoint,
         context: ContextShowOnMap[T]['context']
     ) {
-        this.dispatchContextRegions(showOn, [showOn], { [showOn]: context }, pointerEvent, undefined);
+        this.dispatchContextRegions(showOn, [showOn], { [showOn]: context }, pointerEvent);
     }
 
     public dispatchContextRegions(
