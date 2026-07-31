@@ -48,13 +48,22 @@ function clampMid(mid: number, range: number): number {
     return mid;
 }
 
-/** Whether the focused node or the content as a whole is centred in the viewport, per axis. */
-export interface FocusTarget {
-    horizontal: 'node' | 'content';
-    vertical: 'node' | 'content';
+interface PaddedBounds {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
 }
 
-const NODE_FOCUS_TARGET: FocusTarget = { horizontal: 'node', vertical: 'node' };
+// Tolerant of sub-pixel layout noise, which would otherwise read as a content change on every update.
+function samePaddedBounds(a: PaddedBounds, b: PaddedBounds) {
+    return (
+        Math.abs(a.x - b.x) < 0.5 &&
+        Math.abs(a.y - b.y) < 0.5 &&
+        Math.abs(a.width - b.width) < 0.5 &&
+        Math.abs(a.height - b.height) < 0.5
+    );
+}
 
 // Positions a window of `size` to centre `ratio`, without letting it leave `[0, 1]`.
 function centredZoomWindow(ratio: number, size: number) {
@@ -117,9 +126,15 @@ export abstract class AbstractNetworkSeries<
     private vertexNodeDatumIndices: Record<string, number> = {};
     private pendingCollapsedIds?: NetworkSeriesVertexID[];
 
-    private focusedVertex?: Vertex<TVertex, TEdge>;
-    private focusedTarget: FocusTarget = NODE_FOCUS_TARGET;
-    private hasFocusedInitialVertex = false;
+    // Padded bounds the current zoom ratios were derived against. A later content change makes the
+    // same ratios mean a different scale and position, which is what this allows us to correct.
+    private zoomedPaddedBounds?: PaddedBounds;
+
+    // What the next update should centre. Starts as the content so the chart opens showing all of
+    // itself, and is only set to a vertex when one is explicitly requested. Consumed once applied,
+    // which is what stops later updates from re-centring.
+    private pendingView?: { vertex: Vertex<TVertex, TEdge> } = undefined;
+    private hasCentredContent = false;
 
     constructor(ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
@@ -331,24 +346,9 @@ export abstract class AbstractNetworkSeries<
         this.viewportGroup.translationY = translation.y;
     }
 
-    private setFocusedVertex(vertex: Vertex<TVertex, TEdge> | undefined, target: FocusTarget) {
+    private centreVertex(vertex: Vertex<TVertex, TEdge> | undefined) {
         if (!vertex) return;
-        this.focusedVertex = vertex;
-        this.focusedTarget = target;
-    }
-
-    // Rebuilds re-run on every state change, so the initial focus must not steal focus from an
-    // active item that has already been requested.
-    protected focusInitialVertex(vertex: Vertex<TVertex, TEdge> | undefined) {
-        if (this.hasFocusedInitialVertex) return;
-        this.hasFocusedInitialVertex = true;
-        if (this.focusedVertex != null) return;
-        this.setFocusedVertex(vertex, this.getInitialFocusTarget());
-    }
-
-    /** What the initial view centres on; every later focus change centres the node itself. */
-    protected getInitialFocusTarget(): FocusTarget {
-        return NODE_FOCUS_TARGET;
+        this.pendingView = { vertex };
     }
 
     /** Scale at which the content exactly fills the viewport — the most zoomed-out the chart gets. */
@@ -367,7 +367,7 @@ export abstract class AbstractNetworkSeries<
      * content extent per side; on the other axis the viewport is the larger of the two, so it needs
      * more.
      */
-    private getPaddedContentBounds() {
+    private getPaddedContentBounds(): PaddedBounds | undefined {
         const { seriesRect } = this;
         const contentBBox = this.layout.getContentBBox();
         const fitScale = this.getContentFitScale();
@@ -413,13 +413,12 @@ export abstract class AbstractNetworkSeries<
         return Vec2.from(-left * scaling + slackX / 2, -top * scaling + slackY / 2);
     }
 
-    // ZoomManager's `panToBBox()` only brings the bbox into view, whereas the focus must end up at the
+    // ZoomManager's `panToBBox()` only brings the bbox into view, whereas this must end up at the
     // centre of the viewport.
-    private getFocusedZoom(): DefinedZoomState | undefined {
-        const contentBBox = this.layout.getContentBBox();
+    private getCentringZoom(): DefinedZoomState | undefined {
+        const bounds = this.getPendingViewBounds();
         const padded = this.getPaddedContentBounds();
-        const focusedBBox = this.getFocusedBBox();
-        if (!contentBBox || !padded || !focusedBBox) return;
+        if (!bounds || !padded) return;
 
         const zoom = definedZoomState(this.ctx.chartState.getValue('zoom'));
 
@@ -428,13 +427,9 @@ export abstract class AbstractNetworkSeries<
         const sizes = this.getSharedScaleWindowSizes(zoom.x.max - zoom.x.min, zoom.y.max - zoom.y.min);
         if (!sizes) return;
 
-        const { horizontal, vertical } = this.focusedTarget;
-        const xBounds = horizontal === 'content' ? contentBBox : focusedBBox;
-        const yBounds = vertical === 'content' ? contentBBox : focusedBBox;
-
-        const xRatio = (xBounds.x + xBounds.width / 2 - padded.x) / padded.width;
+        const xRatio = (bounds.x + bounds.width / 2 - padded.x) / padded.width;
         // Zoom publishes y-up ratios while the scene renders y-down.
-        const yRatio = 1 - (yBounds.y + yBounds.height / 2 - padded.y) / padded.height;
+        const yRatio = 1 - (bounds.y + bounds.height / 2 - padded.y) / padded.height;
 
         return {
             x: centredZoomWindow(xRatio, sizes.x),
@@ -442,9 +437,45 @@ export abstract class AbstractNetworkSeries<
         };
     }
 
-    private getFocusedBBox() {
-        if (this.focusedVertex == null) return;
-        return this.layout.getNodeBBox(this.focusedVertex);
+    /**
+     * Expanding or collapsing changes the content bounds, and so what a given ratio points at. Left
+     * alone the view would silently rescale and drift, so the ratios are re-derived to hold the scale
+     * and the centre of the viewport where they were.
+     */
+    private getContentChangeZoom(): DefinedZoomState | undefined {
+        const previous = this.zoomedPaddedBounds;
+        const padded = this.getPaddedContentBounds();
+        if (!previous || !padded || samePaddedBounds(previous, padded)) return;
+
+        const previousFit = this.getBoundsFit(previous);
+        const fit = this.getBoundsFit(padded);
+        if (!previousFit || !fit) return;
+
+        const zoom = definedZoomState(this.ctx.chartState.getValue('zoom'));
+        const xSize = zoom.x.max - zoom.x.min;
+        const ySize = zoom.y.max - zoom.y.min;
+        if (xSize <= 0 || ySize <= 0) return;
+
+        // Read against the bounds the ratios came from, otherwise the reference point moves too.
+        const centreX = previous.x + ((zoom.x.min + zoom.x.max) / 2) * previous.width;
+        const centreY = previous.y + (1 - (zoom.y.min + zoom.y.max) / 2) * previous.height;
+
+        const scale = this.constrainScale(Math.min(previousFit.x / xSize, previousFit.y / ySize));
+        const sizes = this.getWindowSizesForScale(fit, scale);
+
+        const ratioX = (centreX - padded.x) / padded.width;
+        const ratioY = 1 - (centreY - padded.y) / padded.height;
+
+        return {
+            x: centredZoomWindow(ratioX, sizes.x),
+            y: centredZoomWindow(ratioY, sizes.y),
+        };
+    }
+
+    private getPendingViewBounds() {
+        const { pendingView } = this;
+        if (pendingView) return this.layout.getNodeBBox(pendingView.vertex);
+        if (!this.hasCentredContent) return this.layout.getContentBBox();
     }
 
     // Runs on every activeItem change incl. hover — opens collapsed ancestors.
@@ -466,10 +497,11 @@ export abstract class AbstractNetworkSeries<
     }
 
     private onUpdateComplete() {
-        const zoom = this.getFocusedZoom();
+        const zoom = this.getCentringZoom() ?? this.getContentChangeZoom();
         if (!zoom) return;
 
-        this.focusedVertex = undefined;
+        this.pendingView = undefined;
+        this.hasCentredContent = true;
         this.ctx.zoomManager?.updateZoom(
             { source: 'chart-update', sourceDetail: 'internal-networkSeriesFocusChange' },
             zoom
@@ -479,7 +511,7 @@ export abstract class AbstractNetworkSeries<
     // `active:load-memento` only fires for state-restore / programmatic setState (not hover).
     private onActiveLoadMemento({ activeItem }: _ModuleSupport.ActiveLoadMementoEvent) {
         if (activeItem?.seriesId !== this.id) return;
-        this.setFocusedVertex(this.graph.findVertexById(activeItem.itemId), NODE_FOCUS_TARGET);
+        this.centreVertex(this.graph.findVertexById(activeItem.itemId));
     }
 
     private onSeriesAreaClick(event: _ModuleSupport.SeriesAreaClickEvent) {
@@ -521,10 +553,13 @@ export abstract class AbstractNetworkSeries<
     }
 
     private onZoomChangeComplete(event: _ModuleSupport.ZoomChangeCompleteEvent) {
-        // Stop focusing on a vertex when the user changes the zoom to allow the viewport to be panned.
+        // A user gesture takes precedence over any centring not yet applied.
         if (event.source === 'user-interaction') {
-            this.focusedVertex = undefined;
+            this.pendingView = undefined;
+            this.hasCentredContent = true;
         }
+
+        this.zoomedPaddedBounds = this.getPaddedContentBounds();
 
         this.applyViewportTransform();
         this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
@@ -537,17 +572,27 @@ export abstract class AbstractNetworkSeries<
      */
     private getSharedScaleWindowSizes(xSize: number, ySize: number) {
         const fit = this.getContentFit();
-        const fitScale = this.getContentFitScale();
-        if (!fit || fitScale == null || xSize <= 0 || ySize <= 0) return;
+        if (!fit || xSize <= 0 || ySize <= 0) return;
 
         // The least-zoomed axis wins, so content is preserved rather than cropped.
         const requestedScale = Math.min(fit.x / xSize, fit.y / ySize);
 
-        // Held between the content fitting the viewport and its native pixel size. Content smaller
-        // than the viewport cannot do both, and native size wins.
-        const scale = Math.min(Math.max(requestedScale, Math.min(fitScale, 1)), 1);
+        return this.getWindowSizesForScale(fit, this.constrainScale(requestedScale));
+    }
 
+    private getWindowSizesForScale(fit: { x: number; y: number }, scale: number) {
         return { x: Math.min(1, fit.x / scale), y: Math.min(1, fit.y / scale) };
+    }
+
+    /**
+     * Holds a scale between the content fitting the viewport and its native pixel size. Content
+     * smaller than the viewport cannot do both, and native size wins.
+     */
+    private constrainScale(scale: number) {
+        const fitScale = this.getContentFitScale();
+        if (fitScale == null) return scale;
+
+        return Math.min(Math.max(scale, Math.min(fitScale, 1)), 1);
     }
 
     private getRequestedWindowSizes(event: _ModuleSupport.ZoomChangeRequestEvent) {
@@ -609,11 +654,18 @@ export abstract class AbstractNetworkSeries<
     }
 
     private getContentFit() {
-        const { seriesRect } = this;
         const padded = this.getPaddedContentBounds();
-        if (!seriesRect || !padded) return;
+        if (!padded) return;
 
-        return { x: seriesRect.width / padded.width, y: seriesRect.height / padded.height };
+        return this.getBoundsFit(padded);
+    }
+
+    /** Window sizes that would fill the viewport at scale 1 for the given bounds. */
+    private getBoundsFit(bounds: PaddedBounds) {
+        const { seriesRect } = this;
+        if (!seriesRect || bounds.width <= 0 || bounds.height <= 0) return;
+
+        return { x: seriesRect.width / bounds.width, y: seriesRect.height / bounds.height };
     }
 
     // ---

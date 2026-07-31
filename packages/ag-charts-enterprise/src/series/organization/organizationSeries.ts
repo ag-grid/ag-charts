@@ -34,7 +34,7 @@ import {
 } from 'ag-charts-core';
 
 import { NetworkLinkNode } from '../network/networkLinkNode';
-import { AbstractNetworkSeries, type FocusTarget } from '../network/networkSeries';
+import { AbstractNetworkSeries } from '../network/networkSeries';
 import { NetworkTreeLayout, type NetworkTreeLayoutUpdateOptions } from '../network/networkTreeLayout';
 import type { NetworkLinkInterpolation } from '../network/networkTypes';
 import { OrganizationGraph } from './organizationGraph';
@@ -92,14 +92,6 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                 OrganizationEdge
             >[]) ?? []
         );
-    }
-
-    // The tree grows away from its root along `direction`, so the initial view reads as the whole chart
-    // down that axis while still opening on the root across it.
-    protected override getInitialFocusTarget(): FocusTarget {
-        return this.properties.direction === 'vertical'
-            ? { horizontal: 'node', vertical: 'content' }
-            : { horizontal: 'content', vertical: 'node' };
     }
 
     override isVertexCollapsed(vertex: Vertex<OrganizationVertex, OrganizationEdge>): boolean {
@@ -671,9 +663,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             this.rootVertex
         );
 
-        const rootVertices = this.getRootVertices();
-        this.graph.computeDescendants(rootVertices);
-        this.focusInitialVertex(rootVertices.at(0));
+        this.graph.computeDescendants(this.getRootVertices());
     }
 
     private createNodeDataFromVertex(
