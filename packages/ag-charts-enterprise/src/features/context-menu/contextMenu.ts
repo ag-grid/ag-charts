@@ -226,38 +226,36 @@ export class ContextMenu extends AbstractModuleInstance {
         }
     }
 
-    private seriesNodeRegion(node: PickedNode): SeriesNodeParams {
-        // FIXME: Some optional keys like dataIdKey are not set. Is that a concern?
-        const itemId = getItemId(node, node.series.data?.dataIdKey);
-        const region: SeriesNodeParams = {
-            showOn: 'series-node',
-            seriesId: node.series.id,
-            itemId,
-            datum: node.datum,
-            selectionState: node.series.getSelectionStateString(node.datumIndex),
-            isCollapsed: node.series.getCollapsedState(itemId),
-        };
-
-        for (const k of DATUM_KEYS) {
-            if (node[k] !== undefined) {
-                region[k] = node[k];
-            }
-        }
-
-        // Histogram bins carry standardised bin metadata; binIndex is always set for histogram nodes.
-        if (node.binIndex !== undefined) {
-            const { datums, binIndex, binRange, aggregatedValue, frequency } = node;
-            Object.assign(region, { datums, binIndex, binRange, aggregatedValue, frequency });
-        }
-        return region;
-    }
-
     private makeGetItemsParamsSeriesNode(
         defaultItems: AgContextMenuItem[],
         active: ReadonlySet<AgContextMenuItemShowOn>
     ): GetItemsParams {
         if (this.pickedNodes == null) throw new Error(`this.pickedNodes is null`);
-        const regions = this.pickedNodes.map((node) => this.seriesNodeRegion(node));
+        const regions = this.pickedNodes.map((node: PickedNode): SeriesNodeParams => {
+            // FIXME: Some optional keys like dataIdKey are not set. Is that a concern?
+            const itemId = getItemId(node, node.series.data?.dataIdKey);
+            const region: SeriesNodeParams = {
+                showOn: 'series-node',
+                seriesId: node.series.id,
+                itemId,
+                datum: node.datum,
+                selectionState: node.series.getSelectionStateString(node.datumIndex),
+                isCollapsed: node.series.getCollapsedState(itemId),
+            };
+
+            for (const k of DATUM_KEYS) {
+                if (node[k] !== undefined) {
+                    region[k] = node[k];
+                }
+            }
+
+            // Histogram bins carry standardised bin metadata; binIndex is always set for histogram nodes.
+            if (node.binIndex !== undefined) {
+                const { datums, binIndex, binRange, aggregatedValue, frequency } = node;
+                Object.assign(region, { datums, binIndex, binRange, aggregatedValue, frequency });
+            }
+            return region;
+        });
         if (regions.length === 0) throw new Error(`this.pickedNodes is empty`);
 
         // The topmost node (hit-test order) wins. Nodes overlapping it at this contextmenu point are broadcast in
