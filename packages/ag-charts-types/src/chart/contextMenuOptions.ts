@@ -3,6 +3,7 @@ import type {
     AgAxisContextMenuActionEvent,
     AgCaptionContextMenuActionEvent,
     AgChartContextMenuEvent,
+    AgCoordinates,
     AgCrossLineContextMenuActionEvent,
     AgNodeContextMenuActionEvent,
     AgSeriesAreaContextMenuActionEvent,
@@ -155,7 +156,7 @@ export type AgContextMenuItem<TDatum = DatumDefault, TContext = ContextDefault> 
     | AgContextMenuItemSeriesNode<TDatum, TContext>
     | AgContextMenuItemLegendItem<TDatum, TContext>;
 
-type GetItemsParamsOmissions = 'type' | 'event';
+type GetItemsParamsOmissions = 'type' | 'event' | 'coordinates';
 
 // Note: The unused `_TDatumReserved = never` are reserved for future-proofing.
 //
@@ -248,6 +249,8 @@ export type AgContextMenuShowOnParams<TDatum = DatumDefault, TContext = ContextD
 interface GetItemsParamsMixin<TDatum, TContext> {
     /** The default menu items that would be shown without customisation. */
     defaultItems: AgContextMenuItem<TDatum, TContext>[];
+    /* Domain-space coordinates of this event. */
+    coordinates: AgCoordinates;
     /**
      * Every `showOn` scope that matched at the click point, including the winning scope carried by these root
      * params. Lets the callback build one combined menu when scopes overlap — for example a datum node drawn
