@@ -253,7 +253,7 @@ describe('TreemapSeries', () => {
 
             const series = chart.series[0] as TreemapSeries;
             const tileNode = nodeAtPath(series, [0, 0]);
-            const { x, y } = _ModuleSupport.Transformable.toCanvasPoint(
+            const { canvasX: x, canvasY: y } = _ModuleSupport.Transformable.toCanvasPoint(
                 (series as any).contentGroup,
                 tileNode.bbox.x + tileNode.bbox.width / 2,
                 tileNode.bbox.y + tileNode.bbox.height / 2
@@ -760,7 +760,7 @@ describe('TreemapSeries', () => {
                 expect(nodeData.length).toBeGreaterThan(0);
                 for (const item of nodeData) {
                     const itemPoint = testParams.getNodePoint(item);
-                    const { x, y } = _ModuleSupport.Transformable.toCanvasPoint(
+                    const { canvasX: x, canvasY: y } = _ModuleSupport.Transformable.toCanvasPoint(
                         series.contentGroup,
                         itemPoint[0],
                         itemPoint[1]

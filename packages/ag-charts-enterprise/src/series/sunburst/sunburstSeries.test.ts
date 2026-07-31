@@ -207,7 +207,7 @@ describe('SunburstSeries', () => {
             const { centerX, centerY, innerRadius, outerRadius, startAngle, endAngle } = leaf;
             const r = (innerRadius + outerRadius) / 2;
             const theta = (startAngle + endAngle) / 2;
-            const { x, y } = _ModuleSupport.Transformable.toCanvasPoint(
+            const { canvasX: x, canvasY: y } = _ModuleSupport.Transformable.toCanvasPoint(
                 (series as any).contentGroup,
                 centerX + r * Math.cos(theta),
                 centerY + r * Math.sin(theta)
@@ -342,7 +342,7 @@ describe('SunburstSeries', () => {
                 expect(nodeData.length).toBeGreaterThan(0);
                 for (const item of nodeData) {
                     const itemPoint = testParams.getNodePoint(item);
-                    const { x, y } = _ModuleSupport.Transformable.toCanvasPoint(
+                    const { canvasX: x, canvasY: y } = _ModuleSupport.Transformable.toCanvasPoint(
                         series.contentGroup,
                         itemPoint[0],
                         itemPoint[1]

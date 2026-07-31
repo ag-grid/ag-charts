@@ -1327,13 +1327,13 @@ describe('PieSeries', () => {
 
         describe('should fire a nodeClick event for each visible sector', () => {
             test('mouse', async () => {
-                for (const { x, y } of iterPieSectors(chart)) {
+                for (const { canvasX: x, canvasY: y } of iterPieSectors(chart)) {
                     await waitForChartStability(chart);
                     await clickAction(x, y)(chart);
                 }
             });
             test('touch', async () => {
-                for (const { x, y } of iterPieSectors(chart)) {
+                for (const { canvasX: x, canvasY: y } of iterPieSectors(chart)) {
                     await waitForChartStability(chart);
                     await tapAction(x, y)(chart);
                 }
@@ -1348,13 +1348,13 @@ describe('PieSeries', () => {
 
         describe('should fire a nodeDoubleClick event for each visible sector', () => {
             test('mouse', async () => {
-                for (const { x, y } of iterPieSectors(chart)) {
+                for (const { canvasX: x, canvasY: y } of iterPieSectors(chart)) {
                     await waitForChartStability(chart);
                     await doubleClickAction(x, y)(chart);
                 }
             });
             test('touch', async () => {
-                for (const { x, y } of iterPieSectors(chart)) {
+                for (const { canvasX: x, canvasY: y } of iterPieSectors(chart)) {
                     await waitForChartStability(chart);
                     await doubleTapAction(x, y)(chart);
                 }

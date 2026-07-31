@@ -205,7 +205,7 @@ describe('PolarSeries', () => {
             const nodeToHighlight = (series as any).nodeData[0];
 
             let { x, y } = nodeToHighlight.midPoint as Point;
-            ({ x, y } = Transformable.toCanvasPoint(series.contentGroup, x, y));
+            ({ canvasX: x, canvasY: y } = Transformable.toCanvasPoint(series.contentGroup, x, y));
             await hoverAction(x, y)(chart);
             await waitForChartStability(chart);
 
@@ -272,7 +272,11 @@ describe('PolarSeries', () => {
                 expect(nodeData.length).toBeGreaterThan(0);
                 for (const item of nodeData) {
                     const itemPoint = testParams.getNodePoint(item);
-                    const { x, y } = Transformable.toCanvasPoint(series.contentGroup, itemPoint[0], itemPoint[1]);
+                    const { canvasX: x, canvasY: y } = Transformable.toCanvasPoint(
+                        series.contentGroup,
+                        itemPoint[0],
+                        itemPoint[1]
+                    );
                     await hoverAction(x, y)(chartInstance);
                     await waitForChartStability(chartInstance);
                     await iterator({ series, item, x, y });
