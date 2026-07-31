@@ -79,6 +79,7 @@ type AxisParams = Extract<ShowOnParams, { showOn: 'axis' }>;
 type CrossLineParams = Extract<ShowOnParams, { showOn: 'cross-line' }>;
 type CaptionParams = Extract<ShowOnParams, { showOn: 'caption' }>;
 type LegendItemParams = Extract<ShowOnParams, { showOn: 'legend-item' }>;
+type GetItemsOpts = { defaultItems: AgContextMenuItem[]; active: ReadonlySet<AgContextMenuItemShowOn> };
 type GetItemsParams = [AgContextMenuGetItemsParams, Caller[]];
 
 export class ContextMenu extends AbstractModuleInstance {
@@ -207,31 +208,32 @@ export class ContextMenu extends AbstractModuleInstance {
     private makeGetItemsParams(event: ContextMenuEvent, active: ReadonlySet<AgContextMenuItemShowOn>): GetItemsParams {
         const { showOn } = event;
         const items = this.opts.items ?? ['defaults'];
-        const defaultItems: AgContextMenuItem[] = expandBuiltinLists(active, items, this.ctx.contextMenuRegistry);
+        const opts: GetItemsOpts = {
+            defaultItems: expandBuiltinLists(active, items, this.ctx.contextMenuRegistry),
+            active,
+        };
         switch (showOn) {
             case 'always':
-                return this.makeGetItemsParamsAlways(defaultItems, active);
+                return this.makeGetItemsParamsAlways(opts);
             case 'series-area':
-                return this.makeGetItemsParamsSeriesArea(defaultItems, active);
+                return this.makeGetItemsParamsSeriesArea(opts);
             case 'series-node':
-                return this.makeGetItemsParamsSeriesNode(defaultItems, active);
+                return this.makeGetItemsParamsSeriesNode(opts);
             case 'axis':
-                return this.makeGetItemsParamsAxis(defaultItems, active);
+                return this.makeGetItemsParamsAxis(opts);
             case 'cross-line':
-                return this.makeGetItemsParamsCrossLine(defaultItems, active);
+                return this.makeGetItemsParamsCrossLine(opts);
             case 'caption':
-                return this.makeGetItemsParamsCaption(defaultItems);
+                return this.makeGetItemsParamsCaption(opts);
             case 'legend-item':
-                return this.makeGetItemsParamsLegendItem(defaultItems);
+                return this.makeGetItemsParamsLegendItem(opts);
             default:
                 return showOn satisfies never; // unreachable
         }
     }
 
-    private makeGetItemsParamsAlways(
-        defaultItems: AgContextMenuItem[],
-        active: ReadonlySet<AgContextMenuItemShowOn>
-    ): GetItemsParams {
+    private makeGetItemsParamsAlways(opts: GetItemsOpts): GetItemsParams {
+        const { defaultItems, active } = opts;
         const params: AgContextMenuGetItemsParamsAlways<unknown, unknown> = {
             showOn: 'always',
             defaultItems,
@@ -241,10 +243,8 @@ export class ContextMenu extends AbstractModuleInstance {
         return [params, callers];
     }
 
-    private makeGetItemsParamsSeriesArea(
-        defaultItems: AgContextMenuItem[],
-        active: ReadonlySet<AgContextMenuItemShowOn>
-    ): GetItemsParams {
+    private makeGetItemsParamsSeriesArea(opts: GetItemsOpts): GetItemsParams {
+        const { defaultItems, active } = opts;
         const params: AgContextMenuGetItemsParamsSeriesArea<unknown, unknown> = {
             showOn: 'series-area',
             defaultItems,
@@ -254,10 +254,8 @@ export class ContextMenu extends AbstractModuleInstance {
         return [params, callers];
     }
 
-    private makeGetItemsParamsSeriesNode(
-        defaultItems: AgContextMenuItem[],
-        active: ReadonlySet<AgContextMenuItemShowOn>
-    ): GetItemsParams {
+    private makeGetItemsParamsSeriesNode(opts: GetItemsOpts): GetItemsParams {
+        const { defaultItems, active } = opts;
         if (this.pickedNodes == null) throw new Error(`this.pickedNodes is null`);
         const regions = this.pickedNodes.map((node: PickedNode): SeriesNodeParams => {
             // FIXME: Some optional keys like dataIdKey are not set. Is that a concern?
@@ -294,10 +292,8 @@ export class ContextMenu extends AbstractModuleInstance {
         return [params, callers];
     }
 
-    private makeGetItemsParamsAxis(
-        defaultItems: AgContextMenuItem[],
-        active: ReadonlySet<AgContextMenuItemShowOn>
-    ): GetItemsParams {
+    private makeGetItemsParamsAxis(opts: GetItemsOpts): GetItemsParams {
+        const { defaultItems, active } = opts;
         if (this.pickedAxisCtx == null) throw new Error(`this.pickedAxisCtx is null`);
         const region = this.axisRegion(this.pickedAxisCtx);
         const allShowOnParams: ShowOnParams[] = [region];
@@ -314,10 +310,8 @@ export class ContextMenu extends AbstractModuleInstance {
         return [params, callers];
     }
 
-    private makeGetItemsParamsCrossLine(
-        defaultItems: AgContextMenuItem[],
-        active: ReadonlySet<AgContextMenuItemShowOn>
-    ): GetItemsParams {
+    private makeGetItemsParamsCrossLine(opts: GetItemsOpts): GetItemsParams {
+        const { defaultItems, active } = opts;
         if (this.pickedCrossLine == null) throw new Error(`this.pickedCrossLine is null`);
         const regions = this.crossLineRegions(this.pickedCrossLine);
         if (regions.length === 0) throw new Error(`this.pickedCrossLine is empty`);
@@ -336,7 +330,8 @@ export class ContextMenu extends AbstractModuleInstance {
         return [params, callers];
     }
 
-    private makeGetItemsParamsCaption(defaultItems: AgContextMenuItem[]): GetItemsParams {
+    private makeGetItemsParamsCaption(opts: GetItemsOpts): GetItemsParams {
+        const { defaultItems } = opts;
         const ctx = this.pickedCaptionCtx;
         if (ctx == null) throw new Error(`this.pickedCaptionCtx is null`);
         const region: CaptionParams = { showOn: 'caption', captionType: ctx.captionType, text: ctx.text };
@@ -349,7 +344,8 @@ export class ContextMenu extends AbstractModuleInstance {
         return [params, callers];
     }
 
-    private makeGetItemsParamsLegendItem(defaultItems: AgContextMenuItem[]): GetItemsParams {
+    private makeGetItemsParamsLegendItem(opts: GetItemsOpts): GetItemsParams {
+        const { defaultItems } = opts;
         if (this.pickedLegendItem == null) throw new Error(`this.pickedLegendItem is null`);
         const { itemId, seriesId, label, enabled } = this.pickedLegendItem;
         const text = toPlainText(label.text);
@@ -376,7 +372,7 @@ export class ContextMenu extends AbstractModuleInstance {
 
         let items: readonly Readonly<AgContextMenuItem>[] | undefined;
         if (opts.getItems) {
-            const [params, callers] = this.makeGetItemsParams(event, active);
+            const [params, callers]: GetItemsParams = this.makeGetItemsParams(event, active);
             items = callWithContext(callers, opts.getItems, params);
         }
         items ??= opts.items ?? ['defaults'];
