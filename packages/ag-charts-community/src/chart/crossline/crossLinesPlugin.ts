@@ -69,7 +69,7 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
 
     private onSeriesAreaContextMenu(event: SeriesAreaContextMenuEvent): void {
         for (const crossLine of this.instances) {
-            if (crossLine.containsPoint?.(event.canvasX, event.canvasY) !== true) continue;
+            if (crossLine.containsPoint?.(event) !== true) continue;
 
             event.crossLine.push({
                 crossLineId: crossLine.id ?? crossLine.internalId,

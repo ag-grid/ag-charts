@@ -1,12 +1,6 @@
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
-import {
-    AbstractModuleInstance,
-    ChartAxisDirection,
-    type DynamicContext,
-    type Point,
-    Property,
-    getIconClassNames,
-} from 'ag-charts-core';
+import type { CurrentPoint, DynamicContext, Point } from 'ag-charts-core';
+import { AbstractModuleInstance, ChartAxisDirection, Property, getIconClassNames } from 'ag-charts-core';
 
 import { convert, invert } from './utils/values';
 
