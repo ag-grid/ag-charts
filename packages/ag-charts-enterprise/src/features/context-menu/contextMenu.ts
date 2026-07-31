@@ -2,10 +2,12 @@ import type {
     AgAxisContextMenuActionEvent,
     AgCaptionContextMenuActionEvent,
     AgContextMenuGetItemsParams,
+    AgContextMenuGetItemsParamsAlways,
     AgContextMenuGetItemsParamsAxis,
     AgContextMenuGetItemsParamsCaption,
     AgContextMenuGetItemsParamsCrossLine,
     AgContextMenuGetItemsParamsLegendItem,
+    AgContextMenuGetItemsParamsSeriesArea,
     AgContextMenuGetItemsParamsSeriesNode,
     AgContextMenuItem,
     AgContextMenuItemShowOn,
@@ -208,9 +210,9 @@ export class ContextMenu extends AbstractModuleInstance {
         const defaultItems: AgContextMenuItem[] = expandBuiltinLists(active, items, this.ctx.contextMenuRegistry);
         switch (showOn) {
             case 'always':
+                return this.makeGetItemsParamsAlways(defaultItems, active);
             case 'series-area':
-                const chart = this.ctx.chartService;
-                return [{ showOn, defaultItems, allShowOnParams: this.plotOverlapRegions(active) }, [chart]];
+                return this.makeGetItemsParamsSeriesArea(defaultItems, active);
             case 'series-node':
                 return this.makeGetItemsParamsSeriesNode(defaultItems, active);
             case 'axis':
@@ -224,6 +226,32 @@ export class ContextMenu extends AbstractModuleInstance {
             default:
                 return showOn satisfies never; // unreachable
         }
+    }
+
+    private makeGetItemsParamsAlways(
+        defaultItems: AgContextMenuItem[],
+        active: ReadonlySet<AgContextMenuItemShowOn>
+    ): GetItemsParams {
+        const params: AgContextMenuGetItemsParamsAlways<unknown, unknown> = {
+            showOn: 'always',
+            defaultItems,
+            allShowOnParams: this.plotOverlapRegions(active),
+        };
+        const callers: Caller[] = [this.ctx.chartService];
+        return [params, callers];
+    }
+
+    private makeGetItemsParamsSeriesArea(
+        defaultItems: AgContextMenuItem[],
+        active: ReadonlySet<AgContextMenuItemShowOn>
+    ): GetItemsParams {
+        const params: AgContextMenuGetItemsParamsSeriesArea<unknown, unknown> = {
+            showOn: 'series-area',
+            defaultItems,
+            allShowOnParams: this.plotOverlapRegions(active),
+        };
+        const callers: Caller[] = [this.ctx.chartService];
+        return [params, callers];
     }
 
     private makeGetItemsParamsSeriesNode(
