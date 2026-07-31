@@ -1,4 +1,4 @@
-import type { DynamicContext, Writeable } from 'ag-charts-core';
+import type { CanvasPoint, DynamicContext, Writeable } from 'ag-charts-core';
 import type { AgContextMenuItemLiteral, AgContextMenuItemShowOn } from 'ag-charts-types';
 
 import type { ContextMenuEvent } from '../../core/eventsHub';
@@ -34,7 +34,7 @@ export class ContextMenuRegistry {
 
     public dispatchContext<T extends AgContextMenuItemShowOn>(
         showOn: T,
-        pointerEvent: { widgetEvent: MouseWidgetEvent<'contextmenu'>; canvasX: number; canvasY: number },
+        pointerEvent: { widgetEvent: MouseWidgetEvent<'contextmenu'> } & CanvasPoint,
         context: ContextShowOnMap[T]['context'],
         position?: { x: number; y: number }
     ) {
@@ -45,7 +45,7 @@ export class ContextMenuRegistry {
         primaryShowOn: AgContextMenuItemShowOn,
         regions: readonly AgContextMenuItemShowOn[],
         contexts: ContextMenuRegionContexts,
-        pointerEvent: { widgetEvent: MouseWidgetEvent<'contextmenu'>; canvasX: number; canvasY: number },
+        pointerEvent: { widgetEvent: MouseWidgetEvent<'contextmenu'> } & CanvasPoint,
         position?: { x: number; y: number }
     ) {
         const { widgetEvent } = pointerEvent;

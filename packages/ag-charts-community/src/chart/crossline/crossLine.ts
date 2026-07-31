@@ -1,4 +1,4 @@
-import type { ChartAxisDirection, Scale } from 'ag-charts-core';
+import type { CanvasPoint, ChartAxisDirection, Scale } from 'ag-charts-core';
 import { checkDatum } from 'ag-charts-core';
 import type {
     AgBaseCrossLineLabelOptions,
@@ -69,7 +69,7 @@ export interface CrossLine<LabelType = AgBaseCrossLineLabelOptions> {
      * Hit-tests a canvas-space point against the cross line's rendered line or fill, widened by a
      * small fixed pixel tolerance. Returns `false` when the cross line is not currently visible.
      */
-    containsPoint?(canvasX: number, canvasY: number): boolean;
+    containsPoint?(point: CanvasPoint): boolean;
     clippedRange: [number, number];
     enabled?: boolean;
     defaultColorRange: string[];

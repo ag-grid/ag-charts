@@ -28,7 +28,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import * as path from 'node:path';
 import { afterEach, beforeEach, expect, vi } from 'vitest';
 
-import { fromPairs, getDocument, mapValues } from 'ag-charts-core';
+import { type OffsetPoint, fromPairs, getDocument, mapValues } from 'ag-charts-core';
 import type {
     AgCartesianChartOptions,
     AgChartInstance,
@@ -769,7 +769,7 @@ export function mouseUpAction(
 export function clickAction(
     canvasX: number,
     canvasY: number,
-    opts?: { mousedown?: { offsetX: number; offsetY: number } } & EventModifierInit
+    opts?: { mousedown?: OffsetPoint } & EventModifierInit
 ): (chart: ChartOrProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);

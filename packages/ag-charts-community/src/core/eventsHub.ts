@@ -1,6 +1,7 @@
 import type {
     AxisID,
     BaseStyleTypeMap,
+    CanvasPoint,
     ChartAxisDirection,
     ChartUpdateType,
     DeepReadonly,
@@ -68,9 +69,7 @@ export interface UpdateOpts {
     clearCallbackCache?: boolean;
 }
 
-export interface SeriesAreaHoverEvent {
-    readonly canvasX: number;
-    readonly canvasY: number;
+export interface SeriesAreaHoverEvent extends Readonly<CanvasPoint> {
     readonly consumed: boolean;
     readonly sourceEvent: Event;
 }
@@ -87,9 +86,7 @@ export interface SeriesAreaClickEvent {
     readonly target: Node<unknown> | undefined;
 }
 
-export interface SeriesAreaContextMenuEvent {
-    readonly canvasX: number;
-    readonly canvasY: number;
+export interface SeriesAreaContextMenuEvent extends Readonly<CanvasPoint> {
     readonly widgetEvent: MouseWidgetEvent<'contextmenu'>;
     /**
      * The overlapping axis, if any, at the pointer. Modules that own axes annotate this so the series-area

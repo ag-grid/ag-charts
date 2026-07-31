@@ -1,4 +1,4 @@
-import type { CallbackParamRules, DynamicContext, Point, Writeable } from 'ag-charts-core';
+import type { CallbackParamRules, CanvasPoint, CurrentPoint, DynamicContext, Point, Writeable } from 'ag-charts-core';
 import { ChartUpdateType, Vec4, clamp, createId } from 'ag-charts-core';
 import type {
     AgActiveItemState,
@@ -709,7 +709,7 @@ export class SeriesAreaManager extends BaseManager {
         }
     }
 
-    private toCanvasCoordinates(event: { currentX: number; currentY: number }): { canvasX: number; canvasY: number } {
+    private toCanvasCoordinates(event: CurrentPoint): CanvasPoint {
         return {
             canvasX: event.currentX + (this.hoverRect?.x ?? this.seriesRect?.x ?? 0),
             canvasY: event.currentY + (this.hoverRect?.y ?? this.seriesRect?.y ?? 0),

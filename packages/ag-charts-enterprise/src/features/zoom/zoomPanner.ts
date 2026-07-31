@@ -2,6 +2,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 import {
     type BoxBounds,
     ChartAxisDirection,
+    type CurrentPoint,
     type DynamicContext,
     UNIT_MAX,
     UNIT_MIN,
@@ -72,7 +73,7 @@ export class ZoomPanner {
         }
     }
 
-    update(event: { currentX: number; currentY: number }) {
+    update(event: CurrentPoint) {
         this.updateCoords(event.currentX, event.currentY);
         const { x1 = 0, y1 = 0, x2 = 0, y2 = 0 } = this.coords ?? {};
         this.onUpdate?.({

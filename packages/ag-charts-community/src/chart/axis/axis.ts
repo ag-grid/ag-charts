@@ -4,6 +4,7 @@ import type {
     Callback,
     CallbackParam,
     ChartAnimationPhase,
+    CurrentPoint,
     DomainWithMetadata,
     DynamicContext,
     Normalised,
@@ -1225,7 +1226,7 @@ export abstract class Axis<
         };
     }
 
-    pickValue(point: { currentX: number; currentY: number }): AxisValuePick | undefined {
+    pickValue(point: CurrentPoint): AxisValuePick | undefined {
         const position = this.isVertical() ? point.currentY : point.currentX;
 
         const value = unsafeInvert(this.scale, position);

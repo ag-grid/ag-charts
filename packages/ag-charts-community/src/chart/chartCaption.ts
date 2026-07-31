@@ -1,4 +1,9 @@
-import type { DynamicContext, NormalisedChartCaptionOptions, NormalisedTextOrSegments } from 'ag-charts-core';
+import type {
+    CanvasPoint,
+    DynamicContext,
+    NormalisedChartCaptionOptions,
+    NormalisedTextOrSegments,
+} from 'ag-charts-core';
 import {
     FONT_SIZE,
     callWithContext,
@@ -232,7 +237,7 @@ export class ChartCaption implements CaptionLike {
         moduleCtx.tooltipManager.updateTooltip(this.id, { canvasX, canvasY, showArrow: false }, [content]);
     }
 
-    private eventToCanvas(event: MouseWidgetEvent<'mousemove' | 'contextmenu'>): { canvasX: number; canvasY: number } {
+    private eventToCanvas(event: MouseWidgetEvent<'mousemove' | 'contextmenu'>): CanvasPoint {
         const bbox = Transformable.toCanvas(this.node);
         return {
             canvasX: event.sourceEvent.offsetX + bbox.x,

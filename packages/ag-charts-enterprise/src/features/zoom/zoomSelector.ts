@@ -1,5 +1,5 @@
 import { definedZoomState } from 'ag-charts-core';
-import type { BoxBounds, DefinedZoomState, ZoomState } from 'ag-charts-core';
+import type { BoxBounds, CurrentPoint, DefinedZoomState, ZoomState } from 'ag-charts-core';
 
 import type { ZoomRect } from './scenes/zoomRect';
 import type { ZoomCoords, ZoomProperties } from './zoomTypes';
@@ -17,7 +17,7 @@ export class ZoomSelector {
         this.rect.visible = false;
     }
 
-    update(event: { currentX: number; currentY: number }, props: ZoomProperties, bbox?: BoxBounds): void {
+    update(event: CurrentPoint, props: ZoomProperties, bbox?: BoxBounds): void {
         const canvasX = event.currentX + (bbox?.x ?? 0);
         const canvasY = event.currentY + (bbox?.y ?? 0);
         this.rect.visible = true;

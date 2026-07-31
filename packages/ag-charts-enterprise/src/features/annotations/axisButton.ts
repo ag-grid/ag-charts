@@ -89,7 +89,7 @@ export class AxisButton extends AbstractModuleInstance {
         if (this.ctx.interactionManager.isState(InteractionState.Clickable) && e.device === 'touch') this.show(e);
     }
 
-    private show(event: { currentX: number; currentY: number; sourceEvent: MouseEvent | TouchEvent }) {
+    private show(event: CurrentPoint & { sourceEvent: MouseEvent | TouchEvent }) {
         const { sourceEvent, currentX: x, currentY: y } = event;
         if (!(this.enabled && this.ctx.widgets.seriesWidget.getElement().contains(sourceEvent.target as Node | null))) {
             this.hide();

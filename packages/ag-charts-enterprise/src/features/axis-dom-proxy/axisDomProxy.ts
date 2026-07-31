@@ -1,5 +1,12 @@
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
-import { AbstractModuleInstance, type AxisID, ChartAxisDirection, type DynamicContext, boxEmpty } from 'ag-charts-core';
+import {
+    AbstractModuleInstance,
+    type AxisID,
+    type CanvasPoint,
+    ChartAxisDirection,
+    type DynamicContext,
+    boxEmpty,
+} from 'ag-charts-core';
 
 type AxisHit = { axisId: AxisID; direction: ChartAxisDirection };
 
@@ -294,7 +301,7 @@ export class AxisDOMProxy extends AbstractModuleInstance {
         this.ctx.contextMenuRegistry?.dispatchContext('axis', { widgetEvent, canvasX, canvasY }, pick);
     }
 
-    private pickAxisAtPoint(point: { canvasX: number; canvasY: number }): AxisHit | undefined {
+    private pickAxisAtPoint(point: Readonly<CanvasPoint>): AxisHit | undefined {
         for (const axis of this.axes) {
             if (!this.overlappingAxisIds.has(axis.axisId)) continue;
             if (axis.bounds?.containsPoint(point.canvasX, point.canvasY)) {

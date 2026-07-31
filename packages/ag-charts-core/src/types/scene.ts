@@ -3,9 +3,34 @@ export interface Size {
     height: number;
 }
 
+// General-purpose XY coordinates.
 export interface Point {
     x: number;
     y: number;
+}
+
+// XY coordinates relative the client (user-agent / browser) viewport.
+export interface ClientPoint {
+    clientX: number;
+    clientY: number;
+}
+
+// XY coordinates relative to the AG Charts Canvas HTML Element.
+export interface CanvasPoint {
+    canvasX: number;
+    canvasY: number;
+}
+
+// XY coordinates relative the target HTML element that is currently being listened with.
+export interface CurrentPoint {
+    currentX: number;
+    currentY: number;
+}
+
+// XY coordinates relative the deepest target HTML element that is currently being interacted with.
+export interface OffsetPoint {
+    offsetX: number;
+    offsetY: number;
 }
 
 export interface SizedPoint extends Point {

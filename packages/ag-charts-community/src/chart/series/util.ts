@@ -1,4 +1,4 @@
-import { type BoxBounds, Color, findMaxIndex, findMinIndex, isString } from 'ag-charts-core';
+import { type BoxBounds, type CanvasPoint, Color, findMaxIndex, findMinIndex, isString } from 'ag-charts-core';
 import type { AgActiveItemState, AgDrawingMode } from 'ag-charts-types';
 
 import { Transformable } from '../../scene/transformable';
@@ -100,7 +100,7 @@ export function getDatumRefPoint(
     series: ISeries<any, any, any>,
     datum: SeriesNodeDatum & Pick<ErrorBoundSeriesNodeDatum, 'yBar'>,
     movedBounds: BoxBounds | undefined
-): { canvasX: number; canvasY: number } | undefined {
+): CanvasPoint | undefined {
     if (movedBounds) {
         const { x, y, width, height } = movedBounds;
         return { canvasX: x + width / 2, canvasY: y + height / 2 };

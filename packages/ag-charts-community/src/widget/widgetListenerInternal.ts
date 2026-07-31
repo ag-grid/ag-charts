@@ -1,4 +1,11 @@
-import { type AnyFn, CleanupRegistry, attachListener, boxContains, partialAssign } from 'ag-charts-core';
+import {
+    type AnyFn,
+    CleanupRegistry,
+    type OffsetPoint,
+    attachListener,
+    boxContains,
+    partialAssign,
+} from 'ag-charts-core';
 
 import { type MouseDragCallbacks, type MouseDragger, startMouseDrag } from './mouseDragger';
 import { type TouchDragCallbacks, type TouchDragger, startOneFingerTouch } from './touchDragger';
@@ -49,7 +56,7 @@ function makeMouseDrag<K extends DragEvents>(type: K, origin: DragOrigin, source
     };
 }
 
-export function getTouchOffsets(current: Targetable, touch: Touch): { offsetX: number; offsetY: number } {
+export function getTouchOffsets(current: Targetable, touch: Touch): OffsetPoint {
     const elem = current.getElement();
     const rect = elem.getBoundingClientRect();
     // clientX/Y matches rect.x/y's coordinate space; pageX/Y would be wrong by the page scroll offset.

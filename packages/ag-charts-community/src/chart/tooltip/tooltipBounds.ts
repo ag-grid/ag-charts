@@ -1,4 +1,4 @@
-import type { Bounds } from 'ag-charts-core';
+import type { Bounds, CanvasPoint } from 'ag-charts-core';
 import type { AgTooltipAnchorTo, AgTooltipPlacement } from 'ag-charts-types';
 
 const horizontalAlignments: Record<AgTooltipPlacement, -1 | 0 | 1> = {
@@ -25,12 +25,10 @@ const verticalAlignments: Record<AgTooltipPlacement, -1 | 0 | 1> = {
     'bottom-right': 1,
 };
 
-export interface TooltipBoundsOpts {
+export interface TooltipBoundsOpts extends CanvasPoint {
     elementSize: { width: number; height: number };
     anchorTo: AgTooltipAnchorTo;
     placement: AgTooltipPlacement;
-    canvasX: number;
-    canvasY: number;
     yOffset: number;
     xOffset: number;
     offset: number;
