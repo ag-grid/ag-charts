@@ -44,7 +44,7 @@ import {
     toArray,
     zeroLike,
 } from 'ag-charts-core';
-import type { AgNumericValue, SelectionState } from 'ag-charts-types';
+import type { AgCoordinates, AgNumericValue, SelectionState } from 'ag-charts-types';
 
 import type { WaterfallSeriesItem, WaterfallSeriesTotal } from './waterfallSeriesProperties';
 import { WaterfallSeriesProperties } from './waterfallSeriesProperties';
@@ -203,9 +203,11 @@ class WaterfallSeriesNodeEvent<
         nativeEvent: Event,
         datum: WaterfallNodeDatum,
         series: WaterfallSeries,
-        selectionState: SelectionState | undefined
+        selectionState: SelectionState | undefined,
+        isCollapsed: boolean | undefined,
+        coordinates: AgCoordinates | undefined
     ) {
-        super(type, nativeEvent, datum, series, selectionState);
+        super(type, nativeEvent, datum, series, selectionState, isCollapsed, coordinates);
         this.itemType = datum.itemType;
     }
 }

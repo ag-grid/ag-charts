@@ -45,7 +45,7 @@ import {
     toArray,
     toNumber,
 } from 'ag-charts-core';
-import type { AgNumericValue, CssColor } from 'ag-charts-types';
+import type { AgCoordinates, AgNumericValue, CssColor } from 'ag-charts-types';
 
 import {
     type RangeAreaSeriesDataAggregationFilter,
@@ -223,9 +223,11 @@ class RangeAreaSeriesNodeEvent<
         nativeEvent: Event,
         datum: RangeAreaMarkerDatum,
         series: RangeAreaSeries,
-        selectionState: SelectionState | undefined
+        selectionState: SelectionState | undefined,
+        isCollapsed: boolean | undefined,
+        coordinates: AgCoordinates | undefined
     ) {
-        super(type, nativeEvent, datum, series, selectionState);
+        super(type, nativeEvent, datum, series, selectionState, isCollapsed, coordinates);
         this.xKey = series.properties.xKey;
         this.yLowKey = series.properties.yLowKey;
         this.yHighKey = series.properties.yHighKey;

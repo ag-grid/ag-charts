@@ -18,7 +18,7 @@ import type {
     RequireOptional,
 } from 'ag-charts-core';
 import { ChartAxisDirection, deepClone, isNumericValue, mergeDefaults, toNumber } from 'ag-charts-core';
-import type { AgNumericValue } from 'ag-charts-types';
+import type { AgCoordinates, AgNumericValue } from 'ag-charts-types';
 
 import { prepareBoxPlotFromTo, resetBoxPlotSelectionsScalingCenterFn } from './blotPlotUtil';
 import { BoxPlotNode } from './boxPlotNode';
@@ -132,9 +132,11 @@ class BoxPlotSeriesNodeEvent<
         nativeEvent: Event,
         datum: BoxPlotNodeDatum,
         series: BoxPlotSeries,
-        selectionState: SelectionState | undefined
+        selectionState: SelectionState | undefined,
+        isCollapsed: boolean | undefined,
+        coordinates: AgCoordinates | undefined
     ) {
-        super(type, nativeEvent, datum, series, selectionState);
+        super(type, nativeEvent, datum, series, selectionState, isCollapsed, coordinates);
         this.xKey = series.properties.xKey;
         this.minKey = series.properties.minKey;
         this.q1Key = series.properties.q1Key;

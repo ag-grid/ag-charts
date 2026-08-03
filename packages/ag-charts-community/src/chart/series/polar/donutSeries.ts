@@ -34,6 +34,7 @@ import {
     wrapTextOrSegments,
 } from 'ag-charts-core';
 import type {
+    AgCoordinates,
     AgDonutCalloutLineItemStylerParams,
     AgDonutCalloutLineItemStylerResult,
     AgDonutSeriesCalloutOptions,
@@ -111,9 +112,11 @@ class PieDonutSeriesNodeEvent<TEvent extends string = SeriesNodeEventTypes> exte
         nativeEvent: Event,
         datum: PieDonutNodeDatum,
         series: DonutSeries,
-        selectionState: SelectionState | undefined
+        selectionState: SelectionState | undefined,
+        isCollapsed: boolean | undefined,
+        coordinates: AgCoordinates | undefined
     ) {
-        super(type, nativeEvent, datum, series, selectionState);
+        super(type, nativeEvent, datum, series, selectionState, isCollapsed, coordinates);
         this.angleKey = series.properties.angleKey;
         this.radiusKey = series.properties.radiusKey;
         this.calloutLabelKey = series.properties.calloutLabelKey;

@@ -51,7 +51,7 @@ import {
     toArray,
     toNumber,
 } from 'ag-charts-core';
-import type { AgNumericValue, PaddingOptions } from 'ag-charts-types';
+import type { AgCoordinates, AgNumericValue, PaddingOptions } from 'ag-charts-types';
 
 import {
     type RangeBarSeriesDataAggregationFilter,
@@ -252,9 +252,11 @@ class RangeBarSeriesNodeEvent<
         nativeEvent: Event,
         datum: RangeBarNodeDatum,
         series: RangeBarSeries,
-        selectionState: SelectionState | undefined
+        selectionState: SelectionState | undefined,
+        isCollapsed: boolean | undefined,
+        coordinates: AgCoordinates | undefined
     ) {
-        super(type, nativeEvent, datum, series, selectionState);
+        super(type, nativeEvent, datum, series, selectionState, isCollapsed, coordinates);
         this.xKey = series.properties.xKey;
         this.yLowKey = series.properties.yLowKey;
         this.yHighKey = series.properties.yHighKey;

@@ -189,6 +189,7 @@ export class SeriesNodeEvent<
     readonly dataIdKey: string | undefined;
     readonly selectionState: PublicSelectionState | undefined;
     readonly isCollapsed: boolean | undefined;
+    readonly coordinates: AgCoordinates | undefined;
     defaultPrevented = false;
 
     constructor(
@@ -197,7 +198,8 @@ export class SeriesNodeEvent<
         nodeDatum: TDatum,
         series: ISeries<TDatum, ISeriesProperties, unknown>,
         selectionState: PublicSelectionState | undefined,
-        isCollapsed: boolean | undefined = undefined
+        isCollapsed: boolean | undefined = undefined,
+        coordinates: AgCoordinates | undefined
     ) {
         this.datum = nodeDatum.datum;
         this.datums = nodeDatum.datums;
@@ -207,6 +209,7 @@ export class SeriesNodeEvent<
         this.itemId = getItemId(nodeDatum, this.dataIdKey);
         this.selectionState = selectionState;
         this.isCollapsed = isCollapsed;
+        this.coordinates = coordinates;
     }
 
     public preventDefault() {
