@@ -10,6 +10,7 @@ import {
     type AgChartLabelOptions,
     type AgChartLabelPlacementStyleOptions,
     type AgChartLabelStyleOptions,
+    type AgChartLegendOptions,
     type AgChartLegendPlacement,
     type AgChartLegendPositionOptions,
     type AgChartOverlayOptions,
@@ -20,6 +21,7 @@ import {
     type AgDropShadowOptions,
     type AgErrorBarOptions,
     type AgErrorBarThemeableOptions,
+    type AgGradientLegendOptions,
     type AgInitialFocus,
     type AgInterpolationType,
     type AgLineSeriesLabelOptions,
@@ -377,6 +379,105 @@ timeIntervalDefs.every = callback;
 
 export const timeInterval = optionsDefs<AgTimeInterval>(timeIntervalDefs, 'a time interval object');
 
+// The `legend` plugin module re-validates these options on a second pass; both passes must share one definition.
+export const legendOptionsDefs: OptionsDefs<AgChartLegendOptions> = {
+    enabled: boolean,
+    position: legendPositionValidator,
+    orientation: union('horizontal', 'vertical'),
+    maxWidth: positiveNumber,
+    maxHeight: positiveNumber,
+    spacing: positiveNumber,
+    border: borderOptionsDef,
+    cornerRadius: number,
+    padding: padding,
+    fill: colorUnion,
+    fillOpacity: ratio,
+    preventHidingAll: boolean,
+    reverseOrder: boolean,
+    toggleSeries: boolean,
+    item: {
+        marker: {
+            size: positiveNumber,
+            shape: shapeValidator,
+            padding: padding,
+            strokeWidth: positiveNumber,
+        },
+        line: {
+            length: positiveNumber,
+            strokeWidth: positiveNumber,
+        },
+        label: {
+            maxLength: positiveNumber,
+            formatter: callback,
+            ...fontOptionsDef,
+        },
+        tooltip: {
+            visible: union('auto', 'always', 'never'),
+            text: string,
+            renderer: callback,
+        },
+        maxWidth: positiveNumber,
+        padding: padding,
+        showSeriesStroke: boolean,
+    },
+    pagination: {
+        marker: {
+            size: positiveNumber,
+            shape: shapeValidator,
+            padding: padding,
+        },
+        activeStyle: {
+            ...fillOptionsDef,
+            ...strokeOptionsDef,
+        },
+        inactiveStyle: {
+            ...fillOptionsDef,
+            ...strokeOptionsDef,
+        },
+        highlightStyle: {
+            ...fillOptionsDef,
+            ...strokeOptionsDef,
+        },
+        label: fontOptionsDef,
+    },
+    listeners: {
+        legendItemClick: callback,
+        legendItemDoubleClick: callback,
+    },
+};
+
+// The `gradientLegend` plugin module re-validates these options on a second pass; both passes must share one definition.
+export const gradientLegendOptionsDefs: OptionsDefs<AgGradientLegendOptions> = {
+    enabled: boolean,
+    position: legendPositionValidator,
+    spacing: positiveNumber,
+    reverseOrder: boolean,
+    border: borderOptionsDef,
+    cornerRadius: number,
+    padding: padding,
+    fill: colorUnion,
+    fillOpacity: ratio,
+    gradient: {
+        preferredLength: positiveNumber,
+        thickness: positiveNumber,
+    },
+    scale: {
+        label: {
+            ...fontOptionsDef,
+            minSpacing: positiveNumber,
+            format: numberFormatValidator,
+            formatter: callback,
+        },
+        padding: positiveNumber,
+        interval: {
+            step: number,
+            values: array,
+            minSpacing: and(positiveNumber, lessThan('maxSpacing')),
+            maxSpacing: and(positiveNumber, greaterThan('minSpacing')),
+        },
+    },
+};
+
 export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOptions, 'navigator'>> = {
     width: positiveNumber,
     height: positiveNumber,
@@ -393,101 +494,8 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
         cornerRadius: number,
         padding: or(themeOperator, padding),
     },
-    legend: {
-        enabled: boolean,
-        position: legendPositionValidator,
-        orientation: union('horizontal', 'vertical'),
-        maxWidth: positiveNumber,
-        maxHeight: positiveNumber,
-        spacing: positiveNumber,
-        border: borderOptionsDef,
-        cornerRadius: number,
-        padding: padding,
-        fill: colorUnion,
-        fillOpacity: ratio,
-        preventHidingAll: boolean,
-        reverseOrder: boolean,
-        toggleSeries: boolean,
-        item: {
-            marker: {
-                size: positiveNumber,
-                shape: shapeValidator,
-                padding: padding,
-                strokeWidth: positiveNumber,
-            },
-            line: {
-                length: positiveNumber,
-                strokeWidth: positiveNumber,
-            },
-            label: {
-                maxLength: positiveNumber,
-                formatter: callback,
-                ...fontOptionsDef,
-            },
-            tooltip: {
-                visible: union('auto', 'always', 'never'),
-                text: string,
-                renderer: callback,
-            },
-            maxWidth: positiveNumber,
-            padding: padding,
-            showSeriesStroke: boolean,
-        },
-        pagination: {
-            marker: {
-                size: positiveNumber,
-                shape: shapeValidator,
-                padding: positiveNumber,
-            },
-            activeStyle: {
-                ...fillOptionsDef,
-                ...strokeOptionsDef,
-            },
-            inactiveStyle: {
-                ...fillOptionsDef,
-                ...strokeOptionsDef,
-            },
-            highlightStyle: {
-                ...fillOptionsDef,
-                ...strokeOptionsDef,
-            },
-            label: fontOptionsDef,
-        },
-        listeners: {
-            legendItemClick: callback,
-            legendItemDoubleClick: callback,
-        },
-    },
-    gradientLegend: {
-        enabled: boolean,
-        position: legendPositionValidator,
-        spacing: positiveNumber,
-        reverseOrder: boolean,
-        border: borderOptionsDef,
-        cornerRadius: number,
-        padding: padding,
-        fill: colorUnion,
-        fillOpacity: ratio,
-        gradient: {
-            preferredLength: positiveNumber,
-            thickness: positiveNumber,
-        },
-        scale: {
-            label: {
-                ...fontOptionsDef,
-                minSpacing: positiveNumber,
-                format: numberFormatValidator,
-                formatter: callback,
-            },
-            padding: positiveNumber,
-            interval: {
-                step: number,
-                values: array,
-                minSpacing: and(positiveNumber, lessThan('maxSpacing')),
-                maxSpacing: and(positiveNumber, greaterThan('minSpacing')),
-            },
-        },
-    },
+    legend: legendOptionsDefs,
+    gradientLegend: gradientLegendOptionsDefs,
     listeners: {
         seriesNodeClick: callback,
         seriesNodeDoubleClick: callback,
