@@ -146,6 +146,39 @@ record_node_path() {
     printf '%s\n' "$bin" >"$AG_CLOUD_CACHE_DIR/node-bin-path"
 }
 
+# The image ships its own node (/opt/node22/bin) ahead of nvm's on PATH, so
+# pinning through nvm changes nothing for the session: one session measured
+# 22.22.2 while .nvmrc's 22.21.1 sat installed and unused. Exporting PATH from the
+# SessionStart hook does not fix it either, because the shell the Bash tool spawns
+# reads neither .bashrc (non-interactive) nor .profile (non-login). Point the
+# binary the session actually resolves at the pinned one instead.
+align_default_node() {
+    local pinned_bin pinned_version
+    pinned_bin="$(head -1 "$AG_CLOUD_CACHE_DIR/node-bin-path" 2>/dev/null || true)"
+    [[ -n "$pinned_bin" && -x "$pinned_bin/node" ]] || return 0
+    pinned_version="$("$pinned_bin/node" -v 2>/dev/null)"
+
+    # Every node ahead of the pinned one on PATH, in order.
+    local dir found=0
+    while IFS= read -r dir; do
+        [[ "$dir" == "$pinned_bin" ]] && break
+        [[ -x "$dir/node" ]] || continue
+        [[ -w "$dir" ]] || {
+            log_warn "cannot repoint ${dir}/node (not writable)"
+            continue
+        }
+        [[ "$("$dir/node" -v 2>/dev/null)" == "$pinned_version" ]] && continue
+
+        [[ -e "$dir/node.pre-ag" ]] || mv "$dir/node" "$dir/node.pre-ag"
+        ln -sfn "$pinned_bin/node" "$dir/node"
+        log_info "repointed ${dir}/node at ${pinned_version} (original kept as node.pre-ag)"
+        found=1
+    done < <(tr ':' '\n' <<<"$PATH")
+
+    ((found == 1)) || log_info "node ${pinned_version} already wins on PATH"
+    log_info "node now resolves to $(node -v 2>/dev/null || echo '?')"
+}
+
 install_yarn_and_nx() {
     if ! command -v yarn &>/dev/null; then
         npm i -g --force yarn@1 >/dev/null 2>&1 || {
@@ -354,6 +387,7 @@ main() {
     # Recorded unconditionally: whatever node the session should use, including
     # the preinstalled one when pinning was skipped or failed.
     record_node_path
+    step "align default node" align_default_node || true
     step "install yarn + nx" install_yarn_and_nx
 
     # Marketplaces first: they are seconds of work, they are the only thing that
