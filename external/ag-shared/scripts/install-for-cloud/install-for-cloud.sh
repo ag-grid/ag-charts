@@ -139,6 +139,65 @@ restore_node_modules_from_cache() {
 }
 
 # ---------------------------------------------------------------------------
+# Background install — cloud sessions only.
+#
+# Claude Code waits for SessionStart hooks to finish before it processes the
+# first message, so a blocking `yarn install` here freezes the whole session for
+# minutes with no output at all: measured in a real cloud session, which sat
+# silent for 9+ minutes and never answered. Correctness still requires a full
+# install, so run it detached and tell the session what is happening and how to
+# wait, instead of stalling it.
+#
+# Local and worktree runs keep the original blocking behaviour: there is a human
+# watching a terminal there, and no session to starve.
+# ---------------------------------------------------------------------------
+
+deps_state_dir() { echo "${AG_CLOUD_CACHE_DIR}/deps"; }
+
+start_background_install() {
+    local state
+    state="$(deps_state_dir)"
+    mkdir -p "$state"
+
+    # Lock via mkdir so a second hook run (resume, parallel session) does not
+    # start a competing install.
+    if ! mkdir "$state/lock" 2>/dev/null; then
+        log_info "an install is already running (lock held), not starting another"
+        return 0
+    fi
+
+    rm -f "$state/ready" "$state/failed"
+    date +%s >"$state/started"
+
+    nohup bash -c "
+        cd '$PWD' || exit 1
+        export AG_SKIP_NATIVE_DEP_VERSION_CHECK=1 PUPPETEER_SKIP_DOWNLOAD=true NX_DAEMON=false
+        if yarn install --prefer-offline >'$state/install.log' 2>&1; then
+            date +%s >'$state/ready'
+        else
+            date +%s >'$state/failed'
+        fi
+        rmdir '$state/lock' 2>/dev/null
+    " >/dev/null 2>&1 &
+    disown 2>/dev/null || true
+
+    # Hook stdout becomes session context, so this is the message Claude reads.
+    cat <<EOF
+[install-for-cloud] Dependencies are NOT ready yet in this cloud session.
+
+A full 'yarn install' is running in the background because no valid node_modules
+and no seeded cache were found. Until it completes, builds, tests, lint and any
+'yarn nx' command will fail or behave oddly. Reading and editing files is fine.
+
+Before running any build/test/lint command, wait for it:
+  bash external/ag-shared/scripts/install-for-cloud/wait-for-deps.sh
+
+Progress log: $state/install.log
+EOF
+    log_info "background install started; session is usable immediately"
+}
+
+# ---------------------------------------------------------------------------
 # Environment detection — same signals as before
 # ---------------------------------------------------------------------------
 
@@ -172,7 +231,9 @@ fi
 # cloud-setup.sh left behind, before deciding whether an install is needed.
 # ---------------------------------------------------------------------------
 
+IN_CLOUD_SESSION=0
 if [[ "${CLAUDE_CODE_REMOTE:-}" == "true" ]] || [[ "${AG_CLOUD_INSTALL:-}" == "1" ]]; then
+    IN_CLOUD_SESSION=1
     apply_cached_node_path
     if [[ -f package.json ]]; then
         restore_node_modules_from_cache || true
@@ -192,7 +253,11 @@ if command -v yarn &>/dev/null && [[ -d node_modules ]]; then
         log_info "yarn and node_modules present and valid, skipping bootstrap"
         exit 0
     fi
-    log_info "node_modules present but integrity check failed, running yarn install"
+    log_info "node_modules present but integrity check failed, install needed"
+    if [[ "$IN_CLOUD_SESSION" == "1" ]]; then
+        start_background_install
+        exit 0
+    fi
     yarn install --prefer-offline
     exit $?
 fi
@@ -268,6 +333,12 @@ main() {
 
     if ! install_nx_if_missing; then
         exit 2
+    fi
+
+    # In a cloud session the install must not block the SessionStart hook.
+    if [[ "$IN_CLOUD_SESSION" == "1" ]]; then
+        start_background_install
+        exit 0
     fi
 
     # Delegate to yarn install — preinstall-worktree.sh handles COW cloning,

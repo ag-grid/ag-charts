@@ -31,6 +31,21 @@ REF="${AG_DEV_PROMPTS_REF:-latest}"
 REPO_DIR="$CACHE_ROOT/repo"
 REPO_SLUG="${AG_DEV_PROMPTS_SLUG:-ag-grid/ag-dev-prompts}"
 
+# Claude Code cloud sessions set GITHUB_TOKEN/GH_TOKEN to the literal string
+# 'proxy-injected' when their GitHub proxy is handling authentication: the value
+# is a placeholder, and the proxy substitutes real credentials on outbound
+# requests. Sending it as a Bearer token authenticates as nobody and the clone
+# fails, taking the plugin content — and therefore every skill and generated
+# rule — down with it. Drop it so the plain-HTTPS path runs and the proxy can do
+# its job. Observed in a cloud session where this left all five canary skills
+# missing and rulesync failing on the absent .rulesync/mcp.json.
+if [[ "${GITHUB_TOKEN:-}" == "proxy-injected" ]]; then
+    unset GITHUB_TOKEN
+fi
+if [[ "${GH_TOKEN:-}" == "proxy-injected" ]]; then
+    unset GH_TOKEN
+fi
+
 # Track which auth path was selected so failure messages can be tailored.
 # Set here (not inside the resolver) because resolve_repo_url runs inside a
 # command substitution subshell, so assignments there wouldn't propagate.
