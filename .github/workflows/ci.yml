@@ -1263,6 +1263,7 @@ jobs:
             contents: write
             pull-requests: write
             statuses: write
+            deployments: write
         needs:
             [
                 detect-changes,
@@ -1467,6 +1468,53 @@ jobs:
                     -f description="${description}" \
                     -f target_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 
+            - name: Record staging deployment
+              # Complements the commit status above with a GitHub deployment record, giving
+              # a chronological "what is on staging, and what was before it" history at
+              # /deployments/staging rather than one status per commit to trawl.
+              #
+              # Deliberately omits environment_url: this repository is public, so the
+              # deployment record is world-readable and we do not advertise the staging
+              # hostname here. Only runs when a deploy was actually attempted -- the
+              # "CI did not pass, never tried" case stays out so the history is real deploys.
+              #
+              # continue-on-error for the same reason as the JIRA step below: `run:` blocks
+              # execute under `bash -e`, so a transient gh api failure would abort the step
+              # and redden a job whose deploy had already succeeded. The record is a
+              # convenience, never worth failing a good deploy over.
+              if: always() && job.status != 'cancelled' && github.ref == 'refs/heads/latest' && contains(fromJSON('["success", "failure"]'), steps.deploy_to_staging.outcome)
+              continue-on-error: true
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  # required_contexts:[] is mandatory: without it the API refuses to create
+                  # the deployment while any other check on this SHA is still pending. It has
+                  # no shorthand in gh's -f/-F flags, hence the JSON body on stdin.
+                  deployment_id=$(jq -n \
+                      --arg ref "${{ github.sha }}" \
+                      '{ref: $ref, environment: "staging", description: "AG Charts website", auto_merge: false, required_contexts: []}' \
+                    | gh api --method POST \
+                      -H "Accept: application/vnd.github+json" \
+                      "/repos/${{ github.repository }}/deployments" \
+                      --input - \
+                      --jq '.id')
+
+                  gh api --method POST \
+                    -H "Accept: application/vnd.github+json" \
+                    "/repos/${{ github.repository }}/deployments/${deployment_id}/statuses" \
+                    -f state="${{ steps.deploy_to_staging.outcome }}" \
+                    -f description="Staging deploy ${{ steps.deploy_to_staging.outcome }}" \
+                    -f log_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+            - name: Tag Deployed Staging Commit
+              # Moving tag so the commit currently live on staging shows as an inline chip
+              # in the commits list, with no status icon to hover.
+              if: always() && job.status != 'cancelled' && github.ref == 'refs/heads/latest' && steps.deploy_to_staging.outcome == 'success'
+              uses: EndBug/latest-tag@latest
+              with:
+                  ref: staging
+                  description: Commit currently deployed to the staging website.
+
             - name: Tag Latest Successful Commit
               if: success() && needs.init.result == 'success' && needs.init.outputs.build_type != 'pr' && steps.lastJobStatus.outputs.workflowStatus != 'failure'
               uses: EndBug/latest-tag@latest
@@ -1498,6 +1546,33 @@ jobs:
                   LIBRARY_WEBSITE_STATUS_CHANNEL: ${{ env.LIBRARY_WEBSITE_STATUS_CHANNEL }}
                   DEPLOY_TO_STAGING: 'true'
               run: node ./external/ag-shared/scripts/slack/notify-staging-deploy.mjs
+
+            - name: Comment on deployed JIRA tickets
+              # Tells each AG ticket in this deploy that it is live on staging, with the
+              # verification link, so nobody has to reconstruct it by hand. Shares
+              # find_latest_sha with the Slack notification above so both describe the
+              # same commit range.
+              #
+              # continue-on-error: a JIRA outage or a token-scope problem must never turn
+              # a successful deploy red. The script also swallows per-ticket failures, so
+              # this only trips on a total failure (e.g. missing config).
+              if: always() && job.status != 'cancelled' && github.ref == 'refs/heads/latest' && steps.deploy_to_staging.outcome == 'success'
+              continue-on-error: true
+              shell: bash
+              env:
+                  JIRA_EMAIL: ${{ secrets.JIRA_AI_BOT_EMAIL }}
+                  JIRA_API_TOKEN: ${{ secrets.JIRA_AI_BOT_API_TOKEN }}
+                  JIRA_SITE_URL: ${{ vars.JIRA_SITE_URL }}
+                  # Reads the deployed commit range from the compare API, so the shallow
+                  # checkout in this job does not matter. GITHUB_REPOSITORY is already in
+                  # the default step environment.
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  AG_PROJECT: AgCharts
+                  RUN_ID: ${{ github.run_id }}
+                  RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+                  CURRENT_SHA: ${{ github.sha }}
+                  LAST_SUCCESSFUL_SHA: ${{ steps.find_latest_sha.outputs.sha }}
+              run: node ./tools/staging/notify-jira-staging-deploy.mjs
 
             # --- CI status alert (bot token — the single notification point) ----
             # THE Slack alert for every non-PR CI state change — success and
