@@ -1259,7 +1259,6 @@ export abstract class Series<
     fireNodeClickEvent(event: Event, datum: TDatum, coordinates: AgCoordinates | undefined): boolean {
         const selectionState = this.getSelectionStateString(datum.datumIndex);
         const isCollapsed = datum.itemId == null ? undefined : this.getCollapsedState(datum.itemId);
-        this.ctx.chartService.callListener;
         const clickEvent = new this.NodeEvent(
             'seriesNodeClick',
             event,
