@@ -8,6 +8,7 @@ import {
     type DynamicContext,
     Vec2,
     Vertex,
+    clamp,
     definedZoomState,
     strictObjectKeys,
 } from 'ag-charts-core';
@@ -40,12 +41,16 @@ export interface NetworkLinkDatum<NetworkVertex, TNetworkEdge> {
 
 const ZOOM_EPSILON = 1e-6;
 
-// Keeps `[mid - range/2, mid + range/2]` inside `[0, 1]`.
-function clampMid(mid: number, range: number): number {
-    const half = range / 2;
-    if (mid - half < 0) return half;
-    if (mid + half > 1) return 1 - half;
-    return mid;
+/**
+ * Keeps `[mid - range/2, mid + range/2]` inside `[0, 1]`, and additionally holds `mid` within
+ * `limit` of either end. `limit` is where the content edges sit, so a pan can bring an edge to the
+ * centre of the viewport but no further — without it, zooming in would expose enough slack to drag
+ * the content off the viewport entirely. At the fit scale the two bounds coincide.
+ */
+function clampMid(mid: number, range: number, limit: number): number {
+    const bound = Math.min(Math.max(range / 2, limit), 0.5);
+
+    return clamp(bound, mid, 1 - bound);
 }
 
 interface WindowSizes {
@@ -58,6 +63,9 @@ interface PaddedBounds {
     y: number;
     width: number;
     height: number;
+    /** Ratio inset, within these bounds, of the content edges on each axis. */
+    limitX: number;
+    limitY: number;
 }
 
 // Tolerant of sub-pixel layout noise, which would otherwise read as a content change on every update.
@@ -70,9 +78,9 @@ function samePaddedBounds(a: PaddedBounds, b: PaddedBounds) {
     );
 }
 
-// Positions a window of `size` to centre `ratio`, without letting it leave `[0, 1]`.
-function centredZoomWindow(ratio: number, size: number) {
-    const mid = clampMid(ratio, size);
+// Positions a window of `size` to centre `ratio`, subject to the `clampMid` bounds.
+function centredZoomWindow(ratio: number, size: number, limit: number) {
+    const mid = clampMid(ratio, size, limit);
     return { min: mid - size / 2, max: mid + size / 2 };
 }
 
@@ -375,28 +383,41 @@ export abstract class AbstractNetworkSeries<
         return Math.min(seriesRect.width / contentBBox.width, seriesRect.height / contentBBox.height);
     }
 
+    /** The most zoomed-out the view goes: content fitting the viewport, or native size if that is nearer. */
+    private getMinScale() {
+        const fitScale = this.getContentFitScale();
+        if (fitScale == null) return;
+
+        return Math.min(fitScale, 1);
+    }
+
     /**
-     * Content bounds grown by a viewport's worth of space on every side — the space that zoom ratios
-     * `[0, 1]` address. That is exactly enough for any node, including those at the very edges, to
-     * reach any position in the viewport. On the axis that limits the fit scale it works out as one
-     * content extent per side; on the other axis the viewport is the larger of the two, so it needs
-     * more.
+     * Content bounds grown by half a viewport on every side — the space that zoom ratios `[0, 1]`
+     * address. That is exactly enough for either edge of the content to sit at the centre of the
+     * viewport, and no more, so a pan can always be reversed by dragging back the other way.
      */
     private getPaddedContentBounds(): PaddedBounds | undefined {
         const { seriesRect } = this;
         const contentBBox = this.layout.getContentBBox();
-        const fitScale = this.getContentFitScale();
-        if (!seriesRect || !contentBBox || fitScale == null || fitScale <= 0) return;
+        const minScale = this.getMinScale();
+        if (!seriesRect || !contentBBox || minScale == null || minScale <= 0) return;
 
-        // Measured at the fit scale so that the padding never depends on the current zoom.
-        const padX = seriesRect.width / fitScale;
-        const padY = seriesRect.height / fitScale;
+        // Sized against the largest viewport the content is ever seen through, so the padding covers
+        // every reachable zoom rather than depending on the current one. Content smaller than the
+        // viewport never scales up past native size, so the fit scale alone would understate this.
+        const padX = seriesRect.width / minScale / 2;
+        const padY = seriesRect.height / minScale / 2;
+
+        const width = contentBBox.width + padX * 2;
+        const height = contentBBox.height + padY * 2;
 
         return {
             x: contentBBox.x - padX,
             y: contentBBox.y - padY,
-            width: contentBBox.width + padX * 2,
-            height: contentBBox.height + padY * 2,
+            width,
+            height,
+            limitX: padX / width,
+            limitY: padY / height,
         };
     }
 
@@ -447,8 +468,8 @@ export abstract class AbstractNetworkSeries<
         const yRatio = 1 - (bounds.y + bounds.height / 2 - padded.y) / padded.height;
 
         return {
-            x: centredZoomWindow(xRatio, sizes.x),
-            y: centredZoomWindow(yRatio, sizes.y),
+            x: centredZoomWindow(xRatio, sizes.x, padded.limitX),
+            y: centredZoomWindow(yRatio, sizes.y, padded.limitY),
         };
     }
 
@@ -482,8 +503,8 @@ export abstract class AbstractNetworkSeries<
         const ratioY = 1 - (centreY - padded.y) / padded.height;
 
         return {
-            x: centredZoomWindow(ratioX, sizes.x),
-            y: centredZoomWindow(ratioY, sizes.y),
+            x: centredZoomWindow(ratioX, sizes.x, padded.limitX),
+            y: centredZoomWindow(ratioY, sizes.y, padded.limitY),
         };
     }
 
@@ -610,10 +631,10 @@ export abstract class AbstractNetworkSeries<
      * smaller than the viewport cannot do both, and native size wins.
      */
     private constrainScale(scale: number) {
-        const fitScale = this.getContentFitScale();
-        if (fitScale == null) return scale;
+        const minScale = this.getMinScale();
+        if (minScale == null) return scale;
 
-        return Math.min(Math.max(scale, Math.min(fitScale, 1)), 1);
+        return Math.min(Math.max(scale, minScale), 1);
     }
 
     private getStateWindowSizes(state: _ModuleSupport.ZoomChangeState) {
@@ -674,6 +695,9 @@ export abstract class AbstractNetworkSeries<
         const requested = this.getStateWindowSizes(event.state);
         if (!requested) return;
 
+        const padded = this.getPaddedContentBounds();
+        if (!padded) return;
+
         const sizes = this.getSharedScaleWindowSizes(requested.x, requested.y);
         if (!sizes) return;
 
@@ -693,7 +717,7 @@ export abstract class AbstractNetworkSeries<
             const isX = direction === 'x';
 
             const size = isX ? sizes.x : sizes.y;
-            const mid = clampMid((min + max) / 2, size);
+            const mid = clampMid((min + max) / 2, size, isX ? padded.limitX : padded.limitY);
 
             const constrainedMin = mid - size / 2;
             const constrainedMax = mid + size / 2;
