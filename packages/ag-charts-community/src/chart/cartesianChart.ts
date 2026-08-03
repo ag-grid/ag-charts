@@ -1,14 +1,6 @@
-import {
-    ActionOnSet,
-    ChartAxisDirection,
-    type ModuleInstance,
-    type Size,
-    clampArray,
-    entries,
-    fromPairs,
-    groupBy,
-} from 'ag-charts-core';
-import type { AgCartesianAxisPosition } from 'ag-charts-types';
+import type { CanvasPoint, ModuleInstance, Size } from 'ag-charts-core';
+import { ActionOnSet, ChartAxisDirection, clampArray, entries, fromPairs, groupBy } from 'ag-charts-core';
+import type { AgCartesianAxisPosition, AgCoordinates } from 'ag-charts-types';
 
 import type { ChartOptions } from '../module/optionsModule';
 import { staticFromToMotion } from '../motion/fromToMotion';
