@@ -133,7 +133,16 @@ echo "skills (canary set)"
 # directory keeps its plugins where they are rather than copying them into
 # plugins/cache, so looking only at the cache reported all five canary skills
 # missing in a session that could use every one of them.
-skill_roots=("$HOME/.claude/plugins/marketplaces" "$HOME/.claude/plugins/cache" "$REPO_ROOT/.claude/skills")
+#
+# Only existing directories go in: `find` exits non-zero on a missing root, and
+# with `pipefail` that failure propagates through `| grep -q .` and reads as "no
+# match". A cloud clone has no .claude/skills, which is exactly how a session with
+# all five skills installed reported all five missing.
+skill_roots=()
+for candidate in "$HOME/.claude/plugins/marketplaces" "$HOME/.claude/plugins/cache" \
+    "$REPO_ROOT/.claude/skills"; do
+    [[ -d "$candidate" ]] && skill_roots+=("$candidate")
+done
 while read -r location; do
     [[ -n "$location" && -d "$location" ]] && skill_roots+=("$location")
 done < <(node -e '
@@ -148,7 +157,11 @@ done < <(node -e '
 # installed mid-session shows here and is still not usable until a new session —
 # ask Claude what it can actually see if this passes and skills still do not work.
 for skill in "${CANARY_SKILLS[@]}"; do
-    if find "${skill_roots[@]}" -maxdepth 8 -type d -name "$skill" 2>/dev/null | grep -q .; then
+    if ((${#skill_roots[@]} == 0)); then
+        bad "$skill missing (nowhere to look — no plugin cache and no generated skills)"
+        continue
+    fi
+    if [[ -n "$(find "${skill_roots[@]}" -maxdepth 8 -type d -name "$skill" 2>/dev/null)" ]]; then
         ok "$skill"
     else
         bad "$skill missing"
