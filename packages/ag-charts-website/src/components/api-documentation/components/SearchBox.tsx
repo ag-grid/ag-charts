@@ -63,7 +63,9 @@ export function SearchBox({
                         {data.length ? (
                             data.map((innerData, index) => (
                                 <div
-                                    key={innerData.label}
+                                    // Sibling union variants can collapse to the same label, so the
+                                    // label alone is not unique.
+                                    key={`${index}-${innerData.label}`}
                                     ref={index === selectedIndex ? selectedOptionRef : null}
                                     className={classnames(styles.searchOption, {
                                         [styles.selected]: index === selectedIndex,
