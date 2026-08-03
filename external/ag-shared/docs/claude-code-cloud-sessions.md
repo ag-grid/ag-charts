@@ -77,9 +77,9 @@ Do this once per cloud environment (and once more for an organization-shared env
 
 **First session in an environment** (cold, up to ~5 min in the setup script):
 
-`cloud-setup.sh` pins node to `.nvmrc`, installs `yarn@1` and `nx` globally, runs `yarn install` — whose postinstall renders `.claude/` and the rulesync outputs, so Claude Code sees them at launch — seeds `~/.cache/ag-cloud` with a hardlinked copy of `node_modules` keyed to the `yarn.lock` hash, and pre-clones the plugin marketplaces into `~/.claude/plugins/marketplaces/`. Every step is best-effort and the script always exits 0, because a non-zero exit fails session creation.
+`cloud-setup.sh` pins node to `.nvmrc`, installs `yarn@1` and `nx` globally, runs `yarn install --ignore-scripts` (a full install needs ~9 min on a cloud VM and cannot fit the ~5 min cap, so only the slow cacheable part — resolve, fetch, link — happens here), seeds `/opt/ag-cloud` with a hardlinked copy of `node_modules` keyed to the `yarn.lock` hash and marked `unscripted`, and pre-clones the plugin marketplaces into each plausible session home. Every step is best-effort and the script always exits 0, because a non-zero exit fails session creation.
 
-**Every later session** (warm, seconds): the setup script is skipped. Claude Code launches, reads the committed `.claude/settings.json`, installs the declared plugins, and runs the SessionStart hook. `install-for-cloud.sh` puts the pinned node on `PATH` (via `$CLAUDE_ENV_FILE`) and, if the working tree came back without `node_modules`, restores the cached tree instead of installing.
+**Every later session** (warm, seconds): the setup script is skipped. Claude Code launches, reads the committed `.claude/settings.json`, installs the declared plugins, and runs the SessionStart hook. `install-for-cloud.sh` puts the pinned node on `PATH` (via `$CLAUDE_ENV_FILE`) and, if the working tree came back without `node_modules`, restores the cached tree instead of installing. If that cache is marked `unscripted` the hook refuses its fast path — the tree passes `yarn check --integrity` but has no patches applied — and runs the install in the background, then refreshes the cache from the scripted tree and clears the marker.
 
 Restore strategy is deliberate, because an ag-charts `node_modules` is ~2.3 GB over ~200k files: a reflink copy is tried first (instant on a copy-on-write filesystem, cache retained), then a move (instant on the same filesystem — the cache is then rebuilt by a detached background copy for the next session), then a hardlink copy, then a plain copy. For scale, a hardlink copy of that tree measured 78 s locally, which is why it is the fallback and not the strategy. A `yarn.lock` that no longer matches the cache skips restore entirely and falls through to a real `yarn install --prefer-offline` against the warm yarn cache.
 
@@ -91,7 +91,7 @@ It is the one generated file that cannot be generated in time: Claude Code reads
 
 ## If you configured the environment before this landed
 
-A cached environment **skips the setup script permanently** — it only runs when no snapshot exists. So an environment whose snapshot was built before `cloud-setup.sh` reached the branch never runs it and cannot self-heal: sessions get no `~/.cache/ag-cloud`, no pre-cloned marketplaces, and the wrong node version, while the checklist still cheerfully reports "Ran setup script".
+A cached environment **skips the setup script permanently** — it only runs when no snapshot exists. So an environment whose snapshot was built before `cloud-setup.sh` reached the branch never runs it and cannot self-heal: sessions get no `/opt/ag-cloud` cache, no pre-cloned marketplaces, and the wrong node version, while the checklist still cheerfully reports "Ran setup script".
 
 This was observed, not theorised. A session in that state fell back to the hook's full install, which took **534 s**, and reported all five canary skills missing.
 
