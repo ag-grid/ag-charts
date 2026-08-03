@@ -35,14 +35,19 @@ Do this once per cloud environment (and once more for an organization-shared env
    #!/bin/bash
    # Locate and run the repo's cloud setup script. Kept as a locator so the real
    # logic stays version-controlled in the clone.
+   #
+   # Depth matters: the clone lands at /home/user/<repo>, which puts
+   # cloud-setup.sh at depth 8, so anything below -maxdepth 8 finds nothing and
+   # fails silently. 10 leaves room for a deeper checkout path.
    set -u
-   SETUP=$(find / -maxdepth 7 -type f \
+   SETUP=$(find / -maxdepth 10 -type f \
      -path '*/external/ag-shared/scripts/install-for-cloud/cloud-setup.sh' \
      -not -path '/proc/*' -not -path '/sys/*' 2>/dev/null | head -1)
    if [ -n "$SETUP" ]; then
+     echo "[setup] running $SETUP"
      bash "$SETUP"
    else
-     echo "cloud-setup.sh not found in the clone — starting without AG setup"
+     echo "[setup] cloud-setup.sh NOT FOUND — session starts without AG setup"
    fi
    exit 0
    ```
