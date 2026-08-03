@@ -26,16 +26,22 @@ export function SearchBox({
 }) {
     const inputRef = useRef<HTMLInputElement>(null);
     const [inFocus, setInFocus] = useState(false);
-    const { data, searchQuery, selectedIndex, handleInput, handleClick, handleKeyDown, setSelectedIndex } = useSearch(
-        searchData,
-        searchDataIndex,
-        (d) => {
-            onItemClick(d);
-            if (inputRef.current) {
-                inputRef.current.value = '';
-            }
+    const {
+        data,
+        searchQuery,
+        selectedIndex,
+        dropdownRef,
+        selectedOptionRef,
+        handleInput,
+        handleClick,
+        handleKeyDown,
+        selectFromPointer,
+    } = useSearch(searchData, searchDataIndex, (d) => {
+        onItemClick(d);
+        if (inputRef.current) {
+            inputRef.current.value = '';
         }
-    );
+    });
 
     return (
         <div className={classnames(styles.searchOuter, className)} {...props}>
@@ -52,22 +58,20 @@ export function SearchBox({
             <Icon svgClasses={styles.searchIcon} name={iconName} />
 
             {searchQuery.length > 0 && inFocus && (
-                <div className={styles.searchDropdown} onMouseDown={(e) => e.preventDefault()}>
+                <div ref={dropdownRef} className={styles.searchDropdown} onMouseDown={(e) => e.preventDefault()}>
                     <div className={styles.searchOptions}>
                         {data.length ? (
                             data.map((innerData, index) => (
                                 <div
-                                    key={innerData.label}
-                                    ref={
-                                        index === selectedIndex
-                                            ? (ref) => ref?.scrollIntoView({ block: 'nearest', inline: 'start' })
-                                            : null
-                                    }
+                                    // Sibling union variants can collapse to the same label, so the
+                                    // label alone is not unique.
+                                    key={`${index}-${innerData.label}`}
+                                    ref={index === selectedIndex ? selectedOptionRef : null}
                                     className={classnames(styles.searchOption, {
                                         [styles.selected]: index === selectedIndex,
                                     })}
                                     onClick={() => handleClick(innerData)}
-                                    onMouseEnter={() => setSelectedIndex(index)}
+                                    onMouseEnter={() => selectFromPointer(index)}
                                 >
                                     {markResults && searchQuery ? (
                                         <HighlightText text={innerData.label} searchTerm={searchQuery} />
@@ -99,6 +103,23 @@ function useSearch(
     const [data, setFilteredData] = useState(searchData);
     const [selectedIndex, setSelectedIndex] = useState(0);
     const [searchQuery, setSearchQuery] = useState(initialValue);
+    const dropdownRef = useRef<HTMLDivElement>(null);
+    const shouldScrollToSelection = useRef(false);
+
+    // An option selected by the pointer is already under the cursor, so scrolling to it would fight
+    // the scroll the user is performing.
+    const selectFromPointer = (index: number) => {
+        shouldScrollToSelection.current = false;
+        setSelectedIndex(index);
+    };
+
+    const selectedOptionRef = (element: HTMLDivElement | null) => {
+        if (!element || !shouldScrollToSelection.current) {
+            return;
+        }
+        shouldScrollToSelection.current = false;
+        scrollVerticallyIntoView(element, dropdownRef.current);
+    };
 
     const handleInput: FormEventHandler<HTMLInputElement> = (event) => {
         const inputSearchQuery = event.currentTarget.value.trim().toLowerCase();
@@ -115,6 +136,7 @@ function useSearch(
         setFilteredData(dataResults);
 
         setSearchQuery(inputSearchQuery);
+        shouldScrollToSelection.current = true;
         setSelectedIndex(0);
     };
 
@@ -131,9 +153,11 @@ function useSearch(
         }
         switch (event.key) {
             case 'ArrowUp':
+                shouldScrollToSelection.current = true;
                 setSelectedIndex(selectedIndex === 0 ? data.length - 1 : selectedIndex - 1);
                 break;
             case 'ArrowDown':
+                shouldScrollToSelection.current = true;
                 setSelectedIndex(selectedIndex === data.length - 1 ? 0 : selectedIndex + 1);
                 break;
             case 'Enter':
@@ -148,10 +172,33 @@ function useSearch(
         data,
         searchQuery,
         selectedIndex,
+        dropdownRef,
+        selectedOptionRef,
         setSearchQuery,
-        setSelectedIndex,
+        selectFromPointer,
         handleInput,
         handleClick,
         handleKeyDown,
     };
+}
+
+// Element.scrollIntoView() cannot be constrained to one axis, so the scroll is applied by hand to
+// leave the horizontal position the user has scrolled to untouched.
+function scrollVerticallyIntoView(element: HTMLElement, container: HTMLElement | null) {
+    if (!container) {
+        return;
+    }
+
+    const elementRect = element.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+    // clientTop and clientHeight exclude the container's borders and scrollbar gutter, which the
+    // bounding rect includes — aligning to the bounding rect leaves the option clipped by them.
+    const visibleTop = containerRect.top + container.clientTop;
+    const visibleBottom = visibleTop + container.clientHeight;
+
+    if (elementRect.top < visibleTop) {
+        container.scrollTop -= visibleTop - elementRect.top;
+    } else if (elementRect.bottom > visibleBottom) {
+        container.scrollTop += elementRect.bottom - visibleBottom;
+    }
 }
