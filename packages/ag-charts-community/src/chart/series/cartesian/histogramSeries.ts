@@ -43,6 +43,7 @@ import {
     toNumber,
 } from 'ag-charts-core';
 import type {
+    AgCoordinates,
     AgHistogramSeriesBinParams,
     AgHistogramSeriesItemStylerParams,
     AgHistogramSeriesLabelFormatterParams,
@@ -191,9 +192,11 @@ class HistogramSeriesNodeEvent<TEvent extends string = SeriesNodeEventTypes> ext
         nativeEvent: Event,
         datum: HistogramNodeDatum,
         series: HistogramSeries,
-        selectionState: PublicSelectionState | undefined
+        selectionState: PublicSelectionState | undefined,
+        isCollapsed: boolean | undefined,
+        coordinates: AgCoordinates | undefined
     ) {
-        super(type, nativeEvent, datum, series, selectionState);
+        super(type, nativeEvent, datum, series, selectionState, isCollapsed, coordinates);
         this.binIndex = datum.binIndex;
         this.binRange = datum.binRange;
         this.aggregatedValue = datum.aggregatedValue;

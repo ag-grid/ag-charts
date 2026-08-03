@@ -34,6 +34,7 @@ import {
     type AgBubbleSeriesOptionsKeys,
     type AgBubbleSeriesStylerParams,
     type AgBubbleSeriesStylerResult,
+    type AgCoordinates,
     type AgDrawingMode,
     type AgErrorBoundSeriesTooltipRendererParams,
     type AgNumericValue,
@@ -176,9 +177,11 @@ class BubbleScatterSeriesNodeEvent<
         nativeEvent: Event,
         datum: BubbleScatterNodeDatum,
         series: BubbleSeries,
-        selectionState: PublicSelectionState | undefined
+        selectionState: PublicSelectionState | undefined,
+        isCollapsed: boolean | undefined,
+        coordinates: AgCoordinates | undefined
     ) {
-        super(type, nativeEvent, datum, series, selectionState);
+        super(type, nativeEvent, datum, series, selectionState, isCollapsed, coordinates);
         this.sizeKey = series.properties.sizeKey;
         this.colorKey = series.properties.colorKey;
     }

@@ -50,7 +50,7 @@ export class ZoomContextMenu {
         const shouldEnableZoomToHere = (event: _ModuleSupport.ContextMenuEvent) => {
             const rect = this.getRect();
             if (!rect) return true;
-            const origin = pointToRatio(rect, event.x, event.y);
+            const origin = pointToRatio(rect, event.canvasX, event.canvasY);
             return this.iterateFindNextZoomAtPoint(origin) != null;
         };
         const shouldEnablePanToHere = () => {

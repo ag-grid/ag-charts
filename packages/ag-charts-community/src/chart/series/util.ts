@@ -1,4 +1,5 @@
-import { type BoxBounds, Color, findMaxIndex, findMinIndex, isString } from 'ag-charts-core';
+import type { BoxBounds, CanvasPoint } from 'ag-charts-core';
+import { Color, findMaxIndex, findMinIndex, isString } from 'ag-charts-core';
 import type { AgActiveItemState, AgDrawingMode } from 'ag-charts-types';
 
 import { Transformable } from '../../scene/transformable';
@@ -100,7 +101,7 @@ export function getDatumRefPoint(
     series: ISeries<any, any, any>,
     datum: SeriesNodeDatum & Pick<ErrorBoundSeriesNodeDatum, 'yBar'>,
     movedBounds: BoxBounds | undefined
-): { canvasX: number; canvasY: number } | undefined {
+): CanvasPoint | undefined {
     if (movedBounds) {
         const { x, y, width, height } = movedBounds;
         return { canvasX: x + width / 2, canvasY: y + height / 2 };
@@ -109,8 +110,8 @@ export function getDatumRefPoint(
     // Using datum.yBar.upperPoint renders the tooltip higher up.
     const refPoint = datum.yBar?.upperPoint ?? datum.midPoint ?? series.datumMidPoint?.(datum);
     if (refPoint) {
-        const { x, y } = Transformable.toCanvasPoint(series.contentGroup, refPoint.x, refPoint.y);
-        return { canvasX: Math.round(x), canvasY: Math.round(y) };
+        const point = Transformable.toCanvasPoint(series.contentGroup, refPoint.x, refPoint.y);
+        return { canvasX: Math.round(point.canvasX), canvasY: Math.round(point.canvasY) };
     }
 }
 

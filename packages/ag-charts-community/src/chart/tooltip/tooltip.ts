@@ -1,6 +1,7 @@
 import {
     AgDocument,
     BaseProperties,
+    type CanvasPoint,
     CleanupRegistry,
     type Placement,
     Property,
@@ -38,7 +39,7 @@ export {
 /** Default gap between tooltip and anchor; must match the theme template fallback in chartTheme.ts. */
 const DEFAULT_TOOLTIP_OFFSET = 12;
 
-type TooltipOffsets = { canvasX: number; canvasY: number; nodeCanvasX?: number; nodeCanvasY?: number };
+type TooltipOffsets = CanvasPoint & { nodeCanvasX?: number; nodeCanvasY?: number };
 export type TooltipEventType = 'pointermove' | 'click' | 'dblclick' | 'keyboard';
 export type TooltipPointerEvent<T extends TooltipEventType = TooltipEventType> = Readonly<TooltipOffsets> & {
     readonly type: T;

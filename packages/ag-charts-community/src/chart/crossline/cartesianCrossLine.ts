@@ -1,4 +1,5 @@
-import { BaseProperties, Property, type Scale, clampArray, createId, findMinMax, toRadians } from 'ag-charts-core';
+import { BaseProperties, Property, clampArray, createId, findMinMax, toRadians } from 'ag-charts-core';
+import type { CanvasPoint, Scale } from 'ag-charts-core';
 import type {
     AgCartesianAxisPosition,
     AgCartesianCrossLineLabelOptions,
@@ -206,14 +207,14 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
      * node holds the geometry for both the `line` (stroke) and `range` (fill) variants; its bbox is
      * transformed into canvas space to match the pointer coordinates carried by context-menu events.
      */
-    containsPoint(canvasX: number, canvasY: number): boolean {
+    containsPoint(point: CanvasPoint): boolean {
         const group = this.type === 'range' ? this.rangeGroup : this.lineGroup;
         if (!this.enabled || this.data == null || !group.visible) {
             return false;
         }
 
         const bbox = Transformable.toCanvas(this.crossLineRange).clone().grow(CROSS_LINE_HIT_TOLERANCE);
-        return bbox.containsPoint(canvasX, canvasY);
+        return bbox.containsPoint(point.canvasX, point.canvasY);
     }
 
     private _isRange: boolean | undefined = undefined;

@@ -1,5 +1,6 @@
 import type { Page } from '@playwright/test';
 
+import type { ClientPoint } from 'ag-charts-core';
 import type {
     AgAxisContextMenuActionEvent,
     AgAxisValue,
@@ -54,7 +55,7 @@ async function popGetItems(page: Page): Promise<AgContextMenuGetItemsParamsCapti
     return getItems as AgContextMenuGetItemsParamsCaption[];
 }
 
-async function contextMenu(page: Page, point: { clientX: number; clientY: number }) {
+async function contextMenu(page: Page, point: ClientPoint) {
     await page.mouse.click(point.clientX, point.clientY, { button: 'right' });
 }
 
@@ -293,7 +294,7 @@ test.describe('context-menu', () => {
             };
         };
 
-        const rightClick = (page: Page, point: { clientX: number; clientY: number }) =>
+        const rightClick = (page: Page, point: ClientPoint) =>
             page.mouse.click(point.clientX, point.clientY, { button: 'right' });
 
         const runCaptionAction = (page: Page) =>

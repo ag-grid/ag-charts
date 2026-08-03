@@ -110,7 +110,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
             // Account for strokes (incl. miters) - this may not be the best place to include this
             (strokeWidth / 2) * strokeMiterAmount
         );
-        const { x: originX, y: originY } = Transformable.toCanvasPoint(this, 0, 0);
+        const { canvasX: originX, canvasY: originY } = Transformable.toCanvasPoint(this, 0, 0);
         const x = alignBefore(pixelRatio, originX + bbox.x - padding) - originX;
         const y = alignBefore(pixelRatio, originY + bbox.y - padding) - originY;
         const width = Math.ceil(bbox.x + bbox.width - x + padding);

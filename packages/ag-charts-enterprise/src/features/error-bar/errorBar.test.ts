@@ -171,7 +171,12 @@ describe('ErrorBars', () => {
     const getItemCoords = (itemIndex: number): { x: number; y: number } => {
         const series = chart['series'][0] as any;
         const item = series['contextNodeData'].nodeData[itemIndex];
-        return _ModuleSupport.Transformable.toCanvasPoint(series.contentGroup, item.midPoint.x, item.midPoint.y);
+        const { canvasX: x, canvasY: y } = _ModuleSupport.Transformable.toCanvasPoint(
+            series.contentGroup,
+            item.midPoint.x,
+            item.midPoint.y
+        );
+        return { x, y };
     };
 
     it('should render 1 line series as expected', async () => {

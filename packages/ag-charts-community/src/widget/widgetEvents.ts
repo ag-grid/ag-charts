@@ -1,4 +1,4 @@
-import type { AreExact, DeepReadonly } from 'ag-charts-core';
+import type { AreExact, ClientPoint, CurrentPoint, DeepReadonly } from 'ag-charts-core';
 
 import type { CollapseWidgetEvent, ExpandControlledWidgetEvent, ExpandWidgetEvent } from './expandableWidget';
 
@@ -382,10 +382,7 @@ export class WidgetEventUtil {
         return meta[type]?.isNative === true;
     }
 
-    static calcCurrentXY(
-        current: HTMLElement,
-        event: { clientX: number; clientY: number }
-    ): { currentX: number; currentY: number } {
+    static calcCurrentXY(current: HTMLElement, event: ClientPoint): CurrentPoint {
         const currentRect = current.getBoundingClientRect();
         // Ratio of layout size to post-transform screen size recovers ancestor CSS scale per axis.
         const clientWidth = current.clientWidth;

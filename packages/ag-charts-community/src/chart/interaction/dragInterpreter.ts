@@ -1,3 +1,4 @@
+import type { ClientPoint } from 'ag-charts-core';
 import { CleanupRegistry, EventEmitter } from 'ag-charts-core';
 
 import type { Widget } from '../../widget/widget';
@@ -45,7 +46,7 @@ function checkDragDistance(dx: number, dy: number) {
     return distanceSquared >= thresholdSquared;
 }
 
-function checkDoubleTapDistance(t1: { clientX: number; clientY: number }, t2: { clientX: number; clientY: number }) {
+function checkDoubleTapDistance(t1: ClientPoint, t2: ClientPoint) {
     const dx = t1.clientX - t2.clientX;
     const dy = t1.clientY - t2.clientY;
     const distanceSquared = dx * dx + dy * dy;
@@ -76,7 +77,7 @@ export class DragInterpreter {
 
     private dragStartEvent?: DragWidgetEvent<'drag-start'>;
     private isDragging = false;
-    private lastClick?: { time: number; clientX: number; clientY: number };
+    private lastClick?: { time: number } & ClientPoint;
     private readonly touch = { distanceTravelledX: 0, distanceTravelledY: 0, clientX: 0, clientY: 0 };
 
     constructor(widget: Widget) {

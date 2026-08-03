@@ -1,4 +1,4 @@
-import type { DynamicContext, Writeable } from 'ag-charts-core';
+import type { CanvasPoint, DynamicContext, Writeable } from 'ag-charts-core';
 import type { AgContextMenuItemLiteral, AgContextMenuItemShowOn } from 'ag-charts-types';
 
 import type { ContextMenuEvent } from '../../core/eventsHub';
@@ -34,32 +34,28 @@ export class ContextMenuRegistry {
 
     public dispatchContext<T extends AgContextMenuItemShowOn>(
         showOn: T,
-        pointerEvent: { widgetEvent: MouseWidgetEvent<'contextmenu'>; canvasX: number; canvasY: number },
-        context: ContextShowOnMap[T]['context'],
-        position?: { x: number; y: number }
+        pointerEvent: { widgetEvent: MouseWidgetEvent<'contextmenu'> } & CanvasPoint,
+        context: ContextShowOnMap[T]['context']
     ) {
-        this.dispatchContextRegions(showOn, [showOn], { [showOn]: context }, pointerEvent, position);
+        this.dispatchContextRegions(showOn, [showOn], { [showOn]: context }, pointerEvent);
     }
 
     public dispatchContextRegions(
         primaryShowOn: AgContextMenuItemShowOn,
         regions: readonly AgContextMenuItemShowOn[],
         contexts: ContextMenuRegionContexts,
-        pointerEvent: { widgetEvent: MouseWidgetEvent<'contextmenu'>; canvasX: number; canvasY: number },
-        position?: { x: number; y: number }
+        pointerEvent: { widgetEvent: MouseWidgetEvent<'contextmenu'> } & CanvasPoint,
+        position?: CanvasPoint
     ) {
         const { widgetEvent } = pointerEvent;
         if (widgetEvent.sourceEvent.defaultPrevented) {
             // AG-12894 'contextmenu' event bubbles, do not re-dispatch ContextMenuEvent if we're already draw own menu
             return;
         }
-        const x = position?.x ?? pointerEvent.canvasX;
-        const y = position?.y ?? pointerEvent.canvasY;
-
         const event: Writeable<ContextMenuEvent> = {
             showOn: primaryShowOn,
-            x,
-            y,
+            canvasX: position?.canvasX ?? pointerEvent.canvasX,
+            canvasY: position?.canvasY ?? pointerEvent.canvasY,
             context: contexts[primaryShowOn],
             widgetEvent,
             regions,

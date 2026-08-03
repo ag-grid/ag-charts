@@ -11,6 +11,7 @@ import {
     AbstractModuleInstance,
     ChartAxisDirection,
     ChartUpdateType,
+    type CurrentPoint,
     type NormalisedCrosshairOptions,
     ZIndexMap,
     coerceTextValue,
@@ -382,7 +383,7 @@ export class Crosshair
         });
     }
 
-    private getData(event: { currentX: number; currentY: number }): {
+    private getData(event: CurrentPoint): {
         [key: string]: { position: number; value: any };
     } {
         const { axisCtx } = this;

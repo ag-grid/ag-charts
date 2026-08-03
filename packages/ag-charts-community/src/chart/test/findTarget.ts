@@ -1,5 +1,6 @@
 import { CANVAS_HEIGHT, CANVAS_WIDTH, Caster, type MockEvent, makeMockEvent } from '_ag-charts-test';
 
+import type { CanvasPoint } from 'ag-charts-core';
 import { boxContains } from 'ag-charts-core';
 
 import { BBox } from '../../scene/bbox';
@@ -85,7 +86,8 @@ function findLegendTarget(legendModule: unknown, clientX: number, clientY: numbe
         if (!isClickable(node.proxyButton)) continue;
         const bbox = Transformable.toCanvas(node);
         if (bbox.containsPoint(clientX, clientY)) {
-            const { x: offsetX, y: offsetY } = Transformable.fromCanvasPoint(node, clientX, clientY);
+            const canvasPoint: CanvasPoint = { canvasX: clientX, canvasY: clientY };
+            const { x: offsetX, y: offsetY } = Transformable.fromCanvasPoint(node, canvasPoint);
             const target = node.proxyButton.getElement();
             return makeMockEvent({ target, offsetX, offsetY, clientX, clientY });
         }

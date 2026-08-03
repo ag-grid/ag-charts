@@ -1,4 +1,5 @@
 import type {
+    AgCoordinates,
     AgHeatmapSeriesItemStylerParams,
     AgHeatmapSeriesLabelFormatterParams,
     AgHeatmapSeriesOptions,
@@ -129,9 +130,11 @@ class HeatmapSeriesNodeEvent<
         nativeEvent: Event,
         datum: HeatmapNodeDatum,
         series: HeatmapSeries,
-        selectionState: SelectionState | undefined
+        selectionState: SelectionState | undefined,
+        isCollapsed: boolean | undefined,
+        coordinates: AgCoordinates | undefined
     ) {
-        super(type, nativeEvent, datum, series, selectionState);
+        super(type, nativeEvent, datum, series, selectionState, isCollapsed, coordinates);
         this.colorKey = series.properties.colorKey;
     }
 }

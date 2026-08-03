@@ -20,7 +20,7 @@ import {
     normalizeAngle360,
     zeroLike,
 } from 'ag-charts-core';
-import type { AgNumericValue, CssColor } from 'ag-charts-types';
+import type { AgCoordinates, AgNumericValue, CssColor } from 'ag-charts-types';
 
 import { AngleCategoryAxis } from '../../axes/angle-category/angleCategoryAxis';
 import { type RadialSeriesStyleResult, getItemStyle, getStyle } from '../util/radialUtil';
@@ -60,9 +60,11 @@ class RadialColumnSeriesNodeEvent<
         nativeEvent: Event,
         datum: RadialColumnNodeDatum,
         series: RadialColumnSeriesBase<any>,
-        selectionState: SelectionState | undefined
+        selectionState: SelectionState | undefined,
+        isCollapsed: boolean | undefined,
+        coordinates: AgCoordinates | undefined
     ) {
-        super(type, nativeEvent, datum, series, selectionState);
+        super(type, nativeEvent, datum, series, selectionState, isCollapsed, coordinates);
         this.angleKey = series.properties.angleKey;
         this.radiusKey = series.properties.radiusKey;
     }

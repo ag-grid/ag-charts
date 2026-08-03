@@ -9,6 +9,7 @@ import {
     AbstractModuleInstance,
     ChartAxisDirection,
     ChartUpdateType,
+    type CurrentPoint,
     type DynamicContext,
     type Point,
     PropertiesArray,
@@ -959,7 +960,7 @@ export class Annotations extends AbstractModuleInstance {
         };
     }
 
-    private onHover(event: { currentX: number; currentY: number; sourceEvent: MouseEvent | TouchEvent }) {
+    private onHover(event: CurrentPoint & { sourceEvent: MouseEvent | TouchEvent }) {
         const { state } = this;
 
         const context = this.getAnnotationContext();
