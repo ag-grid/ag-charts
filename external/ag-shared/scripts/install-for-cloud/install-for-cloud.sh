@@ -16,6 +16,128 @@ export PUPPETEER_SKIP_DOWNLOAD=true
 log_info() { echo "[install-for-cloud] $*"; }
 log_error() { echo "[install-for-cloud] ERROR: $*" >&2; }
 
+# Cache seeded by cloud-setup.sh (the cloud environment's setup script). It lives
+# outside the repo so it survives a re-cloned working tree.
+AG_CLOUD_CACHE_DIR="${AG_CLOUD_CACHE_DIR:-$HOME/.cache/ag-cloud}"
+
+# ---------------------------------------------------------------------------
+# Cloud session PATH — the setup script's environment does not carry over, so
+# recover the node it pinned and export it for the rest of the session.
+# ---------------------------------------------------------------------------
+
+apply_cached_node_path() {
+    local path_file="$AG_CLOUD_CACHE_DIR/node-bin-path"
+    [[ -f "$path_file" ]] || return 0
+
+    local bin
+    bin="$(head -1 "$path_file")"
+    [[ -d "$bin" ]] || return 0
+
+    case ":$PATH:" in
+    *":$bin:"*) ;;
+    *) export PATH="$bin:$PATH" ;;
+    esac
+
+    if [[ -n "${CLAUDE_ENV_FILE:-}" ]]; then
+        echo "export PATH=\"$bin:\$PATH\"" >>"$CLAUDE_ENV_FILE"
+    fi
+    log_info "node $(node -v 2>/dev/null || echo '?') from ${bin}"
+}
+
+# ---------------------------------------------------------------------------
+# node_modules restore — put the cached tree in place when the lockfile still
+# matches, turning a multi-minute install into seconds. A lockfile mismatch
+# falls through to a real install.
+#
+# Strategy matters at this size: a real ag-charts node_modules is ~2.3 GB over
+# ~200k files, where even a hardlink copy costs over a minute. So:
+#   1. reflink copy   — instant on a COW filesystem, cache kept
+#   2. move           — instant on the same filesystem, cache consumed, so a
+#                       detached re-seed rebuilds it for the next session
+#   3. hardlink copy  — metadata only, but minutes at this file count
+#   4. plain copy     — last resort
+# ---------------------------------------------------------------------------
+
+# Device id of a path — used to keep the move path off a cross-filesystem `mv`,
+# which silently degrades to a full copy.
+device_of() {
+    stat -c %d "$1" 2>/dev/null || stat -f %d "$1" 2>/dev/null
+}
+
+same_filesystem() {
+    local a b
+    a="$(device_of "$1")"
+    b="$(device_of "$2")"
+    [[ -n "$a" && "$a" == "$b" ]]
+}
+
+reseed_cache_detached() {
+    local cached="$1"
+    [[ -d node_modules ]] || return 0
+    # Rebuild the cache out of band: the session is already usable, and the next
+    # session needs the cache back. Detached so the hook does not wait on it.
+    nohup bash -c "
+        staging='${cached}.staging.\$\$'
+        rm -rf \"\$staging\"
+        cp -al '$PWD/node_modules' \"\$staging\" 2>/dev/null ||
+            cp -a '$PWD/node_modules' \"\$staging\" 2>/dev/null || exit 0
+        rm -rf '$cached'
+        mv \"\$staging\" '$cached'
+    " >/dev/null 2>&1 &
+    disown 2>/dev/null || true
+    log_info "cache re-seed running in the background"
+}
+
+restore_node_modules_from_cache() {
+    local cached="$AG_CLOUD_CACHE_DIR/node_modules"
+    local hash_file="$AG_CLOUD_CACHE_DIR/yarn.lock.sha256"
+
+    [[ -d "$cached" ]] || return 1
+    [[ ! -d node_modules ]] || return 1
+    [[ -f yarn.lock && -f "$hash_file" ]] || return 1
+
+    local want have
+    if command -v sha256sum &>/dev/null; then
+        want="$(sha256sum yarn.lock | awk '{print $1}')"
+    else
+        want="$(shasum -a 256 yarn.lock | awk '{print $1}')"
+    fi
+    have="$(head -1 "$hash_file")"
+    if [[ "$want" != "$have" ]]; then
+        log_info "cached node_modules is for a different yarn.lock, ignoring it"
+        return 1
+    fi
+
+    log_info "restoring node_modules from ${cached}"
+    local start=$SECONDS
+    local staging="node_modules.restoring.$$"
+    rm -rf "$staging"
+
+    if cp -a --reflink=always "$cached" "$staging" 2>/dev/null; then
+        mv "$staging" node_modules
+        log_info "node_modules restored by reflink in $((SECONDS - start))s"
+        return 0
+    fi
+    rm -rf "$staging"
+
+    if same_filesystem "$cached" "$PWD" && mv "$cached" "$staging" 2>/dev/null; then
+        mv "$staging" node_modules
+        log_info "node_modules restored by move in $((SECONDS - start))s"
+        reseed_cache_detached "$cached"
+        return 0
+    fi
+
+    if cp -al "$cached" "$staging" 2>/dev/null || cp -a "$cached" "$staging" 2>/dev/null; then
+        mv "$staging" node_modules
+        log_info "node_modules restored by copy in $((SECONDS - start))s"
+        return 0
+    fi
+
+    rm -rf "$staging"
+    log_info "could not restore from cache, falling back to install"
+    return 1
+}
+
 # ---------------------------------------------------------------------------
 # Environment detection — same signals as before
 # ---------------------------------------------------------------------------
@@ -43,6 +165,18 @@ else
     log_info "CLAUDE_PROJECT_DIR: ${CLAUDE_PROJECT_DIR:-}"
     log_info "PWD: $PWD"
     exit 0
+fi
+
+# ---------------------------------------------------------------------------
+# Cloud sessions: recover the pinned node and the cached dependency tree that
+# cloud-setup.sh left behind, before deciding whether an install is needed.
+# ---------------------------------------------------------------------------
+
+if [[ "${CLAUDE_CODE_REMOTE:-}" == "true" ]] || [[ "${AG_CLOUD_INSTALL:-}" == "1" ]]; then
+    apply_cached_node_path
+    if [[ -f package.json ]]; then
+        restore_node_modules_from_cache || true
+    fi
 fi
 
 # ---------------------------------------------------------------------------
