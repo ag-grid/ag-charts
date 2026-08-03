@@ -109,6 +109,15 @@ if [[ "$rules_count" -gt 0 ]]; then
 else
     note ".claude/rules empty — rulesync has not run in this tree"
 fi
+# The repo's own skills, as distinct from the plugin-delivered ones below. They are
+# gitignored rulesync output, so a cloud clone has none until something generates
+# them, and Claude Code enumerates skills at launch — too late to fix in-session.
+local_skills=$(find "$REPO_ROOT/.claude/skills" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')
+if [[ "$local_skills" -gt 0 ]]; then
+    ok ".claude/skills (${local_skills} repo-local skills)"
+else
+    bad ".claude/skills empty — the repo's own skills are missing"
+fi
 
 echo
 echo "plugin marketplaces"

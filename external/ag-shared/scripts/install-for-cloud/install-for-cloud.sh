@@ -97,11 +97,17 @@ reseed_cache_detached() {
     [[ -d node_modules ]] || return 0
     # Rebuild the cache out of band: the session is already usable, and the next
     # session needs the cache back. Detached so the hook does not wait on it.
+    # Each copy attempt clears staging first: a `cp -al` that creates the
+    # directory and then fails leaves it behind, and the plain `cp -a` fallback
+    # would treat it as a destination container and produce
+    # <staging>/node_modules — a cache whose top level is a single directory.
     nohup bash -c "
         staging='${cached}.staging.\$\$'
         rm -rf \"\$staging\"
-        cp -al '$PWD/node_modules' \"\$staging\" 2>/dev/null ||
-            cp -a '$PWD/node_modules' \"\$staging\" 2>/dev/null || exit 0
+        cp -al '$PWD/node_modules' \"\$staging\" 2>/dev/null || {
+            rm -rf \"\$staging\"
+            cp -a '$PWD/node_modules' \"\$staging\" 2>/dev/null || { rm -rf \"\$staging\"; exit 0; }
+        }
         rm -rf '$cached'
         mv \"\$staging\" '$cached'
     " >/dev/null 2>&1 &
@@ -153,7 +159,17 @@ restore_node_modules_from_cache() {
         return 0
     fi
 
-    if cp -al "$cached" "$staging" 2>/dev/null || cp -a "$cached" "$staging" 2>/dev/null; then
+    # Clear staging between attempts: `cp -al` can create the directory and then
+    # fail part way (a cross-device link, a permission error), and `cp -a` onto an
+    # existing directory copies *into* it, giving node_modules/node_modules — a
+    # tree the fast path below accepts as present while nothing resolves.
+    if cp -al "$cached" "$staging" 2>/dev/null; then
+        mv "$staging" node_modules
+        log_info "node_modules restored by hardlink copy in $((SECONDS - start))s"
+        return 0
+    fi
+    rm -rf "$staging"
+    if cp -a "$cached" "$staging" 2>/dev/null; then
         mv "$staging" node_modules
         log_info "node_modules restored by copy in $((SECONDS - start))s"
         return 0
@@ -162,6 +178,39 @@ restore_node_modules_from_cache() {
     rm -rf "$staging"
     log_info "could not restore from cache, falling back to install"
     return 1
+}
+
+# ---------------------------------------------------------------------------
+# The repo's gitignored Claude Code config — .claude/rules and the repo's own
+# .claude/skills. postinstall generates them; a clone carries only
+# .claude/settings.json, and cloud-setup.sh installs with --ignore-scripts, so a
+# session can arrive with node_modules in place and none of them present.
+#
+# Generation needs node_modules but not the network, and measures ~2s, which is
+# affordable in a hook that the session waits on. cloud-setup.sh does this too, so
+# this is the fresh-clone fallback; skills are enumerated at launch, so a session
+# that has to fall back here may still not surface the repo's own skills until the
+# next one.
+# ---------------------------------------------------------------------------
+
+generate_claude_config_if_missing() {
+    [[ -d node_modules ]] || return 0
+    [[ -d .claude/rules || -d .claude/skills ]] && return 0
+    node -e 'process.exit(require("./package.json").scripts["postinstall:setup-prompts"] ? 0 : 1)' 2>/dev/null || return 0
+
+    local start=$SECONDS
+    # Same invocation as postinstall, so the rendered settings.json matches the
+    # committed one and the session's working tree stays clean.
+    if command -v timeout &>/dev/null; then
+        timeout 90s yarn run postinstall:setup-prompts >/dev/null 2>&1 || true
+    else
+        yarn run postinstall:setup-prompts >/dev/null 2>&1 || true
+    fi
+    if [[ -d .claude/rules || -d .claude/skills ]]; then
+        log_info "generated .claude rules and skills in $((SECONDS - start))s"
+    else
+        log_info "could not generate .claude rules or skills — repo-local skills will be missing"
+    fi
 }
 
 # ---------------------------------------------------------------------------
@@ -270,12 +319,15 @@ if [[ "${CLAUDE_CODE_REMOTE:-}" == "true" ]] || [[ "${AG_CLOUD_INSTALL:-}" == "1
     apply_cached_node_path
     clear_stale_lock
     if [[ -f package.json ]]; then
-        if restore_node_modules_from_cache; then
-            # A cache seeded with --ignore-scripts passes the integrity check but
-            # has no patches applied, so the fast path below would wrongly call it
-            # ready.
+        restore_node_modules_from_cache || true
+        generate_claude_config_if_missing
+        # Whatever node_modules the session ended up with — restored just now, or
+        # inherited from the environment snapshot. A tree built with
+        # --ignore-scripts passes the integrity check but has no patches applied,
+        # so the fast path below would otherwise call it ready.
+        if [[ -d node_modules ]]; then
             if [[ -f "$AG_CLOUD_CACHE_DIR/unscripted" ]]; then
-                log_info "restored tree is unscripted (no patches yet)"
+                log_info "node_modules is present but unscripted (no patches yet)"
                 announce_deps_not_ready
                 exit 0
             fi
