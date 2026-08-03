@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import {
     AgBubbleSeriesOptions,
@@ -69,14 +69,15 @@ type SelectionChangeRecorder<D, C> = SelectionChangeCallback<D, C> & {
     popEvents(): AgSelectionChangeEvent<D, C>[];
 };
 
-function createSelectionChangeRecorder<D, C>(cb?: SelectionChangeCallback<D, C>): SelectionChangeRecorder<D, C> {
+function createSelectionChangeRecorder<D, C>(onEvent?: SelectionChangeCallback<D, C>): SelectionChangeRecorder<D, C> {
     let events: AgSelectionChangeEvent<D, C>[] = [];
 
     const freezeable = newFreezableMockInferred<MockSelectionChangeListener<D, C>>(
         (ev: AgSelectionChangeEvent<D, C>) => {
+            // Record before delegating, so that an `onEvent` that throws still leaves the
+            // event visible to `popEvents()`.
             events.push(ev);
-            console.log(cb, 'here');
-            cb?.(ev);
+            onEvent?.(ev);
         }
     );
 
@@ -5609,34 +5610,60 @@ describe('DataSelection', () => {
         });
     });
 
-    describe('AG-17445 data-selection cleans up when selectionChange callback throws an error', () => {
+    // AG-17445: a `selectionChange` callback that throws must not leave the selection
+    // half-applied, and the error must still reach the user rather than being swallowed.
+    // Each scenario runs the same interaction twice — once with a well-behaved callback and
+    // once with a throwing one — and asserts both produce the same selection state, the same
+    // events and the same rendering.
+    //
+    // NOTE: these tests do not fail if the `try`/`finally` guards in `DataSelection` are
+    // removed. When the callback throws, `SeriesAreaManager` skips the
+    // `event.sourceEvent.preventDefault()` that follows the emit, and the test harness
+    // (`dispatchEvent` walking the whole bubble chain) delivers the same mouse event a
+    // second time; that second pass re-runs the handler and restores the state the first
+    // pass skipped. So these assertions pin the observable contract, not the guards
+    // themselves — the guards would need a single-dispatch (non-DOM) entry point to pin.
+    describe('AG-17445 selectionChange callback throws an error', () => {
         describe('bar', () => {
-            class MyTestError extends Error {}
+            class SelectionChangeError extends Error {}
 
             type D = StackMixDatum;
             type C = unknown;
-            let spy: unknown;
             let selectionChange: SelectionChangeRecorder<D, C>;
+
             const POINT_S2A: CanvasPoint = { canvasX: 74, canvasY: 430 };
             const POINT_S3A: CanvasPoint = { canvasX: 127, canvasY: 508 };
-            const DATUM_S1A: D = {} as any;
-            const DATUM_S2A: D = { cat: 'A', s1: 5, s2: 3, s3: 7, s6: 3 };
-            const DATUM_S3A: D = {} as any;
-            const SELECTION_S1A: [AgSelectionItem<D>] = [{ itemId: 0, seriesId: 's1id', datum: DATUM_S1A }];
-            const SELECTION_S2A: [AgSelectionItem<D>] = [{ itemId: 0, seriesId: 's2id', datum: DATUM_S2A }];
-            const SELECTION_S3A: [AgSelectionItem<D>] = [{ itemId: 0, seriesId: 's3id', datum: DATUM_S3A }];
+
+            // The s1id, s2id and s3id series all plot the root data, so within category 'A'
+            // they all select the same datum object.
+            const DATUM_A: D = { cat: 'A', s1: 5, s2: 3, s3: 7, s6: 3 };
+            const SELECTION_S1A: [AgSelectionItem<D>] = [{ itemId: 0, seriesId: 's1id', datum: DATUM_A }];
+            const SELECTION_S2A: [AgSelectionItem<D>] = [{ itemId: 0, seriesId: 's2id', datum: DATUM_A }];
+            const SELECTION_S3A: [AgSelectionItem<D>] = [{ itemId: 0, seriesId: 's3id', datum: DATUM_A }];
             const SELECTION_S1A_S2A_S3A: AgSelectionItem<D>[] = [SELECTION_S1A, SELECTION_S2A, SELECTION_S3A].flat();
             const ADDED_S2A = uiChangeEvent<D, C>({ added: SELECTION_S2A, removed: [] });
             const ADDED_S1A_S2A_S3A = uiChangeEvent<D, C>({ added: SELECTION_S1A_S2A_S3A, removed: [] });
 
-            beforeEach(async () => {
-                spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+            // jsdom reports an exception thrown by an event listener as an `error` event on
+            // `window` rather than propagating it to whoever dispatched the event, so an
+            // error thrown by the `selectionChange` callback cannot be observed with
+            // `expect(...).toThrow()` and is collected here instead. Cancelling the event
+            // also stops Vitest failing the run over an error the test provokes on purpose.
+            let uncaughtErrors: unknown[] = [];
+            const collectUncaughtError = (event: ErrorEvent) => {
+                uncaughtErrors.push(event.error);
+                event.preventDefault();
+            };
+            function popUncaughtErrors() {
+                const result = uncaughtErrors;
+                uncaughtErrors = [];
+                return result;
+            }
 
+            /** Creates the chart under test; `onSelectionChange` is the user callback. */
+            async function createStackMixChart(onSelectionChange?: SelectionChangeCallback<D, C>) {
                 const { data, series, axes, theme, legend } = createBarStackMixOptions();
-                selectionChange = createSelectionChangeRecorder(() => {
-                    console.log('there... throwing...');
-                    throw new MyTestError();
-                });
+                selectionChange = createSelectionChangeRecorder(onSelectionChange);
                 chart = await createChartInstance({
                     data,
                     series,
@@ -5651,62 +5678,104 @@ describe('DataSelection', () => {
                     },
                     listeners: { selectionChange },
                 });
+            }
+
+            beforeEach(() => {
+                uncaughtErrors = [];
+                globalThis.addEventListener('error', collectUncaughtError);
             });
+
             afterEach(() => {
-                expect(spy).toHaveBeenCalledTimes(1);
+                globalThis.removeEventListener('error', collectUncaughtError);
+                // Any provoked error must have been claimed by the test that provoked it.
+                expect(uncaughtErrors).toEqual([]);
             });
 
             describe('click', () => {
-                test('screenshot', async () => {
-                    await mouseClick(POINT_S2A);
-                    await waitForChartStability(chart);
-                    // expect(async  () => {
-                    //     await mouseClick(POINT_S2A);
-                    //     await waitForChartStability(chart);
-                    // }).rejects.toThrow(MyTestError);
-                    //await expect(mouseClick(POINT_S2A)).rejects.toThrow(MyTestError);
-                    //await expect(async () => await mouseClick(POINT_S2A)).rejects.toThrow(MyTestError);
-                    //await mouseClick(POINT_S2A);
-                    await compareExact('stack-mix-highlighted-none-selected-s2a');
+                describe('callback succeeds', () => {
+                    beforeEach(async () => {
+                        await createStackMixChart();
+                        await mouseClick(POINT_S2A);
+                    });
+
+                    test('screenshot', async () => {
+                        await compareExact('stack-mix-highlighted-s2a-selected-s2a');
+                    });
+                    test('getSelection', () => {
+                        expect(getChartSelectionArray()).toEqual(SELECTION_S2A);
+                    });
+                    test('selectionChange', () => {
+                        expect(selectionChange.popEvents()).toEqual([ADDED_S2A]);
+                    });
                 });
-                test.skip('getSelection', async () => {
-                    await expect(mouseClick(POINT_S2A)).rejects.toThrow(MyTestError);
-                    expect(getChartSelectionArray()).toEqual(SELECTION_S2A);
-                });
-                test.skip('selectionChange', async () => {
-                    await expect(mouseClick(POINT_S2A)).rejects.toThrow(MyTestError);
-                    expect(getChartSelectionArray()).toEqual(ADDED_S2A);
+
+                describe('callback throws', () => {
+                    beforeEach(async () => {
+                        await createStackMixChart(() => {
+                            throw new SelectionChangeError();
+                        });
+                        await mouseClick(POINT_S2A);
+                        expect(popUncaughtErrors()).toEqual([expect.any(SelectionChangeError)]);
+                    });
+
+                    // Same snapshot as the succeeding callback above: the click is still
+                    // redrawn even though the callback threw.
+                    test('screenshot', async () => {
+                        await compareExact('stack-mix-highlighted-s2a-selected-s2a');
+                    });
+                    test('getSelection', () => {
+                        expect(getChartSelectionArray()).toEqual(SELECTION_S2A);
+                    });
+                    test('selectionChange', () => {
+                        expect(selectionChange.popEvents()).toEqual([ADDED_S2A]);
+                    });
                 });
             });
 
-            describe.skip('drag', () => {
-                beforeEach(async () => {
-                    await mouseDown(POINT_S2A);
-                    await mouseMove(POINT_S2A);
-                });
-                describe('mousedown + mousemove', () => {
+            describe('drag', () => {
+                describe('callback succeeds', () => {
+                    beforeEach(async () => {
+                        await createStackMixChart();
+                        await mouseDown(POINT_S2A);
+                        await mouseMove(POINT_S3A);
+                        await mouseUp(POINT_S3A);
+                    });
+
                     test('screenshot', async () => {
-                        await compareExact('stack-mix-highlighted-s3a-selecting-s1-s2a-s3');
+                        await compareExact('stack-mix-highlighted-s3a-selected-s1a-s2a-s3a');
                     });
-                    test('getSelection', async () => {
-                        expect(getChartSelectionArray()).toEqual([]);
-                    });
-                    test('selectionChange', async () => {
-                        expect(getChartSelectionArray()).toEqual([]);
-                    });
-                });
-                describe('mouseup', () => {
-                    test('screenshot', async () => {
-                        await expect(mouseUp(POINT_S3A)).rejects.toThrow(MyTestError);
-                        await compareExact('stack-mix-highlighted-s3a-selected-s1-s2a-s3');
-                    });
-                    test('getSelection', async () => {
-                        await expect(mouseUp(POINT_S3A)).rejects.toThrow(MyTestError);
+                    test('getSelection', () => {
                         expect(getChartSelectionArray()).toEqual(SELECTION_S1A_S2A_S3A);
                     });
-                    test('selectionChange', async () => {
-                        await expect(mouseUp(POINT_S3A)).rejects.toThrow(MyTestError);
-                        expect(getChartSelectionArray()).toEqual(ADDED_S1A_S2A_S3A);
+                    test('selectionChange', () => {
+                        expect(selectionChange.popEvents()).toEqual([ADDED_S1A_S2A_S3A]);
+                    });
+                });
+
+                describe('callback throws', () => {
+                    beforeEach(async () => {
+                        await createStackMixChart(() => {
+                            throw new SelectionChangeError();
+                        });
+                        await mouseDown(POINT_S2A);
+                        await mouseMove(POINT_S3A);
+                        // The callback only runs on drag-end, so nothing has thrown yet.
+                        expect(popUncaughtErrors()).toEqual([]);
+
+                        await mouseUp(POINT_S3A);
+                        expect(popUncaughtErrors()).toEqual([expect.any(SelectionChangeError)]);
+                    });
+
+                    // Same snapshot as the succeeding callback above: `endDrag()` still runs,
+                    // so the drag rectangle is hidden and the selection is drawn.
+                    test('screenshot', async () => {
+                        await compareExact('stack-mix-highlighted-s3a-selected-s1a-s2a-s3a');
+                    });
+                    test('getSelection', () => {
+                        expect(getChartSelectionArray()).toEqual(SELECTION_S1A_S2A_S3A);
+                    });
+                    test('selectionChange', () => {
+                        expect(selectionChange.popEvents()).toEqual([ADDED_S1A_S2A_S3A]);
                     });
                 });
             });
