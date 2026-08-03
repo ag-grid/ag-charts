@@ -80,11 +80,21 @@ It is the one generated file that cannot be generated in time: Claude Code reads
 
 `postinstall` still renders it from `external/ag-shared/.claude-settings.template.json`, so the committed copy and the render must agree. If `yarn` leaves it modified in your working tree, the template changed — review and commit the diff, do not discard it.
 
+## If you configured the environment before this landed
+
+A cached environment **skips the setup script permanently** — it only runs when no snapshot exists. So an environment whose snapshot was built before `cloud-setup.sh` reached the branch never runs it and cannot self-heal: sessions get no `~/.cache/ag-cloud`, no pre-cloned marketplaces, and the wrong node version, while the checklist still cheerfully reports "Ran setup script".
+
+This was observed, not theorised. A session in that state fell back to the hook's full install, which took **534 s**, and reported all five canary skills missing.
+
+To force a rebuild, edit the setup script in the environment dialog — any change counts, even a trailing comment — and save. The next session runs it again and re-snapshots. The same applies whenever you change the network allowlist, and it happens on its own after roughly seven days.
+
 ## Known limitations
 
 - **`.claude/rules/` and `.claude/skills/` are still generated and ignored.** They exist in the first session (the setup script's `yarn install` writes them before launch) and in any session whose snapshot preserved the tree. If a session starts from a fresh clone, the SessionStart hook regenerates them but only after Claude Code has already loaded its context. `CLAUDE.md` is committed, so the critical instructions are always present.
 - **`.mcp.json` is gitignored**, so cloud sessions have no MCP servers. Skills that reach JIRA or Confluence through the Atlassian MCP will not work there; interactive OAuth cannot complete in a cloud session anyway.
 - **`ag-grid/ag-dev-prompts` is a private repository.** Cloud sessions reach GitHub through a proxy that scopes API and release-asset requests to the repositories attached to the session. If the marketplace clone fails, `cloud-setup.sh` says so in the setup log and `cloud-doctor.sh` reports the missing marketplace and skills — that is the signal, rather than skills silently going absent.
+- **Never send `GITHUB_TOKEN` from a cloud session as a credential.** When the GitHub proxy handles authentication, `GITHUB_TOKEN` and `GH_TOKEN` read as the literal string `proxy-injected`; the proxy substitutes real credentials on outbound requests. Passing the placeholder as a Bearer token authenticates as nobody. This silently broke the `ag-dev-prompts` fetch — and with it every skill and every generated rule — until `rulesync-fetch/fetch.sh` learned to treat the placeholder as unset. Any new script that reads those variables needs the same guard.
+- **`.rulesync/mcp.json` is plugin-delivered and gitignored.** When the fetch above fails it is simply absent, and asking rulesync for the `mcp` feature then fails ENOENT and takes the entire generate down with it — no rules, no skills, from sources that were perfectly generatable. `setup-prompts.sh` now requests that feature only when the file exists.
 - **Playwright browsers are not installed**, so `test:e2e` needs `npx playwright install` in the session.
 - **Build jobs can exceed the VM's memory**; a full monorepo build is close to the 16 GB ceiling.
 
