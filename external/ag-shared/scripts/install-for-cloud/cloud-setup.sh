@@ -51,8 +51,33 @@ export PUPPETEER_SKIP_DOWNLOAD=true
 export NX_DAEMON=false
 export CI=
 
-log_info() { echo "[cloud-setup] $*"; }
-log_warn() { echo "[cloud-setup] WARN: $*" >&2; }
+# The platform shows this script's output only while it runs: once a build has
+# finished — or died — the log is gone, and a later session can only infer what
+# happened from what is missing on disk. So mirror every line into the cache
+# directory, which does survive into the snapshot. cloud-doctor.sh points at it.
+SETUP_LOG="${AG_CLOUD_CACHE_DIR}/setup.log"
+
+log_line() {
+    [[ -n "${SETUP_LOG:-}" && -w "$(dirname "$SETUP_LOG")" ]] && echo "$@" >>"$SETUP_LOG"
+    return 0
+}
+log_info() {
+    echo "[cloud-setup] $*"
+    log_line "[cloud-setup] $*"
+}
+log_warn() {
+    echo "[cloud-setup] WARN: $*" >&2
+    log_line "[cloud-setup] WARN: $*"
+}
+
+# A setup script that dies mid-step still reports "Ran setup script" in the UI, so
+# record the exit with its line number. Without this, a build that stopped inside
+# pin_node was indistinguishable from one that never started.
+on_exit() {
+    local rc=$?
+    log_line "[cloud-setup] EXIT rc=${rc} after $((SECONDS - START_TS))s (last line ${BASH_LINENO[0]:-?})"
+}
+trap on_exit EXIT
 
 elapsed() { echo $((SECONDS - START_TS)); }
 remaining() { echo $((TOTAL_BUDGET_SECONDS - $(elapsed))); }
@@ -96,12 +121,28 @@ step() {
 # node / yarn / nx
 # ---------------------------------------------------------------------------
 
+NVM_SH=""
+
+# nvm.sh is not `set -u` clean — it reads variables like $PREFIX and
+# $npm_config_prefix that need not exist — and an unbound reference while
+# sourcing kills the *sourcing* shell, not just the function. That is consistent
+# with what one environment build did: it created its cache directory and then
+# stopped dead before the next write, having produced no node pin, no yarn, no
+# marketplaces and no install, while still reporting "Ran setup script".
+# So relax the shell options around the source and put them back afterwards.
 load_nvm() {
-    local dir
+    local dir rc
     for dir in "${NVM_DIR:-}" "$HOME/.nvm" /usr/local/nvm /usr/local/share/nvm /opt/nvm; do
         [[ -n "$dir" && -s "$dir/nvm.sh" ]] || continue
+        set +uo pipefail
         # shellcheck disable=SC1091
-        . "$dir/nvm.sh" && return 0
+        . "$dir/nvm.sh"
+        rc=$?
+        set -uo pipefail
+        if ((rc == 0)) && command -v nvm &>/dev/null; then
+            NVM_SH="$dir/nvm.sh"
+            return 0
+        fi
     done
     return 1
 }
@@ -127,7 +168,12 @@ pin_node() {
 
     # `nvm install` fetches from nodejs.org, which is on the default Trusted
     # allowlist. Fall back to the closest installed major if it is unreachable.
-    if with_timeout 120 nvm install "$wanted" >/dev/null 2>&1; then
+    #
+    # Bounded through a subshell, not `with_timeout nvm install`: nvm is a shell
+    # function, and `timeout` can only exec a real command, so that form failed
+    # instantly with 127 and left node unpinned. The install writes to $NVM_DIR on
+    # disk, so doing it in a subshell and then `nvm use` here works fine.
+    if with_timeout 180 bash -c 'set +u; . "$1" && nvm install "$2"' _ "$NVM_SH" "$wanted" >/dev/null 2>&1; then
         nvm alias default "$wanted" >/dev/null 2>&1 || true
         nvm use "$wanted" >/dev/null 2>&1 || true
         log_info "node pinned to $(node -v)"
@@ -363,11 +409,14 @@ enabled_plugins() {
     ' "$REPO_ROOT/.claude/settings.json" 2>/dev/null
 }
 
-# Seconds held back from registration so `yarn install` still gets a usable slice
-# of the budget. Registration measures in seconds, but each `claude plugin …` call
-# can hang on the network, and five of them at 60s each plus two marketplace adds
-# would blow past the ~5 minute cap on their own and cost the snapshot entirely.
-REGISTRATION_RESERVE_SECONDS=150
+# Seconds held back from registration for the install. Deliberately small: an
+# install that does not finish here is recoverable in a session (finish-setup.sh),
+# whereas marketplaces that are not registered before launch cannot be fixed at
+# all, because Claude Code enumerates plugin skills once at startup. So the
+# reserve exists only to stop a *hanging* registration from eating the whole
+# ~5 minute cap — with 270s of budget and registration running first, it still
+# leaves registration roughly 200s, and each individual call is capped at 60s.
+REGISTRATION_RESERVE_SECONDS=60
 
 # registration_budget <wanted> — how long the next `claude plugin …` call may take:
 # the smaller of what it asked for and what is left once the install's reserve is
@@ -439,6 +488,10 @@ main() {
     # refresh it once its own install has scripted the tree.
     mkdir -p "$AG_CLOUD_CACHE_DIR" 2>/dev/null || true
     chmod 0777 "$AG_CLOUD_CACHE_DIR" 2>/dev/null || true
+    # One log per build, readable by any later session.
+    : >"$SETUP_LOG" 2>/dev/null || true
+    chmod 0666 "$SETUP_LOG" 2>/dev/null || true
+    log_info "start: $(date -u '+%Y-%m-%dT%H:%M:%SZ' 2>/dev/null || echo '?'), node $(node -v 2>/dev/null || echo 'none')"
     if [[ ! -f "$REPO_ROOT/package.json" ]]; then
         log_warn "no package.json at ${REPO_ROOT}; nothing to set up"
         exit 0

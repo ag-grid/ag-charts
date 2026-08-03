@@ -85,6 +85,14 @@ if [[ -d "$REPO_ROOT/node_modules" ]]; then
 else
     bad "node_modules missing"
 fi
+# The environment build's own log, mirrored here by cloud-setup.sh because the
+# platform discards it once the build ends. This is the only way to see why a
+# build produced nothing.
+if [[ -f "$AG_CLOUD_CACHE_DIR/setup.log" ]]; then
+    note "setup log: $AG_CLOUD_CACHE_DIR/setup.log ($(tail -1 "$AG_CLOUD_CACHE_DIR/setup.log" 2>/dev/null | cut -c1-90))"
+else
+    note "no setup log at $AG_CLOUD_CACHE_DIR/setup.log — the setup script never reached its first log line"
+fi
 if [[ -d "$AG_CLOUD_CACHE_DIR/node_modules" ]]; then
     if [[ -f "$AG_CLOUD_CACHE_DIR/unscripted" ]]; then
         note "cloud cache seeded but unscripted ($AG_CLOUD_CACHE_DIR)"
