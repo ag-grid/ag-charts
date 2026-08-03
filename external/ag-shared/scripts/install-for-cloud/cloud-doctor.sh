@@ -13,7 +13,14 @@ set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$SCRIPT_DIR/../../../.." && pwd)}"
-AG_CLOUD_CACHE_DIR="${AG_CLOUD_CACHE_DIR:-$HOME/.cache/ag-cloud}"
+if [[ -z "${AG_CLOUD_CACHE_DIR:-}" ]]; then
+    # Matches install-for-cloud.sh: the shared path first, $HOME only as fallback.
+    if [[ -d /opt/ag-cloud ]]; then
+        AG_CLOUD_CACHE_DIR=/opt/ag-cloud
+    else
+        AG_CLOUD_CACHE_DIR="$HOME/.cache/ag-cloud"
+    fi
+fi
 
 CANARY_SKILLS=(example dev-server debug-trace git-conventions jira)
 FAILURES=0

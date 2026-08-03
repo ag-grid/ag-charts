@@ -17,8 +17,17 @@ log_info() { echo "[install-for-cloud] $*"; }
 log_error() { echo "[install-for-cloud] ERROR: $*" >&2; }
 
 # Cache seeded by cloud-setup.sh (the cloud environment's setup script). It lives
-# outside the repo so it survives a re-cloned working tree.
-AG_CLOUD_CACHE_DIR="${AG_CLOUD_CACHE_DIR:-$HOME/.cache/ag-cloud}"
+# outside the repo so it survives a re-cloned working tree, and outside $HOME
+# because the setup script runs as root while the session runs as another user —
+# so /opt/ag-cloud is the path both sides can agree on. The $HOME location stays
+# as the fallback for local and worktree runs, where one user owns everything.
+if [[ -z "${AG_CLOUD_CACHE_DIR:-}" ]]; then
+    if [[ -d /opt/ag-cloud ]]; then
+        AG_CLOUD_CACHE_DIR=/opt/ag-cloud
+    else
+        AG_CLOUD_CACHE_DIR="$HOME/.cache/ag-cloud"
+    fi
+fi
 
 # ---------------------------------------------------------------------------
 # Cloud session PATH — the setup script's environment does not carry over, so

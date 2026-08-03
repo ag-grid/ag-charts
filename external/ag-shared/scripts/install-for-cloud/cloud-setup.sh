@@ -29,7 +29,13 @@ set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="${AG_CLOUD_REPO_ROOT:-$(cd "$SCRIPT_DIR/../../../.." && pwd)}"
-AG_CLOUD_CACHE_DIR="${AG_CLOUD_CACHE_DIR:-$HOME/.cache/ag-cloud}"
+
+# NOT under $HOME. This script runs as root, so $HOME is /root, while the session
+# that later reads the cache runs as another user with its own home (/home/user in
+# a cloud session) — an earlier revision seeded /root/.cache/ag-cloud, which no
+# session could ever see, and every session then installed from cold while the
+# cache sat there unused. Use one fixed, world-writable path both sides agree on.
+AG_CLOUD_CACHE_DIR="${AG_CLOUD_CACHE_DIR:-/opt/ag-cloud}"
 
 # Deadline for the whole script, kept under the ~5 minute cap with headroom for
 # the snapshot itself. Individual long steps get their own `timeout`.
@@ -253,9 +259,18 @@ seed_node_modules_cache() {
 # a failure here is the signal that the session's GitHub credentials do not cover
 # repositories other than the attached one.
 
+# Candidate homes for the *session* user. $HOME here is root's, which the session
+# never reads, so seed every plausible home and let the right one win.
+session_homes() {
+    local h
+    for h in /home/user /home/claude "$HOME"; do
+        [[ -d "$h" ]] && echo "$h"
+    done
+}
+
 clone_marketplace() {
-    local name="$1" repo="$2" ref="${3:-}"
-    local dest="$HOME/.claude/plugins/marketplaces/$name"
+    local name="$1" repo="$2" ref="${3:-}" home="$4"
+    local dest="$home/.claude/plugins/marketplaces/$name"
 
     if [[ -d "$dest/.git" ]]; then
         with_timeout 60 git -C "$dest" fetch --depth 1 origin "${ref:-HEAD}" >/dev/null 2>&1 || true
@@ -281,14 +296,19 @@ clone_marketplace() {
         fi
         rm -rf "$dest"
     done
-    log_warn "could not clone ${repo} — Claude Code will retry at launch; if it also fails, skills from this marketplace will be missing"
+    log_warn "could not clone ${repo} into ${home} — if Claude Code also fails at launch, attach ${repo} as a second repository to the session: the GitHub proxy only reaches repositories attached to the session, and attaching it is verified to make the clone and the skills work"
     return 1
 }
 
 seed_marketplaces() {
-    local ref="${AG_DEV_PROMPTS_REF:-canary}"
-    clone_marketplace ag-dev ag-grid/ag-dev-prompts "$ref" || true
-    clone_marketplace openai-codex openai/codex-plugin-cc || true
+    local ref="${AG_DEV_PROMPTS_REF:-canary}" home
+    while read -r home; do
+        [[ -n "$home" ]] || continue
+        clone_marketplace ag-dev ag-grid/ag-dev-prompts "$ref" "$home" || true
+        clone_marketplace openai-codex openai/codex-plugin-cc "" "$home" || true
+        # Readable by the session user, not just root.
+        chmod -R a+rX "$home/.claude/plugins/marketplaces" 2>/dev/null || true
+    done < <(session_homes)
     return 0
 }
 
@@ -298,6 +318,12 @@ seed_marketplaces() {
 
 main() {
     log_info "repo root: ${REPO_ROOT}"
+    log_info "cache dir: ${AG_CLOUD_CACHE_DIR}"
+
+    # World-writable: the session user must be able to read the cache, and to
+    # refresh it once its own install has scripted the tree.
+    mkdir -p "$AG_CLOUD_CACHE_DIR" 2>/dev/null || true
+    chmod 0777 "$AG_CLOUD_CACHE_DIR" 2>/dev/null || true
     if [[ ! -f "$REPO_ROOT/package.json" ]]; then
         log_warn "no package.json at ${REPO_ROOT}; nothing to set up"
         exit 0
