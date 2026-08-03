@@ -31,6 +31,7 @@ import {
 import type {
     AgAxisBoundSeries,
     AgAxisDomain,
+    AgAxisListeners,
     AgAxisValue,
     AgBaseAxisLabelStyleOptions,
     AgContextMenuGetItemsParamsAlways,
@@ -1169,6 +1170,11 @@ export abstract class Axis<
             scale: this.scale,
             direction: this.direction,
             continuous: ContinuousScale.is(scale) || DiscreteTimeScale.is(scale),
+            // A getter, not a snapshot: `applyOptions` swaps the options reference on update, so
+            // listeners added or removed by a later `chart.update()` must be picked up.
+            get listeners() {
+                return (axis.options as { listeners?: AgAxisListeners<unknown> }).listeners;
+            },
             get mirrored() {
                 return axis.mirrored;
             },

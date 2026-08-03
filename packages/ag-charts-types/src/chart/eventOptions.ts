@@ -212,6 +212,31 @@ export interface AgAxisContextMenuActionEvent<TContext = ContextDefault> extends
     domain: AgAxisDomain;
 }
 
+export interface AgAxisClickEvent<TEvent extends string, TContext = ContextDefault> extends AgChartEvent<
+    TEvent,
+    TContext
+> {
+    /** Axis ID, as specified in `axes` (generated if not specified). */
+    axisId: string;
+    /** The scale value of the axis at this point. */
+    value: AgAxisValue;
+    /** Direction of the clicked axis. */
+    direction: AgAxisDirection;
+    /** The index of the resolved value */
+    index: number;
+    /** Metadata about series bound to the clicked axis. */
+    boundSeries: AgAxisBoundSeries[];
+    /** Computed domain of the axis */
+    domain: AgAxisDomain;
+}
+
+export interface AgAxisListeners<TContext = ContextDefault> {
+    /** The listener to call when the axis is clicked. */
+    click?: Listener<AgAxisClickEvent<'click', TContext>>;
+    /** The listener to call when the axis is double-clicked. */
+    doubleClick?: Listener<AgAxisClickEvent<'doubleClick', TContext>>;
+}
+
 export interface AgCrossLineContextMenuActionEvent<TContext = ContextDefault> extends AgChartEvent<
     'crossLineContextMenuAction',
     TContext
@@ -262,6 +287,14 @@ export interface AgBaseChartListeners<TDatum, TContext = ContextDefault> {
     /** The listener to call when a node (marker, column, bar, tile or a pie sector) in any series is double-clicked.
      * Useful for a chart containing multiple series.*/
     seriesNodeDoubleClick?: Listener<AgNodeClickEvent<'seriesNodeDoubleClick', TDatum, TContext>>;
+    /** The listener to call when any axis in the chart is clicked.
+     *  Useful for a chart containing multiple axes.
+     */
+    axisClick?: Listener<AgAxisClickEvent<'axisClick', TContext>>;
+    /** The listener to call when any axis in the chart is double-clicked.
+     *  Useful for a chart containing multiple axes.
+     */
+    axisDoubleClick?: Listener<AgAxisClickEvent<'axisDoubleClick', TContext>>;
     /** The listener to call when a series visibility is changed. */
     seriesVisibilityChange?: Listener<AgSeriesVisibilityChange<TContext>>;
     /** The listener to call when the active state (highlight/tooltip) is changed. */

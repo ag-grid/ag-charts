@@ -28,6 +28,7 @@ import type {
 } from './crossLineOptions';
 import type { AgBaseCrosshairLabel, AgCrosshairLabel, AgCrosshairOptions } from './crosshairOptions';
 import type { AgNumericValue, AgTimeValue } from './dataValues';
+import type { AgAxisListeners } from './eventOptions';
 import type { AxisValue, ContextDefault, DatumDefault, Degree, PixelSize, Ratio, TextWrap } from './types';
 
 /** Configuration for axes in cartesian charts. */
@@ -55,6 +56,8 @@ export interface AgBaseCartesianAxisOptions<
     title?: AgCartesianAxisCaptionOptions;
     /** Configuration for the axis crosshair. */
     crosshair?: AgCrosshairOptions<CrosshairLabelType>;
+    /** A map of event names to event listeners. */
+    listeners?: AgAxisListeners<TContext>;
 }
 
 export interface AgCartesianAxisCrossAt {
