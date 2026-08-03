@@ -191,10 +191,14 @@ function scrollVerticallyIntoView(element: HTMLElement, container: HTMLElement |
 
     const elementRect = element.getBoundingClientRect();
     const containerRect = container.getBoundingClientRect();
+    // clientTop and clientHeight exclude the container's borders and scrollbar gutter, which the
+    // bounding rect includes — aligning to the bounding rect leaves the option clipped by them.
+    const visibleTop = containerRect.top + container.clientTop;
+    const visibleBottom = visibleTop + container.clientHeight;
 
-    if (elementRect.top < containerRect.top) {
-        container.scrollTop -= containerRect.top - elementRect.top;
-    } else if (elementRect.bottom > containerRect.bottom) {
-        container.scrollTop += elementRect.bottom - containerRect.bottom;
+    if (elementRect.top < visibleTop) {
+        container.scrollTop -= visibleTop - elementRect.top;
+    } else if (elementRect.bottom > visibleBottom) {
+        container.scrollTop += elementRect.bottom - visibleBottom;
     }
 }

@@ -258,7 +258,11 @@ test.describe('api-ref-page', () => {
                 const container = element.closest(dropdownSelector)!;
                 const optionRect = element.getBoundingClientRect();
                 const containerRect = container.getBoundingClientRect();
-                return optionRect.top >= containerRect.top && optionRect.bottom <= containerRect.bottom;
+                // The visible area excludes the container's borders and scrollbar gutter. A pixel of
+                // slack absorbs the sub-pixel rounding of a fractional scroll offset.
+                const visibleTop = containerRect.top + container.clientTop;
+                const visibleBottom = visibleTop + container.clientHeight;
+                return optionRect.top >= visibleTop - 1 && optionRect.bottom <= visibleBottom + 1;
             }, SEARCH_DROPDOWN_SELECTOR);
         expect(selectedIsVisible).toBe(true);
     });
