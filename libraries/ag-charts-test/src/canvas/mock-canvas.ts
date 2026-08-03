@@ -116,6 +116,25 @@ function proxyGetContext2D(_mockCtx: MockContext, canvas: Canvas, target: any) {
     };
 }
 
+function proxyCanvasElement(mockCtx: MockContext, target: any, width: number, height: number) {
+    // Dimensions are assigned after creation, so the backing canvas is claimed on first use: a
+    // zero-sized canvas is scratch space for text measurement and must not take the render target.
+    let backingCanvas: Canvas | undefined;
+    const backing = (): Canvas => {
+        if (backingCanvas == null) {
+            backingCanvas =
+                target.width > 0 && target.height > 0
+                    ? (mockCtx.canvasStack.shift() ?? new ConfiguredCanvas(width, height))
+                    : new ConfiguredCanvas(1, 1);
+            mockCtx.registerCanvasInstance(backingCanvas);
+        }
+        return backingCanvas;
+    };
+
+    target.getContext = (type: '2d') => (type === '2d' ? backing().getContext(type) : null);
+    target.toDataURL = (mimeType = 'image/png') => backing().toDataURL(mimeType.split('/')[1] as ExportFormat);
+}
+
 export function setup(opts: { width?: number; height?: number; document?: Document } | MockContext) {
     let mockCtx: MockContext;
     if (opts instanceof MockContext) {
@@ -135,14 +154,7 @@ export function setup(opts: { width?: number; height?: number; document?: Docume
         if (element === 'canvas') {
             const mockedElement = realCreateElement.call(document, element, options) as HTMLCanvasElement;
 
-            const nextCanvas = mockCtx.canvasStack.shift() ?? new ConfiguredCanvas(width, height);
-            mockCtx.registerCanvasInstance(nextCanvas);
-
-            proxyGetContext2D(mockCtx, nextCanvas, mockedElement);
-
-            mockedElement.toDataURL = (mimeType = 'image/png') => {
-                return nextCanvas.toDataURL(mimeType.split('/')[1] as ExportFormat);
-            };
+            proxyCanvasElement(mockCtx, mockedElement, width, height);
 
             return mockedElement;
         } else if (element === 'img') {
