@@ -27,6 +27,14 @@
         "notesPath": "./upgrade-to-ag-charts-14-1"
     },
     {
+        "version": "14.0.2",
+        "date": "July 22nd, 2026"
+    },
+    {
+        "version": "14.0.1",
+        "date": "July 15th, 2026"
+    },
+    {
         "version": "14.0.0",
         "date": "June 24th, 2026",
         "highlights": [
@@ -49,6 +57,11 @@
         ],
         "landingPageHighlight": "Async data loading for paginated APIs, CSS variables support, and more...",
         "notesPath": "./upgrade-to-ag-charts-14"
+    },
+    {
+        "version": "13.3.1",
+        "date": "June 2nd, 2026",
+        "noDocs": true
     },
     {
         "version": "13.3.0",
@@ -325,6 +338,16 @@
         "notesPath": "./upgrade-to-ag-charts-11-3"
     },
     {
+        "version": "11.2.4",
+        "date": "April 17th, 2025",
+        "noDocs": true
+    },
+    {
+        "version": "11.2.3",
+        "date": "April 11th, 2025",
+        "noDocs": true
+    },
+    {
         "version": "11.2.2",
         "date": "April 9th, 2025"
     },
@@ -411,6 +434,26 @@
             }
         ],
         "notesPath": "./upgrade-to-ag-charts-11"
+    },
+    {
+        "version": "10.3.9",
+        "date": "August 13th, 2025",
+        "noDocs": true
+    },
+    {
+        "version": "10.3.8",
+        "date": "June 10th, 2025",
+        "noDocs": true
+    },
+    {
+        "version": "10.3.7",
+        "date": "April 28th, 2025",
+        "noDocs": true
+    },
+    {
+        "version": "10.3.6",
+        "date": "April 11th, 2025",
+        "noDocs": true
     },
     {
         "version": "10.3.5",
