@@ -8,7 +8,7 @@ import type {
     AgContextMenuGetItemsParamsAxis,
     AgContextMenuGetItemsParamsCaption,
     AgContextMenuGetItemsParamsCrossLine,
-    AgContextMenuShowOnParamsAlways,
+    AgContextMenuShowOnParamsSeriesArea,
     AgCrossLineContextMenuActionEvent,
 } from 'ag-charts-types';
 
@@ -57,6 +57,10 @@ async function popGetItems(page: Page): Promise<AgContextMenuGetItemsParamsCapti
 
 async function contextMenu(page: Page, point: ClientPoint) {
     await page.mouse.click(point.clientX, point.clientY, { button: 'right' });
+}
+
+function closeTo(x: number): number {
+    return expect.closeTo(x, 4) as unknown as number;
 }
 
 test.describe('context-menu', () => {
@@ -459,10 +463,6 @@ test.describe('context-menu', () => {
             };
         }
 
-        function closeTo(x: number): number {
-            return expect.closeTo(x, 4) as unknown as number;
-        }
-
         async function runAction(page: Page) {
             const button = page.getByText('Run axis action');
             await button.click();
@@ -605,23 +605,89 @@ test.describe('context-menu', () => {
             value: 8,
         };
 
-        function itemsEvent(...expectedHits: Params[]): AgContextMenuGetItemsParamsCrossLine {
-            expectedHits = expectedHits.map((hit) => ({ ...hit, showOn: 'cross-line' }));
-            const seriesAreaShowOnParams: AgContextMenuShowOnParamsAlways = { showOn: 'series-area' };
-            return {
-                ...expectedHits[0],
-                allShowOnParams: [...expectedHits, seriesAreaShowOnParams],
-                defaultItems: ['download'],
+        function point(params: {
+            clientX: number;
+            clientY: number;
+            coordinates: { [K in 'x' | 'y']: { index: number; value: any } };
+        }) {
+            const result = {
+                clientX: params.clientX,
+                clientY: params.clientY,
+                coordinates: {
+                    x: {
+                        boundSeries: [{ key: 'category', seriesId: 'BarSeries-1' }],
+                        direction: 'x' as const,
+                        domain: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
+                        index: params.coordinates.x.index,
+                        value: params.coordinates.x.value,
+                    },
+                    y: {
+                        boundSeries: [{ key: 'value', seriesId: 'BarSeries-1' }],
+                        direction: 'y' as const,
+                        domain: [0, 20],
+                        index: params.coordinates.y.index,
+                        value: params.coordinates.y.value,
+                    },
+                },
+
+                itemsEvent(...expectedHits: Params[]): AgContextMenuGetItemsParamsCrossLine {
+                    expectedHits = expectedHits.map((hit) => ({ ...hit, showOn: 'cross-line' }));
+                    const seriesAreaShowOnParams: AgContextMenuShowOnParamsSeriesArea = { showOn: 'series-area' };
+                    return {
+                        ...expectedHits[0],
+                        allShowOnParams: [...expectedHits, seriesAreaShowOnParams],
+                        coordinates: result.coordinates,
+                        defaultItems: ['download'],
+                    };
+                },
+
+                actionEvent(...allShowOnParams: Params[]): AgCrossLineContextMenuActionEvent {
+                    return {
+                        type: 'crossLineContextMenuAction',
+                        event: expect.anything() as AgAxisContextMenuActionEvent['event'],
+                        coordinates: result.coordinates,
+                        ...allShowOnParams[0],
+                    };
+                },
             };
+            return result;
         }
 
-        function actionEvent(...allShowOnParams: Params[]): AgCrossLineContextMenuActionEvent {
-            return {
-                type: 'crossLineContextMenuAction',
-                event: expect.anything() as AgAxisContextMenuActionEvent['event'],
-                ...allShowOnParams[0],
-            };
-        }
+        const POINT_crossline2 = point({
+            clientX: 332,
+            clientY: 73,
+            coordinates: {
+                x: { index: 3, value: 'Apr' },
+                y: { index: 4, value: closeTo(18.5288) },
+            },
+        });
+
+        const POINT_crossline3 = point({
+            clientX: 147,
+            clientY: 338,
+            coordinates: {
+                x: { index: 0, value: 'Jan' },
+                y: { index: 2, value: closeTo(7.992) },
+            },
+        });
+
+        const POINT_crossline1and2 = point({
+            clientX: 458,
+            clientY: 79,
+            coordinates: {
+                x: { index: 4, value: 'May' },
+                y: { index: 4, value: closeTo(18.2903) },
+            },
+        });
+
+        const POINT_allcrosslines = point({
+            clientX: 458,
+            clientY: 338,
+            coordinates: {
+                x: { index: 4, value: 'May' },
+                y: { index: 2, value: closeTo(7.992) },
+            },
+        });
 
         async function runAction(page: Page) {
             const button = page.getByText('Run crossline action');
@@ -634,56 +700,60 @@ test.describe('context-menu', () => {
 
         test.describe('point: crossline 2 only', () => {
             test.beforeEach('getItems', async ({ page }) => {
-                await contextMenu(page, { clientX: 332, clientY: 73 });
+                await contextMenu(page, POINT_crossline2);
             });
             test('getItems', async ({ page }) => {
-                expect(await popGetItems(page)).toEqual([itemsEvent(PARAMS_crossline2)]);
+                expect(await popGetItems(page)).toEqual([POINT_crossline2.itemsEvent(PARAMS_crossline2)]);
             });
             test('actions', async ({ page }) => {
                 await runAction(page);
-                expect(await popActions(page)).toEqual([actionEvent(PARAMS_crossline2)]);
+                expect(await popActions(page)).toEqual([POINT_crossline2.actionEvent(PARAMS_crossline2)]);
             });
         });
 
         test.describe('point: crossline 3 only', () => {
             test.beforeEach('getItems', async ({ page }) => {
-                await contextMenu(page, { clientX: 147, clientY: 338 });
+                await contextMenu(page, POINT_crossline3);
             });
             test('getItems', async ({ page }) => {
-                expect(await popGetItems(page)).toEqual([itemsEvent(PARAMS_crossline3)]);
+                expect(await popGetItems(page)).toEqual([POINT_crossline3.itemsEvent(PARAMS_crossline3)]);
             });
             test('actions', async ({ page }) => {
                 await runAction(page);
-                expect(await popActions(page)).toEqual([actionEvent(PARAMS_crossline3)]);
+                expect(await popActions(page)).toEqual([POINT_crossline3.actionEvent(PARAMS_crossline3)]);
             });
         });
 
         test.describe('point: crosslines 1 and 2', () => {
             test.beforeEach('getItems', async ({ page }) => {
-                await contextMenu(page, { clientX: 458, clientY: 79 });
-            });
-            test('getItems', async ({ page }) => {
-                expect(await popGetItems(page)).toEqual([itemsEvent(PARAMS_crossline1, PARAMS_crossline2)]);
-            });
-            test('actions', async ({ page }) => {
-                await runAction(page);
-                expect(await popActions(page)).toEqual([actionEvent(PARAMS_crossline1, PARAMS_crossline2)]);
-            });
-        });
-
-        test.describe('point: all crosslines', () => {
-            test.beforeEach('getItems', async ({ page }) => {
-                await contextMenu(page, { clientX: 458, clientY: 338 });
+                await contextMenu(page, POINT_crossline1and2);
             });
             test('getItems', async ({ page }) => {
                 expect(await popGetItems(page)).toEqual([
-                    itemsEvent(PARAMS_crossline1, PARAMS_crossline2, PARAMS_crossline3),
+                    POINT_crossline1and2.itemsEvent(PARAMS_crossline1, PARAMS_crossline2),
                 ]);
             });
             test('actions', async ({ page }) => {
                 await runAction(page);
                 expect(await popActions(page)).toEqual([
-                    actionEvent(PARAMS_crossline1, PARAMS_crossline2, PARAMS_crossline3),
+                    POINT_crossline1and2.actionEvent(PARAMS_crossline1, PARAMS_crossline2),
+                ]);
+            });
+        });
+
+        test.describe('point: all crosslines', () => {
+            test.beforeEach('getItems', async ({ page }) => {
+                await contextMenu(page, POINT_allcrosslines);
+            });
+            test('getItems', async ({ page }) => {
+                expect(await popGetItems(page)).toEqual([
+                    POINT_allcrosslines.itemsEvent(PARAMS_crossline1, PARAMS_crossline2, PARAMS_crossline3),
+                ]);
+            });
+            test('actions', async ({ page }) => {
+                await runAction(page);
+                expect(await popActions(page)).toEqual([
+                    POINT_allcrosslines.actionEvent(PARAMS_crossline1, PARAMS_crossline2, PARAMS_crossline3),
                 ]);
             });
         });
