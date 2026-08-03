@@ -1170,6 +1170,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                         // this series axis id.
                         remappedSeriesAxisKey = `${AXIS_ID_PREFIX}${remappedAxisKeys.size}`;
                         remappedAxisKeys.set(seriesAxisKey, remappedSeriesAxisKey);
+                        // The series names this axis even though `axes` does not declare it, so record the
+                        // mapping — `unmappedAxisKeys` was populated before this method added the entry.
+                        this.unmappedAxisKeys.set(remappedSeriesAxisKey, seriesAxisKey);
                         newAxes[remappedSeriesAxisKey] = shallowClone(defaultAxes[direction]);
                     }
                 } else if (remappedAxisKeys.has(direction) && hasExtraImplicitDefaultSeriesAxisKeys) {
