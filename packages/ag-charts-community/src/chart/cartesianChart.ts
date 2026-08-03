@@ -1,5 +1,13 @@
-import type { CanvasPoint, ModuleInstance, Size } from 'ag-charts-core';
-import { ActionOnSet, ChartAxisDirection, clampArray, entries, fromPairs, groupBy } from 'ag-charts-core';
+import type { CanvasPoint, CurrentPoint, ModuleInstance, Size } from 'ag-charts-core';
+import {
+    ActionOnSet,
+    ChartAxisDirection,
+    clampArray,
+    entries,
+    fromPairs,
+    groupBy,
+    toCurrentPoint,
+} from 'ag-charts-core';
 import type { AgCartesianAxisPosition, AgCoordinates } from 'ag-charts-types';
 
 import type { ChartOptions } from '../module/optionsModule';
@@ -80,8 +88,16 @@ export class CartesianChart extends Chart {
         this.lastLayoutHeight = Number.NaN;
     }
 
-    override toAgCoordinates(_point: CanvasPoint): AgCoordinates | undefined {
-        return undefined; // TODO: stub
+    override toAgCoordinates(point: CanvasPoint): AgCoordinates {
+        const result: AgCoordinates = {};
+        const seriesPoint: CurrentPoint = toCurrentPoint(point, this.seriesRect);
+        for (const axis of this.axes) {
+            const pick = axis.pickValue(seriesPoint);
+            if (pick) {
+                result[axis.userKey] = pick;
+            }
+        }
+        return result;
     }
 
     override getChartType() {
