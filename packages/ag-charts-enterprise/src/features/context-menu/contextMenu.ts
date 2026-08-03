@@ -554,8 +554,7 @@ export class ContextMenu extends AbstractModuleInstance {
         // Agents: These params will be passed into user-options actions() callbacks. Returned functions must use
         // `CallbackParamRules` to ensure that these params comply with the user API contract.
         if (ContextMenuRegistry.checkCallback('legend-item', showOn, callback)) {
-            return (widgetEvent: _ModuleSupport.WidgetEvent) => {
-                const event: Event = widgetEvent.sourceEvent;
+            return (menuItemClickEvent: _ModuleSupport.WidgetEvent) => {
                 if (this.pickedLegendItem) {
                     const { seriesId, itemId, label } = this.pickedLegendItem;
                     const { chartService: chart } = this.ctx;
@@ -566,7 +565,8 @@ export class ContextMenu extends AbstractModuleInstance {
                         seriesId,
                         itemId,
                         text: toPlainText(label.text),
-                        event,
+                        // FIXME: Shouldn't this be showEvent?
+                        event: menuItemClickEvent.sourceEvent,
                     };
                     callWithContext(callers, callback, apiEvent);
                     this.hide();
