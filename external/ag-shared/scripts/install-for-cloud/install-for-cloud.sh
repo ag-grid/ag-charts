@@ -186,11 +186,16 @@ restore_node_modules_from_cache() {
 # .claude/settings.json, and cloud-setup.sh installs with --ignore-scripts, so a
 # session can arrive with node_modules in place and none of them present.
 #
-# Generation needs node_modules but not the network, and measures ~2s, which is
-# affordable in a hook that the session waits on. cloud-setup.sh does this too, so
-# this is the fresh-clone fallback; skills are enumerated at launch, so a session
-# that has to fall back here may still not surface the repo's own skills until the
-# next one.
+# Generation needs node_modules but not the network, and measures ~3s, which is
+# affordable in a hook that the session waits on. It is deliberately NOT done in
+# the environment setup script: there, the rulesync fetch for the private prompts
+# repository blocked on a git credential prompt and cost a whole environment
+# build. Here the same hang would cost one session, and the guards below mean it
+# cannot happen at all.
+#
+# Skills are enumerated at launch, so whether a session surfaces skills generated
+# by its own hook depends on Claude Code's startup order — check by asking, not by
+# looking at the directory.
 # ---------------------------------------------------------------------------
 
 generate_claude_config_if_missing() {
@@ -199,12 +204,15 @@ generate_claude_config_if_missing() {
     node -e 'process.exit(require("./package.json").scripts["postinstall:setup-prompts"] ? 0 : 1)' 2>/dev/null || return 0
 
     local start=$SECONDS
-    # Same invocation as postinstall, so the rendered settings.json matches the
-    # committed one and the session's working tree stays clean.
+    # No prompting, no inherited stdin, and a hard ceiling. Same invocation as
+    # postinstall otherwise, so the rendered settings.json matches the committed
+    # one and the session's working tree stays clean.
+    export GIT_TERMINAL_PROMPT=0
+    export GIT_ASKPASS=/bin/true
     if command -v timeout &>/dev/null; then
-        timeout 90s yarn run postinstall:setup-prompts >/dev/null 2>&1 || true
+        timeout 90s yarn run postinstall:setup-prompts </dev/null >/dev/null 2>&1 || true
     else
-        yarn run postinstall:setup-prompts >/dev/null 2>&1 || true
+        yarn run postinstall:setup-prompts </dev/null >/dev/null 2>&1 || true
     fi
     if [[ -d .claude/rules || -d .claude/skills ]]; then
         log_info "generated .claude rules and skills in $((SECONDS - start))s"

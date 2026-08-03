@@ -46,6 +46,22 @@ if [[ "${GH_TOKEN:-}" == "proxy-injected" ]]; then
     unset GH_TOKEN
 fi
 
+# Never let git block on a credential prompt. With no credentials and a prompt
+# available, cloning this private repository waits instead of failing — which is
+# how one Claude Code cloud environment build sat in "Running setup script" for
+# 20 minutes and never produced a snapshot. A failed fetch is reported and
+# recoverable; a hung one takes the whole environment with it.
+#
+# Terminal prompting is disabled everywhere: credential helpers (osxkeychain,
+# manager) are unaffected by this and keep working on a dev workstation. The
+# askpass suppression is limited to the no-tty case, so an interactive developer
+# with a GUI askpass helper still gets it.
+export GIT_TERMINAL_PROMPT=0
+if [[ ! -t 0 ]]; then
+    export GIT_ASKPASS=/bin/true
+    export GCM_INTERACTIVE=never
+fi
+
 # Track which auth path was selected so failure messages can be tailored.
 # Set here (not inside the resolver) because resolve_repo_url runs inside a
 # command substitution subshell, so assignments there wouldn't propagate.
