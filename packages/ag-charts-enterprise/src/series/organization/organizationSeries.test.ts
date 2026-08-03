@@ -129,8 +129,8 @@ const SIMPLE_ORG_CHART_THEMED: AgChartOptions = {
 };
 
 // Wide + tall layout that overflows the 800x600 mock canvas on both axes. Required for tests
-// that exercise non-fit zoom behaviour — the `s ≤ 1` native-pixel cap snaps content that fits
-// back to fit, so SIMPLE_ORG_CHART can't drive pan-to-active or off-isotropic projection.
+// that exercise non-fit zoom behaviour — content that already fits is held at the native-pixel cap,
+// so SIMPLE_ORG_CHART can't drive centre-on-active or off-isotropic input.
 const OVERFLOWING_ORG_CHART: AgChartOptions = {
     data: (() => {
         const data: { id: string; name: string; job: string; location: string; parentId: string | null }[] = [
@@ -213,11 +213,10 @@ const TALL_ORG_CHART: AgChartOptions = {
 // own chain hanging below, so the middle-x/middle-y region of contentBBox actually contains
 // nodes — without that, zoom-centred snapshots land in blank whitespace.
 //
-// `applyNativePixelFloor`'s isotropic projection sets `t = max(xRange/fitX, yRange/fitY)` and
-// applies it to both axes; if one axis overflows much more than the other (as in
-// OVERFLOWING_ORG_CHART, which is very wide but only modestly tall), the smaller-fit axis
-// dominates and the requested zoom on the other axis gets snapped back to {0, 1}. Tests that
-// assert symmetric x/y zoom behaviour need fits that are comparable on both axes.
+// Both axes derive their window size from one shared scale, taken from the least-zoomed axis. If one
+// axis overflows much more than the other (as in OVERFLOWING_ORG_CHART, which is very wide but only
+// modestly tall), that axis dominates and the requested zoom on the other is widened to match. Tests
+// asserting symmetric x/y zoom behaviour need fits that are comparable on both axes.
 const SQUARE_OVERFLOW_ORG_CHART: AgChartOptions = {
     data: (() => {
         const data: { id: string; name: string; job: string; location: string; parentId: string | null }[] = [
@@ -1337,9 +1336,10 @@ describe('OrganizationSeries', () => {
     describe('series-area clipping', () => {
         it('should clip dragged content to the series area so nodes do not bleed into the title', async () => {
             // AG-17233 regression. TALL_ORG_CHART fits the canvas horizontally but overflows
-            // vertically, so y-only zoom + a downward drag pans content upward and lands an
-            // upper card directly on the series-area top boundary. The clip-rect must cut the
-            // card off at that boundary instead of letting it bleed into the title above.
+            // vertically, so zooming in and dragging upward lands an upper card directly on the
+            // series-area top boundary. The clip-rect must cut the card off at that boundary instead
+            // of letting it bleed into the title above. Both axes share one scale, so the window is
+            // narrowed on x as well as y.
             const options: AgChartOptions = {
                 ...TALL_ORG_CHART,
                 title: { text: 'Organisation Chart', fontSize: 18 },
@@ -1350,7 +1350,7 @@ describe('OrganizationSeries', () => {
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
-            setZoom(chart, 0, 1, 0.3, 0.7);
+            setZoom(chart, 0.4, 0.6, 0.41, 0.61);
             await waitForChartStability(chart);
 
             // Drag content up far enough that an upper card straddles the title boundary —
@@ -1709,37 +1709,39 @@ describe('OrganizationSeries', () => {
     });
 
     describe('viewportGroup zoom transform', () => {
-        it('should render 2× zoomed-in centred (x: 0.25–0.75, y: 0.25–0.75)', async () => {
-            // SQUARE_OVERFLOW_ORG_CHART is required: with comparable fitX and fitY the
-            // requested xRange and yRange both pass through `applyNativePixelFloor`'s
-            // isotropic projection. SIMPLE_ORG_CHART would snap zoom back to {0, 1}, and
-            // the wide-only OVERFLOWING_ORG_CHART would force yRange to 1.
+        // The windows below must be narrower than the content-fits floor, otherwise they request a
+        // zoom further out than allowed and are refused outright, leaving the initial view.
+        it('should render zoomed-in centred (x/y: 0.4–0.6)', async () => {
+            // SQUARE_OVERFLOW_ORG_CHART is required: with comparable fitX and fitY the requested
+            // xRange and yRange survive being reduced to one shared scale. SIMPLE_ORG_CHART would snap
+            // zoom back to fit, and the wide-only OVERFLOWING_ORG_CHART would widen yRange.
             const options: AgChartOptions = { ...SQUARE_OVERFLOW_ORG_CHART };
             prepareEnterpriseTestOptions(options);
 
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
-            setZoom(chart, 0.25, 0.75, 0.25, 0.75);
+            setZoom(chart, 0.4, 0.6, 0.4, 0.6);
             await compare();
         });
 
-        it('should render 2× zoomed-in top-right quadrant (x: 0.5–1.0, y: 0.5–1.0)', async () => {
-            // Y is cartesian (y-up): yStart=0.5, yEnd=1 ⇒ top half of content visible.
-            // SQUARE_OVERFLOW_ORG_CHART is required for the same reason as the centred test above.
+        it('should render zoomed-in off-centre (x/y: 0.51–0.59)', async () => {
+            // A viewport's worth of padding sits on each side, so this fixture's content only spans
+            // ratios ~0.375–0.625. Framing off-centre while still filling the viewport with content
+            // therefore needs a deeper zoom than the centred case, and a window kept inside that span.
             const options: AgChartOptions = { ...SQUARE_OVERFLOW_ORG_CHART };
             prepareEnterpriseTestOptions(options);
 
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
-            setZoom(chart, 0.5, 1, 0.5, 1);
+            setZoom(chart, 0.51, 0.59, 0.51, 0.59);
             await compare();
         });
     });
 
-    // OVERFLOWING_ORG_CHART throughout: the `s ≤ 1` cap snaps fitting content back to fit, so
-    // `panToBBox` is never invoked on SIMPLE_ORG_CHART.
+    // OVERFLOWING_ORG_CHART throughout: the content has to overflow the viewport for centring to have
+    // anywhere to move the view to.
     describe('pan-to-active', () => {
         it('should pan to active item after setState when the node is outside the zoom window', async () => {
             const options: AgChartOptions = { ...OVERFLOWING_ORG_CHART };
@@ -1747,9 +1749,6 @@ describe('OrganizationSeries', () => {
 
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
-
-            const zoomManager = deproxy(chart).ctx.zoomManager;
-            const panSpy = zoomManager ? vi.spyOn(zoomManager, 'panToBBox') : undefined;
 
             const seriesId = deproxy(chart).series[0].id;
             await chart.setState({
@@ -1759,21 +1758,22 @@ describe('OrganizationSeries', () => {
             });
             await waitForChartStability(chart);
 
-            expect(panSpy).toHaveBeenCalled();
-            panSpy?.mockRestore();
+            const ratioX = getZoomRatios(chart)?.ratioX;
+            expect(ratioX?.start).toBeDefined();
+            expect(ratioX?.end).toBeDefined();
+
+            // Centring on the node wins over the window requested in the same call, whose centre is 0.1.
+            expect(Math.abs(((ratioX?.start ?? 0) + (ratioX?.end ?? 0)) / 2 - 0.1)).toBeGreaterThan(0.01);
 
             await compare();
         });
 
-        it('should NOT pan when the active node is already within the zoom window', async () => {
+        it('should pan to the active item even when it is already within the zoom window', async () => {
             const options: AgChartOptions = { ...OVERFLOWING_ORG_CHART };
             prepareEnterpriseTestOptions(options);
 
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
-
-            const zoomManager = deproxy(chart).ctx.zoomManager;
-            const panSpy = zoomManager ? vi.spyOn(zoomManager, 'panToBBox') : undefined;
 
             const seriesId = deproxy(chart).series[0].id;
             await chart.setState({
@@ -1783,8 +1783,13 @@ describe('OrganizationSeries', () => {
             });
             await waitForChartStability(chart);
 
-            expect(panSpy).not.toHaveBeenCalled();
-            panSpy?.mockRestore();
+            const ratioX = getZoomRatios(chart)?.ratioX;
+            expect(ratioX?.start).toBeDefined();
+            expect(ratioX?.end).toBeDefined();
+
+            // A node already inside the window is centred too, rather than left where it sits: the
+            // requested window is centred on 0.9.
+            expect(Math.abs(((ratioX?.start ?? 0) + (ratioX?.end ?? 0)) / 2 - 0.9)).toBeGreaterThan(0.01);
         });
 
         it('should NOT pan when active item changes via hover (user-interaction source)', async () => {
@@ -1796,9 +1801,6 @@ describe('OrganizationSeries', () => {
             setZoom(chart, 0.8, 1, 0, 1);
             await waitForChartStability(chart);
 
-            // Spy after the initial zoom so only hover-induced pans count.
-            const zoomManager = deproxy(chart).ctx.zoomManager;
-            const panSpy = zoomManager ? vi.spyOn(zoomManager, 'panToBBox') : undefined;
             const ratiosBefore = getZoomRatios(chart);
 
             // `activeManager.update` is the canonical hover simulation — JSDOM canvas
@@ -1806,9 +1808,6 @@ describe('OrganizationSeries', () => {
             const seriesId = deproxy(chart).series[0].id;
             deproxy(chart).ctx.activeManager.update({ type: 'series-node', seriesId, itemId: 'leaf-7-4' }, undefined);
             await waitForChartStability(chart);
-
-            expect(panSpy).not.toHaveBeenCalled();
-            panSpy?.mockRestore();
 
             const ratiosAfter = getZoomRatios(chart);
             expect(ratiosAfter?.ratioX?.start).toBeCloseTo(ratiosBefore?.ratioX?.start ?? 0.8, 6);
@@ -2286,10 +2285,86 @@ describe('OrganizationSeries', () => {
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
-            // Off-isotropic request (x=0.6 wide, y=0.2 wide) centred at 0.5,0.5.
-            setZoom(chart, 0.2, 0.8, 0.4, 0.6);
+            // Off-isotropic request (x=0.2 wide, y=0.1 wide) centred at 0.5,0.5. Both are inside the
+            // content-fits floor, so the request is applied and y is widened to match x's scale.
+            setZoom(chart, 0.4, 0.6, 0.45, 0.55);
+            await waitForChartStability(chart);
+
+            // This fixture renders very little ink at fit scale, so the image alone is weak evidence:
+            // assert the normalisation on the state as well.
+            const ratios = getZoomRatios(chart);
+            const xSize = (ratios?.ratioX?.end ?? 0) - (ratios?.ratioX?.start ?? 0);
+            const ySize = (ratios?.ratioY?.end ?? 0) - (ratios?.ratioY?.start ?? 0);
+            expect(xSize).toBeCloseTo(0.2, 3);
+            expect(ySize).toBeCloseTo(0.346, 3);
 
             await compareImageSnapshot(chart, ctx);
+        });
+    });
+
+    describe('pan headroom', () => {
+        // Projects the content bounds through the viewport transform, so the assertions below are in
+        // the same space a user sees: pixels within the series area.
+        function getContentEdges(c: any) {
+            const series = deproxy(c).series[0] as any;
+            const { seriesRect, viewportGroup } = series;
+            const contentBBox = series.layout.getContentBBox();
+
+            return {
+                centreX: seriesRect.width / 2,
+                centreY: seriesRect.height / 2,
+                left: contentBBox.x * viewportGroup.scalingX + viewportGroup.translationX,
+                right: (contentBBox.x + contentBBox.width) * viewportGroup.scalingX + viewportGroup.translationX,
+                top: contentBBox.y * viewportGroup.scalingY + viewportGroup.translationY,
+                bottom: (contentBBox.y + contentBBox.height) * viewportGroup.scalingY + viewportGroup.translationY,
+            };
+        }
+
+        // Content that already fits gets the same headroom as content that overflows: the viewport
+        // never scales up past native size, so its reach is wider than the fit scale suggests.
+        const FIXTURES: [string, AgChartOptions][] = [
+            ['overflowing content', SQUARE_OVERFLOW_ORG_CHART],
+            ['content that fits the viewport', SIMPLE_ORG_CHART],
+        ];
+
+        // Holds the window size and moves only its midpoint, as a drag does. A request that also
+        // resizes the window is refused outright once the chart sits at a zoom limit — which is
+        // always the case for content that fits, since it never scales up past native size.
+        async function createPanned(fixture: AgChartOptions, toFarEnd: boolean) {
+            const options: AgChartOptions = { ...fixture };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const ratios = getZoomRatios(chart);
+            const xSize = (ratios?.ratioX?.end ?? 0) - (ratios?.ratioX?.start ?? 0);
+            const ySize = (ratios?.ratioY?.end ?? 0) - (ratios?.ratioY?.start ?? 0);
+            expect(xSize).toBeGreaterThan(0);
+            expect(ySize).toBeGreaterThan(0);
+
+            const xMin = toFarEnd ? 1 - xSize : 0;
+            const yMin = toFarEnd ? 1 - ySize : 0;
+
+            setZoom(chart, xMin, xMin + xSize, yMin, yMin + ySize);
+            await waitForChartStability(chart);
+
+            return getContentEdges(chart);
+        }
+
+        // Zoom y is published y-up, so the y-max end of the range is the top of the content.
+        it.each(FIXTURES)('stops at the content top-left panning to the far end, %s', async (_name, fixture) => {
+            const edges = await createPanned(fixture, true);
+
+            expect(edges.right).toBeCloseTo(edges.centreX, 0);
+            expect(edges.top).toBeCloseTo(edges.centreY, 0);
+        });
+
+        it.each(FIXTURES)('stops at the content bottom-right panning to the near end, %s', async (_name, fixture) => {
+            const edges = await createPanned(fixture, false);
+
+            expect(edges.left).toBeCloseTo(edges.centreX, 0);
+            expect(edges.bottom).toBeCloseTo(edges.centreY, 0);
         });
     });
 
