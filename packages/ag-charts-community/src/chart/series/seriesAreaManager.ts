@@ -680,7 +680,9 @@ export class SeriesAreaManager extends BaseManager {
 
         // Fallback to Chart-level event dispatch.
         const type = event.type === 'click' ? 'click' : 'doubleClick';
-        const coordinates: AgCoordinates | undefined = undefined;
+        const coordinates: AgCoordinates | undefined = isSeriesWidget
+            ? this.chart.ctx.chartService.toAgCoordinates(this.toCanvasCoordinates(event))
+            : undefined;
         const newEvent = { type, event: event.sourceEvent, coordinates } satisfies
             | CallbackParamRules<AgChartClickEvent>
             | CallbackParamRules<AgChartDoubleClickEvent>;

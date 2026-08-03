@@ -1,4 +1,4 @@
-import type { Point, Size } from '../../types/scene';
+import type { CanvasPoint, CurrentPoint, Point, Size } from '../../types/scene';
 
 export interface BoxBounds extends Size, Point {}
 
@@ -28,4 +28,13 @@ export function boxesEqual(a: BoxBounds | undefined, b: BoxBounds | undefined): 
     if (a === b) return true;
     if (a == null || b == null) return false;
     return a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height;
+}
+
+/** Convert absolute canvas point to a local point relative to `currentBounds`. */
+export function toCurrentPoint(canvasPoint: CanvasPoint, currentBounds: BoxBounds | undefined): CurrentPoint {
+    const { x: offsetX = 0, y: offsetY = 0 } = currentBounds ?? {};
+    return {
+        currentX: canvasPoint.canvasX - offsetX,
+        currentY: canvasPoint.canvasY - offsetY,
+    };
 }
