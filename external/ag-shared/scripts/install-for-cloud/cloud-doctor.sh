@@ -129,12 +129,26 @@ done
 
 echo
 echo "skills (canary set)"
+# Search every place a skill can come from. A marketplace registered from a local
+# directory keeps its plugins where they are rather than copying them into
+# plugins/cache, so looking only at the cache reported all five canary skills
+# missing in a session that could use every one of them.
+skill_roots=("$HOME/.claude/plugins/marketplaces" "$HOME/.claude/plugins/cache" "$REPO_ROOT/.claude/skills")
+while read -r location; do
+    [[ -n "$location" && -d "$location" ]] && skill_roots+=("$location")
+done < <(node -e '
+    const fs = require("fs");
+    try {
+        const r = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+        for (const m of Object.values(r)) if (m.installLocation) console.log(m.installLocation);
+    } catch {}
+' "$registry" 2>/dev/null)
+
 # On disk only. Claude Code enumerates plugin skills at launch, so a skill
 # installed mid-session shows here and is still not usable until a new session —
 # ask Claude what it can actually see if this passes and skills still do not work.
 for skill in "${CANARY_SKILLS[@]}"; do
-    if find "$HOME/.claude/plugins/marketplaces" "$HOME/.claude/plugins/cache" \
-        "$REPO_ROOT/.claude/skills" -maxdepth 8 -type d -name "$skill" 2>/dev/null | grep -q .; then
+    if find "${skill_roots[@]}" -maxdepth 8 -type d -name "$skill" 2>/dev/null | grep -q .; then
         ok "$skill"
     else
         bad "$skill missing"

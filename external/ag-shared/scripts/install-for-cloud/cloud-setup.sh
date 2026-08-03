@@ -158,24 +158,30 @@ align_default_node() {
     [[ -n "$pinned_bin" && -x "$pinned_bin/node" ]] || return 0
     pinned_version="$("$pinned_bin/node" -v 2>/dev/null)"
 
-    # Every node ahead of the pinned one on PATH, in order.
+    # Every other node on PATH, plus the usual image locations. Not "everything
+    # ahead of the pinned one": this script runs with nvm's bin already prepended,
+    # so that ordering stops at the first entry and repoints nothing, while the
+    # session — which never sources nvm — still resolves the image's copy.
     local dir found=0
     while IFS= read -r dir; do
-        [[ "$dir" == "$pinned_bin" ]] && break
+        [[ -n "$dir" && "$dir" != "$pinned_bin" ]] || continue
         [[ -x "$dir/node" ]] || continue
+        [[ "$("$dir/node" -v 2>/dev/null)" == "$pinned_version" ]] && continue
         [[ -w "$dir" ]] || {
             log_warn "cannot repoint ${dir}/node (not writable)"
             continue
         }
-        [[ "$("$dir/node" -v 2>/dev/null)" == "$pinned_version" ]] && continue
 
         [[ -e "$dir/node.pre-ag" ]] || mv "$dir/node" "$dir/node.pre-ag"
         ln -sfn "$pinned_bin/node" "$dir/node"
         log_info "repointed ${dir}/node at ${pinned_version} (original kept as node.pre-ag)"
-        found=1
-    done < <(tr ':' '\n' <<<"$PATH")
+        found=$((found + 1))
+    done < <({
+        tr ':' '\n' <<<"$PATH"
+        printf '%s\n' /usr/local/bin /usr/bin /opt/node22/bin /opt/node/bin
+    } | awk 'NF && !seen[$0]++')
 
-    ((found == 1)) || log_info "node ${pinned_version} already wins on PATH"
+    ((found > 0)) || log_info "node ${pinned_version} already wins everywhere on PATH"
     log_info "node now resolves to $(node -v 2>/dev/null || echo '?')"
 }
 

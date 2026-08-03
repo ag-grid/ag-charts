@@ -56,7 +56,7 @@ Do this once per cloud environment (and once more for an organization-shared env
 
    The marketplace repo is private and the setup phase has no GitHub credentials at all: in one run `openai/codex-plugin-cc` (public) cloned fine while `ag-grid/ag-dev-prompts` (private) was refused. Attaching it puts a checkout on disk next to the repo, and `cloud-setup.sh` registers the marketplace from that local path instead of over the network.
 
-   Note that attaching a second repository also changes the session's working directory: with one repo it is the repo root, with two it is the parent (`/home/user`), so `bash external/…` fails and `cd ~/ag-charts` first is required.
+   Note that attaching a second repository also changes the session's working directory: with one repo it is the repo root, with two it is the parent (`/home/user`), so `bash external/…` fails. Note also that `~` is `/root`, not `/home/user`, so the repo is at `/home/user/ag-charts` and `cd ~/ag-charts` fails too — use the absolute path.
 
 5. Optionally add **Environment variables** (`.env` format, one per line). None are required; useful ones:
 
@@ -70,7 +70,7 @@ Do this once per cloud environment (and once more for an organization-shared env
 6. Save, then start a session and ask Claude to run (from the repo root — see step 4 about the working directory):
 
    ```bash
-   cd ~/ag-charts && bash external/ag-shared/scripts/install-for-cloud/cloud-doctor.sh
+   cd /home/user/ag-charts && bash external/ag-shared/scripts/install-for-cloud/cloud-doctor.sh
    ```
 
    It reports node/yarn/nx, dependency state, the generated Claude Code config, the plugin marketplaces and the canary skills, and prints `READY` or the specific gaps.
@@ -78,7 +78,7 @@ Do this once per cloud environment (and once more for an organization-shared env
 7. If the doctor reports dependency gaps in that first session, close them once:
 
    ```bash
-   cd ~/ag-charts && bash external/ag-shared/scripts/install-for-cloud/finish-setup.sh
+   cd /home/user/ag-charts && bash external/ag-shared/scripts/install-for-cloud/finish-setup.sh
    ```
 
    That is the one slow step (several minutes). It installs, then re-caches the finished tree into `/opt/ag-cloud`, which every later session in the environment restores in seconds.
@@ -120,7 +120,7 @@ To force a rebuild, edit the setup script in the environment dialog — any chan
 - **`ag-grid/ag-dev-prompts` is a private repository, and the setup phase is unauthenticated.** Cloud sessions reach GitHub through a proxy that scopes requests to the repositories attached to the session, but that proxy is not in play while the setup script runs: a public marketplace cloned and the private one was refused in the same run. Hence the local-checkout path in step 4. If registration fails, `cloud-setup.sh` says so in the setup log and `cloud-doctor.sh` reports the missing marketplace and skills.
 - **A cloned marketplace is not an installed one.** Claude Code reads `~/.claude/plugins/known_marketplaces.json` and `installed_plugins.json`, not the contents of `plugins/marketplaces/`. An earlier revision cloned `openai-codex` successfully and the session still had no plugin from it, because nothing registered it — which is why `cloud-setup.sh` now drives the `claude plugin` CLI and `cloud-doctor.sh` checks the registry rather than the directory.
 - **Plugin skills are enumerated at launch.** Installing a plugin mid-session lands the files and surfaces no skills until a new session. `cloud-doctor.sh` can therefore only report what is on disk; if it passes and skills still do not work, ask Claude directly what it can see.
-- **The session's working directory depends on how many repositories are attached.** With two it is `/home/user`, not the repo, and `$CLAUDE_PROJECT_DIR` is unset, so relative paths into the repo fail. Prefix commands with `cd ~/ag-charts`.
+- **The session's working directory depends on how many repositories are attached.** With two it is `/home/user`, not the repo, and `$CLAUDE_PROJECT_DIR` is unset, so relative paths into the repo fail. Prefix commands with `cd /home/user/ag-charts` — and not `cd ~/ag-charts`, because `$HOME` is `/root` while the repos live under `/home/user`.
 - **PATH cannot be used to pin node.** The image ships its own node ahead of nvm's: a session measured 22.22.2 from `/opt/node22/bin` while `.nvmrc`'s 22.21.1 sat installed and unused. Exporting `PATH` from the SessionStart hook does not help either — the shell the Bash tool spawns reads neither `.bashrc` (non-interactive) nor `.profile` (non-login). So `cloud-setup.sh` repoints each earlier `node` on `PATH` at the pinned binary, keeping the original alongside as `node.pre-ag`.
 - **Never send `GITHUB_TOKEN` from a cloud session as a credential.** When the GitHub proxy handles authentication, `GITHUB_TOKEN` and `GH_TOKEN` read as the literal string `proxy-injected`; the proxy substitutes real credentials on outbound requests. Passing the placeholder as a Bearer token authenticates as nobody. This silently broke the `ag-dev-prompts` fetch — and with it every skill and every generated rule — until `rulesync-fetch/fetch.sh` learned to treat the placeholder as unset. Any new script that reads those variables needs the same guard.
 - **`.rulesync/mcp.json` is plugin-delivered and gitignored.** When the fetch above fails it is simply absent, and asking rulesync for the `mcp` feature then fails ENOENT and takes the entire generate down with it — no rules, no skills, from sources that were perfectly generatable. `setup-prompts.sh` now requests that feature only when the file exists.
