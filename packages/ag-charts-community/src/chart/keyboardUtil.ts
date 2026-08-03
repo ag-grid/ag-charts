@@ -58,5 +58,5 @@ export function makeKeyboardAgCoordinates(
     datum: SeriesNodeDatum
 ): AgCoordinates | undefined {
     const refPoint = getDatumRefPoint(datum.series, datum, undefined);
-    return refPoint === undefined ? {} : calculator.toAgCoordinates(refPoint);
+    return refPoint === undefined ? undefined : calculator.toAgCoordinates(refPoint);
 }

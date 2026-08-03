@@ -1292,7 +1292,7 @@ export abstract class Series<
     createNodeContextMenuActionEvent(
         event: Event,
         datum: TDatum,
-        coordinates: AgCoordinates
+        coordinates: AgCoordinates | undefined
     ): INodeEvent<'nodeContextMenuAction'> {
         const selectionState = this.getSelectionStateString(datum.datumIndex);
         const isCollapsed = datum.itemId == null ? undefined : this.getCollapsedState(datum.itemId);

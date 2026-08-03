@@ -21,7 +21,7 @@ export interface AgPreventableEvent {
 }
 
 interface AgCoordinatedEvent {
-    /* Domain-space coordinates of this event. */
+    /** Domain-space coordinates of this event. */
     coordinates?: AgCoordinates;
 }
 
@@ -187,7 +187,7 @@ export interface AgZoomEventRatio {
     end: Ratio;
 }
 
-export type AgCoordinates = Record<string, AgAxisCoordinate> & {
+export type AgCoordinates = Record<string, AgAxisCoordinate | undefined> & {
     x?: AgAxisCoordinate;
     y?: AgAxisCoordinate;
     angle?: AgAxisCoordinate;
