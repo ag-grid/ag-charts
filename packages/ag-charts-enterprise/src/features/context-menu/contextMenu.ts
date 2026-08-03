@@ -14,6 +14,7 @@ import type {
     AgContextMenuItem,
     AgContextMenuItemShowOn,
     AgContextMenuShowOnParams,
+    AgCoordinates,
     AgCrossLineContextMenuActionEvent,
     AgNodeContextMenuActionEvent,
     AgSeriesAreaContextMenuActionEvent,
@@ -83,7 +84,11 @@ type AxisParams = Extract<ShowOnParams, { showOn: 'axis' }>;
 type CrossLineParams = Extract<ShowOnParams, { showOn: 'cross-line' }>;
 type CaptionParams = Extract<ShowOnParams, { showOn: 'caption' }>;
 type LegendItemParams = Extract<ShowOnParams, { showOn: 'legend-item' }>;
-type GetItemsOpts = { defaultItems: AgContextMenuItem[]; active: ReadonlySet<AgContextMenuItemShowOn> };
+type GetItemsOpts = {
+    defaultItems: AgContextMenuItem[];
+    active: ReadonlySet<AgContextMenuItemShowOn>;
+    coordinates: AgCoordinates | undefined;
+};
 type GetItemsParams = [AgContextMenuGetItemsParams, Caller[]];
 
 export class ContextMenu extends AbstractModuleInstance {
@@ -214,6 +219,7 @@ export class ContextMenu extends AbstractModuleInstance {
         const items = this.opts.items ?? ['defaults'];
         const opts: GetItemsOpts = {
             defaultItems: expandBuiltinLists(active, items, this.ctx.contextMenuRegistry),
+            coordinates: this.ctx.chartService.toAgCoordinates(event),
             active,
         };
         // Agents: These params will be passed into user-options getItems() callback. makeGetItemsParams*() must use
@@ -243,6 +249,7 @@ export class ContextMenu extends AbstractModuleInstance {
         const params: CallbackParamRules<AgContextMenuGetItemsParamsAlways<unknown, unknown>> = {
             showOn: 'always',
             defaultItems,
+            coordinates: undefined,
             allShowOnParams: this.plotOverlapRegions(active),
         };
         const callers: Caller[] = [this.ctx.chartService];
@@ -250,10 +257,11 @@ export class ContextMenu extends AbstractModuleInstance {
     }
 
     private makeGetItemsParamsSeriesArea(opts: GetItemsOpts): GetItemsParams {
-        const { defaultItems, active } = opts;
+        const { defaultItems, active, coordinates } = opts;
         const params: CallbackParamRules<AgContextMenuGetItemsParamsSeriesArea<unknown, unknown>> = {
             showOn: 'series-area',
             defaultItems,
+            coordinates,
             allShowOnParams: this.plotOverlapRegions(active),
         };
         const callers: Caller[] = [this.ctx.chartService];
@@ -261,7 +269,7 @@ export class ContextMenu extends AbstractModuleInstance {
     }
 
     private makeGetItemsParamsSeriesNode(opts: GetItemsOpts): GetItemsParams {
-        const { defaultItems, active } = opts;
+        const { defaultItems, active, coordinates } = opts;
         if (this.pickedNodes == null) throw new Error(`this.pickedNodes is null`);
         const regions = this.pickedNodes.map((node: PickedNode): SeriesNodeParams => {
             // FIXME: Some optional keys like dataIdKey are not set. Is that a concern?
@@ -297,6 +305,7 @@ export class ContextMenu extends AbstractModuleInstance {
         const params: AgContextMenuGetItemsParamsSeriesNode = {
             ...regions[0],
             defaultItems,
+            coordinates,
             allShowOnParams,
         };
         const callers: Caller[] = [this.pickedNodes[0].series.properties, this.ctx.chartService];
@@ -315,6 +324,7 @@ export class ContextMenu extends AbstractModuleInstance {
         const params: CallbackParamRules<AgContextMenuGetItemsParamsAxis<DatumDefault, ContextDefault>> = {
             ...region,
             defaultItems,
+            coordinates: undefined,
             allShowOnParams,
         };
         const callers: Caller[] = [this.pickedAxisCtx.caller, this.ctx.chartService];
@@ -322,7 +332,7 @@ export class ContextMenu extends AbstractModuleInstance {
     }
 
     private makeGetItemsParamsCrossLine(opts: GetItemsOpts): GetItemsParams {
-        const { defaultItems, active } = opts;
+        const { defaultItems, active, coordinates } = opts;
         if (this.pickedCrossLine == null) throw new Error(`this.pickedCrossLine is null`);
         const regions = this.crossLineRegions(this.pickedCrossLine);
         if (regions.length === 0) throw new Error(`this.pickedCrossLine is empty`);
@@ -341,6 +351,7 @@ export class ContextMenu extends AbstractModuleInstance {
             value: regions[0].value,
             range: regions[0].range,
             defaultItems,
+            coordinates,
             allShowOnParams,
         };
         const callers: Caller[] = [this.ctx.chartService];
@@ -355,6 +366,8 @@ export class ContextMenu extends AbstractModuleInstance {
         const params: CallbackParamRules<AgContextMenuGetItemsParamsCaption<DatumDefault, ContextDefault>> = {
             ...region,
             defaultItems,
+            coordinates: undefined,
+
             allShowOnParams: [region],
         };
         const callers: Caller[] = [this.ctx.chartService];
@@ -376,6 +389,7 @@ export class ContextMenu extends AbstractModuleInstance {
         const params: CallbackParamRules<AgContextMenuGetItemsParamsLegendItem<DatumDefault, ContextDefault>> = {
             ...region,
             defaultItems,
+            coordinates: undefined,
             allShowOnParams: [region],
         };
         const callers: Caller[] = [this.ctx.chartService];
@@ -418,11 +432,11 @@ export class ContextMenu extends AbstractModuleInstance {
         const expandedItems = this.expandItemsOptions(event);
         if (expandedItems.length === 0) return;
 
-        this.show(event.widgetEvent, expandedItems);
+        this.show(event, expandedItems);
     }
 
-    private show(widgetEvent: ContextMenuEvent['widgetEvent'], expandedItems: ContextMenuItem[]) {
-        const { sourceEvent } = widgetEvent;
+    private show(event: ContextMenuEvent, expandedItems: ContextMenuItem[]) {
+        const { sourceEvent } = event.widgetEvent;
         this.interactionManager.pushState(_ModuleSupport.InteractionState.ContextMenu);
         this.element.style.display = 'block';
 
@@ -431,7 +445,7 @@ export class ContextMenu extends AbstractModuleInstance {
             this.ctx.chartService.overrideFocusVisible(overrideFocusVisible);
         }
 
-        this.createMenu(widgetEvent.sourceEvent, expandedItems);
+        this.createMenu(event, expandedItems);
         this.element.appendChild(this.menuWidget.getElement());
         this.menuWidget.expand({ sourceEvent, overrideFocusVisible });
     }
@@ -496,14 +510,14 @@ export class ContextMenu extends AbstractModuleInstance {
         this.collapsingSubMenus--;
     }
 
-    private createMenu(showEvent: MouseEvent, expandedItems: ContextMenuItem[]) {
+    private createMenu(event: ContextMenuEvent, expandedItems: ContextMenuItem[]) {
         const { menuWidget } = this;
         menuWidget.clear();
         menuWidget.setTabIndex(-1);
-        this.createMenuItems(showEvent, menuWidget, expandedItems);
+        this.createMenuItems(event, menuWidget, expandedItems);
     }
 
-    private createMenuItems(showEvent: MouseEvent, menuWidget: _Widget.MenuWidget, expandedItems: ContextMenuItem[]) {
+    private createMenuItems(event: ContextMenuEvent, menuWidget: _Widget.MenuWidget, expandedItems: ContextMenuItem[]) {
         for (const item of expandedItems) {
             switch (item.type) {
                 case 'separator': {
@@ -514,15 +528,15 @@ export class ContextMenu extends AbstractModuleInstance {
                 case 'action': {
                     if (item.items.length === 0) {
                         const btn = new _Widget.MenuItemWidget();
-                        this.initButtonElement(showEvent, btn, item);
+                        this.initButtonElement(event, btn, item);
                         menuWidget.addChild(btn);
                     } else {
                         const { subMenuButton, subMenu } = menuWidget.addSubMenu();
                         subMenu.addClass(`${DEFAULT_CONTEXT_MENU_CLASS}__menu`);
                         subMenu.addListener('expand-widget', () => this.onSubMenuExpand(subMenuButton, subMenu));
                         subMenu.addListener('collapse-widget', () => this.onSubMenuCollapse(subMenuButton, subMenu));
-                        this.initButtonElement(showEvent, subMenuButton, item);
-                        this.createMenuItems(showEvent, subMenu, item.items);
+                        this.initButtonElement(event, subMenuButton, item);
+                        this.createMenuItems(event, subMenu, item.items);
                     }
                     break;
                 }
@@ -532,10 +546,11 @@ export class ContextMenu extends AbstractModuleInstance {
         }
     }
     private createButtonOnClick(
-        showEvent: MouseEvent,
+        event: ContextMenuEvent,
         showOn: AgContextMenuItemShowOn,
         callback: ContextMenuCallback
     ): (event: _Widget.WidgetEvent) => void {
+        const showEvent = event.widgetEvent.sourceEvent;
         // Agents: These params will be passed into user-options actions() callbacks. Returned functions must use
         // `CallbackParamRules` to ensure that these params comply with the user API contract.
         if (ContextMenuRegistry.checkCallback('legend-item', showOn, callback)) {
@@ -561,10 +576,12 @@ export class ContextMenu extends AbstractModuleInstance {
             };
         } else if (ContextMenuRegistry.checkCallback('series-area', showOn, callback)) {
             return () => {
+                const coordinates: AgCoordinates | undefined = this.ctx.chartService.toAgCoordinates(event);
                 const caller: Caller = this.ctx.chartService;
                 const apiEvent: CallbackParamRules<AgSeriesAreaContextMenuActionEvent> = {
                     type: 'seriesContextMenuAction',
                     event: showEvent,
+                    coordinates,
                 };
                 callWithContext(caller, callback, apiEvent);
                 this.hide();
@@ -574,10 +591,11 @@ export class ContextMenu extends AbstractModuleInstance {
                 const { chartService: chart } = this.ctx;
 
                 const pickedNode = this.pickedNodes?.[0];
+                const coordinates: AgCoordinates | undefined = this.ctx.chartService.toAgCoordinates(event);
                 const callers: (Caller | undefined)[] = [pickedNode?.series.properties, chart];
                 // FIXME: apiEvent should be of type CallbackParamRules<AgNodeContextMenuActionEvent>
                 const apiEvent: AgNodeContextMenuActionEvent | undefined =
-                    pickedNode?.series.createNodeContextMenuActionEvent(showEvent, pickedNode);
+                    pickedNode?.series.createNodeContextMenuActionEvent(showEvent, pickedNode, coordinates);
                 if (apiEvent) {
                     callWithContext(callers, callback, apiEvent);
                 } else {
@@ -610,10 +628,12 @@ export class ContextMenu extends AbstractModuleInstance {
             return () => {
                 if (this.pickedCrossLine && this.pickedCrossLine.length > 0) {
                     const { crossLineId, axisId, direction, type, value, range } = this.pickedCrossLine[0];
+                    const coordinates: AgCoordinates | undefined = this.ctx.chartService.toAgCoordinates(event);
                     const callers: Caller = this.ctx.chartService;
                     const apiEvent: CallbackParamRules<AgCrossLineContextMenuActionEvent<never>> = {
                         type: 'crossLineContextMenuAction',
                         event: showEvent,
+                        coordinates,
                         crossLineId,
                         axisId,
                         direction,
@@ -647,9 +667,11 @@ export class ContextMenu extends AbstractModuleInstance {
         } else {
             return () => {
                 const caller: Caller = this.ctx.chartService;
+                const coordinates: AgCoordinates | undefined = this.ctx.chartService.toAgCoordinates(event);
                 const apiEvent: CallbackParamRules<AgChartContextMenuEvent> = {
                     type: 'contextMenuEvent',
                     event: showEvent,
+                    coordinates,
                 };
                 // Use `satisfies` to check that all other callback types (those with additional context-based parameters)
                 // have been accounted for.
@@ -673,7 +695,7 @@ export class ContextMenu extends AbstractModuleInstance {
         return { cellIcon, cellLabel, cellArrow };
     }
 
-    private initButtonElement(showEvent: MouseEvent, button: _Widget.MenuItemWidget, item: ContextMenuItem) {
+    private initButtonElement(event: ContextMenuEvent, button: _Widget.MenuItemWidget, item: ContextMenuItem) {
         button.addClass(`${DEFAULT_CONTEXT_MENU_CLASS}__item`);
         button.setEnabled(item.enabled);
         const label = this.ctx.localeManager.t(item.label);
@@ -696,7 +718,7 @@ export class ContextMenu extends AbstractModuleInstance {
 
         const { showOn, action } = item;
         if (action != null) {
-            button.addListener('click', this.createButtonOnClick(showEvent, showOn, action));
+            button.addListener('click', this.createButtonOnClick(event, showOn, action));
         }
         if (item.items.length === 0) {
             // AG-14807 Design clear hover state

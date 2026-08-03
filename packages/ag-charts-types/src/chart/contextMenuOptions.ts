@@ -250,7 +250,7 @@ interface GetItemsParamsMixin<TDatum, TContext> {
     /** The default menu items that would be shown without customisation. */
     defaultItems: AgContextMenuItem<TDatum, TContext>[];
     /* Domain-space coordinates of this event. */
-    coordinates: AgCoordinates;
+    coordinates?: AgCoordinates;
     /**
      * Every `showOn` scope that matched at the click point, including the winning scope carried by these root
      * params. Lets the callback build one combined menu when scopes overlap — for example a datum node drawn

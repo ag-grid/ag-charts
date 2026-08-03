@@ -1,5 +1,6 @@
-import type { Scale } from 'ag-charts-core';
+import type { CanvasPoint, Scale } from 'ag-charts-core';
 import { ChartAxisDirection, ZIndexMap, iterate } from 'ag-charts-core';
+import type { AgCoordinates } from 'ag-charts-types';
 
 import type { ChartOptions } from '../module/optionsModule';
 import { BBox } from '../scene/bbox';
@@ -26,6 +27,10 @@ export class PolarChart extends Chart {
     constructor(options: ChartOptions, resources?: TransferableResources) {
         super(options, resources);
         this.ctx.axisManager.axisGroup.zIndex = ZIndexMap.AXIS_FOREGROUND;
+    }
+
+    override toAgCoordinates(_point: CanvasPoint): AgCoordinates | undefined {
+        return undefined; // TODO: stub
     }
 
     override getChartType() {

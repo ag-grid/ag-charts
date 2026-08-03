@@ -39,6 +39,7 @@ import {
 import type {
     AgActiveItemState,
     AgChartLabelFormatterParams,
+    AgCoordinates,
     AgDrawingMode,
     AgInitialStateLegendOptions,
     AgNumericValue,
@@ -169,7 +170,8 @@ export type INodeEventConstructor<
     nodeDatum: TDatum,
     series: TSeries,
     selectionState: PublicSelectionState | undefined,
-    isCollapsed: boolean | undefined
+    isCollapsed: boolean | undefined,
+    coordinates: AgCoordinates | undefined
 ) => INodeEvent<T>;
 
 const CROSS_FILTER_MARKER_FILL_OPACITY_FACTOR = 0.25;
@@ -1251,26 +1253,55 @@ export abstract class Series<
         callWithContext([this.properties, this.ctx.chartService], this.fireEventWrapper, event);
     }
 
-    fireNodeClickEvent(event: Event, datum: TDatum): boolean {
+    fireNodeClickEvent(event: Event, datum: TDatum, coordinates: AgCoordinates | undefined): boolean {
         const selectionState = this.getSelectionStateString(datum.datumIndex);
         const isCollapsed = datum.itemId == null ? undefined : this.getCollapsedState(datum.itemId);
-        const clickEvent = new this.NodeEvent('seriesNodeClick', event, datum, this, selectionState, isCollapsed);
+        this.ctx.chartService.callListener;
+        const clickEvent = new this.NodeEvent(
+            'seriesNodeClick',
+            event,
+            datum,
+            this,
+            selectionState,
+            isCollapsed,
+            coordinates
+        );
         this.fireEvent(clickEvent);
         return !clickEvent.defaultPrevented;
     }
 
-    fireNodeDoubleClickEvent(event: Event, datum: TDatum): boolean {
+    fireNodeDoubleClickEvent(event: Event, datum: TDatum, coordinates: AgCoordinates | undefined): boolean {
         const selectionState = this.getSelectionStateString(datum.datumIndex);
         const isCollapsed = datum.itemId == null ? undefined : this.getCollapsedState(datum.itemId);
-        const clickEvent = new this.NodeEvent('seriesNodeDoubleClick', event, datum, this, selectionState, isCollapsed);
+        const clickEvent = new this.NodeEvent(
+            'seriesNodeDoubleClick',
+            event,
+            datum,
+            this,
+            selectionState,
+            isCollapsed,
+            coordinates
+        );
         this.fireEvent(clickEvent);
         return !clickEvent.defaultPrevented;
     }
 
-    createNodeContextMenuActionEvent(event: Event, datum: TDatum): INodeEvent<'nodeContextMenuAction'> {
+    createNodeContextMenuActionEvent(
+        event: Event,
+        datum: TDatum,
+        coordinates: AgCoordinates
+    ): INodeEvent<'nodeContextMenuAction'> {
         const selectionState = this.getSelectionStateString(datum.datumIndex);
         const isCollapsed = datum.itemId == null ? undefined : this.getCollapsedState(datum.itemId);
-        return new this.NodeEvent('nodeContextMenuAction', event, datum, this, selectionState, isCollapsed);
+        return new this.NodeEvent(
+            'nodeContextMenuAction',
+            event,
+            datum,
+            this,
+            selectionState,
+            isCollapsed,
+            coordinates
+        );
     }
 
     onLegendInitialState(legendType: ChartLegendType, initialState: AgInitialStateLegendOptions | undefined) {

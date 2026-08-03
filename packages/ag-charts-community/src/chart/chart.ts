@@ -1,4 +1,4 @@
-import type { DynamicContext, NormalisedTextOrSegments } from 'ag-charts-core';
+import type { CanvasPoint, DynamicContext, NormalisedTextOrSegments } from 'ag-charts-core';
 import {
     ActionOnSet,
     AgDocument,
@@ -32,6 +32,7 @@ import type {
     AgChartInstance,
     AgChartOptions,
     AgColorType,
+    AgCoordinates,
     AgDataTransaction,
     AgInitialStateLegendOptions,
     AgMiniChartSeriesOptions,
@@ -669,6 +670,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     public callListener(event: ChartServiceEvent): void {
         this.fireEvent(event);
     }
+
+    public abstract toAgCoordinates(_point: CanvasPoint): AgCoordinates | undefined;
 
     private initSeriesAreaDependencies(): SeriesAreaChartDependencies {
         const { ctx, tooltip, highlight, overlays, seriesRoot } = this;

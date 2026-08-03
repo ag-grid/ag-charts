@@ -5,6 +5,7 @@ import type {
     AgChartClickEvent,
     AgChartDoubleClickEvent,
     AgContextMenuItemShowOn,
+    AgCoordinates,
     AgInitialFocus,
 } from 'ag-charts-types';
 
@@ -47,7 +48,7 @@ import type { ContextMenuRegionContexts } from '../interaction/contextMenuTypes'
 import { InteractionState } from '../interaction/interactionManager';
 import { mapKeyboardEventToAction } from '../interaction/keyBindings';
 import { TooltipManager } from '../interaction/tooltipManager';
-import { getPickedFocusBBox, makeKeyboardPointerEvent } from '../keyboardUtil';
+import { getPickedFocusBBox, makeKeyboardAgCoordinates, makeKeyboardPointerEvent } from '../keyboardUtil';
 import type { ChartOverlays } from '../overlay/chartOverlays';
 import {
     DEFAULT_TOOLTIP_CLASS,
@@ -678,7 +679,9 @@ export class SeriesAreaManager extends BaseManager {
         }
 
         // Fallback to Chart-level event dispatch.
-        const newEvent = { type: event.type === 'click' ? 'click' : 'doubleClick', event: event.sourceEvent } satisfies
+        const type = event.type === 'click' ? 'click' : 'doubleClick';
+        const coordinates: AgCoordinates | undefined = undefined;
+        const newEvent = { type, event: event.sourceEvent, coordinates } satisfies
             | CallbackParamRules<AgChartClickEvent>
             | CallbackParamRules<AgChartDoubleClickEvent>;
         this.chart.fireEvent(newEvent);
@@ -832,7 +835,11 @@ export class SeriesAreaManager extends BaseManager {
         const { series, datum } = this.focus;
         const sourceEvent = event.sourceEvent;
         if (series != null && datum != null) {
-            const defaultBehavior = series.fireNodeClickEvent(sourceEvent, datum);
+            const coordinates: AgCoordinates | undefined = makeKeyboardAgCoordinates(
+                this.chart.ctx.chartService,
+                datum
+            );
+            const defaultBehavior = series.fireNodeClickEvent(sourceEvent, datum, coordinates);
             if (defaultBehavior) {
                 const syntheticEvent: KeyboardSyntheticMouseWidgetEvent = {
                     type: 'click',
@@ -846,6 +853,7 @@ export class SeriesAreaManager extends BaseManager {
             this.chart.fireEvent<CallbackParamRules<AgChartClickEvent>>({
                 type: 'click',
                 event: sourceEvent,
+                coordinates: undefined,
             });
         }
     }
@@ -869,20 +877,22 @@ export class SeriesAreaManager extends BaseManager {
 
         const distance = updated.paginationState == null ? pickedNodes.distance : 0;
 
+        const canvasPoint: CanvasPoint = this.toCanvasCoordinates(event);
+        const coordinates: AgCoordinates | undefined = this.chart.ctx.chartService.toAgCoordinates(canvasPoint);
+
         // A dedicated control (e.g. the org-chart expander) owns its clicks: it still drives its own
         // interaction via the `series-area:click` event emitted by the caller, but must not also
         // reach the user's node click / double-click listeners (AG-17947).
         const firesUserClickListeners = updated.active.series.firesUserClickListeners(pickedNodes.target);
-
         if (event.type === 'click') {
             const defaultBehavior = firesUserClickListeners
-                ? updated.active.series.fireNodeClickEvent(event.sourceEvent, updated.active)
+                ? updated.active.series.fireNodeClickEvent(event.sourceEvent, updated.active, coordinates)
                 : true;
             if (defaultBehavior) {
                 const next = this.pickManager.nextCandidate();
                 if (next.active !== undefined) {
                     const { active } = next;
-                    const { canvasX, canvasY } = this.toCanvasCoordinates(event);
+                    const { canvasX, canvasY } = canvasPoint;
                     this.highlight.pendingHoverEvent ??= this.highlight.appliedHoverEvent;
                     this.handleHoverHighlight(false, {
                         active,
@@ -893,9 +903,7 @@ export class SeriesAreaManager extends BaseManager {
                 }
             }
             return { node: updated.active, target: pickedNodes.target };
-        }
-
-        if (event.type === 'dblclick') {
+        } else if (event.type === 'dblclick') {
             // See: AG-11737#TC3, AG-11676
             //
             // The Zoom module's double-click handler resets the zoom, but only if there isn't an
@@ -907,12 +915,12 @@ export class SeriesAreaManager extends BaseManager {
             event.preventZoomDblClick = distance === 0;
 
             if (firesUserClickListeners) {
-                updated.active.series.fireNodeDoubleClickEvent(event.sourceEvent, updated.active);
+                updated.active.series.fireNodeDoubleClickEvent(event.sourceEvent, updated.active, coordinates);
             }
             return { node: updated.active, target: pickedNodes.target };
+        } else {
+            return event.type satisfies never;
         }
-
-        return undefined;
     }
 
     private handleFocusFromUserInput(inputs: HandleFocusInputs): void {

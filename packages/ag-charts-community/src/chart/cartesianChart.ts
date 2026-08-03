@@ -80,6 +80,10 @@ export class CartesianChart extends Chart {
         this.lastLayoutHeight = Number.NaN;
     }
 
+    override toAgCoordinates(_point: CanvasPoint): AgCoordinates | undefined {
+        return undefined; // TODO: stub
+    }
+
     override getChartType() {
         return 'cartesian' as const;
     }

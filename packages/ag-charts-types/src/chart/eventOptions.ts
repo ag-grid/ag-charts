@@ -20,10 +20,13 @@ export interface AgPreventableEvent {
     preventDefault(): void;
 }
 
-export interface AgNodeClickEvent<TEvent extends string, TDatum, TContext = ContextDefault> extends AgChartEvent<
-    TEvent,
-    TContext
-> {
+interface AgCoordinatedEvent {
+    /* Domain-space coordinates of this event. */
+    coordinates?: AgCoordinates;
+}
+
+export interface AgNodeClickEvent<TEvent extends string, TDatum, TContext = ContextDefault>
+    extends AgChartEvent<TEvent, TContext>, AgCoordinatedEvent {
     /** Event type. */
     type: TEvent;
     /** Series ID, as specified in `series.id` (or generated if not specified) */
@@ -191,22 +194,17 @@ export type AgCoordinates = Record<string, AgAxisCoordinate> & {
     radius?: AgAxisCoordinate;
 };
 
-type CoordinatesMixin = {
-    /* Domain-space coordinates of this event. */
-    coordinates: AgCoordinates;
-};
-
 export interface AgChartClickEvent<TContext = ContextDefault>
-    extends AgChartEvent<'click', TContext>, CoordinatesMixin {}
+    extends AgChartEvent<'click', TContext>, Partial<AgCoordinatedEvent> {}
 
 export interface AgChartDoubleClickEvent<TContext = ContextDefault>
-    extends AgChartEvent<'doubleClick', TContext>, CoordinatesMixin {}
+    extends AgChartEvent<'doubleClick', TContext>, Partial<AgCoordinatedEvent> {}
 
 export interface AgChartContextMenuEvent<TContext = ContextDefault>
-    extends AgChartEvent<'contextMenuEvent', TContext>, CoordinatesMixin {}
+    extends AgChartEvent<'contextMenuEvent', TContext>, Partial<AgCoordinatedEvent> {}
 
 export interface AgSeriesAreaContextMenuActionEvent<TContext = ContextDefault>
-    extends AgChartEvent<'seriesContextMenuAction', TContext>, CoordinatesMixin {}
+    extends AgChartEvent<'seriesContextMenuAction', TContext>, AgCoordinatedEvent {}
 
 export type AgCaptionType = 'title' | 'subtitle' | 'footnote';
 
@@ -216,10 +214,8 @@ export interface AgAxisContextMenuActionEvent<TContext = ContextDefault>
     axisId: string;
 }
 
-export interface AgCrossLineContextMenuActionEvent<TContext = ContextDefault> extends AgChartEvent<
-    'crossLineContextMenuAction',
-    TContext
-> {
+export interface AgCrossLineContextMenuActionEvent<TContext = ContextDefault>
+    extends AgChartEvent<'crossLineContextMenuAction', TContext>, AgCoordinatedEvent {
     /** Cross Line ID (generated if not specified). */
     crossLineId: string;
     /** ID of the axis the Cross Line belongs to, as specified in `axes`. */

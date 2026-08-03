@@ -1,5 +1,5 @@
-import type { BoxBounds, RequireOptional } from 'ag-charts-core';
-import type { AgChartInstance, AgCollapsedChangeEvent, AgSelectionChangeEvent } from 'ag-charts-types';
+import type { BoxBounds, CanvasPoint, RequireOptional } from 'ag-charts-core';
+import type { AgChartInstance, AgCollapsedChangeEvent, AgCoordinates, AgSelectionChangeEvent } from 'ag-charts-types';
 
 import { Group } from '../scene/group';
 import type { CaptionLike } from './captionLike';
@@ -30,4 +30,5 @@ export interface ChartService {
     overrideFocusVisible(visible: boolean | undefined): void;
     hasListener(type: ChartServiceEventType): boolean;
     callListener(event: ChartServiceEvent): void;
+    toAgCoordinates(point: CanvasPoint): AgCoordinates | undefined;
 }

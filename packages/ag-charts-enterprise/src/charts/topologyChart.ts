@@ -1,7 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import type { AxisID, FeatureCollection, Position } from 'ag-charts-core';
+import type { AxisID, CanvasPoint, FeatureCollection, Position } from 'ag-charts-core';
 import { ChartAxisDirection, Property, createId } from 'ag-charts-core';
-import type { AgTopologyChartOptions } from 'ag-charts-types';
+import type { AgCoordinates, AgTopologyChartOptions } from 'ag-charts-types';
 
 import type { LonLatBBox } from '../series/map-util/lonLatBbox';
 import type { ITopology } from '../series/map-util/topologyTypes';
@@ -36,6 +36,10 @@ export class TopologyChart extends Chart {
             this.ctx.zoomManager.panToBBoxScalingMode =
                 _ModuleSupport.PanToBBoxScalingModeEnum.WhenViewportTooSmallScaleXYProportionally;
         }
+    }
+
+    override toAgCoordinates(_point: CanvasPoint): AgCoordinates | undefined {
+        return undefined; // TODO: stub
     }
 
     override getChartType() {

@@ -1,7 +1,10 @@
+import type { CanvasPoint } from 'ag-charts-core';
+import type { AgCoordinates } from 'ag-charts-types';
+
 import { BBox } from '../scene/bbox';
 import type { Path } from '../scene/shape/path';
 import { Transformable } from '../scene/transformable';
-import type { ISeries } from './series/seriesTypes';
+import type { ISeries, SeriesNodeDatum } from './series/seriesTypes';
 import { getDatumRefPoint } from './series/util';
 import type { TooltipPointerEvent } from './tooltip/tooltip';
 
@@ -10,6 +13,10 @@ type PickProperties = {
     datum: Parameters<typeof getDatumRefPoint>[1];
     movedBounds?: Parameters<typeof getDatumRefPoint>[2];
     clipFocusBox: boolean;
+};
+
+type CoordinateCalculator = {
+    toAgCoordinates(point: CanvasPoint): AgCoordinates | undefined;
 };
 
 function computeCenter(series: ISeries<any, any, any>, hoverRect: BBox, pick: PickProperties) {
@@ -44,4 +51,12 @@ export function makeKeyboardPointerEvent(
         return { type: 'keyboard', canvasX, canvasY };
     }
     return undefined;
+}
+
+export function makeKeyboardAgCoordinates(
+    calculator: CoordinateCalculator,
+    datum: SeriesNodeDatum
+): AgCoordinates | undefined {
+    const refPoint = getDatumRefPoint(datum.series, datum, undefined);
+    return refPoint === undefined ? {} : calculator.toAgCoordinates(refPoint);
 }
