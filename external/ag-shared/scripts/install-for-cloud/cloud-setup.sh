@@ -17,11 +17,12 @@
 # Every step is therefore best-effort: failures are logged and the script keeps
 # going. What it does:
 #   1. pins node to .nvmrc and installs yarn@1 + nx globally
-#   2. runs a full `yarn install` (postinstall renders .claude/ and the rulesync
-#      outputs, so Claude Code sees skills/rules/plugins when it launches)
-#   3. seeds $AG_CLOUD_CACHE_DIR with node_modules and the resolved node path, so
+#   2. registers the plugin marketplaces and installs the declared plugins, which
+#      only works here: Claude Code enumerates plugin skills at launch, so a
+#      marketplace registered mid-session installs files that nothing surfaces
+#   3. runs `yarn install --ignore-scripts` (the slow, cacheable part)
+#   4. seeds $AG_CLOUD_CACHE_DIR with node_modules and the resolved node path, so
 #      per-session SessionStart can restore in seconds if the repo is re-cloned
-#   4. pre-clones the plugin marketplaces so plugin install at launch is local
 #
 # Per-session work lives in install-for-cloud.sh (the SessionStart hook).
 
@@ -205,9 +206,7 @@ install_dependencies() {
     with_timeout "$budget" yarn install --prefer-offline --ignore-scripts
     local rc=$?
     if ((rc == 124)); then
-        log_warn "yarn install hit the ${budget}s budget"
-        # Seed whatever landed: a partial tree still leaves the yarn cache warm,
-        # and the session's install completes it far faster than from cold.
+        log_warn "yarn install hit the ${budget}s budget — the tree is incomplete and will not be cached"
         return 1
     fi
     return "$rc"
@@ -242,74 +241,96 @@ seed_node_modules_cache() {
     # The tree was built with --ignore-scripts, so patch-package has not run and
     # the plugins are unbuilt — yet `yarn check --integrity` still passes on it.
     # Without this marker the SessionStart hook would take its fast path and call
-    # the session ready with patches unapplied. The hook uses it to force a
-    # background install that scripts the tree, and clears it once that succeeds.
+    # the session ready with patches unapplied. The hook uses it to tell the
+    # session to run finish-setup.sh, which scripts the tree, refreshes this cache
+    # and clears the marker for every later session.
     : >"$AG_CLOUD_CACHE_DIR/unscripted"
     log_info "cached node_modules at ${dest} ($(du -sh "$dest" 2>/dev/null | awk '{print $1}'))"
 }
 
 # ---------------------------------------------------------------------------
-# plugin marketplaces
+# plugin marketplaces and skills
 # ---------------------------------------------------------------------------
 #
-# Claude Code installs the marketplaces declared in .claude/settings.json when it
-# launches. Pre-cloning them here moves that network round-trip into the cached
-# snapshot, and surfaces reachability problems in the setup log rather than as
-# missing skills mid-session. ag-grid/ag-dev-prompts is a private repository, so
-# a failure here is the signal that the session's GitHub credentials do not cover
-# repositories other than the attached one.
+# This is the only place plugin skills can be made to work, and it took three
+# failed cloud sessions to establish why:
+#
+#   - A marketplace is only live when it is *registered* in
+#     ~/.claude/plugins/known_marketplaces.json and its plugins appear in
+#     installed_plugins.json. A bare git clone under plugins/marketplaces/ is
+#     inert: an earlier revision cloned openai-codex successfully and the session
+#     still reported it missing, because nothing registered it.
+#   - Claude Code enumerates plugin skills once, at launch. Registering a
+#     marketplace mid-session installs the files but does not surface the skills —
+#     verified from inside a session, where `claude plugin install` reported
+#     success for all five plugins and ListSkills still returned nothing. So
+#     registration has to happen here, before launch, to land in the snapshot.
+#   - The setup phase has no GitHub credentials. The session's GitHub proxy is not
+#     yet in play, so a private repo cannot be cloned: openai/codex-plugin-cc
+#     (public) cloned fine in the same run where ag-grid/ag-dev-prompts (private)
+#     failed. The attached sibling checkout is the way in — when ag-dev-prompts is
+#     attached to the session it is already on disk next to this repo, and a
+#     marketplace can be registered from a local path.
+#
+# Setup and session share $HOME (both run as root, $HOME=/root — measured, and the
+# reason the openai-codex clone from an earlier revision was visible in-session),
+# so what is registered here is what the session sees.
 
-# Candidate homes for the *session* user. $HOME here is root's, which the session
-# never reads, so seed every plausible home and let the right one win.
-session_homes() {
-    local h
-    for h in /home/user /home/claude "$HOME"; do
-        [[ -d "$h" ]] && echo "$h"
+ag_dev_marketplace_source() {
+    local dir
+    for dir in "${AG_DEV_PROMPTS_DIR:-}" \
+        "$(dirname "$REPO_ROOT")/ag-dev-prompts" \
+        /home/user/ag-dev-prompts /home/claude/ag-dev-prompts; do
+        [[ -n "$dir" && -f "$dir/.claude-plugin/marketplace.json" ]] || continue
+        echo "$dir"
+        return 0
     done
+    # No local checkout: try the network and let it fail loudly in the log.
+    echo "ag-grid/ag-dev-prompts"
 }
 
-clone_marketplace() {
-    local name="$1" repo="$2" ref="${3:-}" home="$4"
-    local dest="$home/.claude/plugins/marketplaces/$name"
+# Plugin specs the repo asks for, e.g. "ag-eng@ag-dev". Read from the committed
+# settings.json rather than hardcoded, so the two cannot drift.
+enabled_plugins() {
+    [[ -f "$REPO_ROOT/.claude/settings.json" ]] || return 0
+    node -e '
+        const fs = require("fs");
+        const s = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+        for (const [name, on] of Object.entries(s.enabledPlugins ?? {})) if (on) console.log(name);
+    ' "$REPO_ROOT/.claude/settings.json" 2>/dev/null
+}
 
-    if [[ -d "$dest/.git" ]]; then
-        with_timeout 60 git -C "$dest" fetch --depth 1 origin "${ref:-HEAD}" >/dev/null 2>&1 || true
-        log_info "marketplace ${name} already cloned"
-        return 0
+register_marketplaces() {
+    if ! command -v claude &>/dev/null; then
+        log_warn "claude CLI not on PATH — cannot register plugin marketplaces; sessions will start without ag-dev skills"
+        return 1
     fi
 
-    mkdir -p "$(dirname "$dest")"
-    local args=(clone --depth 1)
-    [[ -n "$ref" ]] && args+=(--branch "$ref")
-    # Plain HTTPS first: in a cloud session the GitHub proxy substitutes real
-    # credentials. Then an explicit token, for environments that set one. Then SSH,
-    # which is what a developer machine running this by hand will have.
-    local url
-    for url in "https://github.com/${repo}.git" \
-        "${GH_TOKEN:+https://x-access-token:${GH_TOKEN}@github.com/${repo}.git}" \
-        "git@github.com:${repo}.git"; do
-        [[ -n "$url" ]] || continue
-        [[ "$url" == *"proxy-injected"* ]] && continue
-        if with_timeout 60 git "${args[@]}" "$url" "$dest" >/dev/null 2>&1; then
-            log_info "cloned marketplace ${name} (${repo}${ref:+#$ref})"
-            return 0
-        fi
-        rm -rf "$dest"
-    done
-    log_warn "could not clone ${repo} into ${home} — if Claude Code also fails at launch, attach ${repo} as a second repository to the session: the GitHub proxy only reaches repositories attached to the session, and attaching it is verified to make the clone and the skills work"
-    return 1
-}
+    local source
+    source="$(ag_dev_marketplace_source)"
+    if [[ "$source" == /* ]]; then
+        log_info "registering ag-dev from the attached checkout at ${source}"
+    else
+        log_warn "no local ag-dev-prompts checkout found — attach ag-grid/ag-dev-prompts as a second repository to the session; trying the network, which has no credentials for a private repo at setup time"
+    fi
 
-seed_marketplaces() {
-    local ref="${AG_DEV_PROMPTS_REF:-canary}" home
-    while read -r home; do
-        [[ -n "$home" ]] || continue
-        clone_marketplace ag-dev ag-grid/ag-dev-prompts "$ref" "$home" || true
-        clone_marketplace openai-codex openai/codex-plugin-cc "" "$home" || true
-        # Readable by the session user, not just root.
-        chmod -R a+rX "$home/.claude/plugins/marketplaces" 2>/dev/null || true
-    done < <(session_homes)
-    return 0
+    with_timeout 120 claude plugin marketplace add "$source" 2>&1 | sed 's/^/[cloud-setup]   /' || true
+    with_timeout 60 claude plugin marketplace add openai/codex-plugin-cc 2>&1 |
+        sed 's/^/[cloud-setup]   /' || true
+
+    local plugin failed=0
+    while read -r plugin; do
+        [[ -n "$plugin" ]] || continue
+        if ! with_timeout 60 claude plugin install "$plugin" >/dev/null 2>&1; then
+            log_warn "plugin install failed: ${plugin}"
+            failed=$((failed + 1))
+        fi
+    done < <(enabled_plugins)
+
+    local installed
+    installed="$(with_timeout 30 claude plugin list 2>/dev/null | grep -c '@' || true)"
+    log_info "plugins registered: ${installed:-0} (${failed} failed)"
+    ((failed == 0))
 }
 
 # ---------------------------------------------------------------------------
@@ -335,17 +356,18 @@ main() {
     record_node_path
     step "install yarn + nx" install_yarn_and_nx
 
-    # Marketplaces first: they are seconds of work, and an earlier revision let a
-    # budget-hogging install starve them.
-    step "seed plugin marketplaces" seed_marketplaces
+    # Marketplaces first: they are seconds of work, they are the only thing that
+    # cannot be repaired later in the session (skills are enumerated at launch),
+    # and an earlier revision let a budget-hogging install starve them.
+    step "register plugin marketplaces" register_marketplaces || true
 
-    # Seed whatever the install produced, complete or not — a partial tree plus a
-    # warm yarn cache still beats starting the session from cold.
-    step "yarn install" install_dependencies || true
-    if [[ -d "$REPO_ROOT/node_modules" ]]; then
+    # Only a complete tree is worth caching. A tree cut off mid-fetch still passes
+    # the lockfile-hash check the hook uses, so caching one costs a session the
+    # restore time and then makes it install anyway.
+    if step "yarn install" install_dependencies; then
         step "seed node_modules cache" seed_node_modules_cache
     else
-        log_warn "no node_modules to cache; sessions will install from the yarn cache"
+        log_warn "no complete node_modules to cache; the first session must run finish-setup.sh, which caches its result for later sessions"
     fi
 
     # Report what a session will actually find, so the setup log is diagnostic.

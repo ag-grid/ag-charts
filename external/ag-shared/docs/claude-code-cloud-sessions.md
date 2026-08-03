@@ -54,7 +54,9 @@ Do this once per cloud environment (and once more for an organization-shared env
 
 4. **Attach `ag-grid/ag-dev-prompts` as a second repository** — this is what makes skills work, and it is not optional. Use the `+` next to the repository chips above the message box and pick `ag-grid/ag-dev-prompts`.
 
-   The marketplace repo is private, and a cloud session's GitHub proxy only reaches repositories **attached to the session**. Without attaching it, the clone is refused, the `ag-dev` marketplace never installs, and all five canary skills are missing — verified in a cloud session. With it attached, the clone succeeds and `ag-eng` (30 skills) and `ag-product` (17 skills) load — also verified. The attached checkout at `/home/user/ag-dev-prompts` and the installed marketplace under `~/.claude/plugins/marketplaces/ag-dev` are two separate copies; the skills come from the latter.
+   The marketplace repo is private and the setup phase has no GitHub credentials at all: in one run `openai/codex-plugin-cc` (public) cloned fine while `ag-grid/ag-dev-prompts` (private) was refused. Attaching it puts a checkout on disk next to the repo, and `cloud-setup.sh` registers the marketplace from that local path instead of over the network.
+
+   Note that attaching a second repository also changes the session's working directory: with one repo it is the repo root, with two it is the parent (`/home/user`), so `bash external/…` fails and `cd ~/ag-charts` first is required.
 
 5. Optionally add **Environment variables** (`.env` format, one per line). None are required; useful ones:
 
@@ -65,23 +67,37 @@ Do this once per cloud environment (and once more for an organization-shared env
 
    Do not put credentials here — anyone using the environment can read them, and there is no secrets store.
 
-6. Save, then start a session and ask Claude to run:
+6. Save, then start a session and ask Claude to run (from the repo root — see step 4 about the working directory):
 
    ```bash
-   bash external/ag-shared/scripts/install-for-cloud/cloud-doctor.sh
+   cd ~/ag-charts && bash external/ag-shared/scripts/install-for-cloud/cloud-doctor.sh
    ```
 
    It reports node/yarn/nx, dependency state, the generated Claude Code config, the plugin marketplaces and the canary skills, and prints `READY` or the specific gaps.
 
+7. If the doctor reports dependency gaps in that first session, close them once:
+
+   ```bash
+   cd ~/ag-charts && bash external/ag-shared/scripts/install-for-cloud/finish-setup.sh
+   ```
+
+   That is the one slow step (several minutes). It installs, then re-caches the finished tree into `/opt/ag-cloud`, which every later session in the environment restores in seconds.
+
 ## What runs when
 
-**First session in an environment** (cold, up to ~5 min in the setup script):
+**Environment build** (cold, up to ~5 min in the setup script):
 
-`cloud-setup.sh` pins node to `.nvmrc`, installs `yarn@1` and `nx` globally, runs `yarn install --ignore-scripts` (a full install needs ~9 min on a cloud VM and cannot fit the ~5 min cap, so only the slow cacheable part — resolve, fetch, link — happens here), seeds `/opt/ag-cloud` with a hardlinked copy of `node_modules` keyed to the `yarn.lock` hash and marked `unscripted`, and pre-clones the plugin marketplaces into each plausible session home. Every step is best-effort and the script always exits 0, because a non-zero exit fails session creation.
+`cloud-setup.sh` pins node to `.nvmrc`, installs `yarn@1` and `nx` globally, registers the plugin marketplaces and installs the plugins named in `.claude/settings.json`, then runs `yarn install --ignore-scripts` (a full install needs ~9 min on a cloud VM and cannot fit the ~5 min cap, so only the slow cacheable part — resolve, fetch, link — happens here) and seeds `/opt/ag-cloud` with a hardlinked copy of `node_modules` keyed to the `yarn.lock` hash and marked `unscripted`. It only caches a tree from an install that finished: a tree cut off mid-fetch still satisfies the hash check, so caching one would cost every session the restore and then make it install anyway. Every step is best-effort and the script always exits 0, because a non-zero exit fails session creation.
 
-**Every later session** (warm, seconds): the setup script is skipped. Claude Code launches, reads the committed `.claude/settings.json`, installs the declared plugins, and runs the SessionStart hook. `install-for-cloud.sh` puts the pinned node on `PATH` (via `$CLAUDE_ENV_FILE`) and, if the working tree came back without `node_modules`, restores the cached tree instead of installing. If that cache is marked `unscripted` the hook refuses its fast path — the tree passes `yarn check --integrity` but has no patches applied — and runs the install in the background, then refreshes the cache from the scripted tree and clears the marker.
+The marketplace registration has to happen here rather than in a session, because Claude Code enumerates plugin skills **at launch**. Registering a marketplace mid-session installs the files and surfaces nothing: in a live session `claude plugin install` reported success for all five `ag-dev` plugins, the skill directories were on disk, and `ListSkills` still returned empty.
 
-Restore strategy is deliberate, because an ag-charts `node_modules` is ~2.3 GB over ~200k files: a reflink copy is tried first (instant on a copy-on-write filesystem, cache retained), then a move (instant on the same filesystem — the cache is then rebuilt by a detached background copy for the next session), then a hardlink copy, then a plain copy. For scale, a hardlink copy of that tree measured 78 s locally, which is why it is the fallback and not the strategy. A `yarn.lock` that no longer matches the cache skips restore entirely and falls through to a real `yarn install --prefer-offline` against the warm yarn cache.
+**Every session** (warm, seconds): the setup script is skipped and the repository is re-cloned, so `node_modules` and everything else generated is gone. Claude Code launches, reads the committed `.claude/settings.json`, and runs the SessionStart hook. `install-for-cloud.sh` puts the pinned node on `PATH`, clears any install lock whose owning process is dead, and restores the cached `node_modules` when the lockfile still matches. If the cache is marked `unscripted` the hook refuses its fast path — the tree passes `yarn check --integrity` but has no patches applied — and prints the `finish-setup.sh` command instead.
+
+The hook never installs anything itself in a cloud session, for two measured reasons. A blocking install freezes the session, because Claude Code waits for SessionStart hooks before processing the first message — one session sat silent for 9+ minutes and never answered. And a detached install does not survive the session: an earlier revision spawned one under `nohup`, and the next session found a truncated `install.log` stopping mid-fetch, no process, and a leftover lock that then convinced every subsequent hook that an install was already running. Work that must outlive the hook has to happen in a Bash call the session waits on, which is what `finish-setup.sh` is.
+
+`/opt/ag-cloud` outlives individual sessions in an environment (a marker written by one session was read by the next), which is what makes `finish-setup.sh` a one-off rather than a per-session tax.
+
+Restore strategy is deliberate, because an ag-charts `node_modules` is ~2.3 GB over ~200k files: a reflink copy is tried first (instant on a copy-on-write filesystem, cache retained), then a move (instant on the same filesystem, with the cache rebuilt afterwards), then a hardlink copy, then a plain copy. For scale, a hardlink copy of that tree measured 78 s locally, which is why it is the fallback and not the strategy. A `yarn.lock` that no longer matches the cache skips restore entirely and falls through to a real `yarn install --prefer-offline` against the warm yarn cache.
 
 ## Why `.claude/settings.json` is committed
 
@@ -91,20 +107,24 @@ It is the one generated file that cannot be generated in time: Claude Code reads
 
 ## If you configured the environment before this landed
 
-A cached environment **skips the setup script permanently** — it only runs when no snapshot exists. So an environment whose snapshot was built before `cloud-setup.sh` reached the branch never runs it and cannot self-heal: sessions get no `/opt/ag-cloud` cache, no pre-cloned marketplaces, and the wrong node version, while the checklist still cheerfully reports "Ran setup script".
+A cached environment **skips the setup script permanently** — it only runs when no snapshot exists. So an environment whose snapshot was built before `cloud-setup.sh` reached the branch never runs it and cannot self-heal: sessions get no `/opt/ag-cloud` cache, no registered marketplaces, and the wrong node version, while the checklist still reports "Ran setup script".
 
-This was observed, not theorised. A session in that state fell back to the hook's full install, which took **534 s**, and reported all five canary skills missing.
+This was observed, not theorised. A session in that state fell back to a full install, which took **534 s**, and reported all five canary skills missing.
 
 To force a rebuild, edit the setup script in the environment dialog — any change counts, even a trailing comment — and save. The next session runs it again and re-snapshots. The same applies whenever you change the network allowlist, and it happens on its own after roughly seven days.
 
 ## Known limitations
 
-- **`.claude/rules/` and `.claude/skills/` are still generated and ignored.** They exist in the first session (the setup script's `yarn install` writes them before launch) and in any session whose snapshot preserved the tree. If a session starts from a fresh clone, the SessionStart hook regenerates them but only after Claude Code has already loaded its context. `CLAUDE.md` is committed, so the critical instructions are always present.
+- **`.claude/rules/` and `.claude/skills/` are generated and ignored, so a cloud session's clone never has them.** The setup script's install runs with `--ignore-scripts`, and every session re-clones the repo, so these appear only once `finish-setup.sh` has run in that session. Plugin skills do not depend on them — those come from the registered marketplace — and `CLAUDE.md` is committed, so the critical instructions are always present.
 - **`.mcp.json` is gitignored**, so cloud sessions have no MCP servers. Skills that reach JIRA or Confluence through the Atlassian MCP will not work there; interactive OAuth cannot complete in a cloud session anyway.
-- **`ag-grid/ag-dev-prompts` is a private repository.** Cloud sessions reach GitHub through a proxy that scopes API and release-asset requests to the repositories attached to the session. If the marketplace clone fails, `cloud-setup.sh` says so in the setup log and `cloud-doctor.sh` reports the missing marketplace and skills — that is the signal, rather than skills silently going absent.
+- **`ag-grid/ag-dev-prompts` is a private repository, and the setup phase is unauthenticated.** Cloud sessions reach GitHub through a proxy that scopes requests to the repositories attached to the session, but that proxy is not in play while the setup script runs: a public marketplace cloned and the private one was refused in the same run. Hence the local-checkout path in step 4. If registration fails, `cloud-setup.sh` says so in the setup log and `cloud-doctor.sh` reports the missing marketplace and skills.
+- **A cloned marketplace is not an installed one.** Claude Code reads `~/.claude/plugins/known_marketplaces.json` and `installed_plugins.json`, not the contents of `plugins/marketplaces/`. An earlier revision cloned `openai-codex` successfully and the session still had no plugin from it, because nothing registered it — which is why `cloud-setup.sh` now drives the `claude plugin` CLI and `cloud-doctor.sh` checks the registry rather than the directory.
+- **Plugin skills are enumerated at launch.** Installing a plugin mid-session lands the files and surfaces no skills until a new session. `cloud-doctor.sh` can therefore only report what is on disk; if it passes and skills still do not work, ask Claude directly what it can see.
+- **The session's working directory depends on how many repositories are attached.** With two it is `/home/user`, not the repo, and `$CLAUDE_PROJECT_DIR` is unset, so relative paths into the repo fail. Prefix commands with `cd ~/ag-charts`.
+- **The pinned node needs PATH help.** The image ships its own node ahead of nvm's: a session measured 22.22.2 from `/opt/node22/bin` while `.nvmrc`'s 22.21.1 sat installed and unused. The hook exports the pinned bin via `$CLAUDE_ENV_FILE` and also appends it to the profile, which is what the Bash tool's shell reads.
 - **Never send `GITHUB_TOKEN` from a cloud session as a credential.** When the GitHub proxy handles authentication, `GITHUB_TOKEN` and `GH_TOKEN` read as the literal string `proxy-injected`; the proxy substitutes real credentials on outbound requests. Passing the placeholder as a Bearer token authenticates as nobody. This silently broke the `ag-dev-prompts` fetch — and with it every skill and every generated rule — until `rulesync-fetch/fetch.sh` learned to treat the placeholder as unset. Any new script that reads those variables needs the same guard.
 - **`.rulesync/mcp.json` is plugin-delivered and gitignored.** When the fetch above fails it is simply absent, and asking rulesync for the `mcp` feature then fails ENOENT and takes the entire generate down with it — no rules, no skills, from sources that were perfectly generatable. `setup-prompts.sh` now requests that feature only when the file exists.
-- **The setup script runs as `root`; the session does not.** `$HOME` is `/root` during setup and `/home/user` in the session, so anything the setup script writes under `$HOME` is invisible to the session. That silently wasted the whole dependency cache in an earlier revision. The cache therefore lives at `/opt/ag-cloud`, and marketplace clones are seeded into every plausible session home.
+- **Setup and session both run as `root` with `$HOME=/root`** on the current image, so what the setup script writes under `$HOME` — the plugin registry in particular — is what the session reads. Do not rely on that for large state: the dependency cache lives at `/opt/ag-cloud` (world-writable) so it stays correct if the session user ever changes.
 - **Playwright browsers are not installed**, so `test:e2e` needs `npx playwright install` in the session.
 - **Build jobs can exceed the VM's memory**; a full monorepo build is close to the 16 GB ceiling.
 

@@ -39,6 +39,11 @@ note "repo root:       ${REPO_ROOT}"
 note "cloud session:   ${CLAUDE_CODE_REMOTE:-false}"
 note "session id:      ${CLAUDE_CODE_REMOTE_SESSION_ID:-n/a}"
 note "branch:          $(git -C "$REPO_ROOT" rev-parse --abbrev-ref HEAD 2>/dev/null || echo '?')"
+if [[ "$PWD" != "$REPO_ROOT" ]]; then
+    # With more than one repository attached, a cloud session starts in the parent
+    # directory, so every relative path into the repo fails.
+    note "cwd:             ${PWD} (not the repo root — use absolute paths or cd first)"
+fi
 
 echo
 echo "toolchain"
@@ -50,6 +55,12 @@ elif [[ "$have_node" == "$wanted_node" ]]; then
     ok "node ${have_node} (matches .nvmrc)"
 else
     bad "node ${have_node} but .nvmrc wants ${wanted_node:-?}"
+    # Usually PATH order rather than a missing runtime: the cloud image ships its
+    # own node ahead of the pinned one.
+    pinned_bin="$(head -1 "$AG_CLOUD_CACHE_DIR/node-bin-path" 2>/dev/null || true)"
+    if [[ -n "$pinned_bin" && -x "$pinned_bin/node" ]]; then
+        note "  pinned node is installed — export PATH=\"${pinned_bin}:\$PATH\""
+    fi
 fi
 if command -v yarn &>/dev/null; then ok "yarn $(yarn -v 2>/dev/null)"; else bad "yarn not on PATH"; fi
 if command -v nx &>/dev/null; then ok "nx on PATH"; else note "nx not global — use \`yarn nx\`"; fi
@@ -62,7 +73,11 @@ fi
 echo
 echo "dependencies"
 if [[ -d "$REPO_ROOT/node_modules" ]]; then
-    if (cd "$REPO_ROOT" && yarn check --integrity &>/dev/null); then
+    if [[ -f "$AG_CLOUD_CACHE_DIR/unscripted" ]]; then
+        # Passes the integrity check but has no patches and no built plugins: the
+        # setup script had to skip postinstall to fit its 5 minute cap.
+        bad "node_modules restored from an unscripted cache — patches and plugin builds still pending"
+    elif (cd "$REPO_ROOT" && yarn check --integrity &>/dev/null); then
         ok "node_modules present and in sync with yarn.lock"
     else
         bad "node_modules present but stale — an install is pending"
@@ -71,7 +86,11 @@ else
     bad "node_modules missing"
 fi
 if [[ -d "$AG_CLOUD_CACHE_DIR/node_modules" ]]; then
-    ok "cloud cache seeded ($AG_CLOUD_CACHE_DIR)"
+    if [[ -f "$AG_CLOUD_CACHE_DIR/unscripted" ]]; then
+        note "cloud cache seeded but unscripted ($AG_CLOUD_CACHE_DIR)"
+    else
+        ok "cloud cache seeded and scripted ($AG_CLOUD_CACHE_DIR)"
+    fi
 else
     note "no cloud cache — a re-cloned tree would need a full install"
 fi
@@ -93,16 +112,29 @@ fi
 
 echo
 echo "plugin marketplaces"
+# A clone under marketplaces/ is inert unless it is also registered: one session
+# had openai-codex fully cloned on disk and absent from the registry, so no plugin
+# from it existed as far as Claude Code was concerned.
+registry="$HOME/.claude/plugins/known_marketplaces.json"
 for market in ag-dev openai-codex; do
     dir="$HOME/.claude/plugins/marketplaces/$market"
-    if [[ -d "$dir" ]]; then ok "${market} cloned"; else bad "${market} not installed"; fi
+    if grep -q "\"${market}\"" "$registry" 2>/dev/null; then
+        ok "${market} registered"
+    elif [[ -d "$dir" ]]; then
+        bad "${market} cloned but NOT registered (claude plugin marketplace add …)"
+    else
+        bad "${market} not installed"
+    fi
 done
 
 echo
 echo "skills (canary set)"
+# On disk only. Claude Code enumerates plugin skills at launch, so a skill
+# installed mid-session shows here and is still not usable until a new session —
+# ask Claude what it can actually see if this passes and skills still do not work.
 for skill in "${CANARY_SKILLS[@]}"; do
     if find "$HOME/.claude/plugins/marketplaces" "$HOME/.claude/plugins/cache" \
-        "$REPO_ROOT/.claude/skills" -maxdepth 6 -type d -name "$skill" 2>/dev/null | grep -q .; then
+        "$REPO_ROOT/.claude/skills" -maxdepth 8 -type d -name "$skill" 2>/dev/null | grep -q .; then
         ok "$skill"
     else
         bad "$skill missing"
@@ -114,7 +146,9 @@ if ((FAILURES == 0)); then
     echo "READY — no gaps found."
 else
     echo "NOT READY — ${FAILURES} gap(s) above."
-    echo "Cloud sessions: check the environment's setup script (see"
-    echo "external/ag-shared/docs/claude-code-cloud-sessions.md); locally run \`yarn\`."
+    echo "Dependency gaps: bash ${SCRIPT_DIR}/finish-setup.sh"
+    echo "Marketplace or skill gaps: the environment's setup script must register"
+    echo "them before launch — see external/ag-shared/docs/claude-code-cloud-sessions.md."
+    echo "Locally: run \`yarn\` from the repo root."
 fi
 exit 0

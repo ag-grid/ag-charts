@@ -50,6 +50,18 @@ apply_cached_node_path() {
     if [[ -n "${CLAUDE_ENV_FILE:-}" ]]; then
         echo "export PATH=\"$bin:\$PATH\"" >>"$CLAUDE_ENV_FILE"
     fi
+
+    # $CLAUDE_ENV_FILE alone was not enough: a cloud session measured node 22.22.2
+    # from the image's /opt/node22/bin while the pinned 22.21.1 sat unused in
+    # /opt/nvm. The shell the Bash tool spawns reads the profile, so write there
+    # too — guarded, so repeated session starts do not stack copies.
+    local marker="# ag-cloud pinned node"
+    local rc
+    for rc in "$HOME/.bashrc" "$HOME/.profile"; do
+        [[ -e "$rc" ]] || continue
+        grep -qF "$marker" "$rc" 2>/dev/null && continue
+        printf '\n%s\nexport PATH="%s:$PATH"\n' "$marker" "$bin" >>"$rc" 2>/dev/null || true
+    done
     log_info "node $(node -v 2>/dev/null || echo '?') from ${bin}"
 }
 
@@ -153,14 +165,22 @@ restore_node_modules_from_cache() {
 }
 
 # ---------------------------------------------------------------------------
-# Background install — cloud sessions only.
+# Telling the session what is missing — cloud sessions only.
 #
-# Claude Code waits for SessionStart hooks to finish before it processes the
-# first message, so a blocking `yarn install` here freezes the whole session for
-# minutes with no output at all: measured in a real cloud session, which sat
-# silent for 9+ minutes and never answered. Correctness still requires a full
-# install, so run it detached and tell the session what is happening and how to
-# wait, instead of stalling it.
+# Two constraints shape this, both measured rather than assumed:
+#
+#   - Claude Code waits for SessionStart hooks before processing the first
+#     message, so a blocking `yarn install` here freezes the session. One cloud
+#     session sat silent for 9+ minutes and never answered.
+#   - A detached install does not survive either. An earlier revision ran the
+#     install under `nohup … &`; the next session found `started` and a half-written
+#     install.log stopping mid-fetch, no process, and a leftover lock directory that
+#     then convinced every later hook that "an install is already running". The
+#     session's process tree does not outlive the session.
+#
+# So the hook does no installing at all. It reports what is missing and hands the
+# session a foreground command to run, which is work Claude does inside a Bash call
+# the session actually waits on.
 #
 # Local and worktree runs keep the original blocking behaviour: there is a human
 # watching a terminal there, and no session to starve.
@@ -168,62 +188,47 @@ restore_node_modules_from_cache() {
 
 deps_state_dir() { echo "${AG_CLOUD_CACHE_DIR}/deps"; }
 
-start_background_install() {
+# A lock is only real while its writer lives. Left behind by a killed session it
+# is indistinguishable from a running install, which is exactly how one
+# environment wedged into permanently "installing".
+clear_stale_lock() {
     local state
     state="$(deps_state_dir)"
-    mkdir -p "$state"
+    [[ -d "$state/lock" ]] || return 0
 
-    # Lock via mkdir so a second hook run (resume, parallel session) does not
-    # start a competing install.
-    if ! mkdir "$state/lock" 2>/dev/null; then
-        log_info "an install is already running (lock held), not starting another"
+    local pid
+    pid="$(head -1 "$state/lock/pid" 2>/dev/null || true)"
+    if [[ -n "$pid" ]] && kill -0 "$pid" 2>/dev/null; then
         return 0
     fi
+    rm -rf "$state/lock"
+    log_info "cleared a stale install lock (no live writer)"
+}
 
-    rm -f "$state/ready" "$state/failed"
-    date +%s >"$state/started"
-
-    nohup bash -c "
-        cd '$PWD' || exit 1
-        export AG_SKIP_NATIVE_DEP_VERSION_CHECK=1 PUPPETEER_SKIP_DOWNLOAD=true NX_DAEMON=false
-        if yarn install --prefer-offline >'$state/install.log' 2>&1; then
-            date +%s >'$state/ready'
-            # The tree is now scripted and patched. Refresh the cache from it and
-            # drop the marker so later sessions restore a ready-to-build tree.
-            if [ -f '$AG_CLOUD_CACHE_DIR/unscripted' ]; then
-                staging='$AG_CLOUD_CACHE_DIR/node_modules.scripted.\$\$'
-                rm -rf \"\$staging\"
-                if cp -al node_modules \"\$staging\" 2>/dev/null || cp -a node_modules \"\$staging\" 2>/dev/null; then
-                    rm -rf '$AG_CLOUD_CACHE_DIR/node_modules'
-                    mv \"\$staging\" '$AG_CLOUD_CACHE_DIR/node_modules'
-                    rm -f '$AG_CLOUD_CACHE_DIR/unscripted'
-                fi
-            fi
-        else
-            date +%s >'$state/failed'
-        fi
-        rmdir '$state/lock' 2>/dev/null
-    " >/dev/null 2>&1 &
-    disown 2>/dev/null || true
-
-    # Hook stdout becomes session context, so this is the message Claude reads.
-    local reason="no valid node_modules and no seeded cache were found"
+announce_deps_not_ready() {
+    local reason="node_modules is missing or does not match yarn.lock, and no usable cache was found"
     if [[ -f "$AG_CLOUD_CACHE_DIR/unscripted" ]]; then
         reason="the cached node_modules was seeded without postinstall, so patches and plugin builds are still pending"
     fi
+
+    # Hook stdout becomes session context, so this is the message Claude reads.
+    # Absolute paths: with more than one repository attached the session's working
+    # directory is the parent (/home/user), not the repo, so relative paths fail.
     cat <<EOF
-[install-for-cloud] Dependencies are NOT ready yet in this cloud session.
+[install-for-cloud] Dependencies are NOT ready in this cloud session.
 
-A 'yarn install' is running in the background because ${reason}. Until it
-completes, builds, tests, lint and any 'yarn nx' command will fail or behave
-oddly. Reading and editing files is fine.
+Reason: ${reason}.
 
-Before running any build/test/lint command, wait for it:
-  bash external/ag-shared/scripts/install-for-cloud/wait-for-deps.sh
+Until an install completes, builds, tests, lint and any 'yarn nx' command will
+fail or behave oddly. Reading and editing files is fine.
 
-Progress log: $state/install.log
+Run this before any build/test/lint command — it installs, then caches the result
+so later sessions in this environment start ready (takes several minutes once):
+  bash ${PWD}/external/ag-shared/scripts/install-for-cloud/finish-setup.sh
+
+If another session is already installing, wait for it instead:
+  bash ${PWD}/external/ag-shared/scripts/install-for-cloud/wait-for-deps.sh
 EOF
-    log_info "background install started; session is usable immediately"
 }
 
 # ---------------------------------------------------------------------------
@@ -264,14 +269,15 @@ IN_CLOUD_SESSION=0
 if [[ "${CLAUDE_CODE_REMOTE:-}" == "true" ]] || [[ "${AG_CLOUD_INSTALL:-}" == "1" ]]; then
     IN_CLOUD_SESSION=1
     apply_cached_node_path
+    clear_stale_lock
     if [[ -f package.json ]]; then
         if restore_node_modules_from_cache; then
             # A cache seeded with --ignore-scripts passes the integrity check but
             # has no patches applied, so the fast path below would wrongly call it
-            # ready. Script it in the background instead.
+            # ready.
             if [[ -f "$AG_CLOUD_CACHE_DIR/unscripted" ]]; then
                 log_info "restored tree is unscripted (no patches yet)"
-                start_background_install
+                announce_deps_not_ready
                 exit 0
             fi
         fi
@@ -293,7 +299,7 @@ if command -v yarn &>/dev/null && [[ -d node_modules ]]; then
     fi
     log_info "node_modules present but integrity check failed, install needed"
     if [[ "$IN_CLOUD_SESSION" == "1" ]]; then
-        start_background_install
+        announce_deps_not_ready
         exit 0
     fi
     yarn install --prefer-offline
@@ -375,7 +381,7 @@ main() {
 
     # In a cloud session the install must not block the SessionStart hook.
     if [[ "$IN_CLOUD_SESSION" == "1" ]]; then
-        start_background_install
+        announce_deps_not_ready
         exit 0
     fi
 
