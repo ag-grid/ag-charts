@@ -565,13 +565,21 @@ export abstract class CartesianAxis<
 
     private getAxisTransform() {
         return {
-            translationX: Math.floor(this.translation.x + this.crossAxisTranslation.x),
-            translationY: Math.floor(this.translation.y + this.crossAxisTranslation.y),
+            completeTransform: {
+                translationX: Math.floor(this.translation.x + this.crossAxisTranslation.x),
+                translationY: Math.floor(this.translation.y + this.crossAxisTranslation.y),
+            },
+            positionOnlyTransform: {
+                translationX: Math.floor(this.translation.x),
+                translationY: Math.floor(this.translation.y),
+            },
         };
     }
 
     protected override getLayoutTranslation(): { x: number; y: number } {
-        const { translationX, translationY } = this.getAxisTransform();
+        const {
+            completeTransform: { translationX, translationY },
+        } = this.getAxisTransform();
         return { x: translationX, y: translationY };
     }
 
@@ -583,11 +591,11 @@ export abstract class CartesianAxis<
     protected override updatePosition(): void {
         super.updatePosition();
 
-        const axisTransform = this.getAxisTransform();
-        this.tickLineGroup.datum = axisTransform;
-        this.tickLabelGroup.datum = axisTransform;
-        this.lineNodeGroup.datum = axisTransform;
-        this.headingLabelGroup.datum = axisTransform;
+        const { completeTransform, positionOnlyTransform } = this.getAxisTransform();
+        this.tickLineGroup.datum = this.options.crossAt?.labelsAtEdge ? positionOnlyTransform : completeTransform;
+        this.tickLabelGroup.datum = this.options.crossAt?.labelsAtEdge ? positionOnlyTransform : completeTransform;
+        this.lineNodeGroup.datum = completeTransform;
+        this.headingLabelGroup.datum = this.options.crossAt?.titleAtEdge ? positionOnlyTransform : completeTransform;
     }
 
     setAxisVisible(visible: boolean) {

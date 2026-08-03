@@ -425,6 +425,10 @@ export class CartesianChart extends Chart {
         seriesRect: BBox,
         visible: boolean
     ): void {
+        // TODO: reduce only by the size of the title or labels?
+        const { titleAtEdge, labelsAtEdge } = axis.options.crossAt ?? {};
+        if (titleAtEdge || labelsAtEdge) return;
+
         const crosshairModule = axis.getModuleMap().getModule<{ enabled: boolean }>('crosshair');
         if (crosshairModule?.enabled) return;
 
