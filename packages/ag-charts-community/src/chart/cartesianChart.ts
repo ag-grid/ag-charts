@@ -94,7 +94,7 @@ export class CartesianChart extends Chart {
         for (const axis of this.axes) {
             const pick = axis.pickValue(seriesPoint);
             if (pick) {
-                result[axis.userKey] = pick;
+                result[pick.axisId] = pick;
             }
         }
         return result;
