@@ -1,4 +1,4 @@
-import type { CanvasPoint, CurrentPoint, ModuleInstance, Size } from 'ag-charts-core';
+import type { CanvasPoint, CurrentPoint, ModuleInstance, RequireOptional, Size } from 'ag-charts-core';
 import {
     ActionOnSet,
     ChartAxisDirection,
@@ -94,7 +94,16 @@ export class CartesianChart extends Chart {
         for (const axis of this.axes) {
             const pick = axis.pickValue(seriesPoint);
             if (pick) {
-                result[pick.axisId] = pick;
+                // `Rules` serves as a compile-time check to ensure that we're correctly broadcasting objects that match
+                // the AgAxisCoordinates shape in the API:
+                //
+                //     NonNullable<...>     - check that we're not broadcasting internal-only properties from `pick`.
+                //     RequireOptional<...> - check that we're not forgetting to broadcast optional API properties.
+                //
+                type Rules = RequireOptional<NonNullable<(typeof result)[keyof typeof result]>>;
+                const { boundSeries, direction, domain, index, value } = pick;
+                const axisResult: Rules = { boundSeries, direction, domain, index, value };
+                result[pick.axisId] = axisResult;
             }
         }
         return result;
