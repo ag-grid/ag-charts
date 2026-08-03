@@ -2296,9 +2296,75 @@ describe('OrganizationSeries', () => {
             const xSize = (ratios?.ratioX?.end ?? 0) - (ratios?.ratioX?.start ?? 0);
             const ySize = (ratios?.ratioY?.end ?? 0) - (ratios?.ratioY?.start ?? 0);
             expect(xSize).toBeCloseTo(0.2, 3);
-            expect(ySize).toBeCloseTo(0.2783, 3);
+            expect(ySize).toBeCloseTo(0.346, 3);
 
             await compareImageSnapshot(chart, ctx);
+        });
+    });
+
+    describe('pan headroom', () => {
+        // Projects the content bounds through the viewport transform, so the assertions below are in
+        // the same space a user sees: pixels within the series area.
+        function getContentEdges(c: any) {
+            const series = deproxy(c).series[0] as any;
+            const { seriesRect, viewportGroup } = series;
+            const contentBBox = series.layout.getContentBBox();
+
+            return {
+                centreX: seriesRect.width / 2,
+                centreY: seriesRect.height / 2,
+                left: contentBBox.x * viewportGroup.scalingX + viewportGroup.translationX,
+                right: (contentBBox.x + contentBBox.width) * viewportGroup.scalingX + viewportGroup.translationX,
+                top: contentBBox.y * viewportGroup.scalingY + viewportGroup.translationY,
+                bottom: (contentBBox.y + contentBBox.height) * viewportGroup.scalingY + viewportGroup.translationY,
+            };
+        }
+
+        // Content that already fits gets the same headroom as content that overflows: the viewport
+        // never scales up past native size, so its reach is wider than the fit scale suggests.
+        const FIXTURES: [string, AgChartOptions][] = [
+            ['overflowing content', SQUARE_OVERFLOW_ORG_CHART],
+            ['content that fits the viewport', SIMPLE_ORG_CHART],
+        ];
+
+        // Holds the window size and moves only its midpoint, as a drag does. A request that also
+        // resizes the window is refused outright once the chart sits at a zoom limit — which is
+        // always the case for content that fits, since it never scales up past native size.
+        async function createPanned(fixture: AgChartOptions, toFarEnd: boolean) {
+            const options: AgChartOptions = { ...fixture };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const ratios = getZoomRatios(chart);
+            const xSize = (ratios?.ratioX?.end ?? 0) - (ratios?.ratioX?.start ?? 0);
+            const ySize = (ratios?.ratioY?.end ?? 0) - (ratios?.ratioY?.start ?? 0);
+            expect(xSize).toBeGreaterThan(0);
+            expect(ySize).toBeGreaterThan(0);
+
+            const xMin = toFarEnd ? 1 - xSize : 0;
+            const yMin = toFarEnd ? 1 - ySize : 0;
+
+            setZoom(chart, xMin, xMin + xSize, yMin, yMin + ySize);
+            await waitForChartStability(chart);
+
+            return getContentEdges(chart);
+        }
+
+        // Zoom y is published y-up, so the y-max end of the range is the top of the content.
+        it.each(FIXTURES)('stops at the content top-left panning to the far end, %s', async (_name, fixture) => {
+            const edges = await createPanned(fixture, true);
+
+            expect(edges.right).toBeCloseTo(edges.centreX, 0);
+            expect(edges.top).toBeCloseTo(edges.centreY, 0);
+        });
+
+        it.each(FIXTURES)('stops at the content bottom-right panning to the near end, %s', async (_name, fixture) => {
+            const edges = await createPanned(fixture, false);
+
+            expect(edges.left).toBeCloseTo(edges.centreX, 0);
+            expect(edges.bottom).toBeCloseTo(edges.centreY, 0);
         });
     });
 
