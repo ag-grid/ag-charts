@@ -222,8 +222,7 @@ Reason: ${reason}.
 Until an install completes, builds, tests, lint and any 'yarn nx' command will
 fail or behave oddly. Reading and editing files is fine.
 
-Run this before any build/test/lint command — it installs, then caches the result
-so later sessions in this environment start ready (takes several minutes once):
+Run this before any build/test/lint command — once per session, ~150s:
   bash ${PWD}/external/ag-shared/scripts/install-for-cloud/finish-setup.sh
 
 If another session is already installing, wait for it instead:

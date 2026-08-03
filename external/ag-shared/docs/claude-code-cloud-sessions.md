@@ -75,13 +75,13 @@ Do this once per cloud environment (and once more for an organization-shared env
 
    It reports node/yarn/nx, dependency state, the generated Claude Code config, the plugin marketplaces and the canary skills, and prints `READY` or the specific gaps.
 
-7. If the doctor reports dependency gaps in that first session, close them once:
+7. Before the first build, test or lint command **in each session**, close the dependency gap:
 
    ```bash
    cd /home/user/ag-charts && bash external/ag-shared/scripts/install-for-cloud/finish-setup.sh
    ```
 
-   That is the one slow step (several minutes). It installs, then re-caches the finished tree into `/opt/ag-cloud`, which every later session in the environment restores in seconds.
+   Measured at ~150 s: it applies patches, builds the nx plugins and generates the rulesync outputs on top of the restored tree, against the ~534 s a cold install costs. Reading, editing, navigating, using skills and committing need none of this.
 
 ## What runs when
 
@@ -95,7 +95,16 @@ The marketplace registration has to happen here rather than in a session, becaus
 
 The hook never installs anything itself in a cloud session, for two measured reasons. A blocking install freezes the session, because Claude Code waits for SessionStart hooks before processing the first message — one session sat silent for 9+ minutes and never answered. And a detached install does not survive the session: an earlier revision spawned one under `nohup`, and the next session found a truncated `install.log` stopping mid-fetch, no process, and a leftover lock that then convinced every subsequent hook that an install was already running. Work that must outlive the hook has to happen in a Bash call the session waits on, which is what `finish-setup.sh` is.
 
-`/opt/ag-cloud` outlives individual sessions in an environment (a marker written by one session was read by the next), which is what makes `finish-setup.sh` a one-off rather than a per-session tax.
+## What a session cannot keep
+
+**Nothing a session writes outside the repository survives it.** Every session is a fresh VM restored from the environment snapshot, so `/opt/ag-cloud` and `~/.claude` are snapshot content. Measured directly: a session whose VM had been up 133 s found cache files stamped seven minutes before its own boot, and no trace of the `deps/` directory an earlier session's install had created.
+
+Two consequences shape the design:
+
+- **Anything that must exist at t=0 has to come from the setup script**, which is why marketplace registration and the dependency cache live there rather than in a hook.
+- **`finish-setup.sh` is a per-session cost, not a one-off.** It prepares this session; it cannot seed the next one. It still refreshes `/opt/ag-cloud` in case a future platform change preserves it, but nothing depends on that.
+
+Closing that last gap inside the snapshot is not currently possible: a full install of this monorepo needs ~9 minutes and the setup script is capped at ~5. So a session is ready in under a minute for reading, editing, navigation, skills and git, and needs one ~150 s command before builds, tests or lint.
 
 Restore strategy is deliberate, because an ag-charts `node_modules` is ~2.3 GB over ~200k files: a reflink copy is tried first (instant on a copy-on-write filesystem, cache retained), then a move (instant on the same filesystem, with the cache rebuilt afterwards), then a hardlink copy, then a plain copy. For scale, a hardlink copy of that tree measured 78 s locally, which is why it is the fallback and not the strategy. A `yarn.lock` that no longer matches the cache skips restore entirely and falls through to a real `yarn install --prefer-offline` against the warm yarn cache.
 

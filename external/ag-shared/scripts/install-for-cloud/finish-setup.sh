@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # external/ag-shared/scripts/install-for-cloud/finish-setup.sh
 #
-# Finish preparing a Claude Code cloud session, in the foreground, and cache the
-# result so later sessions in the same environment start ready.
+# Finish preparing a Claude Code cloud session, in the foreground. Needed once per
+# session before any build, test or lint command — sessions are fresh VMs from the
+# environment snapshot, so this cannot be done once for all of them.
 #
 # Run it when the SessionStart notice says dependencies are not ready:
 #   bash external/ag-shared/scripts/install-for-cloud/finish-setup.sh
@@ -86,10 +87,12 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# Refresh the cache from the now-scripted tree, so the next session restores a
-# ready-to-build node_modules and skips all of the above. /opt/ag-cloud outlives
-# individual sessions (verified: a marker written by one session was read by the
-# next), which is what makes this worth doing.
+# Refresh the cache from the now-scripted tree. Do not count on this helping the
+# next session: sessions are fresh VMs restored from the environment snapshot, and
+# a session measured 133 s of uptime against cache files stamped seven minutes
+# before its own boot, with no trace of an earlier session's writes. Kept because
+# it costs a hardlink copy, repairs the cache inside long-lived sessions, and pays
+# off if the platform ever does preserve it.
 # ---------------------------------------------------------------------------
 
 refresh_cache() {
