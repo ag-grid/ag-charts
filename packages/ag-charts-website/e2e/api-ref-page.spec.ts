@@ -9,6 +9,7 @@ const NAV_TREE_SELECTOR = 'pre code';
 const PROPERTY_NAME_SELECTOR = '[class*="propertyName"]';
 const PROPERTY_EXPANDER_SELECTOR = '[class*="propertyExpander"]';
 const SEARCH_OPTION_SELECTOR = '[class*="searchOption"]';
+const SEARCH_DROPDOWN_SELECTOR = '[class*="searchDropdown"]';
 
 function getSearchInput(page: Page) {
     return page.getByPlaceholder('Search properties...');
@@ -199,6 +200,67 @@ test.describe('api-ref-page', () => {
         await page.keyboard.press('Enter');
 
         await expect(getSearchInput(page)).toHaveValue('');
+    });
+
+    // Property paths are wider than the search box, so the dropdown scrolls on both axes. Wheeling
+    // vertically moves the pointer onto a new option, selecting it, and that selection must leave
+    // the horizontal scroll position alone.
+    test('keeps the horizontal scroll position when scrolling the results vertically', async ({ page }) => {
+        await gotoUrl(page, toPageUrl('options/'));
+        await waitForApiReady(page);
+
+        const searchInput = getSearchInput(page);
+        await searchInput.click();
+        await searchInput.fill('label');
+
+        const dropdown = page.locator(SEARCH_DROPDOWN_SELECTOR);
+        await expect(dropdown).toBeVisible();
+        await expect(page.locator(SEARCH_OPTION_SELECTOR)).not.toHaveCount(0);
+
+        // The results have to overflow on both axes for the interaction to mean anything.
+        const overflow = await dropdown.evaluate((element) => ({
+            horizontal: element.scrollWidth - element.clientWidth,
+            vertical: element.scrollHeight - element.clientHeight,
+        }));
+        expect(overflow.horizontal).toBeGreaterThan(0);
+        expect(overflow.vertical).toBeGreaterThan(0);
+
+        await dropdown.hover();
+        await page.mouse.wheel(60, 0);
+        await expect.poll(() => dropdown.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
+        const scrollLeft = await dropdown.evaluate((element) => element.scrollLeft);
+
+        await page.mouse.wheel(0, 60);
+        await expect.poll(() => dropdown.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+        expect(await dropdown.evaluate((element) => element.scrollLeft)).toBe(scrollLeft);
+    });
+
+    // Keyboard navigation, unlike the pointer, must still bring the selection into view.
+    test('scrolls the keyboard-selected option into view', async ({ page }) => {
+        await gotoUrl(page, toPageUrl('options/'));
+        await waitForApiReady(page);
+
+        const searchInput = getSearchInput(page);
+        await searchInput.click();
+        await searchInput.fill('label');
+        await expect(page.locator(SEARCH_OPTION_SELECTOR)).not.toHaveCount(0);
+
+        const dropdown = page.locator(SEARCH_DROPDOWN_SELECTOR);
+        for (let i = 0; i < 10; i++) {
+            await page.keyboard.press('ArrowDown');
+        }
+
+        await expect.poll(() => dropdown.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+
+        const selectedIsVisible = await page
+            .locator(`${SEARCH_OPTION_SELECTOR}[class*="selected"]`)
+            .evaluate((element, dropdownSelector) => {
+                const container = element.closest(dropdownSelector)!;
+                const optionRect = element.getBoundingClientRect();
+                const containerRect = container.getBoundingClientRect();
+                return optionRect.top >= containerRect.top && optionRect.bottom <= containerRect.bottom;
+            }, SEARCH_DROPDOWN_SELECTOR);
+        expect(selectedIsVisible).toBe(true);
     });
 
     test('direct bar series hash loads and highlights typed union entry', async ({ page }) => {
