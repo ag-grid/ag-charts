@@ -181,11 +181,27 @@ install_dependencies() {
         return 1
     }
 
-    log_info "yarn install --prefer-offline (budget ${budget}s)"
-    with_timeout "$budget" yarn install --prefer-offline
+    # A full install of this monorepo takes ~9 minutes on a cloud VM (measured:
+    # 534s), which does not fit in Anthropic's ~5 minute setup-script cap — an
+    # earlier revision simply burned its whole budget and seeded nothing. So skip
+    # the postinstall chain here (`--ignore-scripts`, plus AG_SKIP_PLUGIN_BUILD for
+    # any script that slips through): resolving, fetching and linking is the slow,
+    # cacheable part, while allow-scripts, patch-package and the nx plugin build
+    # are comparatively quick and get done by the session's own install.
+    #
+    # What lands in the snapshot is therefore a complete-but-unscripted
+    # node_modules plus a warm ~/.cache/yarn. The SessionStart hook then runs a
+    # real `yarn install --prefer-offline` in the background, which applies
+    # patches and runs scripts against already-linked packages.
+    export AG_SKIP_PLUGIN_BUILD=1
+
+    log_info "yarn install --prefer-offline --ignore-scripts (budget ${budget}s)"
+    with_timeout "$budget" yarn install --prefer-offline --ignore-scripts
     local rc=$?
     if ((rc == 124)); then
-        log_warn "yarn install hit the ${budget}s budget; SessionStart will finish it"
+        log_warn "yarn install hit the ${budget}s budget"
+        # Seed whatever landed: a partial tree still leaves the yarn cache warm,
+        # and the session's install completes it far faster than from cold.
         return 1
     fi
     return "$rc"
@@ -216,6 +232,13 @@ seed_node_modules_cache() {
     if [[ -f "$REPO_ROOT/yarn.lock" ]]; then
         sha256_of "$REPO_ROOT/yarn.lock" >"$AG_CLOUD_CACHE_DIR/yarn.lock.sha256"
     fi
+
+    # The tree was built with --ignore-scripts, so patch-package has not run and
+    # the plugins are unbuilt — yet `yarn check --integrity` still passes on it.
+    # Without this marker the SessionStart hook would take its fast path and call
+    # the session ready with patches unapplied. The hook uses it to force a
+    # background install that scripts the tree, and clears it once that succeeds.
+    : >"$AG_CLOUD_CACHE_DIR/unscripted"
     log_info "cached node_modules at ${dest} ($(du -sh "$dest" 2>/dev/null | awk '{print $1}'))"
 }
 
@@ -285,10 +308,19 @@ main() {
     # the preinstalled one when pinning was skipped or failed.
     record_node_path
     step "install yarn + nx" install_yarn_and_nx
-    if step "yarn install" install_dependencies; then
-        step "seed node_modules cache" seed_node_modules_cache
-    fi
+
+    # Marketplaces first: they are seconds of work, and an earlier revision let a
+    # budget-hogging install starve them.
     step "seed plugin marketplaces" seed_marketplaces
+
+    # Seed whatever the install produced, complete or not — a partial tree plus a
+    # warm yarn cache still beats starting the session from cold.
+    step "yarn install" install_dependencies || true
+    if [[ -d "$REPO_ROOT/node_modules" ]]; then
+        step "seed node_modules cache" seed_node_modules_cache
+    else
+        log_warn "no node_modules to cache; sessions will install from the yarn cache"
+    fi
 
     # Report what a session will actually find, so the setup log is diagnostic.
     if [[ -f "$REPO_ROOT/.claude/settings.json" ]]; then

@@ -123,7 +123,12 @@ restore_node_modules_from_cache() {
     if same_filesystem "$cached" "$PWD" && mv "$cached" "$staging" 2>/dev/null; then
         mv "$staging" node_modules
         log_info "node_modules restored by move in $((SECONDS - start))s"
-        reseed_cache_detached "$cached"
+        # Skip the re-seed when the tree is unscripted: the background install is
+        # about to run and refreshes the cache itself, and two jobs writing the
+        # same cache directory is pure waste.
+        if [[ ! -f "$AG_CLOUD_CACHE_DIR/unscripted" ]]; then
+            reseed_cache_detached "$cached"
+        fi
         return 0
     fi
 
@@ -174,6 +179,17 @@ start_background_install() {
         export AG_SKIP_NATIVE_DEP_VERSION_CHECK=1 PUPPETEER_SKIP_DOWNLOAD=true NX_DAEMON=false
         if yarn install --prefer-offline >'$state/install.log' 2>&1; then
             date +%s >'$state/ready'
+            # The tree is now scripted and patched. Refresh the cache from it and
+            # drop the marker so later sessions restore a ready-to-build tree.
+            if [ -f '$AG_CLOUD_CACHE_DIR/unscripted' ]; then
+                staging='$AG_CLOUD_CACHE_DIR/node_modules.scripted.\$\$'
+                rm -rf \"\$staging\"
+                if cp -al node_modules \"\$staging\" 2>/dev/null || cp -a node_modules \"\$staging\" 2>/dev/null; then
+                    rm -rf '$AG_CLOUD_CACHE_DIR/node_modules'
+                    mv \"\$staging\" '$AG_CLOUD_CACHE_DIR/node_modules'
+                    rm -f '$AG_CLOUD_CACHE_DIR/unscripted'
+                fi
+            fi
         else
             date +%s >'$state/failed'
         fi
@@ -182,12 +198,16 @@ start_background_install() {
     disown 2>/dev/null || true
 
     # Hook stdout becomes session context, so this is the message Claude reads.
+    local reason="no valid node_modules and no seeded cache were found"
+    if [[ -f "$AG_CLOUD_CACHE_DIR/unscripted" ]]; then
+        reason="the cached node_modules was seeded without postinstall, so patches and plugin builds are still pending"
+    fi
     cat <<EOF
 [install-for-cloud] Dependencies are NOT ready yet in this cloud session.
 
-A full 'yarn install' is running in the background because no valid node_modules
-and no seeded cache were found. Until it completes, builds, tests, lint and any
-'yarn nx' command will fail or behave oddly. Reading and editing files is fine.
+A 'yarn install' is running in the background because ${reason}. Until it
+completes, builds, tests, lint and any 'yarn nx' command will fail or behave
+oddly. Reading and editing files is fine.
 
 Before running any build/test/lint command, wait for it:
   bash external/ag-shared/scripts/install-for-cloud/wait-for-deps.sh
@@ -236,7 +256,16 @@ if [[ "${CLAUDE_CODE_REMOTE:-}" == "true" ]] || [[ "${AG_CLOUD_INSTALL:-}" == "1
     IN_CLOUD_SESSION=1
     apply_cached_node_path
     if [[ -f package.json ]]; then
-        restore_node_modules_from_cache || true
+        if restore_node_modules_from_cache; then
+            # A cache seeded with --ignore-scripts passes the integrity check but
+            # has no patches applied, so the fast path below would wrongly call it
+            # ready. Script it in the background instead.
+            if [[ -f "$AG_CLOUD_CACHE_DIR/unscripted" ]]; then
+                log_info "restored tree is unscripted (no patches yet)"
+                start_background_install
+                exit 0
+            fi
+        fi
     fi
 fi
 
