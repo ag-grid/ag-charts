@@ -31,11 +31,12 @@ import { ContinuousScale } from '../../scale/continuousScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
 import { BBox } from '../../scene/bbox';
 import { TranslatableGroup } from '../../scene/group';
-import { PointerEvents } from '../../scene/node';
+import { type Node, PointerEvents } from '../../scene/node';
 import { Selection } from '../../scene/selection';
 import { Line } from '../../scene/shape/line';
 import { Rect } from '../../scene/shape/rect';
 import { TransformableText } from '../../scene/shape/text';
+import { Transformable } from '../../scene/transformable';
 import type { AxisPrimaryTickCount } from '../../util/secondaryAxisTicks';
 import { Caption } from '../caption';
 import type { ChartLayout } from '../chartAxis';
@@ -600,6 +601,21 @@ export abstract class CartesianAxis<
         this.headingLabelGroup.datum = this.options.crossAt?.titleAtEdge ? positionOnlyTransform : completeTransform;
     }
 
+    protected override getCanvasBounds(): BBox {
+        const { crossAt } = this.options;
+        const labelsAtEdge = crossAt?.labelsAtEdge === true;
+
+        if (!labelsAtEdge && crossAt?.titleAtEdge !== true) return super.getCanvasBounds();
+
+        // Interaction follows the ticks and labels, so a group drawn at the other location is left out
+        // instead of merged in — everything between the two belongs to the series.
+        const groups: Node[] = [this.tickLineGroup, this.tickLabelGroup];
+        if (!labelsAtEdge) groups.push(this.lineNodeGroup);
+        if (this.titleRendersWithLabels()) groups.push(this.headingLabelGroup);
+
+        return BBox.merge(groups.map((group) => Transformable.toCanvas(group)));
+    }
+
     setAxisVisible(visible: boolean) {
         this.tickLineGroup.visible = visible && (this.options.tick.enabled || (this.primaryTick?.enabled ?? false));
         this.tickLabelGroup.visible = visible && (this.options.label.enabled || (this.primaryTick?.enabled ?? false));
@@ -809,12 +825,15 @@ export abstract class CartesianAxis<
         return { bbox, spacing };
     }
 
+    /** The title and labels render in the same place unless exactly one of them is at the edge. */
+    private titleRendersWithLabels() {
+        const { crossAt } = this.options;
+        return (crossAt?.titleAtEdge === true) === (crossAt?.labelsAtEdge === true);
+    }
+
     /** The title only has to clear the labels when both render in the same place. */
     private resolveTitleSpacing(spacing: number) {
-        const { crossAt } = this.options;
-        const titleAtEdge = crossAt?.titleAtEdge === true;
-        const labelsAtEdge = crossAt?.labelsAtEdge === true;
-        return titleAtEdge === labelsAtEdge ? spacing : 0;
+        return this.titleRendersWithLabels() ? spacing : 0;
     }
 
     /** Thickness occupied at the `position` edge and at the crossing point, which `crossAt` can split apart. */

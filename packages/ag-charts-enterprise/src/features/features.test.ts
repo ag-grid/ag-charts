@@ -1,6 +1,11 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { type AgChartOptions, AgCharts } from 'ag-charts-community';
+import {
+    type AgCartesianAxisCrossAt,
+    type AgCartesianChartOptions,
+    type AgChartOptions,
+    AgCharts,
+} from 'ag-charts-community';
 import {
     clickAction,
     compareImageSnapshot,
@@ -190,6 +195,78 @@ describe('Feature Combinations', () => {
             await scrollAction(cx, cy, -2)(chart);
             await contextMenuAction(cx, cy)(chart);
             await compareContextMenu();
+        });
+    });
+
+    describe('Zoom and crossAt', () => {
+        const EXAMPLE_OPTIONS: AgCartesianChartOptions = {
+            data: [
+                { x: -3, y: -30 },
+                { x: -2, y: 20 },
+                { x: -1, y: -10 },
+                { x: 0, y: 0 },
+                { x: 1, y: 10 },
+                { x: 2, y: -20 },
+                { x: 3, y: 30 },
+            ],
+            series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            zoom: { enabled: true, axes: 'xy' },
+            initialState: { zoom: { ratioX: { start: 0.25, end: 0.75 }, ratioY: { start: 0.25, end: 0.75 } } },
+        };
+
+        let cx: number = 0;
+        let cy: number = 0;
+
+        async function prepareChart(crossAt: AgCartesianAxisCrossAt) {
+            const options: AgCartesianChartOptions = {
+                ...EXAMPLE_OPTIONS,
+                axes: {
+                    x: { type: 'number', position: 'bottom', title: { text: 'X Axis' }, crossAt },
+                    y: { type: 'number', position: 'left', title: { text: 'Y Axis' }, crossAt },
+                },
+            };
+            prepareEnterpriseTestOptions(options);
+            cx = options.width! / 2;
+            cy = options.height! / 2;
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+        }
+
+        function getZoomRatios() {
+            const { ratioX, ratioY } = chart.getState().zoom ?? {};
+            expect(ratioX).toBeDefined();
+            expect(ratioY).toBeDefined();
+            return { ratioX, ratioY };
+        }
+
+        const crossAtCases = [
+            { name: 'crossing at a value', crossAt: { value: 0 } },
+            { name: 'the title at the edge', crossAt: { value: 0, titleAtEdge: true } },
+            { name: 'the labels at the edge', crossAt: { value: 0, labelsAtEdge: true } },
+            { name: 'the title and labels at the edge', crossAt: { value: 0, titleAtEdge: true, labelsAtEdge: true } },
+        ] satisfies { name: string; crossAt: AgCartesianAxisCrossAt }[];
+
+        // Axes positioned with `crossAt` share the series area, so they only claim the pointer where they
+        // are drawn — dragging elsewhere in the series area must still pan the chart.
+        it.each(crossAtCases)('should pan the chart when dragging away from axes with $name', async ({ crossAt }) => {
+            await prepareChart(crossAt);
+
+            const before = getZoomRatios();
+
+            // A quadrant away from both the crossing point and the edges of the series area.
+            const from = { x: cx - 100, y: cy + 100 };
+            const to = { x: from.x + 50, y: from.y - 50 };
+
+            await hoverAction(from.x, from.y)(chart);
+            await dragAction(from, to)(chart);
+
+            // Panning shifts both axis windows without resizing them; dragging an axis resizes one of them.
+            const after = getZoomRatios();
+            expect(after.ratioX.end - after.ratioX.start).toBeCloseTo(before.ratioX.end - before.ratioX.start);
+            expect(after.ratioY.end - after.ratioY.start).toBeCloseTo(before.ratioY.end - before.ratioY.start);
+            expect(after.ratioX.start).not.toBeCloseTo(before.ratioX.start);
+            expect(after.ratioY.start).not.toBeCloseTo(before.ratioY.start);
         });
     });
 });
