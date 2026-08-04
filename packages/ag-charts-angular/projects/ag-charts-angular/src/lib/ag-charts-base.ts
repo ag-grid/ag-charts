@@ -1,6 +1,7 @@
 import { AfterViewInit, Component, EventEmitter, NgZone, OnChanges, OnDestroy } from '@angular/core';
 
 import {
+    AgAxisListeners,
     AgBaseChartListeners,
     AgChartInstance,
     AgChartLegendListeners,
@@ -69,6 +70,15 @@ export abstract class AgChartsBase<Options extends {}> implements AfterViewInit,
                 series?.listeners ? { ...series, listeners: this.patchListeners(series.listeners) } : series
             );
         }
+        if (propsOptions.axes) {
+            // `axes` is a dictionary keyed by axis name, not an array.
+            patched.axes = Object.fromEntries(
+                Object.entries<any>(propsOptions.axes).map(([axisKey, axis]) => [
+                    axisKey,
+                    axis?.listeners ? { ...axis, listeners: this.patchListeners(axis.listeners) } : axis,
+                ])
+            );
+        }
         if (propsOptions.contextMenu) {
             patched.contextMenu = this.patchContextMenu(propsOptions.contextMenu);
         }
@@ -78,7 +88,7 @@ export abstract class AgChartsBase<Options extends {}> implements AfterViewInit,
     }
 
     private patchListeners(
-        listenerConfig: AgChartLegendListeners | AgSeriesListeners<any> | AgBaseChartListeners<any>
+        listenerConfig: AgChartLegendListeners | AgSeriesListeners<any> | AgBaseChartListeners<any> | AgAxisListeners
     ): any {
         const config: any = listenerConfig;
         const patched: any = {};

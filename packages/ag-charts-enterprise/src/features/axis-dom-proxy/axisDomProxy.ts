@@ -1,6 +1,7 @@
+import type { AgAxisClickEvent } from 'ag-charts-community';
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
 import type { AxisID, CanvasPoint, DynamicContext } from 'ag-charts-core';
-import { AbstractModuleInstance, ChartAxisDirection, boxEmpty } from 'ag-charts-core';
+import { AbstractModuleInstance, ChartAxisDirection, boxEmpty, callWithContext } from 'ag-charts-core';
 
 type AxisHit = { axisId: AxisID; direction: ChartAxisDirection };
 
@@ -10,6 +11,15 @@ type ProxyAxis = {
     div: _Widget.AxisWidget;
     bounds?: _ModuleSupport.BBox;
 };
+
+function hasAxisClickListener(chartService: _ModuleSupport.ChartService, axisCtx: _ModuleSupport.AxisContext): boolean {
+    return (
+        chartService.hasListener('axisClick') ||
+        chartService.hasListener('axisDoubleClick') ||
+        axisCtx.listeners?.click != null ||
+        axisCtx.listeners?.doubleClick != null
+    );
+}
 
 /**
  * The AxisDOMProxy module handles interactions with the axes. In most cases it does this via the dom events on proxy
@@ -65,6 +75,7 @@ export class AxisDOMProxy extends AbstractModuleInstance {
 
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
         this.seriesRect = event.series.rect;
+        this.refresh();
     }
 
     private onUpdate(event: _ModuleSupport.AxisDOMProxyUpdateEvent) {
@@ -76,12 +87,17 @@ export class AxisDOMProxy extends AbstractModuleInstance {
         this.enableScrolling.set(source, enableScrolling);
         this.enableContextMenu.set(source, enableContextMenu);
 
+        this.refresh();
+    }
+
+    private refresh() {
         const isEnabled =
-            this.isEnabled() &&
-            (this.isEnabledDoubleClick() ||
-                this.isEnabledDragging() ||
-                this.isEnabledScrolling() ||
-                this.isEnabledContextMenu());
+            (this.isEnabled() &&
+                (this.isEnabledDoubleClick() ||
+                    this.isEnabledDragging() ||
+                    this.isEnabledScrolling() ||
+                    this.isEnabledContextMenu())) ||
+            this.hasClickListeners();
 
         for (const axis of this.axes) {
             axis.div.setHidden(!isEnabled);
@@ -94,7 +110,7 @@ export class AxisDOMProxy extends AbstractModuleInstance {
 
     private processAxisDiff() {
         const {
-            ctx: { axisManager },
+            ctx: { axisManager, chartService },
         } = this;
 
         const axesCtx = [
@@ -135,6 +151,8 @@ export class AxisDOMProxy extends AbstractModuleInstance {
                 this.ctx.widgets.axisWidgets.setRegionBounds(axis.axisId, bbox);
                 axis.bounds = new _ModuleSupport.BBox(bbox.x, bbox.y, bbox.width, bbox.height);
             }
+            // Signal interactivity only on axes that actually have a click listener.
+            axis.div.setCursor(hasAxisClickListener(chartService, axisCtx) ? 'pointer' : undefined);
         }
     }
 
@@ -283,6 +301,48 @@ export class AxisDOMProxy extends AbstractModuleInstance {
         return this.ctx.axisManager.getAxisIdContext(axisId)?.pickValue(widgetEvent);
     }
 
+    /**
+     * Fires the `axes[].listeners` callbacks and their chart-level `axisClick` / `axisDoubleClick`
+     * counterparts. The picked value is resolved exactly as it is for the axis context menu.
+     */
+    private dispatchAxisClick(axisId: AxisID, widgetEvent: _Widget.MouseWidgetEvent<'click' | 'dblclick'>) {
+        // Keyboard-synthetic clicks carry no pointer coordinates, so there is nothing to pick.
+        // Keyboard activation is out of scope for this feature (AG-9809).
+        if (widgetEvent.device === 'keyboard') return;
+
+        const axisCtx = this.ctx.axisManager.getAxisIdContext(axisId);
+        const pick = axisCtx?.pickValue(widgetEvent);
+        if (!axisCtx || !pick) return;
+
+        const isDoubleClick = widgetEvent.type === 'dblclick';
+        const { direction, boundSeries, domain, value, index } = pick;
+        const params = {
+            event: widgetEvent.sourceEvent,
+            axisId: pick.axisId,
+            direction,
+            boundSeries,
+            domain,
+            value,
+            index,
+        };
+
+        const listener = isDoubleClick ? axisCtx.listeners?.doubleClick : axisCtx.listeners?.click;
+        if (listener) {
+            // `pick.caller` is the axis, so `axes[].context` takes precedence over `chart.context`.
+            const apiEvent: Omit<AgAxisClickEvent<'click' | 'doubleClick', never>, 'context'> = {
+                type: isDoubleClick ? 'doubleClick' : 'click',
+                ...params,
+            };
+            callWithContext([pick.caller, this.ctx.chartService], listener, apiEvent);
+        }
+
+        // The chart-level listener fires alongside the axis-level one, as `seriesNodeClick` does.
+        const chartEventType = isDoubleClick ? 'axisDoubleClick' : 'axisClick';
+        if (this.ctx.chartService.hasListener(chartEventType)) {
+            this.ctx.chartService.callListener({ type: chartEventType, ...params });
+        }
+    }
+
     private dispatchAxisContextMenu(
         axisId: AxisID,
         widgetEvent: _Widget.MouseWidgetEvent<'contextmenu'>,
@@ -371,6 +431,7 @@ export class AxisDOMProxy extends AbstractModuleInstance {
             this.ctx.eventsHub.emit('axis-dom-proxy:drag-end', { axisId, direction, event });
         });
         div.addListener('dblclick', (event) => {
+            if (this.hasClickListeners()) this.dispatchAxisClick(axisId, event);
             if (!this.isEnabled() || !this.isEnabledDoubleClick()) return;
             this.ctx.eventsHub.emit('axis-dom-proxy:dblclick', { axisId, direction, event });
         });
@@ -387,6 +448,10 @@ export class AxisDOMProxy extends AbstractModuleInstance {
         div.addListener('wheel', (event) => {
             if (!this.isEnabled() || !this.isEnabledScrolling()) return;
             this.ctx.eventsHub.emit('axis-dom-proxy:wheel', { axisId, direction, event });
+        });
+        div.addListener('click', (event) => {
+            if (!this.hasClickListeners()) return;
+            this.dispatchAxisClick(axisId, event);
         });
         div.addListener('contextmenu', (event) => {
             if (!this.isEnabled() || !this.isEnabledContextMenu()) return;
@@ -412,6 +477,20 @@ export class AxisDOMProxy extends AbstractModuleInstance {
 
     private isEnabled() {
         return this.isBooleanMap(this.enabled);
+    }
+
+    /**
+     * Deliberately not named `isEnabledClick`: unlike the `isEnabled*` methods it does not read a
+     * flag requested by another module via `axis-dom-proxy:update`. Click interaction has no
+     * requester — it is implied by the presence of an `axes[].listeners` callback, or of a
+     * chart-level `axisClick` / `axisDoubleClick` listener.
+     */
+    private hasClickListeners() {
+        const { axisManager, chartService } = this.ctx;
+        return [
+            ...axisManager.getAxisContext(ChartAxisDirection.X),
+            ...axisManager.getAxisContext(ChartAxisDirection.Y),
+        ].some((axisCtx) => hasAxisClickListener(chartService, axisCtx));
     }
 
     private isEnabledDoubleClick() {

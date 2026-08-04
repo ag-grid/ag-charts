@@ -10,6 +10,7 @@ import type {
 import type {
     AgAxisBoundSeries,
     AgAxisDomain,
+    AgAxisListeners,
     AgAxisValue,
     AgCartesianAxisPosition,
     FormatterParams,
@@ -71,6 +72,8 @@ export interface PolarAxisLayout {
 
 export interface AxisContext {
     context?: unknown;
+    /** User-supplied `axes[].listeners`, if any. */
+    readonly listeners?: AgAxisListeners<unknown>;
     axisId: AxisID;
     /** Static axis-type identifier (matches the axis module's name, e.g. `'number'`, `'angle-category'`). */
     readonly axisType: string;
