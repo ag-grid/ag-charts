@@ -8,6 +8,7 @@ import { CollidableLine } from '../scenes/collidableLineScene';
 import { CollidableText } from '../scenes/collidableTextScene';
 import { StartEndScene } from '../scenes/startEndScene';
 import { WithBackgroundScene } from '../scenes/withBackgroundScene';
+import { applySceneNodeTopCenterAnchor } from '../utils/coords';
 import { updateLineText } from '../utils/lineWithText';
 import { getGroupingValue } from '../utils/scale';
 import { convertLine } from '../utils/values';
@@ -289,8 +290,7 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
         _context: AnnotationContext,
         _bbox?: _ModuleSupport.BBox
     ) {
-        const point = Vec4.topCenter(coords);
-        Vec2.apply(this.anchor, _ModuleSupport.Transformable.toCanvasPoint(this.horizontalLine, point.x, point.y));
+        applySceneNodeTopCenterAnchor(this.horizontalLine, this.anchor, coords);
     }
 
     public getBackgroundPoints(

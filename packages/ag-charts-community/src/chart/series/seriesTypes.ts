@@ -9,7 +9,12 @@ import type {
     SeriesLabelDefaults,
     SizedPoint,
 } from 'ag-charts-core';
-import type { AgActiveItemState, AgNumericValue, SelectionState as PublicSelectionState } from 'ag-charts-types';
+import type {
+    AgActiveItemState,
+    AgCoordinates,
+    AgNumericValue,
+    SelectionState as PublicSelectionState,
+} from 'ag-charts-types';
 
 import type { BBox } from '../../scene/bbox';
 import type { Group } from '../../scene/group';
@@ -106,6 +111,7 @@ export interface INodeEvent<TEvent extends string = SeriesNodeEventTypes> extend
     readonly defaultPrevented: boolean;
     readonly selectionState: PublicSelectionState | undefined;
     readonly isCollapsed: boolean | undefined;
+    readonly coordinates: AgCoordinates | undefined;
 }
 
 export interface ISeriesProperties {
@@ -134,9 +140,13 @@ export interface ISeries<TDatum extends SeriesNodeDatum, TProps extends ISeriesP
     hasData: boolean;
     update(opts: { seriesRect?: BBox }): Promise<void> | void;
     updatePlacedLabelData?(labels: PlacedLabel<TLabel>[]): void;
-    fireNodeClickEvent(event: Event, datum: SeriesNodeDatum): boolean;
-    fireNodeDoubleClickEvent(event: Event, datum: SeriesNodeDatum): void;
-    createNodeContextMenuActionEvent(event: Event, datum: TDatum): INodeEvent<'nodeContextMenuAction'>;
+    fireNodeClickEvent(event: Event, datum: SeriesNodeDatum, coordinates: AgCoordinates | undefined): boolean;
+    fireNodeDoubleClickEvent(event: Event, datum: SeriesNodeDatum, coordinates: AgCoordinates | undefined): void;
+    createNodeContextMenuActionEvent(
+        event: Event,
+        datum: TDatum,
+        coordinates: AgCoordinates | undefined
+    ): INodeEvent<'nodeContextMenuAction'>;
     getLegendData<T extends ChartLegendType>(legendType: T): ChartLegendDatum<T>[];
     getLegendData(legendType: ChartLegendType): ChartLegendDatum<ChartLegendType>[];
     getLabelData(): PointLabelDatum[];

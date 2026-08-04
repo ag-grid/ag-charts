@@ -1,10 +1,12 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { type Point, type Scale, Vec2, entries, toRadians } from 'ag-charts-core';
+import type { Bounds4, Point, Scale } from 'ag-charts-core';
+import { Vec2, Vec4, entries, toRadians } from 'ag-charts-core';
 
 import type { AnnotationContext, DataPoint } from '../annotationTypes';
 import { convertPoint, invertCoords } from './values';
 
-const { ContinuousScale } = _ModuleSupport;
+const { ContinuousScale, Transformable } = _ModuleSupport;
+type Node = _ModuleSupport.Node;
 
 export function snapPoint(
     offset: Point,
@@ -144,4 +146,10 @@ export function translate<VectorName extends string>(
     }
 
     return result;
+}
+
+export function applySceneNodeTopCenterAnchor(sceneNode: Node, anchor: Partial<Point>, coords: Bounds4): void {
+    const point = Vec4.topCenter(coords);
+    const { canvasX: x, canvasY: y } = Transformable.toCanvasPoint(sceneNode, point.x, point.y);
+    Vec2.apply(anchor, { x, y });
 }

@@ -22,7 +22,7 @@ import {
     maxValue,
     minValue,
 } from 'ag-charts-core';
-import type { AgDrawingMode, AgNumericValue, SelectionState } from 'ag-charts-types';
+import type { AgCoordinates, AgDrawingMode, AgNumericValue, SelectionState } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../../../core/eventsHub';
 import type { AnimationValue } from '../../../motion/animation';
@@ -112,9 +112,11 @@ export class CartesianSeriesNodeEvent<TEvent extends string = SeriesNodeEventTyp
         nativeEvent: Event,
         datum: SeriesNodeDatum,
         series: ISeries<SeriesNodeDatum, ISeriesProperties & { xKey?: string; yKey?: string }>,
-        selectionState: SelectionState | undefined
+        selectionState: SelectionState | undefined,
+        isCollapsed: boolean | undefined,
+        coordinates: AgCoordinates | undefined
     ) {
-        super(type, nativeEvent, datum, series, selectionState);
+        super(type, nativeEvent, datum, series, selectionState, isCollapsed, coordinates);
         this.xKey = series.properties.xKey;
         this.yKey = series.properties.yKey;
     }

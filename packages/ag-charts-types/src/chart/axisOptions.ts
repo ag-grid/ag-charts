@@ -30,6 +30,19 @@ export interface AgAxisBoundSeries {
     name?: string;
 }
 
+export interface AgAxisCoordinate {
+    /** The scale value of the axis at this point. */
+    value: AgAxisValue;
+    /** Direction of the axis the title belongs to. */
+    direction: AgAxisDirection;
+    /** The index of the resolved value */
+    index: number;
+    /** Metadata about series bound to the axis the title belongs to. */
+    boundSeries: AgAxisBoundSeries[];
+    /** Computed domain of the axis */
+    domain: AgAxisDomain;
+}
+
 export interface AgAxisCaptionFormatterParams {
     /** Default value to be used for the axis title (as specified in chart options or theme). */
     defaultValue?: string;

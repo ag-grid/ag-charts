@@ -3,21 +3,7 @@ import {
     FONT_SIZE_RATIO,
     LEGEND_CONTAINER_THEME,
     type PluginModuleDefinition,
-    boolean,
-    borderOptionsDef,
-    callback,
-    colorUnion,
-    fillOptionsDef,
-    fontOptionsDef,
-    legendPositionValidator,
-    number,
-    padding,
-    positiveNumber,
-    ratio,
-    shapeValidator,
-    string,
-    strokeOptionsDef,
-    union,
+    legendOptionsDefs,
 } from 'ag-charts-core';
 import type { AgChartLegendOptions } from 'ag-charts-types';
 
@@ -33,71 +19,7 @@ export const LegendModule: PluginModuleDefinition<AgChartLegendOptions, ChartReg
     // TODO fix missing behaviour
     // removable: 'standalone-only',
 
-    options: {
-        enabled: boolean,
-        position: legendPositionValidator,
-        orientation: union('horizontal', 'vertical'),
-        maxWidth: positiveNumber,
-        maxHeight: positiveNumber,
-        spacing: positiveNumber,
-        border: borderOptionsDef,
-        cornerRadius: number,
-        padding: padding,
-        fill: colorUnion,
-        fillOpacity: ratio,
-        preventHidingAll: boolean,
-        reverseOrder: boolean,
-        toggleSeries: boolean,
-        item: {
-            marker: {
-                size: positiveNumber,
-                shape: shapeValidator,
-                padding: padding,
-                strokeWidth: positiveNumber,
-            },
-            line: {
-                length: positiveNumber,
-                strokeWidth: positiveNumber,
-            },
-            label: {
-                maxLength: positiveNumber,
-                formatter: callback,
-                ...fontOptionsDef,
-            },
-            tooltip: {
-                visible: union('auto', 'always', 'never'),
-                text: string,
-                renderer: callback,
-            },
-            maxWidth: positiveNumber,
-            padding: padding,
-            showSeriesStroke: boolean,
-        },
-        pagination: {
-            marker: {
-                size: positiveNumber,
-                shape: shapeValidator,
-                padding: padding,
-            },
-            activeStyle: {
-                ...fillOptionsDef,
-                ...strokeOptionsDef,
-            },
-            inactiveStyle: {
-                ...fillOptionsDef,
-                ...strokeOptionsDef,
-            },
-            highlightStyle: {
-                ...fillOptionsDef,
-                ...strokeOptionsDef,
-            },
-            label: fontOptionsDef,
-        },
-        listeners: {
-            legendItemClick: callback,
-            legendItemDoubleClick: callback,
-        },
-    },
+    options: legendOptionsDefs,
     themeTemplate: {
         ...LEGEND_CONTAINER_THEME,
         enabled: {

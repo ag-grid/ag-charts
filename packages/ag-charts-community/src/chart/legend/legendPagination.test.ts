@@ -97,6 +97,23 @@ describe('Legend pagination state (AG-13436)', () => {
         expect(chart.getState().legendPagination).toBeUndefined();
     });
 
+    it.each([
+        { name: 'a partial object', padding: { top: 4, left: 8 }, expected: { top: 4, right: 8, bottom: 8, left: 8 } },
+        { name: 'a number', padding: 6, expected: { top: 6, right: 6, bottom: 6, left: 6 } },
+    ])('accepts $name for pagination.marker.padding', async ({ padding, expected }) => {
+        const options: AgChartOptions = {
+            legend: { position: 'right', pagination: { marker: { padding } } },
+            series: buildPaginatingSeries(100),
+        };
+        prepareTestOptions(options, container);
+        chart = AgCharts.create(options);
+        await waitForChartStability(chart);
+
+        expectWarningsCalls().toEqual([]);
+        const { processedOptions } = deproxy(chart).chartOptions;
+        expect(processedOptions.legend?.pagination?.marker?.padding).toEqual(expected);
+    });
+
     it('restores the legend pagination page via setState on a like-sized chart', async () => {
         const optionsA = paginatingOptions();
         const containerA = document.createElement('div');

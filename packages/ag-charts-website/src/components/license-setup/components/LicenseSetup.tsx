@@ -8,6 +8,7 @@ import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import classnames from 'classnames';
 import { type FunctionComponent, useMemo } from 'react';
 
+import { LICENSE_SETUP_COPY, LICENSE_SETUP_HEADINGS } from '../licenseSetupContent';
 import { getBootstrapSnippet, getDependenciesSnippet, getNpmInstallSnippet } from '../utils/getSnippets';
 import { hasValue } from '../utils/hasValue';
 import { useLicenseData } from '../utils/useLicenseData';
@@ -71,23 +72,13 @@ export const LicenseSetup: FunctionComponent<Props> = ({ library, framework }) =
             }),
         [framework, licenseState, importType, userLicense, isIntegratedCharts]
     );
-    const productName = 'AG Charts';
 
     return (
         <>
-            <Note>
-                You can test AG Charts Enterprise locally without a licence. To test in production, access support and
-                remove the watermark & console warnings,{' '}
-                <a href="../community-vs-enterprise/#request-a-30-day-enterprise-bundle-trial-licence">
-                    request a trial licence
-                </a>
-                .
-            </Note>
-
             <form>
-                <h2 id="validate-your-license">
-                    Validate Your Licence
-                    <LinkIcon href="#validate-your-license" />
+                <h2 id={LICENSE_SETUP_HEADINGS.validate.id}>
+                    {LICENSE_SETUP_HEADINGS.validate.text}
+                    <LinkIcon href={`#${LICENSE_SETUP_HEADINGS.validate.id}`} />
                 </h2>
 
                 <div className={styles.licenceWrapper}>
@@ -135,9 +126,9 @@ export const LicenseSetup: FunctionComponent<Props> = ({ library, framework }) =
                 </div>
 
                 <div className={styles.results}>
-                    <h3 id="add-your-dependencies">
-                        Add Your Dependencies
-                        <LinkIcon href="#add-your-dependencies" />
+                    <h3 id={LICENSE_SETUP_HEADINGS.dependencies.id}>
+                        {LICENSE_SETUP_HEADINGS.dependencies.text}
+                        <LinkIcon href={`#${LICENSE_SETUP_HEADINGS.dependencies.id}`} />
                     </h3>
 
                     {licenseState.chartsNoGridEnterpriseError && (
@@ -154,7 +145,9 @@ export const LicenseSetup: FunctionComponent<Props> = ({ library, framework }) =
                     {licenseState.minimalModulesInfo && <Note>{licenseState.minimalModulesInfo}</Note>}
 
                     <p>
-                        Copy the following dependencies into your <code>package.json</code>:
+                        {LICENSE_SETUP_COPY.dependenciesLead.before}{' '}
+                        <code>{LICENSE_SETUP_COPY.dependenciesLead.code}</code>
+                        {LICENSE_SETUP_COPY.dependenciesLead.after}
                     </p>
 
                     {dependenciesSnippet && (
@@ -162,12 +155,14 @@ export const LicenseSetup: FunctionComponent<Props> = ({ library, framework }) =
                     )}
 
                     <Note>
-                        If you are using an older version of AG Charts, before v11.0.0, please see the relevant{' '}
-                        <a href={urlWithBaseUrl('/documentation-archive')}>documentation</a> for help on installing your
-                        license key
+                        {LICENSE_SETUP_COPY.olderVersionNote.before}{' '}
+                        <a href={urlWithBaseUrl(LICENSE_SETUP_COPY.olderVersionNote.link.url)}>
+                            {LICENSE_SETUP_COPY.olderVersionNote.link.text}
+                        </a>{' '}
+                        {LICENSE_SETUP_COPY.olderVersionNote.after}
                     </Note>
 
-                    <p>Or install using npm:</p>
+                    <p>{LICENSE_SETUP_COPY.npmLead}</p>
 
                     {npmInstallSnippet && (
                         <Snippet
@@ -179,9 +174,9 @@ export const LicenseSetup: FunctionComponent<Props> = ({ library, framework }) =
                         />
                     )}
 
-                    <h3 id="set-up-your-application">
-                        Set Up Your Application
-                        <LinkIcon href="#set-up-your-application" />
+                    <h3 id={LICENSE_SETUP_HEADINGS.bootstrap.id}>
+                        {LICENSE_SETUP_HEADINGS.bootstrap.text}
+                        <LinkIcon href={`#${LICENSE_SETUP_HEADINGS.bootstrap.id}`} />
                     </h3>
 
                     {licenseState.chartsNoGridEnterpriseError && (
@@ -195,7 +190,7 @@ export const LicenseSetup: FunctionComponent<Props> = ({ library, framework }) =
                         </Warning>
                     )}
 
-                    <p>An example of how to set up your {productName} Enterprise License Key:</p>
+                    <p>{LICENSE_SETUP_COPY.bootstrapLead}</p>
 
                     <Snippet
                         framework={framework}

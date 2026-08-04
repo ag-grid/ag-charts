@@ -27,7 +27,7 @@ import {
     mergeDefaults,
     toNumber,
 } from 'ag-charts-core';
-import type { AgNumericValue, CssColor } from 'ag-charts-types';
+import type { AgCoordinates, AgNumericValue, CssColor } from 'ag-charts-types';
 
 import {
     type OhlcSeriesDataAggregationFilter,
@@ -104,9 +104,11 @@ class OhlcSeriesNodeEvent<
         nativeEvent: Event,
         datum: OhlcNodeDatum,
         series: OhlcSeriesBase<OhlcSeriesBaseTypes>,
-        selectionState: SelectionState | undefined
+        selectionState: SelectionState | undefined,
+        isCollapsed: boolean | undefined,
+        coordinates: AgCoordinates | undefined
     ) {
-        super(type, nativeEvent, datum, series, selectionState);
+        super(type, nativeEvent, datum, series, selectionState, isCollapsed, coordinates);
         this.xKey = series.properties.xKey;
         this.openKey = series.properties.openKey;
         this.closeKey = series.properties.closeKey;

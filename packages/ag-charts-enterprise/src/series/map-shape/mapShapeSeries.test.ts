@@ -107,7 +107,11 @@ describe('MapShapeSeries', () => {
             const [datum] = series.contextNodeData?.nodeData ?? [];
             expect(datum).toBeDefined();
             const midPoint = series.datumMidPoint(datum);
-            const { x, y } = _ModuleSupport.Transformable.toCanvasPoint(series.contentGroup, midPoint.x, midPoint.y);
+            const { canvasX: x, canvasY: y } = _ModuleSupport.Transformable.toCanvasPoint(
+                series.contentGroup,
+                midPoint.x,
+                midPoint.y
+            );
             await hoverAction(x, y)(chart);
             await waitForChartStability(chart);
         };
@@ -299,7 +303,7 @@ describe('MapShapeSeries', () => {
                 expect(nodeData.length).toBeGreaterThan(0);
                 for (const item of nodeData) {
                     const itemPoint = testParams.getNodePoint(item);
-                    const { x, y } = _ModuleSupport.Transformable.toCanvasPoint(
+                    const { canvasX: x, canvasY: y } = _ModuleSupport.Transformable.toCanvasPoint(
                         series.contentGroup,
                         itemPoint[0],
                         itemPoint[1]

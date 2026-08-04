@@ -37,7 +37,11 @@ async function hoverDatumByIndex(chart: Chart, seriesIndex: number, datumIndex: 
     expect(nodeData).toBeDefined();
     const datum = nodeData!.find((n) => n.datumIndex === datumIndex);
     expect(datum).toBeDefined();
-    const { x, y } = _ModuleSupport.Transformable.toCanvasPoint(series.contentGroup, datum!.point.x, datum!.point.y);
+    const { canvasX: x, canvasY: y } = _ModuleSupport.Transformable.toCanvasPoint(
+        series.contentGroup,
+        datum!.point.x,
+        datum!.point.y
+    );
     await hoverAction(x, y)(chart);
     await waitForChartStability(chart, hideDelay);
 }

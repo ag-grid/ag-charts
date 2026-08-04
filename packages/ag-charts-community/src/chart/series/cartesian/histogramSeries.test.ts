@@ -183,7 +183,11 @@ describe('HistogramSeries', () => {
             const context: SeriesNodeDataContext<any, any> = (series as any)['contextNodeData'];
             const item = context.nodeData.find((n) => n.datum['weight'] === 65.6 && n.datum['age'] === 21);
 
-            const { x, y } = Transformable.toCanvasPoint(series.contentGroup, item.point.x, item.point.y);
+            const { canvasX: x, canvasY: y } = Transformable.toCanvasPoint(
+                series.contentGroup,
+                item.point.x,
+                item.point.y
+            );
 
             await hoverAction(x, y)(chart);
             await waitForChartStability(chart);
@@ -447,7 +451,7 @@ describe('HistogramSeries', () => {
         };
 
         const clickFirstBin = async (c: any) => {
-            const { x, y } = firstBinCanvasPoint(c);
+            const { canvasX: x, canvasY: y } = firstBinCanvasPoint(c);
             await clickAction(x, y)(c);
             await waitForChartStability(c);
         };
@@ -485,7 +489,7 @@ describe('HistogramSeries', () => {
             chart = createChart({ listeners: { seriesNodeDoubleClick } });
             await waitForChartStability(chart);
 
-            const { x, y } = firstBinCanvasPoint(chart);
+            const { canvasX: x, canvasY: y } = firstBinCanvasPoint(chart);
             await doubleClickAction(x, y)(chart);
             await waitForChartStability(chart);
 
@@ -500,7 +504,7 @@ describe('HistogramSeries', () => {
             chart = createChart({ tooltip: { renderer } });
             await waitForChartStability(chart);
 
-            const { x, y } = firstBinCanvasPoint(chart);
+            const { canvasX: x, canvasY: y } = firstBinCanvasPoint(chart);
             await hoverAction(x, y)(chart);
             await waitForChartStability(chart);
 

@@ -1,4 +1,3 @@
-import { _ModuleSupport } from 'ag-charts-community';
 import type { Bounds4, BoxBounds, Point } from 'ag-charts-core';
 import { Vec2, Vec4 } from 'ag-charts-core';
 
@@ -9,11 +8,10 @@ import { CollidableLine } from '../scenes/collidableLineScene';
 import { CollidableText } from '../scenes/collidableTextScene';
 import { DivariantHandle } from '../scenes/handle';
 import { StartEndScene } from '../scenes/startEndScene';
+import { applySceneNodeTopCenterAnchor } from '../utils/coords';
 import { updateLineText } from '../utils/lineWithText';
 import { convertLine } from '../utils/values';
 import type { LineTypeProperties } from './lineProperties';
-
-const { Transformable } = _ModuleSupport;
 
 export class LineScene extends StartEndScene<LineTypeProperties> {
     static override is(value: unknown): value is LineScene {
@@ -135,8 +133,7 @@ export class LineScene extends StartEndScene<LineTypeProperties> {
     }
 
     override updateAnchor(_datum: LineTypeProperties, coords: Bounds4, _context: AnnotationContext, _bbox?: BoxBounds) {
-        const point = Vec4.topCenter(coords);
-        Vec2.apply(this.anchor, Transformable.toCanvasPoint(this.line, point.x, point.y));
+        applySceneNodeTopCenterAnchor(this.line, this.anchor, coords);
     }
 
     override containsPoint(x: number, y: number) {

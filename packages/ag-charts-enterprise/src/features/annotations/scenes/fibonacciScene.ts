@@ -1,8 +1,9 @@
 import { type TextOptions, _ModuleSupport } from 'ag-charts-community';
-import { type Bounds4, type Point, Vec2, Vec4 } from 'ag-charts-core';
+import { type Bounds4, type Point, Vec4 } from 'ag-charts-core';
 
 import type { AnnotationAxisContext, AnnotationContext, LineTextAlignment } from '../annotationTypes';
 import type { FibonacciProperties } from '../properties/fibonacciProperties';
+import { applySceneNodeTopCenterAnchor } from '../utils/coords';
 import type { FibonacciRangeDatum } from '../utils/fibonacci';
 import { FibonacciNodeTag, createFibonacciRangesData } from '../utils/fibonacci';
 import { updateLineText } from '../utils/lineWithText';
@@ -287,8 +288,7 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
     }
 
     updateAnchor(_datum: Datum, coords: Bounds4, _context: AnnotationContext, _bbox?: _ModuleSupport.BBox) {
-        const point = Vec4.topCenter(coords);
-        Vec2.apply(this.anchor, _ModuleSupport.Transformable.toCanvasPoint(this.trendLine, point.x, point.y));
+        applySceneNodeTopCenterAnchor(this.trendLine, this.anchor, coords);
     }
 
     containsPoint(x: number, y: number) {

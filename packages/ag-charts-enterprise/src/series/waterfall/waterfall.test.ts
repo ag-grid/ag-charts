@@ -1552,8 +1552,8 @@ describe('WaterfallSeries', () => {
 
             const total = nodeData.find((n) => n.itemType === 'total')!;
             const real = nodeData.find((n) => n.itemType === 'positive')!;
-            series.fireNodeClickEvent(new Event('click'), total);
-            series.fireNodeClickEvent(new Event('click'), real);
+            series.fireNodeClickEvent(new Event('click'), total, undefined);
+            series.fireNodeClickEvent(new Event('click'), real, undefined);
 
             // The total bar's itemId falls back to its axisLabel; the real bar resolves via datumIndex.
             expect(events[0].itemType).toBe('total');

@@ -37,7 +37,7 @@ export class FocusIndicator {
 
         if (focus instanceof Path) {
             const transform = (localX: number, localY: number) => {
-                let { x, y } = Transformable.toCanvasPoint(focus, localX, localY);
+                let { canvasX: x, canvasY: y } = Transformable.toCanvasPoint(focus, localX, localY);
                 x -= rect.x ?? 0;
                 y -= rect.y ?? 0;
                 return { x, y };

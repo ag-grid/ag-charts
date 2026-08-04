@@ -194,7 +194,7 @@ describe('Context Menu', () => {
             const getItems = vi.fn((_params: any) => []);
             await prepareChart({ enabled: true, getItems }, HISTOGRAM_OPTIONS);
 
-            const { x, y } = nodeCanvasPoint(0);
+            const { canvasX: x, canvasY: y } = nodeCanvasPoint(0);
             await contextMenuAction(x, y)(chart);
             await waitForChartStability(chart);
 
@@ -210,7 +210,7 @@ describe('Context Menu', () => {
             const getItems = vi.fn((_params: any) => []);
             await prepareChart({ enabled: true, getItems });
 
-            const { x, y } = nodeCanvasPoint(3);
+            const { canvasX: x, canvasY: y } = nodeCanvasPoint(3);
             await contextMenuAction(x, y)(chart);
             await waitForChartStability(chart);
 

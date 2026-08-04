@@ -14,7 +14,7 @@ import type {
     RequireOptional,
 } from 'ag-charts-core';
 import { ChartAxisDirection, SeriesZIndexMap, maxValue } from 'ag-charts-core';
-import type { AgNumericValue } from 'ag-charts-types';
+import type { AgCoordinates, AgNumericValue } from 'ag-charts-types';
 
 import type { BaseFunnelProperties } from './baseFunnelSeriesProperties';
 import { FunnelConnector } from './funnelConnector';
@@ -120,9 +120,11 @@ class FunnelSeriesNodeEvent<
         nativeEvent: Event,
         datum: FunnelNodeDatum,
         series: BaseFunnelSeries<BaseFunnelSeriesTypes>,
-        selectionState: SelectionState | undefined
+        selectionState: SelectionState | undefined,
+        isCollapsed: boolean | undefined,
+        coordinates: AgCoordinates | undefined
     ) {
-        super(type, nativeEvent, datum, series, selectionState);
+        super(type, nativeEvent, datum, series, selectionState, isCollapsed, coordinates);
         this.xKey = series.properties.stageKey;
         this.yKey = series.properties.valueKey;
     }

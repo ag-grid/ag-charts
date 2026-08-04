@@ -1,4 +1,4 @@
-import type { Bounds4, Point } from '../../types/scene';
+import type { Bounds4, CurrentPoint, Point } from '../../types/scene';
 import { roundTo } from '../data/numbers';
 
 /**
@@ -155,7 +155,7 @@ export function from(x: number, y: number): Point;
 /**
  * Create a vector from a widget event.
  */
-export function from(event: { currentX: number; currentY: number }): Point;
+export function from(event: CurrentPoint): Point;
 /**
  * Create a vector from a html element's `offsetWidth` and `offsetHeight`.
  */
@@ -171,7 +171,7 @@ export function from(vec4: Bounds4): [Point, Point];
 export function from(
     a:
         | number
-        | { currentX: number; currentY: number }
+        | CurrentPoint
         | { offsetWidth: number; offsetHeight: number }
         | { x: number; y: number; width: number; height: number }
         | Bounds4,

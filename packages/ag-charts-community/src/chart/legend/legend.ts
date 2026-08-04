@@ -918,7 +918,7 @@ export class Legend {
         this.ctx.contextMenuRegistry?.toggle('toggle-other-series', action);
 
         const { offsetX, offsetY } = sourceEvent;
-        const { x: canvasX, y: canvasY } = Transformable.toCanvasPoint(node, offsetX, offsetY);
+        const { canvasX, canvasY } = Transformable.toCanvasPoint(node, offsetX, offsetY);
         this.ctx.contextMenuRegistry?.dispatchContext('legend-item', { widgetEvent, canvasX, canvasY }, { legendItem });
     }
 
@@ -1064,15 +1064,15 @@ export class Legend {
     }
 
     private toTooltipMeta(event: FocusEvent | MouseEvent, node: LegendMarkerLabel): TooltipMeta {
-        let point: { x: number; y: number };
+        let canvasX: number, canvasY: number;
         if (event instanceof FocusEvent) {
-            point = Transformable.toCanvas(node).computeCenter();
+            ({ x: canvasX, y: canvasY } = Transformable.toCanvas(node).computeCenter());
         } else {
             event.preventDefault();
-            point = Transformable.toCanvasPoint(node, event.offsetX, event.offsetY);
+            ({ canvasX, canvasY } = Transformable.toCanvasPoint(node, event.offsetX, event.offsetY));
         }
 
-        return { canvasX: point.x, canvasY: point.y, showArrow: false };
+        return { canvasX, canvasY, showArrow: false };
     }
 
     private getTooltipContent(datum: CategoryLegendDatum): TooltipContent[] | undefined {

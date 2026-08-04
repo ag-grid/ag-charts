@@ -1,4 +1,4 @@
-import { createSvgElement } from 'ag-charts-core';
+import { type CanvasPoint, type Point, createSvgElement } from 'ag-charts-core';
 
 import type { BBox } from './bbox';
 import { IDENTITY_MATRIX_ELEMENTS, Matrix } from './matrix';
@@ -396,7 +396,8 @@ export class Transformable {
     /**
      * Converts a point from canvas coordinate space into the coordinate space of the given Node.
      */
-    static fromCanvasPoint(node: Node, x: number, y: number) {
+    static fromCanvasPoint(node: Node, canvasPoint: CanvasPoint): Point {
+        let { canvasX: x, canvasY: y } = canvasPoint;
         const parents = [];
         for (const parent of node.traverseUp()) {
             if (isMatrixTransform(parent)) {
@@ -415,7 +416,7 @@ export class Transformable {
     /**
      * Converts a point from a Nodes local coordinate space into the Canvas coordinate space.
      */
-    static toCanvasPoint(node: Node, x: number, y: number) {
+    static toCanvasPoint(node: Node, x: number, y: number): CanvasPoint {
         if (isMatrixTransform(node)) {
             ({ x, y } = node.toParentPoint(x, y));
         }
@@ -424,6 +425,6 @@ export class Transformable {
                 ({ x, y } = parent.toParentPoint(x, y));
             }
         }
-        return { x, y };
+        return { canvasX: x, canvasY: y };
     }
 }

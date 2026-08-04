@@ -1,12 +1,6 @@
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
-import {
-    AbstractModuleInstance,
-    ChartAxisDirection,
-    type DynamicContext,
-    type Point,
-    Property,
-    getIconClassNames,
-} from 'ag-charts-core';
+import type { CurrentPoint, DynamicContext, Point } from 'ag-charts-core';
+import { AbstractModuleInstance, ChartAxisDirection, Property, getIconClassNames } from 'ag-charts-core';
 
 import { convert, invert } from './utils/values';
 
@@ -89,7 +83,7 @@ export class AxisButton extends AbstractModuleInstance {
         if (this.ctx.interactionManager.isState(InteractionState.Clickable) && e.device === 'touch') this.show(e);
     }
 
-    private show(event: { currentX: number; currentY: number; sourceEvent: MouseEvent | TouchEvent }) {
+    private show(event: CurrentPoint & { sourceEvent: MouseEvent | TouchEvent }) {
         const { sourceEvent, currentX: x, currentY: y } = event;
         if (!(this.enabled && this.ctx.widgets.seriesWidget.getElement().contains(sourceEvent.target as Node | null))) {
             this.hide();

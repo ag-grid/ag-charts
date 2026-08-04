@@ -1,4 +1,12 @@
-import type { AxisID, BoxBounds, ChartAxisDirection, NormalisedTextOrSegments, Point, Scale } from 'ag-charts-core';
+import type {
+    AxisID,
+    BoxBounds,
+    ChartAxisDirection,
+    CurrentPoint,
+    NormalisedTextOrSegments,
+    Point,
+    Scale,
+} from 'ag-charts-core';
 import type {
     AgAxisBoundSeries,
     AgAxisDomain,
@@ -96,8 +104,8 @@ export interface AxisContext {
     attachAxisOverlay(group: Group, slot: 'low' | 'mid' | 'high'): void;
     inRange(value: number, tolerance?: number): boolean;
     getRangeOverflow(value: number): number;
-    /** Pick the scale value at a local-point (click/contextmenu events) */
-    pickValue(point: { currentX: number; currentY: number }): AxisValuePick | undefined;
+    /** Pick the scale value at a current-point (click/contextmenu events), relative to axis-dom-proxy HTML element */
+    pickValue(point: CurrentPoint): AxisValuePick | undefined;
     pickBand(point: Point): AxisBandDatum | undefined;
     measureBand(value: string): AxisBandMeasurement | undefined;
     /** Defined only on polar axes; cartesian axes leave it undefined. */

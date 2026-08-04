@@ -34,6 +34,7 @@ import {
     waitForChartStability,
     withPreventDefault,
 } from 'ag-charts-community-test';
+import type { CanvasPoint } from 'ag-charts-core';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
@@ -805,27 +806,26 @@ describe('DataSelection', () => {
         });
     };
 
-    type CanvasPoint = { readonly canvasX: number; readonly canvasY: number };
     type Modifiers = { altKey?: true; shiftKey?: true; ctrlKey?: true; metaKey?: true };
     const [altKey, shiftKey, ctrlKey, metaKey] = [true, true, true, true] as const;
 
-    async function mouseClick(point: CanvasPoint, modifiers?: Modifiers) {
+    async function mouseClick(point: Readonly<CanvasPoint>, modifiers?: Modifiers) {
         await clickAction(point.canvasX, point.canvasY, modifiers)(chart);
         await waitForChartStability(chart);
     }
-    async function mouseDown(point: CanvasPoint, modifiers?: Modifiers) {
+    async function mouseDown(point: Readonly<CanvasPoint>, modifiers?: Modifiers) {
         await mouseDownAction(point.canvasX, point.canvasY, modifiers)(chart);
         await waitForChartStability(chart);
     }
-    async function mouseMove(point: CanvasPoint, modifiers?: Modifiers) {
+    async function mouseMove(point: Readonly<CanvasPoint>, modifiers?: Modifiers) {
         await mouseMoveAction(point.canvasX, point.canvasY, modifiers)(chart);
         await waitForChartStability(chart);
     }
-    async function mouseUp(point: CanvasPoint, modifiers?: Modifiers) {
+    async function mouseUp(point: Readonly<CanvasPoint>, modifiers?: Modifiers) {
         await mouseUpAction(point.canvasX, point.canvasY, modifiers)(chart);
         await waitForChartStability(chart);
     }
-    async function pressEscape(point: CanvasPoint) {
+    async function pressEscape(point: Readonly<CanvasPoint>) {
         await keyDownAction(point.canvasX, point.canvasY, { key: 'Escape', code: 'Escape' })(chart);
         await waitForChartStability(chart);
     }

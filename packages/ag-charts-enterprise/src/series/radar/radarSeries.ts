@@ -1,5 +1,6 @@
 import {
     type AgBaseRadarSeriesOptions,
+    type AgCoordinates,
     type AgDrawingMode,
     type AgRadarSeriesLabelFormatterParams,
     type AgRadarSeriesStyle,
@@ -123,9 +124,11 @@ class RadarSeriesNodeEvent<
         nativeEvent: Event,
         datum: RadarNodeDatum,
         series: BaseRadarSeries,
-        selectionState: SelectionState | undefined
+        selectionState: SelectionState | undefined,
+        isCollapsed: boolean | undefined,
+        coordinates: AgCoordinates | undefined
     ) {
-        super(type, nativeEvent, datum, series, selectionState);
+        super(type, nativeEvent, datum, series, selectionState, isCollapsed, coordinates);
         this.angleKey = series.properties.angleKey;
         this.radiusKey = series.properties.radiusKey;
     }
