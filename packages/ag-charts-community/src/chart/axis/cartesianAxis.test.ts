@@ -1,7 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { getDocument } from 'ag-charts-core';
-import type { AgBaseChartThemeOptions, AgCartesianChartOptions, AgChartInstance } from 'ag-charts-types';
+import type {
+    AgBaseChartThemeOptions,
+    AgCartesianAxisCrossAt,
+    AgCartesianChartOptions,
+    AgChartInstance,
+} from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
 import {
@@ -841,8 +846,9 @@ describe('CartesianAxis', () => {
 
             const data = [...dataNeg, { x: 0, y: null }, ...dataPos];
 
-            it('should render the title at the edge', async () => {
-                const options: AgCartesianChartOptions = {
+            const optionsFactory =
+                (crossAt: AgCartesianAxisCrossAt): OptionsFactory =>
+                () => ({
                     title: { text: 'Axes crossing at 0', fontWeight: 'bold' },
                     data,
                     theme: THEME,
@@ -853,7 +859,7 @@ describe('CartesianAxis', () => {
                             min: -6,
                             max: 6,
                             title: { text: 'X Axis Title' },
-                            crossAt: { value: 0, titleAtEdge: true },
+                            crossAt,
                             tick: { size: 12, stroke: 'black' },
                         },
                         y: {
@@ -862,76 +868,32 @@ describe('CartesianAxis', () => {
                             min: -6,
                             max: 6,
                             title: { text: 'Y Axis Title' },
-                            crossAt: { value: 0, titleAtEdge: true },
+                            crossAt,
                             tick: { size: 12, stroke: 'black' },
                         },
                     },
                     series: [{ type: 'line', xKey: 'x', yKey: 'y', marker: { size: 0 } }],
-                };
+                });
 
-                await renderAndSnapshot(() => options, 'cartesian-axes-cross-at-0-title-at-edge');
+            it('should render the title at the edge', async () => {
+                await renderAndSnapshot(
+                    optionsFactory({ value: 0, titleAtEdge: true }),
+                    'cartesian-axes-cross-at-0-title-at-edge'
+                );
             });
 
             it('should render the labels at the edge', async () => {
-                const options: AgCartesianChartOptions = {
-                    title: { text: 'Axes crossing at 0', fontWeight: 'bold' },
-                    data,
-                    theme: THEME,
-                    axes: {
-                        x: {
-                            type: 'number',
-                            position: 'bottom',
-                            min: -6,
-                            max: 6,
-                            title: { text: 'X Axis Title' },
-                            crossAt: { value: 0, labelsAtEdge: true },
-                            tick: { size: 12, stroke: 'black' },
-                        },
-                        y: {
-                            type: 'number',
-                            position: 'left',
-                            min: -6,
-                            max: 6,
-                            title: { text: 'Y Axis Title' },
-                            crossAt: { value: 0, labelsAtEdge: true },
-                            tick: { size: 12, stroke: 'black' },
-                        },
-                    },
-                    series: [{ type: 'line', xKey: 'x', yKey: 'y', marker: { size: 0 } }],
-                };
-
-                await renderAndSnapshot(() => options, 'cartesian-axes-cross-at-0-labels-at-edge');
+                await renderAndSnapshot(
+                    optionsFactory({ value: 0, labelsAtEdge: true }),
+                    'cartesian-axes-cross-at-0-labels-at-edge'
+                );
             });
 
             it('should render the title and labels at the edge', async () => {
-                const options: AgCartesianChartOptions = {
-                    title: { text: 'Axes crossing at 0', fontWeight: 'bold' },
-                    data,
-                    theme: THEME,
-                    axes: {
-                        x: {
-                            type: 'number',
-                            position: 'bottom',
-                            min: -6,
-                            max: 6,
-                            title: { text: 'X Axis Title' },
-                            crossAt: { value: 0, titleAtEdge: true, labelsAtEdge: true },
-                            tick: { size: 12, stroke: 'black' },
-                        },
-                        y: {
-                            type: 'number',
-                            position: 'left',
-                            min: -6,
-                            max: 6,
-                            title: { text: 'Y Axis Title' },
-                            crossAt: { value: 0, titleAtEdge: true, labelsAtEdge: true },
-                            tick: { size: 12, stroke: 'black' },
-                        },
-                    },
-                    series: [{ type: 'line', xKey: 'x', yKey: 'y', marker: { size: 0 } }],
-                };
-
-                await renderAndSnapshot(() => options, 'cartesian-axes-cross-at-0-title-and-labels-at-edge');
+                await renderAndSnapshot(
+                    optionsFactory({ value: 0, titleAtEdge: true, labelsAtEdge: true }),
+                    'cartesian-axes-cross-at-0-title-and-labels-at-edge'
+                );
             });
         });
     });
