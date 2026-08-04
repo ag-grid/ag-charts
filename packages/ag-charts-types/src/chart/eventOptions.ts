@@ -29,6 +29,8 @@ export interface AgNodeClickEvent<TEvent extends string, TDatum, TContext = Cont
     extends AgChartEvent<TEvent, TContext>, AgCoordinatedEvent, AgNodeParams<TDatum> {
     /** Event type. */
     type: TEvent;
+    /** TODO: writeme */
+    allNodeParams: AgNodeParams<TDatum>[];
 }
 
 /**
