@@ -86,13 +86,15 @@ import {
     valueProperty,
 } from '../../data/processors';
 import { expandPlacementLabelBoxExtent, resolvePlacementLabelBoxExtent } from '../../label';
-import type { BarLabelPlacement, BarPositionedCandidate } from '../../labelUtil';
+import type { BarCandidateStyleResolver, BarLabelPlacement, BarPositionedCandidate } from '../../labelUtil';
 import {
     adjustLabelPlacement,
     buildBarLabelCandidates,
+    createBarCandidateStyleResolver,
     fitLabelToContainer,
     insideBarLabelBounds,
     pickPlacementStyle,
+    styledBarLabelBox,
     toResolvedPlacement,
     updateLabelNode,
 } from '../../labelUtil';
@@ -240,6 +242,8 @@ interface BarSeriesNodeDatumContext {
     readonly labelRotation: number;
     readonly labelResolvesOrientation: boolean;
     readonly labelFit: LabelFit | undefined;
+    /** Resolves each candidate's styled geometry; unset when no `itemStyler` can change it. */
+    readonly labelCandidateStyle: BarCandidateStyleResolver | undefined;
     readonly yDomain: any[];
 }
 
@@ -752,6 +756,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             labelRotation: barLabelRotation(toArray(label.orientation)[0]),
             labelResolvesOrientation: barLabelResolvesOrientation(label.orientation),
             labelFit: resolveLabelFit(label, !label.collision.alwaysShow),
+            labelCandidateStyle: createBarCandidateStyleResolver(this, label, this.makeLabelFormatterParams()),
             yDomain: this.getSeriesDomain(ChartAxisDirection.Y).domain,
         };
     }
@@ -1048,6 +1053,10 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 hideable: ctx.labelHideable,
                 plotRegion: ctx.plotRegion,
                 fitted: ctx.labelFit != null,
+                text: nodeLabelText,
+                // `datum`/`datumIndex` are already written above, so the styler sees this datum's values.
+                styleDatum: node,
+                resolveStyle: ctx.labelCandidateStyle,
             });
             if (candidates.length === 0) {
                 // Every placement points into a stacked neighbour, so there is nowhere left to put a
@@ -1878,14 +1887,32 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             }
             return data;
         }
-        return buildBarLabelData(this.contextNodeData?.labelData, (node) => ({
-            label: node.label,
-            config: label,
-            size: node.label != null && node.label.text !== '' ? measureBox(node.label.text) : undefined,
-            collideWith,
-            threshold,
-            fit: node.label == null ? undefined : fitFor(node.label.text),
-        }));
+        // Orientation-only route: the placement is baked, so the styled geometry is resolved against it.
+        const resolveStyle = createBarCandidateStyleResolver(this, label, this.makeLabelFormatterParams());
+        const firstOrientation = toArray(label.orientation)[0] ?? 'horizontal';
+        const bakedPlacement = toArray(label.placement)[0] ?? 'inside-center';
+        return buildBarLabelData(this.contextNodeData?.labelData, (node) => {
+            const nodeLabel = node.label;
+            const hasText = nodeLabel != null && nodeLabel.text !== '';
+            const styled = hasText
+                ? styledBarLabelBox(
+                      resolveStyle,
+                      node,
+                      nodeLabel.placement ?? bakedPlacement,
+                      firstOrientation,
+                      nodeLabel.text
+                  )
+                : undefined;
+            const fit = nodeLabel == null ? undefined : fitFor(nodeLabel.text);
+            return {
+                label: nodeLabel,
+                config: label,
+                size: styled?.size ?? (hasText ? measureBox(nodeLabel.text) : undefined),
+                collideWith,
+                threshold,
+                fit: fit == null || styled == null ? fit : { ...fit, font: styled.font, boxPadding: styled.boxPadding },
+            };
+        });
     }
 
     override updatePlacedLabelData(placed: PlacedLabel<BarNodeDatum>[]) {
@@ -1904,18 +1931,23 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         });
     }
 
+    private makeLabelFormatterParams(): RequireOptional<AgBarSeriesLabelFormatterParams> {
+        const { xKey, xName, yKey, yName, legendItemName } = this.properties;
+        return {
+            xKey,
+            xName: xName ?? xKey,
+            yKey,
+            yName: yName ?? yKey,
+            legendItemName: legendItemName ?? xName ?? xKey,
+        };
+    }
+
     protected updateLabelNodes(opts: {
         labelSelection: Selection<BarNodeDatum, Text<BarNodeDatum>>;
         isHighlight?: boolean;
     }) {
         const { isHighlight = false } = opts;
-        const params: RequireOptional<AgBarSeriesLabelFormatterParams> = {
-            xKey: this.properties.xKey,
-            xName: this.properties.xName ?? this.properties.xKey,
-            yKey: this.properties.yKey,
-            yName: this.properties.yName ?? this.properties.yKey,
-            legendItemName: this.properties.legendItemName ?? this.properties.xName ?? this.properties.xKey,
-        };
+        const params = this.makeLabelFormatterParams();
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const { label } = this.properties;
         opts.labelSelection.each((textNode, datum) => {

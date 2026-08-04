@@ -1,5 +1,6 @@
 import type {
     BoxBounds,
+    CandidateStyleResolver,
     ChartAxisDirection,
     DomainWithMetadata,
     LabelObstacle,
@@ -152,6 +153,11 @@ export interface ISeries<TDatum extends SeriesNodeDatum, TProps extends ISeriesP
     getLabelData(): PointLabelDatum[];
     /** Series-level collision defaults applied to every label the engine places for this series. */
     getLabelDefaults?(): SeriesLabelDefaults | undefined;
+    /**
+     * Resolves each label's `itemStyler` geometry per candidate placement, so the engine reserves and
+     * tests the styled box. `undefined` when no styler can change it.
+     */
+    getLabelCandidateStyler?(): CandidateStyleResolver | undefined;
     getLabelObstacles?(): LabelObstacle[] | undefined;
     getTooltipContent(datumIndex: DatumIndex, removeThisDatum: TDatum | undefined): TooltipContent | undefined;
     getDatumAriaMeta(seriesDatum: TDatum, description: string): ISeriesAriaMeta | undefined;

@@ -1,4 +1,5 @@
 import type {
+    CandidateStyleResolver,
     LabelMeasureContext,
     MeasuredLabel,
     NormalisedTextOrSegments,
@@ -13,8 +14,13 @@ import { measurePlacedLabel, resolveSeriesLabelDefaults, toArray } from 'ag-char
 import { PointerEvents } from '../../../scene/node';
 import type { Text } from '../../../scene/shape/text';
 import type { PlacedSeriesLabel } from '../../label';
-import { placedLabelTextOffset } from '../../label';
-import { getLabelStyles, pickPlacementStyle } from '../../labelUtil';
+import { placedLabelTextOffset, styledLabelTextOffset } from '../../label';
+import {
+    compassCandidatePlacement,
+    createCandidateStyleResolver,
+    getLabelStyles,
+    pickPlacementStyle,
+} from '../../labelUtil';
 import type { SeriesNodeDatum } from '../seriesTypes';
 import { CartesianSeries } from './cartesianSeries';
 import type { CartesianSeriesTypes, DatumOf, LabelOf, LabelSelectionOf } from './cartesianSeriesTypes';
@@ -61,7 +67,13 @@ export abstract class PlacedLabelCartesianSeries<
     /** Writes the placed `(x, y)` and the engine's resolved placement onto a copy of the datum. */
     private placedLabelDatum(placed: PlacedLabel<LabelOf<TTypes>>): LabelOf<TTypes> {
         const datum = this.writeLabelPoint(placed.datum, placed.x, placed.y);
-        (datum as MutablePlacedLabelFields).placement = placed.placement ?? datum.placement;
+        const mutable = datum as MutablePlacedLabelFields;
+        mutable.placement = placed.placement ?? datum.placement;
+        // A styled label is fitted to the candidate the engine chose, so the node must render that text
+        // and reserve its size rather than the up-front measurement the cascade started from.
+        if (placed.datum.fit != null) {
+            mutable.label = { text: placed.text, width: placed.width, height: placed.height };
+        }
         return datum;
     }
     /** Reads the label anchor point from a datum. */
@@ -82,6 +94,15 @@ export abstract class PlacedLabelCartesianSeries<
     override getLabelDefaults(): SeriesLabelDefaults | undefined {
         const label = this.labelProperty;
         return resolveSeriesLabelDefaults(label.collision, toArray(label.placement), label.spacing);
+    }
+
+    override getLabelCandidateStyler(): CandidateStyleResolver | undefined {
+        return createCandidateStyleResolver(
+            this,
+            this.labelProperty,
+            this.makeLabelFormatterParams(),
+            compassCandidatePlacement
+        );
     }
 
     protected override getHighlightLabelData(
@@ -122,10 +143,14 @@ export abstract class PlacedLabelCartesianSeries<
         const outsideStyle = pickPlacementStyle(label, 'outside');
         const insideOffset = placedLabelTextOffset(label, insideStyle);
         const outsideOffset = placedLabelTextOffset(label, outsideStyle);
+        // A styled label's reservation was sized from the style resolved at its winning placement, so its
+        // offset comes from that same style rather than the two placements' shared reservation.
+        const styled = label.itemStyler != null;
 
         opts.labelSelection.each((text, datum) => {
             const isInside = datum.placement === 'inside';
             const placementStyle = isInside ? insideStyle : outsideStyle;
+            const placementOffset = isInside ? insideOffset : outsideOffset;
             const style = getLabelStyles(
                 this,
                 datum,
@@ -140,7 +165,7 @@ export abstract class PlacedLabelCartesianSeries<
             const { enabled, fontStyle, fontWeight, fontSize, fontFamily, color } = style;
             if (enabled && datum?.labelText) {
                 const point = this.readLabelPoint(datum);
-                const offset = isInside ? insideOffset : outsideOffset;
+                const offset = styled ? styledLabelTextOffset(style) : placementOffset;
                 text.fontStyle = fontStyle;
                 text.fontWeight = fontWeight;
                 text.fontSize = fontSize;

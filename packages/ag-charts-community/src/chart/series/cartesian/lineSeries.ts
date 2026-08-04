@@ -5,6 +5,7 @@ import type {
     NormalisedLineSeriesStylerResult,
     NormalisedSeriesMarkerStyle,
     Point,
+    PointLabelDatum,
     RequireOptional,
     Writeable,
 } from 'ag-charts-core';
@@ -13,11 +14,13 @@ import {
     ChartAxisDirection,
     DEFAULT_MARKERLESS_LABEL_GAP,
     DebugMetrics,
+    applyStyledMarkerSize,
     cachedTextMeasurer,
     extent,
     isDefined,
     mergeDefaults,
     resolveLabelFit,
+    styledLabelFit,
     toArray,
     toNumber,
 } from 'ag-charts-core';
@@ -514,6 +517,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
             labelTextMeasurer: cachedTextMeasurer(this.properties.label),
             labelFit,
             labelFitOverflow,
+            labelStyled: label.itemStyler != null,
             labelInsideOffset,
             labelInsideSize,
             labelAnchor,
@@ -576,6 +580,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                 : undefined;
 
             const label = this.measureLabel(ctx, labelText);
+            const fit = styledLabelFit(labelText, this.properties.label, ctx);
             // Markerless vertices still nudge their label clear of the line with a small fixed gap.
             const gap = ctx.size > 0 ? ctx.size / 2 : DEFAULT_MARKERLESS_LABEL_GAP;
 
@@ -595,6 +600,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                 existingNode.xValue = scratch.xDatum;
                 existingNode.labelText = labelText;
                 existingNode.label = label;
+                existingNode.fit = fit;
                 existingNode.gap = gap;
                 existingNode.crossFilterSelected = scratch.crossFilterSelected;
             } else {
@@ -613,6 +619,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                     capDefaults: ctx.capDefaults,
                     labelText,
                     label,
+                    fit,
                     anchor: ctx.labelAnchor,
                     insideOffset: ctx.labelInsideOffset,
                     insideSize: ctx.labelInsideSize,
@@ -961,6 +968,19 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
 
     protected override get labelProperty() {
         return this.properties.label;
+    }
+
+    override getLabelData(): (LineNodeDatum & PointLabelDatum)[] {
+        const labelData = super.getLabelData();
+        const { marker } = this.properties;
+        // A marker itemStyler resolves its size after node data was built, so the styled size is stamped
+        // on here — the label's obstacles, gap and anchor all scale off the marker that gets drawn.
+        if (marker.enabled && marker.itemStyler != null) {
+            for (const datum of labelData) {
+                applyStyledMarkerSize(datum, datum.style?.size);
+            }
+        }
+        return labelData;
     }
 
     protected override writeLabelPoint(datum: LineNodeDatum, x: number, y: number): LineNodeDatum {

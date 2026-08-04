@@ -86,9 +86,11 @@ import { expandPlacementLabelBoxExtent, resolvePlacementLabelBoxExtent } from '.
 import {
     adjustLabelPlacement,
     buildBarLabelCandidates,
+    createBarCandidateStyleResolver,
     fitLabelToContainer,
     insideBarLabelBounds,
     pickPlacementStyle,
+    styledBarLabelBox,
     toResolvedPlacement,
     updateLabelNode,
 } from '../../labelUtil';
@@ -530,6 +532,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
      */
     private createLabelData(
         ctx: HistogramSeriesNodeDatumContext,
+        node: HistogramNodeDatum,
         bin: CalculatedBin,
         x: number,
         y: number,
@@ -562,6 +565,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         const bounds = insideOnly
             ? insideBarLabelBounds(rect, placement, isUpward, true, label.spacing, expandPlacementLabelBoxExtent(label))
             : undefined;
+        const labelParams = { ...this.binParams(bin), value: total, xKey, yKey, xName, yName };
         const sourceText = this.getLabelText<AgHistogramSeriesLabelFormatterParams>(
             total,
             datum,
@@ -569,7 +573,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             'y',
             [],
             label,
-            { ...this.binParams(bin), value: total, xKey, yKey, xName, yName }
+            labelParams
         );
         // A placement/orientation array (or a hideable label) pre-positions a candidate per
         // placement × orientation the engine cascades through until one fits; a hideable no-fit label is
@@ -593,6 +597,12 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                 rect,
                 plotRegion,
                 fitted: labelFit != null,
+                text: sourceText,
+                styleDatum: node,
+                resolveStyle:
+                    label.itemStyler == null
+                        ? undefined
+                        : createBarCandidateStyleResolver(this, label, this.makeLabelStylerParams(node)),
             });
             // The engine picks the first candidate that fits; the first is baked as a backward-safe default
             // until the engine writes the chosen one back.
@@ -756,7 +766,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         mutableNode.bottomLeftCornerRadius = yAxisReversed;
 
         // Update label
-        mutableNode.label = this.createLabelData(ctx, bin, x, y, w, h, isUpward);
+        mutableNode.label = this.createLabelData(ctx, node, bin, x, y, w, h, isUpward);
     }
 
     /**
@@ -1007,13 +1017,35 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         });
     }
 
+    /**
+     * The styler params for one bin's label. Bin-specific, so they are built per datum rather than
+     * hoisted; the placement pass and the render pass must produce identical params for the styler
+     * result to be shared between them.
+     */
+    private makeLabelStylerParams(datum: HistogramNodeDatum): AgHistogramSeriesLabelFormatterParams {
+        const { xKey, yKey, xName, yName } = this.properties;
+        return {
+            datum: undefined,
+            datums: datum.datums as any[],
+            binIndex: datum.binIndex,
+            binRange: datum.binRange,
+            aggregatedValue: datum.aggregatedValue,
+            frequency: datum.frequency,
+            value: datum.cumulativeValue,
+            xKey,
+            yKey,
+            xName,
+            yName,
+        };
+    }
+
     protected updateLabelNodes(opts: {
         labelSelection: Selection<HistogramNodeDatum, Text<HistogramNodeDatum>>;
         isHighlight?: boolean;
     }) {
         const { isHighlight = false } = opts;
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-        const { xKey, yKey, xName, yName, label } = this.properties;
+        const { label } = this.properties;
         // Only the first placement is honoured; it is bin-invariant, so the granular value is shared.
         const granularPlacement = toArray(label.placement)[0] ?? 'inside-center';
         opts.labelSelection.each((text, datum) => {
@@ -1021,19 +1053,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                 text.visible = false;
                 return;
             }
-            const params: AgHistogramSeriesLabelFormatterParams = {
-                datum: undefined,
-                datums: datum.datums as any[],
-                binIndex: datum.binIndex,
-                binRange: datum.binRange,
-                aggregatedValue: datum.aggregatedValue,
-                frequency: datum.frequency,
-                value: datum.cumulativeValue,
-                xKey,
-                yKey,
-                xName,
-                yName,
-            };
+            const params = this.makeLabelStylerParams(datum);
             // Disabled labels carry no per-datum placement, so fall back to the authored default.
             const placement = datum.label?.placement ?? granularPlacement;
             const placementStyle = pickPlacementStyle(label, toResolvedPlacement(placement));
@@ -1100,14 +1120,36 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             }
             return data;
         }
-        return buildBarLabelData(this.contextNodeData?.labelData, (node) => ({
-            label: node.label,
-            config: label,
-            size: node.label != null && node.label.text !== '' ? measureBox(node.label.text) : undefined,
-            collideWith,
-            threshold,
-            fit: node.label == null ? undefined : fitFor(node.label.text),
-        }));
+        // Orientation-only route: the placement is baked, so the styled geometry is resolved against it.
+        const firstOrientation = toArray(label.orientation)[0] ?? 'horizontal';
+        const bakedPlacement = toArray(label.placement)[0] ?? 'inside-center';
+        const isStyled = label.itemStyler != null;
+        return buildBarLabelData(this.contextNodeData?.labelData, (node) => {
+            const nodeLabel = node.label;
+            const hasText = nodeLabel != null && nodeLabel.text !== '';
+            const styledBox =
+                hasText && isStyled
+                    ? styledBarLabelBox(
+                          createBarCandidateStyleResolver(this, label, this.makeLabelStylerParams(node)),
+                          node,
+                          nodeLabel.placement ?? bakedPlacement,
+                          firstOrientation,
+                          nodeLabel.text
+                      )
+                    : undefined;
+            const fit = nodeLabel == null ? undefined : fitFor(nodeLabel.text);
+            return {
+                label: nodeLabel,
+                config: label,
+                size: styledBox?.size ?? (hasText ? measureBox(nodeLabel.text) : undefined),
+                collideWith,
+                threshold,
+                fit:
+                    fit == null || styledBox == null
+                        ? fit
+                        : { ...fit, font: styledBox.font, boxPadding: styledBox.boxPadding },
+            };
+        });
     }
 
     override updatePlacedLabelData(placed: PlacedLabel<HistogramNodeDatum>[]) {

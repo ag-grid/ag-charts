@@ -352,3 +352,12 @@ export function placedLabelTextOffset<TParams>(
         y: drawn.top + (reserved.top + reserved.bottom - drawn.top - drawn.bottom) / 2,
     };
 }
+
+/**
+ * A reservation sized from the style resolved at the winning placement is filled exactly by the drawn box,
+ * so the text sits one box extent in from its top-left.
+ */
+export function styledLabelTextOffset(style: LabelBoxingMixin): { x: number; y: number } {
+    const { left, top } = expandLabelBoxExtent(style);
+    return { x: left, y: top };
+}

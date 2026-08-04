@@ -2,6 +2,7 @@ import type {
     BoxBounds,
     Callback,
     CallbackParam,
+    CandidateStyleResolver,
     CanvasPoint,
     ChartAnimationPhase,
     DistantObject,
@@ -1244,6 +1245,9 @@ export abstract class Series<
         return [];
     }
     public getLabelDefaults(): SeriesLabelDefaults | undefined {
+        return undefined;
+    }
+    public getLabelCandidateStyler(): CandidateStyleResolver | undefined {
         return undefined;
     }
     public updatePlacedLabelData(_labels: PlacedLabel<TLabel>[]) {

@@ -370,6 +370,26 @@ export function repeat<T>(value: T, count: number): T[] {
     return new Array(count).fill(value);
 }
 
+/** A label node as drawn, carrying the datum the placement engine wrote its resolved placement onto. */
+export interface DrawnLabelNode<TDatum = any> {
+    visible: boolean;
+    text: string;
+    x: number;
+    y: number;
+    datum: TDatum;
+}
+
+/** The label nodes a series actually drew, so a label its styler disabled is absent. */
+export function getVisibleLabelNodes<TDatum = any>(
+    chartOrProxy: ChartOrProxy<any>,
+    seriesIndex = 0
+): DrawnLabelNode<TDatum>[] {
+    const { labelSelection } = deproxy(chartOrProxy).series[seriesIndex] as unknown as {
+        labelSelection: { nodes(): DrawnLabelNode<TDatum>[] };
+    };
+    return labelSelection.nodes().filter((node) => node.visible);
+}
+
 /** A series' placed label geometry, enough to measure a label's offset from its marker anchor. */
 export interface PlacedLabelGeometry {
     placedLabelData: { y: number; height: number; datum: { point: { y: number } } }[];

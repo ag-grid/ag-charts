@@ -83,7 +83,11 @@ export class LabelManager {
         for (const series of placedLabelSeries) {
             const labelData = series.getLabelData();
             if (labelData.every(isPointLabelDatum)) {
-                this.labelData.set(series.id, { datums: labelData, defaults: series.getLabelDefaults?.() });
+                this.labelData.set(series.id, {
+                    datums: labelData,
+                    defaults: series.getLabelDefaults?.(),
+                    resolveCandidateStyle: series.getLabelCandidateStyler?.(),
+                });
             }
         }
 

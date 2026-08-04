@@ -3,9 +3,9 @@ import type { PaddingOptions } from 'ag-charts-types';
 import { measureTextSegments } from '../../rendering/textMeasurer';
 import type { NormalisedTextOrSegments } from '../../types/normalised-options/normalisedCommonOptions';
 import type { FontOptions } from '../../types/text';
-import type { LabelFit, MeasuredLabel } from '../geometry/labelPlacement';
+import type { LabelFit, LabelFitDescriptor, MeasuredLabel } from '../geometry/labelPlacement';
 import { isArray } from '../types/typeGuards';
-import { fitLabelText } from './textWrapper';
+import { fitLabelTextOrOverflow } from './textWrapper';
 
 /** Per-render measurement inputs a placed-label series caches once and reuses for every datum. */
 export interface LabelMeasureContext {
@@ -17,26 +17,36 @@ export interface LabelMeasureContext {
      * Set only when the label must survive that, so leaving it unset keeps an erased label erased.
      */
     readonly labelFitOverflow?: LabelFit;
-}
-
-/** A fit can bound the text away to nothing, which the placement engine treats as no label at all. */
-function isErased(text: NormalisedTextOrSegments): boolean {
-    return isArray(text) ? text.length === 0 : String(text).length === 0;
+    /**
+     * The label's geometry is resolved per candidate placement by an `itemStyler`, so each datum carries
+     * the inputs the engine re-measures with rather than relying on the up-front measurement below.
+     */
+    readonly labelStyled?: boolean;
 }
 
 /**
- * Fits `text` to `fit`, falling back to `fitOverflow` when that leaves nothing to draw. An erased label is
- * dropped by the placement engine, so one that must always show overflows its bound rather than vanishing.
+ * Per-candidate fit inputs for a styled label, so the placement engine re-fits its text under the font the
+ * styler resolves at each candidate. `policy` is overridden by series that bound the text per datum (a
+ * marker container scaled by that datum's size). `undefined` for an unstyled or absent label, leaving the
+ * up-front {@link measurePlacedLabel} measurement authoritative.
  */
-export function fitLabelTextOrOverflow(
-    text: NormalisedTextOrSegments,
-    fit: LabelFit | undefined,
-    fitOverflow: LabelFit | undefined,
-    font: FontOptions
-): NormalisedTextOrSegments {
-    const fitted = fitLabelText(text, fit, font);
-    if (fitOverflow == null || !isErased(fitted) || isErased(text)) return fitted;
-    return fitLabelText(text, fitOverflow, font);
+export function styledLabelFit(
+    labelText: NormalisedTextOrSegments | undefined,
+    font: FontOptions,
+    ctx: LabelMeasureContext,
+    policy = ctx.labelFit
+): LabelFitDescriptor | undefined {
+    if (!ctx.labelStyled || labelText == null) return undefined;
+    return {
+        text: labelText,
+        policy: policy ?? {},
+        font,
+        boxPadding: ctx.labelPadding,
+        fitOverflow: ctx.labelFitOverflow,
+        // A point label's region is the plotting area, which contains it rather than truncating it: the
+        // descriptor is here to re-measure under the styled font, not to introduce a new bound.
+        boundByRegion: false,
+    };
 }
 
 /** Fits `labelText` to the label's policy and measures it, inflated by the label's drawn box padding. */

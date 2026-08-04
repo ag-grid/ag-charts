@@ -757,6 +757,10 @@ export class SankeySeries extends FlowProportionSeries<
                 isHighlight,
                 activeHighlightDatum
             );
+            if (!style.enabled) {
+                label.visible = false;
+                return;
+            }
             const { color: fill, fontStyle, fontWeight, fontSize, fontFamily } = style;
             label.visible = true;
             label.x = x;

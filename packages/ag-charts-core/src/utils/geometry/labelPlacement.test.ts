@@ -7,6 +7,8 @@ import { type BoxBounds, boxCollides, boxContains } from './boxBounds';
 import {
     type BarLabelTarget,
     type BarPlacedLabelDatum,
+    type CandidateLabelStyle,
+    type CandidateStyleResolver,
     type CollideWith,
     type LabelObstacle,
     type LabelPlacement,
@@ -38,18 +40,22 @@ import {
 import { SpatialIndex } from './spatialIndex';
 
 // jsdom has no canvas, so cachedTextMeasurer's real createCanvasContext throws. This stand-in gives
-// measureLabelText deterministic metrics (CHAR_WIDTH px per codepoint, LINE_HEIGHT px per line).
-const { CHAR_WIDTH } = vi.hoisted(() => ({ CHAR_WIDTH: 10 }));
+// measureLabelText deterministic metrics (CHAR_WIDTH px per codepoint, LINE_HEIGHT px per line), scaled
+// by the measurer's font size so that restyling a label's font changes what it measures.
+const { CHAR_WIDTH, BASE_FONT_SIZE } = vi.hoisted(() => ({ CHAR_WIDTH: 10, BASE_FONT_SIZE: 12 }));
 vi.mock('../canvas', () => ({
     createCanvasContext: () => ({
         font: '',
-        measureText: (text: string) => ({
-            width: [...text].length * CHAR_WIDTH,
-            fontBoundingBoxAscent: 16,
-            fontBoundingBoxDescent: 4,
-            emHeightAscent: 16,
-            emHeightDescent: 4,
-        }),
+        measureText(text: string) {
+            const scale = (Number.parseFloat(this.font) || BASE_FONT_SIZE) / BASE_FONT_SIZE;
+            return {
+                width: [...text].length * CHAR_WIDTH * scale,
+                fontBoundingBoxAscent: 16 * scale,
+                fontBoundingBoxDescent: 4 * scale,
+                emHeightAscent: 16 * scale,
+                emHeightDescent: 4 * scale,
+            };
+        },
     }),
 }));
 
@@ -2100,5 +2106,117 @@ describe('placeLabels per-candidate fit', () => {
             expect(placed.text).toBe(TEXT);
             expect(placed.y).toBe(140);
         });
+    });
+});
+
+describe('placeLabels candidate styles', () => {
+    const bounds: BoxBounds = { x: 0, y: 0, width: 400, height: 400 };
+    const FONT = { fontSize: 12, fontFamily: 'sans-serif' };
+    const NO_PADDING: Required<PaddingOptions> = { top: 0, right: 0, bottom: 0, left: 0 };
+    const PADDING: Required<PaddingOptions> = { top: 10, right: 10, bottom: 10, left: 10 };
+    const TEXT = 'WW';
+
+    /** A 20×20 `TEXT` label cascading top-then-bottom, 10px off its point, styled per candidate. */
+    const styledDatum = (overrides: Partial<PointLabelDatum> = {}): PointLabelDatum => ({
+        point: { x: 200, y: 200, size: 0 },
+        label: { text: TEXT, width: 20, height: 20 },
+        fit: { text: TEXT, policy: {}, font: FONT, boxPadding: NO_PADDING, boundByRegion: false },
+        anchor: undefined,
+        placement: undefined,
+        placements: ['top', 'bottom'],
+        gap: 10,
+        ...overrides,
+    });
+
+    /** Records every candidate the engine resolved a style for, in the order it tried them. */
+    function recordingResolver(style: (placement: LabelPlacement | undefined) => CandidateLabelStyle) {
+        const calls: (LabelPlacement | undefined)[] = [];
+        const resolve: CandidateStyleResolver = (_datum, placement) => {
+            calls.push(placement);
+            return style(placement);
+        };
+        return { calls, resolve };
+    }
+
+    const place = (
+        datums: PointLabelDatum[],
+        resolveCandidateStyle: CandidateStyleResolver,
+        obstacles: LabelObstacle[] = []
+    ) => placeLabels(new Map([['s', { datums, resolveCandidateStyle }]]), bounds, 0, obstacles).get('s')!;
+
+    it('resolves the styles of only the candidates it needs, in cascade order', () => {
+        const { calls, resolve } = recordingResolver(() => ({ font: FONT, boxPadding: NO_PADDING }));
+        const placed = place([styledDatum()], resolve);
+        expect(placed[0].placement).toBe('top');
+        expect(calls).toEqual(['top']);
+    });
+
+    it('cascades past a placement the styled box cannot fit', () => {
+        // The unstyled 20×20 box spans y 170–190 above the point and clears the obstacle; the styled box
+        // is 40×40 (10px padding a side), reaches y 150 and collides, so `top` is abandoned.
+        const blocker: LabelObstacle = {
+            kind: 'rect',
+            box: { x: 180, y: 150, width: 40, height: 10 },
+            category: 'label',
+        };
+        const unstyled = recordingResolver(() => ({ font: FONT, boxPadding: NO_PADDING }));
+        expect(place([styledDatum()], unstyled.resolve, [blocker])[0].placement).toBe('top');
+
+        const styled = recordingResolver(() => ({ font: FONT, boxPadding: PADDING }));
+        const placed = place([styledDatum()], styled.resolve, [blocker]);
+        expect(placed[0].placement).toBe('bottom');
+        expect(placed[0].height).toBe(40);
+        expect(styled.calls).toEqual(['top', 'bottom']);
+    });
+
+    it('reserves the styled box so a later label avoids what is drawn', () => {
+        // Without the styled padding the two labels' `top` boxes (y 170–190 and 185–205) already overlap,
+        // so this asserts the second label is pushed to `bottom` by the first label's *drawn* footprint.
+        const near = styledDatum({ point: { x: 200, y: 215, size: 0 } });
+        const { resolve } = recordingResolver(() => ({ font: FONT, boxPadding: PADDING }));
+        const placed = place([styledDatum(), near], resolve);
+        expect(placed.map((p) => p.placement)).toEqual(['top', 'bottom']);
+    });
+
+    it('drops a label the styler disabled and leaves the space to its neighbour', () => {
+        const near = styledDatum({ point: { x: 200, y: 215, size: 0 } });
+        const hidden = (datum: PointLabelDatum): CandidateLabelStyle => ({
+            font: FONT,
+            boxPadding: NO_PADDING,
+            hidden: datum !== near,
+        });
+        const placed = place([styledDatum(), near], hidden);
+        expect(placed).toHaveLength(1);
+        expect(placed[0].datum).toBe(near);
+        // The dropped label reserved nothing and never entered the obstacle index, so `top` is still free.
+        expect(placed[0].placement).toBe('top');
+    });
+
+    it('keeps the disabled label out of the obstacle index only when it is disabled', () => {
+        const near = styledDatum({ point: { x: 200, y: 215, size: 0 } });
+        const { resolve } = recordingResolver(() => ({ font: FONT, boxPadding: NO_PADDING }));
+        expect(place([styledDatum(), near], resolve).map((p) => p.placement)).toEqual(['top', 'bottom']);
+    });
+
+    it('re-fits the text to the styled font', () => {
+        // 'WWW' measures 30px at the configured 12px font and 60px at the styler's 24px one, so only the
+        // styled label overruns the 45px bound and has to ellipsise.
+        const bounded = styledDatum({
+            label: { text: 'WWW', width: 30, height: 20 },
+            fit: {
+                text: 'WWW',
+                policy: { maxWidth: 45, overflowStrategy: 'ellipsis' },
+                font: FONT,
+                boxPadding: NO_PADDING,
+                boundByRegion: false,
+            },
+        });
+        const unstyled = recordingResolver(() => ({ font: FONT, boxPadding: NO_PADDING }));
+        expect(place([bounded], unstyled.resolve)[0].text).toBe('WWW');
+
+        const styled = recordingResolver(() => ({ font: { ...FONT, fontSize: 24 }, boxPadding: NO_PADDING }));
+        const placed = place([bounded], styled.resolve)[0];
+        expect(placed.text).toBe('W…');
+        expect(placed.width).toBe(40);
     });
 });
