@@ -5,9 +5,9 @@
   "private": true,
   "scripts": {},
   "dependencies": {
-    "ag-charts-community": "14.1.0-beta.20260804",
-    "ag-charts-enterprise": "14.1.0-beta.20260804",
-    "ag-charts-react": "14.1.0-beta.20260804",
+    "ag-charts-community": "14.1.0-beta.20260804.1318",
+    "ag-charts-enterprise": "14.1.0-beta.20260804.1318",
+    "ag-charts-react": "14.1.0-beta.20260804.1318",
     "@radix-ui/react-label": "^2.1.12",
     "@radix-ui/react-select": "^2.0.0",
     "@radix-ui/react-toggle-group": "^1.1.0",
