@@ -12,9 +12,13 @@ type ProxyAxis = {
     bounds?: _ModuleSupport.BBox;
 };
 
-function hasAxisClickListener(axisCtx: _ModuleSupport.AxisContext): boolean {
-    const { listeners } = axisCtx;
-    return listeners?.click != null || listeners?.doubleClick != null;
+function hasAxisClickListener(chartService: _ModuleSupport.ChartService, axisCtx: _ModuleSupport.AxisContext): boolean {
+    return (
+        chartService.hasListener('axisClick') ||
+        chartService.hasListener('axisDoubleClick') ||
+        axisCtx.listeners?.click != null ||
+        axisCtx.listeners?.doubleClick != null
+    );
 }
 
 /**
@@ -106,7 +110,7 @@ export class AxisDOMProxy extends AbstractModuleInstance {
 
     private processAxisDiff() {
         const {
-            ctx: { axisManager },
+            ctx: { axisManager, chartService },
         } = this;
 
         const axesCtx = [
@@ -148,7 +152,7 @@ export class AxisDOMProxy extends AbstractModuleInstance {
                 axis.bounds = new _ModuleSupport.BBox(bbox.x, bbox.y, bbox.width, bbox.height);
             }
             // Signal interactivity only on axes that actually have a click listener.
-            axis.div.setCursor(hasAxisClickListener(axisCtx) ? 'pointer' : undefined);
+            axis.div.setCursor(hasAxisClickListener(chartService, axisCtx) ? 'pointer' : undefined);
         }
     }
 
@@ -483,11 +487,10 @@ export class AxisDOMProxy extends AbstractModuleInstance {
      */
     private hasClickListeners() {
         const { axisManager, chartService } = this.ctx;
-        if (chartService.hasListener('axisClick') || chartService.hasListener('axisDoubleClick')) return true;
         return [
             ...axisManager.getAxisContext(ChartAxisDirection.X),
             ...axisManager.getAxisContext(ChartAxisDirection.Y),
-        ].some((axisCtx) => hasAxisClickListener(axisCtx));
+        ].some((axisCtx) => hasAxisClickListener(chartService, axisCtx));
     }
 
     private isEnabledDoubleClick() {
