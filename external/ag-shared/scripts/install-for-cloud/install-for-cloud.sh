@@ -13,7 +13,21 @@ set -euo pipefail
 export AG_SKIP_NATIVE_DEP_VERSION_CHECK=1
 export PUPPETEER_SKIP_DOWNLOAD=true
 
-log_info() { echo "[install-for-cloud] $*"; }
+# In a cloud session this hook's stdout has to be a single JSON document (see
+# announce_deps_not_ready), so ordinary progress lines go to stderr there. They
+# are still in the hook debug log; only the notice needs to reach the model.
+STDOUT_RESERVED_FOR_JSON=0
+if [[ "${CLAUDE_CODE_REMOTE:-}" == "true" || "${AG_CLOUD_INSTALL:-}" == "1" ]]; then
+    STDOUT_RESERVED_FOR_JSON=1
+fi
+
+log_info() {
+    if ((STDOUT_RESERVED_FOR_JSON == 1)); then
+        echo "[install-for-cloud] $*" >&2
+    else
+        echo "[install-for-cloud] $*"
+    fi
+}
 log_error() { echo "[install-for-cloud] ERROR: $*" >&2; }
 
 # ---------------------------------------------------------------------------
@@ -293,11 +307,10 @@ announce_deps_not_ready() {
         reason="the cached node_modules was seeded without postinstall, so patches and plugin builds are still pending"
     fi
 
-    # Hook stdout becomes session context, so this is the message Claude reads.
     # Absolute paths: with more than one repository attached the session's working
     # directory is the parent (/home/user), not the repo, so relative paths fail.
-    cat <<EOF
-[install-for-cloud] Dependencies are NOT ready in this cloud session.
+    local notice
+    notice="Dependencies are NOT ready in this cloud session.
 
 Reason: ${reason}.
 
@@ -305,11 +318,31 @@ Until an install completes, builds, tests, lint and any 'yarn nx' command will
 fail or behave oddly. Reading and editing files is fine.
 
 Run this before any build/test/lint command — once per session, ~150s:
-  bash ${PWD}/external/ag-shared/scripts/install-for-cloud/finish-setup.sh
+  bash ${REPO_ROOT}/external/ag-shared/scripts/install-for-cloud/finish-setup.sh
 
 If another session is already installing, wait for it instead:
-  bash ${PWD}/external/ag-shared/scripts/install-for-cloud/wait-for-deps.sh
-EOF
+  bash ${REPO_ROOT}/external/ag-shared/scripts/install-for-cloud/wait-for-deps.sh"
+
+    # The documented SessionStart channel, not bare stdout. The docs say stdout
+    # from a SessionStart hook becomes context, but two cloud sessions reported
+    # receiving none of it while the same hook's environment changes had clearly
+    # applied — so in the cloud harness this notice was being written to nobody.
+    # `hookSpecificOutput.additionalContext` is the explicit contract, and it is
+    # only parsed when stdout is a single JSON document, so nothing else may print.
+    if [[ "$IN_CLOUD_SESSION" == "1" ]] && command -v node &>/dev/null; then
+        JSON_NOTICE="$notice"
+        export JSON_NOTICE
+        node -e '
+            process.stdout.write(JSON.stringify({
+                hookSpecificOutput: {
+                    hookEventName: "SessionStart",
+                    additionalContext: process.env.JSON_NOTICE,
+                },
+            }));
+        ' 2>/dev/null && return 0
+    fi
+
+    printf '[install-for-cloud] %s\n' "$notice"
 }
 
 # ---------------------------------------------------------------------------
