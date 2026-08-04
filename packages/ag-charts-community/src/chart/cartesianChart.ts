@@ -425,10 +425,6 @@ export class CartesianChart extends Chart {
         seriesRect: BBox,
         visible: boolean
     ): void {
-        // TODO: reduce only by the size of the title or labels?
-        const { titleAtEdge, labelsAtEdge } = axis.options.crossAt ?? {};
-        if (titleAtEdge || labelsAtEdge) return;
-
         const crosshairModule = axis.getModuleMap().getModule<{ enabled: boolean }>('crosshair');
         if (crosshairModule?.enabled) return;
 
@@ -447,9 +443,32 @@ export class CartesianChart extends Chart {
 
         const currentWidth = axisWidths.get(axis.id) ?? 0;
         const adjustedWidth = visible
-            ? this.calculateAxisBleedingWidth(axis, currentWidth, crossPosition, seriesRect)
+            ? this.calculateCrossAtAxisWidth(axis, currentWidth, crossPosition, seriesRect)
             : 0;
         axisWidths.set(axis.id, adjustedWidth);
+    }
+
+    private calculateCrossAtAxisWidth(
+        axis: CartesianAxis,
+        currentWidth: number,
+        crossPosition: number | undefined,
+        seriesRect: BBox
+    ): number {
+        const { titleAtEdge, labelsAtEdge } = axis.options.crossAt ?? {};
+        if (titleAtEdge !== true && labelsAtEdge !== true) {
+            return this.calculateAxisBleedingWidth(axis, currentWidth, crossPosition, seriesRect);
+        }
+
+        // Whichever component stays at the crossing still needs room when the crossing is near the edge or clamped by `sticky`.
+        const { atEdge, atCrossing } = axis.getCrossAtThicknesses();
+        const bleed = this.calculateAxisBleedingWidth(
+            axis,
+            Math.min(atCrossing, currentWidth),
+            crossPosition,
+            seriesRect
+        );
+
+        return Math.ceil(Math.max(atEdge, bleed));
     }
 
     private calculateAxisBleedingWidth(

@@ -165,6 +165,8 @@ export abstract class CartesianAxis<
 
     readonly crossAxisTranslation: { x: number; y: number } = { x: 0, y: 0 };
 
+    private titleThickness = 0;
+
     minimumTimeGranularity: AgTimeIntervalUnit | undefined = undefined;
 
     // Used to define the range the axis line will occupy, e.g. when bandAlignment is not 'justify'.
@@ -536,7 +538,7 @@ export abstract class CartesianAxis<
         super.update();
 
         const { tickLayout } = this;
-        this.updateTitle(this.scale.domain, tickLayout?.spacing ?? 0);
+        this.updateTitle(this.scale.domain, this.resolveTitleSpacing(tickLayout?.spacing ?? 0));
 
         if (!this.animatable) {
             this.moduleCtx.animationManager.skipCurrentBatch();
@@ -794,12 +796,40 @@ export abstract class CartesianAxis<
         this.layout.labelThickness = labelThickness;
         this.layout.scrollbar = scrollbarLayout;
 
+        this.titleThickness = 0;
         if (title.enabled) {
-            boxes.push(this.titleBBox(domain, spacing));
+            const titleBox = this.titleBBox(domain, this.resolveTitleSpacing(spacing));
+            boxes.push(titleBox);
+
+            const titleExtent = BBox.merge([this.lineNodeBBox(), titleBox]);
+            this.titleThickness = horizontal ? titleExtent.height : titleExtent.width;
         }
 
         const bbox = BBox.merge(boxes);
         return { bbox, spacing };
+    }
+
+    /** The title only has to clear the labels when both render in the same place. */
+    private resolveTitleSpacing(spacing: number) {
+        const { crossAt } = this.options;
+        const titleAtEdge = crossAt?.titleAtEdge === true;
+        const labelsAtEdge = crossAt?.labelsAtEdge === true;
+        return titleAtEdge === labelsAtEdge ? spacing : 0;
+    }
+
+    /** Thickness occupied at the `position` edge and at the crossing point, which `crossAt` can split apart. */
+    getCrossAtThicknesses(): { atEdge: number; atCrossing: number } {
+        const { crossAt } = this.options;
+        const titleAtEdge = crossAt?.titleAtEdge === true;
+        const labelsAtEdge = crossAt?.labelsAtEdge === true;
+
+        const title = this.titleThickness;
+        const labels = this.layout.labelThickness ?? 0;
+
+        return {
+            atEdge: Math.max(titleAtEdge ? title : 0, labelsAtEdge ? labels : 0),
+            atCrossing: Math.max(titleAtEdge ? 0 : title, labelsAtEdge ? 0 : labels),
+        };
     }
 
     protected titleProps(caption: Caption, domain: D[], spacing: number) {
