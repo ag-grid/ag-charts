@@ -17,6 +17,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { renderApiReferenceTable } from './renderApiReferenceTable';
+import { buildLicenseSetupMarkdown } from './renderLicenseSetup';
 import { type ModuleNode, buildModuleMappingsTable } from './renderModuleMappings';
 
 interface RenderMarkdocTagParams {
@@ -55,7 +56,7 @@ export async function renderMarkdocTag(params: RenderMarkdocTagParams): Promise<
             case 'gettingStarted':
                 return renderGettingStarted(attributes, framework, siteRoot);
             case 'licenseSetup':
-                return renderLicenseSetup(framework, siteRoot);
+                return buildLicenseSetupMarkdown({ framework, siteRoot });
             case 'trialLicenceForm':
                 return renderTrialLicenceForm(siteRoot);
             default:
@@ -184,12 +185,6 @@ function renderGettingStarted(
             return `- [${feature.title}](${url}) — ${feature.description}`;
         })
         .join('\n');
-}
-
-// Interactive licence-key setup tool; link to the page that hosts it instead.
-function renderLicenseSetup(framework: MarkdownFramework, siteRoot?: string): string {
-    const url = toAbsoluteUrl(urlWithPrefix({ url: './license-install/', framework }), siteRoot);
-    return `[Set up your licence key](${url})`;
 }
 
 // Interactive trial-licence request form; link to the licensing page instead.
