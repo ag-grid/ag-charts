@@ -77,6 +77,13 @@ const cleanContents = (contents) => {
 };
 
 const extractTitle = (titleTag) => {
+    // The h1 also holds the framework name ('React Charts'), which is part of the heading
+    // for SEO but not part of the page title, so the title is marked up explicitly.
+    const pageTitle = titleTag.querySelector('[data-page-title]');
+    if (pageTitle) {
+        return pageTitle.textContent?.trim() ?? '';
+    }
+
     let title = titleTag.firstChild.textContent;
 
     let sibling = titleTag.firstChild.nextSibling;

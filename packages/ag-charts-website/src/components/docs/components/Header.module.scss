@@ -10,9 +10,12 @@
     }
 }
 
+// `display: contents` drops the h1's box so its children are laid out in
+// .pageTitleContainer's grid directly, which is what lets the version share the eyebrow
+// line from outside the heading. Inherited properties still reach the children, so the
+// line height below applies to the title.
 .docsPageTitle {
-    grid-area: title;
-    margin-bottom: $spacing-size-4;
+    display: contents;
     color: var(--color-fg-primary);
 
     @media screen and (min-width: $breakpoint-docs-nav-medium) {
@@ -20,46 +23,52 @@
     }
 }
 
-// Narrow screens stack the metadata, then the controls, then the title. From the
+// Carries the grid placement and trailing space the h1's dropped box would have applied.
+.titleText {
+    grid-area: title;
+    margin-bottom: $spacing-size-4;
+}
+
+// Narrow screens stack the eyebrow, then the controls, then the title. From the
 // docs-search breakpoint up, the controls move to the top right: they span both
-// rows so they sit level with the metadata without pushing the title down.
+// rows so they sit level with the eyebrow without pushing the title down.
 .pageTitleContainer {
     display: grid;
     width: 100%;
-    grid-template-columns: 1fr;
+    grid-template-columns: auto 1fr;
     grid-template-areas:
-        'meta'
-        'actions'
-        'title';
+        'meta version'
+        'actions actions'
+        'title title';
     row-gap: $spacing-size-3;
+    column-gap: $spacing-size-3;
 
     @media screen and (min-width: $breakpoint-docs-search-medium) {
-        grid-template-columns: 1fr auto;
+        grid-template-columns: auto 1fr auto;
         grid-template-areas:
-            'meta actions'
-            'title actions';
-        column-gap: $spacing-size-4;
+            'meta version actions'
+            'title title actions';
     }
 }
 
-// Eyebrow line above the page title, holding the framework name and version.
-.titleMeta {
-    grid-area: meta;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: $spacing-size-3;
-}
-
+// Framework name, inside the h1, so it opts back out of the heading type it inherits.
 .headerFramework {
+    grid-area: meta;
+    align-self: baseline;
     font-size: var(--text-fs-base);
     font-weight: var(--text-semibold);
+    line-height: var(--text-lh-base);
     color: var(--color-text-brand-primary);
 }
 
+// Outside the h1, so it does not read as part of the heading.
 .version {
+    grid-area: version;
+    align-self: baseline;
+    justify-self: start;
     font-size: var(--text-fs-sm);
     font-weight: var(--text-regular);
+    line-height: var(--text-lh-base);
     color: var(--color-text-tertiary);
 }
 
