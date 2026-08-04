@@ -261,6 +261,61 @@ const SQUARE_OVERFLOW_ORG_CHART: AgChartOptions = {
     ],
 };
 
+const TEAM_DIRECTORY_ORG_CHART: AgChartOptions = {
+    data: [
+        { id: 'Ashley Rivers', parentId: null, job: 'CEO', status: 'In Office' },
+        { id: 'Joseph Howe', parentId: 'Ashley Rivers', job: 'CTO', status: 'Hybrid' },
+        { id: 'Jeffrey Brown', parentId: 'Joseph Howe', job: 'Engineering Lead', status: 'In Office' },
+        { id: 'Melissa Vazquez', parentId: 'Jeffrey Brown', job: 'Software Engineer', status: 'Hybrid' },
+        { id: 'John Thomas', parentId: 'Jeffrey Brown', job: 'Software Engineer', status: 'Hybrid' },
+        { id: 'Susan Hernandez', parentId: 'Jeffrey Brown', job: 'Dev Ops', status: 'In Office' },
+        { id: 'Aisha Khan', parentId: 'Jeffrey Brown', job: 'Software Engineer', status: 'Remote' },
+        { id: 'Justin Contreras', parentId: 'Joseph Howe', job: 'Engineering Lead', status: 'In Office' },
+        { id: 'Rachel Ibarra', parentId: 'Justin Contreras', job: 'Software Engineer', status: 'Remote' },
+        { id: 'John Gomez', parentId: 'Justin Contreras', job: 'Software Engineer', status: 'In Office' },
+        { id: 'Sam Carter', parentId: 'Justin Contreras', job: 'QA Engineer', status: 'Hybrid' },
+        { id: 'Priya Nair', parentId: 'Joseph Howe', job: 'Data Lead', status: 'In Office' },
+        { id: 'Lena Fischer', parentId: 'Priya Nair', job: 'Data Scientist', status: 'Remote' },
+        { id: 'Mark Daniels', parentId: 'Priya Nair', job: 'Data Engineer', status: 'Hybrid' },
+        { id: 'Gary Garcia', parentId: 'Ashley Rivers', job: 'CPO', status: 'In Office' },
+        { id: 'Lawrence Martinez', parentId: 'Gary Garcia', job: 'Product Manager', status: 'Hybrid' },
+        { id: 'Tom Whitfield', parentId: 'Lawrence Martinez', job: 'Product Analyst', status: 'In Office' },
+        { id: 'Olivia Bennett', parentId: 'Lawrence Martinez', job: 'UX Researcher', status: 'Hybrid' },
+        { id: 'Devin Pittman', parentId: 'Gary Garcia', job: 'Design Lead', status: 'In Office' },
+        { id: 'Emily Barajas', parentId: 'Devin Pittman', job: 'Visual Designer', status: 'Hybrid' },
+        { id: 'Noah Kim', parentId: 'Devin Pittman', job: 'Product Designer', status: 'Remote' },
+        { id: 'Eric Jensen', parentId: 'Ashley Rivers', job: 'CFO/COO', status: 'Remote' },
+        { id: 'Hannah Lee', parentId: 'Eric Jensen', job: 'Finance Manager', status: 'In Office' },
+        { id: 'Carlos Mendez', parentId: 'Hannah Lee', job: 'Accountant', status: 'Hybrid' },
+        { id: 'Grace Liu', parentId: 'Hannah Lee', job: 'Financial Analyst', status: 'Remote' },
+        { id: 'Cynthia Frank', parentId: 'Eric Jensen', job: 'Operations Manager', status: 'In Office' },
+        { id: 'Sofia Russo', parentId: 'Cynthia Frank', job: 'Operations Coordinator', status: 'Hybrid' },
+    ],
+    initialState: {
+        collapsed: [
+            'Jeffrey Brown',
+            'Justin Contreras',
+            'Priya Nair',
+            'Lawrence Martinez',
+            'Devin Pittman',
+            'Hannah Lee',
+            'Cynthia Frank',
+        ],
+    },
+    series: [
+        {
+            type: 'organization',
+            idKey: 'id',
+            parentIdKey: 'parentId',
+            node: {
+                title: { key: 'id' },
+                subtitle: { key: 'job' },
+                labels: [{ key: 'status' }],
+            },
+        },
+    ],
+};
+
 const LINKS_ROUNDED_INTERPOLATION: AgChartOptions = {
     ...SIMPLE_ORG_CHART,
     theme: {
@@ -875,6 +930,45 @@ describe('OrganizationSeries', () => {
             { source: 'state-change', sourceDetail: 'unspecified' },
             { x: { min: xMin, max: xMax }, y: { min: yMin, max: yMax } }
         );
+    }
+
+    type Node<T = unknown> = _ModuleSupport.Node<T>;
+
+    /** Canvas-space centre of the scene node tagged `tag` within the card for `itemId`. */
+    function centreOf(itemId: string, tag: OrganizationNodeTag): { x: number; y: number } {
+        function findDescendantByTag(node: Node, searchTag: number): Node | undefined {
+            if (node.tag === searchTag) return node;
+            if (!(node instanceof _ModuleSupport.Group)) return undefined;
+            for (const child of node.children()) {
+                const found = findDescendantByTag(child, searchTag);
+                if (found) return found;
+            }
+        }
+
+        function findByItemId(searchItemId: string): Node | undefined {
+            const nodes = new Caster(deproxy(chart).series[0])
+                .cast(OrganizationSeries)
+                .accessProperty('datumSelection')
+                .cast(_ModuleSupport.Selection)
+                .value.nodes();
+            return nodes.find((node: Node<any>) => node.datum?.itemId === searchItemId);
+        }
+
+        let card: Node | undefined = findByItemId(itemId);
+        expect(card).toBeDefined();
+        card = card!;
+
+        let target: Node | undefined = findDescendantByTag(card, tag);
+        expect(target).toBeDefined();
+        target = target!;
+
+        return _ModuleSupport.Transformable.toCanvas(target).computeCenter();
+    }
+
+    async function clickItem(itemId: string, tag: OrganizationNodeTag, opts?: { ctrlKey: boolean }): Promise<void> {
+        const expander = centreOf(itemId, tag);
+        await clickAction(expander.x, expander.y, opts)(chart);
+        await waitForChartStability(chart);
     }
 
     describe('#create', () => {
@@ -2037,7 +2131,6 @@ describe('OrganizationSeries', () => {
     // event on the expander pill must neither reach the user's node click/double-click listeners nor
     // change the data selection.
     describe('AG-17947 expander clicks do not activate the node', () => {
-        type Node<T = unknown> = _ModuleSupport.Node<T>;
         type Fn = ReturnType<(typeof vi)['fn']>;
         type CollapsedManager = ReturnType<typeof deproxy>['ctx']['collapsedManager'];
         let seriesNodeClick: Fn;
@@ -2067,43 +2160,6 @@ describe('OrganizationSeries', () => {
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
             collapsedManager = deproxy(chart).ctx.collapsedManager;
-        }
-
-        /** Canvas-space centre of the scene node tagged `tag` within the card for `itemId`. */
-        function centreOf(itemId: string, tag: OrganizationNodeTag): { x: number; y: number } {
-            function findDescendantByTag(node: Node, searchTag: number): Node | undefined {
-                if (node.tag === searchTag) return node;
-                if (!(node instanceof _ModuleSupport.Group)) return undefined;
-                for (const child of node.children()) {
-                    const found = findDescendantByTag(child, searchTag);
-                    if (found) return found;
-                }
-            }
-
-            function findByItemId(searchItemId: string): Node | undefined {
-                const nodes = new Caster(deproxy(chart).series[0])
-                    .cast(OrganizationSeries)
-                    .accessProperty('datumSelection')
-                    .cast(_ModuleSupport.Selection)
-                    .value.nodes();
-                return nodes.find((node: Node<any>) => node.datum?.itemId === searchItemId);
-            }
-
-            let card: Node | undefined = findByItemId(itemId);
-            expect(card).toBeDefined();
-            card = card!;
-
-            let target: Node | undefined = findDescendantByTag(card, tag);
-            expect(target).toBeDefined();
-            target = target!;
-
-            return _ModuleSupport.Transformable.toCanvas(target).computeCenter();
-        }
-
-        async function clickItem(itemId: string, tag: OrganizationNodeTag, opts?: { ctrlKey: boolean }): Promise<void> {
-            const expander = centreOf(itemId, tag);
-            await clickAction(expander.x, expander.y, opts)(chart);
-            await waitForChartStability(chart);
         }
 
         async function doubleClickItem(itemId: string, tag: OrganizationNodeTag): Promise<void> {
@@ -2274,6 +2330,67 @@ describe('OrganizationSeries', () => {
             await waitForChartStability(chart);
             const afterState = (deproxy(chart) as any).ctx.chartState.getValue('zoom');
             expect(afterState).toEqual(flooredState);
+        });
+    });
+
+    // Expanding or collapsing reflows the tree around the interacted node, which without any
+    // correction moves that node — far enough, on this data, to carry it clean out of the viewport.
+    describe('AG-17206 keep the interacted node fully visible', () => {
+        async function createChart() {
+            const options: AgChartOptions = { ...TEAM_DIRECTORY_ORG_CHART };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+        }
+
+        // Holds the window size and moves only the midpoint, as a drag does: a request that also
+        // resizes the window is refused outright while the chart sits at a zoom limit.
+        async function panToOrigin() {
+            const ratios = getZoomRatios(chart);
+            const xSize = (ratios?.ratioX?.end ?? 0) - (ratios?.ratioX?.start ?? 0);
+            const ySize = (ratios?.ratioY?.end ?? 0) - (ratios?.ratioY?.start ?? 0);
+            expect(xSize).toBeGreaterThan(0);
+            expect(ySize).toBeGreaterThan(0);
+
+            setZoom(chart, 0, xSize, 0, ySize);
+            await waitForChartStability(chart);
+        }
+
+        it('should hold a node in place when collapsing would carry it off-screen', async () => {
+            await createChart();
+
+            await clickItem('Joseph Howe', OrganizationNodeTag.Expander);
+            // Guards the snapshot against a click that missed the expander entirely.
+            expect(deproxy(chart).ctx.collapsedManager.isCollapsed('Joseph Howe')).toBe(true);
+
+            await compare();
+        });
+
+        it('should hold a node in place when expanding would clip it', async () => {
+            await createChart();
+            setZoom(chart, 0.3, 0.7, 0.3, 0.7);
+            await waitForChartStability(chart);
+            await panToOrigin();
+
+            await clickItem('Justin Contreras', OrganizationNodeTag.Expander);
+            expect(deproxy(chart).ctx.collapsedManager.isCollapsed('Justin Contreras')).toBe(false);
+
+            await compare();
+        });
+
+        it('should not move an interacted node that is already fully visible', async () => {
+            // The reflow moves the node in content space whether or not it was at risk of clipping, so
+            // holding its place on screen is a stronger requirement than simply not panning. Gary Garcia
+            // stays where he was; the tree rearranges around him. Note his card is redrawn larger,
+            // because shrinking the content raises the content-fits floor and so zooms in about him.
+            await createChart();
+
+            await clickItem('Gary Garcia', OrganizationNodeTag.Expander);
+            // Guards the snapshot against a click that missed the expander entirely.
+            expect(deproxy(chart).ctx.collapsedManager.isCollapsed('Gary Garcia')).toBe(true);
+
+            await compare();
         });
     });
 
