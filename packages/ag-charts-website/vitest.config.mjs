@@ -20,6 +20,7 @@ export default getViteConfig({
     resolve: {
         alias: {
             // Matches `tsconfig.json`
+            '@ag-website-shared': resolvePath('../../external/ag-website-shared/src'),
             '@astro': resolvePath('src/astro'),
             '@components': resolvePath('src/components'),
             '@design-system': resolvePath('src/design-system'),
