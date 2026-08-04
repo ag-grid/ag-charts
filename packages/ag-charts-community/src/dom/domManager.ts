@@ -200,7 +200,7 @@ export class DOMManager extends BaseManager {
 
     constructor(
         private readonly eventsHub: EventsHub,
-        private readonly styleNonce: string | undefined,
+        readonly styleNonce: string | undefined,
         private readonly agDocument: AgDocument,
         initialContainer?: HTMLElement,
         private readonly styleContainer?: HTMLElement,

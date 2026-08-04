@@ -3,7 +3,12 @@ import { AgDocument } from 'ag-charts-core';
 import { PHASE_METADATA } from '../../motion/animation';
 import { DEFAULT_OVERLAY_CLASS } from './overlay';
 
-export function getLoadingSpinner(agDocument: AgDocument, text: string, defaultDuration: number) {
+export function getLoadingSpinner(
+    agDocument: AgDocument,
+    text: string,
+    defaultDuration: number,
+    styleNonce: string | undefined
+) {
     const { animationDuration } = PHASE_METADATA['add'];
     const duration = animationDuration * defaultDuration;
 
@@ -43,6 +48,9 @@ export function getLoadingSpinner(agDocument: AgDocument, text: string, defaultD
     });
 
     const animationStyles = agDocument.createElement('style');
+    if (styleNonce != null) {
+        animationStyles.nonce = styleNonce;
+    }
     animationStyles.innerText = [
         '@keyframes ag-charts-loading { from { opacity: 0 } to { opacity: 1 } }',
         '@keyframes ag-charts-loading-matrix {',
