@@ -1,3 +1,4 @@
+import type { AgDocument } from './agDocument';
 import type { StrictHTMLElement } from './attributeUtil';
 import { getDocument } from './globalsProxy';
 
@@ -34,6 +35,26 @@ export function createElement<K extends keyof HTMLElementTagNameMap>(
     }
     if (style) {
         Object.assign(element.style, style);
+    }
+    return element;
+}
+
+/**
+ * Creates a `<style>` element carrying the CSP nonce, where one is configured. Every dynamically
+ * injected stylesheet must be created here: a nonce-only `style-src` blocks an un-nonced element
+ * outright, so the nonce cannot be left to each call site to remember.
+ * @param styleNonce - The configured `styleNonce` chart option, if any.
+ * @param agDocument - Owning document, for elements that must belong to the chart's own document
+ * rather than the global one (optional).
+ * @returns The created `<style>` element.
+ */
+export function createStyleElement(
+    styleNonce: string | undefined,
+    agDocument?: AgDocument
+): HTMLStyleElement & StrictHTMLElement {
+    const element = agDocument ? agDocument.createElement('style') : createElement('style');
+    if (styleNonce != null) {
+        element.nonce = styleNonce;
     }
     return element;
 }

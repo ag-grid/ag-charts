@@ -60,5 +60,29 @@ test.describe('security', () => {
                 });
             });
         });
+
+        test.describe('csp-css-variables example', () => {
+            const { url } = toExamplePageUrl('security-e2e', 'csp-css-variables', 'vanilla');
+
+            test('watches a CSS variable under a nonce-only style-src', async ({ page }) => {
+                await gotoExample(page, url);
+                await waitForAllChartUpdates(page);
+
+                // The watcher injects an `@property` <style> element per variable. Under a nonce-only
+                // `style-src` an un-nonced element is blocked, which surfaces as a console error and
+                // fails the intrinsic assertions, and leaves the chart unable to see later changes.
+                const watcher = page.locator('style[data-variable-name="--my-brand-colour"]');
+                await expect(watcher).toHaveCount(1);
+                // Read the IDL property, not the attribute: browsers empty the `nonce` content
+                // attribute once the element is inserted, to stop it being exfiltrated via CSS.
+                expect(await watcher.evaluate((el: HTMLStyleElement) => el.nonce)).toBe('9f3c21a8');
+
+                await expectChartScreenshot(page, page.locator(SELECTORS.canvas), 'csp-css-variables-initial.png');
+
+                await page.getByText('Change CSS Variable').click();
+                await waitForAllChartUpdates(page);
+                await expectChartScreenshot(page, page.locator(SELECTORS.canvas), 'csp-css-variables-changed.png');
+            });
+        });
     });
 });

@@ -496,6 +496,36 @@ HTMLCollection [
             expect((container?.firstChild as HTMLElement | null)?.innerText).toEqual('No visible series');
         });
     });
+
+    // The spinner injects a <style> element for its keyframes, so it needs the same nonce as every
+    // other style AG Charts adds — otherwise a nonce-only `style-src` blocks the animation.
+    describe('#loading', () => {
+        const spinnerStyleElement = () =>
+            chart.ctx.agDocument.body.querySelector<HTMLStyleElement>('.ag-charts-overlay--loading style');
+
+        test('carries the configured style nonce on the spinner keyframes', async () => {
+            chart = await createChart({
+                loading: true,
+                styleNonce: '416d1177',
+                data: [{ x: 'a', y: 1 }],
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            });
+
+            expect(spinnerStyleElement()?.getAttribute('nonce')).toBe('416d1177');
+        });
+
+        test('omits the nonce attribute when none is configured', async () => {
+            chart = await createChart({
+                loading: true,
+                data: [{ x: 'a', y: 1 }],
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            });
+
+            const styleElement = spinnerStyleElement();
+            expect(styleElement).not.toBeNull();
+            expect(styleElement!.hasAttribute('nonce')).toBe(false);
+        });
+    });
 });
 
 describe('imageSegmentStyle', () => {

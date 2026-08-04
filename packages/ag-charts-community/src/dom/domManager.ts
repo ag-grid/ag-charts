@@ -4,6 +4,7 @@ import {
     attachListener,
     createElement,
     createId,
+    createStyleElement,
     entries,
     isDirectionRtl,
     isDocumentFragment,
@@ -200,7 +201,7 @@ export class DOMManager extends BaseManager {
 
     constructor(
         private readonly eventsHub: EventsHub,
-        private readonly styleNonce: string | undefined,
+        readonly styleNonce: string | undefined,
         private readonly agDocument: AgDocument,
         initialContainer?: HTMLElement,
         private readonly styleContainer?: HTMLElement,
@@ -877,10 +878,7 @@ export class DOMManager extends BaseManager {
                 }
             }
 
-            const styleEl = createElement('style');
-            if (this.styleNonce != null) {
-                styleEl.nonce = this.styleNonce;
-            }
+            const styleEl = createStyleElement(this.styleNonce);
             if (insertAfterEl == null) {
                 el.prepend(styleEl);
             } else {
@@ -1125,7 +1123,7 @@ export class DOMManager extends BaseManager {
             if (this.cssVariableWatchers.has(property)) continue;
             this.cssVariableWatchers.add(property);
 
-            const styleElement = createElement('style');
+            const styleElement = createStyleElement(this.styleNonce);
             styleElement.dataset.variableName = property;
             styleElement.textContent = `@property ${property} { syntax: '<color>'; inherits: true; initial-value: transparent; }`;
             this.element.prepend(styleElement);
