@@ -589,13 +589,14 @@ export class ContextMenu extends AbstractModuleInstance {
         } else if (ContextMenuRegistry.checkCallback('series-node', showOn, callback)) {
             return () => {
                 const { chartService: chart } = this.ctx;
+                const pickedNodes = this.pickedNodes;
+                if (!pickedNodes || !pickedNodes[0]) return;
 
-                const pickedNode = this.pickedNodes?.[0];
                 const coordinates: AgCoordinates | undefined = this.ctx.chartService.toAgCoordinates(event);
-                const callers: (Caller | undefined)[] = [pickedNode?.series.properties, chart];
+                const callers: (Caller | undefined)[] = [pickedNodes[0].series.properties, chart];
                 // FIXME: apiEvent should be of type CallbackParamRules<AgNodeContextMenuActionEvent>
                 const apiEvent: AgNodeContextMenuActionEvent | undefined =
-                    pickedNode?.series.createNodeContextMenuActionEvent(showEvent, pickedNode, coordinates);
+                    pickedNode?.series.createNodeContextMenuActionEvent(showEvent, pickedNodes, coordinates);
                 if (apiEvent) {
                     callWithContext(callers, callback, apiEvent);
                 } else {

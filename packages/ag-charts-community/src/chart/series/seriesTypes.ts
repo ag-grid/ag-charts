@@ -140,9 +140,10 @@ export interface ISeries<TDatum extends SeriesNodeDatum, TProps extends ISeriesP
     fireNodeDoubleClickEvent(event: Event, datum: SeriesNodeDatum, coordinates: AgCoordinates | undefined): void;
     createNodeContextMenuActionEvent(
         event: Event,
-        datum: TDatum,
+        datums: TDatum[],
         coordinates: AgCoordinates | undefined
     ): INodeEvent<'nodeContextMenuAction'>;
+    createNodeParams(datum: TDatum): AgNodeParams<unknown>;
     getLegendData<T extends ChartLegendType>(legendType: T): ChartLegendDatum<T>[];
     getLegendData(legendType: ChartLegendType): ChartLegendDatum<ChartLegendType>[];
     getLabelData(): PointLabelDatum[];

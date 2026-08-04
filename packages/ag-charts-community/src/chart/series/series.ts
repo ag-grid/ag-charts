@@ -1,4 +1,5 @@
 import type {
+    AreExact,
     BoxBounds,
     Callback,
     CallbackParam,
@@ -1203,39 +1204,51 @@ export abstract class Series<
         callWithContext([this.properties, this.ctx.chartService], this.fireEventWrapper, event);
     }
 
-    fireNodeClickEvent(event: Event, datum: TDatum, coordinates: AgCoordinates | undefined): boolean {
-        const clickEvent = this.createNodeEvent('seriesNodeClick', event, datum, coordinates);
-        this.fireEvent(clickEvent);
-        return !clickEvent.defaultPrevented;
+    fireNodeClickEvent(event: Event, datums: TDatum[], coordinates: AgCoordinates | undefined): boolean {
+        return this.fireNodeEvent('seriesNodeClick', event, datums, coordinates);
     }
 
-    fireNodeDoubleClickEvent(event: Event, datum: TDatum, coordinates: AgCoordinates | undefined): boolean {
-        const clickEvent = this.createNodeEvent('seriesNodeDoubleClick', event, datum, coordinates);
+    fireNodeDoubleClickEvent(event: Event, datums: TDatum[], coordinates: AgCoordinates | undefined): boolean {
+        return this.fireNodeEvent('seriesNodeDoubleClick', event, datums, coordinates);
+    }
+
+    private fireNodeEvent<T extends 'seriesNodeClick' | 'seriesNodeDoubleClick'>(
+        type: T,
+        event: Event,
+        datums: TDatum[],
+        coordinates: AgCoordinates | undefined
+    ) {
+        const clickEvent = this.createNodeEvent(type, event, datums, coordinates);
         this.fireEvent(clickEvent);
         return !clickEvent.defaultPrevented;
     }
 
     createNodeContextMenuActionEvent(
         event: Event,
-        datum: TDatum,
+        datums: TDatum[],
         coordinates: AgCoordinates | undefined
     ): INodeEvent<'nodeContextMenuAction'> {
-        return this.createNodeEvent('nodeContextMenuAction', event, datum, coordinates);
+        return this.createNodeEvent('nodeContextMenuAction', event, datums, coordinates);
     }
 
     // Do not override. Override createNodeParams instead.
-    private createNodeEvent<T extends SeriesNodeEventTypes>(
+    private createNodeEvent<T extends 'seriesNodeClick' | 'seriesNodeDoubleClick' | 'nodeContextMenuAction'>(
         type: T,
         event: Event,
-        datum: TDatum,
+        datums: TDatum[],
         coordinates: AgCoordinates | undefined
-    ): INodeEvent<T> {
+    ) {
+        const allNodeParams: AgNodeParams<unknown>[] = datums.map(d => d.series.createNodeParams(d));
+
+        // datums[0] is the "winner" for backward compatibility.
+        const datum = datums[0];
         let defaultPrevented = false;
         return {
             ...this.createNodeParams(datum),
             type,
             event,
             coordinates,
+            allNodeParams,
             get defaultPrevented() {
                 return defaultPrevented;
             },
