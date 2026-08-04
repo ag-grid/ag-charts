@@ -70,18 +70,21 @@ export interface AgCartesianAxisCrossAt {
      */
     sticky?: boolean;
     /**
-     * Whether the axis title should ignore the crossAt and be placed at the default edge.
+     * Whether the axis title is placed at the crossing point, or at the axis' `position` edge.
      *
-     * Default: `false`
+     * Default: `'crossing'`
      */
-    titleAtEdge?: boolean;
+    titlePlacement?: AgCartesianAxisCrossAtPlacement;
     /**
-     * Whether the axis labels should ignore the crossAt and be placed at the default edge.
+     * Whether the axis labels are placed at the crossing point, or at the axis' `position` edge.
      *
-     * Default: `false`
+     * Default: `'crossing'`
      */
-    labelsAtEdge?: boolean;
+    labelsPlacement?: AgCartesianAxisCrossAtPlacement;
 }
+
+/** Where a component of a crossing axis is drawn: at the crossing point, or at the axis' `position` edge. */
+export type AgCartesianAxisCrossAtPlacement = 'crossing' | 'edge';
 
 export interface AgTimeAxisParentLevel<TContext = ContextDefault> {
     /** Enables parent level labels and ticks. */
