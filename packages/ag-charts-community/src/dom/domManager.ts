@@ -1126,6 +1126,9 @@ export class DOMManager extends BaseManager {
             this.cssVariableWatchers.add(property);
 
             const styleElement = createElement('style');
+            if (this.styleNonce != null) {
+                styleElement.nonce = this.styleNonce;
+            }
             styleElement.dataset.variableName = property;
             styleElement.textContent = `@property ${property} { syntax: '<color>'; inherits: true; initial-value: transparent; }`;
             this.element.prepend(styleElement);

@@ -101,6 +101,35 @@ describe('DOMManager', () => {
             expect(styleEl!.style.getPropertyValue('transition')).toBe('color 1ms');
             expect(styleEl!.style.getPropertyPriority('transition')).toBe('important');
         });
+
+        // A `style-src` nonce disables `'unsafe-inline'` for style elements, so an un-nonced
+        // `@property` element is blocked and the watcher never fires. The shadow-DOM path needs no
+        // equivalent: it styles a div through the CSSOM, which CSP does not govern.
+        it('sets the style nonce on the @property element of every watcher (normal DOM)', () => {
+            const container = doc.createElement('div');
+            doc.body.append(container);
+            const dm = new DOMManager(eventsHub, 'css-watch-nonce', doc, container);
+
+            dm.updateCSSVariableWatchers({ 'var(--my-color)': 'red', 'var(--my-other-color)': 'blue' });
+
+            const styleEls = Array.from(container.querySelectorAll<HTMLStyleElement>('style[data-variable-name]'));
+            expect(styleEls).toHaveLength(2);
+            for (const styleEl of styleEls) {
+                expect(styleEl.getAttribute('nonce')).toBe('css-watch-nonce');
+            }
+        });
+
+        it('omits the nonce attribute when no style nonce is configured', () => {
+            const container = doc.createElement('div');
+            doc.body.append(container);
+            const dm = new DOMManager(eventsHub, undefined, doc, container);
+
+            dm.updateCSSVariableWatchers({ 'var(--my-color)': 'red' });
+
+            const styleEl = container.querySelector<HTMLStyleElement>('style[data-variable-name="--my-color"]');
+            expect(styleEl).not.toBeNull();
+            expect(styleEl!.hasAttribute('nonce')).toBe(false);
+        });
     });
 
     describe('when connecting after initialisation', () => {
