@@ -1,4 +1,4 @@
-import { AgDocument } from 'ag-charts-core';
+import { AgDocument, createStyleElement } from 'ag-charts-core';
 
 import { PHASE_METADATA } from '../../motion/animation';
 import { DEFAULT_OVERLAY_CLASS } from './overlay';
@@ -47,10 +47,7 @@ export function getLoadingSpinner(
         zIndex: '-1',
     });
 
-    const animationStyles = agDocument.createElement('style');
-    if (styleNonce != null) {
-        animationStyles.nonce = styleNonce;
-    }
+    const animationStyles = createStyleElement(styleNonce, agDocument);
     animationStyles.innerText = [
         '@keyframes ag-charts-loading { from { opacity: 0 } to { opacity: 1 } }',
         '@keyframes ag-charts-loading-matrix {',
