@@ -1,6 +1,6 @@
 import type { AgAxisClickEvent } from 'ag-charts-community';
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
-import type { AxisID, DynamicContext } from 'ag-charts-core';
+import type { AxisID, CanvasPoint, DynamicContext } from 'ag-charts-core';
 import { AbstractModuleInstance, ChartAxisDirection, boxEmpty, callWithContext } from 'ag-charts-core';
 
 type AxisHit = { axisId: AxisID; direction: ChartAxisDirection };

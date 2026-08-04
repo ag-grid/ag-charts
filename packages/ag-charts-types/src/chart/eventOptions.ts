@@ -2,7 +2,7 @@ import type { AgActiveState } from '../api/activeState';
 import type { AgStateGroupingValueType, AgStateValueType } from '../api/stateTypes';
 import type { TextOrSegments } from '../series/cartesian/commonOptions';
 import type { AgAnnotation } from './annotationsOptions';
-import type { AgAxisCoordinate, AgAxisDirection, AgAxisValue } from './axisOptions';
+import type { AgAxisBoundSeries, AgAxisCoordinate, AgAxisDirection, AgAxisDomain, AgAxisValue } from './axisOptions';
 import type { AgItemType, Listener, SelectionState } from './callbackOptions';
 import type { AgNumericValue } from './dataValues';
 import type { ContextDefault, DatumDefault, Ratio, ResolvedDatumKey } from './types';
