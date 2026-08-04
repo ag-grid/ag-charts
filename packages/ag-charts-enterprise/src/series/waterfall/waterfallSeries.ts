@@ -1236,6 +1236,9 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             // A cascading item carries pre-positioned candidates (built per item config); others resolve
             // their orientation array against the bar rect, or stay baked when single-orientation.
             if (nodeLabel.candidates == null) {
+                // A label its styler disabled reserves nothing and blocks no neighbour. Only the baked
+                // route needs this; the engine skips hidden candidates on the cascading one itself.
+                if (styled?.hidden === true) continue;
                 data.push(
                     ...buildBarLabelData([node], () => ({
                         label: nodeLabel,

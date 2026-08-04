@@ -272,7 +272,9 @@ export class MapLineSeries
         if (lineString == null) return;
 
         const { idKey, idName, sizeKey, sizeName, colorKey, colorName, labelKey, labelName, label } = this.properties;
-        if (labelKey == null || !label.enabled) return;
+        // A label the styler disabled is left out of the label data, so it reserves no placement space and
+        // acts as no obstacle — hiding it at render time alone would still displace its neighbours.
+        if (labelKey == null || !label.enabled || !labelStyle.enabled) return;
 
         const labelText = this.getLabelText<AgMapLineSeriesLabelFormatterParams>(
             labelValue,

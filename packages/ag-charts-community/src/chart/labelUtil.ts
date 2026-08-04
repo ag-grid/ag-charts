@@ -478,6 +478,9 @@ export function createCandidateStyleResolver<TParams>(
  * resolved at `orientation` — the first candidate; a styler that sizes the box per orientation is honoured
  * in what is drawn but not in the reservation. `undefined` for an unstyled label, leaving the configured
  * measurement in place.
+ *
+ * Callers must drop a `hidden` result from their label data: unlike the cascade route, where the engine
+ * skips hidden candidates itself, nothing downstream of here would stop a disabled label reserving space.
  */
 export function styledBarLabelBox(
     resolveStyle: BarCandidateStyleResolver | undefined,
@@ -485,9 +488,9 @@ export function styledBarLabelBox(
     placement: BarLabelPlacement,
     orientation: AgChartLabelOrientation,
     text: NormalisedTextOrSegments
-): { size: { width: number; height: number }; font: FontOptions; boxPadding: Required<PaddingOptions> } | undefined {
+): StyledBarLabelBox | undefined {
     if (resolveStyle == null || styleDatum == null) return undefined;
-    const { font, boxPadding } = resolveStyle(styleDatum, placement, orientation);
+    const { font, boxPadding, hidden } = resolveStyle(styleDatum, placement, orientation);
     const glyph = measureLabelText(text, font);
     return {
         size: {
@@ -496,7 +499,16 @@ export function styledBarLabelBox(
         },
         font,
         boxPadding,
+        hidden: hidden === true,
     };
+}
+
+export interface StyledBarLabelBox {
+    readonly size: { width: number; height: number };
+    readonly font: FontOptions;
+    readonly boxPadding: Required<PaddingOptions>;
+    /** The styler disabled this label, so it must be left out of the label data entirely. */
+    readonly hidden: boolean;
 }
 
 /** The `itemStyler` geometry of one bar-label candidate; see {@link buildBarLabelCandidates}. */

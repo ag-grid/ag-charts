@@ -207,8 +207,6 @@ export interface BubbleScatterNodeDatum extends CartesianSeriesNodeDatum, ErrorB
     readonly fit: LabelFitDescriptor | undefined;
     /** Marker diameter a `marker.itemStyler` resolved; overrides `point.size` for the label's geometry. */
     markerSize?: number;
-    /** Distance from the marker to the label, re-derived whenever a styler resizes the marker. */
-    gap?: number;
     readonly placement: LabelPlacement;
     readonly anchor: Point;
     readonly insideOffset: Point | undefined;

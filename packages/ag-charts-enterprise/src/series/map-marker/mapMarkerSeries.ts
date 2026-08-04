@@ -349,7 +349,9 @@ export class MapMarkerSeries
         labelFit: LabelFit | undefined,
         labelStyle: NormalisedChartLabelStyleOptions & { fontSize: number }
     ): MapMarkerNodeLabelDatum | undefined {
-        if (labelValue == null) return;
+        // A label the styler disabled is left out of the label data, so it reserves no placement space and
+        // acts as no obstacle — hiding it at render time alone would still displace its neighbours.
+        if (labelValue == null || !labelStyle.enabled) return;
 
         const {
             idKey,

@@ -30,6 +30,14 @@ describe('label itemStyler participates in placement', () => {
 
     const visibleLabels = (seriesIndex = 0) => getVisibleLabelNodes(chart, seriesIndex);
 
+    /** What the series hands the placement engine: the labels that reserve space and act as obstacles. */
+    const placementLabelData = (seriesIndex = 0) => {
+        const series = deproxy(chart as any).series[seriesIndex] as unknown as {
+            getLabelData(): unknown[];
+        };
+        return series.getLabelData();
+    };
+
     const render = async (options: object) => {
         prepareTestOptions(options as AgChartOptions);
         chart = AgCharts.create(options as AgChartOptions);
@@ -84,6 +92,27 @@ describe('label itemStyler participates in placement', () => {
     it('keeps a label whose styler leaves it enabled', async () => {
         await render(lineChart({ itemStyler: () => ({ enabled: true }) }));
         expect(visibleLabels().length).toBeGreaterThan(0);
+    });
+
+    /**
+     * Node data is reused across updates, so a marker size the styler resolved on an earlier update must
+     * not outlive it — otherwise labels keep clearing a marker that has reverted to its configured size.
+     */
+    it('drops a styled marker size once the styler stops returning one', async () => {
+        await render(lineChart({}, { itemStyler: () => ({ size: 40 }) }));
+        const styled = visibleLabels().map((node) => node.y);
+        expect(styled.length).toBeGreaterThan(0);
+
+        // Same chart, so the update reuses the node data the first render built.
+        await chart.update(prepareTestOptions(lineChart({}, { itemStyler: () => ({}) }) as any) as AgChartOptions);
+        await waitForChartStability(chart);
+        const reverted = visibleLabels().map((node) => node.y);
+
+        expect(reverted).toHaveLength(styled.length);
+        // Back to the configured 10px marker: a 5px radius instead of 20px, so 15px closer to the point.
+        for (const [index, y] of reverted.entries()) {
+            expect(y).toBeCloseTo(styled[index] + 15, 5);
+        }
     });
 
     it('feeds a marker styler size into the label gap', async () => {
@@ -158,6 +187,36 @@ describe('label itemStyler participates in placement', () => {
                 () => ({})
             );
             expect(drawn.every((nodeLabel) => nodeLabel!.rotation === 0)).toBe(true);
+        });
+
+        /**
+         * The orientation-only route resolves one box up front instead of letting the engine walk
+         * candidates, so nothing downstream would drop a label the styler disabled: it has to be left out
+         * of the label data here, or it reserves space and acts as an obstacle while drawing nothing.
+         *
+         * Reaching that route takes a single placement with several orientations, plus an explicit
+         * `alwaysShow` — an orientation array otherwise makes the label hideable, which routes it through
+         * the cascade instead, where the engine skips hidden candidates itself.
+         */
+        const orientationOnlyChart = (styler: (params: any) => object) =>
+            barChart({
+                placement: 'inside-center',
+                orientation: ['horizontal', 'vertical'],
+                collision: { alwaysShow: true },
+                itemStyler: styler,
+            });
+
+        it('reserves no placement for a disabled label on the orientation-only route', async () => {
+            await render(orientationOnlyChart(() => ({ enabled: false })));
+
+            expect(visibleLabels()).toHaveLength(0);
+            expect(placementLabelData()).toHaveLength(0);
+        });
+
+        it('still reserves placement for an enabled label on the orientation-only route', async () => {
+            await render(orientationOnlyChart(() => ({})));
+
+            expect(placementLabelData().length).toBeGreaterThan(0);
         });
     });
 

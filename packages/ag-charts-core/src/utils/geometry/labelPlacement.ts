@@ -451,14 +451,19 @@ function markerSizeOf(d: PointLabelDatum): number {
  * series that has a marker styler: the cached no-styler style can carry a `hideWithSize0` zero, and
  * honouring that would move labels on existing charts that style nothing.
  */
-export function applyStyledMarkerSize(
-    datum: { markerSize?: number; gap?: number },
-    styledSize: number | undefined
-): void {
-    if (styledSize == null) return;
+export function applyStyledMarkerSize(datum: { markerSize?: number }, styledSize: number | undefined): void {
+    // Assigned even when undefined: label data is reused across updates, so a styler that returned a size
+    // on an earlier update and none now must not leave that size behind.
     datum.markerSize = styledSize;
-    // Node data baked the gap from the configured marker size, so it has to be re-derived here.
-    datum.gap = styledSize > 0 ? styledSize / 2 : DEFAULT_MARKERLESS_LABEL_GAP;
+}
+
+/**
+ * Distance from the marker to its label. A styled marker size supersedes the `gap` node data baked from the
+ * configured size, so nothing has to overwrite that baked value and no stale gap can outlive a styler.
+ */
+function labelGapOf(d: PointLabelDatum): number {
+    if (d.markerSize == null) return d.gap ?? d.point.size / 2;
+    return d.markerSize > 0 ? d.markerSize / 2 : DEFAULT_MARKERLESS_LABEL_GAP;
 }
 
 // Rotation angle (degrees) each orientation renders at, relative to a horizontal baseline:
@@ -1669,7 +1674,7 @@ function tryPlaceLabel(
     const alwaysShow = d.alwaysShow ?? defaults?.alwaysShow ?? true;
     const placements = d.placements ?? defaults?.placements;
     const collideWith = d.collideWith ?? defaults?.collideWith;
-    const gap = d.gap ?? markerSizeOf(d) / 2;
+    const gap = labelGapOf(d);
     const spacing = d.spacing ?? defaults?.spacing ?? padding;
     const threshold = d.threshold ?? defaults?.threshold ?? 0;
 

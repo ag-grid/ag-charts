@@ -1507,6 +1507,9 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             // A cascading label carries pre-positioned candidates; an orientation-only array resolves its
             // orientation against the bar region via the baked path.
             if (labelDatum.candidates == null) {
+                // A label its styler disabled reserves nothing and blocks no neighbour. Only the baked
+                // route needs this; the engine skips hidden candidates on the cascading one itself.
+                if (styled?.hidden === true) continue;
                 data.push(
                     ...buildBarLabelData([labelDatum], () => ({
                         label: labelDatum,

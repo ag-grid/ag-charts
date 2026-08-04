@@ -35,6 +35,12 @@ describe('label itemStyler participates in placement', () => {
 
     const visibleLabels = (seriesIndex = 0) => getVisibleLabelNodes(chart, seriesIndex);
 
+    /** What the series hands the placement engine: the labels that reserve space and act as obstacles. */
+    const placementLabelData = (seriesIndex = 0) => {
+        const series = deproxy(chart as any).series[seriesIndex] as unknown as { getLabelData(): unknown[] };
+        return series.getLabelData();
+    };
+
     describe('range-bar', () => {
         // Bars ~30px deep: an unstyled label fits inside one, a label padded by 20px a side does not.
         const rangeBarChart = (label: object) => ({
@@ -89,6 +95,31 @@ describe('label itemStyler participates in placement', () => {
             await render(rangeBarChart({ itemStyler: () => ({ enabled: false }) }));
             expect(visibleLabels()).toHaveLength(0);
         });
+
+        /**
+         * The orientation-only route bakes the placement rather than letting the engine walk candidates, so
+         * a disabled label has to be left out of the label data here or it reserves space and acts as an
+         * obstacle while drawing nothing. It takes an explicit `alwaysShow`, since an orientation array
+         * otherwise makes the label hideable and routes it through the cascade.
+         */
+        const orientationOnly = (styler: (params: any) => object) =>
+            rangeBarChart({
+                placement: 'inside',
+                orientation: ['horizontal', 'vertical'],
+                collision: { alwaysShow: true },
+                itemStyler: styler,
+            });
+
+        it('reserves no placement for a disabled label on the orientation-only route', async () => {
+            await render(orientationOnly(() => ({ enabled: false })));
+            expect(visibleLabels()).toHaveLength(0);
+            expect(placementLabelData()).toHaveLength(0);
+        });
+
+        it('still reserves placement for an enabled label on the orientation-only route', async () => {
+            await render(orientationOnly(() => ({})));
+            expect(placementLabelData().length).toBeGreaterThan(0);
+        });
     });
 
     describe('range-area', () => {
@@ -133,6 +164,40 @@ describe('label itemStyler participates in placement', () => {
         it('hides a band label its styler disabled', async () => {
             await render(rangeAreaChart({ itemStyler: () => ({ enabled: false }) }));
             expect(visibleLabels()).toHaveLength(0);
+        });
+    });
+
+    /**
+     * Map labels resolve one series-wide style (their styler takes no datum), so a disabled label is known
+     * before the label data is built and must be left out of it — hiding it at render time alone would
+     * leave it reserving placement space and displacing its neighbours.
+     */
+    describe('map-marker', () => {
+        const mapMarkerChart = (label: object) => ({
+            series: [
+                {
+                    type: 'map-marker',
+                    data: [
+                        { name: 'One', lat: 10, lon: 10 },
+                        { name: 'Two', lat: 10.5, lon: 10.5 },
+                    ],
+                    latitudeKey: 'lat',
+                    longitudeKey: 'lon',
+                    labelKey: 'name',
+                    label: { enabled: true, ...label },
+                },
+            ],
+        });
+
+        it('reserves no placement for a label its styler disabled', async () => {
+            await render(mapMarkerChart({ itemStyler: () => ({ enabled: false }) }));
+            expect(visibleLabels()).toHaveLength(0);
+            expect(placementLabelData()).toHaveLength(0);
+        });
+
+        it('still reserves placement for a label its styler leaves enabled', async () => {
+            await render(mapMarkerChart({ itemStyler: () => ({}) }));
+            expect(placementLabelData().length).toBeGreaterThan(0);
         });
     });
 });

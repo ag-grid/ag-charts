@@ -1903,6 +1903,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                       nodeLabel.text
                   )
                 : undefined;
+            // A label its styler disabled reserves nothing and blocks no neighbour.
+            if (styled?.hidden === true) return undefined;
             const fit = nodeLabel == null ? undefined : fitFor(nodeLabel.text);
             return {
                 label: nodeLabel,
