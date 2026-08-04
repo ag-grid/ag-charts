@@ -536,7 +536,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             getLoadingSpinner(
                 ctx.agDocument,
                 this.overlays.loading.getText(ctx.localeManager),
-                ctx.animationManager.defaultDuration
+                ctx.animationManager.defaultDuration,
+                ctx.domManager.styleNonce
             );
         this.overlays.validation.renderer ??= () =>
             getValidationOverlay({
