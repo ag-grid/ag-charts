@@ -456,9 +456,30 @@ register_marketplaces() {
             sed 's/^/[cloud-setup]   /' || true
     done
 
-    local plugin failed=0
+    # Which marketplaces actually exist now, read back from the registry rather
+    # than assumed. settings.json can enable plugins from marketplaces this script
+    # does not add — skill-creator@claude-plugins-official is one — and asking the
+    # CLI to install those just fails and counts as a failure, which then reported
+    # the whole registration step as broken even though every ag-dev plugin landed.
+    local registry="$HOME/.claude/plugins/known_marketplaces.json"
+    local known=""
+    if [[ -f "$registry" ]]; then
+        known="$(node -e '
+            const fs = require("fs");
+            try { console.log(Object.keys(JSON.parse(fs.readFileSync(process.argv[1], "utf8"))).join(" ")); }
+            catch { }
+        ' "$registry" 2>/dev/null)"
+    fi
+
+    local plugin market failed=0 skipped=0
     while read -r plugin; do
         [[ -n "$plugin" ]] || continue
+        market="${plugin##*@}"
+        if [[ "$market" != "$plugin" && -n "$known" && " $known " != *" $market "* ]]; then
+            log_info "skipping ${plugin}: marketplace '${market}' is not registered here"
+            skipped=$((skipped + 1))
+            continue
+        fi
         if ! slice="$(registration_budget 60)"; then
             log_warn "out of setup budget with plugins left to install (${plugin} and any after it)"
             failed=$((failed + 1))
@@ -469,6 +490,7 @@ register_marketplaces() {
             failed=$((failed + 1))
         fi
     done < <(enabled_plugins)
+    ((skipped == 0)) || log_info "skipped ${skipped} plugin(s) from unregistered marketplaces"
 
     local installed
     installed="$(with_timeout 30 claude plugin list 2>/dev/null | grep -c '@' || true)"

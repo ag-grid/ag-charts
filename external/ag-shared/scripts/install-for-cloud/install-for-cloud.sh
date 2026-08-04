@@ -16,6 +16,31 @@ export PUPPETEER_SKIP_DOWNLOAD=true
 log_info() { echo "[install-for-cloud] $*"; }
 log_error() { echo "[install-for-cloud] ERROR: $*" >&2; }
 
+# ---------------------------------------------------------------------------
+# Work in the repository, not in whatever directory the session happens to start
+# in. Everything below — the node_modules restore, the .claude generation, the
+# readiness report — used relative paths, which silently made this hook a no-op in
+# any session with more than one repository attached: the session's cwd is then
+# the parent (/home/user), where there is no package.json, so the script took its
+# "package.json not found" exit before doing anything. Measured in a cloud session
+# with ag-charts + ag-dev-prompts attached: the whole hook did nothing and only
+# the setup script's own work was visible.
+#
+# The script lives at <repo>/external/ag-shared/scripts/install-for-cloud/, so its
+# own location identifies the repo without depending on cwd or on
+# $CLAUDE_PROJECT_DIR (which is unset in those same multi-repo sessions).
+# ---------------------------------------------------------------------------
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../../../.." && pwd)"
+if [[ ! -f "$REPO_ROOT/package.json" && -n "${CLAUDE_PROJECT_DIR:-}" ]]; then
+    REPO_ROOT="$CLAUDE_PROJECT_DIR"
+fi
+if [[ -f "$REPO_ROOT/package.json" && "$PWD" != "$REPO_ROOT" ]]; then
+    log_info "session cwd is ${PWD}; working in ${REPO_ROOT}"
+    cd "$REPO_ROOT"
+fi
+
 # Cache seeded by cloud-setup.sh (the cloud environment's setup script). It lives
 # outside the repo so it survives a re-cloned working tree, and outside $HOME
 # because the setup script runs as root while the session runs as another user —
