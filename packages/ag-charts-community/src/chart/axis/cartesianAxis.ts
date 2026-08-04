@@ -31,11 +31,12 @@ import { ContinuousScale } from '../../scale/continuousScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
 import { BBox } from '../../scene/bbox';
 import { TranslatableGroup } from '../../scene/group';
-import { PointerEvents } from '../../scene/node';
+import { type Node, PointerEvents } from '../../scene/node';
 import { Selection } from '../../scene/selection';
 import { Line } from '../../scene/shape/line';
 import { Rect } from '../../scene/shape/rect';
 import { TransformableText } from '../../scene/shape/text';
+import { Transformable } from '../../scene/transformable';
 import type { AxisPrimaryTickCount } from '../../util/secondaryAxisTicks';
 import { Caption } from '../caption';
 import type { ChartLayout } from '../chartAxis';
@@ -164,6 +165,8 @@ export abstract class CartesianAxis<
     }
 
     readonly crossAxisTranslation: { x: number; y: number } = { x: 0, y: 0 };
+
+    private titleThickness = 0;
 
     minimumTimeGranularity: AgTimeIntervalUnit | undefined = undefined;
 
@@ -536,7 +539,7 @@ export abstract class CartesianAxis<
         super.update();
 
         const { tickLayout } = this;
-        this.updateTitle(this.scale.domain, tickLayout?.spacing ?? 0);
+        this.updateTitle(this.scale.domain, this.resolveTitleSpacing(tickLayout?.spacing ?? 0));
 
         if (!this.animatable) {
             this.moduleCtx.animationManager.skipCurrentBatch();
@@ -565,13 +568,21 @@ export abstract class CartesianAxis<
 
     private getAxisTransform() {
         return {
-            translationX: Math.floor(this.translation.x + this.crossAxisTranslation.x),
-            translationY: Math.floor(this.translation.y + this.crossAxisTranslation.y),
+            completeTransform: {
+                translationX: Math.floor(this.translation.x + this.crossAxisTranslation.x),
+                translationY: Math.floor(this.translation.y + this.crossAxisTranslation.y),
+            },
+            positionOnlyTransform: {
+                translationX: Math.floor(this.translation.x),
+                translationY: Math.floor(this.translation.y),
+            },
         };
     }
 
     protected override getLayoutTranslation(): { x: number; y: number } {
-        const { translationX, translationY } = this.getAxisTransform();
+        const {
+            completeTransform: { translationX, translationY },
+        } = this.getAxisTransform();
         return { x: translationX, y: translationY };
     }
 
@@ -583,11 +594,26 @@ export abstract class CartesianAxis<
     protected override updatePosition(): void {
         super.updatePosition();
 
-        const axisTransform = this.getAxisTransform();
-        this.tickLineGroup.datum = axisTransform;
-        this.tickLabelGroup.datum = axisTransform;
-        this.lineNodeGroup.datum = axisTransform;
-        this.headingLabelGroup.datum = axisTransform;
+        const { completeTransform, positionOnlyTransform } = this.getAxisTransform();
+        this.tickLineGroup.datum = this.options.crossAt?.labelsAtEdge ? positionOnlyTransform : completeTransform;
+        this.tickLabelGroup.datum = this.options.crossAt?.labelsAtEdge ? positionOnlyTransform : completeTransform;
+        this.lineNodeGroup.datum = completeTransform;
+        this.headingLabelGroup.datum = this.options.crossAt?.titleAtEdge ? positionOnlyTransform : completeTransform;
+    }
+
+    protected override getCanvasBounds(): BBox {
+        const { crossAt } = this.options;
+        const labelsAtEdge = crossAt?.labelsAtEdge === true;
+
+        if (!labelsAtEdge && crossAt?.titleAtEdge !== true) return super.getCanvasBounds();
+
+        // Interaction follows the ticks and labels, so a group drawn at the other location is left out
+        // instead of merged in — everything between the two belongs to the series.
+        const groups: Node[] = [this.tickLineGroup, this.tickLabelGroup];
+        if (!labelsAtEdge) groups.push(this.lineNodeGroup);
+        if (this.titleRendersWithLabels()) groups.push(this.headingLabelGroup);
+
+        return BBox.merge(groups.map((group) => Transformable.toCanvas(group)));
     }
 
     setAxisVisible(visible: boolean) {
@@ -786,12 +812,43 @@ export abstract class CartesianAxis<
         this.layout.labelThickness = labelThickness;
         this.layout.scrollbar = scrollbarLayout;
 
+        this.titleThickness = 0;
         if (title.enabled) {
-            boxes.push(this.titleBBox(domain, spacing));
+            const titleBox = this.titleBBox(domain, this.resolveTitleSpacing(spacing));
+            boxes.push(titleBox);
+
+            const titleExtent = BBox.merge([this.lineNodeBBox(), titleBox]);
+            this.titleThickness = horizontal ? titleExtent.height : titleExtent.width;
         }
 
         const bbox = BBox.merge(boxes);
         return { bbox, spacing };
+    }
+
+    /** The title and labels render in the same place unless exactly one of them is at the edge. */
+    private titleRendersWithLabels() {
+        const { crossAt } = this.options;
+        return (crossAt?.titleAtEdge === true) === (crossAt?.labelsAtEdge === true);
+    }
+
+    /** The title only has to clear the labels when both render in the same place. */
+    private resolveTitleSpacing(spacing: number) {
+        return this.titleRendersWithLabels() ? spacing : 0;
+    }
+
+    /** Thickness occupied at the `position` edge and at the crossing point, which `crossAt` can split apart. */
+    getCrossAtThicknesses(): { atEdge: number; atCrossing: number } {
+        const { crossAt } = this.options;
+        const titleAtEdge = crossAt?.titleAtEdge === true;
+        const labelsAtEdge = crossAt?.labelsAtEdge === true;
+
+        const title = this.titleThickness;
+        const labels = this.layout.labelThickness ?? 0;
+
+        return {
+            atEdge: Math.max(titleAtEdge ? title : 0, labelsAtEdge ? labels : 0),
+            atCrossing: Math.max(titleAtEdge ? 0 : title, labelsAtEdge ? 0 : labels),
+        };
     }
 
     protected titleProps(caption: Caption, domain: D[], spacing: number) {

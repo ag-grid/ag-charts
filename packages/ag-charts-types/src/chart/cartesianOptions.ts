@@ -69,6 +69,18 @@ export interface AgCartesianAxisCrossAt {
      * Default: `true`
      */
     sticky?: boolean;
+    /**
+     * Whether the axis title should ignore the crossAt and be placed at the default edge.
+     *
+     * Default: `false`
+     */
+    titleAtEdge?: boolean;
+    /**
+     * Whether the axis labels should ignore the crossAt and be placed at the default edge.
+     *
+     * Default: `false`
+     */
+    labelsAtEdge?: boolean;
 }
 
 export interface AgTimeAxisParentLevel<TContext = ContextDefault> {

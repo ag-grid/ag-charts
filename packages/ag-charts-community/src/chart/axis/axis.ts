@@ -1079,6 +1079,11 @@ export abstract class Axis<
         return this.axisGroup.getBBox();
     }
 
+    /** Canvas bounds of the area that pointer interactions treat as this axis. */
+    protected getCanvasBounds(): BBox {
+        return Transformable.toCanvas(this.axisGroup);
+    }
+
     hasVisibleSeries() {
         return this.boundSeries.some((s) => s.isEnabled());
     }
@@ -1193,9 +1198,7 @@ export abstract class Axis<
             },
             hasDefinedDomain: () => this.hasDefinedDomain(),
             hasVisibleSeries: () => this.hasVisibleSeries(),
-            getCanvasBounds: () => {
-                return Transformable.toCanvas(this.axisGroup);
-            },
+            getCanvasBounds: () => this.getCanvasBounds(),
             seriesKeyProperties: () =>
                 this.boundSeries.reduce((keys, series) => {
                     const seriesKeys = series.getKeyProperties(this.direction);
