@@ -1396,9 +1396,8 @@ describe('OrganizationSeries', () => {
             const nodeData = series.contextNodeData.nodeData;
             const cfoVertex = series.graph.findVertexById('cfo');
 
-            // The node-selection and graph datumIndex spaces only diverge when depth-first render
-            // order differs from data order; pin that they do, so reordering the fixture breaks
-            // loudly instead of silently voiding the visibility assertions below.
+            // Node-selection order and graph datumIndex only diverge when render order differs from data
+            // order; pin the divergence so a reordered fixture fails loudly instead of silently passing.
             expect(nodeData.map((d: any) => d.itemId)).toEqual(['ceo', 'cto', 'dev', 'qa', 'cfo', 'acc']);
             expect(series.getNodeDatumIndex(cfoVertex)).toBe(4);
             expect(series.graph.findNeighbourValue(cfoVertex, 'datumIndex')).toBe(2);
