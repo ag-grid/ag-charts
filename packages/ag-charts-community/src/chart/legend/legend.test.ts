@@ -1017,10 +1017,10 @@ describe('Legend', () => {
             updateTooltip.mockClear();
             removeTooltip.mockClear();
 
-            // ZoomDrag is written directly because isState() compares only the lowest set bit of the
-            // state queue, so the guard is observable only while no higher-priority state (notably
-            // Animation, queued by every in-flight batch) is present — a window a real zoom drag
-            // cannot guarantee, since the zoom it performs schedules that very animation.
+            // ZoomDrag is written directly to pin the guard itself, without a zoom module: isState()
+            // compares only the lowest set bit of the state queue, so the guard is observable only
+            // while no higher-priority state (notably Animation) is queued. The equivalent test over
+            // a real series-area drag lives in ag-charts-enterprise zoom.test.ts.
             interactionManager.pushState(InteractionState.ZoomDrag);
             expect(interactionManager.isState(InteractionState.ZoomDrag)).toBe(true);
 
