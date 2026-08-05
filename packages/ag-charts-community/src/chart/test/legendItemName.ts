@@ -1,7 +1,7 @@
-import { Caster } from '_ag-charts-test';
 import { beforeEach, describe, expect, test } from 'vitest';
 
 import { deepClone } from 'ag-charts-core';
+import { Caster } from 'ag-charts-test';
 import { type AgChartInstance, type AgChartOptions } from 'ag-charts-types';
 
 import { expectWarningMessages, resetMockConsole, waitForChartStability } from './utils';

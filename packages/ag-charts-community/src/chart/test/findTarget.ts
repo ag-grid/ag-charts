@@ -1,6 +1,5 @@
-import { CANVAS_HEIGHT, CANVAS_WIDTH, Caster, type MockEvent, makeMockEvent } from '_ag-charts-test';
-
 import { boxContains } from 'ag-charts-core';
+import { CANVAS_HEIGHT, CANVAS_WIDTH, Caster, type MockEvent, makeMockEvent } from 'ag-charts-test';
 
 import { BBox } from '../../scene/bbox';
 import { TranslatableGroup } from '../../scene/group';

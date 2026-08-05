@@ -1,5 +1,6 @@
-import { testLogger } from '_ag-charts-test';
 import { describe, expect, it } from 'vitest';
+
+import { testLogger } from 'ag-charts-test';
 
 import { DataController } from './dataController';
 import type { DataModelOptions, DatumPropertyDefinition } from './dataModel';

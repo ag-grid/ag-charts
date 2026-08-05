@@ -1,7 +1,7 @@
-import { testLogger } from '_ag-charts-test';
 import { describe, expect, test } from 'vitest';
 
 import { discreteColorStops, resolveStopPositions } from 'ag-charts-core';
+import { testLogger } from 'ag-charts-test';
 
 import { buildGradientLegendDatum } from '../../chart/legend/legendDatum';
 import { ColorScale } from '../../scale/colorScale';

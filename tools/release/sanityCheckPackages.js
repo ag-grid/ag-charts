@@ -31,9 +31,9 @@ packageNames
     .filter(
         (packageName) =>
             packageName != 'ag-shared' &&
-            packageName !== '_ag-charts-community-examples' &&
-            packageName !== '_ag-charts-website' &&
-            packageName !== '_ag-charts-task-autogen'
+            packageName !== 'ag-charts-community-examples' &&
+            packageName !== 'ag-charts-website' &&
+            packageName !== 'ag-charts-task-autogen'
     )
     .forEach((packageName) => {
         const agPackage = allPackages[packageName];
@@ -58,10 +58,10 @@ packageNames
             }
         }
 
-        checkDependency(packageName, version, chartNewVersion);
-        // Object.keys(agPackage.agGridDeps).forEach((dependencyName) =>
-        //     checkDependency(dependencyName, agGridDeps[dependencyName], gridNewVersion)
-        // );
+        checkDependency(packageName, version, isGridPackage ? gridNewVersion : chartNewVersion);
+        Object.keys(agPackage.agGridDeps).forEach((dependencyName) =>
+            checkDependency(dependencyName, agGridDeps[dependencyName], gridNewVersion)
+        );
         Object.keys(agPackage.agGridPeerDeps).forEach((dependencyName) =>
             checkDependency(dependencyName, agPackage.agGridPeerDeps[dependencyName], gridNewVersion)
         );
@@ -70,7 +70,7 @@ packageNames
         );
 
         if (agSubAngularVersion) {
-            checkDependency(packageName, agSubAngularVersion, chartNewVersion);
+            checkDependency(packageName, agSubAngularVersion, isGridPackage ? gridNewVersion : chartNewVersion);
         }
 
         if (agSubAngularGridDeps) {

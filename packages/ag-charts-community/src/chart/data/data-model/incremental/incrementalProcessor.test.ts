@@ -1,5 +1,6 @@
-import { testLogger } from '_ag-charts-test';
 import { describe, expect, it } from 'vitest';
+
+import { testLogger } from 'ag-charts-test';
 
 import { expectWarningsCalls, setupMockConsole } from '../../../test/utils';
 import type { GroupedData } from '../../dataModel';

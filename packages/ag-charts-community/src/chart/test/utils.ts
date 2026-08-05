@@ -1,3 +1,9 @@
+import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
+import { mkdirSync, writeFileSync } from 'node:fs';
+import * as path from 'node:path';
+import { afterEach, beforeEach, expect, vi } from 'vitest';
+
+import { fromPairs, getDocument, mapValues } from 'ag-charts-core';
 import {
     CANVAS_HEIGHT,
     CANVAS_WIDTH,
@@ -22,13 +28,7 @@ import {
     touchAverage,
     touchEvent,
     wheelEvent,
-} from '_ag-charts-test';
-import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
-import { mkdirSync, writeFileSync } from 'node:fs';
-import * as path from 'node:path';
-import { afterEach, beforeEach, expect, vi } from 'vitest';
-
-import { fromPairs, getDocument, mapValues } from 'ag-charts-core';
+} from 'ag-charts-test';
 import type {
     AgCartesianChartOptions,
     AgChartInstance,
@@ -63,7 +63,7 @@ export {
     flattenPathPolylines,
     sampleSerializedRoots,
     sceneSampleToJSON,
-} from '_ag-charts-test';
+} from 'ag-charts-test';
 
 export type ChartOrProxy<
     O extends AgChartOptions | AgGaugeOptions | AgFinancialChartOptions | AgSparklineOptions = AgChartOptions,
@@ -2050,5 +2050,5 @@ export function withPreventDefault<E>(partial: Omit<E, 'preventDefault'> & { pre
     });
 }
 
-export { toMatchImage } from '_ag-charts-test';
+export { toMatchImage } from 'ag-charts-test';
 export { CANVAS_TO_BUFFER_DEFAULTS, extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';
