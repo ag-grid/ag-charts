@@ -58,6 +58,12 @@ interface WindowSizes {
     y: number;
 }
 
+/** An inclusive range of zoom ratios on one axis. */
+interface Span {
+    min: number;
+    max: number;
+}
+
 interface PaddedBounds {
     x: number;
     y: number;
@@ -82,6 +88,30 @@ function samePaddedBounds(a: PaddedBounds, b: PaddedBounds) {
 function centredZoomWindow(ratio: number, size: number, limit: number) {
     const mid = clampMid(ratio, size, limit);
     return { min: mid - size / 2, max: mid + size / 2 };
+}
+
+// Zoom publishes y-up ratios while the scene renders y-down.
+function toRatio(bounds: PaddedBounds, x: number, y: number) {
+    return { x: (x - bounds.x) / bounds.width, y: 1 - (y - bounds.y) / bounds.height };
+}
+
+/**
+ * Positions a window of `size` to contain `span`, moving `mid` as little as possible and leaving it
+ * where it is once the span already fits inside. A span wider than the window cannot be contained at
+ * all, so it is centred instead — the closest thing to fully visible available.
+ */
+function revealingZoomWindow(span: Span, mid: number, size: number, limit: number) {
+    let target = mid;
+
+    if (span.max - span.min > size) {
+        target = (span.min + span.max) / 2;
+    } else if (span.min < mid - size / 2) {
+        target = span.min + size / 2;
+    } else if (span.max > mid + size / 2) {
+        target = span.max - size / 2;
+    }
+
+    return centredZoomWindow(target, size, limit);
 }
 
 /**
@@ -143,10 +173,15 @@ export abstract class AbstractNetworkSeries<
     // same ratios mean a different scale and position, which is what this allows us to correct.
     private zoomedPaddedBounds?: PaddedBounds;
 
-    // What the next update should centre. Starts as the content so the chart opens showing all of
-    // itself, and is only set to an item when one is explicitly requested. Consumed once applied,
-    // which is what stops later updates from re-centring.
-    private pendingView?: { itemId: NetworkSeriesVertexID };
+    // What the next update should bring into view, and how: `centre` puts the item at the middle of
+    // the viewport, `reveal` only pans far enough to stop it being clipped. Absent, the chart opens
+    // showing all of its content. Consumed once applied, which is what stops later updates re-panning.
+    private pendingView?: {
+        itemId: NetworkSeriesVertexID;
+        intent: 'centre' | 'reveal';
+        /** Where in the viewport the item sat before the layout changed; a reveal holds it there. */
+        anchor?: { x: number; y: number };
+    };
     private hasCentredContent = false;
 
     constructor(ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
@@ -201,8 +236,8 @@ export abstract class AbstractNetworkSeries<
     abstract isVertexCollapsed(vertex: Vertex<TVertex, TEdge>): boolean;
 
     abstract expandNetworkToItem(itemId: NetworkSeriesVertexID, source: AgCollapsedChangeEventSource): void;
-    abstract expandItem(itemId: NetworkSeriesVertexID, source: AgCollapsedChangeEventSource): void;
-    abstract collapseItem(itemId: NetworkSeriesVertexID, source: AgCollapsedChangeEventSource): void;
+    abstract expandItem(itemId: NetworkSeriesVertexID, source: AgCollapsedChangeEventSource): boolean;
+    abstract collapseItem(itemId: NetworkSeriesVertexID, source: AgCollapsedChangeEventSource): boolean;
 
     dataCount() {
         return this.datumSelection.length;
@@ -361,7 +396,36 @@ export abstract class AbstractNetworkSeries<
 
     private centreItem(itemId: NetworkSeriesVertexID | undefined) {
         if (itemId == null) return;
-        this.pendingView = { itemId };
+        this.pendingView = { itemId, intent: 'centre' };
+    }
+
+    /**
+     * Called before the layout that a toggle triggers, so the item's current place in the viewport can
+     * be recorded. Holding that place across the reflow is what stops an already-visible item moving.
+     */
+    private revealItem(itemId: NetworkSeriesVertexID | undefined) {
+        if (itemId == null) return;
+        this.pendingView = { itemId, intent: 'reveal', anchor: this.getViewportAnchor(itemId) };
+    }
+
+    /** Where in the viewport an item sits, as a `[0, 1]` fraction of the window on each axis. */
+    private getViewportAnchor(itemId: NetworkSeriesVertexID) {
+        const padded = this.getPaddedContentBounds();
+        const vertex = this.graph.findVertexById(itemId);
+        if (!padded || !vertex) return;
+
+        const span = this.getVertexRatioSpan(vertex, padded);
+        if (!span) return;
+
+        const zoom = definedZoomState(this.ctx.chartState.getValue('zoom'));
+        const xSize = zoom.x.max - zoom.x.min;
+        const ySize = zoom.y.max - zoom.y.min;
+        if (xSize <= 0 || ySize <= 0) return;
+
+        return {
+            x: ((span.x.min + span.x.max) / 2 - zoom.x.min) / xSize,
+            y: ((span.y.min + span.y.max) / 2 - zoom.y.min) / ySize,
+        };
     }
 
     /**
@@ -449,63 +513,127 @@ export abstract class AbstractNetworkSeries<
         return Vec2.from(-left * scaling + slackX / 2, -top * scaling + slackY / 2);
     }
 
-    // ZoomManager's `panToBBox()` only brings the bbox into view, whereas this must end up at the
-    // centre of the viewport.
-    private getCentringZoom(): DefinedZoomState | undefined {
-        const bounds = this.getPendingViewBounds();
+    /**
+     * The view the next update settles on: a requested item brought into view, or failing that the
+     * point the current window already addresses, held in place. Expanding or collapsing changes the
+     * content bounds, and so what a given ratio points at, so every case re-derives the ratios rather
+     * than letting the view silently rescale and drift.
+     */
+    private getUpdatedZoom(): DefinedZoomState | undefined {
         const padded = this.getPaddedContentBounds();
-        if (!bounds || !padded) return;
-
-        const zoom = definedZoomState(this.ctx.chartState.getValue('zoom'));
+        if (!padded) return;
 
         // Sized here rather than left to `constrainZoomWindow`, which would re-derive the window from
-        // its midpoint and so discard the centring.
-        const sizes = this.getSharedScaleWindowSizes(zoom.x.max - zoom.x.min, zoom.y.max - zoom.y.min);
+        // its midpoint and so discard the pan.
+        const sizes = this.getHeldScaleWindowSizes();
         if (!sizes) return;
 
-        const xRatio = (bounds.x + bounds.width / 2 - padded.x) / padded.width;
-        // Zoom publishes y-up ratios while the scene renders y-down.
-        const yRatio = 1 - (bounds.y + bounds.height / 2 - padded.y) / padded.height;
+        const held = this.getHeldViewCentre(padded);
+
+        const reveal = this.getRevealSpan(padded);
+        if (reveal) {
+            // Anchoring the item where it already sat is what keeps a visible one still: the reflow
+            // moves it in content space, and this puts that movement back. Only an item that was
+            // already clipped is then panned, and only as far as it takes to show it.
+            const from = this.getAnchoredCentre(reveal, sizes) ?? held ?? this.getWindowCentre();
+
+            return {
+                x: revealingZoomWindow(reveal.x, from.x, sizes.x, padded.limitX),
+                y: revealingZoomWindow(reveal.y, from.y, sizes.y, padded.limitY),
+            };
+        }
+
+        const centre = this.getPendingViewCentre(padded) ?? held;
+        if (!centre) return;
 
         return {
-            x: centredZoomWindow(xRatio, sizes.x, padded.limitX),
-            y: centredZoomWindow(yRatio, sizes.y, padded.limitY),
+            x: centredZoomWindow(centre.x, sizes.x, padded.limitX),
+            y: centredZoomWindow(centre.y, sizes.y, padded.limitY),
         };
     }
 
-    /**
-     * Expanding or collapsing changes the content bounds, and so what a given ratio points at. Left
-     * alone the view would silently rescale and drift, so the ratios are re-derived to hold the scale
-     * and the centre of the viewport where they were.
-     */
-    private getContentChangeZoom(): DefinedZoomState | undefined {
-        const previous = this.zoomedPaddedBounds;
-        const padded = this.getPaddedContentBounds();
-        if (!previous || !padded || samePaddedBounds(previous, padded)) return;
+    // ZoomManager's `panToBBox()` only brings the bbox into view, whereas a centring request must end
+    // up at the middle of the viewport.
+    private getPendingViewCentre(padded: PaddedBounds) {
+        if (this.pendingView?.intent === 'reveal') return;
 
-        const previousFit = this.getBoundsFit(previous);
-        const fit = this.getBoundsFit(padded);
-        if (!previousFit || !fit) return;
+        const bounds = this.getPendingViewBounds();
+        if (!bounds) return;
+
+        return toRatio(padded, bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
+    }
+
+    /** The ratios an interacted item spans, which a reveal has to bring wholly inside the window. */
+    private getRevealSpan(padded: PaddedBounds) {
+        if (this.pendingView?.intent !== 'reveal') return;
+
+        const vertex = this.getPendingVertex();
+        if (!vertex) return;
+
+        return this.getVertexRatioSpan(vertex, padded);
+    }
+
+    private getVertexRatioSpan(vertex: Vertex<TVertex, TEdge>, padded: PaddedBounds): { x: Span; y: Span } | undefined {
+        const bounds = this.layout.getNodeBBox(vertex);
+        if (!bounds) return;
+
+        // Ratios run y-up, so the bbox's lower scene edge is the smaller of the two.
+        const lower = toRatio(padded, bounds.x, bounds.y + bounds.height);
+        const upper = toRatio(padded, bounds.x + bounds.width, bounds.y);
+
+        return { x: { min: lower.x, max: upper.x }, y: { min: lower.y, max: upper.y } };
+    }
+
+    /** Window centre that puts the item back at the viewport fraction it occupied before the reflow. */
+    private getAnchoredCentre(span: { x: Span; y: Span }, sizes: WindowSizes) {
+        const { anchor } = this.pendingView ?? {};
+        if (!anchor) return;
+
+        return {
+            x: (span.x.min + span.x.max) / 2 + sizes.x * (0.5 - anchor.x),
+            y: (span.y.min + span.y.max) / 2 + sizes.y * (0.5 - anchor.y),
+        };
+    }
+
+    private getWindowCentre() {
+        const zoom = definedZoomState(this.ctx.chartState.getValue('zoom'));
+
+        return { x: (zoom.x.min + zoom.x.max) / 2, y: (zoom.y.min + zoom.y.max) / 2 };
+    }
+
+    /** The point the current window centre addresses, once the content bounds have moved under it. */
+    private getHeldViewCentre(padded: PaddedBounds) {
+        const previous = this.zoomedPaddedBounds;
+        if (!previous || samePaddedBounds(previous, padded)) return;
+
+        const zoom = definedZoomState(this.ctx.chartState.getValue('zoom'));
+
+        // Read against the bounds the ratios came from, otherwise the reference point moves too.
+        return toRatio(
+            padded,
+            previous.x + ((zoom.x.min + zoom.x.max) / 2) * previous.width,
+            previous.y + (1 - (zoom.y.min + zoom.y.max) / 2) * previous.height
+        );
+    }
+
+    /**
+     * Window sizes holding the current scale. The scale is read against the bounds the current ratios
+     * were derived from, which a content change leaves behind.
+     */
+    private getHeldScaleWindowSizes() {
+        const fit = this.getContentFit();
+        if (!fit) return;
 
         const zoom = definedZoomState(this.ctx.chartState.getValue('zoom'));
         const xSize = zoom.x.max - zoom.x.min;
         const ySize = zoom.y.max - zoom.y.min;
         if (xSize <= 0 || ySize <= 0) return;
 
-        // Read against the bounds the ratios came from, otherwise the reference point moves too.
-        const centreX = previous.x + ((zoom.x.min + zoom.x.max) / 2) * previous.width;
-        const centreY = previous.y + (1 - (zoom.y.min + zoom.y.max) / 2) * previous.height;
+        const previous = this.zoomedPaddedBounds;
+        const scaleFit = (previous ? this.getBoundsFit(previous) : undefined) ?? fit;
+        const scale = this.constrainScale(Math.min(scaleFit.x / xSize, scaleFit.y / ySize));
 
-        const scale = this.constrainScale(Math.min(previousFit.x / xSize, previousFit.y / ySize));
-        const sizes = this.getWindowSizesForScale(fit, scale);
-
-        const ratioX = (centreX - padded.x) / padded.width;
-        const ratioY = 1 - (centreY - padded.y) / padded.height;
-
-        return {
-            x: centredZoomWindow(ratioX, sizes.x, padded.limitX),
-            y: centredZoomWindow(ratioY, sizes.y, padded.limitY),
-        };
+        return this.getWindowSizesForScale(fit, scale);
     }
 
     private getPendingViewBounds() {
@@ -536,7 +664,7 @@ export abstract class AbstractNetworkSeries<
     }
 
     private onUpdateComplete() {
-        const zoom = this.getCentringZoom() ?? this.getContentChangeZoom();
+        const zoom = this.getUpdatedZoom();
         if (!zoom) return;
 
         // Only spent once the requested item actually resolved, so an unresolvable one is retried.
@@ -566,10 +694,13 @@ export abstract class AbstractNetworkSeries<
         ) {
             return;
         }
-        if (this.ctx.collapsedManager.isCollapsed(clickedNode.itemId)) {
-            this.expandItem(clickedNode.itemId, 'user-interaction');
-        } else {
-            this.collapseItem(clickedNode.itemId, 'user-interaction');
+        const changed = this.ctx.collapsedManager.isCollapsed(clickedNode.itemId)
+            ? this.expandItem(clickedNode.itemId, 'user-interaction')
+            : this.collapseItem(clickedNode.itemId, 'user-interaction');
+
+        // A prevented toggle leaves the layout alone, so there is nothing to pan away from.
+        if (changed) {
+            this.revealItem(clickedNode.itemId);
         }
     }
 
@@ -577,7 +708,9 @@ export abstract class AbstractNetworkSeries<
         const { nodeDatum, widgetEvent } = event;
         if (nodeDatum.itemId == null || nodeDatum.series !== this) return;
         widgetEvent.sourceEvent.preventDefault();
-        this.expandItem(nodeDatum.itemId, 'user-interaction');
+        if (this.expandItem(nodeDatum.itemId, 'user-interaction')) {
+            this.revealItem(nodeDatum.itemId);
+        }
         this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.PERFORM_LAYOUT });
     }
 
@@ -585,7 +718,9 @@ export abstract class AbstractNetworkSeries<
         const { nodeDatum, widgetEvent } = event;
         if (nodeDatum.itemId == null || nodeDatum.series !== this) return;
         widgetEvent.sourceEvent.preventDefault();
-        this.collapseItem(nodeDatum.itemId, 'user-interaction');
+        if (this.collapseItem(nodeDatum.itemId, 'user-interaction')) {
+            this.revealItem(nodeDatum.itemId);
+        }
         this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.PERFORM_LAYOUT });
     }
 

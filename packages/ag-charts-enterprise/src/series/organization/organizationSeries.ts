@@ -340,20 +340,24 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
     expandItem(itemId: OrganizationVertexID, source: AgCollapsedChangeEventSource) {
         const id = this.resolveItemId(itemId);
-        if (id == null) return;
+        if (id == null) return false;
 
-        if (this.ctx.collapsedManager.expand([id], this.id, source)) {
+        const changed = this.ctx.collapsedManager.expand([id], this.id, source);
+        if (changed) {
             this.markNodeDataDirty();
         }
+        return changed;
     }
 
     collapseItem(itemId: OrganizationVertexID, source: AgCollapsedChangeEventSource) {
         const id = this.resolveItemId(itemId);
-        if (id == null) return;
+        if (id == null) return false;
 
-        if (this.ctx.collapsedManager.collapseAppend([id], this.id, source)) {
+        const changed = this.ctx.collapsedManager.collapseAppend([id], this.id, source);
+        if (changed) {
             this.markNodeDataDirty();
         }
+        return changed;
     }
 
     private isExpanderTarget(target: _ModuleSupport.Node<unknown> | undefined): boolean {
