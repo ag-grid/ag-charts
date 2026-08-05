@@ -4,7 +4,15 @@ import type { AgInitialFocus } from 'ag-charts-types';
 
 import { expect, test } from './fixture';
 import { expectChartScreenshot } from './scene-capture';
-import { SELECTORS, gotoExample, repeat, setupIntrinsicAssertions, toExamplePageUrl, toExamplePageUrls } from './util';
+import {
+    SELECTORS,
+    gotoExample,
+    readSwapchainText,
+    repeat,
+    setupIntrinsicAssertions,
+    toExamplePageUrl,
+    toExamplePageUrls,
+} from './util';
 
 test.describe('keyboard-nav', () => {
     setupIntrinsicAssertions(test);
@@ -355,6 +363,60 @@ test.describe('keyboard-nav', () => {
             await page.keyboard.press('ArrowRight');
         }
         await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), `sankey-link-highlight.png`);
+    });
+
+    const flowProportionExamples = [
+        { series: 'sankey', docsPage: 'sankey-series', example: 'simple-sankey', nodeCount: 11, linkCount: 10 },
+        { series: 'chord', docsPage: 'chord-series', example: 'simple-chord', nodeCount: 5, linkCount: 18 },
+    ];
+
+    test.describe('AG-18074 flow-series sibling focus movement', () => {
+        for (const { series, docsPage, example, nodeCount, linkCount } of flowProportionExamples) {
+            test.describe(series, () => {
+                test.beforeEach(async ({ page }) => {
+                    const { url } = toExamplePageUrl(docsPage, example, 'vanilla');
+
+                    await gotoExample(page, url);
+
+                    await page.locator(SELECTORS.canvasCenter).first().click();
+                    // Clamps focus onto the first node, so press counts below are relative to a known origin.
+                    await page.keyboard.press('ArrowLeft');
+                });
+
+                test('sibling ArrowRight moves focus', async ({ page }) => {
+                    const nodeAnnouncement = new RegExp(`^node \\d+ of ${nodeCount}`);
+                    let previous: string | null = null;
+
+                    // One short of the node count, so every press stays inside the node ring.
+                    await repeat(nodeCount - 1, async () => {
+                        await page.keyboard.press('ArrowRight');
+
+                        const announcement = await readSwapchainText(page);
+                        expect(announcement).toMatch(nodeAnnouncement);
+                        // Announcements only fire on a change, so a repeat means focus did not move.
+                        expect(announcement).not.toBe(previous);
+                        previous = announcement;
+                    });
+                });
+
+                test('depth keys are inert', async ({ page }) => {
+                    await page.keyboard.press('ArrowRight');
+                    const announcement = await readSwapchainText(page);
+
+                    await page.keyboard.press('ArrowDown');
+                    expect(await readSwapchainText(page)).toBe(announcement);
+
+                    await page.keyboard.press('ArrowUp');
+                    expect(await readSwapchainText(page)).toBe(announcement);
+                });
+
+                test('crossing the last node announces a link', async ({ page }) => {
+                    await repeat(nodeCount, async () => await page.keyboard.press('ArrowRight'));
+
+                    expect(await readSwapchainText(page)).toMatch(new RegExp(`^link \\d+ of ${linkCount}`));
+                });
+            });
+        }
     });
 
     test('gauge chart', async ({ page }) => {
