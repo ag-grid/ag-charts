@@ -6,13 +6,16 @@ import {
     Padding,
     Property,
     ProxyPropertyOnWrite,
+    type SeriesAreaPluginModuleInstance,
     ZIndexMap,
 } from 'ag-charts-core';
 
 import type { LayoutCompleteEvent } from '../../core/eventsHub';
-import type { ChartRegistry } from '../../module/moduleContext';
+import type { ChartRegistry, ChartSeriesAreaRegistry } from '../../module/moduleContext';
+import { ModuleMap } from '../../module/moduleMap';
 import { Group } from '../../scene/group';
 import { Rect } from '../../scene/shape/rect';
+import type { BackgroundRegion } from '../background-regions/backgroundRegion';
 
 export class SeriesArea extends BaseProperties {
     protected readonly node: Group;
@@ -33,6 +36,9 @@ export class SeriesArea extends BaseProperties {
 
     protected readonly cleanup = new CleanupRegistry();
 
+    private readonly moduleMap = new ModuleMap<SeriesAreaPluginModuleInstance>();
+    private moduleContext?: DynamicContext<ChartSeriesAreaRegistry>;
+
     constructor(protected readonly ctx: DynamicContext<ChartRegistry>) {
         super();
 
@@ -47,11 +53,11 @@ export class SeriesArea extends BaseProperties {
         );
     }
 
-    public destroy() {
+    destroy() {
         this.cleanup.flush();
     }
 
-    public getPadding() {
+    getPadding() {
         const { border, padding } = this;
         const strokeWidth = border.enabled ? border.strokeWidth : 0;
         return {
@@ -60,6 +66,15 @@ export class SeriesArea extends BaseProperties {
             bottom: padding.bottom + strokeWidth,
             left: padding.left + strokeWidth,
         };
+    }
+
+    getModuleMap() {
+        return this.moduleMap;
+    }
+
+    createModuleContext() {
+        this.moduleContext ??= this.ctx.child<{ backgroundRegion: BackgroundRegion }>();
+        return this.moduleContext;
     }
 
     protected createNode() {

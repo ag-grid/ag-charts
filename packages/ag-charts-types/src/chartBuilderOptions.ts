@@ -1,6 +1,6 @@
 /* eslint-disable sonarjs/class-name */
 import type { AgInitialStateOptions } from './api/initialStateOptions';
-import type { AgBaseCartesianChartOptions } from './chart/cartesianOptions';
+import type { AgBaseCartesianChartOptions, AgCartesianSeriesAreaOptions } from './chart/cartesianOptions';
 import type { AgBaseChartOptions } from './chart/chartOptions';
 import type { AgDataTransaction } from './chart/dataTransaction';
 import type { AgSelectionItem, AgSelectionItemIds } from './chart/eventOptions';
@@ -36,6 +36,8 @@ export interface AgCartesianChartOptions<TDatum = DatumDefault, TContext = Conte
      * See: [Themes Reference](/themes-api/)
      */
     theme?: AgChartTheme<TDatum, TContext> | AgChartThemeName;
+    /** Configuration relating to the series area. */
+    seriesArea?: AgCartesianSeriesAreaOptions;
 }
 
 export interface AgPolarChartOptions<TDatum = DatumDefault, TContext = ContextDefault>

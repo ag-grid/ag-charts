@@ -1,4 +1,9 @@
-import type { CanvasPoint, DynamicContext, NormalisedTextOrSegments } from 'ag-charts-core';
+import type {
+    CanvasPoint,
+    DynamicContext,
+    NormalisedTextOrSegments,
+    SeriesAreaPluginModuleInstance,
+} from 'ag-charts-core';
 import {
     ActionOnSet,
     AgDocument,
@@ -1799,7 +1804,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         // their initial options via chartState from construction.
         this.ctx.chartState.setValue('options', newChartOptions.processedOptions as unknown as ChartState['options']);
 
-        const modulesChanged = this.applyModules();
+        const modulesChanged = this.applyModules(newOpts);
 
         // Needs to be done before applying the series to detect if a seriesNode[Double]Click listener has been added
         if ('listeners' in deltaOptions) {
@@ -2062,7 +2067,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         }
     }
 
-    private applyModules() {
+    private applyModules(options: AgChartOptions) {
         const { type: chartType } = this.constructor as any;
 
         let modulesChanged = false;
@@ -2086,7 +2091,40 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             modulesChanged = true;
         }
 
+        this.applySeriesAreaModules(options, chartType);
+
         return modulesChanged;
+    }
+
+    private applySeriesAreaModules(options: AgChartOptions, chartType: any) {
+        if (options.seriesArea == null) return;
+
+        const seriesAreaModuleContext = this.seriesArea.createModuleContext();
+        const seriesAreaModuleMap = this.seriesArea.getModuleMap();
+
+        for (const module of ModuleRegistry.listModulesByType(ModuleType.SeriesAreaPlugin)) {
+            if (module.chartType && module.chartType !== chartType) continue;
+
+            const optionsKey = module.optionsKey ?? module.name;
+            const pluginOpts = (options.seriesArea as any)[optionsKey];
+            const shouldBeEnabled = pluginOpts != null;
+            const isEnabled = seriesAreaModuleMap.isEnabled(module.name);
+
+            if (!shouldBeEnabled) {
+                if (isEnabled) {
+                    seriesAreaModuleMap.removeModule(module.name);
+                }
+                continue;
+            }
+
+            if (!isEnabled) {
+                module.register?.(seriesAreaModuleContext);
+                seriesAreaModuleMap.addModule(module.name, module.create(seriesAreaModuleContext));
+            }
+
+            const plugin = seriesAreaModuleMap.getModule(module.name) as SeriesAreaPluginModuleInstance;
+            plugin.applyOptions(pluginOpts);
+        }
     }
 
     private initSeriesDeclarationOrder(series: UnknownSeries[]) {
