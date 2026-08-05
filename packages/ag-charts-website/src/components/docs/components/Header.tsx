@@ -35,13 +35,22 @@ export const Header: FunctionComponent<Props> = ({
 
     return (
         <header className={styles.docsPageHeader}>
-            <div className={styles.pageTitleContainer}>
-                <div className={styles.titleMeta}>
+            {/* `#top` is the side navigation's scroll target, so it sits on the container rather than
+                the h1: the h1 is `display: contents` and so has no box to scroll to. */}
+            <div id="top" className={styles.pageTitleContainer}>
+                {/* The framework name must stay inside the h1 to count towards it for SEO; the version
+                    must stay outside it, or it would read as part of the heading. `data-page-title` is
+                    how the Algolia indexer finds the page title within the heading. */}
+                <h1 className={styles.docsPageTitle}>
                     {!suppressFrameworkHeader && (
                         <span className={styles.headerFramework}>{`${getFrameworkDisplayText(framework)} Charts`}</span>
                     )}
-                    {version != null && <span className={styles.version}>{`Version ${version}`}</span>}
-                </div>
+                    <span className={styles.titleText} data-page-title>
+                        {title}
+                    </span>
+                </h1>
+
+                {version != null && <span className={styles.version}>{`Version ${version}`}</span>}
 
                 <div className={styles.headerActions}>
                     {markdownHref != null && <MarkdownActions markdownHref={markdownHref} framework={framework} />}
@@ -49,10 +58,6 @@ export const Header: FunctionComponent<Props> = ({
                         <FrameworkSelectorInsideDocs path={path} currentFramework={framework} menuItems={menuItems} />
                     </div>
                 </div>
-
-                <h1 id="top" className={styles.docsPageTitle}>
-                    <span>{title}</span>
-                </h1>
             </div>
 
             {isEnterprise && (

@@ -1,10 +1,10 @@
-import { CANVAS_HEIGHT, CANVAS_WIDTH, mockCanvas } from '_ag-charts-test';
 import { Canvas } from 'skia-canvas';
 import { afterEach, beforeEach } from 'vitest';
 
 import { resetIds } from 'ag-charts-core';
+import { CANVAS_HEIGHT, CANVAS_WIDTH, mockCanvas } from 'ag-charts-test';
 
-export { CANVAS_HEIGHT, CANVAS_WIDTH, toMatchImage, mockCanvas } from '_ag-charts-test';
+export { CANVAS_HEIGHT, CANVAS_WIDTH, toMatchImage, mockCanvas } from 'ag-charts-test';
 
 const { extractImageData, CANVAS_TO_BUFFER_DEFAULTS } = mockCanvas;
 export { extractImageData, CANVAS_TO_BUFFER_DEFAULTS };

@@ -1,8 +1,8 @@
-import { testLogger } from '_ag-charts-test';
 import { describe, expect, test } from 'vitest';
 
 import { _ModuleSupport } from 'ag-charts-community';
 import { expectWarningMessages, setupMockConsole } from 'ag-charts-community-test';
+import { testLogger } from 'ag-charts-test';
 
 import { HierarchyDataSet } from './hierarchyDataSet';
 

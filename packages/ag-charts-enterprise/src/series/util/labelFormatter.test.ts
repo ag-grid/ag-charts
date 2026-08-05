@@ -1,4 +1,4 @@
-import { testLogger } from '_ag-charts-test';
+import { testLogger } from 'ag-charts-test';
 
 import {
     formatLabels,

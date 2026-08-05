@@ -1,7 +1,7 @@
-import { testLogger } from '_ag-charts-test';
 import { describe, expect, it } from 'vitest';
 
 import { _ModuleSupport } from 'ag-charts-community';
+import { testLogger } from 'ag-charts-test';
 
 import { DataSelectionService } from './dataSelectionService';
 import { DataSetSelection } from './dataSetSelection';

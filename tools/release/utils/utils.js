@@ -6,7 +6,7 @@ const readFile = (file) => JSON.parse(fs.readFileSync(file, 'utf8'));
 
 const isAgDependency = (dependency) => dependency.startsWith('ag-') || dependency.startsWith('@ag-');
 const gridDependency = (dependency) => dependency.startsWith('ag-grid') || dependency.startsWith('@ag-grid');
-const chartDependency = (dependency) => dependency.startsWith('ag-charts');
+const chartDependency = (dependency) => dependency.startsWith('ag-charts') || dependency.startsWith('_ag-charts');
 
 const getAgDependencies = (packageJson) =>
     packageJson.dependencies ? Object.keys(packageJson.dependencies).filter(isAgDependency) : [];

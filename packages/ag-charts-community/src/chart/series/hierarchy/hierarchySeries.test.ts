@@ -1,6 +1,5 @@
-import { testLogger } from '_ag-charts-test';
-
 import { EventEmitter } from 'ag-charts-core';
+import { testLogger } from 'ag-charts-test';
 
 import { Group } from '../../../scene/group';
 import { Selection } from '../../../scene/selection';
