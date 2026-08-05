@@ -27,7 +27,17 @@ Raw options → createNodeData() → nodeData → updateNodes() → scene graph 
 -   `updateNodes()` — apply datum values to scene graph nodes; called frequently during animation
 -   `updateNodeDatum()` — newer pattern being introduced across series: separates datum creation from node updates so datums are reused across animation frames, reducing allocation in hot paths
 
-For performance work, see `series-performance-optimization.md` / the `optimize-series` skill.
+## Performance
+
+For any optimisation work — scene-change detection, batched property updates, allocation in hot paths — invoke `/ag-charts:optimize-series`. Reference implementations:
+
+| Pattern              | Reference file                |
+| -------------------- | ----------------------------- |
+| Context caching      | `barSeries.ts`                |
+| Backing fields       | `shape.ts`, `barShape.ts`     |
+| Deferred aggregation | `deferredExecutor.ts`         |
+| Animation reset      | `barUtil.ts`, `markerUtil.ts` |
+| TypedArray reuse     | `barAggregation.ts`           |
 
 ## Module System Integration
 
