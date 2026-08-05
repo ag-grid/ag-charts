@@ -979,6 +979,66 @@ describe('Legend', () => {
         });
     });
 
+    describe('CRT-1193', () => {
+        test('legend hover highlight is suppressed while an interaction holds ZoomDrag', async () => {
+            const options: AgChartOptions = prepareTestOptions({
+                data: [
+                    { year: '2016', gold: 26, silver: 18, bronze: 26 },
+                    { year: '2020', gold: 38, silver: 32, bronze: 19 },
+                ],
+                series: [
+                    { type: 'bar', xKey: 'year', yKey: 'gold' },
+                    { type: 'bar', xKey: 'year', yKey: 'silver' },
+                    { type: 'bar', xKey: 'year', yKey: 'bronze' },
+                ],
+            });
+
+            chart = await createChart(options);
+            await waitForChartStability(chart);
+
+            const { highlightManager, interactionManager, tooltipManager } = chart.ctx;
+            const legend = getLegendModule(chart);
+            const items = legend.itemSelection.nodes();
+
+            const updateTooltip = vi.spyOn(tooltipManager, 'updateTooltip');
+            const removeTooltip = vi.spyOn(tooltipManager, 'removeTooltip');
+
+            // Positive control: the same hover on the same chart does highlight, and does reach the
+            // tooltip manager, when nothing is dragging.
+            legend.onHover(new MouseEvent('mouseenter'), items[0]);
+            expect(highlightManager.getActiveHighlight()?.series.id).toBe(items[0].datum?.id);
+            expect(updateTooltip.mock.calls.length + removeTooltip.mock.calls.length).toBeGreaterThan(0);
+
+            // Legend highlight clears are deferred to batch stop, so the baseline has to be allowed
+            // to land before the suppression case is measured against it.
+            legend.onLeave();
+            await waitForChartStability(chart);
+            expect(highlightManager.getActiveHighlight()).toBeUndefined();
+            updateTooltip.mockClear();
+            removeTooltip.mockClear();
+
+            // ZoomDrag is written directly to pin the guard itself, without a zoom module: isState()
+            // compares only the lowest set bit of the state queue, so the guard is observable only
+            // while no higher-priority state (notably Animation) is queued. The equivalent test over
+            // a real series-area drag lives in ag-charts-enterprise zoom.test.ts.
+            interactionManager.pushState(InteractionState.ZoomDrag);
+            expect(interactionManager.isState(InteractionState.ZoomDrag)).toBe(true);
+
+            legend.onHover(new MouseEvent('mouseenter'), items[1]);
+
+            // The hover must be dropped before it reaches either manager: highlight application is
+            // separately gated on the state queue, so the tooltip calls are what distinguish the
+            // guard returning early from a highlight that merely never lands.
+            expect(updateTooltip).not.toHaveBeenCalled();
+            expect(removeTooltip).not.toHaveBeenCalled();
+            expect(highlightManager.getActiveHighlight()).toBeUndefined();
+
+            interactionManager.popState(InteractionState.ZoomDrag);
+            updateTooltip.mockRestore();
+            removeTooltip.mockRestore();
+        });
+    });
+
     describe('AG-10316 legend item tooltip', () => {
         const TOOLTIP_OPTIONS: AgCartesianChartOptions = {
             data: [

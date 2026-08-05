@@ -7,6 +7,7 @@ import {
     type AgChartState,
     AgCharts,
     type AgInitialStateZoomOptions,
+    _ModuleSupport,
 } from 'ag-charts-community';
 import {
     clickAction,
@@ -17,6 +18,7 @@ import {
     doubleTapAction,
     dragAction,
     findChartTarget,
+    getLegendModule,
     hoverAction,
     mouseDownAction,
     mouseMoveAction,
@@ -1572,6 +1574,82 @@ describe('Zoom', () => {
             expect(end).toBeDefined();
             expect(end!.value).toBe('five');
             expect(end!.groupPercentage).toBeCloseTo(0.6);
+        });
+    });
+
+    describe('CRT-1193 legend hover during a series-area drag', () => {
+        const LEGEND_EXAMPLE_OPTIONS: AgChartOptions = {
+            ...EXAMPLE_OPTIONS,
+            data: [
+                { x: 0, y: 0, y2: 10 },
+                { x: 1, y: 50, y2: 20 },
+                { x: 2, y: 25, y2: 30 },
+                { x: 3, y: 75, y2: 40 },
+                { x: 4, y: 50, y2: 50 },
+                { x: 5, y: 25, y2: 60 },
+                { x: 6, y: 50, y2: 70 },
+                { x: 7, y: 75, y2: 80 },
+            ],
+            series: [
+                { type: 'line', xKey: 'x', yKey: 'y', yName: 'Series Y' },
+                { type: 'line', xKey: 'x', yKey: 'y2', yName: 'Series Y2' },
+            ],
+            legend: { enabled: true },
+        } as AgChartOptions;
+
+        it('should drop legend hover while a real drag holds ZoomDrag', async () => {
+            await prepareChart({ axes: 'x', enableSelecting: true }, undefined, LEGEND_EXAMPLE_OPTIONS);
+            await waitForChartStability(chart);
+
+            const instance = deproxy(chart);
+            const { highlightManager, interactionManager, tooltipManager } = instance.ctx;
+            const legend = getLegendModule(instance);
+            const items = legend.itemSelection.nodes();
+
+            const updateTooltip = vi.spyOn(tooltipManager, 'updateTooltip');
+            const removeTooltip = vi.spyOn(tooltipManager, 'removeTooltip');
+
+            // Positive control: the same hover on the same chart does highlight, and does reach the
+            // tooltip manager, when nothing is dragging.
+            legend.onHover(new MouseEvent('mouseenter'), items[0]);
+            expect(highlightManager.getActiveHighlight()?.series.id).toBe(items[0].datum?.id);
+            expect(updateTooltip.mock.calls.length + removeTooltip.mock.calls.length).toBeGreaterThan(0);
+
+            // Legend highlight clears are deferred to batch stop, so the baseline has to be allowed
+            // to land before the suppression case is measured against it.
+            legend.onLeave();
+            await waitForChartStability(chart);
+            expect(highlightManager.getActiveHighlight()).toBeUndefined();
+
+            // A real series-area drag: mouse down inside the series area, then two moves without a
+            // mouse up, which is what leaves the chart mid-drag.
+            const { x, y, width, height } = (instance as any).seriesRect;
+            const from = { x: x + width * 0.25, y: y + height * 0.5 };
+            const to = { x: x + width * 0.75, y: y + height * 0.5 };
+            await mouseDownAction(from.x, from.y)(chart);
+            await delay(500);
+            await mouseMoveAction(from.x, from.y)(chart);
+            await mouseMoveAction(to.x, to.y)(chart);
+
+            // The drag's own updates request layout with skipAnimations, so no animation batch is in
+            // flight to outrank ZoomDrag in the state queue - isState() reads only its lowest set bit.
+            expect(interactionManager.isState(_ModuleSupport.InteractionState.ZoomDrag)).toBe(true);
+
+            updateTooltip.mockClear();
+            removeTooltip.mockClear();
+
+            legend.onHover(new MouseEvent('mouseenter'), items[1]);
+
+            // The hover must be dropped before it reaches either manager: highlight application is
+            // separately gated on the state queue, so the tooltip calls are what distinguish the
+            // guard returning early from a highlight that merely never lands.
+            expect(updateTooltip).not.toHaveBeenCalled();
+            expect(removeTooltip).not.toHaveBeenCalled();
+            expect(highlightManager.getActiveHighlight()).toBeUndefined();
+
+            await mouseUpAction(to.x, to.y)(chart);
+            updateTooltip.mockRestore();
+            removeTooltip.mockRestore();
         });
     });
 });
