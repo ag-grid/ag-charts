@@ -105,8 +105,9 @@ class MyClass {
 Test environments may set globals since tests don't go through the chart creation flow:
 
 ```typescript
-// jest.setup.ts - acceptable for isolated test environments
-globalThis.OffscreenCanvas = NodeCanvas;
+// vitest.setup.ts - acceptable for isolated test environments
+globalThis.OffscreenCanvas = mockCanvas.ConfiguredCanvas;
+globalThis.DOMMatrix = DOMMatrix;
 ```
 
 This is acceptable because test environments are isolated and controlled.

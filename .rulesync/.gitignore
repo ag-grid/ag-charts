@@ -8,6 +8,7 @@ mcp.json
 # Plugin-delivered skills — allowlist local-only skills
 /skills/*
 !/skills/animation-test-migration/
+!/skills/chart-defaults/
 !/skills/technology-stack/
 
 # Plugin-delivered agents — all agents live in plugins
