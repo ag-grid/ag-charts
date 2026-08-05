@@ -1,8 +1,8 @@
-import { testLogger } from '_ag-charts-test';
 import { type Image, loadImage } from 'skia-canvas';
 import { beforeAll, describe, expect, it } from 'vitest';
 
 import { cachedTextMeasurer, wrapText } from 'ag-charts-core';
+import { testLogger } from 'ag-charts-test';
 import type { TextWrap } from 'ag-charts-types';
 
 import { extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';

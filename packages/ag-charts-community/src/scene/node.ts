@@ -1,6 +1,6 @@
 import { DeclaredSceneChangeDetection, Logger, createId, createSvgElement, objectsEqual } from 'ag-charts-core';
 // The serialised-state type family lives in ag-charts-core so the Node-portable scene sampler
-// (in _ag-charts-test, used by both unit and e2e capture) can type against it without depending on
+// (in ag-charts-test, used by both unit and e2e capture) can type against it without depending on
 // this package.
 import type { SerializedNodeProps, SerializedNodeState } from 'ag-charts-core';
 

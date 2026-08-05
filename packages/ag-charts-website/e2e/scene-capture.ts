@@ -2,7 +2,7 @@ import type { Locator, Page } from '@playwright/test';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join, parse } from 'node:path';
 
-// Import the sampler from its source module directly, not via the `_ag-charts-test` package entry.
+// Import the sampler from its source module directly, not via the `ag-charts-test` package entry.
 // The barrel eagerly loads skia-canvas (a native addon) through mock-canvas, and the package's built
 // `dist` is not present in the Playwright CI container; the source module (transpiled by Playwright)
 // depends only on ag-charts-core, so both problems are avoided while keeping a single shared source.

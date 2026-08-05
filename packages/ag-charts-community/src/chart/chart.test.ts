@@ -1,7 +1,7 @@
-import { testLogger } from '_ag-charts-test';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { ChartAxisDirection, ChartUpdateType, ambientLogger } from 'ag-charts-core';
+import { testLogger } from 'ag-charts-test';
 import type { AgCartesianChartOptions, AgPolarChartOptions, InteractionRange } from 'ag-charts-types';
 
 import { AgCharts } from '../api/agCharts';
