@@ -79,3 +79,6 @@ modeling
 crawlable
 crossfade
 ditherpattern
+
+# Example dataset given names referenced in prose
+Gabriella

@@ -15,7 +15,7 @@ const options: AgChartOptions = {
     title: { text: 'Company Organisation' },
     data: getData(),
     initialState: {
-        collapsed: ['Mr. Jeffrey Brown', 'Nicole Jones', 'Justin Contreras', 'Lawrence Martinez', 'Eric Jensen'],
+        collapsed: ['Mr. Jeffrey Brown', 'Nathan Jones', 'Justin Contreras', 'Lawrence Martinez', 'Eric Jensen'],
     },
     series: [
         {

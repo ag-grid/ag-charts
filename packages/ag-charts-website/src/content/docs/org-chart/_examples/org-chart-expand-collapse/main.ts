@@ -16,7 +16,7 @@ const options: AgStandaloneChartOptions = {
     title: { text: 'Company Organisation' },
     data: getData(),
     initialState: {
-        collapsed: ['Mr. Jeffrey Brown', 'Nicole Jones', 'Justin Contreras', 'Lawrence Martinez', 'Eric Jensen'],
+        collapsed: ['Mr. Jeffrey Brown', 'Nathan Jones', 'Justin Contreras', 'Lawrence Martinez', 'Eric Jensen'],
     },
     series: [
         {
@@ -61,10 +61,10 @@ function collapseAll() {
     chart.setState({
         version,
         collapsed: [
-            'Joseph Howe',
-            'Gary Garcia',
+            'Julia Howe',
+            'Gabriella Garcia',
             'Mr. Jeffrey Brown',
-            'Nicole Jones',
+            'Nathan Jones',
             'Justin Contreras',
             'Lawrence Martinez',
             'Eric Jensen',
@@ -75,9 +75,9 @@ function collapseAll() {
 function toggleCTO() {
     const { version, collapsed: prev } = chart.getState();
 
-    const collapsed = prev?.filter((id) => id !== 'Joseph Howe');
-    if (!prev?.includes('Joseph Howe')) {
-        collapsed?.push('Joseph Howe');
+    const collapsed = prev?.filter((id) => id !== 'Julia Howe');
+    if (!prev?.includes('Julia Howe')) {
+        collapsed?.push('Julia Howe');
     }
 
     chart.setState({ version, collapsed });
