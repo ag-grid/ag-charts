@@ -24,6 +24,7 @@ PACKAGES=(
     _ag-charts-generate-example-files
     _ag-charts-generate-code-reference-files
     _ag-charts-generate-chart-thumbnail
+    _ag-charts-demos
 )
 
 for package in ${PACKAGES[@]}; do
