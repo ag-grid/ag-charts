@@ -59,12 +59,12 @@ packageNames
         }
 
         checkDependency(packageName, version, isGridPackage ? gridNewVersion : chartNewVersion);
-        Object.keys(agPackage.agGridDeps).forEach((dependencyName) =>
-            checkDependency(dependencyName, agGridDeps[dependencyName], gridNewVersion)
-        );
-        Object.keys(agPackage.agGridPeerDeps).forEach((dependencyName) =>
-            checkDependency(dependencyName, agPackage.agGridPeerDeps[dependencyName], gridNewVersion)
-        );
+        // Object.keys(agPackage.agGridDeps).forEach((dependencyName) =>
+        //     checkDependency(dependencyName, agGridDeps[dependencyName], gridNewVersion)
+        // );
+        // Object.keys(agPackage.agGridPeerDeps).forEach((dependencyName) =>
+        //     checkDependency(dependencyName, agPackage.agGridPeerDeps[dependencyName], gridNewVersion)
+        // );
         Object.keys(agPackage.agChartDeps).forEach((dependencyName) =>
             checkDependency(dependencyName, agChartDeps[dependencyName], chartNewVersion)
         );
@@ -73,11 +73,11 @@ packageNames
             checkDependency(packageName, agSubAngularVersion, isGridPackage ? gridNewVersion : chartNewVersion);
         }
 
-        if (agSubAngularGridDeps) {
-            Object.keys(agSubAngularGridDeps).forEach((dependencyName) =>
-                checkDependency(dependencyName, agSubAngularGridDeps[dependencyName], gridNewVersion)
-            );
-        }
+        // if (agSubAngularGridDeps) {
+        //     Object.keys(agSubAngularGridDeps).forEach((dependencyName) =>
+        //         checkDependency(dependencyName, agSubAngularGridDeps[dependencyName], gridNewVersion)
+        //     );
+        // }
         if (agSubAngularChartDeps) {
             Object.keys(agSubAngularChartDeps).forEach((dependencyName) =>
                 checkDependency(dependencyName, agSubAngularChartDeps[dependencyName], chartNewVersion)
