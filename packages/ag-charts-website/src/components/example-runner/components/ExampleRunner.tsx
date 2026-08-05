@@ -120,6 +120,7 @@ export const ExampleRunner: FunctionComponent<Props> = ({
                         {!hideCode && (
                             <button
                                 className={classnames(styles.previewCodeToggle, 'button-secondary')}
+                                tabIndex={0}
                                 onClick={() => {
                                     setShowCode(!showCode);
                                 }}
