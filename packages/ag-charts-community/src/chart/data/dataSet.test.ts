@@ -2202,4 +2202,30 @@ describe('DataSet', () => {
             expect(dataSet.data[1]).toEqual(a); // original 'a' untouched
         });
     });
+
+    describe('ID array cache maintenance', () => {
+        interface Item {
+            id: string;
+        }
+
+        test('a warm ID array follows a prepend', () => {
+            const dataSet = new DataSet<Item>([{ id: 'a' }, { id: 'b' }], testLogger, 'id');
+            expect(dataSet.getIdArray()).toEqual(['a', 'b']);
+
+            dataSet.addTransaction({ prepend: [{ id: 'z' }] });
+            dataSet.commitPendingTransactions(undefined);
+
+            expect(dataSet.getIdArray()).toEqual(['z', 'a', 'b']);
+        });
+
+        test('a warm ID array follows a head removal', () => {
+            const dataSet = new DataSet<Item>([{ id: 'a' }, { id: 'b' }, { id: 'c' }], testLogger, 'id');
+            expect(dataSet.getIdArray()).toEqual(['a', 'b', 'c']);
+
+            dataSet.addTransaction({ remove: [{ id: 'a' }] });
+            dataSet.commitPendingTransactions(undefined);
+
+            expect(dataSet.getIdArray()).toEqual(['b', 'c']);
+        });
+    });
 });

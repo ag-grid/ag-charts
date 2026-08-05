@@ -2,12 +2,48 @@ import { testLogger } from '_ag-charts-test';
 import { describe, expect, it } from 'vitest';
 
 import { _ModuleSupport } from 'ag-charts-community';
+import { type DynamicContext, createDynamicContext } from 'ag-charts-core';
 
 import { DataSelectionService } from './dataSelectionService';
 import { DataSetSelection } from './dataSetSelection';
 
-function createDataSelectionService() {
-    return new DataSelectionService();
+type ChartRegistry = _ModuleSupport.ChartRegistry;
+type Observer = Parameters<DynamicContext<ChartRegistry>['chartState']['observe']>[0];
+type ObserveGetter = Parameters<Observer>[0];
+type ChartServiceStub = { series: { id: string }[] };
+
+interface ContextHarness {
+    service: DataSelectionService;
+    /** The `chartState.observe` callbacks the service registered — fire one to drive a recount. */
+    observers: Observer[];
+    /** Mutable stand-in for the chart's series list, as the recount reads it. */
+    chartService: ChartServiceStub;
+}
+
+// The service's observer calls the getter only to register the state keys it tracks and ignores the
+// result, so a no-op suffices — it cannot satisfy the real getter's overloads structurally.
+const noopValueGetter = (() => undefined) as unknown as ObserveGetter;
+
+function createDataSelectionService(): DataSelectionService;
+function createDataSelectionService(seriesIds: string[]): ContextHarness;
+function createDataSelectionService(seriesIds?: string[]): DataSelectionService | ContextHarness {
+    if (seriesIds === undefined) return new DataSelectionService();
+
+    // Only the three registry members the service reads are stubbed, and `constant()` demands the
+    // full member type, so each registration is widened at the call.
+    const chartService: ChartServiceStub = { series: seriesIds.map((id) => ({ id })) };
+    const observers: Observer[] = [];
+    const ctx = createDynamicContext<ChartRegistry>();
+    ctx.constant('chartService', chartService as unknown as ChartRegistry['chartService']);
+    ctx.constant('eventsHub', { on: () => () => undefined } as unknown as ChartRegistry['eventsHub']);
+    ctx.constant('chartState', {
+        observe: (callback: Observer) => {
+            observers.push(callback);
+            return () => undefined;
+        },
+    } as unknown as ChartRegistry['chartState']);
+
+    return { service: new DataSelectionService(ctx), observers, chartService };
 }
 
 function createDataSet<T = unknown>(data: T[], dataIdKey?: string): _ModuleSupport.DataSet<T> {
@@ -405,6 +441,45 @@ describe('DataSet selection transfer', () => {
 
             // Selections should NOT transfer — key schema changed
             expect(service.selections.size).toBe(0);
+        });
+    });
+
+    describe('chart context', () => {
+        // Without a context the recount finds no shown series ids and prunes everything, so this
+        // readback is only reachable with one — it pins the harness, not a product behaviour.
+        it('should keep a committed selection readable through the service', () => {
+            const { service, observers } = createDataSelectionService(['s1']);
+            const ds = createDataSet([{ id: 0 }, { id: 1 }, { id: 2 }]);
+
+            service.enableSelection('s1', ds).select(1);
+            ds.addTransaction({ append: [{ id: 3 }] });
+            ds.commitPendingTransactions(service);
+
+            expect(observers.length).toBe(1);
+            expect(service.selections.size).toBe(1);
+            const sel = service.selections.get('s1');
+            expect(sel).toBeDefined();
+            expect(getSelectedIndices(sel!)).toEqual([1]);
+            expect(service.totalSelectedCount).toBe(1);
+        });
+
+        it('should prune and recount selections when a series leaves the series option', () => {
+            const { service, observers, chartService } = createDataSelectionService(['s1', 's2']);
+            const ds = createDataSet([{ id: 0 }, { id: 1 }]);
+
+            service.enableSelection('s1', ds).select(0);
+            service.enableSelection('s2', ds).select(1);
+
+            // `select()` does not maintain totalSelectedCount — only a recount does, so the
+            // baseline needs an observation of its own.
+            observers[0](noopValueGetter);
+            expect(service.totalSelectedCount).toBe(2);
+
+            chartService.series = chartService.series.filter(({ id }) => id !== 's2');
+            observers[0](noopValueGetter);
+
+            expect(Array.from(service.selections.keys())).toEqual(['s1']);
+            expect(service.totalSelectedCount).toBe(1);
         });
     });
 });
