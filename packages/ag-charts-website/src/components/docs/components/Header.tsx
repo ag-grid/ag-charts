@@ -53,7 +53,7 @@ export const Header: FunctionComponent<Props> = ({
                 {version != null && <span className={styles.version}>{`Version ${version}`}</span>}
 
                 <div className={styles.headerActions}>
-                    {markdownHref != null && <MarkdownActions markdownHref={markdownHref} />}
+                    {markdownHref != null && <MarkdownActions markdownHref={markdownHref} framework={framework} />}
                     <div className={styles.frameworkSelectorSlot}>
                         <FrameworkSelectorInsideDocs path={path} currentFramework={framework} menuItems={menuItems} />
                     </div>
