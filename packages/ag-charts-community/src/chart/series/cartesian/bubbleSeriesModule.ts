@@ -8,7 +8,7 @@ import {
     FILL_PATTERN_DEFAULTS,
     LABEL_BOXING_TOP_LEVEL_DEFAULTS,
     LABEL_OVERFLOW_DEFAULTS,
-    LABEL_PLACEMENT_BORDER_DEFAULTS,
+    LABEL_PLACEMENT_STYLE_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
     SERIES_SELECTION_THEME,
     undocumentedThemeOptions,
@@ -88,14 +88,8 @@ const themeTemplate: ExtensibleTheme<'bubble'> = {
             fontFamily: { $ref: 'fontFamily' },
             fontWeight: { $ref: 'fontWeight' },
             padding: 8,
-            insideStyle: {
-                ...LABEL_PLACEMENT_BORDER_DEFAULTS,
-                color: { $isUserOption: ['../color', { $path: '../color' }, { $ref: 'textColor' }] },
-            },
-            outsideStyle: {
-                ...LABEL_PLACEMENT_BORDER_DEFAULTS,
-                color: { $isUserOption: ['../color', { $path: '../color' }, { $ref: 'textColor' }] },
-            },
+            insideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('textColor'),
+            outsideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('textColor'),
             collision: { alwaysShow: false, ...undocumentedThemeOptions({ collideWith: { seriesArea: false } }) },
         },
         tooltip: {

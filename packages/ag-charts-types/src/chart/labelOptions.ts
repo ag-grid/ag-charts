@@ -29,8 +29,9 @@ export interface AgChartLabelStyleOptions extends Toggleable, TextOptions, Label
  * Style overrides applied to a label depending on its resolved inside/outside placement: `color` sets
  * the text colour, `fill`/`fillOpacity` the box fill, `cornerRadius` and `padding` the box geometry, and
  * `border` the box stroke. A placement-specific value set here wins over the top-level `label` value, and
- * both fall back to the theme default. Setting any `border` property here shows this placement's border
- * even where `label.border.enabled` is `false`; with no `border` set here, the top-level value applies.
+ * both fall back to the theme default. Styling the `border` here shows it for this placement even where
+ * `label.border.enabled` is `false`, unless `border.enabled: false` hides it again; with no `border` set
+ * here at all, the top-level `label.border.enabled` applies.
  */
 export interface AgChartLabelPlacementStyleOptions extends Pick<TextOptions, 'color'>, FillOptions {
     /** Rounded corners applied to the label box for this placement. */

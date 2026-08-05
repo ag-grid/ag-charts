@@ -6,7 +6,7 @@ import {
     LABEL_BOXING_TOP_LEVEL_DEFAULTS,
     LABEL_OVERFLOW_ALWAYS_SHOW,
     LABEL_OVERFLOW_DEFAULTS,
-    LABEL_PLACEMENT_BORDER_DEFAULTS,
+    LABEL_PLACEMENT_STYLE_DEFAULTS,
     SINGLE_SERIES_HIGHLIGHT_STYLE,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
@@ -49,14 +49,8 @@ function itemTheme(
                 alwaysShow: LABEL_OVERFLOW_ALWAYS_SHOW,
                 ...undocumentedThemeOptions({ collideWith: { seriesItems: true } }),
             },
-            insideStyle: {
-                ...LABEL_PLACEMENT_BORDER_DEFAULTS,
-                color: { $isUserOption: ['../color', { $path: '../color' }, { $ref: 'textColor' as const }] },
-            },
-            outsideStyle: {
-                ...LABEL_PLACEMENT_BORDER_DEFAULTS,
-                color: { $isUserOption: ['../color', { $path: '../color' }, { $ref: 'textColor' as const }] },
-            },
+            insideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('textColor'),
+            outsideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('textColor'),
             formatter: undefined,
             placement: 'outside-end' as const,
         },

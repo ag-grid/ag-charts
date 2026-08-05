@@ -49,7 +49,7 @@ export class LabelBorder {
     strokeOpacity?: number;
 }
 
-/** Placement-reactive border. Any property set here shows this placement's border, whatever `label.border.enabled` says. */
+/** Placement-reactive border: its `enabled`, explicit or auto-enabled by a sibling, wins over the top level. */
 export class LabelPlacementBorder {
     @Property
     enabled?: boolean;
