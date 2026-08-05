@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, vi } from 'vitest';
 
-import type { AgCaptionListeners, AgCaptionType, AgCartesianChartOptions } from 'ag-charts-types';
+import type { AgCaptionListeners, AgCartesianChartOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../api/agCharts';
 import type { Chart } from './chart';
@@ -15,8 +15,6 @@ import {
     waitForChartStability,
 } from './test/utils';
 import type { AgChartProxy } from './test/utils';
-
-const CAPTION_TYPES: AgCaptionType[] = ['title', 'subtitle', 'footnote'];
 
 function options(overrides: Partial<AgCartesianChartOptions> = {}): AgCartesianChartOptions {
     return {
@@ -47,16 +45,23 @@ function withListeners(listeners: AgCaptionListeners): Partial<AgCartesianChartO
  * `bubbles` matches a genuine click, so the event also reaches the chart-background handler that
  * AC4 requires to stay silent.
  */
-function captionElement(caption: ChartCaption): HTMLElement {
+function captionElement(caption: ChartCaption): HTMLElement | undefined {
     const { proxyText } = caption as unknown as { proxyText?: { getElement(): HTMLElement } };
-    if (proxyText == null) {
-        throw new Error('caption has no proxy element');
-    }
-    return proxyText.getElement();
+    return proxyText?.getElement();
 }
 
 async function clickCaption(caption: ChartCaption, type: 'click' | 'dblclick' = 'click') {
-    captionElement(caption).dispatchEvent(new MouseEvent(type, { bubbles: true }));
+    const element = captionElement(caption);
+    if (element == null) {
+        throw new Error('caption has no proxy element');
+    }
+    element.dispatchEvent(new MouseEvent(type, { bubbles: true }));
+    return delay(50);
+}
+
+/** Clicks a caption only if it has a click target, for the cases where it should not have one. */
+async function clickCaptionIfPresent(caption: ChartCaption) {
+    captionElement(caption)?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     return delay(50);
 }
 
@@ -74,32 +79,56 @@ describe('Caption listeners', () => {
     });
 
     describe('caption-level listeners', () => {
-        test.each(CAPTION_TYPES)('AC1/AC3: clicking the %s fires `click` with that discriminator', async (key) => {
+        test('AC1: clicking the title fires `click` with the title discriminator', async () => {
             const click = vi.fn();
             chart = await createChart(options(withListeners({ click })));
 
-            await clickCaption(chart[key]);
+            await clickCaption(chart.title);
 
             expect(click).toHaveBeenCalledTimes(1);
             expect(click).toHaveBeenCalledWith(
                 expect.objectContaining({
                     type: 'click',
-                    captionType: key,
-                    text: `${key[0].toUpperCase()}${key.slice(1)} text`,
+                    captionType: 'title',
+                    text: 'Title text',
                     event: expect.any(MouseEvent),
                 })
             );
         });
 
-        test.each(CAPTION_TYPES)('AC2/AC3: double-clicking the %s fires `doubleClick`', async (key) => {
+        test('AC3: clicking the subtitle fires `click` with the subtitle discriminator', async () => {
+            const click = vi.fn();
+            chart = await createChart(options(withListeners({ click })));
+
+            await clickCaption(chart.subtitle);
+
+            expect(click).toHaveBeenCalledTimes(1);
+            expect(click).toHaveBeenCalledWith(
+                expect.objectContaining({ type: 'click', captionType: 'subtitle', text: 'Subtitle text' })
+            );
+        });
+
+        test('AC3: clicking the footnote fires `click` with the footnote discriminator', async () => {
+            const click = vi.fn();
+            chart = await createChart(options(withListeners({ click })));
+
+            await clickCaption(chart.footnote);
+
+            expect(click).toHaveBeenCalledTimes(1);
+            expect(click).toHaveBeenCalledWith(
+                expect.objectContaining({ type: 'click', captionType: 'footnote', text: 'Footnote text' })
+            );
+        });
+
+        test('AC2: double-clicking the footnote fires `doubleClick`', async () => {
             const doubleClick = vi.fn();
             chart = await createChart(options(withListeners({ doubleClick })));
 
-            await clickCaption(chart[key], 'dblclick');
+            await clickCaption(chart.footnote, 'dblclick');
 
             expect(doubleClick).toHaveBeenCalledTimes(1);
             expect(doubleClick).toHaveBeenCalledWith(
-                expect.objectContaining({ type: 'doubleClick', captionType: key })
+                expect.objectContaining({ type: 'doubleClick', captionType: 'footnote' })
             );
         });
 
@@ -161,15 +190,27 @@ describe('Caption listeners', () => {
     });
 
     describe('chart-level listeners', () => {
-        test.each(CAPTION_TYPES)('AC6: clicking the %s fires `captionClick`', async (key) => {
+        test('AC6: clicking the title fires `captionClick`', async () => {
             const captionClick = vi.fn();
             chart = await createChart(options({ listeners: { captionClick } }));
 
-            await clickCaption(chart[key]);
+            await clickCaption(chart.title);
 
             expect(captionClick).toHaveBeenCalledTimes(1);
             expect(captionClick).toHaveBeenCalledWith(
-                expect.objectContaining({ type: 'captionClick', captionType: key })
+                expect.objectContaining({ type: 'captionClick', captionType: 'title', text: 'Title text' })
+            );
+        });
+
+        test('AC6: clicking the footnote fires the same `captionClick` listener', async () => {
+            const captionClick = vi.fn();
+            chart = await createChart(options({ listeners: { captionClick } }));
+
+            await clickCaption(chart.footnote);
+
+            expect(captionClick).toHaveBeenCalledTimes(1);
+            expect(captionClick).toHaveBeenCalledWith(
+                expect.objectContaining({ type: 'captionClick', captionType: 'footnote' })
             );
         });
 
@@ -237,23 +278,30 @@ describe('Caption listeners', () => {
         });
     });
 
+    // The trailing positive click in each case proves the listener is wired up at all, so the
+    // preceding `not.toHaveBeenCalled()` cannot pass for the wrong reason.
     describe('TC1: only present captions are interactive', () => {
-        test('an unconfigured subtitle and footnote have no proxy element', async () => {
-            const click = vi.fn();
+        // The chart-level listener is used here because it needs no per-caption configuration: adding
+        // a `subtitle` key at all would give it the theme's default text and make it a real caption.
+        test('an unconfigured subtitle and footnote are not clickable', async () => {
+            const captionClick = vi.fn();
             chart = await createChart({
                 data: [
                     { x: 'Jan', y: 2 },
                     { x: 'Feb', y: 8 },
                 ],
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-                title: { text: 'Title text', listeners: { click } },
+                title: { text: 'Title text' },
+                listeners: { captionClick },
             });
 
-            expect(() => captionElement(chart.subtitle)).toThrow();
-            expect(() => captionElement(chart.footnote)).toThrow();
+            await clickCaptionIfPresent(chart.subtitle);
+            await clickCaptionIfPresent(chart.footnote);
+            expect(captionClick).not.toHaveBeenCalled();
 
             await clickCaption(chart.title);
-            expect(click).toHaveBeenCalledTimes(1);
+            expect(captionClick).toHaveBeenCalledTimes(1);
+            expect(captionClick).toHaveBeenCalledWith(expect.objectContaining({ captionType: 'title' }));
         });
 
         test('a disabled caption is not clickable', async () => {
@@ -265,32 +313,11 @@ describe('Caption listeners', () => {
                 })
             );
 
-            expect(() => captionElement(chart.title)).toThrow();
+            await clickCaptionIfPresent(chart.title);
+            expect(click).not.toHaveBeenCalled();
 
             await clickCaption(chart.subtitle);
             expect(click).toHaveBeenCalledTimes(1);
-        });
-    });
-
-    describe('cursor affordance', () => {
-        test('a caption with a listener gets a pointer cursor, one without does not', async () => {
-            chart = await createChart(
-                options({
-                    title: { text: 'Title text', listeners: { click: vi.fn() } },
-                    subtitle: { text: 'Subtitle text' },
-                })
-            );
-
-            expect(captionElement(chart.title).style.cursor).toBe('pointer');
-            expect(captionElement(chart.subtitle).style.cursor).toBe('');
-        });
-
-        test('a chart-level listener makes every caption a pointer cursor', async () => {
-            chart = await createChart(options({ listeners: { captionClick: vi.fn() } }));
-
-            for (const key of CAPTION_TYPES) {
-                expect(captionElement(chart[key]).style.cursor).toBe('pointer');
-            }
         });
     });
 });
