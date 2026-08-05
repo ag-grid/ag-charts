@@ -51,7 +51,7 @@ function isBigIntArray(values: ReadonlyArray<number | Date | bigint>): values is
 export function fixNumericExtent(extent: ReadonlyArray<number | Date | bigint> | null): number[] | bigint[] {
     if (extent == null) return [];
     if (isBigIntArray(extent)) return [...extent];
-    const mapped = extent.map((v) => Number(v));
+    const mapped = extent.map(Number);
     return mapped.every(Number.isFinite) ? mapped : [];
 }
 

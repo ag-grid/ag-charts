@@ -129,7 +129,7 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
 
         // Multiple domains - must merge and sort, metadata not applicable
         return {
-            domain: sortAndUniqueDates(nonEmptyDomains.map((d) => d.domain).flat()),
+            domain: sortAndUniqueDates(nonEmptyDomains.flatMap((d) => d.domain)),
             animatable: true,
         };
     }
