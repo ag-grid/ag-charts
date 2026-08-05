@@ -147,14 +147,15 @@ const markdownUrl = DISABLE_MARKDOWN_DOCS ? undefined : urlWithBaseUrl('/gallery
         width: var(--layout-width-3-12);
         top: var(--gallery-sticky-top);
         left: 0;
+        padding-top: $spacing-size-4;
         background-color: var(--color-bg-primary);
         border-right: solid 1px var(--color-util-gray-200);
         overflow-y: scroll;
-
-        // Horizontal series strip. Sticky keeps it in flow so it stacks below the
-        // toolbar; the negative margins cancel layout-grid's to make it full-bleed.
         @media screen and (max-width: $breakpoint-gallery-small) {
             height: var(--layout-site-header-height);
+            // Vertical padding would grow the strip past --gallery-strip-height, which
+            // the anchor offsets are derived from.
+            padding-top: 0;
             width: calc(100% + var(--layout-horizontal-margins) * 2);
             margin-left: calc(var(--layout-horizontal-margins) * -1);
             margin-right: calc(var(--layout-horizontal-margins) * -1);
@@ -261,10 +262,6 @@ const markdownUrl = DISABLE_MARKDOWN_DOCS ? undefined : urlWithBaseUrl('/gallery
         @media screen and (min-width: $breakpoint-gallery-small) {
             padding-bottom: $spacing-size-56;
         }
-    }
-
-    .chart-type:first-child {
-        padding-top: $spacing-size-4;
     }
 
     .chart-type,
