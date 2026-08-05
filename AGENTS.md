@@ -36,13 +36,31 @@ After meaningful chart changes, also run:
 
 On the **first response** of a conversation, verify that project skills are available by checking the system-reminder skill list. If **any** of the canary skills are missing, display a one-time warning before doing anything else. Do not repeat the warning on subsequent responses.
 
-**Canary skills:** `example`, `dev-server`, `debug-trace`, `git-conventions`, `jira`
+**Canary skills:** `example`, `dev-server`, `debug-trace`, `git-conventions`, `jira` — these are plugin-delivered, so they appear under their plugin namespace (`ag-product:example`, `ag-eng:dev-server`, `ag-eng:debug-trace`, `ag-eng:git-conventions`, `ag-product:jira`). A namespaced match counts as present; only warn when a skill is absent under **every** name.
 
 **Warning to display (if any canary skill is missing):**
 
 > **Agentic tooling is not initialised.** Expected skills (example, dev-server, debug-trace, git-conventions, jira) are missing or incomplete. Run `yarn` from the repository root to set up AI tooling configuration, then restart your session. If you are in a worktree, ensure you ran `yarn` in the worktree directory (not just the main checkout).
 
 Continue assisting the user after displaying the warning.
+
+## Cloud sessions (Claude Code on the web)
+
+A cloud session starts with the toolchain, plugin skills and generated rules in place, but with a **dependency tree that has not run `postinstall`** — no patches, no built nx plugins. Builds, tests and lint are unreliable until you finish the job, once per session:
+
+```
+bash /home/user/ag-charts/external/ag-shared/scripts/install-for-cloud/finish-setup.sh
+```
+
+Check first if unsure — it reports in under a second, and says whether anything is missing:
+
+```
+bash /home/user/ag-charts/external/ag-shared/scripts/install-for-cloud/cloud-doctor.sh
+```
+
+This is written here rather than delivered by the SessionStart hook because hook output does not reach the model in the web harness — verified in cloud sessions through both plain stdout and `hookSpecificOutput.additionalContext`.
+
+Two further cloud-only notes: with more than one repository attached the working directory is `/home/user`, not the repo, so use absolute paths or `cd /home/user/ag-charts` first (`$HOME` is `/root`, so `~/ag-charts` does not exist); and `$AG_CLOUD_CACHE_DIR/setup.log` — normally `/opt/ag-cloud/setup.log` — holds the environment build's log when a session comes up wrong.
 
 ## Quick Reference
 
