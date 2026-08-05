@@ -96,6 +96,26 @@ export function fitLabelText(
     });
 }
 
+/** A fit can bound the text away to nothing, which the placement engine treats as no label at all. */
+export function isErased(text: NormalisedTextOrSegments): boolean {
+    return isArray(text) ? text.length === 0 : String(text).length === 0;
+}
+
+/**
+ * Fits `text` to `fit`, falling back to `fitOverflow` when that leaves nothing to draw. An erased label is
+ * dropped by the placement engine, so one that must always show overflows its bound rather than vanishing.
+ */
+export function fitLabelTextOrOverflow(
+    text: NormalisedTextOrSegments,
+    fit: LabelFit | undefined,
+    fitOverflow: LabelFit | undefined,
+    font: FontOptions
+): NormalisedTextOrSegments {
+    const fitted = fitLabelText(text, fit, font);
+    if (fitOverflow == null || !isErased(fitted) || isErased(text)) return fitted;
+    return fitLabelText(text, fitOverflow, font);
+}
+
 export function wrapLines(text: string, options: WrapOptions) {
     return textWrap(text, options);
 }

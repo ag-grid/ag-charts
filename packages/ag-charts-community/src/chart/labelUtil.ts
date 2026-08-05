@@ -3,6 +3,8 @@ import type {
     BoxBounds,
     Callback,
     CallbackParam,
+    CandidateLabelStyle,
+    CandidateStyleResolver,
     DynamicContext,
     FontOptions,
     IsAny,
@@ -12,6 +14,7 @@ import type {
     NormalisedTextOrSegments,
     OrientationAnchor,
     Point,
+    PointLabelDatum,
     PositionedLabelCandidate,
 } from 'ag-charts-core';
 import {
@@ -21,6 +24,7 @@ import {
     insideBarContainer,
     insideBarRegion,
     insideBarValueInsets,
+    measureLabelText,
     mergeDefaults,
     orientationAngles,
     rotatedGlyphDrift,
@@ -48,6 +52,7 @@ import { isPointInSector } from '../scene/util/sector';
 import {
     type Label,
     type LabelPlacementStyle,
+    expandLabelBoxExtent,
     resolvePlacementLabelBoxExtent,
     resolvePlacementLabelStyle,
 } from './label';
@@ -377,6 +382,160 @@ export function toResolvedPlacement(placement: BarLabelPlacement): ResolvedLabel
     return placement.startsWith('inside') ? 'inside' : 'outside';
 }
 
+/** Coarsens a compass placement the same way the render path does: only `inside` sits on the shape. */
+function toResolvedCompassPlacement(placement: LabelPlacement | undefined): ResolvedLabelPlacement {
+    return placement === 'inside' ? 'inside' : 'outside';
+}
+
+/** A label surface carrying the placement-reactive style overrides a candidate style resolves against. */
+type PlacementStyledLabel<TParams> = Label<TParams> & {
+    insideStyle: LabelPlacementStyle;
+    outsideStyle: LabelPlacementStyle;
+};
+
+/**
+ * How one candidate's compass placement reads: `style` selects the placement-style overrides, `reported`
+ * is the `placement` the styler params carry. They differ for series that surface the compass placement
+ * itself (line, area, bubble) rather than a coarsened one (range-area's inside/outside band sides).
+ */
+export interface CandidatePlacement {
+    readonly style: ResolvedLabelPlacement;
+    readonly reported: ResolvedPlacement['placement'];
+}
+
+/** Maps a candidate's compass placement onto the style and reported placement for `datum`. */
+export type CandidatePlacementMapper = (
+    placement: LabelPlacement | undefined,
+    datum: PointLabelDatum
+) => CandidatePlacement;
+
+/** Compass series report the placement they were given; only `inside` sits on the shape. */
+export const compassCandidatePlacement: CandidatePlacementMapper = (placement) => ({
+    style: toResolvedCompassPlacement(placement),
+    reported: placement,
+});
+
+/**
+ * Runs exactly what the render path runs, so the winning candidate's reservation matches the box that gets
+ * drawn — `CallbackCache` keys on the params, so the render pass reuses this result rather than re-invoking
+ * the styler.
+ *
+ * Resolved from the unhighlighted style: hovering must not reflow labels, so a highlight- or
+ * selection-dependent styler changes only what is drawn, never where it is placed.
+ */
+function resolveCandidateLabelStyle<TParams>(
+    series: SeriesLike,
+    label: PlacementStyledLabel<TParams>,
+    params: TParams,
+    labelPath: string[] | undefined,
+    datum: SeriesNodeDatum,
+    placement: CandidatePlacement,
+    orientation: AgChartLabelOrientation | undefined
+): CandidateLabelStyle {
+    const style = getLabelStyles(
+        series,
+        datum,
+        params,
+        label,
+        false,
+        undefined,
+        labelPath,
+        pickPlacementStyle(label, placement.style),
+        { placement: placement.reported, orientation }
+    );
+    return { font: style, boxPadding: expandLabelBoxExtent(style), hidden: !style.enabled };
+}
+
+/**
+ * The per-candidate style hook the placement engine resolves label geometry through, or `undefined` when
+ * the label has no `itemStyler` and its geometry is therefore placement-invariant.
+ */
+export function createCandidateStyleResolver<TParams>(
+    series: SeriesLike,
+    label: PlacementStyledLabel<TParams>,
+    params: TParams,
+    placementFor: CandidatePlacementMapper,
+    labelPath?: string[]
+): CandidateStyleResolver | undefined {
+    if (label.itemStyler == null) return undefined;
+    return function resolveCandidateStyle(datum, placement, orientation) {
+        const resolved = placementFor(placement, datum);
+        return resolveCandidateLabelStyle(
+            series,
+            label,
+            params,
+            labelPath,
+            datum as PointLabelDatum & SeriesNodeDatum,
+            resolved,
+            orientation
+        );
+    };
+}
+
+/**
+ * The styled box a bar label reserves on the orientation-only route, where the series bakes the placement
+ * and the engine resolves only the rotation. One box is reserved for every orientation there, so it is
+ * resolved at `orientation` — the first candidate; a styler that sizes the box per orientation is honoured
+ * in what is drawn but not in the reservation. `undefined` for an unstyled label, leaving the configured
+ * measurement in place.
+ *
+ * Callers must drop a `hidden` result from their label data: unlike the cascade route, where the engine
+ * skips hidden candidates itself, nothing downstream of here would stop a disabled label reserving space.
+ */
+export function styledBarLabelBox(
+    resolveStyle: BarCandidateStyleResolver | undefined,
+    styleDatum: SeriesNodeDatum | undefined,
+    placement: BarLabelPlacement,
+    orientation: AgChartLabelOrientation,
+    text: NormalisedTextOrSegments
+): StyledBarLabelBox | undefined {
+    if (resolveStyle == null || styleDatum == null) return undefined;
+    const { font, boxPadding, hidden } = resolveStyle(styleDatum, placement, orientation);
+    const glyph = measureLabelText(text, font);
+    return {
+        size: {
+            width: glyph.width + boxPadding.left + boxPadding.right,
+            height: glyph.height + boxPadding.top + boxPadding.bottom,
+        },
+        font,
+        boxPadding,
+        hidden: hidden === true,
+    };
+}
+
+export interface StyledBarLabelBox {
+    readonly size: { width: number; height: number };
+    readonly font: FontOptions;
+    readonly boxPadding: Required<PaddingOptions>;
+    /** The styler disabled this label, so it must be left out of the label data entirely. */
+    readonly hidden: boolean;
+}
+
+/** The `itemStyler` geometry of one bar-label candidate; see {@link buildBarLabelCandidates}. */
+export type BarCandidateStyleResolver = (
+    nodeDatum: SeriesNodeDatum,
+    placement: BarLabelPlacement,
+    orientation: AgChartLabelOrientation
+) => CandidateLabelStyle;
+
+/**
+ * The per-candidate style hook for bar-family labels, whose candidates the series positions itself. Unlike
+ * the compass path the datum comes in per call, because these candidates are built while the node data is:
+ * a series holds one resolver for every label it lays out.
+ */
+export function createBarCandidateStyleResolver<TParams>(
+    series: SeriesLike,
+    label: PlacementStyledLabel<TParams>,
+    params: TParams,
+    labelPath?: string[]
+): BarCandidateStyleResolver | undefined {
+    if (label.itemStyler == null) return undefined;
+    return function resolveBarCandidateStyle(nodeDatum, placement, orientation) {
+        const resolved = { style: toResolvedPlacement(placement), reported: placement };
+        return resolveCandidateLabelStyle(series, label, params, labelPath, nodeDatum, resolved, orientation);
+    };
+}
+
 export function getLabelStyles<TParams>(
     series: SeriesLike,
     nodeDatum: SeriesNodeDatum | undefined,
@@ -479,6 +638,11 @@ export function updateLabelNode<TParams>(
             placementStyle,
             resolvedPlacement
         );
+        // A styler that disabled this label hides it, matching the placement engine dropping it.
+        if (!style.enabled) {
+            textNode.visible = false;
+            return;
+        }
         textNode.visible = true;
         // Offset slides a rotated bar label flush inside its bar rect; the pivot below is re-derived
         // from the shifted position, so the rotated glyph box moves with it. `0` for every other label.
@@ -694,12 +858,14 @@ export interface BarPositionedCandidate extends PositionedLabelCandidate {
 /**
  * Builds the ordered candidate list a bar label cascades through, one entry per
  * `placement` (outer) × `orientation` (inner) — the ordering that yields inside-horizontal →
- * inside-vertical → outside-horizontal → outside-vertical for the ticket's example. The glyph centre is
- * orientation-invariant, so it is measured once per placement and shared across that placement's
- * orientations. Inside placements constrain to the inset bar rect; outside placements float (no region).
+ * inside-vertical → outside-horizontal → outside-vertical for the ticket's example. Inside placements
+ * constrain to the inset bar rect; outside placements float (no region).
  *
  * With `fitted` set, each candidate also carries the glyph budget its region offers, so the placement
  * engine re-fits the text per candidate instead of every candidate inheriting one up-front truncation.
+ *
+ * `resolveStyle` makes each candidate's geometry the one its `itemStyler` resolves there, so the engine
+ * reserves and tests the box that will actually be drawn and cascades on when the styled box does not fit.
  */
 export function buildBarLabelCandidates<TParams>({
     isUpward,
@@ -717,6 +883,9 @@ export function buildBarLabelCandidates<TParams>({
     hideable = false,
     plotRegion,
     fitted = false,
+    text,
+    styleDatum,
+    resolveStyle,
 }: {
     isUpward: boolean;
     isVertical: boolean;
@@ -738,6 +907,12 @@ export function buildBarLabelCandidates<TParams>({
     plotRegion?: Bounds;
     /** Attach the per-candidate fit inputs the engine needs to re-fit the text to each candidate. */
     fitted?: boolean;
+    /** Source text, re-measured under each candidate's styled font; required alongside `resolveStyle`. */
+    text?: NormalisedTextOrSegments;
+    /** The label's node datum, passed to `resolveStyle` as the styler's subject. */
+    styleDatum?: SeriesNodeDatum;
+    /** The `itemStyler` geometry at one candidate; unset leaves every candidate on the configured style. */
+    resolveStyle?: BarCandidateStyleResolver;
 }): BarPositionedCandidate[] {
     // Drop the outside placements that would point into an adjacent stacked segment on that side, so the
     // cascade falls through to a beside/inside candidate rather than mislabelling the neighbour.
@@ -763,29 +938,35 @@ export function buildBarLabelCandidates<TParams>({
     for (const placement of effectivePlacements) {
         // Per-placement drawn-box extent: an inside candidate uses insideStyle, an outside one outsideStyle,
         // so their padding/border differences move the anchor and size the footprint independently.
-        const boxPadding = resolvePlacementLabelBoxExtent(
+        const placementBox = resolvePlacementLabelBoxExtent(
             label,
             pickPlacementStyle(label, toResolvedPlacement(placement))
         );
-        const width = textWidth + boxPadding.left + boxPadding.right;
-        const height = textHeight + boxPadding.top + boxPadding.bottom;
-        const anchor = adjustLabelPlacement({
-            isUpward,
-            isVertical,
-            placement,
-            spacing,
-            boxPadding,
-            rect,
-            crossReversed,
-        });
         const isInside = placement.startsWith('inside');
         // Inside labels reserve `spacing` on the end they anchor against, so the gap survives the engine's
         // flush/containment (not just the anchor); centred labels reserve nothing.
         const insets = insideBarValueInsets(barValueAnchor(placement), isUpward, isVertical, spacing);
         const insideRegion = isInside ? insideBarRegion(rect, insets.min, insets.max, isVertical) : undefined;
         const region = insideRegion ?? plotRegion;
-        const centre = writeLabelBoxCentre({ x: 0, y: 0 }, anchor, width, height, boxPadding);
         for (const orientation of orientations) {
+            // A styler can change the font and box per orientation as well as per placement, so the
+            // glyph, the box extent and the anchor they position are all resolved here.
+            const style =
+                styleDatum == null || text == null ? undefined : resolveStyle?.(styleDatum, placement, orientation);
+            const boxPadding = style?.boxPadding ?? placementBox;
+            const glyph = style == null || text == null ? undefined : measureLabelText(text, style.font);
+            const width = (glyph?.width ?? textWidth) + boxPadding.left + boxPadding.right;
+            const height = (glyph?.height ?? textHeight) + boxPadding.top + boxPadding.bottom;
+            const anchor = adjustLabelPlacement({
+                isUpward,
+                isVertical,
+                placement,
+                spacing,
+                boxPadding,
+                rect,
+                crossReversed,
+            });
+            const centre = writeLabelBoxCentre({ x: 0, y: 0 }, anchor, width, height, boxPadding);
             const rotationDeg = orientationAngles[orientation];
             const { width: fw, height: fh } = getMinOuterRectSize(rotationDeg, width, height);
             const box = { x: centre.x - fw / 2, y: centre.y - fh / 2, width: fw, height: fh };
@@ -796,6 +977,8 @@ export function buildBarLabelCandidates<TParams>({
                 rotation: rotationDeg || undefined,
                 anchor,
                 placement,
+                size: style == null ? undefined : { width, height },
+                hidden: style?.hidden,
                 // An outside candidate floats, so it offers no container and only the label's own
                 // maxWidth/maxHeight can truncate it.
                 fitTo: fitted
@@ -803,6 +986,7 @@ export function buildBarLabelCandidates<TParams>({
                           container: insideRegion && orientedBarContainer(insideRegion, rotationDeg, boxPadding),
                           anchor,
                           padding: boxPadding,
+                          font: style?.font,
                       }
                     : undefined,
             });

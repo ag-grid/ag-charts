@@ -386,6 +386,10 @@ export class ChordSeries extends FlowProportionSeries<
                 isHighlight,
                 activeHighlightDatum
             );
+            if (!style.enabled) {
+                label.visible = false;
+                return;
+            }
             const { fontStyle, fontWeight, fontSize, fontFamily, color: fill } = style;
             label.visible = true;
             label.translationX = centerX + radius * Math.cos(angle);

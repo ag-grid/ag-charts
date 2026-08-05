@@ -648,7 +648,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             );
 
             const { color: fill, fontSize, fontStyle, fontWeight, fontFamily } = style;
-            label.visible = visible;
+            label.visible = visible && style.enabled === true;
             label.x = x;
             label.y = y;
             label.text = text;

@@ -25,6 +25,7 @@ import {
     applyBarLabelOrientation,
     applyPlacedBarLabelVisibility,
     barLabelObstacles,
+    barLabelOrientation,
     barLabelResolvesOrientation,
     barLabelResolvesPlacement,
     barLabelRotation,
@@ -55,6 +56,8 @@ type NormalisedWaterfallSeriesStyle = Normalised<AgWaterfallSeriesStyle, never, 
 const {
     adjustLabelPlacement,
     buildBarLabelCandidates,
+    createBarCandidateStyleResolver,
+    styledBarLabelBox,
     toResolvedPlacement,
     insideBarLabelBounds,
     resolvePlacementLabelBoxExtent,
@@ -800,6 +803,17 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                     rect,
                     plotRegion,
                     fitted: labelFit != null,
+                    text: fittedLabelText,
+                    styleDatum: node,
+                    resolveStyle:
+                        label.itemStyler == null
+                            ? undefined
+                            : createBarCandidateStyleResolver(
+                                  this,
+                                  label,
+                                  this.makeLabelStylerParams(node, mutableNode.totalValue),
+                                  this.labelPath(seriesItemType)
+                              ),
                 });
                 // The engine picks the first candidate that fits; the first is baked as a backward-safe
                 // default until the engine writes the chosen one back.
@@ -1192,12 +1206,39 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             // Inflate the measured text by the label's drawn box (padding + border stroke) so collisions
             // avoid the box, not just the text.
             const box = expandPlacementLabelBoxExtent(label);
+            // A styler resolves the box per placement × orientation; on the orientation-only route below the
+            // placement is baked, so the styled geometry is resolved at the first orientation (see
+            // styledBarLabelBox) and replaces the configured measurement.
+            const styled = styledBarLabelBox(
+                label.itemStyler == null
+                    ? undefined
+                    : createBarCandidateStyleResolver(
+                          this,
+                          label,
+                          this.makeLabelStylerParams(node, node.totalValue),
+                          this.labelPath(node.itemType)
+                      ),
+                node,
+                nodeLabel.placement ?? 'inside-center',
+                firstCandidate(label.orientation) ?? 'horizontal',
+                nodeLabel.text
+            );
             const { width, height } = measureLabelText(nodeLabel.text, label);
-            const size = { width: width + box.left + box.right, height: height + box.top + box.bottom };
-            const fit = resolveLabelFitDescriptors(label, box, !label.collision.alwaysShow)(nodeLabel.text);
+            const size = styled?.size ?? {
+                width: width + box.left + box.right,
+                height: height + box.top + box.bottom,
+            };
+            const configuredFit = resolveLabelFitDescriptors(label, box, !label.collision.alwaysShow)(nodeLabel.text);
+            const fit =
+                configuredFit == null || styled == null
+                    ? configuredFit
+                    : { ...configuredFit, font: styled.font, boxPadding: styled.boxPadding };
             // A cascading item carries pre-positioned candidates (built per item config); others resolve
             // their orientation array against the bar rect, or stay baked when single-orientation.
             if (nodeLabel.candidates == null) {
+                // A label its styler disabled reserves nothing and blocks no neighbour. Only the baked
+                // route needs this; the engine skips hidden candidates on the cascading one itself.
+                if (styled?.hidden === true) continue;
                 data.push(
                     ...buildBarLabelData([node], () => ({
                         label: nodeLabel,
@@ -1261,6 +1302,32 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         return labelSelection.update(data);
     }
 
+    /**
+     * The styler params for one label. Item-type specific, so they are built per datum rather than
+     * hoisted; the placement pass and the render pass must produce identical params for the styler
+     * result to be shared between them.
+     */
+    private makeLabelStylerParams(
+        datum: WaterfallNodeDatum,
+        totalValue: AgNumericValue | undefined
+    ): RequireOptional<AgWaterfallSeriesLabelFormatterParams> {
+        return {
+            itemType: datum.itemType,
+            itemId: getItemId(datum, this.data?.dataIdKey),
+            totalValue,
+            xKey: this.properties.xKey,
+            xName: this.properties.xName,
+            yKey: this.properties.yKey,
+            yName: this.properties.yName,
+        };
+    }
+
+    /** Options path of an item type's label, which the styler result is resolved against. */
+    private labelPath(itemType: WaterfallNodeDatum['itemType']): string[] {
+        const propertyItemId = itemType === 'subtotal' ? 'total' : itemType;
+        return ['series', `${this.declarationOrder}`, 'item', propertyItemId, 'label'];
+    }
+
     protected updateLabelNodes({
         labelSelection,
         isHighlight,
@@ -1268,20 +1335,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         labelSelection: _ModuleSupport.Selection<WaterfallNodeDatum, _ModuleSupport.Text<WaterfallNodeDatum>>;
         isHighlight: boolean;
     }) {
-        const params: RequireOptional<AgWaterfallSeriesLabelFormatterParams> = {
-            itemType: 'positive',
-            itemId: 0,
-            totalValue: undefined,
-            xKey: this.properties.xKey,
-            xName: this.properties.xName ?? this.properties.xName,
-            yKey: this.properties.yKey,
-            yName: this.properties.yName ?? this.properties.yName,
-        };
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         labelSelection.each((textNode, datum) => {
-            params.itemType = datum.itemType;
-            params.itemId = getItemId(datum, this.data?.dataIdKey);
-            params.totalValue = datum.totalValue;
             if (datum.label.hidden) {
                 textNode.visible = false;
                 return;
@@ -1290,8 +1345,6 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             textNode.visible = true;
             textNode.fillOpacity = styleOpacity;
             const label = this.getItemConfig(datum.itemType).label;
-            const propertyItemId = datum.itemType === 'subtotal' ? 'total' : datum.itemType;
-            const labelPath = ['series', `${this.declarationOrder}`, 'item', propertyItemId, 'label'];
             const placementStyle = pickPlacementStyle(
                 label,
                 datum.label.placement == null ? undefined : toResolvedPlacement(datum.label.placement)
@@ -1299,12 +1352,16 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             updateLabelNode(
                 this,
                 textNode,
-                params,
+                this.makeLabelStylerParams(datum, datum.totalValue),
                 label,
                 datum.label,
                 { isHighlight, activeHighlight },
-                labelPath,
-                placementStyle
+                this.labelPath(datum.itemType),
+                placementStyle,
+                {
+                    placement: datum.label.placement,
+                    orientation: barLabelOrientation(datum.label.rotation ?? 0),
+                }
             );
         });
     }

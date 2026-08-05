@@ -342,9 +342,11 @@ describe('resolved placement/orientation in itemStyler params', () => {
         chart?.destroy();
     });
 
+    type CapturedLabelParams = { placement?: string; orientation?: string; fill?: unknown; datum?: unknown };
+
     // Renders with a spy itemStyler on every series and returns the params it received per label.
     const captureLabelParams = async (options: any) => {
-        const captured: Array<{ placement?: string; orientation?: string; fill?: unknown }> = [];
+        const captured: CapturedLabelParams[] = [];
         for (const series of options.series) {
             series.label = { ...series.label, itemStyler: (params: any) => (captured.push(params), {}) };
         }
@@ -353,6 +355,21 @@ describe('resolved placement/orientation in itemStyler params', () => {
         await waitForChartStability(chart);
         expect(captured.length).toBeGreaterThan(0);
         return captured;
+    };
+
+    /**
+     * The granular placement each bar label was finally drawn at, as the placement engine wrote it back.
+     * The styler's params cannot answer this on their own: it is invoked once per candidate the cascade
+     * probes, and the render pass reuses the cached result rather than calling it again for the winner.
+     */
+    const drawnBarPlacements = () => {
+        const series = deproxy(chart as any).series[0] as unknown as {
+            contextNodeData?: { labelData: { label?: { placement?: string; hidden?: boolean } }[] };
+        };
+        return (series.contextNodeData?.labelData ?? [])
+            .map((node) => node.label)
+            .filter((label) => label != null && label.hidden !== true)
+            .map((label) => label!.placement);
     };
 
     const barChart = (labelOptions: object) => ({
@@ -425,7 +442,9 @@ describe('resolved placement/orientation in itemStyler params', () => {
             axes: { x: { type: 'category', position: 'bottom' }, y: { type: 'number', position: 'left', max: 100 } },
         };
         const params = await captureLabelParams(flatBars);
-        expect(params.every((p) => p.placement === 'outside-end')).toBe(true);
+        expect(drawnBarPlacements()).toEqual(['outside-end', 'outside-end', 'outside-end']);
+        // The fallback was resolved through the styler, which also saw the inside candidate it rejected.
+        expect(params.some((p) => p.placement === 'outside-end')).toBe(true);
         expect(params.every((p) => p.orientation === 'horizontal')).toBe(true);
     });
 

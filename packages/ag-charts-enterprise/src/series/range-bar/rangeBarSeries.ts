@@ -32,6 +32,7 @@ import {
     applyPlacedBarLabelVisibility,
     areScalingEqual,
     barLabelObstacles,
+    barLabelOrientation,
     barLabelResolvesOrientation,
     barLabelResolvesPlacement,
     barLabelRotation,
@@ -67,6 +68,8 @@ const {
     checkCrisp,
     fitLabelToContainer,
     buildBarLabelCandidates,
+    createBarCandidateStyleResolver,
+    styledBarLabelBox,
     toResolvedPlacement,
     updateLabelNode,
     pickPlacementStyle,
@@ -1177,7 +1180,15 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             const orientations = toArray(label.orientation);
             if (orientations.length === 0) orientations.push('horizontal');
             const plotRegion = this.resolveLabelPlotRegion(label.collision);
-            const buildCandidates = (text: NormalisedTextOrSegments, end: 'start' | 'end') => {
+            const resolveStyle =
+                label.itemStyler == null
+                    ? undefined
+                    : createBarCandidateStyleResolver(this, label, this.makeLabelStylerParams());
+            const buildCandidates = (
+                text: NormalisedTextOrSegments,
+                end: 'start' | 'end',
+                styleDatum: RangeBarNodeLabelDatum
+            ) => {
                 const size = measureLabelText(text, label);
                 return buildBarLabelCandidates({
                     // A reversed value axis flips which rect edge the start/end candidates anchor to.
@@ -1192,10 +1203,13 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                     rect: rectBox,
                     plotRegion,
                     fitted: ctx.labelFit != null,
+                    text,
+                    styleDatum,
+                    resolveStyle,
                 });
             };
-            bakeFirstCandidate(low, buildCandidates(yLowText, 'start'));
-            bakeFirstCandidate(high, buildCandidates(yHighText, 'end'));
+            bakeFirstCandidate(low, buildCandidates(yLowText, 'start', labels[0]));
+            bakeFirstCandidate(high, buildCandidates(yHighText, 'end', labels[1]));
         } else {
             low.candidates = undefined;
             high.candidates = undefined;
@@ -1456,6 +1470,11 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const threshold = label.collision.threshold ?? 0;
         const alwaysShow = label.collision.alwaysShow;
         const fitFor = resolveLabelFitDescriptors(label, box, !alwaysShow);
+        const resolveStyle =
+            label.itemStyler == null
+                ? undefined
+                : createBarCandidateStyleResolver(this, label, this.makeLabelStylerParams());
+        const firstOrientation = toArray(label.orientation)[0] ?? 'horizontal';
         const data: PointLabelDatum[] = [];
         for (const labelDatum of this.contextNodeData?.labelData ?? []) {
             if (labelDatum.text === '') {
@@ -1469,11 +1488,28 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                 );
                 continue;
             }
+            // A styler resolves the box per placement × orientation; on the orientation-only route below the
+            // placement is baked, so the styled geometry is resolved at the first orientation.
+            const styled = styledBarLabelBox(
+                resolveStyle,
+                labelDatum,
+                labelDatum.placement ?? `inside-${labelDatum.itemType === 'low' ? 'start' : 'end'}`,
+                firstOrientation,
+                labelDatum.text
+            );
             const { width, height } = measureLabelText(labelDatum.text, label);
-            const size = { width: width + box.left + box.right, height: height + box.top + box.bottom };
+            const size = styled?.size ?? { width: width + box.left + box.right, height: height + box.top + box.bottom };
+            const configuredFit = fitFor(labelDatum.text);
+            const fit =
+                configuredFit == null || styled == null
+                    ? configuredFit
+                    : { ...configuredFit, font: styled.font, boxPadding: styled.boxPadding };
             // A cascading label carries pre-positioned candidates; an orientation-only array resolves its
             // orientation against the bar region via the baked path.
             if (labelDatum.candidates == null) {
+                // A label its styler disabled reserves nothing and blocks no neighbour. Only the baked
+                // route needs this; the engine skips hidden candidates on the cascading one itself.
+                if (styled?.hidden === true) continue;
                 data.push(
                     ...buildBarLabelData([labelDatum], () => ({
                         label: labelDatum,
@@ -1481,7 +1517,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                         size,
                         collideWith,
                         threshold,
-                        fit: fitFor(labelDatum.text),
+                        fit,
                     }))
                 );
             } else {
@@ -1498,7 +1534,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                         collideWith,
                         threshold,
                         true,
-                        fitFor(labelDatum.text)
+                        fit
                     )
                 );
             }
@@ -1532,21 +1568,30 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         });
     }
 
+    /**
+     * The styler params for every label of this series. The placement pass and the render pass must
+     * produce identical params for the styler result to be shared between them.
+     */
+    private makeLabelStylerParams(): RequireOptional<AgRangeBarSeriesLabelFormatterParams> {
+        const { xKey, xName, yName, yLowKey, yLowName, yHighKey, yHighName, legendItemName } = this.properties;
+        return {
+            xKey,
+            xName: xName ?? xKey,
+            yName,
+            yLowKey,
+            yLowName: yLowName ?? yLowKey,
+            yHighKey,
+            yHighName: yHighName ?? yHighKey,
+            legendItemName,
+        };
+    }
+
     protected updateLabelNodes(opts: {
         labelSelection: _ModuleSupport.Selection<RangeBarNodeLabelDatum, _ModuleSupport.Text<RangeBarNodeLabelDatum>>;
         isHighlight?: boolean;
     }) {
         const { isHighlight = false } = opts;
-        const params: RequireOptional<AgRangeBarSeriesLabelFormatterParams> = {
-            xKey: this.properties.xKey,
-            xName: this.properties.xName ?? this.properties.xKey,
-            yName: this.properties.yName,
-            yLowKey: this.properties.yLowKey,
-            yLowName: this.properties.yLowName ?? this.properties.yLowKey,
-            yHighKey: this.properties.yHighKey,
-            yHighName: this.properties.yHighName ?? this.properties.yHighKey,
-            legendItemName: this.properties.legendItemName,
-        };
+        const params = this.makeLabelStylerParams();
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const { label } = this.properties;
         opts.labelSelection.each((textNode, datum) => {
@@ -1567,7 +1612,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                 datum,
                 { isHighlight, activeHighlight },
                 undefined,
-                placementStyle
+                placementStyle,
+                { placement: datum.placement, orientation: barLabelOrientation(datum.rotation) }
             );
         });
     }

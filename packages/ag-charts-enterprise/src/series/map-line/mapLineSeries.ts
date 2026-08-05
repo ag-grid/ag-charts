@@ -12,6 +12,7 @@ import type {
 import {
     type ITextMeasurer,
     type LabelFit,
+    type NormalisedChartLabelStyleOptions,
     type Point,
     cachedTextMeasurer,
     findDiscreteColorBinLabel,
@@ -262,7 +263,8 @@ export class MapLineSeries
         labelValue: string | undefined,
         projectedGeometry: Geometry | undefined,
         measurer: ITextMeasurer,
-        labelFit: LabelFit | undefined
+        labelFit: LabelFit | undefined,
+        labelStyle: NormalisedChartLabelStyleOptions & { fontSize: number }
     ): MapLineNodeLabelDatum | undefined {
         if (labelValue == null || projectedGeometry == null || idValue == null) return;
 
@@ -270,7 +272,9 @@ export class MapLineSeries
         if (lineString == null) return;
 
         const { idKey, idName, sizeKey, sizeName, colorKey, colorName, labelKey, labelName, label } = this.properties;
-        if (labelKey == null || !label.enabled) return;
+        // A label the styler disabled is left out of the label data, so it reserves no placement space and
+        // acts as no obstacle — hiding it at render time alone would still displace its neighbours.
+        if (labelKey == null || !label.enabled || !labelStyle.enabled) return;
 
         const labelText = this.getLabelText<AgMapLineSeriesLabelFormatterParams>(
             labelValue,
@@ -294,14 +298,14 @@ export class MapLineSeries
         );
         if (labelText == null) return;
 
-        const fittedText = fitLabelText(labelText, labelFit, label);
+        const fittedText = fitLabelText(labelText, labelFit, labelStyle);
         const labelCenter = lineStringCenter(lineString);
         if (labelCenter == null) return;
 
         const [x, y] = labelCenter.point;
         const text = measurer.measureLines(String(fittedText));
         // Inflate the text by the label's drawn box (padding + border stroke) so collisions avoid the box.
-        const box = expandLabelBoxExtent(label);
+        const box = expandLabelBoxExtent(labelStyle);
         const width = text.width + box.left + box.right;
         const height = text.height + box.top + box.bottom;
 
@@ -394,7 +398,17 @@ export class MapLineSeries
         const minStrokeWidth = properties.minStrokeWidth ?? properties.strokeWidth;
         const maxStrokeWidth = properties.maxStrokeWidth ?? properties.strokeWidth;
         sizeScale.range = [minStrokeWidth, Math.max(minStrokeWidth, maxStrokeWidth)];
-        const measurer = cachedTextMeasurer(label);
+        // The styler takes no datum here, so one resolved style governs every label of this series;
+        // measuring and reserving against it keeps each collision footprint equal to the box drawn.
+        const labelStyle = getLabelStyles<AgMapLineSeriesLabelFormatterParams>(
+            this,
+            undefined,
+            properties,
+            label,
+            false,
+            undefined
+        );
+        const measurer = cachedTextMeasurer(labelStyle);
         const labelFit = resolveLabelFit(label, !label.collision.alwaysShow);
 
         const projectedGeometries = this.prepareProjectedLineGeometries(
@@ -428,7 +442,8 @@ export class MapLineSeries
                 dataValues.labelValue,
                 projectedGeometry,
                 measurer,
-                labelFit
+                labelFit,
+                labelStyle
             );
             if (labelDatum != null) {
                 labelData.push(labelDatum);
@@ -639,6 +654,10 @@ export class MapLineSeries
                 isHighlight,
                 activeHighlight
             );
+            if (!style.enabled) {
+                label.visible = false;
+                return;
+            }
             const { color: fill, fontStyle, fontWeight, fontSize, fontFamily } = style;
             label.visible = true;
             label.x = x + width / 2;

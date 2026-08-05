@@ -10,6 +10,7 @@ import {
     type ITextMeasurer,
     type LabelFit,
     type Normalised,
+    type NormalisedChartLabelStyleOptions,
     type PlacedLabel,
     type Point,
     type SizedPoint,
@@ -345,9 +346,12 @@ export class MapMarkerSeries
         node: MapMarkerNodeDatum,
         labelValue: string | undefined,
         measurer: ITextMeasurer,
-        labelFit: LabelFit | undefined
+        labelFit: LabelFit | undefined,
+        labelStyle: NormalisedChartLabelStyleOptions & { fontSize: number }
     ): MapMarkerNodeLabelDatum | undefined {
-        if (labelValue == null) return;
+        // A label the styler disabled is left out of the label data, so it reserves no placement space and
+        // acts as no obstacle — hiding it at render time alone would still displace its neighbours.
+        if (labelValue == null || !labelStyle.enabled) return;
 
         const {
             idKey,
@@ -395,10 +399,10 @@ export class MapMarkerSeries
         );
         if (labelText == null) return;
 
-        const fittedText = fitLabelText(labelText, labelFit, label);
+        const fittedText = fitLabelText(labelText, labelFit, labelStyle);
         const text = measurer.measureLines(String(fittedText));
         // Inflate the text by the label's drawn box (padding + border stroke) so collisions avoid the box.
-        const box = expandLabelBoxExtent(label);
+        const box = expandLabelBoxExtent(labelStyle);
         const width = text.width + box.left + box.right;
         const height = text.height + box.top + box.bottom;
         const anchor = Marker.anchor(shape);
@@ -499,7 +503,8 @@ export class MapMarkerSeries
         dataValues: MarkerDataValues,
         size: number,
         measurer: ITextMeasurer,
-        labelFit: LabelFit | undefined
+        labelFit: LabelFit | undefined,
+        labelStyle: NormalisedChartLabelStyleOptions & { fontSize: number }
     ): { node: MapMarkerNodeDatum; label: MapMarkerNodeLabelDatum | undefined } {
         if (this.scale == null) {
             throw new Error('Scale is required for createNodeFromLatLon');
@@ -510,7 +515,7 @@ export class MapMarkerSeries
 
         const node = this.buildNodeDatum(datum, datumIndex, -1, point, dataValues);
 
-        const label = this.getLabelDatum(node, dataValues.labelValue, measurer, labelFit) ?? undefined;
+        const label = this.getLabelDatum(node, dataValues.labelValue, measurer, labelFit, labelStyle) ?? undefined;
 
         return { node, label };
     }
@@ -522,7 +527,8 @@ export class MapMarkerSeries
         dataValues: MarkerDataValues,
         size: number,
         measurer: ITextMeasurer,
-        labelFit: LabelFit | undefined
+        labelFit: LabelFit | undefined,
+        labelStyle: NormalisedChartLabelStyleOptions & { fontSize: number }
     ): { nodes: MapMarkerNodeDatum[]; labels: MapMarkerNodeLabelDatum[] } {
         const nodes: MapMarkerNodeDatum[] = [];
         const labels: MapMarkerNodeLabelDatum[] = [];
@@ -533,7 +539,7 @@ export class MapMarkerSeries
             const node = this.buildNodeDatum(datum, datumIndex, index, point, dataValues);
             nodes.push(node);
 
-            const label = this.getLabelDatum(node, dataValues.labelValue, measurer, labelFit);
+            const label = this.getLabelDatum(node, dataValues.labelValue, measurer, labelFit, labelStyle);
             if (label) {
                 labels.push(label);
             }
@@ -585,7 +591,17 @@ export class MapMarkerSeries
         const markerMinSize = properties.minSize ?? properties.size;
         const markerMaxSize = properties.maxSize ?? properties.size;
         sizeScale.range = [markerMinSize, Math.max(markerMinSize, markerMaxSize)];
-        const measurer = cachedTextMeasurer(label);
+        // The styler takes no datum here, so one resolved style governs every label of this series;
+        // measuring and reserving against it keeps each collision footprint equal to the box drawn.
+        const labelStyle = getLabelStyles<AgMapMarkerSeriesLabelFormatterParams>(
+            this,
+            undefined,
+            properties,
+            label,
+            false,
+            undefined
+        );
+        const measurer = cachedTextMeasurer(labelStyle);
         const labelFit = resolveLabelFit(label, !label.collision.alwaysShow);
 
         const projectedGeometries = this.prepareProjectedGeometries(
@@ -626,7 +642,8 @@ export class MapMarkerSeries
                     dataValues,
                     size,
                     measurer,
-                    labelFit
+                    labelFit,
+                    labelStyle
                 );
                 nodeData.push(result.node);
                 if (result.label) labelData.push(result.label);
@@ -638,7 +655,8 @@ export class MapMarkerSeries
                     dataValues,
                     size,
                     measurer,
-                    labelFit
+                    labelFit,
+                    labelStyle
                 );
                 nodeData.push(...result.nodes);
                 labelData.push(...result.labels);
@@ -739,6 +757,10 @@ export class MapMarkerSeries
                 isHighlight,
                 activeHighlight
             );
+            if (!style.enabled) {
+                label.visible = false;
+                return;
+            }
             const { color: fill, fontStyle, fontWeight, fontSize, fontFamily } = style;
             label.visible = true;
             label.x = x + width / 2;

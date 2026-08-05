@@ -5,8 +5,8 @@ import type { NormalisedTextOrSegments } from '../../types/normalised-options/no
 import type { Point, SizedPoint } from '../../types/scene';
 import type { FontOptions } from '../../types/text';
 import { toArray } from '../data/arrays';
-import { toTextString } from '../text/textUtils';
-import { type LabelFit, fitLabelText } from '../text/textWrapper';
+import { toFontString, toTextString } from '../text/textUtils';
+import { type LabelFit, fitLabelTextOrOverflow, isErased } from '../text/textWrapper';
 import { isArray } from '../types/typeGuards';
 import { toDegrees, toRadians } from './angle';
 import { type BoxBounds, boxCollides, boxContains } from './boxBounds';
@@ -88,6 +88,18 @@ export interface LabelFitDescriptor {
      * this is subtracted from a container to get the glyph budget and added back to the fitted glyph.
      */
     readonly boxPadding?: Required<PaddingOptions>;
+    /**
+     * Policy without the series' implicit container, applied when {@link policy} leaves nothing to draw.
+     * Mirrors the up-front `fitLabelTextOrOverflow` fallback, so a label bound to a container too small
+     * for even an ellipsis overflows it rather than being erased.
+     */
+    readonly fitOverflow?: LabelFit;
+    /**
+     * Bound the text by the datum's {@link PointLabelDatum.region} as well as by {@link policy}; defaults
+     * to `true`. A bar label fits its bar rect, but a point label's region is the plotting area, which
+     * contains its labels rather than truncating them.
+     */
+    readonly boundByRegion?: boolean;
 }
 
 /**
@@ -119,6 +131,8 @@ export interface CandidateFitTarget {
     readonly anchor: OrientationAnchor;
     /** Per-side extent of the drawn box around the glyph. */
     readonly padding: Required<PaddingOptions>;
+    /** Font the text is fitted and measured with; defaults to the descriptor's own when unset. */
+    readonly font?: FontOptions;
 }
 
 /**
@@ -143,10 +157,24 @@ export interface PositionedLabelCandidate {
     readonly rotation?: number;
     /** Fit inputs for this candidate; used only when the datum carries a {@link PointLabelDatum.fit}. */
     readonly fitTo?: CandidateFitTarget;
+    /**
+     * Unfitted drawn-box size at this candidate, reported in place of the datum's measured
+     * {@link PointLabelDatum.label}. Set by a series whose label styler resizes the box per candidate.
+     */
+    readonly size?: { readonly width: number; readonly height: number };
+    /** The styler disabled this label at this candidate, so the cascade skips it. */
+    readonly hidden?: boolean;
 }
 
 export interface PointLabelDatum {
     readonly point: Readonly<SizedPoint>;
+    /**
+     * Marker diameter a `marker.itemStyler` resolved for this datum, overriding {@link point}.size
+     * everywhere the marker's geometry is consulted. {@link point}.size itself stays the configured size,
+     * because it is the input the styler resolved against — overwriting it would double-apply a relative
+     * styler (`size: size * 2`).
+     */
+    readonly markerSize?: number;
     readonly label: MeasuredLabel;
     /**
      * Re-fits the text to each candidate in turn instead of to one container picked before the cascade,
@@ -275,10 +303,37 @@ export interface SeriesLabelDefaults {
     readonly placements?: readonly LabelPlacement[];
 }
 
+/**
+ * Geometry-affecting label style at one candidate placement/orientation — what a series' `itemStyler`
+ * resolves to there. The engine reserves and tests this rather than the configured label, so a styler
+ * that grows the label cascades to the next candidate instead of overlapping what it was placed against.
+ */
+export interface CandidateLabelStyle {
+    readonly font: FontOptions;
+    /** Per-side extent of the drawn box around the glyph (padding plus any border). */
+    readonly boxPadding: Required<PaddingOptions>;
+    /** The styler disabled this label; it is neither placed nor treated as an obstacle. */
+    readonly hidden?: boolean;
+}
+
+/**
+ * Resolves the styled geometry of one candidate. Called per `(placement × orientation)` the cascade
+ * tries, short-circuited at the first candidate that fits. A datum whose series supplies a resolver must
+ * also carry a {@link PointLabelDatum.fit}: it is the engine's only source of unfitted text to re-measure
+ * under the styled font.
+ */
+export type CandidateStyleResolver = (
+    datum: PointLabelDatum,
+    placement: LabelPlacement | undefined,
+    orientation: AgChartLabelOrientation | undefined
+) => CandidateLabelStyle | undefined;
+
 /** Per-series label placement input: the datums plus the series-level collision defaults. */
 export interface SeriesLabels {
     readonly datums: readonly PointLabelDatum[];
     readonly defaults?: SeriesLabelDefaults;
+    /** Set only when the series' labels are styled per datum; leaving it unset skips the styled path entirely. */
+    readonly resolveCandidateStyle?: CandidateStyleResolver;
 }
 
 /** Structural source of a series' resolved collision config (community `LabelCollision`). */
@@ -383,6 +438,32 @@ function circleOverlapsBox(cx: number, cy: number, r: number, x: number, y: numb
 
 export function isPointLabelDatum(x: any): x is PointLabelDatum {
     return x != null && typeof x.point === 'object' && typeof x.label === 'object';
+}
+
+/** The marker diameter a label's geometry is resolved against: the styled size when there is one. */
+function markerSizeOf(d: PointLabelDatum): number {
+    return d.markerSize ?? d.point.size;
+}
+
+/**
+ * Stamps the marker diameter a `marker.itemStyler` resolved onto a label datum, so the label's obstacles,
+ * gap, anchor correction and inside-marker rect all scale off the marker that is drawn. Call only for a
+ * series that has a marker styler: the cached no-styler style can carry a `hideWithSize0` zero, and
+ * honouring that would move labels on existing charts that style nothing.
+ */
+export function applyStyledMarkerSize(datum: { markerSize?: number }, styledSize: number | undefined): void {
+    // Assigned even when undefined: label data is reused across updates, so a styler that returned a size
+    // on an earlier update and none now must not leave that size behind.
+    datum.markerSize = styledSize;
+}
+
+/**
+ * Distance from the marker to its label. A styled marker size supersedes the `gap` node data baked from the
+ * configured size, so nothing has to overwrite that baked value and no stale gap can outlive a styler.
+ */
+function labelGapOf(d: PointLabelDatum): number {
+    if (d.markerSize == null) return d.gap ?? d.point.size / 2;
+    return d.markerSize > 0 ? d.markerSize / 2 : DEFAULT_MARKERLESS_LABEL_GAP;
 }
 
 // Rotation angle (degrees) each orientation renders at, relative to a horizontal baseline:
@@ -1063,6 +1144,11 @@ const boundedFit: {
 } = {};
 // Glyph budget of the candidate being fitted, refilled per candidate on the compass path.
 const candidateContainer = { width: 0, height: 0 };
+// The datum's source text measured under one candidate font, keyed by that font. A styler returning the
+// same font for every candidate (the common case) therefore measures once per datum; the key is cleared
+// at the start of each datum's cascade, so it never carries across datums.
+const styledSource = { width: 0, height: 0 };
+let styledSourceFont = '';
 // Drawn-box centre of a positioned candidate whose box a re-fit resized.
 const boxCentre: Point = { x: 0, y: 0 };
 // Rotated axis-aligned footprint, written per candidate to keep the rotation loop allocation-free.
@@ -1186,8 +1272,9 @@ function obstacleGridCellSize(data: Map<string, SeriesLabels>, obstacles: readon
         for (const d of datums) {
             extentSum += d.label.width + d.label.height;
             extentCount += 2;
-            if (d.point.size > 0) {
-                extentSum += d.point.size;
+            const markerSize = markerSizeOf(d);
+            if (markerSize > 0) {
+                extentSum += markerSize;
                 extentCount += 1;
             }
         }
@@ -1203,7 +1290,8 @@ function obstacleGridCellSize(data: Map<string, SeriesLabels>, obstacles: readon
 // creation and the `inside` own-marker match both read it, so they cannot drift out of sync.
 const markerCentre = { cx: 0, cy: 0 };
 function markerCentreOf(d: PointLabelDatum) {
-    const { x, y, size } = d.point;
+    const { x, y } = d.point;
+    const size = markerSizeOf(d);
     markerCentre.cx = x;
     markerCentre.cy = y;
     if (d.anchor != null) {
@@ -1217,7 +1305,7 @@ function insertMarkerObstacles(data: Map<string, SeriesLabels>) {
     let markerCount = 0;
     for (const { datums } of data.values()) {
         for (const d of datums) {
-            const { size } = d.point;
+            const size = markerSizeOf(d);
             if (size <= 0) continue;
             markerCentreOf(d);
             const { cx, cy } = markerCentre;
@@ -1333,7 +1421,11 @@ export function placeLabels(
     const placementData = new Map(
         Array.from(data.entries(), ([k, entry]) => [
             k,
-            { datums: entry.datums.toSorted((a, b) => b.point.size - a.point.size), defaults: entry.defaults },
+            {
+                datums: entry.datums.toSorted((a, b) => markerSizeOf(b) - markerSizeOf(a)),
+                defaults: entry.defaults,
+                resolveCandidateStyle: entry.resolveCandidateStyle,
+            },
         ])
     );
 
@@ -1345,7 +1437,7 @@ export function placeLabels(
     }
 
     let labelObstacleCount = 0;
-    for (const [seriesId, { datums, defaults }] of orderKeepFirst(placementData)) {
+    for (const [seriesId, { datums, defaults, resolveCandidateStyle }] of orderKeepFirst(placementData)) {
         const labels: PlacedLabel[] = [];
         if (!datums[0]?.label) continue;
         for (let index = 0, ln = datums.length; index < ln; index++) {
@@ -1353,7 +1445,7 @@ export function placeLabels(
             // Series emit a datum per point; unlabelled points measure to an empty box. Skip them so
             // they neither occupy a placement nor act as obstacles against labels that do have text.
             if (d.label.text === '') continue;
-            const placed = tryPlaceLabel(d, defaults, index, padding, bounds);
+            const placed = tryPlaceLabel(d, defaults, index, padding, bounds, resolveCandidateStyle);
             if (placed != null) {
                 labels.push(placed);
                 if (useIndex) {
@@ -1414,13 +1506,14 @@ function positionLabelBox(
     }
     let x = point.x - width / 2 + dx;
     let y = point.y - height / 2 + dy;
+    const markerSize = markerSizeOf(d);
     if (anchor) {
-        x -= (anchor.x - 0.5) * point.size;
-        y -= (anchor.y - 0.5) * point.size;
+        x -= (anchor.x - 0.5) * markerSize;
+        y -= (anchor.y - 0.5) * markerSize;
     }
     if (placement === 'inside' && d.insideOffset) {
-        x += d.insideOffset.x * point.size;
-        y += d.insideOffset.y * point.size;
+        x += d.insideOffset.x * markerSize;
+        y += d.insideOffset.y * markerSize;
     }
     out.x = x;
     out.y = y;
@@ -1448,10 +1541,11 @@ function textLength(text: NormalisedTextOrSegments): number {
  */
 function fitLabelToCandidate(
     fit: LabelFitDescriptor,
+    font: FontOptions,
     source: { width: number; height: number } | undefined,
     container: { width: number; height: number } | undefined
 ) {
-    const { text, policy, font } = fit;
+    const { text, policy } = fit;
     const maxWidth = Math.min(policy.maxWidth ?? Infinity, container?.width ?? Infinity);
     const maxHeight = Math.min(policy.maxHeight ?? Infinity, container?.height ?? Infinity);
     const full = source ?? measureLabelText(text, font);
@@ -1467,10 +1561,10 @@ function fitLabelToCandidate(
     boundedFit.maxHeight = maxHeight === Infinity ? undefined : maxHeight;
     boundedFit.wrapping = policy.wrapping;
     boundedFit.overflowStrategy = policy.overflowStrategy;
-    const fitted = fitLabelText(text, boundedFit, font);
+    const fitted = fitLabelTextOrOverflow(text, boundedFit, fit.fitOverflow, font);
     // `overflowStrategy: 'hide'` empties the text rather than truncating it; the candidate cannot show
     // this label at all, so the cascade must move on rather than place an empty box.
-    if (fitted === '') return false;
+    if (isErased(fitted)) return false;
 
     const size = measureLabelText(fitted, font);
     fittedLabel.text = fitted;
@@ -1485,15 +1579,75 @@ function fitLabelToCandidate(
  * axes swapped for a rotated candidate (its glyph width runs along the region's height). `undefined`
  * when the datum has no region, leaving the candidate bound only by the fit policy.
  */
-function compassCandidateContainer(region: BoxBounds | undefined, fit: LabelFitDescriptor, rotation: number) {
+function compassCandidateContainer(
+    region: BoxBounds | undefined,
+    pad: Required<PaddingOptions> | undefined,
+    rotation: number
+) {
     if (region == null) return undefined;
-    const pad = fit.boxPadding;
     const upright = rotation % 180 === 0;
     const width = upright ? region.width : region.height;
     const height = upright ? region.height : region.width;
     candidateContainer.width = Math.max(0, width - (pad == null ? 0 : pad.left + pad.right));
     candidateContainer.height = Math.max(0, height - (pad == null ? 0 : pad.top + pad.bottom));
     return candidateContainer;
+}
+
+/** The datum's source text measured under `font`, reused for as long as the candidate font is unchanged. */
+function styledFitSource(fit: LabelFitDescriptor, font: FontOptions) {
+    const key = toFontString(font);
+    if (key !== styledSourceFont) {
+        const { width, height } = measureLabelText(fit.text, font);
+        styledSource.width = width;
+        styledSource.height = height;
+        styledSourceFont = key;
+    }
+    return styledSource;
+}
+
+// Drawn-box size of the candidate being tested, written by `sizeCandidateLabel`.
+const candidateLabel: { text: NormalisedTextOrSegments; width: number; height: number; dropped: number } = {
+    text: '',
+    width: 0,
+    height: 0,
+    dropped: 0,
+};
+
+/**
+ * Sizes one candidate's drawn box into {@link candidateLabel}: the source text refitted to the room this
+ * candidate offers, inflated by the box drawn around it. A `style` substitutes the font and box extent the
+ * series' styler resolved at this candidate for the configured ones, so the reservation matches what will
+ * be drawn there. `false` when the fit policy leaves nothing to draw, which disqualifies the candidate.
+ */
+function sizeCandidateLabel(
+    d: PointLabelDatum,
+    style: CandidateLabelStyle | undefined,
+    rotation: number,
+    fitRegion: BoxBounds | undefined,
+    fitSource: { width: number; height: number } | undefined
+): boolean {
+    const { fit } = d;
+    if (fit == null) {
+        candidateLabel.text = d.label.text;
+        candidateLabel.width = d.label.width;
+        candidateLabel.height = d.label.height;
+        candidateLabel.dropped = 0;
+        return true;
+    }
+    const font = style?.font ?? fit.font;
+    const boxPadding = style?.boxPadding ?? fit.boxPadding;
+    const container =
+        fit.boundByRegion === false ? undefined : compassCandidateContainer(fitRegion, boxPadding, rotation);
+    // A styled candidate re-measures the source under its own font; an unstyled one shares the cascade's
+    // single measurement.
+    if (!fitLabelToCandidate(fit, font, style == null ? fitSource : styledFitSource(fit, font), container)) {
+        return false;
+    }
+    candidateLabel.text = fittedLabel.text;
+    candidateLabel.width = fittedLabel.width + boxWidthOf(boxPadding);
+    candidateLabel.height = fittedLabel.height + boxHeightOf(boxPadding);
+    candidateLabel.dropped = fittedLabel.dropped;
+    return true;
 }
 
 /**
@@ -1513,13 +1667,14 @@ function tryPlaceLabel(
     defaults: SeriesLabelDefaults | undefined,
     index: number,
     padding: number,
-    bounds: BoxBounds
+    bounds: BoxBounds,
+    resolveCandidateStyle: CandidateStyleResolver | undefined
 ): PlacedLabel | undefined {
     // A datum's own field overrides the series default; when neither is set the label is kept.
     const alwaysShow = d.alwaysShow ?? defaults?.alwaysShow ?? true;
     const placements = d.placements ?? defaults?.placements;
     const collideWith = d.collideWith ?? defaults?.collideWith;
-    const gap = d.gap ?? d.point.size / 2;
+    const gap = labelGapOf(d);
     const spacing = d.spacing ?? defaults?.spacing ?? padding;
     const threshold = d.threshold ?? defaults?.threshold ?? 0;
 
@@ -1529,32 +1684,37 @@ function tryPlaceLabel(
         const placement = candidateAt(placements, d.placement, 0);
         const orientation = candidateAt(orientationsOf(d), singleOrientationOf(d), 0);
         const rotation = orientation == null ? 0 : orientationAngles[orientation];
-        let { text, width, height } = d.label;
-        if (d.fit != null) {
-            if (!fitLabelToCandidate(d.fit, undefined, compassCandidateContainer(d.region, d.fit, rotation))) {
-                return undefined;
-            }
-            ({ text } = fittedLabel);
-            width = fittedLabel.width + boxWidthOf(d.fit);
-            height = fittedLabel.height + boxHeightOf(d.fit);
-        }
+        styledSourceFont = '';
+        const style = resolveCandidateStyle?.(d, placement, orientation);
+        if (style?.hidden === true) return undefined;
+        if (!sizeCandidateLabel(d, style, rotation, d.region, undefined)) return undefined;
+        const { text, width, height } = candidateLabel;
         positionCandidate(d, placement, rotation, width, height, gap, spacing);
         const { x, y } = candidateBox;
         return { index, text, x, y, width, height, datum: d, placement, rotation: rotation || undefined };
     }
 
-    return placeAvoidingLabel(d, placements, collideWith, alwaysShow, index, bounds, gap, spacing, threshold);
+    return placeAvoidingLabel(
+        d,
+        placements,
+        collideWith,
+        alwaysShow,
+        index,
+        bounds,
+        gap,
+        spacing,
+        threshold,
+        resolveCandidateStyle
+    );
 }
 
 /** Total horizontal extent the drawn box adds around the glyph. */
-function boxWidthOf(fit: LabelFitDescriptor): number {
-    const pad = fit.boxPadding;
+function boxWidthOf(pad: Required<PaddingOptions> | undefined): number {
     return pad == null ? 0 : pad.left + pad.right;
 }
 
 /** Total vertical extent the drawn box adds around the glyph. */
-function boxHeightOf(fit: LabelFitDescriptor): number {
-    const pad = fit.boxPadding;
+function boxHeightOf(pad: Required<PaddingOptions> | undefined): number {
     return pad == null ? 0 : pad.top + pad.bottom;
 }
 
@@ -1665,7 +1825,8 @@ function placeAvoidingLabel(
     bounds: BoxBounds,
     gap: number,
     spacing: number,
-    threshold: number
+    threshold: number,
+    resolveCandidateStyle: CandidateStyleResolver | undefined
 ): PlacedLabel | undefined {
     bestChoice.tier = Infinity;
     bestChoice.score = Infinity;
@@ -1673,8 +1834,11 @@ function placeAvoidingLabel(
         return placeFromPositionedCandidates(d, collideWith, threshold, index, bounds);
     }
     const { fit } = d;
-    // Measured once here rather than per candidate: every candidate refits the same source text.
-    const fitSource = fit == null ? undefined : measureLabelText(fit.text, fit.font);
+    // Measured once here rather than per candidate: every candidate refits the same source text. A styled
+    // label instead re-measures whenever its resolved font changes (see `styledFitSource`).
+    const styled = resolveCandidateStyle != null;
+    const fitSource = fit == null || styled ? undefined : measureLabelText(fit.text, fit.font);
+    styledSourceFont = '';
     const candidates = placements;
     const orientations = orientationsOf(d);
     const singleOrientation = singleOrientationOf(d);
@@ -1684,7 +1848,7 @@ function placeAvoidingLabel(
     markerCentreOf(d);
     candidateOwnMarkerCx = markerCentre.cx;
     candidateOwnMarkerCy = markerCentre.cy;
-    candidateOwnMarkerR = d.point.size / 2;
+    candidateOwnMarkerR = markerSizeOf(d) / 2;
     // Bar labels carry their own bar rect here so an inside label excludes its own shape; marker series
     // leave it unset (their own marker is handled by the own-marker circle gate above).
     candidateOwnBox = d.ownBox;
@@ -1706,14 +1870,13 @@ function placeAvoidingLabel(
         for (let oi = 0; oi < orientationCount; oi++) {
             const orientation = candidateAt(orientations, singleOrientation, oi);
             const rotation = orientation == null ? 0 : orientationAngles[orientation];
-            let { text, width, height } = d.label;
-            let dropped = 0;
-            if (fit != null) {
-                if (!fitLabelToCandidate(fit, fitSource, compassCandidateContainer(fitRegion, fit, rotation))) continue;
-                ({ text, dropped } = fittedLabel);
-                width = fittedLabel.width + boxWidthOf(fit);
-                height = fittedLabel.height + boxHeightOf(fit);
-            }
+            // A candidate the styler disabled is skipped, so a label disabled at every candidate is
+            // dropped: it reserves no space and, unplaced, never enters the obstacle index, leaving the
+            // room to its neighbours.
+            const style = resolveCandidateStyle?.(d, placement, orientation);
+            if (style?.hidden === true) continue;
+            if (!sizeCandidateLabel(d, style, rotation, fitRegion, fitSource)) continue;
+            const { text, width, height, dropped } = candidateLabel;
             positionCandidate(d, placement, rotation, width, height, gap, spacing);
             let { x, y } = candidateBox;
             const { width: cw, height: ch } = candidateBox;
@@ -1811,21 +1974,29 @@ function placeFromPositionedCandidates(
     candidateOwnBoxLabelsCollide = d.ownBoxLabelsCollide ?? false;
 
     const { fit } = d;
-    // Measured once here rather than per candidate: every candidate refits the same source text.
+    // Measured once here rather than per candidate: every candidate refits the same source text. A
+    // candidate carrying its own styled font re-measures under it instead (see `styledFitSource`).
     const fitSource = fit == null ? undefined : measureLabelText(fit.text, fit.font);
+    styledSourceFont = '';
     const containThreshold = containmentThreshold(threshold);
     for (let ci = 0, ln = candidates.length; ci < ln; ci++) {
         const c = candidates[ci];
+        // A candidate the styler disabled is skipped, so a label disabled at every candidate is dropped.
+        if (c.hidden === true) continue;
         const rawRegion = c.region ?? bounds;
         const region = deflateRegion(deflatedRegionBox, rawRegion, containThreshold);
-        let { text, width, height } = d.label;
+        let { text } = d.label;
+        let { width, height } = c.size ?? d.label;
         let dropped = 0;
         candidateBox.x = c.box.x;
         candidateBox.y = c.box.y;
         candidateBox.width = c.box.width;
         candidateBox.height = c.box.height;
         if (fit != null && c.fitTo != null) {
-            if (!fitLabelToCandidate(fit, fitSource, deflateContainer(c.fitTo.container, threshold))) continue;
+            const styledFont = c.fitTo.font;
+            const source = styledFont == null ? fitSource : styledFitSource(fit, styledFont);
+            const container = deflateContainer(c.fitTo.container, threshold);
+            if (!fitLabelToCandidate(fit, styledFont ?? fit.font, source, container)) continue;
             ({ text, dropped } = fittedLabel);
             const { padding } = c.fitTo;
             width = fittedLabel.width + padding.left + padding.right;
@@ -1931,8 +2102,9 @@ function insideRegionFor(
     boxHeight: number
 ): BoxBounds | undefined {
     if (placement !== 'inside' || d.insideSize == null) return undefined;
-    const rw = d.insideSize.width * d.point.size;
-    const rh = d.insideSize.height * d.point.size;
+    const markerSize = markerSizeOf(d);
+    const rw = d.insideSize.width * markerSize;
+    const rh = d.insideSize.height * markerSize;
     insideRegionBox.x = x + boxWidth / 2 - rw / 2;
     insideRegionBox.y = y + boxHeight / 2 - rh / 2;
     insideRegionBox.width = rw;

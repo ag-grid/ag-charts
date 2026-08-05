@@ -19,6 +19,7 @@ import {
     AGGREGATION_SPAN,
     type AreExact,
     type CallbackParamRules,
+    type CandidateStyleResolver,
     ChartAxisDirection,
     DEFAULT_MARKERLESS_LABEL_GAP,
     DebugMetrics,
@@ -42,6 +43,7 @@ import {
     mergeDefaults,
     resolveLabelFit,
     resolveSeriesLabelDefaults,
+    styledLabelFit,
     toArray,
     toNumber,
 } from 'ag-charts-core';
@@ -71,6 +73,7 @@ const {
     valueProperty,
     keyProperty,
     updateLabelNode,
+    createCandidateStyleResolver,
     expandPlacementLabelBoxExtent,
     placedLabelTextOffset,
     pickPlacementStyle,
@@ -195,6 +198,15 @@ function coarsePlacement(
 ): AgRangeAreaSeriesLabelPlacement {
     return (placement === 'top') === (side === 'high') ? 'outside' : 'inside';
 }
+
+/**
+ * A band label's placement reads as the inside/outside side of the band it sits on, which depends on
+ * whether it labels the low or the high edge — so both the style and the reported placement are coarsened.
+ */
+const bandCandidatePlacement: _ModuleSupport.CandidatePlacementMapper = (placement, datum) => {
+    const coarse = coarsePlacement(placement, (datum as RangeAreaLabelDatum).valueSide);
+    return { style: coarse, reported: coarse };
+};
 
 /**
  * Scratch object for per-datum processing to avoid allocations per iteration.
@@ -469,6 +481,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             range,
             labelsEnabled: label.enabled,
             labelFit: resolveLabelFit(label, !label.collision.alwaysShow),
+            labelStyled: label.itemStyler != null,
             labelPadding: expandPlacementLabelBoxExtent(label),
             labelTextMeasurer: cachedTextMeasurer(label),
             labelPlacements: {
@@ -929,6 +942,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             y: point.y,
             point: { x: point.x, y: point.y, size: markerSize },
             label: measuredLabel,
+            fit: styledLabelFit(labelText, label, ctx),
             text: measuredLabel.text,
             anchor: ctx.labelAnchor[itemType],
             placements: ctx.labelPlacements[valueSide],
@@ -1287,20 +1301,38 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         });
     }
 
+    /**
+     * The styler params for every label of this series. The placement pass and the render pass must
+     * produce identical params for the styler result to be shared between them.
+     */
+    private makeLabelStylerParams(): RequireOptional<AgRangeAreaSeriesLabelFormatterParams> {
+        const { xKey, xName, yName, yLowKey, yLowName, yHighKey, yHighName, legendItemName } = this.properties;
+        return {
+            xKey,
+            xName: xName ?? xKey,
+            yName,
+            yLowKey,
+            yLowName: yLowName ?? yLowKey,
+            yHighKey,
+            yHighName: yHighName ?? yHighKey,
+            legendItemName,
+        };
+    }
+
+    override getLabelCandidateStyler(): CandidateStyleResolver | undefined {
+        return createCandidateStyleResolver(
+            this,
+            this.properties.label,
+            this.makeLabelStylerParams(),
+            bandCandidatePlacement
+        );
+    }
+
     protected updateLabelNodes(opts: {
         labelSelection: _ModuleSupport.Selection<RangeAreaLabelDatum, _ModuleSupport.Text<RangeAreaLabelDatum>>;
         isHighlight?: boolean;
     }) {
-        const params: RequireOptional<AgRangeAreaSeriesLabelFormatterParams> = {
-            xKey: this.properties.xKey,
-            xName: this.properties.xName ?? this.properties.xKey,
-            yName: this.properties.yName,
-            yLowKey: this.properties.yLowKey,
-            yLowName: this.properties.yLowName ?? this.properties.yLowKey,
-            yHighKey: this.properties.yHighKey,
-            yHighName: this.properties.yHighName ?? this.properties.yHighKey,
-            legendItemName: this.properties.legendItemName,
-        };
+        const params = this.makeLabelStylerParams();
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const { isHighlight = false, labelSelection } = opts;
         const { label } = this.properties;
@@ -1351,12 +1383,16 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         const { label } = this.properties;
         const insideOffset = placedLabelTextOffset(label, pickPlacementStyle(label, 'inside'));
         const outsideOffset = placedLabelTextOffset(label, pickPlacementStyle(label, 'outside'));
+        // A styled label's reservation was sized from the style resolved at its winning candidate, so the
+        // drawn box fills it exactly; the same resolver (a cache hit) yields that box's extent here.
+        const resolveStyle = this.getLabelCandidateStyler();
         return function placedLabelDatum(placed) {
             const { datum } = placed;
             const placement = placed.placement ?? datum.placement;
             const isInside = coarsePlacement(placement, datum.valueSide) === 'inside';
-            const offset = isInside ? insideOffset : outsideOffset;
-            return { ...datum, x: placed.x + placed.width / 2, y: placed.y + offset.y, placement };
+            const styled = resolveStyle?.(datum, placement, undefined);
+            const offsetY = styled?.boxPadding.top ?? (isInside ? insideOffset : outsideOffset).y;
+            return { ...datum, x: placed.x + placed.width / 2, y: placed.y + offsetY, placement, text: placed.text };
         };
     }
 

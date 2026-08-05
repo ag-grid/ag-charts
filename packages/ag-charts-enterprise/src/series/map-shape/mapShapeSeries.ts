@@ -702,6 +702,10 @@ export class MapShapeSeries
                 isHighlight,
                 activeHighlight
             );
+            if (!style.enabled) {
+                label.visible = false;
+                return;
+            }
             const { color: fill, fontStyle, fontWeight, fontFamily } = style;
             label.visible = true;
             label.x = x;
