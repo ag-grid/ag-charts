@@ -2,7 +2,7 @@
 root: false
 targets: ['*']
 description: 'Series development guide for AG Charts including architecture and data flow'
-globs: ['**/series/**/*.ts']
+globs: ['packages/ag-charts-community/src/**/series/**/*.ts', 'packages/ag-charts-enterprise/src/**/series/**/*.ts']
 ---
 
 # Series Development Guide

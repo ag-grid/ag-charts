@@ -2,7 +2,14 @@
 root: false
 targets: ['*']
 description: 'CartesianSeries consolidated generic types pattern documentation'
-globs: ['**/series/**/*Series.ts', '**/series/**/*SeriesBase.ts', '**/series/cartesian/cartesianSeriesTypes.ts']
+globs:
+    [
+        'packages/ag-charts-community/src/**/series/**/*Series.ts',
+        'packages/ag-charts-community/src/**/series/**/*SeriesBase.ts',
+        'packages/ag-charts-community/src/**/series/cartesian/cartesianSeriesTypes.ts',
+        'packages/ag-charts-enterprise/src/**/series/**/*Series.ts',
+        'packages/ag-charts-enterprise/src/**/series/**/*SeriesBase.ts',
+    ]
 ---
 
 # CartesianSeries Consolidated Types Pattern
