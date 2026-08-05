@@ -58,10 +58,10 @@ packageNames
             }
         }
 
-        checkDependency(packageName, version, isGridPackage ? gridNewVersion : chartNewVersion);
-        Object.keys(agPackage.agGridDeps).forEach((dependencyName) =>
-            checkDependency(dependencyName, agGridDeps[dependencyName], gridNewVersion)
-        );
+        checkDependency(packageName, version, chartNewVersion);
+        // Object.keys(agPackage.agGridDeps).forEach((dependencyName) =>
+        //     checkDependency(dependencyName, agGridDeps[dependencyName], gridNewVersion)
+        // );
         Object.keys(agPackage.agGridPeerDeps).forEach((dependencyName) =>
             checkDependency(dependencyName, agPackage.agGridPeerDeps[dependencyName], gridNewVersion)
         );
@@ -70,7 +70,7 @@ packageNames
         );
 
         if (agSubAngularVersion) {
-            checkDependency(packageName, agSubAngularVersion, isGridPackage ? gridNewVersion : chartNewVersion);
+            checkDependency(packageName, agSubAngularVersion, chartNewVersion);
         }
 
         if (agSubAngularGridDeps) {
