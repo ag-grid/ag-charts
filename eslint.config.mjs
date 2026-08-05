@@ -48,6 +48,9 @@ const SANCTIONED_AMBIENT_LOGGING = [
     '/scene/shape/text.ts',
     // Test helpers.
     '/util/test/mockConsole.ts',
+    // Clears the ambient `*Once` cache between option resolutions, so a suite comparing two of them sees
+    // every diagnostic rather than only the first in the process.
+    '/chart/test/prepareOptions.ts',
 ];
 
 // Path fragments of the files sanctioned to call `new Logger()`; everything else takes one by

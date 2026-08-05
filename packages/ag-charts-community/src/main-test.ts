@@ -9,4 +9,5 @@ export * from './chart/series/test/examples';
 export * from './chart/test/findTarget';
 export * from './chart/test/freezableMock';
 export * from './chart/test/legendItemName';
+export * from './chart/test/prepareOptions';
 export * from './chart/test/sharedOptionsDefs';

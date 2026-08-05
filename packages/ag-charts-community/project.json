@@ -70,6 +70,10 @@
         {
           "projects": ["ag-charts-community-examples"],
           "target": "build"
+        },
+        {
+          "projects": ["ag-charts-types"],
+          "target": "docs-resolved-interfaces"
         }
       ]
     },

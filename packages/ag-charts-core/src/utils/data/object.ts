@@ -148,9 +148,9 @@ export function fromPairs<K extends string>(pairs?: Array<[K, any]>): Record<K, 
     return object;
 }
 
-export function getPath(object: object, path: string | string[]) {
+export function getPath(object: object | undefined, path: string | string[]) {
     const pathArray = isArray(path) ? path : path.split('.');
-    return pathArray.reduce<any>((value, pathKey) => value[pathKey], object);
+    return pathArray.reduce<any>((value, pathKey) => value?.[pathKey], object);
 }
 
 export const SKIP_JS_BUILTINS = new Set(['__proto__', 'constructor', 'prototype']);
