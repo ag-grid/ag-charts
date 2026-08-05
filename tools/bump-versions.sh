@@ -20,10 +20,11 @@ PACKAGES=(
     ag-charts-react
     ag-charts-vue3
     ag-charts-server-side
-    _ag-charts-test
-    _ag-charts-generate-example-files
-    _ag-charts-generate-code-reference-files
-    _ag-charts-generate-chart-thumbnail
+    ag-charts-test
+    ag-charts-generate-example-files
+    ag-charts-generate-code-reference-files
+    ag-charts-generate-chart-thumbnail
+    ag-charts-demos
 )
 
 for package in ${PACKAGES[@]}; do

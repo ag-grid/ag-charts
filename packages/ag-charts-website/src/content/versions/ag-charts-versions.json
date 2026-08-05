@@ -303,7 +303,8 @@
         "notesPath": "./upgrade-to-ag-charts-12"
     },
     {
-        "version": "11.3.2"
+        "version": "11.3.2",
+        "date": "June 4th, 2025"
     },
     {
         "version": "11.3.1",

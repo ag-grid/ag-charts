@@ -1,5 +1,3 @@
-import { type GeneratedContents, transformPlainEntryFile } from '_ag-charts-generate-example-files';
-import { mockCanvas } from '_ag-charts-test';
 import { promises as fs } from 'fs';
 import { JSDOM } from 'jsdom';
 import path from 'path';
@@ -9,6 +7,8 @@ import { Canvas, type CanvasRenderingContext2D } from 'skia-canvas';
 import { type AgChartOptions, type AgChartThemeName, AgCharts } from 'ag-charts-community';
 import { deepClone } from 'ag-charts-core';
 import { AllEnterpriseModule, ModuleRegistry } from 'ag-charts-enterprise';
+import { type GeneratedContents, transformPlainEntryFile } from 'ag-charts-generate-example-files';
+import { mockCanvas } from 'ag-charts-test';
 
 import {
     BACKGROUND_COLORS,

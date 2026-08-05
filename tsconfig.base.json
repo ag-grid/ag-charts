@@ -20,14 +20,11 @@
     "baseUrl": ".",
     "strictNullChecks": true,
     "paths": {
-      "_ag-charts-community-examples": [
-        "packages/ag-charts-community-examples/src/index.ts"
-      ],
-      "_ag-charts-test": [
-        "libraries/ag-charts-test/src/index.ts"
-      ],
       "ag-charts-community": [
         "packages/ag-charts-community/src/main.ts"
+      ],
+      "ag-charts-community-examples": [
+        "packages/ag-charts-community-examples/src/index.ts"
       ],
       "ag-charts-community-test": [
         "packages/ag-charts-community/src/main-test.ts"
@@ -40,6 +37,9 @@
       ],
       "ag-charts-locale": [
         "packages/ag-charts-locale/src/main.ts"
+      ],
+      "ag-charts-test": [
+        "libraries/ag-charts-test/src/index.ts"
       ],
       "ag-charts-types": [
         "packages/ag-charts-types/src/main.ts"

@@ -58,6 +58,7 @@ export function LinkIcon({
     return (
         <a
             aria-label="Heading link"
+            tabIndex={0}
             {...props}
             className={classnames(linkStyles.linkIcon, aStyles, { [linkStyles.active]: linkActive }, className)}
             onClick={onClick}

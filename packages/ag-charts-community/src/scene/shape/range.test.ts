@@ -1,5 +1,6 @@
-import { testLogger } from '_ag-charts-test';
 import { describe, expect, it } from 'vitest';
+
+import { testLogger } from 'ag-charts-test';
 
 import { extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';
 import { setupMockConsole } from '../../util/test/mockConsole';

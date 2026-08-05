@@ -1,7 +1,7 @@
-import { classCast } from '_ag-charts-test';
 import { fail } from 'assert';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 
+import { classCast } from 'ag-charts-test';
 import type { AgCartesianChartOptions, AgChartTheme, AgPolarChartOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';

@@ -1,5 +1,6 @@
-import { testLogger } from '_ag-charts-test';
 import { describe, expect, test } from 'vitest';
+
+import { testLogger } from 'ag-charts-test';
 
 import { expectWarningMessages, setupMockConsole } from '../test/utils';
 import { DataSet } from './dataSet';

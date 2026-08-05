@@ -1,9 +1,10 @@
-import { mockCanvas, resetTestLogging, toMatchImage } from '_ag-charts-test';
 import { toMatchImageSnapshot } from 'jest-image-snapshot';
 import { URL } from 'node:url';
 import { TextDecoder, TextEncoder } from 'node:util';
 import { DOMMatrix, Image, Path2D } from 'skia-canvas';
 import { afterEach, expect, vi } from 'vitest';
+
+import { mockCanvas, resetTestLogging, toMatchImage } from 'ag-charts-test';
 
 // @ts-expect-error types don't exactly align
 globalThis.Canvas = mockCanvas.ConfiguredCanvas;
