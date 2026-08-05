@@ -8,7 +8,6 @@ import {
     type AgRangeAreaSeriesStyle,
     type AgRangeAreaSeriesStylerParams,
     type AgSeriesMarkerStyle,
-    type SelectionState,
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
@@ -47,7 +46,7 @@ import {
     toArray,
     toNumber,
 } from 'ag-charts-core';
-import type { AgCoordinates, AgNumericValue, CssColor } from 'ag-charts-types';
+import type { AgNumericValue, CssColor } from 'ag-charts-types';
 
 import {
     type RangeAreaSeriesDataAggregationFilter,
@@ -223,29 +222,6 @@ interface RangeAreaNodeDatumScratch {
     inverted: boolean;
 }
 
-class RangeAreaSeriesNodeEvent<
-    TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
-> extends _ModuleSupport.SeriesNodeEvent<RangeAreaMarkerDatum, TEvent> {
-    readonly xKey?: string;
-    readonly yLowKey?: string;
-    readonly yHighKey?: string;
-
-    constructor(
-        type: TEvent,
-        nativeEvent: Event,
-        datum: RangeAreaMarkerDatum,
-        series: RangeAreaSeries,
-        selectionState: SelectionState | undefined,
-        isCollapsed: boolean | undefined,
-        coordinates: AgCoordinates | undefined
-    ) {
-        super(type, nativeEvent, datum, series, selectionState, isCollapsed, coordinates);
-        this.xKey = series.properties.xKey;
-        this.yLowKey = series.properties.yLowKey;
-        this.yHighKey = series.properties.yHighKey;
-    }
-}
-
 interface RangeAreaSpanPointDatum {
     high: _ModuleSupport.LineSpanPointDatum;
     low: _ModuleSupport.LineSpanPointDatum;
@@ -300,7 +276,13 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
 
     override properties = new RangeAreaProperties();
 
-    protected override readonly NodeEvent = RangeAreaSeriesNodeEvent;
+    protected override createNodeParams(datum: RangeAreaMarkerDatum) {
+        return {
+            ...super.createNodeParams(datum),
+            yLowKey: this.properties.yLowKey,
+            yHighKey: this.properties.yHighKey,
+        };
+    }
 
     private readonly aggregationManager = new AggregationManager<RangeAreaSeriesDataAggregationFilter>();
     private hideWithSize0 = false;

@@ -46,7 +46,7 @@ import {
     toArray,
     zeroLike,
 } from 'ag-charts-core';
-import type { AgCoordinates, AgNumericValue, SelectionState } from 'ag-charts-types';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import type { WaterfallSeriesItem, WaterfallSeriesTotal } from './waterfallSeriesProperties';
 import { WaterfallSeriesProperties } from './waterfallSeriesProperties';
@@ -199,32 +199,15 @@ interface WaterfallSeriesTypes extends _ModuleSupport.AbstractBarSeriesTypes {
 
 type WaterfallAnimationData = _ModuleSupport.AbstractBarSeriesAnimationData<WaterfallSeriesTypes>;
 
-class WaterfallSeriesNodeEvent<
-    TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
-> extends _ModuleSupport.CartesianSeriesNodeEvent<TEvent> {
-    readonly itemType: AgWaterfallSeriesItemType;
-
-    constructor(
-        type: TEvent,
-        nativeEvent: Event,
-        datum: WaterfallNodeDatum,
-        series: WaterfallSeries,
-        selectionState: SelectionState | undefined,
-        isCollapsed: boolean | undefined,
-        coordinates: AgCoordinates | undefined
-    ) {
-        super(type, nativeEvent, datum, series, selectionState, isCollapsed, coordinates);
-        this.itemType = datum.itemType;
-    }
-}
-
 export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallSeriesTypes> {
     static override readonly className = 'WaterfallSeries';
     static readonly type = 'waterfall' as const;
 
     override properties = new WaterfallSeriesProperties();
 
-    protected override readonly NodeEvent = WaterfallSeriesNodeEvent;
+    protected override createNodeParams(datum: WaterfallNodeDatum) {
+        return { ...super.createNodeParams(datum), itemType: datum.itemType };
+    }
 
     constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({

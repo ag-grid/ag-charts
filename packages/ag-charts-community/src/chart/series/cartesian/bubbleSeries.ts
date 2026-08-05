@@ -39,7 +39,6 @@ import {
     type AgBubbleSeriesOptionsKeys,
     type AgBubbleSeriesStylerParams,
     type AgBubbleSeriesStylerResult,
-    type AgCoordinates,
     type AgDrawingMode,
     type AgErrorBoundSeriesTooltipRendererParams,
     type AgNumericValue,
@@ -49,7 +48,6 @@ import {
     type FillOptions,
     type FormatterPropertyType,
     type LineDashOptions,
-    type SelectionState as PublicSelectionState,
     type StrokeOptions,
 } from 'ag-charts-types';
 
@@ -103,7 +101,6 @@ import {
     type ErrorBoundSeriesNodeDatum,
     HighlightState,
     type SelectionState,
-    type SeriesNodeEventTypes,
 } from '../seriesTypes';
 import {
     type BubbleAggregation,
@@ -116,7 +113,6 @@ import {
 import { BubbleScatterSeriesProperties, BubbleSeriesProperties } from './bubbleSeriesProperties';
 import {
     CartesianSeries,
-    CartesianSeriesNodeEvent,
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
@@ -176,27 +172,6 @@ type BubbleStylerApply = MarkerStyleApply<
     BubbleScatterNodeDatum,
     ReturnType<BubbleSeries['getStyle']>
 >;
-
-class BubbleScatterSeriesNodeEvent<
-    TEvent extends string = SeriesNodeEventTypes,
-> extends CartesianSeriesNodeEvent<TEvent> {
-    readonly sizeKey?: string;
-    readonly colorKey?: string;
-
-    constructor(
-        type: TEvent,
-        nativeEvent: Event,
-        datum: BubbleScatterNodeDatum,
-        series: BubbleSeries,
-        selectionState: PublicSelectionState | undefined,
-        isCollapsed: boolean | undefined,
-        coordinates: AgCoordinates | undefined
-    ) {
-        super(type, nativeEvent, datum, series, selectionState, isCollapsed, coordinates);
-        this.sizeKey = series.properties.sizeKey;
-        this.colorKey = series.properties.colorKey;
-    }
-}
 
 export interface BubbleScatterNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum {
     readonly point: Readonly<SizedPoint>;
@@ -331,7 +306,13 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
     static override readonly className: string = 'BubbleSeries';
     static readonly type: string = 'bubble';
 
-    protected override readonly NodeEvent = BubbleScatterSeriesNodeEvent;
+    protected override createNodeParams(datum: BubbleScatterNodeDatum) {
+        return {
+            ...super.createNodeParams(datum),
+            sizeKey: this.properties.sizeKey,
+            colorKey: this.properties.colorKey,
+        };
+    }
 
     override properties: BubbleScatterSeriesProperties = new BubbleSeriesProperties();
 

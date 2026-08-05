@@ -1,9 +1,4 @@
-import {
-    type AgFunnelSeriesLabelFormatterParams,
-    type AgFunnelSeriesStyle,
-    type SelectionState,
-    _ModuleSupport,
-} from 'ag-charts-community';
+import { type AgFunnelSeriesLabelFormatterParams, type AgFunnelSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 import type {
     DomainWithMetadata,
     DynamicContext,
@@ -14,7 +9,7 @@ import type {
     RequireOptional,
 } from 'ag-charts-core';
 import { ChartAxisDirection, SeriesZIndexMap, maxValue } from 'ag-charts-core';
-import type { AgCoordinates, AgNumericValue } from 'ag-charts-types';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import type { BaseFunnelProperties } from './baseFunnelSeriesProperties';
 import { FunnelConnector } from './funnelConnector';
@@ -109,31 +104,16 @@ export interface FunnelAnimationData<
     TNode extends _ModuleSupport.QuadtreeCompatibleNode<FunnelNodeDatum>,
 > extends _ModuleSupport.CartesianAnimationData<FunnelNodeDatum, TNode, FunnelNodeLabelDatum, FunnelContext> {}
 
-class FunnelSeriesNodeEvent<
-    TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
-> extends _ModuleSupport.SeriesNodeEvent<FunnelNodeDatum, TEvent> {
-    readonly xKey?: string;
-    readonly yKey?: string;
-
-    constructor(
-        type: TEvent,
-        nativeEvent: Event,
-        datum: FunnelNodeDatum,
-        series: BaseFunnelSeries<BaseFunnelSeriesTypes>,
-        selectionState: SelectionState | undefined,
-        isCollapsed: boolean | undefined,
-        coordinates: AgCoordinates | undefined
-    ) {
-        super(type, nativeEvent, datum, series, selectionState, isCollapsed, coordinates);
-        this.xKey = series.properties.stageKey;
-        this.yKey = series.properties.valueKey;
-    }
-}
-
 export abstract class BaseFunnelSeries<
     TTypes extends BaseFunnelSeriesTypes,
 > extends _ModuleSupport.AbstractBarSeries<TTypes> {
-    protected override readonly NodeEvent = FunnelSeriesNodeEvent;
+    protected override createNodeParams(datum: FunnelNodeDatum) {
+        return {
+            ...super.createNodeParams(datum),
+            xKey: this.properties.stageKey,
+            yKey: this.properties.valueKey,
+        };
+    }
 
     protected readonly connectorNodeGroup = this.contentGroup.appendChild(
         new Group({

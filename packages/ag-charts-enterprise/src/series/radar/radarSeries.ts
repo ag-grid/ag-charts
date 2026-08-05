@@ -1,6 +1,5 @@
 import {
     type AgBaseRadarSeriesOptions,
-    type AgCoordinates,
     type AgDrawingMode,
     type AgRadarSeriesLabelFormatterParams,
     type AgRadarSeriesStyle,
@@ -8,7 +7,6 @@ import {
     type ContextDefault,
     type CssColor,
     type DatumDefault,
-    type SelectionState,
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
@@ -99,40 +97,11 @@ type StylerResult<TStyle extends AgRadarSeriesStyle> = Omit<TStyle, 'stroke' | '
     marker?: NormalisedSeriesMarkerStyle & { enabled?: boolean };
 };
 
-type BaseRadarSeries = RadarSeries<
-    AgRadarSeriesStyle,
-    AgBaseRadarSeriesOptions<DatumDefault, ContextDefault, AgRadarSeriesStyle>,
-    RadarSeriesProperties<
-        AgRadarSeriesStyle,
-        AgBaseRadarSeriesOptions<DatumDefault, ContextDefault, AgRadarSeriesStyle>
-    >
->;
-
 export type ResolvedRadarStyle<TStyle extends AgRadarSeriesStyle> = {
     [K in keyof TStyle]-?: K extends 'stroke' ? CssColor : Exclude<TStyle[K], undefined>;
 } & {
     marker: Required<NormalisedSeriesMarkerStyle> & { enabled: boolean };
 };
-
-class RadarSeriesNodeEvent<
-    TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
-> extends _ModuleSupport.SeriesNodeEvent<RadarNodeDatum, TEvent> {
-    readonly angleKey?: string;
-    readonly radiusKey?: string;
-    constructor(
-        type: TEvent,
-        nativeEvent: Event,
-        datum: RadarNodeDatum,
-        series: BaseRadarSeries,
-        selectionState: SelectionState | undefined,
-        isCollapsed: boolean | undefined,
-        coordinates: AgCoordinates | undefined
-    ) {
-        super(type, nativeEvent, datum, series, selectionState, isCollapsed, coordinates);
-        this.angleKey = series.properties.angleKey;
-        this.radiusKey = series.properties.radiusKey;
-    }
-}
 
 export abstract class RadarSeries<
     TStyle extends AgRadarSeriesStyle,
@@ -141,7 +110,13 @@ export abstract class RadarSeries<
 > extends _ModuleSupport.PolarSeries<RadarNodeDatum, TOpts, TProps, _ModuleSupport.Marker<RadarNodeDatum>> {
     static override readonly className: string = 'RadarSeries';
 
-    protected override readonly NodeEvent = RadarSeriesNodeEvent;
+    protected override createNodeParams(datum: RadarNodeDatum) {
+        return {
+            ...super.createNodeParams(datum),
+            angleKey: this.properties.angleKey,
+            radiusKey: this.properties.radiusKey,
+        };
+    }
 
     private readonly lineGroup = this.contentGroup.appendChild(new Group<boolean>({ name: 'radar-line' }));
     protected lineSelection = Selection.select<_ModuleSupport.Path<boolean>>(this.lineGroup, Path<boolean>);

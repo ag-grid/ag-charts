@@ -43,7 +43,7 @@ import type {
     AgCoordinates,
     AgDrawingMode,
     AgInitialStateLegendOptions,
-    AgNumericValue,
+    AgNodeParams,
     AgSeriesTooltipRendererParams,
     AgSeriesVisibilityChange,
     FormatterParams,
@@ -92,7 +92,6 @@ import {
     type INodeEvent,
     type ISeries,
     type ISeriesAriaMeta,
-    type ISeriesProperties,
     type NodeDataDependencies,
     SelectionState,
     type SeriesNodeDatum,
@@ -161,62 +160,8 @@ export type PickResult = {
 
 export type PickNodesInBBoxPredicate = (selectionBox: BoxBounds, node: Node<unknown>) => boolean;
 
-export type INodeEventConstructor<
-    TDatum extends SeriesNodeDatum,
-    TSeries extends Series<TDatum, object, any>,
-    TEvent extends string = SeriesNodeEventTypes,
-> = new <T extends TEvent>(
-    type: T,
-    event: Event,
-    nodeDatum: TDatum,
-    series: TSeries,
-    selectionState: PublicSelectionState | undefined,
-    isCollapsed: boolean | undefined,
-    coordinates: AgCoordinates | undefined
-) => INodeEvent<T>;
-
 const CROSS_FILTER_MARKER_FILL_OPACITY_FACTOR = 0.25;
 const CROSS_FILTER_MARKER_STROKE_OPACITY_FACTOR = 0.125;
-
-export class SeriesNodeEvent<
-    TDatum extends SeriesNodeDatum,
-    TEvent extends string = SeriesNodeEventTypes,
-> implements INodeEvent<TEvent> {
-    readonly datum: unknown;
-    readonly datums?: unknown[];
-    readonly totalValue?: AgNumericValue;
-    readonly seriesId: string;
-    readonly itemId: string | number;
-    readonly dataIdKey: string | undefined;
-    readonly selectionState: PublicSelectionState | undefined;
-    readonly isCollapsed: boolean | undefined;
-    readonly coordinates: AgCoordinates | undefined;
-    defaultPrevented = false;
-
-    constructor(
-        readonly type: TEvent,
-        readonly event: Event,
-        nodeDatum: TDatum,
-        series: ISeries<TDatum, ISeriesProperties, unknown>,
-        selectionState: PublicSelectionState | undefined,
-        isCollapsed: boolean | undefined = undefined,
-        coordinates: AgCoordinates | undefined
-    ) {
-        this.datum = nodeDatum.datum;
-        this.datums = nodeDatum.datums;
-        this.totalValue = nodeDatum.totalValue;
-        this.seriesId = series.id;
-        this.dataIdKey = series.data?.dataIdKey;
-        this.itemId = getItemId(nodeDatum, this.dataIdKey);
-        this.selectionState = selectionState;
-        this.isCollapsed = isCollapsed;
-        this.coordinates = coordinates;
-    }
-
-    public preventDefault() {
-        this.defaultPrevented = true;
-    }
-}
 
 export type SeriesNodeDataContext<S = SeriesNodeDatum, L = S> = {
     itemId: string;
@@ -342,8 +287,6 @@ export abstract class Series<
         },
     })
     seriesGrouping: SeriesGrouping | undefined = undefined;
-
-    protected readonly NodeEvent: INodeEventConstructor<TDatum, any> = SeriesNodeEvent;
 
     readonly internalId = createId(this);
 
@@ -639,16 +582,16 @@ export abstract class Series<
     }>();
 
     override addEventListener(type: 'seriesVisibilityChange', listener: (e: AgSeriesVisibilityChange) => void): void;
-    override addEventListener(type: 'seriesNodeClick', listener: (e: SeriesNodeEvent<any>) => void): void;
-    override addEventListener(type: 'seriesNodeDoubleClick', listener: (e: SeriesNodeEvent<any>) => void): void;
+    override addEventListener(type: 'seriesNodeClick', listener: (e: INodeEvent) => void): void;
+    override addEventListener(type: 'seriesNodeDoubleClick', listener: (e: INodeEvent) => void): void;
     override addEventListener(type: string, listener: TypedEventListener): void;
     override addEventListener(type: string, listener: TypedEventListener | ((e: unknown) => void)): void {
         return super.addEventListener(type, listener);
     }
 
     override removeEventListener(type: 'seriesVisibilityChange', listener: (e: AgSeriesVisibilityChange) => void): void;
-    override removeEventListener(type: 'seriesNodeClick', listener: (e: SeriesNodeEvent<any>) => void): void;
-    override removeEventListener(type: 'seriesNodeDoubleClick', listener: (e: SeriesNodeEvent<any>) => void): void;
+    override removeEventListener(type: 'seriesNodeClick', listener: (e: INodeEvent) => void): void;
+    override removeEventListener(type: 'seriesNodeDoubleClick', listener: (e: INodeEvent) => void): void;
     override removeEventListener(type: string, listener: TypedEventListener): void;
     override removeEventListener(type: string, listener: TypedEventListener | ((e: unknown) => void)): void {
         return super.removeEventListener(type, listener);
@@ -1261,33 +1204,13 @@ export abstract class Series<
     }
 
     fireNodeClickEvent(event: Event, datum: TDatum, coordinates: AgCoordinates | undefined): boolean {
-        const selectionState = this.getSelectionStateString(datum.datumIndex);
-        const isCollapsed = datum.itemId == null ? undefined : this.getCollapsedState(datum.itemId);
-        const clickEvent = new this.NodeEvent(
-            'seriesNodeClick',
-            event,
-            datum,
-            this,
-            selectionState,
-            isCollapsed,
-            coordinates
-        );
+        const clickEvent = this.createNodeEvent('seriesNodeClick', event, datum, coordinates);
         this.fireEvent(clickEvent);
         return !clickEvent.defaultPrevented;
     }
 
     fireNodeDoubleClickEvent(event: Event, datum: TDatum, coordinates: AgCoordinates | undefined): boolean {
-        const selectionState = this.getSelectionStateString(datum.datumIndex);
-        const isCollapsed = datum.itemId == null ? undefined : this.getCollapsedState(datum.itemId);
-        const clickEvent = new this.NodeEvent(
-            'seriesNodeDoubleClick',
-            event,
-            datum,
-            this,
-            selectionState,
-            isCollapsed,
-            coordinates
-        );
+        const clickEvent = this.createNodeEvent('seriesNodeDoubleClick', event, datum, coordinates);
         this.fireEvent(clickEvent);
         return !clickEvent.defaultPrevented;
     }
@@ -1297,17 +1220,43 @@ export abstract class Series<
         datum: TDatum,
         coordinates: AgCoordinates | undefined
     ): INodeEvent<'nodeContextMenuAction'> {
-        const selectionState = this.getSelectionStateString(datum.datumIndex);
-        const isCollapsed = datum.itemId == null ? undefined : this.getCollapsedState(datum.itemId);
-        return new this.NodeEvent(
-            'nodeContextMenuAction',
+        return this.createNodeEvent('nodeContextMenuAction', event, datum, coordinates);
+    }
+
+    // Do not override. Override createNodeParams instead.
+    private createNodeEvent<T extends SeriesNodeEventTypes>(
+        type: T,
+        event: Event,
+        datum: TDatum,
+        coordinates: AgCoordinates | undefined
+    ): INodeEvent<T> {
+        let defaultPrevented = false;
+        return {
+            ...this.createNodeParams(datum),
+            type,
             event,
-            datum,
-            this,
-            selectionState,
-            isCollapsed,
-            coordinates
-        );
+            coordinates,
+            get defaultPrevented() {
+                return defaultPrevented;
+            },
+            preventDefault: () => {
+                defaultPrevented = true;
+            },
+        };
+    }
+
+    protected createNodeParams(datum: TDatum): AgNodeParams<unknown> {
+        const dataIdKey = this.data?.dataIdKey;
+        return {
+            datum: datum.datum,
+            datums: datum.datums,
+            totalValue: datum.totalValue,
+            seriesId: this.id,
+            dataIdKey,
+            itemId: getItemId(datum, dataIdKey),
+            selectionState: this.getSelectionStateString(datum.datumIndex),
+            isCollapsed: datum.itemId == null ? undefined : this.getCollapsedState(datum.itemId),
+        };
     }
 
     onLegendInitialState(legendType: ChartLegendType, initialState: AgInitialStateLegendOptions | undefined) {

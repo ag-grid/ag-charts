@@ -5,7 +5,6 @@ import {
     type AgBoxPlotSeriesStyle,
     type AgBoxPlotSeriesStylerParams,
     type AgBoxPlotWhiskerOptions,
-    type SelectionState,
     _ModuleSupport,
 } from 'ag-charts-community';
 import type {
@@ -18,7 +17,7 @@ import type {
     RequireOptional,
 } from 'ag-charts-core';
 import { ChartAxisDirection, deepClone, isNumericValue, mergeDefaults, toNumber } from 'ag-charts-core';
-import type { AgCoordinates, AgNumericValue } from 'ag-charts-types';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import { prepareBoxPlotFromTo, resetBoxPlotSelectionsScalingCenterFn } from './blotPlotUtil';
 import { BoxPlotNode } from './boxPlotNode';
@@ -117,42 +116,22 @@ interface BoxPlotNodeDatumParams {
     scaledValues: ScaledBoxPlotValues;
 }
 
-class BoxPlotSeriesNodeEvent<
-    TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
-> extends _ModuleSupport.SeriesNodeEvent<BoxPlotNodeDatum, TEvent> {
-    readonly xKey?: string;
-    readonly minKey?: string;
-    readonly q1Key?: string;
-    readonly medianKey?: string;
-    readonly q3Key?: string;
-    readonly maxKey?: string;
-
-    constructor(
-        type: TEvent,
-        nativeEvent: Event,
-        datum: BoxPlotNodeDatum,
-        series: BoxPlotSeries,
-        selectionState: SelectionState | undefined,
-        isCollapsed: boolean | undefined,
-        coordinates: AgCoordinates | undefined
-    ) {
-        super(type, nativeEvent, datum, series, selectionState, isCollapsed, coordinates);
-        this.xKey = series.properties.xKey;
-        this.minKey = series.properties.minKey;
-        this.q1Key = series.properties.q1Key;
-        this.medianKey = series.properties.medianKey;
-        this.q3Key = series.properties.q3Key;
-        this.maxKey = series.properties.maxKey;
-    }
-}
-
 export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSeriesTypes> {
     static override readonly className = 'BoxPlotSeries';
     static readonly type = 'box-plot' as const;
 
     override properties = new BoxPlotSeriesProperties();
 
-    protected override readonly NodeEvent = BoxPlotSeriesNodeEvent;
+    protected override createNodeParams(datum: BoxPlotNodeDatum) {
+        return {
+            ...super.createNodeParams(datum),
+            minKey: this.properties.minKey,
+            q1Key: this.properties.q1Key,
+            medianKey: this.properties.medianKey,
+            q3Key: this.properties.q3Key,
+            maxKey: this.properties.maxKey,
+        };
+    }
 
     constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({

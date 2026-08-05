@@ -2,7 +2,6 @@ import type {
     AgBaseRadialColumnSeriesOptions,
     AgRadialSeriesLabelFormatterParams,
     AgRadialSeriesStyle,
-    SelectionState,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import {
@@ -20,7 +19,7 @@ import {
     normalizeAngle360,
     zeroLike,
 } from 'ag-charts-core';
-import type { AgCoordinates, AgNumericValue, CssColor } from 'ag-charts-types';
+import type { AgNumericValue, CssColor } from 'ag-charts-types';
 
 import { AngleCategoryAxis } from '../../axes/angle-category/angleCategoryAxis';
 import { type RadialSeriesStyleResult, getItemStyle, getStyle } from '../util/radialUtil';
@@ -49,26 +48,6 @@ const {
 } = _ModuleSupport;
 
 type NormalisedRadialSeriesStyle = Normalised<AgRadialSeriesStyle, never, FillStrokeMorph>;
-
-class RadialColumnSeriesNodeEvent<
-    TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
-> extends _ModuleSupport.SeriesNodeEvent<RadialColumnNodeDatum, TEvent> {
-    readonly angleKey?: string;
-    readonly radiusKey?: string;
-    constructor(
-        type: TEvent,
-        nativeEvent: Event,
-        datum: RadialColumnNodeDatum,
-        series: RadialColumnSeriesBase<any>,
-        selectionState: SelectionState | undefined,
-        isCollapsed: boolean | undefined,
-        coordinates: AgCoordinates | undefined
-    ) {
-        super(type, nativeEvent, datum, series, selectionState, isCollapsed, coordinates);
-        this.angleKey = series.properties.angleKey;
-        this.radiusKey = series.properties.radiusKey;
-    }
-}
 
 interface RadialColumnLabelNodeDatum {
     x: number;
@@ -116,7 +95,13 @@ export abstract class RadialColumnSeriesBase<
     RadialColumnNodeDatum,
     RadialColumnSeriesNodeDataContext
 > {
-    protected override readonly NodeEvent = RadialColumnSeriesNodeEvent;
+    protected override createNodeParams(datum: RadialColumnNodeDatum) {
+        return {
+            ...super.createNodeParams(datum),
+            angleKey: this.properties.angleKey,
+            radiusKey: this.properties.radiusKey,
+        };
+    }
 
     private readonly groupScale = new CategoryScale<string>();
 

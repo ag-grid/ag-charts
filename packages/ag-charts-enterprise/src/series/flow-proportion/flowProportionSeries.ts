@@ -1,9 +1,7 @@
 import {
     type AgActiveItemState,
-    type AgCoordinates,
     type FillOptions,
     type LineDashOptions,
-    type SelectionState,
     type StrokeOptions,
     _ModuleSupport,
 } from 'ag-charts-community';
@@ -94,34 +92,6 @@ type TDatum<
     TLinkDatum extends FlowProportionLinkDatum<TNodeDatum, TLinkDatum>,
 > = TLinkDatum | TNodeDatum;
 
-export class FlowProportionSeriesNodeEvent<
-    TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
-> extends _ModuleSupport.SeriesNodeEvent<_ModuleSupport.SeriesNodeDatum, TEvent> {
-    readonly size?: number;
-    readonly label?: string;
-    constructor(
-        type: TEvent,
-        nativeEvent: Event,
-        datum: _ModuleSupport.SeriesNodeDatum & { type?: FlowProportionDatumType },
-        series: _ModuleSupport.ISeries<_ModuleSupport.SeriesNodeDatum, _ModuleSupport.ISeriesProperties, unknown> & {
-            contextNodeData?: _ModuleSupport.SeriesNodeDataContext<
-                TDatum<FlowProportionNodeDatum<any, any>, FlowProportionLinkDatum<any, any>>,
-                _ModuleSupport.ISeriesProperties
-            >;
-        },
-        selectionState: SelectionState | undefined,
-        isCollapsed: boolean | undefined,
-        coordinates: AgCoordinates | undefined
-    ) {
-        super(type, nativeEvent, datum, series, selectionState, isCollapsed, coordinates);
-        const nodeDatum = series.contextNodeData?.nodeData.find(
-            (d) => d.type === datum.type && d.datumIndex === datum.datumIndex
-        );
-        this.size = nodeDatum?.size;
-        this.label = nodeDatum?.type === FlowProportionDatumType.Node ? nodeDatum?.label : undefined;
-    }
-}
-
 export abstract class FlowProportionSeries<
     TNodeDatum extends FlowProportionNodeDatum<TNodeDatum, TLinkDatum>,
     TLinkDatum extends FlowProportionLinkDatum<TNodeDatum, TLinkDatum>,
@@ -137,7 +107,17 @@ export abstract class FlowProportionSeries<
     TLabel,
     _ModuleSupport.SeriesNodeDataContext<TDatum<TNodeDatum, TLinkDatum>, TLabel>
 > {
-    protected override readonly NodeEvent = FlowProportionSeriesNodeEvent;
+    // `size`/`label` live on the context node data rather than on the picked datum, so they need a lookup.
+    protected override createNodeParams(datum: TDatum<TNodeDatum, TLinkDatum>) {
+        const nodeDatum = this.contextNodeData?.nodeData.find(
+            (d) => d.type === datum.type && d.datumIndex === datum.datumIndex
+        );
+        return {
+            ...super.createNodeParams(datum),
+            size: nodeDatum?.size,
+            label: nodeDatum?.type === FlowProportionDatumType.Node ? nodeDatum?.label : undefined,
+        };
+    }
 
     abstract override properties: TProps;
 

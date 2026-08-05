@@ -13,6 +13,7 @@ import type {
 import type {
     AgActiveItemState,
     AgCoordinates,
+    AgNodeParams,
     AgNumericValue,
     SelectionState as PublicSelectionState,
 } from 'ag-charts-types';
@@ -99,20 +100,14 @@ export interface ISeriesAriaMeta {
     readonly instructions?: string[];
 }
 
-export interface INodeEvent<TEvent extends string = SeriesNodeEventTypes> extends TypedEvent {
+export interface INodeEvent<TEvent extends string = SeriesNodeEventTypes>
+    extends TypedEvent, Readonly<AgNodeParams<unknown>> {
     readonly type: TEvent;
     // Note: this is typically a MouseEvent, but it can be a TouchEvent or KeyboardEvent too.
     readonly event: Event;
-    readonly datum: unknown;
-    readonly datums?: unknown[];
-    readonly totalValue?: AgNumericValue;
-    readonly seriesId: string;
-    readonly itemId: string | number;
-    readonly dataIdKey: string | undefined;
-    readonly defaultPrevented: boolean;
-    readonly selectionState: PublicSelectionState | undefined;
-    readonly isCollapsed: boolean | undefined;
     readonly coordinates: AgCoordinates | undefined;
+    readonly defaultPrevented: boolean;
+    preventDefault(): void;
 }
 
 export interface ISeriesProperties {

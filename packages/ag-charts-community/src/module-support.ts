@@ -228,7 +228,7 @@ export {
 export type { CoreZoomState, CoreZoomStateSafeRetrieval, UpdateZoomChanges } from './chart/interaction/zoomManager';
 export { PanToBBoxScalingModeEnum } from './util/panToBBox';
 export { getItemId } from './chart/series/pickManager';
-export { Series, SeriesNodeEvent, SeriesNodePickMode } from './chart/series/series';
+export { Series, SeriesNodePickMode } from './chart/series/series';
 export type {
     MarkerStyleApply,
     MarkerStyleCompute,
@@ -274,7 +274,6 @@ export type {
 } from './chart/series/cartesian/abstractBarSeries';
 export {
     CartesianSeries,
-    CartesianSeriesNodeEvent,
     CartesianSeriesProperties,
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,

@@ -79,11 +79,11 @@ import { ChartOverlays } from './overlay/chartOverlays';
 import { getLoadingSpinner } from './overlay/loadingSpinner';
 import { getValidationOverlay } from './overlay/validationOverlay';
 import { SeriesArea } from './series-area/seriesArea';
-import { Series, SeriesGroupingChangedEvent, SeriesNodeEvent, type UnknownSeries } from './series/series';
+import { Series, SeriesGroupingChangedEvent, type UnknownSeries } from './series/series';
 import { type SeriesAreaChartDependencies, SeriesAreaManager } from './series/seriesAreaManager';
 import { SeriesLayerManager } from './series/seriesLayerManager';
 import type { SeriesProperties } from './series/seriesProperties';
-import type { DatumIndex, ISeries, ISeriesProperties, SeriesNodeDatum } from './series/seriesTypes';
+import type { DatumIndex, INodeEvent, ISeries, ISeriesProperties, SeriesNodeDatum } from './series/seriesTypes';
 import { Tooltip, type TooltipContent } from './tooltip/tooltip';
 import { DataWindowProcessor } from './update/dataWindowProcessor';
 import { OverlaysProcessor } from './update/overlaysProcessor';
@@ -1682,11 +1682,11 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         );
     }
 
-    private readonly onSeriesNodeClick = (event: SeriesNodeEvent<any>) => {
+    private readonly onSeriesNodeClick = (event: INodeEvent) => {
         this.fireEvent(event);
     };
 
-    private readonly onSeriesNodeDoubleClick = (event: SeriesNodeEvent<any>) => {
+    private readonly onSeriesNodeDoubleClick = (event: INodeEvent) => {
         this.fireEvent(event);
     };
 
