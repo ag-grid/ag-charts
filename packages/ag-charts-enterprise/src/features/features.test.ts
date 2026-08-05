@@ -242,9 +242,12 @@ describe('Feature Combinations', () => {
 
         const crossAtCases = [
             { name: 'crossing at a value', crossAt: { value: 0 } },
-            { name: 'the title at the edge', crossAt: { value: 0, titleAtEdge: true } },
-            { name: 'the labels at the edge', crossAt: { value: 0, labelsAtEdge: true } },
-            { name: 'the title and labels at the edge', crossAt: { value: 0, titleAtEdge: true, labelsAtEdge: true } },
+            { name: 'the title at the edge', crossAt: { value: 0, titlePlacement: 'edge' } },
+            { name: 'the labels at the edge', crossAt: { value: 0, labelsPlacement: 'edge' } },
+            {
+                name: 'the title and labels at the edge',
+                crossAt: { value: 0, titlePlacement: 'edge', labelsPlacement: 'edge' },
+            },
         ] satisfies { name: string; crossAt: AgCartesianAxisCrossAt }[];
 
         // Axes positioned with `crossAt` share the series area, so they only claim the pointer where they

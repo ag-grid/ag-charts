@@ -595,17 +595,17 @@ export abstract class CartesianAxis<
         super.updatePosition();
 
         const { completeTransform, positionOnlyTransform } = this.getAxisTransform();
-        this.tickLineGroup.datum = this.options.crossAt?.labelsAtEdge ? positionOnlyTransform : completeTransform;
-        this.tickLabelGroup.datum = this.options.crossAt?.labelsAtEdge ? positionOnlyTransform : completeTransform;
+        const labelsTransform = this.isLabelsAtEdge() ? positionOnlyTransform : completeTransform;
+        this.tickLineGroup.datum = labelsTransform;
+        this.tickLabelGroup.datum = labelsTransform;
         this.lineNodeGroup.datum = completeTransform;
-        this.headingLabelGroup.datum = this.options.crossAt?.titleAtEdge ? positionOnlyTransform : completeTransform;
+        this.headingLabelGroup.datum = this.isTitleAtEdge() ? positionOnlyTransform : completeTransform;
     }
 
     protected override getCanvasBounds(): BBox {
-        const { crossAt } = this.options;
-        const labelsAtEdge = crossAt?.labelsAtEdge === true;
+        const labelsAtEdge = this.isLabelsAtEdge();
 
-        if (!labelsAtEdge && crossAt?.titleAtEdge !== true) return super.getCanvasBounds();
+        if (!labelsAtEdge && !this.isTitleAtEdge()) return super.getCanvasBounds();
 
         // Interaction follows the ticks and labels, so a group drawn at the other location is left out
         // instead of merged in — everything between the two belongs to the series.
@@ -825,10 +825,17 @@ export abstract class CartesianAxis<
         return { bbox, spacing };
     }
 
+    private isTitleAtEdge() {
+        return this.options.crossAt?.titlePlacement === 'edge';
+    }
+
+    private isLabelsAtEdge() {
+        return this.options.crossAt?.labelsPlacement === 'edge';
+    }
+
     /** The title and labels render in the same place unless exactly one of them is at the edge. */
     private titleRendersWithLabels() {
-        const { crossAt } = this.options;
-        return (crossAt?.titleAtEdge === true) === (crossAt?.labelsAtEdge === true);
+        return this.isTitleAtEdge() === this.isLabelsAtEdge();
     }
 
     /** The title only has to clear the labels when both render in the same place. */
@@ -838,9 +845,8 @@ export abstract class CartesianAxis<
 
     /** Thickness occupied at the `position` edge and at the crossing point, which `crossAt` can split apart. */
     getCrossAtThicknesses(): { atEdge: number; atCrossing: number } {
-        const { crossAt } = this.options;
-        const titleAtEdge = crossAt?.titleAtEdge === true;
-        const labelsAtEdge = crossAt?.labelsAtEdge === true;
+        const titleAtEdge = this.isTitleAtEdge();
+        const labelsAtEdge = this.isLabelsAtEdge();
 
         const title = this.titleThickness;
         const labels = this.layout.labelThickness ?? 0;
