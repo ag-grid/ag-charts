@@ -7,7 +7,16 @@
     --gallery-header-offset: 120px;
     --gallery-toolbar-height: 64px;
     --gallery-sticky-top: calc(var(--gallery-header-offset) + var(--gallery-toolbar-height));
-    --layout-scroll-offset: calc(var(--gallery-sticky-top) + #{$spacing-size-4}) !important;
+    // The series menu becomes a strip that sticks below the toolbar (see .menu in
+    // gallery.astro), so anchor targets have to clear that too, not just --gallery-sticky-top.
+    --gallery-strip-height: 0px;
+    --layout-scroll-offset: calc(
+        var(--gallery-sticky-top) + var(--gallery-strip-height) + #{$spacing-size-4}
+    ) !important;
+
+    @media screen and (max-width: $breakpoint-gallery-small) {
+        --gallery-strip-height: var(--layout-site-header-height);
+    }
 
     @media screen and (min-width: tokens.$docs-search-inline) {
         --gallery-header-offset: var(--layout-site-header-height);
@@ -33,5 +42,8 @@
 
     h1 {
         margin-bottom: 0px;
+        // At the full 2xl size the title wraps to two lines and overflows the toolbar
+        // band once it competes with the theme dropdown for width (below ~430px).
+        font-size: clamp(20px, 5vw, var(--text-fs-2xl));
     }
 }
