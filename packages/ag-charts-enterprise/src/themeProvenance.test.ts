@@ -1,6 +1,5 @@
-import { type ProvenanceCase, defineProvenanceSuite } from '_ag-charts-test';
-
 import { prepareProcessedOptions } from 'ag-charts-community-test';
+import { type ProvenanceCase, defineProvenanceSuite } from 'ag-charts-test';
 
 import { setupEnterpriseModules } from './setup';
 
