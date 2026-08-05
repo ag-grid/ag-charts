@@ -1376,6 +1376,90 @@ describe('OrganizationSeries', () => {
                 await compare();
             });
         });
+
+        const linkVisibility = (c: any): Record<string, boolean> => {
+            const out: Record<string, boolean> = {};
+            (deproxy(c).series[0] as any).linkSelection.each((node: any, datum: any) => {
+                out[`${String(datum.from.value)}->${String(datum.to.value)}`] = node.visible;
+            });
+            return out;
+        };
+
+        it('resolves a link parent by node-selection index, not data order, when collapsing', async () => {
+            const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const series: any = deproxy(chart).series[0];
+            const nodeData = series.contextNodeData.nodeData;
+            const cfoVertex = series.graph.findVertexById('cfo');
+
+            // Node-selection order and graph datumIndex only diverge when render order differs from data
+            // order; pin the divergence so a reordered fixture fails loudly instead of silently passing.
+            expect(nodeData.map((d: any) => d.itemId)).toEqual(['ceo', 'cto', 'dev', 'qa', 'cfo', 'acc']);
+            expect(series.getNodeDatumIndex(cfoVertex)).toBe(4);
+            expect(series.graph.findNeighbourValue(cfoVertex, 'datumIndex')).toBe(2);
+            expect(nodeData[2].itemId).toBe('dev');
+
+            expect(linkVisibility(chart)).toEqual({
+                'root->ceo': true,
+                'ceo->cto': true,
+                'cto->dev': true,
+                'cto->qa': true,
+                'ceo->cfo': true,
+                'cfo->acc': true,
+            });
+
+            await clickItem('cfo', OrganizationNodeTag.Expander);
+
+            expect(linkVisibility(chart)).toEqual({
+                'root->ceo': true,
+                'ceo->cto': true,
+                'cto->dev': true,
+                'cto->qa': true,
+                'ceo->cfo': true,
+                'cfo->acc': false,
+            });
+        });
+
+        it('does not hide a link whose parent is uncollapsed but shares a graph datumIndex with a collapsed node', async () => {
+            const options: AgChartOptions = {
+                ...SIMPLE_ORG_CHART,
+                data: [
+                    ...new Caster(SIMPLE_ORG_CHART.data).assertNonNullish().value,
+                    { id: 'intern', name: 'Grace Lee', job: 'Intern', location: 'London', parentId: 'dev' },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const series: any = deproxy(chart).series[0];
+            expect(series.contextNodeData.nodeData.map((d: any) => d.itemId)).toEqual([
+                'ceo',
+                'cto',
+                'dev',
+                'intern',
+                'qa',
+                'cfo',
+                'acc',
+            ]);
+
+            await clickItem('dev', OrganizationNodeTag.Expander);
+
+            expect(linkVisibility(chart)).toEqual({
+                'root->ceo': true,
+                'ceo->cto': true,
+                'ceo->cfo': true,
+                'cto->dev': true,
+                'cto->qa': true,
+                'dev->intern': false,
+                'cfo->acc': true,
+            });
+        });
     });
 
     describe('theme defaults', () => {
