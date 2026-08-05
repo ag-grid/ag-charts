@@ -51,7 +51,7 @@ async function findResizeBandY(page: Page, wrapper: Locator, width: number, heig
  * The travel must stay well above `DRAG_THRESHOLD_PX` (3px, `dragInterpreter.ts`) or the gesture is
  * interpreted as a click and no cursor lock is taken — do not shrink the distance or the step count.
  */
-async function withCanvasDragHeld(page: Page, start: Point, end: Point, assertions: () => Promise<void>, steps = 4) {
+async function withCanvasDragHeld(page: Page, start: Point, end: Point, assertions: () => Promise<void>) {
     await waitForAllChartUpdates(page);
     const toPage = await canvasToPageTransformer(page);
     const from = toPage(start.x, start.y);
