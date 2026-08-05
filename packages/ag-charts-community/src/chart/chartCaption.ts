@@ -299,15 +299,15 @@ export class ChartCaption implements CaptionLike {
 
     /**
      * Fires the caption's own `listeners` callbacks and their chart-level `captionClick` /
-     * `captionDoubleClick` counterparts. Mirrors the caption context-menu dispatch above, except that
-     * the caption discriminator is reported as `caption` rather than `captionType`.
+     * `captionDoubleClick` counterparts. Mirrors the caption context-menu dispatch above, reporting
+     * the same `captionType` discriminator.
      */
     private handleClick(moduleCtx: DynamicContext<ChartRegistry>, event: MouseWidgetEvent<'click' | 'dblclick'>) {
         // Keyboard activation of caption listeners is out of scope for this feature (AG-17707).
         if (event.device === 'keyboard') return;
 
         const isDoubleClick = event.type === 'dblclick';
-        const params = { event: event.sourceEvent, caption: this.key, text: this.text ?? '' };
+        const params = { event: event.sourceEvent, captionType: this.key, text: this.text ?? '' };
 
         const { listeners } = this.opts;
         const listener = isDoubleClick ? listeners?.doubleClick : listeners?.click;

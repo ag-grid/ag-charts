@@ -270,7 +270,7 @@ export interface AgCaptionClickEvent<TEvent extends string, TContext = ContextDe
     TContext
 > {
     /** Which caption was clicked. Captions have no user-supplied id, so this is their identifier. */
-    caption: AgCaptionType;
+    captionType: AgCaptionType;
     /** The text of the clicked caption. */
     text: TextOrSegments;
 }

@@ -84,7 +84,7 @@ describe('Caption listeners', () => {
             expect(click).toHaveBeenCalledWith(
                 expect.objectContaining({
                     type: 'click',
-                    caption: key,
+                    captionType: key,
                     text: `${key[0].toUpperCase()}${key.slice(1)} text`,
                     event: expect.any(MouseEvent),
                 })
@@ -98,7 +98,9 @@ describe('Caption listeners', () => {
             await clickCaption(chart[key], 'dblclick');
 
             expect(doubleClick).toHaveBeenCalledTimes(1);
-            expect(doubleClick).toHaveBeenCalledWith(expect.objectContaining({ type: 'doubleClick', caption: key }));
+            expect(doubleClick).toHaveBeenCalledWith(
+                expect.objectContaining({ type: 'doubleClick', captionType: key })
+            );
         });
 
         // The browser precedes every `dblclick` with two `click` events, so both listeners fire.
@@ -166,7 +168,9 @@ describe('Caption listeners', () => {
             await clickCaption(chart[key]);
 
             expect(captionClick).toHaveBeenCalledTimes(1);
-            expect(captionClick).toHaveBeenCalledWith(expect.objectContaining({ type: 'captionClick', caption: key }));
+            expect(captionClick).toHaveBeenCalledWith(
+                expect.objectContaining({ type: 'captionClick', captionType: key })
+            );
         });
 
         test('AC6: double-clicking a caption fires `captionDoubleClick`', async () => {
@@ -177,7 +181,7 @@ describe('Caption listeners', () => {
 
             expect(captionDoubleClick).toHaveBeenCalledTimes(1);
             expect(captionDoubleClick).toHaveBeenCalledWith(
-                expect.objectContaining({ type: 'captionDoubleClick', caption: 'footnote' })
+                expect.objectContaining({ type: 'captionDoubleClick', captionType: 'footnote' })
             );
         });
 
