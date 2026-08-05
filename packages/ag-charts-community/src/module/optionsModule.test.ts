@@ -676,9 +676,15 @@ describe('ChartOptions', () => {
                     "fontSize": 12,
                     "fontWeight": 400,
                     "insideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#ffffff",
                     },
                     "outsideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#181d1f",
                     },
                     "padding": 8,
@@ -769,9 +775,15 @@ describe('ChartOptions', () => {
                     "fontSize": 12,
                     "fontWeight": 400,
                     "insideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#ffffff",
                     },
                     "outsideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#181d1f",
                     },
                     "padding": 8,
@@ -862,9 +874,15 @@ describe('ChartOptions', () => {
                     "fontSize": 12,
                     "fontWeight": 400,
                     "insideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#ffffff",
                     },
                     "outsideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#181d1f",
                     },
                     "padding": 8,
@@ -955,9 +973,15 @@ describe('ChartOptions', () => {
                     "fontSize": 12,
                     "fontWeight": 400,
                     "insideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#ffffff",
                     },
                     "outsideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#181d1f",
                     },
                     "padding": 8,
@@ -1041,9 +1065,15 @@ describe('ChartOptions', () => {
                     "fontSize": 12,
                     "fontWeight": 400,
                     "insideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#181d1f",
                     },
                     "outsideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#181d1f",
                     },
                     "padding": 8,
@@ -1119,9 +1149,15 @@ describe('ChartOptions', () => {
                     "fontSize": 12,
                     "fontWeight": 400,
                     "insideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#181d1f",
                     },
                     "outsideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#181d1f",
                     },
                     "padding": 8,
@@ -1215,9 +1251,15 @@ describe('ChartOptions', () => {
                     "fontSize": 12,
                     "fontWeight": 400,
                     "insideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#ffffff",
                     },
                     "outsideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#181d1f",
                     },
                     "padding": 8,
@@ -1308,9 +1350,15 @@ describe('ChartOptions', () => {
                     "fontSize": 12,
                     "fontWeight": 400,
                     "insideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#ffffff",
                     },
                     "outsideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#181d1f",
                     },
                     "padding": 8,
@@ -1401,9 +1449,15 @@ describe('ChartOptions', () => {
                     "fontSize": 12,
                     "fontWeight": 400,
                     "insideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#ffffff",
                     },
                     "outsideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#181d1f",
                     },
                     "padding": 8,
@@ -1494,9 +1548,15 @@ describe('ChartOptions', () => {
                     "fontSize": 12,
                     "fontWeight": 400,
                     "insideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#ffffff",
                     },
                     "outsideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#181d1f",
                     },
                     "padding": 8,
@@ -1580,9 +1640,15 @@ describe('ChartOptions', () => {
                     "fontSize": 12,
                     "fontWeight": 400,
                     "insideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#181d1f",
                     },
                     "outsideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#181d1f",
                     },
                     "padding": 8,
@@ -1658,9 +1724,15 @@ describe('ChartOptions', () => {
                     "fontSize": 12,
                     "fontWeight": 400,
                     "insideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#181d1f",
                     },
                     "outsideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#181d1f",
                     },
                     "padding": 8,
@@ -1754,9 +1826,15 @@ describe('ChartOptions', () => {
                     "fontSize": 12,
                     "fontWeight": 400,
                     "insideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#ffffff",
                     },
                     "outsideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#181d1f",
                     },
                     "padding": 8,
@@ -1847,9 +1925,15 @@ describe('ChartOptions', () => {
                     "fontSize": 12,
                     "fontWeight": 400,
                     "insideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#ffffff",
                     },
                     "outsideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#181d1f",
                     },
                     "padding": 8,
@@ -1940,9 +2024,15 @@ describe('ChartOptions', () => {
                     "fontSize": 12,
                     "fontWeight": 400,
                     "insideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#ffffff",
                     },
                     "outsideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#181d1f",
                     },
                     "padding": 8,
@@ -2033,9 +2123,15 @@ describe('ChartOptions', () => {
                     "fontSize": 12,
                     "fontWeight": 400,
                     "insideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#ffffff",
                     },
                     "outsideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#181d1f",
                     },
                     "padding": 8,
@@ -2119,9 +2215,15 @@ describe('ChartOptions', () => {
                     "fontSize": 12,
                     "fontWeight": 400,
                     "insideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#181d1f",
                     },
                     "outsideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#181d1f",
                     },
                     "padding": 8,
@@ -2197,9 +2299,15 @@ describe('ChartOptions', () => {
                     "fontSize": 12,
                     "fontWeight": 400,
                     "insideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#181d1f",
                     },
                     "outsideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#181d1f",
                     },
                     "padding": 8,

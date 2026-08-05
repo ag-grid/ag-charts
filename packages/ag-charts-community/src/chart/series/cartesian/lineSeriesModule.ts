@@ -9,6 +9,7 @@ import {
     LABEL_BOXING_TOP_LEVEL_DEFAULTS,
     LABEL_OVERFLOW_ALWAYS_SHOW,
     LABEL_OVERFLOW_DEFAULTS,
+    LABEL_PLACEMENT_BORDER_DEFAULTS,
     MARKER_SERIES_HIGHLIGHT_STYLE,
     SAFE_STROKE_FILL_OPERATION,
     SEGMENTATION_DEFAULTS,
@@ -57,8 +58,14 @@ const themeTemplate: ExtensibleTheme<'line'> = {
             fontWeight: { $ref: 'fontWeight' },
             padding: 8,
             collision: { alwaysShow: LABEL_OVERFLOW_ALWAYS_SHOW },
-            insideStyle: { color: { $isUserOption: ['../color', { $path: '../color' }, { $ref: 'textColor' }] } },
-            outsideStyle: { color: { $isUserOption: ['../color', { $path: '../color' }, { $ref: 'textColor' }] } },
+            insideStyle: {
+                ...LABEL_PLACEMENT_BORDER_DEFAULTS,
+                color: { $isUserOption: ['../color', { $path: '../color' }, { $ref: 'textColor' }] },
+            },
+            outsideStyle: {
+                ...LABEL_PLACEMENT_BORDER_DEFAULTS,
+                color: { $isUserOption: ['../color', { $path: '../color' }, { $ref: 'textColor' }] },
+            },
             placement: 'top',
         },
         tooltip: {

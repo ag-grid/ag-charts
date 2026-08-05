@@ -61,6 +61,26 @@ describe('label placement style (insideStyle/outsideStyle)', () => {
         };
     };
 
+    // Border readout keyed by datum, so a chart mixing resolved placements within one series can
+    // assert each label's own stroke and a cross-wired one cannot pass unnoticed.
+    const visibleLabelBoxStrokesByCat = (seriesIndex = 0) => {
+        const series = deproxy(chart as any).series[seriesIndex] as unknown as {
+            labelSelection: {
+                nodes(): {
+                    visible: boolean;
+                    datum: { xValue: string };
+                    getBoxingProperties(): { border: { stroke?: string } };
+                }[];
+            };
+        };
+        return Object.fromEntries(
+            series.labelSelection
+                .nodes()
+                .filter((node) => node.visible)
+                .map((node) => [node.datum.xValue, node.getBoxingProperties().border.stroke])
+        );
+    };
+
     describe('bar-family (column)', () => {
         const barData = [
             { cat: 'A', value: 80 },
@@ -225,16 +245,73 @@ describe('label placement style (insideStyle/outsideStyle)', () => {
             expect(firstVisibleLabelStyle().cornerRadius).toBe(12);
         });
 
-        it('resolves the border stroke per placement while the top-level border governs enablement', async () => {
+        // Tall bars ('A', 'C') hold the first candidate inside; short ones ('B', 'D') cascade to
+        // outside-end, so every border case below resolves both placements within one chart.
+        const cascadeBarOptions = (labelOptions: object) => ({
+            ...barOptions({ placement: ['inside-center', 'outside-end'], ...labelOptions }),
+            data: [
+                { cat: 'A', value: 80 },
+                { cat: 'B', value: 2 },
+                { cat: 'C', value: 60 },
+                { cat: 'D', value: 3 },
+            ],
+            axes: {
+                x: { type: 'category', position: 'bottom' },
+                y: { type: 'number', position: 'left', max: 100 },
+            },
+        });
+
+        it('auto-enables a distinct border stroke per placement with no top-level border set', async () => {
             await renderAndSnapshot(
-                barOptions({
-                    placement: 'inside-center',
-                    border: { enabled: true },
-                    insideStyle: { border: { stroke: '#ff0000' } },
-                    outsideStyle: { border: { stroke: '#0000ff' } },
+                cascadeBarOptions({
+                    insideStyle: { border: { stroke: '#ff0000', strokeWidth: 2 } },
+                    outsideStyle: { border: { stroke: '#0000ff', strokeWidth: 2 } },
                 })
             );
-            expect(firstVisibleLabelStyle().boxStroke).toBe('#ff0000');
+            expect(visibleLabelBoxStrokesByCat()).toEqual({
+                A: '#ff0000',
+                B: '#0000ff',
+                C: '#ff0000',
+                D: '#0000ff',
+            });
+        });
+
+        it('falls back to the top-level border, except where a placement opts out', async () => {
+            await renderAndSnapshot(
+                cascadeBarOptions({
+                    border: { enabled: true, stroke: '#123456' },
+                    outsideStyle: { border: { enabled: false } },
+                })
+            );
+            expect(visibleLabelBoxStrokesByCat()).toEqual({
+                A: '#123456',
+                B: undefined,
+                C: '#123456',
+                D: undefined,
+            });
+        });
+
+        // The top level opts every border out, yet insideStyle's stroke still shows the inside ones.
+        // An itemStyler outranks both, enabling an outside border ('B') and removing an inside one
+        // ('C'); unlike a configured placement style it must state `enabled` to turn one on.
+        it('resolves border.enabled independently per placement, including itemStyler overrides', async () => {
+            await renderAndSnapshot(
+                cascadeBarOptions({
+                    border: { enabled: false },
+                    insideStyle: { border: { stroke: '#ff0000', strokeWidth: 2 } },
+                    itemStyler: ({ datum }: any) => {
+                        if (datum.cat === 'B') return { border: { enabled: true, stroke: '#00ff00', strokeWidth: 2 } };
+                        if (datum.cat === 'C') return { border: { enabled: false } };
+                        return undefined;
+                    },
+                })
+            );
+            expect(visibleLabelBoxStrokesByCat()).toEqual({
+                A: '#ff0000',
+                B: '#00ff00',
+                C: undefined,
+                D: undefined,
+            });
         });
     });
 

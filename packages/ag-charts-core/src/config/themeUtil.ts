@@ -391,9 +391,10 @@ export const LABEL_BOXING_DEFAULTS: WithThemeParams<LabelBoxOptions> = {
 /**
  * Top-level box defaults for placement-reactive labels. Box geometry (`cornerRadius`, `padding`,
  * fill and the border stroke geometry) lives here so a value set once at the top level applies to
- * both placements; `border.enabled` governs the border for the whole label. The placement blocks
- * carry only user overrides plus a conditional `color` default (whose value legitimately differs
- * per inside/outside placement).
+ * both placements; `border.enabled` falls through to the placement blocks via
+ * `LABEL_PLACEMENT_BORDER_DEFAULTS` (see there for the per-placement auto-enable precedence). The
+ * placement blocks carry only user overrides plus a conditional `color` default (whose value
+ * legitimately differs per inside/outside placement).
  */
 export const LABEL_BOXING_TOP_LEVEL_DEFAULTS: WithThemeParams<LabelBoxOptions> = {
     ...LABEL_BOXING_FILL_DEFAULTS,
@@ -403,6 +404,15 @@ export const LABEL_BOXING_TOP_LEVEL_DEFAULTS: WithThemeParams<LabelBoxOptions> =
         strokeWidth: 1,
         stroke: { $foregroundOpacity: 0.08 },
     },
+};
+
+/**
+ * Per-placement `border.enabled` default, applying only where the placement styles no border of its
+ * own — any border property set on a placement auto-enables it, whatever the top level says. Spread
+ * into a series' `insideStyle`/`outsideStyle` theme blocks alongside their `color` default.
+ */
+export const LABEL_PLACEMENT_BORDER_DEFAULTS: WithThemeParams<Pick<LabelBoxOptions, 'border'>> = {
+    border: { enabled: { $path: '../../border/enabled' } },
 };
 
 /**
