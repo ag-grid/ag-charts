@@ -573,6 +573,143 @@ test.describe('context-menu', () => {
         });
     });
 
+    /**
+     * AG-18053 — right-clicking an axis must report a usable `axisId`, including for axes the user never
+     * named under `axes`. Previously any such axis reported `axisId: ''`.
+     *
+     * GUIDANCE FOR FUTURE CHANGES (human or AI): this suite is deliberately black-box. It drives the chart
+     * the way a user does — a real right-click at a pixel position — and asserts only what the public API
+     * documents: the `AgContextMenuGetItemsParamsAxis` passed to `contextMenu.getItems`, and the
+     * `AgAxisContextMenuActionEvent` passed to a menu item's `action`. Do NOT "simplify" this into a unit
+     * test that reaches into chart internals — no `deproxy`, no reading `axis.userKey`, no calling
+     * `pickValue()` or any other internal method. AG Charts does not design or maintain formal internal
+     * invariants, so assertions on them are simultaneously weak (this critical user journey can break while
+     * they still pass) and a maintenance burden. To cover a new scenario, add an example page and drive it
+     * through this same public surface.
+     *
+     * The two examples are separate on purpose: naming an axis from a series (`yKeyAxis`) changes how every
+     * axis key in the chart is resolved, so a single chart cannot exercise both cases at once.
+     */
+    test.describe('AG-18053 showOn axis for undeclared axes', () => {
+        type AxisParams = Omit<
+            AgContextMenuGetItemsParamsAxis,
+            'showOn' | 'defaultItems' | 'value' | 'index' | 'allShowOnParams' | 'coordinates'
+        >;
+        type PointParams = { index: number; value: AgAxisValue };
+
+        function itemsEvent(commonArg: AxisParams, pointArgs: PointParams): AgContextMenuGetItemsParamsAxis {
+            return {
+                showOn: 'axis',
+                defaultItems: ['download'],
+                // The `axis` scope carries no domain-space `coordinates` — the pointer is over the axis, not
+                // the plot, so there is no point to resolve in the other direction. Only the `series-area`,
+                // `series-node` and `cross-line` scopes populate it. Asserted rather than omitted so that
+                // starting to populate it here has to be a deliberate change to this expectation.
+                coordinates: undefined,
+                ...commonArg,
+                ...pointArgs,
+                allShowOnParams: [{ showOn: 'axis', ...commonArg, ...pointArgs }],
+            };
+        }
+
+        // `AgAxisContextMenuActionEvent` has no `coordinates` at all, so there is nothing to assert here.
+        function actionEvent(commonArg: AxisParams, pointArgs: PointParams): AgAxisContextMenuActionEvent {
+            return {
+                type: 'axisContextMenuAction',
+                event: expect.anything() as AgAxisContextMenuActionEvent['event'],
+                ...commonArg,
+                ...pointArgs,
+            };
+        }
+
+        // Canvas-relative, so the points survive changes to the surrounding page chrome.
+        async function rightClickCanvas(page: Page, canvasPoint: { x: number; y: number }) {
+            const point = await canvasToPageTransformer(page);
+            const p = point(canvasPoint.x, canvasPoint.y);
+            await contextMenu(page, { clientX: p.x, clientY: p.y });
+        }
+
+        async function runAction(page: Page) {
+            await page.getByText('Run axis action').click();
+        }
+
+        /** Asserts the same axis params reach both `getItems()` and the menu item's `action()`. */
+        function testAxis(name: string, canvasPoint: { x: number; y: number }, params: AxisParams, at: PointParams) {
+            test.describe(name, () => {
+                test.beforeEach('getItems', async ({ page }) => {
+                    await rightClickCanvas(page, canvasPoint);
+                });
+                test('getItems', async ({ page }) => {
+                    expect(await popGetItems(page)).toEqual([itemsEvent(params, at)]);
+                });
+                test('actions', async ({ page }) => {
+                    await runAction(page);
+                    expect(await popActions(page)).toEqual([actionEvent(params, at)]);
+                });
+            });
+        }
+
+        // The reported case: `axes` names only the left `y` axis, so the bottom axis is implicit.
+        test.describe('example: only the y axis is declared', () => {
+            test.beforeEach(async ({ page }) => {
+                await gotoExample(page, toExamplePageUrl('context-menu-e2e', 'ag-18053-implicit-axis', 'vanilla').url);
+            });
+
+            testAxis(
+                'axis: x (implicit, never named)',
+                { x: 390, y: 485 }, // Bottom axis, on the 'Jul' tick label
+                {
+                    axisId: 'x',
+                    boundSeries: [
+                        { key: 'x', name: undefined, seriesId: 'BarSeries-1' },
+                        { key: 'x', name: undefined, seriesId: 'BarSeries-2' },
+                    ],
+                    direction: 'x',
+                    domain: ['Jun', 'Jul', 'Aug'],
+                },
+                { index: 1, value: 'Jul' }
+            );
+
+            testAxis(
+                'axis: y (declared)',
+                { x: 70, y: 250 }, // Left axis, between the '20' and '40' tick labels
+                {
+                    axisId: 'y',
+                    boundSeries: [
+                        { key: 'y1', name: 'Series 1', seriesId: 'BarSeries-1' },
+                        { key: 'y2', name: 'Series 2', seriesId: 'BarSeries-2' },
+                    ],
+                    direction: 'y',
+                    domain: [0, 80],
+                },
+                { index: 2, value: closeTo(38.5574) }
+            );
+        });
+
+        // `series[1].yKeyAxis` names an axis that `axes` never declares; that series-supplied key is what
+        // the user knows the axis by, so it is what the context menu must report.
+        test.describe('example: an axis named only by a series', () => {
+            test.beforeEach(async ({ page }) => {
+                await gotoExample(
+                    page,
+                    toExamplePageUrl('context-menu-e2e', 'ag-18053-series-named-axis', 'vanilla').url
+                );
+            });
+
+            testAxis(
+                'axis: ySecondary',
+                { x: 700, y: 250 }, // Right axis, between the '20M' and '40M' tick labels
+                {
+                    axisId: 'ySecondary',
+                    boundSeries: [{ key: 'y2', name: 'Series 2', seriesId: 'BarSeries-2' }],
+                    direction: 'y',
+                    domain: [0, 80000000],
+                },
+                { index: 2, value: closeTo(38557377.0492) }
+            );
+        });
+    });
+
     test.describe('AG-17843 showOn crossline', () => {
         type ParamKeys = 'crossLineId' | 'axisId' | 'direction' | 'crossLineType' | 'value' | 'range';
         type Params = Pick<AgCrossLineContextMenuActionEvent, ParamKeys>;

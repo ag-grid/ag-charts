@@ -2196,11 +2196,12 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             chart.axes = this.createAxes(axes);
         }
 
-        for (const [canonicalKey, userKey] of this.chartOptions.unmappedAxisKeys) {
-            const axis = chart.axes.findById(canonicalKey);
-            if (axis) {
-                axis.userKey = userKey;
-            }
+        // Axes the user never named — the implicit primary axes created for a direction no `axes` entry
+        // covers — have no unmapped key. Fall back to the canonical id ('x', 'y', ...) so `userKey` is
+        // always a usable identifier, matching how option key paths resolve axis keys.
+        const { unmappedAxisKeys } = this.chartOptions;
+        for (const axis of chart.axes) {
+            axis.userKey = unmappedAxisKeys.get(axis.id) ?? axis.id;
         }
         return true;
     }
