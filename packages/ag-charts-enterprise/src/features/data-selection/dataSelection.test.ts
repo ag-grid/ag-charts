@@ -5606,4 +5606,49 @@ describe('DataSelection', () => {
             });
         });
     });
+
+    describe('drag rect clamping', () => {
+        it('should clamp the in-progress drag rect to the series area', async () => {
+            const { data, series } = createBubbleBioStatOptions();
+            chart = await createChartInstance({
+                data,
+                series,
+                selection: { containment: 'any', enabled: true, enableDrag: true, enableClick: false },
+                axes: {
+                    x: { crosshair: { enabled: false }, gridLine: { enabled: false } },
+                    y: { crosshair: { enabled: false }, gridLine: { enabled: false } },
+                },
+                navigator: { enabled: false },
+                scrollbar: { enabled: false },
+                zoom: { enabled: false },
+            });
+
+            const chartInternals = deproxy(chart) as any;
+            const seriesRect = chartInternals.seriesAreaManager?.seriesRect;
+            expect(seriesRect).toBeDefined();
+            const selectionModule = chartInternals.modulesManager.getModule('selection');
+            expect(selectionModule).toBeDefined();
+
+            // The move target must stay within the canvas for the event to reach the chart, so drag
+            // into the axis/padding band beyond the series area rather than off-canvas.
+            const start = { canvasX: Math.ceil(seriesRect.x) + 5, canvasY: Math.ceil(seriesRect.y) + 5 };
+            const beyond = {
+                canvasX: Math.floor(seriesRect.x + seriesRect.width) + 20,
+                canvasY: Math.floor(seriesRect.y + seriesRect.height) + 20,
+            };
+
+            await mouseDown(start);
+            await mouseMove(beyond);
+
+            // Read mid-drag: only drag-move clips to the series area, so an assertion made after
+            // drag-end would hold whether or not the clamp is applied.
+            const { dragRect } = selectionModule;
+            expect(dragRect.x).toBe(start.canvasX);
+            expect(dragRect.y).toBe(start.canvasY);
+            expect(dragRect.x + dragRect.width).toBeCloseTo(seriesRect.x + seriesRect.width, 6);
+            expect(dragRect.y + dragRect.height).toBeCloseTo(seriesRect.y + seriesRect.height, 6);
+
+            await mouseUp(beyond);
+        });
+    });
 });

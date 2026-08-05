@@ -50,4 +50,39 @@ describe('BBox', () => {
             expect(BBox.nearestBox(0, 20, boxes).nearest).toBe(boxes[4]);
         });
     });
+
+    describe('clip', () => {
+        test('should reduce the box to its intersection with the clip bounds', () => {
+            const box = new BBox(0, 0, 10, 10);
+
+            expect(box.clip({ x: 5, y: 5, width: 10, height: 10 })).toBe(box);
+            expect(box.x).toBe(5);
+            expect(box.y).toBe(5);
+            expect(box.width).toBe(5);
+            expect(box.height).toBe(5);
+        });
+
+        test('should leave the box untouched when the clip bounds are undefined', () => {
+            const box = new BBox(3, 4, 10, 20);
+
+            box.clip(undefined);
+
+            expect(box.x).toBe(3);
+            expect(box.y).toBe(4);
+            expect(box.width).toBe(10);
+            expect(box.height).toBe(20);
+        });
+
+        test('should give a negative width and height for disjoint bounds', () => {
+            // There is deliberately no zero-clamp: a disjoint result reports a negative extent.
+            const box = new BBox(0, 0, 10, 10);
+
+            box.clip({ x: 50, y: 50, width: 10, height: 10 });
+
+            expect(box.x).toBe(50);
+            expect(box.y).toBe(50);
+            expect(box.width).toBe(-40);
+            expect(box.height).toBe(-40);
+        });
+    });
 });
