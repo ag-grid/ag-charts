@@ -18,7 +18,7 @@ E2E tests load standalone examples from `_examples/` directories. When a spec ne
 -   **Add buttons to the example HTML** for every operation the test exercises, wired in `main.ts` via `chart.updateDelta()` / `chart.update()` — the example stays a self-contained reproducer a human can operate.
 -   **Click the buttons from the spec** via `page.getByText('Button Label').click()` rather than calling chart APIs through `page.evaluate()`.
 -   **Don't expose chart internals on `window`** for driving the chart — no `(window as any).chart = chart`. (Read-only observation hooks are the exception; see below.)
--   **Add `// @ag-skip-fws`** to the top of `main.ts` — direct DOM manipulation (`getElementById`, `addEventListener`) is incompatible with framework generation and fails CI without it.
+-   **Add `// @ag-skip-fws`** to the top of `main.ts` — direct DOM manipulation (`getElementById`, `addEventListener`) is incompatible with framework generation and fails CI without it. This is the deliberate exception to the "no `@ag-skip-fws`" rule that applies to public docs and gallery examples: e2e examples are internal fixtures, not published examples, and must be pinned to vanilla in `e2e/example-options.ts`.
 
 ## Observe callbacks through an `agE2E` hook, not console logs
 
@@ -100,4 +100,4 @@ Use a single example table and a per-example `test.describe(name, () => { test.b
 
 `toHaveScreenshot` baselines are platform-specific (`*-chromium-linux.png`) and cannot be produced reliably on macOS, so never run Playwright with `-u` / `--update-snapshots`. CI regenerates them for you: when a snapshot job detects image diffs it commits the changed PNGs to a branch named `gha/snapshots-<your-branch>`, then fails the run so it stays red until a human reviews them. A bot posts a PR comment linking a compare view ("Merge snapshot changes into this PR"). Review that diff, confirm the changes are intended, and merge the snapshot branch's commit into your PR branch.
 
-This is a repo-wide CI convention — it covers every image snapshot, including the `ag-charts-*-package-tests` e2e suites, not just website specs.
+This covers every Playwright `toHaveScreenshot` baseline, including the `ag-charts-*-package-tests` e2e suites — not just website specs. It does **not** cover vitest image snapshots (`toMatchImageSnapshot`), which are a separate harness with their own regeneration rule; see `testing.md`.
