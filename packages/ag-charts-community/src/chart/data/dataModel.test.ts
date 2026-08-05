@@ -1,7 +1,7 @@
-import { testLogger } from '_ag-charts-test';
 import { describe, expect, it, vi } from 'vitest';
 
 import { Logger, ambientLogger, getEpochColumn } from 'ag-charts-core';
+import { testLogger } from 'ag-charts-test';
 
 import { DATA_BROWSER_MARKET_SHARE } from '../test/data';
 import * as examples from '../test/examples';

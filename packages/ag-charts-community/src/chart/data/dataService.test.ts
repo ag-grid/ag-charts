@@ -1,8 +1,8 @@
-import { testLogger } from '_ag-charts-test';
 import type { MockInstance } from 'vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AgDocument, EventEmitter, ambientLog, getDocument } from 'ag-charts-core';
+import { testLogger } from 'ag-charts-test';
 
 import { Mutex } from '../../util/mutex';
 import { AnimationManager } from '../interaction/animationManager';

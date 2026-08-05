@@ -1,8 +1,8 @@
-import type { ExampleSubstitutions } from '_ag-charts-generate-example-files';
 import * as fs from 'fs';
 
 import type { AgCartesianChartOptions, AgChartOptions, AgChartTheme, AgChartThemeName } from 'ag-charts-community';
 import { jsonWalk } from 'ag-charts-core';
+import type { ExampleSubstitutions } from 'ag-charts-generate-example-files';
 
 export function patchOptions(
     options: AgChartOptions,

@@ -1,4 +1,3 @@
-import { Caster } from '_ag-charts-test';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type {
@@ -25,6 +24,7 @@ import {
     standaloneChartAssertions,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { Caster } from 'ag-charts-test';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 import { OrganizationNodeTag } from './organizationNode';

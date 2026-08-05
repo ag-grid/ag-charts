@@ -1,4 +1,3 @@
-import { testLogger } from '_ag-charts-test';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { AgCharts } from 'ag-charts-community';
@@ -11,6 +10,7 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { testLogger } from 'ag-charts-test';
 import type {
     AgAnnotationsToolbarButton,
     AgChartInstance,

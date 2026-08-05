@@ -1,7 +1,7 @@
-import { testLogger } from '_ag-charts-test';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { Logger } from 'ag-charts-core';
+import { testLogger } from 'ag-charts-test';
 import type { AgPatternName } from 'ag-charts-types';
 
 import { PATTERN_SNAPSHOT_DEFAULTS, looserSnapshotDefaults } from '../../chart/test/utils';
