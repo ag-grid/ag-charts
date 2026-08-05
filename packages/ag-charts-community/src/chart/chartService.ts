@@ -1,6 +1,7 @@
 import type { BoxBounds, CanvasPoint, RequireOptional } from 'ag-charts-core';
 import type {
     AgAxisClickEvent,
+    AgCaptionClickEvent,
     AgChartInstance,
     AgCollapsedChangeEvent,
     AgCoordinates,
@@ -18,7 +19,9 @@ export type ChartServiceEvent =
     | RequireOptional<Omit<AgSelectionChangeEvent<unknown, unknown>, 'context'>>
     | RequireOptional<Omit<AgCollapsedChangeEvent<unknown, unknown>, 'context'>>
     | Omit<AgAxisClickEvent<'axisClick', unknown>, 'context'>
-    | Omit<AgAxisClickEvent<'axisDoubleClick', unknown>, 'context'>;
+    | Omit<AgAxisClickEvent<'axisDoubleClick', unknown>, 'context'>
+    | Omit<AgCaptionClickEvent<'captionClick', unknown>, 'context'>
+    | Omit<AgCaptionClickEvent<'captionDoubleClick', unknown>, 'context'>;
 export type ChartServiceEventType = ChartServiceEvent['type'];
 
 type BaseSeries = ISeries<SeriesNodeDatum, SeriesProperties<object>>;

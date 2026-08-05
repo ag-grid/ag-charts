@@ -215,6 +215,10 @@ const chartCaptionOptionsDefs: OptionsDefs<AgChartCaptionOptions> = {
         text: string,
         renderer: callbackOf(or(string, number, date)),
     },
+    listeners: {
+        click: callback,
+        doubleClick: callback,
+    },
 };
 // @ts-expect-error undocumented option
 chartCaptionOptionsDefs.truncate = undocumented(boolean);
@@ -501,6 +505,8 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
         seriesNodeDoubleClick: callback,
         axisClick: callback,
         axisDoubleClick: callback,
+        captionClick: callback,
+        captionDoubleClick: callback,
         seriesVisibilityChange: callback,
         activeChange: callback,
         selectionChange: callback,
