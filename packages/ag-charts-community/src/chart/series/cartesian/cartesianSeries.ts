@@ -166,14 +166,6 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         return this.contextNodeData?.nodeData;
     }
 
-    protected override createNodeParams(datum: DatumOf<TTypes>) {
-        return {
-            ...super.createNodeParams(datum),
-            xKey: this.properties.xKey,
-            yKey: this.properties.yKey,
-        };
-    }
-
     private readonly paths: SegmentedPath[];
     protected readonly dataNodeGroup = this.contentGroup.appendChild(
         new SegmentedGroup({ name: `${this.id}-series-dataNodes`, zIndex: 1 })

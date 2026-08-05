@@ -213,6 +213,7 @@ export abstract class OhlcSeriesBase<
     protected override createNodeParams(datum: OhlcNodeDatum) {
         return {
             ...super.createNodeParams(datum),
+            xKey: this.properties.xKey,
             openKey: this.properties.openKey,
             closeKey: this.properties.closeKey,
             highKey: this.properties.highKey,

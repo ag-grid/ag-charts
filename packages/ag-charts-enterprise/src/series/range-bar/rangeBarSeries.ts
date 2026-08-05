@@ -300,6 +300,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
     protected override createNodeParams(datum: RangeBarNodeDatum) {
         return {
             ...super.createNodeParams(datum),
+            xKey: this.properties.xKey,
             yLowKey: this.properties.yLowKey,
             yHighKey: this.properties.yHighKey,
         };

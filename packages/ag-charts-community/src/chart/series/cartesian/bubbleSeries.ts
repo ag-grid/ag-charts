@@ -309,6 +309,8 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
     protected override createNodeParams(datum: BubbleScatterNodeDatum) {
         return {
             ...super.createNodeParams(datum),
+            xKey: this.properties.xKey,
+            yKey: this.properties.yKey,
             sizeKey: this.properties.sizeKey,
             colorKey: this.properties.colorKey,
         };

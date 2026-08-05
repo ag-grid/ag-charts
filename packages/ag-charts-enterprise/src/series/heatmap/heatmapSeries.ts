@@ -152,7 +152,12 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
     override properties = new HeatmapSeriesProperties();
 
     protected override createNodeParams(datum: HeatmapNodeDatum) {
-        return { ...super.createNodeParams(datum), colorKey: this.properties.colorKey };
+        return {
+            ...super.createNodeParams(datum),
+            xKey: this.properties.xKey,
+            yKey: this.properties.yKey,
+            colorKey: this.properties.colorKey,
+        };
     }
 
     readonly colorScale = new ColorScale();

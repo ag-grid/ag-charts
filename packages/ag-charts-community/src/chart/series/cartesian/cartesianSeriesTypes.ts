@@ -120,8 +120,6 @@ export interface CartesianMarkerLikeContext<
  * CartesianSeriesProperties class implements this interface.
  */
 export interface CartesianSeriesPropertiesBase<T extends object> extends SeriesProperties<T> {
-    xKey?: string;
-    yKey?: string; // optional, because some series like range-area, range-bar, boxplot use different Y keys
     xKeyAxis: string;
     yKeyAxis: string;
     legendItemName?: string;

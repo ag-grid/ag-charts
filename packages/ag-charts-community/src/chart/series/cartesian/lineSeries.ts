@@ -170,6 +170,14 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
 
     override properties = new LineSeriesProperties();
 
+    protected override createNodeParams(datum: LineNodeDatum) {
+        return {
+            ...super.createNodeParams(datum),
+            xKey: this.properties.xKey,
+            yKey: this.properties.yKey,
+        };
+    }
+
     private readonly aggregationManager = new AggregationManager<LineSeriesDataAggregationFilter>();
     private hideWithSize0 = false;
 
