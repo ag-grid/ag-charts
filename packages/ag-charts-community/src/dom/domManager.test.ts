@@ -589,6 +589,46 @@ describe('DOMManager', () => {
         });
     });
 
+    describe('lockCursor()/unlockCursor() cursor-locked class', () => {
+        const LOCKED_CLASS = 'ag-charts-wrapper--cursor-locked';
+
+        const setupManager = () => {
+            const container = doc.createElement('div');
+            doc.body.append(container);
+            const dm = new DOMManager(eventsHub, undefined, doc, container);
+            return { dm, element: (dm as any).element as HTMLElement };
+        };
+
+        it('should toggle the cursor-locked class across a lock/unlock round-trip', () => {
+            const { dm, element } = setupManager();
+
+            dm.updateCursor('a', 'pointer');
+            expect(element.classList.contains(LOCKED_CLASS)).toBe(false);
+
+            dm.lockCursor('a', 'grabbing');
+            expect(element.classList.contains(LOCKED_CLASS)).toBe(true);
+            expect(dm.getCursor()).toBe('grabbing');
+
+            dm.unlockCursor('a');
+            expect(element.classList.contains(LOCKED_CLASS)).toBe(false);
+            expect(dm.getCursor()).toBe('pointer');
+        });
+
+        it('should keep the cursor-locked class when a non-holder unlocks', () => {
+            const { dm, element } = setupManager();
+
+            dm.lockCursor('a', 'grabbing');
+            expect(element.classList.contains(LOCKED_CLASS)).toBe(true);
+
+            dm.unlockCursor('b');
+            expect(element.classList.contains(LOCKED_CLASS)).toBe(true);
+            expect(dm.getCursor()).toBe('grabbing');
+
+            dm.unlockCursor('a');
+            expect(element.classList.contains(LOCKED_CLASS)).toBe(false);
+        });
+    });
+
     describe('canvas-center sizing at fractional DPR', () => {
         const centerSize = (dm: DOMManager) => {
             const center = dm.getParent('canvas-center').style;
