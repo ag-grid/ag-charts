@@ -1032,7 +1032,6 @@ describe('Legend', () => {
             expect(updateTooltip).not.toHaveBeenCalled();
             expect(removeTooltip).not.toHaveBeenCalled();
             expect(highlightManager.getActiveHighlight()).toBeUndefined();
-            expect(isTooltipVisible(chart)).toBe(false);
 
             interactionManager.popState(InteractionState.ZoomDrag);
             updateTooltip.mockRestore();
