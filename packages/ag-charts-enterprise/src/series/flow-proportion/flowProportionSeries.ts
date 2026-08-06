@@ -108,7 +108,7 @@ export abstract class FlowProportionSeries<
     _ModuleSupport.SeriesNodeDataContext<TDatum<TNodeDatum, TLinkDatum>, TLabel>
 > {
     // `size`/`label` live on the context node data rather than on the picked datum, so they need a lookup.
-    protected override createNodeParams(datum: TDatum<TNodeDatum, TLinkDatum>) {
+    override createNodeParams(datum: TDatum<TNodeDatum, TLinkDatum>) {
         const nodeDatum = this.contextNodeData?.nodeData.find(
             (d) => d.type === datum.type && d.datumIndex === datum.datumIndex
         );

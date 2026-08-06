@@ -306,7 +306,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
     static override readonly className: string = 'BubbleSeries';
     static readonly type: string = 'bubble';
 
-    protected override createNodeParams(datum: BubbleScatterNodeDatum) {
+    override createNodeParams(datum: BubbleScatterNodeDatum) {
         return {
             ...super.createNodeParams(datum),
             xKey: this.properties.xKey,

@@ -205,7 +205,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
     override properties = new WaterfallSeriesProperties();
 
-    protected override createNodeParams(datum: WaterfallNodeDatum) {
+    override createNodeParams(datum: WaterfallNodeDatum) {
         return {
             ...super.createNodeParams(datum),
             xKey: this.properties.xKey,

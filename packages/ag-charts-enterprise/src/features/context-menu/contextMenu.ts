@@ -596,7 +596,7 @@ export class ContextMenu extends AbstractModuleInstance {
                 const callers: (Caller | undefined)[] = [pickedNodes[0].series.properties, chart];
                 // FIXME: apiEvent should be of type CallbackParamRules<AgNodeContextMenuActionEvent>
                 const apiEvent: AgNodeContextMenuActionEvent | undefined =
-                    pickedNode?.series.createNodeContextMenuActionEvent(showEvent, pickedNodes, coordinates);
+                    pickedNodes[0]?.series.createNodeContextMenuActionEvent(showEvent, pickedNodes, coordinates);
                 if (apiEvent) {
                     callWithContext(callers, callback, apiEvent);
                 } else {

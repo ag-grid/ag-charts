@@ -239,7 +239,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
 
     override properties = new AreaSeriesProperties();
 
-    protected override createNodeParams(datum: MarkerSelectionDatum) {
+    override createNodeParams(datum: MarkerSelectionDatum) {
         return {
             ...super.createNodeParams(datum),
             xKey: this.properties.xKey,

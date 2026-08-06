@@ -1694,7 +1694,7 @@ export class DonutSeries extends PolarSeries<
         this.zerosumInnerRing.size = this.getInnerRadius() * 2;
     }
 
-    protected override createNodeParams(datum: PieDonutNodeDatum) {
+    override createNodeParams(datum: PieDonutNodeDatum) {
         return {
             ...super.createNodeParams(datum),
             angleKey: this.properties.angleKey,

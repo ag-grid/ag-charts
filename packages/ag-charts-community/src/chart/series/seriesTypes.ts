@@ -136,8 +136,8 @@ export interface ISeries<TDatum extends SeriesNodeDatum, TProps extends ISeriesP
     hasData: boolean;
     update(opts: { seriesRect?: BBox }): Promise<void> | void;
     updatePlacedLabelData?(labels: PlacedLabel<TLabel>[]): void;
-    fireNodeClickEvent(event: Event, datum: SeriesNodeDatum, coordinates: AgCoordinates | undefined): boolean;
-    fireNodeDoubleClickEvent(event: Event, datum: SeriesNodeDatum, coordinates: AgCoordinates | undefined): void;
+    fireNodeClickEvent(event: Event, datums: SeriesNodeDatum[], coordinates: AgCoordinates | undefined): boolean;
+    fireNodeDoubleClickEvent(event: Event, datums: SeriesNodeDatum[], coordinates: AgCoordinates | undefined): void;
     createNodeContextMenuActionEvent(
         event: Event,
         datums: TDatum[],

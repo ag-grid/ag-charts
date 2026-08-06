@@ -187,7 +187,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
 
     override properties = new HistogramSeriesProperties();
 
-    protected override createNodeParams(datum: HistogramNodeDatum) {
+    override createNodeParams(datum: HistogramNodeDatum) {
         return {
             ...super.createNodeParams(datum),
             xKey: this.properties.xKey,

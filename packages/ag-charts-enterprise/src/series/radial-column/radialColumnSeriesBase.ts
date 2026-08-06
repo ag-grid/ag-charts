@@ -95,7 +95,7 @@ export abstract class RadialColumnSeriesBase<
     RadialColumnNodeDatum,
     RadialColumnSeriesNodeDataContext
 > {
-    protected override createNodeParams(datum: RadialColumnNodeDatum) {
+    override createNodeParams(datum: RadialColumnNodeDatum) {
         return {
             ...super.createNodeParams(datum),
             angleKey: this.properties.angleKey,

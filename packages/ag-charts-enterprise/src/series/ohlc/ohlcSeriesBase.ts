@@ -210,7 +210,7 @@ function resetOhlcSelectionsDirect<D extends OhlcNodeDatum>(
 export abstract class OhlcSeriesBase<
     TTypes extends OhlcSeriesBaseTypes,
 > extends _ModuleSupport.AbstractBarSeries<TTypes> {
-    protected override createNodeParams(datum: OhlcNodeDatum) {
+    override createNodeParams(datum: OhlcNodeDatum) {
         return {
             ...super.createNodeParams(datum),
             xKey: this.properties.xKey,

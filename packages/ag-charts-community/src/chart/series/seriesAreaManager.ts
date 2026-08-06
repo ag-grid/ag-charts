@@ -841,7 +841,7 @@ export class SeriesAreaManager extends BaseManager {
                 this.chart.ctx.chartService,
                 datum
             );
-            const defaultBehavior = series.fireNodeClickEvent(sourceEvent, datum, coordinates);
+            const defaultBehavior = series.fireNodeClickEvent(sourceEvent, [datum], coordinates);
             if (defaultBehavior) {
                 const syntheticEvent: KeyboardSyntheticMouseWidgetEvent = {
                     type: 'click',
@@ -888,7 +888,7 @@ export class SeriesAreaManager extends BaseManager {
         const firesUserClickListeners = updated.active.series.firesUserClickListeners(pickedNodes.target);
         if (event.type === 'click') {
             const defaultBehavior = firesUserClickListeners
-                ? updated.active.series.fireNodeClickEvent(event.sourceEvent, updated.active, coordinates)
+                ? updated.active.series.fireNodeClickEvent(event.sourceEvent, [updated.active], coordinates)
                 : true;
             if (defaultBehavior) {
                 const next = this.pickManager.nextCandidate();
@@ -917,7 +917,7 @@ export class SeriesAreaManager extends BaseManager {
             event.preventZoomDblClick = distance === 0;
 
             if (firesUserClickListeners) {
-                updated.active.series.fireNodeDoubleClickEvent(event.sourceEvent, updated.active, coordinates);
+                updated.active.series.fireNodeDoubleClickEvent(event.sourceEvent, [updated.active], coordinates);
             }
             return { node: updated.active, target: pickedNodes.target };
         } else {

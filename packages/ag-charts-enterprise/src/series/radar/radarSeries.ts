@@ -110,7 +110,7 @@ export abstract class RadarSeries<
 > extends _ModuleSupport.PolarSeries<RadarNodeDatum, TOpts, TProps, _ModuleSupport.Marker<RadarNodeDatum>> {
     static override readonly className: string = 'RadarSeries';
 
-    protected override createNodeParams(datum: RadarNodeDatum) {
+    override createNodeParams(datum: RadarNodeDatum) {
         return {
             ...super.createNodeParams(datum),
             angleKey: this.properties.angleKey,

@@ -276,7 +276,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
 
     override properties = new RangeAreaProperties();
 
-    protected override createNodeParams(datum: RangeAreaMarkerDatum) {
+    override createNodeParams(datum: RangeAreaMarkerDatum) {
         return {
             ...super.createNodeParams(datum),
             xKey: this.properties.xKey,

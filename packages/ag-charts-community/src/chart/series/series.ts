@@ -1,5 +1,4 @@
 import type {
-    AreExact,
     BoxBounds,
     Callback,
     CallbackParam,
@@ -96,7 +95,6 @@ import {
     type NodeDataDependencies,
     SelectionState,
     type SeriesNodeDatum,
-    type SeriesNodeEventTypes,
 } from './seriesTypes';
 import { type ShapeFillBBox } from './shapeUtil';
 import { hasDimmedOpacity, resolveMarkerDrawingMode } from './util';
@@ -1238,7 +1236,7 @@ export abstract class Series<
         datums: TDatum[],
         coordinates: AgCoordinates | undefined
     ) {
-        const allNodeParams: AgNodeParams<unknown>[] = datums.map(d => d.series.createNodeParams(d));
+        const allNodeParams: AgNodeParams<unknown>[] = datums.map((d) => d.series.createNodeParams(d));
 
         // datums[0] is the "winner" for backward compatibility.
         const datum = datums[0];
@@ -1258,7 +1256,7 @@ export abstract class Series<
         };
     }
 
-    protected createNodeParams(datum: TDatum): AgNodeParams<unknown> {
+    createNodeParams(datum: TDatum): AgNodeParams<unknown> {
         const dataIdKey = this.data?.dataIdKey;
         return {
             datum: datum.datum,

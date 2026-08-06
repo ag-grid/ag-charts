@@ -95,7 +95,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
     override properties = new RadialBarSeriesProperties();
 
-    protected override createNodeParams(datum: RadialBarNodeDatum) {
+    override createNodeParams(datum: RadialBarNodeDatum) {
         return {
             ...super.createNodeParams(datum),
             angleKey: this.properties.angleKey,

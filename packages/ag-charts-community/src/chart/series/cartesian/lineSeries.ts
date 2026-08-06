@@ -170,7 +170,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
 
     override properties = new LineSeriesProperties();
 
-    protected override createNodeParams(datum: LineNodeDatum) {
+    override createNodeParams(datum: LineNodeDatum) {
         return {
             ...super.createNodeParams(datum),
             xKey: this.properties.xKey,

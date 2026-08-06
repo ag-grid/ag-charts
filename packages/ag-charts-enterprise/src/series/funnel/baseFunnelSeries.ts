@@ -107,7 +107,7 @@ export interface FunnelAnimationData<
 export abstract class BaseFunnelSeries<
     TTypes extends BaseFunnelSeriesTypes,
 > extends _ModuleSupport.AbstractBarSeries<TTypes> {
-    protected override createNodeParams(datum: FunnelNodeDatum) {
+    override createNodeParams(datum: FunnelNodeDatum) {
         return {
             ...super.createNodeParams(datum),
             xKey: this.properties.stageKey,

@@ -329,7 +329,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
 
     override properties = new BarSeriesProperties();
 
-    protected override createNodeParams(datum: BarNodeDatum) {
+    override createNodeParams(datum: BarNodeDatum) {
         return {
             ...super.createNodeParams(datum),
             xKey: this.properties.xKey,
