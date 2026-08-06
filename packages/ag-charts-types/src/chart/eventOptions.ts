@@ -25,10 +25,13 @@ interface AgCoordinatedEvent {
     coordinates?: AgCoordinates;
 }
 
-export interface AgNodeClickEvent<TEvent extends string, TDatum, TContext = ContextDefault>
+export interface AgBaseNodeClickEvent<TEvent extends string, TDatum, TContext = ContextDefault>
     extends AgChartEvent<TEvent, TContext>, AgCoordinatedEvent, AgNodeParams<TDatum> {
     /** Event type. */
     type: TEvent;
+}
+
+export interface AgNodeClickEvent<TEvent extends string, TDatum, TContext = ContextDefault> extends AgBaseNodeClickEvent<TEvent, TContext> {
     /** TODO: writeme */
     allNodeParams: AgNodeParams<TDatum>[];
 }
@@ -74,6 +77,14 @@ export interface AgNodeParams<TDatum> {
     sectorLabelKey?: ResolvedDatumKey<TDatum>;
     /** radiusKey as specified on series options */
     radiusKey?: ResolvedDatumKey<TDatum>;
+    /** Histogram series only: zero-based positional index of the bin within the series. */
+    binIndex?: number;
+    /** Histogram series only: the bin's start and end bounds on the x-axis. */
+    binRange?: [number, number];
+    /** Histogram series only: the aggregated `yKey` value for the bin. */
+    aggregatedValue?: number;
+    /** Histogram series only: the number of source rows within the bin. */
+    frequency?: number;
 }
 
 export interface AgSeriesVisibilityChange<TContext = ContextDefault> {
@@ -294,15 +305,7 @@ export interface AgCaptionListeners<TContext = ContextDefault> {
 export interface AgNodeContextMenuActionEvent<
     TDatum = DatumDefault,
     TContext = ContextDefault,
-> extends AgNodeClickEvent<'nodeContextMenuAction', TDatum, TContext> {
-    /** Histogram series only: zero-based positional index of the bin within the series. */
-    binIndex?: number;
-    /** Histogram series only: the bin's start and end bounds on the x-axis. */
-    binRange?: [number, number];
-    /** Histogram series only: the aggregated `yKey` value for the bin. */
-    aggregatedValue?: number;
-    /** Histogram series only: the number of source rows within the bin. */
-    frequency?: number;
+> extends AgBaseNodeClickEvent<'nodeContextMenuAction', TDatum, TContext> {
 }
 
 export interface AgBaseChartListeners<TDatum, TContext = ContextDefault> {
