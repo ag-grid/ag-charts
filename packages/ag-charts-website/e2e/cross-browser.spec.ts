@@ -114,7 +114,9 @@ test.describe('cross-browser', () => {
      * `:focus-visible` heuristics are exactly the kind of thing that differs between engines, and the
      * canonical mouse-vs-keyboard screenshot case (AG-13166, `zoom.spec.ts`) already runs
      * cross-browser via `PART_A_SPECS` — this case earns its place by being the screenshot-free
-     * opacity read on a different example.
+     * opacity read on a different example. The keyboard half is the load-bearing assertion; the
+     * mouse half asserts the transition back, which is the part where engines are most likely to
+     * disagree on the `:focus-visible` heuristic rather than on anything AG Charts controls.
      */
     test('AG-18059 focus-visible drives the focus indicator opacity', async ({ page }) => {
         const { url } = toExamplePageUrl('accessibility', 'keyboard-navigation', 'vanilla');
@@ -157,12 +159,19 @@ test.describe('cross-browser', () => {
      *
      * The repo is mounted read-only under `playwright.sh` apart from `reports/` and this package, so
      * the download must be saved via `testInfo.outputPath`.
+     *
+     * The `download` event is given an explicit short timeout rather than the suite default: if an
+     * engine declines to route a `download`-attributed `data:` anchor through its download machinery
+     * at all, this case should fail in seconds rather than spend the cross-browser job's whole
+     * budget waiting. Should that turn out to be a fixed engine limitation rather than a product
+     * regression, skip the case for that `browserName` with the limitation cited — do not weaken the
+     * assertion for the engines that do support it.
      */
     test('AG-18059 chart downloads a PNG', async ({ page }, testInfo) => {
         const { url } = toExamplePageUrl('api-download', 'download', 'vanilla');
         await gotoExample(page, url);
 
-        const downloadPromise = page.waitForEvent('download');
+        const downloadPromise = page.waitForEvent('download', { timeout: 15_000 });
         await page.getByRole('button', { name: 'Download at 600x300' }).click();
         const download = await downloadPromise;
 
