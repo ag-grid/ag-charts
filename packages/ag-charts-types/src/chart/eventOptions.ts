@@ -258,15 +258,23 @@ export interface AgAxisClickEvent<TEvent extends string, TContext = ContextDefau
     domain: AgAxisDomain;
 }
 
+/** Axis listeners. Cross Line listeners are Cartesian charts only. */
 export interface AgAxisListeners<TContext = ContextDefault> {
     /** The listener to call when the axis is clicked. */
     click?: Listener<AgAxisClickEvent<'click', TContext>>;
     /** The listener to call when the axis is double-clicked. */
     doubleClick?: Listener<AgAxisClickEvent<'doubleClick', TContext>>;
+    /** The listener to call when a Cross Line on this axis is clicked. */
+    crossLineClick?: Listener<AgCrossLineClickEvent<TContext>>;
+    /** The listener to call when a Cross Line on this axis is double-clicked. */
+    crossLineDoubleClick?: Listener<AgCrossLineDoubleClickEvent<TContext>>;
 }
 
-export interface AgCrossLineContextMenuActionEvent<TContext = ContextDefault>
-    extends AgChartEvent<'crossLineContextMenuAction', TContext>, AgCoordinatedEvent {
+/** Identifies the Cross Line an event refers to, along with the axis that owns it. */
+export interface AgCrossLineEvent<TEvent extends string, TContext = ContextDefault> extends AgChartEvent<
+    TEvent,
+    TContext
+> {
     /** Cross Line ID (generated if not specified). */
     crossLineId: string;
     /** ID of the axis the Cross Line belongs to, as specified in `axes`. */
@@ -280,6 +288,19 @@ export interface AgCrossLineContextMenuActionEvent<TContext = ContextDefault>
     /** The `[start, end]` data values of a `range` Cross Line. Undefined for `line` Cross Lines. */
     range?: [AgAxisValue, AgAxisValue];
 }
+
+export interface AgCrossLineContextMenuActionEvent<TContext = ContextDefault>
+    extends AgCrossLineEvent<'crossLineContextMenuAction', TContext>, AgCoordinatedEvent {}
+
+export interface AgCrossLineClickEvent<TContext = ContextDefault> extends AgCrossLineEvent<
+    'crossLineClick',
+    TContext
+> {}
+
+export interface AgCrossLineDoubleClickEvent<TContext = ContextDefault> extends AgCrossLineEvent<
+    'crossLineDoubleClick',
+    TContext
+> {}
 
 export interface AgCaptionContextMenuActionEvent<TContext = ContextDefault> extends AgChartEvent<
     'captionContextMenuAction',
@@ -345,6 +366,10 @@ export interface AgBaseChartListeners<TDatum, TContext = ContextDefault> {
     click?: Listener<AgChartClickEvent<TContext>>;
     /** The listener to call when the chart is double-clicked. */
     doubleClick?: Listener<AgChartDoubleClickEvent<TContext>>;
+    /** The listener to call when a Cross Line on any axis is clicked. */
+    crossLineClick?: Listener<AgCrossLineClickEvent<TContext>>;
+    /** The listener to call when a Cross Line on any axis is double-clicked. */
+    crossLineDoubleClick?: Listener<AgCrossLineDoubleClickEvent<TContext>>;
     /** The listener to call when the annotations are changed. */
     annotations?: Listener<AgAnnotationsEvent<TContext>>;
     /** The listener to call when the zoom is changed. */
