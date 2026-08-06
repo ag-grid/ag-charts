@@ -83,8 +83,6 @@
     .ag-charts-toolbar__button:hover,
     .ag-charts-toolbar__button--active,
     .ag-charts-toolbar__button--active:hover {
-        margin-inline-end: 0;
-
         + .ag-charts-toolbar__button:not(:hover, .ag-charts-toolbar__button--active) {
             border-inline-start-color: var(--toolbar-button-border-color);
         }
