@@ -29,6 +29,10 @@ export const gridTheme = themeQuartz.withPart(colorSchemeDark).withParams({
     cellHorizontalPadding: 4,
     wrapperBorderRadius: 0,
     iconButtonBorderRadius: 0,
+    // Hides the per-cell focus outline (financial.css rings the whole row instead) while
+    // reserving its 1px width, so text never shifts on focus. `borderStyle: 'none'` would
+    // collapse the width and cause that shift.
+    rangeSelectionBorderColor: 'transparent',
 });
 
 export const signed = (n: number) => `${n >= 0 ? '+' : '−'}${fmtPrice(Math.abs(n))}`;
@@ -49,7 +53,7 @@ export const upDownRules = <T>(): CellClassRules<T, number> => ({
 export const baseColDef = <T>(): ColDef<T> => ({
     flex: 1,
     minWidth: 40,
-    sortable: false,
+    sortable: true,
     resizable: false,
     suppressMovable: true,
 });

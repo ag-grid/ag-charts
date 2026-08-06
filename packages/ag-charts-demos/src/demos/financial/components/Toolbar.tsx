@@ -46,8 +46,6 @@ export function Toolbar() {
                 AG Trade
             </span>
 
-            <input className="fin-search" type="search" placeholder="Search markets…" aria-label="Search markets" />
-
             <div className="fin-toolbar-spacer" />
 
             <span className="fin-clock">{fmtTime(clock)}</span>

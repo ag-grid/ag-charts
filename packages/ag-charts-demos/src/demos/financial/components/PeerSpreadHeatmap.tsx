@@ -74,6 +74,8 @@ export function PeerSpreadHeatmap({ instrument, peerFeed, peerTick, windowMinute
     );
     // The cells currently rendered, diffed against each new window for the transaction.
     const windowRef = useRef<PeerHeatmapCell[]>([]);
+    // Tracks the window size so a resize can be told apart from a streaming tick.
+    const windowMinutesRef = useRef(windowMinutes);
 
     const options = useMemo<AgCartesianChartOptions>(() => {
         windowRef.current = data;
@@ -112,18 +114,27 @@ export function PeerSpreadHeatmap({ instrument, peerFeed, peerTick, windowMinute
     }, []);
 
     useEffect(() => {
+        const baseline = windowRef.current;
+        windowRef.current = data;
+        // A resize swaps most buckets at once; incremental transactions would leave the category
+        // axis domain stale, so replace the data to rebuild it. Ticks stay incremental below.
+        if (windowMinutes !== windowMinutesRef.current) {
+            windowMinutesRef.current = windowMinutes;
+            // eslint-disable-next-line no-console
+            chartRef.current?.updateDelta({ data }).catch((e) => console.error(e));
+            return;
+        }
         const transactions = diffWindow(
-            windowRef.current,
+            baseline,
             data,
             (cell) => cell.key,
             (a, b) => a.value === b.value
         );
-        windowRef.current = data;
         for (const transaction of transactions) {
             // eslint-disable-next-line no-console
             chartRef.current?.applyTransaction(transaction).catch((e) => console.error(e));
         }
-    }, [data]);
+    }, [data, windowMinutes]);
 
     return (
         <div className="fin-detail-card">
