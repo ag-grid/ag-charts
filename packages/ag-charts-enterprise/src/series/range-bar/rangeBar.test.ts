@@ -2318,10 +2318,14 @@ describe('RangeBarSeries aggregated device-pixel snap', () => {
             await waitForChartStability(chart);
 
             const series = getSeriesAggregationInternals(chart);
-            expect(series.aggregationManager?.getFilterForRange(series.estimateTargetRange!())).toBeDefined();
+            expect(typeof series.estimateTargetRange).toBe('function');
+            const filter = series.aggregationManager?.getFilterForRange(series.estimateTargetRange!());
+            expect(filter).toBeDefined();
             const nodeCount = series.contextNodeData?.nodeData?.length ?? 0;
             expect(nodeCount).toBeGreaterThan(0);
-            expect(nodeCount).toBeLessThan(HIGH_VOLUME_COUNT);
+            // Bounding by the selected level's maxRange rather than by the raw datum count is what pins the
+            // aggregated builder: the simple builder also clips, so a count below the datum count proves nothing.
+            expect(nodeCount).toBeLessThanOrEqual(filter!.maxRange);
 
             const rects = [...createSceneGeometrySampler(chart)()].filter(([key]) => key.startsWith('series[0]/rect'));
             expect(rects.length).toBe(nodeCount);
