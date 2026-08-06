@@ -37,6 +37,7 @@ import {
     getDetailsId,
     getMemberType,
     getReferencedTypeName,
+    getVariantDiscriminator,
     isArrayNode,
     isInterfaceHidden,
     isUnionTypeAlias,
@@ -662,13 +663,6 @@ function toUnionVariant(node: NodeTypes | undefined, genericsMap?: Record<string
         typeArguments: buildTypeArgumentsFromGenericsMap(node, genericsMap),
         discriminator,
     };
-}
-
-// A discriminated union variant carries a string-literal `type` member; its value is the navigation
-// path segment (matching getNavigationDataFromPath), so deep-links into the variant resolve.
-function getVariantDiscriminator(node: InterfaceNode): { key: string; value: string } | undefined {
-    const typeMember = node.members.find((member) => member.name === 'type');
-    return typeof typeMember?.type === 'string' ? { key: 'type', value: cleanupName(typeMember.type) } : undefined;
 }
 
 function hasMembersNode(node?: MemberAdditionalDetails): node is InterfaceNode | TypeLiteralNode {
