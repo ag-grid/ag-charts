@@ -57,7 +57,10 @@ export class BackgroundRegionsPlugin extends AbstractModuleInstance implements S
         return this.instances;
     }
 
-    onSeriesAreaUpdate(): void {
+    onSeriesAreaUpdate(clipRect: _ModuleSupport.BBox): void {
+        this.regionGroup.setClipRect(clipRect);
+        this.labelGroup.setClipRect(clipRect);
+
         for (const instance of this.instances) {
             // TODO: visible flag
             instance.update(true);

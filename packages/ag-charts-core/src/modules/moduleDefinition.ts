@@ -82,7 +82,10 @@ export interface SeriesPluginModuleInstance extends ModuleInstance {
 
 export interface SeriesAreaPluginModuleInstance extends ModuleInstance {
     applyOptions(this: void, options: any): void;
-    onSeriesAreaUpdate?(this: void): void;
+    onSeriesAreaUpdate?(
+        this: void,
+        clipRect: { x: number; y: number; width: number; height: number } | undefined
+    ): void;
 }
 
 export interface ModuleDefinition<

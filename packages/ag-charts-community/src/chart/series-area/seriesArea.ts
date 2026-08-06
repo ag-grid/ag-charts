@@ -13,6 +13,7 @@ import {
 import type { LayoutCompleteEvent } from '../../core/eventsHub';
 import type { ChartRegistry, ChartSeriesAreaRegistry } from '../../module/moduleContext';
 import { ModuleMap } from '../../module/moduleMap';
+import type { BBox } from '../../scene/bbox';
 import { Group, TransformableGroup } from '../../scene/group';
 import { Rect } from '../../scene/shape/rect';
 import type { BackgroundRegion } from '../background-regions/backgroundRegion';
@@ -93,9 +94,9 @@ export class SeriesArea extends BaseProperties {
         return this.moduleContext;
     }
 
-    update() {
+    update(clipRect: BBox | undefined) {
         for (const module of this.moduleMap.modules()) {
-            module.onSeriesAreaUpdate?.();
+            module.onSeriesAreaUpdate?.(clipRect);
         }
     }
 
