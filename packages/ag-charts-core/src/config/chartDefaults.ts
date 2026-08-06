@@ -822,10 +822,7 @@ export const labelCollisionFitOptionsDefs: OptionsDefs<AgChartLabelCollisionFitO
 /** Style overrides applied to a label for its resolved inside/outside placement. */
 export const labelPlacementStyleOptionsDef: OptionsDefs<AgChartLabelPlacementStyleOptions> = {
     color: colorOrRef,
-    cornerRadius: number,
-    padding,
-    border: strokeOptionsDef,
-    ...fillOptionsDef,
+    ...labelBoxOptionsDef,
 };
 
 /** `insideStyle`/`outsideStyle` placement-reactive overrides shared by inside/outside-placement labels. */

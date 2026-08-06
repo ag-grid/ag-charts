@@ -1,8 +1,8 @@
 import type {
+    BorderOptions,
     FillOptions,
     LabelBoxOptions,
     Padding,
-    StrokeOptions,
     TextOptions,
     Toggleable,
 } from '../series/cartesian/commonOptions';
@@ -29,16 +29,17 @@ export interface AgChartLabelStyleOptions extends Toggleable, TextOptions, Label
  * Style overrides applied to a label depending on its resolved inside/outside placement: `color` sets
  * the text colour, `fill`/`fillOpacity` the box fill, `cornerRadius` and `padding` the box geometry, and
  * `border` the box stroke. A placement-specific value set here wins over the top-level `label` value, and
- * both fall back to the theme default. Whether a border is shown is controlled once by the top-level
- * `label.border.enabled`; only the border's stroke, width and opacity are placement-reactive.
+ * both fall back to the theme default. Styling the `border` here shows it for this placement even where
+ * `label.border.enabled` is `false`, unless `border.enabled: false` hides it again; with no `border` set
+ * here at all, the top-level `label.border.enabled` applies.
  */
 export interface AgChartLabelPlacementStyleOptions extends Pick<TextOptions, 'color'>, FillOptions {
     /** Rounded corners applied to the label box for this placement. */
     cornerRadius?: PixelSize;
     /** Distance between the label text and the box edge for this placement. */
     padding?: Padding;
-    /** Border stroke applied to the label box for this placement. */
-    border?: StrokeOptions;
+    /** Border applied to the label box for this placement. */
+    border?: BorderOptions;
 }
 
 /**

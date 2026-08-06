@@ -1,6 +1,8 @@
 import type {
     AgCartesianChartOptions,
+    AgChartAllThemeParams,
     AgChartLabelFitOptions,
+    AgChartLabelPlacementStyleOptions,
     AgHighlightOptions,
     AgHighlightStyleOptions,
     AgMultiSeriesHighlightOptions,
@@ -391,9 +393,10 @@ export const LABEL_BOXING_DEFAULTS: WithThemeParams<LabelBoxOptions> = {
 /**
  * Top-level box defaults for placement-reactive labels. Box geometry (`cornerRadius`, `padding`,
  * fill and the border stroke geometry) lives here so a value set once at the top level applies to
- * both placements; `border.enabled` governs the border for the whole label. The placement blocks
- * carry only user overrides plus a conditional `color` default (whose value legitimately differs
- * per inside/outside placement).
+ * both placements; `border.enabled` falls through to the placement blocks via
+ * `LABEL_PLACEMENT_STYLE_DEFAULTS` (see there for the per-placement auto-enable precedence). The
+ * placement blocks carry only user overrides plus a conditional `color` default (whose value
+ * legitimately differs per inside/outside placement).
  */
 export const LABEL_BOXING_TOP_LEVEL_DEFAULTS: WithThemeParams<LabelBoxOptions> = {
     ...LABEL_BOXING_FILL_DEFAULTS,
@@ -404,6 +407,25 @@ export const LABEL_BOXING_TOP_LEVEL_DEFAULTS: WithThemeParams<LabelBoxOptions> =
         stroke: { $foregroundOpacity: 0.08 },
     },
 };
+
+/**
+ * Per-placement `border.enabled` default, applying only where the placement styles no border of its
+ * own — any other border property set on a placement auto-enables it, whatever the top level says.
+ */
+const LABEL_PLACEMENT_BORDER_DEFAULTS: WithThemeParams<Pick<LabelBoxOptions, 'border'>> = {
+    border: { enabled: { $path: '../../border/enabled' } },
+};
+
+/**
+ * A series' `insideStyle`/`outsideStyle` theme block: the per-placement border default plus a `color`
+ * resolving to `colorRef` where the user set no `label.color`, which legitimately differs per placement.
+ */
+export const LABEL_PLACEMENT_STYLE_DEFAULTS = (
+    colorRef: keyof AgChartAllThemeParams
+): WithThemeParams<AgChartLabelPlacementStyleOptions> => ({
+    ...LABEL_PLACEMENT_BORDER_DEFAULTS,
+    color: { $isUserOption: ['../color', { $path: '../color' }, { $ref: colorRef }] },
+});
 
 /**
  * Setting any one of `maxWidth`, `maxHeight`, `wrapping`, `truncate` or an array-valued
