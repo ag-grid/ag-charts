@@ -17,8 +17,8 @@ import baseConfig from './playwright.config';
  *
  * Coverage is pinned to the vanilla framework variant by `pinNonChromiumToVanilla` in `e2e/util.ts`,
  * applied by the specs themselves, so the pin holds on every CI event type. A spec added to
- * `PART_A_SPECS` below must therefore be vanilla-pinned — by that helper, by a self-filter, or by
- * only ever visiting hardcoded vanilla URLs.
+ * `PART_A_SPECS` or `PART_B_SPECS` below must therefore be vanilla-pinned — by that helper, by a
+ * self-filter, or by only ever visiting hardcoded vanilla URLs.
  */
 
 /**
@@ -40,6 +40,19 @@ const PART_A_SPECS = [
     '**/localisation.spec.ts',
     '**/icons.spec.ts',
 ];
+
+/**
+ * Part B (AG-18059) — the probe spec written for this job, covering the cross-browser failure classes
+ * that no Chromium spec exercises at all: behavioural text measurement, offscreen-layer font face,
+ * devicePixelRatio, focus-visible, PNG download and zoom `getState`.
+ *
+ * It also runs on Chromium via the main sharded job (`playwright.config.ts` has `testDir: './e2e'`
+ * and no project-level `testMatch`), so every case must hold on all three engines and every
+ * screenshot gets a `-chromium-linux` baseline alongside the Firefox/WebKit pair.
+ */
+const PART_B_SPECS = ['**/cross-browser.spec.ts'];
+
+const CROSS_BROWSER_SPECS = [...PART_A_SPECS, ...PART_B_SPECS];
 
 export default defineConfig({
     ...baseConfig,
@@ -69,7 +82,7 @@ export default defineConfig({
                 // `interactive-tooltip`'s `page.touchscreen.tap` case throws rather than running.
                 hasTouch: true,
             },
-            testMatch: PART_A_SPECS,
+            testMatch: CROSS_BROWSER_SPECS,
         },
 
         {
@@ -92,7 +105,7 @@ export default defineConfig({
                 // coordinate space, which is also what makes their baselines comparable.
                 deviceScaleFactor: 1,
             },
-            testMatch: PART_A_SPECS,
+            testMatch: CROSS_BROWSER_SPECS,
         },
     ],
 });
