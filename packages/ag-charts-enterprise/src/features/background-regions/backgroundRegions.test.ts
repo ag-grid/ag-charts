@@ -22,6 +22,45 @@ const NUMERIC: AgCartesianChartOptions = {
     axes: { x: { type: 'number', position: 'bottom' }, y: { type: 'number', position: 'left' } },
 };
 
+const TIME: AgCartesianChartOptions = {
+    data: [
+        { x: new Date('2026-01-01'), y: 0 },
+        { x: new Date('2026-01-02'), y: 100 },
+    ],
+    series: [{ type: 'scatter', xKey: 'x', yKey: 'y' }],
+    axes: { x: { type: 'time', position: 'bottom' }, y: { type: 'number', position: 'left' } },
+};
+
+const UNIT_TIME: AgCartesianChartOptions = {
+    data: [
+        { x: new Date('2026-01-01'), y: 0 },
+        { x: new Date('2027-01-01'), y: 100 },
+    ],
+    series: [{ type: 'scatter', xKey: 'x', yKey: 'y' }],
+    axes: { x: { type: 'unit-time', position: 'bottom' }, y: { type: 'number', position: 'left' } },
+};
+
+const ORDINAL_TIME: AgCartesianChartOptions = {
+    data: [
+        { x: new Date('2026-01-01'), y: 0 },
+        { x: new Date('2027-01-01'), y: 100 },
+    ],
+    series: [{ type: 'scatter', xKey: 'x', yKey: 'y' }],
+    axes: { x: { type: 'ordinal-time', position: 'bottom' }, y: { type: 'number', position: 'left' } },
+};
+
+const CATEGORY: AgCartesianChartOptions = {
+    data: [
+        { x: 'one', y: 20 },
+        { x: 'two', y: 40 },
+        { x: 'three', y: 60 },
+        { x: 'four', y: 40 },
+        { x: 'five', y: 100 },
+    ],
+    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+    axes: { x: { type: 'category', position: 'bottom' }, y: { type: 'number', position: 'left' } },
+};
+
 const NO_RANGES_NUMERIC = {
     ...NUMERIC,
     seriesArea: {
@@ -114,6 +153,108 @@ const OVERLAPPING_RANGES_NUMERIC = {
     },
 };
 
+const SECONDARY_AXIS_NUMERIC: AgCartesianChartOptions = {
+    series: [
+        {
+            type: 'scatter',
+            legendItemName: 'one',
+            xKey: 'x',
+            yKey: 'y',
+            data: [
+                { x: 0, y: 0 },
+                { x: 100, y: 100 },
+            ],
+        },
+        {
+            type: 'scatter',
+            legendItemName: 'two',
+            xKey: 'x',
+            yKey: 'y',
+            xKeyAxis: 'xSecondary',
+            data: [
+                { x: 0, y: 0 },
+                { x: 100, y: 100 },
+            ],
+        },
+    ],
+    axes: {
+        x: { type: 'number', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+        xSecondary: { type: 'number', position: 'top' },
+    },
+    seriesArea: {
+        backgroundRegions: [
+            {
+                fill: 'lightsalmon',
+                xRange: { axis: 'xSecondary', start: 20, end: 60 },
+                yRange: { start: 20, end: 60 },
+            },
+            {
+                fill: 'thistle',
+                xRange: { start: 40, end: 80 },
+                yRange: { start: 40, end: 80 },
+            },
+        ],
+    },
+};
+
+const BOTH_RANGES_TIME = {
+    ...TIME,
+    seriesArea: {
+        backgroundRegions: [
+            {
+                fill: 'lightsalmon',
+                xRange: {
+                    start: new Date('2026-01-01 06:00:00'),
+                    end: new Date('2026-01-01 18:00:00'),
+                },
+                yRange: { start: 20, end: 80 },
+            },
+        ],
+    },
+};
+
+const BOTH_RANGES_UNIT_TIME = {
+    ...UNIT_TIME,
+    seriesArea: {
+        backgroundRegions: [
+            {
+                fill: 'lightsalmon',
+                xRange: {
+                    start: new Date('2026-03-01'),
+                    end: new Date('2026-09-01'),
+                },
+                yRange: { start: 20, end: 80 },
+            },
+        ],
+    },
+};
+
+const BOTH_RANGES_ORDINAL_TIME = {
+    ...ORDINAL_TIME,
+    seriesArea: {
+        backgroundRegions: [
+            {
+                fill: 'lightsalmon',
+                xRange: {
+                    start: new Date('2026-03-01'),
+                    end: new Date('2026-09-01'),
+                },
+                yRange: { start: 20, end: 80 },
+            },
+        ],
+    },
+};
+
+const BOTH_RANGES_CATEGORY = {
+    ...CATEGORY,
+    seriesArea: {
+        backgroundRegions: [
+            { fill: 'lightsalmon', xRange: { start: 'two', end: 'four' }, yRange: { start: 20, end: 80 } },
+        ],
+    },
+};
+
 const assertions = cartesianChartAssertions({ seriesTypes: ['scatter'], axisTypes: { x: 'number', y: 'number' } });
 
 const EXAMPLES: Record<string, CartesianTestCase> = {
@@ -124,11 +265,32 @@ const EXAMPLES: Record<string, CartesianTestCase> = {
     BOTH_RANGES_END_NUMERIC: { options: BOTH_RANGES_END_NUMERIC, assertions },
     BOTH_RANGES_NUMERIC: { options: BOTH_RANGES_NUMERIC, assertions },
     OVERLAPPING_RANGES_NUMERIC: { options: OVERLAPPING_RANGES_NUMERIC, assertions },
-    // SECONDARY_AXES_NUMERIC: { options: SECONDARY_AXES_NUMERIC, assertions },
-    // BOTH_RANGES_TIME: { options: BOTH_RANGES_TIME, assertions },
-    // BOTH_RANGES_UNIT_TIME: { options: BOTH_RANGES_UNIT_TIME, assertions },
-    // BOTH_RANGES_ORDINAL_TIME: { options: BOTH_RANGES_ORDINAL_TIME, assertions },
-    // BOTH_RANGES_CATEGORY: { options: BOTH_RANGES_CATEGORY, assertions },
+    SECONDARY_AXIS_NUMERIC: {
+        options: SECONDARY_AXIS_NUMERIC,
+        assertions: cartesianChartAssertions({
+            seriesTypes: ['scatter', 'scatter'],
+            axisTypes: { x: 'number', y: 'number', __AXIS_ID_2: 'number' },
+        }),
+    },
+    BOTH_RANGES_TIME: {
+        options: BOTH_RANGES_TIME,
+        assertions: cartesianChartAssertions({ seriesTypes: ['scatter'], axisTypes: { x: 'time', y: 'number' } }),
+    },
+    BOTH_RANGES_UNIT_TIME: {
+        options: BOTH_RANGES_UNIT_TIME,
+        assertions: cartesianChartAssertions({ seriesTypes: ['scatter'], axisTypes: { x: 'unit-time', y: 'number' } }),
+    },
+    BOTH_RANGES_ORDINAL_TIME: {
+        options: BOTH_RANGES_ORDINAL_TIME,
+        assertions: cartesianChartAssertions({
+            seriesTypes: ['scatter'],
+            axisTypes: { x: 'ordinal-time', y: 'number' },
+        }),
+    },
+    BOTH_RANGES_CATEGORY: {
+        options: BOTH_RANGES_CATEGORY,
+        assertions: cartesianChartAssertions({ seriesTypes: ['bar'], axisTypes: { x: 'category', y: 'number' } }),
+    },
 };
 
 describe('Background Regions', () => {

@@ -58,8 +58,10 @@ export class BackgroundRegionsPlugin extends AbstractModuleInstance implements S
     }
 
     onSeriesAreaUpdate(clipRect: _ModuleSupport.BBox): void {
-        this.regionGroup.setClipRect(clipRect);
-        this.labelGroup.setClipRect(clipRect);
+        const translatedClipRect = new _ModuleSupport.BBox(0, 0, clipRect.width, clipRect.height);
+
+        this.regionGroup.setClipRect(translatedClipRect);
+        this.labelGroup.setClipRect(translatedClipRect);
 
         for (const instance of this.instances) {
             // TODO: visible flag
