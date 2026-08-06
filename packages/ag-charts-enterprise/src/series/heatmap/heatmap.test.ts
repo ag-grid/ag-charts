@@ -1397,7 +1397,7 @@ describe('HeatmapSeries', () => {
                     },
                 ],
                 legend: { enabled: false },
-            } as AgChartOptions);
+            });
 
         it('rounds every cell, with the stroke following the rounded shape', async () => {
             chart = deproxy(AgCharts.create(buildOptions(16)));
