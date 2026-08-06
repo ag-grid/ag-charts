@@ -32,10 +32,15 @@ export function getChangedExamples(): ChangedExamples | undefined {
     const base = process.env.NX_BASE;
     if (!base) return undefined;
 
-    const all = gitChangedFiles(base, '../../plugins/ag-charts-generate-example-files/').length > 0;
+    // An UNUSABLE base is the same situation as an absent one — see gitChangedFiles.
+    const pluginChanges = gitChangedFiles(base, '../../plugins/ag-charts-generate-example-files/');
+    const contentChanges = gitChangedFiles(base, './src/content/');
+    if (pluginChanges === undefined || contentChanges === undefined) return undefined;
+
+    const all = pluginChanges.length > 0;
 
     const dirs = new Set<string>();
-    for (const file of gitChangedFiles(base, './src/content/')) {
+    for (const file of contentChanges) {
         // Diff output is workspace-relative, whereas examples are globbed relative to this package.
         const dir = exampleDir(file.replace(/^packages\/ag-charts-website\//, './'));
         if (dir != null) {
@@ -52,9 +57,25 @@ export function isExampleChanged(changed: ChangedExamples, path: string): boolea
     return dir != null && changed.dirs.has(dir);
 }
 
-function gitChangedFiles(base: string, pathspec: string): string[] {
-    return execSync(`git diff --name-only ${base} -- ${pathspec}`)
-        .toString()
-        .split('\n')
-        .filter((file) => file.trim().length > 0);
+/**
+ * Changed files under `pathspec` relative to `base`, or `undefined` when the diff cannot be
+ * computed at all — i.e. `base` does not resolve here.
+ *
+ * Returning `undefined` rather than throwing is what makes this module's documented contract true.
+ * The AI Workflow pipeline exports `NX_BASE=latest-success`, which does not resolve inside the
+ * Dockerised Playwright container, so `git diff` exited non-zero, `execSync` threw at collection
+ * time, and the whole `test:e2e` invocation failed **before a single test ran** — taking
+ * `examples-snapshots.spec.ts` and `gallery-examples.spec.ts` with it (AG-18074 lost a complete e2e
+ * run to this). The header above already promises the safe fallback for an ABSENT `NX_BASE`; an
+ * unusable one is the same situation and has to degrade the same way.
+ */
+function gitChangedFiles(base: string, pathspec: string): string[] | undefined {
+    try {
+        return execSync(`git diff --name-only ${base} -- ${pathspec}`, { stdio: ['ignore', 'pipe', 'ignore'] })
+            .toString()
+            .split('\n')
+            .filter((file) => file.trim().length > 0);
+    } catch {
+        return undefined;
+    }
 }
