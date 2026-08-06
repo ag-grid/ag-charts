@@ -32,6 +32,11 @@ export interface AgHeatmapSeriesThemeableOptions<TDatum = DatumDefault, TContext
     label?: AgChartAutoSizedSecondaryLabelOptions<TDatum, AgHeatmapSeriesLabelFormatterParams<TDatum>, TContext>;
     /** Minimum distance between the label text and the edges of the cell. */
     itemPadding?: PixelSize;
+    /** The corner radius applied to every cell. The chart background shows through the area cut away by the rounded corners.
+     *
+     * Default: `0`
+     */
+    cornerRadius?: PixelSize;
     /** Horizontal position of the label. */
     textAlign?: TextAlign;
     /** Vertical position of the label. */

@@ -295,6 +295,7 @@ export const heatmapSeriesThemeableOptionsDef: OptionsDefs<AgHeatmapSeriesThemea
     textAlign: union('left', 'center', 'right'),
     verticalAlign: union('top', 'middle', 'bottom'),
     itemPadding: positiveNumber,
+    cornerRadius: positiveNumber,
     itemStyler: callbackDefs<AgHeatmapSeriesStyle>({
         ...fillOptionsDef,
         ...strokeOptionsDef,

@@ -1365,4 +1365,65 @@ describe('HeatmapSeries', () => {
             expectNoAnimation(trajectory);
         });
     });
+
+    describe('cornerRadius', () => {
+        // Rect.serializeProps() omits the corner-radius fields, so neither the image snapshot nor the
+        // scene-graph JSON can witness this option — the node has to be read directly.
+        const cellRects = (target: Chart) => {
+            const rects: _ModuleSupport.Rect[] = [];
+            const visit = (node: _ModuleSupport.Node) => {
+                if (node instanceof _ModuleSupport.Rect) rects.push(node);
+                if (node instanceof _ModuleSupport.Group) {
+                    for (const child of node.children()) visit(child);
+                }
+            };
+            visit(classCast(target.series[0], HeatmapSeries).contentGroup);
+            return rects;
+        };
+
+        const buildOptions = (cornerRadius?: number) =>
+            prepareEnterpriseTestOptions({
+                data: EXAMPLE_OPTIONS.data,
+                series: [
+                    {
+                        type: 'heatmap',
+                        xKey: 'year',
+                        yKey: 'person',
+                        colorKey: 'spending',
+                        colorScale: { fills: [{ color: 'yellow' }, { color: 'red' }, { color: 'blue' }] },
+                        stroke: 'black',
+                        strokeWidth: 4,
+                        cornerRadius,
+                    },
+                ],
+                legend: { enabled: false },
+            } as AgChartOptions);
+
+        it('rounds every cell, with the stroke following the rounded shape', async () => {
+            chart = deproxy(AgCharts.create(buildOptions(16)));
+            await waitForChartStability(chart);
+
+            const rects = cellRects(chart);
+            expect(rects).toHaveLength(9);
+            for (const rect of rects) {
+                expect(rect.topLeftCornerRadius).toBe(16);
+                expect(rect.topRightCornerRadius).toBe(16);
+                expect(rect.bottomRightCornerRadius).toBe(16);
+                expect(rect.bottomLeftCornerRadius).toBe(16);
+            }
+
+            await compareImageSnapshot(chart, ctx);
+        });
+
+        it('defaults to square corners', async () => {
+            chart = deproxy(AgCharts.create(buildOptions()));
+            await waitForChartStability(chart);
+
+            const rects = cellRects(chart);
+            expect(rects).toHaveLength(9);
+            for (const rect of rects) {
+                expect(rect.topLeftCornerRadius).toBe(0);
+            }
+        });
+    });
 });
