@@ -431,7 +431,12 @@ restore_prebuilt_node_modules() {
     # session down the slow path against a tree that does not need it.
     rm -f "${AG_CLOUD_CACHE_DIR}/unscripted"
 
-    log_info "restored prebuilt node_modules ($(du -sh "${AG_CLOUD_CACHE_DIR}/node_modules" 2>/dev/null | awk '{print $1}'), $(find "${AG_CLOUD_CACHE_DIR}/node_modules" -maxdepth 1 -mindepth 1 2>/dev/null | wc -l | tr -d ' ') entries)"
+    # Name the destination explicitly. "restored prebuilt node_modules" read as
+    # "into the repo", which sent a reader looking for a repo tree that is not
+    # there by design and made this log look self-contradictory: the setup script
+    # only ever populates the cache, and the SessionStart hook is what links it
+    # into the working tree.
+    log_info "cached prebuilt node_modules at ${AG_CLOUD_CACHE_DIR}/node_modules ($(du -sh "${AG_CLOUD_CACHE_DIR}/node_modules" 2>/dev/null | awk '{print $1}'), $(find "${AG_CLOUD_CACHE_DIR}/node_modules" -maxdepth 1 -mindepth 1 2>/dev/null | wc -l | tr -d ' ') entries); the session hook links it into the repo"
 }
 
 # ---------------------------------------------------------------------------
@@ -725,7 +730,7 @@ main() {
     # mid-fetch still passes the lockfile-hash check the hook uses, so caching one
     # costs a session the restore time and then makes it install anyway.
     if restore_prebuilt_node_modules; then
-        log_info "✓ prebuilt node_modules in place — sessions start ready, no finish-setup.sh needed"
+        log_info "✓ prebuilt node_modules cached — sessions start ready, no finish-setup.sh needed"
     elif step "yarn install" install_dependencies; then
         step "seed node_modules cache" seed_node_modules_cache
     else
