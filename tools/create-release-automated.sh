@@ -14,6 +14,9 @@ git checkout -b ${BRANCH}
 if [[ "$SKIP_LICENSE_UPDATE" == "false" ]];
 then
     node ./tools/update-release-info.js
+
+    # lts releases don't advance the latest supported version - that row is updated manually
+    ./tools/release/updateSecurityMarkdown.sh ${RELEASE}
 fi
 
 NEW_VERSION=$(node ./tools/calculate-next-version.js)
