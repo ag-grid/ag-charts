@@ -23,13 +23,16 @@ export class CartesianBackgroundRegion implements BackgroundRegion {
         this.opts = opts;
     }
 
-    update(_visible: boolean) {
+    update(visible: boolean) {
         const { opts, xScale, yScale } = this;
-        if (!opts || !xScale || !yScale) {
+        if (!opts || !xScale || !yScale || !visible) {
             this.regionGroup.visible = false;
             this.labelGroup.visible = false;
             return;
         }
+
+        this.regionGroup.visible = true;
+        this.labelGroup.visible = true;
 
         const bounds = this.getBounds();
 

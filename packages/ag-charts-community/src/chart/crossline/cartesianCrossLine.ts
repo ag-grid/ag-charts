@@ -176,7 +176,7 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
     @Property
     label: CartesianCrossLineLabel = new CartesianCrossLineLabel();
 
-    scale?: Scale<any, number> = undefined; // TODO: this type does not make the interface
+    scale?: Scale<any, number> = undefined; // TODO: this type does not match the interface
     clippedRange: [number, number] = [-Infinity, Infinity];
     gridLength: number = 0;
     gridPadding: number = 0;
