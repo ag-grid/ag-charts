@@ -164,16 +164,21 @@ export interface AgHistogramSeriesOptionsNames {
     yName?: string;
 }
 
-/** Node click/double-click event fired for a histogram bin. */
-export interface AgHistogramSeriesNodeClickEvent<TDatum = DatumDefault, TContext = ContextDefault>
+interface AgBaseHistogramClickEvent<TType extends string, TDatum, TContext>
     extends
-        Omit<AgNodeClickEvent<'seriesNodeClick', TDatum, TContext>, 'datum' | 'datums'>,
+        Omit<AgNodeClickEvent<TType, TDatum, TContext>, keyof AgHistogramSeriesBinParams<TDatum>>,
         AgHistogramSeriesBinParams<TDatum> {}
 
-export interface AgHistogramSeriesNodeDoubleClickEvent<TDatum = DatumDefault, TContext = ContextDefault>
-    extends
-        Omit<AgNodeClickEvent<'seriesNodeDoubleClick', TDatum, TContext>, 'datum' | 'datums'>,
-        AgHistogramSeriesBinParams<TDatum> {}
+/** Node click/double-click event fired for a histogram bin. */
+export interface AgHistogramSeriesNodeClickEvent<
+    TDatum = DatumDefault,
+    TContext = ContextDefault,
+> extends AgBaseHistogramClickEvent<'seriesNodeClick', TDatum, TContext> {}
+
+export interface AgHistogramSeriesNodeDoubleClickEvent<
+    TDatum = DatumDefault,
+    TContext = ContextDefault,
+> extends AgBaseHistogramClickEvent<'seriesNodeDoubleClick', TDatum, TContext> {}
 
 export interface AgHistogramSeriesListeners<TDatum = DatumDefault, TContext = ContextDefault> {
     /** The listener to call when a histogram bin is clicked. */
