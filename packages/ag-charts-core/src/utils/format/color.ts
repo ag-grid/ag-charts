@@ -180,17 +180,20 @@ export class Color implements IColor {
         return part.includes('%') ? clamp(0, value / 100, 1) : clamp(0, value / 255, 1);
     }
 
-    private static stringToRgba(str: string): number[] | undefined {
+    /**
+     * Splits the argument list out of a `name(...)` colour function into its three components plus an
+     * optional alpha, or `undefined` if the string isn't a colour function of that shape.
+     *
+     * The `/ alpha` form separates the alpha component with a slash; otherwise components are split on
+     * whitespace and/or commas, covering both the comma-separated and space-separated syntaxes.
+     */
+    private static parseColorFunctionParts(str: string): string[] | undefined {
         const po = str.indexOf('(');
         const pc = str.indexOf(')');
 
         if (po === -1 || pc === -1 || pc < po) return;
 
         const contents = str.substring(po + 1, pc);
-
-        // The `/ alpha` form separates the alpha component with a slash; otherwise
-        // components are split on whitespace and/or commas, covering both the
-        // comma-separated and space-separated syntaxes.
         const slash = contents.indexOf('/');
         const head = slash === -1 ? contents : contents.substring(0, slash);
         const parts = head.trim().split(/[\s,]+/);
@@ -198,7 +201,12 @@ export class Color implements IColor {
             parts.push(contents.substring(slash + 1).trim());
         }
 
-        if (parts.length < 3 || parts.length > 4) return;
+        return parts.length === 3 || parts.length === 4 ? parts : undefined;
+    }
+
+    private static stringToRgba(str: string): number[] | undefined {
+        const parts = Color.parseColorFunctionParts(str);
+        if (parts === undefined) return;
 
         const r = Color.parseRgbComponent(parts[0]);
         const g = Color.parseRgbComponent(parts[1]);
@@ -278,24 +286,8 @@ export class Color implements IColor {
     }
 
     private static stringToHsla(str: string): number[] | undefined {
-        const po = str.indexOf('(');
-        const pc = str.indexOf(')');
-
-        if (po === -1 || pc === -1 || pc < po) return;
-
-        const contents = str.substring(po + 1, pc);
-
-        // The `/ alpha` form separates the alpha component with a slash; otherwise
-        // components are split on whitespace and/or commas, covering both the
-        // comma-separated and space-separated syntaxes.
-        const slash = contents.indexOf('/');
-        const head = slash === -1 ? contents : contents.substring(0, slash);
-        const parts = head.trim().split(/[\s,]+/);
-        if (slash !== -1) {
-            parts.push(contents.substring(slash + 1).trim());
-        }
-
-        if (parts.length < 3 || parts.length > 4) return;
+        const parts = Color.parseColorFunctionParts(str);
+        if (parts === undefined) return;
 
         const h = Color.parseHueDegrees(parts[0]);
         const s = Color.parsePercentage(parts[1]);
@@ -325,24 +317,8 @@ export class Color implements IColor {
     }
 
     private static stringToOklcha(str: string): number[] | undefined {
-        const po = str.indexOf('(');
-        const pc = str.indexOf(')');
-
-        if (po === -1 || pc === -1 || pc < po) return;
-
-        const contents = str.substring(po + 1, pc);
-
-        // The `/ alpha` form separates the alpha component with a slash; otherwise
-        // components are split on whitespace and/or commas, covering both the
-        // comma-separated and space-separated syntaxes.
-        const slash = contents.indexOf('/');
-        const head = slash === -1 ? contents : contents.substring(0, slash);
-        const parts = head.trim().split(/[\s,]+/);
-        if (slash !== -1) {
-            parts.push(contents.substring(slash + 1).trim());
-        }
-
-        if (parts.length < 3 || parts.length > 4) return;
+        const parts = Color.parseColorFunctionParts(str);
+        if (parts === undefined) return;
 
         const l = Color.parseUnitInterval(parts[0]);
         const c = Color.parseOklchChroma(parts[1]);
