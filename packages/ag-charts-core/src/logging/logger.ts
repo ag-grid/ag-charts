@@ -4,22 +4,34 @@
 // so a default Logger's output matches an ungated one.
 const SEVERITY = { warn: 1, error: 2 } as const;
 
+interface LogGroup {
+    name: string;
+    opened: boolean;
+}
+
 export class Logger {
     private readonly doOnceCache = new Set<string>();
+
+    // Groups this logger is inside, outermost first. An entry is only `opened` on the console once a
+    // message has actually been emitted within it.
+    private readonly groups: LogGroup[] = [];
 
     constructor(private readonly minSeverity: number = 0) {}
 
     log(...logContent: any[]) {
+        this.openGroups();
         console.log(...logContent);
     }
 
     warn(message: any, ...logContent: any[]) {
         if (this.minSeverity > SEVERITY.warn) return;
+        this.openGroups();
         console.warn(`AG Charts - ${message}`, ...logContent);
     }
 
     error(message: any, ...logContent: any[]) {
         if (this.minSeverity > SEVERITY.error) return;
+        this.openGroups();
         if (typeof message === 'object') {
             console.error(`AG Charts error`, message, ...logContent);
         } else {
@@ -28,6 +40,7 @@ export class Logger {
     }
 
     table(...logContent: any[]) {
+        this.openGroups();
         console.table(...logContent);
     }
 
@@ -65,22 +78,51 @@ export class Logger {
     }
 
     logGroup<T>(name: string, cb: () => T): T {
-        console.groupCollapsed(name);
+        const group: LogGroup = { name, opened: false };
+        this.groups.push(group);
         let syncCleanup = true;
         try {
             const result = cb();
             if (isPromise(result)) {
                 syncCleanup = false;
                 return result.finally(() => {
-                    console.groupEnd();
+                    this.closeGroup(group);
                 }) as T;
             }
             return result;
         } finally {
             if (syncCleanup) {
+                this.closeGroup(group);
+            }
+        }
+    }
+
+    /**
+     * Opens the enclosing groups on the console, outermost first. Deferred to the first emission so a
+     * group that logs nothing leaves the console's grouping state untouched.
+     */
+    private openGroups() {
+        for (const group of this.groups) {
+            if (!group.opened) {
+                group.opened = true;
+                console.groupCollapsed(group.name);
+            }
+        }
+    }
+
+    private closeGroup(group: LogGroup) {
+        const index = this.groups.lastIndexOf(group);
+        if (index === -1) return;
+
+        // Concurrent async groups can close out of order, and console grouping is a stack: closing this
+        // group has to close everything opened inside it, or the console stays grouped for good. Their
+        // own close is then a no-op, having been dropped from the stack here.
+        for (let i = this.groups.length - 1; i >= index; i--) {
+            if (this.groups[i].opened) {
                 console.groupEnd();
             }
         }
+        this.groups.length = index;
     }
 }
 
