@@ -1,9 +1,16 @@
-import { AgCartesianChartOptions, AgChartOptions, AgCharts, LegendModule } from 'ag-charts-community';
-import { BackgroundRegionsModule, ModuleRegistry, NumberAxisModule, ScatterSeriesModule } from 'ag-charts-community';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    BackgroundRegionsModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    ScatterSeriesModule,
+} from 'ag-charts-enterprise';
 
 import { penguinSeries } from './data';
 
-ModuleRegistry.registerModules([LegendModule, NumberAxisModule, ScatterSeriesModule, BackgroundRegionsModule]);
+ModuleRegistry.registerModules([BackgroundRegionsModule, LegendModule, NumberAxisModule, ScatterSeriesModule]);
 
 function quantileSorted(sorted: number[], p: number) {
     const i = (sorted.length - 1) * p;
