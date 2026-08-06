@@ -537,7 +537,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const processedOptions = mergeDefaults(processedOverrides, resolvedOptions);
 
         removeIncompatibleModuleOptions(this.chartDef.name, processedOptions);
-        processModuleOptions(this.chartDef.name, processedOptions, missingSeriesModules.concat(missingAxesModules));
+        processModuleOptions(
+            this.chartDef.name,
+            processedOptions,
+            missingSeriesModules.concat(missingAxesModules),
+            this.logger
+        );
 
         // Second-pass validation runs after `removeDisabledOptions`, so disabled nodes have been
         // stripped to `{ enabled: false }`; skip their required-field/discriminant warnings.

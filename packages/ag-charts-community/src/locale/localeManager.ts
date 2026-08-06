@@ -1,14 +1,21 @@
+import type { Logger } from 'ag-charts-core';
 import { AG_CHARTS_LOCALE_EN_US } from 'ag-charts-locale';
 import type { Formatter, MessageFormatterParams } from 'ag-charts-types';
 
 import type { EventsHub } from '../core/eventsHub';
-import { defaultMessageFormatter } from './defaultMessageFormatter';
+import { createMessageFormatter } from './defaultMessageFormatter';
 
 export class LocaleManager {
     private localeText: Record<string, string> | undefined = undefined;
     private getLocaleText: Formatter<MessageFormatterParams> | undefined = undefined;
+    private readonly defaultMessageFormatter: Formatter<MessageFormatterParams>;
 
-    constructor(private readonly eventsHub: EventsHub) {}
+    constructor(
+        private readonly eventsHub: EventsHub,
+        logger: Logger
+    ) {
+        this.defaultMessageFormatter = createMessageFormatter(logger);
+    }
 
     setLocaleText(localeText: Record<string, string> | undefined) {
         if (this.localeText !== localeText) {
@@ -31,7 +38,7 @@ export class LocaleManager {
 
         return String(
             getLocaleText?.({ key, defaultValue, variables }) ??
-                defaultMessageFormatter({ key, defaultValue, variables }) ??
+                this.defaultMessageFormatter({ key, defaultValue, variables }) ??
                 key
         );
     }

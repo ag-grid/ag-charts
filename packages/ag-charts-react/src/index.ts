@@ -55,6 +55,9 @@ function ChartWithConstructor<Props extends BaseChartProps>(
         const unsafeIsInitialMount = chartRef.current === undefined;
         useEffect(() => {
             if (!unsafeIsInitialMount) {
+                // The chart's logger may be absent here — the chart may already be destroyed, or may
+                // never have been created — so raw console is the only guaranteed report. The wrapper
+                // holds only the public `AgChartInstance` type, which exposes no logger.
                 // eslint-disable-next-line no-console
                 chartRef.current?.update(getOptions(options, containerRef)).catch((e) => console.error(e));
             }

@@ -11,8 +11,13 @@
  *   `new Logger()` ban can apply repo-wide while the static-emitter ban is rolled out package by package).
  * - `allowAmbientIn` — path fragments of the files permitted to reach the ambient logger. Omit to allow
  *   it everywhere; supply a list to freeze the chart-less residue at exactly those files. Enforcement is
- *   keyed on the imported module, so every route to the shared instance is covered: the `ambientLog`
- *   namespace, the `ambientLogger` instance, and direct named imports of the free functions.
+ *   keyed on the imported/re-exported module, so every route to the shared instance is covered: the
+ *   `ambientLog` namespace, the `ambientLogger` instance, direct named imports of the free functions, and
+ *   `export … from`/`export * from` re-exports of any of the above (`ImportDeclaration`,
+ *   `ExportNamedDeclaration` and `ExportAllDeclaration` are all handled). A barrel-of-a-barrel `export *`
+ *   that re-publishes a logging module indirectly (e.g. `export * from 'ag-charts-core'` from a package
+ *   that is not itself the core barrel) is not a logging-module specifier and is deliberately left
+ *   uncovered — see the `isLoggingModule`/`ag-charts-core` check below.
  */
 
 const BANNED_STATIC_METHODS = new Set(['log', 'warn', 'error', 'table', 'warnOnce', 'errorOnce', 'logGroup', 'reset']);
@@ -22,9 +27,14 @@ const BANNED_STATIC_METHODS = new Set(['log', 'warn', 'error', 'table', 'warnOnc
 // behaviour this rule is steering towards. Construction is policed separately by `allowNewIn`.
 const AMBIENT_EXPORTS = new Set([...BANNED_STATIC_METHODS, 'ambientLog', 'ambientLogger']);
 
-// The logging modules themselves, reached by relative path from inside core. A namespace import of
-// either exposes every ambient emitter, so the whole module is in scope — not just named specifiers.
-const isLoggingModule = (source) => /(^|\/)logging\/(logger|ambientLog)(\.[jt]s)?$/.test(source);
+// The logging modules themselves, matched either by a `logging/` path segment (reached by relative path
+// from inside core, e.g. `../logging/logger`) or by an exact sibling specifier (`./logger`,
+// `./ambientLog`, from a file that already lives alongside them inside `logging/`). A namespace import or
+// `export *` of either form exposes every ambient emitter, so the whole module is in scope — not just
+// named specifiers. Deliberately not a bare `(logger|ambientLog)$` suffix match: that would also catch
+// `../logging/debugLogger` and flag namespace imports that have nothing to do with the ambient logger.
+const isLoggingModule = (source) =>
+    /(^|\/)logging\/(logger|ambientLog)(\.[jt]s)?$/.test(source) || /^\.\/(logger|ambientLog)(\.[jt]s)?$/.test(source);
 
 /** @type {import('eslint').Rule.RuleModule} */
 export default {
@@ -94,6 +104,41 @@ export default {
                         context.report({ node: specifier, messageId: 'noAmbientLog' });
                     }
                 }
+            },
+
+            ExportNamedDeclaration(node) {
+                if (allowAmbientIn == null || matches(allowAmbientIn)) return;
+                // A local `export { x }` (no `from`) re-exports something already declared in this
+                // file, which is covered by the `ImportDeclaration`/`NewExpression` checks above.
+                if (node.source == null) return;
+                // `export type { X } from '...'` erases at compile time and cannot emit anything.
+                if (node.exportKind === 'type') return;
+
+                const fromLoggingModule = isLoggingModule(node.source.value);
+                if (!fromLoggingModule && node.source.value !== 'ag-charts-core') return;
+
+                for (const specifier of node.specifiers) {
+                    if (specifier.exportKind === 'type') continue;
+                    // `specifier.local` is the name as it appears in the *source* module — the same
+                    // thing `ImportSpecifier.imported` names on the import side — so it is what must be
+                    // checked against `AMBIENT_EXPORTS`, not `specifier.exported`.
+                    if (AMBIENT_EXPORTS.has(specifier.local.name)) {
+                        context.report({ node: specifier, messageId: 'noAmbientLog' });
+                    }
+                }
+            },
+
+            ExportAllDeclaration(node) {
+                if (allowAmbientIn == null || matches(allowAmbientIn)) return;
+                if (node.exportKind === 'type') return;
+                // Mirrors the namespace-import branch above: `export * from '../logging/logger'` (and
+                // its aliased form, `export * as ambientLog from './logging/ambientLog'`) republishes
+                // every ambient emitter, so only the logging module itself is in scope here — the wider
+                // `ag-charts-core` barrel check does not apply, so a barrel-of-a-barrel `export *` (e.g.
+                // `export * from 'ag-charts-core'`) is deliberately left uncovered.
+                if (!isLoggingModule(node.source.value)) return;
+
+                context.report({ node, messageId: 'noAmbientLog' });
             },
 
             CallExpression(node) {
