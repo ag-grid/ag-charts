@@ -35,6 +35,7 @@ import {
     expectProgresses,
     expectSceneTrajectory,
     expectWarningsCalls,
+    getSeriesAggregationInternals,
     hoverAction,
     isoEpochPair,
     magnitudePair,
@@ -2278,5 +2279,56 @@ describe('RangeBarSeries category/gridline pixel alignment', () => {
                 });
             }
         }
+    }
+});
+
+describe('RangeBarSeries aggregated device-pixel snap', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: any;
+
+    afterEach(() => {
+        chart?.destroy();
+        chart = undefined;
+    });
+
+    // Aggregation has no public option: it engages on ungrouped, non-animatable data (count above
+    // MAX_ANIMATABLE_NODES) whose finest aggregation level still spans the plot width, so the fixture
+    // keeps the default 800px canvas and a dense numeric x.
+    const DATA = Array.from({ length: HIGH_VOLUME_COUNT }, (_, i) => ({
+        x: i + 1,
+        lo: Math.sin(i / 10) - 1,
+        hi: Math.sin(i / 10) + 1,
+    }));
+
+    const onDeviceGrid = (value: number, dpr: number) => Math.abs(value * dpr - Math.round(value * dpr)) <= 1e-6;
+
+    for (const dpr of [1, 2]) {
+        it(`snaps every aggregated bar edge to the device pixel grid (dpr ${dpr})`, async () => {
+            const options: any = prepareEnterpriseTestOptions({
+                data: DATA,
+                // A stroke insets the drawn path by half its width, which would take the edges off the grid.
+                series: [{ type: 'range-bar', xKey: 'x', yLowKey: 'lo', yHighKey: 'hi', strokeWidth: 0 }],
+                axes: STRIPPED_NUMBER_AXES,
+            } as any);
+            options.overrideDevicePixelRatio = dpr;
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const series = getSeriesAggregationInternals(chart);
+            expect(series.aggregationManager?.getFilterForRange(series.estimateTargetRange!())).toBeDefined();
+            const nodeCount = series.contextNodeData?.nodeData?.length ?? 0;
+            expect(nodeCount).toBeGreaterThan(0);
+            expect(nodeCount).toBeLessThan(HIGH_VOLUME_COUNT);
+
+            const rects = [...createSceneGeometrySampler(chart)()].filter(([key]) => key.startsWith('series[0]/rect'));
+            expect(rects.length).toBe(nodeCount);
+
+            const offGrid = rects.filter(([, { x, width }]) => !onDeviceGrid(x, dpr) || !onDeviceGrid(x + width, dpr));
+            // Sliced so a wholesale regression reports a readable handful rather than every bar.
+            expect(offGrid.slice(0, 5).map(([key, { x, width }]) => `${key} x=${x} width=${width}`)).toEqual([]);
+        });
     }
 });
