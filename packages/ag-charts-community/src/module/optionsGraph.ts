@@ -1481,11 +1481,11 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         className = className ? `:::${className}` : '';
 
         if (typeof vertex.value === 'symbol') {
-            return `${diagramKey}[/"[symbol]"\\]${className}`;
+            return String.raw`${diagramKey}[/"[symbol]"\]${className}`;
         } else if (Array.isArray(vertex.value)) {
-            return `${diagramKey}[/"[array]"\\]${className}`;
+            return String.raw`${diagramKey}[/"[array]"\]${className}`;
         } else if (typeof vertex.value === 'object') {
-            return `${diagramKey}[/"[object]"\\]${className}`;
+            return String.raw`${diagramKey}[/"[object]"\]${className}`;
         } else if (edge === DEFAULTS_EDGE || edge === USER_OPTIONS_EDGE || edge === OVERRIDES_EDGE) {
             return `${diagramKey}("${vertex.value as any}")${className}`;
         } else {

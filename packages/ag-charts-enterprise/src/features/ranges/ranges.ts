@@ -63,7 +63,7 @@ const EMPTY_STYLES: ResolvedStyles = {
 };
 
 function resolveStyles(styles: AgRangesStyles | undefined): ResolvedStyles {
-    return { ...EMPTY_STYLES, ...(styles ?? {}) } as ResolvedStyles;
+    return { ...EMPTY_STYLES, ...styles } as ResolvedStyles;
 }
 
 export class Ranges extends AbstractModuleInstance {

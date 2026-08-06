@@ -3,21 +3,13 @@
 // profiler, whereas anonymous arrow functions get grouped together making profiling difficult.
 import { AgDocument } from 'ag-charts-core';
 
-type VoidCallback = {
-    (): void;
-};
+type VoidCallback = () => void;
 
-type SchedulerFunction = {
-    (cb: VoidCallback, delayMs?: number): number | void;
-};
+type SchedulerFunction = (cb: VoidCallback, delayMs?: number) => number | void;
 
-type CancelFunction = {
-    (id: number | void): void;
-};
+type CancelFunction = (id: number | void) => void;
 
-type Callback = {
-    (params: { count: number }): Promise<void> | void;
-};
+type Callback = (params: { count: number }) => Promise<void> | void;
 
 /**
  * Wrap a function in debouncing trigger function. A requestAnimationFrame() is scheduled

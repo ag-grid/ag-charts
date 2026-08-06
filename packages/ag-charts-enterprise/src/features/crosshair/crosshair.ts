@@ -75,7 +75,7 @@ export class Crosshair
     );
     protected lineGroupSelection = _ModuleSupport.Selection.select(this.lineGroup, Line<string>, false);
 
-    private activeHighlight?: _ModuleSupport.HighlightChangeEvent['currentHighlight'] = undefined;
+    private activeHighlight: _ModuleSupport.HighlightChangeEvent['currentHighlight'] = undefined;
     private activeHighlightInViewport: boolean = false;
 
     constructor(private readonly ctx: _ModuleSupport.ChartAxisRegistry<_ModuleSupport.AxisContext>) {

@@ -322,7 +322,7 @@ const unitRanger: Record<AgTimeIntervalUnit, IntervalRanger> = {
     },
     second: {
         adjust(date: Date, step: number, utc: boolean) {
-            const adjusted = new Date(date.getTime());
+            const adjusted = new Date(date);
             if (utc) {
                 adjusted.setUTCSeconds(date.getUTCSeconds() + step);
             } else {
@@ -333,7 +333,7 @@ const unitRanger: Record<AgTimeIntervalUnit, IntervalRanger> = {
     },
     minute: {
         adjust(date: Date, step: number, utc: boolean) {
-            const adjusted = new Date(date.getTime());
+            const adjusted = new Date(date);
             if (utc) {
                 adjusted.setUTCMinutes(date.getUTCMinutes() + step);
             } else {
@@ -344,7 +344,7 @@ const unitRanger: Record<AgTimeIntervalUnit, IntervalRanger> = {
     },
     hour: {
         adjust(date: Date, step: number, utc: boolean) {
-            const adjusted = new Date(date.getTime());
+            const adjusted = new Date(date);
             if (utc) {
                 adjusted.setUTCHours(date.getUTCHours() + step);
             } else {
@@ -355,7 +355,7 @@ const unitRanger: Record<AgTimeIntervalUnit, IntervalRanger> = {
     },
     day: {
         adjust(date: Date, step: number, utc: boolean) {
-            const adjusted = new Date(date.getTime());
+            const adjusted = new Date(date);
             if (utc) {
                 adjusted.setUTCDate(date.getUTCDate() + step);
             } else {
@@ -366,7 +366,7 @@ const unitRanger: Record<AgTimeIntervalUnit, IntervalRanger> = {
     },
     month: {
         adjust(date: Date, step: number, utc: boolean) {
-            const adjusted = new Date(date.getTime());
+            const adjusted = new Date(date);
             if (utc) {
                 adjusted.setUTCMonth(date.getUTCMonth() + step);
 
@@ -393,7 +393,7 @@ const unitRanger: Record<AgTimeIntervalUnit, IntervalRanger> = {
     },
     year: {
         adjust(date: Date, step: number, utc: boolean) {
-            const adjusted = new Date(date.getTime());
+            const adjusted = new Date(date);
             if (utc) {
                 adjusted.setUTCFullYear(date.getUTCFullYear() + step);
             } else {

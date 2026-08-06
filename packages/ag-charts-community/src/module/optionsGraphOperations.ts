@@ -489,7 +489,7 @@ function andOperation(graph: OptionsGraphInterface, vertex: VertexInterface, val
     for (const valueVertex of values) {
         const value = graph.resolveVertexValue(vertex, valueVertex);
         if (values.length === 1 && Array.isArray(value)) {
-            return value.every((v) => Boolean(v));
+            return value.every(Boolean);
         }
         if (!value) return false;
     }
@@ -614,7 +614,7 @@ function orOperation(graph: OptionsGraphInterface, vertex: VertexInterface, valu
     for (const valueVertex of values) {
         const value = graph.resolveVertexValue(vertex, valueVertex);
         if (values.length === 1 && Array.isArray(value)) {
-            return value.some((v) => Boolean(v));
+            return value.some(Boolean);
         }
         if (value) return true;
     }

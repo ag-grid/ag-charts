@@ -17,7 +17,7 @@ export class ActiveManager implements MementoOriginator<AgActiveState> {
     mementoOriginatorKey: string = 'active';
 
     private readonly ctx: DynamicContext<ChartRegistry>;
-    private currentItem?: ActiveItem;
+    private currentItem: ActiveItem;
     private updateable: boolean = true;
 
     // FIXME: same pattern as `ZoomManager`. Perhaps an architectural rewrite is warranted.
