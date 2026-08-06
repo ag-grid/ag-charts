@@ -95,6 +95,26 @@ with_timeout() {
     fi
 }
 
+# budgeted <wanted> — the largest timeout the deadline still allows a step that
+# wants <wanted> seconds. Non-zero exit means the budget is gone and the caller
+# should skip the step rather than start it.
+#
+# Every long step goes through this. With fixed constants the individual
+# timeouts summed to more than the cap they were meant to respect: node pinning
+# (180s) plus the two toolchain installs (120s each) could reach 420s against a
+# 270s budget and a ~300s platform cap, all before the install was considered.
+# Overrunning does not just fail a step, it loses the snapshot for everyone.
+budgeted() {
+    local wanted="$1" avail
+    avail="$(remaining)"
+    ((avail > 0)) || return 1
+    ((wanted < avail)) && {
+        echo "$wanted"
+        return 0
+    }
+    echo "$avail"
+}
+
 # sha256_of <file> — coreutils on the cloud image, BSD tooling on a developer Mac.
 sha256_of() {
     if command -v sha256sum &>/dev/null; then
@@ -173,7 +193,13 @@ pin_node() {
     # function, and `timeout` can only exec a real command, so that form failed
     # instantly with 127 and left node unpinned. The install writes to $NVM_DIR on
     # disk, so doing it in a subshell and then `nvm use` here works fine.
-    if with_timeout 180 bash -c 'set +u; . "$1" && nvm install "$2"' _ "$NVM_SH" "$wanted" >/dev/null 2>&1; then
+    local slice
+    if ! slice="$(budgeted 180)"; then
+        log_warn "no budget left to install node v${wanted}; using $(node -v 2>/dev/null || echo 'none')"
+        record_node_path
+        return 0
+    fi
+    if with_timeout "$slice" bash -c 'set +u; . "$1" && nvm install "$2"' _ "$NVM_SH" "$wanted" >/dev/null 2>&1; then
         nvm alias default "$wanted" >/dev/null 2>&1 || true
         nvm use "$wanted" >/dev/null 2>&1 || true
         log_info "node pinned to $(node -v)"
@@ -235,8 +261,13 @@ align_default_node() {
 }
 
 install_yarn_and_nx() {
+    local slice
     if ! command -v yarn &>/dev/null; then
-        with_timeout 120 npm i -g --force yarn@1 >/dev/null 2>&1 || {
+        if ! slice="$(budgeted 120)"; then
+            log_warn "no budget left to install yarn"
+            return 1
+        fi
+        with_timeout "$slice" npm i -g --force yarn@1 >/dev/null 2>&1 || {
             log_warn "yarn@1 global install failed"
             return 1
         }
@@ -255,8 +286,12 @@ EOF
         local nx_version
         nx_version="$(node -p "require('$REPO_ROOT/package.json').devDependencies.nx" 2>/dev/null)"
         if [[ -n "$nx_version" && "$nx_version" != "undefined" ]]; then
-            with_timeout 120 yarn global add "nx@${nx_version}" >/dev/null 2>&1 ||
-                log_warn "nx@${nx_version} global install failed (yarn nx still works)"
+            if slice="$(budgeted 120)"; then
+                with_timeout "$slice" yarn global add "nx@${nx_version}" >/dev/null 2>&1 ||
+                    log_warn "nx@${nx_version} global install failed (yarn nx still works)"
+            else
+                log_warn "no budget left to install nx (yarn nx still works)"
+            fi
         fi
     fi
     log_info "node $(node -v 2>/dev/null), yarn $(yarn -v 2>/dev/null), nx $(nx --version 2>/dev/null | tail -1)"
@@ -266,11 +301,18 @@ EOF
 # dependencies
 # ---------------------------------------------------------------------------
 
+# Seconds held back from the install for seed_node_modules_cache. The seed used
+# to run on an unbudgeted 180s after an install that had already claimed every
+# remaining second, so the two together could overshoot the cap and cost the
+# snapshot. An install that leaves nothing to cache is the worse outcome of the
+# two — the cache is what makes later sessions cheap — so the reserve is small.
+SEED_RESERVE_SECONDS=45
+
 install_dependencies() {
     cd "$REPO_ROOT" || return 1
 
     local budget
-    budget="$(remaining)"
+    budget=$(($(remaining) - SEED_RESERVE_SECONDS))
     ((budget > 30)) || {
         log_warn "no time left for yarn install (budget ${TOTAL_BUDGET_SECONDS}s exhausted)"
         return 1
@@ -320,10 +362,17 @@ seed_node_modules_cache() {
     local dest="$AG_CLOUD_CACHE_DIR/node_modules"
     local staging="${dest}.staging.$$"
 
+    local slice
+    if ! slice="$(budgeted 180)"; then
+        log_warn "no budget left to seed the cache"
+        return 1
+    fi
+
     rm -rf "$staging"
-    if ! with_timeout 180 cp -al "$REPO_ROOT/node_modules" "$staging" 2>/dev/null; then
+    if ! with_timeout "$slice" cp -al "$REPO_ROOT/node_modules" "$staging" 2>/dev/null; then
         rm -rf "$staging"
-        with_timeout 180 cp -a "$REPO_ROOT/node_modules" "$staging" 2>/dev/null || {
+        slice="$(budgeted 180)" || return 1
+        with_timeout "$slice" cp -a "$REPO_ROOT/node_modules" "$staging" 2>/dev/null || {
             rm -rf "$staging"
             return 1
         }

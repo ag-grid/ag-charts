@@ -488,18 +488,25 @@ install_nx_if_missing() {
 main() {
     log_info "Bootstrapping cloud environment"
 
+    # The cloud exit comes first, before anything that touches the network.
+    # `npm i -g yarn` and `yarn global add nx` used to run above this point, so a
+    # session whose snapshot had neither — a stale or failed environment build,
+    # which is the case every existing environment hits first — sat through two
+    # global installs inside the SessionStart hook. Claude Code waits for hooks
+    # before the first message, so that is exactly the freeze this hook exists to
+    # avoid. finish-setup.sh bootstraps the toolchain instead: the session waits
+    # on that Bash call, so it can afford the time.
+    if [[ "$IN_CLOUD_SESSION" == "1" ]]; then
+        announce_deps_not_ready
+        exit 0
+    fi
+
     if ! install_yarn_if_missing; then
         exit 2
     fi
 
     if ! install_nx_if_missing; then
         exit 2
-    fi
-
-    # In a cloud session the install must not block the SessionStart hook.
-    if [[ "$IN_CLOUD_SESSION" == "1" ]]; then
-        announce_deps_not_ready
-        exit 0
     fi
 
     # Delegate to yarn install — preinstall-worktree.sh handles COW cloning,
