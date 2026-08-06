@@ -1,6 +1,13 @@
 import { test } from './fixture';
 import { expectChartScreenshot } from './scene-capture';
-import { gotoExample, locateCanvas, setupIntrinsicAssertions, toExamplePageUrls, waitForAllChartUpdates } from './util';
+import {
+    gotoExample,
+    locateCanvas,
+    pinNonChromiumToVanilla,
+    setupIntrinsicAssertions,
+    toExamplePageUrls,
+    waitForAllChartUpdates,
+} from './util';
 
 const GOOGLE_FONT_FAMILIES = ['Pacifico', 'DM Serif Text', 'Orbitron'];
 
@@ -17,6 +24,8 @@ test.describe('fonts', () => {
 
     for (const { framework, url } of testUrls) {
         test.describe(`for ${framework}`, () => {
+            pinNonChromiumToVanilla(test, framework);
+
             test('google fonts', async ({ page }) => {
                 await page.routeFromHAR(FONT_HAR, { url: FONT_CDN, update: !!process.env.UPDATE_FONT_HAR });
 
