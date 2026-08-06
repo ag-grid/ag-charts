@@ -106,3 +106,11 @@ Baselines are named per project, so `*-firefox-linux.png` and `*-webkit-linux.pn
 
 -   The sharded `e2e` job and the `e2e_cross_browser` job push to the **same** `gha/snapshots-<your-branch>`, so check out the paths you meant to update rather than merging the branch wholesale.
 -   A spec newly added to `PART_A_SPECS` in `playwright.cross-browser.config.ts` must be pinned to the vanilla framework variant — via `pinNonChromiumToVanilla`, a self-filter, or hardcoded vanilla URLs. Screenshot names carry no framework component, so an unpinned spec has all six variants writing the *same* baseline: under `-u` the last one wins, every run reports an update, and the job never converges to green.
+
+## `NX_BASE` must resolve, or be unset — never a ref that only exists in CI
+
+`e2e/changed-examples.ts` scopes the example sweeps to what changed relative to `NX_BASE`. An **unset** `NX_BASE` is a supported mode: every example is treated as changed. A **set-but-unresolvable** one used to be fatal — `git diff` exited non-zero, `execSync` threw at *collection* time, and the entire `test:e2e` invocation failed before a single test ran, taking `examples-snapshots.spec.ts` and `gallery-examples.spec.ts` with it.
+
+The AI Workflow pipeline exports `NX_BASE=latest-success`, which does not resolve inside the Dockerised Playwright container — so an agent-driven e2e run hit exactly this and lost the whole run (AG-18074). `changed-examples.ts` now degrades to the every-example-changed path instead of throwing, so this is no longer fatal.
+
+Still: when you invoke the suite by hand, either leave `NX_BASE` unset or pass a ref that resolves **in the container** (`HEAD~1`, a SHA). Setting it to a CI-only alias silently widens the run to every example rather than scoping it — safe, but slow.

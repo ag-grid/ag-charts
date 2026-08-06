@@ -149,3 +149,6 @@ __scene_snapshots__/
 **/WARP.md
 **/modular-mcp.json
 .rulesync/skills/rulesync
+
+# AI Workflow: the pipeline stub npm-installs @ag-grid/dev-prompts here.
+/.ag-dev-prompts/
