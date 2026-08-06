@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { type AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
 import {
     compareImageSnapshot,
+    expectWarningsCalls,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -70,6 +71,26 @@ describe('Annotations', () => {
                 ],
             });
             await compare();
+        });
+
+        it('should warn and fall back to the default color for an unsupported color format', async () => {
+            await prepareChart({
+                annotations: [
+                    {
+                        type: 'callout',
+                        start: { x: { __type: 'date', value: '2024-03-01' }, y: 25 },
+                        end: { x: { __type: 'date', value: '2024-09-01' }, y: 75 },
+                        text: 'Note',
+                        color: 'lab(50% 40 59.5)',
+                    },
+                ],
+            });
+
+            expectWarningsCalls().toEqual([
+                [
+                    'AG Charts - Annotation property [color] cannot be set to [lab(50% 40 59.5)]; expecting a supported color string, ignoring.',
+                ],
+            ]);
         });
 
         it('should render a horizontal cross-line annotation', async () => {

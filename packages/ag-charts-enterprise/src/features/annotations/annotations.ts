@@ -15,6 +15,7 @@ import {
     PropertiesArray,
     Vec2,
     addValues,
+    isUnsupportedColorFormat,
     isValidDate,
 } from 'ag-charts-core';
 import type { AgNumericValue } from 'ag-charts-types';
@@ -708,10 +709,27 @@ export class Annotations extends AbstractModuleInstance {
         );
     }
 
+    // Annotations are declared `defined` in the chart option defs, so none of the colour validators that
+    // gate every other colour surface run over them; without this an unsupported format either throws
+    // when a properties class parses it or silently paints through the canvas.
+    private dropUnsupportedColors(annotation: AgAnnotation) {
+        const colors: { color?: unknown; stroke?: unknown; fill?: unknown } = annotation;
+        for (const key of ['color', 'stroke', 'fill'] as const) {
+            const value = colors[key];
+            if (typeof value === 'string' && isUnsupportedColorFormat(value)) {
+                this.ctx.logger.warnOnce(
+                    `Annotation property [${key}] cannot be set to [${value}]; expecting a supported color string, ignoring.`
+                );
+                delete colors[key];
+            }
+        }
+        return annotation;
+    }
+
     private onRestoreAnnotations(event: { annotations: Array<AgAnnotation> }) {
         if (!(this.opts.enabled ?? true)) return;
 
-        const { annotations } = event;
+        const annotations = event.annotations.map((annotation) => this.dropUnsupportedColors(annotation));
         const canPatchInPlace =
             this.annotationData.length === annotations.length &&
             annotations.every((annotation, index) => {
