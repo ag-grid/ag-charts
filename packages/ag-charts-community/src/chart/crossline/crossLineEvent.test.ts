@@ -403,6 +403,30 @@ describe('CrossLine listeners', () => {
 
             expect(click).toHaveBeenCalledWith(expect.objectContaining({ context: 'chart-context' }));
         });
+
+        test('the chart listener gets the axis context with no other listener registered', async () => {
+            const chartClick = vi.fn();
+            chart = await createChart(
+                options({
+                    context: 'chart-context',
+                    listeners: { crossLineClick: chartClick },
+                    axes: {
+                        x: { type: 'category' },
+                        y: {
+                            type: 'number',
+                            min: FULL_RANGE[0],
+                            max: FULL_RANGE[1],
+                            context: 'axis-context',
+                            crossLines: [rangeCrossLine()],
+                        },
+                    },
+                })
+            );
+
+            await clickAction(CENTRE_X, CENTRE_Y)(chart);
+
+            expect(chartClick).toHaveBeenCalledWith(expect.objectContaining({ context: 'axis-context' }));
+        });
     });
 
     describe('option updates', () => {

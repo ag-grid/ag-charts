@@ -104,15 +104,18 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
             };
 
             // The cross line's own listener runs first, then the owning axis's, then the chart's. All
-            // three share one params object, so the context resolved here (axis first, chart as the
-            // fallback) is the context every listener sees, including the chart-level one.
+            // three share one params object, and `callWithContext` resolves the context onto it (axis
+            // first, chart as the fallback) on the first call. The chart dispatch goes through
+            // `callWithContext` as well rather than calling `fireEvent` directly, so the chart listener
+            // sees that same axis-first context even when neither of the other two is registered to
+            // have resolved it.
             const { listeners } = this.axisCtx;
             const callers = [this.axisCtx.caller, this.ctx.chartService];
             const crossLineListener = isClick ? crossLine.listeners?.click : crossLine.listeners?.doubleClick;
             const axisListener = isClick ? listeners?.crossLineClick : listeners?.crossLineDoubleClick;
             if (crossLineListener) callWithContext(callers, crossLineListener, apiEvent);
             if (axisListener) callWithContext(callers, axisListener, apiEvent);
-            this.ctx.fireEvent(apiEvent);
+            callWithContext(callers, (params: typeof apiEvent) => this.ctx.fireEvent(params), apiEvent);
         }
     }
 
