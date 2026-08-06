@@ -144,10 +144,17 @@ export type {
     AxisValuePick,
     PolarAxisLayout,
 } from './module/axisContext';
-export type { ChartRegistry, ChartAxisRegistry, ChartSeriesRegistry } from './module/moduleContext';
+export type {
+    ChartRegistry,
+    ChartAxisRegistry,
+    ChartSeriesRegistry,
+    ChartSeriesAreaRegistry,
+} from './module/moduleContext';
+export type { SeriesAreaContext } from './chart/series-area/seriesAreaContext';
 export { type AxisID, type DynamicContext, type DynamicContextApi, createDynamicContext } from 'ag-charts-core';
 export type { SelectionModuleFns } from './chart/modulesManager';
 export { Background } from './chart/background/background';
+export type { BackgroundRegion } from './chart/background-regions/backgroundRegion';
 export { ChartAxes } from './chart/chartAxes';
 export { NiceMode, resetAxisLabelSelectionFn } from './chart/axis/axisUtil';
 export type { TickDatum } from './chart/axis/axisUtil';

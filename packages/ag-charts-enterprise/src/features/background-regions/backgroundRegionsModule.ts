@@ -1,7 +1,7 @@
+import { VERSION } from 'ag-charts-community';
 import type { SeriesAreaPluginModuleDefinition } from 'ag-charts-core';
 import type { AgSeriesAreaBackgroundRegion } from 'ag-charts-types';
 
-import { VERSION } from '../../version';
 import { BackgroundRegionsPlugin } from './backgroundRegionsPlugin';
 import { CartesianBackgroundRegion } from './cartesianBackgroundRegion';
 

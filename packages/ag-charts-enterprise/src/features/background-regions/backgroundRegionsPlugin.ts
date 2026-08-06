@@ -1,3 +1,4 @@
+import { _ModuleSupport } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
     ChartAxisDirection,
@@ -7,19 +8,16 @@ import {
     jsonDiff,
 } from 'ag-charts-core';
 
-import type { ChartSeriesAreaRegistry } from '../../module/moduleContext';
-import { Group } from '../../scene/group';
-import type { SeriesAreaContext } from '../series-area/seriesAreaContext';
-import type { BackgroundRegion } from './backgroundRegion';
-
 export class BackgroundRegionsPlugin extends AbstractModuleInstance implements SeriesAreaPluginModuleInstance {
-    private instances: BackgroundRegion[] = [];
+    private instances: _ModuleSupport.BackgroundRegion[] = [];
     private lastOptions: NormalisedSeriesAreaBackgroundRegion[] | undefined;
 
-    private readonly regionGroup = new Group({ name: 'BackgroundRegions-Region' });
-    private readonly labelGroup = new Group({ name: 'BackgroundRegions-Label' });
+    private readonly regionGroup = new _ModuleSupport.Group({ name: 'BackgroundRegions-Region' });
+    private readonly labelGroup = new _ModuleSupport.Group({ name: 'BackgroundRegions-Label' });
 
-    constructor(private readonly ctx: DynamicContext<ChartSeriesAreaRegistry<SeriesAreaContext>>) {
+    constructor(
+        private readonly ctx: DynamicContext<_ModuleSupport.ChartSeriesAreaRegistry<_ModuleSupport.SeriesAreaContext>>
+    ) {
         super();
         this.ctx = ctx;
         this.ctx.parent.attachSeriesAreaUnderlay(this.regionGroup);
@@ -55,7 +53,7 @@ export class BackgroundRegionsPlugin extends AbstractModuleInstance implements S
         this.labelGroup.visible = visible;
     }
 
-    getInstances(): readonly BackgroundRegion[] {
+    getInstances(): readonly _ModuleSupport.BackgroundRegion[] {
         return this.instances;
     }
 
@@ -76,17 +74,17 @@ export class BackgroundRegionsPlugin extends AbstractModuleInstance implements S
         super.destroy();
     }
 
-    private attachInstance(region: BackgroundRegion): void {
+    private attachInstance(region: _ModuleSupport.BackgroundRegion): void {
         this.regionGroup.appendChild(region.regionGroup);
         this.labelGroup.appendChild(region.labelGroup);
     }
 
-    private detachInstance(region: BackgroundRegion): void {
+    private detachInstance(region: _ModuleSupport.BackgroundRegion): void {
         region.regionGroup.remove();
         region.labelGroup.remove();
     }
 
-    private initInstance(region: BackgroundRegion, opts: NormalisedSeriesAreaBackgroundRegion): void {
+    private initInstance(region: _ModuleSupport.BackgroundRegion, opts: NormalisedSeriesAreaBackgroundRegion): void {
         const xAxisID =
             opts.xRange?.axis == null ? undefined : this.ctx.axisManager.getRemappedAxisId(opts.xRange.axis);
         const yAxisID =

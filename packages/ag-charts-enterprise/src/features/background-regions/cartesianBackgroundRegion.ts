@@ -1,21 +1,18 @@
+import { _ModuleSupport } from 'ag-charts-community';
 import { type NormalisedSeriesAreaBackgroundRegion, type Scale, Vec4, createId } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
-import { Group } from '../../scene/group';
-import { Rect } from '../../scene/shape/rect';
-import type { BackgroundRegion } from './backgroundRegion';
-
-export class CartesianBackgroundRegion implements BackgroundRegion {
+export class CartesianBackgroundRegion implements _ModuleSupport.BackgroundRegion {
     static readonly className = 'BackgroundRegion';
     readonly internalId = createId(this);
 
     xScale?: Scale<any, number, number | AgTimeInterval | AgTimeIntervalUnit>;
     yScale?: Scale<any, number, number | AgTimeInterval | AgTimeIntervalUnit>;
 
-    readonly regionGroup = new Group({ name: this.internalId });
-    readonly labelGroup = new Group({ name: this.internalId });
+    readonly regionGroup = new _ModuleSupport.Group({ name: this.internalId });
+    readonly labelGroup = new _ModuleSupport.Group({ name: this.internalId });
 
-    private readonly regionNode = this.regionGroup.appendChild(new Rect());
+    private readonly regionNode = this.regionGroup.appendChild(new _ModuleSupport.Rect());
 
     private opts?: NormalisedSeriesAreaBackgroundRegion;
 

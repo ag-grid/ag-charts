@@ -1,17 +1,17 @@
 import { describe } from 'vitest';
 
 import { AgCharts } from 'ag-charts-community';
-import type { AgCartesianChartOptions } from 'ag-charts-types';
-
 import {
     type CartesianTestCase,
     cartesianChartAssertions,
     compareImageSnapshot,
-    prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
-} from '../test/utils';
+} from 'ag-charts-community-test';
+import type { AgCartesianChartOptions } from 'ag-charts-types';
+
+import { prepareEnterpriseTestOptions } from '../../test/utils';
 
 const NUMERIC: AgCartesianChartOptions = {
     data: [
@@ -153,8 +153,7 @@ describe('Background Regions', () => {
         'for %s it should create chart instance as expected',
         async (_exampleName, example) => {
             const options: AgCartesianChartOptions = { ...example.options };
-            // prepareEnterpriseTestOptions(options);
-            prepareTestOptions(options);
+            prepareEnterpriseTestOptions(options);
 
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
@@ -178,8 +177,7 @@ describe('Background Regions', () => {
         'for %s it should render to canvas as expected',
         async (_exampleName, example) => {
             const options: AgCartesianChartOptions = { ...example.options };
-            // prepareEnterpriseTestOptions(options);
-            prepareTestOptions(options);
+            prepareEnterpriseTestOptions(options);
 
             chart = AgCharts.create(options);
             await compare();
