@@ -590,7 +590,7 @@ export class ContextMenu extends AbstractModuleInstance {
             return () => {
                 const { chartService: chart } = this.ctx;
                 const pickedNodes = this.pickedNodes;
-                if (!pickedNodes || !pickedNodes[0]) return;
+                if (!pickedNodes?.[0]) return;
 
                 const coordinates: AgCoordinates | undefined = this.ctx.chartService.toAgCoordinates(event);
                 const callers: (Caller | undefined)[] = [pickedNodes[0].series.properties, chart];
