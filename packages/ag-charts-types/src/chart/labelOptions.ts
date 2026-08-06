@@ -1,8 +1,8 @@
 import type {
+    BorderOptions,
     FillOptions,
     LabelBoxOptions,
     Padding,
-    StrokeOptions,
     TextOptions,
     Toggleable,
 } from '../series/cartesian/commonOptions';
@@ -31,8 +31,8 @@ export interface AgChartLabelPlacementStyleOptions extends Pick<TextOptions, 'co
     cornerRadius?: PixelSize;
     /** Padding between the label text and the box edge. */
     padding?: Padding;
-    /** Border stroke of the label box. Use `label.border.enabled` to show or hide it. */
-    border?: StrokeOptions;
+    /** Border applied to the label box for this placement. */
+    border?: BorderOptions;
 }
 
 /** Label style overrides applied according to the placement resolved at layout time. */

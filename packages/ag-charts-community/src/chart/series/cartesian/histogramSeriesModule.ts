@@ -10,6 +10,7 @@ import {
     LABEL_BOXING_TOP_LEVEL_DEFAULTS,
     LABEL_OVERFLOW_ALWAYS_SHOW,
     LABEL_OVERFLOW_DEFAULTS,
+    LABEL_PLACEMENT_STYLE_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
@@ -53,10 +54,8 @@ const themeTemplate: ExtensibleTheme<'histogram'> = {
                 alwaysShow: LABEL_OVERFLOW_ALWAYS_SHOW,
                 ...undocumentedThemeOptions({ collideWith: { seriesItems: true } }),
             },
-            insideStyle: {
-                color: { $isUserOption: ['../color', { $path: '../color' }, { $ref: 'chartBackgroundColor' }] },
-            },
-            outsideStyle: { color: { $isUserOption: ['../color', { $path: '../color' }, { $ref: 'textColor' }] } },
+            insideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('chartBackgroundColor'),
+            outsideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('textColor'),
             placement: 'inside-center',
         },
         shadow: {
