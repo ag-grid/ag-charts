@@ -12,9 +12,26 @@ on:
     push:
         branches:
             - 'latest'
+            # TEMPORARY, remove before merge. `workflow_dispatch` cannot reach a
+            # workflow that is not yet on the default branch — verified:
+            # "HTTP 404: workflow cloud-cache-bake.yml not found on the default
+            # branch" — so a push trigger on this branch is the only way to
+            # exercise the bake before it lands.
+            - 'at/fix-cloud-session-hook-install'
         paths:
             - 'yarn.lock'
+            # Re-bake when the bake logic changes, not only when dependencies do.
+            # Otherwise a fix to the action sits unpublished until the next
+            # unrelated lockfile change happens to pick it up.
+            - '.github/workflows/cloud-cache-bake.yml'
+            - 'external/ag-shared/github/actions/cloud-cache-bake/**'
     workflow_dispatch:
+        inputs:
+            force:
+                description: 'Re-bake and overwrite even when an asset for this lockfile already exists.'
+                type: boolean
+                required: false
+                default: false
 
 permissions:
     contents: write
@@ -40,3 +57,6 @@ jobs:
 
             - name: Bake and publish
               uses: ./external/ag-shared/github/actions/cloud-cache-bake
+              with:
+                  # Empty on a push event, which reads as "not forced".
+                  force: ${{ inputs.force }}

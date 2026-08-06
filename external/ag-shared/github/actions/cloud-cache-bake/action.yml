@@ -31,6 +31,10 @@ inputs:
         description: 'How many of the most recent assets to retain, so the tag does not grow without bound. Older lockfiles fall back to a local install.'
         required: false
         default: '5'
+    force:
+        description: "Re-bake and overwrite even when an asset for this lockfile already exists. Anything other than 'true' is ignored."
+        required: false
+        default: 'false'
     github-token:
         description: 'Token with contents:write, to create the release and upload assets.'
         required: false
@@ -88,9 +92,16 @@ runs:
               GH_TOKEN: ${{ inputs.github-token }}
               TAG: ${{ inputs.release-tag }}
               ASSET: ${{ steps.key.outputs.asset }}
+              FORCE: ${{ inputs.force }}
           run: |
               set -euo pipefail
-              if gh release view "$TAG" --json assets -q '.assets[].name' 2>/dev/null | grep -qxF "$ASSET"; then
+              # A manual run is usually asking for a re-bake — the asset existing is
+              # the normal state, so without this a dispatch would almost always be
+              # a no-op and look like a broken workflow.
+              if [[ "$FORCE" == 'true' ]]; then
+                  echo 'hit=false' >>"$GITHUB_OUTPUT"
+                  echo "::notice::force requested; re-baking ${ASSET}"
+              elif gh release view "$TAG" --json assets -q '.assets[].name' 2>/dev/null | grep -qxF "$ASSET"; then
                   echo 'hit=true' >>"$GITHUB_OUTPUT"
                   echo "::notice::${ASSET} is already published; skipping the bake"
               else
