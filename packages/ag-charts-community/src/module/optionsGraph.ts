@@ -1322,7 +1322,11 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
 
         const partialKeys = Object.keys(partialOptions);
 
-        return debug.group(`OptionsGraph.resolvePartial() - ${path.join('.')} [${partialKeys}]`, () => {
+        // Series stylers resolve partials per datum, so the label is only worth building when it will
+        // be printed.
+        const debugLabel = debug.check() ? `OptionsGraph.resolvePartial() - ${path.join('.')} [${partialKeys}]` : '';
+
+        return debug.group(debugLabel, () => {
             if (partialKeys.length === 0) return {} as Resolved<Partial<T>>;
 
             if (cssVariables) {
