@@ -2,6 +2,7 @@
 // cspell:ignore vars
 import { createHash } from 'node:crypto';
 import { getEntry, type CollectionEntry } from 'astro:content';
+import { ClientRouter } from 'astro:transitions';
 import { getFavIconsData, getAppleTouchIconsData } from '@utils/favicons';
 import SiteHeader from '@ag-website-shared/components/site-header/SiteHeader.astro';
 import dsStylesUrl from '@design-system/design-system.scss?url';
@@ -201,6 +202,7 @@ const structuredData: JsonLdObject[] = includeStructuredData
         {(!isProduction || isArchive || noIndex) && <meta name="robots" content="noindex" />}
         <meta name="generator" content={Astro.generator} />
         <title>{title}</title>
+        <ClientRouter />
         {!isStaging && <link rel="canonical" href={canonicalUrl} />}
         {markdownUrl && <link rel="alternate" type="text/markdown" href={markdownUrl} />}
         <link rel="sitemap" type="application/xml" title="Sitemap" href={urlWithBaseUrl("/sitemap-index.xml")} />
@@ -286,6 +288,10 @@ const structuredData: JsonLdObject[] = includeStructuredData
         </div>
         {!hideFooter && <Footer client:load footerItems={footerItems} />}
         <DevTools client:only="react" />
+
+        {/* Externalised to a 'self' script so the site CSP can drop script-src 'unsafe-inline';
+           see public/scripts/persist-injected-styles.js for why it is needed. */}
+        <script is:inline src={urlWithBaseUrl('/scripts/persist-injected-styles.js')}></script>
 
         <style lang="scss">
             @use 'design-system' as *;

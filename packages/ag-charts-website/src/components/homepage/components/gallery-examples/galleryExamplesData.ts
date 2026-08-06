@@ -119,17 +119,36 @@ export async function getGalleryExamplesJs({ galleryData, allGalleryData }: Gall
     const startRegex = new RegExp(`"${escape(EXAMPLE_CODE_START)}`, 'g');
     const endRegex = new RegExp(`${escape(EXAMPLE_CODE_END)}"`, 'g');
     const darkModeSnippet = getDarkModeSnippet({ chartAPI: 'agCharts.AgCharts' });
-    const examplesString =
-        JSON.stringify(updateExamples, null, 2)
-            .replaceAll(startRegex, '')
-            .replaceAll(endRegex, '')
-            .replaceAll(replaceNewlineToken, '\n')
-            .replaceAll('\\\\n', '\\n')
-            // Remove escaped quotes
-            .replaceAll('\\"', '"')
-            .replaceAll("\\'", "'") +
-        '\n' +
-        darkModeSnippet;
+    const examplesString = JSON.stringify(updateExamples, null, 2)
+        .replaceAll(startRegex, '')
+        .replaceAll(endRegex, '')
+        .replaceAll(replaceNewlineToken, '\n')
+        .replaceAll('\\\\n', '\\n')
+        // Remove escaped quotes
+        .replaceAll('\\"', '"')
+        .replaceAll("\\'", "'");
 
-    return `window.${GLOBAL_UPDATE_EXAMPLES_VARIABLE} = ${examplesString};`;
+    // The dark-mode snippet reads the AgCharts UMD global, which arrives via a separate
+    // <script>. The client-side router re-inserts scripts dynamically, so document order
+    // no longer guarantees the UMD has executed by the time this bundle runs.
+    return `window.${GLOBAL_UPDATE_EXAMPLES_VARIABLE} = ${examplesString};
+
+(function () {
+    var attemptsLeft = 600;
+
+    function whenAgChartsReady(callback) {
+        if (globalThis.agCharts) {
+            callback();
+        } else if (attemptsLeft-- > 0) {
+            requestAnimationFrame(function () {
+                whenAgChartsReady(callback);
+            });
+        }
+    }
+
+    whenAgChartsReady(function () {
+${darkModeSnippet}
+    });
+})();
+`;
 }

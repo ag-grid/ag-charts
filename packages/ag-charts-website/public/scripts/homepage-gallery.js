@@ -5,18 +5,33 @@
  * names, so a static SHA-256 hash would change every build — hence externalisation
  * rather than hashing. Configuration arrives via data- attributes.
  *
- * Must load as a classic, non-deferred script placed after the AgCharts UMD script:
- * it reads document.currentScript (only set during synchronous execution), so the
- * data- attributes are captured up front for use by the deferred init().
+ * Must load as a classic script so document.currentScript resolves (it is only set
+ * during synchronous execution) and the data- attributes can be captured up front.
+ *
+ * Initialisation hangs off astro:page-load rather than DOMContentLoaded, and waits
+ * for the AgCharts UMD instead of assuming it: the client-side router replaces the
+ * whole <body> and re-inserts scripts dynamically, so they no longer run in
+ * document order, DOMContentLoaded does not fire again, and this file is executed
+ * at most once per session — so the listener has to outlive it.
  */
 (function () {
     const el = document.currentScript;
-    const initialExampleId = el.dataset.initialExampleId;
-    const buttonsClass = el.dataset.buttonsClass;
-    const activeButtonClass = el.dataset.activeButtonClass;
-    const GLOBAL_UPDATE_EXAMPLES_VARIABLE = el.dataset.updateExamplesVar;
-    const GLOBAL_UPDATE_FUNCTION_NAME = el.dataset.updateFnName;
-    const loadingId = el.dataset.loadingId;
+    const config = {
+        initialExampleId: el.dataset.initialExampleId,
+        buttonsClass: el.dataset.buttonsClass,
+        activeButtonClass: el.dataset.activeButtonClass,
+        updateExamplesVariable: el.dataset.updateExamplesVar,
+        updateFunctionName: el.dataset.updateFnName,
+        loadingId: el.dataset.loadingId,
+    };
+
+    if (globalThis.__agHomepageGalleryListening) {
+        return;
+    }
+    globalThis.__agHomepageGalleryListening = true;
+
+    const UMD_TIMEOUT_MS = 10000;
+    let activeChartManager = null;
 
     function createChartManager({ agCharts, onFirstLoad }) {
         let chartInstance = null;
@@ -61,43 +76,40 @@
 
         return {
             apply,
+            destroy: () => {
+                chartInstance?.destroy();
+                chartInstance = null;
+            },
         };
     }
 
-    const chartManager = createChartManager({
-        agCharts: agCharts.AgCharts,
-        onFirstLoad: () => {
-            removeLoading();
-        },
-    });
-    const buttons = document.querySelectorAll(`.${buttonsClass}`);
-    function updateActiveButton(button) {
-        buttons.forEach((btn) => btn.classList.remove(activeButtonClass));
-        button.classList.add(activeButtonClass);
-    }
-
-    function removeLoading() {
-        const loadingElement = document.getElementById(loadingId);
-        if (loadingElement) {
-            loadingElement.remove();
-        }
-    }
-
-    function updateExample(exampleId) {
-        const button = document.querySelector(`.${buttonsClass}[data-example-id="${exampleId}"]`);
-        updateActiveButton(button);
-
-        window[GLOBAL_UPDATE_EXAMPLES_VARIABLE][exampleId]();
-    }
-
     function init() {
-        let currentExampleId = initialExampleId;
+        const buttons = document.querySelectorAll(`.${config.buttonsClass}`);
+        if (buttons.length === 0) {
+            return;
+        }
+
+        const chartManager = createChartManager({
+            agCharts: globalThis.agCharts.AgCharts,
+            onFirstLoad: () => {
+                document.getElementById(config.loadingId)?.remove();
+            },
+        });
+        activeChartManager = chartManager;
+
+        let currentExampleId = config.initialExampleId;
 
         // Called from example `updateExample` function
-        window[GLOBAL_UPDATE_FUNCTION_NAME] = (options) => {
-            chartManager.apply({
-                options,
-            });
+        window[config.updateFunctionName] = (options) => {
+            chartManager.apply({ options });
+        };
+
+        const updateExample = (exampleId) => {
+            const button = document.querySelector(`.${config.buttonsClass}[data-example-id="${exampleId}"]`);
+            buttons.forEach((btn) => btn.classList.remove(config.activeButtonClass));
+            button?.classList.add(config.activeButtonClass);
+
+            window[config.updateExamplesVariable][exampleId]();
         };
 
         buttons.forEach((button) => {
@@ -113,14 +125,41 @@
                 updateExample(exampleId);
             });
 
-            if (initialExampleId === exampleId) {
+            if (config.initialExampleId === exampleId) {
                 updateExample(exampleId);
             }
         });
     }
 
-    // Initialise once DOM is ready
-    document.addEventListener('DOMContentLoaded', () => {
-        init();
+    function whenReady(callback) {
+        if (globalThis.agCharts && globalThis[config.updateExamplesVariable]) {
+            callback();
+            return;
+        }
+
+        const deadline = Date.now() + UMD_TIMEOUT_MS;
+        const poll = () => {
+            if (globalThis.agCharts && globalThis[config.updateExamplesVariable]) {
+                callback();
+            } else if (Date.now() < deadline) {
+                requestAnimationFrame(poll);
+            }
+            // Otherwise give up quietly and leave the loading state in place.
+        };
+        requestAnimationFrame(poll);
+    }
+
+    document.addEventListener('astro:page-load', () => {
+        if (!document.getElementById(config.loadingId)) {
+            // Not the homepage (or the gallery is absent) — nothing to wire up.
+            return;
+        }
+        whenReady(init);
+    });
+
+    // The chart outlives the <body> it was attached to unless it is torn down.
+    document.addEventListener('astro:before-swap', () => {
+        activeChartManager?.destroy();
+        activeChartManager = null;
     });
 })();

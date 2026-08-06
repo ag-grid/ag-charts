@@ -93,35 +93,52 @@ const markdownUrl = DISABLE_MARKDOWN_DOCS ? undefined : urlWithBaseUrl('/gallery
     import { scrollspy } from 'src/utils/scrollspy';
     import type { MarkdownHeading } from 'astro';
 
-    const navAnchors = document.querySelectorAll<HTMLAnchorElement>('a[href^="#"]');
-    const headings = [] as MarkdownHeading[];
+    let teardownScrollspy: (() => void) | undefined;
 
-    navAnchors.forEach((anchor) => {
-        const id = anchor.getAttribute('href')!.substring(1);
+    // Re-wired on every navigation rather than once at module scope: the anchors and
+    // heading elements are captured by reference and the client-side router replaces
+    // them on each visit, while this module only ever executes once per URL.
+    function wireGalleryNav() {
+        teardownScrollspy?.();
+        teardownScrollspy = undefined;
 
-        // Add smooth scrolling for menu anchor links
-        anchor.addEventListener('click', function (e) {
-            e.preventDefault();
-            scrollIntoViewById(id);
+        // Measured, not read off --gallery-sticky-top: getPropertyValue returns that
+        // variable's calc() expression unevaluated.
+        const toolbar = document.querySelector<HTMLElement>('[data-gallery-toolbar]');
+        if (!toolbar) {
+            return; // Not the gallery page.
+        }
+
+        const navAnchors = document.querySelectorAll<HTMLAnchorElement>('a[href^="#"]');
+        const headings = [] as MarkdownHeading[];
+
+        navAnchors.forEach((anchor) => {
+            const id = anchor.getAttribute('href')!.substring(1);
+
+            // Add smooth scrolling for menu anchor links
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                scrollIntoViewById(id);
+            });
+
+            headings.push({ slug: id, depth: 1, text: anchor.text.trim() });
         });
 
-        headings.push({ slug: id, depth: 1, text: anchor.text.trim() });
-    });
+        const siteHeader = document.querySelector<HTMLElement>('.site-header');
 
-    // Measured, not read off --gallery-sticky-top: getPropertyValue returns that
-    // variable's calc() expression unevaluated.
-    const siteHeader = document.querySelector<HTMLElement>('.site-header');
-    const toolbar = document.querySelector<HTMLElement>('[data-gallery-toolbar]');
+        teardownScrollspy = scrollspy(
+            headings,
+            (slug) => {
+                for (const navItem of navAnchors) {
+                    navItem.classList.toggle('active', navItem.getAttribute('href') === `#${slug}`);
+                }
+            },
+            { offset: (siteHeader?.offsetHeight ?? 0) + toolbar.offsetHeight }
+        );
+    }
 
-    scrollspy(
-        headings,
-        (slug) => {
-            for (const navItem of navAnchors) {
-                navItem.classList.toggle('active', navItem.getAttribute('href') === `#${slug}`);
-            }
-        },
-        { offset: (siteHeader?.offsetHeight ?? 0) + (toolbar?.offsetHeight ?? 0) }
-    );
+    // Fires on the initial load as well as after every client-side navigation.
+    document.addEventListener('astro:page-load', wireGalleryNav);
 </script>
 
 <style lang="scss">
