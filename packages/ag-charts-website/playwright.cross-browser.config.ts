@@ -82,6 +82,15 @@ export default defineConfig({
                 },
                 // See the firefox project: needed for `interactive-tooltip`'s tap case.
                 hasTouch: true,
+                // `Desktop Safari` is a retina descriptor (`deviceScaleFactor: 2`), unlike
+                // `Desktop Chrome` and `Desktop Firefox`. The chart sizes its canvas element in
+                // device pixels (`hdpiCanvas`: `element.width = cssWidth * pixelRatio`), and the
+                // e2e helpers derive interaction coordinates from those attributes
+                // (`locateCanvas` in `e2e/util.ts`), so at scale 2 every canvas point computed by a
+                // spec lands at twice its intended offset — off the canvas entirely for anything
+                // near the middle or the axes. Pinning to 1 keeps the three engines in the same
+                // coordinate space, which is also what makes their baselines comparable.
+                deviceScaleFactor: 1,
             },
             testMatch: PART_A_SPECS,
         },

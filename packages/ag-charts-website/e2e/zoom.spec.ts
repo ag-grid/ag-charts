@@ -148,13 +148,7 @@ test.describe('zoom', () => {
         });
     });
 
-    test('axis drag keeps the resize cursor when released over the axis', async ({ page, browserName }) => {
-        // AG-18058: on WebKit the probe loop below never observes `ew-resize` — the engine does not
-        // resolve the axis-band cursor from a synthetic `mouse.move` the way Chromium and Firefox do,
-        // so the axis is never located and the drag has nothing to act on. The rest of the spec runs
-        // on all three engines; re-enable here once the divergence is understood (AG-18024).
-        test.skip(browserName === 'webkit', 'WebKit does not resolve the axis cursor from mouse.move');
-
+    test('axis drag keeps the resize cursor when released over the axis', async ({ page }) => {
         const { url } = toExamplePageUrl('zoom-e2e', 'zoom-crosshairs', 'vanilla');
 
         await gotoExample(page, url);
