@@ -40,7 +40,6 @@ import {
 import type {
     AgActiveItemState,
     AgChartLabelFormatterParams,
-    AgCoordinates,
     AgDrawingMode,
     AgInitialStateLegendOptions,
     AgNodeParams,
@@ -88,6 +87,7 @@ import type { SeriesTooltip } from './seriesTooltip';
 import {
     type BucketLookupFeature,
     type DatumIndex,
+    type FireNodeEventParams,
     HighlightState,
     type INodeEvent,
     type ISeries,
@@ -1202,47 +1202,35 @@ export abstract class Series<
         callWithContext([this.properties, this.ctx.chartService], this.fireEventWrapper, event);
     }
 
-    fireNodeClickEvent(event: Event, datums: TDatum[], coordinates: AgCoordinates | undefined): boolean {
-        return this.fireNodeEvent('seriesNodeClick', event, datums, coordinates);
+    fireNodeClickEvent(opts: FireNodeEventParams): boolean {
+        return this.fireNodeEvent('seriesNodeClick', opts);
     }
 
-    fireNodeDoubleClickEvent(event: Event, datums: TDatum[], coordinates: AgCoordinates | undefined): boolean {
-        return this.fireNodeEvent('seriesNodeDoubleClick', event, datums, coordinates);
+    fireNodeDoubleClickEvent(opts: FireNodeEventParams): boolean {
+        return this.fireNodeEvent('seriesNodeDoubleClick', opts);
     }
 
-    private fireNodeEvent<T extends 'seriesNodeClick' | 'seriesNodeDoubleClick'>(
-        type: T,
-        event: Event,
-        datums: TDatum[],
-        coordinates: AgCoordinates | undefined
-    ) {
-        const clickEvent = this.createNodeEvent(type, event, datums, coordinates);
+    private fireNodeEvent<T extends 'seriesNodeClick' | 'seriesNodeDoubleClick'>(type: T, opts: FireNodeEventParams) {
+        const clickEvent = this.createNodeEvent(type, opts);
         this.fireEvent(clickEvent);
         return !clickEvent.defaultPrevented;
     }
 
-    createNodeContextMenuActionEvent(
-        event: Event,
-        datums: TDatum[],
-        coordinates: AgCoordinates | undefined
-    ): INodeEvent<'nodeContextMenuAction'> {
-        return this.createNodeEvent('nodeContextMenuAction', event, datums, coordinates);
+    createNodeContextMenuActionEvent(opts: FireNodeEventParams): INodeEvent<'nodeContextMenuAction'> {
+        return this.createNodeEvent('nodeContextMenuAction', opts);
     }
 
     // Do not override. Override createNodeParams instead.
-    private createNodeEvent<T extends 'seriesNodeClick' | 'seriesNodeDoubleClick' | 'nodeContextMenuAction'>(
+    createNodeEvent<T extends 'seriesNodeClick' | 'seriesNodeDoubleClick' | 'nodeContextMenuAction'>(
         type: T,
-        event: Event,
-        datums: TDatum[],
-        coordinates: AgCoordinates | undefined
+        opts: FireNodeEventParams
     ) {
+        const { event, datums, winner, coordinates } = opts;
         const allNodeParams: AgNodeParams<unknown>[] = datums.map((d) => d.series.createNodeParams(d));
 
-        // datums[0] is the "winner" for backward compatibility.
-        const datum = datums[0];
         let defaultPrevented = false;
         return {
-            ...this.createNodeParams(datum),
+            ...allNodeParams[winner],
             type,
             event,
             coordinates,

@@ -110,6 +110,20 @@ export interface INodeEvent<TEvent extends string = SeriesNodeEventTypes>
     preventDefault(): void;
 }
 
+export type FireNodeEventParams = {
+    event: Event;
+    /** Every node picked at this point, flat and in hit-test order; may span several series. */
+    datums: SeriesNodeDatum[];
+    /**
+     * Index into `datums` of the node whose params are flattened onto the event root. Historically, click events only
+     * ever reported 1 series-node at most. Nowadays, left/right click events report all series-nodes that overlap at
+     * this click-point (`allNodesParams` / `allShowOnParams` ). The `winner` is that series-node for backward
+     * compatibility.
+     */
+    winner: number;
+    coordinates: AgCoordinates | undefined;
+};
+
 export interface ISeriesProperties {
     cursor: string;
     xKey?: string;
@@ -136,13 +150,9 @@ export interface ISeries<TDatum extends SeriesNodeDatum, TProps extends ISeriesP
     hasData: boolean;
     update(opts: { seriesRect?: BBox }): Promise<void> | void;
     updatePlacedLabelData?(labels: PlacedLabel<TLabel>[]): void;
-    fireNodeClickEvent(event: Event, datums: SeriesNodeDatum[], coordinates: AgCoordinates | undefined): boolean;
-    fireNodeDoubleClickEvent(event: Event, datums: SeriesNodeDatum[], coordinates: AgCoordinates | undefined): void;
-    createNodeContextMenuActionEvent(
-        event: Event,
-        datums: TDatum[],
-        coordinates: AgCoordinates | undefined
-    ): INodeEvent<'nodeContextMenuAction'>;
+    fireNodeClickEvent(opts: FireNodeEventParams): boolean;
+    fireNodeDoubleClickEvent(opts: FireNodeEventParams): void;
+    createNodeContextMenuActionEvent(opts: FireNodeEventParams): INodeEvent<'nodeContextMenuAction'>;
     createNodeParams(datum: TDatum): AgNodeParams<unknown>;
     getLegendData<T extends ChartLegendType>(legendType: T): ChartLegendDatum<T>[];
     getLegendData(legendType: ChartLegendType): ChartLegendDatum<ChartLegendType>[];

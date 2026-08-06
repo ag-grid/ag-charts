@@ -65,7 +65,8 @@ import {
     type SeriesNodePickIntent,
     type UnknownSeries,
 } from './series';
-import { type DatumIndex, SelectionState, type SeriesNodeDatum } from './seriesTypes';
+import type { DatumIndex, FireNodeEventParams, SeriesNodeDatum } from './seriesTypes';
+import { SelectionState } from './seriesTypes';
 import { getDatumRefPoint } from './util';
 
 type FocusAnnounceMode = 'always' | 'never' | 'when-changed';
@@ -841,7 +842,13 @@ export class SeriesAreaManager extends BaseManager {
                 this.chart.ctx.chartService,
                 datum
             );
-            const defaultBehavior = series.fireNodeClickEvent(sourceEvent, [datum], coordinates);
+            // Keyboard nav activates exactly one datum: single-entry list, winner is index 0.
+            const defaultBehavior = series.fireNodeClickEvent({
+                event: sourceEvent,
+                datums: [datum],
+                winner: 0,
+                coordinates,
+            });
             if (defaultBehavior) {
                 const syntheticEvent: KeyboardSyntheticMouseWidgetEvent = {
                     type: 'click',
@@ -886,9 +893,20 @@ export class SeriesAreaManager extends BaseManager {
         // interaction via the `series-area:click` event emitted by the caller, but must not also
         // reach the user's node click / double-click listeners (AG-17947).
         const firesUserClickListeners = updated.active.series.firesUserClickListeners(pickedNodes.target);
+
+        // `matches` is the flat, hit-test-ordered pick, spanning every series that overlapped the point.
+        // `updated.active` is pickManager's chosen candidate, which is not necessarily matches[0].
+        const { matches } = pickedNodes;
+        const nodeEventOpts: FireNodeEventParams = {
+            event: event.sourceEvent,
+            datums: matches,
+            winner: matches.indexOf(updated.active),
+            coordinates,
+        };
+
         if (event.type === 'click') {
             const defaultBehavior = firesUserClickListeners
-                ? updated.active.series.fireNodeClickEvent(event.sourceEvent, [updated.active], coordinates)
+                ? updated.active.series.fireNodeClickEvent(nodeEventOpts)
                 : true;
             if (defaultBehavior) {
                 const next = this.pickManager.nextCandidate();
@@ -917,7 +935,7 @@ export class SeriesAreaManager extends BaseManager {
             event.preventZoomDblClick = distance === 0;
 
             if (firesUserClickListeners) {
-                updated.active.series.fireNodeDoubleClickEvent(event.sourceEvent, [updated.active], coordinates);
+                updated.active.series.fireNodeDoubleClickEvent(nodeEventOpts);
             }
             return { node: updated.active, target: pickedNodes.target };
         } else {

@@ -145,7 +145,7 @@ describe('WaterfallSeries', () => {
     }
 
     function fireNodeClick(series: WaterfallSeries, datum: WaterfallNodeDatum): void {
-        series.fireNodeClickEvent(new Event('click'), [datum], undefined);
+        series.fireNodeClickEvent({ event: new Event('click'), datums: [datum], winner: 0, coordinates: undefined });
     }
 
     it('preserves bigint value precision in the data label and formatter callback (AG-16608)', async () => {
