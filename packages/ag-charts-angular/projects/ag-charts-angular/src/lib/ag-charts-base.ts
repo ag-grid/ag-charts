@@ -9,6 +9,7 @@ import {
     AgContextMenuGetItemsCallback,
     AgContextMenuItem,
     AgContextMenuOptions,
+    AgCrossLineListeners,
     AgSeriesListeners,
 } from 'ag-charts-community';
 
@@ -74,10 +75,7 @@ export abstract class AgChartsBase<Options extends {}> implements AfterViewInit,
         if (propsOptions.axes) {
             // `axes` is a dictionary keyed by axis name, not an array.
             patched.axes = Object.fromEntries(
-                Object.entries<any>(propsOptions.axes).map(([axisKey, axis]) => [
-                    axisKey,
-                    axis?.listeners ? { ...axis, listeners: this.patchListeners(axis.listeners) } : axis,
-                ])
+                Object.entries<any>(propsOptions.axes).map(([axisKey, axis]) => [axisKey, this.patchAxis(axis)])
             );
         }
         for (const captionKey of ['title', 'subtitle', 'footnote'] as const) {
@@ -94,6 +92,27 @@ export abstract class AgChartsBase<Options extends {}> implements AfterViewInit,
         return patched;
     }
 
+    // An axis carries listeners at two levels: its own, and one per cross line. Both re-enter the zone.
+    private patchAxis(axis: any): any {
+        if (!axis) return axis;
+
+        let patched = axis;
+        if (axis.listeners) {
+            patched = { ...patched, listeners: this.patchListeners(axis.listeners) };
+        }
+        if (Array.isArray(axis.crossLines)) {
+            patched = {
+                ...patched,
+                crossLines: axis.crossLines.map((crossLine: any) =>
+                    crossLine?.listeners
+                        ? { ...crossLine, listeners: this.patchListeners(crossLine.listeners) }
+                        : crossLine
+                ),
+            };
+        }
+        return patched;
+    }
+
     private patchListeners(
         listenerConfig:
             | AgChartLegendListeners
@@ -101,6 +120,7 @@ export abstract class AgChartsBase<Options extends {}> implements AfterViewInit,
             | AgBaseChartListeners<any>
             | AgAxisListeners
             | AgCaptionListeners
+            | AgCrossLineListeners
     ): any {
         const config: any = listenerConfig;
         const patched: any = {};
