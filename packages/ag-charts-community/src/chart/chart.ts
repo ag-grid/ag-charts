@@ -1804,7 +1804,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         // their initial options via chartState from construction.
         this.ctx.chartState.setValue('options', newChartOptions.processedOptions as unknown as ChartState['options']);
 
-        const modulesChanged = this.applyModules(newOpts);
+        const modulesChanged = this.applyModules();
 
         // Needs to be done before applying the series to detect if a seriesNode[Double]Click listener has been added
         if ('listeners' in deltaOptions) {
@@ -1843,6 +1843,9 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         if (this.applyAxes(this, newOpts, seriesStatus)) {
             forceNodeDataRefresh = true;
         }
+
+        // Apply the series area modules after the axes to ensure the axes are available for these modules.
+        this.applySeriesAreaModules(newOpts);
 
         // AG-16389: Only reset data if the user explicitly passed 'data' in their delta.
         const { userDeltaKeys } = newChartOptions;
@@ -2067,7 +2070,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         }
     }
 
-    private applyModules(options: AgChartOptions) {
+    private applyModules() {
         const { type: chartType } = this.constructor as any;
 
         let modulesChanged = false;
@@ -2091,13 +2094,13 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             modulesChanged = true;
         }
 
-        this.applySeriesAreaModules(options, chartType);
-
         return modulesChanged;
     }
 
-    private applySeriesAreaModules(options: AgChartOptions, chartType: any) {
+    private applySeriesAreaModules(options: AgChartOptions) {
         if (options.seriesArea == null) return;
+
+        const { type: chartType } = this.constructor as any;
 
         const seriesAreaModuleContext = this.seriesArea.createModuleContext();
         const seriesAreaModuleMap = this.seriesArea.getModuleMap();
@@ -2106,14 +2109,12 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             if (module.chartType && module.chartType !== chartType) continue;
 
             const optionsKey = module.optionsKey ?? module.name;
-            const pluginOpts = (options.seriesArea as any)[optionsKey];
-            const shouldBeEnabled = pluginOpts != null;
+            const pluginOptions = (options.seriesArea as any)[optionsKey];
+            const shouldBeEnabled = pluginOptions != null;
             const isEnabled = seriesAreaModuleMap.isEnabled(module.name);
 
             if (!shouldBeEnabled) {
-                if (isEnabled) {
-                    seriesAreaModuleMap.removeModule(module.name);
-                }
+                if (isEnabled) seriesAreaModuleMap.removeModule(module.name);
                 continue;
             }
 
@@ -2123,7 +2124,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             }
 
             const plugin = seriesAreaModuleMap.getModule(module.name) as SeriesAreaPluginModuleInstance;
-            plugin.applyOptions(pluginOpts);
+            plugin.applyOptions(pluginOptions);
         }
     }
 

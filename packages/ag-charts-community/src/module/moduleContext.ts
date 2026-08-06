@@ -112,6 +112,7 @@ export interface ChartSeriesRegistry extends ChartRegistry {
     series: { type: string };
 }
 
-export interface ChartSeriesAreaRegistry extends ChartRegistry {
+export interface ChartSeriesAreaRegistry<P> extends ChartRegistry {
     backgroundRegion: BackgroundRegion;
+    parent: P;
 }

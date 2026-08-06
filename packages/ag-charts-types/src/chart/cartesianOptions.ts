@@ -562,27 +562,34 @@ export interface AgCartesianCrossLineLabelOptions extends AgBaseCrossLineLabelOp
 }
 
 export interface AgSeriesAreaBackgroundRegion {
+    /** TODO */
     xRange?: AgSeriesAreaBackgroundRegionRange;
+    /** TODO */
     yRange?: AgSeriesAreaBackgroundRegionRange;
+    /** TODO */
     fill?: CssColor;
+    /** TODO */
     label?: AgSeriesAreaBackgroundRegionLabel;
 }
 
 export interface AgSeriesAreaBackgroundRegionRange {
+    /** TODO */
     axis?: string;
+    /** TODO */
     start?: AxisValue;
+    /** TODO */
     end?: AxisValue;
 }
 
 export interface AgSeriesAreaBackgroundRegionLabel extends Omit<AgChartLabelStyleOptions, 'fontFamily'> {
+    /** The font family to use for the label. A single family name, or an array of names used as fallbacks. */
+    fontFamily?: FontFamilyFull;
     /** The position of the Background Region label. */
     position?: AgSeriesAreaBackgroundRegionLabelPosition;
     /** The rotation of the Background Regino label in degrees. */
     rotation?: Degree;
     /** The text to show in the label. */
     text?: string;
-    /** The font family to use for the label. A single family name, or an array of names used as fallbacks. */
-    fontFamily?: FontFamilyFull;
 }
 
 export type AgSeriesAreaBackgroundRegionLabelPosition =

@@ -82,6 +82,7 @@ export interface SeriesPluginModuleInstance extends ModuleInstance {
 
 export interface SeriesAreaPluginModuleInstance extends ModuleInstance {
     applyOptions(this: void, options: any): void;
+    onSeriesAreaUpdate?(this: void): void;
 }
 
 export interface ModuleDefinition<

@@ -16,18 +16,22 @@ import { ModuleMap } from '../../module/moduleMap';
 import { Group } from '../../scene/group';
 import { Rect } from '../../scene/shape/rect';
 import type { BackgroundRegion } from '../background-regions/backgroundRegion';
+import type { SeriesAreaContext } from './seriesAreaContext';
 
 export class SeriesArea extends BaseProperties {
-    protected readonly node: Group;
-    protected readonly rectNode = new Rect();
+    private readonly seriesAreaGroup = new Group({
+        name: 'series-area-container',
+        zIndex: ZIndexMap.SERIES_AREA_CONTAINER,
+    });
+    private readonly borderNode = this.seriesAreaGroup.appendChild(new Rect());
 
     @Property
-    border = new Border(this.rectNode);
+    border = new Border(this.borderNode);
 
     @Property
     clip?: boolean;
 
-    @ProxyPropertyOnWrite('rectNode', 'cornerRadius')
+    @ProxyPropertyOnWrite('borderNode', 'cornerRadius')
     @Property
     cornerRadius: number = 0;
 
@@ -37,18 +41,19 @@ export class SeriesArea extends BaseProperties {
     protected readonly cleanup = new CleanupRegistry();
 
     private readonly moduleMap = new ModuleMap<SeriesAreaPluginModuleInstance>();
-    private moduleContext?: DynamicContext<ChartSeriesAreaRegistry>;
+    private moduleContext?: DynamicContext<ChartSeriesAreaRegistry<SeriesAreaContext>>;
+    private seriesAreaContext?: SeriesAreaContext;
+
+    private readonly underlayGroup = new Group({ name: 'SeriesArea-Underlay', zIndex: ZIndexMap.SERIES_AREA_UNDERLAY });
 
     constructor(protected readonly ctx: DynamicContext<ChartRegistry>) {
         super();
 
-        this.node = this.createNode();
-        this.node.append([this.rectNode]);
-
-        this.rectNode.fill = undefined;
+        this.borderNode.fill = undefined;
 
         this.cleanup.register(
-            ctx.scene.attachNode(this.node),
+            ctx.scene.attachNode(this.seriesAreaGroup),
+            ctx.scene.attachNode(this.underlayGroup),
             ctx.eventsHub.on('layout:complete', (e) => this.onLayoutComplete(e))
         );
     }
@@ -73,19 +78,30 @@ export class SeriesArea extends BaseProperties {
     }
 
     createModuleContext() {
-        this.moduleContext ??= this.ctx.child<{ backgroundRegion: BackgroundRegion }>();
+        this.seriesAreaContext ??= this.createSeriesAreaContext();
+        this.moduleContext ??= this.ctx
+            .child<{ backgroundRegion: BackgroundRegion; parent: SeriesAreaContext }>()
+            .constant('parent', this.seriesAreaContext);
         return this.moduleContext;
     }
 
-    protected createNode() {
-        return new Group({ name: 'series-area-container', zIndex: ZIndexMap.SERIES_AREA_CONTAINER });
+    update() {
+        for (const module of this.moduleMap.modules()) {
+            module.onSeriesAreaUpdate?.();
+        }
+    }
+
+    private createSeriesAreaContext(): SeriesAreaContext {
+        return {
+            attachSeriesAreaUnderlay: (group) => this.underlayGroup.appendChild(group),
+        };
     }
 
     protected onLayoutComplete(event: LayoutCompleteEvent) {
         const { x, y, width, height } = event.series.paddedRect;
-        this.rectNode.x = x;
-        this.rectNode.y = y;
-        this.rectNode.width = width;
-        this.rectNode.height = height;
+        this.borderNode.x = x;
+        this.borderNode.y = y;
+        this.borderNode.width = width;
+        this.borderNode.height = height;
     }
 }

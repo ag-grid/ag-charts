@@ -1,5 +1,6 @@
 import {
     AbstractModuleInstance,
+    ChartAxisDirection,
     type DynamicContext,
     type SeriesAreaPluginModuleInstance,
     jsonDiff,
@@ -7,6 +8,7 @@ import {
 
 import type { ChartSeriesAreaRegistry } from '../../module/moduleContext';
 import { Group } from '../../scene/group';
+import type { SeriesAreaContext } from '../series-area/seriesAreaContext';
 import type { BackgroundRegion } from './backgroundRegion';
 
 interface NormalisedSeriesAreaBackgroundRegion {}
@@ -18,9 +20,11 @@ export class BackgroundRegionsPlugin extends AbstractModuleInstance implements S
     private readonly regionGroup = new Group({ name: 'BackgroundRegions-Region' });
     private readonly labelGroup = new Group({ name: 'BackgroundRegions-Label' });
 
-    constructor(private readonly ctx: DynamicContext<ChartSeriesAreaRegistry>) {
+    constructor(private readonly ctx: DynamicContext<ChartSeriesAreaRegistry<SeriesAreaContext>>) {
         super();
         this.ctx = ctx;
+        this.ctx.parent.attachSeriesAreaUnderlay(this.regionGroup);
+        this.ctx.parent.attachSeriesAreaUnderlay(this.labelGroup);
     }
 
     applyOptions(options: NormalisedSeriesAreaBackgroundRegion[]) {
@@ -56,6 +60,13 @@ export class BackgroundRegionsPlugin extends AbstractModuleInstance implements S
         return this.instances;
     }
 
+    onSeriesAreaUpdate(): void {
+        for (const instance of this.instances) {
+            // TODO: visible flag
+            instance.update(true);
+        }
+    }
+
     override destroy(): void {
         for (const region of this.instances) {
             this.detachInstance(region);
@@ -77,7 +88,18 @@ export class BackgroundRegionsPlugin extends AbstractModuleInstance implements S
     }
 
     private initInstance(region: BackgroundRegion): void {
-        // region.scale = this.axisCtx.scale;
+        const xAxisContext =
+            region.xRange?.axis == null
+                ? this.ctx.axisManager.getAxisContext(ChartAxisDirection.X).at(0)
+                : this.ctx.axisManager.getAxisIdContext(region.xRange.axis);
+
+        const yAxisContext =
+            region.yRange?.axis == null
+                ? this.ctx.axisManager.getAxisContext(ChartAxisDirection.Y).at(0)
+                : this.ctx.axisManager.getAxisIdContext(region.yRange.axis);
+
+        region.xScale = xAxisContext?.scale;
+        region.yScale = yAxisContext?.scale;
     }
 
     private optionsEquivalent(options: NormalisedSeriesAreaBackgroundRegion[] | undefined): boolean {

@@ -3,6 +3,7 @@
  */
 export enum ZIndexMap {
     CHART_BACKGROUND,
+    SERIES_AREA_UNDERLAY,
     AXIS_BAND_HIGHLIGHT,
     AXIS_GRID,
     AXIS,
