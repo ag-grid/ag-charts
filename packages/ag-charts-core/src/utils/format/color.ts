@@ -171,45 +171,46 @@ export class Color implements IColor {
         throw new Error(`Malformed hexadecimal color string: '${str}'`);
     }
 
-    private static stringToRgba(str: string): number[] | undefined {
-        // Find positions of opening and closing parentheses.
-        let po = -1;
-        let pc = -1;
-        for (let i = 0; i < str.length; i++) {
-            const c = str[i];
-            if (po === -1 && c === '(') {
-                po = i;
-            } else if (c === ')') {
-                pc = i;
-                break;
-            }
+    // An r, g or b component: a percentage is relative to 100%, a bare number to 255 — clamped to [0, 1].
+    private static parseRgbComponent(part: string): number | undefined {
+        const value = Number.parseFloat(part);
+        if (!Number.isFinite(value)) {
+            return;
         }
+        return part.includes('%') ? clamp(0, value / 100, 1) : clamp(0, value / 255, 1);
+    }
 
-        if (po === -1 || pc === -1) return;
+    private static stringToRgba(str: string): number[] | undefined {
+        const po = str.indexOf('(');
+        const pc = str.indexOf(')');
+
+        if (po === -1 || pc === -1 || pc < po) return;
 
         const contents = str.substring(po + 1, pc);
-        const parts = contents.split(',');
-        const rgba: number[] = [];
 
-        for (let i = 0; i < parts.length; i++) {
-            const part = parts[i];
-            let value = Number.parseFloat(part);
-            if (!Number.isFinite(value)) {
-                return;
-            }
-            if (part.includes('%')) {
-                // percentage r, g, or b value
-                value = clamp(0, value, 100);
-                value /= 100;
-            } else if (i === 3) {
-                // alpha component
-                value = clamp(0, value, 1);
-            } else {
-                // absolute r, g, or b value
-                value = clamp(0, value, 255);
-                value /= 255;
-            }
-            rgba.push(value);
+        // The `/ alpha` form separates the alpha component with a slash; otherwise
+        // components are split on whitespace and/or commas, covering both the
+        // comma-separated and space-separated syntaxes.
+        const slash = contents.indexOf('/');
+        const head = slash === -1 ? contents : contents.substring(0, slash);
+        const parts = head.trim().split(/[\s,]+/);
+        if (slash !== -1) {
+            parts.push(contents.substring(slash + 1).trim());
+        }
+
+        if (parts.length < 3 || parts.length > 4) return;
+
+        const r = Color.parseRgbComponent(parts[0]);
+        const g = Color.parseRgbComponent(parts[1]);
+        const b = Color.parseRgbComponent(parts[2]);
+        if (r === undefined || g === undefined || b === undefined) return;
+
+        const rgba = [r, g, b];
+
+        if (parts.length === 4) {
+            const a = Color.parseUnitInterval(parts[3]);
+            if (a === undefined) return;
+            rgba.push(a);
         }
 
         return rgba;

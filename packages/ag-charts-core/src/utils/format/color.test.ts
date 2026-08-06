@@ -180,6 +180,53 @@ describe('Color', () => {
         }
     });
 
+    test('fromRgbaString accepts the space-separated syntax', () => {
+        {
+            const color = Color.fromRgbaString('rgb(120 240 100)');
+            expect(color.r).toBe(120 / 255);
+            expect(color.g).toBe(240 / 255);
+            expect(color.b).toBe(100 / 255);
+            expect(color.a).toBe(1);
+        }
+        {
+            const color = Color.fromRgbaString('rgb(120 240 100 / 0.4)');
+            expect(color.r).toBe(120 / 255);
+            expect(color.g).toBe(240 / 255);
+            expect(color.b).toBe(100 / 255);
+            expect(color.a).toBe(0.4);
+        }
+        {
+            const color = Color.fromRgbaString('rgb(50% 25% 75% / 50%)');
+            expect(color.r).toBe(0.5);
+            expect(color.g).toBe(0.25);
+            expect(color.b).toBe(0.75);
+            expect(color.a).toBe(0.5);
+        }
+        {
+            // The comma-separated syntax also accepts a slash-separated alpha.
+            const color = Color.fromRgbaString('rgb(120, 240, 100 / 0.4)');
+            expect(color.a).toBe(0.4);
+        }
+    });
+
+    test('validColorString agrees with fromString for rgb', () => {
+        for (const str of [
+            'rgb(120, 240, 100)',
+            'rgb(120 240 100)',
+            'rgba(120, 240, 100, 0.4)',
+            'rgb(120 240 100 / 0.4)',
+        ]) {
+            expect(Color.validColorString(str)).toBe(true);
+            expect(() => Color.fromString(str)).not.toThrow();
+        }
+
+        // Malformed component counts must be rejected by the validator, not left to throw at render time.
+        for (const str of ['rgb()', 'rgb(120)', 'rgb(120, 240)', 'rgb(120, 240, 100, 0.4, 5)', 'rgb(blah, 240, 100)']) {
+            expect(Color.validColorString(str)).toBe(false);
+            expect(() => Color.fromString(str)).toThrow();
+        }
+    });
+
     test('fromString', () => {
         {
             const color = Color.fromString('#abc');
