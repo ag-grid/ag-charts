@@ -25,32 +25,21 @@ import type { ContextDefault, FontSize, OverflowStrategy, PixelSize, TextWrap } 
 
 export interface AgChartLabelStyleOptions extends Toggleable, TextOptions, LabelBoxOptions {}
 
-/**
- * Style overrides applied to a label depending on its resolved inside/outside placement: `color` sets
- * the text colour, `fill`/`fillOpacity` the box fill, `cornerRadius` and `padding` the box geometry, and
- * `border` the box stroke. A placement-specific value set here wins over the top-level `label` value, and
- * both fall back to the theme default. Styling the `border` here shows it for this placement even where
- * `label.border.enabled` is `false`, unless `border.enabled: false` hides it again; with no `border` set
- * here at all, the top-level `label.border.enabled` applies.
- */
+/** Label style overrides taking precedence over the top-level `label` options for a given placement. */
 export interface AgChartLabelPlacementStyleOptions extends Pick<TextOptions, 'color'>, FillOptions {
-    /** Rounded corners applied to the label box for this placement. */
+    /** Rounded corners of the label box. */
     cornerRadius?: PixelSize;
-    /** Distance between the label text and the box edge for this placement. */
+    /** Padding between the label text and the box edge. */
     padding?: Padding;
     /** Border applied to the label box for this placement. */
     border?: BorderOptions;
 }
 
-/**
- * Placement-reactive colour overrides for a single label whose inside/outside placement is resolved at
- * layout time. Applied per property: the matching `insideStyle`/`outsideStyle` value for the resolved
- * placement takes precedence, falling back to the top-level `label.<property>` and then the theme default.
- */
+/** Label style overrides applied according to the placement resolved at layout time. */
 export interface AgSeriesLabelPlacementStyleOptions {
-    /** Style overrides applied only when the label's resolved placement is inside the shape. */
+    /** Styles applied when the label is placed inside the shape. */
     insideStyle?: AgChartLabelPlacementStyleOptions;
-    /** Style overrides applied only when the label's resolved placement is outside the shape. */
+    /** Styles applied when the label is placed outside the shape. */
     outsideStyle?: AgChartLabelPlacementStyleOptions;
 }
 
