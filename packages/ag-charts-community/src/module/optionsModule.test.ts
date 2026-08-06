@@ -20,8 +20,8 @@ import { VERSION } from '../version';
 import { ChartOptions } from './optionsModule';
 import { __clearStructuralCacheForTests } from './optionsStructuralCache';
 
-function prepareOptions<T extends AgChartOptions>(userOptions: T): T {
-    const chartOptions = new ChartOptions(userOptions, {} as T, {}, {}, {});
+function prepareOptions<T extends AgChartOptions>(userOptions: T, logger?: Logger): T {
+    const chartOptions = new ChartOptions(userOptions, {} as T, {}, {}, {}, undefined, false, false, undefined, logger);
     return chartOptions.processedOptions;
 }
 
@@ -498,7 +498,7 @@ describe('ChartOptions', () => {
             const instanceErrorOnce = vi.spyOn(logger, 'errorOnce');
             const ambientErrorOnce = vi.spyOn(ambientLogger, 'errorOnce');
 
-            new ChartOptions(
+            prepareOptions(
                 {
                     series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                     axes: {
@@ -506,14 +506,6 @@ describe('ChartOptions', () => {
                         y: { type: 'number', position: 'left' },
                     },
                 } as any,
-                {} as AgChartOptions,
-                {},
-                {},
-                {},
-                undefined,
-                false,
-                false,
-                undefined,
                 logger
             );
 
@@ -534,7 +526,7 @@ describe('ChartOptions', () => {
                 const instanceWarnOnce = vi.spyOn(logger, 'warnOnce');
                 const ambientWarnOnce = vi.spyOn(ambientLogger, 'warnOnce');
 
-                new ChartOptions(
+                prepareOptions(
                     {
                         series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                         axes: {
@@ -542,14 +534,6 @@ describe('ChartOptions', () => {
                             y: { type: 'number', position: 'left' },
                         },
                     } as any,
-                    {} as AgChartOptions,
-                    {},
-                    {},
-                    {},
-                    undefined,
-                    false,
-                    false,
-                    undefined,
                     logger
                 );
 
