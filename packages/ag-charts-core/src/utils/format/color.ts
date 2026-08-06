@@ -9,6 +9,18 @@ interface IColor {
 
 const lerp = (x: number, y: number, t: number) => x * (1 - t) + y * t;
 
+// Anchored on the leading function token so that the supported `oklch()` is never matched by `lch`.
+const unsupportedColorFormat = /^\s*(oklab|lab|lch|color)\(/i;
+
+/**
+ * Colour formats that AG Charts deliberately does not support, and which therefore cannot be
+ * parsed, blended or interpolated. They are rejected where a colour enters rather than being
+ * handed to the far more permissive CSS parser.
+ */
+export function isUnsupportedColorFormat(value: string): boolean {
+    return unsupportedColorFormat.test(value);
+}
+
 const srgbToLinear = (value: number) => {
     const sign = value < 0 ? -1 : 1;
     const abs = Math.abs(value);
@@ -58,46 +70,57 @@ export class Color implements IColor {
     /**
      * A color string can be in one of the following formats to be valid:
      * - #rgb
+     * - #rgba
      * - #rrggbb
-     * - rgb(r, g, b)
-     * - rgba(r, g, b, a)
+     * - #rrggbbaa
+     * - rgb(r, g, b) / rgb(r g b)
+     * - rgba(r, g, b, a) / rgb(r g b / a)
      * - hsl(h, s%, l%)
      * - hsla(h, s%, l%, a)
      * - oklch(l c h)
      * - oklch(l c h / a)
      * - CSS color name such as 'white', 'orange', 'cyan', etc.
+     *
+     * Not supported: `oklab()`, `lab()`, `lch()` and `color()`.
      */
     static validColorString(str: string): boolean {
         if (str.includes('#')) {
             return !!Color.parseHex(str);
         }
 
-        if (str.includes('hsl')) {
+        const token = str.toLowerCase();
+
+        if (token.includes('hsl')) {
             return !!Color.stringToHsla(str);
         }
 
-        if (str.toLowerCase().includes('oklch')) {
+        if (token.includes('oklch')) {
             return !!Color.stringToOklcha(str);
         }
 
-        if (str.includes('rgb')) {
-            return !!Color.stringToRgba(str);
+        if (token.includes('rgb')) {
+            const rgba = Color.stringToRgba(str);
+            return rgba != null && (rgba.length === 3 || rgba.length === 4);
         }
 
-        return Color.nameToHex.has(str.toLowerCase());
+        return Color.nameToHex.has(token);
     }
 
     /**
      * The given string can be in one of the following formats:
      * - #rgb
+     * - #rgba
      * - #rrggbb
-     * - rgb(r, g, b)
-     * - rgba(r, g, b, a)
+     * - #rrggbbaa
+     * - rgb(r, g, b) / rgb(r g b)
+     * - rgba(r, g, b, a) / rgb(r g b / a)
      * - hsl(h, s%, l%)
      * - hsla(h, s%, l%, a)
      * - oklch(l c h)
      * - oklch(l c h / a)
      * - CSS color name such as 'white', 'orange', 'cyan', etc.
+     *
+     * Not supported: `oklab()`, `lab()`, `lch()` and `color()`.
      * @param str
      */
     static fromString(str: string): Color {
@@ -107,24 +130,26 @@ export class Color implements IColor {
             return Color.fromHexString(str);
         }
 
+        const token = str.toLowerCase();
+
         // color name
-        const hex = Color.nameToHex.get(str.toLowerCase());
+        const hex = Color.nameToHex.get(token);
         if (hex) {
             return Color.fromHexString(hex);
         }
 
         // hsl(a) notation
-        if (str.includes('hsl')) {
+        if (token.includes('hsl')) {
             return Color.fromHSLString(str);
         }
 
         // oklch notation
-        if (str.toLowerCase().includes('oklch')) {
+        if (token.includes('oklch')) {
             return Color.fromOKLCHString(str);
         }
 
         // rgb(a) notation
-        if (str.includes('rgb')) {
+        if (token.includes('rgb')) {
             return Color.fromRgbaString(str);
         }
 
@@ -172,23 +197,23 @@ export class Color implements IColor {
     }
 
     private static stringToRgba(str: string): number[] | undefined {
-        // Find positions of opening and closing parentheses.
-        let po = -1;
-        let pc = -1;
-        for (let i = 0; i < str.length; i++) {
-            const c = str[i];
-            if (po === -1 && c === '(') {
-                po = i;
-            } else if (c === ')') {
-                pc = i;
-                break;
-            }
-        }
+        const po = str.indexOf('(');
+        const pc = str.indexOf(')');
 
-        if (po === -1 || pc === -1) return;
+        if (po === -1 || pc === -1 || pc < po) return;
 
         const contents = str.substring(po + 1, pc);
-        const parts = contents.split(',');
+
+        // The `/ alpha` form separates the alpha component with a slash; otherwise
+        // components are split on whitespace and/or commas, covering both the
+        // comma-separated and space-separated syntaxes.
+        const slash = contents.indexOf('/');
+        const head = slash === -1 ? contents : contents.substring(0, slash);
+        const parts = head.trim().split(/[\s,]+/);
+        if (slash !== -1) {
+            parts.push(contents.substring(slash + 1).trim());
+        }
+
         const rgba: number[] = [];
 
         for (let i = 0; i < parts.length; i++) {

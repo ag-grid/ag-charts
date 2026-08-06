@@ -44,7 +44,7 @@ export type AgMarkerShapeFn = (params: AgMarkerShapeFnParams) => void;
 
 export type LabelPlacement = 'top' | 'bottom' | 'left' | 'right';
 
-/** Alias to denote that a value should be a CSS-compliant color string, such as `#FFFFFF` or `rgb(255, 255, 255)` or `white`. */
+/** Alias to denote that a value should be a colour string in one of the supported formats: hex, `rgb()`/`rgba()`, `hsl()`/`hsla()`, `oklch()`, or a CSS colour name. */
 export type CssColor = string;
 
 /** Alias to denote that a value should be a CSS-compliant shadow string, such as `10px 5px 5px black`. */

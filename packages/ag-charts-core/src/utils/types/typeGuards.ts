@@ -2,6 +2,7 @@ import type { AgNumericValue, CssColor } from 'ag-charts-types';
 
 import type { PlainObject } from '../../types/global';
 import { parseColor } from '../dom/domUtil';
+import { isUnsupportedColorFormat } from '../format/color';
 
 export function isDefined<T>(val: T | undefined | null): val is T {
     return val != null;
@@ -100,7 +101,7 @@ export function isSymbol(value: unknown): value is symbol {
 }
 
 export function isColor(value: unknown): value is CssColor {
-    return isString(value) && (value === 'none' || parseColor(value) != null);
+    return isString(value) && (value === 'none' || (!isUnsupportedColorFormat(value) && parseColor(value) != null));
 }
 
 export function isKeyOf<T extends object>(value: keyof any, container: T): value is keyof T {
