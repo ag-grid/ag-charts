@@ -102,6 +102,11 @@ Use a single example table and a per-example `test.describe(name, () => { test.b
 
 This covers every Playwright `toHaveScreenshot` baseline, including the `ag-charts-*-package-tests` e2e suites — not just website specs. It does **not** cover vitest image snapshots (`toMatchImageSnapshot`), which are a separate harness with their own regeneration rule; see `testing.md`.
 
+Baselines are named per project, so `*-firefox-linux.png` and `*-webkit-linux.png` are a normal part of a snapshot-branch diff alongside the Chromium set — the cross-browser projects never reuse a Chromium baseline. Two consequences when taking a drop onto your branch:
+
+-   The sharded `e2e` job and the `e2e_cross_browser` job push to the **same** `gha/snapshots-<your-branch>`, so check out the paths you meant to update rather than merging the branch wholesale.
+-   A spec newly added to `PART_A_SPECS` in `playwright.cross-browser.config.ts` must be pinned to the vanilla framework variant — via `pinNonChromiumToVanilla`, a self-filter, or hardcoded vanilla URLs. Screenshot names carry no framework component, so an unpinned spec has all six variants writing the *same* baseline: under `-u` the last one wins, every run reports an update, and the job never converges to green.
+
 ## `NX_BASE` must resolve, or be unset — never a ref that only exists in CI
 
 `e2e/changed-examples.ts` scopes the example sweeps to what changed relative to `NX_BASE`. An **unset** `NX_BASE` is a supported mode: every example is treated as changed. A **set-but-unresolvable** one used to be fatal — `git diff` exited non-zero, `execSync` threw at *collection* time, and the entire `test:e2e` invocation failed before a single test ran, taking `examples-snapshots.spec.ts` and `gallery-examples.spec.ts` with it.

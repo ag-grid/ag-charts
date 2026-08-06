@@ -1,4 +1,4 @@
-import { ambientLog } from 'ag-charts-core';
+import type { Logger } from 'ag-charts-core';
 import type { Formatter, MessageFormatterParams } from 'ag-charts-types';
 
 const messageRegExp = /\$\{(\w+)}(?:\[(\w+)])?/gi;
@@ -16,22 +16,24 @@ const formatters: Record<string, { format(value: unknown): string }> = {
     datetime: new Intl.DateTimeFormat('en-US', { dateStyle: 'full', timeStyle: 'full' }),
 };
 
-export const defaultMessageFormatter: Formatter<MessageFormatterParams> = ({ defaultValue, variables }) => {
-    return defaultValue?.replaceAll(messageRegExp, (_, match, format) => {
-        const value = variables[match];
-        const formatter = format == null ? null : formatters[format];
+export function createMessageFormatter(logger: Logger): Formatter<MessageFormatterParams> {
+    return ({ defaultValue, variables }) => {
+        return defaultValue?.replaceAll(messageRegExp, (_, match, format) => {
+            const value = variables[match];
+            const formatter = format == null ? null : formatters[format];
 
-        if (format != null && formatter == null) {
-            ambientLog.warnOnce(`Format style [${format}] is not supported`);
-        }
+            if (format != null && formatter == null) {
+                logger.warnOnce(`Format style [${format}] is not supported`);
+            }
 
-        if (formatter != null) {
-            return formatter.format(value);
-        } else if (typeof value === 'number') {
-            return formatters.number.format(value);
-        } else if (value instanceof Date) {
-            return formatters.datetime.format(value);
-        }
-        return String(value);
-    });
-};
+            if (formatter != null) {
+                return formatter.format(value);
+            } else if (typeof value === 'number') {
+                return formatters.number.format(value);
+            } else if (value instanceof Date) {
+                return formatters.datetime.format(value);
+            }
+            return String(value);
+        });
+    };
+}

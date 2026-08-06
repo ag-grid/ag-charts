@@ -49,8 +49,11 @@ export class LabelBorder {
     strokeOpacity?: number;
 }
 
-/** Placement-reactive border stroke. `enabled` is governed by the top-level `label.border`. */
+/** Placement-reactive border: its `enabled`, explicit or auto-enabled by a sibling, wins over the top level. */
 export class LabelPlacementBorder {
+    @Property
+    enabled?: boolean;
+
     @Property
     stroke?: string;
 
@@ -269,8 +272,8 @@ export function expandLabelPadding(label: LabelBoxingMixin | undefined): Require
 /**
  * Overlays the top-level label beneath a placement style so an explicit placement value wins and any
  * unset property falls back to the top-level label. `border` is merged field-wise because it is a
- * class instance `mergeDefaults` would otherwise copy by reference; the placement stroke geometry
- * wins while `border.enabled` (placement border has none) falls through from the top-level label.
+ * class instance `mergeDefaults` would otherwise copy by reference; each border field, including
+ * `enabled`, wins from the placement style and falls through to the top-level label when unset.
  */
 export function resolvePlacementLabelStyle<TParams>(
     label: Label<TParams>,

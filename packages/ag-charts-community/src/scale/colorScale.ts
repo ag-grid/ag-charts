@@ -104,7 +104,7 @@ export class ColorScale extends AbstractScale<number, string> {
     }
 
     override normalizeDomains(...domains: DomainWithMetadata<number>[]): NormalizedDomain<number> {
-        return { domain: domains.map((d) => d.domain).flat(), animatable: true };
+        return { domain: domains.flatMap((d) => d.domain), animatable: true };
     }
 
     override toDomain(): number | undefined {

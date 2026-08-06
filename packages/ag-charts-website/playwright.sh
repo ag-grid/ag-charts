@@ -9,7 +9,14 @@ astro_pid_file="${RUNNER_TEMP:-/tmp}/ag-charts-astro-dev.pid"
 astro_log_file="${RUNNER_TEMP:-/tmp}/ag-charts-astro-dev.log"
 
 function report_flaky_tests {
-  local report_file='./reports/ag-charts-website-e2e.json'
+  # Runs with a non-default --config (e.g. playwright.cross-browser.config.ts) write their JSON
+  # report elsewhere; AG_E2E_REPORT_JSON lets the caller point this at the right one.
+  local report_file="${AG_E2E_REPORT_JSON:-./reports/ag-charts-website-e2e.json}"
+
+  if [ ! -f "${report_file}" ] ; then
+    echo "No Playwright JSON report at ${report_file}; skipping flaky-test annotation."
+    return 0
+  fi
 
   # Find all flaky tests recursively and output annotations.
   jq -c '

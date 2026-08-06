@@ -742,10 +742,10 @@ export class DataModel<
             if (this.aggregates.length > 0) {
                 reasons.push('has aggregates');
             }
-            if (this.reducers.filter((r) => !r.supportsBanding).length > 0) {
+            if (this.reducers.some((r) => !r.supportsBanding)) {
                 reasons.push('has reducers');
             }
-            if (this.processors.filter((p) => p.incrementalCalculate === undefined).length > 0) {
+            if (this.processors.some((p) => p.incrementalCalculate === undefined)) {
                 reasons.push('has processors');
             }
             if (this.propertyProcessors.length > 0) {

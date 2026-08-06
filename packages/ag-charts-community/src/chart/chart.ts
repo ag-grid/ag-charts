@@ -150,7 +150,7 @@ function deriveMiniChartInterval(
     intervalOverride: Record<string, unknown> | undefined,
     sourceInterval: object | undefined
 ): Record<string, unknown> {
-    const merged: Record<string, unknown> = { ...(sourceInterval as object), ...(intervalOverride ?? {}) };
+    const merged: Record<string, unknown> = { ...(sourceInterval as object), ...intervalOverride };
     for (const key of MINI_CHART_INTERVAL_DENSITY_KEYS) {
         merged[key] = intervalOverride?.[key];
     }

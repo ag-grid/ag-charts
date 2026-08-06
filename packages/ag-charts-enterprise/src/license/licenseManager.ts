@@ -1,3 +1,6 @@
+// Licence messaging must stay outside the per-chart Logger: it is emitted once per process behind
+// static latches, `setLicenseKey` is callable before any chart exists, and a chart-scoped severity
+// threshold must never be able to silence a licence violation.
 /* eslint-disable no-console */
 import { MD5 } from './md5';
 

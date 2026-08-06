@@ -2,6 +2,8 @@
 /* eslint-disable sonarjs/code-eval */
 import * as fs from 'fs';
 
+import { ambientLog } from 'ag-charts-core';
+
 const filters = [
     /AgCharts\.(create|update)/,
     /setInterval|setTimeout/,
@@ -32,7 +34,7 @@ export function loadExampleOptions(
 ): any {
     const { AgCharts, time, Marker } = agCharts;
     if (!fs.existsSync(exampleFile)) {
-        console.error(`example file not found: ${exampleFile}`);
+        ambientLog.error(`example file not found: ${exampleFile}`);
         return [];
     }
     const evalContent = [cleanJs(fs.readFileSync(exampleFile, 'utf8')), `return ${evalReturn};`].join('\n');
@@ -42,10 +44,10 @@ export function loadExampleOptions(
         const exampleRunFn = Function('ag_charts_community_1', 'AgCharts', 'time', 'Marker', 'require', evalExpr);
         return exampleRunFn(agCharts, AgCharts, time, Marker, require);
     } catch (error: any) {
-        console.group();
-        console.error(`unable to read example data for [${name}]; error: ${error.message}`);
-        console.log(evalExpr);
-        console.groupEnd();
+        ambientLog.logGroup(`unable to read example data for [${name}]`, () => {
+            ambientLog.error(error.message);
+            ambientLog.log(evalExpr);
+        });
         return [];
     }
 }

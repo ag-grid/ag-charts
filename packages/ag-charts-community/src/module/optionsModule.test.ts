@@ -20,8 +20,8 @@ import { VERSION } from '../version';
 import { ChartOptions } from './optionsModule';
 import { __clearStructuralCacheForTests } from './optionsStructuralCache';
 
-function prepareOptions<T extends AgChartOptions>(userOptions: T): T {
-    const chartOptions = new ChartOptions(userOptions, {} as T, {}, {}, {});
+function prepareOptions<T extends AgChartOptions>(userOptions: T, logger?: Logger): T {
+    const chartOptions = new ChartOptions(userOptions, {} as T, {}, {}, {}, undefined, false, false, undefined, logger);
     return chartOptions.processedOptions;
 }
 
@@ -494,29 +494,48 @@ describe('ChartOptions', () => {
         });
 
         it('warns when an enterprise axis type is not registered', () => {
-            prepareOptions({
-                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-                axes: {
-                    x: { type: 'ordinal-time', position: 'bottom' },
-                    y: { type: 'number', position: 'left' },
-                },
-            });
+            const logger = new Logger();
+            const instanceErrorOnce = vi.spyOn(logger, 'errorOnce');
+            const ambientErrorOnce = vi.spyOn(ambientLogger, 'errorOnce');
 
-            const messages = (console.error as Mock).mock.calls.map(([m]) => String(m));
-            expect(messages.some((m) => m.includes('required modules are not registered'))).toBe(true);
-            expect(messages.some((m) => m.includes('OrdinalTimeAxisModule'))).toBe(true);
-        });
-
-        it('warns with a CDN-friendly message when an enterprise feature is used in UMD mode', () => {
-            ModuleRegistry.setRegistryMode(ModuleRegistry.RegistryMode.UMD);
-            try {
-                prepareOptions({
+            prepareOptions(
+                {
                     series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                     axes: {
                         x: { type: 'ordinal-time', position: 'bottom' },
                         y: { type: 'number', position: 'left' },
                     },
-                });
+                } as any,
+                logger
+            );
+
+            const messages = (console.error as Mock).mock.calls.map(([m]) => String(m));
+            expect(messages.some((m) => m.includes('required modules are not registered'))).toBe(true);
+            expect(messages.some((m) => m.includes('OrdinalTimeAxisModule'))).toBe(true);
+
+            const instanceMessages = instanceErrorOnce.mock.calls.map(([m]) => String(m));
+            expect(instanceMessages.some((m) => m.includes('required modules are not registered'))).toBe(true);
+            expect(instanceMessages.some((m) => m.includes('OrdinalTimeAxisModule'))).toBe(true);
+            expect(ambientErrorOnce).not.toHaveBeenCalled();
+        });
+
+        it('warns with a CDN-friendly message when an enterprise feature is used in UMD mode', () => {
+            ModuleRegistry.setRegistryMode(ModuleRegistry.RegistryMode.UMD);
+            try {
+                const logger = new Logger();
+                const instanceWarnOnce = vi.spyOn(logger, 'warnOnce');
+                const ambientWarnOnce = vi.spyOn(ambientLogger, 'warnOnce');
+
+                prepareOptions(
+                    {
+                        series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                        axes: {
+                            x: { type: 'ordinal-time', position: 'bottom' },
+                            y: { type: 'number', position: 'left' },
+                        },
+                    } as any,
+                    logger
+                );
 
                 const warnings = (console.warn as Mock).mock.calls.map(([m]) => String(m));
                 expect(
@@ -537,6 +556,10 @@ describe('ChartOptions', () => {
 
                 const errors = (console.error as Mock).mock.calls.map(([m]) => String(m));
                 expect(errors.every((m) => !m.includes('unable to use these enterprise features'))).toBe(true);
+
+                const instanceWarnings = instanceWarnOnce.mock.calls.map(([m]) => String(m));
+                expect(instanceWarnings.some((m) => m.includes('ordinal-time'))).toBe(true);
+                expect(ambientWarnOnce).not.toHaveBeenCalled();
             } finally {
                 ModuleRegistry.clearRegistryModes();
             }
@@ -676,9 +699,15 @@ describe('ChartOptions', () => {
                     "fontSize": 12,
                     "fontWeight": 400,
                     "insideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#ffffff",
                     },
                     "outsideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#181d1f",
                     },
                     "padding": 8,
@@ -769,9 +798,15 @@ describe('ChartOptions', () => {
                     "fontSize": 12,
                     "fontWeight": 400,
                     "insideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#ffffff",
                     },
                     "outsideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#181d1f",
                     },
                     "padding": 8,
@@ -862,9 +897,15 @@ describe('ChartOptions', () => {
                     "fontSize": 12,
                     "fontWeight": 400,
                     "insideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#ffffff",
                     },
                     "outsideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#181d1f",
                     },
                     "padding": 8,
@@ -955,9 +996,15 @@ describe('ChartOptions', () => {
                     "fontSize": 12,
                     "fontWeight": 400,
                     "insideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#ffffff",
                     },
                     "outsideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#181d1f",
                     },
                     "padding": 8,
@@ -1041,9 +1088,15 @@ describe('ChartOptions', () => {
                     "fontSize": 12,
                     "fontWeight": 400,
                     "insideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#181d1f",
                     },
                     "outsideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#181d1f",
                     },
                     "padding": 8,
@@ -1119,9 +1172,15 @@ describe('ChartOptions', () => {
                     "fontSize": 12,
                     "fontWeight": 400,
                     "insideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#181d1f",
                     },
                     "outsideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#181d1f",
                     },
                     "padding": 8,
@@ -1215,9 +1274,15 @@ describe('ChartOptions', () => {
                     "fontSize": 12,
                     "fontWeight": 400,
                     "insideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#ffffff",
                     },
                     "outsideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#181d1f",
                     },
                     "padding": 8,
@@ -1308,9 +1373,15 @@ describe('ChartOptions', () => {
                     "fontSize": 12,
                     "fontWeight": 400,
                     "insideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#ffffff",
                     },
                     "outsideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#181d1f",
                     },
                     "padding": 8,
@@ -1401,9 +1472,15 @@ describe('ChartOptions', () => {
                     "fontSize": 12,
                     "fontWeight": 400,
                     "insideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#ffffff",
                     },
                     "outsideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#181d1f",
                     },
                     "padding": 8,
@@ -1494,9 +1571,15 @@ describe('ChartOptions', () => {
                     "fontSize": 12,
                     "fontWeight": 400,
                     "insideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#ffffff",
                     },
                     "outsideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#181d1f",
                     },
                     "padding": 8,
@@ -1580,9 +1663,15 @@ describe('ChartOptions', () => {
                     "fontSize": 12,
                     "fontWeight": 400,
                     "insideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#181d1f",
                     },
                     "outsideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#181d1f",
                     },
                     "padding": 8,
@@ -1658,9 +1747,15 @@ describe('ChartOptions', () => {
                     "fontSize": 12,
                     "fontWeight": 400,
                     "insideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#181d1f",
                     },
                     "outsideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#181d1f",
                     },
                     "padding": 8,
@@ -1754,9 +1849,15 @@ describe('ChartOptions', () => {
                     "fontSize": 12,
                     "fontWeight": 400,
                     "insideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#ffffff",
                     },
                     "outsideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#181d1f",
                     },
                     "padding": 8,
@@ -1847,9 +1948,15 @@ describe('ChartOptions', () => {
                     "fontSize": 12,
                     "fontWeight": 400,
                     "insideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#ffffff",
                     },
                     "outsideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#181d1f",
                     },
                     "padding": 8,
@@ -1940,9 +2047,15 @@ describe('ChartOptions', () => {
                     "fontSize": 12,
                     "fontWeight": 400,
                     "insideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#ffffff",
                     },
                     "outsideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#181d1f",
                     },
                     "padding": 8,
@@ -2033,9 +2146,15 @@ describe('ChartOptions', () => {
                     "fontSize": 12,
                     "fontWeight": 400,
                     "insideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#ffffff",
                     },
                     "outsideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#181d1f",
                     },
                     "padding": 8,
@@ -2119,9 +2238,15 @@ describe('ChartOptions', () => {
                     "fontSize": 12,
                     "fontWeight": 400,
                     "insideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#181d1f",
                     },
                     "outsideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#181d1f",
                     },
                     "padding": 8,
@@ -2197,9 +2322,15 @@ describe('ChartOptions', () => {
                     "fontSize": 12,
                     "fontWeight": 400,
                     "insideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#181d1f",
                     },
                     "outsideStyle": {
+                      "border": {
+                        "enabled": false,
+                      },
                       "color": "#181d1f",
                     },
                     "padding": 8,
@@ -3760,6 +3891,98 @@ describe('ChartOptions', () => {
             const isInvalidColour = ([m]: unknown[]) => String(m).includes('is not a valid color');
             expect(instanceWarnOnce.mock.calls.some(isInvalidColour)).toBe(true);
             expect(unrelatedWarnOnce.mock.calls.some(isInvalidColour)).toBe(false);
+        });
+
+        it('still warns and drops a var() that resolves to an unsupported lch() format (AG-17839)', () => {
+            const container = document.createElement('div');
+            vi.spyOn(container.ownerDocument.defaultView!, 'getComputedStyle').mockReturnValue({
+                getPropertyValue: (key: string) => (key === '--x' ? 'lch(50% 70 40)' : ''),
+            } as any);
+            const chartOptions = new ChartOptions({}, {} as AgChartOptions, {}, {}, {});
+
+            const node: any = { fill: 'var(--x)' };
+            chartOptions.processCSSVariablesPartial(node, container);
+
+            expect(node).toEqual({});
+            expect(
+                (console.warn as Mock).mock.calls.some(([m]) =>
+                    String(m).includes('CSS property [var(--x)] is not a valid color, ignoring.')
+                )
+            ).toBe(true);
+        });
+    });
+
+    describe('rejects unsupported color formats at validation time (AG-17839)', () => {
+        it('warns and ignores an oklab() color set directly on series[0].fill', () => {
+            const options = prepareOptions({
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', fill: 'oklab(0.5 0.1 0.1)' }],
+            });
+
+            const message = (console.warn as Mock).mock.calls.map(([m]) => String(m)).find((m) => m.includes('.fill`'));
+            expect(message).toContain('Option `series[0].fill`');
+            expect(message).toContain('oklab(0.5 0.1 0.1)');
+            expect(message).toContain('ignoring.');
+            expect((options.series?.[0] as any).fill).not.toBe('oklab(0.5 0.1 0.1)');
+        });
+
+        it('warns and clears a lab() theme param instead of reaching a blend op', () => {
+            const chartOptions = new ChartOptions(
+                {
+                    data: [{ x: 'a', y: 1 }],
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                    axes: { x: { type: 'category' }, y: { type: 'number' } },
+                    theme: {
+                        params: {
+                            accentColor: 'lab(50% 40 59.5)',
+                        },
+                    },
+                } as any,
+                {} as AgChartOptions,
+                {},
+                {},
+                {}
+            );
+
+            const message = (console.warn as Mock).mock.calls
+                .map(([m]) => String(m))
+                .find((m) => m.includes('theme.params.accentColor'));
+            expect(message).toContain('Option `theme.params.accentColor`');
+            expect(message).toContain('lab(50% 40 59.5)');
+            expect(message).toContain('ignoring.');
+            expect((chartOptions.themeParameters as any).accentColor).not.toBe('lab(50% 40 59.5)');
+            expect((chartOptions.themeParameters as any).accentColor).toBeDefined();
+        });
+
+        it('rejects an lch() color stop in colorScale.fills[].color', () => {
+            ModuleRegistry.setRegistryMode(ModuleRegistry.RegistryMode.Enterprise);
+            try {
+                const options = prepareOptions<AgCartesianChartOptions>({
+                    series: [
+                        {
+                            type: 'scatter',
+                            xKey: 'x',
+                            yKey: 'y',
+                            colorKey: 'x',
+                            colorScale: {
+                                fills: [
+                                    { color: 'red', stop: 0 },
+                                    { color: 'lch(50% 70 40)', stop: 1 },
+                                ],
+                            },
+                        } as any,
+                    ],
+                });
+
+                const message = (console.warn as Mock).mock.calls
+                    .map(([m]) => String(m))
+                    .find((m) => m.includes('colorScale'));
+                expect(message).toContain('colorScale');
+                expect(message).toContain('lch(50% 70 40)');
+                expect(message).toContain('ignoring.');
+                expect((options.series?.[0] as any).colorScale?.fills?.[1]?.color).not.toBe('lch(50% 70 40)');
+            } finally {
+                ModuleRegistry.clearRegistryModes();
+            }
         });
     });
 

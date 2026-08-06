@@ -20,6 +20,7 @@ import {
     boolean,
     callback,
     callbackOf,
+    color,
     constant,
     date,
     enterprise,
@@ -706,6 +707,37 @@ describe('Validation utils', () => {
             expect(
                 isValid({ c: { ref: 'accentColor', mix: 0.5, ontoColor: 'var(--brand)junk' } }, { c: colorOrRef })
             ).toBe(false);
+        });
+    });
+
+    describe('color', () => {
+        it('rejects oklab(), lab(), lch() and color()', () => {
+            expect(isValid({ c: 'oklab(0.5 0.1 0.1)' }, { c: color })).toBe(false);
+            expect(isValid({ c: 'lab(50% 40 59.5)' }, { c: color })).toBe(false);
+            expect(isValid({ c: 'lch(50% 70 40)' }, { c: color })).toBe(false);
+            expect(isValid({ c: 'color(display-p3 1 0.5 0)' }, { c: color })).toBe(false);
+        });
+
+        it('still accepts none, a named color, hex, rgb() and hsl()', () => {
+            // var(--brand) is deliberately not pinned here: jsdom's CSSStyleDeclaration (unlike
+            // a real browser) rejects an unresolved var() reference as a specified color value
+            // outright, so isColor's var()-passthrough can only be observed with the
+            // container-based mockCssVarColorSupport shim, which is enterprise-only.
+            expect(isValid({ c: 'none' }, { c: color })).toBe(true);
+            expect(isValid({ c: 'red' }, { c: color })).toBe(true);
+            expect(isValid({ c: '#ff5733' }, { c: color })).toBe(true);
+            expect(isValid({ c: 'rgb(72, 120, 208)' }, { c: color })).toBe(true);
+            expect(isValid({ c: 'hsl(145, 63%, 42%)' }, { c: color })).toBe(true);
+        });
+
+        // D1 guard: this change deliberately rejects only the four named formats via
+        // isUnsupportedColorFormat, ahead of the existing browser parse — it must not narrow
+        // the validator wholesale. currentColor renders today and must keep validating; the
+        // corresponding hwb()/color-mix()/oklch() pins live in color.test.ts against
+        // isUnsupportedColorFormat directly, because jsdom's CSS engine here does not
+        // implement those functions, so parseColor() rejects them regardless of this change.
+        it('still accepts currentColor (D1 guard: not narrowed wholesale)', () => {
+            expect(isValid({ c: 'currentColor' }, { c: color })).toBe(true);
         });
     });
 });

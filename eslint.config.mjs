@@ -10,12 +10,17 @@ import noUnscopedLogger from './libraries/ag-charts-eslint-rules/rules/no-unscop
 import requireExplicitGeneric from './libraries/ag-charts-eslint-rules/rules/require-explicit-generic.mjs';
 import requireSharedRenderer from './libraries/ag-charts-eslint-rules/rules/require-shared-renderer.mjs';
 
-// The complete set of files that log without a chart. Each one is here because no chart context
-// reaches it — not because threading one was inconvenient. Anything added here needs the same
-// justification, and anything that gains a reachable chart context should come off the list.
+// The complete set of files that log without a chart, plus the deliberate re-export sites that
+// publish the ambient emitters. Each one is here because no chart context reaches it — not because
+// threading one was inconvenient. Anything added here needs the same justification, and anything
+// that gains a reachable chart context should come off the list.
 const SANCTIONED_AMBIENT_LOGGING = [
     '/logging/logger.ts',
     '/logging/ambientLog.ts',
+    // The debug channel: debug-gated `log`/`logGroup` only, never warn/error.
+    '/logging/debugLogger.ts',
+    // The core barrel deliberately publishes `ambientLogger` for chart-less consumers.
+    'ag-charts-core/src/main.ts',
     // The default Logger for a Scene with no owning chart (AG Grid sparklines / mini charts).
     '/scene/scene.ts',
     // The default Logger for a scale with no owning axis (sparklines, interpolation scales).
@@ -29,21 +34,24 @@ const SANCTIONED_AMBIENT_LOGGING = [
     '/state/properties.ts',
     // Cycle detection in the generic JSON walker.
     '/utils/data/json.ts',
-    // Runs before any chart exists.
+    // The unsupported-browser warning is a property of the environment, not of a chart: per-chart
+    // scoping would repeat it once per chart on the same browser.
     '/util/browser.ts',
+    // Runs before any chart exists.
     '/util/time-interop.ts',
-    '/chart/factory/processModuleOptions.ts',
     // Default for the AG Grid `_Theme.getChartTheme(value)` entry point, which takes no logger.
     '/chart/mapping/themes.ts',
     // Pure parsers and formatters with no owner.
     '/util/svg.ts',
-    '/locale/defaultMessageFormatter.ts',
     // Static `FormatManager.getFormatter`, reached from properties classes with no chart.
     '/chart/formatter/formatManager.ts',
     // Global error interception, by definition not attributable to one chart.
     '/util/listeners.ts',
     // Development-only diagnostics.
     '/scene/sceneDebug.ts',
+    // The manual `OptionsGraph.diagram()` dev entry point only, which prints unconditionally. Every
+    // other site in that file has `this.activeLogger`, so a warn/error there is not sanctioned here.
+    '/module/optionsGraph.ts',
     // SVG export walks the scene graph outside a render pass.
     '/scene/shape/text.ts',
     // Test helpers.

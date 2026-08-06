@@ -27,7 +27,7 @@ export class IntervalSet {
         }
 
         // FAST PATH: extend / merge last interval (most common case)
-        const last = intervals.at(intervals.length - 1)!;
+        const last = intervals.at(-1)!;
 
         if (end + 1 < last.start) {
             // New interval is completely after last → append

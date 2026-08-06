@@ -85,29 +85,8 @@ export default defineConfig({
             },
         },
 
-        {
-            name: 'firefox',
-            use: {
-                ...devices['Desktop Firefox'],
-                viewport: {
-                    width: 800,
-                    height: 600,
-                },
-            },
-            testMatch: '**/basic-chart.spec.ts',
-        },
-
-        {
-            name: 'webkit',
-            use: {
-                ...devices['Desktop Safari'],
-                viewport: {
-                    width: 800,
-                    height: 600,
-                },
-            },
-            testMatch: '**/basic-chart.spec.ts',
-        },
+        /* Firefox and WebKit live in playwright.cross-browser.config.ts — they run as their own
+         * CI job with its own budget, rather than inside this config's sharded plan. */
 
         /* Test against mobile viewports. */
         // {

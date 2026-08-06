@@ -318,9 +318,15 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -399,9 +405,15 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -480,9 +492,15 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -943,9 +961,15 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#ffffff",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -1037,9 +1061,15 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#ffffff",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -1124,9 +1154,15 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -1525,9 +1561,15 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -1608,9 +1650,15 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -1691,9 +1739,15 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -1774,9 +1828,15 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -1857,9 +1917,15 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -1940,9 +2006,15 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -2023,9 +2095,15 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -2426,9 +2504,15 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#ffffff",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -2521,9 +2605,15 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#ffffff",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -2616,9 +2706,15 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#ffffff",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -2711,9 +2807,15 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#ffffff",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -2806,9 +2908,15 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#ffffff",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -2901,9 +3009,15 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#ffffff",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -2996,9 +3110,15 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#ffffff",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -3091,9 +3211,15 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#ffffff",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -3494,9 +3620,15 @@ exports[`ChartOptions > #prepareOptions > for ADV_PER_MARKER_CUSTOMISATION_EXAMP
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -3900,9 +4032,15 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -3981,9 +4119,15 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -4062,9 +4206,15 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -4143,9 +4293,15 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -4544,9 +4700,15 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -4638,9 +4800,15 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -4732,9 +4900,15 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -4826,9 +5000,15 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -4920,9 +5100,15 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -5331,9 +5517,15 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_EXAMPLE it should prepar
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#ffffff",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -5745,9 +5937,15 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_WITH_LABELS_EXAMPLE it s
         "fontWeight": "bold",
         "formatter": [Function],
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "white",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "white",
         },
         "padding": 8,
@@ -6159,9 +6357,15 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMP
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -6550,9 +6754,15 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -6945,9 +7155,15 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#ffffff",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -7037,9 +7253,15 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#ffffff",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -7447,9 +7669,15 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#ffffff",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -7544,9 +7772,15 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#ffffff",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -7960,9 +8194,15 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#ffffff",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -8059,9 +8299,15 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#ffffff",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -8158,9 +8404,15 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#ffffff",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -8257,9 +8509,15 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#ffffff",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -8356,9 +8614,15 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#ffffff",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -8455,9 +8719,15 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#ffffff",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -8554,9 +8824,15 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#ffffff",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -8962,9 +9238,15 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -9046,9 +9328,15 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -9130,9 +9418,15 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -9214,9 +9508,15 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -9298,9 +9598,15 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -9382,9 +9688,15 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -9466,9 +9778,15 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -9550,9 +9868,15 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -9634,9 +9958,15 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -9718,9 +10048,15 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -9802,9 +10138,15 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -9886,9 +10228,15 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -9970,9 +10318,15 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -10054,9 +10408,15 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -10138,9 +10498,15 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -10222,9 +10588,15 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -10614,9 +10986,15 @@ exports[`ChartOptions > #prepareOptions > for LOG_AXIS_EXAMPLE it should prepare
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -11014,9 +11392,15 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -11116,9 +11500,15 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -11218,9 +11608,15 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -11320,9 +11716,15 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -11422,9 +11824,15 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -11524,9 +11932,15 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -11626,9 +12040,15 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -12050,9 +12470,15 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#ffffff",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -12148,9 +12574,15 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#ffffff",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -12246,9 +12678,15 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#ffffff",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -12657,9 +13095,15 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#ffffff",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -12752,9 +13196,15 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#ffffff",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -12847,9 +13297,15 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#ffffff",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -12942,9 +13398,15 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#ffffff",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -13037,9 +13499,15 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#ffffff",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -13132,9 +13600,15 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#ffffff",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -13566,9 +14040,15 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -13657,9 +14137,15 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -13748,9 +14234,15 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -13839,9 +14331,15 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -14253,9 +14751,15 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_COLUMN_CHART_EXAMPLE it sho
         "fontWeight": 400,
         "formatter": [Function],
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#eeeeee",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#eeeeee",
         },
         "padding": 8,
@@ -15049,9 +15553,15 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -15131,9 +15641,15 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -15852,9 +16368,15 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_SCATTER_CHART_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -16261,9 +16783,15 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -16359,9 +16887,15 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -16457,9 +16991,15 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -16555,9 +17095,15 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -16653,9 +17199,15 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -16751,9 +17303,15 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -17173,9 +17731,15 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#ffffff",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -17270,9 +17834,15 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#ffffff",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -17367,9 +17937,15 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#ffffff",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -17464,9 +18040,15 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#ffffff",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -17878,9 +18460,15 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#ffffff",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -17975,9 +18563,15 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#ffffff",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -18072,9 +18666,15 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#ffffff",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -18169,9 +18769,15 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#ffffff",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,
@@ -18266,9 +18872,15 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
         "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#ffffff",
         },
         "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
           "color": "#181d1f",
         },
         "padding": 8,

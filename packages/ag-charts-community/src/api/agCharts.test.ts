@@ -4,7 +4,14 @@ import { getDocument } from 'ag-charts-core';
 import type { AgChartInstance, AgChartOptions, AgLineSeriesOptions, AgSparklineOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../api/agCharts';
-import { deproxy, prepareTestOptions, resetMockConsole, setupMockCanvas, setupMockConsole } from '../chart/test/utils';
+import {
+    deproxy,
+    expectWarningsCalls,
+    prepareTestOptions,
+    resetMockConsole,
+    setupMockCanvas,
+    setupMockConsole,
+} from '../chart/test/utils';
 
 describe('AgCharts', () => {
     setupMockConsole({ includeAllLevels: true });
@@ -331,6 +338,79 @@ describe('AgCharts', () => {
 
             const sparkline = AgCharts.__createSparkline(options);
             await sparkline.waitForUpdate();
+        });
+    });
+
+    describe('itemStyler unsupported color formats', () => {
+        function findFill(node: any, target: string): boolean {
+            if (node?.fill === target) return true;
+            if (typeof node?.children === 'function') {
+                return node.children().some((child: any) => findFill(child, target));
+            }
+            return false;
+        }
+
+        // Styler results are validated at the `callbackDefs` layer, which runs the generic `color`
+        // validator over each returned property, so the container is irrelevant to the outcome.
+        it('warns once and drops an itemStyler fill in an unsupported color format', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 'a', y: 1 },
+                    { x: 'b', y: 2 },
+                ],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'y',
+                        itemStyler: () => ({ fill: 'lab(50% 40 59.5)' }),
+                    },
+                ],
+            };
+            prepareTestOptions(options, container);
+
+            chart = AgCharts.create(options);
+            await chart.waitForUpdate();
+
+            expectWarningsCalls().toEqual([
+                [
+                    expect.stringMatching(
+                        /Callback `series\[0]\.itemStyler` returned an invalid property `series\[0]\.itemStyler\.fill`: `"lab\(50% 40 59\.5\)"`/
+                    ),
+                ],
+            ]);
+
+            const realChart = deproxy(chart);
+            for (const series of realChart.series as any[]) {
+                expect(findFill(series.contentGroup, 'lab(50% 40 59.5)')).toBe(false);
+            }
+        });
+
+        it('still warns and drops the color when the chart has no container', async () => {
+            const options: AgChartOptions = {
+                data: [{ x: 'a', y: 1 }],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'y',
+                        itemStyler: () => ({ fill: 'lab(50% 40 59.5)' }),
+                    },
+                ],
+            };
+            prepareTestOptions(options);
+            options.container = undefined;
+
+            chart = AgCharts.create(options);
+            await chart.waitForUpdate();
+
+            expectWarningsCalls().toEqual([
+                [
+                    expect.stringMatching(
+                        /Callback `series\[0]\.itemStyler` returned an invalid property `series\[0]\.itemStyler\.fill`: `"lab\(50% 40 59\.5\)"`/
+                    ),
+                ],
+            ]);
         });
     });
 });

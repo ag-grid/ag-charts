@@ -43,7 +43,7 @@ export function formatAxisLabelValue(
         | (Pick<AgBaseAxisLabelStyleOptions, never> & {
               formatter?: AgAxisLabelFormatterParams extends never
                   ? never
-                  : ((params: AgAxisLabelFormatterParams) => NormalisedTextOrSegments | undefined) | undefined;
+                  : (params: AgAxisLabelFormatterParams) => NormalisedTextOrSegments | undefined;
               format?: string | Record<string, string>;
           })
         | undefined,

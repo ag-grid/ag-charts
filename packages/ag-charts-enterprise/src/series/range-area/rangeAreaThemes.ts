@@ -8,6 +8,7 @@ import {
     LABEL_BOXING_TOP_LEVEL_DEFAULTS,
     LABEL_OVERFLOW_ALWAYS_SHOW,
     LABEL_OVERFLOW_DEFAULTS,
+    LABEL_PLACEMENT_STYLE_DEFAULTS,
     MARKER_SERIES_HIGHLIGHT_STYLE,
     type NonNullablePath,
     SEGMENTATION_DEFAULTS,
@@ -155,12 +156,8 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<AgChartThemeOverrides['ran
             spacing: 10,
             padding: 10,
             collision: { alwaysShow: LABEL_OVERFLOW_ALWAYS_SHOW },
-            insideStyle: {
-                color: { $isUserOption: ['../color', { $path: '../color' }, { $ref: 'textColor' }] },
-            },
-            outsideStyle: {
-                color: { $isUserOption: ['../color', { $path: '../color' }, { $ref: 'textColor' }] },
-            },
+            insideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('textColor'),
+            outsideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('textColor'),
         },
         interpolation: {
             type: 'linear',
