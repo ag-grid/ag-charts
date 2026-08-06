@@ -5,7 +5,6 @@ import {
     arrayOfDefs,
     boolean,
     borderOptionsDef,
-    colorOrRef,
     commonChartOptionsDefs,
     defined,
     fillOptionsDef,
