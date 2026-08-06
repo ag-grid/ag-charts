@@ -1,11 +1,11 @@
 import { expect, test } from './fixture';
 import { expectChartScreenshot } from './scene-capture';
 import {
-    SELECTORS,
     canvasToPageTransformer,
     delay,
     dragCanvas,
     gotoExample,
+    hoverCanvas,
     locateCanvas,
     setupIntrinsicAssertions,
     toExamplePageUrl,
@@ -35,7 +35,7 @@ test.describe('zoom', () => {
         const withNavigatorXAxisRight = { x: width / 4, y: height - 80 };
 
         // 1. Click the zoom-in button the floating zoom buttons
-        await page.hover(SELECTORS.canvasProxy, { position: { x: 100, y: height - 100 } });
+        await hoverCanvas(page, { x: 100, y: height - 100 });
         const zoomIn = page.getByTitle('Zoom in');
         await zoomIn.click();
         await zoomIn.click();
@@ -82,11 +82,11 @@ test.describe('zoom', () => {
 
         await gotoExample(page, url);
 
-        const { canvas, width, height } = await locateCanvas(page);
+        const { width, height } = await locateCanvas(page);
         const midPoint = { x: Math.round(width / 2), y: Math.round(height / 2) };
 
         // Expect crosshairs to be visible on first hover.
-        await canvas.hover({ position: midPoint });
+        await hoverCanvas(page, midPoint);
         await expect(page.locator(xAxisLabel)).toBeVisible();
         await expect(page.locator(yAxisLabel)).toBeVisible();
 
@@ -98,7 +98,7 @@ test.describe('zoom', () => {
         await expectChartScreenshot(page, page, 'zoom-crosshairs-after-wheel-zoom.png', { animations: 'disabled' });
 
         // Expect crosshairs to become visible on second hover.
-        await canvas.hover({ position: midPoint });
+        await hoverCanvas(page, midPoint);
         await expect(page.locator(xAxisLabel)).toBeVisible();
         await expect(page.locator(yAxisLabel)).toBeVisible();
 
@@ -113,10 +113,10 @@ test.describe('zoom', () => {
 
         await gotoExample(page, url);
 
-        const { canvas, width, height } = await locateCanvas(page);
+        const { width, height } = await locateCanvas(page);
 
         const axisCentre = { x: Math.round(width / 2) + 10, y: Math.round(height / 2) + 45 };
-        await canvas.hover({ position: axisCentre });
+        await hoverCanvas(page, axisCentre);
         await waitForAllChartUpdates(page);
         await expectChartScreenshot(page, page, 'zoom-axis-overlap-axis-hover-highlight.png', {
             animations: 'disabled',
@@ -131,13 +131,13 @@ test.describe('zoom', () => {
             x: Math.round(width / 2) - 25,
             y: Math.round(height / 2) + 45,
         };
-        await canvas.hover({ position: axisHoverNoHighlight });
+        await hoverCanvas(page, axisHoverNoHighlight);
         await waitForAllChartUpdates(page);
         await expectChartScreenshot(page, page, 'zoom-axis-overlap-axis-hover-no-highlight.png', {
             animations: 'disabled',
         });
 
-        await canvas.hover({ position: axisHoverNoHighlight });
+        await hoverCanvas(page, axisHoverNoHighlight);
         await dragCanvas(page, axisHoverNoHighlight, {
             x: axisHoverNoHighlight.x - 50,
             y: axisHoverNoHighlight.y + 10,
@@ -148,7 +148,13 @@ test.describe('zoom', () => {
         });
     });
 
-    test('axis drag keeps the resize cursor when released over the axis', async ({ page }) => {
+    test('axis drag keeps the resize cursor when released over the axis', async ({ page, browserName }) => {
+        // AG-18058: on WebKit the probe loop below never observes `ew-resize` — the engine does not
+        // resolve the axis-band cursor from a synthetic `mouse.move` the way Chromium and Firefox do,
+        // so the axis is never located and the drag has nothing to act on. The rest of the spec runs
+        // on all three engines; re-enable here once the divergence is understood (AG-18024).
+        test.skip(browserName === 'webkit', 'WebKit does not resolve the axis cursor from mouse.move');
+
         const { url } = toExamplePageUrl('zoom-e2e', 'zoom-crosshairs', 'vanilla');
 
         await gotoExample(page, url);
