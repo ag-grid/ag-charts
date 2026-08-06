@@ -51,6 +51,27 @@ export function toGalleryPageUrls(example: string) {
     return [{ framework: 'vanilla', url: `${baseUrl}/gallery/examples/${example}`, example }];
 }
 
+/**
+ * Pins non-Chromium browsers (Firefox, WebKit) to the `vanilla` framework variant.
+ *
+ * Call as a describe-level modifier inside the per-framework `test.describe`, passing that
+ * describe's framework. Chromium keeps the full framework sweep; Firefox and WebKit run the vanilla
+ * variant only, on every CI event type — their value is browser-engine coverage, which the other
+ * five variants of the same example re-render identically.
+ *
+ * The modifier form (rather than a `test.skip(...)` call in the test body) means a skipped variant
+ * never creates a browser context, so the skip costs nothing.
+ */
+export function pinNonChromiumToVanilla(
+    testFn: { skip: (condition: (args: { browserName: string }) => boolean, description: string) => void },
+    framework: string
+) {
+    testFn.skip(
+        ({ browserName }) => browserName !== 'chromium' && framework !== 'vanilla',
+        'Non-Chromium browsers cover the vanilla variant only'
+    );
+}
+
 export function setupIntrinsicAssertions(
     testFn: {
         beforeEach: (fn: ({ page }: { page: Page }, testInfo: { titlePath?: string[] }) => Promise<void>) => void;
