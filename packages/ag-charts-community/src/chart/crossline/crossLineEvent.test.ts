@@ -323,12 +323,16 @@ describe('CrossLine listeners', () => {
 
             await clickAction(CENTRE_X, CENTRE_Y)(chart);
 
-            for (const listener of [crossLineClick, axisClick, chartClick]) {
-                expect(listener).toHaveBeenCalledTimes(1);
-                expect(listener).toHaveBeenCalledWith(
-                    expect.objectContaining({ type: 'crossLineClick', crossLineId: 'band' })
-                );
-            }
+            const expected = expect.objectContaining({ type: 'crossLineClick', crossLineId: 'band' });
+
+            expect(crossLineClick).toHaveBeenCalledTimes(1);
+            expect(crossLineClick).toHaveBeenCalledWith(expected);
+
+            expect(axisClick).toHaveBeenCalledTimes(1);
+            expect(axisClick).toHaveBeenCalledWith(expected);
+
+            expect(chartClick).toHaveBeenCalledTimes(1);
+            expect(chartClick).toHaveBeenCalledWith(expected);
         });
 
         test('axis-level `crossLineDoubleClick` fires on double click', async () => {
