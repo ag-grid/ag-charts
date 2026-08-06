@@ -96,6 +96,11 @@ fi
 if [[ -d "$AG_CLOUD_CACHE_DIR/node_modules" ]]; then
     if [[ -f "$AG_CLOUD_CACHE_DIR/unscripted" ]]; then
         note "cloud cache seeded but unscripted ($AG_CLOUD_CACHE_DIR)"
+    elif [[ -f "$AG_CLOUD_CACHE_DIR/prebuilt" ]]; then
+        # Distinguishing these two matters when a session misbehaves: a prebuilt
+        # tree was installed on a CI runner at a different path, so path-sensitive
+        # breakage looks quite different from a locally-installed one.
+        ok "cloud cache restored from a prebuilt asset ($(head -1 "$AG_CLOUD_CACHE_DIR/prebuilt" 2>/dev/null))"
     else
         ok "cloud cache seeded and scripted ($AG_CLOUD_CACHE_DIR)"
     fi

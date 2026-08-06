@@ -1,0 +1,42 @@
+name: Cloud Cache Bake
+
+# Thin wrapper. All behaviour lives in the shared composite action so ag-grid and
+# ag-studio can adopt this by copying only this file.
+#
+# Publishes a fully-installed node_modules tarball as a release asset, keyed by
+# sha256(yarn.lock), for Claude Code cloud environment setup to restore instead of
+# running its own capped install. See the action for why it is a release asset and
+# not a GitHub Actions artifact.
+
+on:
+    push:
+        branches:
+            - 'latest'
+        paths:
+            - 'yarn.lock'
+    workflow_dispatch:
+
+permissions:
+    contents: write
+
+concurrency:
+    # Two bakes racing would fight over the same release tag. Not cancel-in-progress:
+    # a half-finished upload is worse than a queued one.
+    group: cloud-cache-bake
+    cancel-in-progress: false
+
+jobs:
+    bake:
+        name: Bake node_modules cache
+        runs-on: ubuntu-24.04
+        # The base image for cloud sessions is Ubuntu 24.04 on x64 and .nvmrc pins a
+        # single node version, so native binaries baked here match what the session
+        # resolves. Changing the runner image would silently break that.
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 1
+
+            - name: Bake and publish
+              uses: ./external/ag-shared/github/actions/cloud-cache-bake
