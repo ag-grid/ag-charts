@@ -131,7 +131,7 @@ export function createChartContext(chart: ChartHost, vars: ChartContextVars): Dy
         .service('axisManager', (c) => new AxisManager(c.eventsHub, vars.root))
         .service('highlightManager', (c) => new HighlightManager(c))
         .service('layoutManager', (c) => new LayoutManager(c.eventsHub))
-        .service('localeManager', (c) => new LocaleManager(c.eventsHub))
+        .service('localeManager', (c) => new LocaleManager(c.eventsHub, c.logger))
         .service('historyManager', (c) => new HistoryManager(c))
         .service('collapsedManager', (c) => new CollapsedManager(c.eventsHub, c.chartService))
         .service(

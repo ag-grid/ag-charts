@@ -494,29 +494,64 @@ describe('ChartOptions', () => {
         });
 
         it('warns when an enterprise axis type is not registered', () => {
-            prepareOptions({
-                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-                axes: {
-                    x: { type: 'ordinal-time', position: 'bottom' },
-                    y: { type: 'number', position: 'left' },
-                },
-            });
+            const logger = new Logger();
+            const instanceErrorOnce = vi.spyOn(logger, 'errorOnce');
+            const ambientErrorOnce = vi.spyOn(ambientLogger, 'errorOnce');
 
-            const messages = (console.error as Mock).mock.calls.map(([m]) => String(m));
-            expect(messages.some((m) => m.includes('required modules are not registered'))).toBe(true);
-            expect(messages.some((m) => m.includes('OrdinalTimeAxisModule'))).toBe(true);
-        });
-
-        it('warns with a CDN-friendly message when an enterprise feature is used in UMD mode', () => {
-            ModuleRegistry.setRegistryMode(ModuleRegistry.RegistryMode.UMD);
-            try {
-                prepareOptions({
+            new ChartOptions(
+                {
                     series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                     axes: {
                         x: { type: 'ordinal-time', position: 'bottom' },
                         y: { type: 'number', position: 'left' },
                     },
-                });
+                } as any,
+                {} as AgChartOptions,
+                {},
+                {},
+                {},
+                undefined,
+                false,
+                false,
+                undefined,
+                logger
+            );
+
+            const messages = (console.error as Mock).mock.calls.map(([m]) => String(m));
+            expect(messages.some((m) => m.includes('required modules are not registered'))).toBe(true);
+            expect(messages.some((m) => m.includes('OrdinalTimeAxisModule'))).toBe(true);
+
+            const instanceMessages = instanceErrorOnce.mock.calls.map(([m]) => String(m));
+            expect(instanceMessages.some((m) => m.includes('required modules are not registered'))).toBe(true);
+            expect(instanceMessages.some((m) => m.includes('OrdinalTimeAxisModule'))).toBe(true);
+            expect(ambientErrorOnce).not.toHaveBeenCalled();
+        });
+
+        it('warns with a CDN-friendly message when an enterprise feature is used in UMD mode', () => {
+            ModuleRegistry.setRegistryMode(ModuleRegistry.RegistryMode.UMD);
+            try {
+                const logger = new Logger();
+                const instanceWarnOnce = vi.spyOn(logger, 'warnOnce');
+                const ambientWarnOnce = vi.spyOn(ambientLogger, 'warnOnce');
+
+                new ChartOptions(
+                    {
+                        series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                        axes: {
+                            x: { type: 'ordinal-time', position: 'bottom' },
+                            y: { type: 'number', position: 'left' },
+                        },
+                    } as any,
+                    {} as AgChartOptions,
+                    {},
+                    {},
+                    {},
+                    undefined,
+                    false,
+                    false,
+                    undefined,
+                    logger
+                );
 
                 const warnings = (console.warn as Mock).mock.calls.map(([m]) => String(m));
                 expect(
@@ -537,6 +572,10 @@ describe('ChartOptions', () => {
 
                 const errors = (console.error as Mock).mock.calls.map(([m]) => String(m));
                 expect(errors.every((m) => !m.includes('unable to use these enterprise features'))).toBe(true);
+
+                const instanceWarnings = instanceWarnOnce.mock.calls.map(([m]) => String(m));
+                expect(instanceWarnings.some((m) => m.includes('ordinal-time'))).toBe(true);
+                expect(ambientWarnOnce).not.toHaveBeenCalled();
             } finally {
                 ModuleRegistry.clearRegistryModes();
             }
