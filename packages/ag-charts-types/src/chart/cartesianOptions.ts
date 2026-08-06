@@ -1,3 +1,5 @@
+import type { FillOptions, StrokeOptions } from 'ag-charts-types';
+
 import type { AgCartesianSeriesOptions } from '../series/cartesian/cartesianSeriesTypes';
 import type { AgAnnotationsOptions } from './annotationsOptions';
 import type {
@@ -33,7 +35,6 @@ import type { AgChartLabelStyleOptions } from './labelOptions';
 import type {
     AxisValue,
     ContextDefault,
-    CssColor,
     DatumDefault,
     Degree,
     FontFamilyFull,
@@ -561,13 +562,11 @@ export interface AgCartesianCrossLineLabelOptions extends AgBaseCrossLineLabelOp
     rotation?: Degree;
 }
 
-export interface AgSeriesAreaBackgroundRegion {
+export interface AgSeriesAreaBackgroundRegion extends FillOptions, StrokeOptions {
     /** TODO */
     xRange?: AgSeriesAreaBackgroundRegionRange;
     /** TODO */
     yRange?: AgSeriesAreaBackgroundRegionRange;
-    /** TODO */
-    fill?: CssColor;
     /** TODO */
     label?: AgSeriesAreaBackgroundRegionLabel;
 }

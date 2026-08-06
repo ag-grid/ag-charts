@@ -39,7 +39,10 @@ export class CartesianBackgroundRegion implements BackgroundRegion {
         this.regionNode.height = Vec4.height(bounds);
 
         this.regionNode.fill = opts.fill;
-        this.regionNode.fillOpacity = 1; // TODO
+        this.regionNode.fillOpacity = opts.fillOpacity ?? 1;
+        this.regionNode.stroke = opts.stroke;
+        this.regionNode.strokeOpacity = opts.strokeOpacity ?? 1;
+        this.regionNode.strokeWidth = opts.strokeWidth ?? 1;
     }
 
     private getBounds() {

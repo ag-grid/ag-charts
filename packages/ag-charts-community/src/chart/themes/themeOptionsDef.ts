@@ -252,9 +252,10 @@ const cartesianChartOptionsDefs: OptionsDefs<Omit<AgBaseCartesianThemeOptions, '
         cornerRadius: number,
         padding: or(themeOperator, padding),
         backgroundRegions: arrayOfDefs<AgSeriesAreaBackgroundRegion>({
+            ...fillOptionsDef,
+            ...strokeOptionsDef,
             xRange: seriesAreaBackgroundRegionRangeDef,
             yRange: seriesAreaBackgroundRegionRangeDef,
-            fill: colorOrRef,
             label: cartesianCrossLineLabelOptionsDefs,
         }),
     },
