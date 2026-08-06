@@ -36,7 +36,8 @@ import {
 } from 'ag-charts-community-test';
 
 import { createEnterpriseChart, prepareEnterpriseTestOptions, renderEnterpriseChartImage } from '../../test/utils';
-import type { WaterfallSeries } from './waterfallSeries';
+import type { WaterfallNodeDatum, WaterfallSeries } from './waterfallSeries';
+import { WaterfallSeriesTotal } from './waterfallSeriesProperties';
 
 describe('WaterfallSeries', () => {
     setupMockConsole();
@@ -142,6 +143,10 @@ describe('WaterfallSeries', () => {
                 direction,
             })),
         };
+    }
+
+    function fireNodeClick(series: WaterfallSeries, datum: WaterfallNodeDatum): void {
+        series.fireNodeClickEvent(new Event('click'), [datum], undefined);
     }
 
     it('preserves bigint value precision in the data label and formatter callback (AG-16608)', async () => {
@@ -260,8 +265,8 @@ describe('WaterfallSeries', () => {
             await waitForChartStability(chart);
 
             const series = seriesOf(chart);
-            series.fireNodeClickEvent(new Event('click'), nodeOfType(chart, 'subtotal'));
-            series.fireNodeClickEvent(new Event('click'), nodeOfType(chart, 'positive'));
+            fireNodeClick(series, nodeOfType(chart, 'subtotal'));
+            fireNodeClick(series, nodeOfType(chart, 'positive'));
 
             expect(seriesNodeClick).toHaveBeenCalledTimes(2);
             expect(seriesNodeClick.mock.calls[0][0].totalValue).toBe(SUBTOTAL_VALUE);
@@ -1552,8 +1557,8 @@ describe('WaterfallSeries', () => {
 
             const total = nodeData.find((n) => n.itemType === 'total')!;
             const real = nodeData.find((n) => n.itemType === 'positive')!;
-            series.fireNodeClickEvent(new Event('click'), [total], undefined);
-            series.fireNodeClickEvent(new Event('click'), [real], undefined);
+            fireNodeClick(series, total);
+            fireNodeClick(series, real);
 
             // The total bar's itemId falls back to its axisLabel; the real bar resolves via datumIndex.
             expect(events[0].itemType).toBe('total');

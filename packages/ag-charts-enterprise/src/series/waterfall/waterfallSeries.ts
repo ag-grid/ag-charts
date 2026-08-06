@@ -120,7 +120,7 @@ type WaterfallNodePointDatum = _ModuleSupport.DataModelSeriesNodeDatum['point'] 
     readonly y2: number;
 };
 
-interface WaterfallNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum, Readonly<Point> {
+export interface WaterfallNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum, Readonly<Point> {
     readonly index: number;
     // Set for synthetic total/subtotal bars to their `totals.itemId`, falling back to their `axisLabel`.
     // Real bars leave it unset so `getItemId` resolves via `dataIdKey`, then `datumIndex`.
