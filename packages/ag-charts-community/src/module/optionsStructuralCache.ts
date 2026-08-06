@@ -1,4 +1,4 @@
-import { type ChartModuleDefinition, Debug, LRUCache, ModuleRegistry, deepFreeze } from 'ag-charts-core';
+import { type AxisID, type ChartModuleDefinition, Debug, LRUCache, ModuleRegistry, deepFreeze } from 'ag-charts-core';
 import type { AgChartThemeParams } from 'ag-charts-types';
 
 import type { ValidationIssue } from '../chart/validation/validationIssueCollector';
@@ -17,6 +17,7 @@ export interface StructuralCacheEntry {
     chartDef: ChartModuleDefinition<any>;
     /** Option-validation issues gathered during the cached calculation, replayed to the overlay on hit. */
     validationIssues: ValidationIssue[];
+    remappedAxisKeys: Map<string, AxisID> | undefined;
 }
 
 const STRUCTURAL_CACHE_MAX = 8;

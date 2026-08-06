@@ -13,7 +13,7 @@ import {
 import type { LayoutCompleteEvent } from '../../core/eventsHub';
 import type { ChartRegistry, ChartSeriesAreaRegistry } from '../../module/moduleContext';
 import { ModuleMap } from '../../module/moduleMap';
-import { Group } from '../../scene/group';
+import { Group, TransformableGroup } from '../../scene/group';
 import { Rect } from '../../scene/shape/rect';
 import type { BackgroundRegion } from '../background-regions/backgroundRegion';
 import type { SeriesAreaContext } from './seriesAreaContext';
@@ -24,6 +24,11 @@ export class SeriesArea extends BaseProperties {
         zIndex: ZIndexMap.SERIES_AREA_CONTAINER,
     });
     private readonly borderNode = this.seriesAreaGroup.appendChild(new Rect());
+
+    // This property is required to silence warnings about unable to set 'backgroundRegions'. However, this property
+    // is not used. Instead these options are passed through to the background regions module and plugin.
+    @Property
+    backgroundRegions: any;
 
     @Property
     border = new Border(this.borderNode);
@@ -44,7 +49,10 @@ export class SeriesArea extends BaseProperties {
     private moduleContext?: DynamicContext<ChartSeriesAreaRegistry<SeriesAreaContext>>;
     private seriesAreaContext?: SeriesAreaContext;
 
-    private readonly underlayGroup = new Group({ name: 'SeriesArea-Underlay', zIndex: ZIndexMap.SERIES_AREA_UNDERLAY });
+    private readonly underlayGroup = new TransformableGroup({
+        name: 'SeriesArea-Underlay',
+        zIndex: ZIndexMap.SERIES_AREA_UNDERLAY,
+    });
 
     constructor(protected readonly ctx: DynamicContext<ChartRegistry>) {
         super();
@@ -103,5 +111,8 @@ export class SeriesArea extends BaseProperties {
         this.borderNode.y = y;
         this.borderNode.width = width;
         this.borderNode.height = height;
+
+        this.underlayGroup.translationX = x;
+        this.underlayGroup.translationY = y;
     }
 }

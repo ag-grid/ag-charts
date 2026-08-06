@@ -2,6 +2,7 @@ import {
     AbstractModuleInstance,
     ChartAxisDirection,
     type DynamicContext,
+    type NormalisedSeriesAreaBackgroundRegion,
     type SeriesAreaPluginModuleInstance,
     jsonDiff,
 } from 'ag-charts-core';
@@ -10,8 +11,6 @@ import type { ChartSeriesAreaRegistry } from '../../module/moduleContext';
 import { Group } from '../../scene/group';
 import type { SeriesAreaContext } from '../series-area/seriesAreaContext';
 import type { BackgroundRegion } from './backgroundRegion';
-
-interface NormalisedSeriesAreaBackgroundRegion {}
 
 export class BackgroundRegionsPlugin extends AbstractModuleInstance implements SeriesAreaPluginModuleInstance {
     private instances: BackgroundRegion[] = [];
@@ -44,9 +43,9 @@ export class BackgroundRegionsPlugin extends AbstractModuleInstance implements S
 
         this.instances = options.map((regionOptions) => {
             const instance = this.ctx.backgroundRegion;
-            instance.set(regionOptions);
+            instance.setOptions(regionOptions);
             this.attachInstance(instance);
-            this.initInstance(instance);
+            this.initInstance(instance, regionOptions);
             return instance;
         });
     }
@@ -87,16 +86,21 @@ export class BackgroundRegionsPlugin extends AbstractModuleInstance implements S
         region.labelGroup.remove();
     }
 
-    private initInstance(region: BackgroundRegion): void {
+    private initInstance(region: BackgroundRegion, opts: NormalisedSeriesAreaBackgroundRegion): void {
+        const xAxisID =
+            opts.xRange?.axis == null ? undefined : this.ctx.axisManager.getRemappedAxisId(opts.xRange.axis);
+        const yAxisID =
+            opts.yRange?.axis == null ? undefined : this.ctx.axisManager.getRemappedAxisId(opts.yRange.axis);
+
         const xAxisContext =
-            region.xRange?.axis == null
+            xAxisID == null
                 ? this.ctx.axisManager.getAxisContext(ChartAxisDirection.X).at(0)
-                : this.ctx.axisManager.getAxisIdContext(region.xRange.axis);
+                : this.ctx.axisManager.getAxisIdContext(xAxisID);
 
         const yAxisContext =
-            region.yRange?.axis == null
+            yAxisID == null
                 ? this.ctx.axisManager.getAxisContext(ChartAxisDirection.Y).at(0)
-                : this.ctx.axisManager.getAxisIdContext(region.yRange.axis);
+                : this.ctx.axisManager.getAxisIdContext(yAxisID);
 
         region.xScale = xAxisContext?.scale;
         region.yScale = yAxisContext?.scale;

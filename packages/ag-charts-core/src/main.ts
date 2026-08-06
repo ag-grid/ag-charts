@@ -12,6 +12,7 @@ export * from './types/normalised-options/normalisedPieSeries';
 export * from './types/normalised-options/normalisedSeriesMarkerOptions';
 export * from './types/normalised-options/normalisedLabelOptions';
 export * from './types/normalised-options/normalisedLegendOptions';
+export * from './types/normalised-options/normalisedSeriesArea';
 export * from './types/normalised-options/normalisedSelectionOptions';
 export * from './types/normalised-options/normalisedZoomOptions';
 export * from './types/normalised-options/resolved';

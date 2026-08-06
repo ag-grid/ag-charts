@@ -1,4 +1,5 @@
 import {
+    type AxisID,
     CSS_GENERIC_FAMILIES,
     ChartAxisDirection,
     type ChartModuleDefinition,
@@ -232,6 +233,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     chartDef?: ChartModuleDefinition<any>;
     optionsProcessingTime?: number;
     optionsGraph?: OptionsGraphAccessor;
+    remappedAxisKeys?: Map<string, AxisID>;
     seriesWithUserVisibility?: {
         identifiers: Set<string>;
         indices: Set<number>;
@@ -321,7 +323,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             annotationThemes,
             googleFonts,
             fonts,
-            optionsGraph;
+            optionsGraph,
+            remappedAxisKeys;
         const presetDef =
             this.optionMetadata.presetType == null
                 ? undefined
@@ -344,8 +347,16 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             this.validationIssues = baseChartOptions.validationIssues;
         } else {
             ChartOptions.perfDebug(`ChartOptions.slowSetup()`);
-            ({ activeTheme, processedOptions, themeParameters, annotationThemes, googleFonts, fonts, optionsGraph } =
-                this.slowSetup(processedOverrides, deltaOptions, stripSymbols));
+            ({
+                activeTheme,
+                processedOptions,
+                themeParameters,
+                annotationThemes,
+                googleFonts,
+                fonts,
+                optionsGraph,
+                remappedAxisKeys,
+            } = this.slowSetup(processedOverrides, deltaOptions, stripSymbols));
         }
 
         this.activeTheme = activeTheme;
@@ -356,6 +367,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.googleFonts = googleFonts;
         this.fonts = fonts;
         this.optionsGraph = optionsGraph;
+        this.remappedAxisKeys = remappedAxisKeys;
 
         // Capture options processing time for debug stats
         if (apiStartTime !== undefined && typeof apiStartTime === 'number' && !Number.isNaN(apiStartTime)) {
@@ -521,7 +533,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         // Process series options _before_ passing to the OptionsGraph. This ensures the series themes are applied in
         // the correct order to the re-ordered series.
         this.processSeriesOptions(options);
-        this.processAxesOptions(options, chartType);
+        const remappedAxisKeys = this.processAxesOptions(options, chartType);
 
         if (this.optionMetadata.presetType !== 'sparkline') {
             this.processedCSSVariables = this.processCSSVariables(options, activeTheme.params);
@@ -578,10 +590,20 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 annotationThemes,
                 chartDef: this.chartDef,
                 validationIssues: this.validationIssues,
+                remappedAxisKeys,
             });
         }
 
-        return { activeTheme, processedOptions, themeParameters, annotationThemes, googleFonts, fonts, optionsGraph };
+        return {
+            activeTheme,
+            processedOptions,
+            themeParameters,
+            annotationThemes,
+            googleFonts,
+            fonts,
+            optionsGraph,
+            remappedAxisKeys,
+        };
     }
 
     private computeStructuralCacheKeyForSlowSetup(
@@ -639,6 +661,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             googleFonts: cached.googleFonts ? new Set(cached.googleFonts) : undefined,
             fonts: cached.fonts ? new Set(cached.fonts) : undefined,
             optionsGraph,
+            remappedAxisKeys: cached.remappedAxisKeys,
         };
     }
 
@@ -943,6 +966,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.alternateSecondaryAxisPositions(options, newAxes);
 
         (options as any).axes = newAxes as any;
+
+        return remappedAxisKeys;
     }
 
     /**
@@ -1115,22 +1140,22 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         directions: ChartAxisDirection[],
         hasExtraImplicitDefaultSeriesAxisKeys: boolean
     ) {
-        const remappedAxisKeys = new Map<string, string>();
+        const remappedAxisKeys = new Map<string, AxisID>();
         for (const [direction, axisKey] of primaryAxisKeys) {
-            remappedAxisKeys.set(axisKey, direction);
+            remappedAxisKeys.set(axisKey, direction as AxisID);
         }
 
         // Secondary axes are then remapped to prevent clashes with the primary axis keys.
         for (const axisKey of axisKeys) {
             if (remappedAxisKeys.has(axisKey)) continue;
-            remappedAxisKeys.set(axisKey, `${AXIS_ID_PREFIX}${remappedAxisKeys.size}`);
+            remappedAxisKeys.set(axisKey, `${AXIS_ID_PREFIX}${remappedAxisKeys.size}` as AxisID);
         }
 
         // Append secondary axes with the default directions if there are extra series with implicit default axis keys.
         if (hasExtraImplicitDefaultSeriesAxisKeys) {
             for (const direction of directions) {
                 if (!remappedAxisKeys.has(direction)) {
-                    remappedAxisKeys.set(direction, `${AXIS_ID_PREFIX}${remappedAxisKeys.size}`);
+                    remappedAxisKeys.set(direction, `${AXIS_ID_PREFIX}${remappedAxisKeys.size}` as AxisID);
                 }
             }
         }
