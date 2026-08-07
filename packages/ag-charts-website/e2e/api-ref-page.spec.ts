@@ -325,6 +325,29 @@ test.describe('api-ref-page', () => {
         await expect(getNavigationProperty(page, /type\s*= 'category'/)).toBeVisible();
     });
 
+    // `contextMenu.items` variants inherit `type?: AgContextMenuItemType` from a mixin, so the member
+    // named `type` is a type reference; `showOn` is the literal that tells the branches apart.
+    test('expands contextMenu items into showOn-discriminated variants', async ({ page }) => {
+        await gotoUrl(page, toPageUrl('options/'));
+        await waitForApiReady(page);
+
+        await expandNavNode(page, /^contextMenu/);
+        await expandNavNode(page, /^items/);
+
+        await expect(getNavigationProperty(page, /showOn\s*= 'axis'/)).toBeVisible();
+        await expect(getNavigationProperty(page, /showOn\s*= 'series-node'/)).toBeVisible();
+        await expect(getNavigationTree(page).getByText('AgContextMenuItemType')).toHaveCount(0);
+    });
+
+    test('gives each contextMenu items variant its own anchor', async ({ page }) => {
+        await gotoUrl(page, toPageUrl('options/#reference-AgChartOptions-contextMenu-items-axis'));
+
+        const axisVariant = page.locator('#reference-AgChartOptions-contextMenu-items-axis');
+        await expect(axisVariant).toBeVisible();
+        await expect(axisVariant).toContainText("[showOn='axis']");
+        await expect(page.locator('#reference-AgChartOptions-contextMenu-items-series-node')).toBeVisible();
+    });
+
     // On the number-axis page the `crossLines` member sits under the `{ type = 'number' ... }`
     // nav node, which is collapsed by default. Deep-linking to a sibling axis property auto-expands
     // that node (the path to the selection) so `crossLines` is reachable in the navigation tree,
