@@ -75,6 +75,17 @@ describe('fitLabelTextAutoSize', () => {
         warn.mockRestore();
     });
 
+    it('keeps a fractional configured size that already fits', () => {
+        // The search visits integers only, so a size it cannot land on must come from the up-front probe
+        // rather than be rounded down to the nearest integer that fits.
+        const fitted = fitLabelTextAutoSize('ab', { maxWidth: 40, wrapping: 'never', minimumFontSize: 5 }, {
+            ...font,
+            fontSize: 12.5,
+        } as const);
+        expect(fitted.fontSize).toBeUndefined();
+        expect(fitted.text).toBe('ab');
+    });
+
     it('does not shrink without a bound to shrink into', () => {
         expect(fitLabelTextAutoSize('abcd', { minimumFontSize: 4 }, font).fontSize).toBeUndefined();
     });

@@ -162,12 +162,17 @@ export function fitLabelTextAutoSize(
 ): AutoSizedLabelText {
     const minimumFontSize = fit == null ? undefined : autoSizeFloor(fit, font);
     if (fit == null || minimumFontSize == null) return { text: fitLabelText(text, fit, font) };
+    // Above the floor the text must fit whole; 'hide' erases it otherwise so the search steps down.
+    const wholeTextFit: LabelFit = { ...fit, overflowStrategy: 'hide' };
+    // Most labels need no reduction, and the search only visits integers — so probe the configured size
+    // first, both to skip the search and to keep a fractional `fontSize` exact.
+    const atFullSize = fitLabelText(text, wholeTextFit, font);
+    if (!isErased(atFullSize)) return { text: atFullSize };
     const found = findMaxValue<AutoSizedLabelText>(minimumFontSize, font.fontSize, (fontSize) => {
-        // Above the floor the text must fit whole; 'hide' erases it otherwise so the search steps down.
-        const policy = fontSize === minimumFontSize ? fit : { ...fit, overflowStrategy: 'hide' as const };
+        const policy = fontSize === minimumFontSize ? fit : wholeTextFit;
         const fitted = fitLabelText(text, policy, fontWithSize(font, fontSize));
         if (isErased(fitted)) return undefined;
-        return { text: fitted, fontSize: fontSize === font.fontSize ? undefined : fontSize };
+        return { text: fitted, fontSize };
     });
     return found ?? { text: fitLabelText(text, fit, font) };
 }

@@ -670,8 +670,8 @@ export function updateLabelNode<TParams>(
         textNode.fill = style.color;
         textNode.setAlign(labelDatum);
         textNode.setFont(style);
-        // Set after `setFont` and before `setBoxing` so the box tracks the reduced glyph; `style` is not
-        // mutated because it can be the shared `Label` instance itself.
+        // Overrides the size `setFont` just applied. Set on the node rather than in `style`, which can be
+        // the shared `Label` instance itself.
         if (labelDatum.fittedFontSize != null) {
             textNode.fontSize = labelDatum.fittedFontSize;
         }
