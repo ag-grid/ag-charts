@@ -168,13 +168,19 @@ export function fitLabelTextAutoSize(
     // first, both to skip the search and to keep a fractional `fontSize` exact.
     const atFullSize = fitLabelText(text, wholeTextFit, font);
     if (!isErased(atFullSize)) return { text: atFullSize };
-    const found = findMaxValue<AutoSizedLabelText>(minimumFontSize, font.fontSize, (fontSize) => {
-        const policy = fontSize === minimumFontSize ? fit : wholeTextFit;
-        const fitted = fitLabelText(text, policy, fontWithSize(font, fontSize));
+    // Searched from the ceiling of the floor because the search bisects to integers, and would otherwise
+    // probe — and settle on — a size below the one the user asked for.
+    const found = findMaxValue<AutoSizedLabelText>(Math.ceil(minimumFontSize), font.fontSize, (fontSize) => {
+        const fitted = fitLabelText(text, wholeTextFit, fontWithSize(font, fontSize));
         if (isErased(fitted)) return undefined;
         return { text: fitted, fontSize };
     });
-    return found ?? { text: fitLabelText(text, fit, font) };
+    if (found != null) return found;
+    // No size holds the whole text, so the floor itself decides: it is the only size the configured
+    // overflow strategy is allowed to truncate or hide at. The search cannot cover it when it is
+    // fractional, so it is applied here rather than as one more iteration.
+    const atFloor = fitLabelText(text, fit, fontWithSize(font, minimumFontSize));
+    return isErased(atFloor) ? { text: atFloor } : { text: atFloor, fontSize: minimumFontSize };
 }
 
 /** {@link fitLabelTextAutoSize} with the never-erase fallback of {@link fitLabelTextOrOverflow}. */

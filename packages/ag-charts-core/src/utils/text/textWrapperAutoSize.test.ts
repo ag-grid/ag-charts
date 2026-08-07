@@ -86,6 +86,23 @@ describe('fitLabelTextAutoSize', () => {
         expect(fitted.text).toBe('ab');
     });
 
+    it('never shrinks below a fractional minimum', () => {
+        // 4 graphemes fit 36px whole at 9px. Bisecting to integers would also probe 8 for a floor of
+        // 8.5 and could settle there, rendering the label smaller than the size the user asked for.
+        const fit = { maxWidth: 36, wrapping: 'never', overflowStrategy: 'ellipsis', minimumFontSize: 8.5 } as const;
+        const fitted = fitLabelTextAutoSize('abcd', fit, font);
+        expect(fitted).toEqual({ text: 'abcd', fontSize: 9 });
+    });
+
+    it('applies the overflow strategy at a fractional minimum', () => {
+        // 4 graphemes cannot fit 30px at any size down to the floor, so the ellipsis must take over at
+        // 8.5 rather than back at the configured 20 — a size the integer search can never land on.
+        const fit = { maxWidth: 30, wrapping: 'never', overflowStrategy: 'ellipsis', minimumFontSize: 8.5 } as const;
+        const fitted = fitLabelTextAutoSize('abcd', fit, font);
+        expect(fitted.fontSize).toBe(8.5);
+        expect(fitted.text).toContain(ELLIPSIS);
+    });
+
     it('does not shrink without a bound to shrink into', () => {
         expect(fitLabelTextAutoSize('abcd', { minimumFontSize: 4 }, font).fontSize).toBeUndefined();
     });
