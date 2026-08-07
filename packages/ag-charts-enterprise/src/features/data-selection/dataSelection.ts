@@ -442,17 +442,15 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         }
 
         let defaultPrevented = false;
-        const preventDefault = (): void => {
-            defaultPrevented = true;
-        };
-
         this.ctx.chartService.callListener({
             type: 'selectionChange',
             source,
             get defaultPrevented() {
                 return defaultPrevented;
             },
-            preventDefault,
+            preventDefault(): void {
+                defaultPrevented = true;
+            },
             added,
             removed,
         });
