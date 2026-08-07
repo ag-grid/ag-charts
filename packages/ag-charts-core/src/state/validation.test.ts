@@ -2,7 +2,7 @@ import type { Mock } from 'vitest';
 import { afterEach, beforeEach, describe, expect, vi } from 'vitest';
 
 import { textOrSegments } from '../config/chartDefaults';
-import { colorOrRef } from '../config/optionsDefaults';
+import { colorOrRef, padding } from '../config/optionsDefaults';
 import { Logger, reset as resetLogger } from '../logging/logger';
 import { RegistryMode, reset as resetRegistry, setRegistryMode } from '../modules/moduleRegistry';
 import {
@@ -738,6 +738,30 @@ describe('Validation utils', () => {
             expect(
                 isValid({ c: { ref: 'accentColor', mix: 0.5, ontoColor: 'var(--brand)junk' } }, { c: colorOrRef })
             ).toBe(false);
+        });
+    });
+
+    describe('padding validator (AG-17973)', () => {
+        test('rejects a negative scalar padding and warns', () => {
+            const { cleared, invalid } = validate<{ padding?: number }>({ padding: -5 }, { padding });
+            expect(cleared).toEqual({});
+            const messages = invalid.map(String);
+            expect(messages).toHaveLength(1);
+            expect(messages[0]).toContain('Option `padding` cannot be set to `-5`');
+            expect(messages[0]).toContain('expecting a number greater than or equal to 0');
+        });
+
+        test('drops only the invalid side of an object padding, keeping the valid sibling', () => {
+            const { cleared, invalid } = validate<{ padding?: any }>({ padding: { top: -5, left: 10 } }, { padding });
+            expect(cleared).toEqual({ padding: { left: 10 } });
+            const messages = invalid.map(String);
+            expect(messages).toHaveLength(1);
+            expect(messages[0]).toContain('Option `padding.top` cannot be set to `-5`');
+        });
+
+        test('accepts zero for both scalar and object padding', () => {
+            expect(isValid({ padding: 0 }, { padding })).toBe(true);
+            expect(isValid({ padding: { top: 0, right: 0, bottom: 0, left: 0 } }, { padding })).toBe(true);
         });
     });
 
