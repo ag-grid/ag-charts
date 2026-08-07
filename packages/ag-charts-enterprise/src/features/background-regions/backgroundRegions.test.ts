@@ -271,7 +271,7 @@ const THEMED = {
     seriesArea: {
         backgroundRegions: [
             {
-                fill: { type: 'gradient', colorStops: [{ color: 'orangered' }, { color: 'lightsalmon' }] },
+                fill: { type: 'gradient' as const, colorStops: [{ color: 'orangered' }, { color: 'lightsalmon' }] },
                 fillOpacity: 0.8,
                 stroke: 'crimson',
                 strokeOpacity: 0.8,
@@ -284,17 +284,17 @@ const THEMED = {
                     },
                     color: 'indigo',
                     cornerRadius: 8,
-                    fill: { type: 'gradient', colorStops: [{ color: 'mediumpurple' }, { color: 'thistle' }] },
+                    fill: { type: 'gradient' as const, colorStops: [{ color: 'mediumpurple' }, { color: 'thistle' }] },
                     fontFamily: 'serif',
                     fontSize: 14,
-                    fontWeight: 'bold',
+                    fontWeight: 'bold' as const,
                     padding: { top: 12, right: 20, bottom: 12, left: 20 },
-                    position: 'inside',
+                    position: 'inside' as const,
                     text: 'Themed Region',
                 },
                 xRange: { start: 20, end: 80 },
                 yRange: { start: 20, end: 80 },
-            } as const,
+            },
         ],
     },
 };
