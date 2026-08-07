@@ -4017,4 +4017,92 @@ describe('ChartOptions', () => {
             expect(prepared.series[0].label.border.enabled).toBe(true);
         });
     });
+
+    describe('validations.consoleLogLevel', () => {
+        const invalidOptions = (extra?: object): AgChartOptions =>
+            ({
+                series: [{ type: 'line', xKey: 'x', yKey: 'y', strokeWidth: 'notanumber' as any }],
+                ...extra,
+            }) as AgChartOptions;
+
+        it('silences first-render validation warnings when set to `none`, without silencing validation itself', () => {
+            const chartOptions = new ChartOptions(
+                invalidOptions({ validations: { consoleLogLevel: 'none' } }),
+                {} as AgChartOptions,
+                {},
+                {},
+                {}
+            );
+
+            expect(console.warn).not.toHaveBeenCalled();
+            expect(chartOptions.validationIssues.length).toBeGreaterThan(0);
+        });
+
+        it('warns for the same invalid options without a consoleLogLevel override', () => {
+            const chartOptions = new ChartOptions(invalidOptions(), {} as AgChartOptions, {}, {}, {});
+
+            expect(console.warn).toHaveBeenCalled();
+            expect(chartOptions.validationIssues.length).toBeGreaterThan(0);
+        });
+
+        it('silences validation warnings when set to `error`', () => {
+            const chartOptions = new ChartOptions(
+                invalidOptions({ validations: { consoleLogLevel: 'error' } }),
+                {} as AgChartOptions,
+                {},
+                {},
+                {}
+            );
+
+            expect(console.warn).not.toHaveBeenCalled();
+            expect(chartOptions.validationIssues.length).toBeGreaterThan(0);
+        });
+
+        it('reports an invalid consoleLogLevel value rather than silencing logging with it', () => {
+            const chartOptions = new ChartOptions(
+                invalidOptions({ validations: { consoleLogLevel: 'verbose' } }),
+                {} as AgChartOptions,
+                {},
+                {},
+                {}
+            );
+
+            expect(chartOptions.validationIssues.some((issue) => issue.code === 'validations.consoleLogLevel')).toBe(
+                true
+            );
+            const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
+            expect(messages.some((m) => m.includes('validations.consoleLogLevel'))).toBe(true);
+            expect(messages.some((m) => m.includes('notanumber'))).toBe(true);
+        });
+
+        it('reports an explicit null consoleLogLevel rather than deferring to a silencing override', () => {
+            const chartOptions = new ChartOptions(
+                invalidOptions({ validations: { consoleLogLevel: null } }),
+                {} as AgChartOptions,
+                { validations: { consoleLogLevel: 'none' } } as Partial<AgChartOptions>,
+                {},
+                {}
+            );
+
+            const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
+            expect(messages.some((m) => m.includes('notanumber'))).toBe(true);
+            expect(chartOptions.validationIssues.length).toBeGreaterThan(0);
+        });
+
+        it('returns to default logging once a delta update removes a `none` override', () => {
+            const base = new ChartOptions(
+                invalidOptions({ validations: { consoleLogLevel: 'none' } }),
+                {} as AgChartOptions,
+                {},
+                {},
+                {}
+            );
+            expect(console.warn).not.toHaveBeenCalled();
+
+            const updated = new ChartOptions(base, invalidOptions(), {}, {}, {});
+
+            expect(console.warn).toHaveBeenCalled();
+            expect(updated.validationIssues.length).toBeGreaterThan(0);
+        });
+    });
 });

@@ -425,8 +425,8 @@ export function enterprise<T extends Validator | OptionsDefs<any>>(validatorOrDe
 
 /**
  * Marks an option as deprecated. Supplied values still pass through to the inner validator (so the
- * option remains functional during the deprecation window), but a one-shot warning is emitted via
- * `warnOnce` to nudge consumers toward the replacement API. The provided `message` should describe
+ * option remains functional during the deprecation window), but a one-shot notice is emitted via
+ * `deprecationOnce` (the quietest console tier) to nudge consumers toward the replacement API. The provided `message` should describe
  * the recommended migration (e.g. "Use `colorScale.fills` instead.").
  */
 export function deprecated(validator: Validator, message: string): Validator;
@@ -436,7 +436,7 @@ export function deprecated<T extends Validator | OptionsDefs<any>>(validatorOrDe
     const description = (validatorOrDefs as PrivateSymbols)[descriptionSymbol];
     const gated: Validator = (value, context) => {
         if (value !== undefined && !context.params?.silentAdvisories) {
-            context.params.logger.warnOnce(`Option \`${context.path}\` is deprecated. ${message}`);
+            context.params.logger.deprecationOnce(`Option \`${context.path}\` is deprecated. ${message}`);
         }
         return inner(value, context);
     };

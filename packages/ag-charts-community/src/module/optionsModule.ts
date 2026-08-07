@@ -23,9 +23,11 @@ import {
     hasRequiredInPath,
     isArray,
     isKeyOf,
+    isLogLevel,
     isNumericValue,
     isObject,
     isObjectLike,
+    isObjectWithProperty,
     isPlainObject,
     isSymbol,
     joinFormatted,
@@ -45,6 +47,8 @@ import {
 import {
     type AgChartOptions,
     type AgChartThemeParams,
+    type AgChartValidationLevel,
+    type AgChartValidationsOptions,
     type AgMiniChartSeriesOptions,
     type AgPresetOptions,
     type AgPresetOverrides,
@@ -78,6 +82,18 @@ import {
     setStructuralCacheEntry,
 } from './optionsStructuralCache';
 import type { SeriesGrouping } from './seriesGrouping';
+
+/** The default `validations.consoleLogLevel` — everything, including deprecation notices. */
+const DEFAULT_CONSOLE_LOG_LEVEL: AgChartValidationLevel = 'deprecation';
+
+/** The `validations` subtree of options that are not yet known to be valid: public keys, unknown values. */
+type UnvalidatedValidations = { [K in keyof AgChartValidationsOptions]?: unknown };
+
+function getValidations(options: unknown): UnvalidatedValidations | undefined {
+    if (!isObjectWithProperty(options, 'validations')) return undefined;
+    const { validations } = options;
+    return isObject(validations) ? validations : undefined;
+}
 
 interface FontAccumulator {
     /** Google font families to load from the CDN (gated by `loadGoogleFonts`). */
@@ -303,6 +319,18 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             });
             this.specialOverrides = this.specialOverridesDefaults({ ...specialOverrides });
         }
+        // Apply the console log level before anything can be validated: first-pass validation runs
+        // inside `slowSetup()` below, so a `'none'` supplied by the user (or, in AG Grid integrated
+        // mode, via the processed overrides) has to bite ahead of the first warning being printed.
+        // Presence, not nullishness: an explicit `null` must reach the invalid-value fallback below
+        // rather than deferring to an override that could silence the warning reporting it.
+        const userValidations = getValidations(this.userOptions);
+        this.applyConsoleLogLevel(
+            isObjectWithProperty(userValidations, 'consoleLogLevel')
+                ? userValidations.consoleLogLevel
+                : getValidations(this.processedOverrides)?.consoleLogLevel
+        );
+
         this.findSeriesWithUserVisiblity(newUserOptions, deltaOptions);
 
         if (stripSymbols) {
@@ -350,6 +378,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         this.activeTheme = activeTheme;
         this.processedOptions = processedOptions;
+        // Re-apply from the merged result so a value arriving via a theme or preset also takes effect.
+        this.applyConsoleLogLevel(getValidations(this.processedOptions)?.consoleLogLevel);
         this.fastDelta = fastDelta ?? undefined;
         this.themeParameters = themeParameters;
         this.annotationThemes = annotationThemes;
@@ -653,6 +683,21 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
      */
     adoptLogger(logger: Logger) {
         this.logger = logger;
+        // A pooled chart adopts a different Logger after validation has run, so the level has to be
+        // re-applied or the new chart inherits the previous one's threshold.
+        this.applyConsoleLogLevel(getValidations(this.processedOptions)?.consoleLogLevel);
+    }
+
+    /**
+     * Points the Logger at the requested level, falling back to the default for anything unrecognised.
+     * The fallback is load-bearing: this runs before the union validator has, so an invalid value must
+     * not silence the very warning that reports it.
+     */
+    private applyConsoleLogLevel(level: unknown) {
+        // Typed as the public option on the way to the Logger's own scale, which pins the two
+        // unions to each other: either one gaining a level the other lacks is a compile error.
+        const consoleLogLevel: AgChartValidationLevel = isLogLevel(level) ? level : DEFAULT_CONSOLE_LOG_LEVEL;
+        this.logger.setLevel(consoleLogLevel);
     }
 
     private get validateParams(): ValidateParams {

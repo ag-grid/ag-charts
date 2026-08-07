@@ -23,6 +23,7 @@ import {
     color,
     constant,
     date,
+    deprecated,
     enterprise,
     greaterThan,
     instanceOf,
@@ -237,6 +238,36 @@ describe('Validation utils', () => {
                 expect(() => enterprise(required(string))).toThrow(/enterprise.*required/);
                 expect(() => required(enterprise(string))).toThrow(/required.*enterprise/);
             });
+        });
+    });
+
+    describe('deprecated wrapper', () => {
+        afterEach(() => validationLogger.setLevel('deprecation'));
+
+        test('emits a deprecationOnce notice at the default console level', () => {
+            const { cleared, invalid } = validate<{ colorScale: string }>(
+                { colorScale: 'red' },
+                { colorScale: deprecated(string, 'Use `colorScale.fills` instead.') }
+            );
+            expect(cleared).toEqual({ colorScale: 'red' });
+            expect(invalid).toEqual([]);
+            expect(console.warn).toHaveBeenCalledTimes(1);
+            expect((console.warn as Mock).mock.calls[0][0]).toContain('is deprecated');
+            expect((console.warn as Mock).mock.calls[0][0]).toContain('Use `colorScale.fills` instead.');
+        });
+
+        test('silences the notice once the console level is raised to "warning"', () => {
+            validationLogger.setLevel('warning');
+            // A message distinct from the preceding test's, so the shared logger's do-once cache
+            // cannot be what keeps this quiet.
+            const { cleared, invalid } = validate<{ colorScale: string }>(
+                { colorScale: 'red' },
+                { colorScale: deprecated(string, 'Use `colorScale.range` instead.') }
+            );
+            // The value still passes through to the inner validator during the deprecation window.
+            expect(cleared).toEqual({ colorScale: 'red' });
+            expect(invalid).toEqual([]);
+            expect(console.warn).not.toHaveBeenCalled();
         });
     });
 
