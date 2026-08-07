@@ -34,16 +34,27 @@ const TIME: AgCartesianChartOptions = {
 const UNIT_TIME: AgCartesianChartOptions = {
     data: [
         { x: new Date('2026-01-01'), y: 0 },
-        { x: new Date('2027-01-01'), y: 100 },
+        { x: new Date('2026-02-01'), y: 20 },
+        { x: new Date('2026-03-01'), y: 40 },
+        { x: new Date('2026-04-01'), y: 60 },
+        { x: new Date('2026-05-01'), y: 40 },
+        { x: new Date('2026-06-01'), y: 100 },
     ],
     series: [{ type: 'scatter', xKey: 'x', yKey: 'y' }],
-    axes: { x: { type: 'unit-time', position: 'bottom' }, y: { type: 'number', position: 'left' } },
+    axes: {
+        x: { type: 'unit-time', position: 'bottom', interval: { step: 'month' } },
+        y: { type: 'number', position: 'left' },
+    },
 };
 
 const ORDINAL_TIME: AgCartesianChartOptions = {
     data: [
         { x: new Date('2026-01-01'), y: 0 },
-        { x: new Date('2027-01-01'), y: 100 },
+        { x: new Date('2026-02-01'), y: 20 },
+        { x: new Date('2026-03-01'), y: 40 },
+        { x: new Date('2026-04-01'), y: 60 },
+        { x: new Date('2026-05-01'), y: 40 },
+        { x: new Date('2026-06-01'), y: 100 },
     ],
     series: [{ type: 'scatter', xKey: 'x', yKey: 'y' }],
     axes: { x: { type: 'ordinal-time', position: 'bottom' }, y: { type: 'number', position: 'left' } },
@@ -221,8 +232,8 @@ const BOTH_RANGES_UNIT_TIME = {
             {
                 fill: 'lightsalmon',
                 xRange: {
-                    start: new Date('2026-03-01'),
-                    end: new Date('2026-09-01'),
+                    start: new Date('2026-02-01'),
+                    end: new Date('2026-04-01'),
                 },
                 yRange: { start: 20, end: 80 },
             },
@@ -237,8 +248,8 @@ const BOTH_RANGES_ORDINAL_TIME = {
             {
                 fill: 'lightsalmon',
                 xRange: {
-                    start: new Date('2026-03-01'),
-                    end: new Date('2026-09-01'),
+                    start: new Date('2026-02-01'),
+                    end: new Date('2026-04-01'),
                 },
                 yRange: { start: 20, end: 80 },
             },

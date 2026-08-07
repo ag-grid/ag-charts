@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { type NormalisedSeriesAreaBackgroundRegion, type Scale, Vec4, createId } from 'ag-charts-core';
+import { type NormalisedSeriesAreaBackgroundRegion, type Scale, ScaleAlignment, Vec4, createId } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
 export class CartesianBackgroundRegion implements _ModuleSupport.BackgroundRegion {
@@ -49,10 +49,10 @@ export class CartesianBackgroundRegion implements _ModuleSupport.BackgroundRegio
         const { opts, xScale, yScale } = this;
         if (!opts || !xScale || !yScale) return Vec4.origin();
 
-        let x1 = xScale.convert(opts.xRange?.start);
-        let y1 = yScale.convert(opts.yRange?.start);
-        let x2 = xScale.convert(opts.xRange?.end);
-        let y2 = yScale.convert(opts.yRange?.end);
+        let x1 = xScale.convert(opts.xRange?.start, { alignment: ScaleAlignment.Leading });
+        let y1 = yScale.convert(opts.yRange?.start, { alignment: ScaleAlignment.Leading });
+        let x2 = xScale.convert(opts.xRange?.end, { alignment: ScaleAlignment.Trailing });
+        let y2 = yScale.convert(opts.yRange?.end, { alignment: ScaleAlignment.Trailing });
 
         if (Number.isNaN(x1)) x1 = xScale.range[0];
         if (Number.isNaN(y1)) y1 = yScale.range[0];
