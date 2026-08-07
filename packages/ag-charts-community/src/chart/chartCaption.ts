@@ -288,12 +288,13 @@ export class ChartCaption implements CaptionLike {
      * interaction falls through exactly as it did before (AG-17638).
      */
     private hasClickListener(moduleCtx: DynamicContext<ChartRegistry>): boolean {
-        const { listeners } = this.opts;
+        const captionListeners = this.opts.listeners;
+        const chartListeners = moduleCtx.chartService.listeners;
         return (
-            listeners?.click != null ||
-            listeners?.doubleClick != null ||
-            moduleCtx.chartService.hasListener('captionClick') ||
-            moduleCtx.chartService.hasListener('captionDoubleClick')
+            captionListeners?.click != null ||
+            captionListeners?.doubleClick != null ||
+            chartListeners.captionClick != null ||
+            chartListeners.captionDoubleClick != null
         );
     }
 
@@ -322,9 +323,7 @@ export class ChartCaption implements CaptionLike {
 
         // The chart-level listener fires alongside the caption-level one, as `seriesNodeClick` does.
         const chartEventType = isDoubleClick ? 'captionDoubleClick' : 'captionClick';
-        if (moduleCtx.chartService.hasListener(chartEventType)) {
-            moduleCtx.chartService.callListener({ type: chartEventType, ...params });
-        }
+        moduleCtx.chartService.callListener({ type: chartEventType, ...params });
     }
 
     destroy() {
