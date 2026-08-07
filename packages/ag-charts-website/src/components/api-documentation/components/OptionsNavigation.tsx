@@ -36,7 +36,9 @@ import {
     getDetailsId,
     getMemberType,
     getNavigationDataFromPath,
+    getVariantDiscriminator,
     isInterfaceHidden,
+    isStringLiteralType,
     normalizeType,
     processMembers,
 } from '../apiReferenceHelpers';
@@ -284,9 +286,9 @@ function NavProperty({
                 >
                     {expandable && <PropertyExpander isExpanded={isExpanded} onClick={toggleExpanded} />}
                     <span onClick={() => onClick?.(navData)}>
-                        {member.name === 'type' && memberType.match(/^'\S+'$/) ? (
+                        {isStringLiteralType(memberType) ? (
                             <>
-                                type <span className={styles.punctuation}>= '</span>
+                                {member.name} <span className={styles.punctuation}>= '</span>
                                 <span className={styles.unionDiscriminator}>{cleanupName(memberType)}</span>'
                             </>
                         ) : (
@@ -411,6 +413,7 @@ function NavTypedUnionProperty({
         selection?.selection.hash === navData.hash;
 
     const typeArguments = buildTypeArgumentsFromGenericsMap(interfaceRef, genericsMap);
+    const discriminatorKey = getVariantDiscriminator(interfaceRef)?.key ?? 'type';
 
     return (
         <>
@@ -431,7 +434,7 @@ function NavTypedUnionProperty({
                             <>
                                 <span onClick={() => onClick?.(navData)}>
                                     <span className={styles.punctuation}>{'{ '}</span>
-                                    type
+                                    {discriminatorKey}
                                     <span className={styles.punctuation}> = '</span>
                                     <span className={styles.unionDiscriminator}>{path[path.length - 1].name}</span>
                                     <span className={styles.punctuation}>'</span>
@@ -640,11 +643,9 @@ function getInterfaceArrayTypes(reference?: ApiReferenceType, interfaceRef?: Api
             .map((type) => {
                 const nodeType = normalizeType(type);
                 const innerInterfaceRef = reference?.get(nodeType);
-                if (innerInterfaceRef?.kind === 'interface') {
-                    const typeMember = innerInterfaceRef.members.find((member) => member.name === 'type');
-                    if (typeof typeMember?.type === 'string') {
-                        return { name: cleanupName(typeMember.type), type: nodeType };
-                    }
+                const discriminator = getVariantDiscriminator(innerInterfaceRef);
+                if (discriminator) {
+                    return { name: discriminator.value, type: nodeType };
                 }
             })
             .filter((item): item is NavigationPath => item != null);
