@@ -1,6 +1,5 @@
-import type { FillOptions, StrokeOptions } from 'ag-charts-types';
-
 import type { AgCartesianSeriesOptions } from '../series/cartesian/cartesianSeriesTypes';
+import type { FillOptions, StrokeOptions } from '../series/cartesian/commonOptions';
 import type { AgAnnotationsOptions } from './annotationsOptions';
 import type {
     AgAxisBaseIntervalOptions,
