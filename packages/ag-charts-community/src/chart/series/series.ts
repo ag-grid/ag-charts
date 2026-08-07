@@ -42,11 +42,14 @@ import type {
     AgChartLabelFormatterParams,
     AgDrawingMode,
     AgInitialStateLegendOptions,
+    AgNodeClickEvent,
+    AgNodeContextMenuActionEvent,
     AgNodeParams,
     AgSeriesTooltipRendererParams,
     AgSeriesVisibilityChange,
     FormatterParams,
     FormatterPropertyType,
+    Listener,
     HighlightState as PublicHighlightState,
     SelectionState as PublicSelectionState,
     SeriesType,
@@ -68,8 +71,6 @@ import { type Node, PointerEvents } from '../../scene/node';
 import type { Selection } from '../../scene/selection';
 import type { Path } from '../../scene/shape/path';
 import { Transformable } from '../../scene/transformable';
-import type { TypedEvent, TypedEventListener } from '../../util/observable';
-import { Observable } from '../../util/observable';
 import type { ChartAxis } from '../chartAxis';
 import type { ChartMode } from '../chartMode';
 import type { DataController } from '../data/dataController';
@@ -89,7 +90,6 @@ import {
     type DatumIndex,
     type FireNodeEventParams,
     HighlightState,
-    type INodeEvent,
     type ISeries,
     type ISeriesAriaMeta,
     type NodeDataDependencies,
@@ -98,6 +98,12 @@ import {
 } from './seriesTypes';
 import { type ShapeFillBBox } from './shapeUtil';
 import { hasDimmedOpacity, resolveMarkerDrawingMode } from './util';
+
+type NodeEventType = 'seriesNodeClick' | 'seriesNodeDoubleClick' | 'nodeContextMenuAction';
+type SeriesListenerEvent =
+    | AgNodeClickEvent<'seriesNodeClick', unknown, unknown>
+    | AgNodeClickEvent<'seriesNodeDoubleClick', unknown, unknown>
+    | AgSeriesVisibilityChange<unknown>;
 
 export interface SeriesDataEvent {
     readonly dataModel: DataModel<any, any, any>;
@@ -201,9 +207,7 @@ export type SeriesDirectionKeysMapping<P extends SeriesProperties<any>> = {
     [key in ChartAxisDirection | FormatterPropertyType]?: (keyof P & string)[];
 };
 
-export class SeriesGroupingChangedEvent implements TypedEvent {
-    type = 'groupingChanged';
-
+export class SeriesGroupingChangedEvent {
     constructor(
         public series: Series<any, object, any>,
         public seriesGrouping: SeriesGrouping | undefined
@@ -259,10 +263,7 @@ export abstract class Series<
     TProps extends SeriesProperties<TOpts>,
     TLabel = TDatum,
     TContext extends SeriesNodeDataContext<TDatum, TLabel> = SeriesNodeDataContext<TDatum, TLabel>,
->
-    extends Observable
-    implements ISeries<TDatum, TProps, TLabel>
-{
+> implements ISeries<TDatum, TProps, TLabel> {
     static readonly className: string = 'Series';
     protected cleanup = new CleanupRegistry();
     abstract readonly properties: TProps;
@@ -455,7 +456,7 @@ export abstract class Series<
             });
         }
 
-        this.fireEvent(new SeriesGroupingChangedEvent(this, next));
+        this.events.emit('grouping-changed', new SeriesGroupingChangedEvent(this, next));
     }
 
     getBandScalePadding() {
@@ -466,8 +467,6 @@ export abstract class Series<
     private moduleContext?: DynamicContext<ChartSeriesRegistry>;
 
     constructor(seriesOpts: SeriesConstructorOpts<TProps>) {
-        super();
-
         const {
             moduleCtx,
             pickModes,
@@ -525,7 +524,7 @@ export abstract class Series<
         this._broughtToFront = bringToFront;
         this.setZIndex(bringToFront ? Number.MAX_VALUE : index);
 
-        this.fireEvent(new SeriesGroupingChangedEvent(this, this.seriesGrouping));
+        this.events.emit('grouping-changed', new SeriesGroupingChangedEvent(this, this.seriesGrouping));
 
         return true;
     }
@@ -578,31 +577,9 @@ export abstract class Series<
         'data-update': SeriesDataEvent;
         'data-processed': SeriesDataEvent;
         'data-selection-change': null;
+        'grouping-changed': SeriesGroupingChangedEvent;
+        'visibility-change': AgSeriesVisibilityChange;
     }>();
-
-    override addEventListener(type: 'seriesVisibilityChange', listener: (e: AgSeriesVisibilityChange) => void): void;
-    override addEventListener(type: 'seriesNodeClick', listener: (e: INodeEvent) => void): void;
-    override addEventListener(type: 'seriesNodeDoubleClick', listener: (e: INodeEvent) => void): void;
-    override addEventListener(type: string, listener: TypedEventListener): void;
-    override addEventListener(type: string, listener: TypedEventListener | ((e: unknown) => void)): void {
-        return super.addEventListener(type, listener);
-    }
-
-    override removeEventListener(type: 'seriesVisibilityChange', listener: (e: AgSeriesVisibilityChange) => void): void;
-    override removeEventListener(type: 'seriesNodeClick', listener: (e: INodeEvent) => void): void;
-    override removeEventListener(type: 'seriesNodeDoubleClick', listener: (e: INodeEvent) => void): void;
-    override removeEventListener(type: string, listener: TypedEventListener): void;
-    override removeEventListener(type: string, listener: TypedEventListener | ((e: unknown) => void)): void {
-        return super.removeEventListener(type, listener);
-    }
-
-    override hasEventListener(type: 'seriesVisibilityChange'): boolean;
-    override hasEventListener(type: 'seriesNodeClick'): boolean;
-    override hasEventListener(type: 'seriesNodeDoubleClick'): boolean;
-    override hasEventListener(type: string): boolean;
-    override hasEventListener(type: string): boolean {
-        return super.hasEventListener(type);
-    }
 
     updatedDomains() {
         // For override by subclasses.
@@ -1196,35 +1173,47 @@ export abstract class Series<
         return;
     }
 
-    // Use a wrapper to comply with the @typescript-eslint/unbound-method rule.
-    private readonly fireEventWrapper = (event: TypedEvent): void => super.fireEvent(event);
-    protected override fireEvent<TEvent extends TypedEvent>(event: TEvent): void {
-        callWithContext([this.properties, this.ctx.chartService], this.fireEventWrapper, event);
+    hasNodeClickListener(): boolean {
+        const seriesListeners = this.properties.listeners;
+        const chartListeners = this.ctx.chartService.listeners;
+        return !!(
+            seriesListeners?.seriesNodeClick ||
+            seriesListeners?.seriesNodeDoubleClick ||
+            chartListeners.seriesNodeClick ||
+            chartListeners.seriesNodeDoubleClick
+        );
+    }
+
+    private callListeners(event: SeriesListenerEvent & { readonly defaultPrevented?: boolean }): boolean {
+        // Redundancy Type-Check: Ensure that the listeners[event.type] parameter type is correct.
+        // Example: make sure listeners['seriesNodeClick'] is type Listeners<AgNodeClickEvent<'seriesNodeClick'>> and so
+        // on for all other event types. We do this because converting seriesListener/chartListener to type
+        // `(arg:any)=>void` loosens the type-safety (so that we can call it).
+        type Rules = undefined | { [K in (typeof event)['type']]?: Listener<Extract<typeof event, { type: K }>> };
+        type UserListener = Listener<any> | undefined;
+        const seriesListener: UserListener = (this.properties.listeners satisfies Rules)?.[event.type];
+        const chartListener: UserListener = (this.ctx.chartService.listeners satisfies Rules)?.[event.type];
+
+        const callers = [this.properties, this.ctx.chartService];
+        if (seriesListener != null) callWithContext(callers, seriesListener, event);
+        if (chartListener != null) callWithContext(callers, chartListener, event);
+        return !!event.defaultPrevented;
     }
 
     fireNodeClickEvent(opts: FireNodeEventParams): boolean {
-        return this.fireNodeEvent('seriesNodeClick', opts);
+        return this.callListeners(this.createNodeEvent('seriesNodeClick', opts));
     }
 
     fireNodeDoubleClickEvent(opts: FireNodeEventParams): boolean {
-        return this.fireNodeEvent('seriesNodeDoubleClick', opts);
+        return this.callListeners(this.createNodeEvent('seriesNodeDoubleClick', opts));
     }
 
-    private fireNodeEvent<T extends 'seriesNodeClick' | 'seriesNodeDoubleClick'>(type: T, opts: FireNodeEventParams) {
-        const clickEvent = this.createNodeEvent(type, opts);
-        this.fireEvent(clickEvent);
-        return !clickEvent.defaultPrevented;
-    }
-
-    createNodeContextMenuActionEvent(opts: FireNodeEventParams): INodeEvent<'nodeContextMenuAction'> {
+    createNodeContextMenuActionEvent(opts: FireNodeEventParams): AgNodeContextMenuActionEvent {
         return this.createNodeEvent('nodeContextMenuAction', opts);
     }
 
     // Do not override. Override createNodeParams instead.
-    createNodeEvent<T extends 'seriesNodeClick' | 'seriesNodeDoubleClick' | 'nodeContextMenuAction'>(
-        type: T,
-        opts: FireNodeEventParams
-    ) {
+    createNodeEvent<T extends NodeEventType>(type: T, opts: FireNodeEventParams) {
         const { event, datums, winner, coordinates } = opts;
         const allNodeParams: AgNodeParams<unknown>[] = datums.map((d) => d.series.createNodeParams(d));
 
@@ -1318,7 +1307,8 @@ export abstract class Series<
             legendItemName: legendEvent?.legendItemName ?? legendItemName,
             visible: enabled,
         };
-        this.fireEvent(event);
+        this.callListeners(event);
+        this.events.emit('visibility-change', event);
 
         this.ctx.legendManager?.toggleItem(enabled, seriesId, itemId, legendItemName);
     }

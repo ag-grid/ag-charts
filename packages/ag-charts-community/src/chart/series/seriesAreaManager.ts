@@ -30,7 +30,6 @@ import type { TranslatableGroup } from '../../scene/group';
 import type { Node as SceneNode } from '../../scene/node';
 import { Transformable } from '../../scene/transformable';
 import { BaseManager } from '../../util/baseManager';
-import type { TypedEvent } from '../../util/observable';
 import { debouncedAnimationFrame } from '../../util/render';
 import type { Widget } from '../../widget/widget';
 import type {
@@ -101,7 +100,6 @@ type FindPickedNodesResult = PickedNodes | 'series-hidden' | undefined;
 export interface SeriesAreaChartDependencies {
     hasViewportSupport(): boolean;
     hasPgUpPgDownSupport(): boolean;
-    fireEvent<TEvent extends TypedEvent>(event: TEvent): void;
     getUpdateType(): ChartUpdateType;
     getTooltipContent: (
         series: PickedNode['series'],
@@ -608,8 +606,7 @@ export class SeriesAreaManager extends BaseManager {
             const found = matches?.[0];
             if (
                 (found?.series.isSelectionEnabled() && found?.series.isDatumSelectable(found.datumIndex)) ||
-                found?.series.hasEventListener('seriesNodeClick') ||
-                found?.series.hasEventListener('seriesNodeDoubleClick') ||
+                found?.series.hasNodeClickListener() ||
                 found?.series.hasBuiltinListener(pick?.target) ||
                 (matches != null && matches.length > 1 && this.chart.tooltip.pagination)
             ) {
@@ -687,7 +684,7 @@ export class SeriesAreaManager extends BaseManager {
         const newEvent = { type, event: event.sourceEvent, coordinates } satisfies
             | CallbackParamRules<AgChartClickEvent>
             | CallbackParamRules<AgChartDoubleClickEvent>;
-        this.chart.fireEvent(newEvent);
+        this.chart.ctx.chartService.callListener(newEvent);
     }
 
     private emitSeriesAreaHoverEvent(event: HoverLikeEvent, consumed: boolean): void {
@@ -859,11 +856,7 @@ export class SeriesAreaManager extends BaseManager {
                 this.update(ChartUpdateType.SERIES_UPDATE);
             }
         } else {
-            this.chart.fireEvent<CallbackParamRules<AgChartClickEvent>>({
-                type: 'click',
-                event: sourceEvent,
-                coordinates: undefined,
-            });
+            this.chart.ctx.chartService.callListener({ type: 'click', event: sourceEvent, coordinates: undefined });
         }
     }
 

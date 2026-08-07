@@ -16,6 +16,8 @@ interface AgChartEvent<T extends string, TContext = ContextDefault> {
 }
 
 export interface AgPreventableEvent {
+    /** True if the `preventDefault()` method has been called on this event. */
+    readonly defaultPrevented: boolean;
     /** Prevent the AG Charts built-in default event handlers from running. */
     preventDefault(): void;
 }
@@ -26,7 +28,7 @@ interface AgCoordinatedEvent {
 }
 
 export interface AgBaseNodeClickEvent<TEvent extends string, TDatum, TContext = ContextDefault>
-    extends AgChartEvent<TEvent, TContext>, AgCoordinatedEvent, AgNodeParams<TDatum> {
+    extends AgChartEvent<TEvent, TContext>, AgPreventableEvent, AgCoordinatedEvent, AgNodeParams<TDatum> {
     /** Event type. */
     type: TEvent;
 }

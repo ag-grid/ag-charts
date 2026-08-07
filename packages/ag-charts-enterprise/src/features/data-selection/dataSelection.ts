@@ -449,6 +449,9 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         this.ctx.chartService.callListener({
             type: 'selectionChange',
             source,
+            get defaultPrevented() {
+                return defaultPrevented;
+            },
             preventDefault,
             added,
             removed,
@@ -461,7 +464,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     }
 
     private allocSelectionChanges(): SelectionChanges {
-        if (!this.ctx.chartService.hasListener('selectionChange')) return { countDelta: 0 };
+        if (this.ctx.chartService.listeners.selectionChange == null) return { countDelta: 0 };
         return { countDelta: 0, items: new DataSelectionChangeMap() };
     }
 

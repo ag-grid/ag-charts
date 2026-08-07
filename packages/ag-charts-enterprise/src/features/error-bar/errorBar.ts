@@ -64,8 +64,8 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
         this.sceneSelection = _ModuleSupport.Selection.select(this.groupNode, () => this.errorBarFactory());
         annotationSelections.add(this.sceneSelection);
 
-        series.addEventListener('seriesVisibilityChange', (e: AgSeriesVisibilityChange) => this.onToggleSeriesItem(e));
         this.cleanup.register(
+            series.events.on('visibility-change', (e) => this.onToggleSeriesItem(e)),
             series.events.on('data-processed', (e) => this.onDataProcessed(e)),
             series.events.on('data-update', (e) => this.onDataUpdate(e)),
             series.events.on('data-selection-change', (e) => this.onDataSelectionChange(e)),

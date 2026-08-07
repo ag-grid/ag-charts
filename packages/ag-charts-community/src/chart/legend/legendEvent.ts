@@ -33,7 +33,12 @@ export function makeLegendItemEvent(
             seriesId,
             event,
             text: toPlainText(text),
-            preventDefault: () => (result.defaultPrevented = true),
+            get defaultPrevented() {
+                return result.defaultPrevented;
+            },
+            preventDefault: () => {
+                result.defaultPrevented = true;
+            },
         },
     };
     return result;

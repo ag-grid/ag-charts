@@ -130,6 +130,9 @@ export class CollapsedManager implements MementoOriginator<CollapsedMemento> {
         this.chartService.callListener({
             type: 'collapsedChange',
             source,
+            get defaultPrevented() {
+                return defaultPrevented;
+            },
             preventDefault,
             collapsed: justCollapsed.map((id) => ({
                 itemId: id,
