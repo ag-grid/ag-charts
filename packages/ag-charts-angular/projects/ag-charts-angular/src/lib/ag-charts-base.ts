@@ -3,6 +3,7 @@ import { AfterViewInit, Component, EventEmitter, NgZone, OnChanges, OnDestroy } 
 import {
     AgAxisListeners,
     AgBaseChartListeners,
+    AgCaptionListeners,
     AgChartInstance,
     AgChartLegendListeners,
     AgContextMenuGetItemsCallback,
@@ -79,6 +80,12 @@ export abstract class AgChartsBase<Options extends {}> implements AfterViewInit,
                 ])
             );
         }
+        for (const captionKey of ['title', 'subtitle', 'footnote'] as const) {
+            const caption = propsOptions[captionKey];
+            if (caption?.listeners) {
+                patched[captionKey] = { ...caption, listeners: this.patchListeners(caption.listeners) };
+            }
+        }
         if (propsOptions.contextMenu) {
             patched.contextMenu = this.patchContextMenu(propsOptions.contextMenu);
         }
@@ -88,7 +95,12 @@ export abstract class AgChartsBase<Options extends {}> implements AfterViewInit,
     }
 
     private patchListeners(
-        listenerConfig: AgChartLegendListeners | AgSeriesListeners<any> | AgBaseChartListeners<any> | AgAxisListeners
+        listenerConfig:
+            | AgChartLegendListeners
+            | AgSeriesListeners<any>
+            | AgBaseChartListeners<any>
+            | AgAxisListeners
+            | AgCaptionListeners
     ): any {
         const config: any = listenerConfig;
         const patched: any = {};

@@ -5,7 +5,7 @@ import type { AgChartBackgroundImage } from './backgroundOptions';
 import type { Renderer } from './callbackOptions';
 import type { AgContextMenuOptions } from './contextMenuOptions';
 import type { AgDataSourceOptions } from './dataSourceOptions';
-import type { AgBaseChartListeners } from './eventOptions';
+import type { AgBaseChartListeners, AgCaptionListeners } from './eventOptions';
 import type { AgFlashOnUpdateOptions } from './flashOnUpdateOptions';
 import type { FormatterConfiguration } from './formatterOptions';
 import type { AgGradientLegendOptions } from './gradientLegendOptions';
@@ -135,6 +135,8 @@ export interface AgChartCaptionOptions<TContext = ContextDefault> extends LabelB
     wrapping?: TextWrap;
     /** Configuration for the caption tooltip shown on hover. */
     tooltip?: AgCaptionTooltipOptions<TContext>;
+    /** A map of event names to event listeners. */
+    listeners?: AgCaptionListeners<TContext>;
 }
 export interface AgChartSubtitleOptions<TContext = ContextDefault> extends AgChartCaptionOptions<TContext> {}
 export interface AgChartFooterOptions<TContext = ContextDefault> extends AgChartCaptionOptions<TContext> {}
