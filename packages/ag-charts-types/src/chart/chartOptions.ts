@@ -347,4 +347,18 @@ export interface AgBaseChartOptions<
     initialState?: AgInitialStateOptions;
     /** Set to show or hide the loading overlay. */
     loading?: boolean;
+    /** Configuration for how the chart reports invalid configuration and runtime problems. */
+    validations?: AgChartValidationsOptions;
+}
+
+/** Configuration for how the chart reports invalid configuration and runtime problems. */
+export interface AgChartValidationsOptions {
+    /**
+     * The minimum severity of validation output written to the browser console. An inclusive
+     * threshold: each level also logs every louder level. `'none'` silences all validation console
+     * output, including the internal error diagnostics from failed chart updates.
+     *
+     * Default: `'deprecation'`
+     */
+    consoleLogLevel?: 'error' | 'warning' | 'deprecation' | 'none';
 }

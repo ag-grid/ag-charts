@@ -598,6 +598,9 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             ctx.chartState.observe((get) => {
                 this.validationCollector.setOverlayLevel(get('options', 'validations')?.overlayLevel ?? 'none');
             }),
+            ctx.chartState.observe((get) => {
+                ctx.logger.setLevel(get('options', 'validations')?.consoleLogLevel ?? 'deprecation');
+            }),
             ctx.layoutManager.registerElement(LayoutElement.Caption, (e) => {
                 e.layoutBox.shrink(ctx.chartState.getValue('options', 'padding'));
                 this.chartCaptions.positionCaptions(e);

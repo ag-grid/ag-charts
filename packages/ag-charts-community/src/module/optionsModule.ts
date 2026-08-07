@@ -7,6 +7,7 @@ import {
     Debug,
     type DeepPartial,
     type FontOptions,
+    type LogLevel,
     Logger,
     ModuleRegistry,
     ModuleType,
@@ -78,6 +79,17 @@ import {
     setStructuralCacheEntry,
 } from './optionsStructuralCache';
 import type { SeriesGrouping } from './seriesGrouping';
+
+/** The default `validations.consoleLogLevel` — everything, including deprecation notices. */
+const DEFAULT_CONSOLE_LOG_LEVEL: LogLevel = 'deprecation';
+const LOG_LEVELS: readonly LogLevel[] = ['deprecation', 'warning', 'error', 'none'];
+
+function isLogLevel(value: unknown): value is LogLevel {
+    return LOG_LEVELS.includes(value as LogLevel);
+}
+
+/** The `validations` subtree, as read out of options that are not yet known to be valid. */
+type ChartValidationsSource = { validations?: { consoleLogLevel?: unknown } };
 
 interface FontAccumulator {
     /** Google font families to load from the CDN (gated by `loadGoogleFonts`). */
@@ -303,6 +315,14 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             });
             this.specialOverrides = this.specialOverridesDefaults({ ...specialOverrides });
         }
+        // Apply the console log level before anything can be validated: first-pass validation runs
+        // inside `slowSetup()` below, so a `'none'` supplied by the user (or, in AG Grid integrated
+        // mode, via the processed overrides) has to bite ahead of the first warning being printed.
+        this.applyConsoleLogLevel(
+            (this.userOptions as ChartValidationsSource).validations?.consoleLogLevel ??
+                (this.processedOverrides as ChartValidationsSource).validations?.consoleLogLevel
+        );
+
         this.findSeriesWithUserVisiblity(newUserOptions, deltaOptions);
 
         if (stripSymbols) {
@@ -350,6 +370,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         this.activeTheme = activeTheme;
         this.processedOptions = processedOptions;
+        // Re-apply from the merged result so a value arriving via a theme or preset also takes effect.
+        this.applyConsoleLogLevel((this.processedOptions as ChartValidationsSource).validations?.consoleLogLevel);
         this.fastDelta = fastDelta ?? undefined;
         this.themeParameters = themeParameters;
         this.annotationThemes = annotationThemes;
@@ -653,6 +675,18 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
      */
     adoptLogger(logger: Logger) {
         this.logger = logger;
+        // A pooled chart adopts a different Logger after validation has run, so the level has to be
+        // re-applied or the new chart inherits the previous one's threshold.
+        this.applyConsoleLogLevel((this.processedOptions as ChartValidationsSource).validations?.consoleLogLevel);
+    }
+
+    /**
+     * Points the Logger at the requested level, falling back to the default for anything unrecognised.
+     * The fallback is load-bearing: this runs before the union validator has, so an invalid value must
+     * not silence the very warning that reports it.
+     */
+    private applyConsoleLogLevel(level: unknown) {
+        this.logger.setLevel(isLogLevel(level) ? level : DEFAULT_CONSOLE_LOG_LEVEL);
     }
 
     private get validateParams(): ValidateParams {

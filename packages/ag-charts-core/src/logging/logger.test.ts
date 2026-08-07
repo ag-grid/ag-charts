@@ -65,9 +65,6 @@ describe('Logger', () => {
     });
 
     describe('logGroup', () => {
-        // A quieter-than-warn floor, so a warn inside the group is gated out.
-        const ERROR_ONLY_SEVERITY = 2;
-
         it('leaves console grouping untouched when the group logs nothing', () => {
             new Logger().logGroup('empty', () => void 0);
             expect(console.groupCollapsed).not.toHaveBeenCalled();
@@ -75,7 +72,9 @@ describe('Logger', () => {
         });
 
         it('does not open the group for a message its severity floor suppresses', () => {
-            const logger = new Logger(ERROR_ONLY_SEVERITY);
+            // `'error'` is a quieter-than-warn floor, so a warn inside the group is gated out.
+            const logger = new Logger();
+            logger.setLevel('error');
             logger.logGroup('gated', () => logger.warn('suppressed'));
             expect(console.warn).not.toHaveBeenCalled();
             expect(console.groupCollapsed).not.toHaveBeenCalled();
