@@ -311,7 +311,7 @@ export interface AgCaptionListeners<TContext = ContextDefault> {
 export interface AgNodeContextMenuActionEvent<
     TDatum = DatumDefault,
     TContext = ContextDefault,
-> extends AgBaseNodeClickEvent<'nodeContextMenuAction', TDatum, TContext> {}
+> extends AgNodeClickEvent<'nodeContextMenuAction', TDatum, TContext> {}
 
 export interface AgBaseChartListeners<TDatum, TContext = ContextDefault> {
     /** The listener to call when a node (marker, column, bar, tile or a pie sector) in any series is clicked.
