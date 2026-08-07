@@ -23,6 +23,7 @@ import type {
     AgActiveItemState,
     AgActiveState,
     AgCartesianChartOptions,
+    AgChartValidationLevel,
     AgInitialStateLegendOptions,
     AgPolarChartOptions,
     AgStandaloneChartOptions,
@@ -38,14 +39,18 @@ export const initialStatePickedOptionsDef: OptionsDefs<AgActiveState> = {
     frozen: boolean,
 };
 
+// Exhaustive against the public option type, so neither side can gain a level without the other.
+const validationLevel = strictUnion<AgChartValidationLevel>()('error', 'warning', 'deprecation', 'none');
+
 // These options are being validated by other modules
 export const commonChartOptions = {
     mode: undocumented(union('integrated', 'standalone')),
     withinStudio: undocumented(boolean),
     loading: boolean,
-    validations: undocumented({
-        overlayLevel: union('error', 'warning', 'deprecation', 'none'),
-    }),
+    validations: {
+        overlayLevel: validationLevel,
+        consoleLogLevel: validationLevel,
+    },
     container: htmlElement,
     context: () => true,
     theme: defined,

@@ -447,10 +447,19 @@ export const textAlign = union('left', 'center', 'right');
 export const overflowStrategy = union('ellipsis', 'hide');
 
 export const paddingOptions = optionsDefs<PaddingOptions>(
+    { top: positiveNumber, right: positiveNumber, bottom: positiveNumber, left: positiveNumber },
+    'padding object'
+);
+export const padding = or(positiveNumber, paddingOptions);
+
+// Cross-line labels consume `padding` as a signed positional value rather than a box inset, so they
+// are deliberately exempt from the non-negative rule (AG-17973). Do not use this anywhere else —
+// new padding options must use `padding` above.
+export const signedPaddingOptions = optionsDefs<PaddingOptions>(
     { top: number, right: number, bottom: number, left: number },
     'padding object'
 );
-export const padding = or(number, paddingOptions);
+export const signedPadding = or(number, signedPaddingOptions);
 
 export const borderOptionsDef: OptionsDefs<BorderOptions> = {
     enabled: boolean,
