@@ -58,6 +58,9 @@ export class HeatmapSeriesProperties extends CartesianSeriesProperties<AgHeatmap
     itemPadding: number = 0;
 
     @Property
+    cornerRadius: number = 0;
+
+    @Property
     itemStyler?: Styler<AgHeatmapSeriesItemStylerParams<unknown>, AgHeatmapSeriesStyle>;
 
     @Property

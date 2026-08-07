@@ -755,6 +755,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             rect.setStyleProperties(style);
 
             rect.crisp = crisp;
+            rect.cornerRadius = this.properties.cornerRadius;
             rect.x = point.x - width / 2;
             rect.y = point.y - height / 2;
             rect.width = width;
