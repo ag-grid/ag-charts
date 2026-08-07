@@ -37,7 +37,6 @@ import {
 
 import { createEnterpriseChart, prepareEnterpriseTestOptions, renderEnterpriseChartImage } from '../../test/utils';
 import type { WaterfallNodeDatum, WaterfallSeries } from './waterfallSeries';
-import { WaterfallSeriesTotal } from './waterfallSeriesProperties';
 
 describe('WaterfallSeries', () => {
     setupMockConsole();
