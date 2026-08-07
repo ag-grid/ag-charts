@@ -22,7 +22,13 @@ import {
 
 type Datum = { population: number; city: string };
 type SelectionItem = AgSelectionItem<Datum>;
-type SelectionChangeEvent = AgSelectionChangeEvent<Datum, unknown>;
+
+// The structured-clone boundary of page.evaluate() strips the non-serialisable
+// `preventDefault` method (and any `undefined` `context`), so the events we read
+// back are plain objects of exactly these fields.
+type SelectionChangeEvent = Pick<AgSelectionChangeEvent<Datum, unknown>, 'type' | 'source' | 'added' | 'removed'>;
+
+const EXAMPLE_URL = toExamplePageUrl('selection-e2e', 'accessibility-click', 'vanilla').url;
 
 const NEW_YORK: SelectionItem = {
     seriesId: 'myBarSeries',
@@ -36,14 +42,7 @@ function selectionChange(
     added: SelectionItem[],
     removed: SelectionItem[]
 ): SelectionChangeEvent {
-    return {
-        type: 'selectionChange',
-        source,
-        added,
-        removed,
-        defaultPrevented: false,
-        preventDefault: expect.any(Function) as () => void,
-    };
+    return { type: 'selectionChange', source, added, removed };
 }
 
 async function initChartSelection(page: Page): Promise<void> {
@@ -91,7 +90,7 @@ async function popEvents(page: Page): Promise<SelectionChangeEvent[]> {
 }
 
 async function openExampleAndFocusFirstDatum(page: Page): Promise<void> {
-    await gotoExample(page, toExamplePageUrl('selection-e2e', 'accessibility-click', 'vanilla').url);
+    await gotoExample(page, EXAMPLE_URL);
     await initChartSelection(page);
     await page.keyboard.press('Tab');
 }

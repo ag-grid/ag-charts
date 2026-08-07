@@ -2067,11 +2067,9 @@ export function getCursor(chart: Chart | AgChartProxy): string {
     return ctx.domManager.getCursor();
 }
 
-type Without<E, Ks extends string> = Omit<E, Ks> & { [K in Ks]?: never };
-export function withPreventDefault<E>(partial: Without<E, 'preventDefault' | 'defaultPrevented'>) {
+export function withPreventDefault<E>(partial: Omit<E, 'preventDefault'> & { preventDefault?: never }) {
     return expect.objectContaining({
         ...partial,
-        defaultPrevented: expect.any(Boolean),
         preventDefault: expect.any(Function),
     });
 }

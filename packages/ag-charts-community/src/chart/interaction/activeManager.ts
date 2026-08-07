@@ -85,9 +85,6 @@ export class ActiveManager implements MementoOriginator<AgActiveState> {
                 ...(itemType === undefined ? {} : { itemType }),
                 ...(totalValue === undefined ? {} : { totalValue }),
                 dataIdKey: nodeDatum?.series.data?.dataIdKey,
-                get defaultPrevented() {
-                    return defaultPrevented;
-                },
                 preventDefault: () => {
                     defaultPrevented = true;
                 },
