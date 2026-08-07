@@ -439,9 +439,15 @@ export class ChartTheme {
                 this.getChartDefaults()
             );
 
-            // TODO: merge?
+            chartTypeDefaults.seriesArea ??= {} as any;
             for (const seriesAreaModule of ModuleRegistry.listModulesByType(ModuleType.SeriesAreaPlugin)) {
-                (chartTypeDefaults.seriesArea as any)[seriesAreaModule.name] = seriesAreaModule.themeTemplate;
+                (chartTypeDefaults.seriesArea as any)[seriesAreaModule.optionsKey ?? seriesAreaModule.name] =
+                    mergeDefaults(
+                        (chartTypeDefaults.seriesArea as any)[seriesAreaModule.optionsKey ?? seriesAreaModule.name],
+                        !seriesAreaModule.chartType || seriesAreaModule.chartType === chartType
+                            ? seriesAreaModule.themeTemplate
+                            : null
+                    );
             }
 
             for (const seriesType of seriesTypes) {
