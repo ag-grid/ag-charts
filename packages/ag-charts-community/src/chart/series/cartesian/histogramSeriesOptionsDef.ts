@@ -8,6 +8,7 @@ import {
     commonSeriesThemeableOptionsDefs,
     constant,
     fillOptionsDef,
+    labelAutoFontSizeOptionsDefs,
     labelCollisionFitOptionsDefs,
     labelOrientationDef,
     labelPlacementStyleDefs,
@@ -46,6 +47,7 @@ export const histogramSeriesThemeableOptionsDef: OptionsDefs<AgHistogramSeriesTh
     label: {
         ...seriesLabelOptionsDefs,
         ...labelCollisionFitOptionsDefs,
+        ...labelAutoFontSizeOptionsDefs,
         ...labelPlacementStyleDefs,
         placement: unionOrArray('inside-center', 'inside-start', 'inside-end', 'outside-start', 'outside-end'),
         spacing: positiveNumber,

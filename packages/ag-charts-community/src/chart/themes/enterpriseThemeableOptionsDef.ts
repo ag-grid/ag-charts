@@ -16,6 +16,7 @@ import {
     fillOptionsDef,
     highlightOptionsDef,
     interpolationOptionsDefs,
+    labelAutoFontSizeOptionsDefs,
     labelCollisionFitOptionsDefs,
     labelCollisionPlacementDef,
     labelOrientationDef,
@@ -615,6 +616,7 @@ export const rangeBarSeriesThemeableOptionsDef: OptionsDefs<AgRangeBarSeriesThem
     label: {
         ...seriesLabelOptionsDefs,
         ...labelCollisionFitOptionsDefs,
+        ...labelAutoFontSizeOptionsDefs,
         ...labelPlacementStyleDefs,
         placement: rangeInsideOutsidePlacementDef,
         orientation: labelOrientationDef,
@@ -766,6 +768,7 @@ const waterfallSeriesItemOptionsDef: OptionsDefs<AgWaterfallSeriesItemOptions<an
     label: {
         ...seriesLabelOptionsDefs,
         ...labelCollisionFitOptionsDefs,
+        ...labelAutoFontSizeOptionsDefs,
         ...labelPlacementStyleDefs,
         placement: waterfallPlacementDef,
         orientation: labelOrientationDef,

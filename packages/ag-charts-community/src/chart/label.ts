@@ -183,6 +183,9 @@ export class Label<TParams = never, TDatum = any>
     truncate?: boolean;
 
     @Property
+    minimumFontSize?: number;
+
+    @Property
     formatter?: RichFormatter<AgChartLabelFormatterParams<TDatum> & RequireOptional<TParams>>;
 
     @Property

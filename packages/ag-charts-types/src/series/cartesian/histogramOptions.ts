@@ -12,6 +12,7 @@ import type { AgNumericValue } from '../../chart/dataValues';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgNodeClickEvent } from '../../chart/eventOptions';
 import type {
+    AgChartLabelAutoFontSizeOptions,
     AgChartLabelCollisionFitOptions,
     AgChartLabelOptions,
     AgSeriesLabelPlacementStyleOptions,
@@ -78,6 +79,7 @@ export interface AgHistogramSeriesLabelOptions<TDatum, TParams, TContext = Conte
     extends
         AgChartLabelOptions<TDatum, TParams, TContext>,
         AgChartLabelCollisionFitOptions,
+        AgChartLabelAutoFontSizeOptions,
         AgSeriesLabelPlacementStyleOptions {
     /**
      * Where to render series labels relative to the bars. Either a single placement or an ordered

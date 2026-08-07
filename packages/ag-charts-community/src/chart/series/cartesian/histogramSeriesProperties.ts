@@ -48,6 +48,8 @@ export interface HistogramNodeDatum extends CartesianSeriesNodeDatum {
     readonly frequency: number;
     readonly label?: {
         readonly text: NormalisedTextOrSegments;
+        /** Reduced font size the text was fitted at; `undefined` when it renders at the configured size. */
+        fittedFontSize?: number;
         // Mutable so the placement engine can retarget the label to a chosen candidate's anchor.
         x: number;
         y: number;

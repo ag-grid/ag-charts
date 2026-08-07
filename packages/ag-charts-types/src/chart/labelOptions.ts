@@ -93,6 +93,16 @@ export interface AgChartLabelFitOptions {
     truncate?: boolean;
 }
 
+/** Font reduction applied to a label that does not fit the region produced by its placement. */
+export interface AgChartLabelAutoFontSizeOptions {
+    /**
+     * If the label does not fit within its bounds, setting this will allow the label to pick a font size
+     * between its normal `fontSize` and `minimumFontSize` to fit. The label is only truncated or hidden
+     * when it still does not fit at `minimumFontSize`.
+     */
+    minimumFontSize?: FontSize;
+}
+
 /** Label-fit options extended with collision handling. */
 export interface AgChartLabelCollisionFitOptions extends AgChartLabelFitOptions {
     /**

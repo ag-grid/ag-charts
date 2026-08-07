@@ -33,6 +33,7 @@ import {
     barLabelRoutesThroughEngine,
     buildBarLabelData,
     buildBarPositionedLabelDatum,
+    fontWithSize,
     isContinuous,
     isFiniteNumber,
     maxValue,
@@ -91,7 +92,7 @@ import {
     adjustLabelPlacement,
     buildBarLabelCandidates,
     createBarCandidateStyleResolver,
-    fitLabelToContainer,
+    fitLabelToContainerAutoSize,
     insideBarLabelBounds,
     pickPlacementStyle,
     styledBarLabelBox,
@@ -140,6 +141,8 @@ interface BarNodeLabelDatum {
     readonly text: NormalisedTextOrSegments;
     /** Text the placement engine fitted to its chosen candidate; rendered in place of `text` when set. */
     fittedText?: NormalisedTextOrSegments;
+    /** Reduced font size the text was fitted at; `undefined` when it renders at the configured size. */
+    fittedFontSize?: number;
     // Mutable so the placement engine can retarget the label to a chosen candidate's anchor.
     x: number;
     y: number;
@@ -1068,6 +1071,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 if (existingLabel) {
                     existingLabel.text = nodeLabelText;
                     existingLabel.fittedText = undefined;
+                    existingLabel.fittedFontSize = undefined;
                     existingLabel.x = anchor.x;
                     existingLabel.y = anchor.y;
                     existingLabel.textAlign = anchor.textAlign;
@@ -1119,12 +1123,15 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             // An orientation array is refitted per orientation by the engine, which knows that a rotated
             // label measures against the bar's other axis; fitting here would bind every orientation to
             // the upright budget and leave a rotation that could hold the full text unreachable.
-            const fittedText = ctx.labelResolvesOrientation
-                ? nodeLabelText
-                : fitLabelToContainer(nodeLabelText, ctx.labelFit, ctx.label, bounds?.container);
-            // A rotated label's gap to the bar depends on its box size; measure only when it rotates.
+            const { text: fittedText, fontSize: fittedFontSize } = ctx.labelResolvesOrientation
+                ? { text: nodeLabelText, fontSize: undefined }
+                : fitLabelToContainerAutoSize(nodeLabelText, ctx.labelFit, ctx.label, bounds?.container);
+            // A rotated label's gap to the bar depends on its box size; measure only when it rotates, at
+            // the size the fit chose so a shrunk label is not spaced off the bar by its full-size box.
             const { width: labelWidth, height: labelHeight } =
-                rotation === 0 ? { width: 0, height: 0 } : measureLabelText(fittedText, ctx.label);
+                rotation === 0
+                    ? { width: 0, height: 0 }
+                    : measureLabelText(fittedText, fontWithSize(ctx.label, fittedFontSize));
             const labelPlacement = adjustLabelPlacement({
                 isUpward,
                 isVertical: !ctx.barAlongX,
@@ -1156,10 +1163,12 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 // switching back to the fast path (e.g. alwaysShow toggled on) renders it again in full.
                 existingLabel.hidden = undefined;
                 existingLabel.fittedText = undefined;
+                existingLabel.fittedFontSize = fittedFontSize;
             } else {
                 // Create new label object (first time label is added)
                 mutableNode.label = {
                     text: fittedText,
+                    fittedFontSize,
                     ...labelPlacement,
                     rotation,
                     region,
@@ -1841,7 +1850,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             this.contextNodeData?.nodeData,
             this.contextNodeData?.labelData,
             this.isLabelEnabled() && !this.usesPlacedLabels,
-            (node) => ({ label: node.label, config: label, box })
+            // A shrunk label's footprint is the box its reduced glyph draws, not the configured one.
+            (node) => ({ label: node.label, config: fontWithSize(label, node.label?.fittedFontSize), box })
         );
     }
 
