@@ -28,6 +28,14 @@ runs:
           run: |
               set -eux
 
+              # `playwright.sh` runs the test container as root over a bind mount, so any directory
+              # it creates — a new spec's `<spec>.ts-snapshots/` — is root-owned. The runner user can
+              # then rewrite files inside pre-existing directories but cannot unlink from a new one,
+              # so `git stash push -S` below warns "Permission denied", leaves the files on disk, and
+              # `git stash pop` on the snapshot branch aborts on "untracked working tree files would
+              # be overwritten". Reclaim ownership first; a no-op where nothing ran as root.
+              sudo -n chown -R "$(id -u):$(id -g)" ${{ inputs.path }} || true
+
               git add ${{ inputs.path }}
               git status
               if [[ $(git diff --cached --name-only | wc -l) -gt 0 ]] ; then
