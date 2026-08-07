@@ -258,9 +258,11 @@ describe('Validation utils', () => {
 
         test('silences the notice once the console level is raised to "warning"', () => {
             validationLogger.setLevel('warning');
+            // A message distinct from the preceding test's, so the shared logger's do-once cache
+            // cannot be what keeps this quiet.
             const { cleared, invalid } = validate<{ colorScale: string }>(
                 { colorScale: 'red' },
-                { colorScale: deprecated(string, 'Use `colorScale.fills` instead.') }
+                { colorScale: deprecated(string, 'Use `colorScale.range` instead.') }
             );
             // The value still passes through to the inner validator during the deprecation window.
             expect(cleared).toEqual({ colorScale: 'red' });

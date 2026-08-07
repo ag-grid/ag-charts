@@ -27,6 +27,7 @@ import {
     isNumericValue,
     isObject,
     isObjectLike,
+    isObjectWithProperty,
     isPlainObject,
     isSymbol,
     joinFormatted,
@@ -318,9 +319,13 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         // Apply the console log level before anything can be validated: first-pass validation runs
         // inside `slowSetup()` below, so a `'none'` supplied by the user (or, in AG Grid integrated
         // mode, via the processed overrides) has to bite ahead of the first warning being printed.
+        // Presence, not nullishness: an explicit `null` must reach the invalid-value fallback below
+        // rather than deferring to an override that could silence the warning reporting it.
+        const userValidations = (this.userOptions as ChartValidationsSource).validations;
         this.applyConsoleLogLevel(
-            (this.userOptions as ChartValidationsSource).validations?.consoleLogLevel ??
-                (this.processedOverrides as ChartValidationsSource).validations?.consoleLogLevel
+            isObjectWithProperty(userValidations, 'consoleLogLevel')
+                ? userValidations.consoleLogLevel
+                : (this.processedOverrides as ChartValidationsSource).validations?.consoleLogLevel
         );
 
         this.findSeriesWithUserVisiblity(newUserOptions, deltaOptions);

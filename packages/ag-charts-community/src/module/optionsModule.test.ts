@@ -4075,6 +4075,20 @@ describe('ChartOptions', () => {
             expect(messages.some((m) => m.includes('notanumber'))).toBe(true);
         });
 
+        it('reports an explicit null consoleLogLevel rather than deferring to a silencing override', () => {
+            const chartOptions = new ChartOptions(
+                invalidOptions({ validations: { consoleLogLevel: null } }),
+                {} as AgChartOptions,
+                { validations: { consoleLogLevel: 'none' } } as Partial<AgChartOptions>,
+                {},
+                {}
+            );
+
+            const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
+            expect(messages.some((m) => m.includes('notanumber'))).toBe(true);
+            expect(chartOptions.validationIssues.length).toBeGreaterThan(0);
+        });
+
         it('returns to default logging once a delta update removes a `none` override', () => {
             const base = new ChartOptions(
                 invalidOptions({ validations: { consoleLogLevel: 'none' } }),
