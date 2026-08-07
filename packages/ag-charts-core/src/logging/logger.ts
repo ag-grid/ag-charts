@@ -8,7 +8,8 @@ const SEVERITY = { deprecation: 1, warn: 2, error: 3 } as const;
 export type LogLevel = 'deprecation' | 'warning' | 'error' | 'none';
 
 const LEVEL_SEVERITY: Record<LogLevel, number> = {
-    deprecation: SEVERITY.deprecation,
+    // The loudest level admits everything, so it is exactly the ungated default rather than a floor.
+    deprecation: 0,
     warning: SEVERITY.warn,
     error: SEVERITY.error,
     none: SEVERITY.error + 1,

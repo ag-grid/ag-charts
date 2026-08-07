@@ -39,6 +39,102 @@ describe('Logger', () => {
         });
     });
 
+    describe('setLevel', () => {
+        it('silences deprecation, warn and error at "none"', () => {
+            const logger = new Logger();
+            logger.setLevel('none');
+            logger.deprecation('d');
+            logger.warn('w');
+            logger.error('e');
+            expect(console.warn).not.toHaveBeenCalled();
+            expect(console.error).not.toHaveBeenCalled();
+        });
+
+        it('emits only error at "error"', () => {
+            const logger = new Logger();
+            logger.setLevel('error');
+            logger.deprecation('d');
+            logger.warn('w');
+            logger.error('e');
+            expect(console.warn).not.toHaveBeenCalled();
+            expect(console.error).toHaveBeenCalledTimes(1);
+        });
+
+        it('emits warn and error but not deprecation at "warning"', () => {
+            const logger = new Logger();
+            logger.setLevel('warning');
+            logger.deprecation('d');
+            logger.warn('w');
+            logger.error('e');
+            expect(console.warn).toHaveBeenCalledTimes(1);
+            expect(console.warn).toHaveBeenCalledWith('AG Charts - w');
+            expect(console.error).toHaveBeenCalledTimes(1);
+        });
+
+        it('emits all three at "deprecation" and by default (anti-vacuity control)', () => {
+            const atDeprecation = new Logger();
+            atDeprecation.setLevel('deprecation');
+            atDeprecation.deprecation('d');
+            atDeprecation.warn('w');
+            atDeprecation.error('e');
+            expect(console.warn).toHaveBeenCalledTimes(2);
+            expect(console.error).toHaveBeenCalledTimes(1);
+
+            vi.mocked(console.warn).mockClear();
+            vi.mocked(console.error).mockClear();
+
+            const defaultLogger = new Logger();
+            defaultLogger.deprecation('d');
+            defaultLogger.warn('w');
+            defaultLogger.error('e');
+            expect(console.warn).toHaveBeenCalledTimes(2);
+            expect(console.error).toHaveBeenCalledTimes(1);
+        });
+
+        it('applies a level change to messages logged after the change, not retroactively', () => {
+            const logger = new Logger();
+            logger.warn('before');
+            expect(console.warn).toHaveBeenCalledTimes(1);
+
+            logger.setLevel('error');
+            logger.warn('after');
+            expect(console.warn).toHaveBeenCalledTimes(1);
+        });
+
+        it('dedupes deprecationOnce independently from warnOnce for the same message text', () => {
+            const logger = new Logger();
+            logger.warnOnce('same text');
+            logger.deprecationOnce('same text');
+            expect(console.warn).toHaveBeenCalledTimes(2);
+
+            logger.warnOnce('same text');
+            logger.deprecationOnce('same text');
+            expect(console.warn).toHaveBeenCalledTimes(2);
+        });
+
+        it('re-emits a warnOnce message once the level is lowered below what suppressed it', () => {
+            const logger = new Logger();
+            logger.setLevel('error');
+            logger.warnOnce('x');
+            expect(console.warn).not.toHaveBeenCalled();
+
+            logger.setLevel('deprecation');
+            logger.warnOnce('x');
+            expect(console.warn).toHaveBeenCalledTimes(1);
+        });
+
+        it('re-emits a deprecationOnce message once the level is lowered below what suppressed it', () => {
+            const logger = new Logger();
+            logger.setLevel('warning');
+            logger.deprecationOnce('y');
+            expect(console.warn).not.toHaveBeenCalled();
+
+            logger.setLevel('deprecation');
+            logger.deprecationOnce('y');
+            expect(console.warn).toHaveBeenCalledTimes(1);
+        });
+    });
+
     describe('per-instance dedup', () => {
         it('suppresses a repeated warnOnce within one instance', () => {
             const logger = new Logger();
