@@ -285,7 +285,6 @@ const THEMED = {
                     color: 'indigo',
                     cornerRadius: 8,
                     fill: { type: 'gradient' as const, colorStops: [{ color: 'mediumpurple' }, { color: 'thistle' }] },
-                    fontFamily: 'serif',
                     fontSize: 14,
                     fontWeight: 'bold' as const,
                     padding: { top: 12, right: 20, bottom: 12, left: 20 },
