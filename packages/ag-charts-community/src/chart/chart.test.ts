@@ -1176,6 +1176,38 @@ describe('Chart', () => {
             expect(seriesNodeClick).not.toHaveBeenCalled();
         });
 
+        it('should drop non-function listeners when options are applied', async () => {
+            const options = prepareTestOptions<AgCartesianChartOptions>({
+                data: [{ xValue: 'category', yValue: 1 }],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'xValue',
+                        yKey: 'yValue',
+                        listeners: { seriesNodeClick: 'not-a-function' as never },
+                    },
+                ],
+                listeners: { click: 'not-a-function' as never, doubleClick: undefined },
+            });
+            const agChartInstance = AgCharts.create(options) as AgChartProxy;
+            chart = deproxy(agChartInstance);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+              [
+                [
+                  "AG Charts - Option \`series[0].listeners.seriesNodeClick\` cannot be set to \`"not-a-function"\`; expecting a function, ignoring.",
+                ],
+                [
+                  "AG Charts - Option \`listeners.click\` cannot be set to \`"not-a-function"\`; expecting a function, ignoring.",
+                ],
+              ]
+            `);
+
+            expect(chart.listeners.click).toBeUndefined();
+            expect(chart.series[0].properties.listeners?.seriesNodeClick).toBeUndefined();
+        });
+
         it('should keep firing chart-level listeners after clearing user series listeners', async () => {
             const seriesNodeClick = vi.fn();
             const seriesVisibilityChange = vi.fn();
