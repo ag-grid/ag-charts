@@ -157,8 +157,11 @@ test.describe('cross-browser', () => {
      * unreachable from this page. That rule is unit-tested in `src/utils/htaccess/cspRules.test.ts`.
      * `setupIntrinsicAssertions` still fails the case on any `Refused to …` security console error.
      *
-     * The repo is mounted read-only under `playwright.sh` apart from `reports/` and this package, so
-     * the download must be saved via `testInfo.outputPath`.
+     * The bytes are read from Playwright's own download store (`download.path()`, a process-scoped
+     * temp dir) rather than saved into `testInfo.outputPath`. `playwright.sh` runs the container as
+     * root over a bind-mounted `reports/`, so anything written under `outputPath` lands root-owned
+     * and the host runner's `upload-artifact` step then fails the job with `EACCES` — a red job for
+     * a passing test.
      *
      * The `download` event is given an explicit short timeout rather than the suite default: if an
      * engine declines to route a `download`-attributed `data:` anchor through its download machinery
@@ -167,7 +170,7 @@ test.describe('cross-browser', () => {
      * regression, skip the case for that `browserName` with the limitation cited — do not weaken the
      * assertion for the engines that do support it.
      */
-    test('AG-18059 chart downloads a PNG', async ({ page }, testInfo) => {
+    test('AG-18059 chart downloads a PNG', async ({ page }) => {
         const { url } = toExamplePageUrl('api-download', 'download', 'vanilla');
         await gotoExample(page, url);
 
@@ -175,10 +178,7 @@ test.describe('cross-browser', () => {
         await page.getByRole('button', { name: 'Download at 600x300' }).click();
         const download = await downloadPromise;
 
-        const savedPath = testInfo.outputPath('chart.png');
-        await download.saveAs(savedPath);
-
-        const bytes = readFileSync(savedPath);
+        const bytes = readFileSync(await download.path());
         expect(bytes.byteLength).toBeGreaterThan(0);
         expect([...bytes.subarray(0, 4)]).toEqual([0x89, 0x50, 0x4e, 0x47]);
     });
