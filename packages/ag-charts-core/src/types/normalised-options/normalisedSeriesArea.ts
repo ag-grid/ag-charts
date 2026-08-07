@@ -1,8 +1,13 @@
-import type { AgSeriesAreaBackgroundRegion, AgSeriesAreaBackgroundRegionRange } from 'ag-charts-types';
+import type {
+    AgSeriesAreaBackgroundRegion,
+    AgSeriesAreaBackgroundRegionLabel,
+    AgSeriesAreaBackgroundRegionRange,
+} from 'ag-charts-types';
 
 import type { AxisID } from '../idBranding';
 import type { Normalised } from './normalise';
-import type { FillStrokeMorph } from './normalisedCommonOptions';
+import type { FillStrokeMorph, NormalisedPaddingOptions } from './normalisedCommonOptions';
+import type { NormalisedChartLabelStyleOptions } from './normalisedLabelOptions';
 
 export type NormalisedSeriesAreaBackgroundRegion = Normalised<
     AgSeriesAreaBackgroundRegion,
@@ -10,6 +15,7 @@ export type NormalisedSeriesAreaBackgroundRegion = Normalised<
     FillStrokeMorph & {
         xRange?: NormalisedSeriesAreaBackgroundRegionRange;
         yRange?: NormalisedSeriesAreaBackgroundRegionRange;
+        label?: NormalisedSeriesAreaBackgroundRegionLabel;
     }
 >;
 
@@ -18,5 +24,16 @@ export type NormalisedSeriesAreaBackgroundRegionRange = Normalised<
     never,
     {
         axis?: AxisID;
+    }
+>;
+
+export type NormalisedSeriesAreaBackgroundRegionLabel = Normalised<
+    AgSeriesAreaBackgroundRegionLabel,
+    'fontSize' | 'fontFamily' | 'fontWeight' | 'padding' | 'color' | 'cornerRadius',
+    NormalisedChartLabelStyleOptions & {
+        fontFamily: string;
+        padding: NormalisedPaddingOptions;
+        // TODO: this shouldn't be needed but the required union above does not apply for some reason
+        fontSize: number;
     }
 >;

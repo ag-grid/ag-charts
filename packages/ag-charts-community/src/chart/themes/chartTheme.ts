@@ -439,6 +439,11 @@ export class ChartTheme {
                 this.getChartDefaults()
             );
 
+            // TODO: merge?
+            for (const seriesAreaModule of ModuleRegistry.listModulesByType(ModuleType.SeriesAreaPlugin)) {
+                (chartTypeDefaults.seriesArea as any)[seriesAreaModule.name] = seriesAreaModule.themeTemplate;
+            }
+
             for (const seriesType of seriesTypes) {
                 result[seriesType] = mergeDefaults(
                     getSeriesThemeTemplate(seriesType),

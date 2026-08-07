@@ -21,7 +21,7 @@ export class BackgroundRegionsPlugin extends AbstractModuleInstance implements S
         super();
         this.ctx = ctx;
         this.ctx.parent.attachSeriesAreaUnderlay(this.regionGroup);
-        this.ctx.parent.attachSeriesAreaUnderlay(this.labelGroup);
+        this.ctx.parent.attachSeriesAreaOverlay(this.labelGroup);
     }
 
     applyOptions(options: NormalisedSeriesAreaBackgroundRegion[]) {

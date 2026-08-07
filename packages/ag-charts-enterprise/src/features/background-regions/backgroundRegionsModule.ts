@@ -15,23 +15,22 @@ export const BackgroundRegionsModule: SeriesAreaPluginModuleDefinition<AgSeriesA
     themeTemplate: {
         $apply: [
             {
-                enabled: true,
-                // `fill`/`fillOpacity` style the `range` variant only; applying them to a `line`
-                // cross-line would surface as an "unknown option" validation warning.
-                fill: { $if: [{ $eq: [{ $path: './type' }, 'range'] }, { $ref: 'foregroundColor' }, undefined] },
-                fillOpacity: { $if: [{ $eq: [{ $path: './type' }, 'range'] }, 0.08, undefined] },
+                fill: { $ref: 'foregroundColor' },
+                fillOpacity: 0.8,
                 label: {
                     fontSize: { $ref: 'fontSize' },
                     fontFamily: { $ref: 'fontFamily' },
                     fontWeight: { $ref: 'fontWeight' },
                     padding: {
-                        $if: [{ $path: './border/enabled' }, { left: 12, right: 12, top: 8, bottom: 8 }, 5],
+                        $applyPadding: {
+                            $if: [{ $path: './border/enabled' }, { left: 12, right: 12, top: 8, bottom: 8 }, 5],
+                        },
                     },
                     color: { $ref: 'textColor' },
                     cornerRadius: 4,
                     border: {
                         enabled: false,
-                        stroke: { $foregroundOpacity: 0.08 },
+                        stroke: { $ref: 'foregroundColor' },
                         strokeOpacity: 1,
                         strokeWidth: 1,
                     },

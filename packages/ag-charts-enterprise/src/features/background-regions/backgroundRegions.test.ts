@@ -266,6 +266,39 @@ const BOTH_RANGES_CATEGORY = {
     },
 };
 
+const THEMED = {
+    ...NUMERIC,
+    seriesArea: {
+        backgroundRegions: [
+            {
+                fill: { type: 'gradient', colorStops: [{ color: 'orangered' }, { color: 'lightsalmon' }] },
+                fillOpacity: 0.8,
+                stroke: 'crimson',
+                strokeOpacity: 0.8,
+                strokeWidth: 8,
+                label: {
+                    border: {
+                        stroke: 'indigo',
+                        strokeOpacity: 0.8,
+                        strokeWidth: 4,
+                    },
+                    color: 'indigo',
+                    cornerRadius: 8,
+                    fill: { type: 'gradient', colorStops: [{ color: 'mediumpurple' }, { color: 'thistle' }] },
+                    fontFamily: 'serif',
+                    fontSize: 14,
+                    fontWeight: 'bold',
+                    padding: { top: 12, right: 20, bottom: 12, left: 20 },
+                    position: 'inside',
+                    text: 'Themed Region',
+                },
+                xRange: { start: 20, end: 80 },
+                yRange: { start: 20, end: 80 },
+            } as const,
+        ],
+    },
+};
+
 const assertions = cartesianChartAssertions({ seriesTypes: ['scatter'], axisTypes: { x: 'number', y: 'number' } });
 
 const EXAMPLES: Record<string, CartesianTestCase> = {
@@ -302,7 +335,50 @@ const EXAMPLES: Record<string, CartesianTestCase> = {
         options: BOTH_RANGES_CATEGORY,
         assertions: cartesianChartAssertions({ seriesTypes: ['bar'], axisTypes: { x: 'category', y: 'number' } }),
     },
+    THEMED: { options: THEMED, assertions },
 };
+
+const labelPositions = [
+    'top',
+    'left',
+    'right',
+    'bottom',
+    'top-left',
+    'top-right',
+    'bottom-left',
+    'bottom-right',
+    'inside',
+    'inside-left',
+    'inside-right',
+    'inside-top',
+    'inside-bottom',
+    'inside-top-left',
+    'inside-bottom-left',
+    'inside-top-right',
+    'inside-bottom-right',
+] as const;
+for (const position of labelPositions) {
+    EXAMPLES[`LABEL_${position}`] = {
+        options: {
+            ...NUMERIC,
+            seriesArea: {
+                backgroundRegions: [
+                    {
+                        fill: 'lightsalmon',
+                        xRange: { start: 20, end: 80 },
+                        yRange: { start: 20, end: 80 },
+                        label: {
+                            position,
+                            text: position,
+                            fontSize: 20,
+                        },
+                    },
+                ],
+            },
+        },
+        assertions,
+    };
+}
 
 describe('Background Regions', () => {
     setupMockConsole();

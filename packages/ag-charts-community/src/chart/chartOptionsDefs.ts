@@ -35,8 +35,7 @@ import type {
     AgTopologyChartOptions,
 } from 'ag-charts-types';
 
-import { cartesianCrossLineLabelOptionsDefs } from './axesOptionsDefs';
-import { seriesAreaBackgroundRegionRangeDef } from './themes/themeOptionsDef';
+import { seriesAreaBackgroundRegionLabelDef, seriesAreaBackgroundRegionRangeDef } from './themes/themeOptionsDef';
 
 export const initialStatePickedOptionsDef: OptionsDefs<AgActiveState> = {
     activeItem: {
@@ -97,7 +96,7 @@ export const cartesianChartOptionsDefs: OptionsDefs<AgCartesianChartOptions> = {
             ...strokeOptionsDef,
             xRange: seriesAreaBackgroundRegionRangeDef,
             yRange: seriesAreaBackgroundRegionRangeDef,
-            label: cartesianCrossLineLabelOptionsDefs,
+            label: seriesAreaBackgroundRegionLabelDef,
         }),
     },
 };

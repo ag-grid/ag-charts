@@ -585,7 +585,7 @@ export interface AgSeriesAreaBackgroundRegionLabel extends Omit<AgChartLabelStyl
     fontFamily?: FontFamilyFull;
     /** The position of the Background Region label. */
     position?: AgSeriesAreaBackgroundRegionLabelPosition;
-    /** The rotation of the Background Regino label in degrees. */
+    /** The rotation of the Background Region label in degrees. */
     rotation?: Degree;
     /** The text to show in the label. */
     text?: string;

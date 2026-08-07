@@ -50,6 +50,10 @@ export class SeriesArea extends BaseProperties {
     private moduleContext?: DynamicContext<ChartSeriesAreaRegistry<SeriesAreaContext>>;
     private seriesAreaContext?: SeriesAreaContext;
 
+    private readonly overlayGroup = new TransformableGroup({
+        name: 'SeriesArea-Overlay',
+        zIndex: ZIndexMap.SERIES_AREA_CONTAINER,
+    });
     private readonly underlayGroup = new TransformableGroup({
         name: 'SeriesArea-Underlay',
         zIndex: ZIndexMap.SERIES_AREA_UNDERLAY,
@@ -62,6 +66,7 @@ export class SeriesArea extends BaseProperties {
 
         this.cleanup.register(
             ctx.scene.attachNode(this.seriesAreaGroup),
+            ctx.scene.attachNode(this.overlayGroup),
             ctx.scene.attachNode(this.underlayGroup),
             ctx.eventsHub.on('layout:complete', (e) => this.onLayoutComplete(e))
         );
@@ -102,16 +107,21 @@ export class SeriesArea extends BaseProperties {
 
     private createSeriesAreaContext(): SeriesAreaContext {
         return {
+            attachSeriesAreaOverlay: (group) => this.overlayGroup.appendChild(group),
             attachSeriesAreaUnderlay: (group) => this.underlayGroup.appendChild(group),
         };
     }
 
     protected onLayoutComplete(event: LayoutCompleteEvent) {
         const { x, y, width, height } = event.series.paddedRect;
+
         this.borderNode.x = x;
         this.borderNode.y = y;
         this.borderNode.width = width;
         this.borderNode.height = height;
+
+        this.overlayGroup.translationX = x;
+        this.overlayGroup.translationY = y;
 
         this.underlayGroup.translationX = x;
         this.underlayGroup.translationY = y;

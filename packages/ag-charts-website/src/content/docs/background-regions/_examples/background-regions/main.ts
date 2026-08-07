@@ -40,6 +40,7 @@ const options: AgCartesianChartOptions = {
                 strokeWidth: 2,
                 xRange: percentileRange(penguinSeries.Adelie.map((d) => d.flipperLength)),
                 yRange: percentileRange(penguinSeries.Adelie.map((d) => d.bodyMass)),
+                label: { text: 'Adelie' },
             },
             {
                 fill: '#ffa03a',
@@ -48,6 +49,7 @@ const options: AgCartesianChartOptions = {
                 strokeWidth: 2,
                 xRange: percentileRange(penguinSeries.Chinstrap.map((d) => d.flipperLength)),
                 yRange: percentileRange(penguinSeries.Chinstrap.map((d) => d.bodyMass)),
+                label: { text: 'Chinstrap' },
             },
             {
                 fill: '#459d55',
@@ -56,6 +58,7 @@ const options: AgCartesianChartOptions = {
                 strokeWidth: 2,
                 xRange: percentileRange(penguinSeries.Gentoo.map((d) => d.flipperLength)),
                 yRange: percentileRange(penguinSeries.Gentoo.map((d) => d.bodyMass)),
+                label: { text: 'Gentoo' },
             },
         ],
     },
@@ -68,6 +71,8 @@ const options: AgCartesianChartOptions = {
             xName: 'Flipper Length',
             yKey: 'bodyMass',
             yName: 'Body Mass',
+            size: 3,
+            strokeWidth: 0,
         },
         {
             type: 'scatter',
@@ -77,6 +82,8 @@ const options: AgCartesianChartOptions = {
             xName: 'Flipper Length',
             yKey: 'bodyMass',
             yName: 'Body Mass',
+            size: 3,
+            strokeWidth: 0,
         },
         {
             type: 'scatter',
@@ -86,6 +93,8 @@ const options: AgCartesianChartOptions = {
             xName: 'Flipper Length',
             yKey: 'bodyMass',
             yName: 'Body Mass',
+            size: 3,
+            strokeWidth: 0,
         },
     ],
     axes: {

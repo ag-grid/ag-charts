@@ -52,6 +52,7 @@ import type {
     AgScrollbarOptions,
     AgScrollbarVerticalOrientationOptions,
     AgSeriesAreaBackgroundRegion,
+    AgSeriesAreaBackgroundRegionLabel,
     AgSeriesAreaBackgroundRegionRange,
     AgSeriesTooltip,
     AgStateSerializableDate,
@@ -244,6 +245,36 @@ export const seriesAreaBackgroundRegionRangeDef: OptionsDefs<AgSeriesAreaBackgro
     end: defined,
 };
 
+export const seriesAreaBackgroundRegionLabelDef: OptionsDefs<AgSeriesAreaBackgroundRegionLabel> = {
+    ...fontOptionsDef,
+    ...fillOptionsDef,
+    border: borderOptionsDef,
+    cornerRadius: number,
+    enabled: boolean,
+    padding: padding,
+    position: union(
+        'top',
+        'left',
+        'right',
+        'bottom',
+        'top-left',
+        'top-right',
+        'bottom-left',
+        'bottom-right',
+        'inside',
+        'inside-left',
+        'inside-right',
+        'inside-top',
+        'inside-bottom',
+        'inside-top-left',
+        'inside-bottom-left',
+        'inside-top-right',
+        'inside-bottom-right'
+    ),
+    rotation: number,
+    text: string,
+};
+
 const cartesianChartOptionsDefs: OptionsDefs<Omit<AgBaseCartesianThemeOptions, 'axes' | 'navigator'>> = {
     ...commonChartOptionsDefs,
     seriesArea: {
@@ -256,7 +287,7 @@ const cartesianChartOptionsDefs: OptionsDefs<Omit<AgBaseCartesianThemeOptions, '
             ...strokeOptionsDef,
             xRange: seriesAreaBackgroundRegionRangeDef,
             yRange: seriesAreaBackgroundRegionRangeDef,
-            label: cartesianCrossLineLabelOptionsDefs,
+            label: seriesAreaBackgroundRegionLabelDef,
         }),
     },
 };
