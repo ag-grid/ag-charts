@@ -9,5 +9,5 @@ export interface BackgroundRegion {
     xScale?: Scale<any, number, number | AgTimeInterval | AgTimeIntervalUnit>;
     yScale?: Scale<any, number, number | AgTimeInterval | AgTimeIntervalUnit>;
     setOptions(opts: NormalisedSeriesAreaBackgroundRegion): void;
-    update(visible: boolean): void;
+    update(): void;
 }

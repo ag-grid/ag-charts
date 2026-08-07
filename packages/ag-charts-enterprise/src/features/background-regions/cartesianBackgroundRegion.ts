@@ -78,9 +78,9 @@ export class CartesianBackgroundRegion implements _ModuleSupport.BackgroundRegio
         this.opts = opts;
     }
 
-    update(visible: boolean) {
+    update() {
         const { xScale, yScale } = this;
-        if (!xScale || !yScale || !visible) {
+        if (!xScale || !yScale) {
             this.regionGroup.visible = false;
             this.labelGroup.visible = false;
             return;

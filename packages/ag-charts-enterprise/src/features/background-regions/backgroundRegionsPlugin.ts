@@ -66,8 +66,7 @@ export class BackgroundRegionsPlugin extends AbstractModuleInstance implements S
         }
 
         for (const instance of this.instances) {
-            // TODO: visible flag
-            instance.update(true);
+            instance.update();
         }
     }
 
