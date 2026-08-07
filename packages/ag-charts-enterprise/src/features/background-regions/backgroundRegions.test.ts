@@ -266,7 +266,7 @@ const BOTH_RANGES_CATEGORY = {
     },
 };
 
-const THEMED = {
+const STYLED = {
     ...NUMERIC,
     seriesArea: {
         backgroundRegions: [
@@ -289,7 +289,7 @@ const THEMED = {
                     fontWeight: 'bold' as const,
                     padding: { top: 12, right: 20, bottom: 12, left: 20 },
                     position: 'inside' as const,
-                    text: 'Themed Region',
+                    text: 'Styled Region',
                 },
                 xRange: { start: 20, end: 80 },
                 yRange: { start: 20, end: 80 },
@@ -334,7 +334,7 @@ const EXAMPLES: Record<string, CartesianTestCase> = {
         options: BOTH_RANGES_CATEGORY,
         assertions: cartesianChartAssertions({ seriesTypes: ['bar'], axisTypes: { x: 'category', y: 'number' } }),
     },
-    THEMED: { options: THEMED, assertions },
+    STYLED: { options: STYLED, assertions },
 };
 
 const labelPositions = [
