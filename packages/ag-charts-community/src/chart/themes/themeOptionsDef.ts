@@ -282,7 +282,7 @@ const cartesianChartOptionsDefs: OptionsDefs<Omit<AgBaseCartesianThemeOptions, '
         clip: boolean,
         cornerRadius: number,
         padding: or(themeOperator, padding),
-        backgroundRegions: arrayOfDefs<AgSeriesAreaBackgroundRegion>({
+        backgroundRegions: optionsDefs<AgSeriesAreaBackgroundRegion>({
             ...fillOptionsDef,
             ...strokeOptionsDef,
             xRange: seriesAreaBackgroundRegionRangeDef,

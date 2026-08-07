@@ -461,7 +461,12 @@ export interface AgBaseCartesianThemeOptions<
     /** Axis configurations. */
     axes?: AgCartesianAxesTheme<TContext>;
     /** Configuration relating to the series area. */
-    seriesArea?: AgCartesianSeriesAreaOptions;
+    seriesArea?: AgCartesianSeriesAreaThemableOptions;
+}
+
+export interface AgCartesianSeriesAreaThemableOptions extends AgSeriesAreaOptions {
+    /** TODO */
+    backgroundRegions?: AgSeriesAreaBackgroundRegion;
 }
 
 export interface AgCartesianSeriesAreaOptions extends AgSeriesAreaOptions {

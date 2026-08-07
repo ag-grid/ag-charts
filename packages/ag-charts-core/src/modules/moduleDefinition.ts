@@ -215,5 +215,4 @@ export interface SeriesAreaPluginModuleDefinition<TOptions> extends ModuleDefini
     SeriesAreaPluginModuleInstance
 > {
     readonly chartType?: string;
-    readonly optionsKey?: string;
 }

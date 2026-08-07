@@ -439,17 +439,6 @@ export class ChartTheme {
                 this.getChartDefaults()
             );
 
-            chartTypeDefaults.seriesArea ??= {} as any;
-            for (const seriesAreaModule of ModuleRegistry.listModulesByType(ModuleType.SeriesAreaPlugin)) {
-                (chartTypeDefaults.seriesArea as any)[seriesAreaModule.optionsKey ?? seriesAreaModule.name] =
-                    mergeDefaults(
-                        (chartTypeDefaults.seriesArea as any)[seriesAreaModule.optionsKey ?? seriesAreaModule.name],
-                        !seriesAreaModule.chartType || seriesAreaModule.chartType === chartType
-                            ? seriesAreaModule.themeTemplate
-                            : null
-                    );
-            }
-
             for (const seriesType of seriesTypes) {
                 result[seriesType] = mergeDefaults(
                     getSeriesThemeTemplate(seriesType),
@@ -600,5 +589,10 @@ function getSeriesThemeTemplate(seriesType: string) {
             themeTemplate = mergeDefaults({ series: { [module.name]: module.themeTemplate } }, themeTemplate);
         }
     }
+
+    for (const module of ModuleRegistry.listModulesByType(ModuleType.SeriesAreaPlugin)) {
+        themeTemplate = mergeDefaults({ seriesArea: { [module.name]: module.themeTemplate } }, themeTemplate);
+    }
+
     return themeTemplate;
 }

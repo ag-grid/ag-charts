@@ -2108,8 +2108,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         for (const module of ModuleRegistry.listModulesByType(ModuleType.SeriesAreaPlugin)) {
             if (module.chartType && module.chartType !== chartType) continue;
 
-            const optionsKey = module.optionsKey ?? module.name;
-            const pluginOptions = (options.seriesArea as any)[optionsKey];
+            const pluginOptions = (options.seriesArea as any)[module.name];
             const shouldBeEnabled = pluginOptions != null;
             const isEnabled = seriesAreaModuleMap.isEnabled(module.name);
 

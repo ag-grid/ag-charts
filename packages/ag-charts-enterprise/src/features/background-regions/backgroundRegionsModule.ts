@@ -36,6 +36,13 @@ export const BackgroundRegionsModule: SeriesAreaPluginModuleDefinition<AgSeriesA
                     },
                 },
             },
+            undefined,
+            {
+                $pathString: [
+                    '/$seriesType/seriesArea/backgroundRegions',
+                    { seriesType: { $path: ['/series/0/type', 'line'] } },
+                ],
+            },
         ],
     },
 

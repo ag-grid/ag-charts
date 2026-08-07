@@ -298,6 +298,57 @@ const STYLED = {
     },
 };
 
+const THEMED: AgCartesianChartOptions = {
+    ...NUMERIC,
+    seriesArea: {
+        backgroundRegions: [
+            {
+                xRange: { start: 20, end: 80 },
+                yRange: { start: 20, end: 80 },
+                label: {
+                    text: 'Themed Region',
+                },
+            },
+        ],
+    },
+    theme: {
+        overrides: {
+            scatter: {
+                seriesArea: {
+                    backgroundRegions: {
+                        fill: {
+                            type: 'gradient' as const,
+                            colorStops: [{ color: 'orangered' }, { color: 'lightsalmon' }],
+                        },
+                        fillOpacity: 0.8,
+                        stroke: 'crimson',
+                        strokeOpacity: 0.8,
+                        strokeWidth: 8,
+                        label: {
+                            border: {
+                                enabled: true,
+                                stroke: 'indigo',
+                                strokeOpacity: 0.8,
+                                strokeWidth: 4,
+                            },
+                            color: 'indigo',
+                            cornerRadius: 8,
+                            fill: {
+                                type: 'gradient' as const,
+                                colorStops: [{ color: 'mediumpurple' }, { color: 'thistle' }],
+                            },
+                            fontSize: 14,
+                            fontWeight: 'bold' as const,
+                            padding: { top: 12, right: 20, bottom: 12, left: 20 },
+                            position: 'inside' as const,
+                        },
+                    },
+                },
+            },
+        },
+    },
+};
+
 const assertions = cartesianChartAssertions({ seriesTypes: ['scatter'], axisTypes: { x: 'number', y: 'number' } });
 
 const EXAMPLES: Record<string, CartesianTestCase> = {
@@ -335,6 +386,7 @@ const EXAMPLES: Record<string, CartesianTestCase> = {
         assertions: cartesianChartAssertions({ seriesTypes: ['bar'], axisTypes: { x: 'category', y: 'number' } }),
     },
     STYLED: { options: STYLED, assertions },
+    THEMED: { options: THEMED, assertions },
 };
 
 const labelPositions = [
