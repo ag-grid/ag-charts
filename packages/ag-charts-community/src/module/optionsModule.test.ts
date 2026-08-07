@@ -4017,4 +4017,65 @@ describe('ChartOptions', () => {
             expect(prepared.series[0].label.border.enabled).toBe(true);
         });
     });
+
+    describe('negative padding validation (AG-17973)', () => {
+        it('rejects negative chart-level padding and keeps the theme default', () => {
+            const options = prepareOptions<AgChartOptions>({
+                padding: { top: -20, right: -20, bottom: -20, left: -20 },
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            });
+
+            const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
+            expect(messages).toHaveLength(4);
+            expect(messages.every((m) => m.startsWith('AG Charts - Option `padding.'))).toBe(true);
+            expect(messages.every((m) => m.includes('expecting a number greater than or equal to 0'))).toBe(true);
+            // The invalid object padding is dropped in full, so the theme default (20 on every side) applies.
+            expect((options as any).padding).toEqual({ top: 20, right: 20, bottom: 20, left: 20 });
+        });
+
+        it('rejects negative padding on a series label box and keeps the theme default', () => {
+            const options = prepareOptions<AgChartOptions>({
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', label: { padding: -20 } } as AgBarSeriesOptions],
+            });
+
+            const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
+            expect(messages).toHaveLength(1);
+            expect(messages[0]).toContain('Option `series[0].label.padding` cannot be set to `-20`');
+            expect(messages[0]).toContain('expecting a number greater than or equal to 0');
+            // The invalid scalar padding is dropped, so the bar label's theme default (8) applies.
+            expect((options.series?.[0] as any).label.padding).toBe(8);
+        });
+
+        it('rejects negative legend item padding and keeps the theme default', () => {
+            const options = prepareOptions<AgChartOptions>({
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                legend: { item: { padding: -10 } },
+            });
+
+            const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
+            expect(messages).toHaveLength(1);
+            expect(messages[0]).toContain('Option `legend.item.padding` cannot be set to `-10`');
+            expect(messages[0]).toContain('expecting a number greater than or equal to 0');
+            // The invalid scalar padding is dropped, so the legend item's theme default applies.
+            expect((options as any).legend.item.padding).toEqual({ top: 4, right: 8, bottom: 4, left: 8 });
+        });
+
+        it('does not warn and preserves a negative padding on a cross-line label (deliberate exemption)', () => {
+            const options = prepareOptions<AgCartesianChartOptions>({
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: {
+                        type: 'number',
+                        position: 'left',
+                        crossLines: [{ type: 'line', value: 5, label: { text: 'threshold', padding: -30 } }],
+                    },
+                },
+            });
+
+            const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
+            expect(messages.some((m) => m.includes('padding'))).toBe(false);
+            expect((options.axes as any).y.crossLines[0].label.padding).toBe(-30);
+        });
+    });
 });
