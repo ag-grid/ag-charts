@@ -65,6 +65,7 @@ describe('LegendEvent', () => {
                 itemId: null,
                 text: null,
                 event: null,
+                defaultPrevented: null,
                 preventDefault: null,
             });
 
@@ -80,6 +81,7 @@ describe('LegendEvent', () => {
                 itemId: null,
                 text: null,
                 event: null,
+                defaultPrevented: null,
                 preventDefault: null,
             });
 

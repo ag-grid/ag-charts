@@ -563,6 +563,7 @@ describe('Legend', () => {
 
             expect(legendItemClick.mock.lastCall![0]).toMatchInlineSnapshot(`
               {
+                "defaultPrevented": false,
                 "event": MouseEvent {
                   "isTrusted": false,
                   "offsetX": 20,
@@ -594,6 +595,7 @@ describe('Legend', () => {
 
             expect(legendItemDoubleClick.mock.lastCall![0]).toMatchInlineSnapshot(`
               {
+                "defaultPrevented": false,
                 "event": MouseEvent {
                   "isTrusted": false,
                   "offsetX": 20,

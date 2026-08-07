@@ -1339,7 +1339,7 @@ describe('AG-15850 activeChange', () => {
         DeepReadonly<
             Omit<
                 AgActiveChangeEvent<unknown, unknown>,
-                'preventDefault' | 'context' | 'itemType' | 'datums' | 'totalValue'
+                'preventDefault' | 'defaultPrevented' | 'context' | 'itemType' | 'datums' | 'totalValue'
             >
         >
     >;

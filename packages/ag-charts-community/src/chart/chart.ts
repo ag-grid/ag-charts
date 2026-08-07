@@ -2184,7 +2184,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
     private applySeriesValues(target: UnknownSeries, options: SeriesOptionsTypes) {
         const moduleMap = target.getModuleMap();
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { type, data, listeners, seriesGrouping, showInMiniChart, ...seriesOptions } = options as any;
+        const { type, data, seriesGrouping, showInMiniChart, ...seriesOptions } = options as any;
 
         for (const module of ModuleRegistry.listModulesByType(ModuleType.SeriesPlugin)) {
             if (module.name in seriesOptions) {

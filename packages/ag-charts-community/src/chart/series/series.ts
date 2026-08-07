@@ -1176,11 +1176,11 @@ export abstract class Series<
     hasNodeClickListener(): boolean {
         const seriesListeners = this.properties.listeners;
         const chartListeners = this.ctx.chartService.listeners;
-        return !!(
-            seriesListeners?.seriesNodeClick ||
-            seriesListeners?.seriesNodeDoubleClick ||
-            chartListeners.seriesNodeClick ||
-            chartListeners.seriesNodeDoubleClick
+        return (
+            seriesListeners?.seriesNodeClick != null ||
+            seriesListeners?.seriesNodeDoubleClick != null ||
+            chartListeners.seriesNodeClick != null ||
+            chartListeners.seriesNodeDoubleClick != null
         );
     }
 
@@ -1201,11 +1201,11 @@ export abstract class Series<
     }
 
     fireNodeClickEvent(opts: FireNodeEventParams): boolean {
-        return this.callListeners(this.createNodeEvent('seriesNodeClick', opts));
+        return !this.callListeners(this.createNodeEvent('seriesNodeClick', opts));
     }
 
     fireNodeDoubleClickEvent(opts: FireNodeEventParams): boolean {
-        return this.callListeners(this.createNodeEvent('seriesNodeDoubleClick', opts));
+        return !this.callListeners(this.createNodeEvent('seriesNodeDoubleClick', opts));
     }
 
     createNodeContextMenuActionEvent(opts: FireNodeEventParams): AgNodeContextMenuActionEvent {
