@@ -33,7 +33,5 @@ export type NormalisedSeriesAreaBackgroundRegionLabel = Normalised<
     NormalisedChartLabelStyleOptions & {
         fontFamily: string;
         padding: NormalisedPaddingOptions;
-        // TODO: this shouldn't be needed but the required union above does not apply for some reason
-        fontSize: number;
     }
 >;
