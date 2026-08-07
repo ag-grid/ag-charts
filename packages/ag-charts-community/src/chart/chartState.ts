@@ -14,6 +14,7 @@ import type {
     AgChartBackground,
     AgChartOptions,
     AgChartSyncOptions,
+    AgChartValidationsOptions,
     AgDataSourceCallbackParams,
     AgDataSourceOptions,
     AgFlashOnUpdateOptions,
@@ -33,7 +34,6 @@ import type {
 
 import type { HighlightNodeDatum } from '../core/eventsHub';
 import type { CategoryLegendDatum } from './legend/legendDatum';
-import type { ValidationOverlayLevel } from './validation/validationIssueCollector';
 
 export type NormalisedBackgroundOptions = AgChartBackground & { visible: boolean; fill: string };
 
@@ -182,7 +182,7 @@ export type ResolvedChartOptions = Omit<
     chartToolbar?: { enabled: boolean };
     statusBar?: NormalisedStatusBarOptions;
     annotations?: NormalisedAnnotationsOptions;
-    validations?: { overlayLevel?: ValidationOverlayLevel };
+    validations?: AgChartValidationsOptions;
 };
 
 export type NormalisedStatusBarOptions = {

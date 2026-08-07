@@ -351,14 +351,26 @@ export interface AgBaseChartOptions<
     validations?: AgChartValidationsOptions;
 }
 
+/**
+ * The severity of validation problem to report, as an inclusive threshold: each level also reports
+ * every louder level. `'none'` reports nothing.
+ */
+export type AgChartValidationLevel = 'error' | 'warning' | 'deprecation' | 'none';
+
 /** Configuration for how the chart reports invalid configuration and runtime problems. */
 export interface AgChartValidationsOptions {
     /**
-     * The minimum severity of validation output written to the browser console. An inclusive
-     * threshold: each level also logs every louder level. `'none'` silences all validation console
-     * output, including the internal error diagnostics from failed chart updates.
+     * The minimum severity of validation output written to the browser console. `'none'` silences
+     * all validation console output, including the internal error diagnostics from failed chart
+     * updates.
      *
      * Default: `'deprecation'`
      */
-    consoleLogLevel?: 'error' | 'warning' | 'deprecation' | 'none';
+    consoleLogLevel?: AgChartValidationLevel;
+    /**
+     * The minimum severity of validation problem to report in an overlay on the chart itself.
+     *
+     * Default: `'none'`
+     */
+    overlayLevel?: AgChartValidationLevel;
 }

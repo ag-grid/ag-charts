@@ -15,6 +15,11 @@ const LEVEL_SEVERITY: Record<LogLevel, number> = {
     none: SEVERITY.error + 1,
 };
 
+/** Derived from the severity table, so a new level cannot be missed here. */
+export function isLogLevel(value: unknown): value is LogLevel {
+    return typeof value === 'string' && Object.hasOwn(LEVEL_SEVERITY, value);
+}
+
 interface LogGroup {
     name: string;
     opened: boolean;
