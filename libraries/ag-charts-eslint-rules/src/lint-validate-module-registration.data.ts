@@ -251,3 +251,16 @@ const candlestickBothAxes = {
     },
 };
 AgCharts.create(candlestickBothAxes);
+
+// =============================================================================
+// TEST CASE 16: Background regions require BackgroundRegionsModule
+// The registered set below must match TEST CASE 15 - the rule validates the whole
+// file against the last registerModules call it sees.
+// =============================================================================
+ModuleRegistry.registerModules([CandlestickSeriesModule, NumberAxisModule, OrdinalTimeAxisModule, LegendModule]);
+const backgroundRegionsMissing = {
+    series: [{ type: 'candlestick', xKey: 'date', yKey: 'y' }],
+    axes: { x: { type: 'ordinal-time' }, y: { type: 'number' } },
+    seriesArea: { backgroundRegions: [{ xRange: [0, 1], yRange: [0, 1] }] },
+};
+AgCharts.create(backgroundRegionsMissing);

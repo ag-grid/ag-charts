@@ -14,6 +14,7 @@ import {
     pluginOptionToModule,
     polarAxisPluginToModule,
     polarSeriesModules,
+    seriesAreaPluginToModule,
     seriesChartType,
     seriesDefaultAxes,
     seriesPluginToModule,
@@ -324,6 +325,23 @@ export default {
                             ? polarAxisPluginToModule.get(keyName)
                             : axisPluginToModule.get(keyName);
                     requireModule(moduleId, `axis option '${keyName}'`, prop);
+                }
+            }
+        }
+
+        /**
+         * Process seriesArea options to find required modules
+         */
+        function processSeriesArea(seriesAreaNode) {
+            if (seriesAreaNode.type !== 'ObjectExpression') return;
+
+            for (const prop of seriesAreaNode.properties) {
+                if (prop.type !== 'Property') continue;
+                const keyName = prop.key.type === 'Identifier' ? prop.key.name : getStringValue(prop.key);
+
+                if (keyName && seriesAreaPluginToModule.has(keyName)) {
+                    const moduleId = seriesAreaPluginToModule.get(keyName);
+                    requireModule(moduleId, `seriesArea.${keyName} option`, prop);
                 }
             }
         }
@@ -672,6 +690,8 @@ export default {
                     processSeriesArray(node.value, node);
                 } else if (keyName === 'axes') {
                     processAxes(node.value, node);
+                } else if (keyName === 'seriesArea') {
+                    processSeriesArea(node.value);
                 } else if (keyName === 'axis') {
                     // Sparklines use singular 'axis' - mark all axes as explicit to skip default axis application
                     explicitAxes.add('x');

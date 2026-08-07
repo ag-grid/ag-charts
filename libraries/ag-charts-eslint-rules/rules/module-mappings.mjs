@@ -100,6 +100,9 @@ export const polarAxisPluginToModule = new Map([['crossLines', 'PolarCrossLinesM
 // Nested series plugin option → Module ID
 export const seriesPluginToModule = new Map([['errorBar', 'ErrorBarsModule']]);
 
+// Nested seriesArea plugin option → Module ID
+export const seriesAreaPluginToModule = new Map([['backgroundRegions', 'BackgroundRegionsModule']]);
+
 // Nested annotations plugin option → Module ID
 export const annotationsPluginToModule = new Map([['toolbar', 'ChartToolbarModule']]);
 
@@ -241,6 +244,7 @@ export const enterpriseModules = new Set([
     // Plugins
     'AnimationModule',
     'AnnotationsModule',
+    'BackgroundRegionsModule',
     'BandHighlightModule',
     'ChartToolbarModule',
     'ContextMenuModule',
@@ -406,6 +410,7 @@ export const bundleContents = new Map([
             // Enterprise plugins
             'AnimationModule',
             'AnnotationsModule',
+            'BackgroundRegionsModule',
             'BandHighlightModule',
             'ChartToolbarModule',
             'ContextMenuModule',
@@ -551,6 +556,7 @@ export const validModuleIds = new Set([
     // Plugins
     'AnimationModule',
     'AnnotationsModule',
+    'BackgroundRegionsModule',
     'BandHighlightModule',
     'ChartToolbarModule',
     'ContextMenuModule',
