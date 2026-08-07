@@ -147,9 +147,8 @@ export function fitLabelToContainer(
 }
 
 /**
- * {@link fitLabelToContainer} for the baked (non-engine) path of a label that may shrink: reports the
- * reduced font size its text was fitted at alongside the text, so the caller can measure and render it
- * at that size. `fontSize` is `undefined` whenever the configured size was kept.
+ * {@link fitLabelToContainer} for a label that may shrink, reporting the reduced size its text was fitted
+ * at so the caller can measure and render it there; `fontSize` is `undefined` at the configured size.
  */
 export function fitLabelToContainerAutoSize(
     text: NormalisedTextOrSegments,
@@ -671,8 +670,8 @@ export function updateLabelNode<TParams>(
         textNode.fill = style.color;
         textNode.setAlign(labelDatum);
         textNode.setFont(style);
-        // The fit layer shrank the text to make it fit, so the glyph — and the box drawn around it — must
-        // track that reduced size rather than the configured one.
+        // Set after `setFont` and before `setBoxing` so the box tracks the reduced glyph; `style` is not
+        // mutated because it can be the shared `Label` instance itself.
         if (labelDatum.fittedFontSize != null) {
             textNode.fontSize = labelDatum.fittedFontSize;
         }

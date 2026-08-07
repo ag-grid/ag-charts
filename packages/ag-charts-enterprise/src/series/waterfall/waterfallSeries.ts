@@ -835,8 +835,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                 mutableNode.label.hidden = false;
                 mutableNode.label.fittedFontSize = undefined;
             } else {
-                // A rotated label's gap to the bar depends on its box size; measure only when it rotates,
-                // at the size the fit chose so a shrunk label keeps the gap its drawn box needs.
+                // A rotated label's gap to the bar depends on its box size; measure only when it rotates.
                 const { width: labelWidth, height: labelHeight } =
                     labelRotation === 0
                         ? { width: 0, height: 0 }
@@ -1198,7 +1197,6 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             this.isLabelEnabled() && !this.usesPlacedLabels,
             (node) => {
                 const { label } = this.getItemConfig(node.itemType);
-                // A shrunk label's footprint is the box its reduced glyph draws, not the configured one.
                 return {
                     label: node.label,
                     config: fontWithSize(label, node.label?.fittedFontSize),

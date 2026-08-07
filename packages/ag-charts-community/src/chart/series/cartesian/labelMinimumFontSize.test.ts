@@ -38,7 +38,7 @@ describe('label minimumFontSize', () => {
     const renderAndSnapshot = async (options: object) => {
         prepareTestOptions(options as any);
         chart = AgCharts.create(options as any);
-        await compareImageSnapshot(chart as any, ctx);
+        await compareImageSnapshot(chart, ctx);
     };
 
     type LabelNode = { visible: boolean; fontSize: number; text: string };

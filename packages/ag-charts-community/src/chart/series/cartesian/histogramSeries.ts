@@ -629,8 +629,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         const { text, fontSize: fittedFontSize } = resolvesOrientation
             ? { text: sourceText, fontSize: undefined }
             : fitLabelToContainerAutoSize(sourceText, labelFit, label, bounds?.container);
-        // A rotated label's gap to the bar depends on its box size; measure only when it rotates, at the
-        // size the fit chose so a shrunk label is not spaced off the bar by its full-size box.
+        // A rotated label's gap to the bar depends on its box size; measure only when it rotates.
         const { width: labelWidth, height: labelHeight } =
             rotation === 0 ? { width: 0, height: 0 } : measureLabelText(text, fontWithSize(label, fittedFontSize));
         const {
@@ -1005,7 +1004,6 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             this.contextNodeData?.nodeData,
             this.contextNodeData?.labelData,
             this.isLabelEnabled() && !this.usesPlacedLabels,
-            // A shrunk label's footprint is the box its reduced glyph draws, not the configured one.
             (node) => ({ label: node.label, config: fontWithSize(label, node.label?.fittedFontSize), box })
         );
     }

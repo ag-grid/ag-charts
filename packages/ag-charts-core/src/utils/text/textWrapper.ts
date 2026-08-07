@@ -131,19 +131,15 @@ export interface AutoSizedLabelText {
 }
 
 /**
- * `font` at `fontSize`, or `font` itself when the size is unchanged. The fields are copied by name
- * rather than spread: a label's font often comes from a `@Property` class whose accessors live on the
- * prototype, which a spread would silently drop.
+ * `font` at `fontSize`, or `font` itself when the size is unchanged. Fields are copied by name because a
+ * label's font is often a `@Property` instance, whose prototype accessors a spread would silently drop.
  */
 export function fontWithSize(font: FontOptions, fontSize: number | undefined): FontOptions {
     if (fontSize == null || fontSize === font.fontSize) return font;
     return { fontSize, fontStyle: font.fontStyle, fontWeight: font.fontWeight, fontFamily: font.fontFamily };
 }
 
-/**
- * The size the auto-size search bottoms out at, or `undefined` when the label cannot shrink: no minimum
- * is set, it is not below the configured size, or the fit bounds nothing for the text to shrink into.
- */
+/** The size the search bottoms out at, or `undefined` when the label cannot shrink. */
 function autoSizeFloor(fit: LabelFit, font: FontOptions): number | undefined {
     const { minimumFontSize, maxWidth, maxHeight } = fit;
     if (minimumFontSize == null || (maxWidth == null && maxHeight == null)) return undefined;
@@ -155,10 +151,9 @@ function autoSizeFloor(fit: LabelFit, font: FontOptions): number | undefined {
 }
 
 /**
- * Adapts a label's text to its fit policy at the largest font size between {@link LabelFit.minimumFontSize}
- * and the configured `font.fontSize` that holds the whole text. Only at the minimum size may the configured
- * overflow strategy truncate or hide, so a label always shrinks before it ellipsises or vanishes. Falls
- * through to {@link fitLabelText} at the configured size when no minimum applies.
+ * Fits a label's text at the largest size between {@link LabelFit.minimumFontSize} and `font.fontSize` that
+ * holds it whole; only at the minimum may the configured overflow strategy truncate or hide, so a label
+ * always shrinks before it ellipsises or vanishes.
  */
 export function fitLabelTextAutoSize(
     text: NormalisedTextOrSegments,
