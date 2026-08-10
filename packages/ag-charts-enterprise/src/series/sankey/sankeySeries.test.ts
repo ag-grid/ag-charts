@@ -304,6 +304,33 @@ describe('SankeySeries', () => {
             chart = deproxy(AgCharts.create(options));
             await compare();
         });
+
+        const complexCornerRadiusOptions = {
+            'complex-default': {},
+            'complex-rounded': { width: 20, cornerRadius: 8 },
+            'complex-rounded-with-stroke': { width: 20, cornerRadius: 8, stroke: '#2c3e50', strokeWidth: 2 },
+        };
+
+        it.each(Object.entries(complexCornerRadiusOptions))('%s', async (_case, nodeOptions) => {
+            const options = {
+                ...GALLERY_EXAMPLES.SIMPLE_SANKEY_EXAMPLE.options,
+                series: [
+                    {
+                        type: 'sankey',
+                        fromKey: 'from',
+                        toKey: 'to',
+                        sizeKey: 'sales',
+                        sizeName: 'Sales',
+                        node: { alignment: 'center', ...nodeOptions },
+                    },
+                ],
+            } as AgChartOptions;
+
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
     });
 
     describe('Series Highlighting', () => {

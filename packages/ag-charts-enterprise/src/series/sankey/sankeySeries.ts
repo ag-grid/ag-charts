@@ -891,6 +891,7 @@ export class SankeySeries extends FlowProportionSeries<
         isHighlight: boolean;
     }) {
         const { datumSelection, isHighlight } = opts;
+        const { cornerRadius } = this.properties.node;
 
         const fillBBox = this.getShapeFillBBox();
 
@@ -902,7 +903,15 @@ export class SankeySeries extends FlowProportionSeries<
             rect.y = datum.y;
             rect.width = Math.max(datum.width, 0);
             rect.height = Math.max(datum.height, 0);
-            rect.cornerRadius = this.properties.node.cornerRadius;
+
+            // Links terminate flush against a node edge, so rounding an edge that carries links would leave a
+            // visible gap between the link and the node. Only unconnected edges are rounded.
+            const leadingCornerRadius = datum.linksBefore.length === 0 ? cornerRadius : 0;
+            const trailingCornerRadius = datum.linksAfter.length === 0 ? cornerRadius : 0;
+            rect.topLeftCornerRadius = leadingCornerRadius;
+            rect.bottomLeftCornerRadius = leadingCornerRadius;
+            rect.topRightCornerRadius = trailingCornerRadius;
+            rect.bottomRightCornerRadius = trailingCornerRadius;
 
             rect.setStyleProperties(style, fillBBox);
         });

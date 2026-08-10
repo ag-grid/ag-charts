@@ -115,7 +115,8 @@ export interface AgSankeySeriesNodeOptions<TDatum, TContext = ContextDefault> ex
      */
     width?: PixelSize;
     /**
-     * Rounded corner radius applied to each node, in pixels.
+     * Rounded corner radius applied to each node, in pixels. Only edges with no links attached are rounded, so
+     * corners are applied to the leading edge of entry nodes and the trailing edge of exit nodes.
      *
      * Default: `0`
      */
