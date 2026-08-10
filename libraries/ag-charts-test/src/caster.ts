@@ -146,6 +146,11 @@ export class Caster<T> {
         expect(this.value).not.toBeNull();
         return convert<NonNullable<T>>(this);
     }
+
+    callProperty<K extends keyof T>(propertyName: K) {
+        expect(this.value[propertyName]).toEqual(expect.any(Function));
+        return new Caster<unknown>((this.value[propertyName] as () => void)());
+    }
 }
 
 export function classCast<C extends AnyCtor>(value: unknown, ctor: C) {

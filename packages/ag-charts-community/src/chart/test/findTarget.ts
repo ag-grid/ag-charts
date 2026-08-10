@@ -141,12 +141,16 @@ function findZoomTarget(
 ): MockEvent | undefined {
     if (zoomModule === undefined) return undefined;
 
-    const caster = new Caster(zoomModule);
-    const zoom = caster.accessProperty('opts').findBoolean('enabled').findBoolean('enableAxisDragging').value;
+    const zoomCaster = new Caster(zoomModule);
+    const zoom = zoomCaster.accessProperty('opts').findBoolean('enabled').findBoolean('enableAxisDragging').value;
+    const hasZooming: boolean = zoom.enabled && zoom.enableAxisDragging;
 
     const axisDOMProxyCaster = new Caster(axisDOMProxyModule);
+    const hasClickListeners: boolean = !!axisDOMProxyCaster
+        .findProperty('hasClickListeners')
+        .callProperty('hasClickListeners').value;
 
-    if (zoom.enabled && zoom.enableAxisDragging) {
+    if (hasZooming || hasClickListeners) {
         const domProxy = axisDOMProxyCaster
             .findProperty('axes')
             .castProperty('axes', Array)
