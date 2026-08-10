@@ -124,6 +124,28 @@ In this example:
 
 Series label collision avoidance is separate from [axis label collision avoidance](./axes-labels/#collision-avoidance), which is configured independently on each axis.
 
+### Reducing the Font Size
+
+Bar, histogram, waterfall and range bar labels can shrink to fit instead of wrapping, truncating or being hidden. Set `minimumFontSize` to the smallest size the label may use:
+
+```js format="snippet"
+{
+    series: [
+        {
+            // ...
+            label: {
+                enabled: true,
+                placement: 'inside-center',
+                wrapping: 'on-space',
+                minimumFontSize: 8,
+            },
+        },
+    ],
+}
+```
+
+The label picks the largest size between its `fontSize` and `minimumFontSize` at which the whole text fits. `wrapping` applies at each size tried, so a label can wrap and shrink together to fit. Only when the text still does not fit at `minimumFontSize` is it truncated or hidden, so shrinking is always preferred over an ellipsis.
+
 ### Hiding Labels
 
 When any of these strategies are used but fail to find a satisfactory resolution, the label is hidden by default.
@@ -180,6 +202,10 @@ Use a `collision.threshold` value to ensure labels are a minimum pixel distance 
 
 {% tabItem id="AgChartLabelCollisionFitOptions" label="Collision Avoidance" %}
 {% apiReference id="AgChartLabelCollisionFitOptions" /%}
+{% /tabItem %}
+
+{% tabItem id="AgChartLabelAutoFontSizeOptions" label="Font Reduction" %}
+{% apiReference id="AgChartLabelAutoFontSizeOptions" /%}
 {% /tabItem %}
 
 {% tabItem id="AgSeriesLabelPlacementStyleOptions" label="Placement Styles" %}

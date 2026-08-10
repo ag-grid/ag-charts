@@ -34,6 +34,7 @@ import {
     buildBarPositionedLabelDatum,
     easeOut,
     firstCandidate,
+    fontWithSize,
     isContinuous,
     maxValue,
     measureLabelText,
@@ -61,7 +62,7 @@ const {
     toResolvedPlacement,
     insideBarLabelBounds,
     resolvePlacementLabelBoxExtent,
-    fitLabelToContainer,
+    fitLabelToContainerAutoSize,
     SeriesNodePickMode,
     fixNumericExtent,
     valueProperty,
@@ -95,6 +96,8 @@ const {
 
 type WaterfallNodeLabelDatum = Point & {
     readonly text: NormalisedTextOrSegments;
+    /** Reduced font size the text was fitted at; `undefined` when it renders at the configured size. */
+    fittedFontSize?: number;
     // Mutable so the placement engine can retarget the label to a chosen candidate's anchor.
     textAlign: CanvasTextAlign;
     textBaseline: CanvasTextBaseline;
@@ -774,13 +777,13 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             // The engine refits an orientation array per orientation, knowing a rotated label measures
             // against the bar's other axis; fitting here would bind every orientation to the upright
             // budget, and every positioned candidate to the first placement's (see barSeries).
-            const fittedLabelText = barLabelRoutesThroughEngine(
+            const { text: fittedLabelText, fontSize: fittedFontSize } = barLabelRoutesThroughEngine(
                 label.orientation,
                 label.placement,
                 label.collision.alwaysShow
             )
-                ? labelText
-                : fitLabelToContainer(labelText, labelFit, label, bounds?.container);
+                ? { text: labelText, fontSize: undefined }
+                : fitLabelToContainerAutoSize(labelText, labelFit, label, bounds?.container);
             if (!label.collision.alwaysShow || barLabelResolvesPlacement(label.placement)) {
                 // A placement/orientation array (or a hideable label) pre-positions a candidate per
                 // placement × orientation the engine cascades through until one fits; a hideable no-fit
@@ -830,10 +833,13 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                 mutableNode.label.placement = granular;
                 mutableNode.label.candidates = candidates;
                 mutableNode.label.hidden = false;
+                mutableNode.label.fittedFontSize = undefined;
             } else {
                 // A rotated label's gap to the bar depends on its box size; measure only when it rotates.
                 const { width: labelWidth, height: labelHeight } =
-                    labelRotation === 0 ? { width: 0, height: 0 } : measureLabelText(fittedLabelText, label);
+                    labelRotation === 0
+                        ? { width: 0, height: 0 }
+                        : measureLabelText(fittedLabelText, fontWithSize(label, fittedFontSize));
                 const labelPlacement = adjustLabelPlacement({
                     isUpward,
                     isVertical: !barAlongX,
@@ -859,12 +865,14 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                 mutableNode.label.placement = placement ?? 'inside-center';
                 mutableNode.label.candidates = undefined;
                 mutableNode.label.hidden = false;
+                mutableNode.label.fittedFontSize = fittedFontSize;
             }
         } else {
             // Clear label when disabled
             mutableNode.label.text = '';
             mutableNode.label.candidates = undefined;
             mutableNode.label.hidden = false;
+            mutableNode.label.fittedFontSize = undefined;
         }
     }
 
@@ -1189,7 +1197,11 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             this.isLabelEnabled() && !this.usesPlacedLabels,
             (node) => {
                 const { label } = this.getItemConfig(node.itemType);
-                return { label: node.label, config: label, box: expandPlacementLabelBoxExtent(label) };
+                return {
+                    label: node.label,
+                    config: fontWithSize(label, node.label?.fittedFontSize),
+                    box: expandPlacementLabelBoxExtent(label),
+                };
             }
         );
     }

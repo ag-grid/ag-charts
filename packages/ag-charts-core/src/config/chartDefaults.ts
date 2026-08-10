@@ -4,6 +4,7 @@ import {
     type AgBaseThemeableChartOptions,
     type AgChartAutoSizedBaseLabelOptions,
     type AgChartCaptionOptions,
+    type AgChartLabelAutoFontSizeOptions,
     type AgChartLabelCollisionFitOptions,
     type AgChartLabelCollisionOptions,
     type AgChartLabelFitOptions,
@@ -817,6 +818,11 @@ export const undocumentedLabelFitOptionsDefs: OptionsDefs<AgChartLabelFitOptions
     maxHeight: undocumented(positiveNumber),
     wrapping: undocumented(textWrap),
     truncate: undocumented(boolean),
+};
+
+/** Font-reduction defs for series whose labels shrink to fit before truncating or hiding. */
+export const labelAutoFontSizeOptionsDefs: OptionsDefs<AgChartLabelAutoFontSizeOptions> = {
+    minimumFontSize: positiveNumberNonZero,
 };
 
 /** Label-fit defs plus the collision object, for series that place their labels against obstacles. */

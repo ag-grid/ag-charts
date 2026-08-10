@@ -9,6 +9,7 @@ import type {
 import type { AgChartLabelOrientation } from '../../chart/collisionAvoidanceOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type {
+    AgChartLabelAutoFontSizeOptions,
     AgChartLabelCollisionFitOptions,
     AgChartLabelOptions,
     AgSeriesLabelPlacementStyleOptions,
@@ -56,6 +57,7 @@ export interface AgRangeBarSeriesLabelOptions<TDatum, TContext = ContextDefault>
     extends
         AgChartLabelOptions<TDatum, AgRangeBarSeriesLabelFormatterParams<TDatum>, TContext>,
         AgChartLabelCollisionFitOptions,
+        AgChartLabelAutoFontSizeOptions,
         AgSeriesLabelPlacementStyleOptions {
     /**
      * Where to render series labels relative to the bars. Either a single placement or an ordered
