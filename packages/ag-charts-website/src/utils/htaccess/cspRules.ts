@@ -267,6 +267,7 @@ export function getCspDirectives(options: CspOptions): CspDirectives {
             'https://*.algolianet.com', // Algolia DocSearch
             'https://*.google-analytics.com', // GA4 incl. regional collect endpoints (region1/2.google-analytics.com)
             'https://*.analytics.google.com',
+            'https://analytics.google.com', // GA4 apex collect endpoint (not matched by the *. wildcard)
             'https://stats.g.doubleclick.net',
             'https://www.googletagmanager.com',
             'https://cdn.jsdelivr.net', // example-runner SystemJS fetches modules as text (XHR)

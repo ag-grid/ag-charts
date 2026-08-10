@@ -2,9 +2,20 @@ import type { DataModel } from '../../data/dataModel';
 import type { ProcessedData, ScopeProvider } from '../../data/dataModelTypes';
 import { stubAggregationDataModel } from '../../test/aggregationStubs';
 import { BIG } from '../../test/bigintExamples';
+import type { BubbleAggregationNode } from './bubbleAggregation';
 import { aggregateBubbleDataFromDataModel, computeBubbleAggregation } from './bubbleAggregation';
 
 const SIZE_QUANTIZATION = 3;
+
+function expectFiniteBounds(node: BubbleAggregationNode) {
+    expect(Number.isFinite(node.x0)).toBe(true);
+    expect(Number.isFinite(node.x1)).toBe(true);
+    expect(Number.isFinite(node.y0)).toBe(true);
+    expect(Number.isFinite(node.y1)).toBe(true);
+    for (const child of node.children ?? []) {
+        expectFiniteBounds(child);
+    }
+}
 
 describe('computeBubbleAggregation', () => {
     describe('basic aggregation', () => {
@@ -405,6 +416,46 @@ describe('computeBubbleAggregation', () => {
             expect(result).toBeDefined();
             expect(result!.filters[0].node).toBeDefined();
             expect(result!.filters[0].node!.indices).toEqual([0]);
+        });
+
+        it('should handle a single-valued X domain', () => {
+            const count = 1000;
+            const xValues = Array.from({ length: count }, () => 5);
+            const yValues = Array.from({ length: count }, (_, i) => i);
+            const xDomain: [number, number] = [5, 5];
+            const yDomain: [number, number] = [0, count - 1];
+            const sizeDomain: [number, number] = [0, 0];
+
+            const result = computeBubbleAggregation(xDomain, yDomain, xValues, yValues, undefined, sizeDomain, {
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
+            });
+
+            expect(result).toBeDefined();
+            const node = result!.filters[0].node;
+            expect(node).toBeDefined();
+            expect(node!.indices).toHaveLength(count);
+            expectFiniteBounds(node!);
+        });
+
+        it('should handle a single-valued Y domain', () => {
+            const count = 1000;
+            const xValues = Array.from({ length: count }, (_, i) => i);
+            const yValues = Array.from({ length: count }, () => 5);
+            const xDomain: [number, number] = [0, count - 1];
+            const yDomain: [number, number] = [5, 5];
+            const sizeDomain: [number, number] = [0, 0];
+
+            const result = computeBubbleAggregation(xDomain, yDomain, xValues, yValues, undefined, sizeDomain, {
+                xNeedsValueOf: false,
+                yNeedsValueOf: false,
+            });
+
+            expect(result).toBeDefined();
+            const node = result!.filters[0].node;
+            expect(node).toBeDefined();
+            expect(node!.indices).toHaveLength(count);
+            expectFiniteBounds(node!);
         });
     });
 

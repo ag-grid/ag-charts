@@ -19,6 +19,7 @@ let options: AgPolarChartOptions = {
     legend: {
         listeners: {
             legendItemClick: (event: AgChartLegendClickEvent) => {
+                console.log(`legendItemClick - itemId: ${event.itemId}, visible: ${event.visible}`);
                 counter = (counter + 1) % 2;
                 document.getElementById('myCounter')!.textContent = `${counter}`;
                 if (counter !== 1) {

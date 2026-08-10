@@ -65,6 +65,7 @@ describe('LegendEvent', () => {
                 itemId: null,
                 text: null,
                 event: null,
+                visible: null,
                 preventDefault: null,
             });
 
@@ -80,6 +81,7 @@ describe('LegendEvent', () => {
                 itemId: null,
                 text: null,
                 event: null,
+                visible: null,
                 preventDefault: null,
             });
 
@@ -143,8 +145,44 @@ describe('LegendEvent', () => {
             expect(seriesVisibilityChange).toHaveBeenCalledTimes(1);
         });
 
+        test('visible reports the state before the toggle, not the new state', async () => {
+            const legendItemClick = vi.fn((event: AgChartLegendClickEvent) => {
+                expect(event.visible).toBe(true);
+            });
+            const seriesVisibilityChange = vi.fn((event: AgSeriesVisibilityChange) => {
+                expect(event.visible).toBe(false);
+            });
+            chart = await createChart({
+                ...OPTIONS,
+                listeners: { seriesVisibilityChange },
+                legend: { listeners: { legendItemClick } },
+            });
+            await clickAction(355, 575)(chart);
+            expect(legendItemClick).toHaveBeenCalledTimes(1);
+            expect(seriesVisibilityChange).toHaveBeenCalledTimes(1);
+        });
+
+        test('visible is per legend item, not per series', async () => {
+            const legendItemClick = vi.fn((_event: AgChartLegendClickEvent) => {});
+            chart = await createChart({
+                data: [
+                    { name: 'tomato', value: 5 },
+                    { name: 'potato', value: 3 },
+                ],
+                series: [{ type: 'pie', legendItemKey: 'name', angleKey: 'value' }],
+                legend: { listeners: { legendItemClick } },
+            });
+            await clickAction(355, 575)(chart);
+            await waitForChartStability(chart);
+            await clickAction(355, 575)(chart);
+            expect(legendItemClick).toHaveBeenCalledTimes(2);
+            expect(legendItemClick.mock.calls[0][0].visible).toBe(true);
+            expect(legendItemClick.mock.calls[1][0].visible).toBe(false);
+        });
+
         test('legendItemClick preventDefault', async () => {
             const legendItemClick = vi.fn((event: AgChartLegendClickEvent) => {
+                expect(event.visible).toBe(true);
                 event.preventDefault();
             });
             const seriesVisibilityChange = vi.fn((_event: AgSeriesVisibilityChange) => {});
