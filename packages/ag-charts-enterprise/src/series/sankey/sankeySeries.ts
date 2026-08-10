@@ -69,6 +69,12 @@ type Column = {
     x: number;
 };
 
+/** `Rect` scales oversized radii down to fit the shape, so mirror that clamp to match what is drawn. */
+function renderedCornerRadius(cornerRadius: number, node: SankeyNodeDatum) {
+    if (cornerRadius <= 0 || !Number.isFinite(node.height)) return 0;
+    return Math.min(cornerRadius, node.width / 2, node.height / 2);
+}
+
 export class SankeySeries extends FlowProportionSeries<
     SankeyNodeDatum,
     SankeyLinkDatum,
@@ -675,13 +681,15 @@ export class SankeySeries extends FlowProportionSeries<
 
     private createLinksNodeData(nodeData: SankeyDatum[], links: SankeyLinkDatum[], minSize: number, sizeScale: number) {
         const seriesRectHeight = this._nodeDataDependencies?.seriesRectHeight ?? 0;
-        const nodeWidth = this.properties.node.width;
+        const { width: nodeWidth, cornerRadius } = this.properties.node;
 
         for (const link of links) {
             const { fromNode, toNode, size } = link;
             link.height = Math.max(minSize, seriesRectHeight * size * sizeScale);
-            link.x1 = fromNode.x + nodeWidth;
-            link.x2 = toNode.x;
+            // Links run behind each node by its rounded corner radius, so the space cut away by a corner is
+            // filled by the link that meets that edge rather than showing the background through it.
+            link.x1 = fromNode.x + nodeWidth - renderedCornerRadius(cornerRadius, fromNode);
+            link.x2 = toNode.x + renderedCornerRadius(cornerRadius, toNode);
             link.midPoint = {
                 x: (link.x1 + link.x2) / 2,
                 y: (link.y1 + link.y2) / 2 + link.height / 2,
