@@ -102,6 +102,7 @@ runs:
               } >> "$GITHUB_OUTPUT"
 
         - name: Remove stale paths
+          id: remove
           # Empty list: nothing to do, and the shared commit script requires a non-empty TARGET_PREFIX.
           if: steps.plan.outputs.paths != '' && inputs.dry_run != 'true'
           shell: bash
@@ -113,12 +114,18 @@ runs:
               PUBLISH_BRANCH: ${{ inputs.publish_branch }}
           run: bash "${{ github.action_path }}/../pr-preview-lib/gh-pages-commit.sh"
 
+        # always(): the summary is the only place a scheduled run reports anything, so it has to
+        # survive a failure in either step above. It therefore reports on step OUTCOMES, not just
+        # on the paths output — an empty output means "planning failed" just as readily as
+        # "nothing stale", and a non-empty one says nothing about whether the push succeeded.
         - name: Summary
           if: always()
           shell: bash
           env:
               PATHS: ${{ steps.plan.outputs.paths }}
               COUNT: ${{ steps.plan.outputs.count }}
+              PLAN_OUTCOME: ${{ steps.plan.outcome }}
+              REMOVE_OUTCOME: ${{ steps.remove.outcome }}
               DRY_RUN: ${{ inputs.dry_run }}
               PUBLISH_BRANCH: ${{ inputs.publish_branch }}
           run: |
@@ -126,14 +133,22 @@ runs:
               {
                   echo "### PR preview janitor (${PUBLISH_BRANCH})"
                   echo
-                  if [[ -z "${PATHS:-}" ]]; then
+                  if [[ "$PLAN_OUTCOME" != 'success' ]]; then
+                      echo ":x: Planning failed (\`${PLAN_OUTCOME}\`) — nothing was removed. See the step log."
+                  elif [[ -z "${PATHS:-}" ]]; then
                       echo "Nothing stale to reclaim."
                   else
-                      if [[ "$DRY_RUN" == 'true' ]]; then
-                          echo "Dry run — would remove ${COUNT} path(s):"
-                      else
-                          echo "Removed ${COUNT} path(s):"
-                      fi
+                      case "$REMOVE_OUTCOME" in
+                          success) echo "Removed ${COUNT} path(s):" ;;
+                          skipped)
+                              if [[ "$DRY_RUN" == 'true' ]]; then
+                                  echo "Dry run — would remove ${COUNT} path(s):"
+                              else
+                                  echo ":warning: Removal did not run — ${COUNT} path(s) selected:"
+                              fi
+                              ;;
+                          *) echo ":x: Removal failed (\`${REMOVE_OUTCOME}\`) — ${COUNT} path(s) selected but the push did not land:" ;;
+                      esac
                       echo '```'
                       tr ' ' '\n' <<< "$PATHS"
                       echo '```'

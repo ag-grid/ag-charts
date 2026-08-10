@@ -39,9 +39,14 @@ PUBLISH_BRANCH="${PUBLISH_BRANCH:-gh-pages}"
 MAX_ATTEMPTS="${MAX_ATTEMPTS:-5}"
 REMOTE="${PUBLISH_REMOTE:-https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git}"
 
-# Unquoted on purpose: TARGET_PREFIX is a whitespace-separated list in remove mode.
+# Unquoted on purpose: TARGET_PREFIX is a whitespace-separated list in remove mode. `set -f` is
+# load-bearing — an unquoted expansion also globs, and it globs against the CALLER's directory
+# before the safety validation below runs, so a path containing `*` or `?` would silently become
+# a set of unrelated real paths that then pass validation and get rm -rf'd.
+set -f
 # shellcheck disable=SC2206
-TARGET_PREFIXES=( $TARGET_PREFIX )
+TARGET_PREFIXES=($TARGET_PREFIX)
+set +f
 
 case "$MODE" in
     sync)
