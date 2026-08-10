@@ -327,6 +327,10 @@ interface PreparedBubbleNodeDatumState {
     area: number;
 }
 
+function ascending([v0, v1]: [number, number]): [number, number] {
+    return v0 <= v1 ? [v0, v1] : [v1, v0];
+}
+
 /**
  * A single-valued data domain has no extent to rescale into — every datum collapses onto one
  * aggregation ratio, so the whole axis counts as visible rather than a zero-width NaN window.
@@ -586,7 +590,16 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             }
         }
 
-        return { xRange, yRange, minSize, maxSize, xVisibleRange, yVisibleRange };
+        // A reversed axis reverses its scale domain, so the rescaled visible range comes back
+        // descending; the quadtree cull assumes an ascending [min, max] window.
+        return {
+            xRange,
+            yRange,
+            minSize,
+            maxSize,
+            xVisibleRange: ascending(xVisibleRange),
+            yVisibleRange: ascending(yVisibleRange),
+        };
     }
 
     /**

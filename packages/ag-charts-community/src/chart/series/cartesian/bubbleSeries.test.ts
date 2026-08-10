@@ -42,6 +42,7 @@ import {
     expectNoAnimation,
     expectSceneTrajectory,
     expectWarningsCalls,
+    getAggregatedMarkerXValues,
     getSeriesAggregationInternals,
     hoverAction,
     prepareTestOptions,
@@ -1273,6 +1274,30 @@ describe('BubbleSeries', () => {
             const renderedCount = series.contextNodeData?.nodeData?.length ?? 0;
             expect(renderedCount).toBeGreaterThan(0);
             expect(renderedCount).toBeLessThan(datumCount / 2);
+        });
+    });
+
+    describe('aggregation on a reversed axis', () => {
+        const aggregatedOptions = (reverse: boolean): AgCartesianChartOptions => ({
+            data: Array.from({ length: 300 }, (_, i) => ({ x: i, y: (i * 7) % 100, s: 1 + (i % 5) })),
+            series: [{ type: 'bubble', xKey: 'x', yKey: 'y', sizeKey: 's', maxRenderedItems: 200 }],
+            axes: {
+                x: { type: 'number', position: 'bottom', reverse },
+                y: { type: 'number', position: 'left' },
+            },
+            legend: { enabled: false },
+        });
+
+        it('should render the same markers with a sizeKey when the x-axis is reversed and maxRenderedItems is exceeded', async () => {
+            chart = AgCharts.create(prepareTestOptions(aggregatedOptions(false)));
+            await waitForChartStability(chart);
+            const expected = getAggregatedMarkerXValues(chart);
+            expect(expected.length).toBeGreaterThan(0);
+            expect(expected.length).toBeLessThan(300);
+
+            await chart.update(prepareTestOptions(aggregatedOptions(true)));
+            await waitForChartStability(chart);
+            expect(getAggregatedMarkerXValues(chart)).toEqual(expected);
         });
     });
 
