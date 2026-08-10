@@ -272,6 +272,40 @@ describe('SankeySeries', () => {
         });
     });
 
+    describe('node cornerRadius', () => {
+        const cornerRadiusOptions = {
+            default: {},
+            rounded: { width: 20, cornerRadius: 6 },
+            'rounded-with-stroke': { width: 20, cornerRadius: 6, stroke: '#2c3e50', strokeWidth: 2 },
+            'small-radius-with-stroke': { width: 20, cornerRadius: 2, stroke: '#2c3e50', strokeWidth: 2 },
+            clamped: { width: 20, cornerRadius: 999 },
+        };
+
+        it.each(Object.entries(cornerRadiusOptions))('%s', async (_case, nodeOptions) => {
+            const options: AgStandaloneChartOptions = {
+                data: [
+                    { from: 'one', to: 'two', size: 10 },
+                    { from: 'two', to: 'three', size: 10 },
+                ],
+                series: [
+                    {
+                        type: 'sankey',
+                        fromKey: 'from',
+                        toKey: 'to',
+                        sizeKey: 'size',
+                        node: nodeOptions,
+                        link: { strokeWidth: 1 },
+                    },
+                ],
+            };
+
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
+    });
+
     describe('Series Highlighting', () => {
         const SIMPLIFIED_EXAMPLE = {
             ...GALLERY_EXAMPLES.SIMPLE_SANKEY_EXAMPLE.options,
