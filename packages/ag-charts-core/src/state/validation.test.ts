@@ -271,6 +271,64 @@ describe('Validation utils', () => {
         });
     });
 
+    describe('recordIssue sink', () => {
+        afterEach(() => {
+            validationLogger.setLevel('deprecation');
+            resetRegistry();
+        });
+
+        test('records a deprecation notice alongside the console output', () => {
+            const recordIssue = vi.fn();
+            validate<{ colorScale: string }>(
+                { colorScale: 'red' },
+                { colorScale: deprecated(string, 'Use `colorScale.fills` instead.') },
+                'series[0]',
+                { recordIssue }
+            );
+            expect(recordIssue).toHaveBeenCalledTimes(1);
+            expect(recordIssue).toHaveBeenCalledWith({
+                severity: 'deprecation',
+                message: 'Option `series[0].colorScale` is deprecated. Use `colorScale.fills` instead.',
+                code: 'series[0].colorScale',
+            });
+        });
+
+        test('records the notice even when the console level silences it', () => {
+            validationLogger.setLevel('warning');
+            const recordIssue = vi.fn();
+            validate<{ colorScale: string }>(
+                { colorScale: 'red' },
+                { colorScale: deprecated(string, 'Use `colorScale.range` instead.') },
+                '',
+                { recordIssue }
+            );
+            expect(console.warn).not.toHaveBeenCalled();
+            expect(recordIssue).toHaveBeenCalledTimes(1);
+            expect(recordIssue.mock.calls[0][0].severity).toBe('deprecation');
+        });
+
+        test('stays silent for a deprecation under silentAdvisories', () => {
+            const recordIssue = vi.fn();
+            validate<{ colorScale: string }>(
+                { colorScale: 'red' },
+                { colorScale: deprecated(string, 'Use `colorScale.stops` instead.') },
+                '',
+                { recordIssue, silentAdvisories: true }
+            );
+            expect(recordIssue).not.toHaveBeenCalled();
+        });
+
+        test('records an enterprise-gating advisory as a warning', () => {
+            const recordIssue = vi.fn();
+            validate<{ key: string }>({ key: 'x' }, { key: enterprise(string) }, 'series[0]', { recordIssue });
+            expect(recordIssue).toHaveBeenCalledTimes(1);
+            const issue = recordIssue.mock.calls[0][0];
+            expect(issue.severity).toBe('warning');
+            expect(issue.code).toBe('series[0].key');
+            expect(issue.message).toBe((console.warn as Mock).mock.calls[0][0].replace('AG Charts - ', ''));
+        });
+    });
+
     describe('Union Validator', () => {
         const isRedOrBlue = union('red', 'blue');
 
