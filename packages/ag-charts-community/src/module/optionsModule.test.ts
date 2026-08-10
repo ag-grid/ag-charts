@@ -4168,16 +4168,16 @@ describe('ChartOptions', () => {
     });
 
     describe('validations.onErrorRaised', () => {
-        const invalidOptions = (extra?: object): AgChartOptions =>
+        const badStrokeWidthOptions = (validations?: object) =>
             ({
-                series: [{ type: 'line', xKey: 'x', yKey: 'y', strokeWidth: 'notanumber' as any }],
-                ...extra,
-            }) as AgChartOptions;
+                series: [{ type: 'line', xKey: 'x', yKey: 'y', strokeWidth: 'notanumber' }],
+                validations,
+            }) as unknown as AgChartOptions;
 
         // `onErrorRaised` is wired up on the `Chart`, which does not exist at this level; assert on
         // `validationIssues`, the array the listener is fed from, instead of the callback itself.
         it('records an issue whose message matches the console warning content', () => {
-            const chartOptions = new ChartOptions(invalidOptions(), {} as AgChartOptions, {}, {}, {});
+            const chartOptions = new ChartOptions(badStrokeWidthOptions(), {} as AgChartOptions, {}, {}, {});
 
             const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
             expect(chartOptions.validationIssues).toContainEqual({
@@ -4193,7 +4193,7 @@ describe('ChartOptions', () => {
 
         it('records the issue independently of `consoleLogLevel` silencing the console', () => {
             const chartOptions = new ChartOptions(
-                invalidOptions({ validations: { consoleLogLevel: 'none' } }),
+                badStrokeWidthOptions({ consoleLogLevel: 'none' }),
                 {} as AgChartOptions,
                 {},
                 {},
