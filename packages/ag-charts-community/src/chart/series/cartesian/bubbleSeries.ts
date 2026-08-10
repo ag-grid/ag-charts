@@ -327,6 +327,10 @@ interface PreparedBubbleNodeDatumState {
     area: number;
 }
 
+function ascending([v0, v1]: [number, number]): [number, number] {
+    return v0 <= v1 ? [v0, v1] : [v1, v0];
+}
+
 export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
     static override readonly className: string = 'BubbleSeries';
     static readonly type: string = 'bubble';
@@ -573,7 +577,16 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             }
         }
 
-        return { xRange, yRange, minSize, maxSize, xVisibleRange, yVisibleRange };
+        // A reversed axis reverses its scale domain, so the rescaled visible range comes back
+        // descending; the quadtree cull assumes an ascending [min, max] window.
+        return {
+            xRange,
+            yRange,
+            minSize,
+            maxSize,
+            xVisibleRange: ascending(xVisibleRange),
+            yVisibleRange: ascending(yVisibleRange),
+        };
     }
 
     /**

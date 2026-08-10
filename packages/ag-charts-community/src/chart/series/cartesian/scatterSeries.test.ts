@@ -34,6 +34,7 @@ import {
     expectNoAnimation,
     expectSceneTrajectory,
     expectWarningsCalls,
+    getSeriesAggregationInternals,
     hoverAction,
     looserSnapshotDefaults,
     prepareTestOptions,
@@ -1183,6 +1184,49 @@ describe('ScatterSeries', () => {
                     ])
                 )
             );
+        });
+    });
+
+    describe('aggregation on a reversed axis', () => {
+        const aggregatedOptions = (reverse: { x?: boolean; y?: boolean } = {}): AgCartesianChartOptions => ({
+            data: Array.from({ length: 300 }, (_, i) => ({ x: i, y: (i * 7) % 100 })),
+            series: [{ type: 'scatter', xKey: 'x', yKey: 'y', maxRenderedItems: 200 }],
+            axes: {
+                x: { type: 'number', position: 'bottom', reverse: reverse.x ?? false },
+                y: { type: 'number', position: 'left', reverse: reverse.y ?? false },
+            },
+            legend: { enabled: false },
+        });
+
+        const renderedXValues = () => {
+            const series = getSeriesAggregationInternals(chart);
+            expect(series.dataAggregation).toBeDefined();
+            const nodeData = (series.contextNodeData?.nodeData ?? []) as ReadonlyArray<{ xValue: number }>;
+            return nodeData.map(({ xValue }) => xValue).sort((a, b) => a - b);
+        };
+
+        const expectSameMarkersWhenReversed = async (reverse: { x?: boolean; y?: boolean }) => {
+            chart = AgCharts.create(prepareTestOptions(aggregatedOptions()));
+            await waitForChartStability(chart);
+            const expected = renderedXValues();
+            expect(expected.length).toBeGreaterThan(0);
+            expect(expected.length).toBeLessThan(300);
+
+            await chart.update(prepareTestOptions(aggregatedOptions(reverse)));
+            await waitForChartStability(chart);
+            expect(renderedXValues()).toEqual(expected);
+        };
+
+        it('should render the same markers when the x-axis is reversed and maxRenderedItems is exceeded', async () => {
+            await expectSameMarkersWhenReversed({ x: true });
+        });
+
+        it('should render the same markers when the y-axis is reversed and maxRenderedItems is exceeded', async () => {
+            await expectSameMarkersWhenReversed({ y: true });
+        });
+
+        it('should render the same markers when both axes are reversed and maxRenderedItems is exceeded', async () => {
+            await expectSameMarkersWhenReversed({ x: true, y: true });
         });
     });
 });
