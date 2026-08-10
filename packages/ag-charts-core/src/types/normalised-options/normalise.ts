@@ -12,7 +12,7 @@ type Normalise<T, Overrides extends Partial<Record<keyof T, unknown>>> = Omit<T,
  * @typeParam O - Keys whose type changes after normalisation (e.g. shorthand → canonical)
  */
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export type Normalised<T, R extends keyof T = never, O extends Partial<Record<keyof T, unknown>> = {}> = Normalise<
-    Require<T, R>,
-    O
+export type Normalised<T, R extends keyof T = never, O extends Partial<Record<keyof T, unknown>> = {}> = Require<
+    Normalise<T, O>,
+    R
 >;

@@ -6,6 +6,7 @@ import {
     arrayOf,
     arrayOfDefs,
     boolean,
+    borderOptionsDef,
     callbackOf,
     colorOrRef,
     commonChartOptionsDefs,
@@ -39,6 +40,7 @@ import {
     without,
 } from 'ag-charts-core';
 import type {
+    AgBaseCartesianThemeOptions,
     AgCartesianAxesTheme,
     AgChartTooltipOptions,
     AgInitialStateLegendOptions,
@@ -49,6 +51,9 @@ import type {
     AgScrollbarHorizontalOrientationOptions,
     AgScrollbarOptions,
     AgScrollbarVerticalOrientationOptions,
+    AgSeriesAreaBackgroundRegion,
+    AgSeriesAreaBackgroundRegionLabel,
+    AgSeriesAreaBackgroundRegionRange,
     AgSeriesTooltip,
     AgStateSerializableDate,
     AgThemeOverrides,
@@ -234,6 +239,59 @@ const cartesianCrossLineThemeableOptionsDefs = {
     label: cartesianCrossLineLabelOptionsDefs,
 };
 
+export const seriesAreaBackgroundRegionRangeDef: OptionsDefs<AgSeriesAreaBackgroundRegionRange> = {
+    axis: string,
+    start: defined,
+    end: defined,
+};
+
+export const seriesAreaBackgroundRegionLabelDef: OptionsDefs<AgSeriesAreaBackgroundRegionLabel> = {
+    ...fontOptionsDef,
+    ...fillOptionsDef,
+    border: borderOptionsDef,
+    cornerRadius: number,
+    enabled: boolean,
+    padding: padding,
+    position: union(
+        'top',
+        'left',
+        'right',
+        'bottom',
+        'top-left',
+        'top-right',
+        'bottom-left',
+        'bottom-right',
+        'inside',
+        'inside-left',
+        'inside-right',
+        'inside-top',
+        'inside-bottom',
+        'inside-top-left',
+        'inside-bottom-left',
+        'inside-top-right',
+        'inside-bottom-right'
+    ),
+    rotation: number,
+    text: string,
+};
+
+const cartesianChartOptionsDefs: OptionsDefs<Omit<AgBaseCartesianThemeOptions, 'axes' | 'navigator'>> = {
+    ...commonChartOptionsDefs,
+    seriesArea: {
+        border: borderOptionsDef,
+        clip: boolean,
+        cornerRadius: number,
+        padding: or(themeOperator, padding),
+        backgroundRegions: optionsDefs<AgSeriesAreaBackgroundRegion>({
+            ...fillOptionsDef,
+            ...strokeOptionsDef,
+            xRange: seriesAreaBackgroundRegionRangeDef,
+            yRange: seriesAreaBackgroundRegionRangeDef,
+            label: seriesAreaBackgroundRegionLabelDef,
+        }),
+    },
+};
+
 const cartesianAxesThemeDef: OptionsDefs<AgCartesianAxesTheme> = {
     number: {
         ...without(numberAxisOptionsDefs, ['type', 'crossLines']),
@@ -381,7 +439,7 @@ export const themeOverridesOptionsDef: OptionsDefs<AgThemeOverrides> = {
         },
     },
     line: {
-        ...commonChartOptionsDefs,
+        ...cartesianChartOptionsDefs,
         axes: cartesianAxesThemeDef,
         series: lineSeriesThemeableOptionsDef,
         navigator: navigatorOptionsDef,
@@ -389,7 +447,7 @@ export const themeOverridesOptionsDef: OptionsDefs<AgThemeOverrides> = {
         ...undocumentedSeriesOptionsDef,
     },
     scatter: {
-        ...commonChartOptionsDefs,
+        ...cartesianChartOptionsDefs,
         axes: cartesianAxesThemeDef,
         series: scatterSeriesThemeableOptionsDef,
         navigator: navigatorOptionsDef,
@@ -399,7 +457,7 @@ export const themeOverridesOptionsDef: OptionsDefs<AgThemeOverrides> = {
         paired: undocumented(boolean),
     },
     bubble: {
-        ...commonChartOptionsDefs,
+        ...cartesianChartOptionsDefs,
         axes: cartesianAxesThemeDef,
         series: bubbleSeriesThemeableOptionsDef,
         navigator: navigatorOptionsDef,
@@ -407,7 +465,7 @@ export const themeOverridesOptionsDef: OptionsDefs<AgThemeOverrides> = {
         ...undocumentedSeriesOptionsDef,
     },
     area: {
-        ...commonChartOptionsDefs,
+        ...cartesianChartOptionsDefs,
         axes: cartesianAxesThemeDef,
         series: areaSeriesThemeableOptionsDef,
         navigator: navigatorOptionsDef,
@@ -415,7 +473,7 @@ export const themeOverridesOptionsDef: OptionsDefs<AgThemeOverrides> = {
         ...undocumentedSeriesOptionsDef,
     },
     bar: {
-        ...commonChartOptionsDefs,
+        ...cartesianChartOptionsDefs,
         axes: cartesianAxesThemeDef,
         series: barSeriesThemeableOptionsDef,
         navigator: navigatorOptionsDef,
@@ -423,7 +481,7 @@ export const themeOverridesOptionsDef: OptionsDefs<AgThemeOverrides> = {
         ...undocumentedSeriesOptionsDef,
     },
     'box-plot': {
-        ...commonChartOptionsDefs,
+        ...cartesianChartOptionsDefs,
         axes: cartesianAxesThemeDef,
         series: boxPlotSeriesThemeableOptionsDef,
         navigator: navigatorOptionsDef,
@@ -431,7 +489,7 @@ export const themeOverridesOptionsDef: OptionsDefs<AgThemeOverrides> = {
         ...undocumentedSeriesOptionsDef,
     },
     candlestick: {
-        ...commonChartOptionsDefs,
+        ...cartesianChartOptionsDefs,
         axes: cartesianAxesThemeDef,
         series: candlestickSeriesThemeableOptionsDef,
         navigator: navigatorOptionsDef,
@@ -439,7 +497,7 @@ export const themeOverridesOptionsDef: OptionsDefs<AgThemeOverrides> = {
         ...undocumentedSeriesOptionsDef,
     },
     'cone-funnel': {
-        ...commonChartOptionsDefs,
+        ...cartesianChartOptionsDefs,
         axes: cartesianAxesThemeDef,
         series: coneFunnelSeriesThemeableOptionsDef,
         navigator: navigatorOptionsDef,
@@ -447,7 +505,7 @@ export const themeOverridesOptionsDef: OptionsDefs<AgThemeOverrides> = {
         ...undocumentedSeriesOptionsDef,
     },
     funnel: {
-        ...commonChartOptionsDefs,
+        ...cartesianChartOptionsDefs,
         axes: cartesianAxesThemeDef,
         series: funnelSeriesThemeableOptionsDef,
         navigator: navigatorOptionsDef,
@@ -455,7 +513,7 @@ export const themeOverridesOptionsDef: OptionsDefs<AgThemeOverrides> = {
         ...undocumentedSeriesOptionsDef,
     },
     ohlc: {
-        ...commonChartOptionsDefs,
+        ...cartesianChartOptionsDefs,
         axes: cartesianAxesThemeDef,
         series: ohlcSeriesThemeableOptionsDef,
         navigator: navigatorOptionsDef,
@@ -463,7 +521,7 @@ export const themeOverridesOptionsDef: OptionsDefs<AgThemeOverrides> = {
         ...undocumentedSeriesOptionsDef,
     },
     histogram: {
-        ...commonChartOptionsDefs,
+        ...cartesianChartOptionsDefs,
         axes: without(cartesianAxesThemeDef, ['category', 'grouped-category', 'unit-time', 'ordinal-time']),
         series: histogramSeriesThemeableOptionsDef,
         navigator: navigatorOptionsDef,
@@ -471,7 +529,7 @@ export const themeOverridesOptionsDef: OptionsDefs<AgThemeOverrides> = {
         ...undocumentedSeriesOptionsDef,
     },
     heatmap: {
-        ...commonChartOptionsDefs,
+        ...cartesianChartOptionsDefs,
         axes: cartesianAxesThemeDef,
         series: heatmapSeriesThemeableOptionsDef,
         navigator: navigatorOptionsDef,
@@ -479,7 +537,7 @@ export const themeOverridesOptionsDef: OptionsDefs<AgThemeOverrides> = {
         ...undocumentedSeriesOptionsDef,
     },
     waterfall: {
-        ...commonChartOptionsDefs,
+        ...cartesianChartOptionsDefs,
         axes: cartesianAxesThemeDef,
         series: waterfallSeriesThemeableOptionsDef,
         navigator: navigatorOptionsDef,
@@ -487,7 +545,7 @@ export const themeOverridesOptionsDef: OptionsDefs<AgThemeOverrides> = {
         ...undocumentedSeriesOptionsDef,
     },
     'range-bar': {
-        ...commonChartOptionsDefs,
+        ...cartesianChartOptionsDefs,
         axes: cartesianAxesThemeDef,
         series: rangeBarSeriesThemeableOptionsDef,
         navigator: navigatorOptionsDef,
@@ -495,7 +553,7 @@ export const themeOverridesOptionsDef: OptionsDefs<AgThemeOverrides> = {
         ...undocumentedSeriesOptionsDef,
     },
     'range-area': {
-        ...commonChartOptionsDefs,
+        ...cartesianChartOptionsDefs,
         axes: cartesianAxesThemeDef,
         series: rangeAreaSeriesThemeableOptionsDef,
         navigator: navigatorOptionsDef,

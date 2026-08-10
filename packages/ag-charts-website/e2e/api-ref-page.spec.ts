@@ -286,7 +286,7 @@ test.describe('api-ref-page', () => {
         await gotoUrl(page, toPageUrl('options/'));
         await waitForApiReady(page);
 
-        const seriesProperty = getNavigationProperty(page, /^series/);
+        const seriesProperty = getNavigationProperty(page, /^series\b/);
         await expect(seriesProperty).toBeVisible();
         await seriesProperty.locator(PROPERTY_EXPANDER_SELECTOR).click();
 
@@ -301,7 +301,7 @@ test.describe('api-ref-page', () => {
         await gotoUrl(page, toPageUrl('options/'));
         await waitForApiReady(page);
 
-        const seriesProperty = getNavigationProperty(page, /^series/);
+        const seriesProperty = getNavigationProperty(page, /^series\b/);
         await expect(seriesProperty).toBeVisible();
         await seriesProperty.locator(PROPERTY_EXPANDER_SELECTOR).click();
 
@@ -525,13 +525,13 @@ test.describe('api-ref-page', () => {
         await gotoUrl(page, toPageUrl('options/'));
         await waitForApiReady(page);
 
-        const seriesLink = getNavigationClickable(page, /^series/);
+        const seriesLink = getNavigationClickable(page, /^series\b/);
         await expect(seriesLink).toBeVisible();
         await seriesLink.click();
-        await expect(getNavigationHighlight(page, /^series/)).toHaveCount(1);
+        await expect(getNavigationHighlight(page, /^series\b/)).toHaveCount(1);
 
         await seriesLink.click();
-        await expect(getNavigationHighlight(page, /^series/)).toHaveCount(1);
+        await expect(getNavigationHighlight(page, /^series\b/)).toHaveCount(1);
     });
 });
 

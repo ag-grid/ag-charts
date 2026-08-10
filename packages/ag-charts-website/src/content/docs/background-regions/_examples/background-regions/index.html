@@ -1,0 +1,17 @@
+<div class="example-controls">
+    <div class="controls-row">
+        <label for="percentileSliderInput">Percentile:</label>
+        <input
+            type="range"
+            id="percentileSliderInput"
+            min="25"
+            max="95"
+            value="80"
+            step="5"
+            oninput="updatePercentile(event)"
+            onchange="updatePercentile(event)"
+        />
+        <span id="percentileSliderInputValue">80</span>
+    </div>
+</div>
+<div id="myChart"></div>

@@ -589,5 +589,10 @@ function getSeriesThemeTemplate(seriesType: string) {
             themeTemplate = mergeDefaults({ series: { [module.name]: module.themeTemplate } }, themeTemplate);
         }
     }
+
+    for (const module of ModuleRegistry.listModulesByType(ModuleType.SeriesAreaPlugin)) {
+        themeTemplate = mergeDefaults({ seriesArea: { [module.name]: module.themeTemplate } }, themeTemplate);
+    }
+
     return themeTemplate;
 }

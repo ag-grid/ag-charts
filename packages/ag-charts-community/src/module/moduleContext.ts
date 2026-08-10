@@ -5,6 +5,7 @@ import type { HistoryManager } from '../api/state/historyManager';
 import type { StateManager } from '../api/state/stateManager';
 import type { AnnotationManager } from '../chart/annotation/annotationManager';
 import type { AxisManager } from '../chart/axis/axisManager';
+import type { BackgroundRegion } from '../chart/background-regions/backgroundRegion';
 import type { ChartService } from '../chart/chartService';
 import type { ChartState } from '../chart/chartState';
 import type { CrossLine } from '../chart/crossline/crossLine';
@@ -109,4 +110,9 @@ export interface ChartAxisRegistry<P> extends ChartRegistry {
 
 export interface ChartSeriesRegistry extends ChartRegistry {
     series: { type: string };
+}
+
+export interface ChartSeriesAreaRegistry<P> extends ChartRegistry {
+    backgroundRegion: BackgroundRegion;
+    parent: P;
 }

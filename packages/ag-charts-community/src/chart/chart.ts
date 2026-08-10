@@ -1,4 +1,9 @@
-import type { CanvasPoint, DynamicContext, NormalisedTextOrSegments } from 'ag-charts-core';
+import type {
+    CanvasPoint,
+    DynamicContext,
+    NormalisedTextOrSegments,
+    SeriesAreaPluginModuleInstance,
+} from 'ag-charts-core';
 import {
     ActionOnSet,
     AgDocument,
@@ -1842,6 +1847,9 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             forceNodeDataRefresh = true;
         }
 
+        // Apply the series area modules after the axes to ensure the axes are available for these modules.
+        this.applySeriesAreaModules(newOpts);
+
         // AG-16389: Only reset data if the user explicitly passed 'data' in their delta.
         const { userDeltaKeys } = newChartOptions;
         const userExplicitlyPassedData = userDeltaKeys === undefined || userDeltaKeys.has('data');
@@ -2090,6 +2098,36 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         }
 
         return modulesChanged;
+    }
+
+    private applySeriesAreaModules(options: AgChartOptions) {
+        if (options.seriesArea == null) return;
+
+        const { type: chartType } = this.constructor as any;
+
+        const seriesAreaModuleContext = this.seriesArea.createModuleContext();
+        const seriesAreaModuleMap = this.seriesArea.getModuleMap();
+
+        for (const module of ModuleRegistry.listModulesByType(ModuleType.SeriesAreaPlugin)) {
+            if (module.chartType && module.chartType !== chartType) continue;
+
+            const pluginOptions = (options.seriesArea as any)[module.name];
+            const shouldBeEnabled = pluginOptions != null;
+            const isEnabled = seriesAreaModuleMap.isEnabled(module.name);
+
+            if (!shouldBeEnabled) {
+                if (isEnabled) seriesAreaModuleMap.removeModule(module.name);
+                continue;
+            }
+
+            if (!isEnabled) {
+                module.register?.(seriesAreaModuleContext);
+                seriesAreaModuleMap.addModule(module.name, module.create(seriesAreaModuleContext));
+            }
+
+            const plugin = seriesAreaModuleMap.getModule(module.name) as SeriesAreaPluginModuleInstance;
+            plugin.applyOptions(pluginOptions);
+        }
     }
 
     private initSeriesDeclarationOrder(series: UnknownSeries[]) {

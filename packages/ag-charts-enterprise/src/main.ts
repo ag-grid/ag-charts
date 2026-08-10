@@ -20,6 +20,7 @@ export { AnimationModule } from './features/animation/animationModule';
 export { AnnotationsModule } from './features/annotations/annotationsModule';
 export { AxisDOMProxyModule as AxisInteractionModule } from './features/axis-dom-proxy/axisDomProxyModule';
 export { BandHighlightModule } from './features/band-highlight/bandHighlightModule';
+export { BackgroundRegionsModule } from './features/background-regions/backgroundRegionsModule';
 export { ChartToolbarModule } from './features/chart-toolbar/chartToolbarModule';
 export { ContextMenuModule } from './features/context-menu/contextMenuModule';
 export { CrosshairModule } from './features/crosshair/crosshairModule';

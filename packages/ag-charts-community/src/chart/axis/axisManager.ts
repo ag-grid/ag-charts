@@ -42,6 +42,8 @@ export class AxisManager {
         zIndex: ZIndexMap.SERIES_LABEL,
     });
 
+    private remappedAxisKeys?: Map<string, AxisID>;
+
     public constructor(
         private readonly eventsHub: EventsHub,
         private readonly sceneRoot: Group
@@ -98,6 +100,14 @@ export class AxisManager {
 
     getAxisContext(direction: ChartAxisDirection) {
         return this.axes.get(direction) ?? [];
+    }
+
+    setRemappedAxisKeys(remappedAxisKeys: Map<string, AxisID>) {
+        this.remappedAxisKeys = remappedAxisKeys;
+    }
+
+    getRemappedAxisId(id: string): AxisID | undefined {
+        return this.remappedAxisKeys?.get(id);
     }
 
     destroy() {

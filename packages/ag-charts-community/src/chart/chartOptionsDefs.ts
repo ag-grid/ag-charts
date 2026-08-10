@@ -4,18 +4,23 @@ import {
     arrayOf,
     arrayOfDefs,
     boolean,
+    borderOptionsDef,
     commonChartOptionsDefs,
     defined,
+    fillOptionsDef,
     geoJson,
     htmlElement,
     nonNegativeInteger,
     number,
     object,
     or,
+    padding,
     positiveNumber,
     required,
     strictUnion,
     string,
+    strokeOptionsDef,
+    themeOperator,
     undocumented,
     union,
 } from 'ag-charts-core';
@@ -26,9 +31,12 @@ import type {
     AgChartValidationLevel,
     AgInitialStateLegendOptions,
     AgPolarChartOptions,
+    AgSeriesAreaBackgroundRegion,
     AgStandaloneChartOptions,
     AgTopologyChartOptions,
 } from 'ag-charts-types';
+
+import { seriesAreaBackgroundRegionLabelDef, seriesAreaBackgroundRegionRangeDef } from './themes/themeOptionsDef';
 
 export const initialStatePickedOptionsDef: OptionsDefs<AgActiveState> = {
     activeItem: {
@@ -83,6 +91,19 @@ export const cartesianChartOptionsDefs: OptionsDefs<AgCartesianChartOptions> = {
     axes: object,
     data: array,
     dataIdKey: string,
+    seriesArea: {
+        border: borderOptionsDef,
+        clip: boolean,
+        cornerRadius: number,
+        padding: or(themeOperator, padding),
+        backgroundRegions: arrayOfDefs<AgSeriesAreaBackgroundRegion>({
+            ...fillOptionsDef,
+            ...strokeOptionsDef,
+            xRange: seriesAreaBackgroundRegionRangeDef,
+            yRange: seriesAreaBackgroundRegionRangeDef,
+            label: seriesAreaBackgroundRegionLabelDef,
+        }),
+    },
 };
 
 export const polarChartOptionsDefs: OptionsDefs<AgPolarChartOptions> = {

@@ -268,6 +268,10 @@ class AgChartsInternal {
             chart.ctx.domManager.addStyles(id, css);
         }
 
+        if (chartOptions.remappedAxisKeys) {
+            chart.ctx.axisManager.setRemappedAxisKeys(chartOptions.remappedAxisKeys);
+        }
+
         chart.ctx.fontManager.updateFonts(chartOptions.googleFonts);
         chart.ctx.fontManager.waitForFonts(chartOptions.fonts);
 

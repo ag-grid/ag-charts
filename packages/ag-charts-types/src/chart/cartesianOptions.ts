@@ -1,4 +1,5 @@
 import type { AgCartesianSeriesOptions } from '../series/cartesian/cartesianSeriesTypes';
+import type { FillOptions, StrokeOptions } from '../series/cartesian/commonOptions';
 import type { AgAnnotationsOptions } from './annotationsOptions';
 import type {
     AgAxisBaseIntervalOptions,
@@ -19,7 +20,7 @@ import type {
 } from './axisOptions';
 import type { AgBandHighlightOptions } from './bandHighlightOptions';
 import type { Styler } from './callbackOptions';
-import type { AgBaseThemeableChartOptions } from './chartOptions';
+import type { AgBaseThemeableChartOptions, AgSeriesAreaOptions } from './chartOptions';
 import type {
     AgBaseCrossLineLabelOptions,
     AgBaseCrossLineOptions,
@@ -29,7 +30,17 @@ import type {
 import type { AgBaseCrosshairLabel, AgCrosshairLabel, AgCrosshairOptions } from './crosshairOptions';
 import type { AgNumericValue, AgTimeValue } from './dataValues';
 import type { AgAxisListeners } from './eventOptions';
-import type { AxisValue, ContextDefault, DatumDefault, Degree, PixelSize, Ratio, TextWrap } from './types';
+import type { AgChartLabelStyleOptions } from './labelOptions';
+import type {
+    AxisValue,
+    ContextDefault,
+    DatumDefault,
+    Degree,
+    FontFamilyFull,
+    PixelSize,
+    Ratio,
+    TextWrap,
+} from './types';
 
 /** Configuration for axes in cartesian charts. */
 export interface AgBaseCartesianAxisOptions<
@@ -452,6 +463,18 @@ export interface AgBaseCartesianThemeOptions<
 > extends AgBaseThemeableChartOptions<TDatum, TContext> {
     /** Axis configurations. */
     axes?: AgCartesianAxesTheme<TContext>;
+    /** Configuration relating to the series area. */
+    seriesArea?: AgCartesianSeriesAreaThemableOptions;
+}
+
+export interface AgCartesianSeriesAreaThemableOptions extends AgSeriesAreaOptions {
+    /** TODO */
+    backgroundRegions?: AgSeriesAreaBackgroundRegion;
+}
+
+export interface AgCartesianSeriesAreaOptions extends AgSeriesAreaOptions {
+    /** TODO */
+    backgroundRegions?: AgSeriesAreaBackgroundRegion[];
 }
 
 export interface AgCartesianAxesCrossLineThemeOptions<CrossLineLabelType = AgBaseCrossLineLabelOptions> {
@@ -545,3 +568,51 @@ export interface AgCartesianCrossLineLabelOptions extends AgBaseCrossLineLabelOp
     /** The rotation of the Cross Line label in degrees. */
     rotation?: Degree;
 }
+
+export interface AgSeriesAreaBackgroundRegion extends FillOptions, StrokeOptions {
+    /** TODO */
+    xRange?: AgSeriesAreaBackgroundRegionRange;
+    /** TODO */
+    yRange?: AgSeriesAreaBackgroundRegionRange;
+    /** TODO */
+    label?: AgSeriesAreaBackgroundRegionLabel;
+}
+
+export interface AgSeriesAreaBackgroundRegionRange {
+    /** TODO */
+    axis?: string;
+    /** TODO */
+    start?: AxisValue;
+    /** TODO */
+    end?: AxisValue;
+}
+
+export interface AgSeriesAreaBackgroundRegionLabel extends Omit<AgChartLabelStyleOptions, 'fontFamily'> {
+    /** The font family to use for the label. A single family name, or an array of names used as fallbacks. */
+    fontFamily?: FontFamilyFull;
+    /** The position of the Background Region label. */
+    position?: AgSeriesAreaBackgroundRegionLabelPosition;
+    /** The rotation of the Background Region label in degrees. */
+    rotation?: Degree;
+    /** The text to show in the label. */
+    text?: string;
+}
+
+export type AgSeriesAreaBackgroundRegionLabelPosition =
+    | 'top'
+    | 'left'
+    | 'right'
+    | 'bottom'
+    | 'top-left'
+    | 'top-right'
+    | 'bottom-left'
+    | 'bottom-right'
+    | 'inside'
+    | 'inside-left'
+    | 'inside-right'
+    | 'inside-top'
+    | 'inside-bottom'
+    | 'inside-top-left'
+    | 'inside-bottom-left'
+    | 'inside-top-right'
+    | 'inside-bottom-right';
