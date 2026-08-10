@@ -98,8 +98,8 @@ describe('ChordSeries', () => {
                             strokeWidth: 2,
                             cornerRadius: 8,
                             // Exercises the per-node override route as well as the series-wide option.
-                            itemStyler: ({ index }: AgChordSeriesNodeItemStylerParams<unknown>) =>
-                                index % 2 === 0 ? { cornerRadius: 2 } : {},
+                            itemStyler: ({ label }: AgChordSeriesNodeItemStylerParams<unknown>) =>
+                                label === 'NIKE Brand' || label === 'Global' ? { cornerRadius: 2 } : {},
                         },
                     },
                 ],
