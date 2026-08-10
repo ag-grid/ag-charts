@@ -44,7 +44,7 @@ import type { AnimationManager } from '../interaction/animationManager';
 import { expandLabelPadding } from '../label';
 import type { ScrollbarLayout } from '../layout/layoutManager';
 import { Axis, AxisGroupZIndexMap, type LabelNodeDatum } from './axis';
-import { getAxisLabelSideFlag } from './axisLabelUtil';
+import { getAxisLabelSideFlag, getTickLabelEdgeOffsets } from './axisLabelUtil';
 import type {
     AxisFillDatum,
     AxisGroupDatumTranslation,
@@ -390,25 +390,18 @@ export abstract class CartesianAxis<
             // the edge arithmetic only departs from its centre-anchored form once the two differ.
             const alignmentOverride =
                 label?.textAlign === tickGenerationResult.textAlign ? undefined : label?.textAlign;
-            const trailingEdgeOffset = (width: number) => {
-                switch (alignmentOverride) {
-                    case 'left':
-                        return width;
-                    case 'right':
-                        return 0;
-                    default:
-                        return width / 2;
-                }
-            };
+            const labelEdges = (width: number) =>
+                getTickLabelEdgeOffsets(width, tickGenerationResult.rotation, alignmentOverride);
             const removeOverflowThreshold = this.chartLayout?.padding.right ?? 0;
             const lastTick = tickData.ticks.at(-1);
+            const fullVisibleRange = visibleRange[0] === 0 && visibleRange[1] === 1;
             if (
                 lastTick?.tickLabel != null &&
-                lastTick.translation + trailingEdgeOffset(lastTick.textMetrics.width) >
+                lastTick.translation + labelEdges(lastTick.textMetrics.width).trailing >
                     range[1] + removeOverflowThreshold
             ) {
                 lastTick.tickLabel = undefined;
-                if (visibleRange[0] === 0 && visibleRange[1] === 1) {
+                if (fullVisibleRange) {
                     tickData.ticks[0].tickLabel = undefined;
                 }
             }
@@ -416,11 +409,17 @@ export abstract class CartesianAxis<
             // The leading edge can only overflow once the override pushes the label past the start
             // of the range, so the centre-anchored case has nothing to check.
             const firstTick = tickData.ticks[0];
-            if (alignmentOverride != null && firstTick?.tickLabel != null) {
-                const width = firstTick.textMetrics.width;
-                const leadingEdgeOffset = trailingEdgeOffset(width) - width;
-                if (firstTick.translation + leadingEdgeOffset < range[0] - (this.chartLayout?.padding.left ?? 0)) {
-                    firstTick.tickLabel = undefined;
+            if (
+                alignmentOverride != null &&
+                firstTick?.tickLabel != null &&
+                firstTick.translation + labelEdges(firstTick.textMetrics.width).leading <
+                    range[0] - (this.chartLayout?.padding.left ?? 0)
+            ) {
+                firstTick.tickLabel = undefined;
+                // Both endpoints go together over the full range, mirroring the trailing branch, so
+                // an outward alignment cannot leave one end labelled and the other bare.
+                if (fullVisibleRange && lastTick != null) {
+                    lastTick.tickLabel = undefined;
                 }
             }
         }

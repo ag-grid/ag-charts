@@ -5,6 +5,7 @@ import type {
     AgTimeIntervalUnit,
     DateFormatterStyle,
     FormatterParams,
+    TextAlign,
 } from 'ag-charts-types';
 
 import type { ChartAxisLabelFlipFlag } from '../chartAxis';
@@ -36,6 +37,30 @@ export function createAxisLabelFormatterCache(): AxisLabelFormatterCache {
 
 export function getAxisLabelSideFlag(mirrored: boolean): ChartAxisLabelFlipFlag {
     return mirrored ? 1 : -1;
+}
+
+const FAR_EDGE_FRACTION: Record<TextAlign, number> = { left: 1, center: 0.5, right: 0 };
+
+/**
+ * Offsets of a tick label's near and far edges from its anchor, along the axis. `textAlign`
+ * `undefined` means the axis's own computed alignment, which is measured centre-anchored and
+ * without regard to rotation.
+ */
+export function getTickLabelEdgeOffsets(
+    width: number,
+    rotation: number,
+    textAlign: TextAlign | undefined
+): { leading: number; trailing: number } {
+    if (textAlign == null) {
+        return { leading: -width / 2, trailing: width / 2 };
+    }
+
+    // The label pivots about its anchor, so its extent along the axis is the unrotated offset
+    // projected onto it - a quarter-turn label reaches barely past its anchor either way.
+    const projection = Math.cos(rotation);
+    const far = width * FAR_EDGE_FRACTION[textAlign] * projection;
+    const near = far - width * projection;
+    return { leading: Math.min(near, far), trailing: Math.max(near, far) };
 }
 
 export function formatAxisLabelValue(
