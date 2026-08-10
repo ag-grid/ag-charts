@@ -45,6 +45,8 @@ export class ValidationIssueCollector {
     private readonly listeners = new Listeners<'change', () => void>();
     private issueListener?: ValidationIssueListener;
     private issueListenerLogger?: Logger;
+    private deliveredKeys = new Set<string>();
+    private readonly pendingDispatch: ValidationIssue[] = [];
     private dispatching = false;
 
     addListener(handler: () => void) {
@@ -52,24 +54,39 @@ export class ValidationIssueCollector {
     }
 
     setIssueListener(listener: ValidationIssueListener | undefined, logger?: Logger) {
+        // Delivery is deduplicated per listener: a replacement has been told nothing yet, so the
+        // issues already in the collection must be reported to it rather than deduplicated away.
+        if (listener !== this.issueListener) {
+            this.deliveredKeys.clear();
+        }
         this.issueListener = listener;
         this.issueListenerLogger = logger;
     }
 
     /**
-     * Reports an issue to the user-supplied listener as it is recorded, ahead of any threshold or
+     * Reports issues to the user-supplied listener as they are recorded, ahead of any threshold or
      * dismissal filtering, so that delivery cannot depend on the overlay or console settings.
      */
-    private dispatchIssue(issue: ValidationIssue) {
-        if (this.issueListener == null) return;
+    private dispatchIssues(issues: ValidationIssue[]) {
+        if (this.issueListener == null || issues.length === 0) return;
+        this.pendingDispatch.push(...issues);
         // A listener that synchronously re-applies options re-enters this method through the issues
-        // that validation pass records, which would recurse without ever throwing.
+        // that validation pass records; queue those and deliver them once the callback has returned.
         if (this.dispatching) return;
+
+        // The batch belongs to the listener that was registered when its issues were raised, so a
+        // callback that swaps the listener mid-drain does not receive the remainder of the batch.
+        const listener = this.issueListener;
         this.dispatching = true;
         try {
-            this.issueListener({ level: issue.severity, message: issue.message });
-        } catch (error) {
-            this.issueListenerLogger?.error('validations.onErrorRaised threw an error', error);
+            while (this.pendingDispatch.length > 0) {
+                const pending = this.pendingDispatch.shift()!;
+                try {
+                    listener({ level: pending.severity, message: pending.message });
+                } catch (error) {
+                    this.issueListenerLogger?.error('validations.onErrorRaised threw an error', error);
+                }
+            }
         } finally {
             this.dispatching = false;
         }
@@ -87,27 +104,26 @@ export class ValidationIssueCollector {
      */
     setIssues(issues: ValidationIssue[]) {
         const signature = signatureOf(issues);
-        const previousKeys = new Set(this.issues.map(keyOf));
+        const delivered = this.deliveredKeys;
+        this.deliveredKeys = new Set(issues.map(keyOf));
         this.issues = issues;
         if (signature !== this.signature) {
             this.dismissed = false;
             this.signature = signature;
         }
-        // Only issues the previous snapshot did not carry: an options pass that re-applies the same
-        // issues does not re-warn on the console either, and the fast path replays them unvalidated.
-        for (const issue of issues) {
-            if (!previousKeys.has(keyOf(issue))) {
-                this.dispatchIssue(issue);
-            }
-        }
+        // Only issues the current listener has not already been told about: an options pass that
+        // re-applies the same issues does not re-warn on the console either, and the fast path
+        // replays them unvalidated.
+        this.dispatchIssues(issues.filter((issue) => !delivered.has(keyOf(issue))));
         this.listeners.dispatch('change');
     }
 
     add(issue: ValidationIssue) {
         this.issues = [...this.issues, issue];
+        this.deliveredKeys.add(keyOf(issue));
         this.signature = signatureOf(this.issues);
         this.dismissed = false;
-        this.dispatchIssue(issue);
+        this.dispatchIssues([issue]);
         this.listeners.dispatch('change');
     }
 

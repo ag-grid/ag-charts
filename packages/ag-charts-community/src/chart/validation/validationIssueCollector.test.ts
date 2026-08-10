@@ -174,21 +174,57 @@ describe('ValidationIssueCollector - issue listener', () => {
         expect(loggerError).toHaveBeenCalledWith('validations.onErrorRaised threw an error', expect.any(Error));
     });
 
-    it('a re-entrant listener does not recurse', () => {
+    it('a re-entrant listener does not recurse, and its issues are delivered after it returns', () => {
         const collector = new ValidationIssueCollector();
+        const depths: number[] = [];
+        let depth = 0;
         let calls = 0;
         const listener = vi.fn(() => {
+            depth += 1;
+            depths.push(depth);
             calls += 1;
             if (calls < 5) {
                 collector.add(warningIssue);
             }
+            depth -= 1;
         });
         collector.setIssueListener(listener);
 
         collector.add(errorIssue);
 
-        expect(listener).toHaveBeenCalledTimes(1);
-        expect(calls).toBe(1);
+        expect(listener).toHaveBeenCalledTimes(5);
+        expect(depths).toEqual([1, 1, 1, 1, 1]);
+    });
+
+    it('a listener attached while issues are already collected is told about them', () => {
+        const collector = new ValidationIssueCollector();
+        const first = vi.fn();
+        collector.setIssueListener(first);
+        collector.setIssues([errorIssue, warningIssue]);
+        expect(first).toHaveBeenCalledTimes(2);
+
+        const second = vi.fn();
+        collector.setIssueListener(second);
+        collector.setIssues([errorIssue, warningIssue]);
+
+        expect(second).toHaveBeenCalledTimes(2);
+        expect(second).toHaveBeenNthCalledWith(1, { level: 'error', message: errorIssue.message });
+        expect(second).toHaveBeenNthCalledWith(2, { level: 'warning', message: warningIssue.message });
+        expect(first).toHaveBeenCalledTimes(2);
+    });
+
+    it('a listener replaced from inside a callback does not receive the rest of that batch', () => {
+        const collector = new ValidationIssueCollector();
+        const replacement = vi.fn();
+        const original = vi.fn(() => {
+            collector.setIssueListener(replacement);
+        });
+        collector.setIssueListener(original);
+
+        collector.setIssues([errorIssue, warningIssue]);
+
+        expect(original).toHaveBeenCalledTimes(2);
+        expect(replacement).not.toHaveBeenCalled();
     });
 
     it('setIssueListener(undefined) stops delivery', () => {
