@@ -389,7 +389,7 @@ export abstract class CartesianAxis<
             // Selecting the alignment the axis already computes must leave the labels untouched, so
             // the edge arithmetic only departs from its centre-anchored form once the two differ.
             const alignmentOverride =
-                label?.textAlign !== tickGenerationResult.textAlign ? label?.textAlign : undefined;
+                label?.textAlign === tickGenerationResult.textAlign ? undefined : label?.textAlign;
             const trailingEdgeOffset = (width: number) => {
                 switch (alignmentOverride) {
                     case 'left':
