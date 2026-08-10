@@ -159,6 +159,18 @@ describe('cspRules', () => {
         });
     });
 
+    describe('GA4 collect endpoints', () => {
+        it('allows the apex host alongside the regional wildcard', () => {
+            // gtag picks its collect host per client: region1/2.google-analytics.com for
+            // EEA traffic, the apex analytics.google.com elsewhere. A `*.` host-source
+            // matches subdomains only, so without an entry of its own the apex beacon is
+            // blocked outright for those clients.
+            const directives = getCspDirectives({ env: 'production', scope: 'site' });
+            expect(directives['connect-src']).toContain('https://*.analytics.google.com');
+            expect(directives['connect-src']).toContain('https://analytics.google.com');
+        });
+    });
+
     describe('getScopedCspHtaccessBlock', () => {
         it('enforce mode unsets and re-sets the enforced header inside the <If> override', () => {
             const block = getScopedCspHtaccessBlock({ env: 'production' }, 'enforce');
