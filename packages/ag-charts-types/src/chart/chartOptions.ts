@@ -5,7 +5,7 @@ import type { AgChartBackgroundImage } from './backgroundOptions';
 import type { Renderer } from './callbackOptions';
 import type { AgContextMenuOptions } from './contextMenuOptions';
 import type { AgDataSourceOptions } from './dataSourceOptions';
-import type { AgBaseChartListeners } from './eventOptions';
+import type { AgBaseChartListeners, AgCaptionListeners } from './eventOptions';
 import type { AgFlashOnUpdateOptions } from './flashOnUpdateOptions';
 import type { FormatterConfiguration } from './formatterOptions';
 import type { AgGradientLegendOptions } from './gradientLegendOptions';
@@ -135,6 +135,8 @@ export interface AgChartCaptionOptions<TContext = ContextDefault> extends LabelB
     wrapping?: TextWrap;
     /** Configuration for the caption tooltip shown on hover. */
     tooltip?: AgCaptionTooltipOptions<TContext>;
+    /** A map of event names to event listeners. */
+    listeners?: AgCaptionListeners<TContext>;
 }
 export interface AgChartSubtitleOptions<TContext = ContextDefault> extends AgChartCaptionOptions<TContext> {}
 export interface AgChartFooterOptions<TContext = ContextDefault> extends AgChartCaptionOptions<TContext> {}
@@ -347,4 +349,30 @@ export interface AgBaseChartOptions<
     initialState?: AgInitialStateOptions;
     /** Set to show or hide the loading overlay. */
     loading?: boolean;
+    /** Configuration for how the chart reports invalid configuration and runtime problems. */
+    validations?: AgChartValidationsOptions;
+}
+
+/**
+ * The severity of validation problem to report, as an inclusive threshold: each level also reports
+ * every louder level. `'none'` reports nothing.
+ */
+export type AgChartValidationLevel = 'error' | 'warning' | 'deprecation' | 'none';
+
+/** Configuration for how the chart reports invalid configuration and runtime problems. */
+export interface AgChartValidationsOptions {
+    /**
+     * The minimum severity of validation output written to the browser console. `'none'` silences
+     * all validation console output, including the internal error diagnostics from failed chart
+     * updates.
+     *
+     * Default: `'deprecation'`
+     */
+    consoleLogLevel?: AgChartValidationLevel;
+    /**
+     * The minimum severity of validation problem to report in an overlay on the chart itself.
+     *
+     * Default: `'none'`
+     */
+    overlayLevel?: AgChartValidationLevel;
 }

@@ -1,4 +1,5 @@
 import type {
+    AutoSizedLabelText,
     BarValueAnchor,
     BoxBounds,
     Callback,
@@ -20,6 +21,7 @@ import type {
 import {
     type NormalisedChartLabelStyleOptions,
     fitLabelTextOrOverflow,
+    fitLabelTextOrOverflowAutoSize,
     getMinOuterRectSize,
     insideBarContainer,
     insideBarRegion,
@@ -109,6 +111,8 @@ type LabelDatum = Point & {
      * than each pass truncating the previous pass's output further.
      */
     fittedText?: NormalisedTextOrSegments;
+    /** Reduced font size the text was fitted at, overriding the styled `fontSize` when the label shrank. */
+    fittedFontSize?: number;
     textAlign: CanvasTextAlign;
     textBaseline: CanvasTextBaseline;
     /**
@@ -140,6 +144,20 @@ export function fitLabelToContainer(
     fitOverflow?: LabelFit
 ): NormalisedTextOrSegments {
     return fitLabelTextOrOverflow(text, boundLabelFit(fit, container), fitOverflow, font);
+}
+
+/**
+ * {@link fitLabelToContainer} for a label that may shrink, reporting the reduced size its text was fitted
+ * at so the caller can measure and render it there; `fontSize` is `undefined` at the configured size.
+ */
+export function fitLabelToContainerAutoSize(
+    text: NormalisedTextOrSegments,
+    fit: LabelFit | undefined,
+    font: FontOptions,
+    container: { width: number; height: number } | undefined,
+    fitOverflow?: LabelFit
+): AutoSizedLabelText {
+    return fitLabelTextOrOverflowAutoSize(text, boundLabelFit(fit, container), fitOverflow, font);
 }
 
 /**
@@ -652,6 +670,11 @@ export function updateLabelNode<TParams>(
         textNode.fill = style.color;
         textNode.setAlign(labelDatum);
         textNode.setFont(style);
+        // Overrides the size `setFont` just applied. Set on the node rather than in `style`, which can be
+        // the shared `Label` instance itself.
+        if (labelDatum.fittedFontSize != null) {
+            textNode.fontSize = labelDatum.fittedFontSize;
+        }
         textNode.setBoxing(style);
         if (isRotatable(textNode)) {
             const rotation = labelDatum.rotation ?? 0;

@@ -349,6 +349,10 @@ export interface SeriesAggregationInternals {
     dataAggregation: object | undefined;
     aggregateIndexSet?: Map<number, number[]>;
     contextNodeData?: { nodeData?: ReadonlyArray<unknown> };
+    /** Present on series that aggregate via `AggregationManager` (e.g. range-bar). */
+    aggregationManager?: { getFilterForRange(range: number): { maxRange: number } | undefined };
+    /** The x-axis pixel range the aggregation level is selected against. */
+    estimateTargetRange?(): number;
     ensureBucketLookupFeature():
         | {
               isBucketSelected(datumIndex: number): boolean | undefined;

@@ -1,12 +1,12 @@
 import {
     type AxisPluginModuleDefinition,
     Debug,
+    type Logger,
     ModuleRegistry,
     ModuleType,
     type PlainObject,
     type PluginModuleDefinition,
     type SeriesPluginModuleDefinition,
-    ambientLog,
     deepClone,
     deepFreeze,
     groupBy,
@@ -177,7 +177,8 @@ function sanitizeThemeModulesUncached(theme: ChartTheme): ChartTheme {
 export function processModuleOptions<T extends Partial<AgChartOptions>>(
     chartType: string | undefined,
     options: T,
-    additionalMissingModules: ModulePlaceholder[]
+    additionalMissingModules: ModulePlaceholder[],
+    logger: Logger
 ): void {
     const missingModules = unique(removeUnregisteredModuleOptions(chartType, options).concat(additionalMissingModules));
 
@@ -190,9 +191,9 @@ export function processModuleOptions<T extends Partial<AgChartOptions>>(
     const missingOptions = groupBy(missingModules, (module) => (module.enterprise ? 'enterprise' : 'community'));
 
     if (ModuleRegistry.isUmd()) {
-        ambientLog.warnOnce(umdMissingModulesMessage(missingOptions.enterprise ?? []));
+        logger.warnOnce(umdMissingModulesMessage(missingOptions.enterprise ?? []));
     } else {
-        ambientLog.errorOnce(bundlerMissingModulesMessage(missingModules, missingOptions, installationReferenceUrl));
+        logger.errorOnce(bundlerMissingModulesMessage(missingModules, missingOptions, installationReferenceUrl));
     }
 }
 

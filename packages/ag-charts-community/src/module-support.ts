@@ -189,6 +189,7 @@ export {
     createBarCandidateStyleResolver,
     createCandidateStyleResolver,
     fitLabelToContainer,
+    fitLabelToContainerAutoSize,
     getLabelStyles,
     insideBarLabelBounds,
     pickPlacementStyle,

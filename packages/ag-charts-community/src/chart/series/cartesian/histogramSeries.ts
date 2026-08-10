@@ -29,6 +29,7 @@ import {
     createTicks,
     deepClone,
     findMinMax,
+    fontWithSize,
     isBigInt,
     isDate,
     isNumber,
@@ -87,7 +88,7 @@ import {
     adjustLabelPlacement,
     buildBarLabelCandidates,
     createBarCandidateStyleResolver,
-    fitLabelToContainer,
+    fitLabelToContainerAutoSize,
     insideBarLabelBounds,
     pickPlacementStyle,
     styledBarLabelBox,
@@ -625,12 +626,12 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         // An orientation array is refitted per orientation by the engine, which knows a rotated label
         // measures against the bin's other axis; fitting here would bind every orientation to the
         // upright budget (see barSeries).
-        const text = resolvesOrientation
-            ? sourceText
-            : fitLabelToContainer(sourceText, labelFit, label, bounds?.container);
+        const { text, fontSize: fittedFontSize } = resolvesOrientation
+            ? { text: sourceText, fontSize: undefined }
+            : fitLabelToContainerAutoSize(sourceText, labelFit, label, bounds?.container);
         // A rotated label's gap to the bar depends on its box size; measure only when it rotates.
         const { width: labelWidth, height: labelHeight } =
-            rotation === 0 ? { width: 0, height: 0 } : measureLabelText(text, label);
+            rotation === 0 ? { width: 0, height: 0 } : measureLabelText(text, fontWithSize(label, fittedFontSize));
         const {
             x: lx,
             y: ly,
@@ -661,6 +662,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             // labels fall back to the plot bounds via no region (see barSeries).
             region: resolvesOrientation ? bounds?.region : undefined,
             text,
+            fittedFontSize,
         };
     }
 
@@ -1002,7 +1004,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             this.contextNodeData?.nodeData,
             this.contextNodeData?.labelData,
             this.isLabelEnabled() && !this.usesPlacedLabels,
-            (node) => ({ label: node.label, config: label, box })
+            (node) => ({ label: node.label, config: fontWithSize(label, node.label?.fittedFontSize), box })
         );
     }
 

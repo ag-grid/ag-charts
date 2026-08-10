@@ -40,6 +40,7 @@ import {
     buildBarLabelData,
     buildBarPositionedLabelDatum,
     findMinMax,
+    fontWithSize,
     insideBarContainer,
     insideBarRegion,
     isContinuous,
@@ -66,7 +67,7 @@ const {
     valueProperty,
     keyProperty,
     checkCrisp,
-    fitLabelToContainer,
+    fitLabelToContainerAutoSize,
     buildBarLabelCandidates,
     createBarCandidateStyleResolver,
     styledBarLabelBox,
@@ -105,6 +106,8 @@ const {
 interface RangeBarNodeLabelDatum extends Readonly<Point> {
     datumIndex: number;
     text: NormalisedTextOrSegments;
+    /** Reduced font size the text was fitted at; `undefined` when it renders at the configured size. */
+    fittedFontSize?: number;
     textAlign: CanvasTextAlign;
     textBaseline: CanvasTextBaseline;
     rotation: number;
@@ -1009,9 +1012,11 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         // the bar's other axis and that each placement offers its own room; fitting here would bind every
         // candidate to the first placement's upright budget (see barSeries).
         const fitText = (text: NormalisedTextOrSegments) =>
-            ctx.labelRoutesThroughEngine ? text : fitLabelToContainer(text, ctx.labelFit, label, container);
+            ctx.labelRoutesThroughEngine
+                ? { text, fontSize: undefined }
+                : fitLabelToContainerAutoSize(text, ctx.labelFit, label, container);
 
-        const yLowText = fitText(
+        const { text: yLowText, fontSize: yLowFontSize } = fitText(
             this.getLabelText<AgRangeBarSeriesLabelFormatterParams>(yLowValue, datum, yLowKey, 'y', yDomain, label, {
                 itemType: 'low',
                 value: yLowValue,
@@ -1019,7 +1024,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             })
         );
 
-        const yHighText = fitText(
+        const { text: yHighText, fontSize: yHighFontSize } = fitText(
             this.getLabelText<AgRangeBarSeriesLabelFormatterParams>(yHighValue, datum, yHighKey, 'y', yDomain, label, {
                 itemType: 'high',
                 value: yHighValue,
@@ -1035,8 +1040,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         let yHighPadding = ctx.yHighPadding;
         let crossDrift = 0;
         if (rotation !== 0) {
-            const low = measureLabelText(yLowText, label);
-            const high = measureLabelText(yHighText, label);
+            const low = measureLabelText(yLowText, fontWithSize(label, yLowFontSize));
+            const high = measureLabelText(yHighText, fontWithSize(label, yHighFontSize));
             const { labelSpacing, labelSign, labelBoxPadding, yLowFacing, yHighFacing } = ctx;
             yLowPadding =
                 (labelSpacing + rotatedLabelInset(yLowFacing, rotation, low.width, low.height, labelBoxPadding)) *
@@ -1096,6 +1101,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             yLowLabel.offsetX = 0;
             yLowLabel.offsetY = 0;
             yLowLabel.text = yLowText;
+            yLowLabel.fittedFontSize = yLowFontSize;
             yLowLabel.datum = datum;
         } else {
             // Create new label
@@ -1110,6 +1116,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                 offsetX: 0,
                 offsetY: 0,
                 text: yLowText,
+                fittedFontSize: yLowFontSize,
                 itemType: 'low',
                 datum,
                 series: this,
@@ -1130,6 +1137,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             yHighLabel.offsetX = 0;
             yHighLabel.offsetY = 0;
             yHighLabel.text = yHighText;
+            yHighLabel.fittedFontSize = yHighFontSize;
             yHighLabel.datum = datum;
         } else {
             // Create new label
@@ -1144,6 +1152,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
                 offsetX: 0,
                 offsetY: 0,
                 text: yHighText,
+                fittedFontSize: yHighFontSize,
                 itemType: 'high',
                 datum,
                 series: this,
@@ -1456,7 +1465,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             this.contextNodeData?.nodeData,
             this.contextNodeData?.labelData,
             this.isLabelEnabled() && !this.usesPlacedLabels,
-            (labelDatum) => ({ label: labelDatum, config: label, box })
+            (labelDatum) => ({ label: labelDatum, config: fontWithSize(label, labelDatum.fittedFontSize), box })
         );
     }
 

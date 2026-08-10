@@ -10,6 +10,7 @@ import {
     errorBarOptionsDefs,
     errorBarThemeableOptionsDefs,
     fillOptionsDef,
+    labelAutoFontSizeOptionsDefs,
     labelCollisionFitOptionsDefs,
     labelOrientationDef,
     labelPlacementStyleDefs,
@@ -51,6 +52,7 @@ export const barSeriesThemeableOptionsDef: OptionsDefs<AgBarSeriesThemeableOptio
     label: {
         ...seriesLabelOptionsDefs,
         ...labelCollisionFitOptionsDefs,
+        ...labelAutoFontSizeOptionsDefs,
         ...labelPlacementStyleDefs,
         placement: unionOrArray(
             'inside-center',

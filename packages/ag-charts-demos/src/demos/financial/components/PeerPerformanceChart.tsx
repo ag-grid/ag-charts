@@ -48,6 +48,8 @@ export function PeerPerformanceChart({ instrument, peerFeed, peerTick, windowMin
     );
     // The rows currently rendered, diffed against each new window for the transaction.
     const windowRef = useRef<PerfRow[]>([]);
+    // Tracks the window size so a resize can be told apart from a streaming tick.
+    const windowMinutesRef = useRef(windowMinutes);
 
     const options = useMemo<AgCartesianChartOptions>(() => {
         windowRef.current = data;
@@ -117,13 +119,22 @@ export function PeerPerformanceChart({ instrument, peerFeed, peerTick, windowMin
     }, []);
 
     useEffect(() => {
-        const transactions = diffWindow(windowRef.current, data, (row) => row.id);
+        const baseline = windowRef.current;
         windowRef.current = data;
+        // A resize swaps most of the window at once; incremental transactions would leave the
+        // ordinal-time axis domain stale, so replace the data to rebuild it. Ticks stay incremental below.
+        if (windowMinutes !== windowMinutesRef.current) {
+            windowMinutesRef.current = windowMinutes;
+            // eslint-disable-next-line no-console
+            chartRef.current?.updateDelta({ data }).catch((e) => console.error(e));
+            return;
+        }
+        const transactions = diffWindow(baseline, data, (row) => row.id);
         for (const transaction of transactions) {
             // eslint-disable-next-line no-console
             chartRef.current?.applyTransaction(transaction).catch((e) => console.error(e));
         }
-    }, [data]);
+    }, [data, windowMinutes]);
 
     return (
         <div className="fin-detail-card">

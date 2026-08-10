@@ -2,7 +2,13 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AgChartOptions } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-community';
-import { compareImageSnapshot, deproxy, setupMockCanvas, setupMockConsole } from 'ag-charts-community-test';
+import {
+    compareImageSnapshot,
+    deproxy,
+    setupMockCanvas,
+    setupMockConsole,
+    waitForChartStability,
+} from 'ag-charts-community-test';
 
 import { prepareEnterpriseTestOptions } from '../test/utils';
 import ukTopology from './map-test/ukTopology.json';
@@ -177,6 +183,177 @@ describe('series label fit', () => {
             // alwaysShow: false → overflow 'hide': oversized labels drop to empty rather than ellipsising.
             expect(texts.some((text) => text === '' || text == null)).toBe(true);
             expect(someTruncated(texts)).toBe(false);
+        });
+    });
+
+    // `minimumFontSize` shrinks a bar-family label into its bar before wrapping, truncating or hiding it.
+    // Exact sizes are asserted off the scene graph, with one snapshot per series type for how they look;
+    // bar and histogram carry the community half of the same coverage.
+    describe('minimumFontSize', () => {
+        const FONT_SIZE = 20;
+        // Enough bars that none is wide enough for its label at 20px, so the fit layer has to act.
+        const bars = Array.from({ length: 6 }, (_, i) => ({ cat: `Cat ${i}`, low: 5, high: 95 - i, value: 100 - i }));
+        const shrinkableLabel = (extra: object) => ({
+            enabled: true,
+            fontSize: FONT_SIZE,
+            wrapping: 'never',
+            truncate: true,
+            formatter: () => 'Alpha Bravo Charlie',
+            ...extra,
+        });
+
+        const render = async (options: object) => {
+            prepareEnterpriseTestOptions(options as AgChartOptions);
+            chart = deproxy(AgCharts.create(options as AgChartOptions));
+            await waitForChartStability(chart);
+        };
+        type LabelNode = { visible: boolean; fontSize: number; text: string };
+        const drawnLabels = (): LabelNode[] =>
+            (chart.series[0].labelSelection.nodes() as LabelNode[]).filter((node) => node.visible && node.text !== '');
+
+        it('shrinks waterfall labels into their bars rather than truncating them', async () => {
+            const itemLabel = { label: shrinkableLabel({ placement: 'inside-center', minimumFontSize: 4 }) };
+            await render({
+                data: bars,
+                legend: { enabled: false },
+                axes: cartesianAxes,
+                series: [
+                    {
+                        type: 'waterfall',
+                        xKey: 'cat',
+                        yKey: 'value',
+                        item: { positive: itemLabel, negative: itemLabel, total: itemLabel },
+                    },
+                ],
+            });
+            const rendered = drawnLabels();
+            expect(rendered.length).toBe(bars.length);
+            for (const node of rendered) {
+                expect(node.fontSize).toBeLessThan(FONT_SIZE);
+                expect(node.text).not.toContain(ELLIPSIS);
+            }
+        });
+
+        it('shrinks both range-bar labels into their shared bar', async () => {
+            await render({
+                data: bars,
+                legend: { enabled: false },
+                axes: cartesianAxes,
+                series: [
+                    {
+                        type: 'range-bar',
+                        xKey: 'cat',
+                        yLowKey: 'low',
+                        yHighKey: 'high',
+                        label: shrinkableLabel({ placement: 'inside', minimumFontSize: 4 }),
+                    },
+                ],
+            });
+            const rendered = drawnLabels();
+            expect(rendered.length).toBe(bars.length * 2);
+            for (const node of rendered) {
+                expect(node.fontSize).toBeLessThan(FONT_SIZE);
+                expect(node.text).not.toContain(ELLIPSIS);
+            }
+        });
+
+        it('stops shrinking range-bar labels at minimumFontSize and truncates from there', async () => {
+            await render({
+                data: bars,
+                legend: { enabled: false },
+                axes: cartesianAxes,
+                series: [
+                    {
+                        type: 'range-bar',
+                        xKey: 'cat',
+                        yLowKey: 'low',
+                        yHighKey: 'high',
+                        label: shrinkableLabel({ placement: 'inside', minimumFontSize: 16 }),
+                    },
+                ],
+            });
+            const rendered = drawnLabels();
+            expect(rendered.map((node) => node.fontSize)).toEqual(rendered.map(() => 16));
+            expect(rendered.some((node) => node.text.includes(ELLIPSIS))).toBe(true);
+        });
+
+        // One image per series type, each packing the whole spectrum into a single render: labels that fit
+        // untouched, labels shrunk to fit, and labels that reach the floor and truncate from there. The
+        // scene-graph cases above pin the exact sizes; these pin how the sizes look side by side.
+        describe('visual', () => {
+            it('renders waterfall labels across the shrink spectrum', async () => {
+                // Waterfall styles its three item kinds separately, so a single series compares three
+                // configurations at matching bar widths: positives wrap and shrink together under a low
+                // floor, negatives shrink on one line to a 14px floor and truncate from there, and the total
+                // has no floor at all, truncating at the configured size.
+                const spectrum = [
+                    { cat: 'Opening', value: 60, label: 'Cash' },
+                    { cat: 'Sales', value: 34, label: 'Merchandising revenue' },
+                    { cat: 'Refunds', value: -18, label: 'Customer refunds' },
+                    { cat: 'Services', value: 26, label: 'Subscription renewals' },
+                    { cat: 'Costs', value: -22, label: 'Operating costs' },
+                ];
+                const itemLabel = (extra: object) => ({
+                    label: shrinkableLabel({
+                        placement: 'inside-center',
+                        collision: { alwaysShow: true },
+                        // The synthesised total row has no source datum of its own.
+                        formatter: (p: any) => p.datum?.label ?? 'Closing balance',
+                        ...extra,
+                    }),
+                });
+                await renderAndSnapshot({
+                    data: spectrum,
+                    legend: { enabled: false },
+                    axes: cartesianAxes,
+                    series: [
+                        {
+                            type: 'waterfall',
+                            xKey: 'cat',
+                            yKey: 'value',
+                            item: {
+                                positive: itemLabel({ minimumFontSize: 6, wrapping: 'on-space' }),
+                                negative: itemLabel({ minimumFontSize: 14 }),
+                                total: itemLabel({}),
+                            },
+                            totals: [{ totalType: 'total', index: spectrum.length - 1, axisLabel: 'Closing' }],
+                        },
+                    ],
+                });
+            });
+
+            it('renders range-bar labels across the shrink spectrum', async () => {
+                // A bar's low and high labels are both fit to the same rect, so the spread comes from the
+                // data: the per-datum texts run from short enough to render whole, through lengths that only
+                // fit once shrunk, to one that reaches the 8px floor and truncates. Wrapping stays off here,
+                // leaving this the one image that isolates shrinking on a single line.
+                const spectrum = [
+                    { cat: 'A', low: 10, high: 90, label: 'Bid' },
+                    { cat: 'B', low: 15, high: 85, label: 'Lowest bid' },
+                    { cat: 'C', low: 20, high: 80, label: 'Ceiling price' },
+                    { cat: 'D', low: 25, high: 75, label: 'Opening quote' },
+                    { cat: 'E', low: 30, high: 70, label: 'Lowest recorded closing value' },
+                ];
+                await renderAndSnapshot({
+                    data: spectrum,
+                    legend: { enabled: false },
+                    axes: cartesianAxes,
+                    series: [
+                        {
+                            type: 'range-bar',
+                            xKey: 'cat',
+                            yLowKey: 'low',
+                            yHighKey: 'high',
+                            label: shrinkableLabel({
+                                placement: 'inside',
+                                minimumFontSize: 8,
+                                collision: { alwaysShow: true },
+                                formatter: (p: any) => p.datum.label,
+                            }),
+                        },
+                    ],
+                });
+            });
         });
     });
 

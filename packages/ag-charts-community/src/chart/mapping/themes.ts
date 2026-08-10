@@ -193,7 +193,7 @@ export const themeOptionsDef: OptionsDefs<AgChartTheme> = {
         borderRadius: number,
         borderWidth: number,
         chartBackgroundColor: colorOrRef,
-        chartPadding: number,
+        chartPadding: positiveNumber,
         focusShadow: string,
         foregroundColor: colorOrRef,
         fontFamily: fontFamilyFull,

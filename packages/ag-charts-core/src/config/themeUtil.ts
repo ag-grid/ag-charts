@@ -428,10 +428,10 @@ export const LABEL_PLACEMENT_STYLE_DEFAULTS = (
 });
 
 /**
- * Setting any one of `maxWidth`, `maxHeight`, `wrapping`, `truncate` or an array-valued
- * `placement`/`orientation` opts the label into overflow management, so the unset ones resolve to a
- * coherent set rather than leaving the label to overflow untouched. These are theme defaults, so an
- * explicit user value on any of them still wins.
+ * Setting any one of `maxWidth`, `maxHeight`, `wrapping`, `truncate`, `minimumFontSize` or an
+ * array-valued `placement`/`orientation` opts the label into overflow management, so the unset ones
+ * resolve to a coherent set rather than leaving the label to overflow untouched. These are theme
+ * defaults, so an explicit user value on any of them still wins.
  *
  * `wrapping` and `truncate` trigger off each other by presence rather than by value; reading either
  * by value would form a dependency cycle.
@@ -441,7 +441,7 @@ export const LABEL_OVERFLOW_DEFAULTS: WithThemeParams<AgChartLabelFitOptions> = 
         $if: [
             {
                 $or: [
-                    { $isUserOption: [['./maxWidth', './maxHeight', './truncate']] },
+                    { $isUserOption: [['./maxWidth', './maxHeight', './truncate', './minimumFontSize']] },
                     { $isType: [{ $path: './placement' }, 'array'] },
                     { $isType: [{ $path: './orientation' }, 'array'] },
                 ],
@@ -454,7 +454,7 @@ export const LABEL_OVERFLOW_DEFAULTS: WithThemeParams<AgChartLabelFitOptions> = 
         $if: [
             {
                 $or: [
-                    { $isUserOption: [['./maxWidth', './maxHeight', './wrapping']] },
+                    { $isUserOption: [['./maxWidth', './maxHeight', './wrapping', './minimumFontSize']] },
                     { $isType: [{ $path: './placement' }, 'array'] },
                     { $isType: [{ $path: './orientation' }, 'array'] },
                 ],
@@ -470,7 +470,11 @@ export const LABEL_OVERFLOW_ALWAYS_SHOW: Operation = {
     $if: [
         {
             $or: [
-                { $isUserOption: [['../maxWidth', '../maxHeight', '../wrapping', '../truncate']] },
+                {
+                    $isUserOption: [
+                        ['../maxWidth', '../maxHeight', '../wrapping', '../truncate', '../minimumFontSize'],
+                    ],
+                },
                 { $isType: [{ $path: '../placement' }, 'array'] },
                 { $isType: [{ $path: '../orientation' }, 'array'] },
             ],
