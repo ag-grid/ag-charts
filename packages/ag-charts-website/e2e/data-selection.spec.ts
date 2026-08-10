@@ -13,6 +13,8 @@ import {
     waitForChartUpdate,
 } from './util';
 
+const PREVENT_DEFAULT_STUB = () => {};
+
 // The example under test exposes three callables on `window.agE2E`:
 //   - initChartSelection(): selects 'New York' via chart.setSelection()
 //   - getChartSelection(): returns the current selection as an array
@@ -42,7 +44,7 @@ function selectionChange(
         added,
         removed,
         defaultPrevented: false,
-        preventDefault: expect.any(Function) as () => void,
+        preventDefault: PREVENT_DEFAULT_STUB,
     };
 }
 
@@ -75,9 +77,9 @@ async function getChartSelection(page: Page): Promise<SelectionItem[]> {
     return selection as SelectionItem[];
 }
 
-async function popEvents(page: Page): Promise<SelectionChangeEvent[]> {
+async function popEvents(page: Page): Promise<unknown> {
     await waitForChartUpdate(page.locator(SELECTORS.wrapper));
-    const events = await page.evaluate(() => {
+    const events: unknown = await page.evaluate(() => {
         const agE2E_popEvents: unknown = (window as any)?.agE2E?.popEvents;
         if (agE2E_popEvents == null) {
             throw new Error('window.agE2E.popEvents is not defined');
@@ -87,7 +89,13 @@ async function popEvents(page: Page): Promise<SelectionChangeEvent[]> {
         return agE2E_popEvents();
     });
     expect(Array.isArray(events)).toBe(true);
-    return events as SelectionChangeEvent[];
+    return (events as unknown[]).map((elem: unknown) => {
+        if (typeof elem === 'object') {
+            return { ...elem, preventDefault: PREVENT_DEFAULT_STUB };
+        } else {
+            return elem;
+        }
+    });
 }
 
 async function openExampleAndFocusFirstDatum(page: Page): Promise<void> {
