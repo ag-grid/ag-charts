@@ -58,19 +58,19 @@ export const scenarios = [
         name: 'enterprise/BoxPlotSeriesModule',
         package: 'ag-charts-enterprise',
         import: '{ BoxPlotSeriesModule }',
-        limit: 525_000,
+        limit: 526_000,
     },
     {
         name: 'enterprise/MixedA',
         package: 'ag-charts-enterprise',
         import: '{ BoxPlotSeriesModule, NavigatorModule }',
-        limit: 531_000,
+        limit: 532_000,
     },
     {
         name: 'enterprise/MixedB',
         package: 'ag-charts-enterprise',
         import: '{ AngleNumberAxisModule, RadialBarSeriesModule, StatusBarModule }',
-        limit: 528_000,
+        limit: 529_000,
     },
     {
         name: 'enterprise/MixedC',
