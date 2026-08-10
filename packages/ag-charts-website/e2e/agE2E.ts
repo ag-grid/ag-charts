@@ -49,3 +49,15 @@ export async function setChartState(page: Page, state: AgChartState): Promise<vo
     );
     await waitForChartUpdate(page.locator('.ag-charts-wrapper'));
 }
+
+export async function evalPageFunction(page: Page, fnName: string): Promise<unknown> {
+    return await page.evaluate((evalName) => {
+        const fn: unknown = (window as any)?.agE2E?.[evalName];
+        if (fn == null) {
+            throw new Error(`window.agE2E.${evalName} is not defined`);
+        } else if (typeof fn !== 'function') {
+            throw new Error(`window.agE2E.${evalName} is not a function`);
+        }
+        return fn();
+    }, fnName);
+}
