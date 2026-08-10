@@ -1394,6 +1394,7 @@ test.describe('state', () => {
                 datum: { name: 'Home Feed', sessionMinutes: 5.3, crashRate: 1.1, dau: 680 },
                 dataIdKey: undefined,
                 frozen: false,
+                defaultPrevented: false,
                 preventDefault: PREVENT_DEFAULT_STUB,
                 source: 'user-interaction',
                 type: 'activeChange',
@@ -1409,6 +1410,7 @@ test.describe('state', () => {
                 datum: undefined,
                 dataIdKey: undefined,
                 frozen: false,
+                defaultPrevented: false,
                 preventDefault: PREVENT_DEFAULT_STUB,
                 source: 'user-interaction',
                 type: 'activeChange',
@@ -1424,6 +1426,7 @@ test.describe('state', () => {
                 datum: undefined,
                 dataIdKey: undefined,
                 frozen: false,
+                defaultPrevented: false,
                 preventDefault: PREVENT_DEFAULT_STUB,
                 source: 'user-interaction',
                 type: 'activeChange',
@@ -1439,6 +1442,7 @@ test.describe('state', () => {
                 datum: { name: 'Messaging', sessionMinutes: 5.3, crashRate: 1.1, dau: 510 },
                 dataIdKey: undefined,
                 frozen: false,
+                defaultPrevented: true,
                 preventDefault: PREVENT_DEFAULT_STUB,
                 source: 'user-interaction',
                 type: 'activeChange',
@@ -1453,6 +1457,7 @@ test.describe('state', () => {
                 datum: { name: 'Search', sessionMinutes: 5.1, crashRate: 0.8, dau: 420 },
                 dataIdKey: undefined,
                 frozen: false,
+                defaultPrevented: false,
                 preventDefault: PREVENT_DEFAULT_STUB,
                 source: 'user-interaction',
                 type: 'activeChange',
@@ -1988,12 +1993,19 @@ test.describe('state', () => {
                 activeItem: undefined,
                 datum: undefined,
                 dataIdKey: undefined,
+                defaultPrevented: false,
                 preventDefault: PREVENT_DEFAULT_STUB,
                 type: 'activeChange',
             });
 
             const activeChangeDeactivateMouse = Object.freeze({
                 ...activeChangeDeactivateCommon,
+                source: 'user-interaction',
+            });
+
+            const activeChangeDeactivateMousePrevented = Object.freeze({
+                ...activeChangeDeactivateCommon,
+                defaultPrevented: true,
                 source: 'user-interaction',
             });
 
@@ -2063,7 +2075,7 @@ test.describe('state', () => {
                     expect(await popChartEvents(page)).toEqual([activeChange2ndBarMouse]);
 
                     await mouseLeave(page);
-                    expect(await popChartEvents(page)).toEqual([activeChangeDeactivateMouse]);
+                    expect(await popChartEvents(page)).toEqual([activeChangeDeactivateMousePrevented]);
 
                     await mouseMove2ndBar(page);
                     expect(await popChartEvents(page)).toEqual([]);
@@ -2148,16 +2160,16 @@ test.describe('state', () => {
                     expect(await popChartEvents(page)).toEqual([activeChange2ndBarMouse]);
 
                     await mouseLeave(page);
-                    expect(await popChartEvents(page)).toEqual([activeChangeDeactivateMouse]);
+                    expect(await popChartEvents(page)).toEqual([activeChangeDeactivateMousePrevented]);
 
                     await growTextArea(page);
                     // FIXME: When testing this manually, I only get one activeChange deactivation event. But in the e2e
                     // test multiple dom:resize events are firing for some reason.
                     expect(await popChartEvents(page)).toEqual([
-                        activeChangeDeactivateMouse,
-                        activeChangeDeactivateMouse,
-                        activeChangeDeactivateMouse,
-                        activeChangeDeactivateMouse,
+                        activeChangeDeactivateMousePrevented,
+                        activeChangeDeactivateMousePrevented,
+                        activeChangeDeactivateMousePrevented,
+                        activeChangeDeactivateMousePrevented,
                     ]);
                 });
             });
@@ -2216,7 +2228,7 @@ test.describe('state', () => {
                     pop_rank: 16,
                 },
                 frozen: false,
-                defaultPrevented: false,
+                defaultPrevented: true,
                 preventDefault: PREVENT_DEFAULT_STUB,
                 source: 'user-interaction',
                 type: 'activeChange',
@@ -2233,6 +2245,7 @@ test.describe('state', () => {
                     pop_rank: 16,
                 },
                 frozen: false,
+                defaultPrevented: true,
                 preventDefault: PREVENT_DEFAULT_STUB,
                 source: 'user-interaction',
                 type: 'activeChange',
@@ -2249,6 +2262,7 @@ test.describe('state', () => {
                     pop_rank: 10,
                 },
                 frozen: false,
+                defaultPrevented: true,
                 preventDefault: PREVENT_DEFAULT_STUB,
                 source: 'user-interaction',
                 type: 'activeChange',
@@ -2258,6 +2272,7 @@ test.describe('state', () => {
                 activeItem: { itemId: 'MapShapeSeries-2', seriesId: 'MapShapeSeries-2', type: 'legend' },
                 datum: undefined,
                 frozen: false,
+                defaultPrevented: true,
                 preventDefault: PREVENT_DEFAULT_STUB,
                 source: 'user-interaction',
                 type: 'activeChange',
@@ -2267,6 +2282,7 @@ test.describe('state', () => {
                 activeItem: { itemId: 'MapShapeSeries-7', seriesId: 'MapShapeSeries-7', type: 'legend' },
                 datum: undefined,
                 frozen: false,
+                defaultPrevented: true,
                 preventDefault: PREVENT_DEFAULT_STUB,
                 source: 'user-interaction',
                 type: 'activeChange',
