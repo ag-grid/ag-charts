@@ -12,6 +12,7 @@ import type {
     FontWeight,
     PixelSize,
     Ratio,
+    TextAlign,
     TextWrap,
 } from './types';
 
@@ -242,6 +243,16 @@ export interface AgBaseAxisLabelOptions<TContext = ContextDefault> extends AgBas
     enabled?: boolean;
     /** The rotation of the axis labels in degrees. Note: for integrated charts the default is 335 degrees, unless the axis shows grouped or default categories (indexes). The first row of labels in a grouped category axis is rotated perpendicular to the axis line. */
     rotation?: Degree;
+    /**
+     * The horizontal alignment of the axis labels. If unset, the alignment is derived from the axis position and the label rotation.
+     *
+     * On a vertical axis with unrotated labels this aligns each label within the axis's label column; on a horizontal axis, or whenever the labels are rotated, it aligns each label around its own anchor point.
+     *
+     * Honoured on cartesian axes (`number`, `category`, `time`, `log`, `ordinal-time`). Ignored on grouped-category, angle and radius axes, and on funnel / cone-funnel `stageLabel`.
+     *
+     * Default: `undefined`
+     */
+    textAlign?: TextAlign;
     /** Avoid axis label collision by automatically reducing the number of ticks displayed. If set to `false`, axis labels may collide. */
     avoidCollisions?: boolean;
     /** Minimum gap in pixels between the axis labels before being removed to avoid collisions. */
