@@ -18,8 +18,8 @@ import {
     doubleTapAction,
     dragAction,
     findChartTarget,
+    getAggregatedMarkerXValues,
     getLegendModule,
-    getSeriesAggregationInternals,
     hoverAction,
     mouseDownAction,
     mouseMoveAction,
@@ -718,10 +718,7 @@ describe('Zoom', () => {
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
-            const series = getSeriesAggregationInternals(chart);
-            expect(series.dataAggregation).toBeDefined();
-            const nodeData = (series.contextNodeData?.nodeData ?? []) as ReadonlyArray<{ xValue: number }>;
-            const xValues = nodeData.map(({ xValue }) => xValue);
+            const xValues = getAggregatedMarkerXValues(chart);
 
             expect(xValues.length).toBeGreaterThan(0);
             // On a reversed axis the 0.2-0.4 zoom ratio addresses the HIGH end of the data domain;

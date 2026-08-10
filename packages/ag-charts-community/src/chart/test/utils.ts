@@ -370,6 +370,18 @@ export function getSeriesAggregationInternals(
     return deproxy(chartOrProxy).series[seriesIndex] as unknown as SeriesAggregationInternals;
 }
 
+/**
+ * The x data values of the markers a bubble/scatter series actually rendered, sorted ascending, with
+ * an assertion that aggregation is active — so a caller comparing windows cannot pass over a series
+ * that never reached the aggregation path.
+ */
+export function getAggregatedMarkerXValues(chartOrProxy: ChartOrProxy<any>, seriesIndex = 0): number[] {
+    const series = getSeriesAggregationInternals(chartOrProxy, seriesIndex);
+    expect(series.dataAggregation).toBeDefined();
+    const nodeData = (series.contextNodeData?.nodeData ?? []) as ReadonlyArray<{ xValue: number }>;
+    return nodeData.map(({ xValue }) => xValue).sort((a, b) => a - b);
+}
+
 export function repeat<T>(value: T, count: number): T[] {
     return new Array(count).fill(value);
 }

@@ -42,6 +42,7 @@ import {
     expectNoAnimation,
     expectSceneTrajectory,
     expectWarningsCalls,
+    getAggregatedMarkerXValues,
     getSeriesAggregationInternals,
     hoverAction,
     prepareTestOptions,
@@ -1267,23 +1268,16 @@ describe('BubbleSeries', () => {
             legend: { enabled: false },
         });
 
-        const renderedXValues = () => {
-            const series = getSeriesAggregationInternals(chart);
-            expect(series.dataAggregation).toBeDefined();
-            const nodeData = (series.contextNodeData?.nodeData ?? []) as ReadonlyArray<{ xValue: number }>;
-            return nodeData.map(({ xValue }) => xValue).sort((a, b) => a - b);
-        };
-
         it('should render the same markers with a sizeKey when the x-axis is reversed and maxRenderedItems is exceeded', async () => {
             chart = AgCharts.create(prepareTestOptions(aggregatedOptions(false)));
             await waitForChartStability(chart);
-            const expected = renderedXValues();
+            const expected = getAggregatedMarkerXValues(chart);
             expect(expected.length).toBeGreaterThan(0);
             expect(expected.length).toBeLessThan(300);
 
             await chart.update(prepareTestOptions(aggregatedOptions(true)));
             await waitForChartStability(chart);
-            expect(renderedXValues()).toEqual(expected);
+            expect(getAggregatedMarkerXValues(chart)).toEqual(expected);
         });
     });
 
