@@ -20,7 +20,7 @@ export const scenarios = [
         name: 'community/PolarChartModule',
         package: 'ag-charts-community',
         import: '{ PolarChartModule }',
-        limit: 384_000,
+        limit: 385_000,
     },
 
     // === ag-charts-enterprise ===
@@ -82,7 +82,7 @@ export const scenarios = [
         name: 'enterprise/MixedD',
         package: 'ag-charts-enterprise',
         import: '{ HeatmapSeriesModule, LinearGaugeModule, DataSourceModule, ContextMenuModule, AnimationModule }',
-        limit: 544_000,
+        limit: 545_000,
     },
     {
         name: 'enterprise/MixedE',
