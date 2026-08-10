@@ -1,7 +1,12 @@
 import astroPackageJson from 'astro/package.json';
 import { createHash } from 'node:crypto';
 
-import { DARK_MODE_INIT_SCRIPT, KBD_PLATFORM_INIT_SCRIPT, PLAUSIBLE_INIT_SCRIPT } from '../csp/inlineScripts';
+import {
+    DARK_MODE_INIT_SCRIPT,
+    KBD_PLATFORM_INIT_SCRIPT,
+    PLAUSIBLE_INIT_SCRIPT,
+    PLAUSIBLE_PAGE_LOAD_SCRIPT,
+} from '../csp/inlineScripts';
 import { ASTRO_HYDRATION_HASHES_VERIFIED_FOR, getCspDirectives, getScopedCspHtaccessBlock } from './cspRules';
 
 const sha256Source = (source: string) => `'sha256-${createHash('sha256').update(source, 'utf8').digest('base64')}'`;
@@ -54,6 +59,7 @@ describe('cspRules', () => {
             expect(scriptSrc).not.toContain("'unsafe-inline'");
             expect(scriptSrc).toContain(sha256Source(DARK_MODE_INIT_SCRIPT));
             expect(scriptSrc).toContain(sha256Source(PLAUSIBLE_INIT_SCRIPT));
+            expect(scriptSrc).toContain(sha256Source(PLAUSIBLE_PAGE_LOAD_SCRIPT));
             expect(scriptSrc).toContain(sha256Source(KBD_PLATFORM_INIT_SCRIPT));
         });
 

@@ -163,6 +163,9 @@ export function setupIntrinsicAssertions(
 const ignoreMessageRegexes = [
     // Vite messages
     /^\[vite].*/,
+    // Astro dev-server debug output, e.g. the client router's "Initializing prefetch script".
+    // Emitted via debug() and so absent from a production build.
+    /^\[astro].*/,
     // AG Charts license error message
     /^\*.*/,
 ];

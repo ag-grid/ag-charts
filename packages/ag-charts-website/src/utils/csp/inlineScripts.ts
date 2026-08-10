@@ -62,8 +62,12 @@ export const DARK_MODE_INIT_SCRIPT = `
     // does not hide future ones. Evaluated here (at request time) rather than in the Astro
     // build so the window applies to a static deployment without a redeploy. Dates are read
     // from <html> data attributes (YYYY-MM-DD); absent bounds are open-ended.
-    const announcementId = htmlEl.dataset.announcementId || '';
-    if (localStorage.getItem('documentation:announcement-banner-dismissed:' + announcementId) !== 'true') {
+    const applyAnnouncementVisibility = () => {
+        const announcementId = htmlEl.dataset.announcementId || '';
+        if (localStorage.getItem('documentation:announcement-banner-dismissed:' + announcementId) === 'true') {
+            return;
+        }
+
         const today = new Date().toISOString().slice(0, 10);
         const showDate = htmlEl.dataset.announcementShowDate;
         const untilDate = htmlEl.dataset.announcementUntilDate;
@@ -72,19 +76,35 @@ export const DARK_MODE_INIT_SCRIPT = `
         if (withinWindow) {
             htmlEl.dataset.showAnnouncement = 'true';
         }
-    }
+    };
+
+    applyAnnouncementVisibility();
+
+    // A client-side navigation restores <html> to its server-rendered attributes and never
+    // re-executes a <body> script, so the flag has to be re-derived after every swap.
+    document.addEventListener('astro:after-swap', applyAnnouncementVisibility);
 `;
 
 // Sets html[data-os="mac"] so the CSS in _inline.scss can show "⌘ Command" instead of
-// "^ Ctrl" in {% kbd %} tags for Mac visitors. There's no build-time (nor pure-CSS) way
-// to know the visitor's OS, so this runs render-blocking at the top of <body> — same
-// spot as the dark-mode script — to avoid a flash of the wrong label. Feature-detects
-// the Chromium-only User-Agent Client Hints API first, then falls back to the older
-// (deprecated but universally supported) navigator.platform.
+// "^ Ctrl" in {% kbd %} tags, and the search bar can show "⌘ K" instead of "Ctrl K".
+// There's no build-time (nor pure-CSS) way to know the visitor's OS, so this runs
+// render-blocking at the top of <body> — same spot as the dark-mode script — to avoid a
+// flash of the wrong label. Feature-detects the Chromium-only User-Agent Client Hints
+// API first, then falls back to the older (deprecated but universally supported)
+// navigator.platform. iOS is matched too: those devices report "iPhone"/"iPad" rather
+// than "MacIntel" on older versions, and an attached Apple keyboard still uses Command.
 export const KBD_PLATFORM_INIT_SCRIPT = `
     const platform = (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || '';
-    if (/mac/i.test(platform)) {
-        document.documentElement.dataset.os = 'mac';
+    if (/(mac|iphone|ipod|ipad)/i.test(platform)) {
+        const applyMacPlatform = () => {
+            document.documentElement.dataset.os = 'mac';
+        };
+
+        applyMacPlatform();
+
+        // A client-side navigation restores <html> to its server-rendered attributes and never
+        // re-executes a <body> script, so the flag has to be re-applied after every swap.
+        document.addEventListener('astro:after-swap', applyMacPlatform);
     }
 `;
 
@@ -96,4 +116,20 @@ export const PLAUSIBLE_INIT_SCRIPT = `
         function () {
             (window.plausible.q = window.plausible.q || []).push(arguments);
         };
+`;
+
+// Pageview per client-side navigation. astro:page-load also fires on a hard load, where
+// the Plausible script has already sent one — hence skipping the first event.
+export const PLAUSIBLE_PAGE_LOAD_SCRIPT = `
+    if (!globalThis.plausiblePageViewRegistered) {
+        let firstLoad = true;
+        globalThis.plausiblePageViewRegistered = true;
+        document.addEventListener('astro:page-load', function () {
+            if (firstLoad) {
+                firstLoad = false;
+                return;
+            }
+            window.plausible?.('pageview');
+        });
+    }
 `;
