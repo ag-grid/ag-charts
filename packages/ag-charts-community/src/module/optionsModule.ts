@@ -583,7 +583,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             this.chartDef.name,
             processedOptions,
             missingSeriesModules.concat(missingAxesModules),
-            this.logger
+            this.logger,
+            this.recordAdvisoryIssue
         );
 
         // Second-pass validation runs after `removeDisabledOptions`, so disabled nodes have been
@@ -592,6 +593,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             skipDisabledNodeValidation: true,
             silentAdvisories: true,
             logger: this.logger,
+            recordIssue: this.recordAdvisoryIssue,
         };
 
         this.validateSeriesOptions(processedOptions, secondPassParams);
@@ -724,8 +726,26 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private get validateParams(): ValidateParams {
-        return { logger: this.logger };
+        return { logger: this.logger, recordIssue: this.recordAdvisoryIssue };
     }
+
+    /**
+     * The advisory validators (`deprecated()`, `enterprise()`) log via `*Once`, and the options are
+     * validated in two passes over shared definitions, so the same advisory can reach this sink several
+     * times for one console line. Dropping an identical issue restores that `*Once` parity —
+     * `validationIssues` is reset per options pass, so the deduplication is scoped to one pass.
+     */
+    private readonly recordAdvisoryIssue = (issue: ValidationIssue) => {
+        const isDuplicate = this.validationIssues.some(
+            (recorded) =>
+                recorded.severity === issue.severity &&
+                recorded.message === issue.message &&
+                recorded.code === issue.code
+        );
+        if (!isDuplicate) {
+            this.validationIssues.push(issue);
+        }
+    };
 
     // Every option-validation error goes to both the console log and the per-chart overlay collector.
 

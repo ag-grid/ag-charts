@@ -110,6 +110,13 @@ export interface ValidateParams {
      * positive.
      */
     silentAdvisories?: boolean;
+    /**
+     * Sink for the advisory issues validators emit directly rather than returning as
+     * `ValidationError`s, so that they reach the chart's issue collector as well as the console.
+     * Optional so a chart-less caller can omit it. Typed structurally because this package sits
+     * below both `ag-charts-types` and `ag-charts-community` in the build chain.
+     */
+    recordIssue?: (issue: { severity: 'error' | 'warning' | 'deprecation'; message: string; code?: string }) => void;
 }
 
 export enum ErrorType {
@@ -410,9 +417,9 @@ export function enterprise<T extends Validator | OptionsDefs<any>>(validatorOrDe
         if (value !== undefined && !isEnterprise()) {
             // Fire warnOnce directly rather than returning a ValidationError — the enterprise
             // gate is static within a session, so logging on every validate pass would spam.
-            context.params.logger.warnOnce(
-                new ValidationError(ErrorType.Enterprise, description, value, context.path).toString()
-            );
+            const message = new ValidationError(ErrorType.Enterprise, description, value, context.path).toString();
+            context.params.logger.warnOnce(message);
+            context.params.recordIssue?.({ severity: 'warning', message, code: context.path || undefined });
             return { valid: true, cleared: null, invalid: [] };
         }
         return inner(value, context);
@@ -436,7 +443,13 @@ export function deprecated<T extends Validator | OptionsDefs<any>>(validatorOrDe
     const description = (validatorOrDefs as PrivateSymbols)[descriptionSymbol];
     const gated: Validator = (value, context) => {
         if (value !== undefined && !context.params?.silentAdvisories) {
-            context.params.logger.deprecationOnce(`Option \`${context.path}\` is deprecated. ${message}`);
+            const notice = `Option \`${context.path}\` is deprecated. ${message}`;
+            context.params.logger.deprecationOnce(notice);
+            context.params.recordIssue?.({
+                severity: 'deprecation',
+                message: notice,
+                code: context.path || undefined,
+            });
         }
         return inner(value, context);
     };
