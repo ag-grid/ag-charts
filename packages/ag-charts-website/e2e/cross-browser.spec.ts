@@ -1,12 +1,9 @@
-import type { Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-
-import type { AgChartState } from 'ag-charts-types';
 
 import { getChartState, setChartState } from './agE2E';
 import { expect, test } from './fixture';
 import { expectChartScreenshot } from './scene-capture';
-import { SELECTORS, gotoExample, setupIntrinsicAssertions, toExamplePageUrl, waitForChartUpdate } from './util';
+import { SELECTORS, gotoExample, setupIntrinsicAssertions, toExamplePageUrl } from './util';
 
 /**
  * Part B of the cross-browser e2e effort (AG-18059).
