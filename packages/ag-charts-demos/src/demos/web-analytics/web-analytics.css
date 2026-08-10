@@ -1,0 +1,453 @@
+/* Urbanist, only for this demo — this stylesheet ships in the web-analytics chunk,
+   so the other demos never request it. Canvas text never triggers a font download,
+   so the charts rely on the document FontFaceSet to load it and re-measure. */
+@import url('https://fonts.googleapis.com/css2?family=Urbanist:wght@400..700&display=swap');
+
+/* Web-analytics dashboard chrome. Scoped under .wa-app so it never leaks into
+   other demos. Chart visuals come from the AG Charts theme; this file styles the
+   surrounding layout, cards, and Radix controls. Structure is carried by hairline
+   borders rather than elevation. */
+
+/* Tokens live on the app root and on portalled content (Radix menus mount at
+   document.body, outside .wa-app). */
+.wa-app,
+.wa-portal {
+    --wa-bg: #f1f4f9;
+    --wa-panel: #ffffff;
+    --wa-panel-2: #f7f9fc;
+    --wa-border: #dbe2ec;
+    --wa-border-strong: #c3cddc;
+    --wa-grid: #e8edf4;
+    --wa-text: #14202e;
+    --wa-muted: #5b6777;
+    --wa-accent: #2a78d6;
+    --wa-accent-strong: #1c5cab;
+    --wa-accent-soft: #eaf2fd;
+    /* Delta cues are text, so these are text-contrast steps, not the series green/red. */
+    --wa-up: #006300;
+    --wa-down: #c8322f;
+    --wa-radius: 8px;
+    --wa-radius-sm: 6px;
+    /* The single elevation in the app: a popover genuinely floats above content. */
+    --wa-shadow-popover: 0 4px 16px rgba(20, 32, 46, 0.12);
+    color: var(--wa-text);
+    font-family:
+        Urbanist,
+        system-ui,
+        -apple-system,
+        'Segoe UI',
+        Roboto,
+        sans-serif;
+    font-size: 14px;
+}
+
+.wa-app {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    background: var(--wa-bg);
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* ---- top bar ---- */
+.wa-topbar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 24px;
+    background: var(--wa-panel);
+    border-bottom: 1px solid var(--wa-border-strong);
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+}
+.wa-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    font-size: 16px;
+    letter-spacing: -0.01em;
+    margin-right: 24px;
+}
+.wa-brand-dot {
+    width: 20px;
+    height: 20px;
+    border-radius: 5px;
+    background: var(--wa-accent);
+}
+.wa-topbar-spacer {
+    flex: 1 1 auto;
+}
+.wa-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+/* ---- body / scroll region ---- */
+.wa-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 20px 24px 40px;
+}
+
+.wa-view {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 1560px;
+    margin: 0 auto;
+}
+
+/* ---- cards ---- */
+.wa-card {
+    background: var(--wa-panel);
+    border: 1px solid var(--wa-border);
+    border-radius: var(--wa-radius);
+    padding: 18px 20px;
+    min-width: 0;
+}
+.wa-card-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+.wa-card-title {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    margin: 0;
+}
+.wa-card-sub {
+    font-size: 13px;
+    color: var(--wa-muted);
+}
+.wa-chart-box {
+    height: clamp(260px, 25vh, 320px);
+    min-width: 0;
+}
+
+.wa-chart-box-xxsm {
+    height: clamp(90px, 10vh, 120px);
+    min-width: 0;
+}
+
+.wa-chart-box-xsm {
+    height: clamp(140px, 15vh, 180px);
+    min-width: 0;
+}
+
+.wa-chart-box-lg {
+    height: clamp(320px, 30vh, 540px);
+    min-width: 0;
+}
+
+/* ---- KPI tiles ---- */
+.wa-kpis {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 14px;
+}
+.wa-kpi {
+    position: relative;
+    /* A button does not inherit the app font by default. */
+    font: inherit;
+    background: var(--wa-panel);
+    border: 1px solid var(--wa-border);
+    border-radius: var(--wa-radius);
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    cursor: pointer;
+    overflow: hidden;
+    transition:
+        background 0.12s ease,
+        border-color 0.12s ease;
+}
+.wa-kpi:focus-visible {
+    outline: 2px solid var(--wa-accent);
+    outline-offset: 1px;
+}
+.wa-kpi:hover {
+    border-color: var(--wa-border-strong);
+    background: var(--wa-panel-2);
+}
+/* The tile driving the traffic chart, marked by a top rule in the metric's own
+   colour (set inline per metric). */
+.wa-kpi.is-active {
+    border-color: var(--wa-border-strong);
+}
+.wa-kpi.is-active::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto;
+    height: 3px;
+    background: currentcolor;
+}
+.wa-kpi-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--wa-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.wa-kpi-value {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    /* Text ink, not the metric colour — the sparkline already carries that. */
+    color: var(--wa-text);
+}
+.wa-kpi-delta {
+    font-size: 12px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+/* Sparkline sits at the foot of the tile, spanning its full width. */
+.wa-kpi-spark-box {
+    display: block;
+    height: 34px;
+    margin: 4px -4px -4px;
+}
+.wa-kpi-spark {
+    width: 100%;
+    height: 100%;
+}
+.wa-up {
+    color: var(--wa-up);
+}
+.wa-down {
+    color: var(--wa-down);
+}
+
+/* ---- grid layouts within a view ---- */
+.wa-grid-2 {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+    align-items: start;
+}
+
+/* Opt-in: stretch the last row of a view to fill the remaining viewport height.
+   Requires the view to be `.wa-view--fill`, its fill cards `.wa-card--fill`, and
+   the chart area inside each such card marked `.wa-fill`. */
+.wa-view--fill {
+    min-height: 100%;
+}
+.wa-view--fill > .wa-grid-2 {
+    flex: 1 1 auto;
+    min-height: 0;
+    align-items: stretch;
+}
+.wa-card--fill {
+    display: flex;
+    flex-direction: column;
+}
+.wa-card--fill > .wa-fill {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.wa-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    align-items: start;
+}
+
+.wa-grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    align-items: start;
+}
+
+/* ---- generic controls ---- */
+.wa-btn {
+    all: unset;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 34px;
+    padding: 0 14px;
+    border-radius: var(--wa-radius-sm);
+    border: 1px solid var(--wa-border);
+    background: var(--wa-panel);
+    color: var(--wa-text);
+    cursor: pointer;
+    font: inherit;
+    font-weight: 500;
+    user-select: none;
+    transition:
+        background 0.12s ease,
+        border-color 0.12s ease;
+}
+.wa-btn:hover {
+    border-color: var(--wa-border-strong);
+    background: var(--wa-panel-2);
+}
+.wa-btn:focus-visible {
+    outline: 2px solid var(--wa-accent);
+    outline-offset: 1px;
+}
+.wa-btn:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+.wa-btn:disabled:hover {
+    border-color: var(--wa-border);
+    background: var(--wa-panel);
+}
+.wa-btn[data-state='open'] {
+    border-color: var(--wa-accent);
+}
+
+/* ---- Radix Select ---- */
+.wa-labeled-select {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--wa-muted);
+    font-size: 13px;
+}
+.wa-select-trigger {
+    justify-content: space-between;
+    min-width: 96px;
+    font-weight: 500;
+}
+.wa-select-content {
+    z-index: 60;
+    background: var(--wa-panel);
+    border: 1px solid var(--wa-border);
+    border-radius: var(--wa-radius-sm);
+    padding: 5px;
+    box-shadow: var(--wa-shadow-popover);
+}
+.wa-select-item {
+    all: unset;
+    display: flex;
+    align-items: center;
+    height: 30px;
+    padding: 0 26px 0 12px;
+    border-radius: 7px;
+    cursor: pointer;
+    color: var(--wa-text);
+}
+.wa-select-item[data-highlighted] {
+    background: var(--wa-accent-soft);
+    color: var(--wa-accent-strong);
+    font-weight: 500;
+}
+
+/* ---- Radix Tabs ---- */
+.wa-tabs-list {
+    display: inline-flex;
+    gap: 4px;
+}
+.wa-tab-trigger {
+    all: unset;
+    padding: 7px 16px;
+    border-radius: var(--wa-radius-sm);
+    cursor: pointer;
+    color: var(--wa-muted);
+    font-weight: 600;
+    transition:
+        background 0.12s ease,
+        color 0.12s ease;
+}
+.wa-tab-trigger:hover {
+    color: var(--wa-text);
+    background: var(--wa-panel-2);
+}
+.wa-tab-trigger[data-state='active'] {
+    background: var(--wa-accent);
+    color: #fff;
+}
+/* `all: unset` drops the UA focus ring, and Radix moves focus between triggers with
+   the arrow keys, so the ring has to be restored explicitly. */
+.wa-tab-trigger:focus-visible {
+    outline: 2px solid var(--wa-accent);
+    outline-offset: 1px;
+}
+.wa-tab-trigger[data-state='active']:focus-visible {
+    outline-color: var(--wa-accent-strong);
+    outline-offset: 2px;
+}
+/* Fill the scroll region so a `.wa-view--fill` inside can resolve its 100% height.
+   Content taller than this still overflows and scrolls via `.wa-body`. */
+.wa-tab-content {
+    height: 100%;
+}
+.wa-tab-content:focus-visible {
+    outline: 2px solid var(--wa-accent);
+    outline-offset: 2px;
+    border-radius: var(--wa-radius-sm);
+}
+
+/* ---- empty state ---- */
+.wa-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 100%;
+    min-height: 200px;
+    color: var(--wa-muted);
+    text-align: center;
+}
+.wa-empty-icon {
+    font-size: 32px;
+    opacity: 0.6;
+}
+
+/* ---- AG Grid host ---- */
+.wa-grid-host {
+    /* Grid uses domLayout="autoHeight" + pagination, so it sizes to the page
+       instead of scrolling. */
+    width: 100%;
+}
+
+.wa-app .ag-charts-tooltip-value {
+    font-weight: bold;
+}
+
+/* ---- responsive: stack multi-column layouts, keep everything readable ---- */
+@media (max-width: 1100px) {
+    .wa-grid-2,
+    .wa-grid-3 {
+        grid-template-columns: 1fr;
+    }
+    .wa-grid-4 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .wa-kpis {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+@media (max-width: 640px) {
+    .wa-grid-4 {
+        grid-template-columns: 1fr;
+    }
+    .wa-kpis {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .wa-body {
+        padding: 16px 14px 32px;
+    }
+    .wa-topbar {
+        padding: 12px 14px;
+    }
+    .wa-kpi-value {
+        font-size: 24px;
+    }
+}

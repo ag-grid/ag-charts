@@ -22,4 +22,8 @@ export const DEMO_APPS: DemoAppEntry[] = [
         id: 'financial',
         load: () => import('./demos/financial'),
     },
+    {
+        id: 'web-analytics',
+        load: () => import('./demos/web-analytics'),
+    },
 ];
