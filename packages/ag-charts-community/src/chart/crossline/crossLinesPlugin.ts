@@ -115,7 +115,7 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
             const axisListener = isClick ? listeners?.crossLineClick : listeners?.crossLineDoubleClick;
             if (crossLineListener) callWithContext(callers, crossLineListener, apiEvent);
             if (axisListener) callWithContext(callers, axisListener, apiEvent);
-            callWithContext(callers, (params: typeof apiEvent) => this.ctx.fireEvent(params), apiEvent);
+            callWithContext(callers, (params: typeof apiEvent) => this.ctx.chartService.callListener(params), apiEvent);
         }
     }
 
