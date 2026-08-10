@@ -93,14 +93,14 @@ const markdownUrl = DISABLE_MARKDOWN_DOCS ? undefined : urlWithBaseUrl('/gallery
     import { scrollspy } from 'src/utils/scrollspy';
     import type { MarkdownHeading } from 'astro';
 
-    let teardownScrollspy: (() => void) | undefined;
+    let stopScrollspy: (() => void) | undefined;
 
     // Re-wired on every navigation rather than once at module scope: the anchors and
     // heading elements are captured by reference and the client-side router replaces
     // them on each visit, while this module only ever executes once per URL.
     function wireGalleryNav() {
-        teardownScrollspy?.();
-        teardownScrollspy = undefined;
+        stopScrollspy?.();
+        stopScrollspy = undefined;
 
         // Measured, not read off --gallery-sticky-top: getPropertyValue returns that
         // variable's calc() expression unevaluated.
@@ -126,7 +126,7 @@ const markdownUrl = DISABLE_MARKDOWN_DOCS ? undefined : urlWithBaseUrl('/gallery
 
         const siteHeader = document.querySelector<HTMLElement>('.site-header');
 
-        teardownScrollspy = scrollspy(
+        stopScrollspy = scrollspy(
             headings,
             (slug) => {
                 for (const navItem of navAnchors) {

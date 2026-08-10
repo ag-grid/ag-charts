@@ -30,8 +30,11 @@
     }
     globalThis.__agHomepageGalleryListening = true;
 
-    const UMD_TIMEOUT_MS = 10000;
     let activeChartManager = null;
+    // Bumped per mount and on every swap, so a readiness poll started by an earlier visit
+    // cannot initialise a later one (which would leave two chart managers on one
+    // container, only the last of them reachable for teardown).
+    let mountId = 0;
 
     function createChartManager({ agCharts, onFirstLoad }) {
         let chartInstance = null;
@@ -131,22 +134,23 @@
         });
     }
 
-    function whenReady(callback) {
-        if (globalThis.agCharts && globalThis[config.updateExamplesVariable]) {
-            callback();
-            return;
-        }
-
-        const deadline = Date.now() + UMD_TIMEOUT_MS;
+    // Waits for the AgCharts UMD and the examples bundle, both of which are separate
+    // <script>s that the router re-inserts without preserving document order. Polling is
+    // unbounded rather than deadlined: leaving the page cancels it, so a slow connection
+    // still resolves instead of stranding the gallery in its loading state.
+    function whenReady(generation, callback) {
+        const isReady = () => globalThis.agCharts && globalThis[config.updateExamplesVariable];
         const poll = () => {
-            if (globalThis.agCharts && globalThis[config.updateExamplesVariable]) {
+            if (generation !== mountId) {
+                return; // Superseded by a later navigation.
+            }
+            if (isReady()) {
                 callback();
-            } else if (Date.now() < deadline) {
+            } else {
                 requestAnimationFrame(poll);
             }
-            // Otherwise give up quietly and leave the loading state in place.
         };
-        requestAnimationFrame(poll);
+        poll();
     }
 
     document.addEventListener('astro:page-load', () => {
@@ -154,11 +158,14 @@
             // Not the homepage (or the gallery is absent) — nothing to wire up.
             return;
         }
-        whenReady(init);
+
+        const generation = ++mountId;
+        whenReady(generation, init);
     });
 
     // The chart outlives the <body> it was attached to unless it is torn down.
     document.addEventListener('astro:before-swap', () => {
+        mountId++;
         activeChartManager?.destroy();
         activeChartManager = null;
     });
