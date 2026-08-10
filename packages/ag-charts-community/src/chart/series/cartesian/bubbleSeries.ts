@@ -327,6 +327,19 @@ interface PreparedBubbleNodeDatumState {
     area: number;
 }
 
+/**
+ * A single-valued data domain has no extent to rescale into — every datum collapses onto one
+ * aggregation ratio, so the whole axis counts as visible rather than a zero-width NaN window.
+ */
+function rescaleAggregationVisibleRange(
+    visibleRange: [number, number],
+    scaleDomain: [number, number],
+    dataDomain: [number, number]
+): [number, number] {
+    const dataSpan = dataDomain[1] - dataDomain[0];
+    return dataSpan > 0 ? rescaleVisibleRange(visibleRange, scaleDomain, dataDomain) : [0, 1];
+}
+
 export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
     static override readonly className: string = 'BubbleSeries';
     static readonly type: string = 'bubble';
@@ -552,7 +565,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
 
         if (processedData != null && dataModel != null) {
             if (ContinuousScale.is(xScale)) {
-                xVisibleRange = rescaleVisibleRange(
+                xVisibleRange = rescaleAggregationVisibleRange(
                     xVisibleRange,
                     xScale.domain.map(dateToNumber) as [number, number],
                     dataModel.getDomain(this, `xValue`, 'value', processedData).domain.map(dateToNumber) as [
@@ -562,7 +575,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
                 );
             }
             if (ContinuousScale.is(yScale)) {
-                yVisibleRange = rescaleVisibleRange(
+                yVisibleRange = rescaleAggregationVisibleRange(
                     yVisibleRange,
                     yScale.domain.map(dateToNumber) as [number, number],
                     dataModel.getDomain(this, `yValue`, 'value', processedData).domain.map(dateToNumber) as [

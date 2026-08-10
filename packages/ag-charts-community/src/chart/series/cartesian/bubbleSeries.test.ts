@@ -1256,6 +1256,26 @@ describe('BubbleSeries', () => {
         });
     });
 
+    describe('AG-18035 aggregation with a degenerate axis domain', () => {
+        it('should aggregate a scatter series whose datums all share one x value', async () => {
+            const datumCount = 1000;
+            const options: AgCartesianChartOptions = {
+                data: Array.from({ length: datumCount }, (_, i) => ({ x: 5, y: i })),
+                series: [{ type: 'scatter', xKey: 'x', yKey: 'y', maxRenderedItems: 200 }],
+                legend: { enabled: false },
+            };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const series = getSeriesAggregationInternals(chart);
+            expect(series.dataAggregation).toBeDefined();
+            const renderedCount = series.contextNodeData?.nodeData?.length ?? 0;
+            expect(renderedCount).toBeGreaterThan(0);
+            expect(renderedCount).toBeLessThan(datumCount / 2);
+        });
+    });
+
     describe('AG-15743 legendItemName', () => {
         testLegendItemName({
             create: (o) => (chart = AgCharts.create(prepareTestOptions(o))),
