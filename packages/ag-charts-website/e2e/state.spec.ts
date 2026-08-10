@@ -3,7 +3,7 @@ import type { Locator, Page } from '@playwright/test';
 import type { DeepReadonly } from 'ag-charts-core';
 import type { AgChartState } from 'ag-charts-types';
 
-import { getChartState, setChartState } from './agE2E';
+import { PREVENT_DEFAULT_STUB, getChartState, popPreventables, setChartState } from './agE2E';
 import { expect, test } from './fixture';
 import { expectChartScreenshot } from './scene-capture';
 import {
@@ -22,28 +22,8 @@ import {
 type ConsoleLogs = ReturnType<typeof createConsoleLogs>;
 type ConsoleTracker = ReturnType<typeof createConsoleTracker>;
 
-const PREVENT_DEFAULT_STUB = () => {};
-
 async function popChartEvents(page: Page): Promise<unknown> {
-    const events = await page.evaluate(() => {
-        const popEvents: unknown = (window as any)?.agE2E?.popEvents;
-        if (!popEvents) {
-            throw new Error('window.agE2E.popEvents is not defined');
-        } else if (typeof popEvents !== 'function') {
-            throw new Error('window.agE2E.popEvents is not a function');
-        }
-        return popEvents();
-    });
-
-    expect(events).toBeDefined();
-    expect(typeof events).toBe('object');
-    return events.map((elem: unknown) => {
-        if (typeof elem === 'object') {
-            return { ...elem, preventDefault: PREVENT_DEFAULT_STUB };
-        } else {
-            return elem;
-        }
-    });
+    return popPreventables(page, 'popEvents');
 }
 
 test.describe('state', () => {

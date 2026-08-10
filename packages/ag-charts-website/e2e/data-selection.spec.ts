@@ -2,7 +2,7 @@ import type { Page } from '@playwright/test';
 
 import type { AgSelectionChangeEvent, AgSelectionChangeEventSource, AgSelectionItem } from 'ag-charts-types';
 
-import { evalPageFunction } from './agE2E';
+import { PREVENT_DEFAULT_STUB, evalPageFunction, popPreventables } from './agE2E';
 import { expect, test } from './fixture';
 import { expectChartScreenshot } from './scene-capture';
 import {
@@ -13,8 +13,6 @@ import {
     toExamplePageUrl,
     waitForChartUpdate,
 } from './util';
-
-const PREVENT_DEFAULT_STUB = () => {};
 
 type Datum = { population: number; city: string };
 type SelectionItem = AgSelectionItem<Datum>;
@@ -54,23 +52,7 @@ async function getChartSelection(page: Page): Promise<unknown> {
 
 async function popEvents(page: Page): Promise<unknown> {
     await waitForChartUpdate(page.locator(SELECTORS.wrapper));
-    const events: unknown = await page.evaluate(() => {
-        const agE2E_popEvents: unknown = (window as any)?.agE2E?.popEvents;
-        if (agE2E_popEvents == null) {
-            throw new Error('window.agE2E.popEvents is not defined');
-        } else if (typeof agE2E_popEvents !== 'function') {
-            throw new Error('window.agE2E.popEvents is not a function');
-        }
-        return agE2E_popEvents();
-    });
-    expect(Array.isArray(events)).toBe(true);
-    return (events as unknown[]).map((elem: unknown) => {
-        if (typeof elem === 'object') {
-            return { ...elem, preventDefault: PREVENT_DEFAULT_STUB };
-        } else {
-            return elem;
-        }
-    });
+    return await popPreventables(page, 'popEvents');
 }
 
 async function openExampleAndFocusFirstDatum(page: Page): Promise<void> {

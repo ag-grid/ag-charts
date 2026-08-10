@@ -5,6 +5,8 @@ import type { AgChartState } from 'ag-charts-types';
 import { expect } from './fixture';
 import { waitForChartUpdate } from './util';
 
+export const PREVENT_DEFAULT_STUB = () => {};
+
 export async function getChartState(page: Page): Promise<AgChartState> {
     const state = await page.evaluate(() => {
         const chart: unknown = (window as any)?.agE2E?.chart;
@@ -60,4 +62,17 @@ export async function evalPageFunction(page: Page, fnName: string): Promise<unkn
         }
         return fn();
     }, fnName);
+}
+
+export async function popPreventables(page: Page, fnName: string): Promise<unknown> {
+    const events: unknown = await evalPageFunction(page, fnName);
+    expect(events).toBeDefined();
+    expect(Array.isArray(events)).toBe(true);
+    return (events as unknown[]).map((elem: unknown) => {
+        if (typeof elem === 'object') {
+            return { ...elem, preventDefault: PREVENT_DEFAULT_STUB };
+        } else {
+            return elem;
+        }
+    });
 }
