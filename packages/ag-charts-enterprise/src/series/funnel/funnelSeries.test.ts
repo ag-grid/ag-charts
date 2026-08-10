@@ -711,6 +711,88 @@ describe('FunnelSeries', () => {
         });
     });
 
+    describe('cornerRadius', () => {
+        // Rect.serializeProps() omits the corner-radius fields, so neither the image snapshot nor the
+        // scene-graph JSON can witness this option — the nodes have to be read directly.
+        const segmentRects = (target: Chart) => {
+            const rects: _ModuleSupport.Rect[] = [];
+            const visit = (node: _ModuleSupport.Node) => {
+                if (node instanceof _ModuleSupport.Rect) rects.push(node);
+                if (node instanceof _ModuleSupport.Group) {
+                    for (const child of node.children()) visit(child);
+                }
+            };
+            visit((target.series[0] as any).contentGroup);
+            return rects;
+        };
+
+        const buildOptions = (cornerRadius?: number, direction?: 'horizontal' | 'vertical') => {
+            const options: AgChartOptions = {
+                data: [
+                    { group: 'Qualify', value: 7910 },
+                    { group: 'Develop', value: 8170 },
+                    { group: 'Propose', value: 7260 },
+                    { group: 'Close', value: 4460 },
+                ],
+                series: [
+                    {
+                        type: 'funnel',
+                        stageKey: 'group',
+                        valueKey: 'value',
+                        strokes: ['black'],
+                        strokeWidth: 4,
+                        cornerRadius,
+                        direction,
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+            return options;
+        };
+
+        it('rounds every segment, with the stroke following the rounded shape', async () => {
+            chart = deproxy(AgCharts.create(buildOptions(16)));
+            await waitForChartStability(chart);
+
+            const rects = segmentRects(chart);
+            expect(rects).toHaveLength(4);
+            for (const rect of rects) {
+                expect(rect.topLeftCornerRadius).toBe(16);
+                expect(rect.topRightCornerRadius).toBe(16);
+                expect(rect.bottomRightCornerRadius).toBe(16);
+                expect(rect.bottomLeftCornerRadius).toBe(16);
+            }
+
+            await compare();
+        });
+
+        it('defaults to square corners', async () => {
+            chart = deproxy(AgCharts.create(buildOptions()));
+            await waitForChartStability(chart);
+
+            const rects = segmentRects(chart);
+            expect(rects).toHaveLength(4);
+            for (const rect of rects) {
+                expect(rect.topLeftCornerRadius).toBe(0);
+                expect(rect.topRightCornerRadius).toBe(0);
+                expect(rect.bottomRightCornerRadius).toBe(0);
+                expect(rect.bottomLeftCornerRadius).toBe(0);
+            }
+        });
+
+        it('rounds every segment in the horizontal direction too', async () => {
+            chart = deproxy(AgCharts.create(buildOptions(16, 'horizontal')));
+            await waitForChartStability(chart);
+
+            const rects = segmentRects(chart);
+            expect(rects).toHaveLength(4);
+            for (const rect of rects) {
+                expect(rect.topLeftCornerRadius).toBe(16);
+                expect(rect.bottomRightCornerRadius).toBe(16);
+            }
+        });
+    });
+
     describe('animation', () => {
         const frames = spyOnAnimationFrames();
 
