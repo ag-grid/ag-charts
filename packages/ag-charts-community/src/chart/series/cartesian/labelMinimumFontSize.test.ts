@@ -6,6 +6,7 @@ import { AgCharts } from '../../../api/agCharts';
 import {
     compareImageSnapshot,
     deproxy,
+    expectWarningsCalls,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
@@ -168,6 +169,30 @@ describe('label minimumFontSize', () => {
         await render(barChart({ truncate: true, minimumFontSize: 4, itemStyler: () => ({ fontSize: 10 }) }));
         for (const node of labels()) {
             expect(node.fontSize).toBeLessThan(10);
+        }
+    });
+
+    it('rejects a minimum above the configured font size at options time', async () => {
+        await render(barChart({ truncate: true, minimumFontSize: FONT_SIZE + 1 }));
+        expectWarningsCalls().toMatchInlineSnapshot(`
+          [
+            [
+              "AG Charts - Option \`series[0].label.minimumFontSize\` cannot be set to \`21\`; expecting a number greater than 0 and the value to be less than or equal to \`fontSize\`, ignoring.",
+            ],
+          ]
+        `);
+        expect(fontSizes()).toEqual(data.map(() => FONT_SIZE));
+    });
+
+    it('clamps a minimum the itemStyler resolved below', async () => {
+        // Validation only sees the configured pair, so an itemStyler that returns a smaller size is the
+        // one route left to `minimumFontSize > fontSize`. The label takes the styler's size rather than
+        // growing back up to the floor.
+        await render(barChart({ truncate: true, minimumFontSize: 16, itemStyler: () => ({ fontSize: 8 }) }));
+        const rendered = labels();
+        expect(rendered.length).toBe(data.length);
+        for (const node of rendered) {
+            expect(node.fontSize).toBe(8);
         }
     });
 
