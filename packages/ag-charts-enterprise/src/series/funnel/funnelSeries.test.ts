@@ -26,6 +26,7 @@ import {
     spyOnAnimationFrames,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { classCast } from 'ag-charts-test';
 
 import {
     funnelLabelFadeIn,
@@ -34,6 +35,7 @@ import {
     prepareEnterpriseTestOptions,
     renderEnterpriseChartImage,
 } from '../../test/utils';
+import { FunnelSeries } from './funnelSeries';
 
 const FUNNEL_EXAMPLE: AgChartOptions = {
     title: {
@@ -722,7 +724,7 @@ describe('FunnelSeries', () => {
                     for (const child of node.children()) visit(child);
                 }
             };
-            visit((target.series[0] as any).contentGroup);
+            visit(classCast(target.series[0], FunnelSeries).contentGroup);
             return rects;
         };
 
