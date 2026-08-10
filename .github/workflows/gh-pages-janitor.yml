@@ -1,0 +1,146 @@
+name: gh-pages janitor
+
+# Reclaims dead weight from the Pages site. GitHub Pages rebuilds and republishes the WHOLE site
+# on every push to gh-pages, and its branch builds are single-flight — a new push cancels the
+# in-flight build. So site size is paid by every PR on every deploy, and a bloated site turns
+# into minutes of deploy latency (and snapshot-review report links that time out waiting).
+#
+# Two leaks are swept here:
+#
+#   1. Previews for closed PRs. `gh_pages_cleanup` (pr-cleanup.yml) removes pr-<N>/ on close, but a
+#      CI run still in flight at merge time republishes it minutes later and orphans it forever.
+#      pr-preview-publish now re-checks PR state just before pushing, which narrows that window to
+#      seconds; this sweep closes it, and reclaims whatever leaked before either was in place.
+#   2. Source maps. pr-preview-publish no longer publishes them (they were ~78% of the site), but
+#      publishes overlay rather than replace, so previously-published maps persist until their PR
+#      closes. This deletes them outright.
+#
+# Everything the sweep finds is removed in ONE push, so the whole thing costs one Pages build
+# rather than one per directory.
+
+on:
+    schedule:
+        # 03:17 UTC daily — off-peak, and off the hour to avoid the scheduler's rush.
+        - cron: '17 3 * * *'
+    workflow_dispatch:
+        inputs:
+            dry_run:
+                description: 'List what would be removed without pushing.'
+                type: boolean
+                default: false
+            purge_source_maps:
+                description: 'Also delete .map files under pr-*/ (they are no longer published).'
+                type: boolean
+                default: true
+
+permissions:
+    contents: read
+
+concurrency:
+    # Serialise sweeps with each other only. Cross-writer conflicts with per-PR publishers are
+    # resolved by the push-retry loop in gh-pages-commit.sh, not by a lock.
+    group: gh-pages-janitor
+    cancel-in-progress: false
+
+jobs:
+    sweep:
+        runs-on: ubuntu-24.04
+        name: Sweep stale gh-pages content
+        permissions:
+            contents: write
+            pull-requests: read
+        env:
+            PUBLISH_BRANCH: gh-pages
+            # Scheduled runs get the safe defaults; only a manual dispatch can change them.
+            DRY_RUN: ${{ inputs.dry_run || false }}
+            PURGE_SOURCE_MAPS: ${{ inputs.purge_source_maps != false }}
+        steps:
+            # Needed for the shared script below; it clones the publish branch itself.
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 1
+
+            - name: Work out what is stale
+              id: plan
+              shell: bash
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  set -uo pipefail
+                  paths=""
+
+                  tree=$(gh api "repos/${GITHUB_REPOSITORY}/git/trees/${PUBLISH_BRANCH}?recursive=1" \
+                             --jq '.tree[] | select(.type=="blob") | .path')
+                  if [[ -z "$tree" ]]; then
+                      echo "::error::Could not list ${PUBLISH_BRANCH}; aborting rather than guessing."
+                      exit 1
+                  fi
+
+                  # Closed-PR previews. Unreadable PR state keeps the directory — a stale preview is
+                  # cheap, deleting a live one is not.
+                  for dir in $(printf '%s\n' "$tree" | grep -oE '^pr-[0-9]+' | sort -u); do
+                      state=$(gh pr view "${dir#pr-}" --json state --jq .state 2>/dev/null) || state=''
+                      case "$state" in
+                          CLOSED | MERGED) echo "stale preview: ${dir} (${state})"; paths="${paths} ${dir}" ;;
+                          OPEN) ;;
+                          *) echo "::warning::could not read state for ${dir}; keeping it." ;;
+                      esac
+                  done
+
+                  # Source maps under previews that survived the pass above (maps under a directory
+                  # already queued for removal would be redundant).
+                  if [[ "$PURGE_SOURCE_MAPS" == 'true' ]]; then
+                      while IFS= read -r f; do
+                          [[ -n "$f" ]] || continue
+                          keep=true
+                          for p in $paths; do [[ "$f" == "$p"/* ]] && { keep=false; break; }; done
+                          if [[ "$keep" == true ]]; then
+                              echo "source map: ${f}"
+                              paths="${paths} ${f}"
+                          fi
+                      done < <(printf '%s\n' "$tree" | grep -E '^pr-[0-9]+/.*\.map$')
+                  fi
+
+                  # Collapse whitespace so the emptiness check below is honest.
+                  paths=$(echo $paths)
+                  if [[ -z "$paths" ]]; then
+                      echo "Nothing stale on ${PUBLISH_BRANCH}."
+                  else
+                      echo "Reclaiming $(wc -w <<< "$paths" | tr -d ' ') path(s) in one push."
+                  fi
+                  echo "paths=${paths}" >> "$GITHUB_OUTPUT"
+
+            - name: Remove stale paths
+              # Empty list: nothing to do, and the shared script requires a non-empty TARGET_PREFIX.
+              if: steps.plan.outputs.paths != '' && env.DRY_RUN != 'true'
+              shell: bash
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  MODE: remove
+                  TARGET_PREFIX: ${{ steps.plan.outputs.paths }}
+                  COMMIT_MESSAGE: 'pr-preview: janitor sweep of stale previews and source maps'
+              run: bash external/ag-shared/github/actions/pr-preview-lib/gh-pages-commit.sh
+
+            - name: Summary
+              if: always()
+              shell: bash
+              run: |
+                  set -euo pipefail
+                  {
+                      echo "### gh-pages janitor"
+                      echo
+                      if [[ -z "${{ steps.plan.outputs.paths }}" ]]; then
+                          echo "Nothing stale to reclaim."
+                      elif [[ "$DRY_RUN" == 'true' ]]; then
+                          echo "Dry run — would remove:"
+                          echo '```'
+                          tr ' ' '\n' <<< "${{ steps.plan.outputs.paths }}"
+                          echo '```'
+                      else
+                          echo "Removed:"
+                          echo '```'
+                          tr ' ' '\n' <<< "${{ steps.plan.outputs.paths }}"
+                          echo '```'
+                      fi
+                  } >> "$GITHUB_STEP_SUMMARY"

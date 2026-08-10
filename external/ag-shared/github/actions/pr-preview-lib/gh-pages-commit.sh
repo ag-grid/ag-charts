@@ -17,7 +17,12 @@
 #   GH_TOKEN            required   token with contents:write on the publish branch
 #   GITHUB_REPOSITORY   required   owner/repo — set by the Actions runner
 #   MODE                required   'sync' (publish files) | 'remove' (delete subtree)
-#   TARGET_PREFIX       required   subtree owned by this operation, e.g. 'pr-123'
+#   TARGET_PREFIX       required   path(s) owned by this operation, e.g. 'pr-123'. MODE=remove
+#                                  accepts a whitespace-separated list so a sweep (e.g. reclaiming
+#                                  many stale previews at once) lands as ONE push: GitHub Pages
+#                                  rebuilds the whole site per push and its branch builds are
+#                                  single-flight, so N pushes cost N cancelling builds. Paths must
+#                                  not contain whitespace. MODE=sync requires exactly one.
 #   COMMIT_MESSAGE      required   commit message
 #   SOURCE_DIR          sync only  directory whose contents overlay TARGET_PREFIX/
 #   PUBLISH_BRANCH      optional   default 'gh-pages'
@@ -34,9 +39,22 @@ PUBLISH_BRANCH="${PUBLISH_BRANCH:-gh-pages}"
 MAX_ATTEMPTS="${MAX_ATTEMPTS:-5}"
 REMOTE="${PUBLISH_REMOTE:-https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git}"
 
+# Unquoted on purpose: TARGET_PREFIX is a whitespace-separated list in remove mode.
+# shellcheck disable=SC2206
+TARGET_PREFIXES=( $TARGET_PREFIX )
+
 case "$MODE" in
-    sync) : "${SOURCE_DIR:?SOURCE_DIR is required for MODE=sync}" ;;
-    remove) ;;
+    sync)
+        : "${SOURCE_DIR:?SOURCE_DIR is required for MODE=sync}"
+        if [ "${#TARGET_PREFIXES[@]}" -ne 1 ]; then
+            echo "::error::MODE=sync takes exactly one TARGET_PREFIX (got ${#TARGET_PREFIXES[@]})."; exit 1
+        fi
+        ;;
+    remove)
+        if [ "${#TARGET_PREFIXES[@]}" -eq 0 ]; then
+            echo "TARGET_PREFIX is empty; nothing to remove."; exit 0
+        fi
+        ;;
     *) echo "::error::MODE must be 'sync' or 'remove' (got '$MODE')"; exit 1 ;;
 esac
 
@@ -78,9 +96,20 @@ apply_operation() {
         cp -R "$SOURCE_DIR"/. "$TARGET_PREFIX"/
         touch .nojekyll # disable Jekyll for the whole Pages site
     else
-        rm -rf -- "$TARGET_PREFIX"
+        for p in "${TARGET_PREFIXES[@]}"; do
+            rm -rf -- "$p"
+        done
     fi
 }
+
+# These paths are deleted with rm -rf inside a clone of the publish branch. Reject anything
+# that could escape it or resolve to the clone root before that happens.
+for p in "${TARGET_PREFIXES[@]}"; do
+    case "$p" in
+        /* | */../* | ../* | */.. | .. | . | '')
+            echo "::error::refusing unsafe TARGET_PREFIX entry: '$p'"; exit 1 ;;
+    esac
+done
 
 attempt=1
 while :; do
