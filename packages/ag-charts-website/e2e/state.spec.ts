@@ -3,6 +3,7 @@ import type { Locator, Page } from '@playwright/test';
 import type { DeepReadonly } from 'ag-charts-core';
 import type { AgChartState } from 'ag-charts-types';
 
+import { getChartState, setChartState } from './agE2E';
 import { expect, test } from './fixture';
 import { expectChartScreenshot } from './scene-capture';
 import {
@@ -22,51 +23,6 @@ type ConsoleLogs = ReturnType<typeof createConsoleLogs>;
 type ConsoleTracker = ReturnType<typeof createConsoleTracker>;
 
 const PREVENT_DEFAULT_STUB = () => {};
-
-async function getChartState(page: Page): Promise<AgChartState> {
-    const state = await page.evaluate(() => {
-        const chart: unknown = (window as any)?.agE2E?.chart;
-        if (!chart) {
-            throw new Error('window.agE2E.chart is not defined');
-        } else if (typeof chart !== 'object') {
-            throw new Error('window.agE2E.chart is not an object');
-        } else if (!('getState' in chart)) {
-            throw new Error('window.agE2E.chart does not have getState property');
-        } else if (typeof chart.getState !== 'function') {
-            throw new Error('window.agE2E.chart.getState is not a function');
-        }
-        return chart.getState();
-    });
-
-    expect(state).toBeDefined();
-    expect(typeof state).toBe('object');
-    return state;
-}
-
-async function setChartState(page: Page, state: AgChartState): Promise<void> {
-    await page.evaluate(
-        async ({ newState }) => {
-            const chart: unknown = (window as any)?.agE2E?.chart;
-            if (!chart) {
-                throw new Error('window.agE2E.chart is not defined');
-            } else if (typeof chart !== 'object') {
-                throw new Error('window.agE2E.chart is not an object');
-            } else if (!('setState' in chart)) {
-                throw new Error('window.agE2E.chart does not have setState property');
-            } else if (typeof chart.setState !== 'function') {
-                throw new Error('window.agE2E.chart.setState is not a function');
-            }
-
-            const setStateReturn = chart.setState(newState);
-            if (!(setStateReturn instanceof Promise)) {
-                throw new Error('window.agE2E.chart.setState did not return a Promise');
-            }
-            await setStateReturn;
-        },
-        { newState: state }
-    );
-    await waitForChartUpdate(page.locator('.ag-charts-wrapper'));
-}
 
 async function popChartEvents(page: Page): Promise<unknown> {
     const events = await page.evaluate(() => {
