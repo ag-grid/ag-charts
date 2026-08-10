@@ -386,15 +386,39 @@ export abstract class CartesianAxis<
             (ContinuousScale.is(this.scale) || DiscreteTimeScale.is(this.scale));
 
         if (removeOverflowLabels) {
+            // A configured `textAlign` moves the label's trailing edge away from the centre-anchored
+            // `width / 2` this check assumes; unset keeps today's arithmetic exactly.
+            const trailingEdgeOffset = (width: number) => {
+                switch (label?.textAlign) {
+                    case 'left':
+                        return width;
+                    case 'right':
+                        return 0;
+                    default:
+                        return width / 2;
+                }
+            };
             const removeOverflowThreshold = this.chartLayout?.padding.right ?? 0;
             const lastTick = tickData.ticks.at(-1);
             if (
                 lastTick?.tickLabel != null &&
-                lastTick.translation + lastTick.textMetrics.width / 2 > range[1] + removeOverflowThreshold
+                lastTick.translation + trailingEdgeOffset(lastTick.textMetrics.width) >
+                    range[1] + removeOverflowThreshold
             ) {
                 lastTick.tickLabel = undefined;
                 if (visibleRange[0] === 0 && visibleRange[1] === 1) {
                     tickData.ticks[0].tickLabel = undefined;
+                }
+            }
+
+            // The leading edge can only overflow once `textAlign` is configured - a centre or
+            // right-aligned first label extends past the start of the range.
+            const firstTick = tickData.ticks[0];
+            if (label?.textAlign != null && firstTick?.tickLabel != null) {
+                const width = firstTick.textMetrics.width;
+                const leadingEdgeOffset = trailingEdgeOffset(width) - width;
+                if (firstTick.translation + leadingEdgeOffset < range[0] - (this.chartLayout?.padding.left ?? 0)) {
+                    firstTick.tickLabel = undefined;
                 }
             }
         }
@@ -413,6 +437,8 @@ export abstract class CartesianAxis<
         this.setPickTickData(ticks, rawFirstTickIndex);
 
         const labels = ticks.map((d) => this.getTickLabelProps(d, tickGenerationResult, scrollbarThickness));
+
+        this.alignLabelColumns(ticks, labels, tickGenerationResult.rotation);
 
         const { position, gridPadding, gridLength } = this;
         const direction = position === 'bottom' || position === 'right' ? -1 : 1;
@@ -942,7 +968,10 @@ export abstract class CartesianAxis<
         const { tickId, tickLabel: text = '', translation, isPrimary, textUntruncated } = datum;
         const label = isPrimary && primaryLabel?.enabled ? primaryLabel : this.options.label;
         const tick = isPrimary && primaryTick?.enabled ? primaryTick : this.options.tick;
-        const { rotation, textBaseline, textAlign } = tickGenerationResult;
+        const { rotation, textBaseline } = tickGenerationResult;
+        // A configured `label.textAlign` overrides the alignment derived from the axis side and the
+        // label rotation. Unset (the default) leaves the computed value untouched.
+        const textAlign = label.textAlign ?? tickGenerationResult.textAlign;
         const { range } = scale;
         const sideFlag = getAxisLabelSideFlag(this.mirrored);
         const borderOffset = expandLabelPadding(label)[this.position];
@@ -973,6 +1002,80 @@ export abstract class CartesianAxis<
             rotationCenterY: y,
             range,
         };
+    }
+
+    /**
+     * Re-anchor the labels of a vertical axis so that a configured `label.textAlign` aligns them
+     * within the axis's label column, rather than around their own anchor point - the latter would
+     * grow the glyphs inwards across the axis line and over the plot area.
+     *
+     * Only applies when `textAlign` is configured, the axis is vertical, and the labels are
+     * unrotated; rotated labels align to their own bounding box, which the scene node already does.
+     */
+    private alignLabelColumns(ticks: TickDatum[], labels: LabelNodeDatum[], rotation: number) {
+        const leafLabel = this.options.label;
+        const { primaryLabel } = this;
+
+        if (this.horizontal || rotation !== 0) return;
+        if (leafLabel.textAlign == null && primaryLabel?.textAlign == null) return;
+
+        const { tempText } = this;
+        const sideFlag = getAxisLabelSideFlag(this.mirrored);
+        const primaryEnabled = primaryLabel?.enabled ?? false;
+
+        // Each label tier occupies its own column, so a tier that leaves `textAlign` unset keeps
+        // today's anchor.
+        for (const primaryTier of [false, true]) {
+            const tierLabel = primaryTier ? primaryLabel : leafLabel;
+            const textAlign = tierLabel?.textAlign;
+            if (textAlign == null) continue;
+
+            // `getBBox()` includes the box padding where the label is boxed, but `textAlign`
+            // anchors the text, so the column width must exclude it.
+            const padding = expandLabelPadding(tierLabel);
+            const boxPadding = padding.left + padding.right;
+
+            const tierIndices: number[] = [];
+            let maxLabelWidth = 0;
+            for (let i = 0; i < labels.length; i += 1) {
+                if ((ticks[i].isPrimary && primaryEnabled) !== primaryTier) continue;
+
+                tierIndices.push(i);
+
+                const datum = labels[i];
+                if (!datum.visible) continue;
+
+                tempText.setProperties(datum);
+                const box = tempText.getBBox();
+                if (box != null) {
+                    maxLabelWidth = Math.max(maxLabelWidth, box.width - boxPadding);
+                }
+            }
+
+            if (maxLabelWidth <= 0) continue;
+
+            for (const i of tierIndices) {
+                const datum = labels[i];
+                // `inner` is the column edge nearest the axis line - taken verbatim so the tick,
+                // padding and scrollbar terms are inherited rather than re-derived.
+                const inner = datum.x;
+                const outer = inner + sideFlag * maxLabelWidth;
+                const columnStart = Math.min(inner, outer);
+                const columnEnd = Math.max(inner, outer);
+
+                let x;
+                if (textAlign === 'left') {
+                    x = columnStart;
+                } else if (textAlign === 'right') {
+                    x = columnEnd;
+                } else {
+                    x = (columnStart + columnEnd) / 2;
+                }
+
+                datum.x = x;
+                datum.rotationCenterX = x;
+            }
+        }
     }
 
     protected updateSelections() {
