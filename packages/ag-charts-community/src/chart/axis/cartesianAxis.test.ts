@@ -1545,9 +1545,9 @@ describe('CartesianAxis', () => {
         });
     });
 
-    // AG-12897: `axis.label.textAlign` re-anchors unrotated vertical-axis labels within their
-    // column instead of around their own point, so a configured alignment doesn't grow long
-    // labels back over the axis line and into the plot area.
+    // `axis.label.textAlign` re-anchors unrotated vertical-axis labels within their column instead
+    // of around their own point, so a configured alignment doesn't grow long labels back over the
+    // axis line and into the plot area.
     describe('axis label textAlign', () => {
         // Deliberately unequal label widths: a right-positioned category axis is the only vertical
         // axis whose ticks routinely differ in text length.
