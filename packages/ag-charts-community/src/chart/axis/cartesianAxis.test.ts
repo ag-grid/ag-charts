@@ -1594,7 +1594,11 @@ describe('CartesianAxis', () => {
             await waitForChartStability(chart);
 
             const nodes = getRightAxisLabelNodes(chart);
-            expect(nodes.map((n) => n.datum.text).sort()).toEqual(['A', 'BBBBBBBBBB', 'CCC']);
+            expect(nodes.map((n) => n.datum.text).sort((a: string, b: string) => a.localeCompare(b))).toEqual([
+                'A',
+                'BBBBBBBBBB',
+                'CCC',
+            ]);
             for (const node of nodes) {
                 expect(node.datum.textAlign).toBe('left');
             }
@@ -1607,7 +1611,11 @@ describe('CartesianAxis', () => {
             await waitForChartStability(chart);
 
             const nodes = getRightAxisLabelNodes(chart);
-            expect(nodes.map((n) => n.datum.text).sort()).toEqual(['A', 'BBBBBBBBBB', 'CCC']);
+            expect(nodes.map((n) => n.datum.text).sort((a: string, b: string) => a.localeCompare(b))).toEqual([
+                'A',
+                'BBBBBBBBBB',
+                'CCC',
+            ]);
 
             const boxes = nodes.map((n) => Transformable.toCanvas(n));
             const rightEdges = boxes.map((b) => b.x + b.width);
