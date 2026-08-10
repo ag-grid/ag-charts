@@ -902,6 +902,7 @@ export class SankeySeries extends FlowProportionSeries<
             rect.y = datum.y;
             rect.width = Math.max(datum.width, 0);
             rect.height = Math.max(datum.height, 0);
+            rect.cornerRadius = this.properties.node.cornerRadius;
 
             rect.setStyleProperties(style, fillBBox);
         });
