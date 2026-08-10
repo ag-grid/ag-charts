@@ -4,6 +4,7 @@ import type {
     AgCartesianChartOptions,
     AgChartOptions,
     AgChordSeriesLinkItemStylerParams,
+    AgChordSeriesNodeItemStylerParams,
     AgPolarChartOptions,
     InteractionRange,
 } from 'ag-charts-community';
@@ -71,6 +72,34 @@ describe('ChordSeries', () => {
                         type: 'chord',
                         link: {
                             tension: 0.5,
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
+
+        it('should render node cornerRadius', async () => {
+            // Anti-vacuity: `sector.inset = strokeWidth / 2` shrinks the radial length before the
+            // corner radius is clamped to half of it and floored, so the radius is chosen against
+            // `(width - strokeWidth) / 2` to guarantee visible rounding in the baseline.
+            const options: AgChartOptions = {
+                ...GALLERY_EXAMPLES.SIMPLE_CHORD_EXAMPLE.options,
+                series: [
+                    {
+                        ...(GALLERY_EXAMPLES.SIMPLE_CHORD_EXAMPLE.options.series![0] as any),
+                        type: 'chord',
+                        node: {
+                            width: 24,
+                            stroke: 'black',
+                            strokeWidth: 2,
+                            cornerRadius: 8,
+                            // Exercises the per-node override route as well as the series-wide option.
+                            itemStyler: ({ index }: AgChordSeriesNodeItemStylerParams<unknown>) =>
+                                index % 2 === 0 ? { cornerRadius: 2 } : {},
                         },
                     },
                 ],

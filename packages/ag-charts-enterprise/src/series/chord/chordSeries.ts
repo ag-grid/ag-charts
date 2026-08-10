@@ -519,6 +519,7 @@ export class ChordSeries extends FlowProportionSeries<
             sector.startAngle = datum.startAngle;
             sector.endAngle = datum.endAngle;
             sector.inset = sector.strokeWidth / 2;
+            sector.cornerRadius = style.cornerRadius;
         });
     }
 
