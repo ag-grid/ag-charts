@@ -170,10 +170,18 @@ export interface AgChartLegendEvent<T extends string, TContext = ContextDefault>
 }
 
 export interface AgChartLegendClickEvent<TContext = ContextDefault>
-    extends AgChartLegendEvent<'click', TContext>, AgPreventableEvent {}
+    extends AgChartLegendEvent<'click', TContext>, AgPreventableEvent {
+    /** Whether this legend item is currently shown as active. This is the state before any visibility toggle this
+     * event may cause - use the chart `seriesVisibilityChange` event for the new state. */
+    visible: boolean;
+}
 
 export interface AgChartLegendDoubleClickEvent<TContext = ContextDefault>
-    extends AgChartLegendEvent<'dblclick', TContext>, AgPreventableEvent {}
+    extends AgChartLegendEvent<'dblclick', TContext>, AgPreventableEvent {
+    /** Whether this legend item is currently shown as active. This is the state before any visibility toggle this
+     * event may cause - use the chart `seriesVisibilityChange` event for the new state. */
+    visible: boolean;
+}
 
 export interface AgChartLegendContextMenuEvent<TContext = ContextDefault> extends AgChartLegendEvent<
     'contextmenu',
