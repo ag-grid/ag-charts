@@ -4,6 +4,7 @@ import {
     type AgBaseThemeableChartOptions,
     type AgChartAutoSizedBaseLabelOptions,
     type AgChartCaptionOptions,
+    type AgChartLabelAutoFontSizeOptions,
     type AgChartLabelCollisionFitOptions,
     type AgChartLabelCollisionOptions,
     type AgChartLabelFitOptions,
@@ -214,6 +215,10 @@ const chartCaptionOptionsDefs: OptionsDefs<AgChartCaptionOptions> = {
         visible: union('auto', 'always', 'never'),
         text: string,
         renderer: callbackOf(or(string, number, date)),
+    },
+    listeners: {
+        click: callback,
+        doubleClick: callback,
     },
 };
 // @ts-expect-error undocumented option
@@ -501,6 +506,8 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
         seriesNodeDoubleClick: callback,
         axisClick: callback,
         axisDoubleClick: callback,
+        captionClick: callback,
+        captionDoubleClick: callback,
         seriesVisibilityChange: callback,
         activeChange: callback,
         selectionChange: callback,
@@ -811,6 +818,11 @@ export const undocumentedLabelFitOptionsDefs: OptionsDefs<AgChartLabelFitOptions
     maxHeight: undocumented(positiveNumber),
     wrapping: undocumented(textWrap),
     truncate: undocumented(boolean),
+};
+
+/** Font-reduction defs for series whose labels shrink to fit before truncating or hiding. */
+export const labelAutoFontSizeOptionsDefs: OptionsDefs<AgChartLabelAutoFontSizeOptions> = {
+    minimumFontSize: positiveNumberNonZero,
 };
 
 /** Label-fit defs plus the collision object, for series that place their labels against obstacles. */

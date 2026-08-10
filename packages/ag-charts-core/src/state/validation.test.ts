@@ -2,7 +2,7 @@ import type { Mock } from 'vitest';
 import { afterEach, beforeEach, describe, expect, vi } from 'vitest';
 
 import { textOrSegments } from '../config/chartDefaults';
-import { colorOrRef } from '../config/optionsDefaults';
+import { colorOrRef, padding } from '../config/optionsDefaults';
 import { Logger, reset as resetLogger } from '../logging/logger';
 import { RegistryMode, reset as resetRegistry, setRegistryMode } from '../modules/moduleRegistry';
 import {
@@ -20,8 +20,10 @@ import {
     boolean,
     callback,
     callbackOf,
+    color,
     constant,
     date,
+    deprecated,
     enterprise,
     greaterThan,
     instanceOf,
@@ -236,6 +238,36 @@ describe('Validation utils', () => {
                 expect(() => enterprise(required(string))).toThrow(/enterprise.*required/);
                 expect(() => required(enterprise(string))).toThrow(/required.*enterprise/);
             });
+        });
+    });
+
+    describe('deprecated wrapper', () => {
+        afterEach(() => validationLogger.setLevel('deprecation'));
+
+        test('emits a deprecationOnce notice at the default console level', () => {
+            const { cleared, invalid } = validate<{ colorScale: string }>(
+                { colorScale: 'red' },
+                { colorScale: deprecated(string, 'Use `colorScale.fills` instead.') }
+            );
+            expect(cleared).toEqual({ colorScale: 'red' });
+            expect(invalid).toEqual([]);
+            expect(console.warn).toHaveBeenCalledTimes(1);
+            expect((console.warn as Mock).mock.calls[0][0]).toContain('is deprecated');
+            expect((console.warn as Mock).mock.calls[0][0]).toContain('Use `colorScale.fills` instead.');
+        });
+
+        test('silences the notice once the console level is raised to "warning"', () => {
+            validationLogger.setLevel('warning');
+            // A message distinct from the preceding test's, so the shared logger's do-once cache
+            // cannot be what keeps this quiet.
+            const { cleared, invalid } = validate<{ colorScale: string }>(
+                { colorScale: 'red' },
+                { colorScale: deprecated(string, 'Use `colorScale.range` instead.') }
+            );
+            // The value still passes through to the inner validator during the deprecation window.
+            expect(cleared).toEqual({ colorScale: 'red' });
+            expect(invalid).toEqual([]);
+            expect(console.warn).not.toHaveBeenCalled();
         });
     });
 
@@ -706,6 +738,61 @@ describe('Validation utils', () => {
             expect(
                 isValid({ c: { ref: 'accentColor', mix: 0.5, ontoColor: 'var(--brand)junk' } }, { c: colorOrRef })
             ).toBe(false);
+        });
+    });
+
+    describe('padding validator (AG-17973)', () => {
+        test('rejects a negative scalar padding and warns', () => {
+            const { cleared, invalid } = validate<{ padding?: number }>({ padding: -5 }, { padding });
+            expect(cleared).toEqual({});
+            const messages = invalid.map(String);
+            expect(messages).toHaveLength(1);
+            expect(messages[0]).toContain('Option `padding` cannot be set to `-5`');
+            expect(messages[0]).toContain('expecting a number greater than or equal to 0');
+        });
+
+        test('drops only the invalid side of an object padding, keeping the valid sibling', () => {
+            const { cleared, invalid } = validate<{ padding?: any }>({ padding: { top: -5, left: 10 } }, { padding });
+            expect(cleared).toEqual({ padding: { left: 10 } });
+            const messages = invalid.map(String);
+            expect(messages).toHaveLength(1);
+            expect(messages[0]).toContain('Option `padding.top` cannot be set to `-5`');
+        });
+
+        test('accepts zero for both scalar and object padding', () => {
+            expect(isValid({ padding: 0 }, { padding })).toBe(true);
+            expect(isValid({ padding: { top: 0, right: 0, bottom: 0, left: 0 } }, { padding })).toBe(true);
+        });
+    });
+
+    describe('color', () => {
+        it('rejects oklab(), lab(), lch() and color()', () => {
+            expect(isValid({ c: 'oklab(0.5 0.1 0.1)' }, { c: color })).toBe(false);
+            expect(isValid({ c: 'lab(50% 40 59.5)' }, { c: color })).toBe(false);
+            expect(isValid({ c: 'lch(50% 70 40)' }, { c: color })).toBe(false);
+            expect(isValid({ c: 'color(display-p3 1 0.5 0)' }, { c: color })).toBe(false);
+        });
+
+        it('still accepts none, a named color, hex, rgb() and hsl()', () => {
+            // var(--brand) is deliberately not pinned here: jsdom's CSSStyleDeclaration (unlike
+            // a real browser) rejects an unresolved var() reference as a specified color value
+            // outright, so isColor's var()-passthrough can only be observed with the
+            // container-based mockCssVarColorSupport shim, which is enterprise-only.
+            expect(isValid({ c: 'none' }, { c: color })).toBe(true);
+            expect(isValid({ c: 'red' }, { c: color })).toBe(true);
+            expect(isValid({ c: '#ff5733' }, { c: color })).toBe(true);
+            expect(isValid({ c: 'rgb(72, 120, 208)' }, { c: color })).toBe(true);
+            expect(isValid({ c: 'hsl(145, 63%, 42%)' }, { c: color })).toBe(true);
+        });
+
+        // D1 guard: this change deliberately rejects only the four named formats via
+        // isUnsupportedColorFormat, ahead of the existing browser parse — it must not narrow
+        // the validator wholesale. currentColor renders today and must keep validating; the
+        // corresponding hwb()/color-mix()/oklch() pins live in color.test.ts against
+        // isUnsupportedColorFormat directly, because jsdom's CSS engine here does not
+        // implement those functions, so parseColor() rejects them regardless of this change.
+        it('still accepts currentColor (D1 guard: not narrowed wholesale)', () => {
+            expect(isValid({ c: 'currentColor' }, { c: color })).toBe(true);
         });
     });
 });

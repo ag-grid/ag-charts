@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 
+import { DemoBanner } from './components/DemoBanner';
 import { FinancialChart } from './components/FinancialChart';
 import { MostActive } from './components/MostActive';
 import { PeerPerformanceChart } from './components/PeerPerformanceChart';
@@ -22,7 +23,7 @@ const SPEED_OPTIONS = [
 // Shared default visible time window (in minutes) that every chart aligns to:
 // FinancialChart's trailing window, PeerPerformance's range, and the peer heatmap's
 // bucket count (buckets are one minute each). Driven by the title-bar range buttons.
-const SHARED_WINDOW_MINUTES = 240;
+const SHARED_WINDOW_MINUTES = 120;
 
 // Range-button choices for the shared time window, in trailing minutes.
 const RANGE_OPTIONS = [
@@ -72,6 +73,7 @@ export const FinancialApp = () => {
     return (
         <div className="fin-container">
             <Toolbar />
+            <DemoBanner />
 
             <div className="fin-body" data-drawer-open={drawerOpen}>
                 <div className="fin-sidebar fin-sidebar-left">

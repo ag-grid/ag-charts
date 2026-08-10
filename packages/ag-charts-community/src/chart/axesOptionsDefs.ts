@@ -27,12 +27,12 @@ import {
     object,
     optionsDefs,
     or,
-    padding,
     positiveNumber,
     positiveNumberNonZero,
     positiveNumericValueNonZero,
     ratio,
     required,
+    signedPadding,
     string,
     strokeOptionsDef,
     textOrSegments,
@@ -83,7 +83,9 @@ import type {
 export const commonCrossLineLabelOptionsDefs: OptionsDefs<AgBaseCrossLineLabelOptions> = {
     enabled: boolean,
     text: string,
-    padding: padding,
+    // Deliberately signed: cross-line label padding positions the label relative to the line, so
+    // negative values are meaningful here and remain permitted (AG-17973).
+    padding: signedPadding,
     border: borderOptionsDef,
     cornerRadius: number,
     ...fontOptionsDef,

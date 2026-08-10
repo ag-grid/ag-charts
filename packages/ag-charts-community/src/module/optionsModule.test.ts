@@ -20,8 +20,8 @@ import { VERSION } from '../version';
 import { ChartOptions } from './optionsModule';
 import { __clearStructuralCacheForTests } from './optionsStructuralCache';
 
-function prepareOptions<T extends AgChartOptions>(userOptions: T): T {
-    const chartOptions = new ChartOptions(userOptions, {} as T, {}, {}, {});
+function prepareOptions<T extends AgChartOptions>(userOptions: T, logger?: Logger): T {
+    const chartOptions = new ChartOptions(userOptions, {} as T, {}, {}, {}, undefined, false, false, undefined, logger);
     return chartOptions.processedOptions;
 }
 
@@ -494,29 +494,48 @@ describe('ChartOptions', () => {
         });
 
         it('warns when an enterprise axis type is not registered', () => {
-            prepareOptions({
-                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-                axes: {
-                    x: { type: 'ordinal-time', position: 'bottom' },
-                    y: { type: 'number', position: 'left' },
-                },
-            });
+            const logger = new Logger();
+            const instanceErrorOnce = vi.spyOn(logger, 'errorOnce');
+            const ambientErrorOnce = vi.spyOn(ambientLogger, 'errorOnce');
 
-            const messages = (console.error as Mock).mock.calls.map(([m]) => String(m));
-            expect(messages.some((m) => m.includes('required modules are not registered'))).toBe(true);
-            expect(messages.some((m) => m.includes('OrdinalTimeAxisModule'))).toBe(true);
-        });
-
-        it('warns with a CDN-friendly message when an enterprise feature is used in UMD mode', () => {
-            ModuleRegistry.setRegistryMode(ModuleRegistry.RegistryMode.UMD);
-            try {
-                prepareOptions({
+            prepareOptions(
+                {
                     series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                     axes: {
                         x: { type: 'ordinal-time', position: 'bottom' },
                         y: { type: 'number', position: 'left' },
                     },
-                });
+                } as any,
+                logger
+            );
+
+            const messages = (console.error as Mock).mock.calls.map(([m]) => String(m));
+            expect(messages.some((m) => m.includes('required modules are not registered'))).toBe(true);
+            expect(messages.some((m) => m.includes('OrdinalTimeAxisModule'))).toBe(true);
+
+            const instanceMessages = instanceErrorOnce.mock.calls.map(([m]) => String(m));
+            expect(instanceMessages.some((m) => m.includes('required modules are not registered'))).toBe(true);
+            expect(instanceMessages.some((m) => m.includes('OrdinalTimeAxisModule'))).toBe(true);
+            expect(ambientErrorOnce).not.toHaveBeenCalled();
+        });
+
+        it('warns with a CDN-friendly message when an enterprise feature is used in UMD mode', () => {
+            ModuleRegistry.setRegistryMode(ModuleRegistry.RegistryMode.UMD);
+            try {
+                const logger = new Logger();
+                const instanceWarnOnce = vi.spyOn(logger, 'warnOnce');
+                const ambientWarnOnce = vi.spyOn(ambientLogger, 'warnOnce');
+
+                prepareOptions(
+                    {
+                        series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                        axes: {
+                            x: { type: 'ordinal-time', position: 'bottom' },
+                            y: { type: 'number', position: 'left' },
+                        },
+                    } as any,
+                    logger
+                );
 
                 const warnings = (console.warn as Mock).mock.calls.map(([m]) => String(m));
                 expect(
@@ -537,6 +556,10 @@ describe('ChartOptions', () => {
 
                 const errors = (console.error as Mock).mock.calls.map(([m]) => String(m));
                 expect(errors.every((m) => !m.includes('unable to use these enterprise features'))).toBe(true);
+
+                const instanceWarnings = instanceWarnOnce.mock.calls.map(([m]) => String(m));
+                expect(instanceWarnings.some((m) => m.includes('ordinal-time'))).toBe(true);
+                expect(ambientWarnOnce).not.toHaveBeenCalled();
             } finally {
                 ModuleRegistry.clearRegistryModes();
             }
@@ -3869,6 +3892,98 @@ describe('ChartOptions', () => {
             expect(instanceWarnOnce.mock.calls.some(isInvalidColour)).toBe(true);
             expect(unrelatedWarnOnce.mock.calls.some(isInvalidColour)).toBe(false);
         });
+
+        it('still warns and drops a var() that resolves to an unsupported lch() format (AG-17839)', () => {
+            const container = document.createElement('div');
+            vi.spyOn(container.ownerDocument.defaultView!, 'getComputedStyle').mockReturnValue({
+                getPropertyValue: (key: string) => (key === '--x' ? 'lch(50% 70 40)' : ''),
+            } as any);
+            const chartOptions = new ChartOptions({}, {} as AgChartOptions, {}, {}, {});
+
+            const node: any = { fill: 'var(--x)' };
+            chartOptions.processCSSVariablesPartial(node, container);
+
+            expect(node).toEqual({});
+            expect(
+                (console.warn as Mock).mock.calls.some(([m]) =>
+                    String(m).includes('CSS property [var(--x)] is not a valid color, ignoring.')
+                )
+            ).toBe(true);
+        });
+    });
+
+    describe('rejects unsupported color formats at validation time (AG-17839)', () => {
+        it('warns and ignores an oklab() color set directly on series[0].fill', () => {
+            const options = prepareOptions({
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', fill: 'oklab(0.5 0.1 0.1)' }],
+            });
+
+            const message = (console.warn as Mock).mock.calls.map(([m]) => String(m)).find((m) => m.includes('.fill`'));
+            expect(message).toContain('Option `series[0].fill`');
+            expect(message).toContain('oklab(0.5 0.1 0.1)');
+            expect(message).toContain('ignoring.');
+            expect((options.series?.[0] as any).fill).not.toBe('oklab(0.5 0.1 0.1)');
+        });
+
+        it('warns and clears a lab() theme param instead of reaching a blend op', () => {
+            const chartOptions = new ChartOptions(
+                {
+                    data: [{ x: 'a', y: 1 }],
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                    axes: { x: { type: 'category' }, y: { type: 'number' } },
+                    theme: {
+                        params: {
+                            accentColor: 'lab(50% 40 59.5)',
+                        },
+                    },
+                } as any,
+                {} as AgChartOptions,
+                {},
+                {},
+                {}
+            );
+
+            const message = (console.warn as Mock).mock.calls
+                .map(([m]) => String(m))
+                .find((m) => m.includes('theme.params.accentColor'));
+            expect(message).toContain('Option `theme.params.accentColor`');
+            expect(message).toContain('lab(50% 40 59.5)');
+            expect(message).toContain('ignoring.');
+            expect((chartOptions.themeParameters as any).accentColor).not.toBe('lab(50% 40 59.5)');
+            expect((chartOptions.themeParameters as any).accentColor).toBeDefined();
+        });
+
+        it('rejects an lch() color stop in colorScale.fills[].color', () => {
+            ModuleRegistry.setRegistryMode(ModuleRegistry.RegistryMode.Enterprise);
+            try {
+                const options = prepareOptions<AgCartesianChartOptions>({
+                    series: [
+                        {
+                            type: 'scatter',
+                            xKey: 'x',
+                            yKey: 'y',
+                            colorKey: 'x',
+                            colorScale: {
+                                fills: [
+                                    { color: 'red', stop: 0 },
+                                    { color: 'lch(50% 70 40)', stop: 1 },
+                                ],
+                            },
+                        } as any,
+                    ],
+                });
+
+                const message = (console.warn as Mock).mock.calls
+                    .map(([m]) => String(m))
+                    .find((m) => m.includes('colorScale'));
+                expect(message).toContain('colorScale');
+                expect(message).toContain('lch(50% 70 40)');
+                expect(message).toContain('ignoring.');
+                expect((options.series?.[0] as any).colorScale?.fills?.[1]?.color).not.toBe('lch(50% 70 40)');
+            } finally {
+                ModuleRegistry.clearRegistryModes();
+            }
+        });
     });
 
     describe('theme overrides and conditional defaults', () => {
@@ -3900,6 +4015,155 @@ describe('ChartOptions', () => {
             );
 
             expect(prepared.series[0].label.border.enabled).toBe(true);
+        });
+    });
+
+    describe('negative padding validation (AG-17973)', () => {
+        it('rejects negative chart-level padding and keeps the theme default', () => {
+            const options = prepareOptions<AgChartOptions>({
+                padding: { top: -20, right: -20, bottom: -20, left: -20 },
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            });
+
+            const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
+            expect(messages).toHaveLength(4);
+            expect(messages.every((m) => m.startsWith('AG Charts - Option `padding.'))).toBe(true);
+            expect(messages.every((m) => m.includes('expecting a number greater than or equal to 0'))).toBe(true);
+            // The invalid object padding is dropped in full, so the theme default (20 on every side) applies.
+            expect((options as any).padding).toEqual({ top: 20, right: 20, bottom: 20, left: 20 });
+        });
+
+        it('rejects negative padding on a series label box and keeps the theme default', () => {
+            const options = prepareOptions<AgChartOptions>({
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', label: { padding: -20 } } as AgBarSeriesOptions],
+            });
+
+            const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
+            expect(messages).toHaveLength(1);
+            expect(messages[0]).toContain('Option `series[0].label.padding` cannot be set to `-20`');
+            expect(messages[0]).toContain('expecting a number greater than or equal to 0');
+            // The invalid scalar padding is dropped, so the bar label's theme default (8) applies.
+            expect((options.series?.[0] as any).label.padding).toBe(8);
+        });
+
+        it('rejects negative legend item padding and keeps the theme default', () => {
+            const options = prepareOptions<AgChartOptions>({
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                legend: { item: { padding: -10 } },
+            });
+
+            const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
+            expect(messages).toHaveLength(1);
+            expect(messages[0]).toContain('Option `legend.item.padding` cannot be set to `-10`');
+            expect(messages[0]).toContain('expecting a number greater than or equal to 0');
+            // The invalid scalar padding is dropped, so the legend item's theme default applies.
+            expect((options as any).legend.item.padding).toEqual({ top: 4, right: 8, bottom: 4, left: 8 });
+        });
+
+        it('does not warn and preserves a negative padding on a cross-line label (deliberate exemption)', () => {
+            const options = prepareOptions<AgCartesianChartOptions>({
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: {
+                        type: 'number',
+                        position: 'left',
+                        crossLines: [{ type: 'line', value: 5, label: { text: 'threshold', padding: -30 } }],
+                    },
+                },
+            });
+
+            const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
+            expect(messages.some((m) => m.includes('padding'))).toBe(false);
+            expect((options.axes as any).y.crossLines[0].label.padding).toBe(-30);
+        });
+    });
+
+    describe('validations.consoleLogLevel', () => {
+        const invalidOptions = (extra?: object): AgChartOptions =>
+            ({
+                series: [{ type: 'line', xKey: 'x', yKey: 'y', strokeWidth: 'notanumber' as any }],
+                ...extra,
+            }) as AgChartOptions;
+
+        it('silences first-render validation warnings when set to `none`, without silencing validation itself', () => {
+            const chartOptions = new ChartOptions(
+                invalidOptions({ validations: { consoleLogLevel: 'none' } }),
+                {} as AgChartOptions,
+                {},
+                {},
+                {}
+            );
+
+            expect(console.warn).not.toHaveBeenCalled();
+            expect(chartOptions.validationIssues.length).toBeGreaterThan(0);
+        });
+
+        it('warns for the same invalid options without a consoleLogLevel override', () => {
+            const chartOptions = new ChartOptions(invalidOptions(), {} as AgChartOptions, {}, {}, {});
+
+            expect(console.warn).toHaveBeenCalled();
+            expect(chartOptions.validationIssues.length).toBeGreaterThan(0);
+        });
+
+        it('silences validation warnings when set to `error`', () => {
+            const chartOptions = new ChartOptions(
+                invalidOptions({ validations: { consoleLogLevel: 'error' } }),
+                {} as AgChartOptions,
+                {},
+                {},
+                {}
+            );
+
+            expect(console.warn).not.toHaveBeenCalled();
+            expect(chartOptions.validationIssues.length).toBeGreaterThan(0);
+        });
+
+        it('reports an invalid consoleLogLevel value rather than silencing logging with it', () => {
+            const chartOptions = new ChartOptions(
+                invalidOptions({ validations: { consoleLogLevel: 'verbose' } }),
+                {} as AgChartOptions,
+                {},
+                {},
+                {}
+            );
+
+            expect(chartOptions.validationIssues.some((issue) => issue.code === 'validations.consoleLogLevel')).toBe(
+                true
+            );
+            const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
+            expect(messages.some((m) => m.includes('validations.consoleLogLevel'))).toBe(true);
+            expect(messages.some((m) => m.includes('notanumber'))).toBe(true);
+        });
+
+        it('reports an explicit null consoleLogLevel rather than deferring to a silencing override', () => {
+            const chartOptions = new ChartOptions(
+                invalidOptions({ validations: { consoleLogLevel: null } }),
+                {} as AgChartOptions,
+                { validations: { consoleLogLevel: 'none' } } as Partial<AgChartOptions>,
+                {},
+                {}
+            );
+
+            const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
+            expect(messages.some((m) => m.includes('notanumber'))).toBe(true);
+            expect(chartOptions.validationIssues.length).toBeGreaterThan(0);
+        });
+
+        it('returns to default logging once a delta update removes a `none` override', () => {
+            const base = new ChartOptions(
+                invalidOptions({ validations: { consoleLogLevel: 'none' } }),
+                {} as AgChartOptions,
+                {},
+                {},
+                {}
+            );
+            expect(console.warn).not.toHaveBeenCalled();
+
+            const updated = new ChartOptions(base, invalidOptions(), {}, {}, {});
+
+            expect(console.warn).toHaveBeenCalled();
+            expect(updated.validationIssues.length).toBeGreaterThan(0);
         });
     });
 });

@@ -1,5 +1,6 @@
 import type { ImageSegment, OverflowStrategy, TextWrap } from 'ag-charts-types';
 
+import { warnOnce } from '../../logging/logger';
 import {
     BLOCK_IMAGE_SPACING,
     blockStripWidth,
@@ -13,6 +14,7 @@ import type {
     NormalisedTextOrSegments,
 } from '../../types/normalised-options/normalisedCommonOptions';
 import type { ITextMeasurer, MeasuredImageSegment, MeasuredSegment, MeasuredTextSegment } from '../../types/text';
+import { findMaxValue } from '../data/binarySearch';
 import { isArray, isFiniteNumber } from '../types/typeGuards';
 import {
     EllipsisChar,
@@ -37,6 +39,11 @@ export interface LabelFit {
     readonly maxHeight?: number;
     readonly wrapping?: TextWrap;
     readonly overflowStrategy?: OverflowStrategy;
+    /**
+     * Smallest font size the label may shrink to so its text fits the region. Shrinking is tried before
+     * {@link overflowStrategy} applies, which it does only once the minimum size still does not fit.
+     */
+    readonly minimumFontSize?: number;
 }
 
 /** `'preserve'` is engine-internal: text still wraps to `maxWidth`, but nothing is ever dropped or ellipsised. */
@@ -114,6 +121,78 @@ export function fitLabelTextOrOverflow(
     const fitted = fitLabelText(text, fit, font);
     if (fitOverflow == null || !isErased(fitted) || isErased(text)) return fitted;
     return fitLabelText(text, fitOverflow, font);
+}
+
+/** A label's fitted text, with the reduced font size it was fitted at when {@link LabelFit.minimumFontSize} applied. */
+export interface AutoSizedLabelText {
+    readonly text: NormalisedTextOrSegments;
+    /** Reduced font size the text fits at; `undefined` when the configured size was kept. */
+    readonly fontSize?: number;
+}
+
+/**
+ * `font` at `fontSize`, or `font` itself when the size is unchanged. Fields are copied by name because a
+ * label's font is often a `@Property` instance, whose prototype accessors a spread would silently drop.
+ */
+export function fontWithSize(font: FontOptions, fontSize: number | undefined): FontOptions {
+    if (fontSize == null || fontSize === font.fontSize) return font;
+    return { fontSize, fontStyle: font.fontStyle, fontWeight: font.fontWeight, fontFamily: font.fontFamily };
+}
+
+/** The size the search bottoms out at, or `undefined` when the label cannot shrink. */
+function autoSizeFloor(fit: LabelFit, font: FontOptions): number | undefined {
+    const { minimumFontSize, maxWidth, maxHeight } = fit;
+    if (minimumFontSize == null || (maxWidth == null && maxHeight == null)) return undefined;
+    if (minimumFontSize > font.fontSize) {
+        warnOnce(`minimumFontSize should be set to a value less than or equal to the font size`);
+        return undefined;
+    }
+    return minimumFontSize < font.fontSize ? minimumFontSize : undefined;
+}
+
+/**
+ * Fits a label's text at the largest size between {@link LabelFit.minimumFontSize} and `font.fontSize` that
+ * holds it whole; only at the minimum may the configured overflow strategy truncate or hide, so a label
+ * always shrinks before it ellipsises or vanishes.
+ */
+export function fitLabelTextAutoSize(
+    text: NormalisedTextOrSegments,
+    fit: LabelFit | undefined,
+    font: FontOptions
+): AutoSizedLabelText {
+    const minimumFontSize = fit == null ? undefined : autoSizeFloor(fit, font);
+    if (fit == null || minimumFontSize == null) return { text: fitLabelText(text, fit, font) };
+    // Above the floor the text must fit whole; 'hide' erases it otherwise so the search steps down.
+    const wholeTextFit: LabelFit = { ...fit, overflowStrategy: 'hide' };
+    // Most labels need no reduction, and the search only visits integers — so probe the configured size
+    // first, both to skip the search and to keep a fractional `fontSize` exact.
+    const atFullSize = fitLabelText(text, wholeTextFit, font);
+    if (!isErased(atFullSize)) return { text: atFullSize };
+    // Searched from the ceiling of the floor because the search bisects to integers, and would otherwise
+    // probe — and settle on — a size below the one the user asked for.
+    const found = findMaxValue<AutoSizedLabelText>(Math.ceil(minimumFontSize), font.fontSize, (fontSize) => {
+        const fitted = fitLabelText(text, wholeTextFit, fontWithSize(font, fontSize));
+        if (isErased(fitted)) return undefined;
+        return { text: fitted, fontSize };
+    });
+    if (found != null) return found;
+    // No size holds the whole text, so the floor itself decides: it is the only size the configured
+    // overflow strategy is allowed to truncate or hide at. The search cannot cover it when it is
+    // fractional, so it is applied here rather than as one more iteration.
+    const atFloor = fitLabelText(text, fit, fontWithSize(font, minimumFontSize));
+    return isErased(atFloor) ? { text: atFloor } : { text: atFloor, fontSize: minimumFontSize };
+}
+
+/** {@link fitLabelTextAutoSize} with the never-erase fallback of {@link fitLabelTextOrOverflow}. */
+export function fitLabelTextOrOverflowAutoSize(
+    text: NormalisedTextOrSegments,
+    fit: LabelFit | undefined,
+    fitOverflow: LabelFit | undefined,
+    font: FontOptions
+): AutoSizedLabelText {
+    const fitted = fitLabelTextAutoSize(text, fit, font);
+    if (fitOverflow == null || !isErased(fitted.text) || isErased(text)) return fitted;
+    return fitLabelTextAutoSize(text, fitOverflow, font);
 }
 
 export function wrapLines(text: string, options: WrapOptions) {

@@ -17,7 +17,12 @@ import {
     wrapText,
     wrapTextSegments,
 } from 'ag-charts-core';
-import type { AgCaptionTooltipOptions, AgCaptionTooltipRendererParams, AgCaptionType } from 'ag-charts-types';
+import type {
+    AgCaptionClickEvent,
+    AgCaptionTooltipOptions,
+    AgCaptionTooltipRendererParams,
+    AgCaptionType,
+} from 'ag-charts-types';
 
 import type { ChartRegistry } from '../module/moduleContext';
 import { PointerEvents } from '../scene/node';
@@ -178,12 +183,21 @@ export class ChartCaption implements CaptionLike {
             this.proxyText = proxyInteractionService.createProxyElement({ type: 'text', domManagerId, where });
             this.proxyTextListeners = [
                 this.proxyText.addListener('contextmenu', (ev) => this.handleContextMenu(moduleCtx, ev)),
+                this.proxyText.addListener('click', (ev) => {
+                    if (this.hasClickListener(moduleCtx)) this.handleClick(moduleCtx, ev);
+                }),
+                this.proxyText.addListener('dblclick', (ev) => {
+                    if (this.hasClickListener(moduleCtx)) this.handleClick(moduleCtx, ev);
+                }),
                 this.proxyText.addListener('mousemove', (ev) => this.handleMouseMove(moduleCtx, ev)),
                 this.proxyText.addListener('mouseleave', () => this.handleTooltipHide(moduleCtx)),
                 this.proxyText.addListener('focus', () => this.handleFocus(moduleCtx)),
                 this.proxyText.addListener('blur', () => this.handleTooltipHide(moduleCtx)),
             ];
         }
+
+        // Signal interactivity only on captions that actually have a click listener.
+        this.proxyText.setCursor(this.hasClickListener(moduleCtx) ? 'pointer' : undefined);
 
         const textContent = toPlainText(this.text);
         if (textContent !== this.lastProxyTextContent) {
@@ -267,6 +281,50 @@ export class ChartCaption implements CaptionLike {
             { widgetEvent: event, canvasX, canvasY },
             { captionType: this.key, text: this.text ?? '' }
         );
+    }
+
+    /**
+     * A caption is a click target only while a listener is registered for it, so that with none the
+     * interaction falls through exactly as it did before (AG-17638).
+     */
+    private hasClickListener(moduleCtx: DynamicContext<ChartRegistry>): boolean {
+        const { listeners } = this.opts;
+        return (
+            listeners?.click != null ||
+            listeners?.doubleClick != null ||
+            moduleCtx.chartService.hasListener('captionClick') ||
+            moduleCtx.chartService.hasListener('captionDoubleClick')
+        );
+    }
+
+    /**
+     * Fires the caption's own `listeners` callbacks and their chart-level `captionClick` /
+     * `captionDoubleClick` counterparts. Mirrors the caption context-menu dispatch above, reporting
+     * the same `captionType` discriminator.
+     */
+    private handleClick(moduleCtx: DynamicContext<ChartRegistry>, event: MouseWidgetEvent<'click' | 'dblclick'>) {
+        // Keyboard activation of caption listeners is out of scope for this feature (AG-17707).
+        if (event.device === 'keyboard') return;
+
+        const isDoubleClick = event.type === 'dblclick';
+        const params = { event: event.sourceEvent, captionType: this.key, text: this.text ?? '' };
+
+        const { listeners } = this.opts;
+        const listener = isDoubleClick ? listeners?.doubleClick : listeners?.click;
+        if (listener) {
+            // Captions carry no `context` of their own, so `chart.context` is the only source.
+            const apiEvent: Omit<AgCaptionClickEvent<'click' | 'doubleClick', never>, 'context'> = {
+                type: isDoubleClick ? 'doubleClick' : 'click',
+                ...params,
+            };
+            callWithContext(moduleCtx.chartService, listener, apiEvent);
+        }
+
+        // The chart-level listener fires alongside the caption-level one, as `seriesNodeClick` does.
+        const chartEventType = isDoubleClick ? 'captionDoubleClick' : 'captionClick';
+        if (moduleCtx.chartService.hasListener(chartEventType)) {
+            moduleCtx.chartService.callListener({ type: chartEventType, ...params });
+        }
     }
 
     destroy() {

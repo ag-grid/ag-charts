@@ -6,7 +6,7 @@ import type { Point, SizedPoint } from '../../types/scene';
 import type { FontOptions } from '../../types/text';
 import { toArray } from '../data/arrays';
 import { toFontString, toTextString } from '../text/textUtils';
-import { type LabelFit, fitLabelTextOrOverflow, isErased } from '../text/textWrapper';
+import { type LabelFit, fitLabelTextOrOverflowAutoSize, fontWithSize, isErased } from '../text/textWrapper';
 import { isArray } from '../types/typeGuards';
 import { toDegrees, toRadians } from './angle';
 import { type BoxBounds, boxCollides, boxContains } from './boxBounds';
@@ -41,6 +41,7 @@ export interface LabelFitOptions {
     readonly maxHeight?: number;
     readonly wrapping?: TextWrap;
     readonly truncate?: boolean;
+    readonly minimumFontSize?: number;
 }
 
 /**
@@ -48,8 +49,8 @@ export interface LabelFitOptions {
  * boolean onto the internal overflow strategy:
  *  - `truncate: true` or `defaultToTruncate` → `'ellipsis'`: the bound is applied and overflow truncates with an ellipsis.
  *  - `truncate` unset + `hideOnOverflow` → `'hide'`: the bound is applied and the label hides if it overflows.
- *  - otherwise → a fit is produced only when `wrapping` is set (so wrap applies on its own); with no
- *    overflow strategy and no wrapping the full text renders unbounded, as before.
+ *  - otherwise → a fit is produced only when `wrapping` or `minimumFontSize` is set (so wrap and font
+ *    reduction apply on their own); with none of the three the full text renders unbounded, as before.
  *
  * `maxWidth`/`maxHeight` alone never activate a fit, so series carrying only a `maxWidth` default stay
  * unbounded exactly as before.
@@ -62,15 +63,15 @@ export function resolveLabelFit(
     hideOnOverflow = false,
     defaultToTruncate = false
 ): LabelFit | undefined {
-    const { maxWidth, maxHeight, wrapping, truncate } = fit;
+    const { maxWidth, maxHeight, wrapping, truncate, minimumFontSize } = fit;
     let overflowStrategy: OverflowStrategy | undefined;
     if (truncate || defaultToTruncate) {
         overflowStrategy = 'ellipsis';
     } else if (hideOnOverflow) {
         overflowStrategy = 'hide';
     }
-    if (overflowStrategy == null && wrapping == null) return undefined;
-    return { maxWidth, maxHeight, wrapping, overflowStrategy };
+    if (overflowStrategy == null && wrapping == null && minimumFontSize == null) return undefined;
+    return { maxWidth, maxHeight, wrapping, overflowStrategy, minimumFontSize };
 }
 
 /**
@@ -371,6 +372,11 @@ export interface PlacedLabel<PLD = PointLabelDatum> extends MeasuredLabel, Reado
     /** Translation (px) applied to slide a region-bound label flush inside its region; `0` otherwise. */
     readonly offsetX?: number;
     readonly offsetY?: number;
+    /**
+     * Reduced font size the text was fitted at when {@link LabelFit.minimumFontSize} let the label shrink
+     * into its candidate; `undefined` when it renders at the configured size.
+     */
+    readonly fontSize?: number;
     /**
      * The chosen entry when the datum supplied {@link PointLabelDatum.positionedCandidates}. Carries
      * the series' own writeback metadata (a bar candidate's anchor and granular placement); `placement`
@@ -674,6 +680,8 @@ export interface BarLabelTarget {
     offsetY?: number;
     /** The text fitted to the chosen candidate, when the label opted into per-candidate overflow control. */
     fittedText?: NormalisedTextOrSegments;
+    /** Reduced font size that text was fitted at; `undefined` when it renders at the configured size. */
+    fittedFontSize?: number;
     // Positioned-candidate writeback (placement-cascade path only): the chosen candidate's anchor and
     // granular placement, copied here so the label renders at the winning candidate rather than the
     // baked first one. Left untouched on the orientation-only path.
@@ -859,7 +867,7 @@ export function buildBarPositionedLabelDatum(
  * {@link buildBarLabelDatum}, so it carries `target`.
  */
 export function applyBarLabelOrientation(placed: readonly PlacedLabel<unknown>[]): void {
-    for (const { datum, rotation, offsetX, offsetY, candidate, text } of placed) {
+    for (const { datum, rotation, offsetX, offsetY, candidate, text, fontSize } of placed) {
         const { target, fit } = datum as BarPlacedLabelDatum;
         target.rotation = toRadians(rotation ?? 0);
         target.offsetX = offsetX ?? 0;
@@ -867,6 +875,7 @@ export function applyBarLabelOrientation(placed: readonly PlacedLabel<unknown>[]
         // The engine fitted the text to the candidate it chose, so the node must render that rather than
         // the unfitted source the datum was built from.
         target.fittedText = fit == null ? undefined : text;
+        target.fittedFontSize = fit == null ? undefined : fontSize;
         // Placement-cascade path: the engine chose a whole candidate (region + rotation may differ per
         // candidate), so also retarget the label to that candidate's anchor and granular placement. The
         // orientation-only path leaves `candidate` unset and keeps the baked anchor/placement.
@@ -1129,11 +1138,19 @@ let candidateOwnBox: BoxBounds | undefined;
 let candidateOwnBoxLabelsCollide = false;
 // The label's text/box after the fit step, reused per candidate to keep the hot path allocation-free.
 // `dropped` is how many characters truncation removed, ranking candidates when none holds the full text.
-const fittedLabel: { text: NormalisedTextOrSegments; width: number; height: number; dropped: number } = {
+// `fontSize` is the reduced size the text was auto-sized to, or `undefined` at the configured size.
+const fittedLabel: {
+    text: NormalisedTextOrSegments;
+    width: number;
+    height: number;
+    dropped: number;
+    fontSize: number | undefined;
+} = {
     text: '',
     width: 0,
     height: 0,
     dropped: 0,
+    fontSize: undefined,
 };
 // The fit policy bounded by the current candidate's container, refilled per candidate.
 const boundedFit: {
@@ -1141,7 +1158,11 @@ const boundedFit: {
     maxHeight?: number;
     wrapping?: TextWrap;
     overflowStrategy?: OverflowStrategy;
+    minimumFontSize?: number;
 } = {};
+// Reduced font size the candidate being tested was fitted at, `undefined` at the configured size. Read
+// by `recordBestChoice` rather than threaded through it as one more positional argument.
+let candidateFontSize: number | undefined;
 // Glyph budget of the candidate being fitted, refilled per candidate on the compass path.
 const candidateContainer = { width: 0, height: 0 };
 // The datum's source text measured under one candidate font, keyed by that font. A styler returning the
@@ -1554,6 +1575,7 @@ function fitLabelToCandidate(
         fittedLabel.width = full.width;
         fittedLabel.height = full.height;
         fittedLabel.dropped = 0;
+        fittedLabel.fontSize = undefined;
         return true;
     }
 
@@ -1561,16 +1583,20 @@ function fitLabelToCandidate(
     boundedFit.maxHeight = maxHeight === Infinity ? undefined : maxHeight;
     boundedFit.wrapping = policy.wrapping;
     boundedFit.overflowStrategy = policy.overflowStrategy;
-    const fitted = fitLabelTextOrOverflow(text, boundedFit, fit.fitOverflow, font);
+    boundedFit.minimumFontSize = policy.minimumFontSize;
+    const { text: fitted, fontSize } = fitLabelTextOrOverflowAutoSize(text, boundedFit, fit.fitOverflow, font);
     // `overflowStrategy: 'hide'` empties the text rather than truncating it; the candidate cannot show
     // this label at all, so the cascade must move on rather than place an empty box.
     if (isErased(fitted)) return false;
 
-    const size = measureLabelText(fitted, font);
+    // A shrunk label reserves the box its reduced glyph occupies, which is also what lets it clear an
+    // obstacle the full-size one collided with.
+    const size = measureLabelText(fitted, fontWithSize(font, fontSize));
     fittedLabel.text = fitted;
     fittedLabel.width = size.width;
     fittedLabel.height = size.height;
     fittedLabel.dropped = Math.max(0, textLength(text) - textLength(fitted));
+    fittedLabel.fontSize = fontSize;
     return true;
 }
 
@@ -1627,6 +1653,7 @@ function sizeCandidateLabel(
     fitSource: { width: number; height: number } | undefined
 ): boolean {
     const { fit } = d;
+    candidateFontSize = undefined;
     if (fit == null) {
         candidateLabel.text = d.label.text;
         candidateLabel.width = d.label.width;
@@ -1647,6 +1674,7 @@ function sizeCandidateLabel(
     candidateLabel.width = fittedLabel.width + boxWidthOf(boxPadding);
     candidateLabel.height = fittedLabel.height + boxHeightOf(boxPadding);
     candidateLabel.dropped = fittedLabel.dropped;
+    candidateFontSize = fittedLabel.fontSize;
     return true;
 }
 
@@ -1691,7 +1719,18 @@ function tryPlaceLabel(
         const { text, width, height } = candidateLabel;
         positionCandidate(d, placement, rotation, width, height, gap, spacing);
         const { x, y } = candidateBox;
-        return { index, text, x, y, width, height, datum: d, placement, rotation: rotation || undefined };
+        return {
+            index,
+            text,
+            x,
+            y,
+            width,
+            height,
+            datum: d,
+            placement,
+            rotation: rotation || undefined,
+            fontSize: candidateFontSize,
+        };
     }
 
     return placeAvoidingLabel(
@@ -1736,6 +1775,7 @@ interface CandidateChoice {
     offsetY: number;
     placement: LabelPlacement | undefined;
     candidate: PositionedLabelCandidate | undefined;
+    fontSize: number | undefined;
 }
 
 /** Tier of a candidate that fits its region and clears every obstacle, but only by truncating its text. */
@@ -1757,6 +1797,7 @@ const bestChoice: CandidateChoice = {
     offsetY: 0,
     placement: undefined,
     candidate: undefined,
+    fontSize: undefined,
 };
 
 /** Records the candidate currently in {@link candidateBox} as the cascade's best, if it outranks the incumbent. */
@@ -1785,6 +1826,7 @@ function recordBestChoice(
     bestChoice.offsetY = offsetY;
     bestChoice.placement = placement;
     bestChoice.candidate = candidate;
+    bestChoice.fontSize = candidateFontSize;
 }
 
 /** Materialises {@link bestChoice} as the cascade's result, or `undefined` when no candidate was recorded. */
@@ -1803,6 +1845,7 @@ function placeBestChoice(index: number, d: PointLabelDatum): PlacedLabel | undef
         offsetX: bestChoice.offsetX,
         offsetY: bestChoice.offsetY,
         candidate: bestChoice.candidate,
+        fontSize: bestChoice.fontSize,
     };
 }
 
@@ -1909,6 +1952,7 @@ function placeAvoidingLabel(
                         rotation: rotation || undefined,
                         offsetX,
                         offsetY,
+                        fontSize: candidateFontSize,
                     };
                 }
                 recordBestChoice(
@@ -1988,6 +2032,7 @@ function placeFromPositionedCandidates(
         let { text } = d.label;
         let { width, height } = c.size ?? d.label;
         let dropped = 0;
+        candidateFontSize = undefined;
         candidateBox.x = c.box.x;
         candidateBox.y = c.box.y;
         candidateBox.width = c.box.width;
@@ -1997,7 +2042,7 @@ function placeFromPositionedCandidates(
             const source = styledFont == null ? fitSource : styledFitSource(fit, styledFont);
             const container = deflateContainer(c.fitTo.container, threshold);
             if (!fitLabelToCandidate(fit, styledFont ?? fit.font, source, container)) continue;
-            ({ text, dropped } = fittedLabel);
+            ({ text, dropped, fontSize: candidateFontSize } = fittedLabel);
             const { padding } = c.fitTo;
             width = fittedLabel.width + padding.left + padding.right;
             height = fittedLabel.height + padding.top + padding.bottom;
@@ -2035,6 +2080,7 @@ function placeFromPositionedCandidates(
                     offsetX,
                     offsetY,
                     candidate: c,
+                    fontSize: candidateFontSize,
                 };
             }
             recordBestChoice(TIER_TRUNCATED, dropped, text, width, height, rotation, offsetX, offsetY, undefined, c);

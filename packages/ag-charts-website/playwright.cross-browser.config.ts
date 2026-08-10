@@ -15,9 +15,45 @@ import baseConfig from './playwright.config';
  * main JSON report to plan the shards — a cross-browser report under the same name would corrupt
  * both.
  *
- * Coverage is pinned to the vanilla framework variant by `skipNonChromiumNonVanilla` in `e2e/util.ts`,
- * applied by the specs themselves, so the pin holds on every CI event type.
+ * Coverage is pinned to the vanilla framework variant by `pinNonChromiumToVanilla` in `e2e/util.ts`,
+ * applied by the specs themselves, so the pin holds on every CI event type. A spec added to
+ * `PART_A_SPECS` or `PART_B_SPECS` below must therefore be vanilla-pinned — by that helper, by a
+ * self-filter, or by only ever visiting hardcoded vanilla URLs.
  */
+
+/**
+ * Existing Chromium specs covering the failure classes that only reproduce outside Chromium: text
+ * measurement, font and colour resolution, layout truncation, wheel/touch input, tooltip positioning
+ * and Intl. The heaviest screenshot specs are deliberately left out to keep the job inside its
+ * budget — highlight (316 s), legend (216 s), context-menu (171 s), keyboard-nav (143 s).
+ */
+const PART_A_SPECS = [
+    '**/basic-chart.spec.ts',
+    '**/fonts.spec.ts',
+    '**/css-variables.spec.ts',
+    '**/caption-tooltip.spec.ts',
+    '**/zoom.spec.ts',
+    '**/interactive-tooltip.spec.ts',
+    '**/text-navigation.spec.ts',
+    '**/legend-item-tooltip.spec.ts',
+    '**/tooltip-offset.spec.ts',
+    '**/localisation.spec.ts',
+    '**/icons.spec.ts',
+];
+
+/**
+ * Part B (AG-18059) — the probe spec written for this job, covering the cross-browser failure classes
+ * that no Chromium spec exercises at all: behavioural text measurement, offscreen-layer font face,
+ * devicePixelRatio, focus-visible, PNG download and zoom `getState`.
+ *
+ * It also runs on Chromium via the main sharded job (`playwright.config.ts` has `testDir: './e2e'`
+ * and no project-level `testMatch`), so every case must hold on all three engines and every
+ * screenshot gets a `-chromium-linux` baseline alongside the Firefox/WebKit pair.
+ */
+const PART_B_SPECS = ['**/cross-browser.spec.ts'];
+
+const CROSS_BROWSER_SPECS = [...PART_A_SPECS, ...PART_B_SPECS];
+
 export default defineConfig({
     ...baseConfig,
     reporter: [
@@ -42,8 +78,11 @@ export default defineConfig({
                     width: 800,
                     height: 600,
                 },
+                // The desktop device descriptors default to `hasTouch: false`, so
+                // `interactive-tooltip`'s `page.touchscreen.tap` case throws rather than running.
+                hasTouch: true,
             },
-            testMatch: '**/basic-chart.spec.ts',
+            testMatch: CROSS_BROWSER_SPECS,
         },
 
         {
@@ -54,8 +93,19 @@ export default defineConfig({
                     width: 800,
                     height: 600,
                 },
+                // See the firefox project: needed for `interactive-tooltip`'s tap case.
+                hasTouch: true,
+                // `Desktop Safari` is a retina descriptor (`deviceScaleFactor: 2`), unlike
+                // `Desktop Chrome` and `Desktop Firefox`. The chart sizes its canvas element in
+                // device pixels (`hdpiCanvas`: `element.width = cssWidth * pixelRatio`), and the
+                // e2e helpers derive interaction coordinates from those attributes
+                // (`locateCanvas` in `e2e/util.ts`), so at scale 2 every canvas point computed by a
+                // spec lands at twice its intended offset — off the canvas entirely for anything
+                // near the middle or the axes. Pinning to 1 keeps the three engines in the same
+                // coordinate space, which is also what makes their baselines comparable.
+                deviceScaleFactor: 1,
             },
-            testMatch: '**/basic-chart.spec.ts',
+            testMatch: CROSS_BROWSER_SPECS,
         },
     ],
 });

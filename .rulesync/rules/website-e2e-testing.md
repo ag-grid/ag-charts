@@ -101,3 +101,16 @@ Use a single example table and a per-example `test.describe(name, () => { test.b
 `toHaveScreenshot` baselines are platform-specific (`*-chromium-linux.png`) and cannot be produced reliably on macOS, so never run Playwright with `-u` / `--update-snapshots`. CI regenerates them for you: when a snapshot job detects image diffs it commits the changed PNGs to a branch named `gha/snapshots-<your-branch>`, then fails the run so it stays red until a human reviews them. A bot posts a PR comment linking a compare view ("Merge snapshot changes into this PR"). Review that diff, confirm the changes are intended, and merge the snapshot branch's commit into your PR branch.
 
 This covers every Playwright `toHaveScreenshot` baseline, including the `ag-charts-*-package-tests` e2e suites — not just website specs. It does **not** cover vitest image snapshots (`toMatchImageSnapshot`), which are a separate harness with their own regeneration rule; see `testing.md`.
+
+Baselines are named per project, so `*-firefox-linux.png` and `*-webkit-linux.png` are a normal part of a snapshot-branch diff alongside the Chromium set — the cross-browser projects never reuse a Chromium baseline. Two consequences when taking a drop onto your branch:
+
+-   The sharded `e2e` job and the `e2e_cross_browser` job push to the **same** `gha/snapshots-<your-branch>`, so check out the paths you meant to update rather than merging the branch wholesale.
+-   A spec newly added to `PART_A_SPECS` in `playwright.cross-browser.config.ts` must be pinned to the vanilla framework variant — via `pinNonChromiumToVanilla`, a self-filter, or hardcoded vanilla URLs. Screenshot names carry no framework component, so an unpinned spec has all six variants writing the *same* baseline: under `-u` the last one wins, every run reports an update, and the job never converges to green.
+
+## `NX_BASE` must resolve, or be unset — never a ref that only exists in CI
+
+`e2e/changed-examples.ts` scopes the example sweeps to what changed relative to `NX_BASE`. An **unset** `NX_BASE` is a supported mode: every example is treated as changed. A **set-but-unresolvable** one used to be fatal — `git diff` exited non-zero, `execSync` threw at *collection* time, and the entire `test:e2e` invocation failed before a single test ran, taking `examples-snapshots.spec.ts` and `gallery-examples.spec.ts` with it.
+
+The AI Workflow pipeline exports `NX_BASE=latest-success`, which does not resolve inside the Dockerised Playwright container — so an agent-driven e2e run hit exactly this and lost the whole run (AG-18074). `changed-examples.ts` now degrades to the every-example-changed path instead of throwing, so this is no longer fatal.
+
+Still: when you invoke the suite by hand, either leave `NX_BASE` unset or pass a ref that resolves **in the container** (`HEAD~1`, a SHA). Setting it to a CI-only alias silently widens the run to every example rather than scoping it — safe, but slow.

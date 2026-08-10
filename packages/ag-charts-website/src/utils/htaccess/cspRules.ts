@@ -134,6 +134,38 @@ const SITE_SCRIPT_HASHES = [
     GTM_ZOOMINFO_HASH,
 ];
 
+// Enzuzo, the cookie-consent banner that replaces OneTrust. Like OneTrust before it,
+// the loader is a tag in the shared Google Tag Manager container rather than markup in
+// this repo, so nothing here references these origins directly — the CSP is the only
+// place the site declares them.
+//
+//  - app.enzuzo.com serves the banner bundle (/scripts/cookiebar/<uuid>) and is also the
+//    banner's apiHost: once loaded it XHRs its config, the cookie list and consent
+//    analytics from /api/public/... on the same origin.
+//  - gvl.enzuzo.com serves the IAB TCF Global Vendor List, fetched only when TCF mode is
+//    switched on in the Enzuzo console. Allowed up front so enabling TCF later is a
+//    console-only change; the TCF library itself comes from cdn.jsdelivr.net, already
+//    allowed below.
+//
+// The OneTrust origins below stay allowed alongside these until the GTM cutover: the
+// container is shared with ag-grid and ag-studio, so one tag flip switches all three
+// sites at once while their deploys land separately. Both banners must be loadable
+// across that window; removing OneTrust is a follow-up once Enzuzo is live.
+//
+// No script-src hash is needed: GTM injects the banner as an external <script src>, not
+// an inline snippet (contrast GTM_ZOOMINFO_HASH). The banner's CSS is injected as inline
+// <style>, which style-src 'unsafe-inline' already covers, and its logo image falls under
+// the permissive img-src.
+//
+// NB the banner has three `new Function` paths — templated banner text, "display fields",
+// and string-valued integration onConsent handlers — which throw under a policy without
+// 'unsafe-eval'. The first two are caught internally and degrade to empty output; the
+// third throws uncaught. We are not granting 'unsafe-eval' site-wide for a consent
+// banner, so keep the Enzuzo console configuration free of template placeholders and
+// string-bodied event handlers. See ag-grid#14772.
+const ENZUZO_APP_HOST = 'https://app.enzuzo.com';
+const ENZUZO_GVL_HOST = 'https://gvl.enzuzo.com';
+
 // Apache <If> expression matching the URL paths that get the 'examples' scope.
 // Charts serves example-runner documents at both /gallery/examples/<name>/... and
 // /<framework>/<page>/examples/<name>/..., and the whole site sits under /charts in
@@ -196,6 +228,7 @@ export function getCspDirectives(options: CspOptions): CspDirectives {
             'https://www.gstatic.com', // reCAPTCHA
             'https://www.youtube.com', // YouTube iframe JS API (loads into the page)
             'https://cdn.cookielaw.org', // OneTrust cookie-consent SDK (GTM-injected, prod-only)
+            ENZUZO_APP_HOST, // Enzuzo cookie-consent banner (GTM-injected), replacing OneTrust
             'blob:', // ZoomInfo zi-tag.js bootstraps a blob: URL script
             WASM_UNSAFE_EVAL,
             // 'unsafe-inline' (examples/dev) or SHA-256 hashes (site) added per scope below.
@@ -242,6 +275,8 @@ export function getCspDirectives(options: CspOptions): CspDirectives {
             'https://www.google.com', // reCAPTCHA (api2/clr XHR)
             'https://cdn.cookielaw.org', // OneTrust config/JSON/asset XHR (GTM-injected, prod-only)
             'https://*.onetrust.com', // OneTrust geolocation + consent-receipt endpoints
+            ENZUZO_APP_HOST, // Enzuzo banner config, cookie list and consent-analytics XHR
+            ENZUZO_GVL_HOST, // Enzuzo-hosted IAB TCF Global Vendor List
             trialFormOrigin, // trial-licence form fetch POST
         ],
         'frame-src': [

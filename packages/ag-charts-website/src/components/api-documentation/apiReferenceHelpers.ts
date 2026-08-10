@@ -317,16 +317,7 @@ export function getOptionsStaticPaths(reference: ApiReferenceType) {
             ? ref.type.type.map((type) => (typeof type === 'string' ? type : (type as any).type))
             : [];
 
-    const extractTypeValue = (refName: string) => {
-        const ref = reference.get(refName);
-        if (ref?.kind === 'interface') {
-            const typeMember = ref.members.find((member) => member.name === 'type');
-            if (typeof typeMember?.type === 'string') {
-                return typeMember.type.replaceAll("'", '');
-            }
-        }
-        return refName;
-    };
+    const extractTypeValue = (refName: string) => getVariantDiscriminator(reference.get(refName))?.value ?? refName;
 
     const createPageMapper = (memberName: string) => {
         return (pageInterface: string) => {
@@ -806,9 +797,31 @@ export function mergeGenericsMaps(
     return { ...base, ...overrides };
 }
 
+export function isStringLiteralType(type: TypeNode | undefined): type is string {
+    return typeof type === 'string' && /^'[^']*'$/.test(type);
+}
+
+/**
+ * The member whose string-literal value identifies a union variant. A variant may inherit a
+ * non-literal `type` from a mixin (e.g. `AgContextMenuItem`'s `type: AgContextMenuItemType`), so the
+ * literal is what discriminates — `type` is only preferred when it is itself a literal.
+ */
+export function getVariantDiscriminator(node?: NodeTypes): { key: string; value: string } | undefined {
+    if (node?.kind !== 'interface') {
+        return undefined;
+    }
+    const member =
+        node.members.find((m) => m.name === 'type' && isStringLiteralType(m.type)) ??
+        node.members.find((m) => isStringLiteralType(m.type));
+    if (!member || !isStringLiteralType(member.type)) {
+        return undefined;
+    }
+    return { key: member.name, value: cleanupName(member.type) };
+}
+
 /**
  * Resolves the discriminated variants of an aliased union (see {@link resolveAliasedUnion}) into
- * `{ name, type }` navigation entries — `name` being the variant's `type` discriminator value and
+ * `{ name, type }` navigation entries — `name` being the variant's discriminator value and
  * `type` its interface name. Returns the alias' `genericsMap` so callers can resolve generic
  * members (e.g. the per-axis `label`) when rendering each variant. Mirrors the shape produced for
  * direct union aliases so both can feed the same typed-union navigation rendering.
@@ -864,9 +877,9 @@ function collectAliasedVariants(unionTypes: TypeNode[], reference: ApiReferenceT
             return collectAliasedVariants(node.type.type, reference);
         }
         if (node?.kind === 'interface' && !isInterfaceHidden(subtypeName!)) {
-            const typeMember = node.members.find((member) => member.name === 'type');
-            if (typeof typeMember?.type === 'string') {
-                return [{ name: cleanupName(typeMember.type), type: subtypeName! }];
+            const discriminator = getVariantDiscriminator(node);
+            if (discriminator) {
+                return [{ name: discriminator.value, type: subtypeName! }];
             }
         }
         return [];
@@ -885,11 +898,7 @@ function memberYieldsVariants(member: TypeNode, reference: ApiReferenceType): bo
     if (isUnionTypeAlias(node)) {
         return node.type.type.some((nested) => memberYieldsVariants(nested, reference));
     }
-    return Boolean(
-        node?.kind === 'interface' &&
-        !isInterfaceHidden(name!) &&
-        node.members.some((typeMember) => typeMember.name === 'type' && typeof typeMember.type === 'string')
-    );
+    return Boolean(name && !isInterfaceHidden(name) && getVariantDiscriminator(node));
 }
 
 /** Builds positional type arguments for an interface from a generics map keyed by type-param name. */
@@ -1026,20 +1035,20 @@ function collectUnionSearchEntries(
         return;
     }
 
-    const typeMember = subtypeRef.members.find((member) => member.name === 'type');
-    if (!typeMember) {
+    const discriminator = getVariantDiscriminator(subtypeRef);
+    if (!discriminator) {
         return;
     }
 
-    const label = `${labelPrefix.replace(/\.$/, '')}[type=${typeMember.type as string}]`;
+    const label = `${labelPrefix.replace(/\.$/, '')}[${discriminator.key}='${discriminator.value}']`;
     const navPath = basePath.concat({
-        name: cleanupName(getMemberType(typeMember)),
+        name: discriminator.value,
         type: subtypeName,
     });
 
     out.push({
         label,
-        searchable: cleanupName(getMemberType(typeMember)).toLowerCase(),
+        searchable: discriminator.value.toLowerCase(),
         navPath,
     });
     collectSearchData(out, reference, subtypeRef, navPath, `${label}.`, parentGenericsMap);

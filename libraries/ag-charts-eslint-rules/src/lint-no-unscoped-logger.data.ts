@@ -5,6 +5,15 @@ import { warn as barrelWarn } from 'ag-charts-core';
 import * as relativeNamespace from '../logging/logger';
 import { warnOnce as relativeWarnOnce } from '../logging/logger';
 import type { Logger as LoggerType } from '../logging/logger';
+// Sibling import: no `logging/` path segment, so this must be matched by the exact-specifier branch.
+import { warn as siblingWarn } from './logger';
+
+// Re-export: bypasses `ImportDeclaration` entirely, so this must be matched by `ExportNamedDeclaration`.
+export { warnOnce as reExportedWarnOnce } from '../logging/logger';
+
+// Aliased `export *`: bypasses `ImportDeclaration` entirely, so this must be matched by
+// `ExportAllDeclaration`.
+export * as ambientLogNamespace from './logging/ambientLog';
 
 declare class Logger {
     static warn(message: string): void;
@@ -46,6 +55,7 @@ export function test_ambient_routes() {
     barrelWarn('barrel free function');
     relativeNamespace.warnOnce('relative namespace');
     relativeWarnOnce('relative free function');
+    siblingWarn('sibling relative free function');
 }
 
 // Allowed: `Logger` used purely as a type.

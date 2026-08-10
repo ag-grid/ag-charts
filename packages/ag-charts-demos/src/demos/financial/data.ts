@@ -519,7 +519,10 @@ export class PeerPerformanceFeed {
             this.prices[company.ticker] = company.seed;
             this.basePrices[company.ticker] = company.seed;
         }
-        this.time = now - HISTORY_BARS * BAR_INTERVAL_MS;
+        // advance() pre-increments time before storing, so start one extra interval
+        // back: the final seeded sample then lands at now - one interval, aligning
+        // with seedHistory()'s last main-chart bar.
+        this.time = now - (HISTORY_BARS + 1) * BAR_INTERVAL_MS;
         for (let i = 0; i < HISTORY_BARS; i++) this.advance();
     }
 
@@ -624,15 +627,21 @@ export class PeerPerformanceFeed {
             this.spreadCache.clear();
             this.spreadCacheKey = tickersKey;
         }
-        const buckets = this.timeBuckets(bucketCount);
+        // Fetch one extra older bucket as predecessor context. The first emitted bucket's spread is
+        // the move from its preceding sample; without that context it would be forced to zero. The
+        // context bucket supplies the predecessor only — emit exactly the requested columns.
+        const buckets = this.timeBuckets(bucketCount + 1);
+        const emitStart = buckets.length > bucketCount ? 1 : 0;
         const lastIndex = buckets.length - 1;
         const liveKeys = new Set<number>();
         const cells: PeerHeatmapCell[] = [];
-        buckets.forEach((bucket, bucketIndex) => {
+        for (let bucketIndex = emitStart; bucketIndex <= lastIndex; bucketIndex++) {
+            const bucket = buckets[bucketIndex];
             const key = Math.floor(bucket[0].time / HEATMAP_BUCKET_MS);
             liveKeys.add(key);
-            // The leftmost bucket has no in-window predecessor and the trailing one may still be
-            // filling, so both recompute; interior buckets reuse their cells, keeping their identity.
+            // A bucket with a stable in-window predecessor and that is no longer filling (not the
+            // trailing bucket) keeps fixed cells; the trailing bucket and any bucket lacking a
+            // predecessor recompute each tick.
             const settled = bucketIndex > 0 && bucketIndex < lastIndex;
             let bucketCells = settled ? this.spreadCache.get(key) : undefined;
             if (!bucketCells) {
@@ -640,7 +649,7 @@ export class PeerPerformanceFeed {
                 if (settled) this.spreadCache.set(key, bucketCells);
             }
             for (const cell of bucketCells) cells.push(cell);
-        });
+        }
         for (const key of this.spreadCache.keys()) {
             if (!liveKeys.has(key)) this.spreadCache.delete(key);
         }

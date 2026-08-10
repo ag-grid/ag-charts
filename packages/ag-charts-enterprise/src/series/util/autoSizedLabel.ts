@@ -13,7 +13,7 @@ class BaseAutoSizedLabel<FormatterParams> extends _ModuleSupport.Label<Formatter
     lineHeight?: number;
 
     @Property
-    minimumFontSize?: number;
+    override minimumFontSize?: number;
 }
 
 export class AutoSizedLabel<FormatterParams> extends BaseAutoSizedLabel<FormatterParams> {

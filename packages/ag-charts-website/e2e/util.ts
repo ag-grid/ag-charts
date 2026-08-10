@@ -298,6 +298,16 @@ export async function expectAnimationOccurred(wrapper: Locator, minTimeMs: numbe
     expect(animationTime).toBeGreaterThan(minTimeMs);
 }
 
+// `.ag-charts-canvas-proxy` is `pointer-events: none` (container.css), so Playwright's actionability
+// hit-test resolves the point to <html>/<body> rather than the locator and `locator.hover()` times out
+// on WebKit. Move the mouse directly instead, exactly as `dragCanvas` below already does — the pointer
+// events the chart listens for are identical, and the path is engine-agnostic.
+export async function hoverCanvas(page: Page, position: { x: number; y: number }) {
+    const point = await canvasToPageTransformer(page);
+    const p = point(position.x, position.y);
+    await page.mouse.move(p.x, p.y);
+}
+
 // The in-built `page.dragAndDrop()` methods do not trigger our canvas drag events
 export async function dragCanvas(
     page: Page,

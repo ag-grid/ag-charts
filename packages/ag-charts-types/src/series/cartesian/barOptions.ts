@@ -10,6 +10,7 @@ import type { AgBarSeriesLabelPlacement, AgChartLabelOrientation } from '../../c
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from '../../chart/errorBarOptions';
 import type {
+    AgChartLabelAutoFontSizeOptions,
     AgChartLabelCollisionFitOptions,
     AgChartLabelOptions,
     AgSeriesLabelPlacementStyleOptions,
@@ -30,6 +31,7 @@ export interface AgBarSeriesLabelOptions<TDatum, TParams, TContext = ContextDefa
     extends
         AgChartLabelOptions<TDatum, TParams, TContext>,
         AgChartLabelCollisionFitOptions,
+        AgChartLabelAutoFontSizeOptions,
         AgSeriesLabelPlacementStyleOptions {
     /**
      * Where to render series labels relative to the segments. Either a single placement or an ordered

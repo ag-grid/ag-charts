@@ -45,6 +45,8 @@ export function FinancialChart({ bars, windowMinutes }: FinancialChartProps) {
     const datumCache = useRef(new WeakMap<Bar, ChartDatum>());
     // The window currently rendered, diffed against each new window for the transaction.
     const windowRef = useRef<ChartDatum[]>([]);
+    // Tracks the window size so a resize can be told apart from a streaming tick.
+    const windowMinutesRef = useRef(windowMinutes);
 
     const windowedData = useMemo(() => {
         const cache = datumCache.current;
@@ -68,13 +70,22 @@ export function FinancialChart({ bars, windowMinutes }: FinancialChartProps) {
     }, []);
 
     useEffect(() => {
-        const transactions = diffWindow(windowRef.current, windowedData, (datum) => datum.time);
+        const baseline = windowRef.current;
         windowRef.current = windowedData;
+        // A resize swaps most of the window at once; incremental transactions would leave the
+        // time axis domain stale, so replace the data to rebuild it. Ticks stay incremental below.
+        if (windowMinutes !== windowMinutesRef.current) {
+            windowMinutesRef.current = windowMinutes;
+            // eslint-disable-next-line no-console
+            chartRef.current?.updateDelta({ data: windowedData }).catch((e) => console.error(e));
+            return;
+        }
+        const transactions = diffWindow(baseline, windowedData, (datum) => datum.time);
         for (const transaction of transactions) {
             // eslint-disable-next-line no-console
             chartRef.current?.applyTransaction(transaction).catch((e) => console.error(e));
         }
-    }, [windowedData]);
+    }, [windowedData, windowMinutes]);
 
     return <AgFinancialCharts ref={chartRef} options={options} style={{ height: '100%', width: '100%' }} />;
 }

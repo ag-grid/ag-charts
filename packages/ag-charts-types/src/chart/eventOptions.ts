@@ -265,6 +265,23 @@ export interface AgCaptionContextMenuActionEvent<TContext = ContextDefault> exte
     text: TextOrSegments;
 }
 
+export interface AgCaptionClickEvent<TEvent extends string, TContext = ContextDefault> extends AgChartEvent<
+    TEvent,
+    TContext
+> {
+    /** Which caption was clicked. Captions have no user-supplied id, so this is their identifier. */
+    captionType: AgCaptionType;
+    /** The text of the clicked caption. */
+    text: TextOrSegments;
+}
+
+export interface AgCaptionListeners<TContext = ContextDefault> {
+    /** The listener to call when the caption is clicked. */
+    click?: Listener<AgCaptionClickEvent<'click', TContext>>;
+    /** The listener to call when the caption is double-clicked. */
+    doubleClick?: Listener<AgCaptionClickEvent<'doubleClick', TContext>>;
+}
+
 export interface AgNodeContextMenuActionEvent<
     TDatum = DatumDefault,
     TContext = ContextDefault,
@@ -295,6 +312,10 @@ export interface AgBaseChartListeners<TDatum, TContext = ContextDefault> {
      *  Useful for a chart containing multiple axes.
      */
     axisDoubleClick?: Listener<AgAxisClickEvent<'axisDoubleClick', TContext>>;
+    /** The listener to call when any caption (title, subtitle or footnote) in the chart is clicked. */
+    captionClick?: Listener<AgCaptionClickEvent<'captionClick', TContext>>;
+    /** The listener to call when any caption (title, subtitle or footnote) in the chart is double-clicked. */
+    captionDoubleClick?: Listener<AgCaptionClickEvent<'captionDoubleClick', TContext>>;
     /** The listener to call when a series visibility is changed. */
     seriesVisibilityChange?: Listener<AgSeriesVisibilityChange<TContext>>;
     /** The listener to call when the active state (highlight/tooltip) is changed. */

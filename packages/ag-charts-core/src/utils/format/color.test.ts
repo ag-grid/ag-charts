@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 
-import { Color } from './color';
+import { Color, isUnsupportedColorFormat } from './color';
 
 describe('Color', () => {
     test('constructor', () => {
@@ -413,6 +413,121 @@ describe('Color', () => {
         {
             const color = new Color(0, 1, 0);
             expect(color.toHexString()).toBe('#00ff00');
+        }
+    });
+
+    test('isUnsupportedColorFormat rejects the four unsupported formats, incl. mixed case and leading whitespace', () => {
+        const unsupported = [
+            'oklab(0.5 0.1 0.1)',
+            'lab(50% 40 59.5)',
+            'lch(50% 70 40)',
+            'color(display-p3 1 0.5 0)',
+            'color(srgb 1 0 0)',
+            'LAB(50% 40 59.5)',
+            '  lch(50% 70 40)',
+        ];
+        for (const value of unsupported) {
+            expect(isUnsupportedColorFormat(value)).toBe(true);
+        }
+    });
+
+    test('isUnsupportedColorFormat anchoring regression: oklch() is never matched', () => {
+        // The single most important assertion in this file: an unanchored `lch(` match would
+        // also catch the supported `oklch(`.
+        expect(isUnsupportedColorFormat('oklch(0.7 0.15 200)')).toBe(false);
+    });
+
+    test('isUnsupportedColorFormat accepts everyday supported formats', () => {
+        expect(isUnsupportedColorFormat('red')).toBe(false);
+        expect(isUnsupportedColorFormat('#fff')).toBe(false);
+        expect(isUnsupportedColorFormat('rgb(1,2,3)')).toBe(false);
+    });
+
+    test('isUnsupportedColorFormat does not reject formats outside its four-format scope (D1 guard)', () => {
+        // D1: this predicate rejects exactly `oklab()`/`lab()`/`lch()`/`color()`; every other
+        // format the browser accepts (hwb(), color-mix(), currentColor, ...) must fall through
+        // unaffected so the generic `color` validator is not narrowed wholesale.
+        expect(isUnsupportedColorFormat('hwb(194 0% 0%)')).toBe(false);
+        expect(isUnsupportedColorFormat('color-mix(in srgb, red, blue)')).toBe(false);
+        expect(isUnsupportedColorFormat('currentColor')).toBe(false);
+    });
+
+    test('validColorString/fromString dispatch case-insensitively for rgb/hsl', () => {
+        expect(Color.validColorString('RGB(72, 120, 208)')).toBe(true);
+        expect(Color.validColorString('HSL(145, 63%, 42%)')).toBe(true);
+
+        expect(Color.fromString('RGB(72, 120, 208)').toRgbaString()).toBe(
+            Color.fromString('rgb(72, 120, 208)').toRgbaString()
+        );
+        expect(Color.fromString('HSL(145, 63%, 42%)').toRgbaString()).toBe(
+            Color.fromString('hsl(145, 63%, 42%)').toRgbaString()
+        );
+    });
+
+    test('validColorString/fromString accept space-separated and slash-alpha rgb()', () => {
+        expect(Color.validColorString('rgb(72 120 208)')).toBe(true);
+        expect(Color.fromString('rgb(72 120 208)').toRgbaString()).toBe(
+            Color.fromString('rgb(72, 120, 208)').toRgbaString()
+        );
+
+        expect(Color.validColorString('rgb(0 0 0 / 50%)')).toBe(true);
+        expect(Color.fromString('rgb(0 0 0 / 50%)').toRgbaString()).toBe(
+            Color.fromString('rgba(0, 0, 0, 0.5)').toRgbaString()
+        );
+
+        expect(Color.validColorString('rgb(72 120)')).toBe(false);
+        expect(Color.validColorString('rgb(1 2 3 4 5)')).toBe(false);
+    });
+
+    test('validColorString/fromString still accept padded, comma-separated rgb()', () => {
+        // Regression pin: widening the split to `/[\s,]+/` must not produce empty tokens
+        // from the surrounding padding.
+        expect(Color.validColorString('rgb( 72, 120, 208 )')).toBe(true);
+        expect(Color.fromString('rgb( 72, 120, 208 )').toRgbaString()).toBe(
+            Color.fromString('rgb(72, 120, 208)').toRgbaString()
+        );
+    });
+
+    test('validColorString rejects color(srgb ...) via the rgb substring branch', () => {
+        expect(Color.validColorString('color(srgb 1 0 0)')).toBe(false);
+    });
+
+    test('validColorString(s) === true iff fromString(s) does not throw', () => {
+        const table = [
+            '#00000080',
+            '#f00f',
+            'transparent',
+            'WHITE',
+            'oklch(0.7 0.15 200)',
+            'RGB(72, 120, 208)',
+            'HSL(145, 63%, 42%)',
+            'rgb(72 120 208)',
+            'rgb(0 0 0 / 50%)',
+            'rgb( 72, 120, 208 )',
+            'rgb(72 120)',
+            'rgb(1 2 3 4 5)',
+            'color(srgb 1 0 0)',
+            'oklab(0.5 0.1 0.1)',
+            'lab(50% 40 59.5)',
+            'lch(50% 70 40)',
+            'not-a-color',
+            'hsl()',
+        ];
+        for (const value of table) {
+            const valid = Color.validColorString(value);
+            let threw = false;
+            try {
+                Color.fromString(value);
+            } catch {
+                threw = true;
+            }
+            expect(valid).toBe(!threw);
+        }
+    });
+
+    test('non-regression: previously-valid formats remain valid', () => {
+        for (const value of ['#00000080', '#f00f', 'transparent', 'WHITE', 'oklch(0.7 0.15 200)']) {
+            expect(Color.validColorString(value)).toBe(true);
         }
     });
 });

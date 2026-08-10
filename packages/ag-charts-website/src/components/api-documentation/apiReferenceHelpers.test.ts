@@ -7,6 +7,7 @@ import {
     formatUnionSignature,
     getAliasedUnionVariants,
     getMemberType,
+    getVariantDiscriminator,
     normalizeType,
     processMembers,
     resolveReferenceType,
@@ -14,6 +15,33 @@ import {
 
 const union = (...types: any[]) => ({ kind: 'union' as const, type: types });
 const alias = (name: string, type: any) => ({ kind: 'typeAlias' as const, name, type });
+const prop = (name: string, type: any) => ({ kind: 'member' as const, name, type, optional: false });
+
+// Mirrors `AgContextMenuItem`: `type` is inherited from a mixin as a type reference, so `showOn` is
+// the only string literal.
+const contextMenuVariant = (name: string, showOn: string) => ({
+    kind: 'interface' as const,
+    name,
+    members: [prop('type', 'AgContextMenuItemType'), prop('showOn', `'${showOn}'`), prop('label', 'string')],
+});
+
+const contextMenuReference = () =>
+    new Map<string, any>(
+        Object.entries({
+            AgContextMenuOptions: {
+                kind: 'interface',
+                name: 'AgContextMenuOptions',
+                members: [prop('items', { kind: 'array', type: 'AgContextMenuItem' })],
+            },
+            AgContextMenuItem: alias(
+                'AgContextMenuItem',
+                union('AgContextMenuAlwaysItem', 'AgContextMenuAxisItem', 'AgContextMenuItemLiteral')
+            ),
+            AgContextMenuAlwaysItem: contextMenuVariant('AgContextMenuAlwaysItem', 'always'),
+            AgContextMenuAxisItem: contextMenuVariant('AgContextMenuAxisItem', 'axis'),
+            AgContextMenuItemLiteral: alias('AgContextMenuItemLiteral', union("'separator'")),
+        })
+    );
 
 // Regression for the themes-api page failing to load with "RangeError: Maximum call stack size
 // exceeded". The crash was not infinite recursion — `extractSearchData` builds a finite but very
@@ -293,6 +321,17 @@ describe('getAliasedUnionVariants', () => {
         expect(result.isArray).toBe(true);
     });
 
+    it('names variants by their literal member when type is a type reference', () => {
+        const contextMenu = contextMenuReference();
+        const result = getAliasedUnionVariants(contextMenu.get('AgContextMenuItem'), contextMenu as any)!;
+
+        expect(result.variants).toEqual([
+            { name: 'always', type: 'AgContextMenuAlwaysItem' },
+            { name: 'axis', type: 'AgContextMenuAxisItem' },
+        ]);
+        expect(result.primitive).toBe('AgContextMenuItemLiteral');
+    });
+
     it('leaves primitive undefined for a pure interface-only union', () => {
         const result = getAliasedUnionVariants(reference.get('PureUnion'), reference as any)!;
 
@@ -301,7 +340,77 @@ describe('getAliasedUnionVariants', () => {
     });
 });
 
+describe('getVariantDiscriminator', () => {
+    it('prefers a string-literal type member', () => {
+        const node = {
+            kind: 'interface' as const,
+            name: 'AgLineCrossLineOptions',
+            members: [prop('type', "'line'"), prop('value', 'AgNumericValue')],
+        };
+
+        expect(getVariantDiscriminator(node as any)).toEqual({ key: 'type', value: 'line' });
+    });
+
+    it('falls back to the literal member when type is a type reference', () => {
+        const node = contextMenuReference().get('AgContextMenuAxisItem');
+
+        expect(getVariantDiscriminator(node)).toEqual({ key: 'showOn', value: 'axis' });
+    });
+
+    // Mirrors `AgStateSerializableDate`, whose discriminator is named `__type` rather than `type`.
+    it('falls back to a literal member the interface declares under any name', () => {
+        const node = {
+            kind: 'interface' as const,
+            name: 'AgStateSerializableDate',
+            members: [prop('__type', "'date'"), prop('value', 'string')],
+        };
+
+        expect(getVariantDiscriminator(node as any)).toEqual({ key: '__type', value: 'date' });
+    });
+
+    it('returns undefined for an interface with no string-literal member', () => {
+        const node = {
+            kind: 'interface' as const,
+            name: 'AgBaseAxisOptions',
+            members: [prop('type', 'string'), prop('label', 'AgAxisLabelOptions')],
+        };
+
+        expect(getVariantDiscriminator(node as any)).toBeUndefined();
+    });
+
+    it('returns undefined for a generic type parameter member', () => {
+        const node = {
+            kind: 'interface' as const,
+            name: 'AgNodeClickEvent',
+            members: [prop('type', 'TEvent'), prop('series', 'AgSeriesOptions')],
+        };
+
+        expect(getVariantDiscriminator(node as any)).toBeUndefined();
+    });
+});
+
 describe('extractSearchData', () => {
+    it('labels union variants by their own discriminator', () => {
+        const reference = contextMenuReference();
+
+        const data = extractSearchData(
+            reference as any,
+            reference.get('AgContextMenuOptions'),
+            [{ name: 'contextMenu', type: 'AgContextMenuOptions' }],
+            'contextMenu.'
+        );
+        const labels = data.map(({ label }) => label);
+
+        expect(labels).toContain("contextMenu.items[showOn='always']");
+        expect(labels).toContain("contextMenu.items[showOn='axis']");
+        expect(labels).toContain("contextMenu.items[showOn='axis'].label");
+        expect(data.find(({ label }) => label === "contextMenu.items[showOn='axis']")?.navPath).toEqual([
+            { name: 'contextMenu', type: 'AgContextMenuOptions' },
+            { name: 'items', type: 'AgContextMenuItem' },
+            { name: 'axis', type: 'AgContextMenuAxisItem' },
+        ]);
+    });
+
     it('flattens a large reference without overflowing the argument limit', () => {
         const breadth = 400;
         const reference = makeLargeReference(breadth);
