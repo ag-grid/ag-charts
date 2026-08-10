@@ -386,10 +386,12 @@ export abstract class CartesianAxis<
             (ContinuousScale.is(this.scale) || DiscreteTimeScale.is(this.scale));
 
         if (removeOverflowLabels) {
-            // A configured `textAlign` moves the label's trailing edge away from the centre-anchored
-            // `width / 2` this check assumes; unset keeps today's arithmetic exactly.
+            // Selecting the alignment the axis already computes must leave the labels untouched, so
+            // the edge arithmetic only departs from its centre-anchored form once the two differ.
+            const alignmentOverride =
+                label?.textAlign !== tickGenerationResult.textAlign ? label?.textAlign : undefined;
             const trailingEdgeOffset = (width: number) => {
-                switch (label?.textAlign) {
+                switch (alignmentOverride) {
                     case 'left':
                         return width;
                     case 'right':
@@ -411,10 +413,10 @@ export abstract class CartesianAxis<
                 }
             }
 
-            // The leading edge can only overflow once `textAlign` is configured - a centre or
-            // right-aligned first label extends past the start of the range.
+            // The leading edge can only overflow once the override pushes the label past the start
+            // of the range, so the centre-anchored case has nothing to check.
             const firstTick = tickData.ticks[0];
-            if (label?.textAlign != null && firstTick?.tickLabel != null) {
+            if (alignmentOverride != null && firstTick?.tickLabel != null) {
                 const width = firstTick.textMetrics.width;
                 const leadingEdgeOffset = trailingEdgeOffset(width) - width;
                 if (firstTick.translation + leadingEdgeOffset < range[0] - (this.chartLayout?.padding.left ?? 0)) {
