@@ -4,24 +4,16 @@ import {
     type PresetModuleDefinition,
     array,
     boolean,
-    commonChartOptionsDefs,
     defined,
     positiveNumber,
     string,
-    tooltipOptionsDefs,
     undocumented,
     union,
 } from 'ag-charts-core';
-import type {
-    AgBaseFinancialPresetOptions,
-    AgBaseGaugePresetOptions,
-    AgChartTooltipOptions,
-    AgPriceVolumePreset,
-    AgSeriesTooltip,
-} from 'ag-charts-types';
+import type { AgBaseFinancialPresetOptions, AgPriceVolumePreset } from 'ag-charts-types';
 
-import { ChartToolbarModule } from '../features/chart-toolbar/chartToolbarModule';
-import { StatusBarModule } from '../features/status-bar/statusBarModule';
+import { ChartToolbarModule } from '../../features/chart-toolbar/chartToolbarModule';
+import { StatusBarModule } from '../../features/status-bar/statusBarModule';
 import { priceVolume } from './priceVolumePreset';
 
 const priceVolumeOptionsDef: OptionsDefs<AgPriceVolumePreset & AgBaseFinancialPresetOptions> = {
@@ -55,33 +47,6 @@ const priceVolumeOptionsDef: OptionsDefs<AgPriceVolumePreset & AgBaseFinancialPr
     formatter: defined,
     enableRtl: boolean,
 };
-
-const commonGaugeOptions: OptionsDefs<AgBaseGaugePresetOptions & { tooltip?: AgSeriesTooltip<any> }> = {
-    // Valid pass-through options
-    theme: defined,
-    container: defined,
-    animation: defined,
-    background: defined,
-    contextMenu: defined,
-    context: () => true,
-    listeners: defined,
-    locale: defined,
-    width: defined,
-    height: defined,
-    minWidth: defined,
-    minHeight: defined,
-    title: defined,
-    subtitle: defined,
-    footnote: defined,
-    padding: defined,
-    tooltip: {
-        ...tooltipOptionsDefs,
-        ...(commonChartOptionsDefs.tooltip as OptionsDefs<AgChartTooltipOptions>),
-    },
-};
-
-// @ts-expect-error undocumented option
-commonGaugeOptions.overrideDevicePixelRatio = undocumented(positiveNumber);
 
 // @ts-expect-error undocumented option
 priceVolumeOptionsDef.overrideDevicePixelRatio = undocumented(positiveNumber);

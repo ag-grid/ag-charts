@@ -10,7 +10,7 @@ import {
     undocumentedThemeOptions,
 } from 'ag-charts-core';
 
-import { GaugePresetModule } from '../../preset/gaugePresetModule';
+import { GaugePresetModule } from '../../preset/gauge/gaugePresetModule';
 import { RadialGaugeSeries } from './radialGaugeSeries';
 
 export const RadialGaugeModule: SeriesModuleDefinition<AgRadialGaugePreset> = {

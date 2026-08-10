@@ -18,9 +18,9 @@ import type {
     AgThemeOverrides,
 } from 'ag-charts-types';
 
-import { setupEnterpriseModules } from '../setup';
+import { setupEnterpriseModules } from '../../setup';
+import { getStockData } from '../test/stockData';
 import { priceVolume } from './priceVolumePreset';
-import { getStockData } from './test/stockData';
 
 const EXAMPLES: Record<string, AgFinancialChartOptions> = {
     minimal: { data: getStockData() },
