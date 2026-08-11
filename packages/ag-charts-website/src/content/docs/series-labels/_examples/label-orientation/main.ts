@@ -20,7 +20,11 @@ const options: AgCartesianChartOptions<DataType> = {
                 placement: 'inside-end',
                 orientation: 'horizontal',
                 wrapping: 'never',
-                formatter: (params) => `$${params.value}m profit${params.datum.note ? ` (${params.datum.note})` : ''}`,
+                formatter: (params) => {
+                    const sign = params.value < 0 ? '-' : '';
+                    const note = params.datum.note ? ` (${params.datum.note})` : '';
+                    return `${sign}$${Math.abs(params.value)}m profit${note}`;
+                },
             },
         },
     ],
