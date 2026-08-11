@@ -10,7 +10,7 @@ describe('AxisDOMProxy', () => {
     setupMockCanvas();
     setupMockConsole();
 
-    describe('grouped-category clicks', () => {
+    describe('horizontal grouped-category clicks', () => {
         const formatter = vi.fn();
         const click = vi.fn();
         let chart: Chart;
@@ -46,7 +46,7 @@ describe('AxisDOMProxy', () => {
 
         // Check that label formatter's indices match the DFS ordering of the x-grouping.
         // Note: axes[].label.formatter is called twice on start up for some reason.
-        test('formatter - value/index match', async () => {
+        test('formatter - value/index match', () => {
             expect(formatter.mock.calls).toMatchObject([
                 [expect.objectContaining({ value: 'Food', index: 0 })],
                 [expect.objectContaining({ value: 'Meat', index: 1 })],
@@ -107,6 +107,60 @@ describe('AxisDOMProxy', () => {
                 [expect.objectContaining({ value: 'Pepsi', index: 10 })],
                 [expect.objectContaining({ value: 'Tea', index: 11 })],
                 [expect.objectContaining({ value: 'Green', index: 12 })],
+            ]);
+        });
+    });
+
+    describe('vertical grouped-category clicks', () => {
+        const click = vi.fn();
+        let chart: Chart;
+
+        beforeEach(async () => {
+            const opts: AgCartesianChartOptions = {
+                data: [
+                    { x: 10, y: ['Food', 'Meat', 'Fish'] },
+                    { x: 10, y: ['Food', 'Meat', 'Chicken'] },
+                    { x: 10, y: ['Food', 'Fruit', 'Banana'] },
+                    { x: 10, y: ['Drink', 'Soda', 'Coke'] },
+                ],
+                axes: {
+                    y: {
+                        type: 'grouped-category',
+                        depthOptions: [{}, {}, {}],
+                        listeners: { click },
+                    },
+                },
+                zoom: { enabled: true },
+                series: [{ type: 'bar', direction: 'horizontal', xKey: 'y', yKey: 'x' }],
+            };
+            chart = await createEnterpriseChart(opts);
+        });
+
+        afterEach(() => {
+            chart?.destroy();
+        });
+
+        test('click - value/index match', async () => {
+            await clickAction(83, 74)(chart); // 'Fish'
+            await clickAction(54, 74)(chart); // 'Meat'
+            await clickAction(26, 74)(chart); // 'Food'
+            await clickAction(83, 234)(chart); // 'Chicken'
+            await clickAction(83, 341)(chart); // 'Banana'
+            await clickAction(54, 341)(chart); // 'Fruit'
+            await clickAction(83, 502)(chart); // 'Coke'
+            await clickAction(54, 502)(chart); // 'Soda'
+            await clickAction(26, 502)(chart); // 'Drink'
+            await waitForChartStability(chart);
+            expect(click.mock.calls).toMatchObject([
+                [expect.objectContaining({ value: 'Fish', index: 2 })],
+                [expect.objectContaining({ value: 'Meat', index: 1 })],
+                [expect.objectContaining({ value: 'Food', index: 0 })],
+                [expect.objectContaining({ value: 'Chicken', index: 3 })],
+                [expect.objectContaining({ value: 'Banana', index: 5 })],
+                [expect.objectContaining({ value: 'Fruit', index: 4 })],
+                [expect.objectContaining({ value: 'Coke', index: 8 })],
+                [expect.objectContaining({ value: 'Soda', index: 7 })],
+                [expect.objectContaining({ value: 'Drink', index: 6 })],
             ]);
         });
     });
