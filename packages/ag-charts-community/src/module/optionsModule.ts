@@ -145,7 +145,7 @@ export interface ChartSpecialOverrides {
 }
 
 export interface ChartInternalOptionMetadata {
-    presetType?: 'price-volume' | 'gauge-preset' | 'sparkline';
+    presetType?: 'price-volume' | 'gauge-preset' | 'sparkline' | 'scatter-quadrant';
     pool?: boolean;
     domMode?: 'normal' | 'minimal';
     withDragInterpretation?: boolean;
