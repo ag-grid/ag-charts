@@ -29,9 +29,9 @@ const options: AgQuadrantChartOptions = {
         renderer: (params) => {
             return {
                 data: [
-                    { label: params.labelName, value: params.datum.country },
-                    { label: params.xName, value: params.datum.tempAnomaly },
-                    { label: params.yName, value: params.datum.precipAnomaly },
+                    { label: 'Country', value: params.datum.country },
+                    { label: 'Temperature anomaly', value: `${params.datum.tempAnomaly} °C` },
+                    { label: 'Precipitation anomaly', value: `${params.datum.precipAnomaly}%` },
                 ],
             };
         },
