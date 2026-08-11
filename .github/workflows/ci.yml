@@ -2080,6 +2080,29 @@ jobs:
                           ;;
                   esac
 
+            # Mirror the resolved section into the run's job summary. Same content as the PR comment,
+            # but rendered inline on the run page and reachable with no Pages deploy at all — so the
+            # ranked table is readable the moment the job ends even while the interactive report is
+            # still propagating (or if it never publishes). Job summaries are sanitized GFM: script,
+            # style and event handlers are stripped, so only the tables and links travel here. The
+            # interactive report (embedded images, onion-skin/swipe/compare) stays on Pages.
+            # Runs after Finalize so the link it carries is the resolved one, not the sentinel.
+            - name: Write snapshot-review job summary
+              if: always() && steps.review.outputs.produced == 'true'
+              shell: bash
+              run: |
+                  set -euo pipefail
+                  frag="${RUNNER_TEMP}/pr-sections/25-snapshot-review.md"
+                  [[ -f "$frag" ]] || exit 0
+                  # `## [warn] <title>` is the section-status convention pr-report-comment parses out
+                  # into a <summary> icon. There is no such wrapper here, so render the icon inline
+                  # rather than leaking the raw marker into the summary.
+                  sed -E \
+                      -e 's|^## \[ok\] |## :white_check_mark: |' \
+                      -e 's|^## \[warn\] |## :warning: |' \
+                      -e 's|^## \[error\] |## :x: |' \
+                      "$frag" >> "$GITHUB_STEP_SUMMARY"
+
             # Re-upsert with the resolved report link (live or fallback) in place.
             - name: Upsert snapshot-review section (with report link)
               if: always() && steps.review.outputs.produced == 'true'
