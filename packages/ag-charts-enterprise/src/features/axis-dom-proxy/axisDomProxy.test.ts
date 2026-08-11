@@ -187,6 +187,76 @@ describe('AxisDOMProxy', () => {
         });
     });
 
+    describe('discrete axis with labels disabled and ticks enabled', () => {
+        beforeEach(async () => {
+            chart = await createEnterpriseChart({
+                data: [
+                    { x: 'A', y: 1 },
+                    { x: 'B', y: 2 },
+                    { x: 'C', y: 3 },
+                ],
+                axes: {
+                    x: {
+                        type: 'category',
+                        label: { enabled: false },
+                        tick: { enabled: true, size: 30 },
+                        listeners: { click },
+                    },
+                    y: { type: 'number' },
+                },
+                zoom: { enabled: true },
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+            });
+        });
+
+        // Clicks land on each band centre, which is also where the tick sits.
+        test('click - value/index match', async () => {
+            await clickAction(170, 565)(chart); // 'A'
+            await clickAction(414, 565)(chart); // 'B'
+            await clickAction(658, 565)(chart); // 'C'
+            await waitForChartStability(chart);
+
+            expect(click.mock.calls).toMatchObject([
+                [expect.objectContaining({ value: 'A', index: 0 })],
+                [expect.objectContaining({ value: 'B', index: 1 })],
+                [expect.objectContaining({ value: 'C', index: 2 })],
+            ]);
+        });
+    });
+
+    describe('continuous axis with labels disabled and ticks enabled', () => {
+        beforeEach(async () => {
+            chart = await createEnterpriseChart({
+                data: Array.from({ length: 11 }, (_, i) => ({ x: i * 100, y: i })),
+                axes: {
+                    x: {
+                        type: 'number',
+                        label: { enabled: false },
+                        tick: { enabled: true, size: 30 },
+                        listeners: { click },
+                    },
+                    y: { type: 'number' },
+                },
+                zoom: { enabled: true },
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            });
+        });
+
+        // Ticks sit every 200 across a 0..1000 domain; each click is nearest an unambiguous one.
+        test('value is interpolated and index tracks the nearest tick', async () => {
+            await clickAction(200, 565)(chart);
+            await clickAction(480, 565)(chart);
+            await clickAction(640, 565)(chart);
+            await waitForChartStability(chart);
+
+            expect(click.mock.calls).toMatchObject([
+                [expect.objectContaining({ value: expect.closeTo(210.88), index: 1 })],
+                [expect.objectContaining({ value: expect.closeTo(591.84), index: 3 })],
+                [expect.objectContaining({ value: expect.closeTo(809.52), index: 4 })],
+            ]);
+        });
+    });
+
     describe('suppressed overflow labels', () => {
         beforeEach(async () => {
             chart = await createEnterpriseChart({
