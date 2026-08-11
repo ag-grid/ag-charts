@@ -31,7 +31,7 @@ export async function GET() {
             ].join('\n'),
             `# ${SITEMAP_PAGE_CONTENT.heading}`,
             SITEMAP_PAGE_CONTENT.description,
-            'Most pages listed here also have a markdown version: append `.md` to the URL. The Options and Themes API reference pages are the exception.',
+            `Most pages listed here also have a markdown version: append \`.md\` to the URL. The homepage is the one URL with no \`.md\` suffix - its copy is ${PRODUCTION_CHARTS_SITE_URL}/index.md. The Options and Themes API reference pages have no markdown version.`,
             ...sections,
         ].join('\n\n') + '\n';
 

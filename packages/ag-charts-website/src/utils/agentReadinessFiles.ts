@@ -37,6 +37,8 @@ interface AgentReadinessLinks {
     pipeline: string;
     sitemap: string;
     llmsTxt: string;
+    /** The homepage twin, which is `index.md` rather than a `.md` suffix on the site root. */
+    homepageMarkdown: string;
 }
 
 function buildLinks({ siteRoot, chartsDocsPrefix }: AgentReadinessInput): AgentReadinessLinks {
@@ -52,6 +54,7 @@ function buildLinks({ siteRoot, chartsDocsPrefix }: AgentReadinessInput): AgentR
         pipeline: `${siteRoot}pipeline/`,
         sitemap: `${siteRoot}sitemap-index.xml`,
         llmsTxt: `${siteRoot}llms.txt`,
+        homepageMarkdown: `${siteRoot}index.md`,
     };
 }
 
@@ -67,7 +70,7 @@ export function buildLlmsTxt(input: AgentReadinessInput): string {
     const markdownLine =
         input.includeMarkdownDocs === false
             ? ''
-            : `\n- Markdown versions: append \`.md\` to any page URL listed in the sitemap for a clean Markdown copy (e.g. ${l.quickStart.replace(/\/$/, '')}.md), or send \`Accept: text/markdown\`. Docs pages are resolved for the framework in the URL. The Options and Themes API reference pages are the exception and have no Markdown version.`;
+            : `\n- Markdown versions: append \`.md\` to any page URL listed in the sitemap for a clean Markdown copy (e.g. ${l.quickStart.replace(/\/$/, '')}.md), or send \`Accept: text/markdown\`. Docs pages are resolved for the framework in the URL. The homepage is the one URL with no \`.md\` suffix - its copy is ${l.homepageMarkdown}. The Options and Themes API reference pages are the exception and have no Markdown version.`;
     return `# AG Charts
 > High-performance JavaScript Charting library, framework-agnostic with React, Angular and Vue support. Free Community and paid Enterprise editions. Current major version: v${input.majorVersion}.
 
@@ -97,7 +100,7 @@ export function buildAgentsMd(input: AgentReadinessInput): string {
     const markdownBullet =
         input.includeMarkdownDocs === false
             ? ''
-            : `\n- **Markdown for LLMs:** append \`.md\` to any page URL listed in the [sitemap](${l.sitemap}) (e.g. ${l.quickStart.replace(/\/$/, '')}.md), or request the page with \`Accept: text/markdown\`. Docs pages are resolved for the framework in the URL. The Options and Themes API reference pages are the exception and have no Markdown version.`;
+            : `\n- **Markdown for LLMs:** append \`.md\` to any page URL listed in the [sitemap](${l.sitemap}) (e.g. ${l.quickStart.replace(/\/$/, '')}.md), or request the page with \`Accept: text/markdown\`. Docs pages are resolved for the framework in the URL. The homepage is the one URL with no \`.md\` suffix - its copy is ${l.homepageMarkdown}. The Options and Themes API reference pages are the exception and have no Markdown version.`;
     return `# AG Charts - guide for AI coding assistants
 
 - **What it is:** high-performance JavaScript Charting library. Framework-agnostic, with React, Angular and Vue wrappers. Community (free) and Enterprise (licensed) editions.

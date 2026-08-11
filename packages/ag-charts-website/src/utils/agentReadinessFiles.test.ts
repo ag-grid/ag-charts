@@ -37,6 +37,10 @@ describe('buildLlmsTxt', () => {
         expect(txt).toContain('Options and Themes API reference pages are the exception');
     });
 
+    test('points at index.md for the homepage, whose twin is not a `.md` suffix', () => {
+        expect(txt).toContain('https://www.ag-grid.com/charts/index.md');
+    });
+
     test('omits the markdown convention when markdown docs are disabled', () => {
         const disabled = buildLlmsTxt({ ...INPUT, includeMarkdownDocs: false });
         expect(disabled).not.toContain('.md');
@@ -68,6 +72,10 @@ describe('buildAgentsMd', () => {
         expect(md).toContain('append `.md` to any page URL listed in the');
         expect(md).toContain('[sitemap](https://www.ag-grid.com/charts/sitemap-index.xml)');
         expect(md).toContain('Options and Themes API reference pages are the exception');
+    });
+
+    test('points at index.md for the homepage, whose twin is not a `.md` suffix', () => {
+        expect(md).toContain('https://www.ag-grid.com/charts/index.md');
     });
 
     test('omits the markdown affordance when markdown docs are disabled', () => {
