@@ -247,5 +247,24 @@ describe('RTL', () => {
             });
             await compare();
         });
+
+        // A number sitting beside RTL text reorders on its own, without the chart being RTL at all.
+        test('negative labels mixing RTL text and a number', async () => {
+            const options: AgCartesianChartOptions = {
+                data: NEGATIVE_DATA,
+                title: { text: 'מאזן' },
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'category',
+                        yKey: 'profit',
+                        yName: 'רווח',
+                        label: { enabled: true, formatter: ({ value }) => `רווח ${value}` },
+                    },
+                ],
+            };
+            chart = await createChart(options);
+            await compare();
+        });
     });
 });

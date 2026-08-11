@@ -685,8 +685,8 @@ export class Text<D = unknown> extends Shape<D> {
         return super.markDirty(property);
     }
 
-    // `ctx.direction` is canvas-wide, so an RTL chart would give every run an RTL paragraph direction
-    // and reorder a number such as `-5` to `5-`. RTL scenes only.
+    // A number beside RTL text reorders to `5-` whatever the paragraph direction, since the sign is
+    // neutral and binds to the RTL run. `direction` is the line's own reading order, not the scene's.
     private resolveDirected(): { direction: CanvasDirection; lines: string[] } {
         this.directed ??= this.lines.every(isDirectionNeutral)
             ? { direction: 'ltr', lines: this.lines }
@@ -709,6 +709,7 @@ export class Text<D = unknown> extends Shape<D> {
             renderCtx.currentFont = font;
         }
 
+        // Only an RTL scene can impose a paragraph direction the line did not ask for.
         const isRtl = renderCtx.direction === 'rtl';
         const direction = isRtl ? this.resolveDirected().direction : 'ltr';
         if (ctx.direction !== direction) {
@@ -770,9 +771,8 @@ export class Text<D = unknown> extends Shape<D> {
         }
 
         // Metrics stay keyed on the unmodified lines; the directional marks are zero-width, so only
-        // the drawn string carries them. The cache outlives a direction change, so an LTR scene must
-        // not pick up lines marked for an RTL one.
-        const directedLines = this.scene?.isRtl ? this.directed?.lines : undefined;
+        // the drawn string carries them.
+        const directedLines = this.resolveDirected().lines;
         for (let i = 0; i < lineMetrics.length; i += 1) {
             renderCallback(directedLines?.[i] ?? lineMetrics[i].text, x, y + offsetY);
             offsetY += lineHeight;
