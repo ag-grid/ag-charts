@@ -58,7 +58,7 @@ export interface AgQuadrantRegionMarkerStyle extends AgSeriesMarkerStyle {}
 
 export interface AgScatterQuadrantAxisOptions<TContext> extends Omit<
     AgNumberAxisOptions<TContext>,
-    'crossAt' | 'crossLines' | 'position'
+    'crossAt' | 'crossLines' | 'crosshair' | 'keys' | 'reverse' | 'position' | 'type'
 > {}
 
 export interface AgScatterQuadrantItemStylerParams<TDatum, TContext> extends AgScatterSeriesItemStylerParams<
