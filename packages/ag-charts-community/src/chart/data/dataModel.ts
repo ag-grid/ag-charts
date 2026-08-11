@@ -14,6 +14,7 @@ import { ReducerManager } from './data-model/reducers/reducerManager';
 import { isScoped, uniqueChangeDescriptions } from './data-model/utils/helpers';
 import { DataModelResolvers } from './data-model/utils/resolvers';
 import { ScopeCacheManager } from './data-model/utils/scopeCache';
+import type { ValidationSink } from '../validation/validationIssueCollector';
 import type { DataChangeDescription, DataChangeDescriptionListener } from './dataChangeDescription';
 import type {
     AggregatePropertyDefinition,
@@ -122,7 +123,8 @@ export class DataModel<
         private readonly logger: Logger,
         private readonly mode: ChartMode = 'standalone',
         private readonly suppressFieldDotNotation: boolean = false,
-        private readonly eventsHub?: EventsHub
+        private readonly eventsHub?: EventsHub,
+        private readonly validationSink?: ValidationSink
     ) {
         // Validate that keys appear before values in the definitions, as output ordering depends
         // on configuration ordering, but we process keys before values.
@@ -222,6 +224,7 @@ export class DataModel<
             processors: this.processors,
             debug: this.debug,
             logger: this.logger,
+            validationSink: this.validationSink,
             mode: this.mode,
             bandingConfig: this.opts.domainBandingConfig,
             suppressFieldDotNotation: this.suppressFieldDotNotation,
