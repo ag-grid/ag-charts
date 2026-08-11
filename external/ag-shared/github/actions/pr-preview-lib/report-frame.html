@@ -30,13 +30,22 @@
             parent.postMessage({ source: 'report-frame', kind, detail }, '*');
         }
 
-        // Refuse to run outside the viewer. Sandboxing is applied by the embedding page, so opened
-        // directly this document would render third-party HTML top-level, unsandboxed, on our
-        // origin. Nothing below should be reachable that way.
-        if (window === window.parent) {
+        // Refuse to run anywhere but an opaque origin. This document executes HTML it fetched, so
+        // the isolation is not a nicety — it is the only thing standing between fetched content
+        // and ag-grid.github.io's storage and same-origin resources.
+        //
+        // The check is on the origin itself rather than on being framed. Sandboxing is applied by
+        // the EMBEDDING page, so this file cannot infer it: opened directly it runs top-level and
+        // unsandboxed, and a `window !== parent` test is no better, since anyone may frame this URL
+        // from their own site without a sandbox and get the same unsandboxed execution. A sandbox
+        // without allow-same-origin is exactly what makes `self.origin` the string 'null', so
+        // testing for that is testing for the property actually being relied on.
+        //
+        // Fails closed if origin is unavailable.
+        if (self.origin !== 'null') {
             // document.write, not document.body: this script runs while the document is still
             // parsing, so there is no body element to write into yet. The string is a literal.
-            document.write('This page is only usable inside viewer.html.');
+            document.write('This page only runs inside the sandboxed frame in viewer.html.');
             return;
         }
 
@@ -83,10 +92,13 @@
                 // own sticky header behind the viewer's.
                 let last = 0;
                 const publishHeight = () => {
-                    const h = Math.max(
-                        document.documentElement.scrollHeight,
-                        document.body ? document.body.scrollHeight : 0
-                    );
+                    // getBoundingClientRect, NOT scrollHeight. scrollHeight on the root is at least
+                    // the viewport height, and the parent sets the frame's viewport to whatever we
+                    // report — so a measurement taken that way can never come back smaller than the
+                    // last one. Expanding a case would grow the frame permanently and collapsing it
+                    // would leave the blank space behind. The root element's layout box is sized to
+                    // its content and is not clamped to the viewport, so it can shrink again.
+                    const h = Math.ceil(document.documentElement.getBoundingClientRect().height);
                     if (h && h !== last) {
                         last = h;
                         report('height', h);
