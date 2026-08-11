@@ -171,6 +171,24 @@ const ESM_SH_HOST = 'https://esm.sh';
 const ENZUZO_APP_HOST = 'https://app.enzuzo.com';
 const ENZUZO_GVL_HOST = 'https://gvl.enzuzo.com';
 
+// The LinkedIn Insight Tag (LinkedIn Ads conversion tracking and website demographics).
+// Like ZoomInfo and Enzuzo, it is a tag in the shared Google Tag Manager container rather
+// than markup in this repo, so nothing here references these origins directly — the CSP is
+// the only place the site declares them.
+//
+//  - snap.licdn.com serves the tag SDK (/li.lms-analytics/insight.min.js). GTM injects it as
+//    an external <script src>, so no script-src hash is needed (contrast GTM_ZOOMINFO_HASH).
+//  - px.ads.linkedin.com and px4.ads.linkedin.com receive the tag's beacons. Most are image
+//    pixels, which the permissive img-src already covers, but the website-actions endpoint
+//    (px.ads.linkedin.com/wa/) is an XHR, so it needs connect-src as well.
+//
+// LinkedIn's published allowlist also names dc.ads.linkedin.com and p.adsymptotic.com — both
+// image pixels, so img-src covers them — plus the Oribi hosts and the legacy
+// sjs.bizographics.com loader, which the current tag does not load. Add those only if a
+// violation actually shows up.
+const LINKEDIN_SDK_HOST = 'https://snap.licdn.com';
+const LINKEDIN_BEACON_HOSTS = ['https://px.ads.linkedin.com', 'https://px4.ads.linkedin.com'];
+
 // Apache <If> expression matching the URL paths that get the 'examples' scope.
 // Charts serves example-runner documents at both /gallery/examples/<name>/... and
 // /<framework>/<page>/examples/<name>/..., and the whole site sits under /charts in
@@ -230,6 +248,7 @@ export function getCspDirectives(options: CspOptions): CspDirectives {
             ESM_SH_HOST, // example-runner: React's ES module build (npm ships CJS only)
             'https://js.zi-scripts.com', // ZoomInfo tag (injected via GTM)
             'https://*.zoominfo.com', // ZoomInfo FormComplete (trial form)
+            LINKEDIN_SDK_HOST, // LinkedIn Insight Tag SDK (injected via GTM)
             'https://www.google.com', // reCAPTCHA (license-pricing trial form)
             'https://www.gstatic.com', // reCAPTCHA
             'https://www.youtube.com', // YouTube iframe JS API (loads into the page)
@@ -280,6 +299,7 @@ export function getCspDirectives(options: CspOptions): CspDirectives {
             ESM_SH_HOST, // example-runner: React's ES module build
             'https://js.zi-scripts.com', // ZoomInfo
             'https://*.zoominfo.com', // ZoomInfo
+            ...LINKEDIN_BEACON_HOSTS, // LinkedIn Insight Tag website-actions beacon
             'https://www.google.com', // reCAPTCHA (api2/clr XHR)
             'https://cdn.cookielaw.org', // OneTrust config/JSON/asset XHR (GTM-injected, prod-only)
             'https://*.onetrust.com', // OneTrust geolocation + consent-receipt endpoints
