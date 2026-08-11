@@ -1,4 +1,4 @@
-import type { CanvasPoint } from 'ag-charts-core';
+import type { BoxBounds, CanvasPoint } from 'ag-charts-core';
 import { boxContains } from 'ag-charts-core';
 import { CANVAS_HEIGHT, CANVAS_WIDTH, Caster, type MockEvent, makeMockEvent } from 'ag-charts-test';
 
@@ -7,6 +7,7 @@ import { TranslatableGroup } from '../../scene/group';
 import { Node } from '../../scene/node';
 import { Selection } from '../../scene/selection';
 import { Transformable } from '../../scene/transformable';
+import { AxisWidget } from '../../widget/axisWidget';
 import { ListWidget } from '../../widget/listWidget';
 import { NativeWidget } from '../../widget/nativeWidget';
 import { SliderWidget } from '../../widget/sliderWidget';
@@ -19,45 +20,56 @@ import { LegendDOMProxy } from '../legend/legendDOMProxy';
 import { LegendMarkerLabel } from '../legend/legendMarkerLabel';
 import { SeriesAreaManager } from '../series/seriesAreaManager';
 
-function initBoundingClientRect(widgets: WidgetSet) {
-    // getBoundingClientRect doesn't work correctly in node.js, but it's used in some parts of ag-charts.
-    const canvasBounds = (): DOMRect => {
+/**
+ * getBoundingClientRect doesn't work correctly in node.js, but it's used in some parts of ag-charts.
+ * `bounds` is read on every call so the stub tracks re-layouts the way the real DOM would.
+ */
+function stubBoundingClientRect(element: HTMLElement, bounds: () => BoxBounds) {
+    (element as any)['getBoundingClientRect'] = (): DOMRect => {
+        const { x, y, width, height } = bounds();
         return {
-            bottom: 0,
-            left: 0,
-            right: 0,
-            top: 0,
-            x: 0,
-            y: 0,
-            height: CANVAS_HEIGHT,
-            width: CANVAS_WIDTH,
-            toJSON() {
-                return `{bottom:0,left:0,right:0,top:0,x:0,y:0,height:${CANVAS_HEIGHT},width:${CANVAS_WIDTH}}`;
-            },
-        };
-    };
-    const seriesBounds = (): DOMRect => {
-        const left = widgets.seriesWidget.cssLeft();
-        const top = widgets.seriesWidget.cssTop();
-        const height = widgets.seriesWidget.cssHeight();
-        const width = widgets.seriesWidget.cssWidth();
-        return {
-            bottom: 0,
-            left,
-            right: 0,
-            top,
-            x: left,
-            y: top,
-            height,
+            x,
+            y,
             width,
+            height,
+            left: x,
+            top: y,
+            right: x + width,
+            bottom: y + height,
             toJSON() {
-                return `{bottom:0,left:${left},right:0,top:${top},x:${left},y:${top},height:${height},width:${width}}`;
+                return `{x:${x},y:${y},width:${width},height:${height}}`;
             },
         };
     };
-    (widgets.chartWidget.getElement() as any)['getBoundingClientRect'] = canvasBounds;
-    (widgets.containerWidget.getElement() as any)['getBoundingClientRect'] = canvasBounds;
-    (widgets.seriesWidget.getElement() as any)['getBoundingClientRect'] = seriesBounds;
+}
+
+function axisRegionWidgets(widgetSet: WidgetSet): AxisWidget[] {
+    const entries = new Caster(widgetSet.axisWidgets).accessProperty('entries').cast(Map).value;
+    const result: AxisWidget[] = [];
+    for (const entry of entries.values()) {
+        const widget = new Caster(entry).accessNullableProperty('region').castNullable(AxisWidget).value;
+        if (widget != null) {
+            result.push(widget);
+        }
+    }
+    return result;
+}
+
+function initBoundingClientRect(widgets: WidgetSet) {
+    const canvasBounds = () => ({ x: 0, y: 0, width: CANVAS_WIDTH, height: CANVAS_HEIGHT });
+    const cssBounds = (widget: Widget) => () => ({
+        x: widget.cssLeft(),
+        y: widget.cssTop(),
+        width: widget.cssWidth(),
+        height: widget.cssHeight(),
+    });
+
+    stubBoundingClientRect(widgets.chartWidget.getElement(), canvasBounds);
+    stubBoundingClientRect(widgets.containerWidget.getElement(), canvasBounds);
+    stubBoundingClientRect(widgets.seriesWidget.getElement(), cssBounds(widgets.seriesWidget));
+    for (const axisWidget of axisRegionWidgets(widgets)) {
+        stubBoundingClientRect(axisWidget.getElement(), () => axisWidget.getBounds());
+    }
 }
 
 function isClickable(widget: Widget | undefined): widget is Widget {
