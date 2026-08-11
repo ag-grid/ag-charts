@@ -1,14 +1,13 @@
+import type { Styler } from '../../chart/callbackOptions';
+import type { AgNumberAxisOptions, AgSeriesAreaBackgroundRegion } from '../../chart/cartesianOptions';
+import type { AgNumericValue } from '../../chart/dataValues';
 import type {
-    AgNumberAxisOptions,
-    AgNumericValue,
     AgScatterSeriesItemStylerParams,
     AgScatterSeriesOptionsKeys,
     AgScatterSeriesOptionsNames,
     AgScatterSeriesThemeableOptions,
-    AgSeriesAreaBackgroundRegion,
-    AgSeriesMarkerStyle,
-    Styler,
-} from 'ag-charts-types';
+} from '../../series/cartesian/scatterOptions';
+import type { AgSeriesMarkerStyle } from '../../series/markerOptions';
 
 export interface AgScatterQuadrantPreset<TDatum, TContext>
     extends

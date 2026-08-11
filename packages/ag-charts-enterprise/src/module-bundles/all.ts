@@ -1,6 +1,5 @@
 import { AllCommunityModule } from 'ag-charts-community';
 import type { ModuleDefinition } from 'ag-charts-core';
-import { QuadrantChartModule } from 'ag-charts-enterprise';
 
 import { BackgroundRegionsModule } from '../features/background-regions/backgroundRegionsModule';
 import { ChordSeriesModule } from '../series/chord/chordModule';
@@ -13,6 +12,7 @@ import { AllCartesianModule } from './cartesian';
 import { FinancialChartModule } from './financial';
 import { AllGaugeModule } from './gauge';
 import { AllPolarModule } from './polar';
+import { QuadrantChartModule } from './quadrant';
 import { AllMapSeriesModule } from './topology';
 
 export const AllEnterpriseModule: ModuleDefinition[] = [
