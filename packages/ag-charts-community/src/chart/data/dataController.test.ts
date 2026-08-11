@@ -252,6 +252,22 @@ describe('DataController', () => {
         expect(results[0].processedData.columns).toEqual([[100, 200, 300]]);
     });
 
+    it('records a warning issue when a requested key is missing from every datum', async () => {
+        const promise = controller.request('test1', new DataSet([{ keyProp1: '2020' }], testLogger), {
+            props: [
+                { id: 'keyProp1-key', property: 'keyProp1', type: 'key', valueType: 'category' },
+                { id: 'valueProp1-key', property: 'valueProp1', type: 'value', valueType: 'range' },
+            ],
+        });
+
+        controller.execute(undefined, undefined);
+        await promise;
+
+        expect(controller.validationIssues).toHaveLength(1);
+        expect(controller.validationIssues[0].severity).toBe('warning');
+        expect(controller.validationIssues[0].message).toContain("the key 'valueProp1' was not found");
+    });
+
     describe('with multiple data sources', () => {
         it('should extract scoped data for each request with shared scopes', async () => {
             const data1 = [
