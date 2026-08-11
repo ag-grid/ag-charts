@@ -11,7 +11,7 @@ import {
 } from 'ag-charts-core';
 import type { ExtensibleTheme } from 'ag-charts-types';
 
-import { GaugePresetModule } from '../../preset/gaugePresetModule';
+import { GaugePresetModule } from '../../preset/gauge/gaugePresetModule';
 import { LinearGaugeSeries } from './linearGaugeSeries';
 
 const themeTemplate: ExtensibleTheme<'linear-gauge'> = {

@@ -48,6 +48,9 @@ const getIgnoredPages = () => {
         addTrailingSlash(urlWithBaseUrl(`/${FRAMEWORK_REDIRECT_PATH}`)),
         // Release note stubs — minimal content, crawl waste
         addTrailingSlash(urlWithBaseUrl('/changelog/releases')),
+        // Contact form result pages — post-submission confirmations, nothing to index
+        addTrailingSlash(urlWithBaseUrl('/contact/failure')),
+        addTrailingSlash(urlWithBaseUrl('/contact/success')),
     ];
 };
 

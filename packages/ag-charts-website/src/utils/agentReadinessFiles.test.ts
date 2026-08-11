@@ -24,12 +24,21 @@ describe('buildLlmsTxt', () => {
         expect(txt).toContain('(https://www.ag-grid.com/charts/sitemap-index.xml)');
     });
 
-    test('advertises the per-page markdown (.md) convention and the extra .md twins', () => {
+    test('advertises the markdown (.md) convention as a site-wide rule, not a page list', () => {
         expect(txt).toContain('.md');
         expect(txt).toContain('https://www.ag-grid.com/charts/javascript/quick-start.md');
-        expect(txt).toContain(
-            'Home, Gallery, Community, Documentation Archive and Pricing pages also have `.md` versions'
-        );
+        // Nearly every page in the sitemap has a twin, so llms.txt states the rule. Enumerating
+        // pages here would drift the moment one is added (see markdownPages.test.ts).
+        expect(txt).toContain('append `.md` to any page URL listed in the sitemap');
+        expect(txt).toContain('Accept: text/markdown');
+    });
+
+    test('names the API reference pages as the one gap, so an agent does not chase 404s', () => {
+        expect(txt).toContain('Options and Themes API reference pages are the exception');
+    });
+
+    test('points at index.md for the homepage, whose twin is not a `.md` suffix', () => {
+        expect(txt).toContain('https://www.ag-grid.com/charts/index.md');
     });
 
     test('omits the markdown convention when markdown docs are disabled', () => {
@@ -55,11 +64,18 @@ describe('buildAgentsMd', () => {
         expect(md).toContain('https://www.ag-grid.com/charts/llms.txt');
     });
 
-    test('advertises the markdown (.md) versions', () => {
+    test('advertises the markdown (.md) versions as a site-wide rule', () => {
         expect(md).toContain('Markdown for LLMs');
         expect(md).toContain('https://www.ag-grid.com/charts/javascript/quick-start.md');
-        expect(md).toContain('[Community](https://www.ag-grid.com/charts/community/)');
-        expect(md).toContain('[Documentation Archive](https://www.ag-grid.com/charts/documentation-archive/)');
+        // Nearly every page in the sitemap has a twin, so point at the sitemap rather than
+        // listing pages that would drift (see markdownPages.test.ts for the guarantee).
+        expect(md).toContain('append `.md` to any page URL listed in the');
+        expect(md).toContain('[sitemap](https://www.ag-grid.com/charts/sitemap-index.xml)');
+        expect(md).toContain('Options and Themes API reference pages are the exception');
+    });
+
+    test('points at index.md for the homepage, whose twin is not a `.md` suffix', () => {
+        expect(md).toContain('https://www.ag-grid.com/charts/index.md');
     });
 
     test('omits the markdown affordance when markdown docs are disabled', () => {

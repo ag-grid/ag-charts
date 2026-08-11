@@ -10,7 +10,7 @@ import {
 } from 'ag-charts-community-test';
 import type { AgChartInstance, AgLinearGaugeOptions, AgRadialGaugeOptions } from 'ag-charts-types';
 
-import { prepareEnterpriseTestOptions } from '../test/utils';
+import { prepareEnterpriseTestOptions } from '../../test/utils';
 
 const RADIAL_OPTIONS: AgRadialGaugeOptions = {
     type: 'radial-gauge',

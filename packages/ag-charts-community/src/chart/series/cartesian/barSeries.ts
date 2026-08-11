@@ -329,6 +329,14 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
 
     override properties = new BarSeriesProperties();
 
+    override createNodeParams(datum: BarNodeDatum) {
+        return {
+            ...super.createNodeParams(datum),
+            xKey: this.properties.xKey,
+            yKey: this.properties.yKey,
+        };
+    }
+
     override connectsToYAxis = true;
 
     private readonly aggregationManager = new AggregationManager<BarSeriesDataAggregationFilter>();

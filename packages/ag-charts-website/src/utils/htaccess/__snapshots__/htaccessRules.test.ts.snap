@@ -36,7 +36,7 @@ Header always set Content-Security-Policy "default-src 'self'; script-src 'self'
     RewriteEngine On
 
     RewriteCond %{HTTP_ACCEPT} text/markdown
-    RewriteCond %{REQUEST_URI} ^/(charts/(?:(?:react|angular|vue|javascript)/[^/]+?|license-pricing|community(?:/(?:events|showcase|tools-extensions|media|beyond-the-prompt))?|documentation-archive|gallery))/?$
+    RewriteCond %{REQUEST_URI} ^/(charts/(?:(?:react|angular|vue|javascript)/[^/.]+|changelog|contact|documentation-archive|license-pricing|pipeline|roadmap|sitemap|whats-new|community(?:/(?:beyond-the-prompt|events|media|showcase|tools-extensions))?|session/[^/.]+|gallery(?:/[^/.]+)?|(?:angular|enterprise|javascript|react|vue)-charts))/?$
     RewriteCond %{DOCUMENT_ROOT}/%1.md -f
     RewriteRule ^ /%1.md [L]
 
@@ -51,7 +51,7 @@ Header always set Content-Security-Policy "default-src 'self'; script-src 'self'
 # Docs pages content-negotiate on Accept (see the markdown rewrite), so shared caches must
 # key on it. Scoped to the negotiated paths (incl. the homepage) so the rest of the site keeps
 # its default.
-<If "%{REQUEST_URI} =~ m#^/charts/(?:(?:react|angular|vue|javascript)/[^/]+|license-pricing|community(?:/(?:events|showcase|tools-extensions|media|beyond-the-prompt))?|documentation-archive|gallery)/?$# || %{REQUEST_URI} =~ m#^/charts/?$#">
+<If "%{REQUEST_URI} =~ m#^/charts/(?:(?:react|angular|vue|javascript)/[^/.]+|changelog|contact|documentation-archive|license-pricing|pipeline|roadmap|sitemap|whats-new|community(?:/(?:beyond-the-prompt|events|media|showcase|tools-extensions))?|session/[^/.]+|gallery(?:/[^/.]+)?|(?:angular|enterprise|javascript|react|vue)-charts)/?$# || %{REQUEST_URI} =~ m#^/charts/?$#">
     Header append Vary Accept
 </If>
 
@@ -159,7 +159,7 @@ Header always set Content-Security-Policy "default-src 'self'; script-src 'self'
     RewriteEngine On
 
     RewriteCond %{HTTP_ACCEPT} text/markdown
-    RewriteCond %{REQUEST_URI} ^/(charts/(?:(?:react|angular|vue|javascript)/[^/]+?|license-pricing|community(?:/(?:events|showcase|tools-extensions|media|beyond-the-prompt))?|documentation-archive|gallery))/?$
+    RewriteCond %{REQUEST_URI} ^/(charts/(?:(?:react|angular|vue|javascript)/[^/.]+|changelog|contact|documentation-archive|license-pricing|pipeline|roadmap|sitemap|whats-new|community(?:/(?:beyond-the-prompt|events|media|showcase|tools-extensions))?|session/[^/.]+|gallery(?:/[^/.]+)?|(?:angular|enterprise|javascript|react|vue)-charts))/?$
     RewriteCond %{DOCUMENT_ROOT}/%1.md -f
     RewriteRule ^ /%1.md [L]
 
@@ -174,7 +174,7 @@ Header always set Content-Security-Policy "default-src 'self'; script-src 'self'
 # Docs pages content-negotiate on Accept (see the markdown rewrite), so shared caches must
 # key on it. Scoped to the negotiated paths (incl. the homepage) so the rest of the site keeps
 # its default.
-<If "%{REQUEST_URI} =~ m#^/charts/(?:(?:react|angular|vue|javascript)/[^/]+|license-pricing|community(?:/(?:events|showcase|tools-extensions|media|beyond-the-prompt))?|documentation-archive|gallery)/?$# || %{REQUEST_URI} =~ m#^/charts/?$#">
+<If "%{REQUEST_URI} =~ m#^/charts/(?:(?:react|angular|vue|javascript)/[^/.]+|changelog|contact|documentation-archive|license-pricing|pipeline|roadmap|sitemap|whats-new|community(?:/(?:beyond-the-prompt|events|media|showcase|tools-extensions))?|session/[^/.]+|gallery(?:/[^/.]+)?|(?:angular|enterprise|javascript|react|vue)-charts)/?$# || %{REQUEST_URI} =~ m#^/charts/?$#">
     Header append Vary Accept
 </If>
 

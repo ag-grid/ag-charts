@@ -208,7 +208,7 @@ export interface AgContextMenuShowOnParamsSeriesArea<_TDatumReserved = never, TC
 }
 
 export interface AgContextMenuShowOnParamsSeriesNode<TDatum = DatumDefault, TContext = ContextDefault> extends Omit<
-    AgNodeContextMenuActionEvent<TDatum, TContext>,
+    Omit<AgNodeContextMenuActionEvent<TDatum, TContext>, 'allNodeParams'>,
     GetItemsParamsOmissions
 > {
     /** Which clicked element this menu item should be shown for. */

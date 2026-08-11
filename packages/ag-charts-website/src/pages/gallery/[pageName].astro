@@ -6,7 +6,7 @@ import GalleryExampleRunner from '@components/gallery/components/GalleryExampleR
 import { getGalleryPages } from '@components/gallery/utils/pageData';
 import { GalleryExampleLink } from '@components/gallery/components/GalleryExampleLink';
 import { GallerySeriesLink } from '@components/gallery/components/GallerySeriesLink';
-import { toTitle } from '@utils/toTitle';
+import { galleryExampleDescription } from '@utils/markdown-pages/buildGalleryExampleMarkdown';
 
 export async function getStaticPaths() {
     const galleryEntry = (await getEntry('gallery', 'data')) as CollectionEntry<'gallery'>;
@@ -18,7 +18,8 @@ export async function getStaticPaths() {
 const { page, prevExample, nextExampleOne, nextExampleTwo } = Astro.props;
 const exampleName = Astro.params.pageName;
 
-const metaDescription = `Example of a ${page.title} Chart built with AG Charts JavaScript Charting Library. Edit source code with CodeSandbox & Plunker. View JavaScript ${toTitle(page.seriesTitle)} Charts documentation for more info.`;
+// Shared with the page's `.md` twin so the two describe the example identically.
+const metaDescription = galleryExampleDescription(page);
 ---
 
 <Layout title={`AG Charts Gallery: ${page.title}`} description={metaDescription} showSearchBar={true}>
