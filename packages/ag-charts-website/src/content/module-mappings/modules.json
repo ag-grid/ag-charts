@@ -241,6 +241,12 @@
                     "isEnterprise": true
                 },
                 {
+                    "moduleName": "QuadrantChartModule",
+                    "name": "QuadrantChart",
+                    "path": "quadrant-charts",
+                    "isEnterprise": true
+                },
+                {
                     "name": "Maps",
                     "path": "maps",
                     "isEnterprise": true,
