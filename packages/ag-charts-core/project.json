@@ -48,6 +48,10 @@
         },
         "update": {
           "args": "--update"
+        },
+        "watch-update": {
+          "command": "npx vitest --config {projectRoot}/vitest.config.ts",
+          "args": "--update"
         }
       },
       "dependsOn": ["build:test", "build:package"]

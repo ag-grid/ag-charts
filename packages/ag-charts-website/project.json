@@ -159,7 +159,8 @@
       "configurations": {
         "ci": {},
         "watch": {},
-        "update": {}
+        "update": {},
+        "watch-update": {}
       }
     },
     "test:vitest": {
@@ -178,7 +179,8 @@
         "watch": {
           "watch": true
         },
-        "update": { "args": "-u" }
+        "update": { "args": "-u" },
+        "watch-update": { "watch": true, "args": "-u" }
       }
     },
     "test:e2e": {
