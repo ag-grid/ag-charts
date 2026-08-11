@@ -1568,13 +1568,15 @@ describe('CartesianAxis', () => {
             series: [{ type: 'bar', direction: 'horizontal', xKey: 'category', yKey: 'value' }],
         });
 
-        const getRightAxisLabelNodes = (chartInstance: AgChartInstance) => {
+        const getAxisLabelNodes = (chartInstance: AgChartInstance, position: string) => {
             const chartInternal = deproxy(chartInstance as any) as any;
-            const axis = chartInternal.axes.find((a: any) => a.position === 'right');
+            const axis = chartInternal.axes.find((a: any) => a.position === position);
             expect(axis).toBeDefined();
             const nodes: any[] = Array.from(axis.tickLabelGroupSelection.nodes());
             return nodes.filter((n: any) => n.datum.visible);
         };
+
+        const getRightAxisLabelNodes = (chartInstance: AgChartInstance) => getAxisLabelNodes(chartInstance, 'right');
 
         const getSeriesRect = (chartInstance: AgChartInstance) => {
             const chartInternal = deproxy(chartInstance as any) as any;
@@ -1694,6 +1696,32 @@ describe('CartesianAxis', () => {
                 expect(edge).toBeCloseTo(rightEdges[0], 5);
             }
             expect(new Set(boxes.map((b) => Math.round(b.width))).size).toBeGreaterThan(1);
+        });
+
+        // A horizontal axis reserves its band on the opposite side of the axis line from a vertical
+        // one, so the edge the correction pins over is the other one.
+        it('keeps rotated labels out of the series area on a top-positioned axis', async () => {
+            const options: AgCartesianChartOptions = {
+                data: TEXT_ALIGN_CATEGORY_DATA,
+                axes: {
+                    x: { type: 'category', position: 'top', label: { rotation: -30, textAlign: 'left' } },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+            };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const nodes = getAxisLabelNodes(chart, 'top');
+            expect(nodes.length).toBe(3);
+
+            const seriesTop = getSeriesRect(chart).y;
+            for (const node of nodes) {
+                const box = Transformable.toCanvas(node);
+                expect(box.y + box.height).toBeLessThanOrEqual(seriesTop);
+                expect(box.y).toBeGreaterThanOrEqual(0);
+            }
         });
     });
 });
