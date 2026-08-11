@@ -24,10 +24,12 @@ inputs:
         required: true
     report_base_url:
         description: >-
-            Public base URL the HTML reports are published under (e.g. the PR-preview
-            https://<owner>.github.io/<repo>/pr-<N>/). When set, the section links straight to
-            `<base>/snapshot-<slug>.html` — one click. Leave empty to fall back to the run's
-            artifacts page (the report then has to be downloaded and unzipped).
+            Public base URL the HTML reports are published under. When set, the section links
+            straight to `<base>/snapshot-<slug>.html` — one click. Leave empty to fall back to the
+            run's artifacts page (the report then has to be downloaded and unzipped).
+            `<slug>.html` is appended verbatim, so a viewer URL whose LAST query parameter is the
+            report path works as a base too, and the caller may leave a placeholder anywhere in the
+            URL to substitute once the reports are actually published.
         required: false
         default: ''
 
