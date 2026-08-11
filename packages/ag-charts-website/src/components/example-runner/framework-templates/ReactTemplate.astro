@@ -1,5 +1,6 @@
 ---
 import { MetaData } from './lib/MetaData';
+import ExampleFonts from './lib/ExampleFonts.astro';
 import Styles from './lib/Styles.astro';
 import { SystemJs } from './lib/SystemJs';
 import { Scripts } from './lib/Scripts';
@@ -44,6 +45,8 @@ const startFile = pathJoin(appLocation, entryFileName);
 <html lang="en">
     <head>
         <MetaData isDev={isDev} title={`React Example - ${title}`} modifiedTimeMs={modifiedTimeMs} />
+
+        <ExampleFonts headFragment={headFragment} />
 
         <Styles
             baseUrl={appLocation}
