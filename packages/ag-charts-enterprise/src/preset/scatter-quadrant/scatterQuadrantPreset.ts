@@ -1,5 +1,6 @@
 import { type CartesianAxisDirection, isImageFill, isPatternFill, isPublicGradientFill, pick } from 'ag-charts-core';
 import type {
+    AgBubbleSeriesOptions,
     AgCartesianChartOptions,
     AgNumberAxisOptions,
     AgQuadrantChartOptions,
@@ -42,7 +43,7 @@ export function createScatterQuadrant(
         'width',
     ]);
 
-    const seriesOptions = pick(options, [
+    const scatterSeriesKeys = [
         'cursor',
         'errorBar',
         'fill',
@@ -69,7 +70,9 @@ export function createScatterQuadrant(
         'xKey',
         'yName',
         'yKey',
-    ]);
+    ] as const;
+
+    const bubbleSeriesKeys = [...scatterSeriesKeys, 'maxSize', 'minSize', 'sizeKey'] as const;
 
     const pivotX = pivot?.x ?? 0;
     const pivotY = pivot?.y ?? 0;
@@ -148,19 +151,31 @@ export function createScatterQuadrant(
             ...defaultMarker,
         };
 
-        if (seriesOptions.itemStyler) {
-            result = seriesOptions.itemStyler({ ...params, ...result, region: regionName }) ?? result;
+        if (options.itemStyler) {
+            result = options.itemStyler({ ...params, ...result, region: regionName }) ?? result;
         }
 
         return result;
     };
 
-    const scatterSeriesOptions: AgScatterSeriesOptions = {
-        ...seriesOptions,
-        type: 'scatter',
-        context,
-        itemStyler: composedItemStyler,
-    };
+    const series: (AgScatterSeriesOptions | AgBubbleSeriesOptions)[] = [];
+
+    if (options.sizeKey == null) {
+        series.push({
+            ...pick(options, scatterSeriesKeys),
+            type: 'scatter',
+            context,
+            itemStyler: composedItemStyler,
+        });
+    } else {
+        series.push({
+            ...pick(options, bubbleSeriesKeys),
+            sizeKey: options.sizeKey,
+            type: 'bubble',
+            context,
+            itemStyler: composedItemStyler,
+        });
+    }
 
     const axes: Record<CartesianAxisDirection, AgNumberAxisOptions> = {
         x: {
@@ -168,12 +183,18 @@ export function createScatterQuadrant(
             type: 'number',
             position: 'bottom',
             context,
+            label: { enabled: false, ...xAxis?.label },
+            line: { width: 2, ...xAxis?.line },
+            tick: { enabled: false, ...xAxis?.tick },
         },
         y: {
             ...yAxis,
             type: 'number',
             position: 'left',
             context,
+            label: { enabled: false, ...yAxis?.label },
+            line: { width: 2, ...yAxis?.line },
+            tick: { enabled: false, ...yAxis?.tick },
         },
     };
 
@@ -187,7 +208,7 @@ export function createScatterQuadrant(
         ...chartOptions,
         axes,
         context,
-        series: [scatterSeriesOptions],
+        series,
         seriesArea: {
             backgroundRegions: Object.values(backgroundRegions),
         },

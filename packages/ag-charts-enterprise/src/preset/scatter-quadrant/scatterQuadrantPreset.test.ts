@@ -15,12 +15,12 @@ import { prepareEnterpriseTestOptions } from '../../test/utils';
 
 const NUMERIC: AgQuadrantChartOptions = {
     data: [
-        { label: 'One', x: -100, y: -100 },
-        { label: 'Two', x: -75, y: -75 },
-        { label: 'Three', x: -75, y: 75 },
-        { label: 'Four', x: 75, y: 75 },
-        { label: 'Five', x: 75, y: -75 },
-        { label: 'Six', x: 100, y: 100 },
+        { label: 'One', x: -100, y: -100, size: 1 },
+        { label: 'Two', x: -75, y: -75, size: 2 },
+        { label: 'Three', x: -75, y: 75, size: 3 },
+        { label: 'Four', x: 75, y: 75, size: 4 },
+        { label: 'Five', x: 75, y: -75, size: 5 },
+        { label: 'Six', x: 100, y: 100, size: 6 },
     ],
     xKey: 'x',
     yKey: 'y',
@@ -45,6 +45,11 @@ const UNALIGNED_AXES_NUMERIC: AgQuadrantChartOptions = {
     ...NUMERIC,
     pivot: { x: 25, y: -25 },
     alignAxesToPivot: false,
+};
+
+const BUBBLE_SIZED_NUMERIC: AgQuadrantChartOptions = {
+    ...NUMERIC,
+    sizeKey: 'size',
 };
 
 const ITEM_STYLERS_NUMERIC: AgQuadrantChartOptions = {
@@ -201,6 +206,10 @@ const EXAMPLES: Record<string, QuadrantTestCase> = {
     PIVOT_NUMERIC: { options: PIVOT_NUMERIC, assertions },
     UNALIGNED_AXES_NUMERIC: { options: UNALIGNED_AXES_NUMERIC, assertions },
     ITEM_STYLERS_NUMERIC: { options: ITEM_STYLERS_NUMERIC, assertions },
+    BUBBLE_SIZED_NUMERIC: {
+        options: BUBBLE_SIZED_NUMERIC,
+        assertions: cartesianChartAssertions({ seriesTypes: ['bubble'], axisTypes: { x: 'number', y: 'number' } }),
+    },
     STYLED: { options: STYLED, assertions },
     THEMED: { options: THEMED, assertions },
 };
