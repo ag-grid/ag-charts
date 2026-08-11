@@ -27,7 +27,7 @@ import {
     FlowProportionSeries,
 } from '../flow-proportion/flowProportionSeries';
 import type { NodeGraphEntry } from '../flow-proportion/flowProportionUtil';
-import { SankeyLink } from './sankeyLink';
+import { SankeyLink, type SankeyLinkNodeEdge } from './sankeyLink';
 import {
     type SankeyDatum,
     type SankeyLinkDatum,
@@ -73,6 +73,17 @@ type Column = {
 function renderedCornerRadius(cornerRadius: number, node: SankeyNodeDatum) {
     if (cornerRadius <= 0 || !Number.isFinite(node.height)) return 0;
     return Math.min(cornerRadius, node.width / 2, node.height / 2);
+}
+
+function nodeEdge(node: SankeyNodeDatum, cornerRadius: number, direction: 1 | -1): SankeyLinkNodeEdge {
+    const radius = renderedCornerRadius(cornerRadius, node);
+    return {
+        x: direction === 1 ? node.x : node.x + node.width,
+        y: node.y,
+        height: node.height,
+        radius,
+        direction,
+    };
 }
 
 export class SankeySeries extends FlowProportionSeries<
@@ -1014,6 +1025,7 @@ export class SankeySeries extends FlowProportionSeries<
         const { datumSelection, isHighlight } = opts;
 
         const fillBBox = this.getShapeFillBBox();
+        const { cornerRadius } = this.properties.node;
 
         datumSelection.each((link, datum) => {
             const style = this.getLinkStyle(datum.datum, datum.datumIndex, datum.fromNode.datumIndex, isHighlight);
@@ -1024,6 +1036,8 @@ export class SankeySeries extends FlowProportionSeries<
             link.y2 = datum.y2;
             link.height = datum.height;
             link.elbows = datum.elbows;
+            link.startEdge = nodeEdge(datum.fromNode, cornerRadius, -1);
+            link.endEdge = nodeEdge(datum.toNode, cornerRadius, 1);
 
             link.setStyleProperties(style, fillBBox);
 
