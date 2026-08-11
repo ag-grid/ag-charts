@@ -32,6 +32,11 @@ const VUE_VERSION = '3.5.0';
  * React and React DOM have no ES module build on npm, so they resolve through esm.sh.
  * `external=react` keeps React DOM from bundling a second copy of React, which would give
  * the page two renderers and break hooks.
+ *
+ * The trailing-slash entries look malformed but are not: an import map appends the unmatched
+ * suffix to the target verbatim, so `react-dom/client` has to become a URL esm.sh accepts with
+ * the subpath last -- `esm.sh/react-dom@19.2.4&external=react/client`, its build-query-before-
+ * subpath form. A `?query` would end up before the subpath and 404.
  */
 const REACT_IMPORTS: ImportMap = {
     react: `https://esm.sh/react@${REACT_VERSION}`,
@@ -123,5 +128,11 @@ export const getImportMap = ({ framework }: { framework: ExampleFramework }): Im
         imports[packageName] = esmEntryPoint(packageName, entryPoint);
     }
 
-    return Object.fromEntries(Object.entries(imports).sort(([a], [b]) => (a < b ? -1 : 1)));
+    // Sorted so the emitted import map is byte-stable across builds
+    const sorted: ImportMap = {};
+    for (const specifier of Object.keys(imports).sort()) {
+        sorted[specifier] = imports[specifier];
+    }
+
+    return sorted;
 };

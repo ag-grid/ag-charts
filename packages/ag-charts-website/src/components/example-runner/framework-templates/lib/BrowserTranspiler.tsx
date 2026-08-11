@@ -6,7 +6,7 @@ import {
     STYLESHEET_LOADER,
     STYLESHEET_LOADER_NAME,
     getCompilerOptions,
-} from '@utils/exampleModules/transformExampleModule';
+} from '@utils/example-modules/transformExampleModule';
 import ts from 'typescript';
 
 interface Props {

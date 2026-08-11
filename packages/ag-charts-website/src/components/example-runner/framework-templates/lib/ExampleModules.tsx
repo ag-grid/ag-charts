@@ -1,5 +1,5 @@
-import { type ExampleFramework, getImportMap } from '@utils/exampleModules/getImportMap';
-import { toModuleFileName } from '@utils/exampleModules/transformExampleModule';
+import { type ExampleFramework, getImportMap } from '@utils/example-modules/getImportMap';
+import { toModuleFileName } from '@utils/example-modules/transformExampleModule';
 import { pathJoin } from '@utils/pathJoin';
 
 import { BrowserTranspiler } from './BrowserTranspiler';

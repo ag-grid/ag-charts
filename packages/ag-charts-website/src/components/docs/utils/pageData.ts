@@ -6,7 +6,7 @@ import {
 } from '@components/example-generator';
 import { FRAMEWORKS } from '@constants';
 import { getIsBenchmarkOnlyBuild } from '@utils/env';
-import { isTransformableModule, toModuleFileName } from '@utils/exampleModules/transformExampleModule';
+import { isTransformableModule, toModuleFileName } from '@utils/example-modules/transformExampleModule';
 import type { DocsPage } from '@utils/pages';
 
 import { getInternalFrameworkExamples, getPagesList } from './filesData';
