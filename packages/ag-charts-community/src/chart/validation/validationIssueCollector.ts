@@ -71,6 +71,8 @@ export class ValidationIssueCollector implements ValidationSink {
      * per-issue clearing, matching the stateless replace model of {@link setIssues}.
      */
     setDataIssues(issues: ValidationIssue[]) {
+        // Called every data-processing pass; skip the common no-op so a valid config costs no dispatch.
+        if (issues.length === 0 && this.dataIssues.length === 0) return;
         this.dataIssues = issues;
         this.refreshSignature();
         this.listeners.dispatch('change');
