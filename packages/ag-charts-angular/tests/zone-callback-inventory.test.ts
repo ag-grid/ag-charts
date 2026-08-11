@@ -28,7 +28,13 @@ import inventory from './zone-callback-inventory.json';
  */
 
 const TYPES_ENTRY = path.resolve(__dirname, '../../ag-charts-types/src/main.ts');
-const ROOT_TYPES = ['AgChartOptions', 'AgFinancialChartOptions', 'AgGaugeOptions', 'AgSparklineOptions'];
+const ROOT_TYPES = [
+    'AgChartOptions',
+    'AgFinancialChartOptions',
+    'AgGaugeOptions',
+    'AgQuadrantChartOptions',
+    'AgSparklineOptions',
+];
 const CARRIES_CALLBACKS_DEPTH = 3;
 // Render-path callbacks by convention; not intended to mutate state, so never zone-wrapped.
 const IGNORED_PROPERTY_NAMES = new Set(['renderer', 'itemStyler', 'styler', 'shape', 'formatter']);
