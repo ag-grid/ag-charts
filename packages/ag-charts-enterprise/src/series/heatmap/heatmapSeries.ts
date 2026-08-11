@@ -596,8 +596,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             undefined,
             this.properties.label,
             { padding: itemPadding },
-            sizeFittingHeight,
-            this.ctx.logger
+            sizeFittingHeight
         );
 
         if (labels?.label == null) {

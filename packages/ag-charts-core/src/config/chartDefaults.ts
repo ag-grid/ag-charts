@@ -63,6 +63,7 @@ import {
     greaterThan,
     htmlElement,
     lessThan,
+    lessThanOrEqual,
     number,
     numericValue,
     object,
@@ -822,7 +823,7 @@ export const undocumentedLabelFitOptionsDefs: OptionsDefs<AgChartLabelFitOptions
 
 /** Font-reduction defs for series whose labels shrink to fit before truncating or hiding. */
 export const labelAutoFontSizeOptionsDefs: OptionsDefs<AgChartLabelAutoFontSizeOptions> = {
-    minimumFontSize: positiveNumberNonZero,
+    minimumFontSize: and(positiveNumberNonZero, lessThanOrEqual('fontSize')),
 };
 
 /** Label-fit defs plus the collision object, for series that place their labels against obstacles. */
@@ -855,7 +856,7 @@ export const placedSeriesLabelOptionsDefs: OptionsDefs<AgLineSeriesLabelOptions<
 export const autoSizedLabelOptionsDefs: OptionsDefs<AgChartAutoSizedBaseLabelOptions<any, any>> = {
     ...seriesLabelOptionsDefs,
     lineHeight: positiveNumber,
-    minimumFontSize: positiveNumber,
+    minimumFontSize: and(positiveNumber, lessThanOrEqual('fontSize')),
     wrapping: textWrap,
     overflowStrategy: overflowStrategy,
 };
