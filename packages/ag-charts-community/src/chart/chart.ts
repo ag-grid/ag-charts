@@ -598,6 +598,15 @@ export abstract class Chart implements ModuleInstance, ChartService {
             ctx.chartState.observe((get) => {
                 this.validationCollector.setOverlayLevel(get('options', 'validations')?.overlayLevel ?? 'none');
             }),
+            // A tooltip is painted in the browser's top layer (a `popover`), so no z-index can place it
+            // beneath the validation overlay. Hold tooltips back while the overlay is shown so it stays legible.
+            this.validationCollector.addListener(() => {
+                if (this.validationCollector.hasVisibleIssues()) {
+                    ctx.tooltipManager.suppressTooltip('validation-overlay');
+                } else {
+                    ctx.tooltipManager.unsuppressTooltip('validation-overlay');
+                }
+            }),
             ctx.chartState.observe((get) => {
                 ctx.logger.setLevel(get('options', 'validations')?.consoleLogLevel ?? 'deprecation');
             }),

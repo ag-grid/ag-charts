@@ -1,9 +1,10 @@
-import { afterEach, describe, expect, test } from 'vitest';
+import { afterEach, describe, expect, test, vi } from 'vitest';
 
 import type { AgChartOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
 import type { Chart } from '../chart';
+import { TooltipManager } from '../interaction/tooltipManager';
 import {
     createChart,
     deproxy,
@@ -155,6 +156,61 @@ describe('ValidationOverlay', () => {
   ],
   [
     "AG Charts - Option \`series[0].lineDashOffset\` cannot be set to \`"alsobad"\`; expecting a number, ignoring.",
+  ],
+]
+`);
+        });
+    });
+
+    describe('#tooltip suppression', () => {
+        // The tooltip is a browser top-layer popover, so it would paint over the validation overlay
+        // regardless of z-index; a visible overlay must therefore hold the tooltip back, and clearing
+        // it (dismiss or a fixed config) must release it again.
+        test('a visible overlay suppresses the tooltip; dismissing it releases the tooltip', async () => {
+            chart = await createChart(invalidStrokeWidthOptions);
+            expect(chart.validationCollector.hasVisibleIssues()).toBe(false);
+
+            const suppressSpy = vi.spyOn(chart.ctx.tooltipManager, 'suppressTooltip');
+            const unsuppressSpy = vi.spyOn(chart.ctx.tooltipManager, 'unsuppressTooltip');
+
+            chart.validationCollector.setOverlayLevel('warning');
+            expect(chart.validationCollector.hasVisibleIssues()).toBe(true);
+            expect(suppressSpy).toHaveBeenCalledWith('validation-overlay');
+            expect(unsuppressSpy).not.toHaveBeenCalled();
+
+            chart.validationCollector.dismiss();
+            expect(chart.validationCollector.hasVisibleIssues()).toBe(false);
+            expect(unsuppressSpy).toHaveBeenCalledWith('validation-overlay');
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - Option \`series[0].strokeWidth\` cannot be set to \`"notanumber"\`; expecting a number greater than or equal to 0, ignoring.",
+  ],
+]
+`);
+        });
+
+        test('a chart whose overlay is visible on the first render suppresses the tooltip immediately', async () => {
+            // The overlay becomes visible while the chart is set up, so the suppression fires before an
+            // instance-level spy could attach; spy on the prototype so the initial call is still observed.
+            const suppressSpy = vi.spyOn(TooltipManager.prototype, 'suppressTooltip');
+            try {
+                chart = await createChart({
+                    ...invalidStrokeWidthOptions,
+                    validations: { overlayLevel: 'warning' },
+                } as AgChartOptions);
+
+                expect(chart.validationCollector.hasVisibleIssues()).toBe(true);
+                expect(suppressSpy).toHaveBeenCalledWith('validation-overlay');
+            } finally {
+                suppressSpy.mockRestore();
+            }
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - Option \`series[0].strokeWidth\` cannot be set to \`"notanumber"\`; expecting a number greater than or equal to 0, ignoring.",
   ],
 ]
 `);
