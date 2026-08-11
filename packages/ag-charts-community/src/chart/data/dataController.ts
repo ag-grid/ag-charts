@@ -2,6 +2,7 @@ import { Debug, Logger, getWindow, jsonDiff } from 'ag-charts-core';
 
 import type { EventsHub } from '../../core/eventsHub';
 import type { ChartMode } from '../chartMode';
+import type { ValidationIssue, ValidationSink } from '../validation/validationIssueCollector';
 import { type CachedData, canReuseCachedData } from './caching';
 import type { DataChangeDescription, DataChangeDescriptionListener } from './dataChangeDescription';
 import {
@@ -13,7 +14,6 @@ import {
 } from './dataModel';
 import type { PropertyDefinition } from './dataModelTypes';
 import type { DataSet } from './dataSet';
-import type { ValidationIssue, ValidationSink } from '../validation/validationIssueCollector';
 
 interface RequestedProcessing<
     D extends object,

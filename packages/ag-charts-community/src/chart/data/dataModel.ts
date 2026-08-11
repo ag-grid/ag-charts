@@ -2,6 +2,7 @@ import { Debug, type DomainWithMetadata, Logger, first } from 'ag-charts-core';
 
 import type { EventsHub } from '../../core/eventsHub';
 import type { ChartMode } from '../chartMode';
+import type { ValidationSink } from '../validation/validationIssueCollector';
 import { Aggregator } from './data-model/aggregation/aggregator';
 import type { DataModelContext } from './data-model/dataModelContext';
 import { DomainInitializer } from './data-model/domain/domainInitializer';
@@ -14,7 +15,6 @@ import { ReducerManager } from './data-model/reducers/reducerManager';
 import { isScoped, uniqueChangeDescriptions } from './data-model/utils/helpers';
 import { DataModelResolvers } from './data-model/utils/resolvers';
 import { ScopeCacheManager } from './data-model/utils/scopeCache';
-import type { ValidationSink } from '../validation/validationIssueCollector';
 import type { DataChangeDescription, DataChangeDescriptionListener } from './dataChangeDescription';
 import type {
     AggregatePropertyDefinition,
