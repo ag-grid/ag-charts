@@ -483,9 +483,6 @@ export const bundleContents = new Map([
         [
             'ScatterQuadrantPresetModule',
             'NumberAxisModule',
-            'LogAxisModule',
-            'TimeAxisModule',
-            'UnitTimeAxisModule',
             'ScatterSeriesModule',
             'AnimationModule',
             'AnnotationsModule',
