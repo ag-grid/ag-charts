@@ -75,8 +75,6 @@ const MARKER_LABEL_STRATEGIES: Record<string, LabelCollisionConfig> = {
     'hide on collision (alwaysShow: false, default)': { collision: { alwaysShow: false } },
 };
 
-const ELLIPSIS = '…';
-
 type LabelBox = { x: number; y: number; width: number; height: number };
 
 // The visible labels' bounding boxes for a series, used by the cross-series obstacle tests to assert one
@@ -927,16 +925,6 @@ describe('label collision avoidance', () => {
     describe('shrinking a colliding label into the room its obstacles leave', () => {
         const LABEL_TEXT = 'Annual revenue growth';
 
-        const visibleLabelTexts = (seriesIndex = 0) => {
-            const series = deproxy(chart as any).series[seriesIndex] as unknown as {
-                labelSelection: { nodes(): { visible: boolean; text?: string }[] };
-            };
-            return series.labelSelection
-                .nodes()
-                .filter((node) => node.visible)
-                .map((node) => node.text ?? '');
-        };
-
         // Eight bars, each label wider than its band, so every `outside-end` label collides with both of its
         // neighbours. Its candidate offers no container of its own — an outside label floats clear of the bar
         // rect — so the obstacles are the only thing that can bound it.
@@ -968,7 +956,7 @@ describe('label collision avoidance', () => {
             prepareTestOptions(options);
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
-            return visibleLabelTexts();
+            return renderedLabelTexts();
         };
 
         it('wraps floating bar labels into the room their neighbours leave rather than dropping them', async () => {
@@ -976,7 +964,7 @@ describe('label collision avoidance', () => {
             expect(texts.length).toBe(8);
             expect(texts.some((text) => text.includes('\n'))).toBe(true);
             // Shrinking to clear a neighbour costs width, which wrapping pays for in height: no text is lost.
-            expect(texts.some((text) => text.includes(ELLIPSIS))).toBe(false);
+            expect(texts.some((text) => text.includes('…'))).toBe(false);
         });
 
         it('drops the same bar labels when nothing about them can adapt', async () => {
@@ -1017,7 +1005,7 @@ describe('label collision avoidance', () => {
             prepareTestOptions(options);
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
-            return visibleLabelTexts();
+            return renderedLabelTexts();
         };
 
         it('shrinks a crowded point label rather than hiding it', async () => {

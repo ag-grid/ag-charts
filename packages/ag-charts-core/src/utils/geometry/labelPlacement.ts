@@ -1861,6 +1861,21 @@ function refitCandidateShrunk(
     return true;
 }
 
+/**
+ * Slides the shrunk candidate flush inside `rawRegion` when its placement is region-bound, recording the
+ * translation in {@link shrunkOffset} for the caller to hand back to the series.
+ */
+function flushShrunkCandidate(rawRegion: BoxBounds, flush: boolean) {
+    shrunkOffset.x = 0;
+    shrunkOffset.y = 0;
+    if (!flush) return;
+    const { x, y, width, height } = candidateBox;
+    candidateBox.x = clampAxis(x, width, rawRegion.x, rawRegion.width);
+    candidateBox.y = clampAxis(y, height, rawRegion.y, rawRegion.height);
+    shrunkOffset.x = candidateBox.x - x;
+    shrunkOffset.y = candidateBox.y - y;
+}
+
 /** Containment and obstacle re-test of the candidate a shrink pass just resized and repositioned. */
 function shrunkCandidateIsClear(region: BoxBounds, inflate: number): boolean {
     const { x, y, width, height } = candidateBox;
@@ -1910,15 +1925,7 @@ function shrinkCompassCandidate(
         return false;
     }
     positionCandidate(d, placement, rotation, candidateLabel.width, candidateLabel.height, gap, spacing);
-    shrunkOffset.x = 0;
-    shrunkOffset.y = 0;
-    if (flushToRegion) {
-        const { x, y, width, height } = candidateBox;
-        candidateBox.x = clampAxis(x, width, rawRegion.x, rawRegion.width);
-        candidateBox.y = clampAxis(y, height, rawRegion.y, rawRegion.height);
-        shrunkOffset.x = candidateBox.x - x;
-        shrunkOffset.y = candidateBox.y - y;
-    }
+    flushShrunkCandidate(rawRegion, flushToRegion);
     const { x, y, width, height } = candidateBox;
     const insideRegion = insideRegionFor(d, placement, x, y, width, height);
     const containRegion =
@@ -1942,7 +1949,7 @@ function anchorPinY(anchor: OrientationAnchor): number {
 /**
  * {@link shrinkCompassCandidate} for the positioned-candidate path, where the box hangs off `fitTo.anchor`
  * rather than off a placement vector. Skips a rotated candidate: its anchor pins the glyph box, whose axes
- * the rotation no longer shares with the footprint the obstacles were measured against.
+ * a rotation does not share with the footprint the obstacles were measured against.
  */
 function shrinkPositionedCandidate(
     d: PointLabelDatum,
@@ -1958,24 +1965,17 @@ function shrinkPositionedCandidate(
     if (!measureObstacleReduction(anchorPinX(fitTo.anchor), anchorPinY(fitTo.anchor))) return false;
     const styledFont = fitTo.font;
     const source = styledFont == null ? fitSource : styledFitSource(fit, styledFont);
-    const reduce = shrinkReduction;
-    if (!refitCandidateShrunk(fit, styledFont ?? fit.font, source, fitTo.padding, reduce.width, reduce.height)) {
-        return false;
-    }
+    const { width, height } = shrinkReduction;
+    if (!refitCandidateShrunk(fit, styledFont ?? fit.font, source, fitTo.padding, width, height)) return false;
     resizeCandidateBox(c, candidateLabel.width, candidateLabel.height);
-    shrunkOffset.x = 0;
-    shrunkOffset.y = 0;
-    if (c.region != null && c.flushToRegion !== false) {
-        const { x, y, width, height } = candidateBox;
-        candidateBox.x = clampAxis(x, width, rawRegion.x, rawRegion.width);
-        candidateBox.y = clampAxis(y, height, rawRegion.y, rawRegion.height);
-        shrunkOffset.x = candidateBox.x - x;
-        shrunkOffset.y = candidateBox.y - y;
-    }
+    flushShrunkCandidate(rawRegion, c.region != null && c.flushToRegion !== false);
     return shrunkCandidateIsClear(region, inflate);
 }
 
-/** Copies the fit result into {@link candidateLabel}, inflated by the box drawn around the glyph. */
+/**
+ * Copies the fit result into {@link candidateLabel}, inflated by the box drawn around the glyph, and into
+ * {@link candidateFontSize} for {@link recordBestChoice} to read back.
+ */
 function writeCandidateLabel(boxPadding: Required<PaddingOptions> | undefined) {
     candidateLabel.text = fittedLabel.text;
     candidateLabel.glyphWidth = fittedLabel.width;
@@ -2398,7 +2398,6 @@ function placeFromPositionedCandidates(
             const container = deflateContainer(c.fitTo.container, threshold);
             if (!fitLabelToCandidate(fit, styledFont ?? fit.font, source, container)) continue;
             ({ text, dropped, shrink } = fittedLabel);
-            // Writes `candidateFontSize` too, which `recordBestChoice` reads back.
             writeCandidateLabel(c.fitTo.padding);
             ({ width, height } = candidateLabel);
             resizeCandidateBox(c, width, height);
