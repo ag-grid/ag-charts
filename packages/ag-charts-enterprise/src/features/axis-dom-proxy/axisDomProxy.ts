@@ -14,8 +14,8 @@ type ProxyAxis = {
 
 function hasAxisClickListener(chartService: _ModuleSupport.ChartService, axisCtx: _ModuleSupport.AxisContext): boolean {
     return (
-        chartService.hasListener('axisClick') ||
-        chartService.hasListener('axisDoubleClick') ||
+        chartService.listeners.axisClick != null ||
+        chartService.listeners.axisDoubleClick != null ||
         axisCtx.listeners?.click != null ||
         axisCtx.listeners?.doubleClick != null
     );
@@ -338,9 +338,7 @@ export class AxisDOMProxy extends AbstractModuleInstance {
 
         // The chart-level listener fires alongside the axis-level one, as `seriesNodeClick` does.
         const chartEventType = isDoubleClick ? 'axisDoubleClick' : 'axisClick';
-        if (this.ctx.chartService.hasListener(chartEventType)) {
-            this.ctx.chartService.callListener({ type: chartEventType, ...params });
-        }
+        this.ctx.chartService.callListener({ type: chartEventType, ...params });
     }
 
     private dispatchAxisContextMenu(

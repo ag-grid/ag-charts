@@ -18,6 +18,7 @@ import type {
     AgImageFillFit,
     AgPatternName,
     AgSelectionContainment,
+    AgSeriesListeners,
     AgSeriesShapeSegmentOptions,
     CssColor,
     InteractionRange,
@@ -398,6 +399,9 @@ export abstract class SeriesProperties<T extends object> extends BaseProperties<
 
     @Property
     nodeClickRange: InteractionRange = 'exact';
+
+    @Property
+    listeners?: AgSeriesListeners<unknown, unknown> & { seriesVisibilityChange?: never };
 
     @Property
     readonly highlight: HighlightProperties<T> = new HighlightProperties();

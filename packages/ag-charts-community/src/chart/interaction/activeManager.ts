@@ -73,7 +73,7 @@ export class ActiveManager implements MementoOriginator<AgActiveState> {
             const { frozen, activeItem } = this.createMementoWithItem(newItemState);
             const { datum, datums, itemType, totalValue } = nodeDatum ?? {};
 
-            this.ctx.fireEvent({
+            this.ctx.chartService.callListener({
                 type: 'activeChange',
                 source,
                 frozen,
