@@ -25,18 +25,19 @@ export interface LabelMeasureContext {
 }
 
 /**
- * Per-candidate fit inputs for a styled label, so the placement engine re-fits its text under the font the
- * styler resolves at each candidate. `policy` is overridden by series that bound the text per datum (a
- * marker container scaled by that datum's size). `undefined` for an unstyled or absent label, leaving the
- * up-front {@link measurePlacedLabel} measurement authoritative.
+ * Per-candidate fit inputs for a point label: the placement engine re-fits its text under the font the
+ * styler resolves at each candidate, and to the room each candidate leaves once obstacles have taken
+ * their share. `policy` is overridden by series that bound the text per datum (a marker container scaled
+ * by that datum's size). `undefined` for an absent label, or for one whose fit policy leaves nothing to
+ * adapt, leaving the up-front {@link measurePlacedLabel} measurement authoritative.
  */
-export function styledLabelFit(
+export function labelFitDescriptor(
     labelText: NormalisedTextOrSegments | undefined,
     font: FontOptions,
     ctx: LabelMeasureContext,
     policy = ctx.labelFit
 ): LabelFitDescriptor | undefined {
-    if (!ctx.labelStyled || labelText == null) return undefined;
+    if (labelText == null || (!ctx.labelStyled && policy == null)) return undefined;
     return {
         text: labelText,
         policy: policy ?? {},

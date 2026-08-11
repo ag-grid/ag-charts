@@ -29,33 +29,41 @@ type LabelCollisionConfig = {
         collideWith?: object;
     };
     spacing?: number;
+    truncate?: boolean;
 };
 
 // Line and area route labels through the collision-placement engine, which honours the configured
 // placements: each candidate-placement set resolves colliding labels into different final positions,
 // so the rendered output diverges per placement. Collision resolution always runs now, so the axis of
 // variation is the placement candidate list and, for the first case, whether a colliding label is kept
-// (at its least-overflow candidate) rather than hidden.
+// (at its least-overflow candidate) rather than hidden. `truncate: false` throughout: an array-valued
+// `placement` defaults it on (see LABEL_OVERFLOW_DEFAULTS), which would let a colliding label give up
+// text to fit beside its neighbour and confuse that with the placement decision under test.
 const PLACED_LABEL_STRATEGIES: Record<string, LabelCollisionConfig> = {
     'keep overlapping (alwaysShow: true)': {
         placement: ['top', 'bottom'],
         collision: { alwaysShow: true },
+        truncate: false,
     },
     'reposition top-bottom': {
         placement: ['top', 'bottom'],
         collision: { alwaysShow: false },
+        truncate: false,
     },
     'reposition left-right': {
         placement: ['left', 'right'],
         collision: { alwaysShow: false },
+        truncate: false,
     },
     'reposition all directions': {
         placement: ['top', 'bottom', 'left', 'right', 'top-left', 'top-right', 'bottom-left', 'bottom-right'],
         collision: { alwaysShow: false },
+        truncate: false,
     },
     'reposition with min spacing': {
         placement: ['top', 'bottom'],
         collision: { alwaysShow: false, threshold: 3 },
+        truncate: false,
     },
 };
 
@@ -66,6 +74,8 @@ const MARKER_LABEL_STRATEGIES: Record<string, LabelCollisionConfig> = {
     'keep overlapping (alwaysShow: true)': { collision: { alwaysShow: true } },
     'hide on collision (alwaysShow: false, default)': { collision: { alwaysShow: false } },
 };
+
+const ELLIPSIS = '…';
 
 type LabelBox = { x: number; y: number; width: number; height: number };
 
@@ -911,6 +921,118 @@ describe('label collision avoidance', () => {
         });
     });
 
+    // A label that opted into overflow control has a third answer to an obstacle, beyond moving to another
+    // placement and giving up: shrinking its bound to the room the obstacle leaves and re-fitting the text
+    // into it. A shrunk candidate is still a compromise, so it only ever wins when nothing clears outright.
+    describe('shrinking a colliding label into the room its obstacles leave', () => {
+        const LABEL_TEXT = 'Annual revenue growth';
+
+        const visibleLabelTexts = (seriesIndex = 0) => {
+            const series = deproxy(chart as any).series[seriesIndex] as unknown as {
+                labelSelection: { nodes(): { visible: boolean; text?: string }[] };
+            };
+            return series.labelSelection
+                .nodes()
+                .filter((node) => node.visible)
+                .map((node) => node.text ?? '');
+        };
+
+        // Eight bars, each label wider than its band, so every `outside-end` label collides with both of its
+        // neighbours. Its candidate offers no container of its own — an outside label floats clear of the bar
+        // rect — so the obstacles are the only thing that can bound it.
+        const renderCrowdedBarLabels = async (label: object) => {
+            const options: any = {
+                data: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'].map((x, i) => ({ x, y: 5 + (i % 3) })),
+                legend: { enabled: false },
+                padding: { top: 60, right: 20, bottom: 10, left: 20 },
+                axes: {
+                    x: { position: 'bottom', type: 'category' },
+                    y: { position: 'left', type: 'number', min: 0, max: 10 },
+                },
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'y',
+                        label: {
+                            enabled: true,
+                            placement: 'outside-end',
+                            formatter: () => LABEL_TEXT,
+                            // seriesArea off so a dropped label can only be the neighbouring-label collision.
+                            collision: { alwaysShow: false, collideWith: { seriesArea: false } },
+                            ...label,
+                        },
+                    },
+                ],
+            };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            return visibleLabelTexts();
+        };
+
+        it('wraps floating bar labels into the room their neighbours leave rather than dropping them', async () => {
+            const texts = await renderCrowdedBarLabels({ truncate: true });
+            expect(texts.length).toBe(8);
+            expect(texts.some((text) => text.includes('\n'))).toBe(true);
+            // Shrinking to clear a neighbour costs width, which wrapping pays for in height: no text is lost.
+            expect(texts.some((text) => text.includes(ELLIPSIS))).toBe(false);
+        });
+
+        it('drops the same bar labels when nothing about them can adapt', async () => {
+            const texts = await renderCrowdedBarLabels({ wrapping: 'never', truncate: false });
+            expect(texts.length).toBeLessThan(8);
+        });
+
+        // Two points close enough that their boxed labels overlap at the shared `top` placement, with no
+        // second placement to fall through to.
+        const renderTwoCrowdedPoints = async (label: object) => {
+            const options: any = {
+                data: [
+                    { x: 10, y: 50 },
+                    { x: 13, y: 50 },
+                ],
+                legend: { enabled: false },
+                axes: tightAxes,
+                series: [
+                    {
+                        type: 'bubble',
+                        xKey: 'x',
+                        yKey: 'y',
+                        sizeKey: 'y',
+                        minSize: 6,
+                        maxSize: 6,
+                        label: {
+                            enabled: true,
+                            placement: 'top',
+                            formatter: () => LABEL_TEXT,
+                            fill: 'white',
+                            padding: 10,
+                            collision: { alwaysShow: false },
+                            ...label,
+                        },
+                    },
+                ],
+            };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            return visibleLabelTexts();
+        };
+
+        it('shrinks a crowded point label rather than hiding it', async () => {
+            const texts = await renderTwoCrowdedPoints({ truncate: true });
+            expect(texts.length).toBe(2);
+            // One label keeps its place and its text; the other is re-fitted into what is left beside it.
+            expect(texts).toContain(LABEL_TEXT);
+            expect(texts.some((text) => text !== LABEL_TEXT)).toBe(true);
+        });
+
+        it('drops the same point label when nothing about it can adapt', async () => {
+            expect(await renderTwoCrowdedPoints({ wrapping: 'never', truncate: false })).toHaveLength(1);
+        });
+    });
+
     describe('scatter series', () => {
         const data = markerData;
 
@@ -1014,6 +1136,7 @@ describe('label collision avoidance', () => {
                             formatter: ({ value }: any) => value.toFixed(1),
                             placement: ['top', 'bottom'],
                             collision: { alwaysShow: false },
+                            truncate: false,
                         },
                     },
                 ],

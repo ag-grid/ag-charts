@@ -23,11 +23,11 @@ import {
     fitLabelTextOrOverflow,
     formatValue,
     isArray,
+    labelFitDescriptor,
     measureTextSegments,
     rescaleVisibleRange,
     resolveLabelFit,
     resolveSeriesLabelDefaults,
-    styledLabelFit,
     toArray,
     toNumber,
     toPlainText,
@@ -1007,7 +1007,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         scratch.nodeLabel = { text: fittedText, width, height };
         // The marker container is per datum, so the fit the engine re-applies per candidate must carry
         // this datum's bound rather than the series-level policy.
-        scratch.nodeLabelFit = styledLabelFit(labelText, ctx.label, ctx, boundedFit);
+        scratch.nodeLabelFit = labelFitDescriptor(labelText, ctx.label, ctx, boundedFit);
     }
 
     /**
