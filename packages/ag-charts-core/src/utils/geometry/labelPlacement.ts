@@ -1361,9 +1361,10 @@ function accumulateObstacleReduction(o: LabelObstacle): void {
  * shrinkReduction}. `false` when shrinking cannot clear them at all: either nothing intrudes, or what does
  * intrudes from a side the box is pinned to.
  */
-function measureObstacleReduction(pinX: number, pinY: number): boolean {
+function measureObstacleReduction(pinX: number, pinY: number, inflate: number): boolean {
     shrinkReduction.width = 0;
     shrinkReduction.height = 0;
+    inflateBoxInto(queryBox, candidateBox, inflate);
     pinCostLeft = sideCost(pinX, true);
     pinCostRight = sideCost(pinX, false);
     pinCostTop = sideCost(pinY, true);
@@ -1913,7 +1914,7 @@ function shrinkCompassCandidate(
     // Which edges the box keeps as it shrinks, mirroring how `positionLabelBox` hangs it off the point: a
     // directional candidate is pinned to the edge facing the point, a gapless or `inside` one stays centred.
     const vec = gap > 0 && placement != null ? labelPlacements[placement] : undefined;
-    if (!measureObstacleReduction(vec?.x ?? 0, vec?.y ?? 0)) return false;
+    if (!measureObstacleReduction(vec?.x ?? 0, vec?.y ?? 0, inflate)) return false;
     // The reduction is measured on the rotated footprint, whose axes are the glyph's swapped for a
     // quarter-turned candidate.
     const upright = rotation % 180 === 0;
@@ -1962,7 +1963,7 @@ function shrinkPositionedCandidate(
     const fit = d.fit;
     const fitTo = c.fitTo;
     if (fit == null || fitTo == null || (c.rotation ?? 0) % 360 !== 0) return false;
-    if (!measureObstacleReduction(anchorPinX(fitTo.anchor), anchorPinY(fitTo.anchor))) return false;
+    if (!measureObstacleReduction(anchorPinX(fitTo.anchor), anchorPinY(fitTo.anchor), inflate)) return false;
     const styledFont = fitTo.font;
     const source = styledFont == null ? fitSource : styledFitSource(fit, styledFont);
     const { width, height } = shrinkReduction;
