@@ -1,6 +1,7 @@
 import type { AstroUserConfig } from 'astro';
 
 import { SITE_BASE_URL } from '../../constants';
+import { markdownPathAlternation } from '../markdownPages';
 import { urlWithBaseUrl } from '../urlWithBaseUrl';
 import type { CspEnv } from './cspRules';
 import { getCspHtaccessBlock, getScopedCspHtaccessBlock } from './cspRules';
@@ -98,19 +99,17 @@ export function getMarkdownNegotiationRules() {
     // (as with the mod_alias redirects above — Apache does not strip it here either). %1 must be
     // the document-root-relative path so both the on-disk `-f` test and the rewrite target resolve
     // to the real .md under /charts, so the base is captured inside %1 (leading slash excluded),
-    // not matched outside it. Charts docs pages live at /<base>/<framework>/<pageName>; the
-    // top-level .md twins in scope are license-pricing, the community landing + subpages,
-    // documentation-archive and gallery.
+    // not matched outside it. The set of negotiable pages comes from CHARTS_MARKDOWN_PAGE_GROUPS,
+    // the same registry the dev-server plugin uses.
     const basePath = (SITE_BASE_URL ?? '').replace(/\/$/, '');
     const baseRelative = basePath.replace(/^\//, '');
     const capturePrefix = baseRelative ? `${baseRelative}/` : '';
-    const topLevel =
-        'license-pricing|community(?:/(?:events|showcase|tools-extensions|media|beyond-the-prompt))?|documentation-archive|gallery';
-    const negotiatedPath = `^/(${capturePrefix}(?:(?:react|angular|vue|javascript)/[^/]+?|${topLevel}))/?$`;
+    const pages = markdownPathAlternation();
+    const negotiatedPath = `^/(${capturePrefix}(?:${pages}))/?$`;
     // Match the same single-page shape as negotiatedPath so Vary: Accept is only appended to the
     // pages that actually content-negotiate — not every nested URL under /<base>/<framework>/
     // (framework landing pages, example routes, assets), which would fragment shared caches.
-    const varyScope = `^${basePath}/(?:(?:react|angular|vue|javascript)/[^/]+|${topLevel})/?$`;
+    const varyScope = `^${basePath}/(?:${pages})/?$`;
 
     // Content-negotiate docs pages to their per-page markdown variant when a client asks
     // for it via Accept: text/markdown (typically an AI agent — browsers never send this, so HTML
