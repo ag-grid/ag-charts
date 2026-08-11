@@ -1668,29 +1668,32 @@ describe('CartesianAxis', () => {
             }
         });
 
-        it('TC1: rotated labels ignore textAlign for anchor placement', async () => {
-            const withAlignOptions = rightAxisOptions({ rotation: 45, textAlign: 'right' });
-            prepareTestOptions(withAlignOptions);
-            chart = AgCharts.create(withAlignOptions);
+        it('TC1: a rotated label aligns within its own bounding box, clear of the series area', async () => {
+            const options = rightAxisOptions({ rotation: 45, textAlign: 'right' });
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
             await waitForChartStability(chart);
-            const withAlignAnchors = captureAnchorsByText(getRightAxisLabelNodes(chart));
 
-            chart.destroy();
-            (chart as unknown) = undefined;
+            const nodes = getRightAxisLabelNodes(chart);
+            expect(nodes.length).toBe(3);
 
-            const withoutAlignOptions = rightAxisOptions({ rotation: 45 });
-            prepareTestOptions(withoutAlignOptions);
-            chart = AgCharts.create(withoutAlignOptions);
-            await waitForChartStability(chart);
-            const withoutAlignNodes = getRightAxisLabelNodes(chart);
+            const seriesRect = getSeriesRect(chart);
+            const seriesRight = seriesRect.x + seriesRect.width;
+            const boxes = nodes.map((n) => Transformable.toCanvas(n));
 
-            expect(withoutAlignNodes.length).toBe(withAlignAnchors.size);
-            for (const node of withoutAlignNodes) {
-                const withAlign = withAlignAnchors.get(node.datum.text);
-                expect(withAlign).toBeDefined();
-                expect(node.datum.x).toBeCloseTo(withAlign!.x, 5);
-                expect(node.datum.rotationCenterX).toBeCloseTo(withAlign!.rotationCenterX, 5);
+            // Rotating the glyphs must not carry them back over the axis line: the series paints on
+            // top of the plot area, so a label that reaches into it is partly erased.
+            for (const box of boxes) {
+                expect(box.x).toBeGreaterThanOrEqual(seriesRight);
             }
+
+            // The alignment still acts on the rotated boxes - their right edges are flush while
+            // their differing widths leave the left edges ragged.
+            const rightEdges = boxes.map((b) => b.x + b.width);
+            for (const edge of rightEdges) {
+                expect(edge).toBeCloseTo(rightEdges[0], 5);
+            }
+            expect(new Set(boxes.map((b) => Math.round(b.width))).size).toBeGreaterThan(1);
         });
     });
 });
