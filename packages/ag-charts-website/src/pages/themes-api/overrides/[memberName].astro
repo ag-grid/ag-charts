@@ -14,6 +14,8 @@ export async function getStaticPaths() {
 <APIViewLayout title="Themes API">
     <ApiReferencePage
         client:only="react"
+        transition:persist="themes-api-reference"
+        transition:persist-props
         {...Astro.props}
         rootInterface="AgChartTheme"
         breadcrumbs={['options', 'theme']}

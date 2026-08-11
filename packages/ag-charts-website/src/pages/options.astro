@@ -10,6 +10,8 @@ import APIViewLayout from '@layouts/APIViewLayout.astro';
 >
     <ApiReferencePage
         client:only="react"
+        transition:persist="options-api-reference"
+        transition:persist-props
         {...Astro.props}
         rootInterface="AgChartOptions"
         breadcrumbs={['options']}

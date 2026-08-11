@@ -24,6 +24,8 @@ const name = capitalizeFirstLetter(Astro.props?.pageTitle?.name);
 >
     <ApiReferencePage
         client:only="react"
+        transition:persist="options-api-reference"
+        transition:persist-props
         {...Astro.props}
         rootInterface="AgChartOptions"
         breadcrumbs={['options']}
