@@ -7,18 +7,6 @@ export interface DemoAppEntry {
 
 export const DEMO_APPS: DemoAppEntry[] = [
     {
-        id: 'starter',
-        load: () => import('./demos/starter'),
-    },
-    {
-        id: 'line',
-        load: () => import('./demos/line'),
-    },
-    {
-        id: 'pie',
-        load: () => import('./demos/pie'),
-    },
-    {
         id: 'financial',
         load: () => import('./demos/financial'),
     },
