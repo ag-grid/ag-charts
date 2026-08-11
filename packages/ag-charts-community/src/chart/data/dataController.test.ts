@@ -253,7 +253,8 @@ describe('DataController', () => {
     });
 
     it('records a warning issue when a requested key is missing from every datum', async () => {
-        const promise = controller.request('test1', new DataSet([{ keyProp1: '2020' }], testLogger), {
+        const rows: Record<string, unknown>[] = [{ keyProp1: '2020' }];
+        const promise = controller.request('test1', new DataSet(rows, testLogger), {
             props: [
                 { id: 'keyProp1-key', property: 'keyProp1', type: 'key', valueType: 'category' },
                 { id: 'valueProp1-key', property: 'valueProp1', type: 'value', valueType: 'range' },
