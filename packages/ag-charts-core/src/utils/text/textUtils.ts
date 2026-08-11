@@ -125,8 +125,9 @@ export function preserveArabicJoining(text: string): string {
 }
 
 // Approximate the strong bidi classes: R/AL is the RTL scripts and explicit RTL marks, L any other
-// letter. The R/AL ranges skip the Arabic-Indic digits (U+0660-9, U+06F0-9) \u2014 they are not strong.
-const StrongRtlRegex = /[\u0590-\u065F\u066A-\u06EF\u06FA-\u08FF\uFB1D-\uFDFF\uFE70-\uFEFF\u200F\u202B\u202E\u2067]/u;
+// letter. The R/AL ranges skip the Arabic-Indic digits (U+0660-9, U+06F0-9) and the Arabic number
+// formatting characters (U+066A-C) \u2014 those are numeric, not strong.
+const StrongRtlRegex = /[\u0590-\u065F\u066D-\u06EF\u06FA-\u08FF\uFB1D-\uFDFF\uFE70-\uFEFF\u200F\u202B\u202E\u2067]/u;
 const StrongLtrRegex = /[\p{L}\u200E\u202A\u202D\u2066]/u;
 
 // A string with no strong character takes its order from the paragraph direction alone, so it can be
@@ -136,13 +137,13 @@ export function isDirectionNeutral(text: string): boolean {
 }
 
 const DigitRegex = /\p{Nd}/u;
-// Unit letters are Latin-only and cannot precede another number, so a number run never absorbs an
-// adjacent RTL word or a word sitting between two values.
+// A suffix or unit belongs to the number only while attached to it: `+90Kb` is one value, `+90 Kb`
+// is a value and a word. A run therefore never reaches across a space into adjacent text.
 const NumberSign = /[+\-\u2212]\s?/u;
 const NumberPrefix = /\p{Sc}\s?/u;
-const NumberBody = /\p{Nd}+(?:[.,:'\u2019/\u00A0\u202F]\p{Nd}+)*(?:[eE][+\-\u2212]?\p{Nd}+)?/u;
-const NumberSuffix = /\s?[%\u2030\u00B0]|\s?\p{Sc}/u;
-const NumberUnit = /\s?[A-Za-z\u00B5\u03BC]{1,4}(?![A-Za-z\u00B5\u03BC]|\s*\p{Nd})/u;
+const NumberBody = /\p{Nd}+(?:[.,:'\u2019/\u066B\u066C\u00A0\u202F]\p{Nd}+)*(?:[eE][+\-\u2212]?\p{Nd}+)?/u;
+const NumberSuffix = /[%\u066A\u2030\u00B0]|\p{Sc}/u;
+const NumberUnit = /[A-Za-z\u00B5\u03BC]+/u;
 // A dash between two values is a range: the halves must share one run, or they reorder against each
 // other and `5-10` reads as `10-5`.
 const NumberRange = /\s?[-\u2012-\u2015\u2212]\s?/u;

@@ -100,6 +100,14 @@ describe('isDirectionNeutral', () => {
     it('treats Arabic-Indic digits as numbers rather than strong characters', () => {
         expect(isDirectionNeutral('\u0660\u0661')).toBe(true);
     });
+
+    // U+066A-U+066C sit inside the Arabic block but are number formatting, not letters.
+    it.each([['\u0661\u066c\u0662\u0663\u0664\u066b\u0665'], ['\u0665\u066a']])(
+        'treats the Arabic number separators in %j as neutral',
+        (text) => {
+            expect(isDirectionNeutral(text)).toBe(true);
+        }
+    );
 });
 
 describe('forceLtrNumbers', () => {
@@ -111,8 +119,8 @@ describe('forceLtrNumbers', () => {
         ['\u22125'],
         ['-5.5%'],
         ['$1,234.56'],
-        ['1,234.56 USD'],
-        ['5 kg'],
+        ['+90Kb'],
+        ['5kg'],
         ['5\u00B0C'],
         ['12:30'],
         ['2.5e-3'],
@@ -121,21 +129,39 @@ describe('forceLtrNumbers', () => {
         expect(forceLtrNumbers(text)).toBe(mark(text));
     });
 
+    // A unit belongs to the number only when it is attached to it. Once separated by a space it is
+    // an ordinary word and keeps the paragraph's direction.
+    it.each([
+        ['+90 Kb', `${mark('+90')} Kb`],
+        ['1,234.56 USD', `${mark('1,234.56')} USD`],
+        ['5 kg', `${mark('5')} kg`],
+    ])('detaches the spaced unit in %j', (text, expected) => {
+        expect(forceLtrNumbers(text)).toBe(expected);
+    });
+
     it('marks the number inside RTL text, leaving the text alone', () => {
-        expect(forceLtrNumbers('\u05DE\u05DB\u05D9\u05E8\u05D5\u05EA -5 kg')).toBe(
-            `\u05DE\u05DB\u05D9\u05E8\u05D5\u05EA ${mark('-5 kg')}`
+        expect(forceLtrNumbers('\u05DE\u05DB\u05D9\u05E8\u05D5\u05EA -5kg')).toBe(
+            `\u05DE\u05DB\u05D9\u05E8\u05D5\u05EA ${mark('-5kg')}`
         );
         expect(forceLtrNumbers('5 \u05DE\u05DB\u05D9\u05E8\u05D5\u05EA')).toBe(
             `${mark('5')} \u05DE\u05DB\u05D9\u05E8\u05D5\u05EA`
         );
     });
 
-    it.each([['5-10'], ['-5-10'], ['1,000 - 2,000'], ['5 kg - 10 kg'], ['5–10']])(
+    it.each([['5-10'], ['-5-10'], ['1,000 - 2,000'], ['5kg - 10kg'], ['5–10']])(
         'keeps the range %j in a single run, so its halves cannot reorder against each other',
         (text) => {
             expect(forceLtrNumbers(text)).toBe(mark(text));
         }
     );
+
+    it.each([['-١٬٢٣٤٫٥'], ['٥٪'], ['١٢٫٥']])('keeps the Arabic-formatted %j in a single run', (text) => {
+        expect(forceLtrNumbers(text)).toBe(mark(text));
+    });
+
+    it('marks an Arabic-formatted number inside Arabic text as one run', () => {
+        expect(forceLtrNumbers('مبيعات -١٬٢٣٤')).toBe(`مبيعات ${mark('-١٬٢٣٤')}`);
+    });
 
     it('marks a range inside RTL text as one run', () => {
         expect(forceLtrNumbers('מכירות 5-10')).toBe(`מכירות ${mark('5-10')}`);

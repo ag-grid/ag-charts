@@ -770,8 +770,9 @@ export class Text<D = unknown> extends Shape<D> {
         }
 
         // Metrics stay keyed on the unmodified lines; the directional marks are zero-width, so only
-        // the drawn string carries them.
-        const directedLines = this.directed?.lines;
+        // the drawn string carries them. The cache outlives a direction change, so an LTR scene must
+        // not pick up lines marked for an RTL one.
+        const directedLines = this.scene?.isRtl ? this.directed?.lines : undefined;
         for (let i = 0; i < lineMetrics.length; i += 1) {
             renderCallback(directedLines?.[i] ?? lineMetrics[i].text, x, y + offsetY);
             offsetY += lineHeight;
