@@ -125,7 +125,16 @@
             (() => {
                 'use strict';
 
-                const OWNER_ALLOWLIST = ['ag-grid'];
+                // Exact owner/repo values, not an owner prefix: an owner-level allowlist still
+                // admits every repo that owner has, including ones anybody can get content into.
+                // This page renders fetched HTML under a domain that also serves our PR previews,
+                // so whoever chooses the repo chooses what appears under our name. The sandbox
+                // keeps that content away from our storage; it does nothing about what the address
+                // bar says, which is the whole of a phishing page's value.
+                //
+                // Keep in step with the copy in report-frame.html, which enforces the same list —
+                // that file is directly fetchable and cannot rely on this one having run.
+                const ALLOWED_REPOS = ['ag-grid/ag-charts'];
 
                 const el = (id) => document.getElementById(id);
 
@@ -160,8 +169,16 @@
                     if (!/^[A-Za-z0-9._-]+\/[A-Za-z0-9._-]+$/.test(repo)) {
                         return { error: ['Malformed repo: ', code(repo)] };
                     }
-                    if (!OWNER_ALLOWLIST.includes(repo.split('/')[0])) {
-                        return { error: ['Refusing to load from outside ', code(OWNER_ALLOWLIST.join(', ')), ': ', code(repo)] };
+                    if (!ALLOWED_REPOS.includes(repo)) {
+                        return {
+                            error: [
+                                'Refusing to load from ',
+                                code(repo),
+                                '. This viewer only serves: ',
+                                code(ALLOWED_REPOS.join(', ')),
+                                '.',
+                            ],
+                        };
                     }
                     // Commit SHA only, never a branch name. A branch URL is served with
                     // `cache-control: max-age=300`, so it can be up to 5 minutes stale — and its

@@ -18,6 +18,28 @@
 <script>
     (() => {
         'use strict';
+        // Exact owner/repo values, never a pattern. This page renders fetched HTML, and it is
+        // served from a domain that also hosts our PR previews, so an attacker who can choose the
+        // repo can put their own page under our name — the sandbox stops it touching our storage
+        // but does nothing about what the address bar says. Keep this list in step with the copy
+        // in viewer.html.
+        const ALLOWED_REPOS = ['ag-grid/ag-charts'];
+
+        function report(kind, detail) {
+            // The parent cannot read into this opaque-origin document, so outcomes are posted out.
+            parent.postMessage({ source: 'report-frame', kind, detail }, '*');
+        }
+
+        // Refuse to run outside the viewer. Sandboxing is applied by the embedding page, so opened
+        // directly this document would render third-party HTML top-level, unsandboxed, on our
+        // origin. Nothing below should be reachable that way.
+        if (window === window.parent) {
+            // document.write, not document.body: this script runs while the document is still
+            // parsing, so there is no body element to write into yet. The string is a literal.
+            document.write('This page is only usable inside viewer.html.');
+            return;
+        }
+
         // Params arrive on our own URL, put there by viewer.html, which has already validated them.
         // Re-validated here anyway: this file is fetchable directly, so it cannot assume a caller.
         const q = new URLSearchParams(location.search);
@@ -26,19 +48,14 @@
         const path = q.get('path') || '';
 
         const bad =
-            !/^[A-Za-z0-9._-]+\/[A-Za-z0-9._-]+$/.test(repo) ||
+            !ALLOWED_REPOS.includes(repo) ||
             !/^[0-9a-f]{40}$/.test(sha) ||
             !/^[A-Za-z0-9._\-/]+$/.test(path) ||
             path.includes('..') ||
             path.startsWith('/');
 
-        function report(kind, detail) {
-            // The parent cannot read into this opaque-origin document, so outcomes are posted out.
-            parent.postMessage({ source: 'report-frame', kind, detail }, '*');
-        }
-
         if (bad) {
-            report('error', 'Malformed parameters.');
+            report('error', 'Malformed or disallowed parameters.');
             return;
         }
 
