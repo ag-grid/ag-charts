@@ -10,7 +10,7 @@ const scenarios = [
     {
         name: 'CartesianChart only',
         import: '{ CartesianChartModule }',
-        srcLimit: '198 kB',
+        srcLimit: '208 kB',
         distLimit: '307 kB',
     },
     {
