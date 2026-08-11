@@ -15,7 +15,9 @@ import type {
     AgChartOptions,
     AgFinancialChartOptions,
     AgGaugeOptions,
+    AgQuadrantChartOptions,
     AgSparklineOptions,
+    ContextDefault,
     DatumDefault,
 } from 'ag-charts-types';
 
@@ -102,6 +104,17 @@ export abstract class AgCharts {
     public static createGauge(options: AgGaugeOptions): AgChartInstance<AgGaugeOptions> {
         return debug.group('AgCharts.createGauge()', () => {
             return this.create(options as AgChartOptions, { presetType: 'gauge-preset' }) as any;
+        });
+    }
+
+    public static createQuadrantChart<TDatum = DatumDefault, TContext = ContextDefault>(
+        options: AgQuadrantChartOptions<TDatum, TContext>
+        // TODO: any to prevent errors
+    ): AgChartInstance<AgQuadrantChartOptions<TDatum, any>> {
+        return debug.group('AgCharts.createQuadrantChart()', () => {
+            return this.create(options, {
+                presetType: 'scatter-quadrant',
+            }) as AgChartInstance<AgQuadrantChartOptions<TDatum, any>>;
         });
     }
 
