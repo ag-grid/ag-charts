@@ -15,7 +15,7 @@ import {
 } from 'ag-charts-core';
 import type { AgBaseGaugePresetOptions, AgChartTooltipOptions, AgGaugeOptions, AgSeriesTooltip } from 'ag-charts-types';
 
-import { StandaloneChartModule } from '../charts/standaloneChartModule';
+import { StandaloneChartModule } from '../../charts/standaloneChartModule';
 import { GAUGE_FAST_UPDATE_KEYS, createGauge, gaugeFastUpdate } from './gaugePreset';
 
 const commonGaugeOptions: OptionsDefs<AgBaseGaugePresetOptions & { tooltip?: AgSeriesTooltip<any> }> = {
