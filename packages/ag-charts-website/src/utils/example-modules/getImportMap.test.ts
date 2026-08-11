@@ -43,6 +43,15 @@ describe('getImportMap', () => {
         expect(typescript['@angular/core']).toBeUndefined();
     });
 
+    test('resolves clone for the frameworks whose generated code imports it', () => {
+        // Every generator but the plain TypeScript one injects `import clone from 'clone'`
+        for (const framework of ['react', 'angular', 'vue3'] as ExampleFramework[]) {
+            expect(getImportMap({ framework }).clone, framework).toBeDefined();
+        }
+
+        expect(getImportMap({ framework: 'typescript' }).clone).toBeUndefined();
+    });
+
     test('is sorted, so the emitted import map is stable across builds', () => {
         const keys = Object.keys(getImportMap({ framework: 'angular' }));
 

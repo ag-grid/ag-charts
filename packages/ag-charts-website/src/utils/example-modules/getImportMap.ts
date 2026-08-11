@@ -23,6 +23,7 @@ export type ExampleFramework = 'typescript' | 'react' | 'angular' | 'vue3';
  * docs site itself is built with. Kept in step with what the SystemJS boilerplate loaded.
  */
 const ANGULAR_VERSION = '20.0.0';
+const CLONE_VERSION = '2.1.2';
 const REACT_VERSION = '19.2.4';
 const RXJS_VERSION = '7.8.1';
 const TSLIB_VERSION = '2.3.1';
@@ -126,6 +127,11 @@ export const getImportMap = ({ framework }: { framework: ExampleFramework }): Im
     if (wrapper) {
         const [packageName, entryPoint] = wrapper;
         imports[packageName] = esmEntryPoint(packageName, entryPoint);
+
+        // Every framework generator injects `import clone from 'clone'` to copy the options
+        // object; only the plain TypeScript one does not. npm ships it as CommonJS, which
+        // native resolution cannot load, so it comes from esm.sh.
+        imports.clone = `https://esm.sh/clone@${CLONE_VERSION}`;
     }
 
     // Sorted so the emitted import map is byte-stable across builds
