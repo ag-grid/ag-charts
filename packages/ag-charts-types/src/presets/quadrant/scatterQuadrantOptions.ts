@@ -28,17 +28,9 @@ export interface AgScatterQuadrantPreset<TDatum, TContext>
     regions?: AgQuadrantRegionsOptions;
     /** The key to use to retrieve size values from the data, used to control the size of the markers. */
     sizeKey?: DatumKey<TDatum>;
-    /**
-     * Determines the smallest size a marker can be in pixels. `sizeKey` values at the lower end of `sizeDomain` map to this size.
-     *
-     * Default: `7`
-     */
+    /** Determines the smallest size a marker can be in pixels when `sizeKey` is present. Defaults to `size` when not set. */
     minSize?: PixelSize;
-    /**
-     * Determines the largest size a marker can be in pixels. `sizeKey` values at the upper end of `sizeDomain` map to this size.
-     *
-     * Default: `30`
-     */
+    /** Determines the largest size a marker can be in pixels when `sizeKey` is present. */
     maxSize?: PixelSize;
     /** TODO */
     xAxis?: AgScatterQuadrantAxisOptions<TContext>;

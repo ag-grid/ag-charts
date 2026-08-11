@@ -43,7 +43,7 @@ export function createScatterQuadrant(
         'width',
     ]);
 
-    const scatterSeriesKeys = [
+    const pointSeriesKeys = [
         'cursor',
         'errorBar',
         'fill',
@@ -61,7 +61,6 @@ export function createScatterQuadrant(
         'styler',
         'showInLegend',
         'shape',
-        'size',
         'stroke',
         'strokeOpacity',
         'strokeWidth',
@@ -72,7 +71,9 @@ export function createScatterQuadrant(
         'yKey',
     ] as const;
 
-    const bubbleSeriesKeys = [...scatterSeriesKeys, 'maxSize', 'minSize', 'sizeKey'] as const;
+    const scatterSeriesKeys = [...pointSeriesKeys, 'size'] as const;
+
+    const bubbleSeriesKeys = [...pointSeriesKeys, 'maxSize', 'minSize', 'sizeKey'] as const;
 
     const pivotX = pivot?.x ?? 0;
     const pivotY = pivot?.y ?? 0;
@@ -169,8 +170,9 @@ export function createScatterQuadrant(
         });
     } else {
         series.push({
+            minSize: options.size, // Default minSize to size
             ...pick(options, bubbleSeriesKeys),
-            sizeKey: options.sizeKey,
+            sizeKey: options.sizeKey, // Tell typescript that sizeKey is not undefined
             type: 'bubble',
             context,
             itemStyler: composedItemStyler,
