@@ -59,9 +59,8 @@ export interface TextBoxingProperties {
     };
 }
 
-// `start`/`end` are resolved by the canvas against `ctx.direction`, which no longer tracks the scene
-// direction once a text run overrides it. Pinning them to a side keeps rendering in step with the
-// bounding box, which resolves them from the scene direction alone.
+// The canvas resolves `start`/`end` against `ctx.direction`, which an individual text run may
+// override. Pinning them to a side keeps rendering in step with the scene-direction bounding box.
 function resolveTextAlign(textAlign: CanvasTextAlign, isRtl?: boolean): CanvasTextAlign {
     switch (textAlign) {
         case 'start':
@@ -686,10 +685,8 @@ export class Text<D = unknown> extends Shape<D> {
         return super.markDirty(property);
     }
 
-    // `ctx.direction` is a canvas-wide setting, so an RTL chart gives every text run an RTL paragraph
-    // direction and a number such as `-5` reorders to `5-`. Only called for an RTL scene: a run
-    // carrying no directional text of its own is drawn left-to-right, and anything else keeps the
-    // chart's RTL reading order with its numbers forced left-to-right.
+    // `ctx.direction` is canvas-wide, so an RTL chart would give every run an RTL paragraph direction
+    // and reorder a number such as `-5` to `5-`. RTL scenes only.
     private resolveDirected(): { direction: CanvasDirection; lines: string[] } {
         this.directed ??= this.lines.every(isDirectionNeutral)
             ? { direction: 'ltr', lines: this.lines }

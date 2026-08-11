@@ -1,5 +1,5 @@
 import { type Image, loadImage } from 'skia-canvas';
-import { beforeAll, describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { LtrEmbedding, PopDirectionalFormatting, cachedTextMeasurer, wrapText } from 'ag-charts-core';
 import { testLogger } from 'ag-charts-test';
@@ -894,8 +894,8 @@ describe('Text', () => {
         });
     });
 
-    // AG-18113: `ctx.direction` is canvas-wide, so an RTL chart would otherwise reorder a label
-    // such as `-5` to `5-`.
+    // `ctx.direction` is canvas-wide, so an RTL chart would otherwise reorder a label such as `-5`
+    // to `5-`.
     describe('RTL text runs', () => {
         const rtlScene = { ...setUpMockScene(canvasCtx), isRtl: true };
 
@@ -904,15 +904,12 @@ describe('Text', () => {
             node.setScene(rtlScene);
 
             const ctx = canvasCtx.getRenderContext2D();
-            // What HdpiCanvas.setDirection does for an RTL chart: the whole context is RTL, and each
-            // text run has to opt out of that for itself.
+            // What HdpiCanvas.setDirection does for an RTL chart — each text run opts out for itself.
             ctx.direction = 'rtl';
             const drawn: string[] = [];
-            const { fillText } = ctx;
-            ctx.fillText = (line: string, x: number, y: number) => {
+            const fillText = vi.spyOn(ctx, 'fillText').mockImplementation((line) => {
                 drawn.push(line);
-                fillText.call(ctx, line, x, y);
-            };
+            });
             try {
                 node.render({
                     ctx,
@@ -924,7 +921,7 @@ describe('Text', () => {
                     debugNodes: {},
                 });
             } finally {
-                ctx.fillText = fillText;
+                fillText.mockRestore();
             }
             return { drawn, direction: ctx.direction, textAlign: ctx.textAlign };
         };
@@ -945,8 +942,8 @@ describe('Text', () => {
             ]);
         });
 
-        // The bounding box resolves start/end from the scene direction alone, so the context must be
-        // given a concrete side rather than one the overridden direction would reinterpret.
+        // The bounding box resolves start/end from the scene direction alone, so the context needs a
+        // concrete side rather than one the overridden direction would reinterpret.
         it.each([
             ['start', 'right'],
             ['end', 'left'],

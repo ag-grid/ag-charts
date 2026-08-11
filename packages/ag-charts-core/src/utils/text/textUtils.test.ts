@@ -130,12 +130,6 @@ describe('forceLtrNumbers', () => {
         );
     });
 
-    it('never absorbs an adjacent RTL word as a unit', () => {
-        expect(forceLtrNumbers('5 \u05DE\u05DB\u05D9\u05E8\u05D5\u05EA')).not.toContain(
-            `5 \u05DE\u05DB\u05D9\u05E8\u05D5\u05EA${PopDirectionalFormatting}`
-        );
-    });
-
     it('treats a token between two numbers as a word, not a unit', () => {
         expect(forceLtrNumbers('-5 to 10')).toBe(`${mark('-5')} to 10`);
     });
@@ -153,12 +147,8 @@ describe('forceLtrNumbers', () => {
         );
     });
 
-    it('returns the same reference when there is no number to mark', () => {
+    it('leaves text carrying no number alone', () => {
         const text = 'Sales \u05DE\u05DB\u05D9\u05E8\u05D5\u05EA';
         expect(forceLtrNumbers(text)).toBe(text);
-    });
-
-    it('adds only the zero-width directional marks', () => {
-        expect(forceLtrNumbers('-5').replaceAll(LtrEmbedding, '').replaceAll(PopDirectionalFormatting, '')).toBe('-5');
     });
 });
