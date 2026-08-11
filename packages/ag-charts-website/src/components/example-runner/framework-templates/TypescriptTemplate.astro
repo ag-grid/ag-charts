@@ -1,5 +1,6 @@
 ---
 import { MetaData } from './lib/MetaData';
+import ExampleFonts from './lib/ExampleFonts.astro';
 import Styles from './lib/Styles.astro';
 import { SystemJs } from './lib/SystemJs';
 import { pathJoin } from '@utils/pathJoin';
@@ -38,6 +39,8 @@ const startFile = pathJoin(appLocation, entryFileName);
 <html lang="en">
     <head>
         <MetaData isDev={isDev} title={`Typescript Example - ${title}`} modifiedTimeMs={modifiedTimeMs} />
+
+        <ExampleFonts headFragment={headFragment} />
 
         <Styles
             baseUrl={appLocation}

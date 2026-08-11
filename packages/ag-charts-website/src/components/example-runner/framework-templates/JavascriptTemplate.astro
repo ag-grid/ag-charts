@@ -32,6 +32,7 @@ const {
 } = Astro.props as Props;
 
 import { MetaData } from './lib/MetaData';
+import ExampleFonts from './lib/ExampleFonts.astro';
 import Styles from './lib/Styles.astro';
 import { Scripts } from './lib/Scripts';
 import { SITE_BASE_URL } from '@constants';
@@ -53,6 +54,8 @@ const chartScriptLocalePath = getCacheBustingUrl(getChartLocaleScriptPath(siteUr
 <html lang="en">
     <head>
         <MetaData isDev={isDev} title={`JavaScript Example - ${title}`} modifiedTimeMs={modifiedTimeMs} />
+
+        <ExampleFonts headFragment={headFragment} />
 
         <Styles
             baseUrl={appLocation}
