@@ -1,7 +1,7 @@
 import { type Image, loadImage } from 'skia-canvas';
 import { beforeAll, describe, expect, it } from 'vitest';
 
-import { cachedTextMeasurer, wrapText } from 'ag-charts-core';
+import { LtrEmbedding, PopDirectionalFormatting, cachedTextMeasurer, wrapText } from 'ag-charts-core';
 import { testLogger } from 'ag-charts-test';
 import type { TextWrap } from 'ag-charts-types';
 
@@ -891,6 +891,68 @@ describe('Text', () => {
             const textMeasurerB = cachedTextMeasurer({ fontSize: 48, fontFamily: 'Verdana', fontWeight: 'bold' });
             expect(textMeasurerA.measureText('Hello world!')).toMatchSnapshot();
             expect(textMeasurerB.measureText('Hello world!')).toMatchSnapshot();
+        });
+    });
+
+    // AG-18113: `ctx.direction` is canvas-wide, so an RTL chart would otherwise reorder a label
+    // such as `-5` to `5-`.
+    describe('RTL text runs', () => {
+        const rtlScene = { ...setUpMockScene(canvasCtx), isRtl: true };
+
+        const renderInRtl = (text: string, textAlign: CanvasTextAlign = 'start') => {
+            const node = Object.assign(new Text(), { ...BASE_OPTIONS, textAlign, text, x: 50, y: 50, fill: 'black' });
+            node.setScene(rtlScene);
+
+            const ctx = canvasCtx.getRenderContext2D();
+            // What HdpiCanvas.setDirection does for an RTL chart: the whole context is RTL, and each
+            // text run has to opt out of that for itself.
+            ctx.direction = 'rtl';
+            const drawn: string[] = [];
+            const { fillText } = ctx;
+            ctx.fillText = (line: string, x: number, y: number) => {
+                drawn.push(line);
+                fillText.call(ctx, line, x, y);
+            };
+            try {
+                node.render({
+                    ctx,
+                    direction: 'rtl' as const,
+                    width: canvasCtx.nodeCanvas.width,
+                    height: canvasCtx.nodeCanvas.height,
+                    devicePixelRatio: 1,
+                    logger: testLogger,
+                    debugNodes: {},
+                });
+            } finally {
+                ctx.fillText = fillText;
+            }
+            return { drawn, direction: ctx.direction, textAlign: ctx.textAlign };
+        };
+
+        it('draws a label carrying no direction of its own left-to-right and unmodified', () => {
+            const { drawn, direction } = renderInRtl('-5');
+
+            expect(direction).toBe('ltr');
+            expect(drawn).toEqual(['-5']);
+        });
+
+        it('keeps RTL text right-to-left and marks its numbers as left-to-right', () => {
+            const { drawn, direction } = renderInRtl(`\u05DE\u05DB\u05D9\u05E8\u05D5\u05EA -5`);
+
+            expect(direction).toBe('rtl');
+            expect(drawn).toEqual([
+                `\u05DE\u05DB\u05D9\u05E8\u05D5\u05EA ${LtrEmbedding}-5${PopDirectionalFormatting}`,
+            ]);
+        });
+
+        // The bounding box resolves start/end from the scene direction alone, so the context must be
+        // given a concrete side rather than one the overridden direction would reinterpret.
+        it.each([
+            ['start', 'right'],
+            ['end', 'left'],
+            ['center', 'center'],
+        ] as const)('resolves textAlign %s to %s', (textAlign, expected) => {
+            expect(renderInRtl('-5', textAlign).textAlign).toBe(expected);
         });
     });
 

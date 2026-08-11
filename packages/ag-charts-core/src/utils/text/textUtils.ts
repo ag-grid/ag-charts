@@ -4,7 +4,14 @@ import type {
     NormalisedContentSegment,
     NormalisedTextOrSegments,
 } from '../../types/normalised-options/normalisedCommonOptions';
-import { EllipsisChar, type FontOptions, TrimCharsRegex, TrimEdgeGuard } from '../../types/text';
+import {
+    EllipsisChar,
+    type FontOptions,
+    LtrEmbedding,
+    PopDirectionalFormatting,
+    TrimCharsRegex,
+    TrimEdgeGuard,
+} from '../../types/text';
 import { isArray, isDate, isNumber } from '../types/typeGuards';
 
 // CSS generic family keywords — must remain unquoted; quoting changes their
@@ -115,6 +122,57 @@ export function preserveArabicJoining(text: string): string {
         return text + '\u200D'; // ZWJ
     }
     return text;
+}
+
+// Approximate the strong bidi classes. R/AL: Hebrew, Arabic, Syriac, Thaana, NKo, Samaritan,
+// Mandaic, the Hebrew/Arabic presentation forms and the explicit RTL marks; L: any other letter.
+// The Arabic-Indic digit ranges (U+0660-U+0669, U+06F0-U+06F9) are excluded from R/AL: they are
+// numbers, not strong directional characters.
+const StrongRtlRegex = /[\u0590-\u065F\u066A-\u06EF\u06FA-\u08FF\uFB1D-\uFDFF\uFE70-\uFEFF\u200F\u202B\u202E\u2067]/u;
+const StrongLtrRegex = /[\p{L}\u200E\u202A\u202D\u2066]/u;
+
+// A string with no strong directional character takes its order entirely from the paragraph
+// direction, so its digits, signs and separators reorder in an RTL paragraph. Such a run can be
+// given its own left-to-right paragraph without affecting how any surrounding text reads.
+export function isDirectionNeutral(text: string): boolean {
+    return !StrongRtlRegex.test(text) && !StrongLtrRegex.test(text);
+}
+
+const DigitRegex = /\p{Nd}/u;
+// A number run: an optional sign and currency prefix, digit groups with their internal
+// separators and exponent, then an optional percent/degree/currency suffix and unit token. Unit
+// letters are Latin-only so an adjacent RTL word is never absorbed, and a token followed by
+// another number is a word between two values rather than a unit.
+const NumberSign = /[+\-\u2212]\s?/u;
+const NumberPrefix = /\p{Sc}\s?/u;
+const NumberBody = /\p{Nd}+(?:[.,:'\u2019/\u00A0\u202F]\p{Nd}+)*(?:[eE][+\-\u2212]?\p{Nd}+)?/u;
+const NumberSuffix = /\s?[%\u2030\u00B0]|\s?\p{Sc}/u;
+const NumberUnit = /\s?[A-Za-z\u00B5\u03BC]{1,4}(?![A-Za-z\u00B5\u03BC]|\s*\p{Nd})/u;
+const NumberRunRegex = new RegExp(
+    `(?:${NumberSign.source})?(?:${NumberPrefix.source})?${NumberBody.source}(?:${NumberSuffix.source})?(?:${NumberUnit.source})?`,
+    'gu'
+);
+
+// Whether the nearest strong character before `offset` is left-to-right, in which case the bidi
+// algorithm already carries a following number along that run.
+function followsLtrText(text: string, offset: number): boolean {
+    for (let i = offset - 1; i >= 0; i -= 1) {
+        const char = text[i];
+        if (StrongRtlRegex.test(char)) return false;
+        if (StrongLtrRegex.test(char)) return true;
+    }
+    return false;
+}
+
+// Inside an RTL paragraph the neutral characters attached to a number (its sign, separators and
+// unit) take the paragraph direction and reorder, so `-5` renders as `5-`. Embedding the number in
+// its own left-to-right run keeps it readable while the surrounding text stays RTL. A number already
+// carried by preceding LTR text is left alone, since embedding it would detach it from that run.
+export function forceLtrNumbers(text: string): string {
+    if (!DigitRegex.test(text)) return text;
+    return text.replace(NumberRunRegex, (run: string, offset: number) =>
+        followsLtrText(text, offset) ? run : LtrEmbedding + run + PopDirectionalFormatting
+    );
 }
 
 export function guardTextEdges(str: string) {

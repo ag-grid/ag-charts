@@ -15,8 +15,10 @@ import {
     blockStripWidth,
     cachedTextMeasurer,
     createSvgElement,
+    forceLtrNumbers,
     imageBoxAroundBaseline,
     isArray,
+    isDirectionNeutral,
     measureTextSegments,
     resolvePadding,
     toCanvasTextBaseline,
@@ -55,6 +57,20 @@ export interface TextBoxingProperties {
         strokeWidth?: PixelSize;
         strokeOpacity?: Opacity;
     };
+}
+
+// `start`/`end` are resolved by the canvas against `ctx.direction`, which no longer tracks the scene
+// direction once a text run overrides it. Pinning them to a side keeps rendering in step with the
+// bounding box, which resolves them from the scene direction alone.
+function resolveTextAlign(textAlign: CanvasTextAlign, isRtl?: boolean): CanvasTextAlign {
+    switch (textAlign) {
+        case 'start':
+            return isRtl ? 'right' : 'left';
+        case 'end':
+            return isRtl ? 'left' : 'right';
+        default:
+            return textAlign;
+    }
 }
 
 export class Text<D = unknown> extends Shape<D> {
@@ -96,10 +112,12 @@ export class Text<D = unknown> extends Shape<D> {
     }
 
     private lines: string[] = [];
+    private directed?: { direction: CanvasDirection; lines: string[] };
     private onTextChange() {
         this.richText?.clear();
         this.textMap?.clear();
         this.segmentMetrics = undefined;
+        this.directed = undefined;
 
         if (isArray(this.text)) {
             this.lines = [];
@@ -305,16 +323,14 @@ export class Text<D = unknown> extends Shape<D> {
     }
 
     private static calcLeftOffset(width: number, textAlign?: CanvasTextAlign, isRtl?: boolean): number {
-        let offset = 0;
-        switch (textAlign) {
+        switch (textAlign && resolveTextAlign(textAlign, isRtl)) {
             case 'center':
-                offset = 0.5;
-                break;
+                return width * 0.5;
             case 'right':
-            case isRtl ? 'start' : 'end':
-                offset = 1;
+                return width;
+            default:
+                return 0;
         }
-        return width * offset;
     }
 
     override getBBox(): BBox {
@@ -670,6 +686,17 @@ export class Text<D = unknown> extends Shape<D> {
         return super.markDirty(property);
     }
 
+    // `ctx.direction` is a canvas-wide setting, so an RTL chart gives every text run an RTL paragraph
+    // direction and a number such as `-5` reorders to `5-`. Only called for an RTL scene: a run
+    // carrying no directional text of its own is drawn left-to-right, and anything else keeps the
+    // chart's RTL reading order with its numbers forced left-to-right.
+    private resolveDirected(): { direction: CanvasDirection; lines: string[] } {
+        this.directed ??= this.lines.every(isDirectionNeutral)
+            ? { direction: 'ltr', lines: this.lines }
+            : { direction: 'rtl', lines: this.lines.map(forceLtrNumbers) };
+        return this.directed;
+    }
+
     private renderText(renderCtx: RenderContext): void {
         const { fill, stroke, strokeWidth, font, textAlign } = this;
 
@@ -685,7 +712,12 @@ export class Text<D = unknown> extends Shape<D> {
             renderCtx.currentFont = font;
         }
 
-        ctx.textAlign = textAlign;
+        const isRtl = renderCtx.direction === 'rtl';
+        const direction = isRtl ? this.resolveDirected().direction : 'ltr';
+        if (ctx.direction !== direction) {
+            ctx.direction = direction;
+        }
+        ctx.textAlign = resolveTextAlign(textAlign, isRtl);
 
         this.renderBoxing(renderCtx);
         this.fillStroke(ctx, renderCtx.logger);
@@ -740,8 +772,11 @@ export class Text<D = unknown> extends Shape<D> {
             }
         }
 
-        for (const line of lineMetrics) {
-            renderCallback(line.text, x, y + offsetY);
+        // Metrics stay keyed on the unmodified lines; the directional marks are zero-width, so only
+        // the drawn string carries them.
+        const directedLines = this.directed?.lines;
+        for (let i = 0; i < lineMetrics.length; i += 1) {
+            renderCallback(directedLines?.[i] ?? lineMetrics[i].text, x, y + offsetY);
             offsetY += lineHeight;
         }
     }

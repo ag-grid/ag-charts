@@ -1,6 +1,6 @@
 import { describe, test } from 'vitest';
 
-import type { AgChartOptions } from 'ag-charts-types';
+import type { AgCartesianChartOptions, AgChartOptions } from 'ag-charts-types';
 
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -25,6 +25,13 @@ const HEBREW_PIE_DATA = [
     { label: 'מוצר ג', value: 20 },
     { label: 'מוצר ד', value: 15 },
     { label: 'מוצר ה', value: 10 },
+];
+
+const NEGATIVE_DATA = [
+    { category: 'ינואר', profit: -45, change: -12.5 },
+    { category: 'פברואר', profit: 30, change: 8 },
+    { category: 'מרץ', profit: -20, change: -3.5 },
+    { category: 'אפריל', profit: 60, change: 15 },
 ];
 
 describe('RTL', () => {
@@ -164,6 +171,65 @@ describe('RTL', () => {
                     { type: 'area', xKey: 'category', yKey: 'revenue', yName: 'הכנסות', stacked: true },
                 ],
             });
+            await compare();
+        });
+    });
+
+    describe('negative values', () => {
+        test('numeric axis spanning negative values', async () => {
+            chart = await createRtlChart({
+                data: NEGATIVE_DATA,
+                title: { text: 'מאזן' },
+                series: [{ type: 'bar', xKey: 'category', yKey: 'profit', yName: 'רווח' }],
+            });
+            await compare();
+        });
+
+        test('negative values on both axes', async () => {
+            chart = await createRtlChart({
+                data: NEGATIVE_DATA,
+                title: { text: 'מאזן' },
+                series: [{ type: 'scatter', xKey: 'profit', yKey: 'change' }],
+            });
+            await compare();
+        });
+
+        test('negative data labels', async () => {
+            chart = await createRtlChart({
+                data: NEGATIVE_DATA,
+                title: { text: 'מאזן' },
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'category',
+                        yKey: 'profit',
+                        yName: 'רווח',
+                        label: { enabled: true },
+                    },
+                ],
+            });
+            await compare();
+        });
+
+        test('negative values with a unit-suffixed label', async () => {
+            const options: AgCartesianChartOptions = {
+                data: NEGATIVE_DATA,
+                title: { text: 'טמפרטורות' },
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'category',
+                        yKey: 'change',
+                        yName: 'מכירות',
+                        label: { enabled: true, formatter: ({ value }) => `${value} kg` },
+                    },
+                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left', label: { formatter: ({ value }) => `${value}°C` } },
+                },
+            };
+            chart = await createRtlChart(options);
             await compare();
         });
     });
