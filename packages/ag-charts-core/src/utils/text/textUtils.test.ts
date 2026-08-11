@@ -130,6 +130,21 @@ describe('forceLtrNumbers', () => {
         );
     });
 
+    it.each([['5-10'], ['-5-10'], ['1,000 - 2,000'], ['5 kg - 10 kg'], ['5–10']])(
+        'keeps the range %j in a single run, so its halves cannot reorder against each other',
+        (text) => {
+            expect(forceLtrNumbers(text)).toBe(mark(text));
+        }
+    );
+
+    it('marks a range inside RTL text as one run', () => {
+        expect(forceLtrNumbers('מכירות 5-10')).toBe(`מכירות ${mark('5-10')}`);
+    });
+
+    it('does not join two numbers separated by a word into a range', () => {
+        expect(forceLtrNumbers('2024 - מכירות')).toBe(`${mark('2024')} - מכירות`);
+    });
+
     it('treats a token between two numbers as a word, not a unit', () => {
         expect(forceLtrNumbers('-5 to 10')).toBe(`${mark('-5')} to 10`);
     });

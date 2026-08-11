@@ -143,8 +143,12 @@ const NumberPrefix = /\p{Sc}\s?/u;
 const NumberBody = /\p{Nd}+(?:[.,:'\u2019/\u00A0\u202F]\p{Nd}+)*(?:[eE][+\-\u2212]?\p{Nd}+)?/u;
 const NumberSuffix = /\s?[%\u2030\u00B0]|\s?\p{Sc}/u;
 const NumberUnit = /\s?[A-Za-z\u00B5\u03BC]{1,4}(?![A-Za-z\u00B5\u03BC]|\s*\p{Nd})/u;
+// A dash between two values is a range: the halves must share one run, or they reorder against each
+// other and `5-10` reads as `10-5`.
+const NumberRange = /\s?[-\u2012-\u2015\u2212]\s?/u;
+const NumberValue = `(?:${NumberPrefix.source})?${NumberBody.source}(?:${NumberSuffix.source})?(?:${NumberUnit.source})?`;
 const NumberRunRegex = new RegExp(
-    `(?:${NumberSign.source})?(?:${NumberPrefix.source})?${NumberBody.source}(?:${NumberSuffix.source})?(?:${NumberUnit.source})?`,
+    `(?:${NumberSign.source})?${NumberValue}(?:${NumberRange.source}${NumberValue})*`,
     'gu'
 );
 
