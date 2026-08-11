@@ -1,7 +1,11 @@
 # Raw-artefact viewer — prototype findings
 
-Status: **prototype, not wired into CI.** `viewer.html` and `report-frame.html` are referenced by
-nothing. The snapshot-review publishing path is unchanged.
+Status: **adopted.** `viewer.html` and `report-frame.html` are published to `gh-pages` under
+`snapshot-viewer/` by `.github/workflows/gh-pages-snapshot-viewer.yml`, and `ci.yml`'s
+`snapshot_review` job pushes report payloads to the `snapshot-review` branch and links to them
+through the viewer. Kept as the record of why it is built this way — the constraints below are not
+obvious from the two files, and several of them look like arbitrary complexity until you know what
+was tried first.
 
 ## The problem this attacks
 
@@ -89,23 +93,24 @@ confirmed with a control (the same report at top level takes clicks and scrolls 
   the report scrolls inside a viewport-height frame and its own sticky header hides behind the
   viewer's.
 
-## Open questions before adopting
+## Open questions, and how they were settled
 
-1. **Unauthenticated raw rate limits.** Still unverified, and a viewer that 429s under review load
-   is worse than a slow Pages deploy. Needs a burst test.
-2. **Non-Chrome browsers.** Everything above is Chrome 141 only.
-3. **Export-decisions Copy** in the sandbox (see above).
-4. **Retention.** Payloads on a data branch need their own janitor; the existing sweep only knows
-   about `gh-pages`.
+1. **Unauthenticated raw rate limits.** Measured rather than guessed, because GitHub publishes no
+   number for raw and raw returns no `x-ratelimit-*` headers at all. 1275 requests at a peak of
+   342 req/s produced zero 429s. That is a burst figure, not a sustained hourly one, but review
+   traffic is a handful of report opens per PR — orders of magnitude below anything that was
+   reachable in the probe. Not a real risk.
+2. **Non-Chrome browsers.** Still Chrome-only verification. The delivery-size cliffs that shaped
+   this design are Chrome's; the design avoids all of them by never putting the payload in a URL,
+   so it should not be near any other engine's limits either.
+3. **Export-decisions Copy** in the sandbox — a sandboxed frame without `allow-same-origin` has no
+   clipboard write permission. Unresolved; the report's other controls are unaffected.
+4. **Retention.** Settled: `preview-branch-janitor.yml` sweeps `snapshot-review` alongside
+   `gh-pages`, and `pr-cleanup.yml` removes `pr-<N>/` from it on PR close.
 
-## If adopted
+## What adoption changed in CI
 
-Publish `viewer.html` + `report-frame.html` to `gh-pages` once, at a stable path, and have CI push
-report payloads to a separate data branch and link
-`.../viewer.html?repo=…&sha=…&path=…`. The `Wait for published reports` and
-`Check for in-flight Pages deploys` steps in `ci.yml`, and the three-state pending/live/failed link
-logic they feed, all become unnecessary.
-
-Worth deferring the `gh-pages` publish until the prune in #7764 merges: adding a file to `gh-pages`
-today triggers a rebuild of the full ~1.1 GB site and can cancel an in-flight preview deploy for
-somebody else's PR.
+`snapshot_review` in `ci.yml` lost the `Wait for published reports` and `Check for in-flight Pages
+deploys` steps entirely, along with the per-commit deploy marker they were gated on and the
+three-state pending/live/failed link logic they fed. A push to a plain branch triggers no build, so
+a successful push *is* the live state: two states remain, live and failed.

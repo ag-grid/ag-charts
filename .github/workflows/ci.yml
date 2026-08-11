@@ -1846,24 +1846,21 @@ jobs:
             github.event.pull_request.head.repo.full_name == github.repository &&
             needs.detect-changes.outputs.run_full_ci == 'true'
         permissions:
-            # write: the HTML reports are published to the gh-pages PR preview (pr-preview-publish
+            # write: the HTML reports are pushed to the `snapshot-review` branch (pr-preview-publish
             # pushes with GITHUB_TOKEN, which is scoped by this job's permissions).
             contents: write
             pull-requests: write
             packages: read
             # scene-graph review (follow-up) downloads CI artifacts via gh — needs actions: read.
             actions: read
-        # This job also publishes into the PR's pr-<N>/ preview, so it shares the
-        # per-PR lock with `pr_preview` and `gh_pages_cleanup` — see the rationale on
-        # `pr_preview`. Byte-identical group string across all three.
+        # Own lock, NOT the gh-pages one. This job no longer touches gh-pages, so sharing
+        # `pr-preview-gh-pages-<N>` with `pr_preview` and `gh_pages_cleanup` would serialise it
+        # against jobs it can no longer conflict with. It writes the same pr-<N>/ prefix on the
+        # `snapshot-review` branch as that branch's close-time cleanup, so those two share a lock —
+        # keep this group string byte-identical to the one in pr-cleanup.yml.
         concurrency:
-            group: pr-preview-gh-pages-${{ github.event.pull_request.number }}
+            group: snapshot-review-branch-${{ github.event.pull_request.number }}
             cancel-in-progress: false
-        env:
-            # Report URLs are deterministic (snapshot-<slug>.html), so a previous run's deploy answers
-            # 200 at the same URL while this run's is still propagating. Stamp each report with a
-            # per-commit marker and gate the reachability check on it, so a stale deploy can't pass.
-            REPORT_DEPLOY_MARKER: '<!-- snapshot-review-deploy ${{ github.event.pull_request.head.sha }} -->'
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -1925,9 +1922,18 @@ jobs:
                   snapshot_branch: ${{ needs.init.outputs.snapshot_branch }}
                   base_branch: ${{ github.base_ref }}
                   github_token: ${{ secrets.GITHUB_TOKEN }}
-                  # Reports are published to the PR preview below; link straight to them (one click).
-                  # Deterministic URL — the report filenames are snapshot-<slug>.html.
-                  report_base_url: https://ag-grid.github.io/ag-charts/pr-${{ github.event.pull_request.number }}/
+                  # Reports are pushed to the `snapshot-review` branch below and read from
+                  # raw.githubusercontent.com by the static viewer on gh-pages, so the link is a
+                  # viewer URL rather than a direct one — raw serves `text/plain`, which would show
+                  # a reviewer HTML source instead of a rendered report.
+                  #
+                  # `__SHA__` is a placeholder: the commit that carries the report does not exist
+                  # until the push below, and the viewer requires a commit SHA rather than a branch
+                  # name (a branch URL is served with a 5-minute cache TTL and its content can change
+                  # under a link that has already been shared). `Finalize` substitutes the real SHA.
+                  #
+                  # The action appends `/snapshot-<slug>.html`, which lands on the end of `path=`.
+                  report_base_url: https://ag-grid.github.io/ag-charts/snapshot-viewer/viewer.html?repo=${{ github.repository }}&sha=__SHA__&path=pr-${{ github.event.pull_request.number }}
 
             # Post the summary immediately (the report link is a "publishing…" placeholder at this
             # point). Also the GC point: clears a stale section when this build produced no report.
@@ -1946,8 +1952,8 @@ jobs:
                   path: ${{ steps.review.outputs.html_dir }}/*.html
                   if-no-files-found: ignore
 
-            # Stamp each report with the per-commit deploy marker, then resolve the file paths for the
-            # PR-preview publish (the publish action takes explicit newline-separated paths, not a glob).
+            # Resolve the file paths for the publish below (the publish action takes explicit
+            # newline-separated paths, not a glob).
             - name: Stage report files
               id: reports
               if: steps.review.outputs.produced == 'true'
@@ -1955,19 +1961,19 @@ jobs:
               run: |
                   set -euo pipefail
                   files=$(find "${{ steps.review.outputs.html_dir }}" -maxdepth 1 -type f -name '*.html')
-                  while IFS= read -r f; do
-                      [[ -n "$f" ]] && printf '\n%s\n' "$REPORT_DEPLOY_MARKER" >> "$f"
-                  done <<< "$files"
                   {
                       echo "files<<__FILES_EOF__"
                       echo "$files"
                       echo "__FILES_EOF__"
                   } >> "$GITHUB_OUTPUT"
 
-            # Publish the self-contained reports under pr-<N>/ (served at
-            # https://ag-grid.github.io/ag-charts/pr-<N>/snapshot-<slug>.html). Removed with the rest
-            # of the PR preview when the PR closes.
-            - name: Publish reports to PR preview
+            # Push the self-contained reports to pr-<N>/ on the `snapshot-review` branch — a plain
+            # branch with no GitHub Pages build attached, so the reports are readable the moment the
+            # push lands (measured at ~0.4s to raw.githubusercontent.com, against 163-706s for a
+            # Pages deploy that a later push could cancel outright). The reports are then rendered by
+            # the static viewer published to gh-pages. Removed by that branch's close-time cleanup in
+            # pr-cleanup.yml, and swept by the daily janitor.
+            - name: Publish reports to the snapshot-review branch
               id: publish
               if: steps.review.outputs.produced == 'true'
               uses: ./external/ag-shared/github/actions/pr-preview-publish
@@ -1975,110 +1981,36 @@ jobs:
                   pr_number: ${{ github.event.pull_request.number }}
                   files: ${{ steps.reports.outputs.files }}
                   github_token: ${{ secrets.GITHUB_TOKEN }}
+                  publish_branch: snapshot-review
 
-            # Wait for THIS run's reports to become reachable on gh-pages before linking them, so the
-            # comment never carries a link that 404s while the deploy propagates. Gate on the deploy
-            # marker (not status alone): a deterministic URL can answer 200 from a previous run's
-            # deploy while this run's is still propagating. Best-effort — if the current deploy is
-            # still not served after the budget, the pending check below decides between an
-            # optimistic link and the artifact fallback.
-            - name: Wait for published reports
-              id: wait
-              if: steps.review.outputs.produced == 'true'
-              shell: bash
-              run: |
-                  set -uo pipefail
-                  echo "started=$(date -u +%s)" >> "$GITHUB_OUTPUT"
-                  base="https://ag-grid.github.io/ag-charts/pr-${{ github.event.pull_request.number }}"
-                  reachable=true
-                  for f in "${{ steps.review.outputs.html_dir }}"/*.html; do
-                      url="${base}/$(basename "$f")"
-                      echo "Waiting for ${url}"
-                      for attempt in $(seq 1 40); do
-                          if curl -sf "$url" 2>/dev/null | grep -qF "$REPORT_DEPLOY_MARKER"; then
-                              echo "  reachable (current deploy)"; break
-                          fi
-                          if [[ "$attempt" == "40" ]]; then
-                              echo "::warning::${url} did not serve this run's deploy after retries."
-                              reachable=false
-                          fi
-                          sleep 5
-                      done
-                  done
-                  echo "reachable=${reachable}" >> "$GITHUB_OUTPUT"
-
-            # The wait budget is routinely shorter than Pages' propagation tail: `pages-build-deployment`
-            # is single-flight, so every push to gh-pages cancels the in-flight build, and on a busy day
-            # a report can take 10+ minutes to be served. Timing out therefore does NOT mean the publish
-            # failed — the commit is already on gh-pages, and whichever build is still in flight (or its
-            # successor) will serve it. Distinguish the two cases: a Pages build queued/running since our
-            # push means "still propagating" (link optimistically, with a caveat); nothing in flight means
-            # the deploy really is not coming (artifact fallback). Errs toward the fallback if the API
-            # cannot be queried.
-            - name: Check for in-flight Pages deploys
-              id: pages
-              if: always() && steps.review.outputs.produced == 'true' && steps.wait.outputs.reachable != 'true'
-              shell: bash
-              env:
-                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                  # Grace window: the Pages build for our push is created a second or two after it, but
-                  # allow for clock skew between the runner and the API timestamps.
-                  WAIT_STARTED: ${{ steps.wait.outputs.started }}
-              run: |
-                  set -uo pipefail
-                  pending=false
-                  cutoff=$(( ${WAIT_STARTED:-0} - 60 ))
-                  for status in queued in_progress; do
-                      while IFS= read -r created; do
-                          [[ -n "$created" ]] || continue
-                          epoch=$(date -u -d "$created" +%s 2>/dev/null) || continue
-                          if (( epoch >= cutoff )); then
-                              echo "Pages build ${status} since ${created} — deploy still propagating."
-                              pending=true
-                          fi
-                      done < <(gh run list --workflow=pages-build-deployment --status "$status" \
-                                   --limit 20 --json createdAt --jq '.[].createdAt' 2>/dev/null)
-                  done
-                  if [[ "$pending" != "true" ]]; then
-                      echo "No Pages build in flight since our push; treating the deploy as failed."
-                  fi
-                  echo "pending=${pending}" >> "$GITHUB_OUTPUT"
-
-            # Replace the deferred-link sentinel. always(): even if upload/stage/publish/wait failed,
-            # the sentinel MUST be resolved so the comment never sticks on "Publishing…". Link the live
-            # report when it published AND is serving this run's deploy; link it with a propagation
-            # caveat when Pages is still deploying; otherwise fall back to the run artifacts.
+            # Replace the deferred-link sentinel. always(): even if upload/stage/publish failed, the
+            # sentinel MUST be resolved so the comment never sticks on "Publishing…".
+            #
+            # Two states, not three. The old flow had to poll gh-pages for the report and then
+            # distinguish "still deploying" from "never coming", because a Pages build is
+            # single-flight and could be cancelled by the next push. A push to `snapshot-review`
+            # triggers no build at all: once `publish` succeeds the content is readable, so a
+            # successful push IS the live state and there is nothing to wait for.
             - name: Finalize snapshot-review links
               if: always() && steps.review.outputs.produced == 'true'
               shell: bash
               env:
                   RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+                  # The commit that actually carries this run's reports. The link must name a commit,
+                  # not the branch: a branch URL is served with a cache TTL and its content moves
+                  # under any link already shared into the PR comment.
+                  REPORT_SHA: ${{ steps.publish.outputs.commit_sha }}
               run: |
                   set -euo pipefail
                   frag="${RUNNER_TEMP}/pr-sections/25-snapshot-review.md"
                   [[ -f "$frag" ]] || exit 0
-                  if [[ "${{ steps.publish.outcome }}" != "success" ]]; then
-                      state=failed
-                  elif [[ "${{ steps.wait.outputs.reachable }}" == "true" ]]; then
-                      state=live
-                  elif [[ "${{ steps.pages.outputs.pending }}" == "true" ]]; then
-                      state=pending
-                  else
-                      state=failed
-                  fi
                   # `|` delimiter throughout: RUN_URL carries a `#artifacts` fragment, which would
                   # terminate the s command early under a `#` delimiter.
-                  case "$state" in
-                      live)
-                          sed -E -i 's|<!-- report-link href="([^"]+)" -->.*|[Open the full interactive report](\1)|' "$frag"
-                          ;;
-                      pending)
-                          sed -E -i "s|<!-- report-link href=\"([^\"]+)\" -->.*|[Open the full interactive report](\1) — :hourglass_flowing_sand: _GitHub Pages was still deploying when CI finished. If the link 404s or shows an older comparison, retry in a few minutes; this run's copy is also in the \`snapshot-review-html\` artifact on the [workflow run](${RUN_URL}#artifacts)._|" "$frag"
-                          ;;
-                      failed)
-                          sed -E -i "s|<!-- report-link href=\"[^\"]+\" -->.*|:warning: Report publish failed — download the \`snapshot-review-html\` artifact from the [workflow run](${RUN_URL}#artifacts).|" "$frag"
-                          ;;
-                  esac
+                  if [[ "${{ steps.publish.outcome }}" == "success" && -n "$REPORT_SHA" ]]; then
+                      sed -E -i "s|<!-- report-link href=\"([^\"]+)\" -->.*|[Open the full interactive report](\1)|; s|__SHA__|${REPORT_SHA}|" "$frag"
+                  else
+                      sed -E -i "s|<!-- report-link href=\"[^\"]+\" -->.*|:warning: Report publish failed — download the \`snapshot-review-html\` artifact from the [workflow run](${RUN_URL}#artifacts).|" "$frag"
+                  fi
 
             # Mirror the resolved section into the run's job summary. Same content as the PR comment,
             # but rendered inline on the run page and reachable with no Pages deploy at all — so the
