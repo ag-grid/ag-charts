@@ -265,19 +265,19 @@ describe('AxisDOMProxy', () => {
                 zoom: { enabled: true },
                 series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
             });
+        });
 
-            // Band 5 spans canvas 360..403. Both clicks are inside it, so both must report the same
-            // category; today only the one nearer the band's start does.
-            test('every point inside a band reports that band', async () => {
-                await clickAction(378, 560)(chart); // comfortably inside band 5
-                await clickAction(398, 560)(chart); // still inside band 5, 5px from its right edge
-                await waitForChartStability(chart);
+        // Band 5 spans canvas 360..403. Both clicks are inside it, so both must report the same
+        // category; today only the one nearer the band's start does.
+        test('every point inside a band reports that band', async () => {
+            await clickAction(378, 560)(chart); // comfortably inside band 5
+            await clickAction(398, 560)(chart); // still inside band 5, 5px from its right edge
+            await waitForChartStability(chart);
 
-                expect(click.mock.calls).toMatchObject([
-                    [expect.objectContaining({ value: 'Category-Name-5', index: 5 })],
-                    [expect.objectContaining({ value: 'Category-Name-5', index: 5 })],
-                ]);
-            });
+            expect(click.mock.calls).toMatchObject([
+                [expect.objectContaining({ value: 'Category-Name-5', index: 5 })],
+                [expect.objectContaining({ value: 'Category-Name-5', index: 5 })],
+            ]);
         });
     });
 });
