@@ -15,8 +15,10 @@ import {
     blockStripWidth,
     cachedTextMeasurer,
     createSvgElement,
+    forceLtrNumbers,
     imageBoxAroundBaseline,
     isArray,
+    isDirectionNeutral,
     measureTextSegments,
     resolvePadding,
     toCanvasTextBaseline,
@@ -55,6 +57,19 @@ export interface TextBoxingProperties {
         strokeWidth?: PixelSize;
         strokeOpacity?: Opacity;
     };
+}
+
+// The canvas resolves `start`/`end` against `ctx.direction`, which an individual text run may
+// override. Pinning them to a side keeps rendering in step with the scene-direction bounding box.
+function resolveTextAlign(textAlign: CanvasTextAlign, isRtl?: boolean): CanvasTextAlign {
+    switch (textAlign) {
+        case 'start':
+            return isRtl ? 'right' : 'left';
+        case 'end':
+            return isRtl ? 'left' : 'right';
+        default:
+            return textAlign;
+    }
 }
 
 export class Text<D = unknown> extends Shape<D> {
@@ -96,10 +111,12 @@ export class Text<D = unknown> extends Shape<D> {
     }
 
     private lines: string[] = [];
+    private directed?: { direction: CanvasDirection; lines: string[] };
     private onTextChange() {
         this.richText?.clear();
         this.textMap?.clear();
         this.segmentMetrics = undefined;
+        this.directed = undefined;
 
         if (isArray(this.text)) {
             this.lines = [];
@@ -305,16 +322,14 @@ export class Text<D = unknown> extends Shape<D> {
     }
 
     private static calcLeftOffset(width: number, textAlign?: CanvasTextAlign, isRtl?: boolean): number {
-        let offset = 0;
-        switch (textAlign) {
+        switch (textAlign && resolveTextAlign(textAlign, isRtl)) {
             case 'center':
-                offset = 0.5;
-                break;
+                return width * 0.5;
             case 'right':
-            case isRtl ? 'start' : 'end':
-                offset = 1;
+                return width;
+            default:
+                return 0;
         }
-        return width * offset;
     }
 
     override getBBox(): BBox {
@@ -670,6 +685,15 @@ export class Text<D = unknown> extends Shape<D> {
         return super.markDirty(property);
     }
 
+    // A number beside RTL text reorders to `5-` whatever the paragraph direction, since the sign is
+    // neutral and binds to the RTL run. `direction` is the line's own reading order, not the scene's.
+    private resolveDirected(): { direction: CanvasDirection; lines: string[] } {
+        this.directed ??= this.lines.every(isDirectionNeutral)
+            ? { direction: 'ltr', lines: this.lines }
+            : { direction: 'rtl', lines: this.lines.map(forceLtrNumbers) };
+        return this.directed;
+    }
+
     private renderText(renderCtx: RenderContext): void {
         const { fill, stroke, strokeWidth, font, textAlign } = this;
 
@@ -685,7 +709,13 @@ export class Text<D = unknown> extends Shape<D> {
             renderCtx.currentFont = font;
         }
 
-        ctx.textAlign = textAlign;
+        // Only an RTL scene can impose a paragraph direction the line did not ask for.
+        const isRtl = renderCtx.direction === 'rtl';
+        const direction = isRtl ? this.resolveDirected().direction : 'ltr';
+        if (ctx.direction !== direction) {
+            ctx.direction = direction;
+        }
+        ctx.textAlign = resolveTextAlign(textAlign, isRtl);
 
         this.renderBoxing(renderCtx);
         this.fillStroke(ctx, renderCtx.logger);
@@ -740,8 +770,11 @@ export class Text<D = unknown> extends Shape<D> {
             }
         }
 
-        for (const line of lineMetrics) {
-            renderCallback(line.text, x, y + offsetY);
+        // Metrics stay keyed on the unmodified lines; the directional marks are zero-width, so only
+        // the drawn string carries them.
+        const directedLines = this.resolveDirected().lines;
+        for (let i = 0; i < lineMetrics.length; i += 1) {
+            renderCallback(directedLines?.[i] ?? lineMetrics[i].text, x, y + offsetY);
             offsetY += lineHeight;
         }
     }
