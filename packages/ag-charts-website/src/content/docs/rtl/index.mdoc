@@ -37,6 +37,10 @@ In this example:
 - The legend layout is mirrored as is the series order in the chart.
 - The tooltip and context menu layout are mirrored.
 
+## Numbers
+
+Numbers keep their left-to-right reading order in RTL mode, so a negative value renders as `-5` rather than `5-`. This covers the sign, the decimal and group separators, and any unit attached to the value, such as `-12.5 kg`. Text surrounding a number still reads right-to-left.
+
 ## Axis Layout
 
 The axis positions and directions are not changed in RTL mode. If required, users should manually set [Axis Placement](./axes-position/) and `reverse` options explicitly.

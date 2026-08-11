@@ -8,6 +8,10 @@ export const EllipsisChar = '\u2026';
 export const LineSplitter = /\r?\n/g;
 export const TrimEdgeGuard = '\u200B'; // zero-width space, not trimmed
 export const TrimCharsRegex = /[\s.,;:-]{1,5}$/;
+// The legacy embedding pair rather than the modern isolates (U+2066/U+2069): Safari's canvas
+// ignores the isolate characters. Both are zero-width.
+export const LtrEmbedding = '\u202A'; // LRE
+export const PopDirectionalFormatting = '\u202C'; // PDF
 
 export interface FontOptions {
     fontSize: FontSize;

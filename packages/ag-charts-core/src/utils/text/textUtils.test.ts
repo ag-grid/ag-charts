@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { toFontString } from './textUtils';
+import { LtrEmbedding, PopDirectionalFormatting } from '../../types/text';
+import { forceLtrNumbers, isDirectionNeutral, toFontString } from './textUtils';
 
 describe('toFontString', () => {
     const baseFont = { fontSize: 14 };
@@ -74,5 +75,121 @@ describe('toFontString', () => {
         it('prepends fontStyle when set', () => {
             expect(toFontString({ ...baseFont, fontFamily: 'Arial', fontStyle: 'italic' })).toBe('italic 14px Arial');
         });
+    });
+});
+
+describe('isDirectionNeutral', () => {
+    it.each([['-5'], ['1,234.56'], ['-5.5%'], ['12:30'], ['$5'], ['(5)'], ['']])(
+        'reports %j as carrying no direction of its own',
+        (text) => {
+            expect(isDirectionNeutral(text)).toBe(true);
+        }
+    );
+
+    it.each([
+        ['\u05DE\u05DB\u05D9\u05E8\u05D5\u05EA'],
+        ['\u0645\u0628\u064A\u0639\u0627\u062A'],
+        ['Sales'],
+        ['5 kg'],
+        ['-5 to 10'],
+        ['\u05DE\u05DB\u05D9\u05E8\u05D5\u05EA -5'],
+    ])('reports %j as carrying its own direction', (text) => {
+        expect(isDirectionNeutral(text)).toBe(false);
+    });
+
+    it('treats Arabic-Indic digits as numbers rather than strong characters', () => {
+        expect(isDirectionNeutral('\u0660\u0661')).toBe(true);
+    });
+
+    // U+066A-U+066C sit inside the Arabic block but are number formatting, not letters.
+    it.each([['\u0661\u066c\u0662\u0663\u0664\u066b\u0665'], ['\u0665\u066a']])(
+        'treats the Arabic number separators in %j as neutral',
+        (text) => {
+            expect(isDirectionNeutral(text)).toBe(true);
+        }
+    );
+});
+
+describe('forceLtrNumbers', () => {
+    const mark = (text: string) => LtrEmbedding + text + PopDirectionalFormatting;
+
+    it.each([
+        ['-5'],
+        ['+5'],
+        ['\u22125'],
+        ['-5.5%'],
+        ['$1,234.56'],
+        ['+90Kb'],
+        ['5kg'],
+        ['5\u00B0C'],
+        ['12:30'],
+        ['2.5e-3'],
+        ['0'],
+    ])('marks %j as a single left-to-right run', (text) => {
+        expect(forceLtrNumbers(text)).toBe(mark(text));
+    });
+
+    // A unit belongs to the number only when it is attached to it. Once separated by a space it is
+    // an ordinary word and keeps the paragraph's direction.
+    it.each([
+        ['+90 Kb', `${mark('+90')} Kb`],
+        ['1,234.56 USD', `${mark('1,234.56')} USD`],
+        ['5 kg', `${mark('5')} kg`],
+    ])('detaches the spaced unit in %j', (text, expected) => {
+        expect(forceLtrNumbers(text)).toBe(expected);
+    });
+
+    it('marks the number inside RTL text, leaving the text alone', () => {
+        expect(forceLtrNumbers('\u05DE\u05DB\u05D9\u05E8\u05D5\u05EA -5kg')).toBe(
+            `\u05DE\u05DB\u05D9\u05E8\u05D5\u05EA ${mark('-5kg')}`
+        );
+        expect(forceLtrNumbers('5 \u05DE\u05DB\u05D9\u05E8\u05D5\u05EA')).toBe(
+            `${mark('5')} \u05DE\u05DB\u05D9\u05E8\u05D5\u05EA`
+        );
+    });
+
+    it.each([['5-10'], ['-5-10'], ['1,000 - 2,000'], ['5kg - 10kg'], ['5–10']])(
+        'keeps the range %j in a single run, so its halves cannot reorder against each other',
+        (text) => {
+            expect(forceLtrNumbers(text)).toBe(mark(text));
+        }
+    );
+
+    it.each([['-١٬٢٣٤٫٥'], ['٥٪'], ['١٢٫٥']])('keeps the Arabic-formatted %j in a single run', (text) => {
+        expect(forceLtrNumbers(text)).toBe(mark(text));
+    });
+
+    it('marks an Arabic-formatted number inside Arabic text as one run', () => {
+        expect(forceLtrNumbers('مبيعات -١٬٢٣٤')).toBe(`مبيعات ${mark('-١٬٢٣٤')}`);
+    });
+
+    it('marks a range inside RTL text as one run', () => {
+        expect(forceLtrNumbers('מכירות 5-10')).toBe(`מכירות ${mark('5-10')}`);
+    });
+
+    it('does not join two numbers separated by a word into a range', () => {
+        expect(forceLtrNumbers('2024 - מכירות')).toBe(`${mark('2024')} - מכירות`);
+    });
+
+    it('treats a token between two numbers as a word, not a unit', () => {
+        expect(forceLtrNumbers('-5 to 10')).toBe(`${mark('-5')} to 10`);
+    });
+
+    it.each([['Sales for 2024'], ['for -5'], ['sold 5 kg in 2024']])(
+        'leaves %j alone, since the bidi algorithm already carries it along the preceding LTR run',
+        (text) => {
+            expect(forceLtrNumbers(text)).toBe(text);
+        }
+    );
+
+    it('marks a number whose nearest preceding strong text is RTL', () => {
+        expect(forceLtrNumbers('Sales \u05DE\u05DB\u05D9\u05E8\u05D5\u05EA -5')).toBe(
+            `Sales \u05DE\u05DB\u05D9\u05E8\u05D5\u05EA ${mark('-5')}`
+        );
+    });
+
+    it('leaves text carrying no number alone', () => {
+        const text = 'Sales \u05DE\u05DB\u05D9\u05E8\u05D5\u05EA';
+        expect(forceLtrNumbers(text)).toBe(text);
     });
 });

@@ -13,6 +13,8 @@ import type {
 import type {
     AgActiveItemState,
     AgCoordinates,
+    AgNodeContextMenuActionEvent,
+    AgNodeParams,
     AgNumericValue,
     SelectionState as PublicSelectionState,
 } from 'ag-charts-types';
@@ -20,7 +22,6 @@ import type {
 import type { BBox } from '../../scene/bbox';
 import type { Group } from '../../scene/group';
 import type { Node } from '../../scene/node';
-import type { TypedEvent } from '../../util/observable';
 import type { ProcessedData } from '../data/dataModelTypes';
 import type { DataSet } from '../data/dataSet';
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
@@ -51,11 +52,7 @@ export type DatumIndex = number;
 export type ItemId = string;
 export type ItemType = 'positive' | 'negative' | 'total' | 'subtotal' | 'up' | 'down' | 'low' | 'high';
 
-export type SeriesNodeEventTypes =
-    | 'nodeContextMenuAction'
-    | 'groupingChanged'
-    | 'seriesNodeClick'
-    | 'seriesNodeDoubleClick';
+export type SeriesNodeEventTypes = 'nodeContextMenuAction' | 'seriesNodeClick' | 'seriesNodeDoubleClick';
 
 export type DatumRangeReader = (sampledDatumIndex: number) => [number, number] | undefined;
 
@@ -99,21 +96,19 @@ export interface ISeriesAriaMeta {
     readonly instructions?: string[];
 }
 
-export interface INodeEvent<TEvent extends string = SeriesNodeEventTypes> extends TypedEvent {
-    readonly type: TEvent;
-    // Note: this is typically a MouseEvent, but it can be a TouchEvent or KeyboardEvent too.
-    readonly event: Event;
-    readonly datum: unknown;
-    readonly datums?: unknown[];
-    readonly totalValue?: AgNumericValue;
-    readonly seriesId: string;
-    readonly itemId: string | number;
-    readonly dataIdKey: string | undefined;
-    readonly defaultPrevented: boolean;
-    readonly selectionState: PublicSelectionState | undefined;
-    readonly isCollapsed: boolean | undefined;
-    readonly coordinates: AgCoordinates | undefined;
-}
+export type FireNodeEventParams = {
+    event: Event;
+    /** Every node picked at this point, flat and in hit-test order; may span several series. */
+    datums: SeriesNodeDatum[];
+    /**
+     * Index into `datums` of the node whose params are flattened onto the event root. Historically, click events only
+     * ever reported 1 series-node at most. Nowadays, left/right click events report all series-nodes that overlap at
+     * this click-point (`allNodesParams` / `allShowOnParams` ). The `winner` is that series-node for backward
+     * compatibility.
+     */
+    winner: number;
+    coordinates: AgCoordinates | undefined;
+};
 
 export interface ISeriesProperties {
     cursor: string;
@@ -129,7 +124,7 @@ export interface ISeries<TDatum extends SeriesNodeDatum, TProps extends ISeriesP
     contentGroup: Group;
     properties: TProps;
     events: { emit: (type: 'data-selection-change', event: null) => void };
-    hasEventListener(type: string): boolean;
+    hasNodeClickListener(): boolean;
     /** Whether a click on `target` triggers a built-in interaction (e.g. the org-chart expander). */
     hasBuiltinListener(target: Node<unknown> | undefined): boolean;
     /**
@@ -141,13 +136,10 @@ export interface ISeries<TDatum extends SeriesNodeDatum, TProps extends ISeriesP
     hasData: boolean;
     update(opts: { seriesRect?: BBox }): Promise<void> | void;
     updatePlacedLabelData?(labels: PlacedLabel<TLabel>[]): void;
-    fireNodeClickEvent(event: Event, datum: SeriesNodeDatum, coordinates: AgCoordinates | undefined): boolean;
-    fireNodeDoubleClickEvent(event: Event, datum: SeriesNodeDatum, coordinates: AgCoordinates | undefined): void;
-    createNodeContextMenuActionEvent(
-        event: Event,
-        datum: TDatum,
-        coordinates: AgCoordinates | undefined
-    ): INodeEvent<'nodeContextMenuAction'>;
+    fireNodeClickEvent(opts: FireNodeEventParams): boolean;
+    fireNodeDoubleClickEvent(opts: FireNodeEventParams): void;
+    createNodeContextMenuActionEvent(opts: FireNodeEventParams): AgNodeContextMenuActionEvent;
+    createNodeParams(datum: TDatum): AgNodeParams<unknown>;
     getLegendData<T extends ChartLegendType>(legendType: T): ChartLegendDatum<T>[];
     getLegendData(legendType: ChartLegendType): ChartLegendDatum<ChartLegendType>[];
     getLabelData(): PointLabelDatum[];

@@ -1,7 +1,7 @@
 import { type Image, loadImage } from 'skia-canvas';
-import { beforeAll, describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it, vi } from 'vitest';
 
-import { cachedTextMeasurer, wrapText } from 'ag-charts-core';
+import { LtrEmbedding, PopDirectionalFormatting, cachedTextMeasurer, wrapText } from 'ag-charts-core';
 import { testLogger } from 'ag-charts-test';
 import type { TextWrap } from 'ag-charts-types';
 
@@ -891,6 +891,79 @@ describe('Text', () => {
             const textMeasurerB = cachedTextMeasurer({ fontSize: 48, fontFamily: 'Verdana', fontWeight: 'bold' });
             expect(textMeasurerA.measureText('Hello world!')).toMatchSnapshot();
             expect(textMeasurerB.measureText('Hello world!')).toMatchSnapshot();
+        });
+    });
+
+    // A number beside RTL text reorders to `5-` in either paragraph direction, so the marks are
+    // driven by the text itself; only the paragraph direction is driven by the scene.
+    describe('directional text runs', () => {
+        const HEBREW = '\u05DE\u05DB\u05D9\u05E8\u05D5\u05EA';
+        const marked = (text: string) => `${LtrEmbedding}${text}${PopDirectionalFormatting}`;
+
+        const render = (text: string, sceneDirection: CanvasDirection, textAlign: CanvasTextAlign = 'start') => {
+            const scene = { ...setUpMockScene(canvasCtx), isRtl: sceneDirection === 'rtl' };
+            const node = Object.assign(new Text(), { ...BASE_OPTIONS, textAlign, text, x: 50, y: 50, fill: 'black' });
+            node.setScene(scene);
+
+            const ctx = canvasCtx.getRenderContext2D();
+            // What HdpiCanvas.setDirection does for the chart - each text run opts out for itself.
+            ctx.direction = sceneDirection;
+            const drawn: string[] = [];
+            const fillText = vi.spyOn(ctx, 'fillText').mockImplementation((line) => {
+                drawn.push(line);
+            });
+            try {
+                node.render({
+                    ctx,
+                    direction: sceneDirection,
+                    width: canvasCtx.nodeCanvas.width,
+                    height: canvasCtx.nodeCanvas.height,
+                    devicePixelRatio: 1,
+                    logger: testLogger,
+                    debugNodes: {},
+                });
+            } finally {
+                fillText.mockRestore();
+            }
+            return { drawn, direction: ctx.direction, textAlign: ctx.textAlign };
+        };
+
+        describe.each(['ltr', 'rtl'] as const)('in a %s scene', (sceneDirection) => {
+            it('marks the numbers of a label carrying RTL text', () => {
+                expect(render(`${HEBREW} -5`, sceneDirection).drawn).toEqual([`${HEBREW} ${marked('-5')}`]);
+            });
+
+            it('leaves a label carrying no RTL text unmarked', () => {
+                expect(render('Sales -5', sceneDirection).drawn).toEqual(['Sales -5']);
+            });
+        });
+
+        it('draws a label carrying no direction of its own left-to-right and unmodified', () => {
+            const { drawn, direction } = render('-5', 'rtl');
+
+            expect(direction).toBe('ltr');
+            expect(drawn).toEqual(['-5']);
+        });
+
+        // An LTR scene never imposes a direction the line did not ask for, so the paragraph stays
+        // left-to-right even where the line's own reading order is right-to-left.
+        it('keeps an LTR scene left-to-right regardless of the label', () => {
+            expect(render(`${HEBREW} -5`, 'ltr').direction).toBe('ltr');
+            expect(render('-5', 'ltr').direction).toBe('ltr');
+        });
+
+        it('keeps RTL text right-to-left in an RTL scene', () => {
+            expect(render(`${HEBREW} -5`, 'rtl').direction).toBe('rtl');
+        });
+
+        // The bounding box resolves start/end from the scene direction alone, so the context needs a
+        // concrete side rather than one the overridden direction would reinterpret.
+        it.each([
+            ['start', 'right'],
+            ['end', 'left'],
+            ['center', 'center'],
+        ] as const)('resolves textAlign %s to %s in an RTL scene', (textAlign, expected) => {
+            expect(render('-5', 'rtl', textAlign).textAlign).toBe(expected);
         });
     });
 

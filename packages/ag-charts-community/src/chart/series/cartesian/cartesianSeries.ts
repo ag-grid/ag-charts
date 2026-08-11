@@ -22,7 +22,7 @@ import {
     maxValue,
     minValue,
 } from 'ag-charts-core';
-import type { AgCoordinates, AgDrawingMode, AgNumericValue, SelectionState } from 'ag-charts-types';
+import type { AgDrawingMode, AgNumericValue } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../../../core/eventsHub';
 import type { AnimationValue } from '../../../motion/animation';
@@ -52,9 +52,8 @@ import type {
     SeriesDirectionKeysMapping,
     SeriesNodePickMatch,
 } from '../series';
-import { SeriesNodeEvent } from '../series';
 import { Segmentation, SeriesProperties } from '../seriesProperties';
-import type { ISeries, ISeriesProperties, SeriesNodeDatum, SeriesNodeEventTypes } from '../seriesTypes';
+import type { SeriesNodeDatum } from '../seriesTypes';
 import { type ShapeFillBBox } from '../shapeUtil';
 import { countExpandingSearch, visibleRangeIndices } from '../util';
 import type {
@@ -100,27 +99,6 @@ export const DEFAULT_CARTESIAN_DIRECTION_NAMES = {
     [ChartAxisDirection.X]: ['xName' as const],
     [ChartAxisDirection.Y]: ['yName' as const],
 };
-
-export class CartesianSeriesNodeEvent<TEvent extends string = SeriesNodeEventTypes> extends SeriesNodeEvent<
-    SeriesNodeDatum,
-    TEvent
-> {
-    readonly xKey?: string;
-    readonly yKey?: string;
-    constructor(
-        type: TEvent,
-        nativeEvent: Event,
-        datum: SeriesNodeDatum,
-        series: ISeries<SeriesNodeDatum, ISeriesProperties & { xKey?: string; yKey?: string }>,
-        selectionState: SelectionState | undefined,
-        isCollapsed: boolean | undefined,
-        coordinates: AgCoordinates | undefined
-    ) {
-        super(type, nativeEvent, datum, series, selectionState, isCollapsed, coordinates);
-        this.xKey = series.properties.xKey;
-        this.yKey = series.properties.yKey;
-    }
-}
 
 type CartesianAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing' | 'disabled';
 type CartesianAnimationEvent<TTypes extends CartesianSeriesTypes> = {
@@ -187,8 +165,6 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
     public override getNodeData(): DatumOf<TTypes>[] | undefined {
         return this.contextNodeData?.nodeData;
     }
-
-    protected override readonly NodeEvent = CartesianSeriesNodeEvent;
 
     private readonly paths: SegmentedPath[];
     protected readonly dataNodeGroup = this.contentGroup.appendChild(

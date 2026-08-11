@@ -44,14 +44,12 @@ import {
     toNumber,
 } from 'ag-charts-core';
 import type {
-    AgCoordinates,
     AgHistogramSeriesBinParams,
     AgHistogramSeriesItemStylerParams,
     AgHistogramSeriesLabelFormatterParams,
     AgHistogramSeriesOptions,
     AgHistogramSeriesStylerParams,
     AgNumericValue,
-    SelectionState as PublicSelectionState,
 } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../../module/moduleContext';
@@ -106,7 +104,7 @@ import {
 } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { toHighlightString } from '../seriesProperties';
-import { HighlightState, type SeriesNodeEventTypes } from '../seriesTypes';
+import { HighlightState } from '../seriesTypes';
 import { getItemStyles } from '../util';
 import {
     collapsedStartingBarPosition,
@@ -117,7 +115,6 @@ import {
 } from './barUtil';
 import {
     CartesianSeries,
-    CartesianSeriesNodeEvent,
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
@@ -184,36 +181,23 @@ interface HistogramSeriesNodeDatumContext extends CartesianCreateNodeDataContext
     readonly labelFit: LabelFit | undefined;
 }
 
-class HistogramSeriesNodeEvent<TEvent extends string = SeriesNodeEventTypes> extends CartesianSeriesNodeEvent<TEvent> {
-    readonly binIndex: number;
-    readonly binRange: [AgNumericValue, AgNumericValue];
-    readonly aggregatedValue: AgNumericValue;
-    readonly frequency: number;
-
-    constructor(
-        type: TEvent,
-        nativeEvent: Event,
-        datum: HistogramNodeDatum,
-        series: HistogramSeries,
-        selectionState: PublicSelectionState | undefined,
-        isCollapsed: boolean | undefined,
-        coordinates: AgCoordinates | undefined
-    ) {
-        super(type, nativeEvent, datum, series, selectionState, isCollapsed, coordinates);
-        this.binIndex = datum.binIndex;
-        this.binRange = datum.binRange;
-        this.aggregatedValue = datum.aggregatedValue;
-        this.frequency = datum.frequency;
-    }
-}
-
 export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
     static override readonly className = 'HistogramSeries';
     static readonly type = 'histogram' as const;
 
     override properties = new HistogramSeriesProperties();
 
-    protected override readonly NodeEvent = HistogramSeriesNodeEvent;
+    override createNodeParams(datum: HistogramNodeDatum) {
+        return {
+            ...super.createNodeParams(datum),
+            xKey: this.properties.xKey,
+            yKey: this.properties.yKey,
+            binIndex: datum.binIndex,
+            binRange: datum.binRange,
+            aggregatedValue: datum.aggregatedValue,
+            frequency: datum.frequency,
+        };
+    }
 
     constructor(moduleCtx: DynamicContext<ChartRegistry>) {
         super({

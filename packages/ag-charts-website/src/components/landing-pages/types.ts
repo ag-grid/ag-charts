@@ -1,3 +1,5 @@
+import type { LandingPageSectionType } from '@ag-website-shared/components/landing-pages/types';
+
 // ============================================================================
 // AG Charts Specific Section Types
 // ============================================================================
@@ -179,6 +181,8 @@ export interface ChartTypesShowcaseItem {
     title: string;
     /** Short description */
     description: string;
+    /** Link the whole card points at */
+    link?: string;
     /** Example name to embed (optional if using icon) */
     exampleName?: string;
     /** Optional: docs page name if this is a docs example (not gallery) */
@@ -205,3 +209,27 @@ export interface ChartTypesShowcaseSection {
         url: string;
     };
 }
+
+// ============================================================================
+// Landing Page Content
+// ============================================================================
+
+/**
+ * Every section an AG Charts landing page can hold: the charts-specific ones above plus the
+ * sections shared with the other products. The `landingPages` collection schema types `sections`
+ * as `any[]` (it has to cover all three products), so this union is what narrows it — both
+ * `LandingPage.astro` and the `.md` twins walk it.
+ */
+export type ChartsLandingPageSection =
+    | GalleryShowcaseSection
+    | ChartTypesGridSection
+    | InteractiveDemoSection
+    | ChartExplorerSection
+    | FinancialChartsSection
+    | MapChartsSection
+    | WhatsNewSection
+    | PerformanceDemoSection
+    | CodeExampleSection
+    | FeatureGridSection
+    | ChartTypesShowcaseSection
+    | LandingPageSectionType;

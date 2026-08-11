@@ -1980,13 +1980,15 @@ jobs:
             # comment never carries a link that 404s while the deploy propagates. Gate on the deploy
             # marker (not status alone): a deterministic URL can answer 200 from a previous run's
             # deploy while this run's is still propagating. Best-effort — if the current deploy is
-            # still not served after the budget, the failure path below falls back to artifacts.
+            # still not served after the budget, the pending check below decides between an
+            # optimistic link and the artifact fallback.
             - name: Wait for published reports
               id: wait
               if: steps.review.outputs.produced == 'true'
               shell: bash
               run: |
                   set -uo pipefail
+                  echo "started=$(date -u +%s)" >> "$GITHUB_OUTPUT"
                   base="https://ag-grid.github.io/ag-charts/pr-${{ github.event.pull_request.number }}"
                   reachable=true
                   for f in "${{ steps.review.outputs.html_dir }}"/*.html; do
@@ -2005,10 +2007,47 @@ jobs:
                   done
                   echo "reachable=${reachable}" >> "$GITHUB_OUTPUT"
 
+            # The wait budget is routinely shorter than Pages' propagation tail: `pages-build-deployment`
+            # is single-flight, so every push to gh-pages cancels the in-flight build, and on a busy day
+            # a report can take 10+ minutes to be served. Timing out therefore does NOT mean the publish
+            # failed — the commit is already on gh-pages, and whichever build is still in flight (or its
+            # successor) will serve it. Distinguish the two cases: a Pages build queued/running since our
+            # push means "still propagating" (link optimistically, with a caveat); nothing in flight means
+            # the deploy really is not coming (artifact fallback). Errs toward the fallback if the API
+            # cannot be queried.
+            - name: Check for in-flight Pages deploys
+              id: pages
+              if: always() && steps.review.outputs.produced == 'true' && steps.wait.outputs.reachable != 'true'
+              shell: bash
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  # Grace window: the Pages build for our push is created a second or two after it, but
+                  # allow for clock skew between the runner and the API timestamps.
+                  WAIT_STARTED: ${{ steps.wait.outputs.started }}
+              run: |
+                  set -uo pipefail
+                  pending=false
+                  cutoff=$(( ${WAIT_STARTED:-0} - 60 ))
+                  for status in queued in_progress; do
+                      while IFS= read -r created; do
+                          [[ -n "$created" ]] || continue
+                          epoch=$(date -u -d "$created" +%s 2>/dev/null) || continue
+                          if (( epoch >= cutoff )); then
+                              echo "Pages build ${status} since ${created} — deploy still propagating."
+                              pending=true
+                          fi
+                      done < <(gh run list --workflow=pages-build-deployment --status "$status" \
+                                   --limit 20 --json createdAt --jq '.[].createdAt' 2>/dev/null)
+                  done
+                  if [[ "$pending" != "true" ]]; then
+                      echo "No Pages build in flight since our push; treating the deploy as failed."
+                  fi
+                  echo "pending=${pending}" >> "$GITHUB_OUTPUT"
+
             # Replace the deferred-link sentinel. always(): even if upload/stage/publish/wait failed,
             # the sentinel MUST be resolved so the comment never sticks on "Publishing…". Link the live
-            # report only when it published AND is serving this run's deploy; otherwise fall back to the
-            # run artifacts (never a link that 404s or serves a stale comparison).
+            # report when it published AND is serving this run's deploy; link it with a propagation
+            # caveat when Pages is still deploying; otherwise fall back to the run artifacts.
             - name: Finalize snapshot-review links
               if: always() && steps.review.outputs.produced == 'true'
               shell: bash
@@ -2018,11 +2057,51 @@ jobs:
                   set -euo pipefail
                   frag="${RUNNER_TEMP}/pr-sections/25-snapshot-review.md"
                   [[ -f "$frag" ]] || exit 0
-                  if [[ "${{ steps.publish.outcome }}" == "success" && "${{ steps.wait.outputs.reachable }}" == "true" ]]; then
-                      sed -E -i 's#<!-- report-link href="([^"]+)" -->.*#[Open the full interactive report](\1)#' "$frag"
+                  if [[ "${{ steps.publish.outcome }}" != "success" ]]; then
+                      state=failed
+                  elif [[ "${{ steps.wait.outputs.reachable }}" == "true" ]]; then
+                      state=live
+                  elif [[ "${{ steps.pages.outputs.pending }}" == "true" ]]; then
+                      state=pending
                   else
-                      sed -E -i "s|<!-- report-link href=\"[^\"]+\" -->.*|:warning: Report publish failed — download the \`snapshot-review-html\` artifact from the [workflow run](${RUN_URL}#artifacts).|" "$frag"
+                      state=failed
                   fi
+                  # `|` delimiter throughout: RUN_URL carries a `#artifacts` fragment, which would
+                  # terminate the s command early under a `#` delimiter.
+                  case "$state" in
+                      live)
+                          sed -E -i 's|<!-- report-link href="([^"]+)" -->.*|[Open the full interactive report](\1)|' "$frag"
+                          ;;
+                      pending)
+                          sed -E -i "s|<!-- report-link href=\"([^\"]+)\" -->.*|[Open the full interactive report](\1) — :hourglass_flowing_sand: _GitHub Pages was still deploying when CI finished. If the link 404s or shows an older comparison, retry in a few minutes; this run's copy is also in the \`snapshot-review-html\` artifact on the [workflow run](${RUN_URL}#artifacts)._|" "$frag"
+                          ;;
+                      failed)
+                          sed -E -i "s|<!-- report-link href=\"[^\"]+\" -->.*|:warning: Report publish failed — download the \`snapshot-review-html\` artifact from the [workflow run](${RUN_URL}#artifacts).|" "$frag"
+                          ;;
+                  esac
+
+            # Mirror the resolved section into the run's job summary. Same content as the PR comment,
+            # but rendered inline on the run page and reachable with no Pages deploy at all — so the
+            # ranked table is readable the moment the job ends even while the interactive report is
+            # still propagating (or if it never publishes). Job summaries are sanitized GFM: script,
+            # style and event handlers are stripped, so only the tables and links travel here. The
+            # interactive report (embedded images, onion-skin/swipe/compare) stays on Pages.
+            # Runs after Finalize so the link it carries is the resolved one, not the sentinel.
+            - name: Write snapshot-review job summary
+              if: always() && steps.review.outputs.produced == 'true'
+              shell: bash
+              run: |
+                  set -euo pipefail
+                  frag="${RUNNER_TEMP}/pr-sections/25-snapshot-review.md"
+                  [[ -f "$frag" ]] || exit 0
+                  # `## [warn] <title>` is the section-status convention pr-report-comment parses out
+                  # into a <summary> icon. There is no such wrapper here, so render the icon inline
+                  # rather than leaking the raw marker into the summary.
+                  sed -E \
+                      -e 's|^## \[ok\] |## :white_check_mark: |' \
+                      -e 's|^## \[warn\] |## :warning: |' \
+                      -e 's|^## \[error\] |## :x: |' \
+                      "$frag" >> "$GITHUB_STEP_SUMMARY"
 
             # Re-upsert with the resolved report link (live or fallback) in place.
             - name: Upsert snapshot-review section (with report link)

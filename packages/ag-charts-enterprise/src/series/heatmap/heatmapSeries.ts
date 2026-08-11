@@ -1,12 +1,10 @@
 import type {
-    AgCoordinates,
     AgHeatmapSeriesItemStylerParams,
     AgHeatmapSeriesLabelFormatterParams,
     AgHeatmapSeriesOptions,
     AgHeatmapSeriesStyle,
     FontStyle,
     FontWeight,
-    SelectionState,
     TextAlign,
     VerticalAlign,
 } from 'ag-charts-community';
@@ -120,25 +118,6 @@ interface HeatmapSeriesNodeDatumContext extends _ModuleSupport.CartesianCreateNo
     readonly itemStyleContext: HeatmapItemStyleContext;
 }
 
-class HeatmapSeriesNodeEvent<
-    TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
-> extends _ModuleSupport.CartesianSeriesNodeEvent<TEvent> {
-    readonly colorKey?: string;
-
-    constructor(
-        type: TEvent,
-        nativeEvent: Event,
-        datum: HeatmapNodeDatum,
-        series: HeatmapSeries,
-        selectionState: SelectionState | undefined,
-        isCollapsed: boolean | undefined,
-        coordinates: AgCoordinates | undefined
-    ) {
-        super(type, nativeEvent, datum, series, selectionState, isCollapsed, coordinates);
-        this.colorKey = series.properties.colorKey;
-    }
-}
-
 const textAlignFactors: Record<TextAlign, number> = {
     left: -0.5,
     center: 0,
@@ -172,7 +151,14 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
 
     override properties = new HeatmapSeriesProperties();
 
-    protected override readonly NodeEvent = HeatmapSeriesNodeEvent;
+    override createNodeParams(datum: HeatmapNodeDatum) {
+        return {
+            ...super.createNodeParams(datum),
+            xKey: this.properties.xKey,
+            yKey: this.properties.yKey,
+            colorKey: this.properties.colorKey,
+        };
+    }
 
     readonly colorScale = new ColorScale();
 
@@ -596,8 +582,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             undefined,
             this.properties.label,
             { padding: itemPadding },
-            sizeFittingHeight,
-            this.ctx.logger
+            sizeFittingHeight
         );
 
         if (labels?.label == null) {
