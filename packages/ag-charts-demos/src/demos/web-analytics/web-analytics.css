@@ -84,6 +84,51 @@
     flex-wrap: wrap;
 }
 
+/* ---- demo notice banner ---- */
+.wa-banner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 24px;
+    background: var(--wa-accent-soft);
+    border: 1px solid var(--wa-accent);
+    /* border-top: 1px solid var(--wa-accent); */
+    color: var(--wa-accent-strong);
+    font-size: 14px;
+    font-weight: 600;
+    flex: 0 0 auto;
+}
+.wa-banner-icon {
+    flex: none;
+    color: var(--wa-accent);
+}
+.wa-banner-text {
+    flex: 1 1 auto;
+}
+.wa-banner-dismiss {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    border-radius: var(--wa-radius-sm);
+    border: none;
+    background: transparent;
+    color: var(--wa-accent-strong);
+    font: inherit;
+    line-height: 1;
+    cursor: pointer;
+}
+.wa-banner-dismiss:hover {
+    background: color-mix(in srgb, var(--wa-accent) 18%, transparent);
+}
+.wa-banner-dismiss:focus-visible {
+    outline: 2px solid var(--wa-accent);
+    outline-offset: 1px;
+}
+
 /* ---- body / scroll region ---- */
 .wa-body {
     flex: 1 1 auto;

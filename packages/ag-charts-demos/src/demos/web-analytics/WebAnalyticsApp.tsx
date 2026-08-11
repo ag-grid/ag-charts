@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react';
 
 import { AudienceView } from './components/AudienceView';
 import { BehaviorView } from './components/BehaviorView';
+import { DemoBanner } from './components/DemoBanner';
 import { buildKpis } from './components/KpiTiles';
 import { OverviewView } from './components/OverviewView';
 import { startOfDay } from './components/dateFilter';
@@ -119,6 +120,7 @@ export function WebAnalyticsApp() {
                     />
                 </div>
             </header>
+            <DemoBanner />
 
             <div className="wa-body">
                 <RTabs.Content className="wa-tab-content" value="overview">
