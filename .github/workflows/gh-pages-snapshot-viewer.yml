@@ -1,0 +1,73 @@
+name: gh-pages snapshot viewer
+
+# Publishes the two-file snapshot-report viewer to gh-pages under snapshot-viewer/.
+#
+# Prototype support, deliberately manual: nothing in CI links to the viewer yet, so there is no
+# reason to pay a Pages rebuild on every push. Run it by hand after changing either file.
+#
+# See external/ag-shared/github/actions/pr-preview-lib/VIEWER-PROTOTYPE.md for what the viewer is
+# for and what is still unanswered about it.
+
+on:
+    workflow_dispatch:
+
+permissions:
+    contents: read
+
+concurrency:
+    # Shares the publish branch with the per-PR publishers and the janitor. Conflicts between them
+    # are resolved by the push-retry loop in gh-pages-commit.sh, not by a lock, so this only
+    # serialises viewer publishes against each other.
+    group: gh-pages-snapshot-viewer
+    cancel-in-progress: false
+
+jobs:
+    publish:
+        runs-on: ubuntu-24.04
+        name: Publish snapshot viewer
+        permissions:
+            contents: write
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 1
+
+            - name: Stage viewer files
+              shell: bash
+              env:
+                  LIB: external/ag-shared/github/actions/pr-preview-lib
+              run: |
+                  set -euo pipefail
+                  # Staged into a directory of their own because gh-pages-commit.sh copies the whole
+                  # of SOURCE_DIR, and the lib directory also holds the commit script and the
+                  # prototype write-up, which have no business on a public site.
+                  mkdir -p "${RUNNER_TEMP}/viewer"
+                  cp "${LIB}/viewer.html" "${LIB}/report-frame.html" "${RUNNER_TEMP}/viewer/"
+                  ls -l "${RUNNER_TEMP}/viewer"
+
+            - name: Publish to gh-pages
+              shell: bash
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  MODE: sync
+                  TARGET_PREFIX: snapshot-viewer
+                  COMMIT_MESSAGE: 'pr-preview: publish snapshot report viewer'
+                  PUBLISH_BRANCH: gh-pages
+              run: |
+                  set -euo pipefail
+                  export SOURCE_DIR="${RUNNER_TEMP}/viewer"
+                  bash external/ag-shared/github/actions/pr-preview-lib/gh-pages-commit.sh
+
+            - name: Summary
+              if: always()
+              shell: bash
+              run: |
+                  set -euo pipefail
+                  {
+                      echo "### Snapshot viewer"
+                      echo
+                      echo "<https://ag-grid.github.io/ag-charts/snapshot-viewer/viewer.html>"
+                      echo
+                      echo 'Needs `?repo=owner/name&sha=<40-hex>&path=<file>` to load a report.'
+                  } >> "$GITHUB_STEP_SUMMARY"
