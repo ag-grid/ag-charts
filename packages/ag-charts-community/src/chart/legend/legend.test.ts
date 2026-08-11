@@ -575,6 +575,7 @@ describe('Legend', () => {
                 "seriesId": "LineSeries-1",
                 "text": "y",
                 "type": "click",
+                "visible": true,
               }
             `);
         });
@@ -606,6 +607,7 @@ describe('Legend', () => {
                 "seriesId": "LineSeries-1",
                 "text": "y",
                 "type": "dblclick",
+                "visible": false,
               }
             `);
         });

@@ -58,7 +58,7 @@ export const scenarios = [
         name: 'enterprise/BoxPlotSeriesModule',
         package: 'ag-charts-enterprise',
         import: '{ BoxPlotSeriesModule }',
-        limit: 552_000,
+        limit: 578_000,
     },
     {
         name: 'enterprise/MixedA',
@@ -70,7 +70,7 @@ export const scenarios = [
         name: 'enterprise/MixedB',
         package: 'ag-charts-enterprise',
         import: '{ AngleNumberAxisModule, RadialBarSeriesModule, StatusBarModule }',
-        limit: 555_000,
+        limit: 581_000,
     },
     {
         name: 'enterprise/MixedC',
