@@ -21,7 +21,11 @@ export const partial = !getHmrEnabled();
 
 const { internalFramework, pageName, exampleName } = Astro.params;
 
-const ignoreSystemJs = isReactInternalFramework(internalFramework);
+// React examples run on a CodeSandbox template with a real toolchain, which compiles the
+// sources itself. Every other framework runs on the `static` template, which has no build
+// step, so those transpile in the page -- as Plunker does -- rather than being shipped
+// compiled, so that what a user opens is the TypeScript they were reading.
+const ignoreModuleLoader = isReactInternalFramework(internalFramework);
 ---
 
 <DocsFrameworkTemplate
@@ -29,6 +33,7 @@ const ignoreSystemJs = isReactInternalFramework(internalFramework);
     pageName={pageName!}
     exampleName={exampleName!}
     relativePath={true}
-    ignoreSystemJs={ignoreSystemJs}
+    ignoreModuleLoader={ignoreModuleLoader}
+    transpileInBrowser={!ignoreModuleLoader}
     addExternalExampleStyles={true}
 />

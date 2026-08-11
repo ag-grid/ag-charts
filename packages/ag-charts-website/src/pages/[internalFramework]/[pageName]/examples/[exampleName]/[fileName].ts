@@ -1,6 +1,7 @@
 import type { InternalFramework } from '@ag-grid-types';
 import { getDocExampleFiles } from '@components/docs/utils/pageData';
 import { getIsDev } from '@utils/env';
+import { getModuleSourceFileName, transformExampleModule } from '@utils/exampleModules/transformExampleModule';
 import { fileNameToMimeType } from '@utils/mimeType';
 import { getContentRootFileUrl } from '@utils/pages';
 import { getCollection } from 'astro:content';
@@ -47,6 +48,22 @@ export async function GET({ params }: { params: Params }) {
             pageName,
             exampleName,
         })) ?? {};
+    // Examples are authored in TypeScript but loaded natively by the browser, so a request
+    // for `main.js` is served by transpiling `main.ts`
+    const moduleSourceFileName = getModuleSourceFileName(fileName, Object.keys(files));
+    if (moduleSourceFileName) {
+        const code = transformExampleModule({
+            fileName: moduleSourceFileName,
+            source: files[moduleSourceFileName],
+        });
+
+        return new Response(code, {
+            headers: {
+                'Content-Type': 'text/javascript',
+            },
+        });
+    }
+
     const file = files ? files[fileName] : undefined;
     const body = file ?? createErrorBody({ availableFiles: files });
 

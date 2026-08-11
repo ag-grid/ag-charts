@@ -58,10 +58,11 @@ const UNSAFE_INLINE = "'unsafe-inline'";
 // (see CodeShiki.tsx). Browsers that predate this token fall back to requiring
 // 'unsafe-eval' for WASM.
 const WASM_UNSAFE_EVAL = "'wasm-unsafe-eval'";
-// Allowed only in the 'examples' scope: the example-runner documents load modules
-// with legacy SystemJS (fetches source over XHR and evals it) and the Angular
-// examples compile templates in the browser (JIT). The chart library itself does
-// not need it (see AG-11258), so ordinary pages no longer carry it.
+// Allowed only in the 'examples' scope: the Angular examples compile templates in
+// the browser (JIT), and Plunker examples transpile their TypeScript in the page.
+// Archived doc versions additionally load modules with legacy SystemJS, which evals
+// fetched source. The chart library itself does not need it (see AG-11258), so
+// ordinary pages no longer carry it.
 const UNSAFE_EVAL = "'unsafe-eval'";
 
 // SHA-256 hashes authorising the main-page inline <script>s in the 'site' scope
@@ -163,6 +164,10 @@ const SITE_SCRIPT_HASHES = [
 // third throws uncaught. We are not granting 'unsafe-eval' site-wide for a consent
 // banner, so keep the Enzuzo console configuration free of template placeholders and
 // string-bodied event handlers. See ag-grid#14772.
+// React and React DOM have no ES module build on npm, so the example runner's import map
+// resolves them through esm.sh. Everything else it loads comes from jsdelivr or our own origin.
+const ESM_SH_HOST = 'https://esm.sh';
+
 const ENZUZO_APP_HOST = 'https://app.enzuzo.com';
 const ENZUZO_GVL_HOST = 'https://gvl.enzuzo.com';
 
@@ -222,6 +227,7 @@ export function getCspDirectives(options: CspOptions): CspDirectives {
             'https://www.googletagmanager.com',
             'https://www.google-analytics.com', // Universal Analytics analytics.js (GTM-injected after cookie consent)
             'https://cdn.jsdelivr.net',
+            ESM_SH_HOST, // example-runner: React's ES module build (npm ships CJS only)
             'https://js.zi-scripts.com', // ZoomInfo tag (injected via GTM)
             'https://*.zoominfo.com', // ZoomInfo FormComplete (trial form)
             'https://www.google.com', // reCAPTCHA (license-pricing trial form)
@@ -270,7 +276,8 @@ export function getCspDirectives(options: CspOptions): CspDirectives {
             'https://analytics.google.com', // GA4 apex collect endpoint (not matched by the *. wildcard)
             'https://stats.g.doubleclick.net',
             'https://www.googletagmanager.com',
-            'https://cdn.jsdelivr.net', // example-runner SystemJS fetches modules as text (XHR)
+            'https://cdn.jsdelivr.net', // example-runner: framework and library ES modules
+            ESM_SH_HOST, // example-runner: React's ES module build
             'https://js.zi-scripts.com', // ZoomInfo
             'https://*.zoominfo.com', // ZoomInfo
             'https://www.google.com', // reCAPTCHA (api2/clr XHR)
@@ -382,7 +389,8 @@ export function getScopedCspHtaccessBlock(options: Omit<CspOptions, 'scope'>, mo
         getCspHtaccessBlock({ ...options, scope: 'site' }, mode),
         '',
         "# Example-runner documents and archived doc versions additionally need 'unsafe-eval'",
-        '# (SystemJS eval-loads modules; the Angular JIT compiler also compiles in the browser).',
+        '# (the Angular JIT compiler and the Plunker transpiler compile in the browser;',
+        '# archived versions additionally eval-load modules with SystemJS).',
         '# <If> sections merge after all other configuration, so this unset+set replaces the',
         '# header set above for matching requests.',
         `<If "${EXAMPLES_PATH_CONDITION}">`,

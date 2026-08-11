@@ -1,8 +1,7 @@
 ---
 import { MetaData } from './lib/MetaData';
 import Styles from './lib/Styles.astro';
-import { SystemJs } from './lib/SystemJs';
-import { pathJoin } from '@utils/pathJoin';
+import { ExampleModules } from './lib/ExampleModules';
 import { getCacheBustingUrl } from '@utils/chartLibraryPaths';
 
 interface Props {
@@ -15,7 +14,10 @@ interface Props {
     styleFiles?: string[];
     indexFragment: string;
     appLocation: string;
-    boilerplatePath: string;
+    /**
+     * Whether to transpile the example's sources in the page instead of serving them transpiled
+     */
+    transpileInBrowser?: boolean;
     children?: any;
     headFragment?: string;
 }
@@ -28,11 +30,9 @@ const {
     entryFileName,
     styleFiles = [],
     indexFragment,
-    boilerplatePath,
     headFragment,
+    transpileInBrowser,
 } = Astro.props as Props;
-
-const startFile = pathJoin(appLocation, entryFileName);
 ---
 
 <html lang="en">
@@ -48,12 +48,11 @@ const startFile = pathJoin(appLocation, entryFileName);
 
     <body id="root">
         <Fragment set:html={indexFragment} />
-        <SystemJs
-            isDev={isDev}
-            boilerplatePath={boilerplatePath}
+        <ExampleModules
             appLocation={appLocation}
-            startFile={startFile}
-            internalFramework={'typescript'}
+            entryFileName={entryFileName}
+            framework={'typescript'}
+            transpileInBrowser={transpileInBrowser}
         />
         <slot />
     </body>

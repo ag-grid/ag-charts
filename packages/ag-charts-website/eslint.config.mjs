@@ -55,19 +55,6 @@ export default [
             },
         },
     },
-    // Example runner boilerplate files
-    {
-        files: ['public/example-runner/**/*[.js|.ts]'],
-        languageOptions: {
-            globals: {
-                System: 'readonly',
-                systemJsPaths: 'readonly',
-                boilerplatePath: 'readonly',
-                appLocation: 'readonly',
-                systemJsMap: 'readonly',
-            },
-        },
-    },
     // Public files
     {
         files: ['public/**/*[.js|.ts]'],

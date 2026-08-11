@@ -1,10 +1,9 @@
 ---
 import { MetaData } from './lib/MetaData';
 import Styles from './lib/Styles.astro';
-import { SystemJs } from './lib/SystemJs';
+import { ExampleModules } from './lib/ExampleModules';
 import { Scripts } from './lib/Scripts';
 import { getCacheBustingUrl } from '@utils/chartLibraryPaths';
-import { pathJoin } from '@utils/pathJoin';
 
 interface Props {
     isDev: boolean;
@@ -19,8 +18,11 @@ interface Props {
     scriptFiles?: string[];
     styleFiles?: string[];
     appLocation: string;
-    boilerplatePath: string;
-    ignoreSystemJs?: boolean;
+    ignoreModuleLoader?: boolean;
+    /**
+     * Whether to transpile the example's sources in the page instead of serving them transpiled
+     */
+    transpileInBrowser?: boolean;
     children?: any;
     headFragment?: string;
 }
@@ -33,12 +35,10 @@ const {
     entryFileName,
     scriptFiles = [],
     styleFiles = [],
-    boilerplatePath,
-    ignoreSystemJs,
+    ignoreModuleLoader,
     headFragment,
+    transpileInBrowser,
 } = Astro.props as Props;
-
-const startFile = pathJoin(appLocation, entryFileName);
 ---
 
 <html lang="en">
@@ -55,13 +55,12 @@ const startFile = pathJoin(appLocation, entryFileName);
         <div id="root"></div>
         {scriptFiles && <Scripts baseUrl={appLocation} files={scriptFiles} />}
         {
-            !ignoreSystemJs && (
-                <SystemJs
-                    isDev={isDev}
-                    boilerplatePath={boilerplatePath}
+            !ignoreModuleLoader && (
+                <ExampleModules
                     appLocation={appLocation}
-                    startFile={startFile}
-                    internalFramework={'react'}
+                    entryFileName={entryFileName}
+                    framework={'react'}
+                    transpileInBrowser={transpileInBrowser}
                 />
             )
         }

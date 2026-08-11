@@ -63,7 +63,6 @@ const DocsExampleRunnerInner = ({
     const [plunkrHtmlUrl, setPlunkrHtmlUrl] = useState<string>();
     const [exampleFiles, setExampleFiles] = useState<Record<string, string>>();
     const [exampleRunnerFiles, setExampleRunnerFiles] = useState<Record<string, string>>();
-    const [exampleBoilerPlateFiles, setExampleBoilerPlateFiles] = useState();
     const [packageJson, setPackageJson] = useState();
 
     const exampleName = name;
@@ -162,7 +161,6 @@ const DocsExampleRunnerInner = ({
         setExampleFiles(files);
         setExampleRunnerFiles(newExampleRunnerFiles);
         setPackageJson(contents.packageJson);
-        setExampleBoilerPlateFiles(contents.boilerPlateFiles);
     }, [internalFramework, contents, contentsIsLoading, contentsIsError, exampleFileHtml]);
 
     const externalLinks = (
@@ -171,7 +169,6 @@ const DocsExampleRunnerInner = ({
             options={options}
             internalFramework={internalFramework}
             exampleFiles={exampleFiles}
-            exampleBoilerPlateFiles={exampleBoilerPlateFiles}
             packageJson={packageJson}
             initialSelectedFile={initialSelectedFile}
             plunkrHtmlUrl={plunkrHtmlUrl}

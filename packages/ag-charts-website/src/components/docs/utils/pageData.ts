@@ -6,6 +6,7 @@ import {
 } from '@components/example-generator';
 import { FRAMEWORKS } from '@constants';
 import { getIsBenchmarkOnlyBuild } from '@utils/env';
+import { isTransformableModule, toModuleFileName } from '@utils/exampleModules/transformExampleModule';
 import type { DocsPage } from '@utils/pages';
 
 import { getInternalFrameworkExamples, getPagesList } from './filesData';
@@ -147,13 +148,19 @@ export async function getDocExampleFiles({ pages }: { pages: DocsPage[] }) {
             exampleName,
         });
 
-        return exampleFileList.map((fileName) => {
-            return {
+        return exampleFileList.flatMap((fileName) => {
+            const entry = {
                 internalFramework,
                 pageName,
                 exampleName,
                 fileName,
             };
+
+            // Transpilable sources are also served transpiled, under a `.js` name, as
+            // that is what the natively loaded example modules import
+            return isTransformableModule(fileName)
+                ? [entry, { ...entry, fileName: toModuleFileName(fileName) }]
+                : [entry];
         });
     });
     const exampleFiles = (await Promise.all(exampleFilesPromises)).flat();
