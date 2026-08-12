@@ -231,6 +231,13 @@ describe('htaccessRules markdown content negotiation', () => {
         '/charts/angular-charts/',
         '/charts/vue-charts/',
         '/charts/enterprise-charts/',
+        '/charts/options/',
+        '/charts/options/axes/number/',
+        '/charts/options/series/bar/',
+        '/charts/options/initialState/annotations/callout/',
+        '/charts/options/navigator/miniChart/series/line/',
+        '/charts/themes-api/',
+        '/charts/themes-api/overrides/bar/',
     ];
 
     // Paths that must NOT negotiate: they have no `.md` twin, and rewriting them would either
@@ -243,9 +250,9 @@ describe('htaccessRules markdown content negotiation', () => {
         '/charts/style-guide/', // non-public, sitemap-excluded
         '/charts/contact/success/', // form result, sitemap-excluded
         '/charts/contact/failure/',
-        '/charts/options/', // API reference, deliberately untwinned
-        '/charts/options/series/bar/',
-        '/charts/themes-api/',
+        '/charts/options/series/bar.md', // the twin itself
+        '/charts/options/series/', // the member path alone is not a page
+        '/charts/themes-api/overrides/', // likewise
         '/charts/gallery-test/',
         '/charts/javascript/quick-start/examples/create-a-chart/',
         '/charts/debug/versions.json',
