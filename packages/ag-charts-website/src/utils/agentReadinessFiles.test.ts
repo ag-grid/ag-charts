@@ -27,14 +27,14 @@ describe('buildLlmsTxt', () => {
     test('advertises the markdown (.md) convention as a site-wide rule, not a page list', () => {
         expect(txt).toContain('.md');
         expect(txt).toContain('https://www.ag-grid.com/charts/javascript/quick-start.md');
-        // Nearly every page in the sitemap has a twin, so llms.txt states the rule. Enumerating
-        // pages here would drift the moment one is added (see markdownPages.test.ts).
+        // Every page in the sitemap has a twin, so llms.txt states the rule. Enumerating pages
+        // here would drift the moment one is added (see markdownPages.test.ts).
         expect(txt).toContain('append `.md` to any page URL listed in the sitemap');
         expect(txt).toContain('Accept: text/markdown');
     });
 
-    test('names the API reference pages as the one gap, so an agent does not chase 404s', () => {
-        expect(txt).toContain('Options and Themes API reference pages are the exception');
+    test('claims no exceptions to the rule, so an agent does not skip a page that has a twin', () => {
+        expect(txt).not.toContain('exception');
     });
 
     test('points at index.md for the homepage, whose twin is not a `.md` suffix', () => {
@@ -67,11 +67,11 @@ describe('buildAgentsMd', () => {
     test('advertises the markdown (.md) versions as a site-wide rule', () => {
         expect(md).toContain('Markdown for LLMs');
         expect(md).toContain('https://www.ag-grid.com/charts/javascript/quick-start.md');
-        // Nearly every page in the sitemap has a twin, so point at the sitemap rather than
-        // listing pages that would drift (see markdownPages.test.ts for the guarantee).
+        // Every page in the sitemap has a twin, so point at the sitemap rather than listing
+        // pages that would drift (see markdownPages.test.ts for the guarantee).
         expect(md).toContain('append `.md` to any page URL listed in the');
         expect(md).toContain('[sitemap](https://www.ag-grid.com/charts/sitemap-index.xml)');
-        expect(md).toContain('Options and Themes API reference pages are the exception');
+        expect(md).not.toContain('exception');
     });
 
     test('points at index.md for the homepage, whose twin is not a `.md` suffix', () => {
