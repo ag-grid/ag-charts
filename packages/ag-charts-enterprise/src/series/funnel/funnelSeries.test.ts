@@ -35,6 +35,7 @@ import {
     prepareEnterpriseTestOptions,
     renderEnterpriseChartImage,
 } from '../../test/utils';
+import { FunnelConnector } from './funnelConnector';
 import { FunnelSeries } from './funnelSeries';
 
 const FUNNEL_EXAMPLE: AgChartOptions = {
@@ -716,17 +717,23 @@ describe('FunnelSeries', () => {
     describe('cornerRadius', () => {
         // Rect.serializeProps() omits the corner-radius fields, so neither the image snapshot nor the
         // scene-graph JSON can witness this option — the nodes have to be read directly.
-        const segmentRects = (target: Chart) => {
-            const rects: _ModuleSupport.Rect[] = [];
+        const contentNodes = (target: Chart) => {
+            const nodes: _ModuleSupport.Node[] = [];
             const visit = (node: _ModuleSupport.Node) => {
-                if (node instanceof _ModuleSupport.Rect) rects.push(node);
+                nodes.push(node);
                 if (node instanceof _ModuleSupport.Group) {
                     for (const child of node.children()) visit(child);
                 }
             };
             visit(classCast(target.series[0], FunnelSeries).contentGroup);
-            return rects;
+            return nodes;
         };
+
+        const segmentRects = (target: Chart) =>
+            contentNodes(target).filter((node): node is _ModuleSupport.Rect => node instanceof _ModuleSupport.Rect);
+
+        const dropOffConnectors = (target: Chart) =>
+            contentNodes(target).filter((node): node is FunnelConnector => node instanceof FunnelConnector);
 
         const buildOptions = (cornerRadius?: number, direction?: 'horizontal' | 'vertical') => {
             const options: AgChartOptions = {
@@ -768,6 +775,19 @@ describe('FunnelSeries', () => {
             await compare();
         });
 
+        it('butts the drop-off connectors up against the rounded corners', async () => {
+            chart = deproxy(AgCharts.create(buildOptions(16)));
+            await waitForChartStability(chart);
+
+            const connectors = dropOffConnectors(chart);
+            expect(connectors).toHaveLength(3);
+            for (const connector of connectors) {
+                expect(connector.capsAlongX).toBe(true);
+                expect(connector.startCornerRadius).toBe(16);
+                expect(connector.endCornerRadius).toBe(16);
+            }
+        });
+
         it('defaults to square corners', async () => {
             chart = deproxy(AgCharts.create(buildOptions()));
             await waitForChartStability(chart);
@@ -779,6 +799,11 @@ describe('FunnelSeries', () => {
                 expect(rect.topRightCornerRadius).toBe(0);
                 expect(rect.bottomRightCornerRadius).toBe(0);
                 expect(rect.bottomLeftCornerRadius).toBe(0);
+            }
+
+            for (const connector of dropOffConnectors(chart)) {
+                expect(connector.startCornerRadius).toBe(0);
+                expect(connector.endCornerRadius).toBe(0);
             }
         });
 
@@ -792,6 +817,16 @@ describe('FunnelSeries', () => {
                 expect(rect.topLeftCornerRadius).toBe(16);
                 expect(rect.bottomRightCornerRadius).toBe(16);
             }
+
+            const connectors = dropOffConnectors(chart);
+            expect(connectors).toHaveLength(3);
+            for (const connector of connectors) {
+                expect(connector.capsAlongX).toBe(false);
+                expect(connector.startCornerRadius).toBe(16);
+                expect(connector.endCornerRadius).toBe(16);
+            }
+
+            await compare();
         });
     });
 

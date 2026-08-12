@@ -53,6 +53,10 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
         return this.properties.dropOff.enabled;
     }
 
+    protected override connectorCornerRadius() {
+        return this.properties.cornerRadius;
+    }
+
     protected override connectorStyle(index: number): RequireOptional<AgFunnelSeriesStyle> & { opacity: number } {
         return mergeDefaults(this.properties.dropOff.getStyle(), this.properties.getStyle(index));
     }
