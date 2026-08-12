@@ -156,19 +156,30 @@ runs:
               fi
 
               # Report B — regenerated snapshots (when CI pushed to gha/snapshots-<head-ref>).
-              # The two refs must stay distinct: the file set comes from where the snapshot branch
-              # forks off the PR head, because the branch is cut from the stale branch tip and a
-              # HEAD-vs-branch diff would also list every baseline the base branch moved since the
-              # fork point; the pixels come from HEAD, the merge commit the tests actually ran against.
+              # The two refs must stay distinct: the file set comes from the snapshot branch's own
+              # commits, because the branch is cut from the stale branch tip and a HEAD-vs-branch diff
+              # would also list every baseline the base branch moved since the fork point; the pixels
+              # come from HEAD, the merge commit the tests actually ran against.
               if [[ -n "${SNAPSHOT_BRANCH}" ]] && git ls-remote --exit-code --heads origin "${SNAPSHOT_BRANCH}" >/dev/null 2>&1; then
                   git fetch --no-tags --force --quiet origin "${SNAPSHOT_BRANCH}:refs/snap/review" || true
                   if git rev-parse --verify --quiet refs/snap/review >/dev/null; then
-                      # merge-base, not head_sha itself: a re-run rebases the regeneration commits
-                      # back onto the branch as it stood at an earlier run, so the fork point is the
-                      # only ref guaranteed to have just CI's own commits after it.
-                      BRANCH_BASE=''
+                      # Where CI's own commits start. Not head_sha itself and not the merge-base: a
+                      # re-run rebases onto the branch as it stood at an earlier run, and a force-push
+                      # abandons the head it was cut from, either of which drops the merge-base below
+                      # commits the developer wrote. What CI pushed is always the run of
+                      # github-actions[bot] commits at the tip, so walk those off — floored at the
+                      # merge-base, so a bot-authored PR head cannot be stepped past.
+                      FLOOR=''
                       if [[ -n "${HEAD_SHA}" ]]; then
-                          BRANCH_BASE="$(git merge-base "$HEAD_SHA" refs/snap/review 2>/dev/null || true)"
+                          FLOOR="$(git merge-base "$HEAD_SHA" refs/snap/review 2>/dev/null || true)"
+                      fi
+
+                      BRANCH_BASE=''
+                      if [[ -n "$FLOOR" ]]; then
+                          BRANCH_BASE="$(git rev-parse refs/snap/review)"
+                          while [[ "$BRANCH_BASE" != "$FLOOR" && "$(git log -1 --format=%an "$BRANCH_BASE")" == 'github-actions[bot]' ]]; do
+                              BRANCH_BASE="$(git rev-parse "${BRANCH_BASE}^")"
+                          done
                       fi
 
                       if [[ -n "$BRANCH_BASE" ]]; then
