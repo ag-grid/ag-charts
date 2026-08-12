@@ -335,6 +335,11 @@
     align-items: center;
     gap: 8px;
     width: 100%;
+    /* The sidebar is a scrolling flex column, and `all: unset` restores the default
+       `flex: 0 1 auto`, so once the lists below overflow this gets shrunk — down to its
+       automatic minimum, which is the text's min-content height and collapses the button
+       to about 20px. `flex: none` is what actually holds the height below. */
+    flex: none;
     height: 38px;
     margin-bottom: 12px;
     padding: 0 10px;
