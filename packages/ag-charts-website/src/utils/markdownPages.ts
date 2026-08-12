@@ -46,6 +46,16 @@ export const CHARTS_MARKDOWN_PAGE_GROUPS: MarkdownPageGroup[] = [
         describes: 'SEO landing pages, all rendered from the landingPages collection.',
         pattern: '(?:angular|enterprise|javascript|react|vue)-charts',
     },
+    {
+        // The member paths mirror the ones getOptionsStaticPaths fans out over; a fifth added there
+        // without a pattern here fails the coverage check rather than silently losing negotiation.
+        describes: 'The Options API reference and the union variants with a page of their own.',
+        pattern: 'options(?:/(?:axes|series|initialState/annotations|navigator/miniChart/series)/[^/.]+)?',
+    },
+    {
+        describes: 'The Themes API reference and its per-override pages.',
+        pattern: 'themes-api(?:/overrides/[^/.]+)?',
+    },
 ];
 
 function patternedGroups(): string[] {

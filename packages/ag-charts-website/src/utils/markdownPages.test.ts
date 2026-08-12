@@ -38,14 +38,6 @@ describe('CHARTS_MARKDOWN_PAGE_GROUPS', () => {
 });
 
 /**
- * The Options and Themes API reference. Both render client-side from the generated interface
- * reference, so a twin would need a markdown rendering of that whole tree — a separate piece of
- * work, and the one documented gap in the "every sitemap URL has a twin" rule (`llms.txt` and
- * `AGENTS.md` say so explicitly).
- */
-const isApiReferencePage = (pathname: string) => /\/(?:options|themes-api)(?:\/|$)/.test(pathname);
-
-/**
  * Twins generated on production by grid's Jira cron (`scripts/jira/production/getCharts*` in the
  * ag-grid repo) rather than by this build, so they are absent from a local `dist` by design. Their
  * pages advertise the `.md` only in production for the same reason.
@@ -92,10 +84,8 @@ describe.runIf(hasCompleteBuild)('every sitemap URL has a .md twin in dist', () 
         expect(sitemapBase).toBe('/charts');
     });
 
-    it('emits a .md file next to every page, bar the documented exceptions', () => {
-        const unexplained = missing.filter(
-            (pathname) => !isApiReferencePage(pathname) && !CRON_GENERATED_TWINS.includes(baseRelative(pathname))
-        );
+    it('emits a .md file next to every page, bar the documented exception', () => {
+        const unexplained = missing.filter((pathname) => !CRON_GENERATED_TWINS.includes(baseRelative(pathname)));
         expect(unexplained, `${unexplained.length} sitemap URLs have no .md twin`).toEqual([]);
     });
 
@@ -104,16 +94,16 @@ describe.runIf(hasCompleteBuild)('every sitemap URL has a .md twin in dist', () 
         // `Accept: text/markdown`, so the two must agree.
         const unroutable = sitemapPaths
             .map(baseRelative)
-            .filter((pathname) => pathname !== '/' && !isApiReferencePage(pathname) && !isNegotiable(pathname));
+            .filter((pathname) => pathname !== '/' && !isNegotiable(pathname));
         expect(unroutable, `${unroutable.length} pages have a twin but no negotiation rule`).toEqual([]);
     });
 
-    it('keeps the API reference exclusion honest — it is still in the sitemap and still untwinned', () => {
-        // If the reference gains twins, this fails and `isApiReferencePage` must go, rather than
-        // quietly staying as a place real gaps could hide.
-        const apiPages = sitemapPaths.filter(isApiReferencePage);
+    it('covers the API reference, whose pages are the deepest URLs in the sitemap', () => {
+        // These fan out from the generated interface reference rather than from a content
+        // collection, so a change to the generator can drop them from the build entirely.
+        const apiPages = sitemapPaths.filter((pathname) => /\/(?:options|themes-api)(?:\/|$)/.test(pathname));
         expect(apiPages.length).toBeGreaterThan(50);
-        expect(missing.filter(isApiReferencePage)).toEqual(apiPages);
+        expect(missing.filter((pathname) => apiPages.includes(pathname))).toEqual([]);
     });
 
     it('keeps the cron-generated exclusion free of stale entries', () => {
