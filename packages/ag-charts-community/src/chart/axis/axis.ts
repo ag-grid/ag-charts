@@ -1249,7 +1249,14 @@ export abstract class Axis<
     }
 
     pickValue(point: CurrentPoint): AxisValuePick | undefined {
-        const position = this.isVertical() ? point.currentY : point.currentX;
+        // `point` is relative to the axis proxy region, which is sized to the whole axis group — line,
+        // ticks, labels and title — so its origin sits before the axis origin by the label overhang.
+        // Shift into axis-local space before consulting the scale or the rendered ticks.
+        const region = this.getCanvasBounds();
+        const origin = this.getLayoutTranslation();
+        const position = this.isVertical()
+            ? point.currentY + region.y - origin.y
+            : point.currentX + region.x - origin.x;
 
         const value = unsafeInvert(this.scale, position);
         const domain = unsafeDomain(this.scale);

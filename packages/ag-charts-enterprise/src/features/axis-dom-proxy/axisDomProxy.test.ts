@@ -186,9 +186,9 @@ describe('AxisDOMProxy', () => {
             await waitForChartStability(chart);
 
             expect(click.mock.calls).toMatchObject([
-                [expect.objectContaining({ value: expect.closeTo(20.86), index: 0 })],
-                [expect.objectContaining({ value: expect.closeTo(512.02), index: 3 })],
-                [expect.objectContaining({ value: expect.closeTo(971.88), index: 5 })],
+                [expect.objectContaining({ value: expect.closeTo(16.33), index: 0 })],
+                [expect.objectContaining({ value: expect.closeTo(507.48), index: 3 })],
+                [expect.objectContaining({ value: expect.closeTo(967.35), index: 5 })],
             ]);
         });
     });
@@ -354,8 +354,7 @@ describe('AxisDOMProxy', () => {
         });
     });
 
-    // FIXME: See AG-9808 TC5
-    describe.skip('category band interior clicks', () => {
+    describe('category band interior clicks', () => {
         beforeEach(async () => {
             chart = await createEnterpriseChart({
                 data: Array.from({ length: 12 }, (_, i) => `Category-Name-${i}`).map((x, i) => ({ x, y: i })),
@@ -382,11 +381,10 @@ describe('AxisDOMProxy', () => {
         });
     });
 
-    // FIXME: See AG-9808 TC5
     // In this example, the X-origin label is a long text "0.000000000", which adds a lot of mouse-interaction padding
     // to the left of the x-axis origin. This test is there to ensure that this padding does not interfere with the
     // computation of the axis click `value`.
-    describe.skip('continuous band interior clicks', () => {
+    describe('continuous band interior clicks', () => {
         let Xs: [number, number, number, number];
 
         function measureXGridLines(): [number, number, number, number] | undefined {
