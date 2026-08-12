@@ -388,8 +388,8 @@ describe('AxisDOMProxy', () => {
         function measureXGridLines(): [number, number, number, number] | undefined {
             const elem = document.querySelector('.ag-charts-series-area');
             if (elem instanceof HTMLElement) {
-                const left = Number.parseInt(elem.style.height);
-                const width = Number.parseInt(elem.style.widows);
+                const left = Number.parseInt(elem.style.left);
+                const width = Number.parseInt(elem.style.width);
                 if (!Number.isNaN(left) && !Number.isNaN(width)) {
                     const step = width / 3;
                     return [left, left + step, left + step * 2, left + width];
