@@ -3,7 +3,8 @@ description: >-
     Generate the asynchronous /snapshot-review reports for a PR and write the `snapshot-review`
     section fragment for the consolidated PR comment. Produces up to two reports: "current PR
     state" (committed baselines vs the merge-base with the base branch) and, when CI regenerated
-    baselines onto the snapshot branch, "regenerated" (committed baselines vs the snapshot branch).
+    baselines onto the snapshot branch, "regenerated" — the files the snapshot branch's own commits
+    rewrote, compared against the baselines as they exist in the checked-out (merged) tree.
     Pixel review is the backbone; scene-graph review is attempted best-effort and skipped cleanly
     when the CI scene captures are unavailable. Never fails the caller — this is advisory only.
 
@@ -15,6 +16,12 @@ inputs:
         description: 'Base branch to diff the current PR state against.'
         required: false
         default: latest
+    head_sha:
+        description: >-
+            The PR head commit the snapshot branch was cut from, used to scope the regenerated
+            report to the files CI rewrote. Without it that report also lists upstream baseline drift.
+        required: false
+        default: ''
     scripts_root:
         description: 'Directory containing the installed snapshot-review scripts.'
         required: false
@@ -50,6 +57,7 @@ runs:
           env:
               SNAPSHOT_BRANCH: ${{ inputs.snapshot_branch }}
               BASE_BRANCH: ${{ inputs.base_branch }}
+              HEAD_SHA: ${{ inputs.head_sha }}
               SCRIPTS: ${{ inputs.scripts_root }}
               GH_TOKEN: ${{ inputs.github_token }}
               # Point the run's artifacts page from inside the section text (fallback link).
@@ -75,19 +83,27 @@ runs:
 
               # PNG families: unit image snapshots (__image_snapshots__) and e2e/package (*-snapshots).
               # These are git pathspecs — '*' matches '/', so they scope to the two snapshot dir shapes.
-              INCLUDES=(--include '*__image_snapshots__/*.png' --include '*-snapshots/*.png')
+              PATHSPECS=('*__image_snapshots__/*.png' '*-snapshots/*.png')
+              INCLUDES=(); for p in "${PATHSPECS[@]}"; do INCLUDES+=(--include "$p"); done
 
               # Build one report; append its summary to the section body. Args: <label> <before> <after> <slug>
+              # Callers may set REPORT_INCLUDES to override the pathspecs for a single report.
               SECTION="${SECTIONS}/25-snapshot-review.md"
               : > "${WORK}/section-body.md"
               ANY=0
+              REPORT_INCLUDES=()
+              REPORT_LABELS=()
 
               build_report() {
                   local label="$1" before="$2" after="$3" slug="$4"
                   local dir="${WORK}/${slug}"
+                  local includes=("${INCLUDES[@]}")
+                  if [[ ${#REPORT_INCLUDES[@]} -gt 0 ]]; then
+                      includes=("${REPORT_INCLUDES[@]}")
+                  fi
                   mkdir -p "$dir"
                   echo "--- ${label}: collecting ${before}...${after}" >&2
-                  bash "$COLLECT" --before "$before" --after "$after" --out "$dir" "${INCLUDES[@]}" >&2 || {
+                  bash "$COLLECT" --before "$before" --after "$after" --out "$dir" "${includes[@]}" >&2 || {
                       echo "::warning::collect failed for ${label}; skipping."; return 1; }
 
                   # Skip a report with no changed images (keeps the section relevant, not noisy).
@@ -98,8 +114,11 @@ runs:
 
                   local html="${HTML_DIR}/snapshot-${slug}.html"
                   local md="${dir}/summary.md"
-                  if ! python3 "$REPORT" --in "$dir" --out "$html" --summary-md "$md" \
-                        --title "Snapshot review — ${label}" >&2; then
+                  local args=(--in "$dir" --out "$html" --summary-md "$md" --title "Snapshot review — ${label}")
+                  if [[ ${#REPORT_LABELS[@]} -gt 0 ]]; then
+                      args+=("${REPORT_LABELS[@]}")
+                  fi
+                  if ! python3 "$REPORT" "${args[@]}" >&2; then
                       echo "::warning::report builder failed for ${label} (needs --summary-md support); skipping."
                       return 1
                   fi
@@ -136,11 +155,37 @@ runs:
                   echo "::warning::could not resolve merge-base with ${BASE_BRANCH}; skipping current-state report."
               fi
 
-              # Report B — regenerated snapshots: HEAD .. gha/snapshots-<head-ref> (when CI pushed to it).
+              # Report B — regenerated snapshots (when CI pushed to gha/snapshots-<head-ref>).
+              # The two refs must stay distinct: the file set comes from where the snapshot branch
+              # forks off the PR head, because the branch is cut from the stale branch tip and a
+              # HEAD-vs-branch diff would also list every baseline the base branch moved since the
+              # fork point; the pixels come from HEAD, the merge commit the tests actually ran against.
               if [[ -n "${SNAPSHOT_BRANCH}" ]] && git ls-remote --exit-code --heads origin "${SNAPSHOT_BRANCH}" >/dev/null 2>&1; then
                   git fetch --no-tags --force --quiet origin "${SNAPSHOT_BRANCH}:refs/snap/review" || true
                   if git rev-parse --verify --quiet refs/snap/review >/dev/null; then
-                      build_report "Regenerated by CI" "HEAD" "refs/snap/review" "regenerated" || true
+                      # merge-base, not head_sha itself: a re-run rebases the regeneration commits
+                      # back onto the branch as it stood at an earlier run, so the fork point is the
+                      # only ref guaranteed to have just CI's own commits after it.
+                      BRANCH_BASE=''
+                      if [[ -n "${HEAD_SHA}" ]]; then
+                          BRANCH_BASE="$(git merge-base "$HEAD_SHA" refs/snap/review 2>/dev/null || true)"
+                      fi
+
+                      if [[ -n "$BRANCH_BASE" ]]; then
+                          while IFS= read -r p; do
+                              REPORT_INCLUDES+=(--include ":(literal)${p}")
+                          done < <(git -c core.quotepath=false diff --name-only "$BRANCH_BASE" refs/snap/review -- "${PATHSPECS[@]}")
+                      else
+                          echo "::warning::head_sha '${HEAD_SHA}' missing or unrelated to ${SNAPSHOT_BRANCH}; the regenerated report will also list upstream baseline drift."
+                      fi
+
+                      # Nothing rewritten (the branch exists from an earlier run): no report to build.
+                      if [[ -n "$BRANCH_BASE" && ${#REPORT_INCLUDES[@]} -eq 0 ]]; then
+                          echo "--- Regenerated by CI: snapshot branch rewrote no baselines" >&2
+                      else
+                          REPORT_LABELS=(--before-label "Committed (merged with \`${BASE_BRANCH}\`)" --after-label "Regenerated by CI")
+                          build_report "Regenerated by CI" "HEAD" "refs/snap/review" "regenerated" || true
+                      fi
                   fi
               fi
 

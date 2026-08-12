@@ -1921,6 +1921,7 @@ jobs:
               with:
                   snapshot_branch: ${{ needs.init.outputs.snapshot_branch }}
                   base_branch: ${{ github.base_ref }}
+                  head_sha: ${{ github.event.pull_request.head.sha }}
                   github_token: ${{ secrets.GITHUB_TOKEN }}
                   # Reports are pushed to the `snapshot-review` branch below and read from
                   # raw.githubusercontent.com by the static viewer on gh-pages, so the link is a
