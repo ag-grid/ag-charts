@@ -266,60 +266,8 @@
 .fin-body {
     flex: 1 1 auto;
     display: grid;
-    grid-template-columns: 68px 320px 1fr;
+    grid-template-columns: 320px 1fr;
     min-height: 0;
-}
-
-/* ---- section rail ---- */
-/* The platform's top-level sections, stacked icon-over-label on the far left. */
-.fin-rail {
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-    overflow-y: auto;
-    padding: 6px 0;
-    background: var(--fin-panel-2);
-}
-.fin-rail-item {
-    all: unset;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-    width: 100%;
-    padding: 10px 2px;
-    color: var(--fin-muted);
-    text-align: center;
-    cursor: pointer;
-    /* Reserve the active marker on every item so selecting never shifts the icon. */
-    box-shadow: inset 2px 0 0 transparent;
-}
-.fin-rail-item:hover {
-    color: var(--fin-text);
-    background: var(--fin-hover);
-}
-.fin-rail-item[data-active='true'] {
-    color: var(--fin-accent);
-    background: color-mix(in srgb, var(--fin-accent) 14%, var(--fin-panel-2));
-    box-shadow: inset 2px 0 0 var(--fin-accent);
-}
-.fin-rail-item:focus-visible {
-    outline: 1px solid var(--fin-accent);
-    outline-offset: -2px;
-}
-.fin-rail-icon {
-    flex: none;
-}
-.fin-rail-label {
-    font-size: 10px;
-    font-weight: 500;
-    letter-spacing: 0.1px;
-    line-height: 1.1;
-}
-.fin-rail-item[data-active='true'] .fin-rail-label {
-    font-weight: 600;
 }
 
 .fin-main {
@@ -545,10 +493,9 @@
 
 /* ---- watchlist drawer (narrow viewports) ---- */
 @media (max-width: 860px) {
-    /* Sidebar leaves the grid and becomes an off-canvas drawer; the rail stays put,
-       and the drawer (fixed, z-indexed above) simply covers it while open. */
+    /* Sidebar leaves the grid and becomes an off-canvas drawer. */
     .fin-body {
-        grid-template-columns: 68px 1fr;
+        grid-template-columns: 1fr;
     }
     .fin-sidebar-left {
         position: fixed;

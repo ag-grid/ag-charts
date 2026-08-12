@@ -3,7 +3,6 @@ import { useCallback, useMemo, useState } from 'react';
 import { DemoBanner } from './components/DemoBanner';
 import { FinancialChart } from './components/FinancialChart';
 import { MostActive } from './components/MostActive';
-import { NavRail } from './components/NavRail';
 import { PeerPerformanceChart } from './components/PeerPerformanceChart';
 import { PeerSpreadHeatmap } from './components/PeerSpreadHeatmap';
 import { ProfileGauges } from './components/ProfileGauges';
@@ -103,8 +102,6 @@ export const FinancialApp = () => {
             <DemoBanner />
 
             <div className="fin-body" data-drawer-open={drawerOpen}>
-                <NavRail />
-
                 <div className="fin-sidebar fin-sidebar-left">
                     <button
                         type="button"
