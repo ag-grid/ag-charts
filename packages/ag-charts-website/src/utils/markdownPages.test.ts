@@ -98,12 +98,31 @@ describe.runIf(hasCompleteBuild)('every sitemap URL has a .md twin in dist', () 
         expect(unroutable, `${unroutable.length} pages have a twin but no negotiation rule`).toEqual([]);
     });
 
-    it('covers the API reference, whose pages are the deepest URLs in the sitemap', () => {
+    describe('the API reference twins', () => {
         // These fan out from the generated interface reference rather than from a content
-        // collection, so a change to the generator can drop them from the build entirely.
+        // collection, so a change to the generator can drop them from the build — or, since the
+        // builders degrade to an empty table rather than throwing, reduce them to a stub with
+        // frontmatter and no properties. Only a built twin can show either.
         const apiPages = sitemapPaths.filter((pathname) => /\/(?:options|themes-api)(?:\/|$)/.test(pathname));
-        expect(apiPages.length).toBeGreaterThan(50);
-        expect(missing.filter((pathname) => apiPages.includes(pathname))).toEqual([]);
+        const twinBody = (path: string) =>
+            readFileSync(join(DIST, `${baseRelative(path).replace(/^\/|\/$/g, '')}.md`), 'utf8');
+        const propertyRows = (body: string) =>
+            body.split('\n').filter((line) => line.startsWith('| ') && !line.startsWith('| --- ')).length - 1;
+
+        it('covers every reference page in the sitemap', () => {
+            expect(apiPages.length).toBeGreaterThan(50);
+            expect(missing.filter((pathname) => apiPages.includes(pathname))).toEqual([]);
+        });
+
+        it('carries a populated property table on every one, not an empty shell', () => {
+            const empty = apiPages.filter((pathname) => propertyRows(twinBody(pathname)) < 1);
+            expect(empty, `${empty.length} reference twins have no properties`).toEqual([]);
+        });
+
+        it('resolves the root interfaces the two references hang off', () => {
+            expect(twinBody('/charts/options/')).toContain('Interface: `AgChartOptions`');
+            expect(twinBody('/charts/themes-api/')).toContain('Interface: `AgChartTheme`');
+        });
     });
 
     it('keeps the cron-generated exclusion free of stale entries', () => {
