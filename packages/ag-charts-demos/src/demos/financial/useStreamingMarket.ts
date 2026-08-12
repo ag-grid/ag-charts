@@ -57,7 +57,9 @@ export function useStreamingMarket() {
 
     const [ticker, setTicker] = useState(INSTRUMENTS[0].ticker);
     const [running, setRunning] = useState(true);
-    const [speedMs, setSpeedMs] = useState(500);
+    // 1× (one bar per second). Slow enough that a price change is legible as it lands
+    // rather than being overwritten by the next tick.
+    const [speedMs, setSpeedMs] = useState(1000);
     const [bars, setBars] = useState<Bar[]>(() => feedsRef.current!.get(ticker)!.snapshot());
     const [quotes, setQuotes] = useState<Quote[]>(() => readQuotes(feedsRef.current!));
     const [metrics, setMetrics] = useState<GaugeMetrics>(() => feedsRef.current!.get(ticker)!.metrics());

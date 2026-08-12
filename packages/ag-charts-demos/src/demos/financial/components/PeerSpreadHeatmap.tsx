@@ -12,17 +12,20 @@ import { THEME } from '../chartTheme';
 import { type Instrument, type PeerHeatmapCell, type PeerPerformanceFeed, sectorPeers } from '../data';
 import { diffWindow } from '../windowTransaction';
 
-// Spread colour ramp, tight → wide: near-background for a tight spread, ramping
-// up the chart palette as peers diverge. Mixed via $ref onto the palette tokens.
+// Spread colour ramp, tight → wide: near-background for a tight spread, intensifying
+// through one hue as peers diverge. `mix` is the weight of `ref` (the card background)
+// blended onto the palette token, so a high mix reads as near-empty. Because it is
+// anchored to a theme param rather than a literal, the ramp follows the card surface.
+// Monotonic in lightness, so magnitude survives a greyscale print.
 const SPREAD_COLOR_SCALE: AgColorScale = {
     domain: [0, 0.4],
     fills: [
         {
-            color: { ref: 'chartBackgroundColor', mix: 0.4, ontoColor: 'var(--fin-chart-palette-0)' },
+            color: { ref: 'chartBackgroundColor', mix: 0.88, ontoColor: 'var(--fin-chart-palette-0)' },
             name: '(Tight) 0',
         },
-        { color: { ref: 'chartBackgroundColor', mix: 0.2, ontoColor: 'var(--fin-chart-palette-6)' }, name: '0.2' },
-        { color: 'var(--fin-chart-palette-2)', name: '0.4 (Wide)' },
+        { color: { ref: 'chartBackgroundColor', mix: 0.3, ontoColor: 'var(--fin-chart-palette-0)' }, name: '0.2' },
+        { color: 'var(--fin-chart-palette-4)', name: '0.4 (Wide)' },
     ],
 };
 
@@ -59,7 +62,8 @@ interface PeerSpreadHeatmapProps {
     peerFeed: PeerPerformanceFeed;
     /** Bumped every stream tick so the live buckets recompute. */
     peerTick: number;
-    /** Trailing window in one-minute buckets; shared across charts. */
+    /** Trailing window in minutes; shared across charts. The feed picks a bucket width
+     *  from it so the column count stays legible as the window grows. */
     windowMinutes: number;
 }
 

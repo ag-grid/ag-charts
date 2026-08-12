@@ -1,19 +1,46 @@
 /* Trading-terminal chrome. Scoped under .fin-container so it never leaks into
-   other demos. Chart visuals are handled by the AG Charts theme, not here. */
+   other demos. Chart visuals are handled by the AG Charts theme, not here.
+
+   Structure is carried entirely by surface tone, not by lines: no element draws a
+   border. Anything that needs to read as separate from its host gets the next step
+   up the lightness ramp (bg → panel → panel-2 → elevated) instead. */
 
 /* Tokens + base typography live on the container and on any portalled content
    (Radix menus/selects/dialogs mount at document.body, outside .fin-container). */
 .fin-container,
 .fin-portal {
-    --fin-bg: #0d1117;
-    --fin-panel: #161b22;
-    --fin-panel-2: #020617;
-    --fin-border: #2a313c;
-    --fin-text: #e4e4e7;
-    --fin-muted: #a1a1aa;
+    /* Dark surfaces, neutral rather than blue-black. The page is near-black and every
+       element sits on it as a lifted panel: --fin-panel is the recessed working area,
+       --fin-panel-2 the raised card. Same roles as a light scheme with the lightness
+       order flipped, so cards read as above the surface rather than below it. */
+    --fin-bg: #08090a;
+    --fin-panel: #0e0f11;
+    --fin-panel-2: #17181a;
+    /* Above the card: controls, and things that genuinely float (the chart's own type
+       menu). Same neutral family as the panels, so a menu never reads as a
+       differently-themed slab dropped on top of the app. */
+    --fin-elevated: #212327;
+    --fin-elevated-hover: #2b2e34;
+    /* Not used for any border — this is the source of truth for the grid's internal
+       row rules, mirrored as a literal in components/grid.ts. Change both. */
+    --fin-border: #2a2c30;
+    --fin-text: #e8e9ea;
+    --fin-muted: #8b9098;
+    /* Kept in step with the chart theme's up/down palette overrides, so grid cells
+       and candles read as the same green and red. */
     --fin-up: #10b981;
     --fin-down: #f43f5e;
-    --fin-accent: #388bfd;
+    /* Two blues: the bright one for accent text, markers and active icons, where it
+       has to carry against near-black; the deeper one for solid fills, where it has
+       to carry white text instead. */
+    --fin-accent: #4493f8;
+    --fin-accent-strong: #1f6feb;
+    --fin-on-accent: #ffffff;
+    /* The notice strip. */
+    --fin-notice: #1f6feb;
+    /* A neutral lift for hover, so a hover never has to darken a dark surface. */
+    --fin-hover: rgba(255, 255, 255, 0.06);
+    /* Categorical slots for the peer chart, bright enough to hold a 1px line on black. */
     --fin-chart-palette-0: #60a5fa;
     --fin-chart-palette-1: #f0a68c;
     --fin-chart-palette-2: #fbbf24;
@@ -24,9 +51,23 @@
     --fin-chart-palette-7: #a3e635;
     --fin-chart-palette-8: #e879f9;
     --fin-chart-palette-9: #2dd4bf;
+    /* Puts native scrollbars, and anything else the UA paints, on the dark scheme. */
+    color-scheme: dark;
     color: var(--fin-text);
-    font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+    /* System UI (SF Pro on macOS) for all app chrome. Figures stay column-aligned
+       through tabular-nums rather than through a monospace face; chart axis text is
+       set separately by the AG Charts theme. */
+    font-family:
+        system-ui,
+        -apple-system,
+        'SF Pro Text',
+        'Segoe UI',
+        Roboto,
+        Helvetica,
+        Arial,
+        sans-serif;
     font-size: 12px;
+    font-variant-numeric: tabular-nums;
 }
 
 .fin-container {
@@ -36,6 +77,59 @@
     flex-direction: column;
     background: var(--fin-bg);
     overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Highlighted states in the chart's own chrome — the active/hovered toolbar button and
+   the active/focused row of the chart-type menu — both resolve from
+   `--ag-charts-focus-color`, which the theme derives as a mix of accentColor into the
+   background and so lands on a blue slab. A neutral lift off the menu's own surface
+   reads better; the accent-coloured label is what carries the state.
+
+   This has to be declared here rather than through the theme: `params.focusColor` is
+   rejected at runtime as an unknown option, and the chart writes the resolved value as
+   an *inline* custom property on its wrapper, which no rule on an ancestor can beat.
+   Declaring it on the toolbar and popover instead works because they are descendants
+   of that wrapper, so this shadows the inline value for their subtrees. */
+.fin-container .ag-charts-toolbar,
+.fin-container .ag-charts-popover {
+    --ag-charts-focus-color: var(--fin-elevated-hover);
+}
+
+/* ---- scrollbars ---- */
+/* `color-scheme: dark` alone leaves Chromium's default grey bars, which sit far too
+   light against a near-black panel. Firefox takes the standard properties; WebKit and
+   Chromium take the pseudo-elements. Applied to descendants too, so AG Grid's own
+   viewports are covered. */
+.fin-container,
+.fin-container *,
+.fin-portal * {
+    scrollbar-width: thin;
+    scrollbar-color: #3a3e44 transparent;
+}
+.fin-container ::-webkit-scrollbar,
+.fin-portal ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+.fin-container ::-webkit-scrollbar-track,
+.fin-container ::-webkit-scrollbar-corner,
+.fin-portal ::-webkit-scrollbar-track {
+    background: transparent;
+}
+.fin-container ::-webkit-scrollbar-thumb,
+.fin-portal ::-webkit-scrollbar-thumb {
+    background: #3a3e44;
+    border-radius: 6px;
+    /* A transparent border inset makes the thumb read as a rounded pill with breathing
+       room, without needing a painted track behind it. */
+    border: 2px solid transparent;
+    background-clip: content-box;
+}
+.fin-container ::-webkit-scrollbar-thumb:hover,
+.fin-portal ::-webkit-scrollbar-thumb:hover {
+    background: #4d525a;
+    background-clip: content-box;
 }
 
 /* ---- top toolbar ---- */
@@ -43,9 +137,10 @@
     display: flex;
     align-items: center;
     gap: 16px;
-    padding: 8px 14px;
-    background: var(--fin-panel);
-    border-bottom: 1px solid var(--fin-border);
+    padding: 0 14px;
+    height: 46px;
+    /* The raised panel tone, so the app header reads as chrome above the working area. */
+    background: var(--fin-panel-2);
     flex: 0 0 auto;
 }
 
@@ -53,13 +148,11 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    color: var(--fin-accent);
-}
-
-.fin-brand-logo {
-    flex: none;
+    font-size: 14px;
+    font-weight: 650;
+    letter-spacing: -0.1px;
+    /* Deliberately ink, not accent — the header carries no brand colour. */
+    color: var(--fin-text);
 }
 
 .fin-up {
@@ -73,30 +166,75 @@
     flex: 1 1 auto;
 }
 
+/* Account block: balance, then the demo marker pinned to the far right. Separated by
+   space rather than a rule. */
+.fin-account {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    padding-left: 10px;
+    white-space: nowrap;
+}
+.fin-account-label {
+    color: var(--fin-muted);
+}
+.fin-account-value {
+    font-weight: 650;
+    font-size: 13px;
+}
+
+.fin-demo-badge {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    height: 22px;
+    padding: 0 8px;
+    background: var(--fin-elevated);
+    color: var(--fin-muted);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+}
+
 /* ---- demo notice banner ---- */
+/* An inset, slightly rounded strip rather than a full-bleed rule: the margin is what
+   makes the rounding visible. Icon and text are centred as one group, so the dismiss
+   button is taken out of flow — in flow it would push the group off-centre — and the
+   horizontal padding reserves the room it occupies. */
 .fin-banner {
+    position: relative;
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 6px 14px;
-    background: color-mix(in srgb, var(--fin-accent) 12%, var(--fin-panel));
-    border-bottom: 1px solid var(--fin-border);
-    color: var(--fin-text);
+    justify-content: center;
+    gap: 10px;
+    margin: 8px 12px;
+    padding: 8px 40px;
+    /* Solid: an unmissable strip separating the demo from real chrome. The deeper of
+       the two blues, so white text on it stays legible. */
+    background: var(--fin-notice);
+    border-radius: 6px;
+    color: #fff;
     font-size: 12px;
+    text-align: center;
     flex: 0 0 auto;
 }
 
 .fin-banner-icon {
     flex: none;
-    color: var(--fin-accent);
+    color: #fff;
 }
 
 .fin-banner-text {
-    flex: 1 1 auto;
+    flex: 0 1 auto;
+    font-weight: 600;
 }
 
 .fin-banner-dismiss {
-    flex: none;
+    position: absolute;
+    top: 50%;
+    right: 9px;
+    transform: translateY(-50%);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -105,16 +243,17 @@
     padding: 0;
     border: none;
     background: transparent;
-    color: var(--fin-muted);
+    color: #fff;
     font: inherit;
     line-height: 1;
     cursor: pointer;
+    opacity: 0.85;
 }
 .fin-banner-dismiss:hover {
-    color: var(--fin-text);
+    opacity: 1;
 }
 .fin-banner-dismiss:focus-visible {
-    outline: 1px solid var(--fin-accent);
+    outline: 1px solid #fff;
     outline-offset: 1px;
 }
 
@@ -127,12 +266,60 @@
 .fin-body {
     flex: 1 1 auto;
     display: grid;
-    grid-template-columns: 320px 1fr;
+    grid-template-columns: 68px 320px 1fr;
     min-height: 0;
 }
 
-.fin-sidebar-left {
-    border-right: 1px solid var(--fin-border);
+/* ---- section rail ---- */
+/* The platform's top-level sections, stacked icon-over-label on the far left. */
+.fin-rail {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 6px 0;
+    background: var(--fin-panel-2);
+}
+.fin-rail-item {
+    all: unset;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    width: 100%;
+    padding: 10px 2px;
+    color: var(--fin-muted);
+    text-align: center;
+    cursor: pointer;
+    /* Reserve the active marker on every item so selecting never shifts the icon. */
+    box-shadow: inset 2px 0 0 transparent;
+}
+.fin-rail-item:hover {
+    color: var(--fin-text);
+    background: var(--fin-hover);
+}
+.fin-rail-item[data-active='true'] {
+    color: var(--fin-accent);
+    background: color-mix(in srgb, var(--fin-accent) 14%, var(--fin-panel-2));
+    box-shadow: inset 2px 0 0 var(--fin-accent);
+}
+.fin-rail-item:focus-visible {
+    outline: 1px solid var(--fin-accent);
+    outline-offset: -2px;
+}
+.fin-rail-icon {
+    flex: none;
+}
+.fin-rail-label {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.1px;
+    line-height: 1.1;
+}
+.fin-rail-item[data-active='true'] .fin-rail-label {
+    font-weight: 600;
 }
 
 .fin-main {
@@ -147,10 +334,11 @@
 }
 
 /* The main financial chart fills the remaining viewport height; the sections
-   below it (gauges, peer charts) scroll into view. */
+   below it (gauges, peer charts) scroll into view. The floor covers the card's own
+   header row as well as the plot. */
 .fin-main > .fin-detail-card {
     flex: 1 1 auto;
-    min-height: 320px;
+    min-height: 380px;
 }
 
 .fin-sidebar {
@@ -167,10 +355,73 @@
 }
 
 .fin-section-title {
-    text-transform: uppercase;
-    letter-spacing: 0.6px;
+    margin: 0 0 4px;
     font-size: 11px;
+    font-weight: 600;
+    /* Subtle grey: a category label on the recessed surface, not a heading competing
+       with the panels below it. Sentence case, as authored — the labels read as words
+       rather than as a typographic device. */
+    color: var(--fin-muted);
+}
+
+/* ---- saved markets call to action ---- */
+/* Sits above the watchlist and swaps the lower detail area for a markets table. */
+.fin-saved-cta {
+    all: unset;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    height: 38px;
+    margin-bottom: 12px;
+    padding: 0 10px;
+    background: var(--fin-elevated);
     color: var(--fin-text);
+    /* Larger than the surrounding chrome: this is the one call to action in the sidebar. */
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+        background 0.12s ease,
+        color 0.12s ease;
+}
+.fin-saved-cta:hover {
+    background: var(--fin-elevated-hover);
+}
+.fin-saved-cta[data-active='true'] {
+    background: var(--fin-accent-strong);
+    color: var(--fin-on-accent);
+}
+.fin-saved-cta:focus-visible {
+    outline: 1px solid var(--fin-accent);
+    outline-offset: 1px;
+}
+.fin-saved-cta-icon {
+    flex: none;
+    width: 16px;
+    height: 16px;
+}
+.fin-saved-cta-text {
+    flex: 1 1 auto;
+    text-align: left;
+}
+.fin-saved-cta-count {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 20px;
+    padding: 0 6px;
+    background: var(--fin-hover);
+    color: var(--fin-muted);
+    font-size: 12px;
+    font-weight: 600;
+}
+.fin-saved-cta[data-active='true'] .fin-saved-cta-count {
+    background: rgba(255, 255, 255, 0.22);
+    color: var(--fin-on-accent);
 }
 
 /* ---- generic controls ---- */
@@ -184,21 +435,16 @@
     height: 26px;
     padding: 0 8px;
     border-radius: 0;
-    border: 1px solid var(--fin-border);
-    background: var(--fin-panel-2);
+    background: var(--fin-elevated);
     color: var(--fin-text);
     cursor: pointer;
     font: inherit;
     user-select: none;
-    transition:
-        background 0.12s ease,
-        border-color 0.12s ease;
+    transition: background 0.12s ease;
 }
-.fin-btn:hover {
-    border-color: var(--fin-accent);
-}
+.fin-btn:hover,
 .fin-btn[data-state='open'] {
-    border-color: var(--fin-accent);
+    background: var(--fin-elevated-hover);
 }
 
 /* ---- radix Select ---- */
@@ -218,11 +464,11 @@
 }
 .fin-select-content {
     z-index: 60;
-    background: var(--fin-panel-2);
-    border: 1px solid var(--fin-border);
+    background: var(--fin-elevated);
     border-radius: 0;
     padding: 4px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+    /* A menu genuinely floats, so it earns the one elevation in the app. */
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
 }
 .fin-select-item {
     all: unset;
@@ -235,16 +481,16 @@
     color: var(--fin-text);
 }
 .fin-select-item[data-highlighted] {
-    background: var(--fin-accent);
-    color: #fff;
+    background: var(--fin-accent-strong);
+    color: var(--fin-on-accent);
 }
 
 /* ---- radix ToggleGroup ---- */
 .fin-toggle-group {
     display: inline-flex;
-    border: 1px solid var(--fin-border);
     border-radius: 0;
     overflow: hidden;
+    background: var(--fin-elevated);
 }
 .fin-toggle-item {
     all: unset;
@@ -254,14 +500,13 @@
     align-items: center;
     cursor: pointer;
     color: var(--fin-muted);
-    border-left: 1px solid var(--fin-border);
 }
-.fin-toggle-item:first-child {
-    border-left: none;
+.fin-toggle-item:hover {
+    color: var(--fin-text);
 }
 .fin-toggle-item[data-state='on'] {
-    background: var(--fin-panel-2);
-    color: var(--fin-text);
+    background: var(--fin-accent-strong);
+    color: var(--fin-on-accent);
 }
 
 .fin-title-bar {
@@ -270,6 +515,12 @@
     justify-content: space-between;
     gap: 8px 16px;
     flex-wrap: wrap;
+}
+/* Inside the chart card the header is part of the same component; spacing alone
+   separates it from the plot. */
+.fin-chart-card > .fin-title-bar {
+    flex: 0 0 auto;
+    margin-bottom: 10px;
 }
 .fin-title-controls {
     display: flex;
@@ -294,9 +545,10 @@
 
 /* ---- watchlist drawer (narrow viewports) ---- */
 @media (max-width: 860px) {
-    /* Sidebar leaves the grid and becomes an off-canvas drawer. */
+    /* Sidebar leaves the grid and becomes an off-canvas drawer; the rail stays put,
+       and the drawer (fixed, z-indexed above) simply covers it while open. */
     .fin-body {
-        grid-template-columns: 1fr;
+        grid-template-columns: 68px 1fr;
     }
     .fin-sidebar-left {
         position: fixed;
@@ -305,8 +557,7 @@
         left: 0;
         z-index: 90;
         width: min(320px, 85vw);
-        border-right: 1px solid var(--fin-border);
-        box-shadow: 0 0 40px rgba(0, 0, 0, 0.6);
+        box-shadow: 0 0 40px rgba(0, 0, 0, 0.7);
         transform: translateX(-100%);
         transition: transform 0.2s ease;
     }
@@ -318,7 +569,7 @@
         position: fixed;
         inset: 0;
         z-index: 80;
-        background: rgba(0, 0, 0, 0.55);
+        background: rgba(0, 0, 0, 0.6);
     }
     .fin-drawer-toggle {
         display: inline-flex;
@@ -338,7 +589,7 @@
 }
 .fin-quote-symbol {
     font-size: 16px;
-    font-weight: 700;
+    font-weight: 650;
 }
 .fin-quote-price {
     font-size: 16px;
@@ -349,22 +600,23 @@
     min-height: 0;
 }
 
-/* Cards that hold a chart or a gauge share the same panel framing. */
+/* Cards that hold a chart or a gauge share the same panel framing: a raised surface
+   on the recessed working area, with no outline. */
 .fin-detail-card {
     background: var(--fin-panel-2);
-    border: 1px solid var(--fin-border);
     padding: 12px;
     min-width: 0;
 }
 
+/* Sentence case, matching .fin-section-title. Uppercasing here also shouted the value
+   on the right ("BUY", "65% POSITIVE"), which is data rather than a label. */
 .fin-detail-card-title {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    text-transform: uppercase;
-    letter-spacing: 0.6px;
     font-size: 11px;
-    color: var(--fin-text);
+    font-weight: 600;
+    color: var(--fin-muted);
 }
 
 .fin-detail-card-title .fin-value {
@@ -410,6 +662,63 @@
     }
 }
 
+/* ---- market identity badge ---- */
+/* A small coloured initial before a market's name, so a long board can be scanned by
+   shape and colour rather than by reading every row. Colour slot is assigned by
+   hashing the ticker (see TickerCell.tsx) — keep the slot count in step with it. */
+.fin-ticker {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+}
+.fin-ticker-badge {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    color: #fff;
+    font-size: 9px;
+    font-weight: 600;
+    line-height: 1;
+}
+.fin-ticker-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+/* Vibrant mid-tones rather than the darker inks a text colour would need: the initial
+   is decorative (aria-hidden, and the ticker it abbreviates is right beside it), so
+   these are tuned for identity at a glance rather than for text contrast. */
+.fin-ticker-badge[data-avatar='0'] {
+    background: #2b80de;
+}
+.fin-ticker-badge[data-avatar='1'] {
+    background: #f57c1f;
+}
+.fin-ticker-badge[data-avatar='2'] {
+    background: #10a396;
+}
+.fin-ticker-badge[data-avatar='3'] {
+    background: #7c56e0;
+}
+.fin-ticker-badge[data-avatar='4'] {
+    background: #e33a72;
+}
+.fin-ticker-badge[data-avatar='5'] {
+    background: #1cae57;
+}
+.fin-ticker-badge[data-avatar='6'] {
+    background: #dfa20d;
+}
+.fin-ticker-badge[data-avatar='7'] {
+    background: #0d97cb;
+}
+
 /* ---- watchlist + trending (AG Grid) ---- */
 /* Sparkline trend cell: let the chart fill the full cell box. */
 .fin-sparkline-col {
@@ -424,31 +733,90 @@
 }
 
 .fin-watchlist-grid .ag-row,
-.fin-trending-grid .ag-row {
+.fin-trending-grid .ag-row,
+.fin-saved-grid .ag-row {
     cursor: pointer;
 }
 .fin-watchlist-grid .ag-row.fin-grid-active,
-.fin-trending-grid .ag-row.fin-grid-active {
+.fin-trending-grid .ag-row.fin-grid-active,
+.fin-saved-grid .ag-row.fin-grid-active {
     box-shadow: inset 2px 0 0 var(--fin-accent);
 }
 /* Keyboard focus only (:focus-visible): ring the whole row rather than the cell.
    A mouse click focuses a cell too, but :focus-visible won't match, so pointer
    users see no ring — selection stays pointer-driven and chrome-free. */
 .fin-watchlist-grid .ag-row:has(.ag-cell:focus-visible),
-.fin-trending-grid .ag-row:has(.ag-cell:focus-visible) {
+.fin-trending-grid .ag-row:has(.ag-cell:focus-visible),
+.fin-saved-grid .ag-row:has(.ag-cell:focus-visible) {
     outline: 1px solid var(--fin-accent);
     outline-offset: -1px;
 }
 .fin-watchlist-grid .fin-grid-active .ag-cell:first-child,
-.fin-trending-grid .fin-grid-active .ag-cell:first-child {
+.fin-trending-grid .fin-grid-active .ag-cell:first-child,
+.fin-saved-grid .fin-grid-active .ag-cell:first-child {
     color: var(--fin-accent);
 }
 /* Reuse the terminal up/down colours inside grid cells. */
 .fin-watchlist-grid .ag-cell.fin-up,
-.fin-trending-grid .ag-cell.fin-up {
+.fin-trending-grid .ag-cell.fin-up,
+.fin-saved-grid .ag-cell.fin-up {
     color: var(--fin-up);
 }
 .fin-watchlist-grid .ag-cell.fin-down,
-.fin-trending-grid .ag-cell.fin-down {
+.fin-trending-grid .ag-cell.fin-down,
+.fin-saved-grid .ag-cell.fin-down {
     color: var(--fin-down);
+}
+
+/* ---- saved markets table ---- */
+/* A dealable price lights on the tick that moved it and fades back to ink. The lit
+   state kills the transition so the colour snaps on; removing the class lets the base
+   transition carry it back. The cell background is left alone — flashing the cell
+   would strobe a band across the row on every tick. */
+.fin-price {
+    font-weight: 600;
+    transition: color 500ms ease-out;
+}
+.fin-price.fin-tick-up {
+    color: var(--fin-up);
+    transition: none;
+}
+.fin-price.fin-tick-down {
+    color: var(--fin-down);
+    transition: none;
+}
+
+/* Deal buttons keep their outline: it is the affordance, and the sided colour is what
+   tells sell from buy at a glance. The only intentional border in the app. */
+.fin-deal-btn {
+    all: unset;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 20px;
+    border: 1px solid currentColor;
+    background: transparent;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    cursor: pointer;
+    transition: background 0.12s ease;
+}
+.fin-deal-btn[data-side='sell'] {
+    color: var(--fin-down);
+}
+.fin-deal-btn[data-side='sell']:hover {
+    background: color-mix(in srgb, var(--fin-down) 18%, transparent);
+}
+.fin-deal-btn[data-side='buy'] {
+    color: var(--fin-up);
+}
+.fin-deal-btn[data-side='buy']:hover {
+    background: color-mix(in srgb, var(--fin-up) 18%, transparent);
+}
+.fin-deal-btn:focus-visible {
+    outline: 1px solid currentColor;
+    outline-offset: 1px;
 }
