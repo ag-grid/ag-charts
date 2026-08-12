@@ -17,17 +17,6 @@ const options: AgQuadrantChartOptions = {
     labelName: 'Country',
     xAxis: { title: { text: 'Temperature anomaly (°C)' }, label: { formatter: (params) => `${params.value} °C` } },
     yAxis: { title: { text: 'Precipitation anomaly (%)' }, label: { formatter: (params) => `${params.value}%` } },
-    tooltip: {
-        renderer: (params) => {
-            return {
-                data: [
-                    { label: 'Country', value: params.datum.country },
-                    { label: 'Temperature anomaly', value: `${params.datum.tempAnomaly} °C` },
-                    { label: 'Precipitation anomaly', value: `${params.datum.precipAnomaly}%` },
-                ],
-            };
-        },
-    },
     pivot: { x: 1.35, y: 0 },
     regions: {
         topLeft: {
@@ -40,8 +29,10 @@ const options: AgQuadrantChartOptions = {
                 ],
             },
             fillOpacity: 0.45,
+            stroke: '#0284c7',
+            strokeOpacity: 0.4,
+            strokeWidth: 1,
             marker: { fill: '#38bdf8', strokeWidth: 0 },
-            strokeWidth: 0,
             label: {
                 text: 'Slower Warming, Wetter',
                 position: 'inside-top-left',
@@ -60,8 +51,10 @@ const options: AgQuadrantChartOptions = {
                 ],
             },
             fillOpacity: 0.45,
+            stroke: '#9333ea',
+            strokeOpacity: 0.4,
+            strokeWidth: 1,
             marker: { fill: '#a855f7', strokeWidth: 0 },
-            strokeWidth: 0,
             label: {
                 text: 'Faster Warming, Wetter',
                 position: 'inside-top-right',
@@ -80,8 +73,10 @@ const options: AgQuadrantChartOptions = {
                 ],
             },
             fillOpacity: 0.45,
+            stroke: '#0d9488',
+            strokeOpacity: 0.4,
+            strokeWidth: 1,
             marker: { fill: '#14b8a6', strokeWidth: 0 },
-            strokeWidth: 0,
             label: {
                 text: 'Slower Warming, Drier',
                 position: 'inside-bottom-left',
@@ -100,8 +95,10 @@ const options: AgQuadrantChartOptions = {
                 ],
             },
             fillOpacity: 0.45,
+            stroke: '#ea580c',
+            strokeOpacity: 0.4,
+            strokeWidth: 1,
             marker: { fill: '#f97316', strokeWidth: 0 },
-            strokeWidth: 0,
             label: {
                 text: 'Faster Warming, Drier',
                 position: 'inside-bottom-right',

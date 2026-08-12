@@ -1,4 +1,4 @@
-import { NumberAxisModule, ScatterSeriesModule } from 'ag-charts-community';
+import { BubbleSeriesModule, NumberAxisModule, ScatterSeriesModule } from 'ag-charts-community';
 import type { ModuleDefinition } from 'ag-charts-core';
 
 import { AnimationModule } from '../features/animation/animationModule';
@@ -23,6 +23,7 @@ export const QuadrantChartModule: ModuleDefinition[] = [
     NumberAxisModule,
 
     // Series
+    BubbleSeriesModule,
     ScatterSeriesModule,
 
     // Features
