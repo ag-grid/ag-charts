@@ -23,7 +23,16 @@ interface TickerGridProps<T extends { ticker: string }> {
      * otherwise run off the bottom of the page.
      */
     fillHeight?: boolean;
+    /**
+     * Column to hold a live sort on, flipping between ascending and descending on an
+     * interval. The rows reorder under a streaming feed, which is the point — it shows
+     * the sort indicator and the row animation doing real work.
+     */
+    autoSortColId?: string;
 }
+
+// How long each direction holds before the auto-sort flips.
+const AUTO_SORT_MS = 4_000;
 
 // A titled watchlist-style grid: a fixed row set whose values stream in place,
 // with the active ticker highlighted and rows selectable.
@@ -35,6 +44,7 @@ export function TickerGrid<T extends { ticker: string }>({
     activeTicker,
     onSelect,
     fillHeight = false,
+    autoSortColId,
 }: TickerGridProps<T>) {
     const gridRef = useRef<AgGridReact<T>>(null);
     const defaultColDef = useMemo(() => baseColDef<T>(), []);
@@ -65,6 +75,20 @@ export function TickerGrid<T extends { ticker: string }>({
     useEffect(() => {
         gridRef.current?.api?.redrawRows();
     }, [activeTicker]);
+
+    // Hold a sort on one column and flip its direction on an interval. Seeded descending,
+    // which is the order the mover feeds are already in, so the first flip is the visible one.
+    useEffect(() => {
+        if (!autoSortColId) return;
+        let sort: 'asc' | 'desc' = 'desc';
+        const apply = () => gridRef.current?.api?.applyColumnState({ state: [{ colId: autoSortColId, sort }] });
+        apply();
+        const id = window.setInterval(() => {
+            sort = sort === 'desc' ? 'asc' : 'desc';
+            apply();
+        }, AUTO_SORT_MS);
+        return () => window.clearInterval(id);
+    }, [autoSortColId]);
 
     const onCellKeyDown = ({ event, data }: CellKeyDownEvent<T> | FullWidthCellKeyDownEvent<T>) => {
         if (!data || !(event instanceof KeyboardEvent)) return;

@@ -36,9 +36,11 @@ interface FinancialChartProps {
     bars: Bar[];
     /** Trailing window in minutes; bars are one minute apart, so this is a bar count. */
     windowMinutes: number;
+    /** The instrument on show. A change swaps the whole series (see the effect below). */
+    ticker: string;
 }
 
-export function FinancialChart({ bars, windowMinutes }: FinancialChartProps) {
+export function FinancialChart({ bars, windowMinutes, ticker }: FinancialChartProps) {
     const chartRef = useRef<AgChartInstance>(null);
     // OPTIMIZATION: bars are immutable once created, so each one's ChartDatum (and its Date) is
     // built once rather than per tick.
@@ -47,6 +49,8 @@ export function FinancialChart({ bars, windowMinutes }: FinancialChartProps) {
     const windowRef = useRef<ChartDatum[]>([]);
     // Tracks the window size so a resize can be told apart from a streaming tick.
     const windowMinutesRef = useRef(windowMinutes);
+    // Likewise the instrument, so a selection can be told apart from a tick.
+    const tickerRef = useRef(ticker);
 
     const windowedData = useMemo(() => {
         const cache = datumCache.current;
@@ -72,9 +76,15 @@ export function FinancialChart({ bars, windowMinutes }: FinancialChartProps) {
     useEffect(() => {
         const baseline = windowRef.current;
         windowRef.current = windowedData;
-        // A resize swaps most of the window at once; incremental transactions would leave the
-        // time axis domain stale, so replace the data to rebuild it. Ticks stay incremental below.
-        if (windowMinutes !== windowMinutesRef.current) {
+        // Two changes replace the data outright instead of streaming a diff. A resize swaps most of
+        // the window at once, and incremental transactions would leave the time axis domain stale.
+        // An instrument change swaps all of it, and cannot be expressed as a diff at all: every feed
+        // shares one time grid, so the new bars carry the same `time` values — the dataIdKey — as the
+        // old ones, leaving diffWindow with nothing to add or remove and (absent a valueEquals)
+        // nothing to update either. Replacing keeps the chart instance, and with it the zoom and the
+        // toolbar's chart-type selection, both of which a remount would throw away.
+        if (ticker !== tickerRef.current || windowMinutes !== windowMinutesRef.current) {
+            tickerRef.current = ticker;
             windowMinutesRef.current = windowMinutes;
             // eslint-disable-next-line no-console
             chartRef.current?.updateDelta({ data: windowedData }).catch((e) => console.error(e));
@@ -85,7 +95,7 @@ export function FinancialChart({ bars, windowMinutes }: FinancialChartProps) {
             // eslint-disable-next-line no-console
             chartRef.current?.applyTransaction(transaction).catch((e) => console.error(e));
         }
-    }, [windowedData, windowMinutes]);
+    }, [windowedData, windowMinutes, ticker]);
 
     return <AgFinancialCharts ref={chartRef} options={options} style={{ height: '100%', width: '100%' }} />;
 }

@@ -43,6 +43,7 @@ export function MostActive({ rows, activeTicker, onSelect }: MostActiveProps) {
             rowData={rows}
             activeTicker={activeTicker}
             onSelect={onSelect}
+            autoSortColId="volume"
         />
     );
 }

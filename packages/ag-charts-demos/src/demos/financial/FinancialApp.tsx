@@ -65,7 +65,7 @@ export const FinancialApp = () => {
         peerFeed,
         peerTick,
         ticker,
-        setTicker,
+        selectTicker: selectInstrument,
         running,
         setRunning,
         speedMs,
@@ -83,10 +83,10 @@ export const FinancialApp = () => {
     // Selecting an instrument on a phone should reveal the chart it opened.
     const selectTicker = useCallback(
         (next: string) => {
-            setTicker(next);
+            selectInstrument(next);
             setDrawerOpen(false);
         },
-        [setTicker]
+        [selectInstrument]
     );
 
     // Everything the desk has saved: the watchlist plus both market-overview boards.
@@ -164,7 +164,10 @@ export const FinancialApp = () => {
                             </div>
                         </div>
                         <div className="fin-chart-body">
-                            <FinancialChart key={ticker} bars={bars} windowMinutes={rangeMinutes} />
+                            {/* No `key` on the ticker: the chart replaces its data in place, so
+                                selecting an instrument keeps the same chart instance rather than
+                                tearing it down and rebuilding it. */}
+                            <FinancialChart bars={bars} windowMinutes={rangeMinutes} ticker={ticker} />
                         </div>
                     </div>
 
