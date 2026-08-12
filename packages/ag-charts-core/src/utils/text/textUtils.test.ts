@@ -212,4 +212,15 @@ describe('forceLtrNumbersIn', () => {
     it.each([[false], [true]])('leaves a number following LTR text alone (%j)', (isRtl) => {
         expect(forceLtrNumbersIn('Sales -5', isRtl)).toBe('Sales -5');
     });
+
+    it.each([['33ms'], ['1 of 2'], ['b11.1.0 Time 33ms']])(
+        'leaves the LTR-only %j alone in an LTR paragraph',
+        (text) => {
+            expect(forceLtrNumbersIn(text, false)).toBe(text);
+        }
+    );
+
+    it('marks an LTR-only number leading the text in an RTL paragraph', () => {
+        expect(forceLtrNumbersIn('33ms', true)).toBe(mark('33ms'));
+    });
 });

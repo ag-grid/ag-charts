@@ -178,8 +178,9 @@ export function forceLtrNumbers(text: string): string {
 }
 
 // A DOM node cannot swap paragraph direction per line, so neutral text needs the marks once the paragraph is RTL.
+// Without RTL on either side there is nothing to reorder, and marking would only pollute the text content.
 export function forceLtrNumbersIn(text: string, paragraphIsRtl: boolean): string {
-    return paragraphIsRtl || !isDirectionNeutral(text) ? forceLtrNumbers(text) : text;
+    return paragraphIsRtl || StrongRtlRegex.test(text) ? forceLtrNumbers(text) : text;
 }
 
 export function guardTextEdges(str: string) {
