@@ -999,11 +999,17 @@ export abstract class Chart implements ModuleInstance, ChartService {
     }
 
     private async tryPerformUpdate(count: number) {
+        // Wrapped callbacks re-run (and can re-report caught errors) only when their cache is cleared
+        // this cycle; on a cache-hit redraw the styler's result is reused without re-invocation, so the
+        // previously committed callback-error set stays authoritative and must not be wiped by an empty cycle.
+        const callbacksReEvaluated = this.clearCallbackCacheOnUpdate;
+        if (callbacksReEvaluated) this.validationCollector.beginCallbackIssues();
         try {
             const status = `${ChartUpdateType[this.performUpdateType]} ${this.updateShortcutCount > 0 ? '⚠️ redo #' + this.updateShortcutCount + ' ⚠️ ' : ''}`;
             await this.debug.group(`Chart.performUpdate() ${status}`, async () => {
                 await this.performUpdate(count);
             });
+            if (callbacksReEvaluated) this.validationCollector.commitCallbackIssues();
         } catch (error: any) {
             this.ctx.logger.error('update error', error, error.stack);
             this.validationCollector.add({

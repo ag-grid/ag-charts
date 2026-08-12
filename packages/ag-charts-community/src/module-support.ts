@@ -24,6 +24,7 @@ export type {
 export { FormatManager } from './chart/formatter/formatManager';
 export type { TransferableResources } from './chart/chart';
 export type { ChartService } from './chart/chartService';
+export { numberAxisOptionsDefs } from './chart/axesOptionsDefs';
 export {
     angleCategoryAxisOptionsDefs,
     angleNumberAxisOptionsDefs,

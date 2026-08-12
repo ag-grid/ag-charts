@@ -1,0 +1,107 @@
+@use 'design-system' as *;
+
+/*
+    Mirror the two-column geometry the hydrated <ApiReferencePage> produces (its
+    `.container.layout-grid` + `.objectViewOuter` + `.referenceOuter`) so the swap from the
+    fallback to the React app does not shift the page horizontally.
+*/
+
+.navPlaceholder {
+    width: calc(100% + var(--layout-horizontal-margins) * 2);
+    margin-left: calc(var(--layout-horizontal-margins) * -1);
+
+    @media screen and (max-width: $breakpoint-options-medium) {
+        /*
+            Below this breakpoint the navigation tree is hidden and the nav stacks above the
+            content as a single search box. Reserve its height so the content does not drop on
+            hydration: the nav's top padding ($spacing-size-5) plus the search box (its text
+            line-box + vertical padding of $spacing-size-3 + 1px border top and bottom).
+        */
+        min-height: calc(#{$spacing-size-5} + var(--text-fs-base) * var(--text-lh-base) + #{$spacing-size-3} + 2px);
+    }
+
+    @media screen and (min-width: $breakpoint-options-medium) {
+        width: calc(var(--layout-width-4-12) + var(--layout-horizontal-margins));
+        box-shadow: -1px 0 0 0 var(--color-border-primary);
+        border-right: 1px solid var(--color-border-primary);
+    }
+
+    @media screen and (min-width: $breakpoint-options-large) {
+        width: calc(var(--layout-width-3-12) + var(--layout-horizontal-margins));
+    }
+}
+
+.referenceContent {
+    width: calc(100% + var(--layout-gap) * 2);
+    margin-left: calc(var(--layout-gap) * -1);
+
+    @media screen and (max-width: $breakpoint-options-medium) {
+        /* Below this breakpoint the content spans full width with no negative bleed, matching
+           the hydrated `.referenceOuter`; without this the body sits ~32px too far left (and
+           off-screen) until hydration snaps it back. */
+        margin-left: 0;
+    }
+
+    @media screen and (min-width: $breakpoint-options-medium) {
+        width: var(--layout-width-8-12);
+        margin-left: 0;
+    }
+
+    @media screen and (min-width: $breakpoint-options-large) {
+        width: var(--layout-width-9-12);
+    }
+
+    header {
+        padding-top: $spacing-size-8;
+        padding-bottom: $spacing-size-6;
+        margin-bottom: $spacing-size-4;
+        border-bottom: 1px solid var(--color-border-secondary);
+    }
+}
+
+.referenceList {
+    margin: 0;
+}
+
+.referenceRow {
+    padding: $spacing-size-4 0;
+    border-top: 1px solid var(--color-border-secondary);
+
+    dt {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: $spacing-size-2;
+    }
+
+    dd {
+        margin: $spacing-size-2 0 0;
+
+        &:empty {
+            margin: 0;
+        }
+    }
+}
+
+.propertyName {
+    font-weight: var(--text-bold);
+}
+
+.propertyType {
+    color: var(--color-fg-code);
+}
+
+.propertyDefault {
+    color: var(--color-fg-secondary);
+    font-size: var(--text-fs-sm);
+}
+
+.required {
+    color: red;
+    font-size: var(--text-fs-sm);
+}
+
+.recordAlias,
+.unionDiscriminator {
+    color: var(--color-fg-code);
+}

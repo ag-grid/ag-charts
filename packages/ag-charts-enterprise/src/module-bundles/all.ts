@@ -12,6 +12,7 @@ import { AllCartesianModule } from './cartesian';
 import { FinancialChartModule } from './financial';
 import { AllGaugeModule } from './gauge';
 import { AllPolarModule } from './polar';
+import { QuadrantChartModule } from './quadrant';
 import { AllMapSeriesModule } from './topology';
 
 export const AllEnterpriseModule: ModuleDefinition[] = [
@@ -22,6 +23,7 @@ export const AllEnterpriseModule: ModuleDefinition[] = [
     AllMapSeriesModule,
     AllGaugeModule,
     FinancialChartModule,
+    QuadrantChartModule,
 
     BackgroundRegionsModule,
 

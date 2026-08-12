@@ -66,6 +66,7 @@ describe('LegendEvent', () => {
                 text: null,
                 event: null,
                 visible: null,
+                defaultPrevented: null,
                 preventDefault: null,
             });
 
@@ -82,6 +83,7 @@ describe('LegendEvent', () => {
                 text: null,
                 event: null,
                 visible: null,
+                defaultPrevented: null,
                 preventDefault: null,
             });
 

@@ -34,7 +34,12 @@ export function makeLegendItemEvent(
             event,
             visible: enabled,
             text: toPlainText(text),
-            preventDefault: () => (result.defaultPrevented = true),
+            get defaultPrevented() {
+                return result.defaultPrevented;
+            },
+            preventDefault: () => {
+                result.defaultPrevented = true;
+            },
         },
     };
     return result;

@@ -183,9 +183,9 @@ test.describe('api-ref-page', () => {
         await selectSearchOption(page, 'series type bar');
         await page.keyboard.press('Enter');
 
-        const url = page.url();
-        expect(url).toContain('/options/series/bar/');
-        expect(url).toContain('#reference-AgBarSeriesOptions-type');
+        // Selecting a result hands off to Astro's router, which swaps in the target document, so
+        // the address bar catches up a tick after the keypress rather than during it.
+        await page.waitForURL(/\/options\/series\/bar\/#reference-AgBarSeriesOptions-type$/);
         await expect(page.locator('header h1')).toContainText("type = 'bar'");
     });
 

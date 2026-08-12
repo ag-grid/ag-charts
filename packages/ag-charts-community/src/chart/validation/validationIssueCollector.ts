@@ -40,6 +40,8 @@ function signatureOf(issues: ValidationIssue[]): string {
 export class ValidationIssueCollector implements ValidationSink {
     private issues: ValidationIssue[] = [];
     private dataIssues: ValidationIssue[] = [];
+    private callbackIssues: ValidationIssue[] = [];
+    private pendingCallbackIssues: ValidationIssue[] = [];
     private overlayLevel: ValidationOverlayLevel = 'none';
     private dismissed = false;
     private signature = '';
@@ -88,6 +90,37 @@ export class ValidationIssueCollector implements ValidationSink {
         this.add(issue);
     }
 
+    /**
+     * Start a fresh buffer for callback errors caught during a render cycle. Callbacks (itemStyler,
+     * formatters) can throw once per datum, so they are collected across the cycle and committed as a
+     * whole via {@link commitCallbackIssues}, keeping the feed stateless like {@link setDataIssues}.
+     */
+    beginCallbackIssues() {
+        this.pendingCallbackIssues = [];
+    }
+
+    /** Buffer a caught callback error for the current render cycle, de-duplicated by severity + message. */
+    recordCallbackIssue(issue: ValidationIssue) {
+        const duplicate = this.pendingCallbackIssues.some(
+            (existing) => existing.severity === issue.severity && existing.message === issue.message
+        );
+        if (!duplicate) this.pendingCallbackIssues.push(issue);
+    }
+
+    /**
+     * Replace the shown callback-error set with the buffer collected since {@link beginCallbackIssues}.
+     * Re-derived each cycle, so a fixed callback simply isn't re-emitted — no per-issue clearing. The
+     * atomic replace keeps a dismissed overlay dismissed when the set is unchanged.
+     */
+    commitCallbackIssues() {
+        if (this.callbackIssues.length === 0 && this.pendingCallbackIssues.length === 0) return;
+        // Copy, not alias: a callback that throws outside a render cycle (e.g. a tooltip formatter on
+        // hover) still calls recordCallbackIssue, which must not mutate the shown set in place.
+        this.callbackIssues = [...this.pendingCallbackIssues];
+        this.refreshSignature();
+        this.listeners.dispatch('change');
+    }
+
     dismiss() {
         if (this.dismissed) return;
         this.dismissed = true;
@@ -112,7 +145,8 @@ export class ValidationIssueCollector implements ValidationSink {
     }
 
     private allIssues(): ValidationIssue[] {
-        return this.dataIssues.length === 0 ? this.issues : [...this.issues, ...this.dataIssues];
+        if (this.dataIssues.length === 0 && this.callbackIssues.length === 0) return this.issues;
+        return [...this.issues, ...this.dataIssues, ...this.callbackIssues];
     }
 
     private refreshSignature() {

@@ -161,6 +161,7 @@ test.describe('state', () => {
             const COMMON_THAWED_UI_ACTIVECHANGE = Object.freeze({
                 dataIdKey: undefined,
                 frozen: false,
+                defaultPrevented: false,
                 preventDefault: PREVENT_DEFAULT_STUB,
                 source: 'user-interaction',
                 type: 'activeChange',
@@ -1377,6 +1378,7 @@ test.describe('state', () => {
                 datum: undefined,
                 dataIdKey: undefined,
                 frozen: false,
+                defaultPrevented: false,
                 preventDefault: PREVENT_DEFAULT_STUB,
                 source: 'user-interaction',
                 type: 'activeChange',
@@ -1392,6 +1394,7 @@ test.describe('state', () => {
                 datum: { name: 'Home Feed', sessionMinutes: 5.3, crashRate: 1.1, dau: 680 },
                 dataIdKey: undefined,
                 frozen: false,
+                defaultPrevented: false,
                 preventDefault: PREVENT_DEFAULT_STUB,
                 source: 'user-interaction',
                 type: 'activeChange',
@@ -1407,6 +1410,7 @@ test.describe('state', () => {
                 datum: undefined,
                 dataIdKey: undefined,
                 frozen: false,
+                defaultPrevented: false,
                 preventDefault: PREVENT_DEFAULT_STUB,
                 source: 'user-interaction',
                 type: 'activeChange',
@@ -1422,6 +1426,7 @@ test.describe('state', () => {
                 datum: undefined,
                 dataIdKey: undefined,
                 frozen: false,
+                defaultPrevented: false,
                 preventDefault: PREVENT_DEFAULT_STUB,
                 source: 'user-interaction',
                 type: 'activeChange',
@@ -1437,6 +1442,7 @@ test.describe('state', () => {
                 datum: { name: 'Messaging', sessionMinutes: 5.3, crashRate: 1.1, dau: 510 },
                 dataIdKey: undefined,
                 frozen: false,
+                defaultPrevented: true,
                 preventDefault: PREVENT_DEFAULT_STUB,
                 source: 'user-interaction',
                 type: 'activeChange',
@@ -1451,6 +1457,7 @@ test.describe('state', () => {
                 datum: { name: 'Search', sessionMinutes: 5.1, crashRate: 0.8, dau: 420 },
                 dataIdKey: undefined,
                 frozen: false,
+                defaultPrevented: false,
                 preventDefault: PREVENT_DEFAULT_STUB,
                 source: 'user-interaction',
                 type: 'activeChange',
@@ -1975,6 +1982,7 @@ test.describe('state', () => {
                 ...activeState2ndBar,
                 datum: { month: 'Jul', sweaters: 70 },
                 dataIdKey: undefined,
+                defaultPrevented: false,
                 preventDefault: PREVENT_DEFAULT_STUB,
                 source: 'user-interaction',
                 type: 'activeChange',
@@ -1985,12 +1993,19 @@ test.describe('state', () => {
                 activeItem: undefined,
                 datum: undefined,
                 dataIdKey: undefined,
+                defaultPrevented: false,
                 preventDefault: PREVENT_DEFAULT_STUB,
                 type: 'activeChange',
             });
 
             const activeChangeDeactivateMouse = Object.freeze({
                 ...activeChangeDeactivateCommon,
+                source: 'user-interaction',
+            });
+
+            const activeChangeDeactivateMousePrevented = Object.freeze({
+                ...activeChangeDeactivateCommon,
+                defaultPrevented: true,
                 source: 'user-interaction',
             });
 
@@ -2060,7 +2075,7 @@ test.describe('state', () => {
                     expect(await popChartEvents(page)).toEqual([activeChange2ndBarMouse]);
 
                     await mouseLeave(page);
-                    expect(await popChartEvents(page)).toEqual([activeChangeDeactivateMouse]);
+                    expect(await popChartEvents(page)).toEqual([activeChangeDeactivateMousePrevented]);
 
                     await mouseMove2ndBar(page);
                     expect(await popChartEvents(page)).toEqual([]);
@@ -2145,16 +2160,16 @@ test.describe('state', () => {
                     expect(await popChartEvents(page)).toEqual([activeChange2ndBarMouse]);
 
                     await mouseLeave(page);
-                    expect(await popChartEvents(page)).toEqual([activeChangeDeactivateMouse]);
+                    expect(await popChartEvents(page)).toEqual([activeChangeDeactivateMousePrevented]);
 
                     await growTextArea(page);
                     // FIXME: When testing this manually, I only get one activeChange deactivation event. But in the e2e
                     // test multiple dom:resize events are firing for some reason.
                     expect(await popChartEvents(page)).toEqual([
-                        activeChangeDeactivateMouse,
-                        activeChangeDeactivateMouse,
-                        activeChangeDeactivateMouse,
-                        activeChangeDeactivateMouse,
+                        activeChangeDeactivateMousePrevented,
+                        activeChangeDeactivateMousePrevented,
+                        activeChangeDeactivateMousePrevented,
+                        activeChangeDeactivateMousePrevented,
                     ]);
                 });
             });
@@ -2213,6 +2228,7 @@ test.describe('state', () => {
                     pop_rank: 16,
                 },
                 frozen: false,
+                defaultPrevented: true,
                 preventDefault: PREVENT_DEFAULT_STUB,
                 source: 'user-interaction',
                 type: 'activeChange',
@@ -2229,6 +2245,7 @@ test.describe('state', () => {
                     pop_rank: 16,
                 },
                 frozen: false,
+                defaultPrevented: true,
                 preventDefault: PREVENT_DEFAULT_STUB,
                 source: 'user-interaction',
                 type: 'activeChange',
@@ -2245,6 +2262,7 @@ test.describe('state', () => {
                     pop_rank: 10,
                 },
                 frozen: false,
+                defaultPrevented: true,
                 preventDefault: PREVENT_DEFAULT_STUB,
                 source: 'user-interaction',
                 type: 'activeChange',
@@ -2254,6 +2272,7 @@ test.describe('state', () => {
                 activeItem: { itemId: 'MapShapeSeries-2', seriesId: 'MapShapeSeries-2', type: 'legend' },
                 datum: undefined,
                 frozen: false,
+                defaultPrevented: true,
                 preventDefault: PREVENT_DEFAULT_STUB,
                 source: 'user-interaction',
                 type: 'activeChange',
@@ -2263,6 +2282,7 @@ test.describe('state', () => {
                 activeItem: { itemId: 'MapShapeSeries-7', seriesId: 'MapShapeSeries-7', type: 'legend' },
                 datum: undefined,
                 frozen: false,
+                defaultPrevented: true,
                 preventDefault: PREVENT_DEFAULT_STUB,
                 source: 'user-interaction',
                 type: 'activeChange',
@@ -2421,6 +2441,7 @@ test.describe('state', () => {
             const Q1_2024_ACTIVE_CHANGE = Object.freeze({
                 ...Q1_2024_ACTIVE,
                 datum: { quarter: 'Q1 2024', sales: 450 },
+                defaultPrevented: false,
                 preventDefault: PREVENT_DEFAULT_STUB,
                 type: 'activeChange',
             });
@@ -2428,6 +2449,7 @@ test.describe('state', () => {
             const Q2_2024_ACTIVE_CHANGE = Object.freeze({
                 ...Q2_2024_ACTIVE,
                 datum: { quarter: 'Q2 2024', sales: 720 },
+                defaultPrevented: false,
                 preventDefault: PREVENT_DEFAULT_STUB,
                 type: 'activeChange',
             });
@@ -2435,6 +2457,7 @@ test.describe('state', () => {
             const Q3_2024_ACTIVE_CHANGE = Object.freeze({
                 ...Q3_2024_ACTIVE,
                 datum: { quarter: 'Q3 2024', sales: 610 },
+                defaultPrevented: false,
                 preventDefault: PREVENT_DEFAULT_STUB,
                 type: 'activeChange',
             });
@@ -2442,6 +2465,7 @@ test.describe('state', () => {
             const Q4_2024_ACTIVE_CHANGE = Object.freeze({
                 ...Q4_2024_ACTIVE,
                 datum: { quarter: 'Q4 2024', sales: 890 },
+                defaultPrevented: false,
                 preventDefault: PREVENT_DEFAULT_STUB,
                 type: 'activeChange',
             });
@@ -2780,6 +2804,7 @@ test.describe('state', () => {
                 ...DATUM7_ACTIVE,
                 datum: { date: new Date('2026-02-10T00:00:00Z'), open: 3715, high: 3730, low: 3670, close: 3688 },
                 itemType: 'down',
+                defaultPrevented: false,
                 preventDefault: PREVENT_DEFAULT_STUB,
                 type: 'activeChange',
             });
@@ -2875,6 +2900,7 @@ test.describe('state', () => {
                 ...MARCHBAR_ACTIVE_STATE,
                 datum: { month: 'Mar', value: 130 },
                 dataIdKey: 'month',
+                defaultPrevented: false,
                 preventDefault: PREVENT_DEFAULT_STUB,
                 type: 'activeChange',
             });
@@ -2975,6 +3001,7 @@ test.describe('state', () => {
                 ...APRIL_ACTIVE_STATE,
                 datum: { month: 'Apr', sales: 220 },
                 dataIdKey: undefined,
+                defaultPrevented: false,
                 preventDefault: PREVENT_DEFAULT_STUB,
                 source: 'state-change',
                 type: 'activeChange',
@@ -3171,6 +3198,7 @@ test.describe('state', () => {
                 activeItem: undefined,
                 datum: undefined,
                 dataIdKey: undefined,
+                defaultPrevented: false,
                 preventDefault: PREVENT_DEFAULT_STUB,
                 source: 'user-interaction',
                 type: 'activeChange',
@@ -3181,6 +3209,7 @@ test.describe('state', () => {
             const CHANGE_NODE = Object.freeze({
                 datum: undefined,
                 dataIdKey: undefined,
+                defaultPrevented: false,
                 preventDefault: PREVENT_DEFAULT_STUB,
                 source: 'state-change',
                 type: 'activeChange',
@@ -3194,6 +3223,7 @@ test.describe('state', () => {
             const CHANGE_LEGEND = Object.freeze({
                 datum: undefined,
                 dataIdKey: undefined,
+                defaultPrevented: false,
                 preventDefault: PREVENT_DEFAULT_STUB,
                 source: 'user-interaction',
                 type: 'activeChange',
@@ -3433,6 +3463,7 @@ test.describe('state', () => {
             const COMMON_ACTIVE_CHANGE = Object.freeze({
                 frozen: false,
                 datum: undefined,
+                defaultPrevented: false,
                 preventDefault: PREVENT_DEFAULT_STUB,
                 source: 'state-change',
                 type: 'activeChange',
