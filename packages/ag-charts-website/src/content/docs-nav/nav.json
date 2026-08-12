@@ -39,6 +39,11 @@
                         },
                         {
                             "type": "item",
+                            "title": "Development Validation",
+                            "path": "dev-validation"
+                        },
+                        {
+                            "type": "item",
                             "title": "Migration",
                             "path": "migration"
                         },
@@ -376,11 +381,6 @@
                             "type": "item",
                             "title": "Overlays",
                             "path": "overlays"
-                        },
-                        {
-                            "type": "item",
-                            "title": "Dev-Time Validation",
-                            "path": "dev-validation"
                         },
                         {
                             "type": "item",
