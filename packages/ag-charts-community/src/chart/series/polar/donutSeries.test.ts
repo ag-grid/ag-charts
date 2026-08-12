@@ -1,3 +1,4 @@
+import { loadImage as skiaLoadImage } from 'skia-canvas';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { classCast } from 'ag-charts-test';
@@ -1262,6 +1263,38 @@ describe('DonutSeries', () => {
                 ],
               ]
             `);
+        });
+
+        it('renders per-segment styling, vertical alignment and an inline image', async () => {
+            const icon =
+                `data:image/svg+xml;utf8,${encodeURIComponent(
+                    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">` +
+                        `<circle cx="12" cy="12" r="11" fill="#2ca02c"/></svg>`
+                )}`;
+            const preloaded = await skiaLoadImage(icon);
+
+            chart = deproxy(
+                AgCharts.create(
+                    prepareTestOptions(
+                        segmentsOptions([
+                            {
+                                text: [
+                                    { text: '60' },
+                                    { text: '%', fontSize: 12, color: '#2ca02c', verticalAlign: 'top' },
+                                    { type: 'image', url: icon, width: 14, height: 14, verticalAlign: 'middle' },
+                                ],
+                                fontSize: 24,
+                            },
+                            { text: 'Share', spacing: 6, fontStyle: 'italic' },
+                        ])
+                    ) as AgChartOptions
+                ) as AgChartProxy
+            );
+            ((chart.ctx.scene as any).imageLoader as any).loadImage = () => preloaded as unknown as HTMLImageElement;
+            await waitForChartStability(chart);
+
+            await compare();
+            expectWarningsCalls().toEqual([]);
         });
     });
 
