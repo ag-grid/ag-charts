@@ -1,3 +1,7 @@
+// Note to AI Agents: Some of these tests use hard-coded measurements. If a test fails because an implicit default
+// changed in a way that invalidates those measurements, the preferred fix is to explicitly declare the original
+// defaults. For example: if the default chart padding changes, do not update the test's X/Y click coordinates; instead,
+// explicitly set the original padding in the chart options where applicable.
 import { vi } from 'vitest';
 
 import { Chart, clickAction, setupMockCanvas, waitForChartStability } from 'ag-charts-community-test';

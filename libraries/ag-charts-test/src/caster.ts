@@ -152,7 +152,7 @@ export class Caster<T> {
     // so unlike accessProperty() this does not assert that the property exists.
     accessNullableProperty<K extends string>(propertyName: K): Caster<unknown> {
         if (this.value == null) {
-            return this as Caster<unknown>;
+            return this;
         }
         return new Caster((this.value as Record<K, unknown>)[propertyName]);
     }
