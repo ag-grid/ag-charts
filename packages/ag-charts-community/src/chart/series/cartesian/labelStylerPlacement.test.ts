@@ -462,7 +462,13 @@ describe('label itemStyler participates in placement', () => {
                         labelKey: 'tag',
                         minSize: 40,
                         maxSize: 40,
-                        label: { enabled: true, placement: ['inside', 'top'], itemStyler: bubbleStyler },
+                        // The styler's box fills are pale, so the inside default is invisible on them.
+                        label: {
+                            enabled: true,
+                            placement: ['inside', 'top'],
+                            insideStyle: { color: { ref: 'textColor' } },
+                            itemStyler: bubbleStyler,
+                        },
                     },
                 ],
             });
