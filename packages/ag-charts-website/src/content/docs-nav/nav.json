@@ -379,6 +379,11 @@
                         },
                         {
                             "type": "item",
+                            "title": "Dev-Time Validation",
+                            "path": "dev-validation"
+                        },
+                        {
+                            "type": "item",
                             "title": "RTL Text & Layout",
                             "path": "rtl"
                         },

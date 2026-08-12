@@ -1,0 +1,52 @@
+---
+title: 'Dev-Time Validation'
+---
+
+Option misconfiguration and caught runtime errors are normally reported only to the browser console, where they are easy to miss. The validation overlay surfaces them on the chart instead. Issues are grouped by severity — errors, then warnings, then deprecations — each group with its own count and accent colour, under a header summarising the totals.
+
+## Validation Overlay
+
+The overlay is opt-in and intended for development. Enable it with `validations.overlayLevel`, which defaults to `'none'`:
+
+{% chartExampleRunner title="Validation Overlay" name="validation-overlay" type="generated" /%}
+
+```js format="snippet"
+{
+    validations: {
+        overlayLevel: 'warning',
+    },
+}
+```
+
+`overlayLevel` is an inclusive severity threshold: each level also shows every louder one.
+
+- `'error'` — errors only.
+- `'warning'` — errors and warnings.
+- `'deprecation'` — errors, warnings and deprecations.
+- `'none'` — nothing. This is the default, so the overlay never appears unless you opt in.
+
+Each issue shows a message, a code block, and a Copy button for pasting into a bug report. Dismiss hides the overlay for that chart instance without suppressing future issues.
+
+While shown, the validation overlay takes priority over the loading and no-data overlays.
+
+## Multiple Issues
+
+Issues are grouped and sorted by severity, with a count in each group's heading:
+
+{% chartExampleRunner title="Multiple Validation Issues" name="validation-overlay-multi" type="generated" /%}
+
+## Dark Theme
+
+The overlay adapts to the chart's active theme:
+
+{% chartExampleRunner title="Validation Overlay — Dark Theme" name="validation-overlay-dark" type="generated" /%}
+
+## API Reference
+
+{% tabs %}
+
+{% tabItem id="AgChartValidationsOptions" label="Validations" %}
+{% apiReference id="AgChartValidationsOptions" /%}
+{% /tabItem %}
+
+{% /tabs %}
