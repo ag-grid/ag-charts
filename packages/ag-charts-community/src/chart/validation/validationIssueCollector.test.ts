@@ -80,6 +80,44 @@ describe('ValidationIssueCollector', () => {
         expect(collector.hasVisibleIssues()).toBe(true);
     });
 
+    it('surfaces data-feed issues and clears them statelessly when the next cycle is clean', () => {
+        const collector = new ValidationIssueCollector();
+        collector.setOverlayLevel('warning');
+        const dataIssue = { severity: 'warning', message: "the key 'xyz' was not found in any data element." } as const;
+
+        collector.setDataIssues([dataIssue]);
+        expect(collector.getVisibleIssues().warning).toEqual([dataIssue]);
+
+        // A fixed config re-derives an empty data feed next cycle — no per-issue clearing needed.
+        collector.setDataIssues([]);
+        expect(collector.hasVisibleIssues()).toBe(false);
+    });
+
+    it('combines option-feed and data-feed issues in the overlay', () => {
+        const collector = new ValidationIssueCollector();
+        collector.setOverlayLevel('warning');
+        collector.setIssues([warningIssue]);
+        const dataIssue = { severity: 'warning', message: 'invalid value of type [object] ignored: [x]' } as const;
+        collector.setDataIssues([dataIssue]);
+
+        expect(collector.getVisibleIssues().warning).toEqual([warningIssue, dataIssue]);
+    });
+
+    it('re-shows a dismissed overlay only when the data feed changes', () => {
+        const collector = new ValidationIssueCollector();
+        collector.setOverlayLevel('warning');
+        const dataIssue = { severity: 'warning', message: 'bad key' } as const;
+        collector.setDataIssues([dataIssue]);
+        collector.dismiss();
+        expect(collector.hasVisibleIssues()).toBe(false);
+
+        collector.setDataIssues([dataIssue]);
+        expect(collector.hasVisibleIssues()).toBe(false);
+
+        collector.setDataIssues([dataIssue, { severity: 'warning', message: 'another bad key' }]);
+        expect(collector.hasVisibleIssues()).toBe(true);
+    });
+
     it('notifies listeners when the collection or threshold changes', () => {
         const collector = new ValidationIssueCollector();
         const listener = vi.fn();

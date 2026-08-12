@@ -1475,6 +1475,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
         }
 
         this._cachedData = dataController.execute(this._cachedData, this.ctx.dataSelectionService);
+        this.validationCollector.setDataIssues(dataController.validationIssues);
 
         this.updateSplits('🏭');
         await Promise.all(promises);
