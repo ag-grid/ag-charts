@@ -37,6 +37,9 @@ export const BackgroundRegionsModule: SeriesAreaPluginModuleDefinition<AgSeriesA
                         strokeWidth: 1,
                     },
                 },
+                marker: {
+                    strokeWidth: { $isUserOption: ['./stroke', 1, 0] },
+                },
             },
             undefined,
             {
