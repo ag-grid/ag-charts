@@ -583,16 +583,23 @@
     background: var(--fin-accent);
     opacity: 0;
 }
+/* Ramps up and back down rather than starting at full strength and fading: a hard-edged
+   start reads as a flicker, where a rise makes it read as a pulse. The rise is about a
+   fifth of the run, so the fall is the part the eye follows. Duration is mirrored by
+   PULSE_MS in FinancialApp.tsx, which clears the class — keep the two in step. */
 @keyframes fin-chart-pulse {
-    from {
-        opacity: 0.25;
+    0% {
+        opacity: 0;
     }
-    to {
+    22% {
+        opacity: 0.22;
+    }
+    100% {
         opacity: 0;
     }
 }
 .fin-chart-card.fin-pulse::after {
-    animation: fin-chart-pulse 600ms ease-out;
+    animation: fin-chart-pulse 1100ms cubic-bezier(0.33, 0, 0.2, 1);
 }
 @media (prefers-reduced-motion: reduce) {
     .fin-chart-card.fin-pulse::after {

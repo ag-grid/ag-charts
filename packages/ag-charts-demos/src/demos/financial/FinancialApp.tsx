@@ -30,8 +30,9 @@ const SPEED_OPTIONS = [
 // bucket span. Driven by the title-bar range buttons. 240 == the 4H button.
 const SHARED_WINDOW_MINUTES = 240;
 
-// How long the chart's selection pulse runs. Matches the fin-chart-pulse keyframes.
-const PULSE_MS = 600;
+// When to clear the pulse class. The fin-chart-pulse animation in financial.css runs for
+// 1100ms; the extra grace lets it finish rather than being cancelled on its last frame.
+const PULSE_MS = 1200;
 
 // Range-button choices for the shared time window, in trailing minutes.
 const RANGE_OPTIONS = [
