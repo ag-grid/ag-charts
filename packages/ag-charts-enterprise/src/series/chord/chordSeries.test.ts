@@ -109,6 +109,34 @@ describe('ChordSeries', () => {
             chart = deproxy(AgCharts.create(options));
             await compare();
         });
+
+        it('should render node cornerRadius against links narrower than a corner', async () => {
+            // The links on `Hub` are far narrower than the corner they meet, so each one covers only
+            // part of it; opaque fills and no stroke leave nothing to hide a gap or an overlap.
+            const options: AgChartOptions = {
+                data: [
+                    { from: 'Hub', to: 'Bulk', size: 100 },
+                    { from: 'Hub', to: 'Sliver', size: 2 },
+                    { from: 'Hub', to: 'Trace', size: 1 },
+                    { from: 'Bulk', to: 'Sliver', size: 40 },
+                    { from: 'Bulk', to: 'Trace', size: 3 },
+                ],
+                series: [
+                    {
+                        type: 'chord',
+                        fromKey: 'from',
+                        toKey: 'to',
+                        sizeKey: 'size',
+                        node: { width: 40, cornerRadius: 20, strokeWidth: 0 },
+                        link: { fillOpacity: 1 },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
     });
 
     describe('Series Highlighting', () => {

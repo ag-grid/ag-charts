@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { SceneChangeDetection, SceneObjectChangeDetection, objectsEqual } from 'ag-charts-core';
+import { SceneChangeDetection, SceneObjectChangeDetection, normalizeAngle360, objectsEqual } from 'ag-charts-core';
 
 const { Path } = _ModuleSupport;
 
@@ -30,17 +30,56 @@ export function bezierControlPoints({
 }
 
 /**
- * The node edge one end of a link terminates against, and the rounded corners that cut into it.
- * A corner radius is 0 unless this link actually reaches that end of the node's sweep — only the
- * first and last link of a node do.
+ * The inner outline of the node a link end terminates against. Angles are the whole node's, not
+ * the link end's — a link end covers whatever part of the outline its own sweep spans, which for a
+ * narrow link can be part of a corner rather than all or none of it.
  */
 export interface ChordLinkNodeEdge {
     /** The node's inner radius as `Sector` normalises it, i.e. including the concentric edge inset. */
     innerRadius: number;
-    /** The node's radial edge inset, which shifts each corner circle's centre. */
-    inset: number;
-    startCornerRadius: number;
-    endCornerRadius: number;
+    /** The corner radius as `Sector` will actually draw it, after clamping. */
+    cornerRadius: number;
+    startAngle: number;
+    endAngle: number;
+    /** Angles of the corner circle centres, which also bound the flat part of the inner edge. */
+    startCentreAngle: number;
+    endCentreAngle: number;
+    /** Half-angle a corner circle subtends at the chart centre. */
+    cornerSweep: number;
+}
+
+/**
+ * The angle on circle `(cx, cy, r)` at which the ray from `(centerX, centerY)` at `rayAngle`
+ * crosses it, taking the crossing nearer the chart centre — the side a node's inner outline runs
+ * along. Undefined when the ray misses the circle.
+ */
+function circleAngleOnRay(
+    centerX: number,
+    centerY: number,
+    cx: number,
+    cy: number,
+    r: number,
+    rayAngle: number
+): number | undefined {
+    const cos = Math.cos(rayAngle);
+    const sin = Math.sin(rayAngle);
+    const dx = cx - centerX;
+    const dy = cy - centerY;
+    const along = dx * cos + dy * sin;
+    const perpendicular = dx * sin - dy * cos;
+    const halfChordSquared = r * r - perpendicular * perpendicular;
+    if (halfChordSquared <= 0) return;
+
+    const distance = along - Math.sqrt(halfChordSquared);
+    if (distance <= 0) return;
+
+    return Math.atan2(centerY + distance * sin - cy, centerX + distance * cos - cx);
+}
+
+/** `angle` moved into the turn starting at `from`, then clamped to `[from, to]`. */
+function clampArcAngle(angle: number, from: number, to: number): number {
+    const normalised = from + normalizeAngle360(angle - from);
+    return Math.min(Math.max(normalised, from), to);
 }
 
 export class ChordLink<D = unknown> extends Path<D> {
@@ -100,69 +139,89 @@ export class ChordLink<D = unknown> extends Path<D> {
     }
 
     /**
-     * Trace one end of the link from `endAngle` back to `startAngle`, filling the area the node's
-     * rounded corners cut away rather than stopping short of it and leaving a gap. Where a corner
-     * is present the link follows the node's own outline, so it butts up against the node without
-     * overlapping its body — an overlap would show through a translucent node and take its
-     * pointer events.
+     * Trace one end of the link from `endAngle` back to `startAngle` along the node's own inner
+     * outline, filling the area its rounded corners cut away rather than stopping short of it and
+     * leaving a gap. The outline is clipped to this link end's sweep, so each link fills exactly
+     * its own share of a corner and no link overlaps the node body or its neighbours — an overlap
+     * would show through the semi-transparent fills and take the node's pointer events.
      *
      * Assumes the current point is on the link's radius at `endAngle`, and leaves it on the link's
      * radius at `startAngle`, so the caller's curves join up either way.
      */
     private traceEnd(startAngle: number, endAngle: number, edge: ChordLinkNodeEdge | undefined) {
         const { path, centerX, centerY, radius } = this;
-        const startCornerRadius = edge?.startCornerRadius ?? 0;
-        const endCornerRadius = edge?.endCornerRadius ?? 0;
 
-        if (edge == null || (startCornerRadius <= 0 && endCornerRadius <= 0)) {
+        if (edge == null || edge.cornerRadius <= 0) {
             path.arc(centerX, centerY, radius, endAngle, startAngle, true);
             return;
         }
 
-        const { innerRadius, inset } = edge;
-        // Angles mirror `Sector`'s inner corner arcs so the two outlines coincide exactly —
-        // see startInnerArc/endInnerArc in scene/shape/sector.ts.
-        const endCornerCentreRadius = innerRadius + endCornerRadius;
-        const endSweep = endCornerRadius > 0 ? Math.asin(endCornerRadius / endCornerCentreRadius) : 0;
-        const endCentreAngle = endAngle - inset / endCornerCentreRadius - endSweep;
-        const arcEnd = endCornerRadius > 0 ? endCentreAngle : endAngle;
+        const { innerRadius, cornerRadius, startCentreAngle, endCentreAngle, cornerSweep } = edge;
+        const centreRadius = innerRadius + cornerRadius;
+        const delta = 1e-6;
 
-        const startCornerCentreRadius = innerRadius + startCornerRadius;
-        const startSweep = startCornerRadius > 0 ? Math.asin(startCornerRadius / startCornerCentreRadius) : 0;
-        const startCentreAngle = startAngle + inset / startCornerCentreRadius + startSweep;
-        const arcStart = startCornerRadius > 0 ? startCentreAngle : startAngle;
-
-        if (arcEnd <= arcStart) {
-            // The link is narrower than the corners it would have to trace, so there is no flat edge
-            // left to run between them. Tracing anyway would sweep the arc the long way round the
-            // circle; leave this link's end square instead.
-            path.arc(centerX, centerY, radius, endAngle, startAngle, true);
-            return;
+        // Corner arcs run from the node's radial edge to the tangent point on its inner edge, and a
+        // point's polar angle falls as the arc is traced, so this link end's higher boundary maps to
+        // the lower arc angle. Angles mirror `Sector`'s startInnerArc/endInnerArc so the two
+        // outlines coincide exactly — see scene/shape/sector.ts.
+        if (endAngle > endCentreAngle + delta) {
+            const cx = centerX + centreRadius * Math.cos(endCentreAngle);
+            const cy = centerY + centreRadius * Math.sin(endCentreAngle);
+            const edgeAngle = edge.endAngle + Math.PI * 0.5;
+            const tangentAngle = edge.endAngle + Math.PI - cornerSweep;
+            // A boundary flush with the node's own edge takes the arc's endpoint rather than a ray
+            // crossing, because that endpoint sits on the node's radially inset edge, not on the ray.
+            const from =
+                endAngle >= edge.endAngle - delta
+                    ? edgeAngle
+                    : this.cornerArcAngle(endAngle, cx, cy, cornerRadius, edgeAngle, tangentAngle, edgeAngle);
+            const to =
+                startAngle <= endCentreAngle + delta
+                    ? tangentAngle
+                    : this.cornerArcAngle(startAngle, cx, cy, cornerRadius, edgeAngle, tangentAngle, tangentAngle);
+            if (to > from) {
+                path.arc(cx, cy, cornerRadius, from, to);
+            }
         }
 
-        if (endCornerRadius > 0) {
-            path.arc(
-                centerX + endCornerCentreRadius * Math.cos(endCentreAngle),
-                centerY + endCornerCentreRadius * Math.sin(endCentreAngle),
-                endCornerRadius,
-                endAngle + Math.PI * 0.5,
-                endAngle + Math.PI - endSweep
-            );
+        const flatEnd = Math.min(endAngle, endCentreAngle);
+        const flatStart = Math.max(startAngle, startCentreAngle);
+        if (flatEnd > flatStart + delta) {
+            path.arc(centerX, centerY, innerRadius, flatEnd, flatStart, true);
         }
 
-        path.arc(centerX, centerY, innerRadius, arcEnd, arcStart, true);
-
-        if (startCornerRadius > 0) {
-            path.arc(
-                centerX + startCornerCentreRadius * Math.cos(startCentreAngle),
-                centerY + startCornerCentreRadius * Math.sin(startCentreAngle),
-                startCornerRadius,
-                startAngle + Math.PI + startSweep,
-                startAngle + Math.PI * 1.5
-            );
+        if (startAngle < startCentreAngle - delta) {
+            const cx = centerX + centreRadius * Math.cos(startCentreAngle);
+            const cy = centerY + centreRadius * Math.sin(startCentreAngle);
+            const tangentAngle = edge.startAngle + Math.PI + cornerSweep;
+            const edgeAngle = edge.startAngle + Math.PI * 1.5;
+            const from =
+                endAngle >= startCentreAngle - delta
+                    ? tangentAngle
+                    : this.cornerArcAngle(endAngle, cx, cy, cornerRadius, tangentAngle, edgeAngle, tangentAngle);
+            const to =
+                startAngle <= edge.startAngle + delta
+                    ? edgeAngle
+                    : this.cornerArcAngle(startAngle, cx, cy, cornerRadius, tangentAngle, edgeAngle, edgeAngle);
+            if (to > from) {
+                path.arc(cx, cy, cornerRadius, from, to);
+            }
         }
 
         path.lineTo(centerX + radius * Math.cos(startAngle), centerY + radius * Math.sin(startAngle));
+    }
+
+    private cornerArcAngle(
+        boundaryAngle: number,
+        cx: number,
+        cy: number,
+        cornerRadius: number,
+        from: number,
+        to: number,
+        fallback: number
+    ) {
+        const angle = circleAngleOnRay(this.centerX, this.centerY, cx, cy, cornerRadius, boundaryAngle);
+        return angle == null ? fallback : clampArcAngle(angle, from, to);
     }
 
     override updatePath(): void {

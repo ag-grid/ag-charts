@@ -591,23 +591,16 @@ export class ChordSeries extends FlowProportionSeries<
     }
 
     /**
-     * The node edge a link end terminates against, with each corner radius resolved to what `Sector`
-     * will actually draw. Only the first and last link of a node reach a corner, so every other link
-     * end gets zeroes and keeps its flat arc.
+     * The inner outline of a node, with its corner radius resolved to what `Sector` will actually
+     * draw. Undefined when the node has no rounding for a link end to follow.
      */
-    private nodeEdge(
-        node: ChordNodeDatum,
-        startAngle: number,
-        endAngle: number,
-        cornerRadius: number
-    ): ChordLinkNodeEdge {
+    private nodeEdge(node: ChordNodeDatum, cornerRadius: number): ChordLinkNodeEdge | undefined {
         const { strokeWidth } = this.properties.node;
         const inset = strokeWidth / 2;
         const innerRadius = node.innerRadius > 0 ? node.innerRadius + inset : 0;
         const outerRadius = Math.max(node.outerRadius - inset, 0);
-        const edge: ChordLinkNodeEdge = { innerRadius, inset, startCornerRadius: 0, endCornerRadius: 0 };
 
-        if (cornerRadius <= 0 || innerRadius <= 0) return edge;
+        if (cornerRadius <= 0 || innerRadius <= 0) return;
 
         // Mirrors the inner-corner clamp in scene/shape/sector.ts — the later scaling passes there
         // cannot reduce it further, because all four of a chord node's corner radii are equal and
@@ -617,12 +610,20 @@ export class ChordSeries extends FlowProportionSeries<
         const radius = Math.floor(
             Math.max(0, Math.min(cornerRadius, cornerDistance / 2, (outerRadius - innerRadius) / 2))
         );
-        if (radius <= 0) return edge;
+        if (radius <= 0) return;
 
-        const delta = 1e-6;
-        edge.startCornerRadius = Math.abs(startAngle - node.startAngle) < delta ? radius : 0;
-        edge.endCornerRadius = Math.abs(endAngle - node.endAngle) < delta ? radius : 0;
-        return edge;
+        const centreRadius = innerRadius + radius;
+        const cornerSweep = Math.asin(radius / centreRadius);
+        const angleOffset = inset / centreRadius;
+        return {
+            innerRadius,
+            cornerRadius: radius,
+            startAngle: node.startAngle,
+            endAngle: node.endAngle,
+            startCentreAngle: node.startAngle + angleOffset + cornerSweep,
+            endCentreAngle: node.endAngle - angleOffset - cornerSweep,
+            cornerSweep,
+        };
     }
 
     protected updateLinkNodes(opts: {
@@ -635,14 +636,13 @@ export class ChordSeries extends FlowProportionSeries<
 
         // An itemStyler can vary cornerRadius per node, and the link has to follow whatever the
         // node is actually drawn with. Resolved once per node rather than once per link end.
-        const nodeCornerRadii = new Map<ChordNodeDatum, number>();
-        const nodeCornerRadius = (node: ChordNodeDatum) => {
-            let cornerRadius = nodeCornerRadii.get(node);
-            if (cornerRadius == null) {
-                cornerRadius = this.getNodeStyle(node, node.datumIndex, false).cornerRadius;
-                nodeCornerRadii.set(node, cornerRadius);
+        const nodeEdges = new Map<ChordNodeDatum, ChordLinkNodeEdge | undefined>();
+        const nodeEdge = (node: ChordNodeDatum) => {
+            if (!nodeEdges.has(node)) {
+                const { cornerRadius } = this.getNodeStyle(node, node.datumIndex, false);
+                nodeEdges.set(node, this.nodeEdge(node, cornerRadius));
             }
-            return cornerRadius;
+            return nodeEdges.get(node);
         };
 
         datumSelection.each((link, datum) => {
@@ -656,9 +656,8 @@ export class ChordSeries extends FlowProportionSeries<
             link.startAngle2 = datum.startAngle2;
             link.endAngle2 = datum.endAngle2;
 
-            const { fromNode, toNode } = datum;
-            link.edge1 = this.nodeEdge(fromNode, datum.startAngle1, datum.endAngle1, nodeCornerRadius(fromNode));
-            link.edge2 = this.nodeEdge(toNode, datum.startAngle2, datum.endAngle2, nodeCornerRadius(toNode));
+            link.edge1 = nodeEdge(datum.fromNode);
+            link.edge2 = nodeEdge(datum.toNode);
 
             link.tension = style.tension;
             link.setStyleProperties(style, fillBBox);
