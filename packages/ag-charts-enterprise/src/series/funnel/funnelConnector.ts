@@ -9,6 +9,19 @@ function pointsEq([ax, ay]: readonly [number, number], [bx, by]: readonly [numbe
     return Math.abs(ax - bx) <= delta && Math.abs(ay - by) <= delta;
 }
 
+const HALF_PI = Math.PI / 2;
+const CORNER_MIDPOINT = Math.PI / 4;
+
+/**
+ * Where a connector edge meets a segment's corner arc, as an angle from the perpendicular edge: the arc
+ * midpoint, or further round when the edge slants inwards steeply enough to otherwise pass behind the arc.
+ */
+function cornerArcAngle(edgeX: number, edgeY: number, alongX: number, alongY: number, flankX: number, flankY: number) {
+    const inwards = edgeX * alongX + edgeY * alongY;
+    const outwards = -(edgeX * flankX + edgeY * flankY);
+    return Math.min(Math.max(Math.atan2(inwards, outwards), CORNER_MIDPOINT), HALF_PI);
+}
+
 /**
  * The flat edge of a segment the connector terminates against, running `from` -> `to`, with `flank` pointing
  * along the segment's perpendicular edges (into the segment) — the direction the rounded corners cut in from.
@@ -112,24 +125,25 @@ export class FunnelConnector<D = unknown> extends Path<D> implements DistantObje
         this.path.closePath();
     }
 
-    /** Fills the corners the segments' radii cut away, so the connector butts up against the rounded outline. */
+    /** Runs each edge from a corner arc and traces the rest of that arc, so the connector butts up against the
+     * rounded outline without passing behind it. */
     private traceRoundedPath() {
         const { path } = this;
+        const caps = this.caps();
         let moved = false;
 
-        for (const cap of this.caps()) {
+        for (const [index, cap] of caps.entries()) {
             const { fromX, fromY, toX, toY, flankX, flankY } = cap;
             const length = Math.hypot(toX - fromX, toY - fromY);
             const radius = Math.min(cap.radius, length / 2);
 
-            if (moved) {
-                path.lineTo(fromX, fromY);
-            } else {
-                path.moveTo(fromX, fromY);
-                moved = true;
-            }
-
             if (radius <= 0) {
+                if (moved) {
+                    path.lineTo(fromX, fromY);
+                } else {
+                    path.moveTo(fromX, fromY);
+                    moved = true;
+                }
                 path.lineTo(toX, toY);
                 continue;
             }
@@ -138,30 +152,44 @@ export class FunnelConnector<D = unknown> extends Path<D> implements DistantObje
             const capY = (toY - fromY) / length;
             // Both corners are convex and traversed in the same rotational sense.
             const counterClockwise = capX * flankY - capY * flankX < 0;
+            const sweep = counterClockwise ? -1 : 1;
             const flankAngle = Math.atan2(-flankY, -flankX);
             const capAngle = Math.atan2(-capY, -capX);
 
-            // Up the segment's perpendicular edge to the tangent point, around the corner, along the flat edge.
-            path.lineTo(fromX + flankX * radius, fromY + flankY * radius);
-            path.arc(
-                fromX + (capX + flankX) * radius,
-                fromY + (capY + flankY) * radius,
-                radius,
-                capAngle,
-                flankAngle,
-                counterClockwise
-            );
+            // Each edge is shared with the neighbouring cap, which supplies its far end.
+            const previousCap = caps[(index + caps.length - 1) % caps.length];
+            const nextCap = caps[(index + 1) % caps.length];
+            const fromAngle =
+                capAngle +
+                sweep * cornerArcAngle(previousCap.toX - fromX, previousCap.toY - fromY, capX, capY, flankX, flankY);
+            const toAngle =
+                flankAngle +
+                sweep *
+                    (HALF_PI - cornerArcAngle(nextCap.fromX - toX, nextCap.fromY - toY, -capX, -capY, flankX, flankY));
 
+            const fromCentreX = fromX + (capX + flankX) * radius;
+            const fromCentreY = fromY + (capY + flankY) * radius;
+            const startX = fromCentreX + Math.cos(fromAngle) * radius;
+            const startY = fromCentreY + Math.sin(fromAngle) * radius;
+
+            if (moved) {
+                path.lineTo(startX, startY);
+            } else {
+                path.moveTo(startX, startY);
+                moved = true;
+            }
+
+            // Round the corner onto the flat edge, across it, then back up the far corner.
+            path.arc(fromCentreX, fromCentreY, radius, fromAngle, flankAngle, counterClockwise);
             path.lineTo(toX - capX * radius, toY - capY * radius);
             path.arc(
                 toX + (flankX - capX) * radius,
                 toY + (flankY - capY) * radius,
                 radius,
                 flankAngle,
-                Math.atan2(capY, capX),
+                toAngle,
                 counterClockwise
             );
-            path.lineTo(toX, toY);
         }
     }
 

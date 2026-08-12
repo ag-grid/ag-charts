@@ -775,16 +775,34 @@ describe('FunnelSeries', () => {
             await compare();
         });
 
-        it('butts the drop-off connectors up against the rounded corners', async () => {
+        it('starts the drop-off connectors on the segments rounded corners', async () => {
             chart = deproxy(AgCharts.create(buildOptions(16)));
             await waitForChartStability(chart);
 
-            const connectors = dropOffConnectors(chart);
+            const rects = segmentRects(chart).sort((a, b) => a.y - b.y);
+            const connectors = dropOffConnectors(chart).sort((a, b) => a.y0 - b.y0);
             expect(connectors).toHaveLength(3);
-            for (const connector of connectors) {
+
+            for (const [index, connector] of connectors.entries()) {
                 expect(connector.capsAlongX).toBe(true);
                 expect(connector.startCornerRadius).toBe(16);
                 expect(connector.endCornerRadius).toBe(16);
+
+                // The connector opens on the bottom-left corner arc of the segment it leaves, at or past that
+                // arc's midpoint — never at the square corner, which is the cut-away the segment does not draw.
+                const { startCornerRadius: radius, x0, y0 } = connector;
+                const above = rects[index];
+                expect(x0).toBeCloseTo(above.x, 0);
+                expect(y0).toBeCloseTo(above.y + above.height, 0);
+
+                const centreX = x0 + radius;
+                const centreY = y0 - radius;
+                const [startX, startY] = connector.path.params;
+
+                expect(Math.hypot(startX - centreX, startY - centreY)).toBeCloseTo(radius);
+                expect(startX).toBeLessThanOrEqual(centreX);
+                expect(startY).toBeGreaterThanOrEqual(centreY + radius * Math.SQRT1_2 - 1e-6);
+                expect(startY).toBeLessThanOrEqual(centreY + radius + 1e-6);
             }
         });
 
