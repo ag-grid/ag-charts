@@ -264,6 +264,11 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     // The chart then adopts this instance as `ctx.logger`, so a chart has exactly one Logger.
     logger: Logger;
 
+    // Callbacks are validated (and wrapped) before the chart exists, so the sink they report caught
+    // errors to is adopted from the owning chart afterwards, like the Logger above. Read at
+    // callback-invocation time so the adopt order does not matter.
+    private validationSink?: (issue: ValidationIssue) => void;
+
     private static readonly debug = Debug.create(true, 'opts');
 
     constructor(
@@ -592,6 +597,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             skipDisabledNodeValidation: true,
             silentAdvisories: true,
             logger: this.logger,
+            onCallbackError: (error, errorPath) => this.reportCallbackError(error, errorPath),
         };
 
         this.validateSeriesOptions(processedOptions, secondPassParams);
@@ -711,6 +717,20 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.applyConsoleLogLevel(getValidations(this.processedOptions)?.consoleLogLevel);
     }
 
+    /** Point wrapped user callbacks at the owning chart's validation sink, so a swallowed throw surfaces. */
+    adoptValidationSink(sink: (issue: ValidationIssue) => void) {
+        this.validationSink = sink;
+    }
+
+    private reportCallbackError(error: unknown, errorPath: string) {
+        const location = errorPath ? ` \`${errorPath}\`` : '';
+        const detail = error instanceof Error ? error.message : String(error);
+        this.validationSink?.({
+            severity: 'error',
+            message: `Uncaught exception in user callback${location}: ${detail}`,
+        });
+    }
+
     /**
      * Points the Logger at the requested level, falling back to the default for anything unrecognised.
      * The fallback is load-bearing: this runs before the union validator has, so an invalid value must
@@ -724,7 +744,10 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private get validateParams(): ValidateParams {
-        return { logger: this.logger };
+        return {
+            logger: this.logger,
+            onCallbackError: (error, errorPath) => this.reportCallbackError(error, errorPath),
+        };
     }
 
     // Every option-validation error goes to both the console log and the per-chart overlay collector.

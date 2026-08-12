@@ -97,6 +97,12 @@ export interface ValidateParams {
      */
     logger: Logger;
     /**
+     * Reports an error caught by {@link safeCall} while invoking a user callback, alongside the
+     * console `warnOnce`. Lets a chart surface a swallowed callback failure (which never reaches
+     * `tryPerformUpdate`'s catch) on the validation overlay without core depending on the collector.
+     */
+    onCallbackError?: (error: unknown, errorPath: string) => void;
+    /**
      * Skip required-field and discriminant enforcement on nodes with `enabled: false`. The second
      * validation pass in `optionsModule` opts in: `removeDisabledOptions` has by then stripped a
      * disabled node down to `{ enabled: false }`, so re-validating it would warn about the
@@ -778,7 +784,13 @@ export const callbackOf = (validator: Validator, description?: string) =>
 
         const cbWithValidation = Object.assign(
             (...args: any[]) => {
-                const result = safeCall(value, args, context.params.logger);
+                const result = safeCall(
+                    value,
+                    args,
+                    context.params.logger,
+                    context.path,
+                    context.params.onCallbackError
+                );
                 if (result == null) return;
                 const validatorResult = validator(result, { options: result, path: '', params: context.params });
                 if (typeof validatorResult === 'object') {
@@ -809,7 +821,13 @@ export const callbackDefs = <T>(defs: OptionsDefs<T>, description = 'an object')
 
         const cbWithValidation = Object.assign(
             (...args: any[]) => {
-                const result = safeCall(value, args, context.params.logger, context.path);
+                const result = safeCall(
+                    value,
+                    args,
+                    context.params.logger,
+                    context.path,
+                    context.params.onCallbackError
+                );
                 if (result == null) return;
                 const validatorResult = validate(result, defs, context.path, context.params);
                 warnCallbackErrors(validatorResult, context, validatorDescription);
