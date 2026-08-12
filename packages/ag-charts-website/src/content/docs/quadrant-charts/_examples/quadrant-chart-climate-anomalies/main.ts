@@ -17,14 +17,6 @@ const options: AgQuadrantChartOptions = {
     labelName: 'Country',
     xAxis: { title: { text: 'Temperature anomaly (°C)' }, label: { formatter: (params) => `${params.value} °C` } },
     yAxis: { title: { text: 'Precipitation anomaly (%)' }, label: { formatter: (params) => `${params.value}%` } },
-    itemStyler: (params) => {
-        switch (params.region) {
-            case 'top-left':
-                return { fill: 'red' };
-            case 'top-right':
-                return { fill: 'blue' };
-        }
-    },
     tooltip: {
         renderer: (params) => {
             return {

@@ -153,7 +153,7 @@ export function createScatterQuadrant(
         };
 
         if (options.itemStyler) {
-            result = options.itemStyler({ ...params, ...result, region: regionName }) ?? result;
+            result = { ...result, ...options.itemStyler({ ...params, ...result, region: regionName }) };
         }
 
         return result;
