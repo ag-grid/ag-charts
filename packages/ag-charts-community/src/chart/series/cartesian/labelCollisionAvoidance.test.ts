@@ -445,7 +445,14 @@ describe('label collision avoidance', () => {
                         xKey: 'x',
                         yKey: 'y',
                         marker: { enabled: true, size: 4 },
-                        label: { enabled: true, placement: 'inside', formatter: ({ value }: any) => String(value) },
+                        // The labels overflow onto the background, where the inside default (the
+                        // chart background colour) would be invisible.
+                        label: {
+                            enabled: true,
+                            placement: 'inside',
+                            insideStyle: { color: { ref: 'textColor' } },
+                            formatter: ({ value }: any) => String(value),
+                        },
                     },
                 ],
             });
@@ -544,6 +551,8 @@ describe('label collision avoidance', () => {
                             fill: 'white',
                             padding: 10,
                             border: { stroke: 'crimson', strokeWidth: 6 },
+                            // The inside default resolves to the chart background, which is invisible on this white box.
+                            insideStyle: { color: { ref: 'textColor' } },
                         },
                     },
                 ],

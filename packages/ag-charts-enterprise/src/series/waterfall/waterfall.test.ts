@@ -869,9 +869,9 @@ describe('WaterfallSeries', () => {
                             xKey: 'x',
                             yKey: 'y',
                             item: {
-                                positive: { label: { ...labelOpts } },
-                                negative: { label: { ...labelOpts } },
-                                total: { label: { ...labelOpts } },
+                                positive: { label: { color: { ref: 'textColor' }, ...labelOpts } },
+                                negative: { label: { color: { ref: 'textColor' }, ...labelOpts } },
+                                total: { label: { color: { ref: 'textColor' }, ...labelOpts } },
                             },
                             totals: [
                                 { totalType: 'subtotal', index: 4, axisLabel: 'ABCDE' },
