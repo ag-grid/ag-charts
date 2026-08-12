@@ -26,6 +26,18 @@ import { getInterfacesReference } from '@utils/server/getInterfacesReference';
 const MAX_DEPTH = 8;
 const MAX_ROWS = 1500;
 
+export interface ApiReferenceTableLimits {
+    /**
+     * Stop expanding nested members below this depth. Set it where the reference branches
+     * combinatorially — `AgChartTheme.overrides` repeats the whole chart tree once per chart type,
+     * so a full expansion runs to tens of thousands of rows — and say so on the page, since a
+     * caller-set depth truncates silently.
+     */
+    maxDepth?: number;
+    /** Stop after this many rows. Raise alongside a `maxDepth` wide enough to exceed the default. */
+    maxRows?: number;
+}
+
 // A union alias with dozens of variants (e.g. AgIconName, 53 string literals) makes an unreadable
 // cell; past this budget the alias name is left in place, still resolvable from the docs site.
 const MAX_UNION_SIGNATURE_CHARS = 120;
@@ -94,7 +106,13 @@ function formatMemberType(reference: ApiReferenceType, member: MemberNode): stri
  *
  * Pure (no filesystem access) so it is unit-testable; the entry point loads the reference.
  */
-export function buildApiReferenceTable(reference: ApiReferenceType, attributes: Record<string, unknown>): string {
+export function buildApiReferenceTable(
+    reference: ApiReferenceType,
+    attributes: Record<string, unknown>,
+    limits: ApiReferenceTableLimits = {}
+): string {
+    const maxDepth = limits.maxDepth ?? MAX_DEPTH;
+    const maxRows = limits.maxRows ?? MAX_ROWS;
     const id = interfaceId(attributes);
     if (!id) {
         return '';
@@ -121,7 +139,8 @@ export function buildApiReferenceTable(reference: ApiReferenceType, attributes: 
 
     const hideRequired = attributes.hideRequired === true;
     const rows: string[][] = [];
-    let capped = false;
+    let depthCapped = false;
+    let rowsCapped = false;
 
     function collectRows(
         node: InterfaceNode | TypeLiteralNode,
@@ -135,8 +154,8 @@ export function buildApiReferenceTable(reference: ApiReferenceType, attributes: 
         typeArguments?: string[]
     ): void {
         for (const member of processMembers(node, memberConfig, typeArguments)) {
-            if (rows.length >= MAX_ROWS) {
-                capped = true;
+            if (rows.length >= maxRows) {
+                rowsCapped = true;
                 return;
             }
 
@@ -155,8 +174,8 @@ export function buildApiReferenceTable(reference: ApiReferenceType, attributes: 
             if (!nested || ancestors.has(nested.typeName)) {
                 continue;
             }
-            if (depth >= MAX_DEPTH) {
-                capped = true;
+            if (depth >= maxDepth) {
+                depthCapped = true;
                 continue;
             }
 
@@ -175,10 +194,12 @@ export function buildApiReferenceTable(reference: ApiReferenceType, attributes: 
 
     collectRows(interfaceRef, config, '', 1, new Set([id]));
 
-    if (capped) {
+    // A caller-set depth is a deliberate policy the page states for itself, so only the default
+    // guard warns. The row cap is always a runaway backstop.
+    if (rowsCapped || (depthCapped && limits.maxDepth == null)) {
         // eslint-disable-next-line no-console
         console.warn(
-            `apiReference "${id}": nested expansion hit the ${MAX_ROWS}-row/${MAX_DEPTH}-level cap; table truncated.`
+            `apiReference "${id}": nested expansion hit the ${maxRows}-row/${maxDepth}-level cap; table truncated.`
         );
     }
 

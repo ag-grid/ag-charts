@@ -41,7 +41,14 @@ const isRedirectPage = (page: string) => {
  * Exclude specific pages
  */
 const isNonPublicContent = (page: string) => {
-    return page.endsWith('/style-guide/');
+    return (
+        page.endsWith('/style-guide/') ||
+        // Post-submission confirmation pages. They carry no content a searcher or an agent can use,
+        // and they are disallowed in robots.txt (see getSitemapIgnorePaths), so listing them in the
+        // sitemap contradicts it and Search Console reports "submitted URL blocked by robots.txt".
+        page.endsWith('/contact/failure/') ||
+        page.endsWith('/contact/success/')
+    );
 };
 
 /*

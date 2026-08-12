@@ -1,14 +1,15 @@
 ---
+import ApiReferenceFallback from '@components/api-documentation/components/ApiReferenceFallback.astro';
 import { ApiReferencePage } from '@components/api-documentation/components/ApiReferencePage';
 import APIViewLayout from '@layouts/APIViewLayout.astro';
+import { OPTIONS_API_PAGE_CONTENT } from '@utils/markdown-pages/apiReferencePageContent';
 ---
 
-<APIViewLayout
-    title="Options API"
-    description="Options API reference for AG Charts JavaScript Charting Library. Search for any property or browse our tree-data explorer; access types, defaults, and child properties."
->
+<APIViewLayout title={OPTIONS_API_PAGE_CONTENT.title} description={OPTIONS_API_PAGE_CONTENT.description}>
     <ApiReferencePage
         client:only="react"
+        transition:persist="options-api-reference"
+        transition:persist-props
         {...Astro.props}
         rootInterface="AgChartOptions"
         breadcrumbs={['options']}
@@ -20,5 +21,7 @@ import APIViewLayout from '@layouts/APIViewLayout.astro';
             AgMiniChartSeriesOptions: 'InterfaceArray',
         }}
         noExpand={['theme']}
-    />
+    >
+        <ApiReferenceFallback slot="fallback" rootInterface="AgChartOptions" />
+    </ApiReferencePage>
 </APIViewLayout>

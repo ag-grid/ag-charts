@@ -1,15 +1,14 @@
-import { navigate, useHistory, useLocation } from '@ag-website-shared/utils/navigation';
 import type { InterfaceNode } from '@generate-code-reference-plugin/doc-interfaces/types';
 import { fetchInterfacesReference } from '@utils/client/fetchInterfacesReference';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import classNames from 'classnames';
-import { Action } from 'history';
 import { type CSSProperties, useContext, useEffect, useState } from 'react';
 import Markdown from 'react-markdown';
 import { QueryClientProvider, useQuery } from 'react-query';
 import remarkBreaks from 'remark-breaks';
 
 import { type NavigationData, type PageTitle, type SpecialTypesMap, parseJsDocs } from '../apiReferenceHelpers';
+import { readSelection, seedSelection, useApiReferenceLocation } from '../apiReferenceRouting';
 import {
     ApiReference,
     ApiReferenceConfigContext,
@@ -51,23 +50,32 @@ function ApiReferencePageInner({
     noExpand,
 }: ApiReferencePageOptions) {
     const { data: reference } = useQuery(['resolved-interfaces'], fetchInterfacesReference, queryOptions);
-    const location = useLocation();
-    const [selection, setSelection] = useState<NavigationData>({
-        pageInterface: pageInterface ?? rootInterface,
-        pathname: location?.pathname ?? basePath,
-        hash: location?.hash.substring(1) ?? '',
-        pageTitle: pageTitle ?? { name: rootInterface },
-    });
+    const location = useApiReferenceLocation();
+    const [selection, setSelection] = useState<NavigationData>(
+        () =>
+            readSelection() ?? {
+                pageInterface: pageInterface ?? rootInterface,
+                pathname: location?.pathname ?? basePath,
+                hash: location?.hash.substring(1) ?? '',
+                pageTitle: pageTitle ?? { name: rootInterface },
+            }
+    );
 
     useEffect(() => {
-        navigate({ pathname: location?.pathname, hash: location?.hash }, { state: selection, replace: true });
+        seedSelection(selection);
     }, []);
 
-    useHistory(({ location: historyLocation, action }) => {
-        if (action === Action.Pop && historyLocation.state) {
-            setSelection(historyLocation.state as NavigationData);
+    /*
+        The island is persisted across Astro navigations, so props stay at whatever the first-loaded
+        page supplied. Every entry this app creates carries its selection in Astro's history state,
+        which makes that state — not props — the thing to follow on back/forward.
+    */
+    useEffect(() => {
+        const restored = readSelection();
+        if (restored) {
+            setSelection(restored);
         }
-    });
+    }, [location]);
 
     if (!reference) return null;
 

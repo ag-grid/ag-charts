@@ -1,14 +1,12 @@
-import whatsNewData from '@ag-website-shared/content/whats-new/data.json';
 import { htmlInlineToMarkdown } from '@ag-website-shared/markdoc/htmlInlineToMarkdown';
 import { toAbsoluteUrl } from '@ag-website-shared/markdoc/toAbsoluteUrl';
-import { parseVersion } from '@ag-website-shared/utils/parseVersion';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 
 import faqData from '../../content/faqs/homepage.json';
 import homepage from '../../content/homepage/homepage.json';
 import versionsData from '../../content/versions/ag-charts-versions.json';
+import { latestReleasesMarkdown } from './latestReleasesMarkdown';
 
-const { blogPrefix } = whatsNewData['charts'];
 const NUM_LATEST_RELEASES = 3;
 
 interface HomepageCta {
@@ -50,15 +48,6 @@ interface FaqItem {
     question: string;
     answer: string;
 }
-interface VersionHighlight {
-    text: string;
-}
-interface VersionEntry {
-    version: string;
-    date?: string;
-    highlights?: VersionHighlight[];
-}
-
 function ctaLink(title: string, url: string, siteRoot?: string): string {
     return `[${title}](${toAbsoluteUrl(urlWithBaseUrl(url), siteRoot)})`;
 }
@@ -89,27 +78,9 @@ function integratedBlock(section: HomepageSections['integrated'], siteRoot?: str
     return [`## ${section.heading}`, htmlInlineToMarkdown(section.subHeadingHtml, siteRoot)].join('\n\n');
 }
 
-// Mirror index.astro: keep the `.0` releases, take the three most recent that have
-// highlights, and build each blog URL from the parsed version and the charts blog prefix.
-function latestReleasesBlock(): string {
-    const releases = (versionsData as VersionEntry[])
-        .filter((version) => version.version.endsWith('.0'))
-        .slice(0, NUM_LATEST_RELEASES)
-        .filter((version) => version.highlights);
-
-    return releases
-        .map((version) => {
-            const { major, minor } = parseVersion(version.version);
-            const blogUrl = `${minor ? `${blogPrefix}${major}-${minor}` : `${blogPrefix}${major}`}/`;
-            const date = version.date ? ` — ${version.date}` : '';
-            const highlights = version.highlights!.map((highlight) => `- ${highlight.text}`).join('\n');
-            return `### [${version.version}${date}](${blogUrl})\n\n${highlights}`;
-        })
-        .join('\n\n');
-}
-
 function releasesBlock(section: HomepageSections['releases'], siteRoot?: string): string {
-    return [ctaSectionBlock(section, siteRoot), latestReleasesBlock()].join('\n\n');
+    const releases = latestReleasesMarkdown({ versionsData, count: NUM_LATEST_RELEASES });
+    return [ctaSectionBlock(section, siteRoot), releases].join('\n\n');
 }
 
 function faqsBlock(section: HomepageSections['faqs']): string {
