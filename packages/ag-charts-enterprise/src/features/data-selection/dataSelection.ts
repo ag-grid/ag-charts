@@ -445,6 +445,9 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         this.ctx.chartService.callListener({
             type: 'selectionChange',
             source,
+            get defaultPrevented() {
+                return defaultPrevented;
+            },
             preventDefault(): void {
                 defaultPrevented = true;
             },
