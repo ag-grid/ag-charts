@@ -6,11 +6,6 @@ import { DataType, data } from './data';
 
 ModuleRegistry.registerModules([BarSeriesModule, LegendModule, CategoryAxisModule, NumberAxisModule]);
 
-function formatCurrency(value: number) {
-    const sign = value < 0 ? '-' : '';
-    return `${sign}$${Math.abs(value)}m`;
-}
-
 const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     title: { text: 'Quarterly Profit Change ($m)' },
@@ -25,14 +20,11 @@ const options: AgCartesianChartOptions<DataType> = {
                 placement: 'inside-end',
                 orientation: 'horizontal',
                 wrapping: 'never',
-                formatter: (params) => {
-                    const note = params.datum.note ? ` (${params.datum.note})` : '';
-                    return `${formatCurrency(params.value)} profit${note}`;
-                },
+                formatter: (params) => `$${params.value}m profit${params.datum.note ? ` (${params.datum.note})` : ''}`,
             },
             tooltip: {
                 renderer: ({ datum }) => ({
-                    data: [{ label: 'Profit Change', value: formatCurrency(datum.profitChange) }],
+                    data: [{ label: 'Profit Change', value: `$${datum.profitChange}m` }],
                 }),
             },
         },

@@ -126,7 +126,7 @@ function setSeriesType(seriesType: SeriesType) {
                         | AgBarSeriesLabelPlacement[],
                     spacing,
                     truncate: false,
-                    formatter: (params) => formatCurrency(params.value),
+                    format: '$',
                 },
                 tooltip: {
                     renderer: ({ datum }) => ({
