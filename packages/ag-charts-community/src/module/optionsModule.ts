@@ -725,7 +725,10 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     private reportCallbackError(error: unknown, errorPath: string) {
         const location = errorPath ? ` \`${errorPath}\`` : '';
         const detail = error instanceof Error ? error.message : String(error);
-        this.validationSink?.({ severity: 'error', message: `Uncaught exception in user callback${location}: ${detail}` });
+        this.validationSink?.({
+            severity: 'error',
+            message: `Uncaught exception in user callback${location}: ${detail}`,
+        });
     }
 
     /**
@@ -741,7 +744,10 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private get validateParams(): ValidateParams {
-        return { logger: this.logger, onCallbackError: (error, errorPath) => this.reportCallbackError(error, errorPath) };
+        return {
+            logger: this.logger,
+            onCallbackError: (error, errorPath) => this.reportCallbackError(error, errorPath),
+        };
     }
 
     // Every option-validation error goes to both the console log and the per-chart overlay collector.

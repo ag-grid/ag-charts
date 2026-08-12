@@ -118,6 +118,57 @@ describe('ValidationIssueCollector', () => {
         expect(collector.hasVisibleIssues()).toBe(true);
     });
 
+    it('surfaces buffered callback errors as error issues, de-duplicated within a render cycle', () => {
+        const collector = new ValidationIssueCollector();
+        collector.setOverlayLevel('error');
+        const callbackError = {
+            severity: 'error',
+            message: 'Uncaught exception in user callback `series[0].itemStyler`: boom',
+        } as const;
+
+        collector.beginCallbackIssues();
+        // A per-datum styler throws once per datum; identical throws collapse to a single entry.
+        collector.recordCallbackIssue(callbackError);
+        collector.recordCallbackIssue(callbackError);
+        collector.commitCallbackIssues();
+
+        expect(collector.getVisibleIssues().error).toEqual([callbackError]);
+    });
+
+    it('clears callback errors statelessly when the next render cycle no longer throws', () => {
+        const collector = new ValidationIssueCollector();
+        collector.setOverlayLevel('error');
+        const callbackError = { severity: 'error', message: 'Uncaught exception in user callback: boom' } as const;
+
+        collector.beginCallbackIssues();
+        collector.recordCallbackIssue(callbackError);
+        collector.commitCallbackIssues();
+        expect(collector.hasVisibleIssues()).toBe(true);
+
+        // A fixed callback re-derives an empty buffer next cycle — no per-issue clearing.
+        collector.beginCallbackIssues();
+        collector.commitCallbackIssues();
+        expect(collector.hasVisibleIssues()).toBe(false);
+    });
+
+    it('keeps a dismissed callback-error overlay dismissed when the same error re-commits next cycle', () => {
+        const collector = new ValidationIssueCollector();
+        collector.setOverlayLevel('error');
+        const callbackError = { severity: 'error', message: 'Uncaught exception in user callback: boom' } as const;
+
+        collector.beginCallbackIssues();
+        collector.recordCallbackIssue(callbackError);
+        collector.commitCallbackIssues();
+        collector.dismiss();
+        expect(collector.hasVisibleIssues()).toBe(false);
+
+        // Still-broken callback throws again next cycle; the identical committed set stays dismissed.
+        collector.beginCallbackIssues();
+        collector.recordCallbackIssue(callbackError);
+        collector.commitCallbackIssues();
+        expect(collector.hasVisibleIssues()).toBe(false);
+    });
+
     it('notifies listeners when the collection or threshold changes', () => {
         const collector = new ValidationIssueCollector();
         const listener = vi.fn();

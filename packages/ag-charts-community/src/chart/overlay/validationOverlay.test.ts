@@ -217,6 +217,57 @@ describe('ValidationOverlay', () => {
         });
     });
 
+    describe('#callback errors', () => {
+        // A throwing user callback (here a bar `itemStyler`) is caught by the shared `safeCall` guard,
+        // which swallows it with a console `warnOnce` so it never reaches `tryPerformUpdate`'s catch.
+        // With an error-level overlay the caught error must still surface as an error entry, while the
+        // chart degrades gracefully (the callback returns undefined instead of crashing the render).
+        const throwingItemStylerOptions: AgChartOptions = {
+            data: [
+                { x: 'Jan', y: 10 },
+                { x: 'Feb', y: 15 },
+            ],
+            series: [
+                {
+                    type: 'bar',
+                    xKey: 'x',
+                    yKey: 'y',
+                    itemStyler: () => {
+                        throw new Error('itemStyler boom');
+                    },
+                } as any,
+            ],
+        };
+
+        test('a throwing itemStyler surfaces one error entry on the overlay and the chart still renders', async () => {
+            chart = await createChart({
+                ...throwingItemStylerOptions,
+                validations: { overlayLevel: 'error' },
+            } as AgChartOptions);
+
+            const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-validation-overlay');
+            expect(overlayEl).not.toBeNull();
+
+            const errorSection = overlayEl!.querySelector('.ag-charts-validation-overlay__section--error');
+            expect(errorSection).not.toBeNull();
+
+            // The styler throws once per datum, but the caught errors collapse to a single overlay entry.
+            const messages = Array.from(errorSection!.querySelectorAll('.ag-charts-validation-overlay__message')).map(
+                (el) => el.textContent ?? ''
+            );
+            expect(messages).toHaveLength(1);
+            // The "Uncaught exception in user callback" wording only comes from the safeCall guard,
+            // proving the error surfaced via the swallowed-callback path (graceful degrade), not a
+            // propagated render crash caught by tryPerformUpdate.
+            expect(messages[0]).toContain('Uncaught exception in user callback');
+            expect(messages[0]).toContain('itemStyler');
+
+            expectWarningsCalls().toEqual([
+                [expect.stringContaining('Uncaught exception in user callback'), expect.any(Error)],
+            ]);
+        });
+    });
+
     describe('#dismiss', () => {
         // Assert on `aria-hidden` rather than DOM presence: hideOverlay clears content via
         // `innerText = '\xA0'`, which jsdom does not apply to descendant nodes (real browsers do),
