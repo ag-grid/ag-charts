@@ -68,10 +68,13 @@ const BAND_EDGE_FRACTION: Record<TextAlign, number> = { left: -0.5, center: 0, r
 /**
  * Offset from a tick's position - the middle of its band - to the band edge a configured alignment
  * anchors against. A scale with no bands puts the tick at no band edge, so the anchor stays put.
+ *
+ * The alignment is in canvas space, so `'right'` is the band's larger coordinate whichever way the
+ * scale's range runs - hence the magnitude of a bandwidth a descending range gives a sign to.
  */
 export function getBandEdgeOffset(bandwidth: number, textAlign: TextAlign | undefined): number {
     if (textAlign == null) return 0;
-    return BAND_EDGE_FRACTION[textAlign] * bandwidth;
+    return BAND_EDGE_FRACTION[textAlign] * Math.abs(bandwidth);
 }
 
 /** Offset of a text box's left edge from its anchor, as a fraction of the box's width. */

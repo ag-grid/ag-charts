@@ -64,4 +64,11 @@ describe('getBandEdgeOffset', () => {
     it('has no edge to move to without bands', () => {
         expect(getBandEdgeOffset(0, 'right')).toBe(0);
     });
+
+    // `bandScale.update()` derives the bandwidth from a signed range distance, while the alignment
+    // is in canvas space - so a descending range must not send `'right'` to the left.
+    it('aligns to the same canvas edge whichever way the range runs', () => {
+        expect(getBandEdgeOffset(-BANDWIDTH, 'right')).toBe(20);
+        expect(getBandEdgeOffset(-BANDWIDTH, 'left')).toBe(-20);
+    });
 });
