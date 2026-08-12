@@ -6,6 +6,11 @@ import { DataType, data } from './data';
 
 ModuleRegistry.registerModules([BarSeriesModule, LegendModule, CategoryAxisModule, NumberAxisModule]);
 
+function formatCurrency(value: number) {
+    const sign = value < 0 ? '-' : '';
+    return `${sign}$${Math.abs(value)}m`;
+}
+
 const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     title: { text: 'Quarterly Revenue by Leading Division' },
@@ -18,11 +23,16 @@ const options: AgCartesianChartOptions<DataType> = {
             label: {
                 enabled: true,
                 placement: 'inside-end',
-                formatter: (params) => `$${params.value}m ${params.datum.division}`,
+                formatter: (params) => `${formatCurrency(params.value)} ${params.datum.division}`,
                 maxWidth: 70,
                 maxHeight: 54,
                 wrapping: 'on-space',
                 truncate: true,
+            },
+            tooltip: {
+                renderer: ({ datum }) => ({
+                    data: [{ label: 'Revenue', value: formatCurrency(datum.revenue) }],
+                }),
             },
         },
     ],

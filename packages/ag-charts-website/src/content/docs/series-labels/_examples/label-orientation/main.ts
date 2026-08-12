@@ -32,7 +32,6 @@ const options: AgCartesianChartOptions<DataType> = {
             },
             tooltip: {
                 renderer: ({ datum }) => ({
-                    title: datum.quarter,
                     data: [{ label: 'Profit Change', value: formatCurrency(datum.profitChange) }],
                 }),
             },

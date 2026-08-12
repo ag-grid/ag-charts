@@ -130,7 +130,6 @@ function setSeriesType(seriesType: SeriesType) {
                 },
                 tooltip: {
                     renderer: ({ datum }) => ({
-                        title: (datum as BarDataType).quarter,
                         data: [{ label: 'Profit Change', value: formatCurrency((datum as BarDataType).profitChange) }],
                     }),
                 },
