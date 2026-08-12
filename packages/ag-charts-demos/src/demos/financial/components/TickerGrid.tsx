@@ -16,6 +16,13 @@ interface TickerGridProps<T extends { ticker: string }> {
     rowData: T[];
     activeTicker: string;
     onSelect: (ticker: string) => void;
+    /**
+     * Fill the available height and scroll internally, inside a card, rather than growing
+     * to fit every row. Sidebar lists want the latter — they stack, and the sidebar is the
+     * thing that scrolls — but a full-width board with every instrument in it would
+     * otherwise run off the bottom of the page.
+     */
+    fillHeight?: boolean;
 }
 
 // A titled watchlist-style grid: a fixed row set whose values stream in place,
@@ -27,6 +34,7 @@ export function TickerGrid<T extends { ticker: string }>({
     rowData,
     activeTicker,
     onSelect,
+    fillHeight = false,
 }: TickerGridProps<T>) {
     const gridRef = useRef<AgGridReact<T>>(null);
     const defaultColDef = useMemo(() => baseColDef<T>(), []);
@@ -67,9 +75,9 @@ export function TickerGrid<T extends { ticker: string }>({
     };
 
     return (
-        <div className="fin-section">
+        <div className={fillHeight ? 'fin-section fin-section--fill' : 'fin-section'}>
             <h3 className="fin-section-title">{title}</h3>
-            <div className={gridClassName}>
+            <div className={fillHeight ? `fin-detail-card fin-section-body ${gridClassName}` : gridClassName}>
                 <AgGridReact<T>
                     ref={gridRef}
                     theme={gridTheme}
@@ -78,7 +86,9 @@ export function TickerGrid<T extends { ticker: string }>({
                     columnDefs={columnDefs}
                     defaultColDef={defaultColDef}
                     rowClassRules={rowClassRules}
-                    domLayout="autoHeight"
+                    // Omitted when filling: the default layout takes its height from the
+                    // container and virtualises rows, which autoHeight cannot do.
+                    domLayout={fillHeight ? undefined : 'autoHeight'}
                     rowHeight={28}
                     headerHeight={30}
                     onRowClicked={({ data }) => data && onSelect(data.ticker)}

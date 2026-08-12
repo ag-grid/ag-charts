@@ -158,6 +158,7 @@ export function SavedMarkets({ sources, activeTicker, onSelect }: SavedMarketsPr
             rowData={rows}
             activeTicker={activeTicker}
             onSelect={onSelect}
+            fillHeight
         />
     );
 }

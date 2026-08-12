@@ -281,11 +281,13 @@
     background: var(--fin-panel);
 }
 
-/* The main financial chart fills the remaining viewport height; the sections
-   below it (gauges, peer charts) scroll into view. The floor covers the card's own
-   header row as well as the plot. */
+/* The main financial chart fills the remaining viewport height; the sections below it
+   (gauges, peer charts) scroll into view. The floor covers the card's own header row as
+   well as the plot. Zero basis so the card is sized from free space rather than from a
+   content height the canvas cannot report until after layout — with `auto` it claimed
+   the column and left the saved-markets board pinned to its own floor. */
 .fin-main > .fin-detail-card {
-    flex: 1 1 auto;
+    flex: 1 1 0;
     min-height: 380px;
 }
 
@@ -716,6 +718,27 @@
 }
 
 /* ---- saved markets table ---- */
+/* The board takes the space the gauges and peer charts otherwise occupy and scrolls
+   inside its own card, so it has a definite height instead of running off the bottom of
+   the page and squeezing the chart above it to its minimum. It shares the remaining
+   height with the chart card, which flexes on the same terms. */
+.fin-section--fill {
+    display: flex;
+    flex-direction: column;
+    /* Zero basis rather than `auto`: sized from the free space alone, it splits the
+       column evenly with the chart card instead of being shrunk to its floor because
+       the chart's content-based basis claimed the space first. */
+    flex: 1 1 0;
+    min-height: 340px;
+    margin-bottom: 0;
+}
+.fin-section--fill .fin-section-body {
+    flex: 1 1 auto;
+    /* Lets the card shrink below its content so the grid, not the page, does the
+       scrolling. */
+    min-height: 0;
+}
+
 /* A dealable price lights on the tick that moved it and fades back to ink. The lit
    state kills the transition so the colour snaps on; removing the class lets the base
    transition carry it back. The cell background is left alone — flashing the cell
