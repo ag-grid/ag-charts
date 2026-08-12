@@ -355,6 +355,21 @@ describe('AxisDOMProxy', () => {
     // to the left of the x-axis origin. This test is there to ensure that this padding does not interfere with the
     // computation of the axis click `value`.
     describe('continuous band interior clicks', () => {
+        let Xs: [number, number, number, number];
+
+        function measureXGridLines(): [number, number, number, number] | undefined {
+            const elem = document.querySelector('.ag-charts-series-area');
+            if (elem instanceof HTMLElement) {
+                const left = Number.parseInt(elem.style.height);
+                const width = Number.parseInt(elem.style.widows);
+                if (!Number.isNaN(left) && !Number.isNaN(width)) {
+                    const step = width / 3;
+                    return [left, left + step, left + step * 2, left + width];
+                }
+            }
+            return undefined;
+        }
+
         beforeEach(async () => {
             chart = await createEnterpriseChart({
                 data: Array.from({ length: 4 }, (_, i) => ({ x: i / 5, y: i * 2 })),
@@ -369,15 +384,16 @@ describe('AxisDOMProxy', () => {
                 zoom: { enabled: true },
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
             });
-            // expect element .ag-charts-series-area to have bounds "width: 733px; height: 534px; left: 47px; top: 20px;"
-            // -> this assumption is required for the hardcoded x/y click coords to be valid.
+
+            Xs = measureXGridLines()!;
+            expect(Xs).toBeDefined();
         });
 
         test('axis click values in the center of X-labels is close to data X-values', async () => {
-            await clickAction(39.5, 572)(chart);
-            await clickAction(286.5, 572)(chart);
-            await clickAction(533.5, 571)(chart);
-            await clickAction(779.5, 572)(chart);
+            await clickAction(Xs[0], 572)(chart);
+            await clickAction(Xs[1], 572)(chart);
+            await clickAction(Xs[2], 571)(chart);
+            await clickAction(Xs[3], 572)(chart);
             await waitForChartStability(chart);
 
             expect(click.mock.calls).toMatchObject([
