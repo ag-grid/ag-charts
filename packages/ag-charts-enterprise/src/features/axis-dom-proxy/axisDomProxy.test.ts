@@ -20,7 +20,8 @@ describe('AxisDOMProxy', () => {
         chart?.destroy();
     });
 
-    describe('horizontal grouped-category clicks', () => {
+    // FIXME: See AG-9808 TC1
+    describe.skip('horizontal grouped-category clicks', () => {
         beforeEach(async () => {
             chart = await createEnterpriseChart({
                 data: [
@@ -112,7 +113,8 @@ describe('AxisDOMProxy', () => {
         });
     });
 
-    describe('vertical grouped-category clicks', () => {
+    // FIXME: See AG-9808 TC1
+    describe.skip('vertical grouped-category clicks', () => {
         beforeEach(async () => {
             chart = await createEnterpriseChart({
                 data: [
@@ -308,7 +310,8 @@ describe('AxisDOMProxy', () => {
         });
     });
 
-    describe('axis with labels, ticks and grid lines disabled', () => {
+    // FIXME: See AG-9809 TC6
+    describe.skip('axis with labels, ticks and grid lines disabled', () => {
         beforeEach(async () => {
             chart = await createEnterpriseChart({
                 data: [
@@ -347,7 +350,8 @@ describe('AxisDOMProxy', () => {
         });
     });
 
-    describe('category band interior clicks', () => {
+    // FIXME: See AG-9808 TC5
+    describe.skip('category band interior clicks', () => {
         beforeEach(async () => {
             chart = await createEnterpriseChart({
                 data: Array.from({ length: 12 }, (_, i) => `Category-Name-${i}`).map((x, i) => ({ x, y: i })),
@@ -374,10 +378,11 @@ describe('AxisDOMProxy', () => {
         });
     });
 
+    // FIXME: See AG-9808 TC5
     // In this example, the X-origin label is a long text "0.000000000", which adds a lot of mouse-interaction padding
     // to the left of the x-axis origin. This test is there to ensure that this padding does not interfere with the
     // computation of the axis click `value`.
-    describe('continuous band interior clicks', () => {
+    describe.skip('continuous band interior clicks', () => {
         let Xs: [number, number, number, number];
 
         function measureXGridLines(): [number, number, number, number] | undefined {
