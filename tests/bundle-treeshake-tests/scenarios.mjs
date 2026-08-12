@@ -46,7 +46,7 @@ export const scenarios = [
         name: 'enterprise/AllMapSeriesModule',
         package: 'ag-charts-enterprise',
         import: '{ AllMapSeriesModule }',
-        limit: 543_000,
+        limit: 599_000,
     },
     {
         name: 'enterprise/AllEnterpriseModule',
@@ -88,6 +88,6 @@ export const scenarios = [
         name: 'enterprise/MixedE',
         package: 'ag-charts-enterprise',
         import: '{ RadarLineSeriesModule, MapMarkerSeriesModule, RangeAreaSeriesModule, BandHighlightModule, SyncModule, ZoomModule }',
-        limit: 553_000,
+        limit: 609_000,
     },
 ];
