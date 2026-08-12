@@ -9,6 +9,7 @@ import type {
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
+import { Transformable } from '../../scene/transformable';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     compareImageSnapshot,
@@ -1541,6 +1542,186 @@ describe('CartesianAxis', () => {
             // not the negative offset (i + rawFirstTickIndex) the pick previously returned.
             const [minValue] = [...formatterIndexByValue.keys()].sort((a, b) => a - b);
             expect(formatterIndexByValue.get(minValue)).toBe(0);
+        });
+    });
+
+    // `axis.label.textAlign` re-anchors unrotated vertical-axis labels within their column instead
+    // of around their own point, so a configured alignment doesn't grow long labels back over the
+    // axis line and into the plot area.
+    describe('axis label textAlign', () => {
+        // Deliberately unequal label widths: a right-positioned category axis is the only vertical
+        // axis whose ticks routinely differ in text length.
+        const TEXT_ALIGN_CATEGORY_DATA = [
+            { category: 'A', value: 10 },
+            { category: 'BBBBBBBBBB', value: 20 },
+            { category: 'CCC', value: 15 },
+        ];
+
+        type TextAlignLabelOptions = { rotation?: number; textAlign?: 'left' | 'center' | 'right' };
+
+        const rightAxisOptions = (label?: TextAlignLabelOptions): AgCartesianChartOptions => ({
+            data: TEXT_ALIGN_CATEGORY_DATA,
+            axes: {
+                x: { type: 'number', position: 'bottom' },
+                y: { type: 'category', position: 'right', ...(label ? { label } : {}) },
+            },
+            series: [{ type: 'bar', direction: 'horizontal', xKey: 'category', yKey: 'value' }],
+        });
+
+        const getAxisLabelNodes = (chartInstance: AgChartInstance, position: string) => {
+            const chartInternal = deproxy(chartInstance as any) as any;
+            const axis = chartInternal.axes.find((a: any) => a.position === position);
+            expect(axis).toBeDefined();
+            const nodes: any[] = Array.from(axis.tickLabelGroupSelection.nodes());
+            return nodes.filter((n: any) => n.datum.visible);
+        };
+
+        const getRightAxisLabelNodes = (chartInstance: AgChartInstance) => getAxisLabelNodes(chartInstance, 'right');
+
+        const getSeriesRect = (chartInstance: AgChartInstance) => {
+            const chartInternal = deproxy(chartInstance as any) as any;
+            expect(chartInternal.seriesRect).toBeDefined();
+            return chartInternal.seriesRect;
+        };
+
+        // Anchors captured from one chart, keyed by label text so a second chart's nodes (which may
+        // come back in a different Selection order) can be compared without relying on array order.
+        const captureAnchorsByText = (nodes: any[]) =>
+            new Map(nodes.map((n) => [n.datum.text, { x: n.datum.x, rotationCenterX: n.datum.rotationCenterX }]));
+
+        it('computes "left" as the natural alignment for an unconfigured right-positioned axis', async () => {
+            const options = rightAxisOptions();
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const nodes = getRightAxisLabelNodes(chart);
+            expect(nodes.map((n) => n.datum.text).sort((a: string, b: string) => a.localeCompare(b))).toEqual([
+                'A',
+                'BBBBBBBBBB',
+                'CCC',
+            ]);
+            for (const node of nodes) {
+                expect(node.datum.textAlign).toBe('left');
+            }
+        });
+
+        it('AC1: "right" textAlign flushes label right edges while left edges keep differing', async () => {
+            const options = rightAxisOptions({ textAlign: 'right' });
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const nodes = getRightAxisLabelNodes(chart);
+            expect(nodes.map((n) => n.datum.text).sort((a: string, b: string) => a.localeCompare(b))).toEqual([
+                'A',
+                'BBBBBBBBBB',
+                'CCC',
+            ]);
+
+            const boxes = nodes.map((n) => Transformable.toCanvas(n));
+            const rightEdges = boxes.map((b) => b.x + b.width);
+            const leftEdges = boxes.map((b) => b.x);
+
+            expect(Math.max(...rightEdges) - Math.min(...rightEdges)).toBeLessThanOrEqual(1);
+            // Anti-vacuous: the fixture's unequal label widths must still show up as unequal left
+            // edges, otherwise the flush right edge would hold trivially for any alignment.
+            expect(Math.max(...leftEdges) - Math.min(...leftEdges)).toBeGreaterThan(1);
+        });
+
+        it('AC1: "right" textAlign keeps every label clear of the plot area', async () => {
+            const options = rightAxisOptions({ textAlign: 'right' });
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const nodes = getRightAxisLabelNodes(chart);
+            const seriesRect = getSeriesRect(chart);
+            const plotBoundary = seriesRect.x + seriesRect.width;
+
+            for (const node of nodes) {
+                const box = Transformable.toCanvas(node);
+                expect(box.x).toBeGreaterThanOrEqual(plotBoundary - 1);
+            }
+        });
+
+        it("AC2: textAlign matching the axis's natural alignment produces identical anchors", async () => {
+            const naturalOptions = rightAxisOptions();
+            prepareTestOptions(naturalOptions);
+            chart = AgCharts.create(naturalOptions);
+            await waitForChartStability(chart);
+            const naturalAnchors = captureAnchorsByText(getRightAxisLabelNodes(chart));
+
+            chart.destroy();
+            (chart as unknown) = undefined;
+
+            const explicitOptions = rightAxisOptions({ textAlign: 'left' });
+            prepareTestOptions(explicitOptions);
+            chart = AgCharts.create(explicitOptions);
+            await waitForChartStability(chart);
+            const explicitNodes = getRightAxisLabelNodes(chart);
+
+            expect(explicitNodes.length).toBe(naturalAnchors.size);
+            for (const node of explicitNodes) {
+                const natural = naturalAnchors.get(node.datum.text);
+                expect(natural).toBeDefined();
+                expect(node.datum.x).toBeCloseTo(natural!.x, 5);
+                expect(node.datum.rotationCenterX).toBeCloseTo(natural!.rotationCenterX, 5);
+            }
+        });
+
+        it('TC1: a rotated label aligns within its own bounding box, clear of the series area', async () => {
+            const options = rightAxisOptions({ rotation: 45, textAlign: 'right' });
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const nodes = getRightAxisLabelNodes(chart);
+            expect(nodes.length).toBe(3);
+
+            const seriesRect = getSeriesRect(chart);
+            const seriesRight = seriesRect.x + seriesRect.width;
+            const boxes = nodes.map((n) => Transformable.toCanvas(n));
+
+            // Rotating the glyphs must not carry them back over the axis line: the series paints on
+            // top of the plot area, so a label that reaches into it is partly erased.
+            for (const box of boxes) {
+                expect(box.x).toBeGreaterThanOrEqual(seriesRight);
+            }
+
+            // The alignment still acts on the rotated boxes - their right edges are flush while
+            // their differing widths leave the left edges ragged.
+            const rightEdges = boxes.map((b) => b.x + b.width);
+            for (const edge of rightEdges) {
+                expect(edge).toBeCloseTo(rightEdges[0], 5);
+            }
+            expect(new Set(boxes.map((b) => Math.round(b.width))).size).toBeGreaterThan(1);
+        });
+
+        // A horizontal axis reserves its band on the opposite side of the axis line from a vertical
+        // one, so the edge the correction pins over is the other one.
+        it('keeps rotated labels out of the series area on a top-positioned axis', async () => {
+            const options: AgCartesianChartOptions = {
+                data: TEXT_ALIGN_CATEGORY_DATA,
+                axes: {
+                    x: { type: 'category', position: 'top', label: { rotation: -30, textAlign: 'left' } },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+            };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const nodes = getAxisLabelNodes(chart, 'top');
+            expect(nodes.length).toBe(3);
+
+            const seriesTop = getSeriesRect(chart).y;
+            for (const node of nodes) {
+                const box = Transformable.toCanvas(node);
+                expect(box.y + box.height).toBeLessThanOrEqual(seriesTop);
+                expect(box.y).toBeGreaterThanOrEqual(0);
+            }
         });
     });
 });
