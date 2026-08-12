@@ -17,7 +17,20 @@ export function avatarIndex(ticker: string): number {
 }
 
 /**
- * A market cell: a small coloured initial, then the cell's own text. The badge is a
+ * A market's coloured initial. Decorative — it abbreviates a ticker that is always
+ * shown beside it — so it stays out of the accessibility tree. Sized by context in
+ * financial.css rather than by a prop.
+ */
+export function TickerBadge({ ticker }: { ticker: string }) {
+    return (
+        <span className="fin-ticker-badge" data-avatar={avatarIndex(ticker)} aria-hidden="true">
+            {ticker.charAt(0)}
+        </span>
+    );
+}
+
+/**
+ * A market cell: the coloured initial, then the cell's own text. The badge is a
  * recognition aid for scanning a long board, so it keys off the ticker even when the
  * column shows the company name.
  */
@@ -25,10 +38,7 @@ export function TickerCell({ value, data }: CustomCellRendererProps<{ ticker: st
     const ticker = data?.ticker ?? '';
     return (
         <span className="fin-ticker">
-            {/* Decorative: the initial duplicates text already in the row. */}
-            <span className="fin-ticker-badge" data-avatar={avatarIndex(ticker)} aria-hidden="true">
-                {ticker.charAt(0)}
-            </span>
+            <TickerBadge ticker={ticker} />
             <span className="fin-ticker-label">{value}</span>
         </span>
     );

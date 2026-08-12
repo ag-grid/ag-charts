@@ -7,6 +7,7 @@ import { PeerPerformanceChart } from './components/PeerPerformanceChart';
 import { PeerSpreadHeatmap } from './components/PeerSpreadHeatmap';
 import { ProfileGauges } from './components/ProfileGauges';
 import { SavedMarkets } from './components/SavedMarkets';
+import { TickerBadge } from './components/TickerCell';
 import { Toolbar } from './components/Toolbar';
 import { Trending } from './components/Trending';
 import { Watchlist } from './components/Watchlist';
@@ -135,6 +136,7 @@ export const FinancialApp = () => {
                                     ☰
                                 </Button>
                                 <div className="fin-quote">
+                                    <TickerBadge ticker={instrument.ticker} />
                                     <span className="fin-quote-symbol">{instrument.name}</span>
                                     <span className="fin-quote-price">{last ? fmtPrice(last.close) : '—'}</span>
                                     <span className={change >= 0 ? 'fin-up' : 'fin-down'}>

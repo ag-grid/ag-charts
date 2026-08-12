@@ -40,6 +40,14 @@
     --fin-notice: #1f6feb;
     /* A neutral lift for hover, so a hover never has to darken a dark surface. */
     --fin-hover: rgba(255, 255, 255, 0.06);
+    /* The selected row fills with the accent — the same fill selection uses everywhere
+       else — so it carries its own ink and up/down steps. The dark-surface green and
+       red both collapse against a saturated blue, so these are light tints of them;
+       direction is also carried by the explicit +/- sign in the value. */
+    --fin-row-active: var(--fin-accent-strong);
+    --fin-row-active-text: #ffffff;
+    --fin-row-active-up: #8ff0d0;
+    --fin-row-active-down: #ffc4cb;
     /* Categorical slots for the peer chart, bright enough to hold a 1px line on black. */
     --fin-chart-palette-0: #60a5fa;
     --fin-chart-palette-1: #f0a68c;
@@ -540,6 +548,15 @@
     font-size: 16px;
     font-weight: 650;
 }
+/* The quote header's badge is scaled up for the heading, and centres on the line: the
+   row is baseline-aligned so the price and change sit on one baseline, but a circle
+   dropped onto that baseline rides visibly high. */
+.fin-quote .fin-ticker-badge {
+    align-self: center;
+    width: 21px;
+    height: 21px;
+    font-size: 11px;
+}
 .fin-quote-price {
     font-size: 16px;
     font-variant-numeric: tabular-nums;
@@ -640,6 +657,11 @@
     text-overflow: ellipsis;
     white-space: nowrap;
 }
+/* On the accent-filled selected row a blue-ish badge would sink into the fill, so ring
+   it — that keeps every slot separated without giving up its identity colour. */
+.fin-grid-active .fin-ticker-badge {
+    box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.9);
+}
 /* Vibrant mid-tones rather than the darker inks a text colour would need: the initial
    is decorative (aria-hidden, and the ticker it abbreviates is right beside it), so
    these are tuned for identity at a glance rather than for text contrast. */
@@ -686,10 +708,13 @@
 .fin-saved-grid .ag-row {
     cursor: pointer;
 }
+/* The selected instrument's row inverts to a light chip. The fill is the selection
+   marker, so the accent bar it used to carry would be redundant. */
 .fin-watchlist-grid .ag-row.fin-grid-active,
 .fin-trending-grid .ag-row.fin-grid-active,
 .fin-saved-grid .ag-row.fin-grid-active {
-    box-shadow: inset 2px 0 0 var(--fin-accent);
+    background: var(--fin-row-active);
+    color: var(--fin-row-active-text);
 }
 /* Keyboard focus only (:focus-visible): ring the whole row rather than the cell.
    A mouse click focuses a cell too, but :focus-visible won't match, so pointer
@@ -703,7 +728,8 @@
 .fin-watchlist-grid .fin-grid-active .ag-cell:first-child,
 .fin-trending-grid .fin-grid-active .ag-cell:first-child,
 .fin-saved-grid .fin-grid-active .ag-cell:first-child {
-    color: var(--fin-accent);
+    color: var(--fin-row-active-text);
+    font-weight: 600;
 }
 /* Reuse the terminal up/down colours inside grid cells. */
 .fin-watchlist-grid .ag-cell.fin-up,
@@ -715,6 +741,17 @@
 .fin-trending-grid .ag-cell.fin-down,
 .fin-saved-grid .ag-cell.fin-down {
     color: var(--fin-down);
+}
+/* …but on the inverted row they need the light-surface steps instead. */
+.fin-watchlist-grid .fin-grid-active .ag-cell.fin-up,
+.fin-trending-grid .fin-grid-active .ag-cell.fin-up,
+.fin-saved-grid .fin-grid-active .ag-cell.fin-up {
+    color: var(--fin-row-active-up);
+}
+.fin-watchlist-grid .fin-grid-active .ag-cell.fin-down,
+.fin-trending-grid .fin-grid-active .ag-cell.fin-down,
+.fin-saved-grid .fin-grid-active .ag-cell.fin-down {
+    color: var(--fin-row-active-down);
 }
 
 /* ---- saved markets table ---- */
@@ -755,6 +792,13 @@
     color: var(--fin-down);
     transition: none;
 }
+/* The inverted row needs the light-surface steps for the flash too. */
+.fin-saved-grid .fin-grid-active .fin-price.fin-tick-up {
+    color: var(--fin-row-active-up);
+}
+.fin-saved-grid .fin-grid-active .fin-price.fin-tick-down {
+    color: var(--fin-row-active-down);
+}
 
 /* Deal buttons keep their outline: it is the affordance, and the sided colour is what
    tells sell from buy at a glance. The only intentional border in the app. */
@@ -789,4 +833,12 @@
 .fin-deal-btn:focus-visible {
     outline: 1px solid currentColor;
     outline-offset: 1px;
+}
+/* Both the outline and the label are currentColor, so re-pitching the colour on the
+   inverted row carries the whole button. */
+.fin-saved-grid .fin-grid-active .fin-deal-btn[data-side='sell'] {
+    color: var(--fin-row-active-down);
+}
+.fin-saved-grid .fin-grid-active .fin-deal-btn[data-side='buy'] {
+    color: var(--fin-row-active-up);
 }
