@@ -24,6 +24,11 @@ const options: AgCartesianChartOptions<DataType> = {
                 wrapping: 'on-space',
                 truncate: true,
             },
+            tooltip: {
+                renderer: ({ datum }) => ({
+                    data: [{ label: 'Revenue', value: `$${datum.revenue}m` }],
+                }),
+            },
         },
     ],
     axes: {
