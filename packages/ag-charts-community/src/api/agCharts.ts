@@ -245,6 +245,7 @@ class AgChartsInternal {
         // one these options were validated against is a different instance. Adopt the chart's to keep
         // a chart's console output and `warnOnce` dedup on a single Logger.
         chartOptions.adoptLogger(chart.ctx.logger);
+        chartOptions.adoptValidationSink((issue) => chart.validationCollector.recordCallbackIssue(issue));
 
         if (chartOptions.optionsGraph) {
             chart.ctx.optionsGraphService.updateCallback((logger, path, partialOptions, resolveOptions) => {

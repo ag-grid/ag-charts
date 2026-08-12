@@ -999,11 +999,13 @@ export abstract class Chart implements ModuleInstance, ChartService {
     }
 
     private async tryPerformUpdate(count: number) {
+        this.validationCollector.beginCallbackIssues();
         try {
             const status = `${ChartUpdateType[this.performUpdateType]} ${this.updateShortcutCount > 0 ? '⚠️ redo #' + this.updateShortcutCount + ' ⚠️ ' : ''}`;
             await this.debug.group(`Chart.performUpdate() ${status}`, async () => {
                 await this.performUpdate(count);
             });
+            this.validationCollector.commitCallbackIssues();
         } catch (error: any) {
             this.ctx.logger.error('update error', error, error.stack);
             this.validationCollector.add({
