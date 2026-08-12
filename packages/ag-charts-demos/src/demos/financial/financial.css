@@ -566,6 +566,30 @@
     min-height: 0;
 }
 
+/* Selecting an instrument swaps the chart's data in place, with no remount to signal it,
+   so the card answers the selection with a brief accent pulse. An inset ring rather than
+   a background wash: the canvas covers the card's middle, and only the padding shows. */
+@keyframes fin-chart-pulse {
+    from {
+        box-shadow:
+            inset 0 0 0 2px var(--fin-accent),
+            0 0 18px -2px rgba(68, 147, 248, 0.4);
+    }
+    to {
+        box-shadow:
+            inset 0 0 0 2px transparent,
+            0 0 18px -2px transparent;
+    }
+}
+.fin-chart-card.fin-pulse {
+    animation: fin-chart-pulse 600ms ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+    .fin-chart-card.fin-pulse {
+        animation: none;
+    }
+}
+
 /* Cards that hold a chart or a gauge share the same panel framing: a raised surface
    on the recessed working area, with no outline. */
 .fin-detail-card {

@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { DemoBanner } from './components/DemoBanner';
 import { FinancialChart } from './components/FinancialChart';
@@ -29,6 +29,9 @@ const SPEED_OPTIONS = [
 // FinancialChart's trailing window, PeerPerformance's range, and the peer heatmap's
 // bucket span. Driven by the title-bar range buttons. 240 == the 4H button.
 const SHARED_WINDOW_MINUTES = 240;
+
+// How long the chart's selection pulse runs. Matches the fin-chart-pulse keyframes.
+const PULSE_MS = 600;
 
 // Range-button choices for the shared time window, in trailing minutes.
 const RANGE_OPTIONS = [
@@ -89,6 +92,25 @@ export const FinancialApp = () => {
         [selectInstrument]
     );
 
+    // The chart swaps its data in place rather than remounting, which is smooth but gives a
+    // selection made over in a side list no visible answer from the chart that acted on it.
+    // A brief blue pulse on the card supplies one.
+    const chartCardRef = useRef<HTMLDivElement>(null);
+    const pulsedTickerRef = useRef(ticker);
+    useEffect(() => {
+        if (ticker === pulsedTickerRef.current) return;
+        pulsedTickerRef.current = ticker;
+        const node = chartCardRef.current;
+        if (!node) return;
+        node.classList.remove('fin-pulse');
+        // Reading offsetWidth forces a reflow, so re-adding the class restarts the animation
+        // rather than being coalesced away when two selections land close together.
+        void node.offsetWidth;
+        node.classList.add('fin-pulse');
+        const id = window.setTimeout(() => node.classList.remove('fin-pulse'), PULSE_MS);
+        return () => window.clearTimeout(id);
+    }, [ticker]);
+
     // Everything the desk has saved: the watchlist plus both market-overview boards.
     const savedSources = useMemo(() => [...quotes, ...trending, ...mostActive], [quotes, trending, mostActive]);
 
@@ -125,7 +147,7 @@ export const FinancialApp = () => {
                 <div className="fin-main">
                     {/* The quote header and its controls sit inside the chart card, so the
                         instrument, its range and its chart read as one component. */}
-                    <div className="fin-detail-card fin-chart-card">
+                    <div className="fin-detail-card fin-chart-card" ref={chartCardRef}>
                         <div className="fin-title-bar">
                             <div className="fin-title-left">
                                 <Button
