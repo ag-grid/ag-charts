@@ -296,7 +296,11 @@
    the column and left the saved-markets board pinned to its own floor. */
 .fin-main > .fin-detail-card {
     flex: 1 1 0;
-    min-height: 380px;
+    /* With the saved board closed the chart gets more than this from free space, so the
+       floor only binds with the board open — where it is what decides how much room the
+       board can take. Low enough to let the board dominate, high enough that the plot
+       plus the card's own header row stay usable. */
+    min-height: 330px;
 }
 
 .fin-sidebar {
@@ -803,10 +807,12 @@
 .fin-section--fill {
     display: flex;
     flex-direction: column;
-    /* Zero basis rather than `auto`: sized from the free space alone, it splits the
-       column evenly with the chart card instead of being shrunk to its floor because
-       the chart's content-based basis claimed the space first. */
-    flex: 1 1 0;
+    /* Zero basis rather than `auto`: sized from the free space alone, rather than being
+       shrunk to its floor because the chart's content-based basis claimed the space
+       first. Grows at twice the chart's rate, so with the board open it is the board
+       that gets the column and the chart settles toward its own floor — the board is
+       what you opened, so it should be the thing you can actually read. */
+    flex: 3 1 0;
     min-height: 340px;
     margin-bottom: 0;
 }
