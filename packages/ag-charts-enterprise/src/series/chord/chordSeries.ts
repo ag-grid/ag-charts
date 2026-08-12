@@ -31,7 +31,7 @@ import {
     FlowProportionSeries,
     type FlowProportionSeriesContext,
 } from '../flow-proportion/flowProportionSeries';
-import { ChordLink, bezierControlPoints } from './chordLink';
+import { ChordLink, type ChordLinkNodeEdge, bezierControlPoints } from './chordLink';
 import { ChordSeriesProperties } from './chordSeriesProperties';
 
 const { SeriesNodePickMode, createDatumId, Sector, getShapeStyle, getLabelStyles, BBox } = _ModuleSupport;
@@ -590,6 +590,41 @@ export class ChordSeries extends FlowProportionSeries<
         return style;
     }
 
+    /**
+     * The node edge a link end terminates against, with each corner radius resolved to what `Sector`
+     * will actually draw. Only the first and last link of a node reach a corner, so every other link
+     * end gets zeroes and keeps its flat arc.
+     */
+    private nodeEdge(
+        node: ChordNodeDatum,
+        startAngle: number,
+        endAngle: number,
+        cornerRadius: number
+    ): ChordLinkNodeEdge {
+        const { strokeWidth } = this.properties.node;
+        const inset = strokeWidth / 2;
+        const innerRadius = node.innerRadius > 0 ? node.innerRadius + inset : 0;
+        const outerRadius = Math.max(node.outerRadius - inset, 0);
+        const edge: ChordLinkNodeEdge = { innerRadius, inset, startCornerRadius: 0, endCornerRadius: 0 };
+
+        if (cornerRadius <= 0 || innerRadius <= 0) return edge;
+
+        // Mirrors the inner-corner clamp in scene/shape/sector.ts — the later scaling passes there
+        // cannot reduce it further, because all four of a chord node's corner radii are equal and
+        // this clamp already fits each one within both the sweep and the radial length.
+        const adjustedSweep = node.endAngle - node.startAngle - (2 * inset) / innerRadius;
+        const cornerDistance = adjustedSweep > 0 ? 2 * innerRadius * Math.sin(adjustedSweep / 2) : 0;
+        const radius = Math.floor(
+            Math.max(0, Math.min(cornerRadius, cornerDistance / 2, (outerRadius - innerRadius) / 2))
+        );
+        if (radius <= 0) return edge;
+
+        const delta = 1e-6;
+        edge.startCornerRadius = Math.abs(startAngle - node.startAngle) < delta ? radius : 0;
+        edge.endCornerRadius = Math.abs(endAngle - node.endAngle) < delta ? radius : 0;
+        return edge;
+    }
+
     protected updateLinkNodes(opts: {
         datumSelection: _ModuleSupport.Selection<ChordLinkDatum, ChordLink<ChordLinkDatum>>;
         isHighlight: boolean;
@@ -597,6 +632,18 @@ export class ChordSeries extends FlowProportionSeries<
         const { datumSelection, isHighlight } = opts;
 
         const fillBBox = this.getShapeFillBBox();
+
+        // An itemStyler can vary cornerRadius per node, and the link has to follow whatever the
+        // node is actually drawn with. Resolved once per node rather than once per link end.
+        const nodeCornerRadii = new Map<ChordNodeDatum, number>();
+        const nodeCornerRadius = (node: ChordNodeDatum) => {
+            let cornerRadius = nodeCornerRadii.get(node);
+            if (cornerRadius == null) {
+                cornerRadius = this.getNodeStyle(node, node.datumIndex, false).cornerRadius;
+                nodeCornerRadii.set(node, cornerRadius);
+            }
+            return cornerRadius;
+        };
 
         datumSelection.each((link, datum) => {
             const style = this.getLinkStyle(datum.datum, datum.datumIndex, datum.fromNode.datumIndex, isHighlight);
@@ -608,6 +655,10 @@ export class ChordSeries extends FlowProportionSeries<
             link.endAngle1 = datum.endAngle1;
             link.startAngle2 = datum.startAngle2;
             link.endAngle2 = datum.endAngle2;
+
+            const { fromNode, toNode } = datum;
+            link.edge1 = this.nodeEdge(fromNode, datum.startAngle1, datum.endAngle1, nodeCornerRadius(fromNode));
+            link.edge2 = this.nodeEdge(toNode, datum.startAngle2, datum.endAngle2, nodeCornerRadius(toNode));
 
             link.tension = style.tension;
             link.setStyleProperties(style, fillBBox);
