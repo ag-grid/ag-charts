@@ -1198,7 +1198,7 @@ describe('DonutSeries', () => {
             const [series] = (myChart as any).series as any[];
             return (series.innerLabelsSelection.nodes() as Text[]).map((node) => {
                 const bbox = node.getBBox();
-                return { y: node.y, visible: node.visible, width: bbox.width, height: bbox.height };
+                return { y: node.y, top: bbox.y, visible: node.visible, width: bbox.width, height: bbox.height };
             });
         };
 
@@ -1232,6 +1232,11 @@ describe('DonutSeries', () => {
 
             expect(segmented.map(({ y }) => y)).toEqual(plain.map(({ y }) => y));
             expect(segmented[1].y - segmented[0].y).toBeCloseTo(plain[1].y - plain[0].y, 5);
+            // The rendered box, not just the anchor: a segments array whose y was compensated for
+            // its own height would sit a full label height away from the plain-string box.
+            for (const [index, label] of segmented.entries()) {
+                expect(label.top).toBeCloseTo(plain[index].top, 5);
+            }
         });
 
         it('accepts a segments array without warnings and still rejects a malformed segment', async () => {
