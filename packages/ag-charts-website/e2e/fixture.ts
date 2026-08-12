@@ -38,6 +38,9 @@ const LOCATOR_FACTORIES = new Set([
 ]);
 
 async function waitForCharts(page: Page) {
+    // Let an in-flight navigation commit before inspecting the page, so the wrappers we find
+    // belong to the document we are about to assert against.
+    await page.waitForLoadState('domcontentloaded');
     // Wait for a rAF-then-setTimeout chain so that:
     // 1. rAF-scheduled chart updates (zoom animations, scene renders) begin
     // 2. Deferred DOM flushes (setTimeout(0) in DOMElementProxy) execute
@@ -46,7 +49,15 @@ async function waitForCharts(page: Page) {
     // has even been scheduled.
     await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => setTimeout(resolve, 0))));
     for (const locator of await page.locator('.ag-charts-wrapper').all()) {
-        await waitForChartUpdate(locator);
+        try {
+            await waitForChartUpdate(locator);
+        } catch (error) {
+            // A click that navigates away detaches the chart we were waiting on partway
+            // through the wait: the wrapper was counted on the old document and is gone from
+            // the new one. Nothing is left to stabilise, so that is not a failure — but a
+            // wrapper still present in the DOM has genuinely timed out.
+            if ((await locator.count()) > 0) throw error;
+        }
     }
 }
 
