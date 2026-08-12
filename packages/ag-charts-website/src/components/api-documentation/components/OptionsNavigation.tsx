@@ -1,5 +1,5 @@
 import { Icon } from '@ag-website-shared/components/icon/Icon';
-import { navigate, scrollIntoView, scrollIntoViewById, useLocation } from '@ag-website-shared/utils/navigation';
+import { scrollIntoView, scrollIntoViewById } from '@ag-website-shared/utils/navigation';
 import type {
     ApiReferenceNode,
     ApiReferenceType,
@@ -42,6 +42,7 @@ import {
     normalizeType,
     processMembers,
 } from '../apiReferenceHelpers';
+import { navigateToSelection, useApiReferenceLocation } from '../apiReferenceRouting';
 import { ApiReferenceConfigContext, ApiReferenceContext } from './ApiReference';
 import styles from './OptionsNavigation.module.scss';
 import { SearchBox } from './SearchBox';
@@ -62,7 +63,7 @@ export function OptionsNavigation({
     breadcrumbs: string[];
     rootInterface: string;
 }) {
-    const location = useLocation();
+    const location = useApiReferenceLocation();
     const elementRef = useRef<HTMLDivElement>(null);
     const selection = useContext(SelectionContext);
     const reference = useContext(ApiReferenceContext);
@@ -99,7 +100,7 @@ export function OptionsNavigation({
             selection?.setSelection(navData); // trigger change for highlighting selection
         } else {
             selection?.setSelection(navData);
-            navigate(navData, { state: navData });
+            navigateToSelection(navData);
         }
     };
 
@@ -120,7 +121,7 @@ export function OptionsNavigation({
                     onItemClick={(data) => {
                         const navData = getNavigationDataFromPath(data.navPath, config.specialTypes);
                         selection?.setSelection(navData);
-                        navigate(navData, { state: navData });
+                        navigateToSelection(navData);
                     }}
                 />
             </header>
@@ -178,7 +179,7 @@ function NavProperty({
     const selection = useContext(SelectionContext);
     const reference = useContext(ApiReferenceContext);
     const config = useContext(ApiReferenceConfigContext);
-    const location = useLocation();
+    const location = useApiReferenceLocation();
 
     const memberType = getMemberType(member);
     const interfaceRef = reference?.get(memberType);
@@ -520,7 +521,7 @@ function NavBreadcrumb({
         };
         selection?.setSelection(navData);
         window.scrollTo({ behavior: 'smooth', top: 0 });
-        navigate(navData, { state: navData });
+        navigateToSelection(navData);
     };
 
     return (
@@ -622,7 +623,7 @@ function PropertyExpander({ isExpanded, onClick }: { isExpanded?: boolean; onCli
 
 function useAutoExpand(shouldExpand: () => boolean): [boolean, () => void] {
     const [isExpanded, toggleExpanded, setExpanded] = useToggle(shouldExpand);
-    const location = useLocation();
+    const location = useApiReferenceLocation();
 
     useEffect(() => {
         if (!isExpanded) {

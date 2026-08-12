@@ -52,11 +52,11 @@ let options: AgCartesianChartOptions = {
 
     legend: {
         listeners: {
-            legendItemClick: ({ seriesId, itemId }: AgChartLegendClickEvent) => {
-                console.log(`Click - seriesId: ${seriesId}, itemId: ${itemId}`);
+            legendItemClick: ({ seriesId, itemId, visible }: AgChartLegendClickEvent) => {
+                console.log(`Click - seriesId: ${seriesId}, itemId: ${itemId}, visible: ${visible}`);
             },
-            legendItemDoubleClick: ({ seriesId, itemId }: AgChartLegendDoubleClickEvent) => {
-                console.log(`Double Click - seriesId: ${seriesId}, itemId: ${itemId}`);
+            legendItemDoubleClick: ({ seriesId, itemId, visible }: AgChartLegendDoubleClickEvent) => {
+                console.log(`Double Click - seriesId: ${seriesId}, itemId: ${itemId}, visible: ${visible}`);
             },
         },
     },

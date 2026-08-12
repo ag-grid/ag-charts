@@ -370,6 +370,18 @@ export function getSeriesAggregationInternals(
     return deproxy(chartOrProxy).series[seriesIndex] as unknown as SeriesAggregationInternals;
 }
 
+/**
+ * The x data values of the markers a bubble/scatter series actually rendered, sorted ascending, with
+ * an assertion that aggregation is active — so a caller comparing windows cannot pass over a series
+ * that never reached the aggregation path.
+ */
+export function getAggregatedMarkerXValues(chartOrProxy: ChartOrProxy<any>, seriesIndex = 0): number[] {
+    const series = getSeriesAggregationInternals(chartOrProxy, seriesIndex);
+    expect(series.dataAggregation).toBeDefined();
+    const nodeData = (series.contextNodeData?.nodeData ?? []) as ReadonlyArray<{ xValue: number }>;
+    return nodeData.map(({ xValue }) => xValue).sort((a, b) => a - b);
+}
+
 export function repeat<T>(value: T, count: number): T[] {
     return new Array(count).fill(value);
 }
@@ -2067,9 +2079,11 @@ export function getCursor(chart: Chart | AgChartProxy): string {
     return ctx.domManager.getCursor();
 }
 
-export function withPreventDefault<E>(partial: Omit<E, 'preventDefault'> & { preventDefault?: never }) {
+type Without<E, Ks extends string> = Omit<E, Ks> & { [K in Ks]?: never };
+export function withPreventDefault<E>(partial: Without<E, 'preventDefault' | 'defaultPrevented'>) {
     return expect.objectContaining({
         ...partial,
+        defaultPrevented: expect.any(Boolean),
         preventDefault: expect.any(Function),
     });
 }

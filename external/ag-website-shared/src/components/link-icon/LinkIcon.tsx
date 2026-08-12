@@ -27,7 +27,9 @@ export function LinkIcon({
 
         navigator.clipboard.writeText(redirectUrl ?? href);
 
-        history.replaceState({}, '', hash);
+        // Preserve the existing entry's state: Astro's ClientRouter keeps its scroll and history
+        // index in there, and replacing it wholesale breaks its back/forward handling.
+        history.replaceState(history.state, '', hash);
 
         setLinkCopied(true);
         setlinkActive(true);

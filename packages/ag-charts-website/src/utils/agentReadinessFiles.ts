@@ -27,7 +27,6 @@ interface AgentReadinessInput {
 }
 
 interface AgentReadinessLinks {
-    home: string;
     quickStart: string;
     options: string;
     gallery: string;
@@ -38,12 +37,13 @@ interface AgentReadinessLinks {
     pipeline: string;
     sitemap: string;
     llmsTxt: string;
+    /** The homepage twin, which is `index.md` rather than a `.md` suffix on the site root. */
+    homepageMarkdown: string;
 }
 
 function buildLinks({ siteRoot, chartsDocsPrefix }: AgentReadinessInput): AgentReadinessLinks {
     const docs = `${siteRoot}${chartsDocsPrefix}/`;
     return {
-        home: siteRoot,
         quickStart: `${docs}quick-start/`,
         options: `${docs}options/`,
         gallery: `${siteRoot}gallery/`,
@@ -54,6 +54,7 @@ function buildLinks({ siteRoot, chartsDocsPrefix }: AgentReadinessInput): AgentR
         pipeline: `${siteRoot}pipeline/`,
         sitemap: `${siteRoot}sitemap-index.xml`,
         llmsTxt: `${siteRoot}llms.txt`,
+        homepageMarkdown: `${siteRoot}index.md`,
     };
 }
 
@@ -63,11 +64,13 @@ function buildLinks({ siteRoot, chartsDocsPrefix }: AgentReadinessInput): AgentR
  */
 export function buildLlmsTxt(input: AgentReadinessInput): string {
     const l = buildLinks(input);
-    // Only advertise the `.md` convention when those routes are actually built.
+    // Only advertise the `.md` convention when those routes are actually built. Nearly every page
+    // in the sitemap has a twin (enforced by the post-build check in markdownPages.test.ts), so
+    // this states the rule rather than enumerating pages that would drift out of date.
     const markdownLine =
         input.includeMarkdownDocs === false
             ? ''
-            : `\n- Markdown versions: append \`.md\` to any Charts docs page URL for a clean, framework-specific Markdown copy (e.g. ${l.quickStart.replace(/\/$/, '')}.md), or send \`Accept: text/markdown\`. The Home, Gallery, Community, Documentation Archive and Pricing pages also have \`.md\` versions.`;
+            : `\n- Markdown versions: append \`.md\` to any page URL listed in the sitemap for a clean Markdown copy (e.g. ${l.quickStart.replace(/\/$/, '')}.md), or send \`Accept: text/markdown\`. Docs pages are resolved for the framework in the URL. The homepage is the one URL with no \`.md\` suffix - its copy is ${l.homepageMarkdown}.`;
     return `# AG Charts
 > High-performance JavaScript Charting library, framework-agnostic with React, Angular and Vue support. Free Community and paid Enterprise editions. Current major version: v${input.majorVersion}.
 
@@ -92,11 +95,12 @@ export function buildLlmsTxt(input: AgentReadinessInput): string {
  */
 export function buildAgentsMd(input: AgentReadinessInput): string {
     const l = buildLinks(input);
-    // Advertise the markdown twins only when they are built (see includeMarkdownDocs).
+    // Advertise the markdown twins only when they are built (see includeMarkdownDocs). Nearly
+    // every page in the sitemap has one, so state the rule rather than listing pages.
     const markdownBullet =
         input.includeMarkdownDocs === false
             ? ''
-            : `\n- **Markdown for LLMs:** append \`.md\` to any Charts docs page URL (e.g. ${l.quickStart.replace(/\/$/, '')}.md), or request the page with \`Accept: text/markdown\`. The [Home](${l.home}), [Gallery](${l.gallery}), [Community](${l.community}), [Documentation Archive](${l.documentationArchive}) and [Pricing](${l.pricing}) pages also have \`.md\` versions.`;
+            : `\n- **Markdown for LLMs:** append \`.md\` to any page URL listed in the [sitemap](${l.sitemap}) (e.g. ${l.quickStart.replace(/\/$/, '')}.md), or request the page with \`Accept: text/markdown\`. Docs pages are resolved for the framework in the URL. The homepage is the one URL with no \`.md\` suffix - its copy is ${l.homepageMarkdown}.`;
     return `# AG Charts - guide for AI coding assistants
 
 - **What it is:** high-performance JavaScript Charting library. Framework-agnostic, with React, Angular and Vue wrappers. Community (free) and Enterprise (licensed) editions.

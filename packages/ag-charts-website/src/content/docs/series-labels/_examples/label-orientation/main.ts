@@ -22,6 +22,11 @@ const options: AgCartesianChartOptions<DataType> = {
                 wrapping: 'never',
                 formatter: (params) => `$${params.value}m profit${params.datum.note ? ` (${params.datum.note})` : ''}`,
             },
+            tooltip: {
+                renderer: ({ datum }) => ({
+                    data: [{ label: 'Profit Change', value: `$${datum.profitChange}m` }],
+                }),
+            },
         },
     ],
     axes: {

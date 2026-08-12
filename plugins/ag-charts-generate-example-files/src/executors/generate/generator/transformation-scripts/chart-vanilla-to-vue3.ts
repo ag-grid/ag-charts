@@ -6,6 +6,7 @@ import { convertTemplate, getImport, indentTemplate } from './vue-utils';
 const components: Record<ChartAPI, string> = {
     gauge: 'AgGauge',
     financial: 'AgFinancialCharts',
+    quadrant: 'AgQuadrantChart',
     sparkline: 'AgSparkline',
     vanilla: 'AgCharts',
 };
@@ -13,6 +14,7 @@ const components: Record<ChartAPI, string> = {
 const tags: Record<ChartAPI, string> = {
     gauge: 'ag-gauge',
     financial: 'ag-financial-charts',
+    quadrant: 'ag-quadrant-chart',
     sparkline: 'ag-sparkline',
     vanilla: 'ag-charts',
 };

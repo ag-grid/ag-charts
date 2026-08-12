@@ -7,12 +7,15 @@ import { Canvas, DOMMatrix, Image, Path2D } from 'skia-canvas';
 import type { AgChartThemeName } from 'ag-charts-community';
 import { ConfiguredCanvasMixin } from 'ag-charts-core';
 
+import { registerThumbnailFonts } from './generator/fonts';
 import { generateThumbnail, prepareExample } from './generator/thumbnailGenerator';
 
 global.Path2D = Path2D;
 global.DOMMatrix = DOMMatrix as any;
 global.Image = Image as any;
 global.OffscreenCanvas = ConfiguredCanvasMixin(Canvas) as any;
+
+registerThumbnailFonts();
 
 export type ExecutorOptions = {
     outputPath: string;

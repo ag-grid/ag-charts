@@ -16,6 +16,8 @@ interface AgChartEvent<T extends string, TContext = ContextDefault> {
 }
 
 export interface AgPreventableEvent {
+    /** True if the `preventDefault()` method has been called on this event. */
+    readonly defaultPrevented: boolean;
     /** Prevent the AG Charts built-in default event handlers from running. */
     preventDefault(): void;
 }
@@ -25,10 +27,26 @@ interface AgCoordinatedEvent {
     coordinates?: AgCoordinates;
 }
 
-export interface AgNodeClickEvent<TEvent extends string, TDatum, TContext = ContextDefault>
-    extends AgChartEvent<TEvent, TContext>, AgCoordinatedEvent {
+export interface AgBaseNodeClickEvent<TEvent extends string, TDatum, TContext = ContextDefault>
+    extends AgChartEvent<TEvent, TContext>, AgPreventableEvent, AgCoordinatedEvent, AgNodeParams<TDatum> {
     /** Event type. */
     type: TEvent;
+}
+
+export interface AgNodeClickEvent<
+    TEvent extends string,
+    TDatum,
+    TContext = ContextDefault,
+> extends AgBaseNodeClickEvent<TEvent, TDatum, TContext> {
+    /** TODO: writeme */
+    allNodeParams: AgNodeParams<TDatum>[];
+}
+
+/**
+ * Everything a node event reports about the picked datum itself, i.e. an {@link AgNodeClickEvent} minus the
+ * event-delivery fields. Most fields are optional, because each series type only sets the properties applicable to it.
+ */
+export interface AgNodeParams<TDatum> {
     /** Series ID, as specified in `series.id` (or generated if not specified) */
     seriesId: string;
     /** The unique identifier of the picked datum. */
@@ -65,6 +83,14 @@ export interface AgNodeClickEvent<TEvent extends string, TDatum, TContext = Cont
     sectorLabelKey?: ResolvedDatumKey<TDatum>;
     /** radiusKey as specified on series options */
     radiusKey?: ResolvedDatumKey<TDatum>;
+    /** Histogram series only: zero-based positional index of the bin within the series. */
+    binIndex?: number;
+    /** Histogram series only: the bin's start and end bounds on the x-axis. */
+    binRange?: [AgNumericValue, AgNumericValue];
+    /** Histogram series only: the aggregated `yKey` value for the bin. */
+    aggregatedValue?: AgNumericValue;
+    /** Histogram series only: the number of source rows within the bin. */
+    frequency?: number;
 }
 
 export interface AgSeriesVisibilityChange<TContext = ContextDefault> {
@@ -285,16 +311,7 @@ export interface AgCaptionListeners<TContext = ContextDefault> {
 export interface AgNodeContextMenuActionEvent<
     TDatum = DatumDefault,
     TContext = ContextDefault,
-> extends AgNodeClickEvent<'nodeContextMenuAction', TDatum, TContext> {
-    /** Histogram series only: zero-based positional index of the bin within the series. */
-    binIndex?: number;
-    /** Histogram series only: the bin's start and end bounds on the x-axis. */
-    binRange?: [number, number];
-    /** Histogram series only: the aggregated `yKey` value for the bin. */
-    aggregatedValue?: number;
-    /** Histogram series only: the number of source rows within the bin. */
-    frequency?: number;
-}
+> extends AgNodeClickEvent<'nodeContextMenuAction', TDatum, TContext> {}
 
 export interface AgBaseChartListeners<TDatum, TContext = ContextDefault> {
     /** The listener to call when a node (marker, column, bar, tile or a pie sector) in any series is clicked.

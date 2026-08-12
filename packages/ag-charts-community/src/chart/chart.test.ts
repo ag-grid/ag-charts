@@ -1052,7 +1052,7 @@ describe('Chart', () => {
             await waitForChartStability(chart);
 
             // Verify listener is registered
-            expect(chart.hasEventListener('click')).toBe(true);
+            expect(chart.listeners.click).toBeDefined();
 
             // Reset mock call count before clearing
             chartClick.mockClear();
@@ -1065,7 +1065,7 @@ describe('Chart', () => {
             await waitForChartStability(chart);
 
             // Verify listener is cleared
-            expect(chart.hasEventListener('click')).toBe(false);
+            expect(chart.listeners.click).toBeUndefined();
 
             // Trigger a click event and verify the cleared listener is not called
             await clickAction(100, 100)(agChartInstance);
@@ -1098,7 +1098,7 @@ describe('Chart', () => {
             await waitForChartStability(chart);
 
             // Verify listener is registered
-            expect(chart.series[0].hasEventListener('seriesNodeClick')).toBe(true);
+            expect(chart.series[0].properties.listeners?.seriesNodeClick).toBeDefined();
 
             // Update with series listeners: undefined
             await agChartInstance.update({
@@ -1113,7 +1113,7 @@ describe('Chart', () => {
             await waitForChartStability(chart);
 
             // Verify listener is cleared
-            expect(chart.series[0].hasEventListener('seriesNodeClick')).toBe(false);
+            expect(chart.series[0].properties.listeners?.seriesNodeClick).toBeUndefined();
         });
 
         it('should handle both chart and series listeners set to undefined', async () => {
@@ -1145,8 +1145,8 @@ describe('Chart', () => {
             await waitForChartStability(chart);
 
             // Verify listeners are registered
-            expect(chart.hasEventListener('click')).toBe(true);
-            expect(chart.series[0].hasEventListener('seriesNodeClick')).toBe(true);
+            expect(chart.listeners.click).toBeDefined();
+            expect(chart.series[0].properties.listeners?.seriesNodeClick).toBeDefined();
 
             // Reset mock call counts before clearing
             chartClick.mockClear();
@@ -1166,8 +1166,8 @@ describe('Chart', () => {
             await waitForChartStability(chart);
 
             // Verify listeners are cleared
-            expect(chart.hasEventListener('click')).toBe(false);
-            expect(chart.series[0].hasEventListener('seriesNodeClick')).toBe(false);
+            expect(chart.listeners.click).toBeUndefined();
+            expect(chart.series[0].properties.listeners?.seriesNodeClick).toBeUndefined();
 
             // Trigger click events and verify cleared listeners are not called
             await clickAction(200, 200)(agChartInstance);
@@ -1176,7 +1176,39 @@ describe('Chart', () => {
             expect(seriesNodeClick).not.toHaveBeenCalled();
         });
 
-        it('should preserve internal listeners after clearing user series listeners', async () => {
+        it('should drop non-function listeners when options are applied', async () => {
+            const options = prepareTestOptions<AgCartesianChartOptions>({
+                data: [{ xValue: 'category', yValue: 1 }],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'xValue',
+                        yKey: 'yValue',
+                        listeners: { seriesNodeClick: 'not-a-function' as never },
+                    },
+                ],
+                listeners: { click: 'not-a-function' as never, doubleClick: undefined },
+            });
+            const agChartInstance = AgCharts.create(options) as AgChartProxy;
+            chart = deproxy(agChartInstance);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+              [
+                [
+                  "AG Charts - Option \`series[0].listeners.seriesNodeClick\` cannot be set to \`"not-a-function"\`; expecting a function, ignoring.",
+                ],
+                [
+                  "AG Charts - Option \`listeners.click\` cannot be set to \`"not-a-function"\`; expecting a function, ignoring.",
+                ],
+              ]
+            `);
+
+            expect(chart.listeners.click).toBeUndefined();
+            expect(chart.series[0].properties.listeners?.seriesNodeClick).toBeUndefined();
+        });
+
+        it('should keep firing chart-level listeners after clearing user series listeners', async () => {
             const seriesNodeClick = vi.fn();
             const seriesVisibilityChange = vi.fn();
             const options = prepareTestOptions<AgCartesianChartOptions>({
@@ -1205,10 +1237,8 @@ describe('Chart', () => {
             await waitForChartStability(chart);
 
             // Verify user listener is registered
-            expect(chart.series[0].hasEventListener('seriesNodeClick')).toBe(true);
-            // Verify internal listeners are registered
-            expect(chart.series[0].hasEventListener('groupingChanged')).toBe(true);
-            expect(chart.series[0].hasEventListener('seriesVisibilityChange')).toBe(true);
+            expect(chart.series[0].properties.listeners?.seriesNodeClick).toBeDefined();
+            expect(chart.listeners.seriesVisibilityChange).toBeDefined();
 
             // Update with series listeners: undefined
             await agChartInstance.update({
@@ -1223,10 +1253,10 @@ describe('Chart', () => {
             await waitForChartStability(chart);
 
             // Verify user listener is cleared
-            expect(chart.series[0].hasEventListener('seriesNodeClick')).toBe(false);
-            // Verify internal listeners are still registered
-            expect(chart.series[0].hasEventListener('groupingChanged')).toBe(true);
-            expect(chart.series[0].hasEventListener('seriesVisibilityChange')).toBe(true);
+            expect(chart.series[0].properties.listeners?.seriesNodeClick).toBeUndefined();
+
+            // Clearing the series listeners must not disturb the chart-level ones.
+            expect(chart.listeners.seriesVisibilityChange).toBe(seriesVisibilityChange);
         });
     });
 

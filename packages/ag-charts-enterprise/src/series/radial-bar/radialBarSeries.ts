@@ -2,7 +2,6 @@ import {
     type AgRadialBarSeriesOptions,
     type AgRadialSeriesLabelFormatterParams,
     type AgRadialSeriesStyle,
-    type SelectionState,
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
@@ -20,7 +19,7 @@ import {
     minValue,
     zeroLike,
 } from 'ag-charts-core';
-import type { AgCoordinates, AgNumericValue, CssColor } from 'ag-charts-types';
+import type { AgNumericValue, CssColor } from 'ag-charts-types';
 
 import { RadiusCategoryAxis } from '../../axes/radius-category/radiusCategoryAxis';
 import { readDatum } from '../../utils/datum';
@@ -53,26 +52,6 @@ const {
 } = _ModuleSupport;
 
 type NormalisedRadialSeriesStyle = Normalised<AgRadialSeriesStyle, never, FillStrokeMorph>;
-
-class RadialBarSeriesNodeEvent<
-    TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
-> extends _ModuleSupport.SeriesNodeEvent<RadialBarNodeDatum, TEvent> {
-    readonly angleKey?: string;
-    readonly radiusKey?: string;
-    constructor(
-        type: TEvent,
-        nativeEvent: Event,
-        datum: RadialBarNodeDatum,
-        series: RadialBarSeries,
-        selectionState: SelectionState | undefined,
-        isCollapsed: boolean | undefined,
-        coordinates: AgCoordinates | undefined
-    ) {
-        super(type, nativeEvent, datum, series, selectionState, isCollapsed, coordinates);
-        this.angleKey = series.properties.angleKey;
-        this.radiusKey = series.properties.radiusKey;
-    }
-}
 
 interface RadialBarLabelNodeDatum {
     text: NormalisedTextOrSegments;
@@ -116,7 +95,13 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
     override properties = new RadialBarSeriesProperties();
 
-    protected override readonly NodeEvent = RadialBarSeriesNodeEvent;
+    override createNodeParams(datum: RadialBarNodeDatum) {
+        return {
+            ...super.createNodeParams(datum),
+            angleKey: this.properties.angleKey,
+            radiusKey: this.properties.radiusKey,
+        };
+    }
 
     private readonly groupScale = new CategoryScale<string>();
 

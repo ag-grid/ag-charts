@@ -38,11 +38,11 @@ describe('getBoilerPlateName', () => {
         ${undefined}           | ${undefined}
         ${'other'}             | ${undefined}
         ${'vanilla'}           | ${undefined}
-        ${'typescript'}        | ${'charts-typescript-boilerplate'}
-        ${'reactFunctional'}   | ${'charts-react-boilerplate'}
-        ${'reactFunctionalTs'} | ${'charts-react-ts-boilerplate'}
+        ${'typescript'}        | ${undefined}
+        ${'reactFunctional'}   | ${undefined}
+        ${'reactFunctionalTs'} | ${undefined}
         ${'angular'}           | ${'charts-angular-boilerplate'}
-        ${'vue3'}              | ${'charts-vue3-boilerplate'}
+        ${'vue3'}              | ${undefined}
     `('$internalFramework is $expected', ({ internalFramework, expected }) => {
         expect(getBoilerPlateName(internalFramework)).toEqual(expected);
     });

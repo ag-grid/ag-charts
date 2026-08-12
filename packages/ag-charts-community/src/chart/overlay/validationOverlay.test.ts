@@ -1,9 +1,11 @@
-import { afterEach, describe, expect, test } from 'vitest';
+import { afterEach, describe, expect, test, vi } from 'vitest';
 
+import { ChartUpdateType } from 'ag-charts-core';
 import type { AgChartOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
 import type { Chart } from '../chart';
+import { TooltipManager } from '../interaction/tooltipManager';
 import {
     createChart,
     deproxy,
@@ -158,6 +160,139 @@ describe('ValidationOverlay', () => {
   ],
 ]
 `);
+        });
+    });
+
+    describe('#tooltip suppression', () => {
+        // The tooltip is a browser top-layer popover, so it would paint over the validation overlay
+        // regardless of z-index; a visible overlay must therefore hold the tooltip back, and clearing
+        // it (dismiss or a fixed config) must release it again.
+        test('a visible overlay suppresses the tooltip; dismissing it releases the tooltip', async () => {
+            chart = await createChart(invalidStrokeWidthOptions);
+            expect(chart.validationCollector.hasVisibleIssues()).toBe(false);
+
+            const suppressSpy = vi.spyOn(chart.ctx.tooltipManager, 'suppressTooltip');
+            const unsuppressSpy = vi.spyOn(chart.ctx.tooltipManager, 'unsuppressTooltip');
+
+            chart.validationCollector.setOverlayLevel('warning');
+            expect(chart.validationCollector.hasVisibleIssues()).toBe(true);
+            expect(suppressSpy).toHaveBeenCalledWith('validation-overlay');
+            expect(unsuppressSpy).not.toHaveBeenCalled();
+
+            chart.validationCollector.dismiss();
+            expect(chart.validationCollector.hasVisibleIssues()).toBe(false);
+            expect(unsuppressSpy).toHaveBeenCalledWith('validation-overlay');
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - Option \`series[0].strokeWidth\` cannot be set to \`"notanumber"\`; expecting a number greater than or equal to 0, ignoring.",
+  ],
+]
+`);
+        });
+
+        test('a chart whose overlay is visible on the first render suppresses the tooltip immediately', async () => {
+            // The overlay becomes visible while the chart is set up, so the suppression fires before an
+            // instance-level spy could attach; spy on the prototype so the initial call is still observed.
+            const suppressSpy = vi.spyOn(TooltipManager.prototype, 'suppressTooltip');
+            try {
+                chart = await createChart({
+                    ...invalidStrokeWidthOptions,
+                    validations: { overlayLevel: 'warning' },
+                } as AgChartOptions);
+
+                expect(chart.validationCollector.hasVisibleIssues()).toBe(true);
+                expect(suppressSpy).toHaveBeenCalledWith('validation-overlay');
+            } finally {
+                suppressSpy.mockRestore();
+            }
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - Option \`series[0].strokeWidth\` cannot be set to \`"notanumber"\`; expecting a number greater than or equal to 0, ignoring.",
+  ],
+]
+`);
+        });
+    });
+
+    describe('#callback errors', () => {
+        // A throwing user callback (here a bar `itemStyler`) is caught by the shared `safeCall` guard,
+        // which swallows it with a console `warnOnce` so it never reaches `tryPerformUpdate`'s catch.
+        // With an error-level overlay the caught error must still surface as an error entry, while the
+        // chart degrades gracefully (the callback returns undefined instead of crashing the render).
+        const throwingItemStylerOptions: AgChartOptions = {
+            data: [
+                { x: 'Jan', y: 10 },
+                { x: 'Feb', y: 15 },
+            ],
+            series: [
+                {
+                    type: 'bar',
+                    xKey: 'x',
+                    yKey: 'y',
+                    itemStyler: () => {
+                        throw new Error('itemStyler boom');
+                    },
+                } as any,
+            ],
+        };
+
+        test('a throwing itemStyler surfaces one error entry on the overlay and the chart still renders', async () => {
+            chart = await createChart({
+                ...throwingItemStylerOptions,
+                validations: { overlayLevel: 'error' },
+            } as AgChartOptions);
+
+            const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-validation-overlay');
+            expect(overlayEl).not.toBeNull();
+
+            const errorSection = overlayEl!.querySelector('.ag-charts-validation-overlay__section--error');
+            expect(errorSection).not.toBeNull();
+
+            // The styler throws once per datum, but the caught errors collapse to a single overlay entry.
+            const messages = Array.from(errorSection!.querySelectorAll('.ag-charts-validation-overlay__message')).map(
+                (el) => el.textContent ?? ''
+            );
+            expect(messages).toHaveLength(1);
+            // The "Uncaught exception in user callback" wording only comes from the safeCall guard,
+            // proving the error surfaced via the swallowed-callback path (graceful degrade), not a
+            // propagated render crash caught by tryPerformUpdate.
+            expect(messages[0]).toContain('Uncaught exception in user callback');
+            expect(messages[0]).toContain('itemStyler');
+
+            expectWarningsCalls().toEqual([
+                [expect.stringContaining('Uncaught exception in user callback'), expect.any(Error)],
+            ]);
+        });
+
+        test('a still-broken itemStyler stays on the overlay across a cache-hit redraw', async () => {
+            chart = await createChart({
+                ...throwingItemStylerOptions,
+                validations: { overlayLevel: 'error' },
+            } as AgChartOptions);
+
+            const errorMessages = () =>
+                Array.from(
+                    chart.ctx.agDocument.body.querySelectorAll(
+                        '.ag-charts-validation-overlay__section--error .ag-charts-validation-overlay__message'
+                    )
+                ).map((el) => el.textContent ?? '');
+
+            expect(errorMessages()).toHaveLength(1);
+
+            // A redraw that reuses the callback cache never re-invokes the styler, so no fresh error is
+            // collected this cycle; the committed error must survive rather than be wiped by an empty cycle.
+            chart.update(ChartUpdateType.SCENE_RENDER);
+            await chart.waitForUpdate(5000, true);
+
+            expect(errorMessages()).toHaveLength(1);
+
+            expectWarningsCalls().toEqual([
+                [expect.stringContaining('Uncaught exception in user callback'), expect.any(Error)],
+            ]);
         });
     });
 

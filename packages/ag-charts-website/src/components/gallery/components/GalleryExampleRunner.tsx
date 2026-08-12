@@ -48,7 +48,6 @@ const GalleryExampleRunnerInner = ({
     const [plunkrHtmlUrl, setPlunkrHtmlUrl] = useState<string>();
     const [exampleFiles, setExampleFiles] = useState<Record<string, string>>();
     const [exampleRunnerFiles, setExampleRunnerFiles] = useState<Record<string, string>>();
-    const [exampleBoilerPlateFiles, setExampleBoilerPlateFiles] = useState();
     const [packageJson, setPackageJson] = useState();
 
     const internalFramework = GALLERY_INTERNAL_FRAMEWORK;
@@ -140,7 +139,6 @@ const GalleryExampleRunnerInner = ({
         setExampleFiles(files);
         setExampleRunnerFiles(newExampleRunnerFiles);
         setPackageJson(contents.packageJson);
-        setExampleBoilerPlateFiles(contents.boilerPlateFiles);
     }, [internalFramework, contents, exampleFilesIsLoading, exampleFilesIsError, exampleFileHtml]);
 
     const externalLinks = hideExternalLinks ? undefined : (
@@ -148,7 +146,6 @@ const GalleryExampleRunnerInner = ({
             title={title}
             internalFramework={internalFramework}
             exampleFiles={exampleFiles}
-            exampleBoilerPlateFiles={exampleBoilerPlateFiles}
             packageJson={packageJson}
             initialSelectedFile={initialSelectedFile}
             plunkrHtmlUrl={plunkrHtmlUrl}

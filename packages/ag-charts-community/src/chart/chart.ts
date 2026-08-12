@@ -56,8 +56,6 @@ import { Group, TranslatableGroup } from '../scene/group';
 import type { Scene } from '../scene/scene';
 import { DebugSelectors } from '../scene/sceneDebug';
 import { Mutex } from '../util/mutex';
-import type { TypedEvent, TypedEventListener } from '../util/observable';
-import { Observable } from '../util/observable';
 import { debouncedCallback } from '../util/render';
 import { Background } from './background/background';
 import { ChartAxes } from './chartAxes';
@@ -66,7 +64,7 @@ import type { ChartCaption } from './chartCaption';
 import { ChartCaptions } from './chartCaptions';
 import { createChartContext } from './chartContext';
 import { ChartHighlight } from './chartHighlight';
-import type { ChartService, ChartServiceEvent, ChartServiceEventType } from './chartService';
+import type { ChartEventMap, ChartEventType, ChartListeners, ChartService } from './chartService';
 import type { ChartState } from './chartState';
 import type { ChartType } from './chartType';
 import { type CachedData } from './data/caching';
@@ -84,7 +82,7 @@ import { ChartOverlays } from './overlay/chartOverlays';
 import { getLoadingSpinner } from './overlay/loadingSpinner';
 import { getValidationOverlay } from './overlay/validationOverlay';
 import { SeriesArea } from './series-area/seriesArea';
-import { Series, SeriesGroupingChangedEvent, SeriesNodeEvent, type UnknownSeries } from './series/series';
+import { Series, SeriesGroupingChangedEvent, type UnknownSeries } from './series/series';
 import { type SeriesAreaChartDependencies, SeriesAreaManager } from './series/seriesAreaManager';
 import { SeriesLayerManager } from './series/seriesLayerManager';
 import type { SeriesProperties } from './series/seriesProperties';
@@ -248,7 +246,7 @@ function deriveMiniChartOptions(completeOptions: AgChartOptions): AgChartOptions
     return { ...completeOptions, axes: derivedAxes } as AgChartOptions;
 }
 
-export abstract class Chart extends Observable implements ModuleInstance, ChartService {
+export abstract class Chart implements ModuleInstance, ChartService {
     static readonly className: string = 'Chart';
     private static readonly chartsInstances = new WeakMap<HTMLElement, Chart>();
 
@@ -457,8 +455,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     }
 
     constructor(options: ChartOptions, resources?: TransferableResources) {
-        super();
-
         this.chartOptions = options;
 
         const scene: Scene | undefined = resources?.scene;
@@ -495,7 +491,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             domMode: options.optionMetadata.domMode,
             withDragInterpretation: options.optionMetadata.withDragInterpretation ?? true,
             syncManager: new SyncManager(this),
-            fireEvent: (event) => this.fireEvent(event),
             logger: options.logger,
             updateMutex: this.updateMutex,
             cssVariables: options.processedCSSVariables,
@@ -603,6 +598,15 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             ctx.chartState.observe((get) => {
                 this.validationCollector.setOverlayLevel(get('options', 'validations')?.overlayLevel ?? 'none');
             }),
+            // A tooltip is painted in the browser's top layer (a `popover`), so no z-index can place it
+            // beneath the validation overlay. Hold tooltips back while the overlay is shown so it stays legible.
+            this.validationCollector.addListener(() => {
+                if (this.validationCollector.hasVisibleIssues()) {
+                    ctx.tooltipManager.suppressTooltip('validation-overlay');
+                } else {
+                    ctx.tooltipManager.unsuppressTooltip('validation-overlay');
+                }
+            }),
             ctx.chartState.observe((get) => {
                 ctx.logger.setLevel(get('options', 'validations')?.consoleLogLevel ?? 'deprecation');
             }),
@@ -666,18 +670,15 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         this.seriesAreaManager.focusIndicator?.overrideFocusVisible(visible);
     }
 
-    // Use a wrapper to comply with the @typescript-eslint/unbound-method rule.
-    private readonly fireEventWrapper = (event: TypedEvent): void => super.fireEvent(event);
-    protected override fireEvent<TEvent extends TypedEvent>(event: TEvent): void {
-        callWithContext(this, this.fireEventWrapper, event);
+    get listeners(): ChartListeners {
+        return this.ctx.chartState.getValue('options', 'listeners') ?? {};
     }
 
-    public hasListener(type: ChartServiceEventType): boolean {
-        return this.hasEventListener(type);
-    }
-
-    public callListener(event: ChartServiceEvent): void {
-        this.fireEvent(event);
+    public callListener<K extends ChartEventType>(event: ChartEventMap[K] & { type: K }): void {
+        const listener = this.listeners[event.type];
+        if (listener) {
+            callWithContext(this, listener, event);
+        }
     }
 
     public abstract toAgCoordinates(_point: CanvasPoint): AgCoordinates | undefined;
@@ -687,7 +688,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         const chartType = this.getChartType();
         const hasViewportSupport: () => boolean = () => this.hasViewportSupport();
         const hasPgUpPgDownSupport: () => boolean = () => this.hasPgUpPgDownSupport();
-        const fireEvent = this.fireEvent.bind(this);
         const getUpdateType = () => this.performUpdateType;
         const getTooltipContent = (
             series: ISeries<SeriesNodeDatum, ISeriesProperties, unknown>,
@@ -699,7 +699,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         return {
             hasViewportSupport,
             hasPgUpPgDownSupport,
-            fireEvent,
             getUpdateType,
             getTooltipContent,
             chartType,
@@ -1000,11 +999,17 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     }
 
     private async tryPerformUpdate(count: number) {
+        // Wrapped callbacks re-run (and can re-report caught errors) only when their cache is cleared
+        // this cycle; on a cache-hit redraw the styler's result is reused without re-invocation, so the
+        // previously committed callback-error set stays authoritative and must not be wiped by an empty cycle.
+        const callbacksReEvaluated = this.clearCallbackCacheOnUpdate;
+        if (callbacksReEvaluated) this.validationCollector.beginCallbackIssues();
         try {
             const status = `${ChartUpdateType[this.performUpdateType]} ${this.updateShortcutCount > 0 ? '⚠️ redo #' + this.updateShortcutCount + ' ⚠️ ' : ''}`;
             await this.debug.group(`Chart.performUpdate() ${status}`, async () => {
                 await this.performUpdate(count);
             });
+            if (callbacksReEvaluated) this.validationCollector.commitCallbackIssues();
         } catch (error: any) {
             this.ctx.logger.error('update error', error, error.stack);
             this.validationCollector.add({
@@ -1327,7 +1332,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             });
 
             series.resetAnimation(this.chartAnimationPhase);
-            this.addSeriesListeners(series);
+            series.events.on('grouping-changed', this.seriesGroupingChanged);
         }
 
         this.seriesAreaManager?.seriesChanged(newValue);
@@ -1336,9 +1341,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     protected destroySeries(allSeries: UnknownSeries[]): void {
         if (allSeries) {
             for (const series of allSeries) {
-                series.removeEventListener('seriesNodeClick', this.onSeriesNodeClick);
-                series.removeEventListener('seriesNodeDoubleClick', this.onSeriesNodeDoubleClick);
-                series.removeEventListener('groupingChanged', this.seriesGroupingChanged);
                 series.destroy();
                 this.seriesLayerManager.releaseGroup(series);
                 series.detachSeries(undefined, this.seriesRoot, this.annotationRoot);
@@ -1346,22 +1348,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 series.chart = undefined;
             }
         }
-    }
-
-    private addSeriesListeners(series: UnknownSeries) {
-        if (this.hasEventListener('seriesNodeClick')) {
-            series.addEventListener('seriesNodeClick', this.onSeriesNodeClick);
-        }
-
-        if (this.hasEventListener('seriesNodeDoubleClick')) {
-            series.addEventListener('seriesNodeDoubleClick', this.onSeriesNodeDoubleClick);
-        }
-
-        if (this.hasEventListener('seriesVisibilityChange')) {
-            series.addEventListener('seriesVisibilityChange', this.onSeriesVisibilityChange);
-        }
-
-        series.addEventListener('groupingChanged', this.seriesGroupingChanged);
     }
 
     protected assignSeriesToAxes() {
@@ -1495,6 +1481,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         }
 
         this._cachedData = dataController.execute(this._cachedData, this.ctx.dataSelectionService);
+        this.validationCollector.setDataIssues(dataController.validationIssues);
 
         this.updateSplits('🏭');
         await Promise.all(promises);
@@ -1687,20 +1674,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         );
     }
 
-    private readonly onSeriesNodeClick = (event: SeriesNodeEvent<any>) => {
-        this.fireEvent(event);
-    };
-
-    private readonly onSeriesNodeDoubleClick = (event: SeriesNodeEvent<any>) => {
-        this.fireEvent(event);
-    };
-
-    private readonly onSeriesVisibilityChange = (event: TypedEvent) => {
-        this.fireEvent(event);
-    };
-
-    private readonly seriesGroupingChanged = (event: TypedEvent) => {
-        if (!(event instanceof SeriesGroupingChangedEvent)) return;
+    private readonly seriesGroupingChanged = (event: SeriesGroupingChangedEvent) => {
         const { series, seriesGrouping } = event;
 
         // Short-circuit if series isn't already attached to the scene-graph yet.
@@ -1808,11 +1782,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         this.ctx.chartState.setValue('options', newChartOptions.processedOptions as unknown as ChartState['options']);
 
         const modulesChanged = this.applyModules();
-
-        // Needs to be done before applying the series to detect if a seriesNode[Double]Click listener has been added
-        if ('listeners' in deltaOptions) {
-            this.registerListeners(this, deltaOptions.listeners as Record<string, TypedEventListener> | undefined);
-        }
 
         if ('enableRtl' in deltaOptions) {
             this.ctx.domManager.setEnableRtl(deltaOptions.enableRtl);
@@ -2269,7 +2238,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     private applySeriesValues(target: UnknownSeries, options: SeriesOptionsTypes) {
         const moduleMap = target.getModuleMap();
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { type, data, listeners, seriesGrouping, showInMiniChart, ...seriesOptions } = options as any;
+        const { type, data, seriesGrouping, showInMiniChart, ...seriesOptions } = options as any;
 
         for (const module of ModuleRegistry.listModulesByType(ModuleType.SeriesPlugin)) {
             if (module.name in seriesOptions) {
@@ -2290,13 +2259,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         if ('data' in options) {
             target.setOptionsData(data == null ? undefined : DataSet.wrap(data, this.ctx.logger));
-        }
-
-        if ('listeners' in options) {
-            this.registerListeners(target, listeners as Record<string, TypedEventListener> | undefined);
-            if (this.series.includes(target)) {
-                this.addSeriesListeners(target);
-            }
         }
 
         if ('seriesGrouping' in options) {
@@ -2355,20 +2317,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
             const plugin = moduleMap.getModule(module.name) as AxisPluginModuleInstance;
             plugin.applyOptions(pluginOpts);
-        }
-    }
-
-    private registerListeners(source: Observable, listeners: Record<string, TypedEventListener> | undefined) {
-        source.clearEventListeners();
-        if (listeners && typeof listeners === 'object') {
-            for (const [property, listener] of entries(listeners)) {
-                // Skip undefined/null values (explicitly clearing listeners), but validate non-function values
-                if (listener == null) {
-                    continue;
-                }
-                // addEventListener will throw TypeError if listener is not a function, preserving validation behaviour
-                source.addEventListener(property, listener);
-            }
         }
     }
 

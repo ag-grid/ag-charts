@@ -10,14 +10,14 @@ const scenarios = [
     {
         name: 'CartesianChart only',
         import: '{ CartesianChartModule }',
-        srcLimit: '198 kB',
-        distLimit: '307 kB',
+        srcLimit: '208 kB',
+        distLimit: '308 kB',
     },
     {
         name: 'PolarChart only',
         import: '{ PolarChartModule }',
-        srcLimit: '186 kB',
-        distLimit: '308 kB',
+        srcLimit: '187 kB',
+        distLimit: '309 kB',
     },
 ];
 

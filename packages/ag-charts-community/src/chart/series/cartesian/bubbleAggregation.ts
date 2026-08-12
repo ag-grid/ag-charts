@@ -157,6 +157,16 @@ function quadChildren(
     return children;
 }
 
+/**
+ * A zero-width domain makes every ratio NaN, so no quad can be partitioned or terminated on and the
+ * recursion never bottoms out. Widening it keeps every ratio finite and collapses the axis instead.
+ */
+function ratioDomain(d0: number, d1: number): [number, number] {
+    if (Number.isFinite(d0) && Number.isFinite(d1) && d1 > d0) return [d0, d1];
+    const min = Number.isFinite(d0) ? d0 : 0;
+    return [min, min + 1];
+}
+
 function aggregateQuad(
     context: BubbleAggregationContext,
     indices: number[],
@@ -165,6 +175,8 @@ function aggregateQuad(
     const { x0, y0, x1, y1 } = bounds;
 
     const terminate =
+        !Number.isFinite(x1 - x0) ||
+        !Number.isFinite(y1 - y0) ||
         (indices.length < FILTER_DATUM_THRESHOLD &&
             x1 - x0 < FILTER_RANGE_THRESHOLD &&
             y1 - y0 < FILTER_RANGE_THRESHOLD) ||
@@ -226,8 +238,8 @@ export function computeBubbleAggregation(
         yNeedsValueOf: boolean;
     }
 ): BubbleAggregation | undefined {
-    const [xd0, xd1] = xDomain;
-    const [yd0, yd1] = yDomain;
+    const [xd0, xd1] = ratioDomain(...xDomain);
+    const [yd0, yd1] = ratioDomain(...yDomain);
     const [sd0, sd1] = sizeDomain;
     const { xNeedsValueOf, yNeedsValueOf } = options;
 

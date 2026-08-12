@@ -65,11 +65,10 @@ jobs:
         permissions:
             contents: write
         # Per-PR lock: stops this close-time cleanup from running concurrently with
-        # the same PR's publishers in ci.yml (`pr_preview`, `snapshot_review`),
-        # narrowing the window in which a late publish could re-create the pr-<N>/
-        # this job removes. Cross-PR pushes are resolved by the retry loop in
-        # pr-preview-cleanup, not this lock. Keep this group string byte-identical
-        # to the two in ci.yml.
+        # the same PR's gh-pages publisher in ci.yml (`pr_preview`), narrowing the
+        # window in which a late publish could re-create the pr-<N>/ this job removes.
+        # Cross-PR pushes are resolved by the retry loop in pr-preview-cleanup, not
+        # this lock. Keep this group string byte-identical to the one in ci.yml.
         concurrency:
             group: pr-preview-gh-pages-${{ github.event.pull_request.number }}
             cancel-in-progress: false
@@ -87,3 +86,34 @@ jobs:
               with:
                   pr_number: ${{ env.PR_NUMBER }}
                   github_token: ${{ secrets.GITHUB_TOKEN }}
+
+    # Separate job, not another step in gh_pages_cleanup: it removes the same pr-<N>/ prefix but on a
+    # different branch, so it races a different publisher (`snapshot_review` in ci.yml) and therefore
+    # needs that publisher's lock rather than the gh-pages one. Two jobs also mean a failure to reach
+    # one branch does not leave the other uncleaned.
+    snapshot_review_cleanup:
+        runs-on: ubuntu-24.04
+        name: Remove snapshot reports from snapshot-review
+        # Same-repo PRs only (fork PRs can't hold the write token) — see pr-review.yml.
+        if: github.event.pull_request.head.repo.full_name == github.repository
+        permissions:
+            contents: write
+        # Keep this group string byte-identical to the one on `snapshot_review` in ci.yml.
+        concurrency:
+            group: snapshot-review-branch-${{ github.event.pull_request.number }}
+            cancel-in-progress: false
+        env:
+            PR_NUMBER: ${{ github.event.pull_request.number }}
+        steps:
+            # Needed for the local shared action below; the action clones the branch itself.
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 1
+
+            - name: Remove snapshot reports from snapshot-review
+              uses: ./external/ag-shared/github/actions/pr-preview-cleanup
+              with:
+                  pr_number: ${{ env.PR_NUMBER }}
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
+                  publish_branch: snapshot-review

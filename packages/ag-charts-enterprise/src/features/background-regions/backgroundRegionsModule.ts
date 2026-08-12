@@ -17,6 +17,8 @@ export const BackgroundRegionsModule: SeriesAreaPluginModuleDefinition<AgSeriesA
             {
                 fill: { $ref: 'foregroundColor' },
                 fillOpacity: 0.8,
+                stroke: { $ref: 'backgroundColor' },
+                strokeWidth: { $isUserOption: ['./stroke', 1, 0] },
                 label: {
                     fontSize: { $ref: 'fontSize' },
                     fontFamily: { $ref: 'fontFamily' },
@@ -34,6 +36,9 @@ export const BackgroundRegionsModule: SeriesAreaPluginModuleDefinition<AgSeriesA
                         strokeOpacity: 1,
                         strokeWidth: 1,
                     },
+                },
+                marker: {
+                    strokeWidth: { $isUserOption: ['./stroke', 1, 0] },
                 },
             },
             undefined,

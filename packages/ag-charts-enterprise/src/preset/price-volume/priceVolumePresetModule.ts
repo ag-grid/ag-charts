@@ -1,0 +1,77 @@
+import { VERSION } from 'ag-charts-community';
+import {
+    type OptionsDefs,
+    type PresetModuleDefinition,
+    array,
+    boolean,
+    defined,
+    positiveNumber,
+    string,
+    undocumented,
+    union,
+} from 'ag-charts-core';
+import type { AgBaseFinancialPresetOptions, AgPriceVolumePreset } from 'ag-charts-types';
+
+import { ChartToolbarModule } from '../../features/chart-toolbar/chartToolbarModule';
+import { StatusBarModule } from '../../features/status-bar/statusBarModule';
+import { priceVolume } from './priceVolumePreset';
+
+const priceVolumeOptionsDef: OptionsDefs<AgPriceVolumePreset & AgBaseFinancialPresetOptions> = {
+    chartType: union('candlestick', 'hollow-candlestick', 'ohlc', 'line', 'step-line', 'hlc', 'high-low'),
+    dateKey: string,
+    openKey: string,
+    highKey: string,
+    lowKey: string,
+    closeKey: string,
+    volumeKey: string,
+    navigator: boolean,
+    volume: boolean,
+    rangeButtons: boolean,
+    statusBar: boolean,
+    toolbar: boolean,
+    zoom: boolean,
+    sync: boolean,
+    // Valid pass-through options
+    theme: defined,
+    container: defined,
+    width: defined,
+    height: defined,
+    minWidth: defined,
+    minHeight: defined,
+    listeners: defined,
+    initialState: defined,
+    title: defined,
+    data: array,
+    dataIdKey: string,
+    dataSource: defined,
+    formatter: defined,
+    enableRtl: boolean,
+};
+
+// @ts-expect-error undocumented option
+priceVolumeOptionsDef.overrideDevicePixelRatio = undocumented(positiveNumber);
+// @ts-expect-error undocumented option
+priceVolumeOptionsDef.foreground = undocumented(defined);
+
+export const PriceVolumePresetModule: PresetModuleDefinition<AgPriceVolumePreset & AgBaseFinancialPresetOptions> = {
+    type: 'preset',
+    name: 'price-volume',
+    enterprise: true,
+    dependencies: [ChartToolbarModule, StatusBarModule],
+    version: VERSION,
+
+    options: priceVolumeOptionsDef,
+
+    create: priceVolume,
+
+    themeTemplate: {
+        padding: {
+            $applyPadding: {
+                top: 6,
+                right: 8,
+                bottom: 6,
+                left: 0,
+            },
+        },
+    },
+};
