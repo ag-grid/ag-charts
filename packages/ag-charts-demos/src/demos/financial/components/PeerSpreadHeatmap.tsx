@@ -12,21 +12,27 @@ import { THEME } from '../chartTheme';
 import { type Instrument, type PeerHeatmapCell, type PeerPerformanceFeed, sectorPeers } from '../data';
 import { diffWindow } from '../windowTransaction';
 
-// Spread colour ramp, tight → wide: cool and knocked back for a tight spread, warming
-// to orange and then yellow as peers diverge. `mix` is the weight of `ref` (the card
-// background) blended onto the palette token, so the higher the mix the closer a stop
-// sits to the surface. Anchored to a theme param rather than a literal, so the ramp
-// follows the card colour. Warmth and lightness both rise with the value, which keeps
-// the magnitude readable without relying on hue alone.
+// Spread colour ramp, tight → wide: cool for a tight spread, warming to orange and then
+// yellow as peers diverge. Warmth and lightness both rise with the value, so magnitude
+// does not rest on hue alone.
+//
+// `mix` is the weight of `ref` (the card background) blended onto the palette token, so
+// the higher the mix the closer a stop sits to the surface. Every stop keeps a share of
+// it — the top of the ramp included — which is what makes the grid read as a tinted
+// field rather than as blocks of saturated colour. Anchoring to a theme param rather
+// than a literal means the whole ramp follows the card colour.
 const SPREAD_COLOR_SCALE: AgColorScale = {
     domain: [0, 0.4],
     fills: [
         {
-            color: { ref: 'chartBackgroundColor', mix: 0.4, ontoColor: 'var(--fin-chart-palette-0)' },
+            color: { ref: 'chartBackgroundColor', mix: 0.62, ontoColor: 'var(--fin-chart-palette-0)' },
             name: '(Tight) 0',
         },
-        { color: { ref: 'chartBackgroundColor', mix: 0.2, ontoColor: 'var(--fin-chart-palette-6)' }, name: '0.2' },
-        { color: 'var(--fin-chart-palette-2)', name: '0.4 (Wide)' },
+        { color: { ref: 'chartBackgroundColor', mix: 0.45, ontoColor: 'var(--fin-chart-palette-6)' }, name: '0.2' },
+        {
+            color: { ref: 'chartBackgroundColor', mix: 0.28, ontoColor: 'var(--fin-chart-palette-2)' },
+            name: '0.4 (Wide)',
+        },
     ],
 };
 
