@@ -538,6 +538,8 @@
 .fin-chart-card {
     display: flex;
     flex-direction: column;
+    /* Positions the pulse overlay below. */
+    position: relative;
 }
 .fin-quote {
     display: flex;
@@ -567,25 +569,33 @@
 }
 
 /* Selecting an instrument swaps the chart's data in place, with no remount to signal it,
-   so the card answers the selection with a brief accent pulse. An inset ring rather than
-   a background wash: the canvas covers the card's middle, and only the padding shows. */
+   so the card answers the selection with a brief accent flash across its whole area.
+   It has to be an overlay: the chart's canvas paints over the card, so animating the
+   card's own background would be hidden behind it. The overlay is a positioned
+   pseudo-element after .fin-chart-body in paint order, and takes no pointer events, so
+   the chart stays interactive underneath. */
+.fin-chart-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+    background: var(--fin-accent);
+    opacity: 0;
+}
 @keyframes fin-chart-pulse {
     from {
-        box-shadow:
-            inset 0 0 0 2px var(--fin-accent),
-            0 0 18px -2px rgba(68, 147, 248, 0.4);
+        opacity: 0.25;
     }
     to {
-        box-shadow:
-            inset 0 0 0 2px transparent,
-            0 0 18px -2px transparent;
+        opacity: 0;
     }
 }
-.fin-chart-card.fin-pulse {
+.fin-chart-card.fin-pulse::after {
     animation: fin-chart-pulse 600ms ease-out;
 }
 @media (prefers-reduced-motion: reduce) {
-    .fin-chart-card.fin-pulse {
+    .fin-chart-card.fin-pulse::after {
         animation: none;
     }
 }
