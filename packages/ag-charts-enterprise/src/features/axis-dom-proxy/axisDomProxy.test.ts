@@ -264,7 +264,7 @@ describe('AxisDOMProxy', () => {
                 padding: { right: 0, left: 0 },
                 data: Array.from({ length: 11 }, (_, i) => ({ x: i * 100, y: i })),
                 axes: {
-                    x: { type: 'number', listeners: { click } },
+                    x: { type: 'number', label: { formatter }, listeners: { click } },
                     y: { type: 'number' },
                 },
                 zoom: { enabled: true },
@@ -272,15 +272,38 @@ describe('AxisDOMProxy', () => {
             });
         });
 
-        // Labels 0 and 1000 render as empty text, leaving 200/400/600/800 (indices 1..4) visible.
-        test('clicking an end reports a visible label, not a suppressed one', async () => {
-            await clickAction(800, 560)(chart); // far right, where '1000' was suppressed
-            await clickAction(25, 560)(chart); // far left, where '0' was suppressed
+        // The end labels '0' and '1000' hide themselves to avoid overflowing the chart, rendering as
+        // empty text. Their ticks, grid lines and label data all still exist, so they keep their place
+        // in the numbering: a click at either end reports the hidden label rather than skipping to the
+        // nearest visible one.
+        test('click - value/index match', async () => {
+            await clickAction(800, 560)(chart); // far right, where '1000' hid itself
+            await clickAction(25, 560)(chart); // far left, where '0' hid itself
             await waitForChartStability(chart);
 
             expect(click.mock.calls).toMatchObject([
-                [expect.objectContaining({ index: 4 })], // nearest visible label is '800'
-                [expect.objectContaining({ index: 1 })], // nearest visible label is '200'
+                [expect.objectContaining({ value: 1000, index: 5 })],
+                [expect.objectContaining({ value: 0, index: 0 })],
+            ]);
+        });
+
+        // Sanity check for the case above: picking must agree with the numbering the label formatter
+        // sees, so the formatter is called for the hidden end labels too — indices 0..5, not 1..4.
+        // Note: axes[].label.formatter is called twice on start up for some reason.
+        test('formatter - value/index match', () => {
+            expect(formatter.mock.calls).toMatchObject([
+                [expect.objectContaining({ value: 0, index: 0 })],
+                [expect.objectContaining({ value: 200, index: 1 })],
+                [expect.objectContaining({ value: 400, index: 2 })],
+                [expect.objectContaining({ value: 600, index: 3 })],
+                [expect.objectContaining({ value: 800, index: 4 })],
+                [expect.objectContaining({ value: 1000, index: 5 })],
+                [expect.objectContaining({ value: 0, index: 0 })],
+                [expect.objectContaining({ value: 200, index: 1 })],
+                [expect.objectContaining({ value: 400, index: 2 })],
+                [expect.objectContaining({ value: 600, index: 3 })],
+                [expect.objectContaining({ value: 800, index: 4 })],
+                [expect.objectContaining({ value: 1000, index: 5 })],
             ]);
         });
     });
