@@ -3,7 +3,12 @@
 // Data collected by Dr. Kristen Gorman at Palmer Station, Antarctica LTER.
 // 342 of 344 records; 2 rows with missing measurements omitted.
 
-export const penguinSeries = {
+export interface PenguinDatum {
+    bodyMass: number;
+    flipperLength: number;
+}
+
+export const penguinSeries: Record<'Adelie' | 'Chinstrap' | 'Gentoo', PenguinDatum[]> = {
     Adelie: [
         { bodyMass: 2850, flipperLength: 181 },
         { bodyMass: 2850, flipperLength: 184 },

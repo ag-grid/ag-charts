@@ -1,12 +1,197 @@
 ---
 title: 'Background Regions'
+description: 'Shade a rectangular area of the $framework Chart series area, bounded by value ranges on the x and y axes. Add labels and customise fills and strokes.'
 enterprise: true
 ---
 
-TODO
+Background Regions shade a rectangular area of the series area, bounded by value ranges on the x and y axes.
 
-{% chartExampleRunner title="Background Regions" name="background-regions" type="generated" /%}
+Use them to highlight a zone of the chart, such as a target range or a period of interest. For a band along a single
+axis, use [Cross Lines](./axes-cross-lines/); for shapes users can draw and move, use [Annotations](./annotations/).
+
+## Adding Background Regions
+
+Add Background Regions with the `seriesArea.backgroundRegions` array. Each region is bounded by an `xRange` and a
+`yRange`.
+
+{% chartExampleRunner title="Simple Background Region" name="simple-background-regions" type="generated" /%}
 
 ```js format="snippet"
-// todo
+{
+    seriesArea: {
+        backgroundRegions: [
+            {
+                xRange: { start: new Date(2025, 5, 1), end: new Date(2025, 8, 1) },
+                yRange: { start: 0, end: 50 },
+                label: {
+                    text: 'Drought Risk',
+                },
+            },
+        ],
+    },
+}
 ```
+
+In this configuration:
+
+- `xRange` and `yRange` bound the region with `start` and `end` values, given in the units of the axis they apply to.
+- `label.text` adds a label to the region.
+
+Regions are drawn behind the series, above the chart background. Region labels are drawn in front of the series.
+
+{% note %}
+Background Regions are only supported on cartesian charts.
+{% /note %}
+
+## Range Bounds
+
+Every part of `xRange` and `yRange` is optional. Omitting a `start` or an `end` extends that side of the region to the
+edge of the series area, and omitting a range entirely spans the region across that axis.
+
+{% chartExampleRunner title="Range Bounds" name="range-bounds" type="generated" /%}
+
+```js format="snippet"
+{
+    seriesArea: {
+        backgroundRegions: [
+            {
+                xRange: { start: new Date(2025, 5, 1) },
+                yRange: { end: 50 },
+                label: {
+                    text: 'Drought Risk',
+                },
+            },
+        ],
+    },
+}
+```
+
+In this configuration:
+
+- `xRange` has no `end`, so the region extends to the right edge of the series area.
+- `yRange` has no `start`, so it extends to the bottom edge.
+- Use the buttons to switch between these bounds, a region bounded on both axes, and one with `xRange` omitted
+  altogether so that it spans the full width.
+- Values outside the axis domain are clamped to the edge of the series area.
+- If `start` is greater than `end`, the region renders as if the two values were swapped.
+
+## Labels
+
+Use `label.position` to place a label relative to its region. Labels are styled with the usual font, colour, padding
+and border options.
+
+{% chartExampleRunner title="Labels" name="region-labels" type="generated" /%}
+
+```js format="snippet"
+{
+    label: {
+        text: 'Drought Risk',
+        position: 'inside-top-left',
+    },
+}
+```
+
+In this example:
+
+- Use the dropdown to change `position`.
+- Positions prefixed with `inside` place the label within the region; the others place it outside the corresponding
+  edge or corner.
+- `position` defaults to `'top'`.
+
+## Multiple Axes
+
+On a chart with [multiple axes](./axes-secondary/) in one direction, use `axis` to name the axis a range applies to.
+
+{% chartExampleRunner title="Multiple Axes" name="multiple-axes" type="generated" /%}
+
+```js format="snippet"
+{
+    seriesArea: {
+        backgroundRegions: [
+            {
+                yRange: { axis: 'rainfall', start: 100 },
+                label: {
+                    text: 'Heavy Rainfall',
+                    position: 'inside-top-left',
+                },
+            },
+        ],
+    },
+    axes: {
+        x: { type: 'unit-time' },
+        y: { type: 'number' },
+        rainfall: { type: 'number', position: 'right' },
+    },
+}
+```
+
+In this configuration:
+
+- `yRange.axis` is set to `'rainfall'`, so the range is resolved against that axis rather than the primary y-axis.
+- `xRange` is omitted, so the region spans the full width of the series area.
+- When `axis` is omitted, the range applies to the first axis declared in that direction.
+
+## Customisation
+
+Regions are styled with `fill`, `fillOpacity`, `stroke`, `strokeWidth` and `strokeOpacity`. Labels have their own
+text, box and border options.
+
+{% chartExampleRunner title="Customisation" name="customisation" type="generated" /%}
+
+```js format="snippet"
+{
+    seriesArea: {
+        backgroundRegions: [
+            {
+                fill: '#5090dc',
+                fillOpacity: 0.2,
+                stroke: '#2b5c95',
+                strokeWidth: 2,
+                xRange: percentileRange(flipperLengths),
+                yRange: percentileRange(bodyMasses),
+                label: {
+                    text: 'Adelie',
+                    position: 'inside-top',
+                    color: '#2b5c95',
+                    fontSize: 13,
+                    fontWeight: 'bold',
+                    fill: '#ffffff',
+                    fillOpacity: 0.85,
+                    cornerRadius: 4,
+                    padding: { top: 4, right: 8, bottom: 4, left: 8 },
+                    border: {
+                        enabled: true,
+                        stroke: '#2b5c95',
+                    },
+                },
+            },
+        ],
+    },
+}
+```
+
+In this example:
+
+- Each species has a region covering a percentile range of its measurements, adjusted with the slider.
+- Regions are updated by changing the options and calling `AgCharts.update()`.
+- Each label is colour-matched to its region, with `fill`, `cornerRadius`, `padding` and `border` styling the box
+  behind the text and `color` styling the text itself.
+- Where `fill` is omitted, regions use the theme's default fill. A `stroke` is only drawn when one is specified.
+
+## API Reference
+
+{% tabs %}
+
+{% tabItem id="AgSeriesAreaBackgroundRegion" label="Background Region" %}
+{% apiReference id="AgSeriesAreaBackgroundRegion" /%}
+{% /tabItem %}
+
+{% tabItem id="AgSeriesAreaBackgroundRegionRange" label="Range" %}
+{% apiReference id="AgSeriesAreaBackgroundRegionRange" /%}
+{% /tabItem %}
+
+{% tabItem id="AgSeriesAreaBackgroundRegionLabel" label="Label" %}
+{% apiReference id="AgSeriesAreaBackgroundRegionLabel" /%}
+{% /tabItem %}
+
+{% /tabs %}

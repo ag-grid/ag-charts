@@ -40,7 +40,21 @@ const options: AgCartesianChartOptions = {
                 strokeWidth: 2,
                 xRange: percentileRange(penguinSeries.Adelie.map((d) => d.flipperLength)),
                 yRange: percentileRange(penguinSeries.Adelie.map((d) => d.bodyMass)),
-                label: { text: 'Adelie' },
+                label: {
+                    text: 'Adelie',
+                    position: 'inside-top',
+                    color: '#2b5c95',
+                    fontSize: 13,
+                    fontWeight: 'bold',
+                    fill: '#ffffff',
+                    fillOpacity: 0.85,
+                    cornerRadius: 4,
+                    padding: { top: 4, right: 8, bottom: 4, left: 8 },
+                    border: {
+                        enabled: true,
+                        stroke: '#2b5c95',
+                    },
+                },
             },
             {
                 fill: '#ffa03a',
@@ -49,7 +63,21 @@ const options: AgCartesianChartOptions = {
                 strokeWidth: 2,
                 xRange: percentileRange(penguinSeries.Chinstrap.map((d) => d.flipperLength)),
                 yRange: percentileRange(penguinSeries.Chinstrap.map((d) => d.bodyMass)),
-                label: { text: 'Chinstrap' },
+                label: {
+                    text: 'Chinstrap',
+                    position: 'inside-top',
+                    color: '#cc6f10',
+                    fontSize: 13,
+                    fontWeight: 'bold',
+                    fill: '#ffffff',
+                    fillOpacity: 0.85,
+                    cornerRadius: 4,
+                    padding: { top: 4, right: 8, bottom: 4, left: 8 },
+                    border: {
+                        enabled: true,
+                        stroke: '#cc6f10',
+                    },
+                },
             },
             {
                 fill: '#459d55',
@@ -58,7 +86,21 @@ const options: AgCartesianChartOptions = {
                 strokeWidth: 2,
                 xRange: percentileRange(penguinSeries.Gentoo.map((d) => d.flipperLength)),
                 yRange: percentileRange(penguinSeries.Gentoo.map((d) => d.bodyMass)),
-                label: { text: 'Gentoo' },
+                label: {
+                    text: 'Gentoo',
+                    position: 'inside-top',
+                    color: '#1e652e',
+                    fontSize: 13,
+                    fontWeight: 'bold',
+                    fill: '#ffffff',
+                    fillOpacity: 0.85,
+                    cornerRadius: 4,
+                    padding: { top: 4, right: 8, bottom: 4, left: 8 },
+                    border: {
+                        enabled: true,
+                        stroke: '#1e652e',
+                    },
+                },
             },
         ],
     },
@@ -129,26 +171,23 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function updatePercentile(event: any) {
-    const value = Number(event.target?.value);
+function updatePercentile(event: Event) {
+    const percentile = Number((event.target as HTMLInputElement).value);
+    const regions = options.seriesArea!.backgroundRegions ?? [];
 
-    let index = 0;
-    let seriesKeys = Object.keys(penguinSeries);
-
-    for (const backgroundRegion of options.seriesArea!.backgroundRegions ?? []) {
-        const series = (penguinSeries as any)[seriesKeys[index] as any];
-        backgroundRegion.xRange = percentileRange(
-            series.map((d: any) => d.flipperLength),
-            value / 100
+    Object.values(penguinSeries).forEach((penguins, index) => {
+        const region = regions[index];
+        region.xRange = percentileRange(
+            penguins.map((d) => d.flipperLength),
+            percentile / 100
         );
-        backgroundRegion.yRange = percentileRange(
-            series.map((d: any) => d.bodyMass),
-            value / 100
+        region.yRange = percentileRange(
+            penguins.map((d) => d.bodyMass),
+            percentile / 100
         );
-        index++;
-    }
+    });
 
     chart.update(options);
 
-    document.getElementById('percentileSliderInputValue')!.innerHTML = String(value);
+    document.getElementById('percentileSliderInputValue')!.innerHTML = String(percentile);
 }
