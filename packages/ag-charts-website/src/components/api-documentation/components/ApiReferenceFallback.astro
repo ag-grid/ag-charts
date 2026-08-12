@@ -1,0 +1,87 @@
+---
+import type { PageTitle } from '@components/api-documentation/apiReferenceHelpers';
+import {
+    cleanupName,
+    normalizeType,
+    parseJsDocs,
+    processMembers,
+} from '@components/api-documentation/apiReferenceHelpers';
+import { getInterfacesReference } from '@utils/server/getInterfacesReference';
+import styles from './ApiReferenceFallback.module.scss';
+
+interface Props {
+    rootInterface: string;
+    pageInterface?: string;
+    pageTitle?: PageTitle;
+}
+
+const { rootInterface, pageInterface, pageTitle } = Astro.props;
+
+const reference = getInterfacesReference();
+const id = pageInterface ?? rootInterface;
+const pageRef = reference.get(id);
+const interfaceRef = pageRef?.kind === 'interface' ? pageRef : undefined;
+
+const title = pageTitle ?? { name: id };
+const description = interfaceRef && parseJsDocs(interfaceRef.docs);
+const members = interfaceRef ? processMembers(interfaceRef, {}) : [];
+---
+
+{
+    /*
+    Server-rendered reference content for crawlers that don't execute JavaScript. Astro shows this
+    until the interactive <ApiReferencePage> island hydrates and replaces it. Deliberately flat:
+    top-level properties only, so the served HTML stays small (SE-53). Nested children and deep type
+    signatures remain client-rendered.
+*/
+}
+<div class="api-reference-fallback layout-grid">
+    {
+        /* Empty column reserving the left-nav width, so the property content lands at the same
+        x-position as the hydrated layout and the navigation tree fills into reserved space
+        without shifting the page horizontally on hydration. */
+    }
+    <div class={styles.navPlaceholder} aria-hidden="true"></div>
+
+    <div class={styles.referenceContent}>
+        <header>
+            <h1 class="text-3xl">
+                {
+                    title.type ? (
+                        <>
+                            {title.name}
+                            {title.name === 'axes' && <span class={styles.recordAlias}>.key</span>}[type='
+                            <span class={styles.unionDiscriminator}>{title.type}</span>']
+                        </>
+                    ) : (
+                        title.name
+                    )
+                }
+            </h1>
+            {description && <p class="text-secondary">{description}</p>}
+        </header>
+
+        <dl class={styles.referenceList}>
+            {
+                members.map((member) => {
+                    const memberDocs = parseJsDocs(member.docs);
+                    return (
+                        <div class={styles.referenceRow} id={`reference-${id}-${member.name}`}>
+                            <dt>
+                                <span class={styles.propertyName}>{cleanupName(member.name)}</span>
+                                {!member.optional && <span class={styles.required}>required</span>}
+                                <code class={styles.propertyType}>{normalizeType(member.type)}</code>
+                                {member.defaultValue != null && (
+                                    <span class={styles.propertyDefault}>default: {member.defaultValue}</span>
+                                )}
+                            </dt>
+                            {/* Always render the <dd> so every definition-list group has both a
+                                term and a description, even for undocumented members. */}
+                            <dd class="text-secondary">{memberDocs}</dd>
+                        </div>
+                    );
+                })
+            }
+        </dl>
+    </div>
+</div>
