@@ -48,6 +48,7 @@ import {
     type LabelBox,
     type LabelExtent,
     getAxisLabelSideFlag,
+    getBandEdgeOffset,
     getRotatedLabelExtent,
     getTextAlignShift,
     getTickLabelEdgeOffsets,
@@ -397,8 +398,17 @@ export abstract class CartesianAxis<
             // the edge arithmetic only departs from its centre-anchored form once the two differ.
             const alignmentOverride =
                 label?.textAlign === tickGenerationResult.textAlign ? undefined : label?.textAlign;
-            const labelEdges = (width: number) =>
-                getTickLabelEdgeOffsets(width, tickGenerationResult.rotation, alignmentOverride);
+            // A banded scale anchors an aligned label on the band edge rather than the tick, so the
+            // edges the overflow test measures move with it.
+            const bandEdgeOffset = getBandEdgeOffset(this.scale.bandwidth ?? 0, label?.textAlign);
+            const labelEdges = (width: number) => {
+                const { leading, trailing } = getTickLabelEdgeOffsets(
+                    width,
+                    tickGenerationResult.rotation,
+                    alignmentOverride
+                );
+                return { leading: leading + bandEdgeOffset, trailing: trailing + bandEdgeOffset };
+            };
             const removeOverflowThreshold = this.chartLayout?.padding.right ?? 0;
             const lastTick = tickData.ticks.at(-1);
             const fullVisibleRange = visibleRange[0] === 0 && visibleRange[1] === 1;
@@ -992,7 +1002,13 @@ export abstract class CartesianAxis<
         }
         const visible = text !== '';
 
-        const x = horizontal ? translation : labelOffset;
+        // Along a horizontal axis a band scale places its ticks in the middle of each band, which is
+        // not what a configured alignment aligns against: `'right'` means the right edge of the band
+        // the tick belongs to. A vertical axis bands the other way, so its own alignment is
+        // unaffected and `alignLabelColumns` handles the label column instead.
+        const bandEdgeOffset = horizontal ? getBandEdgeOffset(scale.bandwidth ?? 0, label.textAlign) : 0;
+
+        const x = horizontal ? translation + bandEdgeOffset : labelOffset;
         const y = horizontal ? -labelOffset : translation;
 
         return {

@@ -248,6 +248,8 @@ export interface AgBaseAxisLabelOptions<TContext = ContextDefault> extends AgBas
      *
      * On a vertical axis with unrotated labels this aligns each label within the axis's label column; on a horizontal axis, or whenever the labels are rotated, it aligns each label around its own anchor point.
      *
+     * On a horizontal axis with a banded scale (`category`, `ordinal-time`) the labels align to the edges of the band each tick belongs to, rather than to the middle of the band where the tick sits.
+     *
      * Honoured on cartesian axes (`number`, `category`, `time`, `log`, `ordinal-time`). Ignored on grouped-category, angle and radius axes, and on funnel / cone-funnel `stageLabel`.
      *
      * Default: `undefined`
