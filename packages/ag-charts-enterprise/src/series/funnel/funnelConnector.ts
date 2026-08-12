@@ -48,11 +48,11 @@ export class FunnelConnector<D = unknown> extends Path<D> implements DistantObje
     @SceneChangeDetection()
     y3: number = 0;
 
-    /** Corner radius drawn by the segment the `x0,y0`-`x1,y1` edge butts against, already clamped to that segment. */
+    /** Corner radius drawn by the segment this connector leaves, already clamped to that segment's size. */
     @SceneChangeDetection()
     startCornerRadius: number = 0;
 
-    /** Corner radius drawn by the segment the `x2,y2`-`x3,y3` edge butts against, already clamped to that segment. */
+    /** Corner radius drawn by the segment this connector arrives at, already clamped to that segment's size. */
     @SceneChangeDetection()
     endCornerRadius: number = 0;
 
