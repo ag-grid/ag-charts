@@ -1266,11 +1266,10 @@ describe('DonutSeries', () => {
         });
 
         it('renders per-segment styling, vertical alignment and an inline image', async () => {
-            const icon =
-                `data:image/svg+xml;utf8,${encodeURIComponent(
-                    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">` +
-                        `<circle cx="12" cy="12" r="11" fill="#2ca02c"/></svg>`
-                )}`;
+            const icon = `data:image/svg+xml;utf8,${encodeURIComponent(
+                `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">` +
+                    `<circle cx="12" cy="12" r="11" fill="#2ca02c"/></svg>`
+            )}`;
             const preloaded = await skiaLoadImage(icon);
 
             chart = deproxy(
