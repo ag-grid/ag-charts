@@ -305,8 +305,7 @@ describe('series label fit', () => {
                     labelKey: 'label',
                     minSize: 40,
                     maxSize: 100,
-                    // Small bubbles let their label overflow onto the background, where the inside
-                    // default (the chart background colour) would be invisible.
+                    // Small bubbles overflow their label onto the background, where the inside default is invisible.
                     label: {
                         enabled: true,
                         placement: 'inside',

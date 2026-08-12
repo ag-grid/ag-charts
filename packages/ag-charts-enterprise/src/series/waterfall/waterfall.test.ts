@@ -869,6 +869,7 @@ describe('WaterfallSeries', () => {
                             xKey: 'x',
                             yKey: 'y',
                             item: {
+                                // Pin the colour so these spacing snapshots ignore the placement default.
                                 positive: { label: { color: { ref: 'textColor' }, ...labelOpts } },
                                 negative: { label: { color: { ref: 'textColor' }, ...labelOpts } },
                                 total: { label: { color: { ref: 'textColor' }, ...labelOpts } },

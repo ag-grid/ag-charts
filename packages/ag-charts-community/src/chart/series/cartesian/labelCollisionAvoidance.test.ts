@@ -445,8 +445,7 @@ describe('label collision avoidance', () => {
                         xKey: 'x',
                         yKey: 'y',
                         marker: { enabled: true, size: 4 },
-                        // The labels overflow onto the background, where the inside default (the
-                        // chart background colour) would be invisible.
+                        // Labels overflow onto the background, where the inside default is invisible.
                         label: {
                             enabled: true,
                             placement: 'inside',

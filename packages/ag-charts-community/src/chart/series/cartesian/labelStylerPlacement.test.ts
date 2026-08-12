@@ -462,8 +462,7 @@ describe('label itemStyler participates in placement', () => {
                         labelKey: 'tag',
                         minSize: 40,
                         maxSize: 40,
-                        // The styler's box fills are pale, so the inside default (the chart
-                        // background colour) would leave the drawn label invisible.
+                        // The styler's box fills are pale, so the inside default is invisible on them.
                         label: {
                             enabled: true,
                             placement: ['inside', 'top'],
