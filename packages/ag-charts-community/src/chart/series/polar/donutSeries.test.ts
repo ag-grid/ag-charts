@@ -1289,7 +1289,7 @@ describe('DonutSeries', () => {
                     ) as AgChartOptions
                 ) as AgChartProxy
             );
-            ((chart.ctx.scene as any).imageLoader as any).loadImage = () => preloaded as unknown as HTMLImageElement;
+            (chart.ctx.scene as any).imageLoader.loadImage = () => preloaded as unknown as HTMLImageElement;
             await waitForChartStability(chart);
 
             await compare();
