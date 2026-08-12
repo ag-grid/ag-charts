@@ -4,6 +4,8 @@ description: 'Shade a rectangular area of the $framework Chart series area, boun
 enterprise: true
 ---
 
+<!-- cspell:ignore Adelie -->
+
 Background Regions shade a rectangular area of the series area, bounded by value ranges on the x and y axes.
 
 Use them to highlight a zone of the chart, such as a target range or a period of interest. For a band along a single
@@ -172,8 +174,7 @@ text, box and border options.
 
 In this example:
 
-- Each species has a region covering a percentile range of its measurements, adjusted with the slider.
-- Regions are updated by changing the options and calling `AgCharts.update()`.
+- Each species has a region covering the middle 80% of its measurements.
 - Each label is colour-matched to its region, with `fill`, `cornerRadius`, `padding` and `border` styling the box
   behind the text and `color` styling the text itself.
 - Where `fill` is omitted, regions use the theme's default fill. A `stroke` is only drawn when one is specified.

@@ -170,24 +170,3 @@ const options: AgCartesianChartOptions = {
 };
 
 const chart = AgCharts.create(options);
-
-function updatePercentile(event: Event) {
-    const percentile = Number((event.target as HTMLInputElement).value);
-    const regions = options.seriesArea!.backgroundRegions ?? [];
-
-    Object.values(penguinSeries).forEach((penguins, index) => {
-        const region = regions[index];
-        region.xRange = percentileRange(
-            penguins.map((d) => d.flipperLength),
-            percentile / 100
-        );
-        region.yRange = percentileRange(
-            penguins.map((d) => d.bodyMass),
-            percentile / 100
-        );
-    });
-
-    chart.update(options);
-
-    document.getElementById('percentileSliderInputValue')!.innerHTML = String(percentile);
-}
