@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
 import { LtrEmbedding, PopDirectionalFormatting } from '../../types/text';
-import { forceLtrNumbers, isDirectionNeutral, toFontString } from './textUtils';
+import { forceLtrNumbers, forceLtrNumbersIn, isDirectionNeutral, toFontString } from './textUtils';
+
+const mark = (text: string) => LtrEmbedding + text + PopDirectionalFormatting;
 
 describe('toFontString', () => {
     const baseFont = { fontSize: 14 };
@@ -111,8 +113,6 @@ describe('isDirectionNeutral', () => {
 });
 
 describe('forceLtrNumbers', () => {
-    const mark = (text: string) => LtrEmbedding + text + PopDirectionalFormatting;
-
     it.each([
         ['-5'],
         ['+5'],
@@ -191,5 +191,25 @@ describe('forceLtrNumbers', () => {
     it('leaves text carrying no number alone', () => {
         const text = 'Sales \u05DE\u05DB\u05D9\u05E8\u05D5\u05EA';
         expect(forceLtrNumbers(text)).toBe(text);
+    });
+});
+
+describe('forceLtrNumbersIn', () => {
+    it.each([['-5'], ['1,234.56'], ['-5.5%']])('leaves the neutral %j alone in an LTR paragraph', (text) => {
+        expect(forceLtrNumbersIn(text, false)).toBe(text);
+    });
+
+    it.each([['-5'], ['1,234.56'], ['-5.5%']])('marks the neutral %j in an RTL paragraph', (text) => {
+        expect(forceLtrNumbersIn(text, true)).toBe(mark(text));
+    });
+
+    it.each([[false], [true]])('marks a number beside RTL text whatever the paragraph direction (%j)', (isRtl) => {
+        expect(forceLtrNumbersIn('\u05DE\u05DB\u05D9\u05E8\u05D5\u05EA -5', isRtl)).toBe(
+            `\u05DE\u05DB\u05D9\u05E8\u05D5\u05EA ${mark('-5')}`
+        );
+    });
+
+    it.each([[false], [true]])('leaves a number following LTR text alone (%j)', (isRtl) => {
+        expect(forceLtrNumbersIn('Sales -5', isRtl)).toBe('Sales -5');
     });
 });

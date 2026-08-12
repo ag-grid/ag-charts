@@ -1,4 +1,11 @@
-import { type Logger, type NormalisedTextOrSegments, getDocument, toPlainText, toTextString } from 'ag-charts-core';
+import {
+    type Logger,
+    type NormalisedTextOrSegments,
+    forceLtrNumbersIn,
+    getDocument,
+    toPlainText,
+    toTextString,
+} from 'ag-charts-core';
 import type { AgTooltipMode, TextValue } from 'ag-charts-types';
 
 import { sanitizeHtml } from '../../util/sanitize';
@@ -9,6 +16,17 @@ export const DEFAULT_TOOLTIP_DARK_CLASS = 'ag-charts-tooltip--dark';
 
 interface LocaleManager {
     t(key: string, variables?: Record<string, any>): string;
+}
+
+interface TooltipHtmlContext {
+    localeManager?: LocaleManager;
+    /** Paragraph direction the tooltip element inherits from the chart root. */
+    isRtl: boolean;
+}
+
+/** Escapes text the library lays out itself, keeping any number it carries in left-to-right order. */
+function tooltipTextHtml(ctx: TooltipHtmlContext, text: NormalisedTextOrSegments) {
+    return sanitizeHtml(forceLtrNumbersIn(toPlainText(text), ctx.isRtl));
 }
 
 export type TooltipContentDataRow =
@@ -136,15 +154,15 @@ export function tooltipContentAriaLabel(ungroupedContent: TooltipContent[], logg
     return ariaLabel.filter((s) => s !== '').join('; ');
 }
 
-function dataHtml(label: string | undefined, value: string, inline: boolean) {
+function dataHtml(ctx: TooltipHtmlContext, label: string | undefined, value: string, inline: boolean) {
     let rowHtml = '';
 
     if (textOrSegmentsIsDefined(label)) {
-        rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}-label">${sanitizeHtml(label)}</span>`;
+        rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}-label">${tooltipTextHtml(ctx, label)}</span>`;
         rowHtml += ' ';
-        rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}-value">${sanitizeHtml(value)}</span>`;
+        rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}-value">${tooltipTextHtml(ctx, value)}</span>`;
     } else {
-        rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}-label">${sanitizeHtml(value)}</span>`;
+        rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}-label">${tooltipTextHtml(ctx, value)}</span>`;
     }
 
     const rowClassNames = [`${DEFAULT_TOOLTIP_CLASS}-row`];
@@ -154,7 +172,7 @@ function dataHtml(label: string | undefined, value: string, inline: boolean) {
     return rowHtml;
 }
 
-function tooltipRowContentHtml(content: GroupedStructuredContent['items'][0]) {
+function tooltipRowContentHtml(ctx: TooltipHtmlContext, content: GroupedStructuredContent['items'][0]) {
     let html = '';
 
     // Skip the row if all data is missing (not just empty strings)
@@ -172,7 +190,7 @@ function tooltipRowContentHtml(content: GroupedStructuredContent['items'][0]) {
     }
 
     if (titleDefined) {
-        html += `<span class="${DEFAULT_TOOLTIP_CLASS}-title">${sanitizeHtml(content.title!)}</span>`;
+        html += `<span class="${DEFAULT_TOOLTIP_CLASS}-title">${tooltipTextHtml(ctx, content.title!)}</span>`;
         html += ' ';
     }
 
@@ -180,25 +198,26 @@ function tooltipRowContentHtml(content: GroupedStructuredContent['items'][0]) {
         for (const datum of content.data) {
             // Skip data rows that are marked as missing
             if (datum.missing === true) continue;
-            html += dataHtml(datum.label ?? datum.fallbackLabel, toPlainText(datum.value), dataInline);
+            html += dataHtml(ctx, datum.label ?? datum.fallbackLabel, toPlainText(datum.value), dataInline);
             html += ' ';
         }
     }
     return html;
 }
 
-function tooltipPaginationContentHtml(localeManager: LocaleManager | undefined, pagination: TooltipPaginationState) {
+function tooltipPaginationContentHtml(ctx: TooltipHtmlContext, pagination: TooltipPaginationState) {
+    const { localeManager } = ctx;
     if (localeManager == null || pagination.length === 1) return;
 
-    const text = localeManager?.t('tooltipPaginationStatus', {
+    const text = localeManager.t('tooltipPaginationStatus', {
         index: pagination.index + 1,
         count: pagination.length,
     });
-    return `<div class="${DEFAULT_TOOLTIP_CLASS}-footer">${text}</div>`;
+    return `<div class="${DEFAULT_TOOLTIP_CLASS}-footer">${forceLtrNumbersIn(text, ctx.isRtl)}</div>`;
 }
 
 function tooltipContentHtml(
-    localeManager: LocaleManager | undefined,
+    ctx: TooltipHtmlContext,
     content: GroupedStructuredContent,
     mode: AgTooltipMode,
     pagination?: TooltipPaginationState
@@ -230,33 +249,33 @@ function tooltipContentHtml(
     let html = '';
     if (compact && singleItem != null) {
         if (textOrSegmentsIsDefined(compactTitle)) {
-            html += `<span class="${DEFAULT_TOOLTIP_CLASS}-title">${sanitizeHtml(compactTitle)}</span>`;
+            html += `<span class="${DEFAULT_TOOLTIP_CLASS}-title">${tooltipTextHtml(ctx, compactTitle)}</span>`;
         }
 
         if (singleItem.data) {
             for (const datum of singleItem.data) {
                 // Skip data rows that are marked as missing
                 if (datum.missing === true) continue;
-                html += dataHtml(datum.label ?? compactFallbackLabel, toPlainText(datum.value), false);
+                html += dataHtml(ctx, datum.label ?? compactFallbackLabel, toPlainText(datum.value), false);
                 html += ' ';
             }
         }
     } else {
         // Full rendering
         if (textOrSegmentsIsDefined(content.heading)) {
-            html += `<span class="${DEFAULT_TOOLTIP_CLASS}-heading">${sanitizeHtml(toPlainText(content.heading))}</span>`;
+            html += `<span class="${DEFAULT_TOOLTIP_CLASS}-heading">${tooltipTextHtml(ctx, content.heading)}</span>`;
             html += ' ';
         }
 
         for (const item of content.items) {
-            html += tooltipRowContentHtml(item);
+            html += tooltipRowContentHtml(ctx, item);
         }
     }
 
     if (html.length === 0) return;
 
     const paginationContent =
-        mode !== 'compact' && pagination != null ? tooltipPaginationContentHtml(localeManager, pagination) : undefined;
+        mode !== 'compact' && pagination != null ? tooltipPaginationContentHtml(ctx, pagination) : undefined;
     if (paginationContent! + null) {
         html += paginationContent;
     }
@@ -266,15 +285,15 @@ function tooltipContentHtml(
     return html;
 }
 
-function tooltipPaginationHtml(localeManager: LocaleManager | undefined, pagination: TooltipPaginationState) {
-    const paginationContent = pagination == null ? undefined : tooltipPaginationContentHtml(localeManager, pagination);
+function tooltipPaginationHtml(ctx: TooltipHtmlContext, pagination: TooltipPaginationState) {
+    const paginationContent = pagination == null ? undefined : tooltipPaginationContentHtml(ctx, pagination);
     if (paginationContent == null) return '';
 
     return `<div class="${DEFAULT_TOOLTIP_CLASS}-content">${paginationContent}</div>`;
 }
 
 export function tooltipHtml(
-    localeManager: LocaleManager | undefined,
+    ctx: TooltipHtmlContext,
     content: TooltipContent[],
     mode: AgTooltipMode,
     pagination: TooltipPaginationState | undefined
@@ -283,13 +302,13 @@ export function tooltipHtml(
     if (aggregatedContent.length === 0) return;
 
     if (aggregatedContent.length === 1 && aggregatedContent[0].type === 'structured') {
-        return tooltipContentHtml(localeManager, aggregatedContent[0], mode, pagination);
+        return tooltipContentHtml(ctx, aggregatedContent[0], mode, pagination);
     } else {
         const htmlRows = aggregatedContent.map((c) => {
-            return c.type === 'structured' ? tooltipContentHtml(localeManager, c, mode) : c.rawHtmlString;
+            return c.type === 'structured' ? tooltipContentHtml(ctx, c, mode) : c.rawHtmlString;
         });
         if (pagination != null) {
-            htmlRows.push(tooltipPaginationHtml(localeManager, pagination) ?? '');
+            htmlRows.push(tooltipPaginationHtml(ctx, pagination) ?? '');
         }
         return htmlRows.join('');
     }

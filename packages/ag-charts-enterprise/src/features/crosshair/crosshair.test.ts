@@ -597,6 +597,70 @@ describe('Crosshair', () => {
         expect(visibleText(yLabels).some((t) => /\d/.test(t))).toBe(true);
     });
 
+    describe('RTL label text', () => {
+        const NEGATIVE_OPTIONS: AgCartesianChartOptions = {
+            enableRtl: true,
+            data: [
+                { x: 'ינואר', y: -45 },
+                { x: 'פברואר', y: 30 },
+                { x: 'מרץ', y: -20 },
+                { x: 'אפריל', y: 60 },
+            ],
+            series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+            axes: {
+                y: { type: 'number', position: 'left', crosshair: { ...CROSSHAIR_OPTIONS, snap: false } },
+                x: { type: 'category', position: 'bottom', crosshair: { ...CROSSHAIR_OPTIONS, snap: false } },
+            },
+        };
+
+        const yLabelText = () =>
+            Array.from(
+                document.querySelectorAll<HTMLElement>(
+                    `.ag-charts-crosshair-label[data-axis-id="y"]:not(.ag-charts-crosshair-label--hidden)`
+                )
+            )
+                .map((el) => el.textContent?.trim() ?? '')
+                .filter((text) => text.length > 0);
+
+        const hoverOverNegativeValues = async (options: AgCartesianChartOptions) => {
+            prepareEnterpriseTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            await hoverAction(300, 450)(chart);
+            await waitForChartStability(chart);
+        };
+
+        it('keeps a negative default label value left-to-right', async () => {
+            await hoverOverNegativeValues({ ...NEGATIVE_OPTIONS });
+
+            const labels = yLabelText();
+            expect(labels.length).toBeGreaterThan(0);
+            expect(labels.some((text) => /‪-[\d.]+‬/.test(text))).toBe(true);
+        });
+
+        it('leaves a renderer-supplied label alone', async () => {
+            await hoverOverNegativeValues({
+                ...NEGATIVE_OPTIONS,
+                axes: {
+                    ...NEGATIVE_OPTIONS.axes,
+                    y: {
+                        type: 'number',
+                        position: 'left',
+                        crosshair: {
+                            ...CROSSHAIR_OPTIONS,
+                            snap: false,
+                            label: { renderer: ({ value }) => `<b>${value}</b>` },
+                        },
+                    },
+                },
+            });
+
+            const labels = yLabelText();
+            expect(labels.length).toBeGreaterThan(0);
+            expect(labels.some((text) => text.includes('‪'))).toBe(false);
+        });
+    });
+
     it('AG-16608 should follow the pointer over bigint axis domains without error', async () => {
         // Out-of-safe-range y-values: the crosshair label readback inverts the scale on a bigint domain.
         const BIG = 9_007_199_254_740_993n; // Number.MAX_SAFE_INTEGER + 2

@@ -319,7 +319,8 @@ export class Tooltip extends BaseProperties {
         const { elementProxy } = this;
 
         if (elementProxy != null && content != null && content.length !== 0) {
-            const html = tooltipHtml(this.localeManager, content, this.mode, this.pagination ? pagination : undefined);
+            const htmlContext = { localeManager: this.localeManager, isRtl: this.domManager?.isRtl ?? false };
+            const html = tooltipHtml(htmlContext, content, this.mode, this.pagination ? pagination : undefined);
             if (html == null) {
                 elementProxy.setInnerHTML('');
                 this.toggle(false);
