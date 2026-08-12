@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { getTickLabelEdgeOffsets } from './axisLabelUtil';
+import { getBandEdgeOffset, getTickLabelEdgeOffsets } from './axisLabelUtil';
 
 describe('getTickLabelEdgeOffsets', () => {
     const WIDTH = 100;
@@ -43,5 +43,32 @@ describe('getTickLabelEdgeOffsets', () => {
 
         expect(leading).toBeCloseTo(-100, 10);
         expect(trailing).toBeCloseTo(0, 10);
+    });
+});
+
+describe('getBandEdgeOffset', () => {
+    const BANDWIDTH = 40;
+
+    it.each([
+        ['left', -20],
+        ['center', 0],
+        ['right', 20],
+    ] as const)('takes a %s-aligned label from the band middle to its edge', (textAlign, expected) => {
+        expect(getBandEdgeOffset(BANDWIDTH, textAlign)).toBe(expected);
+    });
+
+    it('leaves the axis-computed alignment on the tick', () => {
+        expect(getBandEdgeOffset(BANDWIDTH, undefined)).toBe(0);
+    });
+
+    it('has no edge to move to without bands', () => {
+        expect(getBandEdgeOffset(0, 'right')).toBe(0);
+    });
+
+    // `bandScale.update()` derives the bandwidth from a signed range distance, while the alignment
+    // is in canvas space - so a descending range must not send `'right'` to the left.
+    it('aligns to the same canvas edge whichever way the range runs', () => {
+        expect(getBandEdgeOffset(-BANDWIDTH, 'right')).toBe(20);
+        expect(getBandEdgeOffset(-BANDWIDTH, 'left')).toBe(-20);
     });
 });
