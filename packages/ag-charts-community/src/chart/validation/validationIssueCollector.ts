@@ -114,7 +114,9 @@ export class ValidationIssueCollector implements ValidationSink {
      */
     commitCallbackIssues() {
         if (this.callbackIssues.length === 0 && this.pendingCallbackIssues.length === 0) return;
-        this.callbackIssues = this.pendingCallbackIssues;
+        // Copy, not alias: a callback that throws outside a render cycle (e.g. a tooltip formatter on
+        // hover) still calls recordCallbackIssue, which must not mutate the shown set in place.
+        this.callbackIssues = [...this.pendingCallbackIssues];
         this.refreshSignature();
         this.listeners.dispatch('change');
     }

@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, test, vi } from 'vitest';
 
+import { ChartUpdateType } from 'ag-charts-core';
 import type { AgChartOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
@@ -261,6 +262,33 @@ describe('ValidationOverlay', () => {
             // propagated render crash caught by tryPerformUpdate.
             expect(messages[0]).toContain('Uncaught exception in user callback');
             expect(messages[0]).toContain('itemStyler');
+
+            expectWarningsCalls().toEqual([
+                [expect.stringContaining('Uncaught exception in user callback'), expect.any(Error)],
+            ]);
+        });
+
+        test('a still-broken itemStyler stays on the overlay across a cache-hit redraw', async () => {
+            chart = await createChart({
+                ...throwingItemStylerOptions,
+                validations: { overlayLevel: 'error' },
+            } as AgChartOptions);
+
+            const errorMessages = () =>
+                Array.from(
+                    chart.ctx.agDocument.body.querySelectorAll(
+                        '.ag-charts-validation-overlay__section--error .ag-charts-validation-overlay__message'
+                    )
+                ).map((el) => el.textContent ?? '');
+
+            expect(errorMessages()).toHaveLength(1);
+
+            // A redraw that reuses the callback cache never re-invokes the styler, so no fresh error is
+            // collected this cycle; the committed error must survive rather than be wiped by an empty cycle.
+            chart.update(ChartUpdateType.SCENE_RENDER);
+            await chart.waitForUpdate(5000, true);
+
+            expect(errorMessages()).toHaveLength(1);
 
             expectWarningsCalls().toEqual([
                 [expect.stringContaining('Uncaught exception in user callback'), expect.any(Error)],
