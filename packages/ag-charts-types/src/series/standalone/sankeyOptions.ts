@@ -115,6 +115,12 @@ export interface AgSankeySeriesNodeOptions<TDatum, TContext = ContextDefault> ex
      */
     width?: PixelSize;
     /**
+     * Rounded corner radius applied to each node, in pixels.
+     *
+     * Default: `0`
+     */
+    cornerRadius?: PixelSize;
+    /**
      * Alignment of the nodes.
      *
      * Default: `'justify'`

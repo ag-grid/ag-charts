@@ -97,6 +97,9 @@ class SankeySeriesNodeProperties extends BaseProperties<AgSankeySeriesNodeOption
     width: number = 1;
 
     @Property
+    cornerRadius: number = 0;
+
+    @Property
     alignment: 'left' | 'right' | 'center' | 'justify' = 'justify';
 
     @Property
