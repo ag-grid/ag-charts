@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { LtrEmbedding, PopDirectionalFormatting } from '../../types/text';
-import { forceLtrNumbers, forceLtrNumbersIn, isDirectionNeutral, toFontString } from './textUtils';
+import { forceLtrNumbers, forceLtrNumbersIn, isDirectionNeutral, resolveTextAlign, toFontString } from './textUtils';
 
 const mark = (text: string) => LtrEmbedding + text + PopDirectionalFormatting;
 
@@ -222,5 +222,49 @@ describe('forceLtrNumbersIn', () => {
 
     it('marks an LTR-only number leading the text in an RTL paragraph', () => {
         expect(forceLtrNumbersIn('33ms', true)).toBe(mark('33ms'));
+    });
+});
+
+describe('resolveTextAlign', () => {
+    it.each([
+        ['left', 'left'],
+        ['center', 'center'],
+        ['right', 'right'],
+        ['start', 'left'],
+        ['end', 'right'],
+    ] as const)('resolves "%s" to "%s" in an LTR chart', (textAlign, expected) => {
+        expect(resolveTextAlign(textAlign, false)).toBe(expected);
+    });
+
+    it.each([
+        ['left', 'left'],
+        ['center', 'center'],
+        ['right', 'right'],
+        ['start', 'right'],
+        ['end', 'left'],
+    ] as const)('resolves "%s" to "%s" in an RTL chart', (textAlign, expected) => {
+        expect(resolveTextAlign(textAlign, true)).toBe(expected);
+    });
+
+    // A chart whose direction has not been established yet must read as LTR rather than throwing
+    // the caller into `undefined` - `isRtl` arrives as `boolean | undefined` from its own callers.
+    it.each([
+        ['left', 'left'],
+        ['center', 'center'],
+        ['right', 'right'],
+        ['start', 'left'],
+        ['end', 'right'],
+    ] as const)('treats an unknown direction as LTR when resolving "%s"', (textAlign, expected) => {
+        expect(resolveTextAlign(textAlign, undefined)).toBe(expected);
+    });
+
+    // The resolved values are the identity of the mapping, so a call site that resolves an already
+    // resolved alignment - or resolves twice under a different direction - cannot flip it.
+    it.each([[false], [true], [undefined]])('is idempotent under isRtl %j', (isRtl) => {
+        for (const textAlign of ['left', 'center', 'right', 'start', 'end'] as const) {
+            const resolved = resolveTextAlign(textAlign, isRtl);
+            expect(resolveTextAlign(resolved, isRtl)).toBe(resolved);
+            expect(resolveTextAlign(resolved, !isRtl)).toBe(resolved);
+        }
     });
 });
