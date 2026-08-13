@@ -65,6 +65,14 @@ const EXAMPLES: Record<string, PolarTestCase> = {
         options: examples.DONUT_SERIES_INNER_TEXT,
         assertions: polarChartAssertions({ seriesTypes: ['donut'] }),
     },
+    DONUT_SERIES_INNER_CIRCLE_CORNER_RADIUS: {
+        options: examples.DONUT_SERIES_INNER_CIRCLE_CORNER_RADIUS,
+        assertions: polarChartAssertions({ seriesTypes: ['donut'] }),
+    },
+    DONUT_SERIES_INNER_CIRCLE_CORNER_RADIUS_SPACED: {
+        options: examples.DONUT_SERIES_INNER_CIRCLE_CORNER_RADIUS_SPACED,
+        assertions: polarChartAssertions({ seriesTypes: ['donut'] }),
+    },
     DONUT_SERIES_RATIO: {
         options: examples.DONUT_SERIES_RATIO,
         assertions: polarChartAssertions({ seriesTypes: ['donut'] }),

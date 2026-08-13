@@ -167,6 +167,46 @@ export const DONUT_SERIES_INNER_TEXT: AgPolarChartOptions = {
     ],
 };
 
+export const DONUT_SERIES_INNER_CIRCLE_CORNER_RADIUS: AgPolarChartOptions = {
+    title: {
+        text: 'Market Share',
+    },
+    data: DATA_MARKET_SHARE,
+    series: [
+        {
+            type: 'donut',
+            angleKey: 'share',
+            innerRadiusRatio: 0.9,
+            cornerRadius: 20,
+            sectorSpacing: 1,
+            innerCircle: {
+                fill: '#c9fdc9',
+            },
+        },
+    ],
+};
+
+// The regime where a fix that ignored the angular extent of a sector would bridge the
+// spacing strips and make the donut read as a single joined ring.
+export const DONUT_SERIES_INNER_CIRCLE_CORNER_RADIUS_SPACED: AgPolarChartOptions = {
+    title: {
+        text: 'Market Share',
+    },
+    data: DATA_MARKET_SHARE,
+    series: [
+        {
+            type: 'donut',
+            angleKey: 'share',
+            innerRadiusRatio: 0.7,
+            cornerRadius: 30,
+            sectorSpacing: 3,
+            innerCircle: {
+                fill: '#c9fdc9',
+            },
+        },
+    ],
+};
+
 export const DONUT_SERIES_RATIO: AgPolarChartOptions = {
     title: {
         text: 'Market Share',

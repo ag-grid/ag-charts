@@ -1338,7 +1338,7 @@ describe('DonutSeries', () => {
             const sectors = sectorNodes(series);
             expect(backdrops).toHaveLength(sectors.length);
 
-            backdrops.forEach((backdrop, index) => {
+            for (const [index, backdrop] of backdrops.entries()) {
                 const sector = sectors[index];
                 expect(backdrop.startAngle).toBe(sector.startAngle);
                 expect(backdrop.endAngle).toBe(sector.endAngle);
@@ -1355,7 +1355,7 @@ describe('DonutSeries', () => {
 
                 expect(backdrop.fill).toBe('#c9fdc9');
                 expect(backdrop.stroke).toBeUndefined();
-            });
+            }
         });
 
         test('draws nothing when there are no rounded corners', async () => {
