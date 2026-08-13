@@ -848,6 +848,7 @@ export const labelPlacementStyleDefs = {
 export const placedSeriesLabelOptionsDefs: OptionsDefs<AgLineSeriesLabelOptions<any, any>> = {
     ...seriesLabelOptionsDefs,
     ...labelCollisionFitOptionsDefs,
+    ...labelAutoFontSizeOptionsDefs,
     ...labelPlacementStyleDefs,
     placement: labelCollisionPlacementDef,
     spacing: positiveNumber,
