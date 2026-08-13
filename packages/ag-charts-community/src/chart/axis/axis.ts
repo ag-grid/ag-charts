@@ -3,8 +3,8 @@ import type {
     AxisPluginModuleInstance,
     Callback,
     CallbackParam,
+    CanvasPoint,
     ChartAnimationPhase,
-    CurrentPoint,
     DomainWithMetadata,
     DynamicContext,
     Normalised,
@@ -1235,15 +1235,12 @@ export abstract class Axis<
         };
     }
 
-    pickValue(point: CurrentPoint): AxisValuePick | undefined {
-        // `point` is relative to the axis proxy region, which is sized to the whole axis group — line,
-        // ticks, labels and title — so its origin sits before the axis origin by the label overhang.
-        // Shift into axis-local space before consulting the scale or the rendered ticks.
-        const region = this.getCanvasBounds();
+    pickValue(point: CanvasPoint): AxisValuePick | undefined {
+        // Canvas space is the only frame every caller shares: the axis proxy region, the series area and
+        // the series rect each sit at their own offset within it. Taking canvas coordinates means the
+        // conversion to axis-local space happens here, once, instead of each caller guessing at it.
         const origin = this.getLayoutTranslation();
-        const position = this.isVertical()
-            ? point.currentY + region.y - origin.y
-            : point.currentX + region.x - origin.x;
+        const position = this.isVertical() ? point.canvasY - origin.y : point.canvasX - origin.x;
 
         const value = unsafeInvert(this.scale, position);
         const domain = unsafeDomain(this.scale);

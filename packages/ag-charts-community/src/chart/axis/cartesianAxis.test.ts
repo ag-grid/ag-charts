@@ -1526,8 +1526,9 @@ describe('CartesianAxis', () => {
             expect(yAxis).toBeDefined();
             expect(formatterIndexByValue.size).toBeGreaterThan(0);
 
+            const { x, y } = yAxis.getLayoutTranslation();
             for (const [value, formatterIndex] of formatterIndexByValue) {
-                const pick = yAxis.pickValue({ currentX: 0, currentY: yAxis.scale.convert(value) });
+                const pick = yAxis.pickValue({ canvasX: x, canvasY: y + yAxis.scale.convert(value) });
                 expect(pick).toBeDefined();
                 expect(pick.index).toBe(formatterIndex);
             }

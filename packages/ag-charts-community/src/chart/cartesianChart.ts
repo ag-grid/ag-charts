@@ -1,13 +1,5 @@
-import type { CanvasPoint, CurrentPoint, ModuleInstance, RequireOptional, Size } from 'ag-charts-core';
-import {
-    ActionOnSet,
-    ChartAxisDirection,
-    clampArray,
-    entries,
-    fromPairs,
-    groupBy,
-    toCurrentPoint,
-} from 'ag-charts-core';
+import type { CanvasPoint, ModuleInstance, RequireOptional, Size } from 'ag-charts-core';
+import { ActionOnSet, ChartAxisDirection, clampArray, entries, fromPairs, groupBy } from 'ag-charts-core';
 import type { AgCartesianAxisPosition, AgCoordinates } from 'ag-charts-types';
 
 import type { ChartOptions } from '../module/optionsModule';
@@ -90,9 +82,8 @@ export class CartesianChart extends Chart {
 
     override toAgCoordinates(point: CanvasPoint): AgCoordinates {
         const result: AgCoordinates = {};
-        const seriesPoint: CurrentPoint = toCurrentPoint(point, this.seriesRect);
         for (const axis of this.axes) {
-            const pick = axis.pickValue(seriesPoint);
+            const pick = axis.pickValue(point);
             if (pick) {
                 // `Rules` serves as a compile-time check to ensure that we're correctly broadcasting objects that match
                 // the AgAxisCoordinates shape in the API:
