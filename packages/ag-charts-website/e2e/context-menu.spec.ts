@@ -488,13 +488,13 @@ test.describe('context-menu', () => {
                 });
                 test('getItems', async ({ page }) => {
                     expect(await popGetItems(page)).toEqual([
-                        itemsEvent(PARAMS_yPrimary, { index: 1, value: closeTo(19.0659) }),
+                        itemsEvent(PARAMS_yPrimary, { index: 1, value: closeTo(20.4072) }),
                     ]);
                 });
                 test('actions', async ({ page }) => {
                     await runAction(page);
                     expect(await popActions(page)).toEqual([
-                        actionEvent(PARAMS_yPrimary, { index: 1, value: closeTo(19.0659) }),
+                        actionEvent(PARAMS_yPrimary, { index: 1, value: closeTo(20.4072) }),
                     ]);
                 });
             });
@@ -505,13 +505,13 @@ test.describe('context-menu', () => {
                 });
                 test('getItems', async ({ page }) => {
                     expect(await popGetItems(page)).toEqual([
-                        itemsEvent(PARAMS_yPrimary, { index: 3, value: closeTo(69.8443) }),
+                        itemsEvent(PARAMS_yPrimary, { index: 4, value: closeTo(71.1856) }),
                     ]);
                 });
                 test('actions', async ({ page }) => {
                     await runAction(page);
                     expect(await popActions(page)).toEqual([
-                        actionEvent(PARAMS_yPrimary, { index: 3, value: closeTo(69.8443) }),
+                        actionEvent(PARAMS_yPrimary, { index: 4, value: closeTo(71.1856) }),
                     ]);
                 });
             });
@@ -524,13 +524,13 @@ test.describe('context-menu', () => {
                 });
                 test('getItems', async ({ page }) => {
                     expect(await popGetItems(page)).toEqual([
-                        itemsEvent(PARAMS_ySecondary, { index: 1, value: closeTo(18682634.7305) }),
+                        itemsEvent(PARAMS_ySecondary, { index: 1, value: closeTo(20023952.0958) }),
                     ]);
                 });
                 test('actions', async ({ page }) => {
                     await runAction(page);
                     expect(await popActions(page)).toEqual([
-                        actionEvent(PARAMS_ySecondary, { index: 1, value: closeTo(18682634.7305) }),
+                        actionEvent(PARAMS_ySecondary, { index: 1, value: closeTo(20023952.0958) }),
                     ]);
                 });
             });
@@ -541,13 +541,13 @@ test.describe('context-menu', () => {
                 });
                 test('getItems', async ({ page }) => {
                     expect(await popGetItems(page)).toEqual([
-                        itemsEvent(PARAMS_ySecondary, { index: 3, value: closeTo(64479041.9162) }),
+                        itemsEvent(PARAMS_ySecondary, { index: 3, value: closeTo(65820359.2814) }),
                     ]);
                 });
                 test('actions', async ({ page }) => {
                     await runAction(page);
                     expect(await popActions(page)).toEqual([
-                        actionEvent(PARAMS_ySecondary, { index: 3, value: closeTo(64479041.9162) }),
+                        actionEvent(PARAMS_ySecondary, { index: 3, value: closeTo(65820359.2814) }),
                     ]);
                 });
             });
@@ -663,7 +663,7 @@ test.describe('context-menu', () => {
                     direction: 'y',
                     domain: [0, 80],
                 },
-                { index: 2, value: closeTo(38.5574) }
+                { index: 2, value: closeTo(39.7814) }
             );
         });
 
@@ -686,7 +686,7 @@ test.describe('context-menu', () => {
                     direction: 'y',
                     domain: [0, 80000000],
                 },
-                { index: 2, value: closeTo(38557377.0492) }
+                { index: 2, value: closeTo(39781420.765) }
             );
         });
     });
