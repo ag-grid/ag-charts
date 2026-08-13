@@ -1529,9 +1529,8 @@ describe('OrganizationSeries', () => {
             const match = hex ?? rgb;
             expect(match).not.toBeNull();
             const radix = hex ? 16 : 10;
-            return (
-                (parseInt(match![1], radix) + parseInt(match![2], radix) + parseInt(match![3], radix)) / 3
-            );
+            const channel = (index: number) => Number.parseInt(match![index], radix);
+            return (channel(1) + channel(2) + channel(3)) / 3;
         }
 
         async function hoverItem(itemId: string, tag: OrganizationNodeTag): Promise<void> {
