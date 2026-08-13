@@ -10,6 +10,22 @@ test.describe('validation overlay', () => {
     // validation console warnings so they do not fail the console-clean assertion.
     setupIntrinsicAssertions(test, { ignoreConsolePatterns: ['fillOpacity', 'strokeWidth'] });
 
+    // The dev server serves examples over an insecure origin, where the browser withholds
+    // navigator.clipboard — so the overlay's Copy button (rendered only when the clipboard is
+    // writable) would be absent, unlike the secure-context production site where users see it.
+    // Shim a writable clipboard so the overlay matches production; the render-vs-omit branch itself
+    // is covered both ways in ag-charts-community's validationOverlay.test.ts.
+    test.beforeEach(async ({ page }) => {
+        await page.addInitScript(() => {
+            if (navigator.clipboard == null) {
+                Object.defineProperty(navigator, 'clipboard', {
+                    configurable: true,
+                    value: { writeText: () => Promise.resolve() },
+                });
+            }
+        });
+    });
+
     test('renders for a misconfigured option, and Dismiss/Copy are clickable', async ({ page }) => {
         const { url } = toExamplePageUrl('dev-validation', 'validation-overlay', 'vanilla');
         await gotoExample(page, url);
