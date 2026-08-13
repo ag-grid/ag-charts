@@ -14,6 +14,7 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { Caster } from 'ag-charts-test';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 import { DEFAULT_CONTEXT_MENU_CLASS } from './contextMenuStyles';
@@ -307,6 +308,62 @@ describe('Context Menu', () => {
                         x: expect.objectContaining({ value: expect.closeTo(0.3) }),
                         y: expect.objectContaining({ value: expect.closeTo(3) }),
                     }),
+                })
+            );
+        });
+    });
+
+    describe('overlapping axis region', () => {
+        let getItems: ReturnType<typeof vi.fn>;
+
+        // Aims at the horizontal centre of the plot area, on the band occupied by the crossing axis. Both are
+        // read from internals purely to place the pointer.
+        async function contextMenuAtCrossingAxisCentre() {
+            const inner = deproxy(chart);
+            const seriesRect = inner.seriesRect!;
+            const xAxis = new Caster(inner.axes.find((axis) => axis.direction === 'x'))
+                .cast(_ModuleSupport.Axis)
+                .findProperty('getCanvasBounds')
+                .castProperty('getCanvasBounds', Function).value;
+            expect(seriesRect).toBeDefined();
+
+            const { x, width } = seriesRect;
+            await contextMenuAction(x + width / 2, xAxis.getCanvasBounds().y + 5)(chart);
+            await waitForChartStability(chart);
+        }
+
+        beforeEach(async () => {
+            getItems = vi.fn(({ defaultItems }) => defaultItems);
+            // An axis placed inside the plot area with `crossAt` is not dispatched through its own proxy region —
+            // the series area picks it up and annotates it onto the menu as an extra region. That is a separate
+            // code path from `coordinates`, and the only one where the axis origin picks up `crossAxisTranslation`.
+            await prepareChart(
+                { enabled: true, getItems },
+                {
+                    data: Array.from({ length: 4 }, (_, i) => ({ x: i / 5, y: i * 2 - 3 })),
+                    axes: {
+                        x: {
+                            type: 'number',
+                            crossAt: { value: 0 },
+                            label: { format: '#{0.9f}', avoidCollisions: false, rotation: 0 },
+                        },
+                        y: { type: 'number' },
+                    },
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    contextMenu: { enabled: true },
+                }
+            );
+        });
+
+        // The x domain is 0..0.6, so its centre is 0.3.
+        test('reports the axis value under the pointer', async () => {
+            await contextMenuAtCrossingAxisCentre();
+
+            expect(getItems).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    allShowOnParams: expect.arrayContaining([
+                        expect.objectContaining({ showOn: 'axis', value: expect.closeTo(0.3) }),
+                    ]),
                 })
             );
         });
