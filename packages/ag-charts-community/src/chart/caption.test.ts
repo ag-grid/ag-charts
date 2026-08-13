@@ -113,13 +113,13 @@ describe('Caption', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
-    "AG Charts - Option \`title.textAlign\` cannot be set to \`"LEFT"\`; expecting a keyword such as 'left', 'center' or 'right', ignoring.",
+    "AG Charts - Option \`title.textAlign\` cannot be set to \`"LEFT"\`; expecting a keyword such as 'left', 'center', 'right', 'start' or 'end', ignoring.",
   ],
   [
-    "AG Charts - Option \`subtitle.textAlign\` cannot be set to \`"centre"\`; expecting a keyword such as 'left', 'center' or 'right', ignoring.",
+    "AG Charts - Option \`subtitle.textAlign\` cannot be set to \`"centre"\`; expecting a keyword such as 'left', 'center', 'right', 'start' or 'end', ignoring.",
   ],
   [
-    "AG Charts - Option \`footnote.textAlign\` cannot be set to \`"abc"\`; expecting a keyword such as 'left', 'center' or 'right', ignoring.",
+    "AG Charts - Option \`footnote.textAlign\` cannot be set to \`"abc"\`; expecting a keyword such as 'left', 'center', 'right', 'start' or 'end', ignoring.",
   ],
 ]
 `);
