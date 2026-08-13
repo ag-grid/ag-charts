@@ -1521,6 +1521,19 @@ describe('OrganizationSeries', () => {
             return new Caster(textNode).cast(_ModuleSupport.Text).value;
         }
 
+        /** Mean RGB channel of a `#rrggbb` or `rgb(…)`/`rgba(…)` colour, for lightness assertions. */
+        function meanChannel(color: unknown): number {
+            expect(typeof color).toBe('string');
+            const hex = /^#([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i.exec(String(color));
+            const rgb = /^rgba?\(\s*(\d+)\D+(\d+)\D+(\d+)/i.exec(String(color));
+            const match = hex ?? rgb;
+            expect(match).not.toBeNull();
+            const radix = hex ? 16 : 10;
+            return (
+                (parseInt(match![1], radix) + parseInt(match![2], radix) + parseInt(match![3], radix)) / 3
+            );
+        }
+
         async function hoverItem(itemId: string, tag: OrganizationNodeTag): Promise<void> {
             const { x, y } = centreOf(itemId, tag);
             await hoverAction(x, y)(chart);
@@ -1628,6 +1641,24 @@ describe('OrganizationSeries', () => {
             const hoveredFill = expanderShapeNode('cfo').fill;
             expect(typeof hoveredFill).toBe('string');
             expect(hoveredFill).not.toBe(unhoveredFill);
+        });
+
+        it('derives the default hover fill from a user-configured expander fill, not from the theme fill', async () => {
+            const options = buildOptions({ fill: '#804000' });
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expect(expanderShapeNode('cfo').fill).toBe('#804000');
+
+            await hoverItem('cfo', OrganizationNodeTag.Expander);
+
+            const hoveredFill = expanderShapeNode('cfo').fill;
+            expect(hoveredFill).not.toBe('#804000');
+            // A mix of `#804000` towards the foreground stays dark; one derived from the theme's own
+            // white expander fill would land near-white, which is what this pins against.
+            expect(meanChannel(hoveredFill)).toBeLessThan(128);
         });
 
         it('requests exactly one series update for a card-to-pill move, and none for a repeat hover at the same point', async () => {
