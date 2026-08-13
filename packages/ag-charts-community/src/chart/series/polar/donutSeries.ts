@@ -156,11 +156,8 @@ interface PieDonutSeriesStyle extends NormalisedDonutSeriesStyle, NormalisedPieS
 
 type PieAnimationFns = ReturnType<typeof preparePieSeriesAnimationFunctions>;
 
-/**
- * The sector animation tweens `fill` and `stroke` towards the datum's own sector style. The
- * inner-corner backdrops keep `innerCircle.fill` and have no stroke, so they animate on the same
- * geometry but with those two properties dropped.
- */
+// The sector animation tweens `fill`/`stroke` towards the datum's own sector style, which the
+// inner-corner backdrops must keep out of - they carry `innerCircle.fill` and have no stroke.
 function prepareInnerCircleCornersAnimationFunctions({ nodes }: PieAnimationFns): PieAnimationFns['nodes'] {
     return {
         fromFn: (...args) => {
@@ -226,8 +223,6 @@ export class DonutSeries extends PolarSeries<
         this.innerCircleGroup,
         () => new Marker({ shape: 'circle' })
     );
-    // Backdrop sectors painted behind the real ones, with square inner corners, so that
-    // `innerCircle.fill` also covers the gaps left by rounded inner corners (AG-11244).
     readonly innerCircleCornersGroup = this.backgroundGroup.appendChild(
         new Group({ name: `${this.id}-innerCircleCorners` })
     );
@@ -1081,13 +1076,8 @@ export class DonutSeries extends PolarSeries<
         this.innerCircleSelection.update(datums);
     }
 
-    /**
-     * A rounded inner corner pulls the sector fill away from the inner radius, leaving a crescent
-     * of chart background between the sector and the inner circle. Draw a backdrop sector per
-     * datum - same geometry, but square inner corners - filled with `innerCircle.fill`, so the
-     * fill reaches into those crescents. Emitted only where it can make a difference, so every
-     * chart without both a rounded corner and an inner-circle fill is structurally untouched.
-     */
+    // A rounded inner corner pulls the sector fill away from the inner radius, leaving a crescent
+    // of chart background that `innerCircle.fill` should cover. Backdrop sectors fill it.
     private updateInnerCircleCornersSelection() {
         const { fill } = this.properties.innerCircle;
         const enabled = fill != null && fill !== 'transparent' && this.getInnerRadius() > 0;
@@ -1096,6 +1086,25 @@ export class DonutSeries extends PolarSeries<
         this.innerCircleCornersSelection.update(nodeData, undefined, (datum) => this.getDatumId(datum.datumIndex));
         if (this.ctx.animationManager.isSkipped()) {
             this.innerCircleCornersSelection.cleanup();
+        }
+    }
+
+    private applySectorSpacing(sector: Sector, hasStroke: boolean, strokeWidth: number) {
+        const inset = Math.max((this.properties.sectorSpacing + (hasStroke ? strokeWidth : 0)) / 2, 0);
+        sector.inset = inset;
+        sector.lineJoin = this.properties.sectorSpacing >= 0 || inset > 0 ? 'miter' : 'round';
+    }
+
+    private applySelectedOffset(sector: Sector, datumIndex: number) {
+        const datumSelectionState = this.ctx.dataSelectionService?.getDataSelectionState(this, datumIndex);
+        const { selectedOffset } = this.properties.selection;
+        if (!isUnselected(datumSelectionState) && selectedOffset > 0) {
+            const midAngle = (sector.endAngle + sector.startAngle) / 2;
+            sector.centerX = selectedOffset * Math.cos(midAngle);
+            sector.centerY = selectedOffset * Math.sin(midAngle);
+        } else {
+            sector.centerX = 0;
+            sector.centerY = 0;
         }
     }
 
@@ -1156,24 +1165,8 @@ export class DonutSeries extends PolarSeries<
             sector.drawingMode = mode;
             sector.cornerRadius = format.cornerRadius;
             sector.fillShadow = this.properties.shadow;
-            const inset = Math.max(
-                (this.properties.sectorSpacing + (format.stroke == null ? 0 : format.strokeWidth)) / 2,
-                0
-            );
-            sector.inset = inset;
-            sector.lineJoin = this.properties.sectorSpacing >= 0 || inset > 0 ? 'miter' : 'round';
-
-            const datumSelectionState = this.ctx.dataSelectionService?.getDataSelectionState(this, datum.datumIndex);
-            const isSelected: boolean = !isUnselected(datumSelectionState);
-            const selectedOffset: number = this.properties.selection.selectedOffset;
-            if (isSelected && selectedOffset > 0) {
-                const midAngle = (sector.endAngle + sector.startAngle) / 2;
-                sector.centerX = selectedOffset * Math.cos(midAngle);
-                sector.centerY = selectedOffset * Math.sin(midAngle);
-            } else {
-                sector.centerX = 0;
-                sector.centerY = 0;
-            }
+            this.applySectorSpacing(sector, format.stroke != null, format.strokeWidth);
+            this.applySelectedOffset(sector, datum.datumIndex);
         };
 
         this.itemSelection.each((node, datum, index) => updateSectorFn(node, datum, index, false, 'overlay'));
@@ -1205,24 +1198,8 @@ export class DonutSeries extends PolarSeries<
             sector.startInnerCornerRadius = 0;
             sector.endInnerCornerRadius = 0;
 
-            const inset = Math.max(
-                (this.properties.sectorSpacing + (format.stroke == null ? 0 : format.strokeWidth)) / 2,
-                0
-            );
-            sector.inset = inset;
-            sector.lineJoin = this.properties.sectorSpacing >= 0 || inset > 0 ? 'miter' : 'round';
-
-            const datumSelectionState = this.ctx.dataSelectionService?.getDataSelectionState(this, datum.datumIndex);
-            const isSelected: boolean = !isUnselected(datumSelectionState);
-            const selectedOffset: number = this.properties.selection.selectedOffset;
-            if (isSelected && selectedOffset > 0) {
-                const midAngle = (sector.endAngle + sector.startAngle) / 2;
-                sector.centerX = selectedOffset * Math.cos(midAngle);
-                sector.centerY = selectedOffset * Math.sin(midAngle);
-            } else {
-                sector.centerX = 0;
-                sector.centerY = 0;
-            }
+            this.applySectorSpacing(sector, format.stroke != null, format.strokeWidth);
+            this.applySelectedOffset(sector, datum.datumIndex);
         });
 
         this.highlightSelection.each((node, datum, index) => {
