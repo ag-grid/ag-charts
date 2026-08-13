@@ -2257,4 +2257,80 @@ describe('label collision avoidance', () => {
             expect(bottomYs).not.toEqual(topYs);
         });
     });
+
+    // Placement is greedy, so the order series resolve in decides which label claims a contested
+    // candidate. That order must follow the chart's series order, not the order they last became visible.
+    describe('placement order across a series visibility toggle', () => {
+        const gdpData = [
+            { year: 2015, usa: 2.9, china: 7, india: 8 },
+            { year: 2016, usa: 1.8, china: 6.9, india: 8.3 },
+            { year: 2017, usa: 2, china: 5.9, india: 6 },
+            { year: 2018, usa: 3, china: 5.7, india: 5.6 },
+            { year: 2019, usa: 3.2, china: 6, india: 3.4 },
+            { year: 2020, usa: -2.2, china: 2.2, india: -5.8 },
+            { year: 2021, usa: 5.8, china: 8.4, india: 9.7 },
+            { year: 2022, usa: 1.9, china: 3, india: 7 },
+            { year: 2023, usa: 2.5, china: 5.2, india: 8.2 },
+            { year: 2024, usa: 2.8, china: 5, india: 6.5 },
+        ];
+        const emphasised = ({ datum }: any) => datum.year === 2018;
+
+        // Only the 2018 point of each series carries a label, and its marker is enlarged, exactly as a
+        // per-point emphasis styler does: three labels competing over one narrow band of the plot.
+        const gdpOptions = (hidden?: string): any => ({
+            data: gdpData,
+            legend: { enabled: false },
+            axes: {
+                x: { position: 'bottom', type: 'number' },
+                y: { position: 'left', type: 'number' },
+            },
+            series: ['usa', 'china', 'india'].map((yKey) => ({
+                type: 'line',
+                id: yKey,
+                xKey: 'year',
+                yKey,
+                visible: yKey !== hidden,
+                marker: {
+                    enabled: true,
+                    size: 7,
+                    itemStyler: (params: any) => (emphasised(params) ? { size: 14 } : {}),
+                },
+                label: {
+                    enabled: true,
+                    formatter: ({ datum }: any) => `${yKey}-${datum.year}`,
+                    placement: ['top', 'bottom', 'left', 'right'],
+                    collision: { alwaysShow: true },
+                    itemStyler: (params: any) => ({ enabled: emphasised(params) }),
+                },
+            })),
+        });
+
+        /** The placement each drawn label landed at, keyed by its text, across every series. */
+        const placementsByText = () => {
+            const placements: Record<string, string | undefined> = {};
+            for (const series of deproxy(chart as any).series as unknown as {
+                placedLabelData: { text?: unknown; placement?: string }[];
+            }[]) {
+                for (const placed of series.placedLabelData) {
+                    placements[String(placed.text)] = placed.placement;
+                }
+            }
+            return placements;
+        };
+
+        it('re-places labels the same way after a series is hidden and shown again', async () => {
+            chart = AgCharts.create(prepareTestOptions(gdpOptions()));
+            await waitForChartStability(chart);
+            const before = placementsByText();
+            // Anti-vacuous guard: one label per series, each at a resolved placement.
+            expect(Object.keys(before)).toHaveLength(3);
+
+            await chart.update(prepareTestOptions(gdpOptions('china')));
+            await waitForChartStability(chart);
+            await chart.update(prepareTestOptions(gdpOptions()));
+            await waitForChartStability(chart);
+
+            expect(placementsByText()).toEqual(before);
+        });
+    });
 });

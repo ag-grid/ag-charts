@@ -28,7 +28,7 @@ function placementSignature(
 }
 
 export class LabelManager {
-    private readonly labelData: Map<string, SeriesLabels> = new Map();
+    private labelData: Map<string, SeriesLabels> = new Map();
     private lastPlacementSignature?: string;
     private lastPlacedLabels?: Map<string, PlacedLabel[]>;
 
@@ -44,15 +44,10 @@ export class LabelManager {
             height: seriesRect.height + padding.top + padding.bottom,
         };
         const placedLabelSeries = visibleSeries.filter((s) => s.usesPlacedLabels);
-        const expectedSeriesId = new Set(placedLabelSeries.map((s) => s.id));
-        for (const seriesId of this.labelData.keys()) {
-            if (!expectedSeriesId.has(seriesId)) {
-                this.labelData.delete(seriesId);
-            }
-        }
 
         // No series places labels, so gathering obstacles and running placement would be wasted work.
         if (placedLabelSeries.length === 0) {
+            this.labelData.clear();
             this.lastPlacementSignature = undefined;
             this.lastPlacedLabels = undefined;
             return;
@@ -80,6 +75,10 @@ export class LabelManager {
         visibleSeries: ISeries<SeriesNodeDatum, ISeriesProperties, unknown>[],
         bounds: BoxBounds
     ): Map<string, PlacedLabel[]> {
+        // Placement is greedy in iteration order, so the map must be rebuilt in series order rather
+        // than mutated: a re-shown series has to reclaim its original slot, not land at the end.
+        const previous = this.labelData;
+        this.labelData = new Map();
         for (const series of placedLabelSeries) {
             const labelData = series.getLabelData();
             if (labelData.every(isPointLabelDatum)) {
@@ -88,6 +87,11 @@ export class LabelManager {
                     defaults: series.getLabelDefaults?.(),
                     resolveCandidateStyle: series.getLabelCandidateStyler?.(),
                 });
+            } else {
+                const carried = previous.get(series.id);
+                if (carried != null) {
+                    this.labelData.set(series.id, carried);
+                }
             }
         }
 
