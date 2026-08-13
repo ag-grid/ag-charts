@@ -6,6 +6,7 @@ import type { AgChartOptions, AgDonutSeriesOptions, AgPolarChartOptions } from '
 
 import { AgCharts } from '../../../api/agCharts';
 import { OptionsGraph } from '../../../module/optionsGraph';
+import type { Sector } from '../../../scene/shape/sector';
 import type { Text } from '../../../scene/shape/text';
 import { Transformable } from '../../../scene/transformable';
 import type { Chart } from '../../chart';
@@ -1299,6 +1300,122 @@ describe('DonutSeries', () => {
 
             await compare();
             expectWarningsCalls().toEqual([]);
+        });
+    });
+
+    describe('AG-11244 inner circle with rounded corners', () => {
+        const data = [
+            { asset: 'Stocks', amount: 30 },
+            { asset: 'Bonds', amount: 25 },
+            { asset: 'Cash', amount: 20 },
+            { asset: 'Real Estate', amount: 15 },
+        ];
+
+        // `itemSelection` is protected on PolarSeries; the backdrops are asserted against the
+        // real sector nodes, so the test compares production values with production values.
+        const sectorNodes = (series: DonutSeries) => (series as any).itemSelection.nodes() as Sector[];
+
+        const createDonut = async (series: Partial<AgDonutSeriesOptions>) => {
+            chart = await createChart({
+                ...options,
+                data,
+                series: [
+                    {
+                        type: 'donut',
+                        angleKey: 'amount',
+                        innerRadiusRatio: 0.9,
+                        ...series,
+                    } as AgDonutSeriesOptions,
+                ],
+            });
+            return classCast(chart.series[0], DonutSeries);
+        };
+
+        test('draws a square-cornered backdrop matching each sector', async () => {
+            const series = await createDonut({ cornerRadius: 20, innerCircle: { fill: '#c9fdc9' } });
+
+            const backdrops = series.innerCircleCornersSelection.nodes();
+            const sectors = sectorNodes(series);
+            expect(backdrops).toHaveLength(sectors.length);
+
+            backdrops.forEach((backdrop, index) => {
+                const sector = sectors[index];
+                expect(backdrop.startAngle).toBe(sector.startAngle);
+                expect(backdrop.endAngle).toBe(sector.endAngle);
+                expect(backdrop.innerRadius).toBe(sector.innerRadius);
+                expect(backdrop.outerRadius).toBe(sector.outerRadius);
+                expect(backdrop.concentricEdgeInset).toBe(sector.concentricEdgeInset);
+                expect(backdrop.radialEdgeInset).toBe(sector.radialEdgeInset);
+
+                // The whole point: outer corners match the sector, inner corners are squared off.
+                expect(backdrop.startOuterCornerRadius).toBe(sector.startOuterCornerRadius);
+                expect(backdrop.endOuterCornerRadius).toBe(sector.endOuterCornerRadius);
+                expect(backdrop.startInnerCornerRadius).toBe(0);
+                expect(backdrop.endInnerCornerRadius).toBe(0);
+
+                expect(backdrop.fill).toBe('#c9fdc9');
+                expect(backdrop.stroke).toBeUndefined();
+            });
+        });
+
+        test('draws nothing when there are no rounded corners', async () => {
+            const series = await createDonut({ cornerRadius: 0, innerCircle: { fill: '#c9fdc9' } });
+
+            expect(series.innerCircleCornersSelection.nodes()).toHaveLength(0);
+        });
+
+        test('draws nothing when the inner circle has no fill', async () => {
+            const series = await createDonut({ cornerRadius: 20 });
+
+            expect(series.innerCircleCornersSelection.nodes()).toHaveLength(0);
+        });
+
+        test('draws a backdrop only for the datums that have rounded corners', async () => {
+            const series = await createDonut({
+                cornerRadius: 20,
+                innerCircle: { fill: '#c9fdc9' },
+                itemStyler: ({ datum }) => (datum.asset === 'Cash' ? { cornerRadius: 0 } : {}),
+            });
+
+            expect(series.innerCircleCornersSelection.nodes()).toHaveLength(data.length - 1);
+        });
+
+        test('never extends past the outer radius', async () => {
+            const series = await createDonut({ cornerRadius: 100, innerCircle: { fill: '#c9fdc9' } });
+
+            const outerRadius = series.getOuterRadius();
+            for (const backdrop of series.innerCircleCornersSelection.nodes()) {
+                expect(backdrop.outerRadius).toBeLessThanOrEqual(outerRadius);
+            }
+        });
+
+        test('tracks the data through an update', async () => {
+            const chartProxy = AgCharts.create(
+                prepareTestOptions({
+                    ...options,
+                    data,
+                    series: [
+                        {
+                            type: 'donut',
+                            angleKey: 'amount',
+                            innerRadiusRatio: 0.9,
+                            cornerRadius: 20,
+                            innerCircle: { fill: '#c9fdc9' },
+                        } as AgDonutSeriesOptions,
+                    ],
+                }) as AgChartOptions
+            ) as AgChartProxy;
+            chart = deproxy(chartProxy);
+            await waitForChartStability(chart);
+
+            const series = classCast(chart.series[0], DonutSeries);
+            expect(series.innerCircleCornersSelection.nodes()).toHaveLength(data.length);
+
+            await chartProxy.applyTransaction({ remove: [data[0]] });
+            await waitForChartStability(chart);
+
+            expect(series.innerCircleCornersSelection.nodes()).toHaveLength(data.length - 1);
+            expect(series.innerCircleCornersSelection.nodes()).toHaveLength(sectorNodes(series).length);
         });
     });
 

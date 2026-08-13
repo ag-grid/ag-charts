@@ -231,7 +231,7 @@ export class DonutSeries extends PolarSeries<
     readonly innerCircleCornersGroup = this.backgroundGroup.appendChild(
         new Group({ name: `${this.id}-innerCircleCorners` })
     );
-    private readonly innerCircleCornersSelection = Selection.select<Sector<PieDonutNodeDatum>>(
+    readonly innerCircleCornersSelection = Selection.select<Sector<PieDonutNodeDatum>>(
         this.innerCircleCornersGroup,
         () => this.nodeFactory(),
         false
