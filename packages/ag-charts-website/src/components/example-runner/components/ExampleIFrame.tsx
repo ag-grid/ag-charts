@@ -49,10 +49,13 @@ export const ExampleIFrame: FunctionComponent<Props> = ({ title, isHidden, url, 
             })}
         >
             {/*`exampleRunner` class is used by the dark mode toggle to post a message to this iFrame*/}
+            {/* `allow` delegates clipboard-write so examples with a Copy button (e.g. the dev-validation
+                overlay) can reach the Clipboard API instead of a Permissions-Policy console violation. */}
             <iframe
                 id={loadingIFrameId}
                 title={title}
                 ref={iFrameRef}
+                allow="clipboard-write"
                 className={classnames('exampleRunner', styles.iframe)}
                 style={{ visibility: 'hidden' }}
             />

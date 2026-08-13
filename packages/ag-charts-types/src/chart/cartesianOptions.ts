@@ -468,12 +468,12 @@ export interface AgBaseCartesianThemeOptions<
 }
 
 export interface AgCartesianSeriesAreaThemableOptions extends AgSeriesAreaOptions {
-    /** TODO */
+    /** Styles applied to every Background Region. */
     backgroundRegions?: AgSeriesAreaBackgroundRegion;
 }
 
 export interface AgCartesianSeriesAreaOptions extends AgSeriesAreaOptions {
-    /** TODO */
+    /** Rectangular regions filled behind the series, each bounded by value ranges on an x-axis and a y-axis. */
     backgroundRegions?: AgSeriesAreaBackgroundRegion[];
 }
 
@@ -570,20 +570,20 @@ export interface AgCartesianCrossLineLabelOptions extends AgBaseCrossLineLabelOp
 }
 
 export interface AgSeriesAreaBackgroundRegion extends FillOptions, StrokeOptions {
-    /** TODO */
+    /** The bounds of the region on an x-axis. Omit to span the full width of the series area. */
     xRange?: AgSeriesAreaBackgroundRegionRange;
-    /** TODO */
+    /** The bounds of the region on a y-axis. Omit to span the full height of the series area. */
     yRange?: AgSeriesAreaBackgroundRegionRange;
-    /** TODO */
+    /** Configuration for the label displayed with the region. */
     label?: AgSeriesAreaBackgroundRegionLabel;
 }
 
 export interface AgSeriesAreaBackgroundRegionRange {
-    /** TODO */
+    /** The key of the axis in the `axes` dictionary that this range applies to. */
     axis?: string;
-    /** TODO */
+    /** The axis value where the region starts. Omit to extend the region to the edge of the series area. */
     start?: AxisValue;
-    /** TODO */
+    /** The axis value where the region ends. Omit to extend the region to the edge of the series area. */
     end?: AxisValue;
 }
 

@@ -34,7 +34,6 @@ import {
     wrapTextOrSegments,
 } from 'ag-charts-core';
 import type {
-    AgCoordinates,
     AgDonutCalloutLineItemStylerParams,
     AgDonutCalloutLineItemStylerResult,
     AgDonutSeriesCalloutOptions,
@@ -46,7 +45,6 @@ import type {
     AgPieSeriesItemStylerParams,
     AgPieSeriesLabelFormatterParams,
     NormalisedCallbackParams,
-    SelectionState,
 } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../../module/moduleContext';
@@ -80,10 +78,10 @@ import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
 import { type TooltipContent } from '../../tooltip/tooltip';
 import type { DataModelSeriesNodeDatum } from '../dataModelSeries';
-import { SeriesNodeEvent, type SeriesNodePickMatch, SeriesNodePickMode } from '../series';
+import { type SeriesNodePickMatch, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation } from '../seriesLabelUtil';
 import { isUnselected } from '../seriesProperties';
-import type { HighlightState, SeriesNodeEventTypes } from '../seriesTypes';
+import type { HighlightState } from '../seriesTypes';
 import type { DonutInnerLabel, DonutTitle } from './donutSeriesProperties';
 import { DonutSeriesProperties } from './donutSeriesProperties';
 import {
@@ -98,31 +96,6 @@ import {
     type PolarAnimationData,
     PolarSeries,
 } from './polarSeries';
-
-class PieDonutSeriesNodeEvent<TEvent extends string = SeriesNodeEventTypes> extends SeriesNodeEvent<
-    PieDonutNodeDatum,
-    TEvent
-> {
-    readonly angleKey: string;
-    readonly radiusKey?: string;
-    readonly calloutLabelKey?: string;
-    readonly sectorLabelKey?: string;
-    constructor(
-        type: TEvent,
-        nativeEvent: Event,
-        datum: PieDonutNodeDatum,
-        series: DonutSeries,
-        selectionState: SelectionState | undefined,
-        isCollapsed: boolean | undefined,
-        coordinates: AgCoordinates | undefined
-    ) {
-        super(type, nativeEvent, datum, series, selectionState, isCollapsed, coordinates);
-        this.angleKey = series.properties.angleKey;
-        this.radiusKey = series.properties.radiusKey;
-        this.calloutLabelKey = series.properties.calloutLabelKey;
-        this.sectorLabelKey = series.properties.sectorLabelKey;
-    }
-}
 
 interface PieDonutLabelDatum {
     readonly text: NormalisedTextOrSegments;
@@ -1707,11 +1680,7 @@ export class DonutSeries extends PolarSeries<
         }
         this.innerLabelsSelection.each((text, _datum, index) => {
             text.visible = labelsVisible;
-            if (Array.isArray(text.text)) {
-                text.y = textBottoms[index] - textBBoxes[index].height;
-            } else {
-                text.y = textBottoms[index];
-            }
+            text.y = textBottoms[index];
         });
     }
 
@@ -1721,7 +1690,15 @@ export class DonutSeries extends PolarSeries<
         this.zerosumInnerRing.size = this.getInnerRadius() * 2;
     }
 
-    protected override readonly NodeEvent = PieDonutSeriesNodeEvent;
+    override createNodeParams(datum: PieDonutNodeDatum) {
+        return {
+            ...super.createNodeParams(datum),
+            angleKey: this.properties.angleKey,
+            radiusKey: this.properties.radiusKey,
+            calloutLabelKey: this.properties.calloutLabelKey,
+            sectorLabelKey: this.properties.sectorLabelKey,
+        };
+    }
 
     protected override pickNodeClosestDatum(point: Point): SeriesNodePickMatch | undefined {
         return pickByMatchingAngle(this, point);

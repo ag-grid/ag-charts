@@ -53,6 +53,10 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
         return this.properties.dropOff.enabled;
     }
 
+    protected override connectorCornerRadius() {
+        return this.properties.cornerRadius;
+    }
+
     protected override connectorStyle(index: number): RequireOptional<AgFunnelSeriesStyle> & { opacity: number } {
         return mergeDefaults(this.properties.dropOff.getStyle(), this.properties.getStyle(index));
     }
@@ -152,7 +156,7 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
             return;
         }
 
-        const { shadow } = this.properties;
+        const { shadow, cornerRadius } = this.properties;
 
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
         const crispCentreDirection = this.getCategoryCrispDirection();
@@ -167,6 +171,7 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
             rect.crisp = datum.crisp;
             rect.crispCentreDirection = crispCentreDirection;
             rect.fillShadow = shadow;
+            rect.cornerRadius = cornerRadius;
         });
     }
 

@@ -39,7 +39,7 @@ export class AnnotationManager implements MementoOriginator<AnnotationsMemento> 
     }
 
     public fireChangedEvent() {
-        this.ctx.fireEvent({ type: 'annotations', annotations: deepClone([...this.annotations]) });
+        this.ctx.chartService.callListener({ type: 'annotations', annotations: deepClone([...this.annotations]) });
     }
 
     public attachNode(node: Node) {

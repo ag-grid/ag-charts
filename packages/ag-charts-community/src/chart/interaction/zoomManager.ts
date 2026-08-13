@@ -33,7 +33,7 @@ import type {
     ZoomMinMax,
     ZoomState,
 } from 'ag-charts-core';
-import type { AgZoomEvent, AgZoomEventSource } from 'ag-charts-types';
+import type { AgZoomEventSource } from 'ag-charts-types';
 
 import type {
     ZoomChangeRequestEvent,
@@ -279,7 +279,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
                 if (wasShortcut) return;
                 if (this.pendingZoomEventSource) {
                     const source = this.pendingZoomEventSource;
-                    this.ctx.fireEvent<AgZoomEvent>({ type: 'zoom', source, ...this.getMementoRanges() });
+                    this.ctx.chartService.callListener({ type: 'zoom', source, ...this.getMementoRanges() });
                     this.pendingZoomEventSource = undefined;
                 }
             })

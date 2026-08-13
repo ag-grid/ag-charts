@@ -46,7 +46,7 @@ import {
     toArray,
     zeroLike,
 } from 'ag-charts-core';
-import type { AgCoordinates, AgNumericValue, SelectionState } from 'ag-charts-types';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import type { WaterfallSeriesItem, WaterfallSeriesTotal } from './waterfallSeriesProperties';
 import { WaterfallSeriesProperties } from './waterfallSeriesProperties';
@@ -120,7 +120,7 @@ type WaterfallNodePointDatum = _ModuleSupport.DataModelSeriesNodeDatum['point'] 
     readonly y2: number;
 };
 
-interface WaterfallNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum, Readonly<Point> {
+export interface WaterfallNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum, Readonly<Point> {
     readonly index: number;
     // Set for synthetic total/subtotal bars to their `totals.itemId`, falling back to their `axisLabel`.
     // Real bars leave it unset so `getItemId` resolves via `dataIdKey`, then `datumIndex`.
@@ -199,32 +199,20 @@ interface WaterfallSeriesTypes extends _ModuleSupport.AbstractBarSeriesTypes {
 
 type WaterfallAnimationData = _ModuleSupport.AbstractBarSeriesAnimationData<WaterfallSeriesTypes>;
 
-class WaterfallSeriesNodeEvent<
-    TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
-> extends _ModuleSupport.CartesianSeriesNodeEvent<TEvent> {
-    readonly itemType: AgWaterfallSeriesItemType;
-
-    constructor(
-        type: TEvent,
-        nativeEvent: Event,
-        datum: WaterfallNodeDatum,
-        series: WaterfallSeries,
-        selectionState: SelectionState | undefined,
-        isCollapsed: boolean | undefined,
-        coordinates: AgCoordinates | undefined
-    ) {
-        super(type, nativeEvent, datum, series, selectionState, isCollapsed, coordinates);
-        this.itemType = datum.itemType;
-    }
-}
-
 export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallSeriesTypes> {
     static override readonly className = 'WaterfallSeries';
     static readonly type = 'waterfall' as const;
 
     override properties = new WaterfallSeriesProperties();
 
-    protected override readonly NodeEvent = WaterfallSeriesNodeEvent;
+    override createNodeParams(datum: WaterfallNodeDatum) {
+        return {
+            ...super.createNodeParams(datum),
+            xKey: this.properties.xKey,
+            yKey: this.properties.yKey,
+            itemType: datum.itemType,
+        };
+    }
 
     constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({

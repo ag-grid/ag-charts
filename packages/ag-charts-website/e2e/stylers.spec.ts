@@ -1,5 +1,6 @@
 import type { Page } from '@playwright/test';
 
+import { evalPageFunction } from './agE2E';
 import { expect, test } from './fixture';
 import { expectChartScreenshot } from './scene-capture';
 import {
@@ -74,13 +75,7 @@ const KINDS: StylerKind[] = ['styler', 'itemStyler'];
 
 async function popStylerCalls(page: Page): Promise<StylerCall[]> {
     await waitForAllChartUpdates(page);
-    return page.evaluate(() => {
-        const hook = (window as { agE2E?: { popStylerCalls?: () => StylerCall[] } }).agE2E;
-        if (!hook || typeof hook.popStylerCalls !== 'function') {
-            throw new Error('window.agE2E.popStylerCalls is not defined');
-        }
-        return hook.popStylerCalls();
-    });
+    return (await evalPageFunction(page, 'popStylerCalls')) as StylerCall[];
 }
 
 // Distinct datum categories recorded with `state` at any point during the pop. We test which element was

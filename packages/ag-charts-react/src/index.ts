@@ -16,6 +16,7 @@ import {
     AgCharts as AgChartsAPI,
     AgFinancialChartOptions,
     AgGaugeOptions,
+    AgQuadrantChartOptions,
 } from 'ag-charts-community';
 
 interface BaseChartProps {
@@ -111,4 +112,15 @@ export interface AgGaugeProps {
 export const AgGauge = /*#__PURE__*/ ChartWithConstructor<AgGaugeProps>(
     (options) => AgChartsAPI.createGauge(options),
     'AgGauge'
+);
+
+export interface AgQuadrantChartProps {
+    options: AgQuadrantChartOptions;
+    style?: CSSProperties;
+    className?: string;
+}
+
+export const AgQuadrantChart = /*#__PURE__*/ ChartWithConstructor<AgQuadrantChartProps>(
+    (options) => AgChartsAPI.createQuadrantChart(options),
+    'AgQuadrantChart'
 );

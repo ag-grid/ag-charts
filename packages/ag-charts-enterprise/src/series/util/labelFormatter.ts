@@ -1,12 +1,13 @@
-import type { Logger } from 'ag-charts-core';
 import {
     type FontOptions,
     type NormalisedContentSegment,
     type NormalisedTextOrSegments,
     cachedTextMeasurer,
-    findMaxValue,
+    findLargestFittingFontSize,
+    findLargestFittingStep,
     isArray,
     measureTextSegments,
+    resolveMinimumFontSize,
     wrapLines,
     wrapTextSegments,
 } from 'ag-charts-core';
@@ -40,11 +41,13 @@ export function generateLabelSecondaryLabelFontSizeCandidates(
     label: AutoSizedBaseLabelOptions,
     secondaryLabel: AutoSizedBaseLabelOptions
 ): FontSizeCandidate[] {
-    const { fontSize: labelFontSize, minimumFontSize: labelMinimumFontSize = labelFontSize } = label;
-    const {
-        fontSize: secondaryLabelFontSize,
-        minimumFontSize: secondaryLabelMinimumFontSize = secondaryLabelFontSize,
-    } = secondaryLabel;
+    const { fontSize: labelFontSize } = label;
+    const { fontSize: secondaryLabelFontSize } = secondaryLabel;
+    const labelMinimumFontSize = resolveMinimumFontSize(label.minimumFontSize, labelFontSize);
+    const secondaryLabelMinimumFontSize = resolveMinimumFontSize(
+        secondaryLabel.minimumFontSize,
+        secondaryLabelFontSize
+    );
 
     const labelTracks = labelFontSize - labelMinimumFontSize;
     const secondaryLabelTracks = secondaryLabelFontSize - secondaryLabelMinimumFontSize;
@@ -62,10 +65,12 @@ export function generateLabelSecondaryLabelFontSizeCandidates(
                 ? (currentSecondaryLabelFontSize - secondaryLabelMinimumFontSize) / secondaryLabelTracks
                 : -1;
 
+        // Clamped so the last step lands exactly on the minimum: stepping past it would both render
+        // smaller than asked for and leave no candidate at which truncation is permitted.
         if (labelProgress > secondaryLabelProgress) {
-            currentLabelFontSize--;
+            currentLabelFontSize = Math.max(labelMinimumFontSize, currentLabelFontSize - 1);
         } else {
-            currentSecondaryLabelFontSize--;
+            currentSecondaryLabelFontSize = Math.max(secondaryLabelMinimumFontSize, currentSecondaryLabelFontSize - 1);
         }
 
         out.push({
@@ -131,13 +136,12 @@ export function formatStackedLabels<Meta>(
 
     const widthAdjust = 2 * padding;
     const heightAdjust = 2 * padding + spacing;
-    const minimumHeight =
-        (labelProps.minimumFontSize ?? labelProps.fontSize) +
-        (secondaryLabelProps.minimumFontSize ?? secondaryLabelProps.fontSize);
-
-    if (minimumHeight > sizeFittingHeight(minimumHeight + heightAdjust, false).height - heightAdjust) return;
 
     const fontSizeCandidates = generateLabelSecondaryLabelFontSizeCandidates(labelProps, secondaryLabelProps);
+    const smallest = fontSizeCandidates[0];
+    const minimumHeight = smallest.labelFontSize + smallest.secondaryLabelFontSize;
+
+    if (minimumHeight > sizeFittingHeight(minimumHeight + heightAdjust, false).height - heightAdjust) return;
 
     const labelTextSizeProps = {
         fontFamily: labelProps.fontFamily,
@@ -155,7 +159,7 @@ export function formatStackedLabels<Meta>(
     let label: LabelFormatting | undefined;
     let secondaryLabel: LabelFormatting | undefined;
 
-    return findMaxValue<StackedLabelFormatting<Meta>>(0, fontSizeCandidates.length - 1, (index) => {
+    return findLargestFittingStep<StackedLabelFormatting<Meta>>(fontSizeCandidates.length, (index) => {
         const { labelFontSize, secondaryLabelFontSize } = fontSizeCandidates[index];
         const allowTruncation = index === 0;
         const labelFont = { ...labelTextSizeProps, fontSize: labelFontSize };
@@ -257,7 +261,7 @@ export function formatSingleLabel<Meta>(
     sizeFittingHeight: SizeFittingHeightFn<Meta>
 ): [LabelFormatting, Meta] | undefined {
     const sizeAdjust = 2 * padding;
-    const minimumFontSize = Math.min(props.minimumFontSize ?? props.fontSize, props.fontSize);
+    const minimumFontSize = resolveMinimumFontSize(props.minimumFontSize, props.fontSize);
 
     const textSizeProps = {
         fontFamily: props.fontFamily,
@@ -265,36 +269,35 @@ export function formatSingleLabel<Meta>(
         fontWeight: props.fontWeight,
     };
 
-    return findMaxValue<[LabelFormatting, Meta]>(minimumFontSize, props.fontSize, (fontSize) => {
-        const currentFont = { ...textSizeProps, fontSize };
-        const measurer = cachedTextMeasurer(currentFont);
-        const allowTruncation = fontSize === minimumFontSize;
-        const lineHeight = props.lineHeight ?? measurer.lineHeight();
-        const sizeFitting = sizeFittingHeight(lineHeight + sizeAdjust, allowTruncation);
-        const availableWidth = sizeFitting.width - sizeAdjust;
-        const availableHeight = sizeFitting.height - sizeAdjust;
+    return findLargestFittingFontSize<[LabelFormatting, Meta]>(
+        minimumFontSize,
+        props.fontSize,
+        (fontSize, allowTruncation) => {
+            const currentFont = { ...textSizeProps, fontSize };
+            const measurer = cachedTextMeasurer(currentFont);
+            const lineHeight = props.lineHeight ?? measurer.lineHeight();
+            const sizeFitting = sizeFittingHeight(lineHeight + sizeAdjust, allowTruncation);
+            const availableWidth = sizeFitting.width - sizeAdjust;
+            const availableHeight = sizeFitting.height - sizeAdjust;
 
-        if (lineHeight > availableHeight || availableWidth < 0) return;
+            if (lineHeight > availableHeight || availableWidth < 0) return;
 
-        const lines = wrapLines(value, {
-            maxWidth: availableWidth,
-            maxHeight: availableHeight,
-            font: currentFont,
-            textWrap: props.wrapping,
-            overflow: (allowTruncation ? props.overflowStrategy : null) ?? 'hide',
-        });
+            const lines = wrapLines(value, {
+                maxWidth: availableWidth,
+                maxHeight: availableHeight,
+                font: currentFont,
+                textWrap: props.wrapping,
+                overflow: (allowTruncation ? props.overflowStrategy : null) ?? 'hide',
+            });
 
-        if (!lines.length) return;
+            if (!lines.length) return;
 
-        const { width, height } = measurer.measureLines(lines);
-        const text = lines.join('\n');
+            const { width, height } = measurer.measureLines(lines);
+            const text = lines.join('\n');
 
-        return [{ width, height, text, fontSize, lineHeight }, sizeFitting.meta];
-    });
-}
-
-function hasInvalidFontSize(label?: AutoSizedBaseLabelOptions) {
-    return label?.minimumFontSize != null && label?.fontSize != null && label?.minimumFontSize > label?.fontSize;
+            return [{ width, height, text, fontSize, lineHeight }, sizeFitting.meta];
+        }
+    );
 }
 
 function formatSingleAny<Meta>(
@@ -419,15 +422,10 @@ export function formatLabels<Meta = never>(
     baseSecondaryLabelValue: NormalisedTextOrSegments | undefined,
     secondaryLabelProps: AutoSizedSecondaryLabelOptions,
     layoutParams: LayoutParams,
-    sizeFittingHeight: SizeFittingHeightFn<Meta>,
-    logger: Logger
+    sizeFittingHeight: SizeFittingHeightFn<Meta>
 ): StackedLabelFormatting<Meta> | undefined {
     const labelValue = labelProps.enabled ? baseLabelValue : undefined;
     const secondaryLabelValue = secondaryLabelProps.enabled ? baseSecondaryLabelValue : undefined;
-
-    if (hasInvalidFontSize(labelProps) || hasInvalidFontSize(secondaryLabelProps)) {
-        logger.warnOnce(`minimumFontSize should be set to a value less than or equal to the font size`);
-    }
 
     let value: StackedLabelFormatting<Meta> | undefined;
     const labelIsSegments = isArray(labelValue);

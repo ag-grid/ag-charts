@@ -1,0 +1,68 @@
+name: preview branch janitor
+
+# Thin caller — the sweep itself lives in external/ag-shared so ag-grid and ag-studio can adopt it
+# by copying this file. Reclaims previews for closed PRs and source maps that are no longer
+# published, in one push (GitHub Pages rebuilds the whole site per push, and its branch builds are
+# single-flight, so one push per path would cost one cancelling build per path).
+#
+# Two branches carry per-PR content and both need sweeping: `gh-pages` (UMD preview bundles, served
+# by Pages) and `snapshot-review` (snapshot-review HTML reports, read straight from
+# raw.githubusercontent.com by the viewer on gh-pages). Same leak on both — a CI run still in flight
+# when a PR merges republishes the pr-<N>/ that close-time cleanup just removed.
+
+on:
+    schedule:
+        # 03:17 UTC daily — off-peak, and off the hour to avoid the scheduler's rush.
+        - cron: '17 3 * * *'
+    workflow_dispatch:
+        inputs:
+            dry_run:
+                description: 'List what would be removed without pushing.'
+                type: boolean
+                default: false
+
+permissions:
+    contents: read
+
+concurrency:
+    # Serialise sweeps with each other only. Conflicts with per-PR publishers are resolved by the
+    # push-retry loop in gh-pages-commit.sh, not by a lock.
+    group: preview-branch-janitor
+    cancel-in-progress: false
+
+jobs:
+    sweep:
+        runs-on: ubuntu-24.04
+        name: Sweep stale preview content
+        permissions:
+            contents: write
+            pull-requests: read
+        steps:
+            # Needed for the local shared action below; it clones the publish branch itself.
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 1
+
+            - name: Sweep gh-pages
+              uses: ./external/ag-shared/github/actions/pr-preview-janitor
+              with:
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
+                  # Scheduled runs get the safe default; only a manual dispatch can turn this on.
+                  dry_run: ${{ inputs.dry_run || false }}
+                  # ag-charts does not pass include_source_maps to pr-preview-publish, so any map
+                  # still on gh-pages predates that default and should go.
+                  purge_source_maps: true
+
+            # always(): the two branches are independent, so a failure to reach one must not leave
+            # the other unswept.
+            - name: Sweep snapshot-review
+              if: always()
+              uses: ./external/ag-shared/github/actions/pr-preview-janitor
+              with:
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
+                  publish_branch: snapshot-review
+                  dry_run: ${{ inputs.dry_run || false }}
+                  # Nothing but self-contained HTML reports is published here, so there are no maps
+                  # to find and the scan is pure cost.
+                  purge_source_maps: false

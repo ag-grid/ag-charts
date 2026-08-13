@@ -36,7 +36,7 @@ import {
 } from 'ag-charts-community-test';
 
 import { createEnterpriseChart, prepareEnterpriseTestOptions, renderEnterpriseChartImage } from '../../test/utils';
-import type { WaterfallSeries } from './waterfallSeries';
+import type { WaterfallNodeDatum, WaterfallSeries } from './waterfallSeries';
 
 describe('WaterfallSeries', () => {
     setupMockConsole();
@@ -142,6 +142,10 @@ describe('WaterfallSeries', () => {
                 direction,
             })),
         };
+    }
+
+    function fireNodeClick(series: WaterfallSeries, datum: WaterfallNodeDatum): void {
+        series.fireNodeClickEvent({ event: new Event('click'), datums: [datum], winner: 0, coordinates: undefined });
     }
 
     it('preserves bigint value precision in the data label and formatter callback (AG-16608)', async () => {
@@ -260,8 +264,8 @@ describe('WaterfallSeries', () => {
             await waitForChartStability(chart);
 
             const series = seriesOf(chart);
-            series.fireNodeClickEvent(new Event('click'), nodeOfType(chart, 'subtotal'));
-            series.fireNodeClickEvent(new Event('click'), nodeOfType(chart, 'positive'));
+            fireNodeClick(series, nodeOfType(chart, 'subtotal'));
+            fireNodeClick(series, nodeOfType(chart, 'positive'));
 
             expect(seriesNodeClick).toHaveBeenCalledTimes(2);
             expect(seriesNodeClick.mock.calls[0][0].totalValue).toBe(SUBTOTAL_VALUE);
@@ -865,9 +869,10 @@ describe('WaterfallSeries', () => {
                             xKey: 'x',
                             yKey: 'y',
                             item: {
-                                positive: { label: { ...labelOpts } },
-                                negative: { label: { ...labelOpts } },
-                                total: { label: { ...labelOpts } },
+                                // Pin the colour so these spacing snapshots ignore the placement default.
+                                positive: { label: { color: { ref: 'textColor' }, ...labelOpts } },
+                                negative: { label: { color: { ref: 'textColor' }, ...labelOpts } },
+                                total: { label: { color: { ref: 'textColor' }, ...labelOpts } },
                             },
                             totals: [
                                 { totalType: 'subtotal', index: 4, axisLabel: 'ABCDE' },
@@ -1548,12 +1553,12 @@ describe('WaterfallSeries', () => {
             const series = await createWaterfall(TOTALS_OPTIONS.series![0] as AgWaterfallSeriesOptions);
             const nodeData = series.getNodeData()!;
             const events: any[] = [];
-            series.addEventListener('seriesNodeClick', (e) => events.push(e));
+            series.properties.listeners = { seriesNodeClick: (e) => events.push(e) };
 
             const total = nodeData.find((n) => n.itemType === 'total')!;
             const real = nodeData.find((n) => n.itemType === 'positive')!;
-            series.fireNodeClickEvent(new Event('click'), total, undefined);
-            series.fireNodeClickEvent(new Event('click'), real, undefined);
+            fireNodeClick(series, total);
+            fireNodeClick(series, real);
 
             // The total bar's itemId falls back to its axisLabel; the real bar resolves via datumIndex.
             expect(events[0].itemType).toBe('total');

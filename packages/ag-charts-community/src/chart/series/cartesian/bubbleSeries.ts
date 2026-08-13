@@ -39,7 +39,6 @@ import {
     type AgBubbleSeriesOptionsKeys,
     type AgBubbleSeriesStylerParams,
     type AgBubbleSeriesStylerResult,
-    type AgCoordinates,
     type AgDrawingMode,
     type AgErrorBoundSeriesTooltipRendererParams,
     type AgNumericValue,
@@ -49,7 +48,6 @@ import {
     type FillOptions,
     type FormatterPropertyType,
     type LineDashOptions,
-    type SelectionState as PublicSelectionState,
     type StrokeOptions,
 } from 'ag-charts-types';
 
@@ -103,7 +101,6 @@ import {
     type ErrorBoundSeriesNodeDatum,
     HighlightState,
     type SelectionState,
-    type SeriesNodeEventTypes,
 } from '../seriesTypes';
 import {
     type BubbleAggregation,
@@ -116,7 +113,6 @@ import {
 import { BubbleScatterSeriesProperties, BubbleSeriesProperties } from './bubbleSeriesProperties';
 import {
     CartesianSeries,
-    CartesianSeriesNodeEvent,
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
@@ -176,27 +172,6 @@ type BubbleStylerApply = MarkerStyleApply<
     BubbleScatterNodeDatum,
     ReturnType<BubbleSeries['getStyle']>
 >;
-
-class BubbleScatterSeriesNodeEvent<
-    TEvent extends string = SeriesNodeEventTypes,
-> extends CartesianSeriesNodeEvent<TEvent> {
-    readonly sizeKey?: string;
-    readonly colorKey?: string;
-
-    constructor(
-        type: TEvent,
-        nativeEvent: Event,
-        datum: BubbleScatterNodeDatum,
-        series: BubbleSeries,
-        selectionState: PublicSelectionState | undefined,
-        isCollapsed: boolean | undefined,
-        coordinates: AgCoordinates | undefined
-    ) {
-        super(type, nativeEvent, datum, series, selectionState, isCollapsed, coordinates);
-        this.sizeKey = series.properties.sizeKey;
-        this.colorKey = series.properties.colorKey;
-    }
-}
 
 export interface BubbleScatterNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum {
     readonly point: Readonly<SizedPoint>;
@@ -327,11 +302,36 @@ interface PreparedBubbleNodeDatumState {
     area: number;
 }
 
+function ascending([v0, v1]: [number, number]): [number, number] {
+    return v0 <= v1 ? [v0, v1] : [v1, v0];
+}
+
+/**
+ * A single-valued data domain has no extent to rescale into — every datum collapses onto one
+ * aggregation ratio, so the whole axis counts as visible rather than a zero-width NaN window.
+ */
+function rescaleAggregationVisibleRange(
+    visibleRange: [number, number],
+    scaleDomain: [number, number],
+    dataDomain: [number, number]
+): [number, number] {
+    const dataSpan = dataDomain[1] - dataDomain[0];
+    return dataSpan > 0 ? rescaleVisibleRange(visibleRange, scaleDomain, dataDomain) : [0, 1];
+}
+
 export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
     static override readonly className: string = 'BubbleSeries';
     static readonly type: string = 'bubble';
 
-    protected override readonly NodeEvent = BubbleScatterSeriesNodeEvent;
+    override createNodeParams(datum: BubbleScatterNodeDatum) {
+        return {
+            ...super.createNodeParams(datum),
+            xKey: this.properties.xKey,
+            yKey: this.properties.yKey,
+            sizeKey: this.properties.sizeKey,
+            colorKey: this.properties.colorKey,
+        };
+    }
 
     override properties: BubbleScatterSeriesProperties = new BubbleSeriesProperties();
 
@@ -552,7 +552,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
 
         if (processedData != null && dataModel != null) {
             if (ContinuousScale.is(xScale)) {
-                xVisibleRange = rescaleVisibleRange(
+                xVisibleRange = rescaleAggregationVisibleRange(
                     xVisibleRange,
                     xScale.domain.map(dateToNumber) as [number, number],
                     dataModel.getDomain(this, `xValue`, 'value', processedData).domain.map(dateToNumber) as [
@@ -562,7 +562,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
                 );
             }
             if (ContinuousScale.is(yScale)) {
-                yVisibleRange = rescaleVisibleRange(
+                yVisibleRange = rescaleAggregationVisibleRange(
                     yVisibleRange,
                     yScale.domain.map(dateToNumber) as [number, number],
                     dataModel.getDomain(this, `yValue`, 'value', processedData).domain.map(dateToNumber) as [
@@ -573,7 +573,16 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             }
         }
 
-        return { xRange, yRange, minSize, maxSize, xVisibleRange, yVisibleRange };
+        // A reversed axis reverses its scale domain, so the rescaled visible range comes back
+        // descending; the quadtree cull assumes an ascending [min, max] window.
+        return {
+            xRange,
+            yRange,
+            minSize,
+            maxSize,
+            xVisibleRange: ascending(xVisibleRange),
+            yVisibleRange: ascending(yVisibleRange),
+        };
     }
 
     /**

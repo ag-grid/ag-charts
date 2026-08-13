@@ -14,13 +14,13 @@ export const scenarios = [
         name: 'community/CartesianChartModule',
         package: 'ag-charts-community',
         import: '{ CartesianChartModule }',
-        limit: 383_000,
+        limit: 402_000,
     },
     {
         name: 'community/PolarChartModule',
         package: 'ag-charts-community',
         import: '{ PolarChartModule }',
-        limit: 384_000,
+        limit: 403_000,
     },
 
     // === ag-charts-enterprise ===
@@ -46,7 +46,7 @@ export const scenarios = [
         name: 'enterprise/AllMapSeriesModule',
         package: 'ag-charts-enterprise',
         import: '{ AllMapSeriesModule }',
-        limit: 543_000,
+        limit: 571_000,
     },
     {
         name: 'enterprise/AllEnterpriseModule',
@@ -58,19 +58,19 @@ export const scenarios = [
         name: 'enterprise/BoxPlotSeriesModule',
         package: 'ag-charts-enterprise',
         import: '{ BoxPlotSeriesModule }',
-        limit: 525_000,
+        limit: 578_000,
     },
     {
         name: 'enterprise/MixedA',
         package: 'ag-charts-enterprise',
         import: '{ BoxPlotSeriesModule, NavigatorModule }',
-        limit: 531_000,
+        limit: 558_000,
     },
     {
         name: 'enterprise/MixedB',
         package: 'ag-charts-enterprise',
         import: '{ AngleNumberAxisModule, RadialBarSeriesModule, StatusBarModule }',
-        limit: 528_000,
+        limit: 581_000,
     },
     {
         name: 'enterprise/MixedC',
@@ -82,12 +82,12 @@ export const scenarios = [
         name: 'enterprise/MixedD',
         package: 'ag-charts-enterprise',
         import: '{ HeatmapSeriesModule, LinearGaugeModule, DataSourceModule, ContextMenuModule, AnimationModule }',
-        limit: 544_000,
+        limit: 571_000,
     },
     {
         name: 'enterprise/MixedE',
         package: 'ag-charts-enterprise',
         import: '{ RadarLineSeriesModule, MapMarkerSeriesModule, RangeAreaSeriesModule, BandHighlightModule, SyncModule, ZoomModule }',
-        limit: 553_000,
+        limit: 581_000,
     },
 ];

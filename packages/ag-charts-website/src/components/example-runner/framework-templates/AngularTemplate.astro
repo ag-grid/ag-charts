@@ -1,8 +1,8 @@
 ---
 import { MetaData } from './lib/MetaData';
+import ExampleFonts from './lib/ExampleFonts.astro';
 import Styles from './lib/Styles.astro';
-import { SystemJs } from './lib/SystemJs';
-import { pathJoin } from '@utils/pathJoin';
+import { ExampleModules } from './lib/ExampleModules';
 import { getCacheBustingUrl } from '@utils/chartLibraryPaths';
 import { Scripts } from './lib/Scripts';
 
@@ -17,7 +17,10 @@ interface Props {
     styleFiles?: string[];
     scriptFiles: string[];
     appLocation: string;
-    boilerplatePath: string;
+    /**
+     * Whether to transpile the example's sources in the page instead of serving them transpiled
+     */
+    transpileInBrowser?: boolean;
     children?: any;
     headFragment?: string;
 }
@@ -30,16 +33,16 @@ const {
     entryFileName,
     styleFiles = [],
     scriptFiles,
-    boilerplatePath,
     headFragment,
+    transpileInBrowser,
 } = Astro.props as Props;
-
-const startFile = pathJoin(appLocation, entryFileName);
 ---
 
 <html lang="en">
     <head>
         <MetaData isDev={isDev} title={`Angular Example - ${title}`} modifiedTimeMs={modifiedTimeMs} />
+
+        <ExampleFonts headFragment={headFragment} />
 
         <Styles
             baseUrl={appLocation}
@@ -57,12 +60,11 @@ const startFile = pathJoin(appLocation, entryFileName);
         <script is:inline src="https://cdn.jsdelivr.net/npm/zone.js@0.11.2/dist/zone.min.js"></script>
 
         {scriptFiles && <Scripts baseUrl={appLocation} files={scriptFiles} />}
-        <SystemJs
-            isDev={isDev}
-            boilerplatePath={boilerplatePath}
+        <ExampleModules
             appLocation={appLocation}
-            startFile={startFile}
-            internalFramework={'angular'}
+            entryFileName={entryFileName}
+            framework={'angular'}
+            transpileInBrowser={transpileInBrowser}
         />
         <slot />
     </body>

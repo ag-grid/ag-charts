@@ -2,6 +2,7 @@ import { Debug, Logger, getWindow, jsonDiff } from 'ag-charts-core';
 
 import type { EventsHub } from '../../core/eventsHub';
 import type { ChartMode } from '../chartMode';
+import type { ValidationIssue, ValidationSink } from '../validation/validationIssueCollector';
 import { type CachedData, canReuseCachedData } from './caching';
 import type { DataChangeDescription, DataChangeDescriptionListener } from './dataChangeDescription';
 import {
@@ -52,11 +53,15 @@ function getPropertyKeys(props: PropertyDefinition<any>[]) {
 }
 
 /** Implements cross-series data model coordination. */
-export class DataController {
+export class DataController implements ValidationSink {
     private readonly debug = Debug.create(true, 'data-model');
 
     private readonly requested: RequestedProcessing<any, any, any>[] = [];
     private status: 'setup' | 'executed' = 'setup';
+
+    /** Data-key/invalid-value warnings collected across this cycle's data pass, deduplicated. */
+    readonly validationIssues: ValidationIssue[] = [];
+    private readonly seenIssues = new Set<string>();
 
     public constructor(
         private readonly mode: ChartMode,
@@ -64,6 +69,13 @@ export class DataController {
         private readonly eventsHub: EventsHub | undefined,
         private readonly logger: Logger
     ) {}
+
+    recordIssue(issue: ValidationIssue) {
+        const key = `${issue.severity}:${issue.message}:${issue.code ?? ''}`;
+        if (this.seenIssues.has(key)) return;
+        this.seenIssues.add(key);
+        this.validationIssues.push(issue);
+    }
 
     public async request<
         D extends object,
@@ -141,7 +153,8 @@ export class DataController {
                         this.logger,
                         this.mode,
                         this.suppressFieldDotNotation,
-                        this.eventsHub
+                        this.eventsHub,
+                        this
                     );
                     const sources = new Map(valid.map((v) => [v.id, v.dataSet]));
                     const processedData = dataModel.processData(sources);

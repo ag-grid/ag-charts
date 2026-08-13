@@ -32,6 +32,7 @@ type ValidationMeta = {
     def: InternalDatumPropertyDefinition<any>;
     mode: string;
     logger: Logger;
+    validationSink: DataModelContext<any, any>['validationSink'];
 };
 
 /**
@@ -62,10 +63,9 @@ function handleInvalidValue(meta: ValidationMeta, value: any): void {
     }
 
     if (meta.mode !== 'integrated') {
-        meta.logger.warnOnce(
-            `invalid value of type [${typeof value}] for [${meta.def.scopes} / ${meta.def.id}] ignored:`,
-            `[${value}]`
-        );
+        const message = `invalid value of type [${typeof value}] for [${meta.def.scopes} / ${meta.def.id}] ignored:`;
+        meta.logger.warnOnce(message, `[${value}]`);
+        meta.validationSink?.recordIssue({ severity: 'warning', message: `${message} [${value}]` });
     }
     meta.reusableResult.value = undefined;
 }
@@ -182,6 +182,7 @@ export class ProcessValueFactory<D extends object, K extends keyof D & string> {
             def,
             mode,
             logger: this.ctx.logger,
+            validationSink: this.ctx.validationSink,
         };
     }
 

@@ -1,9 +1,4 @@
-import {
-    type AgFunnelSeriesLabelFormatterParams,
-    type AgFunnelSeriesStyle,
-    type SelectionState,
-    _ModuleSupport,
-} from 'ag-charts-community';
+import { type AgFunnelSeriesLabelFormatterParams, type AgFunnelSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 import type {
     DomainWithMetadata,
     DynamicContext,
@@ -14,7 +9,7 @@ import type {
     RequireOptional,
 } from 'ag-charts-core';
 import { ChartAxisDirection, SeriesZIndexMap, maxValue } from 'ag-charts-core';
-import type { AgCoordinates, AgNumericValue } from 'ag-charts-types';
+import type { AgNumericValue } from 'ag-charts-types';
 
 import type { BaseFunnelProperties } from './baseFunnelSeriesProperties';
 import { FunnelConnector } from './funnelConnector';
@@ -52,6 +47,12 @@ export type Bounds = {
 
 type NormalisedFunnelSeriesStyle = Normalised<AgFunnelSeriesStyle, never, FillStrokeMorph>;
 
+/** `Rect` scales oversized radii down to fit the shape, so mirror that clamp to match what is drawn. */
+function renderedCornerRadius(cornerRadius: number, { width, height }: Bounds) {
+    if (cornerRadius <= 0) return 0;
+    return Math.min(cornerRadius, width / 2, height / 2);
+}
+
 export type FunnelNodeLabelDatum = Readonly<Point> & {
     datumIndex: number;
     text: NormalisedTextOrSegments;
@@ -87,6 +88,8 @@ interface FunnelConnectorDatum {
     readonly x3: number;
     readonly y3: number;
     readonly opacity: number;
+    readonly startCornerRadius: number;
+    readonly endCornerRadius: number;
 }
 
 interface FunnelContext extends _ModuleSupport.AbstractBarSeriesNodeDataContext<FunnelNodeDatum, FunnelNodeLabelDatum> {
@@ -109,31 +112,16 @@ export interface FunnelAnimationData<
     TNode extends _ModuleSupport.QuadtreeCompatibleNode<FunnelNodeDatum>,
 > extends _ModuleSupport.CartesianAnimationData<FunnelNodeDatum, TNode, FunnelNodeLabelDatum, FunnelContext> {}
 
-class FunnelSeriesNodeEvent<
-    TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
-> extends _ModuleSupport.SeriesNodeEvent<FunnelNodeDatum, TEvent> {
-    readonly xKey?: string;
-    readonly yKey?: string;
-
-    constructor(
-        type: TEvent,
-        nativeEvent: Event,
-        datum: FunnelNodeDatum,
-        series: BaseFunnelSeries<BaseFunnelSeriesTypes>,
-        selectionState: SelectionState | undefined,
-        isCollapsed: boolean | undefined,
-        coordinates: AgCoordinates | undefined
-    ) {
-        super(type, nativeEvent, datum, series, selectionState, isCollapsed, coordinates);
-        this.xKey = series.properties.stageKey;
-        this.yKey = series.properties.valueKey;
-    }
-}
-
 export abstract class BaseFunnelSeries<
     TTypes extends BaseFunnelSeriesTypes,
 > extends _ModuleSupport.AbstractBarSeries<TTypes> {
-    protected override readonly NodeEvent = FunnelSeriesNodeEvent;
+    override createNodeParams(datum: FunnelNodeDatum) {
+        return {
+            ...super.createNodeParams(datum),
+            xKey: this.properties.stageKey,
+            yKey: this.properties.valueKey,
+        };
+    }
 
     protected readonly connectorNodeGroup = this.contentGroup.appendChild(
         new Group({
@@ -197,6 +185,11 @@ export abstract class BaseFunnelSeries<
     }
 
     protected abstract connectorEnabled(): boolean;
+
+    /** Radius of the segment corners the drop-off connectors have to butt up against. */
+    protected connectorCornerRadius(): number {
+        return 0;
+    }
 
     protected abstract connectorStyle(index: number): RequireOptional<AgFunnelSeriesStyle> & { opacity: number };
 
@@ -411,6 +404,8 @@ export abstract class BaseFunnelSeries<
                 const prevRect = previousConnection.rect;
                 const startNodeDatum = previousConnection.nodeDatum;
                 const startDatumIndex = previousConnection.datumIndex;
+                const startCornerRadius = renderedCornerRadius(this.connectorCornerRadius(), prevRect);
+                const endCornerRadius = renderedCornerRadius(this.connectorCornerRadius(), rect);
                 if (barAlongX) {
                     context.connectorData.push({
                         datum: startNodeDatum,
@@ -424,6 +419,8 @@ export abstract class BaseFunnelSeries<
                         x3: rect.x,
                         y3: rect.y,
                         opacity: 1,
+                        startCornerRadius,
+                        endCornerRadius,
                     });
                 } else {
                     context.connectorData.push({
@@ -438,6 +435,8 @@ export abstract class BaseFunnelSeries<
                         x3: prevRect.x + prevRect.width,
                         y3: prevRect.y + prevRect.height,
                         opacity: 1,
+                        startCornerRadius,
+                        endCornerRadius,
                     });
                 }
             }
@@ -510,6 +509,7 @@ export abstract class BaseFunnelSeries<
         connectorSelection: _ModuleSupport.Selection<FunnelConnectorDatum, FunnelConnector<FunnelConnectorDatum>>;
     }) {
         const fillBBox = this.getShapeFillBBox();
+        const barAlongX = this.getBarDirection() === ChartAxisDirection.X;
 
         opts.connectorSelection.each((connector, datum) => {
             // Colour refs are resolved during theme-merge, so the style is already normalised by render.
@@ -519,6 +519,10 @@ export abstract class BaseFunnelSeries<
                 };
 
             connector.setProperties(resetConnectorSelectionsFn(connector, datum));
+
+            connector.capsAlongX = barAlongX;
+            connector.startCornerRadius = datum.startCornerRadius;
+            connector.endCornerRadius = datum.endCornerRadius;
 
             connector.setStyleProperties(
                 {

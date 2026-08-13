@@ -24,9 +24,11 @@
 }
 
 // Carries the grid placement and trailing space the h1's dropped box would have applied.
+// Tracking belongs here, not on the h1, so the body-sized eyebrow cannot inherit it.
 .titleText {
     grid-area: title;
     margin-bottom: $spacing-size-4;
+    letter-spacing: -1.2px;
 }
 
 // Narrow screens stack the eyebrow, then the controls, then the title. From the

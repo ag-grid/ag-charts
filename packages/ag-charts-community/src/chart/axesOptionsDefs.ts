@@ -166,6 +166,7 @@ export const cartesianCrossLineOptionsDefs = crossLineOptionsDefs(defined, carte
 export const commonAxisLabelOptionsDefs: OptionsDefs<AgBaseAxisLabelOptions> = {
     enabled: boolean,
     rotation: number,
+    textAlign: union('left', 'center', 'right'),
     avoidCollisions: boolean,
     minSpacing: positiveNumber,
     spacing: positiveNumber,

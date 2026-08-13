@@ -1231,6 +1231,20 @@ function deflateContainer(container: { width: number; height: number } | undefin
     return candidateContainer;
 }
 
+/** A maximum rather than a sum, so an obstacle spanning several index cells needs no de-duplicating. */
+let candidateWorstOverlap = 0;
+
+/** Approximates a circle by its box: this only orders candidates, it does not decide whether they collide. */
+function worstObstacleOverlap(o: LabelObstacle): void {
+    if (!obstacleOverlapsCandidate(o)) return;
+    const { x, y, width, height } = candidateBox;
+    const overlapWidth = Math.min(x + width, o.box.x + o.box.width) - Math.max(x, o.box.x);
+    const overlapHeight = Math.min(y + height, o.box.y + o.box.height) - Math.max(y, o.box.y);
+    if (overlapWidth > 0 && overlapHeight > 0) {
+        candidateWorstOverlap = Math.max(candidateWorstOverlap, overlapWidth * overlapHeight);
+    }
+}
+
 function obstacleOverlapsCandidate(o: LabelObstacle): boolean {
     const category = o.category ?? 'seriesItem';
     // An `inside` label is centred on its own anchor marker, so it can never be said to avoid it.
@@ -1780,8 +1794,10 @@ interface CandidateChoice {
 
 /** Tier of a candidate that fits its region and clears every obstacle, but only by truncating its text. */
 const TIER_TRUNCATED = 0;
-/** Tier of a candidate that overflows its region or hits an obstacle; kept only to avoid dropping the label. */
-const TIER_OVERFLOWING = 1;
+/** Tier of a candidate that fits its region but hits an obstacle, scored by how much of it is buried. */
+const TIER_COLLIDING = 1;
+/** Tier of a candidate that overflows its region; kept only to avoid dropping the label. */
+const TIER_OVERFLOWING = 2;
 
 // Best candidate seen so far in the current cascade, reused across passes to keep the loop allocation-free.
 const bestChoice: CandidateChoice = {
@@ -1854,8 +1870,9 @@ function placeBestChoice(index: number, d: PointLabelDatum): PlacedLabel | undef
  * the whole text, fits `d.region ?? bounds` and clears every obstacle in the index. A candidate that
  * only fits by truncating is remembered and the cascade continues, so the least-truncated candidate wins
  * over an earlier heavily-truncated one. When no candidate fits at all: a {@link
- * PointLabelDatum.neverDrop} label, or one with `alwaysShow` set, keeps the least region-overflowing
- * candidate; otherwise the label is dropped (`undefined`). A `neverDrop` label is always rendered
+ * PointLabelDatum.neverDrop} label, or one with `alwaysShow` set, keeps the best candidate by tier —
+ * least truncated, then least buried by an obstacle, then least region-overflowing — and any other
+ * label is dropped (`undefined`). A `neverDrop` label is always rendered
  * (dropping it would revert its orientation to the baked first one), so it is kept regardless of
  * `alwaysShow`.
  */
@@ -1969,18 +1986,15 @@ function placeAvoidingLabel(
                 );
             } else if (keepBest) {
                 const overflow = regionOverflow(containRegion, x, y, cw, ch);
-                recordBestChoice(
-                    TIER_OVERFLOWING,
-                    overflow,
-                    text,
-                    width,
-                    height,
-                    rotation,
-                    offsetX,
-                    offsetY,
-                    placement,
-                    undefined
-                );
+                let tier = TIER_OVERFLOWING;
+                let score = overflow;
+                if (overflow === 0) {
+                    candidateWorstOverlap = 0;
+                    obstacleIndex.query(queryBox, worstObstacleOverlap);
+                    tier = TIER_COLLIDING;
+                    score = candidateWorstOverlap;
+                }
+                recordBestChoice(tier, score, text, width, height, rotation, offsetX, offsetY, placement, undefined);
             }
         }
     }

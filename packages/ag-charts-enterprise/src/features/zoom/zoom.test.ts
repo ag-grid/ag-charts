@@ -18,6 +18,7 @@ import {
     doubleTapAction,
     dragAction,
     findChartTarget,
+    getAggregatedMarkerXValues,
     getLegendModule,
     hoverAction,
     mouseDownAction,
@@ -699,6 +700,31 @@ describe('Zoom', () => {
             await scrollAction(cx, cy, -1)(chart); // This is the limit
             await scrollAction(cx, cy, -1)(chart);
             await compare();
+        });
+
+        it('should aggregate the zoomed window at the reversed end of the data domain', async () => {
+            const options: AgCartesianChartOptions = {
+                data: Array.from({ length: 300 }, (_, i) => ({ x: i, y: (i * 7) % 100 })),
+                series: [{ type: 'scatter', xKey: 'x', yKey: 'y', maxRenderedItems: 200 }],
+                axes: {
+                    x: { type: 'number', position: 'bottom', reverse: true },
+                    y: { type: 'number', position: 'left' },
+                },
+                zoom: { enabled: true, axes: 'x' },
+                initialState: { zoom: { ratioX: { start: 0.2, end: 0.4 } } },
+                legend: { enabled: false },
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const xValues = getAggregatedMarkerXValues(chart);
+
+            expect(xValues.length).toBeGreaterThan(0);
+            // On a reversed axis the 0.2-0.4 zoom ratio addresses the HIGH end of the data domain;
+            // a window derived from the unreversed domain would mirror it onto the low end.
+            expect(Math.min(...xValues)).toBeGreaterThan(150);
+            expect(Math.max(...xValues)).toBeLessThan(270);
         });
     });
 

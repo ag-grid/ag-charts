@@ -407,8 +407,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
                 secondaryLabelValue,
                 this.properties.secondaryLabel,
                 { padding },
-                sizeFittingHeight,
-                this.ctx.logger
+                sizeFittingHeight
             );
 
             if (formatting == null) return;

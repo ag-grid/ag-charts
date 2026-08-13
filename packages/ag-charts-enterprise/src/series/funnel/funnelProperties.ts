@@ -95,6 +95,9 @@ export class FunnelProperties
     spacingRatio: number = 0;
 
     @Property
+    cornerRadius: number = 0;
+
+    @Property
     itemStyler?: Styler<AgFunnelSeriesItemStylerParams<unknown>, AgFunnelSeriesStyle>;
 
     @Property

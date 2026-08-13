@@ -4,7 +4,6 @@ import {
     type AgRangeBarSeriesOptions,
     type AgRangeBarSeriesStyle,
     type AgRangeBarSeriesStylerParams,
-    type SelectionState,
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
@@ -53,7 +52,7 @@ import {
     toArray,
     toNumber,
 } from 'ag-charts-core';
-import type { AgCoordinates, AgNumericValue, PaddingOptions } from 'ag-charts-types';
+import type { AgNumericValue, PaddingOptions } from 'ag-charts-types';
 
 import {
     type RangeBarSeriesDataAggregationFilter,
@@ -246,29 +245,6 @@ interface RangeBarNodeDatum extends Omit<_ModuleSupport.CartesianSeriesNodeDatum
 
 type RangeBarAnimationData = _ModuleSupport.AbstractBarSeriesAnimationData<RangeBarSeriesTypes>;
 
-class RangeBarSeriesNodeEvent<
-    TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
-> extends _ModuleSupport.SeriesNodeEvent<RangeBarNodeDatum, TEvent> {
-    readonly xKey?: string;
-    readonly yLowKey?: string;
-    readonly yHighKey?: string;
-
-    constructor(
-        type: TEvent,
-        nativeEvent: Event,
-        datum: RangeBarNodeDatum,
-        series: RangeBarSeries,
-        selectionState: SelectionState | undefined,
-        isCollapsed: boolean | undefined,
-        coordinates: AgCoordinates | undefined
-    ) {
-        super(type, nativeEvent, datum, series, selectionState, isCollapsed, coordinates);
-        this.xKey = series.properties.xKey;
-        this.yLowKey = series.properties.yLowKey;
-        this.yHighKey = series.properties.yHighKey;
-    }
-}
-
 interface RangeBarSeriesNodeDataContext extends _ModuleSupport.AbstractBarSeriesNodeDataContext<
     RangeBarNodeDatum,
     RangeBarNodeLabelDatum
@@ -321,7 +297,14 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
 
     private readonly aggregationManager = new AggregationManager<RangeBarSeriesDataAggregationFilter>();
 
-    protected override readonly NodeEvent = RangeBarSeriesNodeEvent;
+    override createNodeParams(datum: RangeBarNodeDatum) {
+        return {
+            ...super.createNodeParams(datum),
+            xKey: this.properties.xKey,
+            yLowKey: this.properties.yLowKey,
+            yHighKey: this.properties.yHighKey,
+        };
+    }
 
     constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({

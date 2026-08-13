@@ -272,6 +272,7 @@ export const funnelSeriesThemeableOptionsDef: OptionsDefs<AgFunnelSeriesThemeabl
         ...lineDashOptionsDef,
     }),
     spacingRatio: ratio,
+    cornerRadius: positiveNumber,
     crisp: boolean,
     dropOff: {
         enabled: boolean,
@@ -659,6 +660,7 @@ export const sankeySeriesThemeableOptionsDef: OptionsDefs<AgSankeySeriesThemeabl
         width: positiveNumber,
         spacing: positiveNumber,
         minSpacing: and(positiveNumber, lessThanOrEqual('spacing')),
+        cornerRadius: positiveNumber,
         alignment: union('left', 'center', 'right', 'justify'),
         verticalAlignment: union('top', 'bottom', 'center'),
         sort: union('data', 'ascending', 'descending', 'auto'),

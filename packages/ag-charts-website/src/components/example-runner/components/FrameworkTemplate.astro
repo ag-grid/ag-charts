@@ -1,6 +1,5 @@
 ---
 // cspell:ignore vars
-import { getBoilerPlateUrl } from '@utils/pages';
 import type { InternalFramework } from '@ag-grid-types';
 import JavascriptTemplate from '../framework-templates/JavascriptTemplate.astro';
 import TypescriptTemplate from '../framework-templates/TypescriptTemplate.astro';
@@ -37,9 +36,13 @@ interface Props {
      */
     addExternalExampleStyles?: boolean;
     /**
-     * Whether to not include system js code
+     * Whether to skip the example module loader (import map + entry module)
      */
-    ignoreSystemJs?: boolean;
+    ignoreModuleLoader?: boolean;
+    /**
+     * Whether to transpile the example's sources in the page instead of serving them transpiled
+     */
+    transpileInBrowser?: boolean;
     /**
      * Ignore dark mode (always use light mode)
      */
@@ -56,13 +59,12 @@ const {
     addInitMessageScript,
     addE2ECheckScript,
     addExternalExampleStyles,
-    ignoreSystemJs,
+    ignoreModuleLoader,
+    transpileInBrowser,
     ignoreDarkMode,
 } = Astro.props as Props;
 
 const isDev = getIsDev();
-
-const library = 'charts';
 
 const { entryFileName, files, scriptFiles, styleFiles, isEnterprise, hasLocale, layout, exampleConfig } =
     generatedContents || {};
@@ -84,12 +86,6 @@ const externalExampleStyles = `
 `;
 const headFragment = (addExternalExampleStyles ? externalExampleStyles : '') + (files?.['head.html'] ?? '');
 const appLocation = relativePath ? '' : exampleUrl;
-const boilerPlateUrl = relativePath
-    ? ''
-    : getBoilerPlateUrl({
-          library,
-          internalFramework,
-      });
 
 const timeNow = Date.now();
 const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
@@ -125,7 +121,7 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
             indexFragment={indexFragment!}
             headFragment={headFragment}
             appLocation={appLocation}
-            boilerplatePath={boilerPlateUrl}
+            transpileInBrowser={transpileInBrowser}
         />
     ) : ['reactFunctional', 'reactFunctionalTs'].includes(internalFramework) ? (
         <ReactTemplate
@@ -137,8 +133,8 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
             scriptFiles={scriptFiles}
             styleFiles={[EXAMPLE_STYLE_FILE_NAME]}
             appLocation={appLocation}
-            boilerplatePath={boilerPlateUrl}
-            ignoreSystemJs={ignoreSystemJs}
+            ignoreModuleLoader={ignoreModuleLoader}
+            transpileInBrowser={transpileInBrowser}
             headFragment={headFragment}
         />
     ) : internalFramework === 'angular' ? (
@@ -151,7 +147,7 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
             styleFiles={styleFiles}
             scriptFiles={scriptFiles}
             appLocation={appLocation}
-            boilerplatePath={boilerPlateUrl}
+            transpileInBrowser={transpileInBrowser}
             headFragment={headFragment}
         />
     ) : internalFramework === 'vue3' ? (
@@ -164,7 +160,7 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
             scriptFiles={scriptFiles}
             styleFiles={styleFiles}
             appLocation={appLocation}
-            boilerplatePath={boilerPlateUrl}
+            transpileInBrowser={transpileInBrowser}
             headFragment={headFragment}
         />
     ) : null

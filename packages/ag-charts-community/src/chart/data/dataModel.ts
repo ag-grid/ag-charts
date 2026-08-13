@@ -2,6 +2,7 @@ import { Debug, type DomainWithMetadata, Logger, first } from 'ag-charts-core';
 
 import type { EventsHub } from '../../core/eventsHub';
 import type { ChartMode } from '../chartMode';
+import type { ValidationSink } from '../validation/validationIssueCollector';
 import { Aggregator } from './data-model/aggregation/aggregator';
 import type { DataModelContext } from './data-model/dataModelContext';
 import { DomainInitializer } from './data-model/domain/domainInitializer';
@@ -122,7 +123,8 @@ export class DataModel<
         private readonly logger: Logger,
         private readonly mode: ChartMode = 'standalone',
         private readonly suppressFieldDotNotation: boolean = false,
-        private readonly eventsHub?: EventsHub
+        private readonly eventsHub?: EventsHub,
+        private readonly validationSink?: ValidationSink
     ) {
         // Validate that keys appear before values in the definitions, as output ordering depends
         // on configuration ordering, but we process keys before values.
@@ -222,6 +224,7 @@ export class DataModel<
             processors: this.processors,
             debug: this.debug,
             logger: this.logger,
+            validationSink: this.validationSink,
             mode: this.mode,
             bandingConfig: this.opts.domainBandingConfig,
             suppressFieldDotNotation: this.suppressFieldDotNotation,
