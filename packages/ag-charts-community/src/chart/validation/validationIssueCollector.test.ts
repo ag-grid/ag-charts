@@ -50,6 +50,55 @@ describe('ValidationIssueCollector', () => {
         expect(collector.getVisibleIssues().error).toHaveLength(1);
     });
 
+    it('de-duplicates an identical caught runtime error re-reported on every update pass', () => {
+        const collector = new ValidationIssueCollector();
+        collector.setOverlayLevel('error');
+        const runtimeError = { severity: 'error', message: 'update error', code: 'stack trace' } as const;
+
+        // Each resize/layout pass re-runs the update, which re-throws and re-reports the same error.
+        for (let pass = 0; pass < 3; pass++) {
+            collector.add(runtimeError);
+        }
+
+        expect(collector.getVisibleIssues().error).toEqual([runtimeError]);
+    });
+
+    it('de-duplicates a re-reported runtime error even when only its code (stack trace) differs', () => {
+        const collector = new ValidationIssueCollector();
+        collector.setOverlayLevel('error');
+
+        collector.add({ severity: 'error', message: 'update error', code: 'stack A' });
+        collector.add({ severity: 'error', message: 'update error', code: 'stack B' });
+
+        expect(collector.getVisibleIssues().error).toHaveLength(1);
+    });
+
+    it('keeps distinct caught runtime errors (different message)', () => {
+        const collector = new ValidationIssueCollector();
+        collector.setOverlayLevel('error');
+
+        collector.add({ severity: 'error', message: 'boom one' });
+        collector.add({ severity: 'error', message: 'boom two' });
+
+        expect(collector.getVisibleIssues().error).toHaveLength(2);
+    });
+
+    it('keeps a dismissed runtime-error overlay dismissed when the same error re-reports next pass', () => {
+        const collector = new ValidationIssueCollector();
+        collector.setOverlayLevel('error');
+        const runtimeError = { severity: 'error', message: 'update error', code: 'stack trace' } as const;
+
+        collector.add(runtimeError);
+        collector.dismiss();
+        expect(collector.hasVisibleIssues()).toBe(false);
+
+        // A subsequent resize re-throws the identical error; the overlay must stay dismissed
+        // *because the shown set is unchanged* (still exactly one issue), not merely re-hidden.
+        collector.add(runtimeError);
+        expect(collector.hasVisibleIssues()).toBe(false);
+        expect(collector.getVisibleIssues().error).toHaveLength(1);
+    });
+
     it('dismiss hides the overlay; an identical re-apply stays dismissed but a changed one re-shows', () => {
         const collector = new ValidationIssueCollector();
         collector.setOverlayLevel('warning');

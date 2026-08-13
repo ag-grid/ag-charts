@@ -80,7 +80,17 @@ export class ValidationIssueCollector implements ValidationSink {
         this.listeners.dispatch('change');
     }
 
+    /**
+     * Append a caught runtime error, de-duplicated by severity + message. The catch site re-reports the
+     * same error on every failed update pass (a resize re-runs the update), so an identical error must
+     * count once rather than accumulate. `code` (a stack trace) is ignored — it can vary between throws
+     * of the same error, and a growing signature would also spuriously un-dismiss the overlay.
+     */
     add(issue: ValidationIssue) {
+        const duplicate = this.issues.some(
+            (existing) => existing.severity === issue.severity && existing.message === issue.message
+        );
+        if (duplicate) return;
         this.issues = [...this.issues, issue];
         this.refreshSignature();
         this.listeners.dispatch('change');
