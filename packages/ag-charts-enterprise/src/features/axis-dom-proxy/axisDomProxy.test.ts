@@ -24,8 +24,7 @@ describe('AxisDOMProxy', () => {
         chart?.destroy();
     });
 
-    // FIXME: See AG-9808 TC1
-    describe.skip('horizontal grouped-category clicks', () => {
+    describe('horizontal grouped-category clicks', () => {
         beforeEach(async () => {
             chart = await createEnterpriseChart({
                 data: [
@@ -117,8 +116,7 @@ describe('AxisDOMProxy', () => {
         });
     });
 
-    // FIXME: See AG-9808 TC1
-    describe.skip('vertical grouped-category clicks', () => {
+    describe('vertical grouped-category clicks', () => {
         beforeEach(async () => {
             chart = await createEnterpriseChart({
                 data: [
@@ -314,8 +312,7 @@ describe('AxisDOMProxy', () => {
         });
     });
 
-    // FIXME: See AG-9809 TC6
-    describe.skip('axis with labels, ticks and grid lines disabled', () => {
+    describe('axis with labels, ticks and grid lines disabled', () => {
         beforeEach(async () => {
             chart = await createEnterpriseChart({
                 data: [
