@@ -267,4 +267,48 @@ describe('Context Menu', () => {
         chart = AgCharts.create(prepareEnterpriseTestOptions({ ...EXAMPLE_OPTIONS, contextMenu }));
         expectWarningsCalls().toMatchSnapshot();
     });
+
+    describe('coordinates param', () => {
+        let getItems: ReturnType<typeof vi.fn>;
+
+        async function contextMenuAtPlotCentre() {
+            const seriesRect = deproxy(chart).seriesRect;
+            expect(seriesRect).toBeDefined();
+            const { x, y, width, height } = seriesRect!;
+            await contextMenuAction(x + width / 2, y + height / 2)(chart);
+            await waitForChartStability(chart);
+        }
+
+        beforeEach(async () => {
+            getItems = vi.fn(({ defaultItems }) => defaultItems);
+            await prepareChart(
+                { enabled: true, getItems },
+                {
+                    data: Array.from({ length: 4 }, (_, i) => ({ x: i / 5, y: i * 2 })),
+                    // `contextMenu.getItems()` receives the axis values under the pointer via its `coordinates` param.
+                    // Nine-decimal x labels are used so that the axis labels overhang the plot area by a wide margin.
+                    axes: {
+                        x: { type: 'number', label: { avoidCollisions: false, rotation: 0, format: '#{0.9f}' } },
+                        y: { type: 'number' },
+                    },
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    contextMenu: { enabled: true },
+                }
+            );
+        });
+
+        // Domains are 0..0.6 on x and 0..6 on y.
+        test('reports the axis values under the pointer', async () => {
+            await contextMenuAtPlotCentre();
+
+            expect(getItems).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    coordinates: expect.objectContaining({
+                        x: expect.objectContaining({ value: expect.closeTo(0.3) }),
+                        y: expect.objectContaining({ value: expect.closeTo(3) }),
+                    }),
+                })
+            );
+        });
+    });
 });
