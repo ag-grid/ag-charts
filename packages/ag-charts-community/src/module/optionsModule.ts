@@ -747,7 +747,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         return {
             logger: this.logger,
             onCallbackError: (error, errorPath) => this.reportCallbackError(error, errorPath),
+            onDeprecation: (message, path) => this.recordDeprecation(message, path),
         };
+    }
+
+    private recordDeprecation(message: string, path: string) {
+        this.validationIssues.push({ severity: 'deprecation', message, code: path || undefined });
     }
 
     // Every option-validation error goes to both the console log and the per-chart overlay collector.
