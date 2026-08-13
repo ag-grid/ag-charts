@@ -103,6 +103,12 @@ export interface ValidateParams {
      */
     onCallbackError?: (error: unknown, errorPath: string) => void;
     /**
+     * Reports a deprecated option encountered by {@link deprecated}, alongside the console
+     * `deprecationOnce`. Lets a chart surface deprecations on the validation overlay (severity
+     * `deprecation`) without core depending on the collector.
+     */
+    onDeprecation?: (message: string, path: string) => void;
+    /**
      * Skip required-field and discriminant enforcement on nodes with `enabled: false`. The second
      * validation pass in `optionsModule` opts in: `removeDisabledOptions` has by then stripped a
      * disabled node down to `{ enabled: false }`, so re-validating it would warn about the
@@ -442,7 +448,9 @@ export function deprecated<T extends Validator | OptionsDefs<any>>(validatorOrDe
     const description = (validatorOrDefs as PrivateSymbols)[descriptionSymbol];
     const gated: Validator = (value, context) => {
         if (value !== undefined && !context.params?.silentAdvisories) {
-            context.params.logger.deprecationOnce(`Option \`${context.path}\` is deprecated. ${message}`);
+            const notice = `Option \`${context.path}\` is deprecated. ${message}`;
+            context.params.logger.deprecationOnce(notice);
+            context.params.onDeprecation?.(notice, context.path);
         }
         return inner(value, context);
     };
