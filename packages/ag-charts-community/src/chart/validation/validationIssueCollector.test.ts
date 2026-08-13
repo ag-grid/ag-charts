@@ -45,9 +45,81 @@ describe('ValidationIssueCollector', () => {
     it('captures a caught runtime error as an error-severity issue', () => {
         const collector = new ValidationIssueCollector();
         collector.setOverlayLevel('error');
-        collector.add({ severity: 'error', message: 'update error', code: 'stack trace' });
+        collector.recordRuntimeError({ severity: 'error', message: 'update error', code: 'stack trace' });
         expect(collector.hasVisibleIssues()).toBe(true);
         expect(collector.getVisibleIssues().error).toHaveLength(1);
+    });
+
+    it('de-duplicates an identical caught runtime error re-reported on every update pass', () => {
+        const collector = new ValidationIssueCollector();
+        collector.setOverlayLevel('error');
+        const runtimeError = { severity: 'error', message: 'update error', code: 'stack trace' } as const;
+
+        // Each resize/layout pass re-runs the update, which re-throws and re-reports the same error.
+        for (let pass = 0; pass < 3; pass++) {
+            collector.recordRuntimeError(runtimeError);
+        }
+
+        expect(collector.getVisibleIssues().error).toEqual([runtimeError]);
+    });
+
+    it('de-duplicates a re-reported runtime error even when only its code (stack trace) differs', () => {
+        const collector = new ValidationIssueCollector();
+        collector.setOverlayLevel('error');
+
+        collector.recordRuntimeError({ severity: 'error', message: 'update error', code: 'stack A' });
+        collector.recordRuntimeError({ severity: 'error', message: 'update error', code: 'stack B' });
+
+        expect(collector.getVisibleIssues().error).toHaveLength(1);
+    });
+
+    it('keeps distinct caught runtime errors (different message)', () => {
+        const collector = new ValidationIssueCollector();
+        collector.setOverlayLevel('error');
+
+        collector.recordRuntimeError({ severity: 'error', message: 'boom one' });
+        collector.recordRuntimeError({ severity: 'error', message: 'boom two' });
+
+        expect(collector.getVisibleIssues().error).toHaveLength(2);
+    });
+
+    it('keeps a dismissed runtime-error overlay dismissed when the same error re-reports next pass', () => {
+        const collector = new ValidationIssueCollector();
+        collector.setOverlayLevel('error');
+        const runtimeError = { severity: 'error', message: 'update error', code: 'stack trace' } as const;
+
+        collector.recordRuntimeError(runtimeError);
+        collector.dismiss();
+        expect(collector.hasVisibleIssues()).toBe(false);
+
+        // A subsequent resize re-throws the identical error; the overlay must stay dismissed
+        // *because the shown set is unchanged* (still exactly one issue), not merely re-hidden.
+        collector.recordRuntimeError(runtimeError);
+        expect(collector.hasVisibleIssues()).toBe(false);
+        expect(collector.getVisibleIssues().error).toHaveLength(1);
+    });
+
+    it('does not conflate a caught runtime error with an option issue that shares its severity and message', () => {
+        const collector = new ValidationIssueCollector();
+        collector.setOverlayLevel('error');
+        const shared = { severity: 'error', message: 'boom' } as const;
+
+        collector.setIssues([shared]); // an option-validation error
+        collector.recordRuntimeError(shared); // an independent caught runtime error that happens to coincide
+
+        // Both are legitimate, independent issues from different feeds — neither may silently swallow the other.
+        expect(collector.getVisibleIssues().error).toHaveLength(2);
+    });
+
+    it('clears a caught runtime error when a fresh option-application cycle sets new issues', () => {
+        const collector = new ValidationIssueCollector();
+        collector.setOverlayLevel('error');
+        collector.recordRuntimeError({ severity: 'error', message: 'update error' });
+        expect(collector.getVisibleIssues().error).toHaveLength(1);
+
+        // A new option-application cycle supersedes the prior cycle's caught error.
+        collector.setIssues([]);
+        expect(collector.hasVisibleIssues()).toBe(false);
     });
 
     it('dismiss hides the overlay; an identical re-apply stays dismissed but a changed one re-shows', () => {
@@ -176,7 +248,7 @@ describe('ValidationIssueCollector', () => {
 
         collector.setOverlayLevel('warning');
         collector.setIssues([warningIssue]);
-        collector.add(errorIssue);
+        collector.recordRuntimeError(errorIssue);
         collector.dismiss();
 
         expect(listener).toHaveBeenCalledTimes(4);
