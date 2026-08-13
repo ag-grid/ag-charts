@@ -590,6 +590,39 @@ describe('placeLabels', () => {
         expect(result!.placement === 'top' || result!.placement === 'bottom').toBe(true);
     });
 
+    describe('kept candidate when every placement collides', () => {
+        // The label sits at (300, 200) with a 100x20 box and a 10px gap, so its `top` candidate spans
+        // x 250..350 / y 165..185 and its `left` candidate x 185..285 / y 190..210.
+        const buriedDatum = (): PointLabelDatum => ({
+            point: { x: 300, y: 200, size: 0 },
+            label: { text: 'A', width: 100, height: 20 },
+            anchor: undefined,
+            placement: 'top',
+            placements: ['top', 'left'],
+            gap: 10,
+            alwaysShow: true,
+        });
+
+        const keptPlacement = (box: BoxBounds) => {
+            const datum = buriedDatum();
+            const obstacle: LabelObstacle = { kind: 'rect', box, category: 'label' };
+            const placed = placeLabels(new Map([['s', seriesLabels([datum])]]), bounds, 5, [obstacle]).get('s')!;
+            const result = placed.find((l) => l.datum === datum);
+            expect(result).toBeDefined();
+            return result!.placement;
+        };
+
+        it('keeps the least buried candidate, not the first one', () => {
+            // Buries `top` under the whole 100x20 box while only grazing `left` by 35x1.
+            expect(keptPlacement({ x: 250, y: 165, width: 100, height: 26 })).toBe('left');
+        });
+
+        it('keeps the first candidate when it is the least buried', () => {
+            // The mirror case: `left` is the deeply buried one, so the cascade stays at `top`.
+            expect(keptPlacement({ x: 185, y: 184, width: 100, height: 26 })).toBe('top');
+        });
+    });
+
     it('takes a single placement unconditionally with avoidance off, even when it overflows', () => {
         // Single-candidate labels keep the fast path: the first (only) placement is used as-is,
         // never bounds-clipped and never cascaded.
