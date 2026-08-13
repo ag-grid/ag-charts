@@ -18,7 +18,6 @@ import type {
     TextWrap,
 } from '../../chart/types';
 import type {
-    AgColorType,
     FillCssOptions,
     FillOptions,
     FontOptions,
@@ -90,11 +89,11 @@ export interface AgOrganizationSeriesExpanderStyle extends Toggleable, FillOptio
 
 export interface AgOrganizationSeriesExpanderHoverStyle {
     /**
-     * The colour for filling the expander shape when hovered. A colour string, or an object for a gradient, pattern, or image fill.
+     * The colour for filling the expander shape when hovered. A colour string, or a theme-colour reference object.
      *
      * Default: the expander fill mixed with the foreground colour.
      */
-    fill?: AgColorType;
+    fill?: AgCssColorOrRef;
     /** The opacity of the fill colour when the expander is hovered. */
     fillOpacity?: Opacity;
     /**
