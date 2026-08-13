@@ -21,6 +21,7 @@ import {
     isDirectionNeutral,
     measureTextSegments,
     resolvePadding,
+    resolveTextAlign,
     toCanvasTextBaseline,
     toFontString,
     toPlainText,
@@ -57,19 +58,6 @@ export interface TextBoxingProperties {
         strokeWidth?: PixelSize;
         strokeOpacity?: Opacity;
     };
-}
-
-// The canvas resolves `start`/`end` against `ctx.direction`, which an individual text run may
-// override. Pinning them to a side keeps rendering in step with the scene-direction bounding box.
-function resolveTextAlign(textAlign: CanvasTextAlign, isRtl?: boolean): CanvasTextAlign {
-    switch (textAlign) {
-        case 'start':
-            return isRtl ? 'right' : 'left';
-        case 'end':
-            return isRtl ? 'left' : 'right';
-        default:
-            return textAlign;
-    }
 }
 
 export class Text<D = unknown> extends Shape<D> {
@@ -361,7 +349,7 @@ export class Text<D = unknown> extends Shape<D> {
         this.generateTextMap();
         if (this.textMap?.size) {
             const bbox = BBox.merge(this.textMap.values());
-            bbox.x = this.x - Text.calcLeftOffset(bbox.width, this.textAlign);
+            bbox.x = this.x - Text.calcLeftOffset(bbox.width, this.textAlign, this.scene?.isRtl);
             bbox.y = this.y;
             return bbox;
         }
@@ -636,14 +624,12 @@ export class Text<D = unknown> extends Shape<D> {
             const { width, height, lineMetrics } = this.getSegmentMetrics(this.text);
 
             let translateX = 0;
-            switch (this.textAlign) {
+            switch (resolveTextAlign(this.textAlign, renderCtx.direction === 'rtl')) {
                 case 'left':
-                case 'start':
                     translateX = width / 2;
                     break;
 
                 case 'right':
-                case 'end':
                     translateX = width / -2;
             }
 
@@ -727,7 +713,14 @@ export class Text<D = unknown> extends Shape<D> {
         // Use the static version of computeBBox instead of a dynamic version. The `boxing: Rect` shape is drawn
         // using the same matrix transformation of the text, so we want to ignore translation/rotation/scale
         // transformations from derived classes. We only need to measure the width/height of the untransformed text
-        const textBBox = bbox ?? Text.computeBBox(this.lines, this.x, this.y, this);
+        const textBBox =
+            bbox ??
+            Text.computeBBox(this.lines, this.x, this.y, {
+                font: this,
+                textAlign: this.textAlign,
+                textBaseline: this.textBaseline,
+                isRtl: renderCtx.direction === 'rtl',
+            });
         if (textBBox.width === 0 || textBBox.height === 0) return;
 
         const { x, y, width, height } = textBBox.grow(this.boxPadding);

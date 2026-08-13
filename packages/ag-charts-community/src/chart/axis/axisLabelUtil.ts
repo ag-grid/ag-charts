@@ -1,11 +1,10 @@
-import { type NormalisedTextOrSegments, isArray, objectsEqual } from 'ag-charts-core';
+import { type NormalisedTextOrSegments, type ResolvedTextAlign, isArray, objectsEqual } from 'ag-charts-core';
 import type {
     AgAxisLabelFormatterParams,
     AgBaseAxisLabelStyleOptions,
     AgTimeIntervalUnit,
     DateFormatterStyle,
     FormatterParams,
-    TextAlign,
 } from 'ag-charts-types';
 
 import type { ChartAxisLabelFlipFlag } from '../chartAxis';
@@ -39,7 +38,7 @@ export function getAxisLabelSideFlag(mirrored: boolean): ChartAxisLabelFlipFlag 
     return mirrored ? 1 : -1;
 }
 
-const FAR_EDGE_FRACTION: Record<TextAlign, number> = { left: 1, center: 0.5, right: 0 };
+const FAR_EDGE_FRACTION: Record<ResolvedTextAlign, number> = { left: 1, center: 0.5, right: 0 };
 
 /**
  * Offsets of a tick label's near and far edges from its anchor, along the axis. `textAlign`
@@ -49,7 +48,7 @@ const FAR_EDGE_FRACTION: Record<TextAlign, number> = { left: 1, center: 0.5, rig
 export function getTickLabelEdgeOffsets(
     width: number,
     rotation: number,
-    textAlign: TextAlign | undefined
+    textAlign: ResolvedTextAlign | undefined
 ): { leading: number; trailing: number } {
     if (textAlign == null) {
         return { leading: -width / 2, trailing: width / 2 };
@@ -63,7 +62,7 @@ export function getTickLabelEdgeOffsets(
     return { leading: Math.min(near, far), trailing: Math.max(near, far) };
 }
 
-const BAND_EDGE_FRACTION: Record<TextAlign, number> = { left: -0.5, center: 0, right: 0.5 };
+const BAND_EDGE_FRACTION: Record<ResolvedTextAlign, number> = { left: -0.5, center: 0, right: 0.5 };
 
 /**
  * Offset from a tick's position - the middle of its band - to the band edge a configured alignment
@@ -72,13 +71,13 @@ const BAND_EDGE_FRACTION: Record<TextAlign, number> = { left: -0.5, center: 0, r
  * The alignment is in canvas space, so `'right'` is the band's larger coordinate whichever way the
  * scale's range runs - hence the magnitude of a bandwidth a descending range gives a sign to.
  */
-export function getBandEdgeOffset(bandwidth: number, textAlign: TextAlign | undefined): number {
+export function getBandEdgeOffset(bandwidth: number, textAlign: ResolvedTextAlign | undefined): number {
     if (textAlign == null) return 0;
     return BAND_EDGE_FRACTION[textAlign] * Math.abs(bandwidth);
 }
 
 /** Offset of a text box's left edge from its anchor, as a fraction of the box's width. */
-const ANCHOR_OFFSET_FRACTION: Partial<Record<CanvasTextAlign, number>> = { left: 0, center: 0.5, right: 1 };
+const ANCHOR_OFFSET_FRACTION: Record<ResolvedTextAlign, number> = { left: 0, center: 0.5, right: 1 };
 
 export interface LabelExtent {
     x0: number;
@@ -128,8 +127,8 @@ export function getRotatedLabelExtent(box: LabelBox, anchorX: number, anchorY: n
  * Horizontal shift that takes a text box measured under `from` to where `to` would place it. Both
  * alignments anchor the same glyphs, so the box only slides along its own width.
  */
-export function getTextAlignShift(width: number, from: CanvasTextAlign, to: CanvasTextAlign): number {
-    return ((ANCHOR_OFFSET_FRACTION[from] ?? 0) - (ANCHOR_OFFSET_FRACTION[to] ?? 0)) * width;
+export function getTextAlignShift(width: number, from: ResolvedTextAlign, to: ResolvedTextAlign): number {
+    return (ANCHOR_OFFSET_FRACTION[from] - ANCHOR_OFFSET_FRACTION[to]) * width;
 }
 
 export function formatAxisLabelValue(

@@ -40,6 +40,7 @@ import {
     shapeSegmentation,
     string,
     strokeOptionsDef,
+    textAlign,
     tooltipOptionsDefs,
     undocumentedLabelFitOptionsDefs,
     union,
@@ -294,7 +295,7 @@ export const funnelSeriesThemeableOptionsDef: OptionsDefs<AgFunnelSeriesThemeabl
 
 export const heatmapSeriesThemeableOptionsDef: OptionsDefs<AgHeatmapSeriesThemeableOptions> = {
     title: string,
-    textAlign: union('left', 'center', 'right'),
+    textAlign,
     verticalAlign: union('top', 'middle', 'bottom'),
     itemPadding: positiveNumber,
     cornerRadius: positiveNumber,
@@ -718,7 +719,7 @@ export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemea
         gap: positiveNumber,
         padding: positiveNumber,
         cornerRadius: positiveNumber,
-        textAlign: union('left', 'center', 'right'),
+        textAlign,
         interactive: boolean,
         highlight: {
             enabled: boolean,
@@ -736,7 +737,7 @@ export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemea
         gap: positiveNumber,
         padding: positiveNumber,
         cornerRadius: positiveNumber,
-        textAlign: union('left', 'center', 'right'),
+        textAlign,
         verticalAlign: union('top', 'middle', 'bottom'),
         label: {
             ...autoSizedLabelOptionsDefs,
