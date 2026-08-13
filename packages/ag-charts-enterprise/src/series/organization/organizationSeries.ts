@@ -22,6 +22,7 @@ import {
     type CallbackParamRules,
     ChartUpdateType,
     type DeepRequired,
+    type DynamicContext,
     type Normalised,
     type NormalisedColorType,
     type NormalisedTextOrSegments,
@@ -75,6 +76,18 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     override properties = new OrganizationSeriesProperties();
 
     private rootVertex?: Vertex<OrganizationVertex, OrganizationEdge>;
+
+    /** Source-data index of the node whose expander pill the pointer is currently over. */
+    private hoveredExpanderDatumIndex?: number;
+
+    constructor(ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
+        super(ctx);
+
+        this.cleanup.register(
+            ctx.eventsHub.on('series-area:hover', (event) => this.onSeriesAreaHover(event)),
+            ctx.eventsHub.on('highlight:change', (event) => this.onHighlightChange(event))
+        );
+    }
 
     createNetworkGraph() {
         return new OrganizationGraph(this.ctx.logger);
@@ -226,7 +239,9 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                 isCollapsed,
             };
 
-            const styles = this.getNodeStyle(datumIndex, isHighlight, highlightState, datumState);
+            const isExpanderHovered = this.hoveredExpanderDatumIndex === datumIndex;
+
+            const styles = this.getNodeStyle(datumIndex, isHighlight, highlightState, datumState, isExpanderHovered);
             node.opacity = this.getNodeOpacity(datumIndex, isHighlight, highlightState);
 
             const fields = this.resolveVertexFields(datum.vertex);
@@ -363,6 +378,42 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     private isExpanderTarget(target: _ModuleSupport.Node<unknown> | undefined): boolean {
         const Expander: number = OrganizationNodeTag.Expander;
         return target?.tag === Expander;
+    }
+
+    // The hover payload carries coordinates only, so the pill-versus-card distinction has to be
+    // re-picked here. `consumed` is deliberately not consulted: it is true exactly when the pointer is
+    // over a node, which is the only case this styling applies to.
+    private onSeriesAreaHover(event: _ModuleSupport.SeriesAreaHoverEvent) {
+        const { seriesRect } = this;
+        let datumIndex: number | undefined;
+
+        if (seriesRect != null && this.properties.expander.enabled) {
+            const point = { x: event.canvasX - seriesRect.x, y: event.canvasY - seriesRect.y };
+            // The topmost hit is the pill where it overlaps the card; `picks[0]` is always the card.
+            const pick = this.pickNodes(point, 'event')?.picks.at(-1);
+            if (this.isExpanderTarget(pick?.target)) {
+                datumIndex = pick?.datum.datumIndex;
+            }
+        }
+
+        this.setHoveredExpanderDatumIndex(datumIndex);
+    }
+
+    // A pointer leaving the series area, or a pan/zoom starting, drops the highlight without emitting a
+    // further hover event — without this the pill would stay styled with the pointer elsewhere.
+    private onHighlightChange(event: _ModuleSupport.HighlightChangeEvent) {
+        if (event.currentHighlight == null) {
+            this.setHoveredExpanderDatumIndex(undefined);
+        }
+    }
+
+    private setHoveredExpanderDatumIndex(datumIndex: number | undefined) {
+        if (this.hoveredExpanderDatumIndex === datumIndex) return;
+
+        this.hoveredExpanderDatumIndex = datumIndex;
+        // SERIES_UPDATE is the stage that re-runs `updateDatumNodes`, where expander paint is resolved;
+        // SCENE_RENDER sits downstream of it and would not repaint.
+        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SERIES_UPDATE });
     }
 
     // A pointer click toggles collapse only when it lands on the expander pill; `clickToExpand`
@@ -781,7 +832,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         datumIndex: number,
         isHighlight: boolean,
         highlightState: _ModuleSupport.HighlightState | undefined,
-        datumState: DatumCallbackState
+        datumState: DatumCallbackState,
+        isExpanderHovered: boolean
     ): NormalisedOrganizationNodeStyle {
         const { dataModel, processedData } = this;
         const { itemStyler } = this.properties.node;
@@ -839,6 +891,12 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             highlightState,
             datumState
         );
+
+        // Applied after the styler so hovering does not re-invoke the user's callback with hover-shifted
+        // params, and so the hovered treatment wins over whatever the styler returned.
+        if (isExpanderHovered) {
+            style.expander = this.applyExpanderHoverStyle(style.expander);
+        }
 
         let labelIndex = 0;
         for (const { itemStyler: labelStyler } of this.properties.node.labels) {
@@ -963,6 +1021,26 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                 showAllChildren: text.showAllChildren,
                 showDirectChildren: text.showDirectChildren,
                 textAlign: text.textAlign,
+            },
+        };
+    }
+
+    private applyExpanderHoverStyle(
+        style: NormalisedOrganizationSeriesExpanderStyle
+    ): NormalisedOrganizationSeriesExpanderStyle {
+        const { hoverStyle } = this.properties.expander;
+        return {
+            ...style,
+            fill: hoverStyle.fill ?? style.fill,
+            fillOpacity: hoverStyle.fillOpacity ?? style.fillOpacity,
+            lineDash: hoverStyle.lineDash ?? style.lineDash,
+            lineDashOffset: hoverStyle.lineDashOffset ?? style.lineDashOffset,
+            stroke: hoverStyle.stroke ?? style.stroke,
+            strokeOpacity: hoverStyle.strokeOpacity ?? style.strokeOpacity,
+            text: {
+                ...style.text,
+                color: hoverStyle.text.color ?? style.text.color,
+                fontWeight: hoverStyle.text.fontWeight ?? style.text.fontWeight,
             },
         };
     }
