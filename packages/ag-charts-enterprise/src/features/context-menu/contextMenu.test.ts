@@ -14,6 +14,7 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { ChartAxisDirection } from 'ag-charts-core';
 import { Caster } from 'ag-charts-test';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
@@ -271,17 +272,37 @@ describe('Context Menu', () => {
 
     describe('coordinates param', () => {
         let getItems: ReturnType<typeof vi.fn>;
+        let xAxisClick: ReturnType<typeof vi.fn>;
+        let yAxisClick: ReturnType<typeof vi.fn>;
 
-        async function contextMenuAtPlotCentre() {
+        function plotCentre() {
             const seriesRect = deproxy(chart).seriesRect;
             expect(seriesRect).toBeDefined();
             const { x, y, width, height } = seriesRect!;
-            await contextMenuAction(x + width / 2, y + height / 2)(chart);
+            return { x: x + width / 2, y: y + height / 2 };
+        }
+
+        // The centre of an axis's own interactive region. Paired with a coordinate from `plotCentre()`, this
+        // aims at the same place along the axis as the series-area click, but through the axis's dispatch.
+        function axisBandCentre(direction: ChartAxisDirection) {
+            const axis = new Caster(deproxy(chart).axes.find((a) => a.direction === direction))
+                .cast(_ModuleSupport.Axis)
+                .findProperty('getCanvasBounds')
+                .castProperty('getCanvasBounds', Function).value;
+            const { x, y, width, height } = axis.getCanvasBounds();
+            return { x: x + width / 2, y: y + height / 2 };
+        }
+
+        async function contextMenuAtPlotCentre() {
+            const { x, y } = plotCentre();
+            await contextMenuAction(x, y)(chart);
             await waitForChartStability(chart);
         }
 
         beforeEach(async () => {
             getItems = vi.fn(({ defaultItems }) => defaultItems);
+            xAxisClick = vi.fn();
+            yAxisClick = vi.fn();
             await prepareChart(
                 { enabled: true, getItems },
                 {
@@ -289,8 +310,12 @@ describe('Context Menu', () => {
                     // `contextMenu.getItems()` receives the axis values under the pointer via its `coordinates` param.
                     // Nine-decimal x labels are used so that the axis labels overhang the plot area by a wide margin.
                     axes: {
-                        x: { type: 'number', label: { avoidCollisions: false, rotation: 0, format: '#{0.9f}' } },
-                        y: { type: 'number' },
+                        x: {
+                            type: 'number',
+                            label: { avoidCollisions: false, rotation: 0, format: '#{0.9f}' },
+                            listeners: { click: xAxisClick },
+                        },
+                        y: { type: 'number', listeners: { click: yAxisClick } },
                     },
                     series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
                     contextMenu: { enabled: true },
@@ -298,18 +323,52 @@ describe('Context Menu', () => {
             );
         });
 
-        // Domains are 0..0.6 on x and 0..6 on y.
+        // A few pixels of coordinate-frame error is enough to shift these values, and the default `closeTo`
+        // tolerance would hide it.
+        const veryCloseTo = (value: number) => expect.closeTo(value, 4);
+
+        // Domains are 0..0.6 on x and 0..6 on y, so the plot centre is exactly 0.3 and 3. Every branch below
+        // aims at that same position on one axis, so they must all report the same value through their own
+        // callback.
         test('reports the axis values under the pointer', async () => {
             await contextMenuAtPlotCentre();
 
             expect(getItems).toHaveBeenCalledWith(
                 expect.objectContaining({
                     coordinates: expect.objectContaining({
-                        x: expect.objectContaining({ value: expect.closeTo(0.3) }),
-                        y: expect.objectContaining({ value: expect.closeTo(3) }),
+                        x: expect.objectContaining({ value: veryCloseTo(0.3) }),
+                        y: expect.objectContaining({ value: veryCloseTo(3) }),
                     }),
                 })
             );
+        });
+
+        test('the x-axis context menu reports the same value', async () => {
+            await contextMenuAction(plotCentre().x, axisBandCentre(ChartAxisDirection.X).y)(chart);
+            await waitForChartStability(chart);
+
+            expect(getItems).toHaveBeenCalledWith(expect.objectContaining({ showOn: 'axis', value: veryCloseTo(0.3) }));
+        });
+
+        test('the y-axis context menu reports the same value', async () => {
+            await contextMenuAction(axisBandCentre(ChartAxisDirection.Y).x, plotCentre().y)(chart);
+            await waitForChartStability(chart);
+
+            expect(getItems).toHaveBeenCalledWith(expect.objectContaining({ showOn: 'axis', value: veryCloseTo(3) }));
+        });
+
+        test('the x-axis click listener reports the same value', async () => {
+            await clickAction(plotCentre().x, axisBandCentre(ChartAxisDirection.X).y)(chart);
+            await waitForChartStability(chart);
+
+            expect(xAxisClick).toHaveBeenCalledWith(expect.objectContaining({ value: veryCloseTo(0.3) }));
+        });
+
+        test('the y-axis click listener reports the same value', async () => {
+            await clickAction(axisBandCentre(ChartAxisDirection.Y).x, plotCentre().y)(chart);
+            await waitForChartStability(chart);
+
+            expect(yAxisClick).toHaveBeenCalledWith(expect.objectContaining({ value: veryCloseTo(3) }));
         });
     });
 
@@ -321,7 +380,7 @@ describe('Context Menu', () => {
         async function contextMenuAtCrossingAxisCentre() {
             const inner = deproxy(chart);
             const seriesRect = inner.seriesRect!;
-            const xAxis = new Caster(inner.axes.find((axis) => axis.direction === 'x'))
+            const xAxis = new Caster(inner.axes.find((axis) => axis.direction === ChartAxisDirection.X))
                 .cast(_ModuleSupport.Axis)
                 .findProperty('getCanvasBounds')
                 .castProperty('getCanvasBounds', Function).value;
