@@ -186,8 +186,8 @@ export const DONUT_SERIES_INNER_CIRCLE_CORNER_RADIUS: AgPolarChartOptions = {
     ],
 };
 
-// The regime where a fix that ignored the angular extent of a sector would bridge the
-// spacing strips and make the donut read as a single joined ring.
+// Wide spacing over a deep ring: the filled band has to cover the spacing strips too, or they read
+// as slots cut into it.
 export const DONUT_SERIES_INNER_CIRCLE_CORNER_RADIUS_SPACED: AgPolarChartOptions = {
     title: {
         text: 'Market Share',
@@ -207,8 +207,8 @@ export const DONUT_SERIES_INNER_CIRCLE_CORNER_RADIUS_SPACED: AgPolarChartOptions
     ],
 };
 
-// Translucent sector fills composite over whatever sits behind them, so the corner fill must be
-// confined to the gap - anywhere else it tints the slice.
+// Translucent sector fills composite over whatever sits behind them, so the band under the sectors
+// must be erased - anywhere it survives it tints the slice.
 export const DONUT_SERIES_INNER_CIRCLE_CORNER_RADIUS_TRANSLUCENT: AgPolarChartOptions = {
     title: {
         text: 'Market Share',
