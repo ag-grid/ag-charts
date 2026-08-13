@@ -17,7 +17,7 @@ test.describe('validation overlay', () => {
     // is covered both ways in ag-charts-community's validationOverlay.test.ts.
     test.beforeEach(async ({ page }) => {
         await page.addInitScript(() => {
-            if (navigator.clipboard == null) {
+            if (typeof navigator.clipboard === 'undefined') {
                 Object.defineProperty(navigator, 'clipboard', {
                     configurable: true,
                     value: { writeText: () => Promise.resolve() },
