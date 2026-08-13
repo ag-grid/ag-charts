@@ -76,6 +76,40 @@ describe('cspRules', () => {
             expect(examples).not.toContain("'sha256-41l+jvtOjBgKy9345IStB4j1gGPGFMVXADMHn1Acs6E='");
         });
 
+        it('site scope authorises the Enzuzo -> GTM consent bridge by hash', () => {
+            // Injected inline by the banner when the visitor makes a consent choice, to pass the
+            // decision to GTM. Blocked before this hash was added, so consent never reached GTM.
+            const site = getCspDirectives({ env: 'production', scope: 'site' })['script-src'];
+            expect(site).toContain("'sha256-NSYHvOQXo5WNxDt0/+l9AbSTx6N4CkkrbuSSa6ERhlo='");
+            const examples = getCspDirectives({ env: 'production', scope: 'examples' })['script-src'];
+            expect(examples).not.toContain("'sha256-NSYHvOQXo5WNxDt0/+l9AbSTx6N4CkkrbuSSa6ERhlo='");
+        });
+
+        it('derives the consent-bridge hash from the recorded script source', () => {
+            // Reproducible from ENZUZO_GTM_CONSENT_BRIDGE_SCRIPT (verified against the browser's
+            // violation report), so source and policy cannot drift. If this fails, the recorded
+            // source was edited — re-check it against a real browser rather than just updating
+            // the expected digest.
+            expect(sha256Source('if (window.enzuzoGtmConsent) { window.enzuzoGtmConsent(); }')).toBe(
+                "'sha256-NSYHvOQXo5WNxDt0/+l9AbSTx6N4CkkrbuSSa6ERhlo='"
+            );
+        });
+
+        it('site scope authorises both GTM UTM-attribution tags by hash', () => {
+            // Hashable only because neither tag interpolates a GTM variable — see the note above
+            // GTM_UTM_CAPTURE_HASH in cspRules.ts.
+            const site = getCspDirectives({ env: 'production', scope: 'site' })['script-src'];
+            expect(site).toContain("'sha256-nsp/0430/yfuSNjsteV2fUwjHINMowl9qldFKy6PKJs='"); // page-view capture
+            expect(site).toContain("'sha256-7f34QP24yF/YC+G6zSHRCBZrBez6xFf6GbcGIXkZ4K0='"); // webhook POST
+        });
+
+        it('allows the Make webhook in connect-src for the attribution POST', () => {
+            const site = getCspDirectives({ env: 'production', scope: 'site' });
+            expect(site['connect-src']).toContain('https://hook.eu2.make.com');
+            // A fetch target, not a script source.
+            expect(site['script-src']).not.toContain('https://hook.eu2.make.com');
+        });
+
         it('examples keeps unsafe-inline with no hashes; dev site keeps unsafe-inline (Phase B)', () => {
             const examples = getCspDirectives({ env: 'production', scope: 'examples' })['script-src'];
             expect(examples).toContain("'unsafe-inline'");
