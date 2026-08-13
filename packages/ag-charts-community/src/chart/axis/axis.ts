@@ -78,14 +78,6 @@ import type { TickInterval } from './axisTick';
 import { type AxisGroupDatumTranslation, NiceMode } from './axisUtil';
 import type { AnyTimeInterval } from './generateTicksUtils';
 
-/**
- * One tick's pickable extent, in axis-local coordinates, paired with the `value` and `index` the axis
- * handed the label formatter for it.
- *
- * `along` is the extent in scale space. `cross` is the distance range from the axis line, and is only
- * needed by axes that stack ticks into rows outwards from it (see `GroupedCategoryAxis`); leaving it
- * undefined means the tick spans the axis perpendicular to its direction, which is the single-row case.
- */
 export interface AxisPickDatum {
     readonly index: number;
     readonly value: AgAxisValue;
@@ -249,14 +241,13 @@ export abstract class Axis<
     dataDomain: { domain: D[]; clipped: boolean } = { domain: [], clipped: false };
     private allowNull = false;
 
-    /**
-     * The pickable extent of every tick the axis generated, captured at the point where the axis hands
-     * that tick to the label formatter — so a pick and the formatter report the same `value` and `index`
-     * by construction rather than by two computations agreeing.
-     *
-     * Populated by subclasses that generate ticks (see `CartesianAxis` and `GroupedCategoryAxis`); left
-     * empty by axes that do not, in which case no index can be resolved.
-     */
+    // This is the meta-data about the screen-positioning of the ticks on our axis. It's usually a 1-dimensional scale
+    // value (`along`), but can optionally be 2-dimensional (`cross`, e.g. the "Depth" in grouped category axes). This
+    // is the single-source-of-truth for callbacks that need to broadcast information about the axis and its ticks
+    // (e.g. label.formatter or axis click handlers).
+    //
+    // This must live separately from the scene-graph LabelNodeDatum. This is because label-less axes can still be
+    // interacted with, but they do not include any text nodes in the scene-graph.
     private pickTickData: AxisPickDatum[] = [];
 
     readonly caption = new Caption();
@@ -1147,7 +1138,6 @@ export abstract class Axis<
         return this.translation;
     }
 
-    /** Whether the scale interpolates between ticks, rather than mapping each tick to a discrete band. */
     protected get continuous(): boolean {
         return ContinuousScale.is(this.scale) || DiscreteTimeScale.is(this.scale);
     }
