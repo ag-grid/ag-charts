@@ -12,8 +12,9 @@ export interface ValidationIssue {
 export type GroupedValidationIssues = Record<ValidationSeverity, ValidationIssue[]>;
 
 /**
- * Minimal write-side of the collector, satisfied by `ValidationIssueCollector`. Update-time feeds
- * (data-key warnings, caught callback errors) emit through this without depending on the concrete class.
+ * Minimal write-side for update-time data warnings, implemented by `DataController`: the data pass emits
+ * through this without depending on the concrete collector, buffering and de-duplicating its own issues,
+ * which the collector then adopts wholesale via {@link ValidationIssueCollector.setDataIssues}.
  */
 export interface ValidationSink {
     recordIssue(issue: ValidationIssue): void;
@@ -37,11 +38,12 @@ function signatureOf(issues: ValidationIssue[]): string {
  * Per-chart-instance sink for validation issues (option misconfiguration and caught runtime errors).
  * The overlay processor subscribes to it and re-evaluates whenever the collection or threshold changes.
  */
-export class ValidationIssueCollector implements ValidationSink {
+export class ValidationIssueCollector {
     private issues: ValidationIssue[] = [];
     private dataIssues: ValidationIssue[] = [];
     private callbackIssues: ValidationIssue[] = [];
     private pendingCallbackIssues: ValidationIssue[] = [];
+    private runtimeIssues: ValidationIssue[] = [];
     private overlayLevel: ValidationOverlayLevel = 'none';
     private dismissed = false;
     private signature = '';
@@ -60,9 +62,12 @@ export class ValidationIssueCollector implements ValidationSink {
     /**
      * Replace the option-sourced issues for a fresh option-application cycle. A dismissed overlay
      * only re-shows when the collection actually changes, so a re-apply with identical issues stays hidden.
+     * The prior cycle's caught runtime error is superseded — the update about to run re-reports it if it
+     * still throws — so the runtime feed is cleared here rather than accumulating across cycles.
      */
     setIssues(issues: ValidationIssue[]) {
         this.issues = issues;
+        this.runtimeIssues = [];
         this.refreshSignature();
         this.listeners.dispatch('change');
     }
@@ -81,23 +86,21 @@ export class ValidationIssueCollector implements ValidationSink {
     }
 
     /**
-     * Append a caught runtime error, de-duplicated by severity + message. The catch site re-reports the
-     * same error on every failed update pass (a resize re-runs the update), so an identical error must
-     * count once rather than accumulate. `code` (a stack trace) is ignored — it can vary between throws
-     * of the same error, and a growing signature would also spuriously un-dismiss the overlay.
+     * Record a caught runtime error, de-duplicated within the runtime-error feed by severity + message.
+     * The catch site re-reports the same failure on every failed update pass (a resize re-runs the update),
+     * so an identical error counts once rather than accumulating. Kept in its own feed so a runtime error
+     * never displaces — nor is displaced by — an option or data issue that merely shares a severity and
+     * message. `code` (a per-throw stack) is excluded from the identity: it varies between throws of the
+     * same error, and folding it in would grow the signature and spuriously un-dismiss the overlay.
      */
-    add(issue: ValidationIssue) {
-        const duplicate = this.issues.some(
+    recordRuntimeError(issue: ValidationIssue) {
+        const duplicate = this.runtimeIssues.some(
             (existing) => existing.severity === issue.severity && existing.message === issue.message
         );
         if (duplicate) return;
-        this.issues = [...this.issues, issue];
+        this.runtimeIssues.push(issue);
         this.refreshSignature();
         this.listeners.dispatch('change');
-    }
-
-    recordIssue(issue: ValidationIssue) {
-        this.add(issue);
     }
 
     /**
@@ -155,8 +158,10 @@ export class ValidationIssueCollector implements ValidationSink {
     }
 
     private allIssues(): ValidationIssue[] {
-        if (this.dataIssues.length === 0 && this.callbackIssues.length === 0) return this.issues;
-        return [...this.issues, ...this.dataIssues, ...this.callbackIssues];
+        if (this.dataIssues.length === 0 && this.callbackIssues.length === 0 && this.runtimeIssues.length === 0) {
+            return this.issues;
+        }
+        return [...this.issues, ...this.dataIssues, ...this.callbackIssues, ...this.runtimeIssues];
     }
 
     private refreshSignature() {

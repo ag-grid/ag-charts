@@ -1012,7 +1012,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
             if (callbacksReEvaluated) this.validationCollector.commitCallbackIssues();
         } catch (error: any) {
             this.ctx.logger.error('update error', error, error.stack);
-            this.validationCollector.add({
+            this.validationCollector.recordRuntimeError({
                 severity: 'error',
                 message: String(error?.message ?? error),
                 code: typeof error?.stack === 'string' ? error.stack : undefined,
