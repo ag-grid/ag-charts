@@ -1680,11 +1680,7 @@ export class DonutSeries extends PolarSeries<
         }
         this.innerLabelsSelection.each((text, _datum, index) => {
             text.visible = labelsVisible;
-            if (Array.isArray(text.text)) {
-                text.y = textBottoms[index] - textBBoxes[index].height;
-            } else {
-                text.y = textBottoms[index];
-            }
+            text.y = textBottoms[index];
         });
     }
 
