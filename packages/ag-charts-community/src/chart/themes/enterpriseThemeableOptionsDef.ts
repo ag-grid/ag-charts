@@ -270,6 +270,7 @@ export const funnelSeriesThemeableOptionsDef: OptionsDefs<AgFunnelSeriesThemeabl
         ...lineDashOptionsDef,
     }),
     spacingRatio: ratio,
+    cornerRadius: positiveNumber,
     crisp: boolean,
     dropOff: {
         enabled: boolean,
