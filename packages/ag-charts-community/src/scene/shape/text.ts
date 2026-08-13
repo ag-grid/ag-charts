@@ -717,6 +717,7 @@ export class Text<D = unknown> extends Shape<D> {
             bbox ??
             Text.computeBBox(this.lines, this.x, this.y, {
                 font: this,
+                lineHeight: this.lineHeight,
                 textAlign: this.textAlign,
                 textBaseline: this.textBaseline,
                 isRtl: renderCtx.direction === 'rtl',
