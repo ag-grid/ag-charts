@@ -1537,6 +1537,7 @@ describe('OrganizationSeries', () => {
             const unhovered = expanderShapeNode('cfo');
             const unhoveredFill = unhovered.fill;
             const unhoveredStroke = unhovered.stroke;
+            const unhoveredStrokeWidth = unhovered.strokeWidth;
 
             await hoverItem('cfo', OrganizationNodeTag.Expander);
 
@@ -1545,6 +1546,9 @@ describe('OrganizationSeries', () => {
             expect(hovered.stroke).toBe('#00ffff');
             expect(hovered.fill).not.toBe(unhoveredFill);
             expect(hovered.stroke).not.toBe(unhoveredStroke);
+            // Properties hoverStyle doesn't override must survive unchanged, not fall through to a
+            // scene-node default (e.g. `strokeWidth ?? 0`).
+            expect(hovered.strokeWidth).toBe(unhoveredStrokeWidth);
         });
 
         it('leaves the expander pill at its un-hovered style when the card, not the pill, is hovered', async () => {
@@ -1665,6 +1669,7 @@ describe('OrganizationSeries', () => {
             const unhovered = expanderCountTextNode('cfo');
             const unhoveredColor = unhovered.fill;
             const unhoveredFontWeight = unhovered.fontWeight;
+            const unhoveredFontSize = unhovered.fontSize;
 
             await hoverItem('cfo', OrganizationNodeTag.Expander);
 
@@ -1673,6 +1678,8 @@ describe('OrganizationSeries', () => {
             expect(hovered.fontWeight).toBe('bold');
             expect(hovered.fill).not.toBe(unhoveredColor);
             expect(hovered.fontWeight).not.toBe(unhoveredFontWeight);
+            // hoverStyle.text has no fontSize, so it must fall through untouched.
+            expect(hovered.fontSize).toBe(unhoveredFontSize);
 
             await hoverItem('cfo', OrganizationNodeTag.Card);
 
@@ -1695,9 +1702,17 @@ describe('OrganizationSeries', () => {
             expect(expanderShapeNode('cfo').fill).toBe('#ff00ff');
             expect(expanderShapeNode('cfo').stroke).toBe('#00ffff');
 
-            // Outside the series rect (default chart padding is 20px), so the bubble chain drops
-            // the series-area element and a real 'mouseleave' fires on it. The clear is debounced
-            // by `highlightManager.unhighlightDelay` (100ms), so advance real time past it.
+            // (2, 2) must stay outside the series rect (default chart padding is 20px) for the
+            // leave below to be a real mouseleave rather than another move-off-pill.
+            const seriesRect = new Caster(deproxy(chart))
+                .accessProperty('seriesAreaManager')
+                .accessProperty('seriesRect')
+                .cast(_ModuleSupport.BBox).value;
+            expect(seriesRect.containsPoint(2, 2)).toBe(false);
+
+            // Outside the series rect, so the bubble chain drops the series-area element and a real
+            // 'mouseleave' fires on it. The clear is debounced by `highlightManager.unhighlightDelay`
+            // (100ms), so advance real time past it.
             await hoverAction(2, 2)(chart);
             await waitForChartStability(chart, deproxy(chart).ctx.highlightManager.unhighlightDelay + 50);
 
