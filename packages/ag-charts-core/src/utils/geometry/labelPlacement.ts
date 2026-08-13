@@ -6,7 +6,14 @@ import type { Point, SizedPoint } from '../../types/scene';
 import type { FontOptions } from '../../types/text';
 import { toArray } from '../data/arrays';
 import { toFontString, toTextString } from '../text/textUtils';
-import { type LabelFit, fitLabelTextOrOverflowAutoSize, fontWithSize, isErased } from '../text/textWrapper';
+import {
+    type LabelFit,
+    findLargestFontSizeDescending,
+    fitLabelTextOrOverflowAutoSize,
+    fontWithSize,
+    isErased,
+    resolveMinimumFontSize,
+} from '../text/textWrapper';
 import { isArray } from '../types/typeGuards';
 import { toDegrees, toRadians } from './angle';
 import { type BoxBounds, boxCollides, boxContains } from './boxBounds';
@@ -30,6 +37,8 @@ export interface MeasuredLabel {
     readonly text: NormalisedTextOrSegments;
     readonly width: number;
     readonly height: number;
+    /** Reduced size the text was fitted at; `undefined` at the configured size. */
+    readonly fontSize?: number;
 }
 
 /**
@@ -1163,6 +1172,24 @@ const boundedFit: {
 // Reduced font size the candidate being tested was fitted at, `undefined` at the configured size. Read
 // by `recordBestChoice` rather than threaded through it as one more positional argument.
 let candidateFontSize: number | undefined;
+// Size the collision-shrink search is currently re-running the cascade at, `undefined` outside a trial.
+let candidateTrialFontSize: number | undefined;
+// The candidate font at the trial size, refilled per candidate while a trial is running.
+const trialFont: FontOptions = { fontSize: 0 };
+
+/**
+ * `font` resized to the size the collision-shrink search is trialling, or `font` itself outside a trial.
+ * The ladder runs from the configured size, so a trial above a size an `itemStyler` resolved lower is
+ * clamped back to it; only the size is overridden, keeping the family and weight the styler chose.
+ */
+function candidateFontAt(font: FontOptions): FontOptions {
+    if (candidateTrialFontSize == null || candidateTrialFontSize >= font.fontSize) return font;
+    trialFont.fontSize = candidateTrialFontSize;
+    trialFont.fontStyle = font.fontStyle;
+    trialFont.fontWeight = font.fontWeight;
+    trialFont.fontFamily = font.fontFamily;
+    return trialFont;
+}
 // Per-datum inputs to `cascadeCandidates`, refilled by `placeAvoidingLabel` before it runs. Held here
 // rather than passed so the cascade can be re-run without allocating a closure or an argument list.
 let cascadeDatum: PointLabelDatum;
@@ -1615,7 +1642,8 @@ function fitLabelToCandidate(
     boundedFit.maxHeight = maxHeight === Infinity ? undefined : maxHeight;
     boundedFit.wrapping = policy.wrapping;
     boundedFit.overflowStrategy = policy.overflowStrategy;
-    boundedFit.minimumFontSize = policy.minimumFontSize;
+    // A trial already owns the size, so the inner search must not run a second one inside it.
+    boundedFit.minimumFontSize = candidateTrialFontSize == null ? policy.minimumFontSize : undefined;
     const { text: fitted, fontSize } = fitLabelTextOrOverflowAutoSize(text, boundedFit, fit.fitOverflow, font);
     // `overflowStrategy: 'hide'` empties the text rather than truncating it; the candidate cannot show
     // this label at all, so the cascade must move on rather than place an empty box.
@@ -1693,20 +1721,21 @@ function sizeCandidateLabel(
         candidateLabel.dropped = 0;
         return true;
     }
-    const font = style?.font ?? fit.font;
+    const font = candidateFontAt(style?.font ?? fit.font);
     const boxPadding = style?.boxPadding ?? fit.boxPadding;
     const container =
         fit.boundByRegion === false ? undefined : compassCandidateContainer(fitRegion, boxPadding, rotation);
-    // A styled candidate re-measures the source under its own font; an unstyled one shares the cascade's
-    // single measurement.
-    if (!fitLabelToCandidate(fit, font, style == null ? fitSource : styledFitSource(fit, font), container)) {
-        return false;
-    }
+    // A styled or trialled candidate re-measures the source under its own font; an unstyled one at the
+    // configured size shares the cascade's single measurement.
+    const source = style == null && candidateTrialFontSize == null ? fitSource : styledFitSource(fit, font);
+    if (!fitLabelToCandidate(fit, font, source, container)) return false;
     candidateLabel.text = fittedLabel.text;
     candidateLabel.width = fittedLabel.width + boxWidthOf(boxPadding);
     candidateLabel.height = fittedLabel.height + boxHeightOf(boxPadding);
     candidateLabel.dropped = fittedLabel.dropped;
-    candidateFontSize = fittedLabel.fontSize;
+    // Text that already fits reports no size of its own, so a trial's size comes from the font it ran at
+    // — which is the trial size, or the styler-resolved one when the trial was clamped back to it.
+    candidateFontSize = fittedLabel.fontSize ?? (candidateTrialFontSize == null ? undefined : font.fontSize);
     return true;
 }
 
@@ -1893,6 +1922,9 @@ function cascadeCandidates(): PlacedLabel | undefined {
     const d = cascadeDatum;
     const candidateCount = cascadePlacements?.length ?? 1;
     const orientationCount = cascadeOrientations?.length ?? 1;
+    // A trial can only win outright, so it records nothing: a label that never places cleanly falls back
+    // to the candidate it would have fallen back to at the configured size, whatever sizes were tried.
+    const recordBest = candidateTrialFontSize == null;
     for (let pi = 0; pi < candidateCount; pi++) {
         const placement = candidateAt(cascadePlacements, d.placement, pi);
         for (let oi = 0; oi < orientationCount; oi++) {
@@ -1942,19 +1974,21 @@ function cascadeCandidates(): PlacedLabel | undefined {
                         fontSize: candidateFontSize,
                     };
                 }
-                recordBestChoice(
-                    TIER_TRUNCATED,
-                    dropped,
-                    text,
-                    width,
-                    height,
-                    rotation,
-                    offsetX,
-                    offsetY,
-                    placement,
-                    undefined
-                );
-            } else if (cascadeKeepBest) {
+                if (recordBest) {
+                    recordBestChoice(
+                        TIER_TRUNCATED,
+                        dropped,
+                        text,
+                        width,
+                        height,
+                        rotation,
+                        offsetX,
+                        offsetY,
+                        placement,
+                        undefined
+                    );
+                }
+            } else if (cascadeKeepBest && recordBest) {
                 const overflow = regionOverflow(containRegion, x, y, cw, ch);
                 let tier = TIER_OVERFLOWING;
                 let score = overflow;
@@ -1969,6 +2003,33 @@ function cascadeCandidates(): PlacedLabel | undefined {
         }
     }
     return undefined;
+}
+
+/**
+ * Re-runs the cascade at reduced font sizes, returning the largest at which some candidate places
+ * cleanly. Reached only once every placement has failed at the configured size, so a label shrinks after
+ * exhausting its placement fallbacks and before it is hidden or falls back to a colliding candidate.
+ * `undefined` when the label cannot shrink or no size clears.
+ */
+function shrinkToClear(): PlacedLabel | undefined {
+    const { fit } = cascadeDatum;
+    const minimumFontSize = fit?.policy.minimumFontSize;
+    if (fit == null || minimumFontSize == null) return undefined;
+    const { fontSize } = fit.font;
+    const floor = resolveMinimumFontSize(minimumFontSize, fontSize);
+    if (floor >= fontSize) return undefined;
+
+    try {
+        // A smaller font can reflow the text into a wider box, so clearance is not monotonic in the size
+        // and the ladder has to be walked down rather than bisected.
+        return findLargestFontSizeDescending(floor, fontSize, function trialFontSize(size) {
+            candidateTrialFontSize = size;
+            return cascadeCandidates();
+        });
+    } finally {
+        // A styler throwing mid-trial would otherwise leave every later label sized at the trial size.
+        candidateTrialFontSize = undefined;
+    }
 }
 
 /**
@@ -2036,6 +2097,9 @@ function placeAvoidingLabel(
 
     const placed = cascadeCandidates();
     if (placed != null) return placed;
+
+    const shrunk = shrinkToClear();
+    if (shrunk != null) return shrunk;
 
     return placeBestChoice(index, d);
 }

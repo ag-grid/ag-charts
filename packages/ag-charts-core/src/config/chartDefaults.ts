@@ -844,7 +844,7 @@ export const labelPlacementStyleDefs = {
     outsideStyle: labelPlacementStyleOptionsDef,
 };
 
-/** Label defs for point-like series (line, area) that expose a directional placement. */
+/** Label defs for point-like series (line, area, scatter, bubble) that expose a directional placement. */
 export const placedSeriesLabelOptionsDefs: OptionsDefs<AgLineSeriesLabelOptions<any, any>> = {
     ...seriesLabelOptionsDefs,
     ...labelCollisionFitOptionsDefs,

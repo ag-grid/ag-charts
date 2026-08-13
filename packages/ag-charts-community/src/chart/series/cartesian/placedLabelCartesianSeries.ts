@@ -69,10 +69,15 @@ export abstract class PlacedLabelCartesianSeries<
         const datum = this.writeLabelPoint(placed.datum, placed.x, placed.y);
         const mutable = datum as MutablePlacedLabelFields;
         mutable.placement = placed.placement ?? datum.placement;
-        // A styled label is fitted to the candidate the engine chose, so the node must render that text
-        // and reserve its size rather than the up-front measurement the cascade started from.
+        // A re-fitted label is fitted to the candidate the engine chose, so the node must render that text
+        // at that size and reserve its box rather than the up-front measurement the cascade started from.
         if (placed.datum.fit != null) {
-            mutable.label = { text: placed.text, width: placed.width, height: placed.height };
+            mutable.label = {
+                text: placed.text,
+                width: placed.width,
+                height: placed.height,
+                fontSize: placed.fontSize,
+            };
         }
         return datum;
     }
@@ -168,7 +173,7 @@ export abstract class PlacedLabelCartesianSeries<
                 const offset = styled ? styledLabelTextOffset(style) : placementOffset;
                 text.fontStyle = fontStyle;
                 text.fontWeight = fontWeight;
-                text.fontSize = fontSize;
+                text.fontSize = datum.label.fontSize ?? fontSize;
                 text.fontFamily = fontFamily;
                 text.textBaseline = 'top';
                 text.text = datum.label.text;

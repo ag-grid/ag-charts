@@ -1,11 +1,15 @@
 import type { PaddingOptions } from 'ag-charts-types';
 
-import { measureTextSegments } from '../../rendering/textMeasurer';
 import type { NormalisedTextOrSegments } from '../../types/normalised-options/normalisedCommonOptions';
 import type { FontOptions } from '../../types/text';
-import type { LabelFit, LabelFitDescriptor, MeasuredLabel } from '../geometry/labelPlacement';
+import {
+    type LabelFit,
+    type LabelFitDescriptor,
+    type MeasuredLabel,
+    measureLabelText,
+} from '../geometry/labelPlacement';
 import { isArray } from '../types/typeGuards';
-import { fitLabelTextOrOverflow } from './textWrapper';
+import { fitLabelTextOrOverflowAutoSize, fontWithSize } from './textWrapper';
 
 /** Per-render measurement inputs a placed-label series caches once and reuses for every datum. */
 export interface LabelMeasureContext {
@@ -25,18 +29,19 @@ export interface LabelMeasureContext {
 }
 
 /**
- * Per-candidate fit inputs for a styled label, so the placement engine re-fits its text under the font the
- * styler resolves at each candidate. `policy` is overridden by series that bound the text per datum (a
- * marker container scaled by that datum's size). `undefined` for an unstyled or absent label, leaving the
- * up-front {@link measurePlacedLabel} measurement authoritative.
+ * Per-candidate fit inputs, so the placement engine re-fits a label's text at each candidate rather than
+ * reusing the up-front {@link measurePlacedLabel} measurement. Produced for a label whose font varies per
+ * candidate: one an `itemStyler` restyles, or one that may shrink towards `minimumFontSize`. `policy` is
+ * overridden by series that bound the text per datum (a marker container scaled by that datum's size).
  */
-export function styledLabelFit(
+export function placedLabelFit(
     labelText: NormalisedTextOrSegments | undefined,
     font: FontOptions,
     ctx: LabelMeasureContext,
     policy = ctx.labelFit
 ): LabelFitDescriptor | undefined {
-    if (!ctx.labelStyled || labelText == null) return undefined;
+    if (labelText == null) return undefined;
+    if (!ctx.labelStyled && policy?.minimumFontSize == null) return undefined;
     return {
         text: labelText,
         policy: policy ?? {},
@@ -49,20 +54,26 @@ export function styledLabelFit(
     };
 }
 
-/** Fits `labelText` to the label's policy and measures it, inflated by the label's drawn box padding. */
+/**
+ * Fits `labelText` to the label's policy and measures it, inflated by the label's drawn box padding.
+ * `policy` is overridden by series that bound the text per datum, as for {@link placedLabelFit}.
+ */
 export function measurePlacedLabel(
     labelText: NormalisedTextOrSegments | undefined,
     font: FontOptions,
-    ctx: LabelMeasureContext
+    ctx: LabelMeasureContext,
+    policy = ctx.labelFit
 ): MeasuredLabel {
     if (labelText == null) {
         return { text: '', width: 0, height: 0 };
     }
-    const fittedText = fitLabelTextOrOverflow(labelText, ctx.labelFit, ctx.labelFitOverflow, font);
-    let { width, height } = isArray(fittedText)
-        ? measureTextSegments(fittedText, font)
-        : ctx.labelTextMeasurer.measureLines(String(fittedText));
+    const { text, fontSize } = fitLabelTextOrOverflowAutoSize(labelText, policy, ctx.labelFitOverflow, font);
+    // The context's measurer is bound to the configured font, so a shrunken label measures on its own.
+    let { width, height } =
+        fontSize == null && !isArray(text)
+            ? ctx.labelTextMeasurer.measureLines(String(text))
+            : measureLabelText(text, fontWithSize(font, fontSize));
     width += ctx.labelPadding.left + ctx.labelPadding.right;
     height += ctx.labelPadding.top + ctx.labelPadding.bottom;
-    return { text: fittedText, width, height };
+    return { text, width, height, fontSize };
 }

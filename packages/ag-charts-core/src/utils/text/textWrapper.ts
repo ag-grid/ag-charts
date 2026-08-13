@@ -158,6 +158,22 @@ export function findLargestFittingStep<T>(steps: number, probe: (index: number) 
 }
 
 /**
+ * The size ladder between two bounds, smallest-first so index `0` is the floor: both bounds exactly, and
+ * every whole size strictly between them. Returns the step count and the size at each index.
+ */
+function fontSizeLadder(minimumFontSize: number, fontSize: number) {
+    // First whole size strictly inside the range at either end, so neither bound is probed twice.
+    const lowest = Math.floor(minimumFontSize) === minimumFontSize ? minimumFontSize + 1 : Math.ceil(minimumFontSize);
+    const highest = Math.ceil(fontSize) === fontSize ? fontSize - 1 : Math.floor(fontSize);
+    const steps = 2 + Math.max(0, highest - lowest + 1);
+    const sizeAt = (index: number) => {
+        if (index === 0) return minimumFontSize;
+        return index === steps - 1 ? fontSize : lowest + index - 1;
+    };
+    return { steps, sizeAt };
+}
+
+/**
  * Largest font size between `minimumFontSize` and `fontSize` that `probe` accepts. Only the minimum
  * is probed with `atFloor` set, so a label shrinks as far as it can before its overflow strategy may
  * truncate or hide it. Sizes between the bounds are whole, but both bounds are probed exactly.
@@ -168,14 +184,28 @@ export function findLargestFittingFontSize<T>(
     probe: (fontSize: number, atFloor: boolean) => T | undefined
 ): T | undefined {
     if (minimumFontSize >= fontSize) return probe(fontSize, true);
-    // First whole size strictly inside the range at either end, so neither bound is probed twice.
-    const lowest = Math.floor(minimumFontSize) === minimumFontSize ? minimumFontSize + 1 : Math.ceil(minimumFontSize);
-    const highest = Math.ceil(fontSize) === fontSize ? fontSize - 1 : Math.floor(fontSize);
-    const steps = 2 + Math.max(0, highest - lowest + 1);
-    return findLargestFittingStep(steps, (index) => {
-        if (index === 0) return probe(minimumFontSize, true);
-        return probe(index === steps - 1 ? fontSize : lowest + index - 1, false);
-    });
+    const { steps, sizeAt } = fontSizeLadder(minimumFontSize, fontSize);
+    return findLargestFittingStep(steps, (index) => probe(sizeAt(index), index === 0));
+}
+
+/**
+ * {@link findLargestFittingFontSize} over the same ladder, but scanning down from `fontSize` instead of
+ * bisecting. For a predicate that is not monotonic in the font size — collision clearance, where a smaller
+ * size can reflow the text into a box wider than the one it replaces — a bisection can step past the
+ * largest accepted size, so the scan is the only search that honours the contract.
+ */
+export function findLargestFontSizeDescending<T>(
+    minimumFontSize: number,
+    fontSize: number,
+    probe: (fontSize: number, atFloor: boolean) => T | undefined
+): T | undefined {
+    if (minimumFontSize >= fontSize) return probe(fontSize, true);
+    const { steps, sizeAt } = fontSizeLadder(minimumFontSize, fontSize);
+    for (let index = steps - 1; index >= 0; index--) {
+        const found = probe(sizeAt(index), index === 0);
+        if (found !== undefined) return found;
+    }
+    return undefined;
 }
 
 /** The size the search bottoms out at, or `undefined` when the label cannot shrink. */
