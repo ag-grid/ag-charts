@@ -1,4 +1,8 @@
-import type { InternalAgColorType, NormalisedDonutSeriesTooltipRendererParams } from 'ag-charts-core';
+import type {
+    InternalAgColorType,
+    NormalisedDonutSeriesTooltipRendererParams,
+    NormalisedTextOrSegments,
+} from 'ag-charts-core';
 import { BaseProperties, PropertiesArray, Property } from 'ag-charts-core';
 import type {
     AgDonutCalloutLineItemStylerParams,
@@ -24,7 +28,7 @@ export class DonutTitle extends Caption {
 
 export class DonutInnerLabel<T extends object = any> extends Label<AgDonutSeriesLabelFormatterParams> {
     @Property
-    text!: string;
+    text!: NormalisedTextOrSegments;
 
     @Property
     spacing: number = 2;

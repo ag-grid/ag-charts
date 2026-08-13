@@ -1698,6 +1698,123 @@ describe('CartesianAxis', () => {
             expect(new Set(boxes.map((b) => Math.round(b.width))).size).toBeGreaterThan(1);
         });
 
+        // A banded scale puts each tick in the middle of its band, so on a horizontal axis the tick
+        // position is not an edge anything can align to - the band's own edges are.
+        describe('band-scale horizontal axes', () => {
+            const bottomAxisOptions = (label?: TextAlignLabelOptions): AgCartesianChartOptions => ({
+                data: TEXT_ALIGN_CATEGORY_DATA,
+                axes: {
+                    x: { type: 'category', position: 'bottom', ...(label ? { label } : {}) },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+            });
+
+            const getBandwidth = (chartInstance: AgChartInstance) => {
+                const chartInternal = deproxy(chartInstance as any) as any;
+                const axis = chartInternal.axes.find((a: any) => a.position === 'bottom');
+                expect(axis).toBeDefined();
+                return axis.scale.bandwidth as number;
+            };
+
+            const renderBottomAxis = async (label?: TextAlignLabelOptions) => {
+                if (chart != null) {
+                    chart.destroy();
+                    (chart as unknown) = undefined;
+                }
+                const options = bottomAxisOptions(label);
+                prepareTestOptions(options);
+                chart = AgCharts.create(options);
+                await waitForChartStability(chart);
+                return chart;
+            };
+
+            it('anchors an aligned label on its band edge instead of the tick', async () => {
+                await renderBottomAxis();
+                const bandwidth = getBandwidth(chart);
+                // Anti-vacuous: a zero bandwidth would make every shift below trivially satisfied.
+                expect(bandwidth).toBeGreaterThan(1);
+                const tickAnchors = captureAnchorsByText(getAxisLabelNodes(chart, 'bottom'));
+                expect(tickAnchors.size).toBe(3);
+
+                await renderBottomAxis({ textAlign: 'right' });
+                for (const node of getAxisLabelNodes(chart, 'bottom')) {
+                    const atTick = tickAnchors.get(node.datum.text);
+                    expect(atTick).toBeDefined();
+                    expect(node.datum.x).toBeCloseTo(atTick!.x + bandwidth / 2, 5);
+                    expect(node.datum.rotationCenterX).toBeCloseTo(atTick!.x + bandwidth / 2, 5);
+                }
+
+                await renderBottomAxis({ textAlign: 'left' });
+                for (const node of getAxisLabelNodes(chart, 'bottom')) {
+                    const atTick = tickAnchors.get(node.datum.text);
+                    expect(node.datum.x).toBeCloseTo(atTick!.x - bandwidth / 2, 5);
+                }
+
+                // `'center'` means the middle of the band, which is where the tick already is.
+                await renderBottomAxis({ textAlign: 'center' });
+                for (const node of getAxisLabelNodes(chart, 'bottom')) {
+                    const atTick = tickAnchors.get(node.datum.text);
+                    expect(node.datum.x).toBeCloseTo(atTick!.x, 5);
+                }
+            });
+
+            it('renders "right"-aligned labels flush with the right edge of their band', async () => {
+                await renderBottomAxis({ textAlign: 'right' });
+                const bandwidth = getBandwidth(chart);
+                const chartInternal = deproxy(chart as any) as any;
+                const axis = chartInternal.axes.find((a: any) => a.position === 'bottom');
+                const nodes = getAxisLabelNodes(chart, 'bottom');
+                expect(nodes.length).toBe(3);
+
+                // A band runs from where the scale places its category to one bandwidth beyond, so
+                // the closed form is what the anchor must land on - not a delta off the tick.
+                const renderedRightEdges = new Set<number>();
+                for (const node of nodes) {
+                    const bandRightEdge = axis.scale.convert(node.datum.text) + bandwidth;
+                    expect(node.datum.x).toBeCloseTo(bandRightEdge, 5);
+
+                    // `'right'` anchors the glyphs' right edge, so the rendered box must end on the
+                    // anchor - offset only by the axis group's own placement, which is shared.
+                    const box = Transformable.toCanvas(node);
+                    renderedRightEdges.add(Math.round((box.x + box.width - node.datum.x) * 10) / 10);
+                }
+                expect(renderedRightEdges.size).toBe(1);
+            });
+
+            it('leaves a continuous horizontal axis anchored on its ticks', async () => {
+                const continuousOptions = (label?: TextAlignLabelOptions): AgCartesianChartOptions => ({
+                    data: TEXT_ALIGN_CATEGORY_DATA,
+                    axes: {
+                        x: { type: 'number', position: 'bottom', ...(label ? { label } : {}) },
+                        y: { type: 'number', position: 'left' },
+                    },
+                    series: [{ type: 'scatter', xKey: 'value', yKey: 'value' }],
+                });
+
+                const naturalOptions = continuousOptions();
+                prepareTestOptions(naturalOptions);
+                chart = AgCharts.create(naturalOptions);
+                await waitForChartStability(chart);
+                const tickAnchors = captureAnchorsByText(getAxisLabelNodes(chart, 'bottom'));
+                expect(tickAnchors.size).toBeGreaterThan(1);
+
+                chart.destroy();
+                (chart as unknown) = undefined;
+
+                const alignedOptions = continuousOptions({ textAlign: 'right' });
+                prepareTestOptions(alignedOptions);
+                chart = AgCharts.create(alignedOptions);
+                await waitForChartStability(chart);
+
+                for (const node of getAxisLabelNodes(chart, 'bottom')) {
+                    const natural = tickAnchors.get(node.datum.text);
+                    expect(natural).toBeDefined();
+                    expect(node.datum.x).toBeCloseTo(natural!.x, 5);
+                }
+            });
+        });
+
         // A horizontal axis reserves its band on the opposite side of the axis line from a vertical
         // one, so the edge the correction pins over is the other one.
         it('keeps rotated labels out of the series area on a top-positioned axis', async () => {

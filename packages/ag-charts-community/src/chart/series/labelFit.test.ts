@@ -305,7 +305,13 @@ describe('series label fit', () => {
                     labelKey: 'label',
                     minSize: 40,
                     maxSize: 100,
-                    label: { enabled: true, placement: 'inside', formatter: (p: any) => p.datum.label },
+                    // Small bubbles overflow their label onto the background, where the inside default is invisible.
+                    label: {
+                        enabled: true,
+                        placement: 'inside',
+                        insideStyle: { color: { ref: 'textColor' } },
+                        formatter: (p: any) => p.datum.label,
+                    },
                 },
             ],
         });
@@ -325,6 +331,8 @@ describe('series label fit', () => {
         placement: 'inside',
         fill: '#ffffff',
         padding: 8,
+        // The inside default resolves to the chart background, which is invisible on this white box.
+        insideStyle: { color: { ref: 'textColor' } },
         formatter: () => 'Revenue',
     };
     const singlePointAxes = {

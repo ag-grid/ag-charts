@@ -78,6 +78,7 @@ const NO_RANGES_NUMERIC = {
         backgroundRegions: [
             {
                 fill: 'lightsalmon',
+                fillOpacity: 0.8,
             },
         ],
     },
@@ -89,6 +90,7 @@ const XRANGE_NUMERIC = {
         backgroundRegions: [
             {
                 fill: 'lightsalmon',
+                fillOpacity: 0.8,
                 xRange: { start: 20, end: 80 },
             },
         ],
@@ -101,6 +103,7 @@ const YRANGE_NUMERIC = {
         backgroundRegions: [
             {
                 fill: 'lightsalmon',
+                fillOpacity: 0.8,
                 yRange: { start: 20, end: 80 },
             },
         ],
@@ -113,6 +116,7 @@ const BOTH_RANGES_START_NUMERIC = {
         backgroundRegions: [
             {
                 fill: 'lightsalmon',
+                fillOpacity: 0.8,
                 xRange: { start: 20 },
                 yRange: { start: 20 },
             },
@@ -126,6 +130,7 @@ const BOTH_RANGES_END_NUMERIC = {
         backgroundRegions: [
             {
                 fill: 'lightsalmon',
+                fillOpacity: 0.8,
                 xRange: { end: 80 },
                 yRange: { end: 80 },
             },
@@ -139,6 +144,7 @@ const BOTH_RANGES_NUMERIC = {
         backgroundRegions: [
             {
                 fill: 'lightsalmon',
+                fillOpacity: 0.8,
                 xRange: { start: 20, end: 80 },
                 yRange: { start: 20, end: 80 },
             },
@@ -152,11 +158,13 @@ const OVERLAPPING_RANGES_NUMERIC = {
         backgroundRegions: [
             {
                 fill: 'lightsalmon',
+                fillOpacity: 0.8,
                 xRange: { start: 20, end: 60 },
                 yRange: { start: 20, end: 60 },
             },
             {
                 fill: 'thistle',
+                fillOpacity: 0.8,
                 xRange: { start: 40, end: 80 },
                 yRange: { start: 40, end: 80 },
             },
@@ -197,11 +205,13 @@ const SECONDARY_AXIS_NUMERIC: AgCartesianChartOptions = {
         backgroundRegions: [
             {
                 fill: 'lightsalmon',
+                fillOpacity: 0.8,
                 xRange: { axis: 'xSecondary', start: 20, end: 60 },
                 yRange: { start: 20, end: 60 },
             },
             {
                 fill: 'thistle',
+                fillOpacity: 0.8,
                 xRange: { start: 40, end: 80 },
                 yRange: { start: 40, end: 80 },
             },
@@ -215,6 +225,7 @@ const BOTH_RANGES_TIME = {
         backgroundRegions: [
             {
                 fill: 'lightsalmon',
+                fillOpacity: 0.8,
                 xRange: {
                     start: new Date('2026-01-01 06:00:00'),
                     end: new Date('2026-01-01 18:00:00'),
@@ -231,6 +242,7 @@ const BOTH_RANGES_UNIT_TIME = {
         backgroundRegions: [
             {
                 fill: 'lightsalmon',
+                fillOpacity: 0.8,
                 xRange: {
                     start: new Date('2026-02-01'),
                     end: new Date('2026-04-01'),
@@ -247,6 +259,7 @@ const BOTH_RANGES_ORDINAL_TIME = {
         backgroundRegions: [
             {
                 fill: 'lightsalmon',
+                fillOpacity: 0.8,
                 xRange: {
                     start: new Date('2026-02-01'),
                     end: new Date('2026-04-01'),
@@ -261,7 +274,12 @@ const BOTH_RANGES_CATEGORY = {
     ...CATEGORY,
     seriesArea: {
         backgroundRegions: [
-            { fill: 'lightsalmon', xRange: { start: 'two', end: 'four' }, yRange: { start: 20, end: 80 } },
+            {
+                fill: 'lightsalmon',
+                fillOpacity: 0.8,
+                xRange: { start: 'two', end: 'four' },
+                yRange: { start: 20, end: 80 },
+            },
         ],
     },
 };
@@ -416,6 +434,7 @@ for (const position of labelPositions) {
                 backgroundRegions: [
                     {
                         fill: 'lightsalmon',
+                        fillOpacity: 0.8,
                         xRange: { start: 20, end: 80 },
                         yRange: { start: 20, end: 80 },
                         label: {

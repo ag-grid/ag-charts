@@ -18,6 +18,7 @@ import type {
     LineDashOptions,
     StrokeOptions,
     TextOptions,
+    TextOrSegments,
     Toggleable,
 } from '../cartesian/commonOptions';
 import type {
@@ -101,7 +102,7 @@ export interface AgDonutSeriesCalloutOptions<TDatum = DatumDefault, TContext = C
 
 export interface AgDonutInnerLabel extends TextOptions {
     /** The text to show in the inner label. */
-    text: string;
+    text: TextOrSegments;
     /** The spacing in pixels before and after the inner label. */
     spacing?: PixelSize;
 }

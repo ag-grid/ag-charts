@@ -33,7 +33,25 @@ import { EXAMPLES_PATH_REGEXP, getCspHeaderName, getCspValue } from '../../src/u
  *
  * Usage (run after a build; defaults to the enforced production policy):
  *   nx run ag-charts-website:preview:csp
+ *   nx run ag-charts-website:preview:csp:staging              (staging policy, enforced)
+ *   nx run ag-charts-website:preview:csp:report-only          (production policy, report-only)
+ *   nx run ag-charts-website:preview:csp:staging-report-only
  *   tsx packages/ag-charts-website/scripts/csp/preview-csp.ts [--env=...] [--mode=...] [--port=...] [--base=...] [--no-https]
+ *
+ * Those configurations select the POLICY only (which CspEnv getCspValue is built for — the
+ * envs differ in their trial-licence and Salesforce form origins). They deliberately do NOT
+ * change which build is served: `dependsOn` builds the default config, so PUBLIC_SITE_URL
+ * stays https://localhost:4601 and PUBLIC_BASE_URL stays /charts, and the example runner
+ * keeps working.
+ *
+ * A staging/production BUILD is a separate axis and cannot be served faithfully from
+ * localhost — those configurations bake their remote origin into the output and flip
+ * PUBLIC_BASE_URL to / (see .env.build.staging), so absolute-URL fetches leave localhost and
+ * the examples-scope connect-src 'self' blocks them. If you need one regardless, build it
+ * explicitly and then invoke this script directly rather than through the target, so
+ * `dependsOn` does not rebuild the default variant over it — and pass the matching --base:
+ *   nx build ag-charts-website --configuration=staging
+ *   cd packages/ag-charts-website && tsx scripts/csp/preview-csp.ts --env staging --base=/
  *
  * Port: defaults to 4601 to match PUBLIC_SITE_URL baked into a local build
  * (.env.build → https://localhost:4601). The example runner fetches its modules

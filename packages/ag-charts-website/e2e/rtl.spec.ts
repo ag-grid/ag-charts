@@ -131,6 +131,40 @@ test.describe('rtl', () => {
         });
     });
 
+    test.describe('tooltip and crosshair numbers', () => {
+        // The zero-width LRE/PDF pair the library wraps a number in to hold it left-to-right.
+        const marked = (text: string) => `‪${text}‬`;
+
+        test.beforeEach(async ({ page }) => {
+            const { url } = toExamplePageUrl('rtl-e2e', 'rtl-tooltip-crosshair', 'vanilla');
+            await gotoExample(page, url);
+        });
+
+        test('negative tooltip value keeps its sign before the digits', async ({ page }) => {
+            await page.keyboard.press('Tab');
+            await page.keyboard.press('ArrowDown');
+
+            await expect(page.locator(SELECTORS.tooltip)).toContainText(marked('-45'));
+        });
+
+        test('renderer HTML is used exactly as supplied', async ({ page }) => {
+            await page.keyboard.press('Tab');
+            await page.keyboard.press('ArrowDown');
+
+            const custom = page.locator('.custom-tooltip');
+            await expect(custom).toHaveText('שינוי: -12.5%');
+            expect(await custom.textContent()).not.toContain('‪');
+        });
+
+        test('negative crosshair label keeps its sign before the digits', async ({ page }) => {
+            const { width, height } = await locateCanvas(page);
+            await page.hover(SELECTORS.canvasProxy, { position: { x: width / 2, y: height * 0.8 } });
+
+            const label = page.locator(`${SELECTORS.crosshairLabel}[data-axis-id="y"]`).first();
+            await expect(label).toHaveText(/‪-[\d.,]+‬/);
+        });
+    });
+
     test.describe('financial chart toolbar', () => {
         test.beforeEach(async ({ page }) => {
             const { url } = toExamplePageUrl('rtl-e2e', 'rtl-financial-chart', 'vanilla');

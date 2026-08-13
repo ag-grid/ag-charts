@@ -16,6 +16,7 @@ import {
     ZIndexMap,
     coerceTextValue,
     createId,
+    forceLtrNumbersIn,
     toPlainText,
 } from 'ag-charts-core';
 
@@ -462,7 +463,9 @@ export class Crosshair
 
     private getLabelHtml(value: any, label: CrosshairLabel) {
         const fractionDigits = this.axisLayout?.label?.fractionDigits ?? 0;
-        const defaults: AgCrosshairLabelRendererResult = { text: this.formatScaleText(value) };
+        // A renderer's own text is interpolated as-is, so only the text we format ourselves is marked.
+        const text = forceLtrNumbersIn(this.formatScaleText(value), this.ctx.domManager.isRtl);
+        const defaults: AgCrosshairLabelRendererResult = { text };
         // Returning `undefined` (or `null`, defensively) from the renderer falls through to the
         // default formatted value, matching the documented Renderer<P, R> contract. Empty strings
         // still render an empty label.

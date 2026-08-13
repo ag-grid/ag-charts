@@ -1,3 +1,4 @@
+import { loadImage as skiaLoadImage } from 'skia-canvas';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { classCast } from 'ag-charts-test';
@@ -5,6 +6,7 @@ import type { AgChartOptions, AgDonutSeriesOptions, AgPolarChartOptions } from '
 
 import { AgCharts } from '../../../api/agCharts';
 import { OptionsGraph } from '../../../module/optionsGraph';
+import type { Text } from '../../../scene/shape/text';
 import { Transformable } from '../../../scene/transformable';
 import type { Chart } from '../../chart';
 import type { AgChartProxy } from '../../chartProxy';
@@ -1179,6 +1181,124 @@ describe('DonutSeries', () => {
 
             await hoverAction(250, 200)(chart);
             await compare();
+        });
+    });
+
+    describe('inner label text segments', () => {
+        const segmentsOptions = (innerLabels: AgDonutSeriesOptions['innerLabels']): AgPolarChartOptions => ({
+            ...options,
+            data: [
+                { label: 'A', value: 60 },
+                { label: 'B', value: 40 },
+            ],
+            series: [{ type: 'donut', angleKey: 'value', innerRadiusRatio: 0.7, innerLabels }],
+        });
+
+        const innerLabelGeometry = (myChart: Chart) => {
+            const [series] = (myChart as any).series as any[];
+            return (series.innerLabelsSelection.nodes() as Text[]).map((node) => {
+                const bbox = node.getBBox();
+                return { y: node.y, top: bbox.y, visible: node.visible, width: bbox.width, height: bbox.height };
+            });
+        };
+
+        it('anchors single-segment labels identically to the equivalent plain strings', async () => {
+            chart = await createChart(
+                segmentsOptions([
+                    { text: 'Total', fontSize: 16 },
+                    { text: '100', fontSize: 16, spacing: 8 },
+                ])
+            );
+            const plain = innerLabelGeometry(chart);
+
+            await chart.publicApi!.update(
+                prepareTestOptions(
+                    segmentsOptions([
+                        { text: [{ text: 'Total' }], fontSize: 16 },
+                        { text: [{ text: '100' }], fontSize: 16, spacing: 8 },
+                    ])
+                ) as AgChartOptions
+            );
+            await waitForChartStability(chart);
+            const segmented = innerLabelGeometry(chart);
+
+            expect(plain).toHaveLength(2);
+            expect(segmented).toHaveLength(2);
+            for (const label of [...plain, ...segmented]) {
+                expect(label.visible).toBe(true);
+                expect(label.width).toBeGreaterThan(0);
+                expect(label.height).toBeGreaterThan(0);
+            }
+
+            expect(segmented.map(({ y }) => y)).toEqual(plain.map(({ y }) => y));
+            expect(segmented[1].y - segmented[0].y).toBeCloseTo(plain[1].y - plain[0].y, 5);
+            // The rendered box, not just the anchor: a segments array whose y was compensated for
+            // its own height would sit a full label height away from the plain-string box.
+            for (const [index, label] of segmented.entries()) {
+                expect(label.top).toBeCloseTo(plain[index].top, 5);
+            }
+        });
+
+        it('accepts a segments array without warnings and still rejects a malformed segment', async () => {
+            chart = await createChart(
+                segmentsOptions([
+                    {
+                        text: [
+                            { text: 'Total ' },
+                            { text: '100', fontSize: 20, color: 'red', verticalAlign: 'middle' },
+                        ],
+                        fontSize: 14,
+                    },
+                ])
+            );
+
+            expectWarningsCalls().toEqual([]);
+
+            await chart.publicApi!.update(
+                prepareTestOptions(
+                    segmentsOptions([{ text: [{ type: 'image', width: 10, height: 10 } as any] }])
+                ) as AgChartOptions
+            );
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+              [
+                [
+                  "AG Charts - Option \`series[0].innerLabels[0].text\` cannot be set to \`[{"type":"image","width":10,"height":10}]\`; expecting a string, a number or bigint, a date or text or image segments array, ignoring.",
+                ],
+              ]
+            `);
+        });
+
+        it('renders per-segment styling, vertical alignment and an inline image', async () => {
+            const icon = `data:image/svg+xml;utf8,${encodeURIComponent(
+                `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">` +
+                    `<circle cx="12" cy="12" r="11" fill="#2ca02c"/></svg>`
+            )}`;
+            const preloaded = await skiaLoadImage(icon);
+
+            chart = deproxy(
+                AgCharts.create(
+                    prepareTestOptions(
+                        segmentsOptions([
+                            {
+                                text: [
+                                    { text: '60' },
+                                    { text: '%', fontSize: 12, color: '#2ca02c', verticalAlign: 'top' },
+                                    { type: 'image', url: icon, width: 14, height: 14, verticalAlign: 'middle' },
+                                ],
+                                fontSize: 24,
+                            },
+                            { text: 'Share', spacing: 6, fontStyle: 'italic' },
+                        ])
+                    ) as AgChartOptions
+                ) as AgChartProxy
+            );
+            (chart.ctx.scene as any).imageLoader.loadImage = () => preloaded as unknown as HTMLImageElement;
+            await waitForChartStability(chart);
+
+            await compare();
+            expectWarningsCalls().toEqual([]);
         });
     });
 

@@ -12,6 +12,7 @@ import type {
     AgCrossLineContextMenuActionEvent,
 } from 'ag-charts-types';
 
+import { evalPageFunction } from './agE2E';
 import { expect, test } from './fixture';
 import { expectChartScreenshot } from './scene-capture';
 import {
@@ -25,34 +26,14 @@ import {
     waitForChartUpdate,
 } from './util';
 
-async function popActions(page: Page): Promise<AgCaptionContextMenuActionEvent[]> {
+async function popActions(page: Page): Promise<unknown> {
     await waitForChartUpdate(page.locator(SELECTORS.wrapper));
-    const actions = await page.evaluate(() => {
-        const agE2E_popActions: unknown = (window as any)?.agE2E?.popActions;
-        if (agE2E_popActions == null) {
-            throw new Error('window.agE2E.popActions is not defined');
-        } else if (typeof agE2E_popActions !== 'function') {
-            throw new Error('window.agE2E.popActions is not a function');
-        }
-        return agE2E_popActions();
-    });
-    expect(Array.isArray(actions)).toBe(true);
-    return actions as AgCaptionContextMenuActionEvent[];
+    return evalPageFunction(page, 'popActions');
 }
 
-async function popGetItems(page: Page): Promise<AgContextMenuGetItemsParamsCaption[]> {
+async function popGetItems(page: Page): Promise<unknown> {
     await waitForChartUpdate(page.locator(SELECTORS.wrapper));
-    const getItems = await page.evaluate(() => {
-        const agE2E_popGetItems: unknown = (window as any)?.agE2E?.popGetItems;
-        if (agE2E_popGetItems == null) {
-            throw new Error('window.agE2E.popGetItems is not defined');
-        } else if (typeof agE2E_popGetItems !== 'function') {
-            throw new Error('window.agE2E.popGetItems is not a function');
-        }
-        return agE2E_popGetItems();
-    });
-    expect(Array.isArray(getItems)).toBe(true);
-    return getItems as AgContextMenuGetItemsParamsCaption[];
+    return evalPageFunction(page, 'popGetItems');
 }
 
 async function contextMenu(page: Page, point: ClientPoint) {

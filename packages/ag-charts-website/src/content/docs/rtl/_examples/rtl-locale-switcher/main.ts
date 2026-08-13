@@ -1,4 +1,5 @@
 import {
+    AgBarSeriesTooltipRendererParams,
     AgCartesianChartOptions,
     AgCharts,
     BarSeriesModule,
@@ -33,80 +34,89 @@ const LANGUAGES = {
     en: {
         localeText: AG_CHARTS_LOCALE_EN_US,
         enableRtl: false,
-        title: 'Quarterly Product Sales Performance Overview',
-        subtitle: 'Comparison of Sales and Revenue Across Categories for the Year 2024',
+        title: 'Monthly Sales Growth and Net Profit Overview',
+        subtitle: 'Change in Sales and Net Profit by Month for the Year 2024',
         footnote: 'Source: Regional Sales Department — Internal Report',
         yAxisTitle: 'Amount in US Dollars ($)',
-        seriesNames: ['Total Sales Volume', 'Gross Revenue'],
+        seriesNames: ['Sales Growth', 'Net Profit'],
         zoomControls: 'Zoom Controls',
         legendControls: 'Legend Controls',
         data: [
-            { month: 'January', sales: 150, revenue: 200 },
-            { month: 'February', sales: 230, revenue: 310 },
-            { month: 'March', sales: 180, revenue: 250 },
-            { month: 'April', sales: 290, revenue: 380 },
-            { month: 'May', sales: 210, revenue: 290 },
-            { month: 'June', sales: 260, revenue: 350 },
+            { month: 'January', growth: 45, profit: 40 },
+            { month: 'February', growth: -60, profit: 15 },
+            { month: 'March', growth: 25, profit: -20 },
+            { month: 'April', growth: 80, profit: 65 },
+            { month: 'May', growth: -35, profit: -30 },
+            { month: 'June', growth: 50, profit: 55 },
         ],
     },
     ar: {
         localeText: AG_CHARTS_LOCALE_AR_EG,
         enableRtl: true,
-        title: 'نظرة عامة على أداء Sales مبيعات المنتجات الفصلية',
-        subtitle: 'مقارنة بيانات Revenue المبيعات والإيرادات عبر الفئات لعام 2024',
+        title: 'نظرة عامة على نمو Sales المبيعات وصافي الربح الشهري',
+        subtitle: 'التغير في بيانات Profit المبيعات وصافي الربح شهريًا لعام 2024',
         footnote: 'المصدر: قسم المبيعات الإقليمي — Sales Department تقرير داخلي',
         yAxisTitle: 'المبلغ Amount بالدولار الأمريكي',
-        seriesNames: ['مبيعات Sales', 'إيرادات Revenue'],
+        seriesNames: ['نمو المبيعات', 'صافي الربح'],
         zoomControls: 'عناصر التكبير',
         legendControls: 'عناصر وسيلة الإيضاح',
         data: [
-            { month: 'يناير', sales: 150, revenue: 200 },
-            { month: 'فبراير', sales: 230, revenue: 310 },
-            { month: 'مارس', sales: 180, revenue: 250 },
-            { month: 'أبريل', sales: 290, revenue: 380 },
-            { month: 'مايو', sales: 210, revenue: 290 },
-            { month: 'يونيو', sales: 260, revenue: 350 },
+            { month: 'يناير', growth: 45, profit: 40 },
+            { month: 'فبراير', growth: -60, profit: 15 },
+            { month: 'مارس', growth: 25, profit: -20 },
+            { month: 'أبريل', growth: 80, profit: 65 },
+            { month: 'مايو', growth: -35, profit: -30 },
+            { month: 'يونيو', growth: 50, profit: 55 },
         ],
     },
     fa: {
         localeText: AG_CHARTS_LOCALE_FA_IR,
         enableRtl: true,
-        title: 'نمای کلی عملکرد Sales فروش محصولات فصلی',
-        subtitle: 'مقایسه داده‌های Revenue فروش و درآمد در دسته‌بندی‌ها برای سال 2024',
+        title: 'نمای کلی رشد Sales فروش و سود خالص ماهانه',
+        subtitle: 'تغییر داده‌های Profit فروش و سود خالص به تفکیک ماه برای سال 2024',
         footnote: 'منبع: بخش فروش منطقه‌ای — Sales Department گزارش داخلی',
         yAxisTitle: 'مبلغ Amount به دلار آمریکا',
-        seriesNames: ['فروش Sales', 'درآمد Revenue'],
+        seriesNames: ['رشد فروش', 'سود خالص'],
         zoomControls: 'کنترل‌های بزرگ‌نمایی',
         legendControls: 'کنترل‌های راهنما',
         data: [
-            { month: 'ژانوِیه', sales: 150, revenue: 200 },
-            { month: 'فوریه', sales: 230, revenue: 310 },
-            { month: 'مارس', sales: 180, revenue: 250 },
-            { month: 'آوریل', sales: 290, revenue: 380 },
-            { month: 'مه', sales: 210, revenue: 290 },
-            { month: 'ژوئن', sales: 260, revenue: 350 },
+            { month: 'ژانوِیه', growth: 45, profit: 40 },
+            { month: 'فوریه', growth: -60, profit: 15 },
+            { month: 'مارس', growth: 25, profit: -20 },
+            { month: 'آوریل', growth: 80, profit: 65 },
+            { month: 'مه', growth: -35, profit: -30 },
+            { month: 'ژوئن', growth: 50, profit: 55 },
         ],
     },
     he: {
         localeText: AG_CHARTS_LOCALE_HE_IL,
         enableRtl: true,
-        title: 'סקירת ביצועי Sales מכירות מוצרים רבעונית',
-        subtitle: 'השוואת נתוני Revenue מכירות והכנסות בין קטגוריות לשנת 2024',
+        title: 'סקירת צמיחת Sales מכירות ורווח נקי חודשי',
+        subtitle: 'השינוי בנתוני Profit מכירות ורווח נקי לפי חודש לשנת 2024',
         footnote: 'מקור: מחלקת מכירות אזורית — Sales Department דוח פנימי',
         yAxisTitle: 'הסכום Amount בשקלים חדשים',
-        seriesNames: ['מכירות Sales', 'הכנסות Revenue'],
+        seriesNames: ['צמיחת מכירות', 'רווח נקי'],
         zoomControls: 'פקדי זום',
         legendControls: 'פקדי מקרא',
         data: [
-            { month: 'ינואר', sales: 150, revenue: 200 },
-            { month: 'פברואר', sales: 230, revenue: 310 },
-            { month: 'מרץ', sales: 180, revenue: 250 },
-            { month: 'אפריל', sales: 290, revenue: 380 },
-            { month: 'מאי', sales: 210, revenue: 290 },
-            { month: 'יוני', sales: 260, revenue: 350 },
+            { month: 'ינואר', growth: 45, profit: 40 },
+            { month: 'פברואר', growth: -60, profit: 15 },
+            { month: 'מרץ', growth: 25, profit: -20 },
+            { month: 'אפריל', growth: 80, profit: 65 },
+            { month: 'מאי', growth: -35, profit: -30 },
+            { month: 'יוני', growth: 50, profit: 55 },
         ],
     },
 };
+
+// A renderer's HTML is inserted as supplied, so it wraps its own numbers to keep them left-to-right.
+const LTR_EMBEDDING = '‪';
+const POP_DIRECTIONAL_FORMATTING = '‬';
+
+function profitTooltip({ datum, yName }: AgBarSeriesTooltipRendererParams) {
+    const value = `${LTR_EMBEDDING}${datum.profit}${POP_DIRECTIONAL_FORMATTING}`;
+    return `<div class="profit-tooltip">${yName} ${value}</div>`;
+}
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
@@ -118,9 +128,23 @@ const options: AgCartesianChartOptions = {
     subtitle: { text: LANGUAGES.en.subtitle, wrapping: 'always', maxWidth: 300 },
     footnote: { text: LANGUAGES.en.footnote },
     data: LANGUAGES.en.data,
+    tooltip: { mode: 'single' },
     series: [
-        { type: 'bar', xKey: 'month', yKey: 'sales', yName: LANGUAGES.en.seriesNames[0] },
-        { type: 'bar', xKey: 'month', yKey: 'revenue', yName: LANGUAGES.en.seriesNames[1] },
+        {
+            type: 'bar',
+            xKey: 'month',
+            yKey: 'growth',
+            yName: LANGUAGES.en.seriesNames[0],
+            label: { enabled: true, placement: 'outside-end' },
+        },
+        {
+            type: 'bar',
+            xKey: 'month',
+            yKey: 'profit',
+            yName: LANGUAGES.en.seriesNames[1],
+            label: { enabled: true, placement: 'outside-end' },
+            tooltip: { renderer: profitTooltip },
+        },
     ],
     axes: {
         x: { type: 'category' },
@@ -159,8 +183,21 @@ function updateLanguage(lang: string) {
     options.footnote = { text: config.footnote };
     options.data = config.data;
     options.series = [
-        { type: 'bar', xKey: 'month', yKey: 'sales', yName: config.seriesNames[0] },
-        { type: 'bar', xKey: 'month', yKey: 'revenue', yName: config.seriesNames[1] },
+        {
+            type: 'bar',
+            xKey: 'month',
+            yKey: 'growth',
+            yName: config.seriesNames[0],
+            label: { enabled: true, placement: 'outside-end' },
+        },
+        {
+            type: 'bar',
+            xKey: 'month',
+            yKey: 'profit',
+            yName: config.seriesNames[1],
+            label: { enabled: true, placement: 'outside-end' },
+            tooltip: { renderer: profitTooltip },
+        },
     ];
     options.axes = {
         x: { type: 'category' },

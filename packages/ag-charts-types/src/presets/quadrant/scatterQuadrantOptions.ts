@@ -18,13 +18,19 @@ export interface AgScatterQuadrantPreset<TDatum, TContext>
             AgScatterSeriesThemeableOptions<TDatum, TContext>,
             'colorScale' | 'itemStyler' | 'showInMiniChart' | 'title'
         > {
-    /** TODO */
+    /** Whether to move the axis lines so that they cross at the pivot, with the axis titles remaining at the edge of
+     * the chart. When `false`, the axes stay at the bottom and left of the chart. The regions are divided at the
+     * pivot either way.
+     *
+     * Default: `true`
+     */
     alignAxesToPivot?: boolean;
-    /** TODO */
+    /** Function used to return formatting for individual markers, based on the supplied information.
+     */
     itemStyler?: Styler<AgScatterQuadrantItemStylerParams<TDatum, TContext>, AgQuadrantRegionMarkerStyle>;
-    /** TODO */
+    /** The data values at which the chart is divided into four regions. */
     pivot?: AgQuadrantPivotOptions;
-    /** TODO */
+    /** Configuration for each of the four regions the pivot divides the chart into. */
     regions?: AgQuadrantRegionsOptions;
     /** The key to use to retrieve size values from the data, used to control the size of the markers. */
     sizeKey?: DatumKey<TDatum>;
@@ -32,25 +38,44 @@ export interface AgScatterQuadrantPreset<TDatum, TContext>
     minSize?: PixelSize;
     /** Determines the largest size a marker can be in pixels when `sizeKey` is present. */
     maxSize?: PixelSize;
-    /** TODO */
+    /** Configuration for the horizontal axis, which is always a number axis. Its labels and ticks are hidden by
+     * default, and its line is drawn more heavily than a standard axis line.
+     */
     xAxis?: AgScatterQuadrantAxisOptions<TContext>;
-    /** TODO */
+    /** Configuration for the vertical axis, which is always a number axis. Its labels and ticks are hidden by
+     * default, and its line is drawn more heavily than a standard axis line.
+     */
     yAxis?: AgScatterQuadrantAxisOptions<TContext>;
 }
 
 export interface AgQuadrantPivotOptions {
+    /** The x-value at which the chart is divided into left and right regions.
+     *
+     * Default: `0`
+     */
     x?: AgNumericValue;
+    /** The y-value at which the chart is divided into bottom and top regions.
+     *
+     * Default: `0`
+     */
     y?: AgNumericValue;
 }
 
 export interface AgQuadrantRegionsOptions {
+    /** Configuration for the region containing values below the pivot on the x-axis and above it on the y-axis. */
     topLeft?: AgQuadrantRegionOptions;
+    /** Configuration for the region containing values above the pivot on both axes. */
     topRight?: AgQuadrantRegionOptions;
+    /** Configuration for the region containing values below the pivot on both axes. */
     bottomLeft?: AgQuadrantRegionOptions;
+    /** Configuration for the region containing values above the pivot on the x-axis and below it on the y-axis. */
     bottomRight?: AgQuadrantRegionOptions;
 }
 
 export interface AgQuadrantRegionOptions extends Omit<AgSeriesAreaBackgroundRegion, 'xRange' | 'yRange'> {
+    /** Styling for the markers of the data points that fall within this region. When `fill` is omitted, markers use
+     * the region's own `fill` at full opacity.
+     */
     marker?: AgQuadrantRegionMarkerStyle;
 }
 
@@ -65,6 +90,7 @@ export interface AgScatterQuadrantItemStylerParams<TDatum, TContext> extends AgS
     TDatum,
     TContext
 > {
+    /** The region the marker falls in, determined by comparing its x- and y-values against the pivot. */
     region: AgQuadrantRegion;
 }
 

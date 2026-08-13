@@ -269,6 +269,33 @@ describe('Validation utils', () => {
             expect(invalid).toEqual([]);
             expect(console.warn).not.toHaveBeenCalled();
         });
+
+        test('reports the deprecation to onDeprecation with the notice and path', () => {
+            const onDeprecation = vi.fn();
+            validate<{ colorScale: string }>(
+                { colorScale: 'red' },
+                { colorScale: deprecated(string, 'Use `colorScale.fills` instead.') },
+                '',
+                { onDeprecation }
+            );
+            expect(onDeprecation).toHaveBeenCalledTimes(1);
+            expect(onDeprecation).toHaveBeenCalledWith(
+                'Option `colorScale` is deprecated. Use `colorScale.fills` instead.',
+                'colorScale'
+            );
+        });
+
+        test('stays silent to onDeprecation under silentAdvisories', () => {
+            const onDeprecation = vi.fn();
+            validate<{ colorScale: string }>(
+                { colorScale: 'red' },
+                { colorScale: deprecated(string, 'Use `colorScale.range` instead.') },
+                '',
+                { onDeprecation, silentAdvisories: true }
+            );
+            expect(onDeprecation).not.toHaveBeenCalled();
+            expect(console.warn).not.toHaveBeenCalled();
+        });
     });
 
     describe('Union Validator', () => {

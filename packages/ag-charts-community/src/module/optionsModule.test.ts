@@ -1091,7 +1091,7 @@ describe('ChartOptions', () => {
                       "border": {
                         "enabled": false,
                       },
-                      "color": "#181d1f",
+                      "color": "#ffffff",
                     },
                     "outsideStyle": {
                       "border": {
@@ -1175,7 +1175,7 @@ describe('ChartOptions', () => {
                       "border": {
                         "enabled": false,
                       },
-                      "color": "#181d1f",
+                      "color": "#ffffff",
                     },
                     "outsideStyle": {
                       "border": {
@@ -1666,7 +1666,7 @@ describe('ChartOptions', () => {
                       "border": {
                         "enabled": false,
                       },
-                      "color": "#181d1f",
+                      "color": "#ffffff",
                     },
                     "outsideStyle": {
                       "border": {
@@ -1750,7 +1750,7 @@ describe('ChartOptions', () => {
                       "border": {
                         "enabled": false,
                       },
-                      "color": "#181d1f",
+                      "color": "#ffffff",
                     },
                     "outsideStyle": {
                       "border": {
@@ -2241,7 +2241,7 @@ describe('ChartOptions', () => {
                       "border": {
                         "enabled": false,
                       },
-                      "color": "#181d1f",
+                      "color": "#ffffff",
                     },
                     "outsideStyle": {
                       "border": {
@@ -2325,7 +2325,7 @@ describe('ChartOptions', () => {
                       "border": {
                         "enabled": false,
                       },
-                      "color": "#181d1f",
+                      "color": "#ffffff",
                     },
                     "outsideStyle": {
                       "border": {

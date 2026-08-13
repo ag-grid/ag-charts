@@ -49,7 +49,7 @@ export const EXAMPLE_OPTIONS: Record<string, Record<string, ExampleOverrides>> =
         needle: { skipCanvasUpdateCheck: true },
         segmentation: { clickOrder: 'reverse' },
     },
-    overlays: {
+    'dev-validation': {
         'validation-overlay': { ignoreConsoleWarnings: true },
         'validation-overlay-multi': { ignoreConsoleWarnings: true, frameworks: ['vanilla'] },
         'validation-overlay-dark': { ignoreConsoleWarnings: true, frameworks: ['vanilla'] },

@@ -483,6 +483,7 @@ export const bundleContents = new Map([
         [
             'ScatterQuadrantPresetModule',
             'NumberAxisModule',
+            'BubbleSeriesModule',
             'ScatterSeriesModule',
             'AnimationModule',
             'AnnotationsModule',
