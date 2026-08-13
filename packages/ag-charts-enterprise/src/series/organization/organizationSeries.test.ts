@@ -1557,7 +1557,10 @@ describe('OrganizationSeries', () => {
         });
 
         it('applies hoverStyle to the expander pill independently of node.clickToExpand', async () => {
-            const options = buildOptions({ hoverStyle: { fill: '#ff00ff', stroke: '#00ffff' } }, { clickToExpand: true });
+            const options = buildOptions(
+                { hoverStyle: { fill: '#ff00ff', stroke: '#00ffff' } },
+                { clickToExpand: true }
+            );
             prepareEnterpriseTestOptions(options);
 
             chart = AgCharts.create(options);
