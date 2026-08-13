@@ -101,7 +101,7 @@ export interface AgDonutSeriesCalloutOptions<TDatum = DatumDefault, TContext = C
 }
 
 export interface AgDonutInnerLabel extends TextOptions {
-    /** The text to show in the inner label. Either a plain value, or an array of text and image segments, each with its own styling. */
+    /** The text to show in the inner label. */
     text: TextOrSegments;
     /** The spacing in pixels before and after the inner label. */
     spacing?: PixelSize;
