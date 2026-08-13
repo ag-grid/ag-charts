@@ -1,6 +1,6 @@
 import type { AgAxisClickEvent } from 'ag-charts-community';
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
-import type { AxisID, CanvasPoint, DynamicContext } from 'ag-charts-core';
+import type { AxisID, CanvasPoint, CurrentPoint, DynamicContext } from 'ag-charts-core';
 import { AbstractModuleInstance, ChartAxisDirection, boxEmpty, callWithContext } from 'ag-charts-core';
 
 type AxisHit = { axisId: AxisID; direction: ChartAxisDirection };
@@ -217,7 +217,7 @@ export class AxisDOMProxy extends AbstractModuleInstance {
 
         // Annotate the overlapping axis so the series-area dispatch offers it as an additional region,
         // rather than dispatching a competing axis-only menu. This lets a node and an axis co-exist.
-        event.axis = this.pickAxisValue(axis.axisId, event.widgetEvent);
+        event.axis = this.pickAxisValue(axis.axisId, event);
     }
 
     private onSeriesAreaDoubleClick(event: _ModuleSupport.DragInterpreterDblClickEvent) {
@@ -297,8 +297,12 @@ export class AxisDOMProxy extends AbstractModuleInstance {
         });
     }
 
-    private pickAxisValue(axisId: AxisID, widgetEvent: _Widget.MouseWidgetEvent<'contextmenu'>) {
-        return this.ctx.axisManager.getAxisIdContext(axisId)?.pickValue(widgetEvent);
+    private pickAxisValue(axisId: AxisID, point: Readonly<CanvasPoint>) {
+        return this.ctx.axisManager.getAxisIdContext(axisId)?.pickValue(point);
+    }
+
+    private toCanvasPoint(div: _Widget.AxisWidget, point: Readonly<CurrentPoint>): CanvasPoint {
+        return { canvasX: point.currentX + div.cssLeft(), canvasY: point.currentY + div.cssTop() };
     }
 
     /**
@@ -310,8 +314,11 @@ export class AxisDOMProxy extends AbstractModuleInstance {
         // Keyboard activation is out of scope for this feature (AG-9809).
         if (widgetEvent.device === 'keyboard') return;
 
+        const div = this.axes.find((axis) => axis.axisId === axisId)?.div;
+        if (!div) return;
+
         const axisCtx = this.ctx.axisManager.getAxisIdContext(axisId);
-        const pick = axisCtx?.pickValue(widgetEvent);
+        const pick = axisCtx?.pickValue(this.toCanvasPoint(div, widgetEvent));
         if (!axisCtx || !pick) return;
 
         const isDoubleClick = widgetEvent.type === 'dblclick';
@@ -347,7 +354,7 @@ export class AxisDOMProxy extends AbstractModuleInstance {
         canvasX: number,
         canvasY: number
     ) {
-        const pick = this.pickAxisValue(axisId, widgetEvent);
+        const pick = this.pickAxisValue(axisId, { canvasX, canvasY });
         if (!pick) return;
 
         this.ctx.contextMenuRegistry?.dispatchContext('axis', { widgetEvent, canvasX, canvasY }, pick);
