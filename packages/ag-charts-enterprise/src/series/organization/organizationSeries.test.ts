@@ -934,13 +934,15 @@ describe('OrganizationSeries', () => {
 
     type Node<T = unknown> = _ModuleSupport.Node<T>;
 
-    function findDescendantByTag(node: Node, searchTag: number): Node | undefined {
-        if (node.tag === searchTag) return node;
-        if (!(node instanceof _ModuleSupport.Group)) return undefined;
-        for (const child of node.children()) {
-            const found = findDescendantByTag(child, searchTag);
-            if (found) return found;
+    /** Every descendant of `node` (including itself) tagged `searchTag`, in DFS/paint order. */
+    function findAllDescendantsByTag(node: Node, searchTag: number): Node[] {
+        const found: Node[] = node.tag === searchTag ? [node] : [];
+        if (node instanceof _ModuleSupport.Group) {
+            for (const child of node.children()) {
+                found.push(...findAllDescendantsByTag(child, searchTag));
+            }
         }
+        return found;
     }
 
     function findCardNode(itemId: string): Node {
@@ -954,11 +956,11 @@ describe('OrganizationSeries', () => {
         return card!;
     }
 
-    /** The scene node tagged `tag` within the card for `itemId`. */
+    /** The first scene node tagged `tag` within the card for `itemId` (the expander's own pill `Rect`). */
     function findTaggedNode(itemId: string, tag: OrganizationNodeTag): Node {
-        const target = findDescendantByTag(findCardNode(itemId), tag);
+        const target = findAllDescendantsByTag(findCardNode(itemId), tag)[0];
         expect(target).toBeDefined();
-        return target!;
+        return target;
     }
 
     /** Canvas-space centre of the scene node tagged `tag` within the card for `itemId`. */
@@ -1511,6 +1513,14 @@ describe('OrganizationSeries', () => {
             return new Caster(findTaggedNode(itemId, OrganizationNodeTag.Expander)).cast(_ModuleSupport.Rect).value;
         }
 
+        /** The expander's child-count `Text` node — also tagged Expander, alongside the pill `Rect`. */
+        function expanderCountTextNode(itemId: string): _ModuleSupport.Text {
+            const candidates = findAllDescendantsByTag(findCardNode(itemId), OrganizationNodeTag.Expander);
+            const textNode = candidates.find((node) => node instanceof _ModuleSupport.Text);
+            expect(textNode).toBeDefined();
+            return new Caster(textNode).cast(_ModuleSupport.Text).value;
+        }
+
         async function hoverItem(itemId: string, tag: OrganizationNodeTag): Promise<void> {
             const { x, y } = centreOf(itemId, tag);
             await hoverAction(x, y)(chart);
@@ -1643,6 +1653,56 @@ describe('OrganizationSeries', () => {
             expect(requestUpdateCount()).toBe(0);
 
             emitSpy.mockRestore();
+        });
+
+        it('applies hoverStyle text.color/fontWeight to the expander count text while hovered, reverting once unhovered', async () => {
+            const options = buildOptions({ hoverStyle: { text: { color: '#334455', fontWeight: 'bold' } } });
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const unhovered = expanderCountTextNode('cfo');
+            const unhoveredColor = unhovered.fill;
+            const unhoveredFontWeight = unhovered.fontWeight;
+
+            await hoverItem('cfo', OrganizationNodeTag.Expander);
+
+            const hovered = expanderCountTextNode('cfo');
+            expect(hovered.fill).toBe('#334455');
+            expect(hovered.fontWeight).toBe('bold');
+            expect(hovered.fill).not.toBe(unhoveredColor);
+            expect(hovered.fontWeight).not.toBe(unhoveredFontWeight);
+
+            await hoverItem('cfo', OrganizationNodeTag.Card);
+
+            const afterUnhover = expanderCountTextNode('cfo');
+            expect(afterUnhover.fill).toBe(unhoveredColor);
+            expect(afterUnhover.fontWeight).toBe(unhoveredFontWeight);
+        });
+
+        it('reverts the expander pill hover style once the pointer leaves the series area entirely', async () => {
+            const options = buildOptions({ hoverStyle: { fill: '#ff00ff', stroke: '#00ffff' } });
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const unhoveredFill = expanderShapeNode('cfo').fill;
+            const unhoveredStroke = expanderShapeNode('cfo').stroke;
+
+            await hoverItem('cfo', OrganizationNodeTag.Expander);
+            expect(expanderShapeNode('cfo').fill).toBe('#ff00ff');
+            expect(expanderShapeNode('cfo').stroke).toBe('#00ffff');
+
+            // Outside the series rect (default chart padding is 20px), so the bubble chain drops
+            // the series-area element and a real 'mouseleave' fires on it. The clear is debounced
+            // by `highlightManager.unhighlightDelay` (100ms), so advance real time past it.
+            await hoverAction(2, 2)(chart);
+            await waitForChartStability(chart, deproxy(chart).ctx.highlightManager.unhighlightDelay + 50);
+
+            expect(expanderShapeNode('cfo').fill).toBe(unhoveredFill);
+            expect(expanderShapeNode('cfo').stroke).toBe(unhoveredStroke);
         });
     });
 
