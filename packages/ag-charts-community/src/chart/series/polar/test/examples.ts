@@ -207,6 +207,28 @@ export const DONUT_SERIES_INNER_CIRCLE_CORNER_RADIUS_SPACED: AgPolarChartOptions
     ],
 };
 
+// Translucent sector fills composite over whatever sits behind them, so the corner fill must be
+// confined to the gap - anywhere else it tints the slice.
+export const DONUT_SERIES_INNER_CIRCLE_CORNER_RADIUS_TRANSLUCENT: AgPolarChartOptions = {
+    title: {
+        text: 'Market Share',
+    },
+    data: DATA_MARKET_SHARE,
+    series: [
+        {
+            type: 'donut',
+            angleKey: 'share',
+            innerRadiusRatio: 0.7,
+            cornerRadius: 30,
+            sectorSpacing: 1,
+            fillOpacity: 0.4,
+            innerCircle: {
+                fill: '#c9fdc9',
+            },
+        },
+    ],
+};
+
 export const DONUT_SERIES_RATIO: AgPolarChartOptions = {
     title: {
         text: 'Market Share',

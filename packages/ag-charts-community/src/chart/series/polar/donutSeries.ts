@@ -18,6 +18,7 @@ import {
     type WrapOptions,
     anyOverlap,
     cachedTextMeasurer,
+    canRenderTextOffscreen,
     extractDomain,
     fitLabelText,
     formatValue,
@@ -157,7 +158,7 @@ interface PieDonutSeriesStyle extends NormalisedDonutSeriesStyle, NormalisedPieS
 type PieAnimationFns = ReturnType<typeof preparePieSeriesAnimationFunctions>;
 
 // The sector animation tweens `fill`/`stroke` towards the datum's own sector style, which the
-// inner-corner backdrops must keep out of - they carry `innerCircle.fill` and have no stroke.
+// inner-corner nodes must keep out of - they carry `innerCircle.fill` (or none) and have no stroke.
 function prepareInnerCircleCornersAnimationFunctions({ nodes }: PieAnimationFns): PieAnimationFns['nodes'] {
     return {
         fromFn: (...args) => {
@@ -223,11 +224,24 @@ export class DonutSeries extends PolarSeries<
         this.innerCircleGroup,
         () => new Marker({ shape: 'circle' })
     );
+    // `destination-out` erases everything already painted on its canvas, so the backdrops and the
+    // cutouts that trim them must share a group that composites offscreen, in that child order.
     readonly innerCircleCornersGroup = this.backgroundGroup.appendChild(
-        new Group({ name: `${this.id}-innerCircleCorners` })
+        new Group({ name: `${this.id}-innerCircleCorners`, renderToOffscreenCanvas: true })
+    );
+    private readonly innerCircleCornersBackdropGroup = this.innerCircleCornersGroup.appendChild(
+        new Group({ name: `${this.id}-innerCircleCornersBackdrop` })
+    );
+    private readonly innerCircleCornersCutoutGroup = this.innerCircleCornersGroup.appendChild(
+        new Group({ name: `${this.id}-innerCircleCornersCutout` })
     );
     readonly innerCircleCornersSelection = Selection.select<Sector<PieDonutNodeDatum>>(
-        this.innerCircleCornersGroup,
+        this.innerCircleCornersBackdropGroup,
+        () => this.nodeFactory(),
+        false
+    );
+    readonly innerCircleCornersCutoutSelection = Selection.select<Sector<PieDonutNodeDatum>>(
+        this.innerCircleCornersCutoutGroup,
         () => this.nodeFactory(),
         false
     );
@@ -1077,15 +1091,23 @@ export class DonutSeries extends PolarSeries<
     }
 
     // A rounded inner corner pulls the sector fill away from the inner radius, leaving a crescent
-    // of chart background that `innerCircle.fill` should cover. Backdrop sectors fill it.
+    // of chart background that `innerCircle.fill` should cover. Backdrop sectors fill it, and a
+    // cutout of the sector's own outline trims each backdrop back to that crescent.
     private updateInnerCircleCornersSelection() {
         const { fill } = this.properties.innerCircle;
         const enabled = fill != null && fill !== 'transparent' && this.getInnerRadius() > 0;
         const nodeData = enabled ? this.nodeData.filter((datum) => (datum.sectorFormat.cornerRadius ?? 0) > 0) : [];
+        const datumId = (datum: PieDonutNodeDatum) => this.getDatumId(datum.datumIndex);
 
-        this.innerCircleCornersSelection.update(nodeData, undefined, (datum) => this.getDatumId(datum.datumIndex));
+        // Mirrors the predicate Group uses for `renderToOffscreenCanvas`: without that isolation the
+        // cutout would erase the chart behind the series instead of just the backdrops.
+        const isolated = canRenderTextOffscreen();
+
+        this.innerCircleCornersSelection.update(nodeData, undefined, datumId);
+        this.innerCircleCornersCutoutSelection.update(isolated ? nodeData : [], undefined, datumId);
         if (this.ctx.animationManager.isSkipped()) {
             this.innerCircleCornersSelection.cleanup();
+            this.innerCircleCornersCutoutSelection.cleanup();
         }
     }
 
@@ -1173,7 +1195,7 @@ export class DonutSeries extends PolarSeries<
         this.phantomSelection.each((node, datum, index) => updateSectorFn(node, datum, index, false, 'overlay'));
 
         const { innerCircle } = this.properties;
-        this.innerCircleCornersSelection.each((sector, datum) => {
+        const updateInnerCircleCornerFn = (sector: Sector, datum: PieDonutNodeDatum, isCutout: boolean) => {
             // Resolved exactly as the real sector's style is, so the shared geometry matches.
             const format = this.getItemStyle(datum, false, true, undefined, legendItemValues);
 
@@ -1184,23 +1206,27 @@ export class DonutSeries extends PolarSeries<
                 sector.outerRadius = datum.outerRadius;
             }
 
-            sector.fill = innerCircle.fill;
-            sector.fillOpacity = innerCircle.fillOpacity;
+            sector.fill = isCutout ? undefined : innerCircle.fill;
+            sector.fillOpacity = isCutout ? 1 : innerCircle.fillOpacity;
             sector.stroke = undefined;
             sector.strokeWidth = 0;
             sector.fillShadow = undefined;
-            sector.drawingMode = 'overlay';
+            sector.drawingMode = isCutout ? 'cutout' : 'overlay';
 
-            // Outer corners are copied so the backdrop's outer edge stays inside the real
-            // sector's; only the inner corners are squared off.
+            // The backdrop squares off the inner corners the real sector rounds; the cutout carries
+            // the real sector's outline, so backdrop minus cutout is the rounded corners' gap alone.
+            const innerCornerRadius = isCutout ? format.cornerRadius : 0;
             sector.startOuterCornerRadius = format.cornerRadius;
             sector.endOuterCornerRadius = format.cornerRadius;
-            sector.startInnerCornerRadius = 0;
-            sector.endInnerCornerRadius = 0;
+            sector.startInnerCornerRadius = innerCornerRadius;
+            sector.endInnerCornerRadius = innerCornerRadius;
 
             this.applySectorSpacing(sector, format.stroke != null, format.strokeWidth);
             this.applySelectedOffset(sector, datum.datumIndex);
-        });
+        };
+
+        this.innerCircleCornersSelection.each((sector, datum) => updateInnerCircleCornerFn(sector, datum, false));
+        this.innerCircleCornersCutoutSelection.each((sector, datum) => updateInnerCircleCornerFn(sector, datum, true));
 
         this.highlightSelection.each((node, datum, index) => {
             updateSectorFn(node, datum, index, true, drawingMode);
@@ -1991,7 +2017,7 @@ export class DonutSeries extends PolarSeries<
             this.id,
             'innerCircleCorners',
             animationManager,
-            [this.innerCircleCornersSelection],
+            [this.innerCircleCornersSelection, this.innerCircleCornersCutoutSelection],
             prepareInnerCircleCornersAnimationFunctions(fns),
             (node) => this.getDatumId(node.unsafeDatum.datumIndex)
         );
@@ -2046,7 +2072,7 @@ export class DonutSeries extends PolarSeries<
             this.id,
             'innerCircleCorners',
             animationManager,
-            [this.innerCircleCornersSelection],
+            [this.innerCircleCornersSelection, this.innerCircleCornersCutoutSelection],
             prepareInnerCircleCornersAnimationFunctions(fns),
             (node) => this.getDatumId(node.unsafeDatum.datumIndex),
             dataDiff
@@ -2099,7 +2125,7 @@ export class DonutSeries extends PolarSeries<
             this.id,
             'innerCircleCorners',
             animationManager,
-            [this.innerCircleCornersSelection],
+            [this.innerCircleCornersSelection, this.innerCircleCornersCutoutSelection],
             prepareInnerCircleCornersAnimationFunctions(fns),
             (node) => this.getDatumId(node.unsafeDatum.datumIndex)
         );

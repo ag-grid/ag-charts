@@ -1358,16 +1358,48 @@ describe('DonutSeries', () => {
             }
         });
 
+        test('cuts the sector outline back out of the backdrop', async () => {
+            const series = await createDonut({ cornerRadius: 20, innerCircle: { fill: '#c9fdc9' } });
+
+            const cutouts = series.innerCircleCornersCutoutSelection.nodes();
+            const sectors = sectorNodes(series);
+            expect(cutouts).toHaveLength(sectors.length);
+
+            // Isolation is what stops `destination-out` erasing the chart behind the series.
+            expect(series.innerCircleCornersGroup.renderToOffscreenCanvas).toBe(true);
+
+            for (const [index, cutout] of cutouts.entries()) {
+                const sector = sectors[index];
+                expect(cutout.drawingMode).toBe('cutout');
+                expect(cutout.fill).toBeUndefined();
+                expect(cutout.stroke).toBeUndefined();
+
+                // Erasing exactly the sector's own outline leaves the rounded corners' gap behind.
+                expect(cutout.startAngle).toBe(sector.startAngle);
+                expect(cutout.endAngle).toBe(sector.endAngle);
+                expect(cutout.innerRadius).toBe(sector.innerRadius);
+                expect(cutout.outerRadius).toBe(sector.outerRadius);
+                expect(cutout.concentricEdgeInset).toBe(sector.concentricEdgeInset);
+                expect(cutout.radialEdgeInset).toBe(sector.radialEdgeInset);
+                expect(cutout.startOuterCornerRadius).toBe(sector.startOuterCornerRadius);
+                expect(cutout.endOuterCornerRadius).toBe(sector.endOuterCornerRadius);
+                expect(cutout.startInnerCornerRadius).toBe(sector.startInnerCornerRadius);
+                expect(cutout.endInnerCornerRadius).toBe(sector.endInnerCornerRadius);
+            }
+        });
+
         test('draws nothing when there are no rounded corners', async () => {
             const series = await createDonut({ cornerRadius: 0, innerCircle: { fill: '#c9fdc9' } });
 
             expect(series.innerCircleCornersSelection.nodes()).toHaveLength(0);
+            expect(series.innerCircleCornersCutoutSelection.nodes()).toHaveLength(0);
         });
 
         test('draws nothing when the inner circle has no fill', async () => {
             const series = await createDonut({ cornerRadius: 20 });
 
             expect(series.innerCircleCornersSelection.nodes()).toHaveLength(0);
+            expect(series.innerCircleCornersCutoutSelection.nodes()).toHaveLength(0);
         });
 
         test('draws a backdrop only for the datums that have rounded corners', async () => {
