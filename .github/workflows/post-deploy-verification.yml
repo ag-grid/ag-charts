@@ -45,9 +45,6 @@ jobs:
         name: Page Verification (Staging)
         outputs:
             prev_run_id: ${{ steps.prev_run.outputs.id }}
-            # The suite navigates via PUBLIC_SITE_URL rather than a Playwright baseURL, so the
-            # CSP report carries no site URL of its own for the reporting job to quote.
-            site_url: ${{ inputs.staging_url || steps.staging_url.outputs.url }}
         # For manual dispatch: always run.
         # For workflow_run: only proceed if triggered by a push to this repo (not a fork PR),
         # and only if the upstream CI run succeeded. This guards against the untrusted-checkout
@@ -125,9 +122,11 @@ jobs:
                   retention-days: 14
 
             # Kept as its own artifact so the csp-report job can pull just this file from the
-            # previous run to compare against, rather than a bundle carrying every trace.
+            # previous run to compare against, rather than a bundle carrying every trace. A run
+            # against a hand-given URL is not uploaded: it would become the next run's baseline
+            # while describing a different site.
             - name: Upload CSP report
-              if: always()
+              if: always() && inputs.staging_url == ''
               uses: actions/upload-artifact@v4
               with:
                   name: csp-violations
@@ -227,10 +226,12 @@ jobs:
                   CSP_REPORT_FILE: csp/current/ag-charts-csp-violations.json
                   PREVIOUS_CSP_REPORT_FILE: csp/previous/ag-charts-csp-violations.json
                   PROJECT_TITLE: AG Charts
-                  SITE_URL: ${{ needs.page-verification.outputs.site_url }}
                   SLACK_BOT_OAUTH_TOKEN: ${{ secrets.SLACK_BOT_OAUTH_TOKEN }}
                   SLACK_CHANNEL: '#dev-ops-status'
                   RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
                   COMMIT_SHA: ${{ github.sha }}
                   DRY_RUN: ${{ inputs.csp_dry_run || false }}
+                  # A run that failed part way through sees fewer violations than the site has,
+                  # which would otherwise read as a policy being fixed.
+                  RUN_COMPLETE: ${{ needs.page-verification.result == 'success' }}
               run: node ./external/ag-shared/scripts/slack/notify-csp-violations.mjs
