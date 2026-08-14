@@ -23,8 +23,8 @@ import {
     maxValue,
     mergeDefaults,
     minValue,
+    placedLabelFit,
     resolveLabelFit,
-    styledLabelFit,
     toArray,
     toNumber,
 } from 'ag-charts-core';
@@ -1199,7 +1199,7 @@ export class AreaSeries extends PlacedLabelCartesianSeries<AreaSeriesTypes> {
                 labelText,
                 point: { x: scratch.x, y: scratch.y, size: ctx.markerSize },
                 label: this.measureLabel(ctx, labelText),
-                fit: styledLabelFit(labelText, this.properties.label, ctx),
+                fit: placedLabelFit(labelText, this.properties.label, ctx),
                 anchor: ctx.labelAnchor,
                 insideOffset: ctx.labelInsideOffset,
                 insideSize: ctx.labelInsideSize,

@@ -16,10 +16,12 @@ import {
 const ELLIPSIS = '…';
 const FONT_SIZE = 20;
 
-// `label.minimumFontSize` lets a bar-family label shrink into its bar instead of wrapping, truncating or
-// hiding. Bar and histogram cover the community half of the family (waterfall and range-bar are covered
-// in the enterprise suite); assertions read the drawn glyph size off the scene graph rather than
-// re-deriving it, so they check what the fit layer actually put on the canvas.
+// `label.minimumFontSize` lets a label shrink rather than wrap, truncate or hide. A bar-family label
+// shrinks into its bar; a marker-based one, which has no container in its outside placements, shrinks to
+// clear the neighbours the placement cascade could not get it past. Bar, histogram, scatter, bubble, line
+// and area cover the community half (waterfall and range-bar are covered in the enterprise suite);
+// assertions read the drawn glyph size off the scene graph rather than re-deriving it, so they check what
+// the fit layer actually put on the canvas.
 describe('label minimumFontSize', () => {
     setupMockConsole();
 
@@ -302,5 +304,228 @@ describe('label minimumFontSize', () => {
             expect(node.fontSize).toBeLessThan(FONT_SIZE);
             expect(node.text).not.toContain(ELLIPSIS);
         }
+    });
+
+    // A marker-based label has no container in its outside placements, so `minimumFontSize` buys it room
+    // by clearing the neighbours the placement cascade could not get it past, rather than by fitting a
+    // shape. Scatter and bubble cover the two label pipelines (bubble's is per-datum, sized by its
+    // marker); line and area share a third.
+    describe('point labels', () => {
+        const pointAxes = {
+            x: { type: 'number', position: 'bottom', min: 0, max: 10 },
+            y: { type: 'number', position: 'left', min: 0, max: 10 },
+        };
+        // Two neighbours whose labels overlap by an amount `gap` controls, plus an uncrowded control. The
+        // pair is centred and well clear of the plot edges, so the only thing either label has to get past
+        // is the other one.
+        const pairChart = (gap: number, label: object, type = 'scatter') => ({
+            data: [
+                { x: 5 - gap / 2, y: 5, label: 'Station Alpha' },
+                { x: 5 + gap / 2, y: 5, label: 'Station Bravo' },
+                { x: 5, y: 1, label: 'Solo' },
+            ],
+            legend: { enabled: false },
+            axes: pointAxes,
+            series: [
+                {
+                    type,
+                    xKey: 'x',
+                    yKey: 'y',
+                    label: {
+                        enabled: true,
+                        fontSize: FONT_SIZE,
+                        wrapping: 'never',
+                        formatter: (p: any) => p.datum.label,
+                        ...label,
+                    },
+                },
+            ],
+        });
+        const sized = () => Object.fromEntries(labels().map((node) => [node.text, node.fontSize]));
+
+        it('hides a colliding label when minimumFontSize is unset', async () => {
+            await render(pairChart(1.2, {}));
+            expect(sized()).toEqual({ 'Station Alpha': FONT_SIZE, Solo: FONT_SIZE });
+        });
+
+        it('shrinks a colliding label rather than hiding it', async () => {
+            await render(pairChart(1.2, { minimumFontSize: 6 }));
+            const rendered = sized();
+            expect(rendered['Station Bravo']).toBeGreaterThanOrEqual(6);
+            expect(rendered['Station Bravo']).toBeLessThan(FONT_SIZE);
+            // The label that placed first never had to shrink, and nor did the uncrowded one.
+            expect(rendered['Station Alpha']).toBe(FONT_SIZE);
+            expect(rendered.Solo).toBe(FONT_SIZE);
+        });
+
+        it('shrinks only as far as it must to clear its neighbour', async () => {
+            // Widening the gap leaves less overlap to clear, so the same label settles at a larger size.
+            await render(pairChart(1.2, { minimumFontSize: 6 }));
+            const tight = sized()['Station Bravo'];
+
+            chart.destroy();
+            await render(pairChart(1.6, { minimumFontSize: 6 }));
+            expect(sized()['Station Bravo']).toBeGreaterThan(tight);
+        });
+
+        it('leaves an uncrowded label at its configured size', async () => {
+            await render(pairChart(2, { minimumFontSize: 6 }));
+            expect(fontSizes()).toEqual(labels().map(() => FONT_SIZE));
+        });
+
+        it('hides a label that cannot clear its neighbour at any size', async () => {
+            // The two markers are close enough that even the floor sits inside the first label's box, so
+            // there is nothing for the search to find and the label stays dropped.
+            await render(pairChart(0.8, { minimumFontSize: 6 }));
+            expect(sized()).toEqual({ 'Station Alpha': FONT_SIZE, Solo: FONT_SIZE });
+        });
+
+        it('keeps the full-size fallback when no size clears and alwaysShow is true', async () => {
+            // The search can only win outright, so a label it finds no room for falls back to the
+            // least-buried candidate it would have taken anyway, at the configured size.
+            await render(pairChart(0.8, { minimumFontSize: 6, collision: { alwaysShow: true } }));
+            expect(fontSizes()).toEqual(labels().map(() => FONT_SIZE));
+        });
+
+        it('exhausts the placement fallback list at full size before shrinking', async () => {
+            // `bottom` is clear at full size, so the label cascades there and keeps its size rather than
+            // shrinking to stay at `top`: every placement is tried before any size below the configured
+            // one is.
+            await render(pairChart(1.2, { placement: ['top', 'bottom'], minimumFontSize: 6 }));
+            expect(sized()['Station Bravo']).toBe(FONT_SIZE);
+        });
+
+        it('shrinks once no placement in the list is clear at full size', async () => {
+            // A neighbour above and below leaves both candidates blocked at 20px, so the cascade falls
+            // through to the search and the label returns at the largest size one of them can hold.
+            const crowded = {
+                ...pairChart(1.2, { placement: ['top', 'bottom'], minimumFontSize: 6 }),
+                // Placement is greedy in data order, so both blockers claim their bands before Bravo
+                // reaches the cascade: Alpha takes the room above it, Delta the room below.
+                data: [
+                    { x: 4.4, y: 5, label: 'Station Alpha' },
+                    { x: 5.6, y: 4.6, label: 'Station Delta' },
+                    { x: 5.6, y: 5, label: 'Station Bravo' },
+                ],
+            };
+            await render(crowded);
+            const rendered = sized();
+            expect(rendered['Station Bravo']).toBeGreaterThanOrEqual(6);
+            expect(rendered['Station Bravo']).toBeLessThan(FONT_SIZE);
+        });
+
+        it.each(['line', 'area'])('shrinks a colliding %s label', async (type) => {
+            await render(pairChart(1.2, {}, type));
+            expect(labels().some((node) => node.text === 'Station Bravo')).toBe(false);
+
+            chart.destroy();
+            await render(pairChart(1.2, { minimumFontSize: 6 }, type));
+            const rendered = sized();
+            expect(rendered['Station Bravo']).toBeGreaterThanOrEqual(6);
+            expect(rendered['Station Bravo']).toBeLessThan(FONT_SIZE);
+        });
+
+        it('reduces from the itemStyler-resolved font size', async () => {
+            // The styler halves the configured size. The search ladder still runs from 20px, so this pins
+            // that a trial above the styler's size cannot enlarge the label past it: the crowded label
+            // shrinks below 10px rather than landing anywhere between 10px and 20px.
+            await render(pairChart(0.8, { minimumFontSize: 4, itemStyler: () => ({ fontSize: 10 }) }));
+            const rendered = sized();
+            expect(rendered['Station Alpha']).toBe(10);
+            expect(rendered['Station Bravo']).toBeGreaterThanOrEqual(4);
+            expect(rendered['Station Bravo']).toBeLessThan(10);
+        });
+
+        it('rejects a minimum above the configured font size at options time', async () => {
+            await render(pairChart(1.2, { minimumFontSize: FONT_SIZE + 1 }));
+            expectWarningsCalls().toMatchInlineSnapshot(`
+              [
+                [
+                  "AG Charts - Option \`series[0].label.minimumFontSize\` cannot be set to \`21\`; expecting a number greater than 0 and the value to be less than or equal to \`fontSize\`, ignoring.",
+                ],
+              ]
+            `);
+            expect(fontSizes()).toEqual(labels().map(() => FONT_SIZE));
+        });
+
+        const bubbleChart = (label: object) => ({
+            data: Array.from({ length: 6 }, (_, i) => ({ x: i, y: i % 3, size: 20 + i * 30, label: `Bubble ${i}` })),
+            legend: { enabled: false },
+            axes: { x: { type: 'number', position: 'bottom' }, y: { type: 'number', position: 'left' } },
+            series: [
+                {
+                    type: 'bubble',
+                    xKey: 'x',
+                    yKey: 'y',
+                    sizeKey: 'size',
+                    label: {
+                        enabled: true,
+                        fontSize: FONT_SIZE,
+                        placement: 'inside',
+                        wrapping: 'never',
+                        formatter: (p: any) => p.datum.label,
+                        ...label,
+                    },
+                },
+            ],
+        });
+
+        it('shrinks an inside-marker bubble label to fit its marker', async () => {
+            await render(bubbleChart({ minimumFontSize: 4 }));
+            const rendered = labels();
+            expect(rendered.length).toBeGreaterThan(0);
+            expect(rendered.some((node) => node.fontSize < FONT_SIZE)).toBe(true);
+            for (const node of rendered) {
+                expect(node.fontSize).toBeGreaterThanOrEqual(4);
+            }
+        });
+
+        it('keeps the fitted size on the highlighted bubble label', async () => {
+            await render(bubbleChart({ minimumFontSize: 4 }));
+            const placed = fontSizes();
+            const series = deproxy(chart as any).series[0] as any;
+            const [datum] = series.contextNodeData.labelData;
+            deproxy(chart as any).ctx.highlightManager.updateHighlight(series.id, datum);
+            await waitForChartStability(chart);
+            const highlighted = (series.highlightLabelSelection.nodes() as LabelNode[])
+                .filter((node) => node.visible && node.text !== '')
+                .map((node) => node.fontSize);
+            expect(highlighted.length).toBeGreaterThan(0);
+            for (const size of highlighted) {
+                expect(placed).toContain(size);
+            }
+        });
+
+        it('renders point labels across the shrink spectrum', async () => {
+            // One row of neighbours per series over widening gaps, so a single image holds the spectrum:
+            // no floor at all (the crowded labels drop out), and a low floor (they return, each at the
+            // largest size that clears the label before it).
+            const row = (yKey: string, extra: object) => ({
+                type: 'scatter',
+                xKey: 'x',
+                yKey,
+                label: {
+                    enabled: true,
+                    fontSize: FONT_SIZE,
+                    wrapping: 'never',
+                    formatter: (p: any) => p.datum.label,
+                    ...extra,
+                },
+            });
+            await renderAndSnapshot({
+                data: [0, 1.1, 2.4, 3.9, 5.6, 7.5, 9.6].map((x, i) => ({
+                    x,
+                    a: 2,
+                    b: 6,
+                    label: `Station ${i}`,
+                })),
+                legend: { enabled: false },
+                axes: {
+                    x: { type: 'number', position: 'bottom', min: -1, max: 11 },
+                    y: { type: 'number', position: 'left', min: 0, max: 8 },
+                },
+                series: [row('a', {}), row('b', { minimumFontSize: 6 })],
+            });
+        });
     });
 });
