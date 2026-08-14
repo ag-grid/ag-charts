@@ -98,6 +98,7 @@ import {
     shapeHighlightOptionsDef,
     shapeSelectionOptionsDef,
     strokeOptionsDef,
+    textAlign,
     textWrap,
     themeOperator,
 } from './optionsDefaults';
@@ -205,7 +206,7 @@ export const textOrSegments = or(
 const chartCaptionOptionsDefs: OptionsDefs<AgChartCaptionOptions> = {
     enabled: boolean,
     text: textOrSegments,
-    textAlign: union('left', 'center', 'right'),
+    textAlign,
     wrapping: textWrap,
     spacing: positiveNumber,
     maxWidth: positiveNumber,
@@ -844,10 +845,11 @@ export const labelPlacementStyleDefs = {
     outsideStyle: labelPlacementStyleOptionsDef,
 };
 
-/** Label defs for point-like series (line, area) that expose a directional placement. */
+/** Label defs for point-like series (line, area, scatter, bubble) that expose a directional placement. */
 export const placedSeriesLabelOptionsDefs: OptionsDefs<AgLineSeriesLabelOptions<any, any>> = {
     ...seriesLabelOptionsDefs,
     ...labelCollisionFitOptionsDefs,
+    ...labelAutoFontSizeOptionsDefs,
     ...labelPlacementStyleDefs,
     placement: labelCollisionPlacementDef,
     spacing: positiveNumber,

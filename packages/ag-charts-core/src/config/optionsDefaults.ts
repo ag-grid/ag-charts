@@ -442,7 +442,7 @@ export const fontOptionsDef: OptionsDefs<TextOptions> = {
 };
 
 export const textWrap = union('never', 'always', 'hyphenate', 'on-space');
-export const textAlign = union('left', 'center', 'right');
+export const textAlign = union('left', 'center', 'right', 'start', 'end');
 
 export const overflowStrategy = union('ellipsis', 'hide');
 

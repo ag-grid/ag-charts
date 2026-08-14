@@ -3,6 +3,7 @@ import type {
     ChartAnimationPhase,
     DynamicContext,
     NormalisedBaseCartesianAxisOptions,
+    ResolvedTextAlign,
     Scale,
     ZoomMinMax,
 } from 'ag-charts-core';
@@ -15,12 +16,14 @@ import {
     diffArrays,
     findMinMax,
     isPlainObject,
+    resolveTextAlign,
 } from 'ag-charts-core';
 import type {
     AgAxisTitleOrientation,
     AgCartesianAxisPosition,
     AgTimeInterval,
     AgTimeIntervalUnit,
+    TextAlign,
 } from 'ag-charts-types';
 
 import type { AxisContext } from '../../module/axisContext';
@@ -254,6 +257,14 @@ export abstract class CartesianAxis<
         );
     }
 
+    /**
+     * Canvas-space alignment for a configured `label.textAlign`. Nullish means the axis's own
+     * computed alignment, which is not the resolver's concern, so it passes straight through.
+     */
+    private resolveLabelTextAlign(textAlign: TextAlign | undefined): ResolvedTextAlign | undefined {
+        return textAlign == null ? undefined : resolveTextAlign(textAlign, this.moduleCtx.domManager.isRtl);
+    }
+
     protected override onGridVisibilityChange(): void {
         // Do nothing, the grid lines and fills are updated in the update method.
     }
@@ -394,13 +405,13 @@ export abstract class CartesianAxis<
             (ContinuousScale.is(this.scale) || DiscreteTimeScale.is(this.scale));
 
         if (removeOverflowLabels) {
+            const labelTextAlign = this.resolveLabelTextAlign(label?.textAlign);
             // Selecting the alignment the axis already computes must leave the labels untouched, so
             // the edge arithmetic only departs from its centre-anchored form once the two differ.
-            const alignmentOverride =
-                label?.textAlign === tickGenerationResult.textAlign ? undefined : label?.textAlign;
+            const alignmentOverride = labelTextAlign === tickGenerationResult.textAlign ? undefined : labelTextAlign;
             // A banded scale anchors an aligned label on the band edge rather than the tick, so the
             // edges the overflow test measures move with it.
-            const bandEdgeOffset = getBandEdgeOffset(this.scale.bandwidth ?? 0, label?.textAlign);
+            const bandEdgeOffset = getBandEdgeOffset(this.scale.bandwidth ?? 0, labelTextAlign);
             const labelEdges = (width: number) => {
                 const { leading, trailing } = getTickLabelEdgeOffsets(
                     width,
@@ -979,7 +990,7 @@ export abstract class CartesianAxis<
 
     private getTickLabelProps(
         datum: TickDatum,
-        tickGenerationResult: { rotation: number; textAlign: CanvasTextAlign; textBaseline: CanvasTextBaseline },
+        tickGenerationResult: { rotation: number; textAlign: ResolvedTextAlign; textBaseline: CanvasTextBaseline },
         scrollbarThickness: number
     ): LabelNodeDatum {
         const { horizontal, primaryLabel, primaryTick, seriesAreaPadding, scale } = this;
@@ -989,7 +1000,8 @@ export abstract class CartesianAxis<
         const { rotation, textBaseline } = tickGenerationResult;
         // A configured `label.textAlign` overrides the alignment derived from the axis side and the
         // label rotation. Unset (the default) leaves the computed value untouched.
-        const textAlign = label.textAlign ?? tickGenerationResult.textAlign;
+        const labelTextAlign = this.resolveLabelTextAlign(label.textAlign);
+        const textAlign = labelTextAlign ?? tickGenerationResult.textAlign;
         const { range } = scale;
         const sideFlag = getAxisLabelSideFlag(this.mirrored);
         const borderOffset = expandLabelPadding(label)[this.position];
@@ -1006,7 +1018,7 @@ export abstract class CartesianAxis<
         // not what a configured alignment aligns against: `'right'` means the right edge of the band
         // the tick belongs to. A vertical axis bands the other way, so its own alignment is
         // unaffected and `alignLabelColumns` handles the label column instead.
-        const bandEdgeOffset = horizontal ? getBandEdgeOffset(scale.bandwidth ?? 0, label.textAlign) : 0;
+        const bandEdgeOffset = horizontal ? getBandEdgeOffset(scale.bandwidth ?? 0, labelTextAlign) : 0;
 
         const x = horizontal ? translation + bandEdgeOffset : labelOffset;
         const y = horizontal ? -labelOffset : translation;
@@ -1041,7 +1053,7 @@ export abstract class CartesianAxis<
     private alignLabelColumns(
         ticks: TickDatum[],
         labels: LabelNodeDatum[],
-        tickGenerationResult: { rotation: number; textAlign: CanvasTextAlign }
+        tickGenerationResult: { rotation: number; textAlign: ResolvedTextAlign }
     ) {
         const leafLabel = this.options.label;
         const { primaryLabel } = this;
@@ -1061,7 +1073,7 @@ export abstract class CartesianAxis<
         // today's anchor.
         for (const primaryTier of [false, true]) {
             const tierLabel = primaryTier ? primaryLabel : leafLabel;
-            const textAlign = tierLabel?.textAlign;
+            const textAlign = this.resolveLabelTextAlign(tierLabel?.textAlign);
             if (textAlign == null) continue;
 
             // `getBBox()` includes the box padding where the label is boxed, but `textAlign`
@@ -1140,8 +1152,8 @@ export abstract class CartesianAxis<
         glyphBox: LabelBox,
         extent: LabelExtent,
         rotation: number,
-        textAlign: CanvasTextAlign,
-        computedTextAlign: CanvasTextAlign
+        textAlign: ResolvedTextAlign,
+        computedTextAlign: ResolvedTextAlign
     ) {
         const shift = getTextAlignShift(glyphBox.width, textAlign, computedTextAlign);
         const computedExtent = getRotatedLabelExtent(

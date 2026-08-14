@@ -1,6 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { findLargestFittingFontSize, fitLabelTextAutoSize, fontWithSize } from './textWrapper';
+import {
+    findLargestFittingFontSize,
+    findLargestFontSizeDescending,
+    fitLabelTextAutoSize,
+    fontWithSize,
+} from './textWrapper';
 
 // Mock only the canvas leaf, as textWrapper.test.ts does, but scale the metrics with the font so the
 // font-size search has something to search over: a grapheme is `fontSize` px wide and a line
@@ -128,6 +133,39 @@ describe('findLargestFittingFontSize', () => {
         // Only the floor is accepted, so a search that bisected to whole sizes alone would either
         // undercut it at 8 or never reach it, and never mark a candidate `atFloor`.
         expect(findLargestFittingFontSize(8.5, 20, (fontSize, atFloor) => (atFloor ? fontSize : undefined))).toBe(8.5);
+    });
+});
+
+describe('findLargestFontSizeDescending', () => {
+    it('agrees with the bisecting search on a monotonic predicate', () => {
+        const accepts = (fontSize: number) => (fontSize <= 10 ? fontSize : undefined);
+        expect(findLargestFontSizeDescending(4, 20, accepts)).toBe(findLargestFittingFontSize(4, 20, accepts));
+    });
+
+    it('finds the largest accepted size where the bisecting search steps past it', () => {
+        // Accepted at 18 and at every size below 10, rejected between: the bisection reads the rejected
+        // midpoint as "nothing above fits" and settles for 9, where the scan reaches 18.
+        const patchy = (fontSize: number) => (fontSize === 18 || fontSize < 10 ? fontSize : undefined);
+        expect(findLargestFittingFontSize(4, 20, patchy)).toBe(9);
+        expect(findLargestFontSizeDescending(4, 20, patchy)).toBe(18);
+    });
+
+    it('marks only the floor as the floor', () => {
+        const atFloorSizes: number[] = [];
+        findLargestFontSizeDescending(6, 12, (fontSize, atFloor) => {
+            if (atFloor) atFloorSizes.push(fontSize);
+            return undefined;
+        });
+        expect(atFloorSizes).toEqual([6]);
+    });
+
+    it('probes the configured size alone when the minimum is not below it', () => {
+        const probed: number[] = [];
+        findLargestFontSizeDescending(20, 12, (fontSize) => {
+            probed.push(fontSize);
+            return fontSize;
+        });
+        expect(probed).toEqual([12]);
     });
 });
 

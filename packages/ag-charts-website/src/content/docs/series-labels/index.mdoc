@@ -126,7 +126,7 @@ Series label collision avoidance is separate from [axis label collision avoidanc
 
 ### Reducing the Font Size
 
-Bar, histogram, waterfall and range bar labels can shrink to fit instead of wrapping, truncating or being hidden. Set `minimumFontSize` to the smallest size the label may use:
+Bar, histogram, waterfall, range bar, line, area, scatter and bubble labels can shrink to fit instead of wrapping, truncating or being hidden. Set `minimumFontSize` to the smallest size the label may use:
 
 ```js format="snippet"
 {
@@ -145,6 +145,8 @@ Bar, histogram, waterfall and range bar labels can shrink to fit instead of wrap
 ```
 
 The label picks the largest size between its `fontSize` and `minimumFontSize` at which the whole text fits. `wrapping` applies at each size tried, so a label can wrap and shrink together to fit. Only when the text still does not fit at `minimumFontSize` is it truncated or hidden, so shrinking is always preferred over an ellipsis.
+
+Line, area, scatter and bubble labels are positioned around their data points, so they shrink to resolve collisions as well as to fit. Every placement is tried at the configured size first, and only when none is clear of the surrounding labels and markers is the label reduced to the largest size at which one is.
 
 ### Hiding Labels
 

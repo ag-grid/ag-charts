@@ -14,6 +14,8 @@ import {
     setupMockCanvas,
     setupMockConsole,
 } from '../test/utils';
+import type { GroupedValidationIssues } from '../validation/validationIssueCollector';
+import { getValidationOverlay } from './validationOverlay';
 
 // A single-issue misconfiguration: an invalid `strokeWidth` value on a line series. Validated
 // against `lineSeriesOptionsDef` before the series is constructed, so it is captured as a
@@ -345,6 +347,102 @@ describe('ValidationOverlay', () => {
   ],
 ]
 `);
+        });
+    });
+
+    // The "Deprecation Only" QA case (jira-comments 2026-08-13): a deprecation-severity issue at
+    // overlayLevel 'deprecation' must render its own section. No community-level deprecated option
+    // exists to drive this through a real chart — the option -> collector -> overlay wiring is
+    // covered by the warning tests above — so the renderer is exercised directly here against a
+    // grouped deprecation issue, the one severity no other DOM test renders.
+    describe('#deprecation section', () => {
+        test('renders a Deprecations section, count heading and summary for a deprecation-severity issue', async () => {
+            chart = await createChart({
+                data: [{ x: 'a', y: 1 }],
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            });
+
+            const grouped: GroupedValidationIssues = {
+                error: [],
+                warning: [],
+                deprecation: [
+                    {
+                        severity: 'deprecation',
+                        message: 'Option `series[0].verticalSpacing` is deprecated. Use `depthSpacing` instead.',
+                        code: 'series[0].verticalSpacing',
+                    },
+                ],
+            };
+
+            const overlay = getValidationOverlay({
+                agDocument: chart.ctx.agDocument,
+                localeManager: chart.ctx.localeManager,
+                grouped,
+                onDismiss: () => undefined,
+            });
+
+            expect(overlay.querySelector('.ag-charts-validation-overlay__summary')?.textContent).toEqual(
+                'AG Charts found 1 deprecation'
+            );
+
+            const section = overlay.querySelector('.ag-charts-validation-overlay__section--deprecation');
+            expect(section).not.toBeNull();
+            expect(section!.querySelector('.ag-charts-validation-overlay__section-heading')?.textContent).toEqual(
+                'Deprecations (1)'
+            );
+            expect(section!.querySelectorAll('.ag-charts-validation-overlay__message')).toHaveLength(1);
+
+            // Only deprecations are present, so no louder-severity sections are rendered.
+            expect(overlay.querySelector('.ag-charts-validation-overlay__section--error')).toBeNull();
+            expect(overlay.querySelector('.ag-charts-validation-overlay__section--warning')).toBeNull();
+        });
+    });
+
+    describe('#copy button availability', () => {
+        const groupedWithIssue: GroupedValidationIssues = {
+            error: [],
+            warning: [{ severity: 'warning', message: 'Invalid strokeWidth', code: 'series[0].strokeWidth' }],
+            deprecation: [],
+        };
+
+        // The overlay reads the clipboard off agDocument.navigator, so a per-test navigator lets each
+        // case drive the writable / unavailable branch without touching the shared jsdom navigator.
+        const agDocumentWith = (clipboard?: { writeText: (data: string) => Promise<void> }) => {
+            const agDocument = Object.create(chart.ctx.agDocument);
+            Object.defineProperty(agDocument, 'navigator', { value: { clipboard } });
+            return agDocument;
+        };
+
+        test('renders the Copy button and writes diagnostics when the clipboard is writable', async () => {
+            chart = await createChart({ data: [{ x: 'a', y: 1 }], series: [{ type: 'line', xKey: 'x', yKey: 'y' }] });
+
+            const writeText = vi.fn().mockResolvedValue(undefined);
+            const overlay = getValidationOverlay({
+                agDocument: agDocumentWith({ writeText }),
+                localeManager: chart.ctx.localeManager,
+                grouped: groupedWithIssue,
+                onDismiss: () => undefined,
+            });
+
+            const copyButton = overlay.querySelector<HTMLButtonElement>('.ag-charts-validation-overlay__copy');
+            expect(copyButton).not.toBeNull();
+
+            copyButton!.click();
+            expect(writeText).toHaveBeenCalledWith('[warning] Invalid strokeWidth\nseries[0].strokeWidth');
+        });
+
+        test('omits the Copy button but keeps Dismiss when the clipboard is unavailable', async () => {
+            chart = await createChart({ data: [{ x: 'a', y: 1 }], series: [{ type: 'line', xKey: 'x', yKey: 'y' }] });
+
+            const overlay = getValidationOverlay({
+                agDocument: agDocumentWith(),
+                localeManager: chart.ctx.localeManager,
+                grouped: groupedWithIssue,
+                onDismiss: () => undefined,
+            });
+
+            expect(overlay.querySelector('.ag-charts-validation-overlay__copy')).toBeNull();
+            expect(overlay.querySelector('.ag-charts-validation-overlay__dismiss')).not.toBeNull();
         });
     });
 });

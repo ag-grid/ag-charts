@@ -94,7 +94,14 @@ export interface AgChordSeriesLinkOptions<TDatum, TContext = ContextDefault> ext
     itemStyler?: Styler<AgChordSeriesLinkItemStylerParams<TDatum, TContext>, AgChordSeriesLinkStyle>;
 }
 
-export interface AgChordSeriesNodeStyle extends FillOptions, StrokeOptions, LineDashOptions {}
+export interface AgChordSeriesNodeStyle extends FillOptions, StrokeOptions, LineDashOptions {
+    /**
+     * Apply rounded corners to each node. The radius is clamped so that it never exceeds half the node's width.
+     *
+     * Default: `0`
+     */
+    cornerRadius?: PixelSize;
+}
 
 export interface AgChordSeriesNodeOptions<TDatum, TContext = ContextDefault> extends AgChordSeriesNodeStyle {
     /** Minimum spacing between the nodes. */
