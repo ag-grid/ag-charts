@@ -5,6 +5,7 @@ import type {
     CandidateStyleResolver,
     CanvasPoint,
     ChartAnimationPhase,
+    CollideWith,
     DistantObject,
     DomainWithMetadata,
     DynamicContext,
@@ -1633,6 +1634,28 @@ export abstract class Series<
     ) => {
         datum.style = cached;
     };
+
+    /**
+     * The series plot area as a label containment rect, in plot-local coordinates, so the
+     * seriesArea padding extends the rect into a negative origin. A label overflowing this rect
+     * spills past the series area (into the axis/padding zone) and must fail collision containment.
+     */
+    protected getSeriesPlotRegion(): BoxBounds | undefined {
+        const seriesRect = this.chart?.seriesRect;
+        if (seriesRect == null) return undefined;
+        const padding = this.chart?.seriesAreaPadding;
+        return {
+            x: -(padding?.left ?? 0),
+            y: -(padding?.top ?? 0),
+            width: seriesRect.width + (padding?.left ?? 0) + (padding?.right ?? 0),
+            height: seriesRect.height + (padding?.top ?? 0) + (padding?.bottom ?? 0),
+        };
+    }
+
+    /** The plot-area containment rect when the label opts into `collideWith.seriesArea`, else `undefined`. */
+    protected resolveLabelPlotRegion(collision: { resolveCollideWith(): CollideWith }): BoxBounds | undefined {
+        return collision.resolveCollideWith().seriesArea ? this.getSeriesPlotRegion() : undefined;
+    }
 
     protected _nodeDataDependencies?: NodeDataDependencies;
 
