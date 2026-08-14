@@ -20,12 +20,14 @@ import {
     type Normalised,
     type NormalisedTextOrSegments,
     type Point,
+    type ResolvedTextAlign,
     type SizedPoint,
     extent,
     findDiscreteColorBinLabel,
     formatValue,
     joinFormatted,
     mergeDefaults,
+    resolveTextAlign,
 } from 'ag-charts-core';
 
 import { formatLabels } from '../util/labelFormatter';
@@ -119,7 +121,7 @@ interface HeatmapSeriesNodeDatumContext extends _ModuleSupport.CartesianCreateNo
 }
 
 // Fractions of the padded cell span, relative to the cell centre.
-const textAlignFactors: Record<TextAlign, number> = {
+const textAlignFactors: Record<ResolvedTextAlign, number> = {
     left: -0.5,
     center: 0,
     right: 0.5,
@@ -402,7 +404,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             yOffset: (yScale.bandwidth ?? 0) / 2,
             width,
             height,
-            textAlignFactor: textAlignFactors[textAlign],
+            // Plain factors — the padded cell span is applied once, at the label site.
+            textAlignFactor: textAlignFactors[resolveTextAlign(textAlign, this.ctx.domManager.isRtl)],
             verticalAlignFactor: verticalAlignFactors[verticalAlign],
 
             // Heatmap-specific data

@@ -397,4 +397,52 @@ describe('ValidationOverlay', () => {
             expect(overlay.querySelector('.ag-charts-validation-overlay__section--warning')).toBeNull();
         });
     });
+
+    describe('#copy button availability', () => {
+        const groupedWithIssue: GroupedValidationIssues = {
+            error: [],
+            warning: [{ severity: 'warning', message: 'Invalid strokeWidth', code: 'series[0].strokeWidth' }],
+            deprecation: [],
+        };
+
+        // The overlay reads the clipboard off agDocument.navigator, so a per-test navigator lets each
+        // case drive the writable / unavailable branch without touching the shared jsdom navigator.
+        const agDocumentWith = (clipboard?: { writeText: (data: string) => Promise<void> }) => {
+            const agDocument = Object.create(chart.ctx.agDocument);
+            Object.defineProperty(agDocument, 'navigator', { value: { clipboard } });
+            return agDocument;
+        };
+
+        test('renders the Copy button and writes diagnostics when the clipboard is writable', async () => {
+            chart = await createChart({ data: [{ x: 'a', y: 1 }], series: [{ type: 'line', xKey: 'x', yKey: 'y' }] });
+
+            const writeText = vi.fn().mockResolvedValue(undefined);
+            const overlay = getValidationOverlay({
+                agDocument: agDocumentWith({ writeText }),
+                localeManager: chart.ctx.localeManager,
+                grouped: groupedWithIssue,
+                onDismiss: () => undefined,
+            });
+
+            const copyButton = overlay.querySelector<HTMLButtonElement>('.ag-charts-validation-overlay__copy');
+            expect(copyButton).not.toBeNull();
+
+            copyButton!.click();
+            expect(writeText).toHaveBeenCalledWith('[warning] Invalid strokeWidth\nseries[0].strokeWidth');
+        });
+
+        test('omits the Copy button but keeps Dismiss when the clipboard is unavailable', async () => {
+            chart = await createChart({ data: [{ x: 'a', y: 1 }], series: [{ type: 'line', xKey: 'x', yKey: 'y' }] });
+
+            const overlay = getValidationOverlay({
+                agDocument: agDocumentWith(),
+                localeManager: chart.ctx.localeManager,
+                grouped: groupedWithIssue,
+                onDismiss: () => undefined,
+            });
+
+            expect(overlay.querySelector('.ag-charts-validation-overlay__copy')).toBeNull();
+            expect(overlay.querySelector('.ag-charts-validation-overlay__dismiss')).not.toBeNull();
+        });
+    });
 });

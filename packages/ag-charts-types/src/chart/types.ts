@@ -68,7 +68,11 @@ export type Degree = number;
 /** Alias to denote that a value is an axis value. */
 export type AxisValue = any;
 
-export type TextAlign = 'left' | 'center' | 'right';
+/**
+ * Horizontal text alignment. `'start'` and `'end'` are direction-relative: they resolve to
+ * `'left'`/`'right'` for a left-to-right chart, and to `'right'`/`'left'` for a right-to-left one.
+ */
+export type TextAlign = 'left' | 'center' | 'right' | 'start' | 'end';
 
 /**
  * Text wrapping strategy for labels.

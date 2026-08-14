@@ -35,6 +35,7 @@ import {
     signedPadding,
     string,
     strokeOptionsDef,
+    textAlign,
     textOrSegments,
     textWrap,
     themeOperator,
@@ -166,7 +167,7 @@ export const cartesianCrossLineOptionsDefs = crossLineOptionsDefs(defined, carte
 export const commonAxisLabelOptionsDefs: OptionsDefs<AgBaseAxisLabelOptions> = {
     enabled: boolean,
     rotation: number,
-    textAlign: union('left', 'center', 'right'),
+    textAlign,
     avoidCollisions: boolean,
     minSpacing: positiveNumber,
     spacing: positiveNumber,

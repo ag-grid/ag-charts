@@ -98,6 +98,7 @@ import {
     shapeHighlightOptionsDef,
     shapeSelectionOptionsDef,
     strokeOptionsDef,
+    textAlign,
     textWrap,
     themeOperator,
 } from './optionsDefaults';
@@ -205,7 +206,7 @@ export const textOrSegments = or(
 const chartCaptionOptionsDefs: OptionsDefs<AgChartCaptionOptions> = {
     enabled: boolean,
     text: textOrSegments,
-    textAlign: union('left', 'center', 'right'),
+    textAlign,
     wrapping: textWrap,
     spacing: positiveNumber,
     maxWidth: positiveNumber,

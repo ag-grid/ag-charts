@@ -40,6 +40,7 @@ import {
     shapeSegmentation,
     string,
     strokeOptionsDef,
+    textAlign,
     tooltipOptionsDefs,
     undocumentedLabelFitOptionsDefs,
     union,
@@ -223,10 +224,12 @@ export const chordSeriesThemeableOptionsDef: OptionsDefs<AgChordSeriesThemeableO
     node: {
         width: positiveNumber,
         spacing: positiveNumber,
+        cornerRadius: positiveNumber,
         itemStyler: callbackDefs<AgChordSeriesNodeStyle>({
             ...fillOptionsDef,
             ...strokeOptionsDef,
             ...lineDashOptionsDef,
+            cornerRadius: positiveNumber,
         }),
         ...fillOptionsDef,
         ...strokeOptionsDef,
@@ -294,7 +297,7 @@ export const funnelSeriesThemeableOptionsDef: OptionsDefs<AgFunnelSeriesThemeabl
 
 export const heatmapSeriesThemeableOptionsDef: OptionsDefs<AgHeatmapSeriesThemeableOptions> = {
     title: string,
-    textAlign: deprecated(union('left', 'center', 'right'), 'Use `label.textAlign` instead.'),
+    textAlign: deprecated(textAlign, 'Use `label.textAlign` instead.'),
     verticalAlign: deprecated(union('top', 'middle', 'bottom'), 'Use `label.verticalAlign` instead.'),
     itemPadding: positiveNumber,
     cornerRadius: positiveNumber,
@@ -305,7 +308,9 @@ export const heatmapSeriesThemeableOptionsDef: OptionsDefs<AgHeatmapSeriesThemea
     showInMiniChart: boolean,
     label: {
         ...autoSizedLabelOptionsDefs,
-        textAlign: union('left', 'center', 'right'),
+        // The full `textAlign` union: the deprecated top-level option forwards into here, so it must
+        // still accept the `start`/`end` values that option supports.
+        textAlign,
         verticalAlign: union('top', 'middle', 'bottom'),
     },
     tooltip: tooltipOptionsDefs,
@@ -722,7 +727,7 @@ export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemea
         gap: positiveNumber,
         padding: positiveNumber,
         cornerRadius: positiveNumber,
-        textAlign: union('left', 'center', 'right'),
+        textAlign,
         interactive: boolean,
         highlight: {
             enabled: boolean,
@@ -740,7 +745,7 @@ export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemea
         gap: positiveNumber,
         padding: positiveNumber,
         cornerRadius: positiveNumber,
-        textAlign: union('left', 'center', 'right'),
+        textAlign,
         verticalAlign: union('top', 'middle', 'bottom'),
         label: {
             ...autoSizedLabelOptionsDefs,
