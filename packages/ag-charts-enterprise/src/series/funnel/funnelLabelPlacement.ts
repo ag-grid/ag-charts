@@ -4,6 +4,7 @@ import type {
     AgFunnelSeriesLabelPlacement,
     _ModuleSupport,
 } from 'ag-charts-community';
+import type { TrapezoidBounds } from 'ag-charts-core';
 import { toArray } from 'ag-charts-core';
 
 type BarLabelPlacement = _ModuleSupport.BarLabelPlacement;
@@ -63,6 +64,33 @@ const CONE_FUNNEL_RTL_SWAP: Record<AgConeFunnelSeriesLabelPlacement, AgConeFunne
  */
 export function funnelPlacementAxes(barAlongX: boolean, categoryReversed: boolean) {
     return { isVertical: barAlongX, isUpward: !barAlongX !== categoryReversed };
+}
+
+/**
+ * Axis flags placing a pyramid label along the axis its stages stack on, which always runs in the
+ * direction of increasing datum index: downwards when vertical, rightwards when horizontal. `reverse`
+ * only swaps which parallel edge of a stage is the wider one, so it does not enter here.
+ */
+export function pyramidPlacementAxes(horizontal: boolean) {
+    return { isVertical: !horizontal, isUpward: horizontal };
+}
+
+/** The isosceles trapezoid a pyramid stage is drawn as, described along its stacking axis. */
+export function pyramidStageTrapezoid(
+    stage: { x: number; y: number; top: number; right: number; bottom: number; left: number },
+    horizontal: boolean
+): TrapezoidBounds {
+    const { x, y, top, right, bottom, left } = stage;
+    return horizontal
+        ? { spanLo: x - top / 2, spanHi: x + top / 2, extentLo: left, extentHi: right, crossCentre: y, vertical: false }
+        : {
+              spanLo: y - left / 2,
+              spanHi: y + left / 2,
+              extentLo: top,
+              extentHi: bottom,
+              crossCentre: x,
+              vertical: true,
+          };
 }
 
 /** The inside/outside distinction the funnel and pyramid placement styles select on. */

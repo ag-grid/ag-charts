@@ -6,28 +6,53 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
+    type BoxBounds,
     type CallbackParamRules,
     type ChartAnimationPhase,
     type DomainWithMetadata,
     type DynamicContext,
     type FillStrokeMorph,
+    type LabelFit,
+    type LabelObstacle,
     type Normalised,
     type NormalisedColorType,
     type NormalisedTextOrSegments,
+    type PlacedLabel,
     type Point,
+    type PointLabelDatum,
+    type RequireOptional,
     StateMachine,
     type Writeable,
+    applyBarLabelOrientation,
+    applyPlacedBarLabelVisibility,
+    bakedLabelObstacles,
+    barLabelRoutesThroughEngine,
+    buildBarPositionedLabelDatum,
     cachedTextMeasurer,
+    fontWithSize,
     isArray,
+    measureLabelText,
     measureTextSegments,
     mergeDefaults,
+    resolveLabelFit,
+    resolveLabelFitDescriptors,
     toNumber,
     toPlainText,
     toTextString,
+    trapezoidBox,
+    trapezoidInscribedRect,
+    trapezoidOverlapsBox,
 } from 'ag-charts-core';
-import type { AgNumericValue } from 'ag-charts-types';
+import type { AgFunnelSeriesLabelPlacement, AgNumericValue } from 'ag-charts-types';
 
 import { FunnelConnector } from '../funnel/funnelConnector';
+import {
+    FUNNEL_TO_BAR_PLACEMENT,
+    pyramidPlacementAxes,
+    pyramidStageTrapezoid,
+    resolveFunnelPlacements,
+    toResolvedFunnelPlacement,
+} from '../funnel/funnelLabelPlacement';
 import { PyramidProperties } from './pyramidProperties';
 import { applyPyramidDatum, preparePyramidAnimationFunctions } from './pyramidUtil';
 
@@ -43,14 +68,64 @@ const {
     fromToMotion,
     seriesLabelFadeInAnimation,
     getLabelStyles,
+    updateLabelNode,
+    buildBarLabelCandidates,
+    createBarCandidateStyleResolver,
+    expandLabelBoxExtent,
+    expandPlacementLabelBoxExtent,
+    fitLabelToContainerAutoSize,
+    pickPlacementStyle,
+    styledBarLabelBox,
 } = _ModuleSupport;
 
-type PyramidNodeLabelDatum = Readonly<Point> & {
+type PyramidStageLabelDatum = Readonly<Point> & {
     readonly text: NormalisedTextOrSegments;
     readonly textAlign: CanvasTextAlign;
     readonly textBaseline: CanvasTextBaseline;
     readonly visible: boolean;
 };
+
+type PyramidNodeLabelDatum = Point & {
+    datumIndex: number;
+    datum: any;
+    series: _ModuleSupport.SeriesNodeDatum['series'];
+    text: NormalisedTextOrSegments;
+    /** Text the placement engine fitted to its chosen candidate; rendered in place of `text` when set. */
+    fittedText?: NormalisedTextOrSegments;
+    /** Reduced font size the text was fitted at; `undefined` when it renders at the configured size. */
+    fittedFontSize?: number;
+    textAlign: CanvasTextAlign;
+    textBaseline: CanvasTextBaseline;
+    /** Always upright: pyramid exposes no label orientation. */
+    rotation: number;
+    /** Flush offset written by the placement engine to keep a label inside its region. */
+    offsetX?: number;
+    offsetY?: number;
+    region?: BoxBounds;
+    placement?: AgFunnelSeriesLabelPlacement;
+    /** Pre-positioned cascade candidates, present only when the label routes through the engine. */
+    candidates?: readonly _ModuleSupport.BarPositionedCandidate<AgFunnelSeriesLabelPlacement>[];
+    /** Own stage bounds, so a positioned candidate avoids neighbouring stages but never its own. */
+    ownBox?: BoxBounds;
+    /** Engine-routed label the placement engine dropped (no candidate fit); rendered invisible. */
+    hidden?: boolean;
+    visible: boolean;
+};
+
+/**
+ * Everything a pyramid label needs that is invariant across the stages of one node-data pass: the
+ * resolved placement lists, the axis flags they are positioned against, and the fit inputs.
+ */
+interface PyramidLabelContext {
+    /** Bar-vocabulary placements, index-parallel with {@link reportedPlacements}. */
+    placements: readonly _ModuleSupport.BarLabelPlacement[];
+    reportedPlacements: readonly AgFunnelSeriesLabelPlacement[];
+    isVertical: boolean;
+    isUpward: boolean;
+    routesThroughEngine: boolean;
+    plotRegion?: BoxBounds;
+    labelFit?: LabelFit;
+}
 
 type PyramidStageValue = string | number | { toString(): string };
 
@@ -72,7 +147,7 @@ interface PyramidNodeDataContext extends _ModuleSupport.DataModelSeriesNodeDataC
     PyramidNodeDatum,
     PyramidNodeLabelDatum
 > {
-    stageLabelData: PyramidNodeLabelDatum[] | undefined;
+    stageLabelData: PyramidStageLabelDatum[] | undefined;
     bounds: _ModuleSupport.BBox;
 }
 
@@ -104,7 +179,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         this.nodeFactory()
     );
     private labelSelection = Selection.select<_ModuleSupport.Text<PyramidNodeLabelDatum>>(this.itemLabelGroup, Text);
-    private stageLabelSelection = Selection.select<_ModuleSupport.Text<PyramidNodeLabelDatum>>(
+    private stageLabelSelection = Selection.select<_ModuleSupport.Text<PyramidStageLabelDatum>>(
         this.stageLabelGroup,
         Text
     );
@@ -237,7 +312,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             textBaseline = 'middle';
         }
 
-        const stageLabelData: PyramidNodeLabelDatum[] | undefined = stageLabel.enabled ? [] : undefined;
+        const stageLabelData: PyramidStageLabelDatum[] | undefined = stageLabel.enabled ? [] : undefined;
         let maxLabelWidth = 0;
         let maxLabelHeight = 0;
         let yTotal = 0;
@@ -330,6 +405,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
         const nodeData: PyramidNodeDatum[] = [];
         const labelData: PyramidNodeLabelDatum[] = [];
+        const labelContext = this.createLabelContext(horizontal);
         let yStart = 0;
         let stageLabelIndex = 0;
         for (const [datumIndex, datum] of rawData.entries()) {
@@ -352,7 +428,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             const y = bounds.y + yOffset;
 
             if (stageLabelData != null) {
-                const stageLabelDatum = stageLabelData[stageLabelIndex++] as Writeable<PyramidNodeLabelDatum>;
+                const stageLabelDatum = stageLabelData[stageLabelIndex++] as Writeable<PyramidStageLabelDatum>;
                 stageLabelDatum.x = labelX ?? x;
                 stageLabelDatum.y = labelY ?? y;
             }
@@ -395,14 +471,15 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                     valueKey,
                 }
             );
-            const labelDatum: PyramidNodeLabelDatum = {
-                x,
-                y,
+            const labelDatum = this.createLabelDatum({
+                labelContext,
+                stage: { x, y, top, right, bottom, left },
+                horizontal,
                 text,
-                textAlign: 'center',
-                textBaseline: 'middle',
+                datum,
+                datumIndex,
                 visible: enabled,
-            };
+            });
 
             labelData.push(labelDatum);
 
@@ -440,11 +517,237 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         };
     }
 
+    private labelStylerParams(): RequireOptional<AgPyramidSeriesLabelFormatterParams> {
+        const { stageKey, valueKey } = this.properties;
+        return { stageKey, valueKey };
+    }
+
+    private routesThroughEngine(): boolean {
+        const { label } = this.properties;
+        return barLabelRoutesThroughEngine(undefined, label.placement, label.collision.alwaysShow);
+    }
+
+    private createLabelContext(horizontal: boolean): PyramidLabelContext {
+        const { label } = this.properties;
+        const reportedPlacements = resolveFunnelPlacements(label.placement, 'inside-center');
+        return {
+            placements: reportedPlacements.map((placement) => FUNNEL_TO_BAR_PLACEMENT[placement]),
+            reportedPlacements,
+            ...pyramidPlacementAxes(horizontal),
+            routesThroughEngine: this.routesThroughEngine(),
+            plotRegion: this.resolveLabelPlotRegion(label.collision),
+            labelFit: resolveLabelFit(label, !label.collision.alwaysShow),
+        };
+    }
+
+    private createLabelDatum({
+        labelContext,
+        stage,
+        horizontal,
+        text,
+        datum,
+        datumIndex,
+        visible,
+    }: {
+        labelContext: PyramidLabelContext;
+        stage: { x: number; y: number; top: number; right: number; bottom: number; left: number };
+        horizontal: boolean;
+        text: NormalisedTextOrSegments;
+        datum: unknown;
+        datumIndex: number;
+        visible: boolean;
+    }): PyramidNodeLabelDatum {
+        const { label } = this.properties;
+        const trapezoid = pyramidStageTrapezoid(stage, horizontal);
+        const stageBox = trapezoidBox(trapezoid);
+
+        const labelDatum: PyramidNodeLabelDatum = {
+            x: stage.x,
+            y: stage.y,
+            rotation: 0,
+            offsetX: 0,
+            offsetY: 0,
+            textAlign: 'center',
+            textBaseline: 'middle',
+            text,
+            ownBox: stageBox,
+            hidden: false,
+            datum,
+            datumIndex,
+            series: this,
+            visible,
+        };
+
+        if (!label.enabled) return labelDatum;
+
+        const measured = measureLabelText(text, label);
+        const resolveStyle = createBarCandidateStyleResolver(
+            this,
+            label,
+            this.labelStylerParams(),
+            undefined,
+            (placement) => labelContext.reportedPlacements[labelContext.placements.indexOf(placement)]
+        );
+        // An inside label is bound by the largest rect the stage can hold; an outside one is anchored off
+        // the stage's own bounding box, so a tapering end does not pull it into the shape.
+        const insideRect = trapezoidInscribedRect(trapezoid);
+        const candidates = labelContext.placements.flatMap((placement, index) =>
+            buildBarLabelCandidates<AgPyramidSeriesLabelFormatterParams, AgFunnelSeriesLabelPlacement>({
+                isUpward: labelContext.isUpward,
+                isVertical: labelContext.isVertical,
+                placements: [placement],
+                reportedPlacements: [labelContext.reportedPlacements[index]],
+                orientations: ['horizontal'],
+                spacing: label.spacing,
+                label,
+                textWidth: measured.width,
+                textHeight: measured.height,
+                rect: placement.startsWith('inside') ? insideRect : stageBox,
+                hideable: !label.collision.alwaysShow,
+                plotRegion: labelContext.plotRegion,
+                fitted: labelContext.labelFit != null,
+                text,
+                styleDatum: labelDatum,
+                resolveStyle,
+            })
+        );
+
+        // The engine picks the first candidate that fits; the first is baked so rendering is correct
+        // even when the label never routes through the engine.
+        const [first] = candidates;
+        if (first != null) {
+            labelDatum.x = first.anchor.x;
+            labelDatum.y = first.anchor.y;
+            labelDatum.textAlign = first.anchor.textAlign;
+            labelDatum.textBaseline = first.anchor.textBaseline;
+            labelDatum.region = first.region;
+            labelDatum.placement = first.placement;
+        }
+
+        if (labelContext.routesThroughEngine) {
+            labelDatum.candidates = candidates;
+        } else {
+            // Nothing re-fits this label later, so bound its text to the region it was baked into.
+            const fitted = fitLabelToContainerAutoSize(text, labelContext.labelFit, label, first?.fitTo?.container);
+            labelDatum.fittedText = fitted.text;
+            labelDatum.fittedFontSize = fitted.fontSize;
+        }
+
+        return labelDatum;
+    }
+
+    private labelPlacementStyle(placement: AgFunnelSeriesLabelPlacement | undefined) {
+        const { label } = this.properties;
+        return placement == null ? undefined : pickPlacementStyle(label, toResolvedFunnelPlacement(placement));
+    }
+
+    getLabelObstacles(): LabelObstacle[] | undefined {
+        const { label, stageLabel, direction } = this.properties;
+        const horizontal = direction === 'horizontal';
+        const labelBox = expandPlacementLabelBoxExtent(label);
+        const stageLabelBox = expandLabelBoxExtent(stageLabel);
+        const obstacles: LabelObstacle[] = [];
+        for (const nodeDatum of this.contextNodeData?.nodeData ?? []) {
+            const trapezoid = pyramidStageTrapezoid(nodeDatum, horizontal);
+            obstacles.push({
+                kind: 'custom',
+                box: trapezoidBox(trapezoid),
+                overlaps: (box) => trapezoidOverlapsBox(trapezoid, box),
+                category: 'seriesItem',
+            });
+        }
+        const stageLabels = bakedLabelObstacles(this.contextNodeData?.stageLabelData, (labelDatum) => ({
+            label: labelDatum.visible ? { ...labelDatum, rotation: 0 } : undefined,
+            config: stageLabel,
+            box: stageLabelBox,
+        }));
+        const valueLabels =
+            this.usesPlacedLabels || !label.enabled
+                ? undefined
+                : bakedLabelObstacles(this.contextNodeData?.labelData, (labelDatum) => ({
+                      label: labelDatum.visible ? labelDatum : undefined,
+                      config: fontWithSize(label, labelDatum.fittedFontSize),
+                      box: labelBox,
+                  }));
+        for (const baked of [stageLabels, valueLabels]) {
+            if (baked != null) obstacles.push(...baked);
+        }
+        return obstacles.length > 0 ? obstacles : undefined;
+    }
+
+    override getLabelData(): PointLabelDatum[] {
+        const { label } = this.properties;
+        if (!this.usesPlacedLabels || !label.enabled) return [];
+        const box = expandPlacementLabelBoxExtent(label);
+        const collideWith = label.collision.resolveCollideWith();
+        const threshold = label.collision.threshold ?? 0;
+        const fitFor = resolveLabelFitDescriptors(label, box, !label.collision.alwaysShow);
+        const resolveStyle = createBarCandidateStyleResolver(this, label, this.labelStylerParams());
+        const data: PointLabelDatum[] = [];
+        for (const labelDatum of this.contextNodeData?.labelData ?? []) {
+            if (labelDatum.text === '' || labelDatum.candidates == null) continue;
+            const styled = styledBarLabelBox(
+                resolveStyle,
+                labelDatum,
+                FUNNEL_TO_BAR_PLACEMENT[labelDatum.placement ?? 'inside-center'],
+                'horizontal',
+                labelDatum.text
+            );
+            const { width, height } = measureLabelText(labelDatum.text, label);
+            const size = styled?.size ?? { width: width + box.left + box.right, height: height + box.top + box.bottom };
+            const configuredFit = fitFor(labelDatum.text);
+            const fit =
+                configuredFit == null || styled == null
+                    ? configuredFit
+                    : { ...configuredFit, font: styled.font, boxPadding: styled.boxPadding };
+            data.push(
+                buildBarPositionedLabelDatum(
+                    labelDatum.text,
+                    size.width,
+                    size.height,
+                    labelDatum.candidates,
+                    labelDatum,
+                    labelDatum.ownBox ?? { x: labelDatum.x, y: labelDatum.y, width: 0, height: 0 },
+                    label.collision.alwaysShow,
+                    collideWith,
+                    threshold,
+                    true,
+                    fit
+                )
+            );
+        }
+        return data;
+    }
+
+    override updatePlacedLabelData(placed: PlacedLabel<PyramidNodeLabelDatum>[]) {
+        applyBarLabelOrientation(placed);
+        applyPlacedBarLabelVisibility(this.contextNodeData?.labelData, placed, (labelDatum) => labelDatum);
+        this.refreshPlacedLabelNodes();
+    }
+
+    // The highlight label is copied from its node datum, so it is rebuilt here to pick up whatever the
+    // placement engine wrote back before both selections are re-rendered.
+    private refreshPlacedLabelNodes() {
+        const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight() as PyramidNodeDatum | undefined;
+        const highlightItem =
+            highlightedDatum?.series === this && highlightedDatum.datum != null ? highlightedDatum : undefined;
+        this.highlightLabelSelection = this.highlightLabelSelection.update(
+            this.getHighlightLabelData([], highlightItem) ?? []
+        );
+        this.itemLabelGroup.batchedUpdate(() => {
+            this.updateValueLabelNodes({ labelSelection: this.labelSelection, isHighlight: false });
+        });
+        this.highlightLabelGroup.batchedUpdate(() => {
+            this.updateValueLabelNodes({ labelSelection: this.highlightLabelSelection, isHighlight: true });
+        });
+    }
+
     updateSelections() {
         if (this.nodeDataRefresh) {
             this.contextNodeData = this.createNodeData();
             this.nodeDataRefresh = false;
         }
+        this.usesPlacedLabels = this.routesThroughEngine();
     }
 
     override update({ seriesRect }: { seriesRect?: _ModuleSupport.BBox }) {
@@ -477,10 +780,10 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         this.updateDatumNodes({ datumSelection, isHighlight: false });
 
         this.labelSelection = this.updateLabelSelection({ labelData, labelSelection });
-        this.updateLabelNodes({ labelSelection, labelProperties: this.properties.label });
+        this.updateValueLabelNodes({ labelSelection: this.labelSelection, isHighlight: false });
 
         this.stageLabelSelection = this.updateStageLabelSelection({ stageLabelData, stageLabelSelection });
-        this.updateLabelNodes({
+        this.updateStageLabelNodes({
             labelSelection: stageLabelSelection,
             labelProperties: this.properties.stageLabel,
             checkActiveHighlight: true,
@@ -488,11 +791,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
         const highlightLabelData = this.getHighlightLabelData(labelData, highlightedDatum) ?? [];
         this.highlightLabelSelection = highlightLabelSelection.update(highlightLabelData);
-        this.updateLabelNodes({
-            labelSelection: this.highlightLabelSelection,
-            labelProperties: this.properties.label,
-            isHighlight: true,
-        });
+        this.updateValueLabelNodes({ labelSelection: this.highlightLabelSelection, isHighlight: true });
 
         this.highlightDatumSelection = this.updateDatumSelection({
             nodeData: highlightedDatum == null ? [] : [highlightedDatum],
@@ -614,17 +913,55 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     }
 
     private updateStageLabelSelection(opts: {
-        stageLabelData: PyramidNodeLabelDatum[];
+        stageLabelData: PyramidStageLabelDatum[];
         stageLabelSelection: _ModuleSupport.Selection<
-            PyramidNodeLabelDatum,
-            _ModuleSupport.Text<PyramidNodeLabelDatum>
+            PyramidStageLabelDatum,
+            _ModuleSupport.Text<PyramidStageLabelDatum>
         >;
     }) {
         return opts.stageLabelSelection.update(opts.stageLabelData);
     }
 
-    private updateLabelNodes(opts: {
+    private updateValueLabelNodes(opts: {
         labelSelection: _ModuleSupport.Selection<PyramidNodeLabelDatum, _ModuleSupport.Text<PyramidNodeLabelDatum>>;
+        isHighlight: boolean;
+    }) {
+        const { label } = this.properties;
+        const params = this.labelStylerParams();
+        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        const { labelSelection, isHighlight } = opts;
+
+        labelSelection.each((textNode, labelDatum) => {
+            if (labelDatum.hidden) {
+                textNode.visible = false;
+                return;
+            }
+            const placementStyle = this.labelPlacementStyle(labelDatum.placement);
+            const highlightStyle = this.getHighlightStyle(isHighlight, labelDatum.datumIndex);
+            // Text opacity carries the label's own box fill opacity as well as the highlight dimming.
+            const opacity = (highlightStyle.opacity ?? 1) * (placementStyle?.fillOpacity ?? label.fillOpacity ?? 1);
+            textNode.opacity = opacity;
+            textNode.fillOpacity = opacity;
+            updateLabelNode(
+                this,
+                textNode,
+                params,
+                label,
+                labelDatum,
+                { isHighlight, activeHighlight },
+                undefined,
+                placementStyle,
+                { placement: labelDatum.placement, orientation: 'horizontal' }
+            );
+            // A stage the legend disabled keeps its label hidden wherever the shared helper drew one.
+            if (!labelDatum.visible && !isHighlight) {
+                textNode.visible = false;
+            }
+        });
+    }
+
+    private updateStageLabelNodes(opts: {
+        labelSelection: _ModuleSupport.Selection<PyramidStageLabelDatum, _ModuleSupport.Text<PyramidStageLabelDatum>>;
         labelProperties: _ModuleSupport.Label<AgPyramidSeriesLabelFormatterParams>;
         isHighlight?: boolean;
         checkActiveHighlight?: boolean;
