@@ -218,9 +218,7 @@ export class TreemapSeriesProperties extends HierarchySeriesProperties<AgTreemap
             strokeWidth,
             strokeOpacity,
             fill = isLeaf ? fills[index % fills.length] : fills[Math.min(index, fills.length)],
-            stroke = isLeaf
-                ? strokes[strokeIndex % strokes.length]
-                : strokes[Math.min(strokeIndex, strokes.length)],
+            stroke = isLeaf ? strokes[strokeIndex % strokes.length] : strokes[Math.min(strokeIndex, strokes.length)],
         } = isLeaf ? this.tile : this.group;
         return {
             fill,
