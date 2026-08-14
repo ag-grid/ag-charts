@@ -368,7 +368,7 @@ const FULL_RANGE: [number, number] = [0, 10];
 const CENTRE_X = 400;
 const CENTRE_Y = 300;
 
-function options(overrides: Partial<AgCartesianChartOptions> = {}): AgCartesianChartOptions {
+function fullRangeOptions(overrides: Partial<AgCartesianChartOptions> = {}): AgCartesianChartOptions {
     return {
         data: [
             { x: 'Jan', y: 2 },
@@ -520,7 +520,7 @@ describe('CrossLine', () => {
         test('AC1: clicking a cross line fires `click` with the cross-line params', async () => {
             const click = vi.fn();
             chart = await createChart(
-                options({
+                fullRangeOptions({
                     axes: {
                         x: { type: 'category' },
                         y: {
@@ -553,7 +553,7 @@ describe('CrossLine', () => {
             const click = vi.fn();
             const doubleClick = vi.fn();
             chart = await createChart(
-                options({
+                fullRangeOptions({
                     axes: {
                         x: { type: 'category' },
                         y: {
@@ -579,7 +579,7 @@ describe('CrossLine', () => {
         test('AC3: an unset `id` falls back to an internally generated identifier', async () => {
             const click = vi.fn();
             chart = await createChart(
-                options({
+                fullRangeOptions({
                     axes: {
                         x: { type: 'category' },
                         y: {
@@ -603,7 +603,7 @@ describe('CrossLine', () => {
             const clickY = vi.fn();
             const clickX = vi.fn();
             chart = await createChart(
-                options({
+                fullRangeOptions({
                     axes: {
                         x: {
                             type: 'category',
@@ -634,7 +634,7 @@ describe('CrossLine', () => {
         test('AC6: with no listener registered the click falls through to the chart', async () => {
             const chartClick = vi.fn();
             chart = await createChart(
-                options({
+                fullRangeOptions({
                     listeners: { click: chartClick },
                     axes: {
                         x: { type: 'category' },
@@ -656,7 +656,7 @@ describe('CrossLine', () => {
         test('AC4: clicking a cross line label fires `click`', async () => {
             const click = vi.fn();
             const build = (labelText?: string) =>
-                options({
+                fullRangeOptions({
                     axes: {
                         x: { type: 'category' },
                         y: {
@@ -699,7 +699,7 @@ describe('CrossLine', () => {
         test('clicking outside every cross line fires nothing', async () => {
             const click = vi.fn();
             chart = await createChart(
-                options({
+                fullRangeOptions({
                     axes: {
                         x: { type: 'category' },
                         y: {
@@ -757,7 +757,7 @@ describe('CrossLine', () => {
             const axisClick = vi.fn();
             const chartClick = vi.fn();
             chart = await createChart(
-                options({
+                fullRangeOptions({
                     listeners: { crossLineClick: chartClick },
                     axes: {
                         x: { type: 'category' },
@@ -789,7 +789,7 @@ describe('CrossLine', () => {
         test('axis-level `crossLineDoubleClick` fires on double click', async () => {
             const axisDoubleClick = vi.fn();
             chart = await createChart(
-                options({
+                fullRangeOptions({
                     axes: {
                         x: { type: 'category' },
                         y: {
@@ -813,7 +813,7 @@ describe('CrossLine', () => {
         test('the axis context wins over the chart context', async () => {
             const click = vi.fn();
             chart = await createChart(
-                options({
+                fullRangeOptions({
                     context: 'chart-context',
                     axes: {
                         x: { type: 'category' },
@@ -836,7 +836,7 @@ describe('CrossLine', () => {
         test('the chart context is used when the axis has none', async () => {
             const click = vi.fn();
             chart = await createChart(
-                options({
+                fullRangeOptions({
                     context: 'chart-context',
                     axes: {
                         x: { type: 'category' },
@@ -858,7 +858,7 @@ describe('CrossLine', () => {
         test('the chart listener gets the axis context with no other listener registered', async () => {
             const chartClick = vi.fn();
             chart = await createChart(
-                options({
+                fullRangeOptions({
                     context: 'chart-context',
                     listeners: { crossLineClick: chartClick },
                     axes: {
@@ -885,7 +885,7 @@ describe('CrossLine', () => {
             const first = vi.fn();
             const second = vi.fn();
             const build = (click: () => void) =>
-                options({
+                fullRangeOptions({
                     axes: {
                         x: { type: 'category' },
                         y: {
