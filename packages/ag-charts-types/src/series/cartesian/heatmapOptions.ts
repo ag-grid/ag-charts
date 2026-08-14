@@ -26,8 +26,10 @@ export type AgHeatmapSeriesTooltipRendererParams<
     AgHeatmapSeriesOptionsNames &
     AgHeatmapSeriesStyle;
 
-export interface AgHeatmapSeriesLabelOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgChartAutoSizedSecondaryLabelOptions<TDatum, AgHeatmapSeriesLabelFormatterParams<TDatum>, TContext> {
+export interface AgHeatmapSeriesLabelOptions<
+    TDatum = DatumDefault,
+    TContext = ContextDefault,
+> extends AgChartAutoSizedSecondaryLabelOptions<TDatum, AgHeatmapSeriesLabelFormatterParams<TDatum>, TContext> {
     /** Horizontal position of the label within the cell.
      *
      * Default: `center`
