@@ -333,7 +333,7 @@ describe('AxisDOMProxy', () => {
                     },
                     y: { type: 'number' },
                 },
-                zoom: { enabled: true },
+                zoom: { enabled: true, buttons: { enabled: false } },
                 series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
             });
         });
