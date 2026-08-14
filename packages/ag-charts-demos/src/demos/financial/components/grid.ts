@@ -2,6 +2,7 @@ import {
     AllCommunityModule,
     type CellClassRules,
     type ColDef,
+    type ColDefField,
     type GetRowIdParams,
     ModuleRegistry,
     type ValueFormatterParams,
@@ -11,21 +12,33 @@ import {
 
 import { fmtPrice } from '../format';
 import { SparklineCell } from './SparklineCell';
+import { TickerCell } from './TickerCell';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
-// Dark theme tuned to match the terminal palette (see financial.css).
+// Dark theme tuned to match the terminal palette. Colour params are emitted as CSS values
+// onto the grid wrapper, which sits inside .fin-container, so they can reference the
+// --fin-* tokens directly rather than duplicating them as literals.
 export const gridTheme = themeQuartz.withPart(colorSchemeDark).withParams({
-    backgroundColor: '#161b22',
-    foregroundColor: '#e6edf3',
-    headerBackgroundColor: '#161b22',
-    headerTextColor: '#8b949e',
-    borderColor: '#2a313c',
+    backgroundColor: 'var(--fin-panel)',
+    foregroundColor: 'var(--fin-text)',
+    headerBackgroundColor: 'var(--fin-panel)',
+    headerTextColor: 'var(--fin-muted)',
+    borderColor: 'var(--fin-border)',
+    // No outline around the grid: the app carries structure by surface tone, not lines.
+    // The internal row rules stay, so a dense table is still readable.
+    wrapperBorder: false,
     oddRowBackgroundColor: 'transparent',
-    accentColor: '#388bfd',
-    selectedRowBackgroundColor: 'rgba(56, 139, 253, 0.14)',
+    // Tints of the accent, which a var() alone cannot express: `ref`/`mix` resolves to a
+    // color-mix() against the accent param, so both follow --fin-accent.
+    rowHoverColor: { ref: 'accentColor', mix: 0.08 },
+    accentColor: 'var(--fin-accent)',
+    selectedRowBackgroundColor: { ref: 'accentColor', mix: 0.14 },
+    // Picks up the container's monospace stack.
     fontFamily: 'inherit',
     fontSize: 11,
+    headerFontSize: 10,
+    headerFontWeight: 600,
     cellHorizontalPadding: 4,
     wrapperBorderRadius: 0,
     iconButtonBorderRadius: 0,
@@ -75,6 +88,17 @@ export const rowValuesEqual = <T extends object>(a: T, b: T): boolean => {
     }
     return true;
 };
+
+// The market column: a coloured initial beside the row's ticker, wide enough for both. The
+// fields are parameters because `ColDefField` only resolves against a concrete row type.
+export const tickerColDef = <T>(field: ColDefField<T>, tooltipField: ColDefField<T>): ColDef<T> => ({
+    field,
+    headerName: 'Ticker',
+    flex: 1.35,
+    minWidth: 74,
+    tooltipField,
+    cellRenderer: TickerCell,
+});
 
 // A non-interactive trend column rendering each row's price history as a sparkline.
 export const sparklineColDef = <T extends { history: number[] }>(): ColDef<T> => ({

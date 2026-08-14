@@ -90,7 +90,7 @@ export function PeerPerformanceChart({ instrument, peerFeed, peerTick, windowMin
                         {
                             type: 'line',
                             value: 0,
-                            stroke: 'white',
+                            stroke: 'var(--fin-muted)',
                             strokeOpacity: 1,
                             strokeWidth: 1,
                         },

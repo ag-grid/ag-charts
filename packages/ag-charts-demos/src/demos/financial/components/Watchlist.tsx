@@ -3,12 +3,12 @@ import { type ColDef } from 'ag-grid-community';
 import { fmtPrice } from '../format';
 import { type Quote } from '../types';
 import { TickerGrid } from './TickerGrid';
-import { formatOrBlank, signed, signedPct, sparklineColDef, upDownRules } from './grid';
+import { formatOrBlank, signed, signedPct, sparklineColDef, tickerColDef, upDownRules } from './grid';
 
 const upDown = upDownRules<Quote>();
 
 const columnDefs: ColDef<Quote>[] = [
-    { field: 'ticker', headerName: 'Ticker', flex: 0.9, tooltipField: 'name' },
+    tickerColDef<Quote>('ticker', 'name'),
     { field: 'last', headerName: 'Last', type: 'rightAligned', valueFormatter: formatOrBlank<Quote>(fmtPrice) },
     {
         field: 'change',
