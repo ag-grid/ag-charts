@@ -350,7 +350,8 @@ export abstract class CartesianAxis<
             !(this.primaryLabel?.enabled ?? false) &&
             this.options.tick.enabled === false &&
             !(this.primaryTick?.enabled ?? false) &&
-            this.options.gridLine.enabled === false
+            this.options.gridLine.enabled === false &&
+            !this.isPickComputationEnabled()
         ) {
             const { bbox, spacing } = this.measureAxisLayout(domain, [], [], scrollbar, scrollbarThickness);
             // Performance optimization: if ticks have no effect, don't generate them

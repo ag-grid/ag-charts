@@ -312,8 +312,7 @@ describe('AxisDOMProxy', () => {
         });
     });
 
-    // FIXME: See AG-9809 TC6
-    describe.skip('axis with labels, ticks and grid lines disabled', () => {
+    describe('axis with labels, ticks and grid lines disabled - category', () => {
         beforeEach(async () => {
             chart = await createEnterpriseChart({
                 data: [
@@ -349,6 +348,83 @@ describe('AxisDOMProxy', () => {
                 [expect.objectContaining({ value: 'B', index: 1 })],
                 [expect.objectContaining({ value: 'C', index: 2 })],
             ]);
+        });
+    });
+
+    describe('axis with labels, ticks and grid lines disabled - number', () => {
+        beforeEach(async () => {
+            chart = await createEnterpriseChart({
+                data: Array.from({ length: 6 }, (_, i) => ({ x: i * 100, y: i })),
+                axes: {
+                    x: {
+                        type: 'number',
+                        label: { enabled: false },
+                        tick: { enabled: false },
+                        gridLine: { enabled: false },
+                        // A title keeps the axis region non-empty, so it stays clickable.
+                        title: { enabled: true, text: 'Number' },
+                        listeners: { click },
+                    },
+                    y: { type: 'number' },
+                },
+                zoom: { enabled: true, buttons: { enabled: false } },
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            });
+        });
+
+        // The axis line spans canvas x 38..780 over a 0..500 domain, with a tick every 100.
+        test('index still resolves to the clicked tick', async () => {
+            await clickAction(38, 545)(chart);
+            await clickAction(186, 545)(chart);
+            await clickAction(335, 545)(chart);
+            await clickAction(483, 545)(chart);
+            await waitForChartStability(chart);
+
+            expect(click.mock.calls).toMatchObject([
+                [expect.objectContaining({ value: expect.closeTo(0), index: 0 })],
+                [expect.objectContaining({ value: expect.closeTo(99.73), index: 1 })],
+                [expect.objectContaining({ value: expect.closeTo(200.13), index: 2 })],
+                [expect.objectContaining({ value: expect.closeTo(299.87), index: 3 })],
+            ]);
+        });
+    });
+
+    // `nice: false` used to be one of the conditions that sent the axis down the tick-skipping fast path.
+    // That path is now reserved for chart types where nothing can pick at all, so a clickable axis keeps its
+    // ticks whatever `nice` is set to.
+    describe('axis with labels, ticks and grid lines disabled - number, nice: false', () => {
+        beforeEach(async () => {
+            chart = await createEnterpriseChart({
+                data: Array.from({ length: 6 }, (_, i) => ({ x: i * 100, y: i })),
+                axes: {
+                    x: {
+                        type: 'number',
+                        nice: false,
+                        label: { enabled: false },
+                        tick: { enabled: false },
+                        gridLine: { enabled: false },
+                        title: { enabled: true, text: 'Number' },
+                        listeners: { click },
+                    },
+                    y: { type: 'number' },
+                },
+                zoom: { enabled: true, buttons: { enabled: false } },
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            });
+        });
+
+        test('index still resolves to the clicked tick', async () => {
+            await clickAction(38, 545)(chart);
+            await clickAction(483, 545)(chart);
+            await waitForChartStability(chart);
+
+            expect(click.mock.calls).toMatchObject([
+                [expect.objectContaining({ index: 0 })],
+                [expect.objectContaining({ index: expect.any(Number) })],
+            ]);
+            for (const [event] of click.mock.calls) {
+                expect(event.index).toBeGreaterThanOrEqual(0);
+            }
         });
     });
 
