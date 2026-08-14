@@ -848,6 +848,85 @@ describe('FunnelSeries', () => {
         });
     });
 
+    describe('stageLabel placement under RTL', () => {
+        // The stage labels are the category axis' labels, so the side they land on is the axis position
+        // the funnel theme derives from `stageLabel.placement`.
+        const buildOptions = ({
+            enableRtl,
+            placement,
+            direction,
+            theme,
+        }: {
+            enableRtl: boolean;
+            placement?: 'before' | 'after';
+            direction?: 'horizontal' | 'vertical';
+            theme?: AgChartOptions['theme'];
+        }): AgChartOptions => {
+            const options: AgChartOptions = {
+                enableRtl,
+                theme,
+                data: [
+                    { group: 'Qualify', value: 7910 },
+                    { group: 'Develop', value: 8170 },
+                    { group: 'Propose', value: 7260 },
+                    { group: 'Close', value: 4460 },
+                ],
+                series: [
+                    {
+                        type: 'funnel',
+                        stageKey: 'group',
+                        valueKey: 'value',
+                        direction,
+                        stageLabel: placement == null ? undefined : { placement },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+            return options;
+        };
+
+        const axisPosition = async (options: AgChartOptions, direction: 'x' | 'y') => {
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+            return chart.axes[direction].position;
+        };
+
+        it.each([
+            { enableRtl: false, placement: 'before' as const, expected: 'left' },
+            { enableRtl: false, placement: 'after' as const, expected: 'right' },
+            { enableRtl: true, placement: 'before' as const, expected: 'right' },
+            { enableRtl: true, placement: 'after' as const, expected: 'left' },
+            { enableRtl: true, placement: undefined, expected: 'right' },
+        ])('places the stage labels $expected for placement=$placement, enableRtl=$enableRtl', async (testCase) => {
+            const { enableRtl, placement, expected } = testCase;
+            expect(await axisPosition(buildOptions({ enableRtl, placement }), 'y')).toBe(expected);
+        });
+
+        it('leaves the horizontal direction unmirrored', async () => {
+            const options = buildOptions({ enableRtl: true, placement: 'before', direction: 'horizontal' });
+            expect(await axisPosition(options, 'x')).toBe('top');
+        });
+
+        it('renders the stage labels on the mirrored side', async () => {
+            const options = buildOptions({ enableRtl: true, placement: 'before' });
+            options.data = [
+                { group: 'Qualification stage', value: 7910 },
+                { group: 'Development stage', value: 8170 },
+                { group: 'Proposal stage', value: 7260 },
+                { group: 'Closing stage', value: 4460 },
+            ];
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+            await compare();
+        });
+
+        it('mirrors a theme-set placement too', async () => {
+            const theme = { overrides: { funnel: { series: { stageLabel: { placement: 'after' as const } } } } };
+            expect(await axisPosition(buildOptions({ enableRtl: true, theme }), 'y')).toBe('left');
+        });
+    });
+
     describe('animation', () => {
         const frames = spyOnAnimationFrames();
 

@@ -19,8 +19,8 @@ import {
     extent,
     isDefined,
     mergeDefaults,
+    placedLabelFit,
     resolveLabelFit,
-    styledLabelFit,
     toArray,
     toNumber,
 } from 'ag-charts-core';
@@ -588,7 +588,7 @@ export class LineSeries extends PlacedLabelCartesianSeries<LineSeriesTypes> {
                 : undefined;
 
             const label = this.measureLabel(ctx, labelText);
-            const fit = styledLabelFit(labelText, this.properties.label, ctx);
+            const fit = placedLabelFit(labelText, this.properties.label, ctx);
             // Markerless vertices still nudge their label clear of the line with a small fixed gap.
             const gap = ctx.size > 0 ? ctx.size / 2 : DEFAULT_MARKERLESS_LABEL_GAP;
 

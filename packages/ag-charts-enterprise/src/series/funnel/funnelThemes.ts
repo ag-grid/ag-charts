@@ -10,6 +10,8 @@ import {
 import type { ExtensibleTheme } from 'ag-charts-types';
 
 const isHorizontal = { $eq: [{ $path: ['/series/0/direction', undefined] }, 'horizontal'] };
+const isRtl = { $eq: [{ $path: ['/enableRtl', false] }, true] };
+const isPlacementAfter = { $eq: [{ $path: ['/series/0/stageLabel/placement', undefined] }, 'after'] };
 const labelOptions = { $clone: { $omit: [['placement', 'spacing'], { $path: '/series/0/stageLabel' }] } };
 
 export const FUNNEL_SERIES_AXES: any = {
@@ -21,11 +23,12 @@ export const FUNNEL_SERIES_AXES: any = {
             $if: [
                 isHorizontal,
                 CARTESIAN_POSITION.LEFT,
+                // `before`/`after` are reading-order sides, so RTL mirrors them.
                 {
                     $if: [
-                        { $eq: [{ $path: ['/series/0/stageLabel/placement', undefined] }, 'after'] },
-                        CARTESIAN_POSITION.RIGHT,
-                        CARTESIAN_POSITION.LEFT,
+                        isPlacementAfter,
+                        { $if: [isRtl, CARTESIAN_POSITION.LEFT, CARTESIAN_POSITION.RIGHT] },
+                        { $if: [isRtl, CARTESIAN_POSITION.RIGHT, CARTESIAN_POSITION.LEFT] },
                     ],
                 },
             ],

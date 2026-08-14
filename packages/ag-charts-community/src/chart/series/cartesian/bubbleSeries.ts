@@ -20,14 +20,12 @@ import {
     dateToNumber,
     extent,
     findDiscreteColorBinLabel,
-    fitLabelTextOrOverflow,
     formatValue,
-    isArray,
-    measureTextSegments,
+    measurePlacedLabel,
+    placedLabelFit,
     rescaleVisibleRange,
     resolveLabelFit,
     resolveSeriesLabelDefaults,
-    styledLabelFit,
     toArray,
     toNumber,
     toPlainText,
@@ -979,18 +977,10 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
               }
             : undefined;
         const boundedFit = boundLabelFit(ctx.labelFit, container);
-        const fittedText = fitLabelTextOrOverflow(labelText, boundedFit, ctx.labelFitOverflow, ctx.label);
-        let { width, height } = isArray(fittedText)
-            ? measureTextSegments(fittedText, ctx.label)
-            : ctx.labelTextMeasurer.measureLines(String(fittedText));
-
-        width += ctx.labelPadding.left + ctx.labelPadding.right;
-        height += ctx.labelPadding.bottom + ctx.labelPadding.top;
-
-        scratch.nodeLabel = { text: fittedText, width, height };
+        scratch.nodeLabel = measurePlacedLabel(labelText, ctx.label, ctx, boundedFit);
         // The marker container is per datum, so the fit the engine re-applies per candidate must carry
         // this datum's bound rather than the series-level policy.
-        scratch.nodeLabelFit = styledLabelFit(labelText, ctx.label, ctx, boundedFit);
+        scratch.nodeLabelFit = placedLabelFit(labelText, ctx.label, ctx, boundedFit);
     }
 
     /**
@@ -1286,21 +1276,30 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         }
     }
 
+    // Maps a placed label inline rather than through `getHighlightLabelData`, since a bubble's label
+    // anchor is its `point` (carrying the marker size) rather than a plain `(x, y)`.
+    private placedLabelDatum(placed: PlacedLabel<BubbleScatterNodeDatum>): BubbleScatterNodeDatum {
+        return {
+            ...placed.datum,
+            placement: placed.placement ?? placed.datum.placement,
+            // A re-fitted label is fitted to the candidate the engine chose, so the node renders that
+            // text at that size rather than the up-front measurement the cascade started from.
+            label:
+                placed.datum.fit == null
+                    ? placed.datum.label
+                    : { text: placed.text, width: placed.width, height: placed.height, fontSize: placed.fontSize },
+            point: {
+                x: placed.x,
+                y: placed.y,
+                size: placed.datum.point.size,
+            },
+        };
+    }
+
     public override updatePlacedLabelData(labelData: PlacedLabel<BubbleScatterNodeDatum>[]) {
         this.placedLabelData = labelData;
         this.labelSelection.update(
-            labelData.map((v) => ({
-                ...v.datum,
-                placement: v.placement ?? v.datum.placement,
-                // A styled label is fitted to the candidate the engine chose, so the node renders that
-                // text at that size rather than the up-front measurement the cascade started from.
-                label: v.datum.fit == null ? v.datum.label : { text: v.text, width: v.width, height: v.height },
-                point: {
-                    x: v.x,
-                    y: v.y,
-                    size: v.datum.point.size,
-                },
-            })),
+            labelData.map((v) => this.placedLabelDatum(v)),
             (text) => {
                 text.pointerEvents = PointerEvents.None;
             }
@@ -1309,8 +1308,6 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         this.updateHighlightLabelSelection();
     }
 
-    // Maps the placed labels inline rather than through `getHighlightLabelData`, since a bubble's label
-    // anchor is its `point` (carrying the marker size) rather than a plain `(x, y)`.
     protected override updateHighlightLabelSelection() {
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
         const highlightItem =
@@ -1321,15 +1318,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
                 ? []
                 : this.placedLabelData
                       .filter((label) => label.datum.datumIndex === highlightItem.datumIndex)
-                      .map((label) => ({
-                          ...label.datum,
-                          placement: label.placement ?? label.datum.placement,
-                          point: {
-                              x: label.x,
-                              y: label.y,
-                              size: label.datum.point.size,
-                          },
-                      }));
+                      .map((label) => this.placedLabelDatum(label));
 
         this.highlightLabelSelection =
             this.updateLabelSelection({
@@ -1386,7 +1375,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             text.y = (datum.point?.y ?? 0) + offset.y;
             text.fontStyle = style.fontStyle;
             text.fontWeight = style.fontWeight;
-            text.fontSize = style.fontSize;
+            text.fontSize = datum.label.fontSize ?? style.fontSize;
             text.fontFamily = style.fontFamily;
             text.textBaseline = 'top';
             text.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;

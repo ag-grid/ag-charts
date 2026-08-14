@@ -219,5 +219,26 @@ export function graphemeSegments(text: string): string[] {
     return Array.from(text);
 }
 
+/** A `TextAlign` with the direction-relative values already resolved against the chart direction. */
+export type ResolvedTextAlign = 'left' | 'center' | 'right';
+
+/**
+ * Resolve the direction-relative alignments `'start'`/`'end'` against the chart direction.
+ *
+ * The canvas resolves them against `ctx.direction`, which an individual text run may override, so
+ * pinning them to a side keeps geometry (anchors, bounding boxes) in step with what gets painted.
+ * The mapping is the identity on `'left'`/`'center'`/`'right'`, and therefore idempotent.
+ */
+export function resolveTextAlign(textAlign: CanvasTextAlign, isRtl: boolean | undefined): ResolvedTextAlign {
+    switch (textAlign) {
+        case 'start':
+            return isRtl ? 'right' : 'left';
+        case 'end':
+            return isRtl ? 'left' : 'right';
+        default:
+            return textAlign;
+    }
+}
+
 export { EllipsisChar, LineSplitter, TrimEdgeGuard, TrimCharsRegex } from '../../types/text';
 export type { FontOptions } from '../../types/text';
