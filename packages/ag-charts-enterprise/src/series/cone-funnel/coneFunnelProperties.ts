@@ -1,5 +1,7 @@
 import type {
     AgConeFunnelSeriesLabelFormatterParams,
+    AgConeFunnelSeriesLabelPlacement,
+    AgConeFunnelSeriesLabelPlacementAlias,
     AgConeFunnelSeriesOptions,
     AgConeFunnelSeriesStyle,
     AgConeFunnelSeriesTooltipRendererParams,
@@ -13,7 +15,7 @@ import type { BaseFunnelProperties } from '../funnel/baseFunnelSeriesProperties'
 const { Label, AbstractBarSeriesProperties, makeSeriesTooltip, SeriesLabelProperties } = _ModuleSupport;
 class ConeFunnelSeriesLabel extends Label<AgConeFunnelSeriesLabelFormatterParams> {
     @Property
-    placement: string | undefined;
+    placement: AgConeFunnelSeriesLabelPlacement | AgConeFunnelSeriesLabelPlacementAlias | undefined;
 
     @Property
     spacing: number = 0;
