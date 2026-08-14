@@ -7,6 +7,7 @@ import {
     compareImageSnapshot,
     deproxy,
     expectPixelIdenticalAcrossUpdate,
+    expectWarningsCalls,
     setupMockCanvas,
     setupMockConsole,
     topLabelAnchorGap,
@@ -1049,6 +1050,332 @@ describe('label collision avoidance', () => {
                 expect(labels.filter((l) => !isOutside(l)).length).toBeGreaterThan(0);
                 expect(labels.length).toBeLessThan(16);
                 await compareImageSnapshot(chart, ctx);
+            });
+        });
+    });
+    // Funnel, cone funnel and pyramid value labels all cascade through the bar candidate list. Funnel and
+    // pyramid place along the stage axis (`before`/`after`); cone funnel places across its divider
+    // (`before`/`middle`/`after`) and along it (`start`/`center`/`end`).
+    describe('funnel family', () => {
+        const stageData = [
+            { stage: 'Qualify', value: 7910 },
+            { stage: 'Develop', value: 8170 },
+            { stage: 'Propose', value: 7260 },
+            { stage: 'Close', value: 4460 },
+        ];
+
+        type LabelDatum = { x: number; y: number; placement?: string; hidden?: boolean; text: unknown };
+
+        const labelDatums = (): LabelDatum[] => chart.series[0].contextNodeData.labelData;
+
+        const labelNodes = (): { visible: boolean; fill: string; text: unknown }[] =>
+            chart.series[0].labelSelection.nodes();
+
+        const render = async (options: object) => {
+            chart?.destroy();
+            chart = await createEnterpriseChart(options as AgChartOptions);
+        };
+
+        /** Every stage's label anchor and resolved placement, in stage order. */
+        const anchors = async (options: object) => {
+            await render(options);
+            return labelDatums().map(({ x, y, placement, hidden }) => ({ x, y, placement, hidden }));
+        };
+
+        const visibleCount = async (options: object) => {
+            await render(options);
+            return labelNodes().filter((node) => node.visible).length;
+        };
+
+        describe('funnel', () => {
+            const options = (label: object = {}, series: object = {}, chartOptions: object = {}): any => ({
+                data: stageData,
+                legend: { enabled: false },
+                padding: { top: 40, right: 80, bottom: 40, left: 80 },
+                series: [
+                    {
+                        type: 'funnel',
+                        stageKey: 'stage',
+                        valueKey: 'value',
+                        label: { enabled: true, ...label },
+                        ...series,
+                    },
+                ],
+                ...chartOptions,
+            });
+
+            it('renders the theme default exactly as an explicit inside-center placement', async () => {
+                await expectPixelIdenticalAcrossUpdate(
+                    ctx,
+                    createEnterpriseChart,
+                    options(),
+                    options({ placement: 'inside-center' })
+                );
+            });
+
+            it('places inside-before and inside-after at opposite ends of the stage axis', async () => {
+                const centre = await anchors(options());
+                const before = await anchors(options({ placement: 'inside-before' }));
+                const after = await anchors(options({ placement: 'inside-after' }));
+
+                expect(before.map((label) => label.placement)).toEqual(stageData.map(() => 'inside-before'));
+                for (const [index, label] of before.entries()) {
+                    expect(label.y).toBeLessThan(centre[index].y);
+                    expect(after[index].y).toBeGreaterThan(centre[index].y);
+                    expect(label.x).toBeCloseTo(centre[index].x, 5);
+                }
+            });
+
+            it('swaps the two sides when the category axis is reversed', async () => {
+                const axes = (reverse: boolean) => ({
+                    x: { type: 'number' },
+                    y: { type: 'category', reverse },
+                });
+                const centre = await anchors(options({}, {}, { axes: axes(false) }));
+                const before = await anchors(options({ placement: 'inside-before' }, {}, { axes: axes(false) }));
+                const reversedCentre = await anchors(options({}, {}, { axes: axes(true) }));
+                const reversedBefore = await anchors(options({ placement: 'inside-before' }, {}, { axes: axes(true) }));
+
+                for (const [index, label] of before.entries()) {
+                    expect(label.y).toBeLessThan(centre[index].y);
+                    expect(reversedBefore[index].y).toBeGreaterThan(reversedCentre[index].y);
+                }
+            });
+
+            it('places along the horizontal axis for a horizontal funnel', async () => {
+                const centre = await anchors(options({}, { direction: 'horizontal' }));
+                const before = await anchors(options({ placement: 'inside-before' }, { direction: 'horizontal' }));
+
+                for (const [index, label] of before.entries()) {
+                    expect(label.x).toBeLessThan(centre[index].x);
+                    expect(label.y).toBeCloseTo(centre[index].y, 5);
+                }
+            });
+
+            it('styles an inside placement differently from an outside one', async () => {
+                await render(options({ placement: 'inside-center' }));
+                const inside = labelNodes().map((node) => node.fill);
+                await render(options({ placement: 'outside-before' }));
+                const outside = labelNodes().map((node) => node.fill);
+
+                expect(new Set(inside).size).toBe(1);
+                expect(new Set(outside).size).toBe(1);
+                expect(inside[0]).not.toBe(outside[0]);
+            });
+
+            it('drops a hideable outside label overflowing the series area and keeps it when opted out', async () => {
+                const overflowing = (seriesArea: boolean) =>
+                    options({
+                        placement: 'outside-before',
+                        collision: { alwaysShow: false, collideWith: { seriesArea } },
+                    });
+
+                expect(await visibleCount(overflowing(true))).toBeLessThan(stageData.length);
+                expect(await visibleCount(overflowing(false))).toBe(stageData.length);
+            });
+
+            it('hides colliding labels only while they are hideable', async () => {
+                const crowded = (alwaysShow: boolean) =>
+                    options({
+                        placement: 'outside-after',
+                        formatter: () => 'A very long funnel stage label',
+                        collision: { alwaysShow },
+                    });
+
+                expect(await visibleCount(crowded(false))).toBeLessThan(stageData.length);
+                expect(await visibleCount(crowded(true))).toBe(stageData.length);
+            });
+
+            it('hides more labels as the collision threshold grows', async () => {
+                const spaced = (threshold: number) =>
+                    options({
+                        placement: 'inside-center',
+                        formatter: () => 'Stage',
+                        collision: { alwaysShow: false, threshold },
+                    });
+
+                expect(await visibleCount(spaced(0))).toBeGreaterThan(await visibleCount(spaced(200)));
+            });
+
+            it('cascades to the first placement that fits', async () => {
+                // `outside-before` on every stage collides with the neighbouring stage's bar, so the
+                // cascade falls through to the inside candidate rather than dropping the label.
+                const cascaded = await anchors(
+                    options({
+                        placement: ['outside-before', 'inside-center'],
+                        formatter: () => 'A very long funnel stage label',
+                        collision: { alwaysShow: false },
+                    })
+                );
+                expect(cascaded.some((label) => label.placement === 'inside-center')).toBe(true);
+                expect(cascaded.every((label) => label.hidden !== true)).toBe(true);
+            });
+        });
+
+        describe('cone funnel', () => {
+            const CONE_PLACEMENTS = [
+                'before-start',
+                'before-center',
+                'before-end',
+                'middle-start',
+                'middle-center',
+                'middle-end',
+                'after-start',
+                'after-center',
+                'after-end',
+            ];
+
+            const options = (label: object = {}, series: object = {}, chartOptions: object = {}): any => ({
+                data: stageData,
+                legend: { enabled: false },
+                padding: { top: 40, right: 80, bottom: 40, left: 80 },
+                series: [
+                    {
+                        type: 'cone-funnel',
+                        stageKey: 'stage',
+                        valueKey: 'value',
+                        label: { enabled: true, ...label },
+                        ...series,
+                    },
+                ],
+                ...chartOptions,
+            });
+
+            it('renders the theme default exactly as an explicit before-center placement', async () => {
+                await expectPixelIdenticalAcrossUpdate(
+                    ctx,
+                    createEnterpriseChart,
+                    options(),
+                    options({ placement: 'before-center' })
+                );
+            });
+
+            it('renders all nine placements at distinct anchors', async () => {
+                const seen = new Set<string>();
+                for (const placement of CONE_PLACEMENTS) {
+                    const [first] = await anchors(options({ placement }));
+                    seen.add(`${first.x.toFixed(2)},${first.y.toFixed(2)}`);
+                }
+                expect(seen.size).toBe(CONE_PLACEMENTS.length);
+            });
+
+            it('keeps a middle placement visible with alwaysShow off', async () => {
+                const middle = await anchors(options({ placement: 'middle-center', collision: { alwaysShow: false } }));
+                expect(middle.every((label) => label.hidden !== true)).toBe(true);
+            });
+
+            it('swaps start and end under RTL when the dividers span the horizontal axis', async () => {
+                const ltr = await anchors(options({ placement: 'before-start' }));
+                const rtl = await anchors(options({ placement: 'before-start' }, {}, { enableRtl: true }));
+
+                expect(ltr.map((label) => label.placement)).toEqual(stageData.map(() => 'before-start'));
+                expect(rtl.map((label) => label.placement)).toEqual(stageData.map(() => 'before-end'));
+            });
+
+            it('leaves start and end alone under RTL when the dividers span the vertical axis', async () => {
+                const rtl = await anchors(
+                    options({ placement: 'before-start' }, { direction: 'horizontal' }, { enableRtl: true })
+                );
+                expect(rtl.map((label) => label.placement)).toEqual(stageData.map(() => 'before-start'));
+            });
+
+            it.each([
+                ['before', 'before-center'],
+                ['middle', 'middle-center'],
+                ['after', 'after-center'],
+            ])('renders the deprecated %s alias exactly as %s', async (alias, canonical) => {
+                const aliased = await anchors(options({ placement: alias }));
+                expectWarningsCalls().toEqual([[expect.stringContaining('deprecated')]]);
+                const expanded = await anchors(options({ placement: canonical }));
+                expect(aliased).toEqual(expanded);
+            });
+
+            it('warns once for a deprecated alias and not at all for the default', async () => {
+                await render(options({ placement: 'before' }));
+                expectWarningsCalls().toEqual([[expect.stringContaining('deprecated')]]);
+            });
+
+            it('does not warn for the theme default placement', async () => {
+                await render(options());
+                expectWarningsCalls().toEqual([]);
+            });
+        });
+
+        describe('pyramid', () => {
+            const options = (label: object = {}, series: object = {}): any => ({
+                data: stageData,
+                legend: { enabled: false },
+                padding: { top: 40, right: 80, bottom: 40, left: 80 },
+                series: [
+                    {
+                        type: 'pyramid',
+                        stageKey: 'stage',
+                        valueKey: 'value',
+                        label: { enabled: true, ...label },
+                        ...series,
+                    },
+                ],
+            });
+
+            const stageLabels = (): { x: number; y: number; text: unknown }[] =>
+                chart.series[0].stageLabelSelection.nodes();
+
+            it('renders the theme default exactly as an explicit inside-center placement', async () => {
+                await expectPixelIdenticalAcrossUpdate(
+                    ctx,
+                    createEnterpriseChart,
+                    options(),
+                    options({ placement: 'inside-center' })
+                );
+            });
+
+            it('places inside-before and inside-after at opposite ends of the stage axis', async () => {
+                const centre = await anchors(options());
+                const before = await anchors(options({ placement: 'inside-before' }));
+                const after = await anchors(options({ placement: 'inside-after' }));
+
+                for (const [index, label] of before.entries()) {
+                    expect(label.y).toBeLessThan(centre[index].y);
+                    expect(after[index].y).toBeGreaterThan(centre[index].y);
+                }
+            });
+
+            it('places along the horizontal axis for a horizontal pyramid', async () => {
+                const centre = await anchors(options({}, { direction: 'horizontal' }));
+                const before = await anchors(options({ placement: 'inside-before' }, { direction: 'horizontal' }));
+
+                for (const [index, label] of before.entries()) {
+                    expect(label.x).toBeLessThan(centre[index].x);
+                }
+            });
+
+            it('styles an inside placement differently from an outside one', async () => {
+                await render(options({ placement: 'inside-center' }));
+                const inside = labelNodes().map((node) => node.fill);
+                await render(options({ placement: 'outside-after' }));
+                const outside = labelNodes().map((node) => node.fill);
+
+                expect(inside[0]).not.toBe(outside[0]);
+            });
+
+            it('bounds the fitted text of a tapering stage to its inscribed rectangle', async () => {
+                const text = 'A very long pyramid stage label';
+                await render(options({ placement: 'inside-center', formatter: () => text, truncate: true }));
+                const lineCounts = labelNodes().map((node) => String(node.text).split('\n').length);
+
+                // The apex stage's inscribed rectangle is the narrowest, so its label wraps the hardest,
+                // while the base stage is wide enough to keep the text on one line.
+                expect(lineCounts[0]).toBeGreaterThan(lineCounts.at(-1)!);
+                expect(String(labelNodes().at(-1)!.text)).toBe(text);
+            });
+
+            it('keeps the stage labels identical across value label placements', async () => {
+                await render(options({ placement: 'inside-center' }));
+                const centred = stageLabels().map(({ x, y, text }) => ({ x, y, text: String(text) }));
+                await render(options({ placement: 'outside-after', spacing: 40 }));
+                const outside = stageLabels().map(({ x, y, text }) => ({ x, y, text: String(text) }));
+
+                expect(outside).toEqual(centred);
             });
         });
     });
