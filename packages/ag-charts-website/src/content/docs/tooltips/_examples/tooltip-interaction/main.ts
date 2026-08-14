@@ -31,7 +31,7 @@ function renderer(params: AgBarSeriesTooltipRendererParams<DataType>) {
             ${params.datum[params.xKey]}: ${params.datum[params.yKey]}
         </div>
         <div class="tooltip-body">
-            <a tabindex="0" href="#" onclick="console.log('Clicked within a tooltip')">Click here</a>
+            <a tabindex="0" href="#" onclick="event.preventDefault(); console.log('Clicked within a tooltip')">Click here</a>
         </div>
     </div>`;
 }
