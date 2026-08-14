@@ -50,6 +50,7 @@ const {
     PointerEvents,
     addHitTestersToQuadtree,
     findQuadtreeMatch,
+    getLabelStyles,
     updateLabelNode,
     upsertNodeDatum,
 } = _ModuleSupport;
@@ -79,6 +80,11 @@ interface HeatmapLabelDatum extends Point {
     color: string | undefined;
     textAlign: TextAlign;
     textBaseline: VerticalAlign;
+    /** Cell anchor the alignment factors are applied to, kept so a styler can re-anchor per cell. */
+    anchorX: number;
+    anchorY: number;
+    xSpan: number;
+    ySpan: number;
     style: NormalisedHeatmapSeriesStyle;
 }
 
@@ -120,17 +126,21 @@ interface HeatmapSeriesNodeDatumContext extends _ModuleSupport.CartesianCreateNo
     readonly itemStyleContext: HeatmapItemStyleContext;
 }
 
+// Fractions of the padded cell span, relative to the cell centre.
 const textAlignFactors: Record<ResolvedTextAlign, number> = {
     left: -0.5,
     center: 0,
-    right: -0.5,
+    right: 0.5,
 };
 
 const verticalAlignFactors: Record<VerticalAlign, number> = {
     top: -0.5,
     middle: 0,
-    bottom: -0.5,
+    bottom: 0.5,
 };
+
+const TEXT_ALIGNS: TextAlign[] = ['left', 'center', 'right', 'start', 'end'];
+const VERTICAL_ALIGNS: VerticalAlign[] = ['top', 'middle', 'bottom'];
 
 /**
  * Consolidated type interface for HeatmapSeries.
@@ -359,8 +369,9 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         // Need dataModel and processedData for data resolution
         if (!dataModel || !processedData) return undefined;
 
-        const { xKey, xName, yKey, yName, colorKey, colorName, textAlign, verticalAlign, itemPadding } =
-            this.properties;
+        const { xKey, xName, yKey, yName, colorKey, colorName, itemPadding } = this.properties;
+        // The top-level textAlign/verticalAlign are write-only forwarders, never read by the series.
+        const { textAlign, verticalAlign } = this.properties.label;
 
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
@@ -402,9 +413,9 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             yOffset: (yScale.bandwidth ?? 0) / 2,
             width,
             height,
-            textAlignFactor:
-                (width - 2 * itemPadding) * textAlignFactors[resolveTextAlign(textAlign, this.ctx.domManager.isRtl)],
-            verticalAlignFactor: (height - 2 * itemPadding) * verticalAlignFactors[verticalAlign],
+            // Plain factors — the padded cell span is applied once, at the label site.
+            textAlignFactor: textAlignFactors[resolveTextAlign(textAlign, this.ctx.domManager.isRtl)],
+            verticalAlignFactor: verticalAlignFactors[verticalAlign],
 
             // Heatmap-specific data
             yValues,
@@ -593,13 +604,19 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         }
 
         const { text, fontSize, lineHeight, height: labelHeight } = labels.label;
-        const { fontStyle, fontFamily, fontWeight, color } = this.properties.label;
-        const { textAlign, verticalAlign } = this.properties;
-        const lx = nodeDatum.point.x + textAlignFactor * (width - 2 * itemPadding);
-        const ly =
-            nodeDatum.point.y + verticalAlignFactor * (height - 2 * itemPadding) - (labels.height - labelHeight) * 0.5;
+        const { fontStyle, fontFamily, fontWeight, color, textAlign, verticalAlign } = this.properties.label;
+        const anchorX = nodeDatum.point.x;
+        const anchorY = nodeDatum.point.y - (labels.height - labelHeight) * 0.5;
+        const xSpan = width - 2 * itemPadding;
+        const ySpan = height - 2 * itemPadding;
+        const lx = anchorX + textAlignFactor * xSpan;
+        const ly = anchorY + verticalAlignFactor * ySpan;
 
         return {
+            anchorX,
+            anchorY,
+            xSpan,
+            ySpan,
             series: this,
             datum,
             datumIndex,
@@ -768,17 +785,55 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
     }) {
         const { isHighlight = false } = opts;
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        const styledAlignment = this.properties.label.itemStyler != null;
         opts.labelSelection.each((text, datum) => {
             text.pointerEvents = PointerEvents.None;
             text.text = datum.text;
             text.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex)?.opacity ?? 1;
             type P = AgHeatmapSeriesLabelFormatterParams;
             type D = HeatmapLabelDatum;
+            if (styledAlignment) {
+                this.anchorStyledLabel(datum, isHighlight, activeHighlight);
+            }
             updateLabelNode<P, D>(this, text, this.properties, this.properties.label, datum, {
                 isHighlight,
                 activeHighlight,
             });
         });
+    }
+
+    /**
+     * Re-anchors a cell's label to the alignment its label styler returned. The shared label update
+     * reads the position off the datum, so the styled alignment has to be resolved into it first.
+     */
+    private anchorStyledLabel(
+        datum: HeatmapLabelDatum,
+        isHighlight: boolean,
+        activeHighlight: _ModuleSupport.HighlightNodeDatum | undefined
+    ) {
+        const style: Record<string, unknown> = {
+            ...getLabelStyles<AgHeatmapSeriesLabelFormatterParams>(
+                this,
+                datum,
+                this.properties,
+                this.properties.label,
+                isHighlight,
+                activeHighlight
+            ),
+        };
+        const textAlign = TEXT_ALIGNS.find((value) => value === style.textAlign);
+        const verticalAlign = VERTICAL_ALIGNS.find((value) => value === style.verticalAlign);
+        if (textAlign == null && verticalAlign == null) return;
+
+        if (textAlign != null) {
+            datum.textAlign = textAlign;
+            const factor = textAlignFactors[resolveTextAlign(textAlign, this.ctx.domManager.isRtl)];
+            datum.x = datum.anchorX + factor * datum.xSpan;
+        }
+        if (verticalAlign != null) {
+            datum.textBaseline = verticalAlign;
+            datum.y = datum.anchorY + verticalAlignFactors[verticalAlign] * datum.ySpan;
+        }
     }
 
     override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
