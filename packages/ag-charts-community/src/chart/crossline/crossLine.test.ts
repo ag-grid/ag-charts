@@ -405,7 +405,7 @@ function crossLineLabelCentre(chart: Chart, axisId: string): { x: number; y: num
 describe('CrossLine', () => {
     setupMockConsole();
 
-    let chart: AgChartInstance;
+    let chart: Chart;
 
     afterEach(() => {
         if (chart) {
@@ -424,11 +424,7 @@ describe('CrossLine', () => {
         it.each(Object.entries(EXAMPLES))(
             'for %s it should create chart instance as expected',
             async (_exampleName, example) => {
-                const options: AgCartesianChartOptions = { ...example.options };
-                prepareTestOptions(options);
-
-                chart = AgCharts.create(options);
-                await waitForChartStability(chart);
+                chart = await createChart({ ...example.options });
                 await example.assertions(chart);
             }
         );
@@ -436,10 +432,7 @@ describe('CrossLine', () => {
         it.each(Object.entries(EXAMPLES))(
             'for %s it should render to canvas as expected',
             async (_exampleName, example) => {
-                const options: AgCartesianChartOptions = { ...example.options };
-                prepareTestOptions(options);
-
-                chart = AgCharts.create(options);
+                chart = await createChart({ ...example.options });
                 await compare();
             }
         );
@@ -449,10 +442,7 @@ describe('CrossLine', () => {
         it.each(Object.entries(INVALID_EXAMPLES))(
             'for %s it should render to canvas without crossLines and show warning',
             async (_exampleName, example) => {
-                const options: AgCartesianChartOptions = { ...example.options };
-                prepareTestOptions(options);
-
-                chart = AgCharts.create(options);
+                chart = await createChart( { ...example.options });
                 await compare();
 
                 expectWarningMessages(example.warningMessages);
@@ -464,10 +454,7 @@ describe('CrossLine', () => {
         it.each(Object.entries(UNKNOWN_OPTION_EXAMPLES))(
             'for %s it should render to canvas with crossLines and show warning',
             async (_exampleName, example) => {
-                const options: AgCartesianChartOptions = { ...example.options };
-                prepareTestOptions(options);
-
-                chart = AgCharts.create(options);
+                chart = await createChart({ ...example.options });
                 await compare();
 
                 expectWarningMessages(example.warningMessages);
@@ -488,10 +475,7 @@ describe('CrossLine', () => {
                         : axis
                 ),
             };
-            prepareTestOptions(options);
-
-            chart = AgCharts.create(options);
-            await waitForChartStability(chart);
+            chart = await createChart(options);
         });
     });
 
@@ -534,13 +518,6 @@ describe('CrossLine', () => {
             await compareVariants([{ type: 'range', range: [30, 70] }], [{ type: 'range', range: [30n, 70n] }]);
         });
     });
-});
-
-describe('CrossLine listeners', () => {
-    setupMockConsole();
-    setupMockCanvas();
-
-    let chart: Chart;
 
     describe('cross-line level listeners', () => {
         test('AC1: clicking a cross line fires `click` with the cross-line params', async () => {
