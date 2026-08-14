@@ -1074,17 +1074,17 @@ export class DonutSeries extends PolarSeries<
         if (fill == null || fill === 'transparent') return 0;
 
         const innerRadius = this.getInnerRadius();
-        let cornerRadius = 0;
+        let maxCornerRadius = 0;
         for (const datum of this.nodeData) {
-            const { cornerRadius: datumCornerRadius, stroke, strokeWidth } = datum.sectorFormat;
-            if (!(datumCornerRadius > 0)) continue;
+            const { cornerRadius = 0, stroke, strokeWidth = 0 } = datum.sectorFormat;
+            if (cornerRadius <= 0) continue;
             // `inset` pulls the sector's painted edges inwards from its radii, so the fill has to
             // stop where the sector's own outer edge does or it spills past the ring.
-            const inset = Math.max((this.properties.sectorSpacing + (stroke != null ? strokeWidth : 0)) / 2, 0);
+            const inset = Math.max((this.properties.sectorSpacing + (stroke == null ? 0 : strokeWidth)) / 2, 0);
             const paintedOuterRadius = Math.max(datum.outerRadius - inset, innerRadius);
-            cornerRadius = Math.max(cornerRadius, Math.min(datumCornerRadius, paintedOuterRadius - innerRadius));
+            maxCornerRadius = Math.max(maxCornerRadius, Math.min(cornerRadius, paintedOuterRadius - innerRadius));
         }
-        return cornerRadius;
+        return maxCornerRadius;
     }
 
     private updateInnerCircleSelection() {
