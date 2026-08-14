@@ -130,6 +130,7 @@ export * from './utils/geometry/fill';
 export * from './utils/geometry/bezier';
 export * from './utils/geometry/labelPlacement';
 export * from './utils/geometry/spatialIndex';
+export * from './utils/geometry/trapezoid';
 export * from './utils/geometry/scaling';
 export * from './utils/geometry/lineInterpolation';
 export * from './utils/zoomUtils';
