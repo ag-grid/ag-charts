@@ -1332,22 +1332,34 @@ describe('DonutSeries', () => {
             return classCast(chart.series[0], DonutSeries);
         };
 
+        // The crescents start at the sector's painted inner edge, so the fill is measured from
+        // there rather than from the series' inner radius.
+        const paintedRadii = (series: DonutSeries) => {
+            const [sector] = sectorNodes(series);
+            return {
+                innerRadius: sector.innerRadius + sector.concentricEdgeInset,
+                outerRadius: sector.outerRadius - sector.concentricEdgeInset,
+            };
+        };
+        const expectCircleToReach = (series: DonutSeries, radius: number) => {
+            const antiAliasingPadding = 1;
+            expect(circleSize(series)).toBe(Math.ceil(radius * 2 + antiAliasingPadding));
+        };
+
         test('grows the inner circle by the corner radius', async () => {
             const cornerRadius = 20;
             const series = await createDonut({ cornerRadius, innerCircle: { fill: '#c9fdc9' } });
-            const squared = await createDonut({ cornerRadius: 0, innerCircle: { fill: '#c9fdc9' } });
 
-            expect(circleSize(series)).toBeCloseTo(circleSize(squared) + cornerRadius * 2, 0);
+            expectCircleToReach(series, paintedRadii(series).innerRadius + cornerRadius);
         });
 
-        test('never grows the inner circle past the outer radius', async () => {
+        test('never grows the inner circle past the sectors mid-line', async () => {
             const series = await createDonut({ cornerRadius: 1000, innerCircle: { fill: '#c9fdc9' } });
 
-            const [sector] = sectorNodes(series);
-            const paintedOuterRadius = sector.outerRadius - sector.concentricEdgeInset;
-            const antiAliasingPadding = 1;
-            expect(circleSize(series)).toBe(Math.ceil(paintedOuterRadius * 2 + antiAliasingPadding));
-            expect(paintedOuterRadius).toBeLessThanOrEqual(series.getOuterRadius());
+            const { innerRadius, outerRadius } = paintedRadii(series);
+            const midLineRadius = innerRadius + Math.floor((outerRadius - innerRadius) / 2);
+            expectCircleToReach(series, midLineRadius);
+            expect(midLineRadius).toBeLessThan(series.getOuterRadius());
         });
 
         test('erases each sector outline from the grown circle', async () => {
@@ -1390,7 +1402,7 @@ describe('DonutSeries', () => {
             }
         });
 
-        test('stops the inner circle at the sectors painted outer edge under sector spacing', async () => {
+        test('aligns the inner circle with the sectors mid-line under sector spacing', async () => {
             const sectorSpacing = 20;
             const series = await createDonut({
                 cornerRadius: 20,
@@ -1399,11 +1411,13 @@ describe('DonutSeries', () => {
                 innerCircle: { fill: '#c9fdc9' },
             });
 
-            const [sector] = sectorNodes(series);
-            const paintedOuterRadius = sector.outerRadius - sector.concentricEdgeInset;
-            const antiAliasingPadding = 1;
-            expect(circleSize(series)).toBeLessThanOrEqual(Math.ceil(paintedOuterRadius * 2 + antiAliasingPadding));
-            expect(circleSize(series)).toBeGreaterThan(Math.ceil(series.getInnerRadius() * 2 + antiAliasingPadding));
+            const { innerRadius, outerRadius } = paintedRadii(series);
+            const midLineRadius = innerRadius + Math.floor((outerRadius - innerRadius) / 2);
+            expectCircleToReach(series, midLineRadius);
+            // The band the spacing carves out is thin enough that the sectors would otherwise sit
+            // entirely inside the fill.
+            expect(midLineRadius).toBeLessThan(outerRadius);
+            expect(midLineRadius).toBeGreaterThan(series.getInnerRadius());
         });
 
         test('leaves the inner circle alone when there are no rounded corners', async () => {
@@ -1430,8 +1444,7 @@ describe('DonutSeries', () => {
                 itemStyler: ({ datum }) => (datum.asset === 'Cash' ? { cornerRadius: 0 } : {}),
             });
 
-            const squared = await createDonut({ cornerRadius: 0, innerCircle: { fill: '#c9fdc9' } });
-            expect(circleSize(series)).toBeCloseTo(circleSize(squared) + 20 * 2, 0);
+            expectCircleToReach(series, paintedRadii(series).innerRadius + 20);
             expect(series.innerCircleCutoutSelection.nodes()).toHaveLength(data.length);
         });
 

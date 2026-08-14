@@ -59,7 +59,7 @@ import { Selection } from '../../../scene/selection';
 import { Line } from '../../../scene/shape/line';
 import { Sector } from '../../../scene/shape/sector';
 import { Text } from '../../../scene/shape/text';
-import { boxOverlapsSector, isPointInSector, sectorBox } from '../../../scene/util/sector';
+import { boxOverlapsSector, clockwiseAngles, isPointInSector, sectorBox } from '../../../scene/util/sector';
 import type { DataController } from '../../data/dataController';
 import { DataModel, type ProcessedData, getMissCount } from '../../data/dataModel';
 import {
@@ -1066,36 +1066,45 @@ export class DonutSeries extends PolarSeries<
     }
 
     // A rounded inner corner pulls each sector's fill away from the inner radius, leaving a crescent
-    // of chart background that `innerCircle.fill` should cover. Growing the circle by the largest
-    // corner radius covers those crescents - and the `sectorSpacing` strips between them, which
-    // otherwise read as slots cut into the filled band.
-    private getInnerCircleCornerRadius() {
-        const { fill } = this.properties.innerCircle;
-        if (fill == null || fill === 'transparent') return 0;
-
+    // of chart background that `innerCircle.fill` should cover. The corner arcs top out where the
+    // crescents end, so the fill reaches that radius - and covers the `sectorSpacing` strips up to
+    // it, which otherwise read as slots cut into the filled band.
+    private getInnerCircleFillRadius() {
         const innerRadius = this.getInnerRadius();
-        let maxCornerRadius = 0;
+        const { fill } = this.properties.innerCircle;
+        if (innerRadius <= 0 || fill == null || fill === 'transparent') return innerRadius;
+
+        let fillRadius = innerRadius;
         for (const datum of this.nodeData) {
             const { cornerRadius = 0, stroke, strokeWidth = 0 } = datum.sectorFormat;
             if (cornerRadius <= 0) continue;
-            // `inset` pulls the sector's painted edges inwards from its radii, so the fill has to
-            // stop where the sector's own outer edge does or it spills past the ring.
+
+            // `inset` pulls the sector's painted edges inwards from its radii.
             const inset = Math.max((this.properties.sectorSpacing + (stroke == null ? 0 : strokeWidth)) / 2, 0);
-            const paintedOuterRadius = Math.max(datum.outerRadius - inset, innerRadius);
-            maxCornerRadius = Math.max(maxCornerRadius, Math.min(cornerRadius, paintedOuterRadius - innerRadius));
+            const paintedInnerRadius = datum.innerRadius > 0 ? datum.innerRadius + inset : 0;
+            const paintedOuterRadius = Math.max(datum.outerRadius - inset, 0);
+            if (paintedInnerRadius <= 0 || paintedOuterRadius <= paintedInnerRadius) continue;
+
+            // Mirrors the clamping `Sector` applies to its own corner radii: half the radial band,
+            // and half the chord between the sector's two inner corners.
+            const { startAngle, endAngle } = clockwiseAngles(datum.startAngle, datum.endAngle);
+            const sweepAngle = endAngle - startAngle - (2 * inset) / paintedInnerRadius;
+            const cornerDistance = sweepAngle > 0 ? 2 * paintedInnerRadius * Math.sin(sweepAngle / 2) : 0;
+            const radialLength = paintedOuterRadius - paintedInnerRadius;
+            const appliedCornerRadius = Math.floor(Math.min(cornerRadius, cornerDistance / 2, radialLength / 2));
+
+            fillRadius = Math.max(fillRadius, paintedInnerRadius + appliedCornerRadius);
         }
-        return maxCornerRadius;
+        return Math.min(fillRadius, this.getOuterRadius());
     }
 
     private updateInnerCircleSelection() {
         const { innerCircle } = this.properties;
 
         let radius = 0;
-        const innerRadius = this.getInnerRadius();
-        if (innerRadius > 0) {
-            const circleRadius = Math.min(innerRadius + this.getInnerCircleCornerRadius(), this.getOuterRadius());
+        if (this.getInnerRadius() > 0) {
             const antiAliasingPadding = 1;
-            radius = Math.ceil(circleRadius * 2 + antiAliasingPadding);
+            radius = Math.ceil(this.getInnerCircleFillRadius() * 2 + antiAliasingPadding);
         }
 
         const datums = innerCircle ? [{ radius }] : [];
@@ -1108,7 +1117,7 @@ export class DonutSeries extends PolarSeries<
     private updateInnerCircleCutoutSelection() {
         // Mirrors the predicate Group applies to `renderToOffscreenCanvas`: without that isolation
         // the cutout would erase the chart behind the series along with the circle.
-        const enabled = this.getInnerCircleCornerRadius() > 0 && this.getInnerRadius() > 0 && canRenderTextOffscreen();
+        const enabled = this.getInnerCircleFillRadius() > this.getInnerRadius() && canRenderTextOffscreen();
         const datumId = (datum: PieDonutNodeDatum) => this.getDatumId(datum.datumIndex);
 
         this.innerCircleGroup.renderToOffscreenCanvas = enabled;
