@@ -464,6 +464,58 @@ describe('ConeFunnelSeries', () => {
         });
     });
 
+    describe('stageLabel placement under RTL', () => {
+        // Cone-funnel shares the funnel axis template, so these cases prove the shared mirroring
+        // reaches this series; the exhaustive placement matrix lives in funnelSeries.test.ts.
+        const axisPosition = async (enableRtl: boolean, placement: 'before' | 'after') => {
+            const options: AgChartOptions = {
+                enableRtl,
+                data: CONE_FUNNEL_EXAMPLE.data,
+                series: [{ type: 'cone-funnel', stageKey: 'group', valueKey: 'value', stageLabel: { placement } }],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+            return chart.axes.y.position;
+        };
+
+        it.each([
+            { enableRtl: false, placement: 'before' as const, expected: 'left' },
+            { enableRtl: false, placement: 'after' as const, expected: 'right' },
+            { enableRtl: true, placement: 'before' as const, expected: 'right' },
+            { enableRtl: true, placement: 'after' as const, expected: 'left' },
+        ])('places the stage labels $expected for placement=$placement, enableRtl=$enableRtl', async (testCase) => {
+            const { enableRtl, placement, expected } = testCase;
+            expect(await axisPosition(enableRtl, placement)).toBe(expected);
+        });
+
+        it('renders the stage labels on the mirrored side', async () => {
+            const options: AgChartOptions = {
+                enableRtl: true,
+                data: [
+                    { group: 'Qualification stage', value: 7910 },
+                    { group: 'Development stage', value: 8170 },
+                    { group: 'Proposal stage', value: 7260 },
+                    { group: 'Closing stage', value: 4460 },
+                ],
+                series: [
+                    {
+                        type: 'cone-funnel',
+                        stageKey: 'group',
+                        valueKey: 'value',
+                        stageLabel: { placement: 'before' },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+            await compare();
+        });
+    });
+
     describe('animation', () => {
         const frames = spyOnAnimationFrames();
 
