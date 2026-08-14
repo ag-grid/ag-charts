@@ -405,9 +405,15 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         const { missingDataFill } = properties.colorScale;
         const rootIndex = nodeDatum.path?.[0] ?? 0;
 
-        const fills = isLeaf ? properties.fills : properties.undocumentedGroupFills;
+        const groupFills = !isLeaf && properties.group.fills?.length ? properties.group.fills : undefined;
+
+        const fills = isLeaf ? properties.fills : (groupFills ?? properties.undocumentedGroupFills);
         const strokes = isLeaf ? properties.strokes : properties.undocumentedGroupStrokes;
-        const index = isLeaf ? rootIndex : (nodeDatum.depth ?? -1);
+        // Groups take their colour from their depth in the hierarchy; tiles from their root node. A
+        // user-supplied `group.fills` array rotates, so the index is wrapped here rather than in
+        // `getStyle()`, which clamps. Strokes keep the un-wrapped index.
+        const depthIndex = isLeaf ? rootIndex : (nodeDatum.depth ?? -1);
+        const index = groupFills != null && depthIndex >= 0 ? depthIndex % groupFills.length : depthIndex;
 
         const highlightedNode = this.getActiveHighlightNode();
         const tileHighlightState = this.getHierarchyHighlightState(isHighlight, highlightedNode, nodeDatum);
@@ -423,7 +429,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         const baseStyle = mergeDefaults(
             selectionStyle,
             highlightStyle,
-            properties.getStyle(isLeaf, fills, strokes, index)
+            properties.getStyle(isLeaf, fills, strokes, index, depthIndex)
         );
 
         if (isLeaf && nodeDatum.colorValue != null && highlightStyle?.fill == null) {

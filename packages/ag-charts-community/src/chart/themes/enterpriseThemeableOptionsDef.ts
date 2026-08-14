@@ -737,6 +737,7 @@ export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemea
         gap: positiveNumber,
         padding: positiveNumber,
         cornerRadius: positiveNumber,
+        fills: arrayOf(colorUnion),
         textAlign,
         interactive: boolean,
         highlight: {

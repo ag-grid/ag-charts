@@ -93,6 +93,9 @@ class TreemapSeriesGroup extends BaseProperties {
     fill: InternalAgColorType | undefined = undefined;
 
     @Property
+    fills: InternalAgColorType[] | undefined = undefined;
+
+    @Property
     fillOpacity: number = 1;
 
     @Property
@@ -207,14 +210,17 @@ export class TreemapSeriesProperties extends HierarchySeriesProperties<AgTreemap
         isLeaf: boolean,
         fills: InternalAgColorType[],
         strokes: string[],
-        index: number
+        index: number,
+        strokeIndex: number = index
     ): Required<AgTreemapSeriesStyle> & { opacity: number } {
         const {
             fillOpacity,
             strokeWidth,
             strokeOpacity,
             fill = isLeaf ? fills[index % fills.length] : fills[Math.min(index, fills.length)],
-            stroke = isLeaf ? strokes[index % fills.length] : strokes[Math.min(index, strokes.length)],
+            stroke = isLeaf
+                ? strokes[strokeIndex % strokes.length]
+                : strokes[Math.min(strokeIndex, strokes.length)],
         } = isLeaf ? this.tile : this.group;
         return {
             fill,
