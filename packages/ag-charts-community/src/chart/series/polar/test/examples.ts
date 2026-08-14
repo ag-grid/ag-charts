@@ -207,6 +207,27 @@ export const DONUT_SERIES_INNER_CIRCLE_CORNER_RADIUS_SPACED: AgPolarChartOptions
     ],
 };
 
+// A wide `sectorSpacing` insets each sector's painted edges, so the band has to stop where the
+// sectors' own outer edge does rather than at the requested corner radius.
+export const DONUT_SERIES_INNER_CIRCLE_CORNER_RADIUS_WIDE_SPACING: AgPolarChartOptions = {
+    title: {
+        text: 'Market Share',
+    },
+    data: DATA_MARKET_SHARE,
+    series: [
+        {
+            type: 'donut',
+            angleKey: 'share',
+            innerRadiusRatio: 0.9,
+            cornerRadius: 20,
+            sectorSpacing: 20,
+            innerCircle: {
+                fill: '#c9fdc9',
+            },
+        },
+    ],
+};
+
 // Translucent sector fills composite over whatever sits behind them, so the band under the sectors
 // must be erased - anywhere it survives it tints the slice.
 export const DONUT_SERIES_INNER_CIRCLE_CORNER_RADIUS_TRANSLUCENT: AgPolarChartOptions = {
