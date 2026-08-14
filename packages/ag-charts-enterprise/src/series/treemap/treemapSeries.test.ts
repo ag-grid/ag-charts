@@ -1148,8 +1148,8 @@ describe('TreemapSeries', () => {
         });
 
         it('accepts non-string colour values', async () => {
-            // A validator rejecting the gradient object would emit an unknown-option warning,
-            // which setupMockConsole() turns into a failure.
+            // A validator rejecting the gradient object emits an unknown-option warning, which
+            // setupMockConsole() turns into a failure.
             const series = await createChart(DEEP_DATA, {
                 group: {
                     fills: [{ type: 'gradient', colorStops: [{ color: 'green' }, { color: 'white' }] }, '#00ff00'],
@@ -1177,8 +1177,8 @@ describe('TreemapSeries', () => {
             });
             const styles = stylesByName(series);
 
-            // Each tile's root index wraps on the strokes array; before the fix the third and
-            // fourth roots wrapped on fills.length (4) and resolved `undefined`.
+            // The strokes array is shorter than fills, so a tile index wrapped on the wrong
+            // array would resolve `undefined` for the third and fourth roots.
             ['E', 'F', 'G', 'H'].forEach((root, rootIndex) => {
                 expect(styles[`${root}-x`].stroke).toBe(strokes[rootIndex % strokes.length]);
             });

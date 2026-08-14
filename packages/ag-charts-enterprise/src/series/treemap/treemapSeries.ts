@@ -409,9 +409,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
 
         const fills = isLeaf ? properties.fills : (groupFills ?? properties.undocumentedGroupFills);
         const strokes = isLeaf ? properties.strokes : properties.undocumentedGroupStrokes;
-        // Groups take their colour from their depth in the hierarchy; tiles from their root node. A
-        // user-supplied `group.fills` array rotates, so the index is wrapped here rather than in
-        // `getStyle()`, which clamps. Strokes keep the un-wrapped index.
+        // `group.fills` rotates by depth, so wrap here — `getStyle()` clamps, and strokes keep the raw index.
         const depthIndex = isLeaf ? rootIndex : (nodeDatum.depth ?? -1);
         const index = groupFills != null && depthIndex >= 0 ? depthIndex % groupFills.length : depthIndex;
 
