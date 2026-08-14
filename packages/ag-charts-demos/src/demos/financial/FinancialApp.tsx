@@ -45,7 +45,7 @@ export const FinancialApp = () => {
         peerFeed,
         peerTick,
         ticker,
-        setTicker,
+        selectTicker,
         running,
         setRunning,
         speedMs,
@@ -58,12 +58,12 @@ export const FinancialApp = () => {
     const [drawerOpen, setDrawerOpen] = useState(false);
 
     // Selecting an instrument on a phone should reveal the chart it opened.
-    const selectTicker = useCallback(
+    const openInstrument = useCallback(
         (next: string) => {
-            setTicker(next);
+            selectTicker(next);
             setDrawerOpen(false);
         },
-        [setTicker]
+        [selectTicker]
     );
 
     const last = bars[bars.length - 1];
@@ -78,9 +78,9 @@ export const FinancialApp = () => {
 
             <div className="fin-body" data-drawer-open={drawerOpen}>
                 <div className="fin-sidebar fin-sidebar-left">
-                    <Watchlist quotes={quotes} activeTicker={ticker} onSelect={selectTicker} />
-                    <Trending rows={trending} activeTicker={ticker} onSelect={selectTicker} />
-                    <MostActive rows={mostActive} activeTicker={ticker} onSelect={selectTicker} />
+                    <Watchlist quotes={quotes} activeTicker={ticker} onSelect={openInstrument} />
+                    <Trending rows={trending} activeTicker={ticker} onSelect={openInstrument} />
+                    <MostActive rows={mostActive} activeTicker={ticker} onSelect={openInstrument} />
                 </div>
                 <div className="fin-drawer-overlay" onClick={() => setDrawerOpen(false)} />
 
@@ -124,7 +124,7 @@ export const FinancialApp = () => {
                     </div>
                     <div className="fin-detail-card fin-chart-card">
                         <div className="fin-chart-body">
-                            <FinancialChart key={ticker} bars={bars} windowMinutes={rangeMinutes} />
+                            <FinancialChart bars={bars} windowMinutes={rangeMinutes} ticker={ticker} />
                         </div>
                     </div>
 
