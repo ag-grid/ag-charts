@@ -1454,6 +1454,25 @@ describe('DonutSeries', () => {
             expect(series.innerCircleCutoutSelection.nodes()).toHaveLength(cutouts);
         });
 
+        // The default `highlight.drawingMode: 'cutout'` renders the whole series offscreen, so the
+        // band's survival through a highlight is a compositing question that node state cannot answer.
+        test('renders the filled band through a highlight and back', async () => {
+            const series = await createDonut({
+                cornerRadius: 20,
+                innerRadiusRatio: 0.9,
+                innerCircle: { fill: '#c9fdc9' },
+            });
+            await compare('donut-inner-circle-corner-radius-highlight-before');
+
+            chart.ctx.highlightManager.updateHighlight(chart.id, series.getNodeData()![1]);
+            await waitForChartStability(chart);
+            await compare('donut-inner-circle-corner-radius-highlight-during');
+
+            chart.ctx.highlightManager.updateHighlight(chart.id, undefined, false);
+            await waitForChartStability(chart);
+            await compare('donut-inner-circle-corner-radius-highlight-after');
+        });
+
         test('tracks the data through an update', async () => {
             const chartProxy = AgCharts.create(
                 prepareTestOptions({
