@@ -48,6 +48,46 @@ export type AgBarSeriesLabelPlacement =
     | 'beside-after-center'
     | 'beside-after-end';
 
+/**
+ * Where a funnel or pyramid value label is placed relative to its bar or stage.
+ *
+ * `inside-*` places the label within the shape, `outside-*` clear of it. `before`/`after` run along
+ * the category axis, perpendicular to the value axis: on a vertical funnel they are above and below
+ * the bar, on a horizontal one to its left and right. A reversed category axis swaps them, so the
+ * placement always follows the axis rather than the screen. The same physical direction is spelt
+ * `beside-before-center` / `beside-after-center` in {@link AgBarSeriesLabelPlacement}.
+ */
+export type AgFunnelSeriesLabelPlacement =
+    | 'inside-center'
+    | 'inside-before'
+    | 'inside-after'
+    | 'outside-before'
+    | 'outside-after';
+
+/**
+ * Where a cone funnel label is placed relative to its divider. Cone funnel labels are always drawn
+ * clear of the divider itself, so placement combines two axes: `before`/`middle`/`after` choose the
+ * side of the divider (`middle` sits on it), while `start`/`center`/`end` position the label along
+ * its length.
+ *
+ * `start` and `end` follow text-alignment semantics and are direction-aware: where the divider spans
+ * the horizontal axis, `start` is its left end in a left-to-right chart and its right end in a
+ * right-to-left one. Where the divider spans the vertical axis, `start` is always its top end.
+ */
+export type AgConeFunnelSeriesLabelPlacement =
+    | 'before-start'
+    | 'before-center'
+    | 'before-end'
+    | 'middle-start'
+    | 'middle-center'
+    | 'middle-end'
+    | 'after-start'
+    | 'after-center'
+    | 'after-end';
+
+/** @deprecated Use the `*-center` values of {@link AgConeFunnelSeriesLabelPlacement} instead. */
+export type AgConeFunnelSeriesLabelPlacementAlias = 'before' | 'middle' | 'after';
+
 /** Configuration controlling how a label behaves when it cannot be placed clear of every obstacle. */
 export interface AgChartLabelCollisionOptions {
     /**

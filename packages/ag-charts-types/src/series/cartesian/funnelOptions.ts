@@ -1,17 +1,30 @@
 import type { AgNumericAxisFormattableLabelOptions } from '../../chart/axisOptions';
 import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from '../../chart/callbackOptions';
+import type { AgFunnelSeriesLabelPlacement } from '../../chart/collisionAvoidanceOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
-import type { AgChartLabelOptions } from '../../chart/labelOptions';
+import type {
+    AgChartLabelCollisionFitOptions,
+    AgChartLabelOptions,
+    AgSeriesLabelPlacementStyleOptions,
+} from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, CssColor, DatumDefault, DatumKey, Opacity, PixelSize, Ratio } from '../../chart/types';
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
 import type { AgColorType, FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
-export interface AgFunnelSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault> extends AgChartLabelOptions<
-    TDatum,
-    TParams,
-    TContext
-> {}
+export interface AgFunnelSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault>
+    extends
+        AgChartLabelOptions<TDatum, TParams, TContext>,
+        AgChartLabelCollisionFitOptions,
+        AgSeriesLabelPlacementStyleOptions {
+    /**
+     * Where to render series labels relative to the bars. Either a single placement or an ordered
+     * fallback list tried in turn until one fits.
+     */
+    placement?: AgFunnelSeriesLabelPlacement | AgFunnelSeriesLabelPlacement[];
+    /** Distance between the bar edges and the text. */
+    spacing?: PixelSize;
+}
 
 export interface AgFunnelSeriesStageLabelOptions<TContext> extends AgNumericAxisFormattableLabelOptions<TContext> {
     /** Placement of the label in relation to the chart. */
