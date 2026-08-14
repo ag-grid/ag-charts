@@ -5,7 +5,10 @@ import {
     FILL_GRADIENT_LINEAR_SINGLE_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_SINGLE_DEFAULTS,
-    LABEL_BOXING_DEFAULTS,
+    LABEL_BOXING_TOP_LEVEL_DEFAULTS,
+    LABEL_OVERFLOW_ALWAYS_SHOW,
+    LABEL_OVERFLOW_DEFAULTS,
+    LABEL_PLACEMENT_STYLE_DEFAULTS,
 } from 'ag-charts-core';
 import type { ExtensibleTheme } from 'ag-charts-types';
 
@@ -87,12 +90,21 @@ export const FUNNEL_SERIES_THEME: ExtensibleTheme<'funnel'> = {
             ],
         },
         label: {
-            ...LABEL_BOXING_DEFAULTS,
+            ...LABEL_BOXING_TOP_LEVEL_DEFAULTS,
+            ...LABEL_OVERFLOW_DEFAULTS,
             enabled: true,
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },
             fontWeight: { $ref: 'fontWeight' },
-            color: { $ref: 'chartBackgroundColor' },
+            padding: 8,
+            spacing: 8,
+            collision: {
+                threshold: 4,
+                alwaysShow: LABEL_OVERFLOW_ALWAYS_SHOW,
+            },
+            insideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('chartBackgroundColor'),
+            outsideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('textColor'),
+            placement: 'inside-center',
         },
         dropOff: {
             enabled: true,

@@ -11,9 +11,9 @@ import type { InternalAgColorType } from 'ag-charts-core';
 interface FunnelSeriesLabel extends _ModuleSupport.Label<AgFunnelSeriesLabelFormatterParams> {
     placement?: string | string[];
     spacing: number;
-    // Cone funnel labels are always outside the divider, so it exposes no placement styles.
-    insideStyle?: _ModuleSupport.LabelPlacementStyle;
-    outsideStyle?: _ModuleSupport.LabelPlacementStyle;
+    /** Cone funnel exposes no placement styles, but the shared bar-label helpers resolve against both. */
+    insideStyle: _ModuleSupport.LabelPlacementStyle;
+    outsideStyle: _ModuleSupport.LabelPlacementStyle;
 }
 
 export interface BaseFunnelProperties<TOpts extends object> extends _ModuleSupport.AbstractBarSeriesProperties<TOpts> {

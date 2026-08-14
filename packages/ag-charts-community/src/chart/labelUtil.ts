@@ -37,6 +37,8 @@ import {
 import type {
     AgChartLabelOrientation,
     AgChartLabelStylerParams,
+    AgConeFunnelSeriesLabelPlacement,
+    AgFunnelSeriesLabelPlacement,
     AgMarkerShape,
     CssColor,
     HighlightState,
@@ -121,7 +123,12 @@ type LabelDatum = Point & {
      * placement-engine series carry the compass {@link LabelPlacement}; the rest carry the coarse
      * {@link ResolvedLabelPlacement}. Unset applies neither style.
      */
-    placement?: ResolvedLabelPlacement | BarLabelPlacement | LabelPlacement;
+    placement?:
+        | ResolvedLabelPlacement
+        | BarLabelPlacement
+        | LabelPlacement
+        | AgFunnelSeriesLabelPlacement
+        | AgConeFunnelSeriesLabelPlacement;
     /** Rotation in radians applied to the label node; `undefined`/`0` renders upright. */
     rotation?: number;
     /** Translation (px) sliding a region-bound label flush inside its region; `undefined`/`0` leaves it anchored. */
