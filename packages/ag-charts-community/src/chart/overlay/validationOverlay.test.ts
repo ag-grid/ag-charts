@@ -315,9 +315,9 @@ describe('ValidationOverlay', () => {
                 'false'
             );
 
-            // Animations default to a real (non-instant) duration once a batch has run; skip the
-            // current batch so the removal animation's cleanup runs synchronously.
-            chart.skipAnimations();
+            // Animations run for real once the first batch has completed, so a dismiss — which happens
+            // outside any update cycle — has nothing to drive a removal animation to completion. It must
+            // still detach the overlay synchronously rather than leave it mounted until the next resize.
             chart.validationCollector.dismiss();
             expect(chart.ctx.agDocument.body.querySelector('.ag-charts-overlay')?.getAttribute('aria-hidden')).toEqual(
                 'true'

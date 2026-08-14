@@ -55,9 +55,9 @@ describe('OverlaysProcessor', () => {
         return { overlays, validationCollector, eventsHub, chartLike };
     }
 
-    function emitLayout(eventsHub: EventsHub, rect = new BBox(0, 0, 800, 600)) {
+    function emitLayout(eventsHub: EventsHub, rect = new BBox(0, 0, 800, 600), chart = { width: 800, height: 600 }) {
         eventsHub.emit('layout:complete', {
-            chart: { width: 800, height: 600 },
+            chart,
             series: { rect, paddedRect: rect, visible: true },
             clipSeries: false,
             axes: {},
@@ -168,5 +168,20 @@ describe('OverlaysProcessor', () => {
         emitLayout(eventsHub, new BBox(10, 20, 400, 300));
         expect(loadingSpy).toHaveBeenCalledTimes(1);
         expect(overlays.loading.focusBox).toEqual(new BBox(10, 20, 400, 300));
+    });
+
+    it('anchors the validation overlay to the chart rect, not the DOM container, when they differ', () => {
+        const { overlays, validationCollector, eventsHub } = build();
+        const validationSpy = vi.spyOn(overlays.validation, 'getElement');
+
+        validationCollector.setOverlayLevel('warning');
+        validationCollector.setIssues([{ severity: 'warning', message: 'bad option' }]);
+
+        // width/height options shrink the canvas (200x200) below its 800x600 DOM container; the modal
+        // validation overlay must span the canvas, not overflow it at the container size.
+        emitLayout(eventsHub, new BBox(0, 0, 200, 200), { width: 200, height: 200 });
+
+        expect(validationSpy).toHaveBeenCalled();
+        expect(overlays.validation.focusBox).toEqual(new BBox(0, 0, 200, 200));
     });
 });
