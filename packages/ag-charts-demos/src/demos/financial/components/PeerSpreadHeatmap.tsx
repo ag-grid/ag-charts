@@ -41,7 +41,7 @@ const HEATMAP_SERIES: AgHeatmapSeriesOptions = {
     colorName: 'Spread',
     colorScale: SPREAD_COLOR_SCALE,
     label: { enabled: false },
-    stroke: 'var(--fin-panel-2)',
+    stroke: 'var(--fin-panel)',
     strokeWidth: 0.5,
     tooltip: {
         renderer: ({ datum }: { datum: PeerHeatmapCell }) => ({

@@ -21,18 +21,35 @@ export const THEME = {
         },
     },
     params: {
-        chartBackgroundColor: 'var(--fin-panel-2)',
+        chartBackgroundColor: 'var(--fin-panel)',
+        backgroundColor: 'var(--fin-panel)',
         fontFamily: ['ui-monospace', 'SFMono-Regular', 'SF Mono', 'Menlo', 'Consolas', 'monospace'],
-        fontWeight: 300,
+        fontWeight: 400,
         fontSize: 11,
         textColor: 'var(--fin-text)',
         subtleTextColor: 'var(--fin-muted)',
         buttonBorderRadius: 0,
-        buttonBackgroundColor: 'var(--fin-panel-2)',
-        buttonBorder: { color: 'var(--fin-border)' },
+        buttonBackgroundColor: 'var(--fin-elevated)',
+        buttonBorder: false,
         buttonTextColor: 'var(--fin-text)',
-        tooltipBackgroundColor: 'var(--fin-panel-2)',
-        tooltipBorder: { color: 'var(--fin-border)' },
+        // The chart's own chart-type menu. It is a `.ag-charts-popover` wrapping a
+        // `.ag-charts-menu`, and the popover takes its surface from
+        // `panelBackgroundColor` — NOT from `menuBackgroundColor`, which drives a
+        // different menu. Left to the base theme it renders as a blue-black slab that
+        // belongs to a different app; these pin it to the demo's neutral family, one
+        // step above the card so it still reads as floating.
+        panelBackgroundColor: 'var(--fin-elevated)',
+        panelSubtleTextColor: 'var(--fin-muted)',
+        chromeTextColor: 'var(--fin-text)',
+        // Drops the outline on the popover and the chart toolbars outright, rather than
+        // colouring a border to hide it.
+        borderWidth: 0,
+        // A menu genuinely floats, so it keeps the one elevation — matched to the
+        // Radix menus in financial.css.
+        popupShadow: '0 8px 30px rgba(0, 0, 0, 0.6)',
+        accentColor: 'var(--fin-accent)',
+        tooltipBackgroundColor: 'var(--fin-elevated)',
+        tooltipBorder: false,
         tooltipTextColor: 'var(--fin-text)',
         tooltipSubtleTextColor: 'var(--fin-muted)',
     },

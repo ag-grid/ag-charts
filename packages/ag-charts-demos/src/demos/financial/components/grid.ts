@@ -14,18 +14,29 @@ import { SparklineCell } from './SparklineCell';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
-// Dark theme tuned to match the terminal palette (see financial.css).
+// Dark theme tuned to match the terminal palette. Colour params are emitted as CSS values
+// onto the grid wrapper, which sits inside .fin-container, so they can reference the
+// --fin-* tokens directly rather than duplicating them as literals.
 export const gridTheme = themeQuartz.withPart(colorSchemeDark).withParams({
-    backgroundColor: '#161b22',
-    foregroundColor: '#e6edf3',
-    headerBackgroundColor: '#161b22',
-    headerTextColor: '#8b949e',
-    borderColor: '#2a313c',
+    backgroundColor: 'var(--fin-panel)',
+    foregroundColor: 'var(--fin-text)',
+    headerBackgroundColor: 'var(--fin-panel)',
+    headerTextColor: 'var(--fin-muted)',
+    borderColor: 'var(--fin-border)',
+    // No outline around the grid: the app carries structure by surface tone, not lines.
+    // The internal row rules stay, so a dense table is still readable.
+    wrapperBorder: false,
     oddRowBackgroundColor: 'transparent',
-    accentColor: '#388bfd',
-    selectedRowBackgroundColor: 'rgba(56, 139, 253, 0.14)',
+    // Tints of the accent, which a var() alone cannot express: `ref`/`mix` resolves to a
+    // color-mix() against the accent param, so both follow --fin-accent.
+    rowHoverColor: { ref: 'accentColor', mix: 0.08 },
+    accentColor: 'var(--fin-accent)',
+    selectedRowBackgroundColor: { ref: 'accentColor', mix: 0.14 },
+    // Picks up the container's monospace stack.
     fontFamily: 'inherit',
     fontSize: 11,
+    headerFontSize: 10,
+    headerFontWeight: 600,
     cellHorizontalPadding: 4,
     wrapperBorderRadius: 0,
     iconButtonBorderRadius: 0,
