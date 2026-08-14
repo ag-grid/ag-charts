@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { getBandEdgeOffset, getTickLabelEdgeOffsets } from './axisLabelUtil';
+import { getBandEdgeOffset, getTextAlignShift, getTickLabelEdgeOffsets } from './axisLabelUtil';
 
 describe('getTickLabelEdgeOffsets', () => {
     const WIDTH = 100;
@@ -70,5 +70,39 @@ describe('getBandEdgeOffset', () => {
     it('aligns to the same canvas edge whichever way the range runs', () => {
         expect(getBandEdgeOffset(-BANDWIDTH, 'right')).toBe(20);
         expect(getBandEdgeOffset(-BANDWIDTH, 'left')).toBe(-20);
+    });
+});
+
+describe('getTextAlignShift', () => {
+    const WIDTH = 100;
+
+    it.each(['left', 'center', 'right'] as const)('leaves a "%s" box where it is', (textAlign) => {
+        expect(getTextAlignShift(WIDTH, textAlign, textAlign)).toBe(0);
+    });
+
+    it.each([
+        ['left', 'center', -50],
+        ['left', 'right', -100],
+        ['center', 'right', -50],
+        ['center', 'left', 50],
+        ['right', 'left', 100],
+        ['right', 'center', 50],
+    ] as const)('slides a box measured "%s" to where "%s" anchors it', (from, to, expected) => {
+        expect(getTextAlignShift(WIDTH, from, to)).toBe(expected);
+    });
+
+    // The shift is the difference of two anchor fractions, so going and coming back must cancel.
+    it.each([
+        ['left', 'right'],
+        ['left', 'center'],
+        ['center', 'right'],
+    ] as const)('is antisymmetric between "%s" and "%s"', (one, other) => {
+        const there = getTextAlignShift(WIDTH, one, other);
+        const back = getTextAlignShift(WIDTH, other, one);
+        expect(there).toBe(-back);
+    });
+
+    it('has nowhere to slide a zero-width box', () => {
+        expect(getTextAlignShift(0, 'left', 'right')).toBeCloseTo(0, 10);
     });
 });

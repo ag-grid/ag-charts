@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { type NormalisedTextOrSegments, wrapTextOrSegments } from 'ag-charts-core';
+import { type NormalisedTextOrSegments, resolveTextAlign, wrapTextOrSegments } from 'ag-charts-core';
 import type { AgNetworkSeriesTreeLayoutDirection, TextAlign } from 'ag-charts-types';
 
 import { type PositionedScene, layoutScenesColumn, layoutScenesRow } from '../../utils/sceneLayout';
@@ -65,6 +65,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
 
     private appliedStyles?: NormalisedOrganizationNodeStyle;
     private intrinsicCardSize?: { width: number; height: number };
+    private isRtl = false;
 
     update(
         fields: OrganizationNodeFields,
@@ -76,6 +77,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         direction: AgNetworkSeriesTreeLayoutDirection
     ) {
         this.appliedStyles = styles;
+        this.isRtl = isRtl;
         const textMaxWidth = computeTextMaxWidth(styles);
         this.updateShapeNode(styles);
         this.updateImageNode(fields.image, styles);
@@ -221,7 +223,8 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
                 : bbox.width - styles.padding.right;
 
         const alignTextNode = (node: _ModuleSupport.Text, textAlign: TextAlign) => {
-            switch (textAlign) {
+            const resolvedTextAlign = resolveTextAlign(textAlign, this.isRtl);
+            switch (resolvedTextAlign) {
                 case 'right': {
                     node.x = textAreaRight;
                     break;
@@ -234,7 +237,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
                     node.x = textAreaLeft;
                 }
             }
-            node.textAlign = textAlign;
+            node.textAlign = resolvedTextAlign;
         };
 
         if (titleNode) alignTextNode(titleNode, styles.title.textAlign);

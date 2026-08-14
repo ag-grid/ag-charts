@@ -3,6 +3,7 @@ import {
     EllipsisChar,
     type ITextMeasurer,
     type NormalisedTextOrSegments,
+    type ResolvedTextAlign,
     type Scale,
     ScaleAlignment,
     type ScaleTickParams,
@@ -570,7 +571,7 @@ export function getTextAlign(
     labelAutoRotation: number,
     sideFlag: ChartAxisLabelFlipFlag,
     regularFlipFlag: ChartAxisLabelFlipFlag
-): CanvasTextAlign {
+): ResolvedTextAlign {
     const labelRotated = labelRotation > 0 && labelRotation <= Math.PI;
     const labelAutoRotated = labelAutoRotation > 0 && labelAutoRotation <= Math.PI;
     const alignFlag = labelRotated || labelAutoRotated ? -1 : 1;

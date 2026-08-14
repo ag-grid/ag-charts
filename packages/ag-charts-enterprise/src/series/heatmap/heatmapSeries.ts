@@ -20,12 +20,14 @@ import {
     type Normalised,
     type NormalisedTextOrSegments,
     type Point,
+    type ResolvedTextAlign,
     type SizedPoint,
     extent,
     findDiscreteColorBinLabel,
     formatValue,
     joinFormatted,
     mergeDefaults,
+    resolveTextAlign,
 } from 'ag-charts-core';
 
 import { formatLabels } from '../util/labelFormatter';
@@ -118,7 +120,7 @@ interface HeatmapSeriesNodeDatumContext extends _ModuleSupport.CartesianCreateNo
     readonly itemStyleContext: HeatmapItemStyleContext;
 }
 
-const textAlignFactors: Record<TextAlign, number> = {
+const textAlignFactors: Record<ResolvedTextAlign, number> = {
     left: -0.5,
     center: 0,
     right: -0.5,
@@ -400,7 +402,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             yOffset: (yScale.bandwidth ?? 0) / 2,
             width,
             height,
-            textAlignFactor: (width - 2 * itemPadding) * textAlignFactors[textAlign],
+            textAlignFactor:
+                (width - 2 * itemPadding) * textAlignFactors[resolveTextAlign(textAlign, this.ctx.domManager.isRtl)],
             verticalAlignFactor: (height - 2 * itemPadding) * verticalAlignFactors[verticalAlign],
 
             // Heatmap-specific data

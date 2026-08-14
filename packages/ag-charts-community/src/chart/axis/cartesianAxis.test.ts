@@ -6,6 +6,7 @@ import type {
     AgCartesianAxisCrossAt,
     AgCartesianChartOptions,
     AgChartInstance,
+    TextAlign,
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
@@ -14,6 +15,7 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     compareImageSnapshot,
     deproxy,
+    expectWarningsCalls,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
@@ -1557,7 +1559,7 @@ describe('CartesianAxis', () => {
             { category: 'CCC', value: 15 },
         ];
 
-        type TextAlignLabelOptions = { rotation?: number; textAlign?: 'left' | 'center' | 'right' };
+        type TextAlignLabelOptions = { rotation?: number; textAlign?: TextAlign };
 
         const rightAxisOptions = (label?: TextAlignLabelOptions): AgCartesianChartOptions => ({
             data: TEXT_ALIGN_CATEGORY_DATA,
@@ -1698,6 +1700,103 @@ describe('CartesianAxis', () => {
             expect(new Set(boxes.map((b) => Math.round(b.width))).size).toBeGreaterThan(1);
         });
 
+        // `'start'`/`'end'` name a side of the paragraph rather than a side of the canvas, so the
+        // side they land on has to follow the chart's direction.
+        describe('direction-relative alignments', () => {
+            const renderRightAxis = async (enableRtl: boolean, label?: TextAlignLabelOptions) => {
+                if (chart != null) {
+                    chart.destroy();
+                    (chart as unknown) = undefined;
+                }
+                const options: AgCartesianChartOptions = { ...rightAxisOptions(label), enableRtl };
+                prepareTestOptions(options);
+                chart = AgCharts.create(options);
+                await waitForChartStability(chart);
+                return chart;
+            };
+
+            const expectAnchorsMatch = (nodes: any[], expected: ReturnType<typeof captureAnchorsByText>) => {
+                expect(nodes.length).toBe(expected.size);
+                for (const node of nodes) {
+                    const anchor = expected.get(node.datum.text);
+                    expect(anchor).toBeDefined();
+                    expect(node.datum.x).toBeCloseTo(anchor!.x, 5);
+                    expect(node.datum.rotationCenterX).toBeCloseTo(anchor!.rotationCenterX, 5);
+                }
+            };
+
+            it.each([
+                ['start', 'left'],
+                ['end', 'right'],
+            ] as const)('AC3: resolves "%s" to "%s" in a left-to-right chart', async (textAlign, resolved) => {
+                await renderRightAxis(false, { textAlign: resolved });
+                const resolvedAnchors = captureAnchorsByText(getRightAxisLabelNodes(chart));
+                expect(resolvedAnchors.size).toBe(3);
+
+                await renderRightAxis(false, { textAlign });
+                const nodes = getRightAxisLabelNodes(chart);
+                for (const node of nodes) {
+                    expect(node.datum.textAlign).toBe(resolved);
+                }
+                expectAnchorsMatch(nodes, resolvedAnchors);
+            });
+
+            it.each([
+                ['start', 'right'],
+                ['end', 'left'],
+            ] as const)('AC3: resolves "%s" to "%s" in a right-to-left chart', async (textAlign, resolved) => {
+                await renderRightAxis(true, { textAlign: resolved });
+                const resolvedAnchors = captureAnchorsByText(getRightAxisLabelNodes(chart));
+                expect(resolvedAnchors.size).toBe(3);
+
+                await renderRightAxis(true, { textAlign });
+                const nodes = getRightAxisLabelNodes(chart);
+                for (const node of nodes) {
+                    expect(node.datum.textAlign).toBe(resolved);
+                }
+                expectAnchorsMatch(nodes, resolvedAnchors);
+            });
+
+            // Anti-vacuous cover for the two cases above: the mapping is only meaningful because the
+            // same configured value lands on opposite sides in the two directions.
+            it.each(['start', 'end'] as const)(
+                'sends "%s" to opposite sides in the two directions',
+                async (textAlign) => {
+                    await renderRightAxis(false, { textAlign });
+                    const ltr = getRightAxisLabelNodes(chart).map((n) => n.datum.textAlign);
+
+                    await renderRightAxis(true, { textAlign });
+                    const rtl = getRightAxisLabelNodes(chart).map((n) => n.datum.textAlign);
+
+                    expect(new Set(ltr).size).toBe(1);
+                    expect(new Set(rtl).size).toBe(1);
+                    expect(ltr[0]).not.toBe(rtl[0]);
+                }
+            );
+
+            // The natural alignment of a right-positioned axis is `'left'` whichever way the chart
+            // runs, so under RTL it is `'end'` that must leave the anchors untouched.
+            it('AC2: an RTL "end" matching the axis\'s natural alignment produces identical anchors', async () => {
+                await renderRightAxis(true);
+                const naturalNodes = getRightAxisLabelNodes(chart);
+                for (const node of naturalNodes) {
+                    expect(node.datum.textAlign).toBe('left');
+                }
+                const naturalAnchors = captureAnchorsByText(naturalNodes);
+                expect(naturalAnchors.size).toBe(3);
+
+                await renderRightAxis(true, { textAlign: 'end' });
+                expectAnchorsMatch(getRightAxisLabelNodes(chart), naturalAnchors);
+            });
+
+            it.each([[false], [true]])('AC4: accepts "start" without warning (enableRtl %j)', async (enableRtl) => {
+                await renderRightAxis(enableRtl, { textAlign: 'start' });
+
+                expect(getRightAxisLabelNodes(chart).length).toBe(3);
+                expectWarningsCalls().toEqual([]);
+            });
+        });
+
         // A banded scale puts each tick in the middle of its band, so on a horizontal axis the tick
         // position is not an edge anything can align to - the band's own edges are.
         describe('band-scale horizontal axes', () => {
@@ -1811,6 +1910,44 @@ describe('CartesianAxis', () => {
                     const natural = tickAnchors.get(node.datum.text);
                     expect(natural).toBeDefined();
                     expect(node.datum.x).toBeCloseTo(natural!.x, 5);
+                }
+            });
+
+            // Overflow removal only measures label edges on a horizontal continuous axis, so this is
+            // the one fixture whose alignment reaches the edge arithmetic rather than the anchoring.
+            it('measures overflow against the resolved alignment on a continuous horizontal axis', async () => {
+                const continuousOptions = (textAlign: TextAlign): AgCartesianChartOptions => ({
+                    data: TEXT_ALIGN_CATEGORY_DATA,
+                    enableRtl: true,
+                    axes: {
+                        x: { type: 'number', position: 'bottom', label: { textAlign } },
+                        y: { type: 'number', position: 'left' },
+                    },
+                    series: [{ type: 'scatter', xKey: 'value', yKey: 'value' }],
+                });
+
+                const render = async (textAlign: TextAlign) => {
+                    if (chart != null) {
+                        chart.destroy();
+                        (chart as unknown) = undefined;
+                    }
+                    const options = continuousOptions(textAlign);
+                    prepareTestOptions(options);
+                    chart = AgCharts.create(options);
+                    await waitForChartStability(chart);
+                    return getAxisLabelNodes(chart, 'bottom');
+                };
+
+                const resolvedAnchors = captureAnchorsByText(await render('left'));
+                expect(resolvedAnchors.size).toBeGreaterThan(1);
+
+                const nodes = await render('end');
+                expect(nodes.length).toBe(resolvedAnchors.size);
+                for (const node of nodes) {
+                    expect(node.datum.textAlign).toBe('left');
+                    const resolved = resolvedAnchors.get(node.datum.text);
+                    expect(resolved).toBeDefined();
+                    expect(node.datum.x).toBeCloseTo(resolved!.x, 5);
                 }
             });
         });
