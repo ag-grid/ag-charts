@@ -98,10 +98,13 @@ class ChordSeriesNodeProperties extends BaseProperties<AgChordSeriesOptions> {
     lineDashOffset: number = 0;
 
     @Property
+    cornerRadius: number = 0;
+
+    @Property
     itemStyler?: Styler<AgChordSeriesNodeItemStylerParams<unknown>, AgChordSeriesNodeStyle>;
 
     getStyle(fills: InternalAgColorType[], strokes: string[], index: number): Required<AgChordSeriesNodeStyle> {
-        const { fillOpacity, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = this;
+        const { fillOpacity, strokeWidth, strokeOpacity, lineDash, lineDashOffset, cornerRadius } = this;
         const fill = this.fill ?? fills[index % fills.length];
         const stroke = this.stroke ?? strokes[index % fills.length];
         return {
@@ -112,6 +115,7 @@ class ChordSeriesNodeProperties extends BaseProperties<AgChordSeriesOptions> {
             strokeOpacity,
             lineDash,
             lineDashOffset,
+            cornerRadius,
         };
     }
 }

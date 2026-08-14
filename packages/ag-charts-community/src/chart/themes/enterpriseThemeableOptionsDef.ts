@@ -224,10 +224,12 @@ export const chordSeriesThemeableOptionsDef: OptionsDefs<AgChordSeriesThemeableO
     node: {
         width: positiveNumber,
         spacing: positiveNumber,
+        cornerRadius: positiveNumber,
         itemStyler: callbackDefs<AgChordSeriesNodeStyle>({
             ...fillOptionsDef,
             ...strokeOptionsDef,
             ...lineDashOptionsDef,
+            cornerRadius: positiveNumber,
         }),
         ...fillOptionsDef,
         ...strokeOptionsDef,
