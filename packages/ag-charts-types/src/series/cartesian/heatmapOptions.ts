@@ -1,5 +1,9 @@
 import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from '../../chart/callbackOptions';
-import type { AgChartAutoSizedSecondaryLabelOptions } from '../../chart/labelOptions';
+import type {
+    AgChartAutoSizedSecondaryLabelOptions,
+    AgChartLabelStyleOptions,
+    AgChartLabelStylerParams,
+} from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault, DatumKey, PixelSize, TextAlign, VerticalAlign } from '../../chart/types';
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
@@ -26,10 +30,17 @@ export type AgHeatmapSeriesTooltipRendererParams<
     AgHeatmapSeriesOptionsNames &
     AgHeatmapSeriesStyle;
 
-export interface AgHeatmapSeriesLabelOptions<
-    TDatum = DatumDefault,
-    TContext = ContextDefault,
-> extends AgChartAutoSizedSecondaryLabelOptions<TDatum, AgHeatmapSeriesLabelFormatterParams<TDatum>, TContext> {
+export interface AgHeatmapSeriesLabelStyle extends AgChartLabelStyleOptions {
+    /** Horizontal position of the label within the cell. */
+    textAlign?: TextAlign;
+    /** Vertical position of the label within the cell. */
+    verticalAlign?: VerticalAlign;
+}
+
+export interface AgHeatmapSeriesLabelOptions<TDatum = DatumDefault, TContext = ContextDefault> extends Omit<
+    AgChartAutoSizedSecondaryLabelOptions<TDatum, AgHeatmapSeriesLabelFormatterParams<TDatum>, TContext>,
+    'itemStyler'
+> {
     /** Horizontal position of the label within the cell.
      *
      * Default: `center`
@@ -40,6 +51,11 @@ export interface AgHeatmapSeriesLabelOptions<
      * Default: `middle`
      */
     verticalAlign?: VerticalAlign;
+    /** Function used to style individual cell labels, including their position within the cell. */
+    itemStyler?: Styler<
+        AgChartLabelStylerParams<TDatum, TContext> & AgHeatmapSeriesLabelFormatterParams<TDatum>,
+        AgHeatmapSeriesLabelStyle
+    >;
 }
 
 export interface AgHeatmapSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>

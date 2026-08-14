@@ -1522,6 +1522,64 @@ describe('HeatmapSeries', () => {
             expect(anchor.textBaseline).toBe('top');
         });
 
+        describe('per-cell alignment from a label styler', () => {
+            const TEXT_ALIGN_BY_YEAR: Record<string, 'left' | 'center' | 'right'> = {
+                '2020': 'left',
+                '2021': 'center',
+                '2022': 'right',
+            };
+            const VERTICAL_ALIGN_BY_PERSON: Record<string, 'top' | 'middle' | 'bottom'> = {
+                Florian: 'top',
+                Julian: 'middle',
+                Martian: 'bottom',
+            };
+            const TEXT_ALIGN_FACTORS = { left: -0.5, center: 0, right: 0.5 };
+            const VERTICAL_ALIGN_FACTORS = { top: -0.5, middle: 0, bottom: 0.5 };
+
+            const styledOptions = () =>
+                buildOptions({
+                    label: {
+                        enabled: true,
+                        itemStyler: ({ datum }: { datum: { year: string; person: string } }) => ({
+                            textAlign: TEXT_ALIGN_BY_YEAR[datum.year],
+                            verticalAlign: VERTICAL_ALIGN_BY_PERSON[datum.person],
+                        }),
+                    },
+                });
+
+            it('anchors every cell to the alignment its styler returned', async () => {
+                chart = deproxy(AgCharts.create(styledOptions()));
+                await waitForChartStability(chart);
+
+                const context = classCast(chart.series[0], HeatmapSeries).contextNodeData;
+                expect(context).toBeDefined();
+                expect(context!.labelData).toHaveLength(9);
+
+                for (const labelDatum of context!.labelData) {
+                    const nodeDatum = context!.nodeData.find((node) => node.datumIndex === labelDatum.datumIndex);
+                    expect(nodeDatum).toBeDefined();
+
+                    const textAlign = TEXT_ALIGN_BY_YEAR[labelDatum.datum.year];
+                    const verticalAlign = VERTICAL_ALIGN_BY_PERSON[labelDatum.datum.person];
+                    expect(labelDatum.textAlign).toBe(textAlign);
+                    expect(labelDatum.textBaseline).toBe(verticalAlign);
+                    expect(labelDatum.x - nodeDatum!.point.x).toBeCloseTo(
+                        TEXT_ALIGN_FACTORS[textAlign] * (nodeDatum!.width - 2 * ITEM_PADDING)
+                    );
+                    expect(labelDatum.y - nodeDatum!.point.y).toBeCloseTo(
+                        VERTICAL_ALIGN_FACTORS[verticalAlign] * (nodeDatum!.height - 2 * ITEM_PADDING)
+                    );
+                }
+            });
+
+            it('renders the nine styled cell alignments', async () => {
+                chart = deproxy(AgCharts.create(styledOptions()));
+                await waitForChartStability(chart);
+
+                await compareImageSnapshot(chart, ctx);
+            });
+        });
+
         // `'start'`/`'end'` name a side of the paragraph, so the cell edge they anchor to has to
         // follow the chart's direction (AG-18142 resolves the glyph alignment; the anchor is here).
         describe('direction-relative alignments', () => {
