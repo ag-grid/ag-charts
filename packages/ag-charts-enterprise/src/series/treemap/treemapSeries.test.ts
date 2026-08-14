@@ -1130,6 +1130,10 @@ describe('TreemapSeries', () => {
             const withOption = await createChart(DEEP_DATA, { group: { fills: ['#ff0000', '#00ff00'] } });
             const after = groupNames.map((name) => stylesByName(withOption)[name].stroke);
 
+            // Depths must resolve distinct strokes for the comparison to discriminate — a rotated
+            // stroke index would collapse depth 2 back onto depth 0.
+            expect(before.every((stroke) => stroke != null)).toBe(true);
+            expect(new Set(before).size).toBeGreaterThan(1);
             expect(after).toEqual(before);
         });
 
