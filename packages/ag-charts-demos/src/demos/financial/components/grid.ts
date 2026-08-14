@@ -2,6 +2,7 @@ import {
     AllCommunityModule,
     type CellClassRules,
     type ColDef,
+    type ColDefField,
     type GetRowIdParams,
     ModuleRegistry,
     type ValueFormatterParams,
@@ -11,6 +12,7 @@ import {
 
 import { fmtPrice } from '../format';
 import { SparklineCell } from './SparklineCell';
+import { TickerCell } from './TickerCell';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -86,6 +88,17 @@ export const rowValuesEqual = <T extends object>(a: T, b: T): boolean => {
     }
     return true;
 };
+
+// The market column: a coloured initial beside the row's ticker, wide enough for both. The
+// fields are parameters because `ColDefField` only resolves against a concrete row type.
+export const tickerColDef = <T>(field: ColDefField<T>, tooltipField: ColDefField<T>): ColDef<T> => ({
+    field,
+    headerName: 'Ticker',
+    flex: 1.35,
+    minWidth: 74,
+    tooltipField,
+    cellRenderer: TickerCell,
+});
 
 // A non-interactive trend column rendering each row's price history as a sparkline.
 export const sparklineColDef = <T extends { history: number[] }>(): ColDef<T> => ({

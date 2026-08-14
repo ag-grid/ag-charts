@@ -442,6 +442,15 @@
     font-size: 16px;
     font-weight: 650;
 }
+/* The quote header's badge is scaled up for the heading, and centres on the line: the
+   row is baseline-aligned so the price and change sit on one baseline, but a circle
+   dropped onto that baseline rides visibly high. */
+.fin-quote .fin-ticker-badge {
+    align-self: center;
+    width: 21px;
+    height: 21px;
+    font-size: 11px;
+}
 .fin-quote-price {
     font-size: 16px;
     font-variant-numeric: tabular-nums;
@@ -511,6 +520,69 @@
     .fin-detail-gauges {
         grid-template-columns: 1fr;
     }
+}
+
+/* ---- market identity badge ---- */
+/* A small coloured initial before a market's name, so a long board can be scanned by
+   shape and colour rather than by reading every row. Colour slot is assigned by
+   hashing the ticker (see TickerCell.tsx) — keep the slot count in step with it. */
+.fin-ticker {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+}
+.fin-ticker-badge {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--fin-elevated);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 600;
+    line-height: 1;
+}
+.fin-ticker-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+/* On the accent-filled selected row a blue-ish badge would sink into the fill, so ring
+   it — that keeps every slot separated without giving up its identity colour. */
+.fin-grid-active .fin-ticker-badge {
+    box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.9);
+}
+/* Vibrant mid-tones rather than the darker inks a text colour would need: the initial
+   is decorative (aria-hidden, and the ticker it abbreviates is right beside it), so
+   these are tuned for identity at a glance rather than for text contrast. */
+.fin-ticker-badge[data-avatar='0'] {
+    background: #2b80de;
+}
+.fin-ticker-badge[data-avatar='1'] {
+    background: #f57c1f;
+}
+.fin-ticker-badge[data-avatar='2'] {
+    background: #10a396;
+}
+.fin-ticker-badge[data-avatar='3'] {
+    background: #7c56e0;
+}
+.fin-ticker-badge[data-avatar='4'] {
+    background: #e33a72;
+}
+.fin-ticker-badge[data-avatar='5'] {
+    background: #1cae57;
+}
+.fin-ticker-badge[data-avatar='6'] {
+    background: #dfa20d;
+}
+.fin-ticker-badge[data-avatar='7'] {
+    background: #0d97cb;
 }
 
 /* ---- watchlist + trending (AG Grid) ---- */

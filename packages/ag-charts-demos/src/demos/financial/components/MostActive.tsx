@@ -3,13 +3,13 @@ import { type ColDef } from 'ag-grid-community';
 import { fmtPrice } from '../format';
 import { type MoverRow } from '../types';
 import { TickerGrid } from './TickerGrid';
-import { formatOrBlank, signedPct, sparklineColDef, upDownRules } from './grid';
+import { formatOrBlank, signedPct, sparklineColDef, tickerColDef, upDownRules } from './grid';
 
 const upDown = upDownRules<MoverRow>();
 
 // "Most active" = the highest-volume names, ranked by traded volume; values stream live.
 const columnDefs: ColDef<MoverRow>[] = [
-    { field: 'ticker', headerName: 'Ticker', flex: 0.9, tooltipField: 'name' },
+    tickerColDef<MoverRow>('ticker', 'name'),
     { field: 'last', headerName: 'Last', type: 'rightAligned', valueFormatter: formatOrBlank<MoverRow>(fmtPrice) },
     {
         field: 'changePct',
