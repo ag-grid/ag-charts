@@ -18,6 +18,7 @@ import {
     type WrapOptions,
     anyOverlap,
     cachedTextMeasurer,
+    canRenderTextOffscreen,
     extractDomain,
     fitLabelText,
     formatValue,
@@ -58,7 +59,7 @@ import { Selection } from '../../../scene/selection';
 import { Line } from '../../../scene/shape/line';
 import { Sector } from '../../../scene/shape/sector';
 import { Text } from '../../../scene/shape/text';
-import { boxOverlapsSector, isPointInSector, sectorBox } from '../../../scene/util/sector';
+import { boxOverlapsSector, clockwiseAngles, isPointInSector, sectorBox } from '../../../scene/util/sector';
 import type { DataController } from '../../data/dataController';
 import { DataModel, type ProcessedData, getMissCount } from '../../data/dataModel';
 import {
@@ -154,6 +155,23 @@ interface PieDonutSeriesLabelFormatterParams
     extends AgDonutSeriesLabelFormatterParams, AgPieSeriesLabelFormatterParams {}
 interface PieDonutSeriesStyle extends NormalisedDonutSeriesStyle, NormalisedPieSeriesStyle {}
 
+type PieAnimationFns = ReturnType<typeof preparePieSeriesAnimationFunctions>;
+
+// The sector animation tweens `fill`/`stroke` towards the datum's own sector style; a cutout node
+// paints neither, and a tweened stroke on it would be drawn over the sector it is erasing beneath.
+function prepareInnerCircleCutoutAnimationFunctions({ nodes }: PieAnimationFns): PieAnimationFns['nodes'] {
+    return {
+        fromFn: (...args) => {
+            const { fill: _fill, stroke: _stroke, ...rest } = nodes.fromFn(...args);
+            return rest;
+        },
+        toFn: (...args) => {
+            const { fill: _fill, stroke: _stroke, ...rest } = nodes.toFn(...args);
+            return rest;
+        },
+    };
+}
+
 export class DonutSeries extends PolarSeries<
     PieDonutNodeDatum,
     AgDonutSeriesOptions,
@@ -205,6 +223,17 @@ export class DonutSeries extends PolarSeries<
     readonly innerCircleSelection = Selection.select<Marker<{ radius: number }>>(
         this.innerCircleGroup,
         () => new Marker({ shape: 'circle' })
+    );
+    // `destination-out` erases everything already painted on its canvas, so the cutouts must share
+    // the inner circle's group - and only ever that group, which composites offscreen while they
+    // are present so the erase cannot reach the chart behind the series.
+    private readonly innerCircleCutoutGroup = this.innerCircleGroup.appendChild(
+        new Group({ name: `${this.id}-innerCircleCutout` })
+    );
+    readonly innerCircleCutoutSelection = Selection.select<Sector<PieDonutNodeDatum>>(
+        this.innerCircleCutoutGroup,
+        () => this.nodeFactory(),
+        false
     );
 
     private readonly angleScale: LinearScale;
@@ -977,6 +1006,7 @@ export class DonutSeries extends PolarSeries<
     private updateSelections() {
         this.updateGroupSelection();
         this.updateInnerCircleSelection();
+        this.updateInnerCircleCutoutSelection();
     }
 
     private updateGroupSelection() {
@@ -1035,19 +1065,85 @@ export class DonutSeries extends PolarSeries<
         });
     }
 
+    // A rounded inner corner pulls each sector's fill away from the inner radius, leaving a crescent
+    // of chart background that `innerCircle.fill` should cover. The corner arcs top out where the
+    // crescents end, so the fill reaches that radius - and covers the `sectorSpacing` strips up to
+    // it, which otherwise read as slots cut into the filled band.
+    private getInnerCircleFillRadius() {
+        const innerRadius = this.getInnerRadius();
+        const { fill } = this.properties.innerCircle;
+        if (innerRadius <= 0 || fill == null || fill === 'transparent') return innerRadius;
+
+        let fillRadius = innerRadius;
+        for (const datum of this.nodeData) {
+            const { cornerRadius = 0, stroke, strokeWidth = 0 } = datum.sectorFormat;
+            if (cornerRadius <= 0) continue;
+
+            // `inset` pulls the sector's painted edges inwards from its radii.
+            const inset = Math.max((this.properties.sectorSpacing + (stroke == null ? 0 : strokeWidth)) / 2, 0);
+            const paintedInnerRadius = datum.innerRadius > 0 ? datum.innerRadius + inset : 0;
+            const paintedOuterRadius = Math.max(datum.outerRadius - inset, 0);
+            if (paintedInnerRadius <= 0 || paintedOuterRadius <= paintedInnerRadius) continue;
+
+            // Mirrors the clamping `Sector` applies to its own corner radii: half the radial band,
+            // and half the chord between the sector's two inner corners.
+            const { startAngle, endAngle } = clockwiseAngles(datum.startAngle, datum.endAngle);
+            const sweepAngle = endAngle - startAngle - (2 * inset) / paintedInnerRadius;
+            const cornerDistance = sweepAngle > 0 ? 2 * paintedInnerRadius * Math.sin(sweepAngle / 2) : 0;
+            const radialLength = paintedOuterRadius - paintedInnerRadius;
+            const appliedCornerRadius = Math.floor(Math.min(cornerRadius, cornerDistance / 2, radialLength / 2));
+
+            fillRadius = Math.max(fillRadius, paintedInnerRadius + appliedCornerRadius);
+        }
+        return Math.min(fillRadius, this.getOuterRadius());
+    }
+
     private updateInnerCircleSelection() {
         const { innerCircle } = this.properties;
 
         let radius = 0;
-        const innerRadius = this.getInnerRadius();
-        if (innerRadius > 0) {
-            const circleRadius = Math.min(innerRadius, this.getOuterRadius());
+        if (this.getInnerRadius() > 0) {
             const antiAliasingPadding = 1;
-            radius = Math.ceil(circleRadius * 2 + antiAliasingPadding);
+            radius = Math.ceil(this.getInnerCircleFillRadius() * 2 + antiAliasingPadding);
         }
 
         const datums = innerCircle ? [{ radius }] : [];
         this.innerCircleSelection.update(datums);
+    }
+
+    // The grown circle reaches under the sectors themselves, where a translucent or transparent
+    // sector would composite over it rather than over the page. Erasing each sector's own outline
+    // from the circle leaves only the crescents and spacing strips filled.
+    private updateInnerCircleCutoutSelection() {
+        // Mirrors the predicate Group applies to `renderToOffscreenCanvas`: without that isolation
+        // the cutout would erase the chart behind the series along with the circle.
+        const enabled = this.getInnerCircleFillRadius() > this.getInnerRadius() && canRenderTextOffscreen();
+        const datumId = (datum: PieDonutNodeDatum) => this.getDatumId(datum.datumIndex);
+
+        this.innerCircleGroup.renderToOffscreenCanvas = enabled;
+        this.innerCircleCutoutSelection.update(enabled ? this.nodeData : [], undefined, datumId);
+        if (this.ctx.animationManager.isSkipped()) {
+            this.innerCircleCutoutSelection.cleanup();
+        }
+    }
+
+    private applySectorSpacing(sector: Sector, hasStroke: boolean, strokeWidth: number) {
+        const inset = Math.max((this.properties.sectorSpacing + (hasStroke ? strokeWidth : 0)) / 2, 0);
+        sector.inset = inset;
+        sector.lineJoin = this.properties.sectorSpacing >= 0 || inset > 0 ? 'miter' : 'round';
+    }
+
+    private applySelectedOffset(sector: Sector, datumIndex: number) {
+        const datumSelectionState = this.ctx.dataSelectionService?.getDataSelectionState(this, datumIndex);
+        const { selectedOffset } = this.properties.selection;
+        if (!isUnselected(datumSelectionState) && selectedOffset > 0) {
+            const midAngle = (sector.endAngle + sector.startAngle) / 2;
+            sector.centerX = selectedOffset * Math.cos(midAngle);
+            sector.centerY = selectedOffset * Math.sin(midAngle);
+        } else {
+            sector.centerX = 0;
+            sector.centerY = 0;
+        }
     }
 
     private updateNodes(seriesRect: BBox) {
@@ -1107,28 +1203,34 @@ export class DonutSeries extends PolarSeries<
             sector.drawingMode = mode;
             sector.cornerRadius = format.cornerRadius;
             sector.fillShadow = this.properties.shadow;
-            const inset = Math.max(
-                (this.properties.sectorSpacing + (format.stroke == null ? 0 : format.strokeWidth)) / 2,
-                0
-            );
-            sector.inset = inset;
-            sector.lineJoin = this.properties.sectorSpacing >= 0 || inset > 0 ? 'miter' : 'round';
-
-            const datumSelectionState = this.ctx.dataSelectionService?.getDataSelectionState(this, datum.datumIndex);
-            const isSelected: boolean = !isUnselected(datumSelectionState);
-            const selectedOffset: number = this.properties.selection.selectedOffset;
-            if (isSelected && selectedOffset > 0) {
-                const midAngle = (sector.endAngle + sector.startAngle) / 2;
-                sector.centerX = selectedOffset * Math.cos(midAngle);
-                sector.centerY = selectedOffset * Math.sin(midAngle);
-            } else {
-                sector.centerX = 0;
-                sector.centerY = 0;
-            }
+            this.applySectorSpacing(sector, format.stroke != null, format.strokeWidth);
+            this.applySelectedOffset(sector, datum.datumIndex);
         };
 
         this.itemSelection.each((node, datum, index) => updateSectorFn(node, datum, index, false, 'overlay'));
         this.phantomSelection.each((node, datum, index) => updateSectorFn(node, datum, index, false, 'overlay'));
+
+        this.innerCircleCutoutSelection.each((sector, datum) => {
+            // Resolved exactly as the real sector's is, so the erased outline matches what is drawn.
+            const format = this.getItemStyle(datum, false, true, undefined, legendItemValues);
+
+            if (animationDisabled) {
+                sector.startAngle = datum.startAngle;
+                sector.endAngle = datum.endAngle;
+                sector.innerRadius = datum.innerRadius;
+                sector.outerRadius = datum.outerRadius;
+            }
+
+            sector.fill = undefined;
+            sector.stroke = undefined;
+            sector.strokeWidth = 0;
+            sector.fillShadow = undefined;
+            sector.drawingMode = 'cutout';
+            sector.cornerRadius = format.cornerRadius;
+
+            this.applySectorSpacing(sector, format.stroke != null, format.strokeWidth);
+            this.applySelectedOffset(sector, datum.datumIndex);
+        });
 
         this.highlightSelection.each((node, datum, index) => {
             updateSectorFn(node, datum, index, true, drawingMode);
@@ -1915,6 +2017,14 @@ export class DonutSeries extends PolarSeries<
             fns.nodes,
             (node) => this.getDatumId(node.unsafeDatum.datumIndex)
         );
+        fromToMotion(
+            this.id,
+            'innerCircleCutout',
+            animationManager,
+            [this.innerCircleCutoutSelection],
+            prepareInnerCircleCutoutAnimationFunctions(fns),
+            (node) => this.getDatumId(node.unsafeDatum.datumIndex)
+        );
         fromToMotion(this.id, `innerCircle`, animationManager, [this.innerCircleSelection], fns.innerCircle);
 
         seriesLabelFadeInAnimation(this, 'callout', animationManager, this.calloutLabelSelection);
@@ -1962,6 +2072,15 @@ export class DonutSeries extends PolarSeries<
             (node) => this.getDatumId(node.unsafeDatum.datumIndex),
             dataDiff
         );
+        fromToMotion(
+            this.id,
+            'innerCircleCutout',
+            animationManager,
+            [this.innerCircleCutoutSelection],
+            prepareInnerCircleCutoutAnimationFunctions(fns),
+            (node) => this.getDatumId(node.unsafeDatum.datumIndex),
+            dataDiff
+        );
         fromToMotion(this.id, `innerCircle`, animationManager, [this.innerCircleSelection], fns.innerCircle);
 
         seriesLabelFadeInAnimation(this, 'callout', this.ctx.animationManager, this.calloutLabelSelection);
@@ -2004,6 +2123,14 @@ export class DonutSeries extends PolarSeries<
             animationManager,
             [itemSelection, highlightSelection, phantomSelection, phantomHighlightSelection],
             fns.nodes,
+            (node) => this.getDatumId(node.unsafeDatum.datumIndex)
+        );
+        fromToMotion(
+            this.id,
+            'innerCircleCutout',
+            animationManager,
+            [this.innerCircleCutoutSelection],
+            prepareInnerCircleCutoutAnimationFunctions(fns),
             (node) => this.getDatumId(node.unsafeDatum.datumIndex)
         );
         fromToMotion(this.id, `innerCircle`, animationManager, [this.innerCircleSelection], fns.innerCircle);

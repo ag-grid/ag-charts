@@ -6,6 +6,7 @@ import type { AgChartOptions, AgDonutSeriesOptions, AgPolarChartOptions } from '
 
 import { AgCharts } from '../../../api/agCharts';
 import { OptionsGraph } from '../../../module/optionsGraph';
+import type { Sector } from '../../../scene/shape/sector';
 import type { Text } from '../../../scene/shape/text';
 import { Transformable } from '../../../scene/transformable';
 import type { Chart } from '../../chart';
@@ -1299,6 +1300,226 @@ describe('DonutSeries', () => {
 
             await compare();
             expectWarningsCalls().toEqual([]);
+        });
+    });
+
+    describe('inner circle with rounded corners', () => {
+        const data = [
+            { asset: 'Stocks', amount: 30 },
+            { asset: 'Bonds', amount: 25 },
+            { asset: 'Cash', amount: 20 },
+            { asset: 'Real Estate', amount: 15 },
+        ];
+
+        // `itemSelection` is protected on PolarSeries; the cutouts are asserted against the real
+        // sector nodes, so the test compares production values with production values.
+        const sectorNodes = (series: DonutSeries) => (series as any).itemSelection.nodes() as Sector[];
+        const circleSize = (series: DonutSeries) => series.innerCircleSelection.nodes()[0].size;
+
+        const createDonut = async (series: Partial<AgDonutSeriesOptions>) => {
+            chart = await createChart({
+                ...options,
+                data,
+                series: [
+                    {
+                        type: 'donut',
+                        angleKey: 'amount',
+                        innerRadiusRatio: 0.7,
+                        ...series,
+                    } as AgDonutSeriesOptions,
+                ],
+            });
+            return classCast(chart.series[0], DonutSeries);
+        };
+
+        // The crescents start at the sector's painted inner edge, so the fill is measured from
+        // there rather than from the series' inner radius.
+        const paintedRadii = (series: DonutSeries) => {
+            const [sector] = sectorNodes(series);
+            return {
+                innerRadius: sector.innerRadius + sector.concentricEdgeInset,
+                outerRadius: sector.outerRadius - sector.concentricEdgeInset,
+            };
+        };
+        const expectCircleToReach = (series: DonutSeries, radius: number) => {
+            const antiAliasingPadding = 1;
+            expect(circleSize(series)).toBe(Math.ceil(radius * 2 + antiAliasingPadding));
+        };
+
+        test('grows the inner circle by the corner radius', async () => {
+            const cornerRadius = 20;
+            const series = await createDonut({ cornerRadius, innerCircle: { fill: '#c9fdc9' } });
+
+            expectCircleToReach(series, paintedRadii(series).innerRadius + cornerRadius);
+        });
+
+        test('never grows the inner circle past the sectors mid-line', async () => {
+            const series = await createDonut({ cornerRadius: 1000, innerCircle: { fill: '#c9fdc9' } });
+
+            const { innerRadius, outerRadius } = paintedRadii(series);
+            const midLineRadius = innerRadius + Math.floor((outerRadius - innerRadius) / 2);
+            expectCircleToReach(series, midLineRadius);
+            expect(midLineRadius).toBeLessThan(series.getOuterRadius());
+        });
+
+        test('erases each sector outline from the grown circle', async () => {
+            const series = await createDonut({ cornerRadius: 20, innerCircle: { fill: '#c9fdc9' } });
+
+            const cutouts = series.innerCircleCutoutSelection.nodes();
+            const sectors = sectorNodes(series);
+            expect(cutouts).toHaveLength(sectors.length);
+
+            // Isolation is what stops `destination-out` erasing the chart behind the series.
+            expect(series.innerCircleGroup.renderToOffscreenCanvas).toBe(true);
+
+            for (const [index, cutout] of cutouts.entries()) {
+                const sector = sectors[index];
+                expect(cutout.drawingMode).toBe('cutout');
+                expect(cutout.fill).toBeUndefined();
+                expect(cutout.stroke).toBeUndefined();
+
+                expect(cutout.startAngle).toBe(sector.startAngle);
+                expect(cutout.endAngle).toBe(sector.endAngle);
+                expect(cutout.innerRadius).toBe(sector.innerRadius);
+                expect(cutout.outerRadius).toBe(sector.outerRadius);
+                expect(cutout.concentricEdgeInset).toBe(sector.concentricEdgeInset);
+                expect(cutout.radialEdgeInset).toBe(sector.radialEdgeInset);
+                expect(cutout.startOuterCornerRadius).toBe(sector.startOuterCornerRadius);
+                expect(cutout.endOuterCornerRadius).toBe(sector.endOuterCornerRadius);
+                expect(cutout.startInnerCornerRadius).toBe(sector.startInnerCornerRadius);
+                expect(cutout.endInnerCornerRadius).toBe(sector.endInnerCornerRadius);
+            }
+        });
+
+        test('carries the sector spacing inset into the cutouts', async () => {
+            const sectorSpacing = 6;
+            const series = await createDonut({ cornerRadius: 20, sectorSpacing, innerCircle: { fill: '#c9fdc9' } });
+
+            const sectors = sectorNodes(series);
+            expect(sectors[0].radialEdgeInset).toBeCloseTo(sectorSpacing / 2, 5);
+            for (const [index, cutout] of series.innerCircleCutoutSelection.nodes().entries()) {
+                expect(cutout.radialEdgeInset).toBe(sectors[index].radialEdgeInset);
+            }
+        });
+
+        test('aligns the inner circle with the sectors mid-line under sector spacing', async () => {
+            const sectorSpacing = 20;
+            const series = await createDonut({
+                cornerRadius: 20,
+                sectorSpacing,
+                innerRadiusRatio: 0.9,
+                innerCircle: { fill: '#c9fdc9' },
+            });
+
+            const { innerRadius, outerRadius } = paintedRadii(series);
+            const midLineRadius = innerRadius + Math.floor((outerRadius - innerRadius) / 2);
+            expectCircleToReach(series, midLineRadius);
+            // The band the spacing carves out is thin enough that the sectors would otherwise sit
+            // entirely inside the fill.
+            expect(midLineRadius).toBeLessThan(outerRadius);
+            expect(midLineRadius).toBeGreaterThan(series.getInnerRadius());
+        });
+
+        test('leaves the inner circle alone when there are no rounded corners', async () => {
+            const series = await createDonut({ cornerRadius: 0, innerCircle: { fill: '#c9fdc9' } });
+
+            const antiAliasingPadding = 1;
+            expect(circleSize(series)).toBe(Math.ceil(series.getInnerRadius() * 2 + antiAliasingPadding));
+            expect(series.innerCircleCutoutSelection.nodes()).toHaveLength(0);
+            expect(series.innerCircleGroup.renderToOffscreenCanvas).toBe(false);
+        });
+
+        test.each([undefined, 'transparent'])('leaves the inner circle alone when the fill is %s', async (fill) => {
+            const series = await createDonut({ cornerRadius: 20, innerCircle: fill == null ? undefined : { fill } });
+
+            const antiAliasingPadding = 1;
+            expect(circleSize(series)).toBe(Math.ceil(series.getInnerRadius() * 2 + antiAliasingPadding));
+            expect(series.innerCircleCutoutSelection.nodes()).toHaveLength(0);
+        });
+
+        test('sizes the circle to the largest corner radius across the datums', async () => {
+            const series = await createDonut({
+                cornerRadius: 20,
+                innerCircle: { fill: '#c9fdc9' },
+                itemStyler: ({ datum }) => (datum.asset === 'Cash' ? { cornerRadius: 0 } : {}),
+            });
+
+            expectCircleToReach(series, paintedRadii(series).innerRadius + 20);
+            expect(series.innerCircleCutoutSelection.nodes()).toHaveLength(data.length);
+        });
+
+        test('keeps the fill through a highlight and back', async () => {
+            const series = await createDonut({ cornerRadius: 20, innerCircle: { fill: '#c9fdc9' } });
+            const size = circleSize(series);
+            const cutouts = series.innerCircleCutoutSelection.nodes().length;
+            expect(cutouts).toBe(data.length);
+
+            chart.ctx.highlightManager.updateHighlight(chart.id, series.getNodeData()![1]);
+            await waitForChartStability(chart);
+
+            expect(circleSize(series)).toBe(size);
+            expect(series.innerCircleCutoutSelection.nodes()).toHaveLength(cutouts);
+
+            chart.ctx.highlightManager.updateHighlight(chart.id, undefined, false);
+            await waitForChartStability(chart);
+
+            expect(circleSize(series)).toBe(size);
+            expect(series.innerCircleCutoutSelection.nodes()).toHaveLength(cutouts);
+        });
+
+        // The default `highlight.drawingMode: 'cutout'` renders the whole series offscreen, so the
+        // band's survival through a highlight is a compositing question that node state cannot answer.
+        test('renders the filled band through a highlight and back', async () => {
+            const series = await createDonut({
+                cornerRadius: 20,
+                innerRadiusRatio: 0.9,
+                innerCircle: { fill: '#c9fdc9' },
+            });
+            await compare('donut-inner-circle-corner-radius-highlight-before');
+
+            chart.ctx.highlightManager.updateHighlight(chart.id, series.getNodeData()![1]);
+            await waitForChartStability(chart);
+            await compare('donut-inner-circle-corner-radius-highlight-during');
+
+            chart.ctx.highlightManager.updateHighlight(chart.id, undefined, false);
+            await waitForChartStability(chart);
+            await compare('donut-inner-circle-corner-radius-highlight-after');
+        });
+
+        test('tracks the data through an update', async () => {
+            const chartProxy = AgCharts.create(
+                prepareTestOptions({
+                    ...options,
+                    data,
+                    series: [
+                        {
+                            type: 'donut',
+                            angleKey: 'amount',
+                            innerRadiusRatio: 0.7,
+                            cornerRadius: 20,
+                            innerCircle: { fill: '#c9fdc9' },
+                        } as AgDonutSeriesOptions,
+                    ],
+                }) as AgChartOptions
+            ) as AgChartProxy;
+            chart = deproxy(chartProxy);
+            await waitForChartStability(chart);
+
+            const series = classCast(chart.series[0], DonutSeries);
+            expect(series.innerCircleCutoutSelection.nodes()).toHaveLength(data.length);
+
+            await chartProxy.applyTransaction({ remove: [data[0]] });
+            await waitForChartStability(chart);
+
+            expect(series.innerCircleCutoutSelection.nodes()).toHaveLength(data.length - 1);
+            expect(series.innerCircleCutoutSelection.nodes()).toHaveLength(sectorNodes(series).length);
+
+            // The cutouts are animated by the same tween as the sectors, so they must settle on the
+            // sectors' new angles rather than lagging behind them.
+            for (const [index, cutout] of series.innerCircleCutoutSelection.nodes().entries()) {
+                expect(cutout.startAngle).toBeCloseTo(sectorNodes(series)[index].startAngle, 5);
+                expect(cutout.endAngle).toBeCloseTo(sectorNodes(series)[index].endAngle, 5);
+            }
         });
     });
 
