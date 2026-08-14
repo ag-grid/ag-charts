@@ -294,8 +294,8 @@ export const funnelSeriesThemeableOptionsDef: OptionsDefs<AgFunnelSeriesThemeabl
 
 export const heatmapSeriesThemeableOptionsDef: OptionsDefs<AgHeatmapSeriesThemeableOptions> = {
     title: string,
-    textAlign: union('left', 'center', 'right'),
-    verticalAlign: union('top', 'middle', 'bottom'),
+    textAlign: deprecated(union('left', 'center', 'right'), 'Use `label.textAlign` instead.'),
+    verticalAlign: deprecated(union('top', 'middle', 'bottom'), 'Use `label.verticalAlign` instead.'),
     itemPadding: positiveNumber,
     cornerRadius: positiveNumber,
     itemStyler: callbackDefs<AgHeatmapSeriesStyle>({
@@ -303,7 +303,11 @@ export const heatmapSeriesThemeableOptionsDef: OptionsDefs<AgHeatmapSeriesThemea
         ...strokeOptionsDef,
     }),
     showInMiniChart: boolean,
-    label: autoSizedLabelOptionsDefs,
+    label: {
+        ...autoSizedLabelOptionsDefs,
+        textAlign: union('left', 'center', 'right'),
+        verticalAlign: union('top', 'middle', 'bottom'),
+    },
     tooltip: tooltipOptionsDefs,
     colorScale: colorScaleOptionsDef,
     ...commonSeriesThemeableOptionsDefs,

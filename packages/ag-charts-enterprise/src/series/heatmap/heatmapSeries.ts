@@ -118,16 +118,17 @@ interface HeatmapSeriesNodeDatumContext extends _ModuleSupport.CartesianCreateNo
     readonly itemStyleContext: HeatmapItemStyleContext;
 }
 
+// Fractions of the padded cell span, relative to the cell centre.
 const textAlignFactors: Record<TextAlign, number> = {
     left: -0.5,
     center: 0,
-    right: -0.5,
+    right: 0.5,
 };
 
 const verticalAlignFactors: Record<VerticalAlign, number> = {
     top: -0.5,
     middle: 0,
-    bottom: -0.5,
+    bottom: 0.5,
 };
 
 /**
@@ -357,8 +358,9 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         // Need dataModel and processedData for data resolution
         if (!dataModel || !processedData) return undefined;
 
-        const { xKey, xName, yKey, yName, colorKey, colorName, textAlign, verticalAlign, itemPadding } =
-            this.properties;
+        const { xKey, xName, yKey, yName, colorKey, colorName, itemPadding } = this.properties;
+        // The top-level textAlign/verticalAlign are write-only forwarders, never read by the series.
+        const { textAlign, verticalAlign } = this.properties.label;
 
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
@@ -400,8 +402,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             yOffset: (yScale.bandwidth ?? 0) / 2,
             width,
             height,
-            textAlignFactor: (width - 2 * itemPadding) * textAlignFactors[textAlign],
-            verticalAlignFactor: (height - 2 * itemPadding) * verticalAlignFactors[verticalAlign],
+            textAlignFactor: textAlignFactors[textAlign],
+            verticalAlignFactor: verticalAlignFactors[verticalAlign],
 
             // Heatmap-specific data
             yValues,
@@ -590,8 +592,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         }
 
         const { text, fontSize, lineHeight, height: labelHeight } = labels.label;
-        const { fontStyle, fontFamily, fontWeight, color } = this.properties.label;
-        const { textAlign, verticalAlign } = this.properties;
+        const { fontStyle, fontFamily, fontWeight, color, textAlign, verticalAlign } = this.properties.label;
         const lx = nodeDatum.point.x + textAlignFactor * (width - 2 * itemPadding);
         const ly =
             nodeDatum.point.y + verticalAlignFactor * (height - 2 * itemPadding) - (labels.height - labelHeight) * 0.5;
