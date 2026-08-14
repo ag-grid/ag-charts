@@ -442,7 +442,7 @@ describe('CrossLine', () => {
         it.each(Object.entries(INVALID_EXAMPLES))(
             'for %s it should render to canvas without crossLines and show warning',
             async (_exampleName, example) => {
-                chart = await createChart( { ...example.options });
+                chart = await createChart({ ...example.options });
                 await compare();
 
                 expectWarningMessages(example.warningMessages);
