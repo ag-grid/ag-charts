@@ -1522,6 +1522,24 @@ describe('HeatmapSeries', () => {
             expect(anchor.textBaseline).toBe('top');
         });
 
+        // `'start'`/`'end'` name a side of the paragraph, so the cell edge they anchor to has to
+        // follow the chart's direction (AG-18142 resolves the glyph alignment; the anchor is here).
+        describe('direction-relative alignments', () => {
+            it.each([
+                ['start', false, -0.5],
+                ['end', false, 0.5],
+                ['start', true, 0.5],
+                ['end', true, -0.5],
+            ] as const)('anchors %s to the %j-direction cell edge', async (textAlign, enableRtl, expectedFactor) => {
+                const anchor = await readAnchor({
+                    ...buildOptions({ label: { enabled: true, textAlign } }),
+                    enableRtl,
+                } as AgChartOptions);
+
+                expect(anchor.dx).toBeCloseTo(expectedFactor * anchor.xSpan);
+            });
+        });
+
         // Every case setting the deprecated top-level options lives in this describe: setupMockConsole()
         // fails a test on any console.warn it does not assert, so each case here must consume the
         // deprecation notice itself.
