@@ -1059,7 +1059,8 @@ describe('TreemapSeries', () => {
         /** Resolved rect styles keyed by the datum's `name` — covers groups and leaves alike. */
         const stylesByName = (series: TreemapSeries): Record<string, { fill?: string; stroke?: string }> => {
             const styles: Record<string, { fill?: string; stroke?: string }> = {};
-            for (const rect of Array.from((series as any).datumSelection.nodes())) {
+            const rects: any[] = Array.from((series as any).datumSelection.nodes());
+            for (const rect of rects) {
                 const name = rect.datum?.datum?.name;
                 if (name != null) {
                     styles[name] = { fill: rect.fill, stroke: rect.stroke };
