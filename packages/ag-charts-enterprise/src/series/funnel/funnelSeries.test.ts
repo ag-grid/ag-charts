@@ -901,6 +901,20 @@ describe('FunnelSeries', () => {
             expect(await axisPosition(buildOptions(true, 'before', 'horizontal'), 'x')).toBe('top');
         });
 
+        it('renders the stage labels on the mirrored side', async () => {
+            const options = buildOptions(true, 'before');
+            options.data = [
+                { group: 'Qualification stage', value: 7910 },
+                { group: 'Development stage', value: 8170 },
+                { group: 'Proposal stage', value: 7260 },
+                { group: 'Closing stage', value: 4460 },
+            ];
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+            await compare();
+        });
+
         it('mirrors a theme-set placement too', async () => {
             const theme = { overrides: { funnel: { series: { stageLabel: { placement: 'after' as const } } } } };
             expect(await axisPosition(buildOptions(true, undefined, undefined, theme), 'y')).toBe('left');
