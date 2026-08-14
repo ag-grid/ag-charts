@@ -909,6 +909,9 @@ export class SeriesAreaManager extends BaseManager {
                     this.highlight.pendingHoverEvent ??= this.highlight.appliedHoverEvent;
                     this.handleHoverHighlight(false, {
                         active,
+                        // The pointer has not moved, so the part it is over is the one just clicked —
+                        // pass it on, or a click on a control would drop that control's hover state.
+                        target: pickedNodes.target,
                         defaultCb: () => {
                             this.showTooltip(active, canvasX, canvasY, next.paginationState);
                         },
@@ -1366,7 +1369,10 @@ export class SeriesAreaManager extends BaseManager {
         });
     }
 
-    private handleHoverHighlight(redisplay: boolean, opts?: { active: PickedNode; defaultCb: () => void }) {
+    private handleHoverHighlight(
+        redisplay: boolean,
+        opts?: { active: PickedNode; target?: SceneNode<unknown>; defaultCb: () => void }
+    ) {
         this.highlight.appliedHoverEvent = this.highlight.pendingHoverEvent;
         this.highlight.pendingHoverEvent = undefined;
 
@@ -1382,9 +1388,9 @@ export class SeriesAreaManager extends BaseManager {
         const { range } = this.chart.highlight;
         const intent = range === 'tooltip' ? 'highlight-tooltip' : 'highlight';
 
-        const active: PickedNode | undefined =
-            opts?.active ??
-            this.pickManager.onPickedNodesHighlight(this.pickNodes({ x: event.currentX, y: event.currentY }, intent));
+        const pickedNodes =
+            opts?.active != null ? undefined : this.pickNodes({ x: event.currentX, y: event.currentY }, intent);
+        const active: PickedNode | undefined = opts?.active ?? this.pickManager.onPickedNodesHighlight(pickedNodes);
 
         if (active === undefined) {
             this.pickManager.maybeActivate(undefined, () => {
@@ -1392,8 +1398,12 @@ export class SeriesAreaManager extends BaseManager {
                 opts?.defaultCb();
             });
         } else {
+            // The topmost scene node under the pointer only survives as far as `PickedNodes`; a series
+            // that renders several parts per node names the one that was hit, so the highlight can
+            // carry it (e.g. the org-chart expander pill versus the card behind it).
+            const highlightPart = active.series.getHighlightPart(opts?.target ?? pickedNodes?.target);
             this.pickManager.maybeActivate(active, () => {
-                this.chart.ctx.highlightManager.updateHighlight(this.id, active, false);
+                this.chart.ctx.highlightManager.updateHighlight(this.id, active, false, undefined, highlightPart);
                 opts?.defaultCb();
             });
         }

@@ -54,6 +54,9 @@ import type {
 
 const { keyProperty, valueProperty } = _ModuleSupport;
 
+/** Highlight part naming the expander pill, as distinct from the card behind it. */
+const EXPANDER_HIGHLIGHT_PART = 'expander';
+
 interface DatumCallbackState {
     allChildren: number;
     depth: number;
@@ -83,10 +86,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     constructor(ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super(ctx);
 
-        this.cleanup.register(
-            ctx.eventsHub.on('series-area:hover', (event) => this.onSeriesAreaHover(event)),
-            ctx.eventsHub.on('highlight:change', (event) => this.onHighlightChange(event))
-        );
+        this.cleanup.register(ctx.eventsHub.on('highlight:change', (event) => this.onHighlightChange(event)));
     }
 
     createNetworkGraph() {
@@ -380,31 +380,26 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         return target?.tag === Expander;
     }
 
-    // The hover payload carries coordinates only, so the pill-versus-card distinction has to be
-    // re-picked here. `consumed` is deliberately not consulted: it is true exactly when the pointer is
-    // over a node, which is the only case this styling applies to.
-    private onSeriesAreaHover(event: _ModuleSupport.SeriesAreaHoverEvent) {
-        const { seriesRect } = this;
-        let datumIndex: number | undefined;
-
-        if (seriesRect != null && this.properties.expander.enabled) {
-            const point = { x: event.canvasX - seriesRect.x, y: event.canvasY - seriesRect.y };
-            // The topmost hit is the pill where it overlaps the card; `picks[0]` is always the card.
-            const pick = this.pickNodes(point, 'event')?.picks.at(-1);
-            if (this.isExpanderTarget(pick?.target)) {
-                datumIndex = pick?.datum.datumIndex;
-            }
-        }
-
-        this.setHoveredExpanderDatumIndex(datumIndex);
+    // The expander pill is a distinct part of the node, so hovering it is reported through the highlight
+    // selection rather than re-picked here: the manager has already performed this pick, and this hook is
+    // where the part it hit gets a name. Highlight roll-up is unchanged — the highlighted datum is the
+    // node either way.
+    override getHighlightPart(target: _ModuleSupport.Node<unknown> | undefined): string | undefined {
+        return this.isExpanderTarget(target) ? EXPANDER_HIGHLIGHT_PART : undefined;
     }
 
-    // A pointer leaving the series area, or a pan/zoom starting, drops the highlight without emitting a
-    // further hover event — without this the pill would stay styled with the pointer elsewhere.
+    // One signal for both directions: the highlight carries the hovered part while the pointer is over the
+    // pill, and drops it — or drops the highlight entirely, on leave, pan or zoom — the moment it is not.
     private onHighlightChange(event: _ModuleSupport.HighlightChangeEvent) {
-        if (event.currentHighlight == null) {
-            this.setHoveredExpanderDatumIndex(undefined);
-        }
+        const { currentHighlight, currentHighlightPart } = event;
+        const datumIndex =
+            currentHighlight?.series === this &&
+            currentHighlightPart === EXPANDER_HIGHLIGHT_PART &&
+            typeof currentHighlight.datumIndex === 'number'
+                ? currentHighlight.datumIndex
+                : undefined;
+
+        this.setHoveredExpanderDatumIndex(datumIndex);
     }
 
     private setHoveredExpanderDatumIndex(datumIndex: number | undefined) {

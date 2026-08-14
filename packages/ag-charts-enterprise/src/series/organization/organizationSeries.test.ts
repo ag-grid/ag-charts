@@ -1677,9 +1677,13 @@ describe('OrganizationSeries', () => {
             const requestUpdateCount = () =>
                 emitSpy.mock.calls.filter(([event]) => event === 'chart:request-update').length;
 
+            // Two requests, not one: the highlight itself changes (it now carries the hovered part), so
+            // the highlight pipeline asks for a repaint and the series asks for the SERIES_UPDATE that
+            // re-resolves expander paint. They coalesce into a single frame; what matters is that the
+            // count is bounded and that an unchanged hover costs nothing at all (below).
             await hoverAction(pillCentre.x, pillCentre.y)(chart);
             await waitForChartStability(chart);
-            expect(requestUpdateCount()).toBe(1);
+            expect(requestUpdateCount()).toBe(2);
 
             emitSpy.mockClear();
             await hoverAction(pillCentre.x, pillCentre.y)(chart);
