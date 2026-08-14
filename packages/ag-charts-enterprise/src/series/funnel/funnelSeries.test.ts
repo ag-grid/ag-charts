@@ -877,7 +877,7 @@ describe('FunnelSeries', () => {
                         stageKey: 'group',
                         valueKey: 'value',
                         direction,
-                        stageLabel: placement != null ? { placement } : undefined,
+                        stageLabel: placement == null ? undefined : { placement },
                     },
                 ],
             };
