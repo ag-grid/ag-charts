@@ -24,6 +24,7 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
     private overlayState: OverlayState = undefined;
     private overlayMounted = false;
     private lastSeriesRect?: BBox;
+    private lastChartRect?: BBox;
 
     constructor(
         private readonly chartLike: ChartLike,
@@ -51,8 +52,9 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
         this.domManager.removeChild('canvas-overlay', 'overlay');
     }
 
-    private onLayoutComplete({ series: { rect } }: LayoutCompleteEvent) {
+    private onLayoutComplete({ chart, series: { rect } }: LayoutCompleteEvent) {
         this.lastSeriesRect = rect;
+        this.lastChartRect = new BBox(0, 0, chart.width, chart.height);
         this.refresh(rect);
     }
 
@@ -73,9 +75,12 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
     private refresh(rect: BBox, seriesStateCurrent = true) {
         const newOverlayState = this.selectOverlayState(seriesStateCurrent);
 
-        // The validation overlay is a modal dialog that centres over the whole chart, matching AG Grid's
-        // full-grid overlay; the other overlays occupy just the series rect.
-        const overlayRect = newOverlayState === 'validation' ? (this.fullContainerRect() ?? rect) : rect;
+        // The validation overlay is a modal dialog spanning the whole chart (matching AG Grid's full-grid
+        // overlay), so it takes the chart/scene rect rather than the series rect. The overlay lives in
+        // canvas space, so anchor it to the scene size — width/height options can shrink the canvas below
+        // its DOM container — falling back to the container only before the first layout has a scene size.
+        const overlayRect =
+            newOverlayState === 'validation' ? (this.lastChartRect ?? this.fullContainerRect() ?? rect) : rect;
 
         this.overlayElem.toggleClass(DEFAULT_OVERLAY_DARK_CLASS, this.overlays.darkTheme);
         this.overlayElem.setProperty('left', `${overlayRect.x}px`);
@@ -86,7 +91,7 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
         // Only remove the existing overlay if the state changes.
         if (newOverlayState !== this.overlayState) {
             const prev = this.getOverlayFromState(this.overlayState);
-            if (prev) this.hideOverlay(prev);
+            if (prev) this.hideOverlay(prev, seriesStateCurrent);
 
             this.overlayState = newOverlayState;
             this.overlayMounted = false;
@@ -104,7 +109,7 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
                 this.showOverlay(next, overlayRect);
                 this.overlayMounted = true;
             } else if (!next.enabled && this.overlayMounted) {
-                this.hideOverlay(next);
+                this.hideOverlay(next, seriesStateCurrent);
                 this.overlayMounted = false;
             } else if (this.overlayMounted) {
                 // Mounted and intentionally not re-rendered: keep the focus rect current.
@@ -170,15 +175,20 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
         this.overlayElem.replaceChildren(element);
     }
 
-    private hideOverlay(overlay: Overlay) {
+    // Off an update cycle (e.g. a user dismiss) nothing drives the removal animation's batch, so its
+    // cleanup — which detaches the element — never runs; remove synchronously there instead of animating.
+    private hideOverlay(overlay: Overlay, animate = true) {
         // AG-11424 Frustratingly, browsers do not reliably announce aria-live changes to overlayElem when
         // re-adding an identical element. This seems that if, for example, the user toggle the last visible
         // series off/on/off, then the second "No visible series" overlay announcement may not get fired.
         // Firefox & Safari seem to handle this correctly, whereas Chromium does not. However setting the
         // content to a No-Break Space helps the browser to understand that the aria status has changed,
         // and also tells the no screenreader not to announce anything because it's just whitespace.
-        overlay.removeElement(() => {
-            this.overlayElem.innerText = '\xA0';
-        }, this.animationManager);
+        overlay.removeElement(
+            () => {
+                this.overlayElem.innerText = '\xA0';
+            },
+            animate ? this.animationManager : undefined
+        );
     }
 }
