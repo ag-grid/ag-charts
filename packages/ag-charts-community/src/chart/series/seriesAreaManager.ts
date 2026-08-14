@@ -1389,7 +1389,7 @@ export class SeriesAreaManager extends BaseManager {
         const intent = range === 'tooltip' ? 'highlight-tooltip' : 'highlight';
 
         const pickedNodes =
-            opts?.active != null ? undefined : this.pickNodes({ x: event.currentX, y: event.currentY }, intent);
+            opts?.active == null ? this.pickNodes({ x: event.currentX, y: event.currentY }, intent) : undefined;
         const active: PickedNode | undefined = opts?.active ?? this.pickManager.onPickedNodesHighlight(pickedNodes);
 
         if (active === undefined) {

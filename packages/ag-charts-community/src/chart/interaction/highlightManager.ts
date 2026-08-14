@@ -140,7 +140,7 @@ export class HighlightManager {
     /** Part of the active highlight, as reported by the caller that owns it. */
     public getActiveHighlightPart(): string | undefined {
         const callerId = this.highlightStates.stateId();
-        return callerId != null ? this.highlightParts.get(callerId) : undefined;
+        return callerId == null ? undefined : this.highlightParts.get(callerId);
     }
 
     public destroy(): void {
