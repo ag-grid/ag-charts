@@ -33,6 +33,10 @@ export const organizationSeriesTheme: ExtensibleTheme<'organization'> = {
             lineDash: { $path: '../node/lineDash' },
             lineDashOffset: { $path: '../node/lineDashOffset' },
             padding: { $applyPadding: { top: 5, right: 7.5, bottom: 5, left: 7.5 } },
+            hoverStyle: {
+                fill: { $mix: [{ $path: '../fill' }, { $ref: 'foregroundColor' }, 0.075] },
+                stroke: { $mix: [{ $path: '../stroke' }, { $ref: 'foregroundColor' }, 0.075] },
+            },
             text: {
                 color: { $ref: 'subtleTextColor' },
                 fontFamily: { $ref: 'fontFamily' },

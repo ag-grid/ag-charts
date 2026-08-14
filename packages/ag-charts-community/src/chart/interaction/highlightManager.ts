@@ -13,6 +13,14 @@ import type { ErrorBoundSeriesNodeDatum } from '../series/seriesTypes';
 export class HighlightManager {
     private readonly highlightStates = new StateTracker<HighlightNodeDatum>();
 
+    /**
+     * Part of the highlighted node under the pointer, per caller (see `Series.getHighlightPart`). Kept
+     * beside the highlight rather than on it: the highlighted datum rolls up unchanged, so consumers
+     * that don't care about parts are unaffected, and only a caller supplying a part makes the
+     * highlight sensitive to it.
+     */
+    private readonly highlightParts = new Map<string, string>();
+
     // Track pending unhighlights per caller
     private readonly pendingUnhighlights = new Map<string, { scheduler: ReturnType<typeof debouncedCallback> }>();
 
@@ -29,9 +37,11 @@ export class HighlightManager {
         callerId: string,
         highlightedDatum?: HighlightNodeDatum,
         delayed: boolean = false,
-        inViewport?: boolean
+        inViewport?: boolean,
+        highlightPart?: string
     ): void {
         const previousHighlight = this.getActiveHighlight();
+        const previousHighlightPart = this.getActiveHighlightPart();
 
         if (highlightedDatum == null && delayed && this.unhighlightDelay > 0) {
             // Only schedule if we don't already have a pending unhighlight for this caller
@@ -62,16 +72,26 @@ export class HighlightManager {
         } else {
             this.highlightStates.delete(callerId);
         }
-        this.maybeEmitChange(callerId, previousHighlight, inViewport);
+
+        if (highlightedDatum && highlightPart != null) {
+            this.highlightParts.set(callerId, highlightPart);
+        } else {
+            this.highlightParts.delete(callerId);
+        }
+
+        this.maybeEmitChange(callerId, previousHighlight, inViewport, previousHighlightPart);
     }
 
     private maybeEmitChange(
         callerId: string,
         previousHighlight: HighlightNodeDatum | undefined,
-        inViewport?: boolean
+        inViewport?: boolean,
+        previousHighlightPart?: string
     ): void {
         const currentHighlight = this.getActiveHighlight();
-        const highlightChanged = !this.isEqual(currentHighlight, previousHighlight);
+        const currentHighlightPart = this.getActiveHighlightPart();
+        const highlightChanged =
+            !this.isEqual(currentHighlight, previousHighlight) || currentHighlightPart !== previousHighlightPart;
         // When the caller omits `inViewport` and the highlight hasn't changed, preserve the existing
         // value — callers that don't know the viewport state (e.g. legend observer clearing its own
         // entry) must not spuriously reset the flag to `true` and re-show crosshairs for a frozen
@@ -86,6 +106,8 @@ export class HighlightManager {
                 callerId,
                 currentHighlight,
                 previousHighlight,
+                currentHighlightPart,
+                previousHighlightPart,
                 highlightSuppressed,
                 highlightInViewport,
             });
@@ -102,15 +124,23 @@ export class HighlightManager {
         this.pendingUnhighlights.delete(callerId);
 
         const previousHighlight = this.getActiveHighlight();
+        const previousHighlightPart = this.getActiveHighlightPart();
 
         // Actually clear the highlight for this caller
         this.highlightStates.delete(callerId);
+        this.highlightParts.delete(callerId);
 
-        this.maybeEmitChange(callerId, previousHighlight, true);
+        this.maybeEmitChange(callerId, previousHighlight, true, previousHighlightPart);
     }
 
     public getActiveHighlight(): HighlightNodeDatum | undefined {
         return this.highlightStates.stateValue();
+    }
+
+    /** Part of the active highlight, as reported by the caller that owns it. */
+    public getActiveHighlightPart(): string | undefined {
+        const callerId = this.highlightStates.stateId();
+        return callerId == null ? undefined : this.highlightParts.get(callerId);
     }
 
     public destroy(): void {
@@ -119,6 +149,7 @@ export class HighlightManager {
             scheduler.cancel();
         }
         this.pendingUnhighlights.clear();
+        this.highlightParts.clear();
     }
 
     private isEqual(a?: HighlightNodeDatum, b?: HighlightNodeDatum): boolean {

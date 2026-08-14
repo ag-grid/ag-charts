@@ -133,6 +133,12 @@ export interface ISeries<TDatum extends SeriesNodeDatum, TProps extends ISeriesP
      * for dedicated controls that own their clicks outright, such as the org-chart expander pill.
      */
     firesUserClickListeners(target: Node<unknown> | undefined): boolean;
+    /**
+     * Names the part of the node `target` belongs to, for series rendering several parts per node (e.g.
+     * the org-chart card and its expander pill); `undefined` when the series draws no such distinction.
+     * The value rides along with the highlight, which still rolls up to the node itself.
+     */
+    getHighlightPart(target: Node<unknown> | undefined): string | undefined;
     hasData: boolean;
     update(opts: { seriesRect?: BBox }): Promise<void> | void;
     updatePlacedLabelData?(labels: PlacedLabel<TLabel>[]): void;

@@ -1100,6 +1100,19 @@ export abstract class Series<
         return false;
     }
 
+    /**
+     * Names the part of a node the given scene node belongs to, for series that render more than one
+     * distinct part per node (e.g. the org-chart card and its expander pill).
+     *
+     * The returned value rides along with the highlight selection, so a series can tell *which* part of
+     * the highlighted node the pointer is over. Highlight roll-up is unaffected: the highlighted datum
+     * is the same either way, and only a series returning a non-`undefined` part makes the highlight
+     * sensitive to the distinction.
+     */
+    getHighlightPart(_target: Node<unknown> | undefined): string | undefined {
+        return undefined;
+    }
+
     firesUserClickListeners(_target: Node<unknown> | undefined): boolean {
         return true;
     }

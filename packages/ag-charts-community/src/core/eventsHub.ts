@@ -270,6 +270,9 @@ export interface HighlightChangeEvent {
     readonly callerId: string;
     readonly currentHighlight?: HighlightNodeDatum;
     readonly previousHighlight?: HighlightNodeDatum;
+    /** Part of the highlighted node under the pointer, for series that distinguish parts (`Series.getHighlightPart`). */
+    readonly currentHighlightPart?: string;
+    readonly previousHighlightPart?: string;
     readonly highlightSuppressed: boolean;
     readonly highlightInViewport: boolean;
 }

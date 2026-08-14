@@ -934,35 +934,38 @@ describe('OrganizationSeries', () => {
 
     type Node<T = unknown> = _ModuleSupport.Node<T>;
 
-    /** Canvas-space centre of the scene node tagged `tag` within the card for `itemId`. */
-    function centreOf(itemId: string, tag: OrganizationNodeTag): { x: number; y: number } {
-        function findDescendantByTag(node: Node, searchTag: number): Node | undefined {
-            if (node.tag === searchTag) return node;
-            if (!(node instanceof _ModuleSupport.Group)) return undefined;
+    /** Every descendant of `node` (including itself) tagged `searchTag`, in DFS/paint order. */
+    function findAllDescendantsByTag(node: Node, searchTag: number): Node[] {
+        const found: Node[] = node.tag === searchTag ? [node] : [];
+        if (node instanceof _ModuleSupport.Group) {
             for (const child of node.children()) {
-                const found = findDescendantByTag(child, searchTag);
-                if (found) return found;
+                found.push(...findAllDescendantsByTag(child, searchTag));
             }
         }
+        return found;
+    }
 
-        function findByItemId(searchItemId: string): Node | undefined {
-            const nodes = new Caster(deproxy(chart).series[0])
-                .cast(OrganizationSeries)
-                .accessProperty('datumSelection')
-                .cast(_ModuleSupport.Selection)
-                .value.nodes();
-            return nodes.find((node: Node<any>) => node.datum?.itemId === searchItemId);
-        }
-
-        let card: Node | undefined = findByItemId(itemId);
+    function findCardNode(itemId: string): Node {
+        const nodes = new Caster(deproxy(chart).series[0])
+            .cast(OrganizationSeries)
+            .accessProperty('datumSelection')
+            .cast(_ModuleSupport.Selection)
+            .value.nodes();
+        const card = nodes.find((node: Node<any>) => node.datum?.itemId === itemId);
         expect(card).toBeDefined();
-        card = card!;
+        return card!;
+    }
 
-        let target: Node | undefined = findDescendantByTag(card, tag);
+    /** The first scene node tagged `tag` within the card for `itemId` (the expander's own pill `Rect`). */
+    function findTaggedNode(itemId: string, tag: OrganizationNodeTag): Node {
+        const target = findAllDescendantsByTag(findCardNode(itemId), tag)[0];
         expect(target).toBeDefined();
-        target = target!;
+        return target;
+    }
 
-        return _ModuleSupport.Transformable.toCanvas(target).computeCenter();
+    /** Canvas-space centre of the scene node tagged `tag` within the card for `itemId`. */
+    function centreOf(itemId: string, tag: OrganizationNodeTag): { x: number; y: number } {
+        return _ModuleSupport.Transformable.toCanvas(findTaggedNode(itemId, tag)).computeCenter();
     }
 
     async function clickItem(itemId: string, tag: OrganizationNodeTag, opts?: { ctrlKey: boolean }): Promise<void> {
@@ -1483,6 +1486,272 @@ describe('OrganizationSeries', () => {
             // Root card centre on the 800x600 mock canvas (card spans ~x=357-523, ~y=112-202).
             await hoverAction(440, 155)(chart);
             await compare();
+        });
+    });
+
+    describe('expander hoverStyle', () => {
+        // node.cornerRadius=0 makes both the card and pill Rects bbox-hittable in JSDOM (see
+        // .claude/rules/testing.md); expander.cornerRadius defaults to `../node/cornerRadius`.
+        const buildOptions = (
+            expanderOverrides?: Record<string, unknown>,
+            nodeOverrides: Record<string, unknown> = {}
+        ): AgChartOptions => ({
+            ...SIMPLE_ORG_CHART,
+            series: [
+                {
+                    type: 'organization',
+                    idKey: 'id',
+                    parentIdKey: 'parentId',
+                    node: { title: { key: 'name' }, subtitle: { key: 'job' }, cornerRadius: 0, ...nodeOverrides },
+                    ...(expanderOverrides ? { expander: expanderOverrides } : {}),
+                },
+            ],
+        });
+
+        /** The expander pill's own `Rect` scene node for the card belonging to `itemId`. */
+        function expanderShapeNode(itemId: string): _ModuleSupport.Rect {
+            return new Caster(findTaggedNode(itemId, OrganizationNodeTag.Expander)).cast(_ModuleSupport.Rect).value;
+        }
+
+        /** The expander's child-count `Text` node — also tagged Expander, alongside the pill `Rect`. */
+        function expanderCountTextNode(itemId: string): _ModuleSupport.Text {
+            const candidates = findAllDescendantsByTag(findCardNode(itemId), OrganizationNodeTag.Expander);
+            const textNode = candidates.find((node) => node instanceof _ModuleSupport.Text);
+            expect(textNode).toBeDefined();
+            return new Caster(textNode).cast(_ModuleSupport.Text).value;
+        }
+
+        /** Mean RGB channel of a `#rrggbb` or `rgb(…)`/`rgba(…)` colour, for lightness assertions. */
+        function meanChannel(color: unknown): number {
+            expect(typeof color).toBe('string');
+            const hex = /^#([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i.exec(String(color));
+            const rgb = /^rgba?\(\s*(\d+)\D+(\d+)\D+(\d+)/i.exec(String(color));
+            const match = hex ?? rgb;
+            expect(match).not.toBeNull();
+            const radix = hex ? 16 : 10;
+            const channel = (index: number) => Number.parseInt(match![index], radix);
+            return (channel(1) + channel(2) + channel(3)) / 3;
+        }
+
+        async function hoverItem(itemId: string, tag: OrganizationNodeTag): Promise<void> {
+            const { x, y } = centreOf(itemId, tag);
+            await hoverAction(x, y)(chart);
+            await waitForChartStability(chart);
+        }
+
+        it('applies the configured hoverStyle fill/stroke to the expander pill while hovered', async () => {
+            const options = buildOptions({ hoverStyle: { fill: '#ff00ff', stroke: '#00ffff' } });
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const unhovered = expanderShapeNode('cfo');
+            const unhoveredFill = unhovered.fill;
+            const unhoveredStroke = unhovered.stroke;
+            const unhoveredStrokeWidth = unhovered.strokeWidth;
+
+            await hoverItem('cfo', OrganizationNodeTag.Expander);
+
+            const hovered = expanderShapeNode('cfo');
+            expect(hovered.fill).toBe('#ff00ff');
+            expect(hovered.stroke).toBe('#00ffff');
+            expect(hovered.fill).not.toBe(unhoveredFill);
+            expect(hovered.stroke).not.toBe(unhoveredStroke);
+            // Properties hoverStyle doesn't override must survive unchanged, not fall through to a
+            // scene-node default (e.g. `strokeWidth ?? 0`).
+            expect(hovered.strokeWidth).toBe(unhoveredStrokeWidth);
+        });
+
+        it('leaves the expander pill at its un-hovered style when the card, not the pill, is hovered', async () => {
+            const options = buildOptions({ hoverStyle: { fill: '#ff00ff', stroke: '#00ffff' } });
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const unhovered = expanderShapeNode('cfo');
+            const unhoveredFill = unhovered.fill;
+            const unhoveredStroke = unhovered.stroke;
+
+            await hoverItem('cfo', OrganizationNodeTag.Card);
+
+            const afterCardHover = expanderShapeNode('cfo');
+            expect(afterCardHover.fill).toBe(unhoveredFill);
+            expect(afterCardHover.stroke).toBe(unhoveredStroke);
+            expect(afterCardHover.fill).not.toBe('#ff00ff');
+        });
+
+        it('applies hoverStyle to the expander pill independently of node.clickToExpand', async () => {
+            const options = buildOptions(
+                { hoverStyle: { fill: '#ff00ff', stroke: '#00ffff' } },
+                { clickToExpand: true }
+            );
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const unhovered = expanderShapeNode('cfo');
+            const unhoveredFill = unhovered.fill;
+            const unhoveredStroke = unhovered.stroke;
+
+            await hoverItem('cfo', OrganizationNodeTag.Expander);
+
+            const hovered = expanderShapeNode('cfo');
+            expect(hovered.fill).toBe('#ff00ff');
+            expect(hovered.stroke).toBe('#00ffff');
+            expect(hovered.fill).not.toBe(unhoveredFill);
+            expect(hovered.stroke).not.toBe(unhoveredStroke);
+        });
+
+        it('applies hoverStyle over itemStyler output while hovered, reverting once the pointer moves off the pill', async () => {
+            const options = buildOptions({
+                itemStyler: ({ datum }: { datum: any }) =>
+                    datum.job === 'Chief Financial Officer' ? { fill: '#123456' } : undefined,
+                hoverStyle: { fill: '#ff00ff' },
+            });
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expect(expanderShapeNode('cfo').fill).toBe('#123456');
+
+            await hoverItem('cfo', OrganizationNodeTag.Expander);
+            expect(expanderShapeNode('cfo').fill).toBe('#ff00ff');
+
+            await hoverItem('cfo', OrganizationNodeTag.Card);
+            expect(expanderShapeNode('cfo').fill).toBe('#123456');
+        });
+
+        it('resolves a real, distinct default hover fill for the expander pill when no hoverStyle is configured', async () => {
+            const options = buildOptions();
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const unhoveredFill = expanderShapeNode('cfo').fill;
+            expect(typeof unhoveredFill).toBe('string');
+
+            await hoverItem('cfo', OrganizationNodeTag.Expander);
+
+            const hoveredFill = expanderShapeNode('cfo').fill;
+            expect(typeof hoveredFill).toBe('string');
+            expect(hoveredFill).not.toBe(unhoveredFill);
+        });
+
+        it('derives the default hover fill from a user-configured expander fill, not from the theme fill', async () => {
+            const options = buildOptions({ fill: '#804000' });
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expect(expanderShapeNode('cfo').fill).toBe('#804000');
+
+            await hoverItem('cfo', OrganizationNodeTag.Expander);
+
+            const hoveredFill = expanderShapeNode('cfo').fill;
+            expect(hoveredFill).not.toBe('#804000');
+            // A mix of `#804000` towards the foreground stays dark; one derived from the theme's own
+            // white expander fill would land near-white, which is what this pins against.
+            expect(meanChannel(hoveredFill)).toBeLessThan(128);
+        });
+
+        it('requests exactly one series update for a card-to-pill move, and none for a repeat hover at the same point', async () => {
+            const options = buildOptions({ hoverStyle: { fill: '#ff00ff' } });
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const cardCentre = centreOf('cfo', OrganizationNodeTag.Card);
+            const pillCentre = centreOf('cfo', OrganizationNodeTag.Expander);
+
+            await hoverAction(cardCentre.x, cardCentre.y)(chart);
+            await waitForChartStability(chart);
+
+            const emitSpy = vi.spyOn(deproxy(chart).ctx.eventsHub, 'emit');
+            const requestUpdateCount = () =>
+                emitSpy.mock.calls.filter(([event]) => event === 'chart:request-update').length;
+
+            // Two requests, not one: the highlight itself changes (it now carries the hovered part), so
+            // the highlight pipeline asks for a repaint and the series asks for the SERIES_UPDATE that
+            // re-resolves expander paint. They coalesce into a single frame; what matters is that the
+            // count is bounded and that an unchanged hover costs nothing at all (below).
+            await hoverAction(pillCentre.x, pillCentre.y)(chart);
+            await waitForChartStability(chart);
+            expect(requestUpdateCount()).toBe(2);
+
+            emitSpy.mockClear();
+            await hoverAction(pillCentre.x, pillCentre.y)(chart);
+            await waitForChartStability(chart);
+            expect(requestUpdateCount()).toBe(0);
+
+            emitSpy.mockRestore();
+        });
+
+        it('applies hoverStyle text.color/fontWeight to the expander count text while hovered, reverting once unhovered', async () => {
+            const options = buildOptions({ hoverStyle: { text: { color: '#334455', fontWeight: 'bold' } } });
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const unhovered = expanderCountTextNode('cfo');
+            const unhoveredColor = unhovered.fill;
+            const unhoveredFontWeight = unhovered.fontWeight;
+            const unhoveredFontSize = unhovered.fontSize;
+
+            await hoverItem('cfo', OrganizationNodeTag.Expander);
+
+            const hovered = expanderCountTextNode('cfo');
+            expect(hovered.fill).toBe('#334455');
+            expect(hovered.fontWeight).toBe('bold');
+            expect(hovered.fill).not.toBe(unhoveredColor);
+            expect(hovered.fontWeight).not.toBe(unhoveredFontWeight);
+            // hoverStyle.text has no fontSize, so it must fall through untouched.
+            expect(hovered.fontSize).toBe(unhoveredFontSize);
+
+            await hoverItem('cfo', OrganizationNodeTag.Card);
+
+            const afterUnhover = expanderCountTextNode('cfo');
+            expect(afterUnhover.fill).toBe(unhoveredColor);
+            expect(afterUnhover.fontWeight).toBe(unhoveredFontWeight);
+        });
+
+        it('reverts the expander pill hover style once the pointer leaves the series area entirely', async () => {
+            const options = buildOptions({ hoverStyle: { fill: '#ff00ff', stroke: '#00ffff' } });
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const unhoveredFill = expanderShapeNode('cfo').fill;
+            const unhoveredStroke = expanderShapeNode('cfo').stroke;
+
+            await hoverItem('cfo', OrganizationNodeTag.Expander);
+            expect(expanderShapeNode('cfo').fill).toBe('#ff00ff');
+            expect(expanderShapeNode('cfo').stroke).toBe('#00ffff');
+
+            // (2, 2) must stay outside the series rect (default chart padding is 20px) for the
+            // leave below to be a real mouseleave rather than another move-off-pill.
+            const seriesRect = new Caster(deproxy(chart))
+                .accessProperty('seriesAreaManager')
+                .accessProperty('seriesRect')
+                .cast(_ModuleSupport.BBox).value;
+            expect(seriesRect.containsPoint(2, 2)).toBe(false);
+
+            // Outside the series rect, so the bubble chain drops the series-area element and a real
+            // 'mouseleave' fires on it. The clear is debounced by `highlightManager.unhighlightDelay`
+            // (100ms), so advance real time past it.
+            await hoverAction(2, 2)(chart);
+            await waitForChartStability(chart, deproxy(chart).ctx.highlightManager.unhighlightDelay + 50);
+
+            expect(expanderShapeNode('cfo').fill).toBe(unhoveredFill);
+            expect(expanderShapeNode('cfo').stroke).toBe(unhoveredStroke);
         });
     });
 
