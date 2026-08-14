@@ -851,12 +851,17 @@ describe('FunnelSeries', () => {
     describe('stageLabel placement under RTL', () => {
         // The stage labels are the category axis' labels, so the side they land on is the axis position
         // the funnel theme derives from `stageLabel.placement`.
-        const buildOptions = (
-            enableRtl: boolean,
-            placement?: 'before' | 'after',
-            direction?: 'horizontal' | 'vertical',
-            theme?: AgChartOptions['theme']
-        ): AgChartOptions => {
+        const buildOptions = ({
+            enableRtl,
+            placement,
+            direction,
+            theme,
+        }: {
+            enableRtl: boolean;
+            placement?: 'before' | 'after';
+            direction?: 'horizontal' | 'vertical';
+            theme?: AgChartOptions['theme'];
+        }): AgChartOptions => {
             const options: AgChartOptions = {
                 enableRtl,
                 theme,
@@ -894,15 +899,16 @@ describe('FunnelSeries', () => {
             { enableRtl: true, placement: undefined, expected: 'right' },
         ])('places the stage labels $expected for placement=$placement, enableRtl=$enableRtl', async (testCase) => {
             const { enableRtl, placement, expected } = testCase;
-            expect(await axisPosition(buildOptions(enableRtl, placement), 'y')).toBe(expected);
+            expect(await axisPosition(buildOptions({ enableRtl, placement }), 'y')).toBe(expected);
         });
 
         it('leaves the horizontal direction unmirrored', async () => {
-            expect(await axisPosition(buildOptions(true, 'before', 'horizontal'), 'x')).toBe('top');
+            const options = buildOptions({ enableRtl: true, placement: 'before', direction: 'horizontal' });
+            expect(await axisPosition(options, 'x')).toBe('top');
         });
 
         it('renders the stage labels on the mirrored side', async () => {
-            const options = buildOptions(true, 'before');
+            const options = buildOptions({ enableRtl: true, placement: 'before' });
             options.data = [
                 { group: 'Qualification stage', value: 7910 },
                 { group: 'Development stage', value: 8170 },
@@ -917,7 +923,7 @@ describe('FunnelSeries', () => {
 
         it('mirrors a theme-set placement too', async () => {
             const theme = { overrides: { funnel: { series: { stageLabel: { placement: 'after' as const } } } } };
-            expect(await axisPosition(buildOptions(true, undefined, undefined, theme), 'y')).toBe('left');
+            expect(await axisPosition(buildOptions({ enableRtl: true, theme }), 'y')).toBe('left');
         });
     });
 
