@@ -4,13 +4,11 @@ import { mapValues } from 'ag-charts-core';
 import type {
     AgCartesianChartOptions,
     AgCartesianCrossLineOptions,
-    AgChartInstance,
     AgCrossLineClickEvent,
     AgCrossLineLabelPosition,
     AgCrossLineListeners,
 } from 'ag-charts-types';
 
-import { AgCharts } from '../../api/agCharts';
 import { Transformable } from '../../scene/transformable';
 import type { Chart } from '../chart';
 import { expectPixelIdenticalAcrossUpdate } from '../test/bigintExamples';
@@ -23,7 +21,6 @@ import {
     createChart,
     doubleClickAction,
     expectWarningMessages,
-    prepareTestOptions,
     repeat,
     setupMockCanvas,
     setupMockConsole,
