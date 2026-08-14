@@ -1,6 +1,12 @@
 import { describe, expect, test } from 'vitest';
 
-import { type TrapezoidBounds, trapezoidBox, trapezoidInscribedRect, trapezoidOverlapsBox } from './trapezoid';
+import {
+    type TrapezoidBounds,
+    trapezoidBandRect,
+    trapezoidBox,
+    trapezoidExtentAcross,
+    trapezoidOverlapsBox,
+} from './trapezoid';
 
 const vertical = (overrides: Partial<TrapezoidBounds> = {}): TrapezoidBounds => ({
     spanLo: 0,
@@ -26,44 +32,35 @@ describe('trapezoidBox', () => {
     });
 });
 
-describe('trapezoidInscribedRect', () => {
-    test('takes the interior optimum when one edge is more than twice the other', () => {
-        // eMax / (2 * delta) = 200 / 320 of the span, anchored on the wide edge, at eMax / 2 wide.
-        expect(trapezoidInscribedRect(vertical())).toEqual({ x: 0, y: 37.5, width: 100, height: 62.5 });
+describe('trapezoidExtentAcross', () => {
+    test('takes the narrowest cross-section the band covers', () => {
+        // The vertical fixture widens from 40 to 200 over its span, so it is 104 wide at y = 40.
+        expect(trapezoidExtentAcross(vertical(), 40, 60)).toBe(104);
+        expect(trapezoidExtentAcross(vertical(), 60, 40)).toBe(104);
     });
 
-    test('mirrors the optimum when the wide edge is at the low end', () => {
-        expect(trapezoidInscribedRect(vertical({ extentLo: 200, extentHi: 40 }))).toEqual({
-            x: 0,
-            y: 0,
-            width: 100,
-            height: 62.5,
-        });
+    test('is the shape-wide minimum for a band covering the whole span', () => {
+        expect(trapezoidExtentAcross(vertical(), 0, 100)).toBe(40);
     });
 
-    test('maximises area against a dense scan of candidate rectangles', () => {
-        const t = vertical();
-        const { width, height } = trapezoidInscribedRect(t);
-        const delta = t.extentHi - t.extentLo;
-        let best = 0;
-        for (let i = 0; i <= 1000; i++) {
-            const u0 = i / 1000;
-            best = Math.max(best, (t.spanHi - t.spanLo) * (1 - u0) * (t.extentLo + delta * u0));
-        }
-        expect(width * height).toBeGreaterThanOrEqual(best - 1e-6);
+    test('measures only where the band and the shape overlap', () => {
+        expect(trapezoidExtentAcross(vertical(), -50, 10)).toBe(40);
+        expect(trapezoidExtentAcross(vertical(), 110, 120)).toBe(0);
     });
 
-    test('takes the full span at the narrow width when the taper is shallow', () => {
-        expect(trapezoidInscribedRect(vertical({ extentLo: 120, extentHi: 200 }))).toEqual({
-            x: -10,
-            y: 0,
-            width: 120,
-            height: 100,
-        });
+    test('offers more width to a short band than the whole shape allows', () => {
+        const t = vertical({ extentLo: 40, extentHi: 60 });
+        expect(trapezoidExtentAcross(t, 45, 55)).toBeGreaterThan(trapezoidExtentAcross(t, t.spanLo, t.spanHi));
+    });
+});
+
+describe('trapezoidBandRect', () => {
+    test('keeps the trapezoid span and narrows to the band width', () => {
+        expect(trapezoidBandRect(vertical(), 40, 60)).toEqual({ x: -2, y: 0, width: 104, height: 100 });
     });
 
-    test('returns the whole rectangle when both edges are equal', () => {
-        expect(trapezoidInscribedRect(vertical({ extentLo: 80, extentHi: 80 }))).toEqual({
+    test('stays centred on a trapezoid that tapers to a point', () => {
+        expect(trapezoidBandRect(vertical({ extentLo: 0, extentHi: 200 }), 40, 60)).toEqual({
             x: 10,
             y: 0,
             width: 80,
@@ -71,22 +68,8 @@ describe('trapezoidInscribedRect', () => {
         });
     });
 
-    test('handles a degenerate triangle', () => {
-        expect(trapezoidInscribedRect(vertical({ extentLo: 0 }))).toEqual({ x: 0, y: 50, width: 100, height: 50 });
-    });
-
-    test('returns a zero-size rectangle for a degenerate trapezoid', () => {
-        expect(trapezoidInscribedRect(vertical({ spanHi: 0 }))).toEqual({ x: 50, y: 0, width: 0, height: 0 });
-        expect(trapezoidInscribedRect(vertical({ extentLo: 0, extentHi: 0 }))).toEqual({
-            x: 50,
-            y: 50,
-            width: 0,
-            height: 0,
-        });
-    });
-
-    test('lies inside the trapezoid on the transposed axis too', () => {
-        expect(trapezoidInscribedRect(horizontal())).toEqual({ x: 37.5, y: 0, width: 62.5, height: 100 });
+    test('handles the horizontal orientation', () => {
+        expect(trapezoidBandRect(horizontal(), 40, 60)).toEqual({ x: 0, y: -2, width: 100, height: 104 });
     });
 });
 

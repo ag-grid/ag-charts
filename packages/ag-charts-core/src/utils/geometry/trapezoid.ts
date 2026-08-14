@@ -21,33 +21,34 @@ const toBox = (t: TrapezoidBounds, spanLo: number, spanHi: number, crossExtent: 
         : { x: spanLo, y: crossLo, width: spanHi - spanLo, height: crossExtent };
 };
 
+const widthAt = (t: TrapezoidBounds, span: number) =>
+    t.extentLo + ((t.extentHi - t.extentLo) * (span - t.spanLo)) / (t.spanHi - t.spanLo);
+
 /** Axis-aligned bounding box of the trapezoid. */
 export function trapezoidBox(t: TrapezoidBounds): BoxBounds {
     return toBox(t, t.spanLo, t.spanHi, Math.max(t.extentLo, t.extentHi));
 }
 
 /**
- * The largest axis-aligned rectangle inscribed in the trapezoid.
- *
- * A rectangle spanning `[t0, t1]` (normalised span positions) is limited by the narrowest
- * cross-section it covers, so the optimum always extends to the wide edge: `t1 = 1`. Maximising
- * `A(t0) = L(1 - t0)(eMin + (eMax - eMin)t0)` gives `t0* = (delta - eMin) / (2 * delta)`, which is
- * interior only while `eMax >= 2 * eMin`; otherwise the full span at `eMin` wins.
+ * The cross-axis extent available across the span band `[bandLo, bandHi]`: the narrowest cross-section it
+ * covers, which is at one of its two ends because width is linear in span. The band is clipped to the
+ * trapezoid, so one overhanging an edge is measured only where the shape exists.
  */
-export function trapezoidInscribedRect(t: TrapezoidBounds): BoxBounds {
-    const length = t.spanHi - t.spanLo;
-    const eMin = Math.min(t.extentLo, t.extentHi);
-    const eMax = Math.max(t.extentLo, t.extentHi);
-    if (length <= 0 || eMax <= 0) {
-        return toBox(t, (t.spanLo + t.spanHi) / 2, (t.spanLo + t.spanHi) / 2, 0);
-    }
-    if (eMax < 2 * eMin) {
-        return toBox(t, t.spanLo, t.spanHi, eMin);
-    }
-    const spanExtent = (length * eMax) / (2 * (eMax - eMin));
-    return t.extentHi >= t.extentLo
-        ? toBox(t, t.spanHi - spanExtent, t.spanHi, eMax / 2)
-        : toBox(t, t.spanLo, t.spanLo + spanExtent, eMax / 2);
+export function trapezoidExtentAcross(t: TrapezoidBounds, bandLo: number, bandHi: number): number {
+    if (t.spanHi <= t.spanLo) return Math.max(t.extentLo, t.extentHi);
+    const lo = Math.max(t.spanLo, Math.min(bandLo, bandHi));
+    const hi = Math.min(t.spanHi, Math.max(bandLo, bandHi));
+    if (lo > hi) return 0;
+    return Math.max(0, Math.min(widthAt(t, lo), widthAt(t, hi)));
+}
+
+/**
+ * The trapezoid's full span, narrowed to the cross extent available across `[bandLo, bandHi]`. Anchoring
+ * a label against this box keeps the placement the whole shape implies, while limiting its width to the
+ * part of the shape the text actually occupies.
+ */
+export function trapezoidBandRect(t: TrapezoidBounds, bandLo: number, bandHi: number): BoxBounds {
+    return toBox(t, t.spanLo, t.spanHi, trapezoidExtentAcross(t, bandLo, bandHi));
 }
 
 /**
@@ -62,9 +63,8 @@ export function trapezoidOverlapsBox(t: TrapezoidBounds, box: BoxBounds): boolea
     const s1 = Math.min(t.spanHi, boxSpanHi);
     if (s0 >= s1) return false;
 
-    const length = t.spanHi - t.spanLo;
-    const widthAt = (s: number) => t.extentLo + ((t.extentHi - t.extentLo) * (s - t.spanLo)) / length;
-    const crossExtent = length > 0 ? Math.max(widthAt(s0), widthAt(s1)) : Math.max(t.extentLo, t.extentHi);
+    const crossExtent =
+        t.spanHi > t.spanLo ? Math.max(widthAt(t, s0), widthAt(t, s1)) : Math.max(t.extentLo, t.extentHi);
     if (crossExtent <= 0) return false;
 
     const boxCrossLo = t.vertical ? box.x : box.y;

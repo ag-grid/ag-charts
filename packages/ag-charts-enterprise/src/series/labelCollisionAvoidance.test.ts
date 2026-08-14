@@ -1358,13 +1358,23 @@ describe('label collision avoidance', () => {
                 expect(inside[0]).not.toBe(outside[0]);
             });
 
-            it('bounds the fitted text of a tapering stage to its inscribed rectangle', async () => {
+            it('anchors a centred value label on the centre of its stage', async () => {
+                const labels = await anchors(options({ placement: 'inside-center' }));
+                const stages = chart.series[0].contextNodeData.nodeData;
+
+                for (const [index, label] of labels.entries()) {
+                    expect(label.x).toBeCloseTo(stages[index].x);
+                    expect(label.y).toBeCloseTo(stages[index].y);
+                }
+            });
+
+            it('bounds the fitted text of a tapering stage to the width where the text sits', async () => {
                 const text = 'A very long pyramid stage label';
                 await render(options({ placement: 'inside-center', formatter: () => text, truncate: true }));
                 const lineCounts = labelNodes().map((node) => String(node.text).split('\n').length);
 
-                // The apex stage's inscribed rectangle is the narrowest, so its label wraps the hardest,
-                // while the base stage is wide enough to keep the text on one line.
+                // The apex stage is the narrowest across its label's own band, so its label wraps the
+                // hardest, while the base stage is wide enough to keep the text on one line.
                 expect(lineCounts[0]).toBeGreaterThan(lineCounts.at(-1)!);
                 expect(String(labelNodes().at(-1)!.text)).toBe(text);
             });

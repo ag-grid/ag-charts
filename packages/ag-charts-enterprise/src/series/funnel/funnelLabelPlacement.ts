@@ -4,7 +4,7 @@ import type {
     AgFunnelSeriesLabelPlacement,
     _ModuleSupport,
 } from 'ag-charts-community';
-import type { TrapezoidBounds } from 'ag-charts-core';
+import type { OrientationAnchor, TrapezoidBounds } from 'ag-charts-core';
 import { toArray } from 'ag-charts-core';
 
 type BarLabelPlacement = _ModuleSupport.BarLabelPlacement;
@@ -91,6 +91,22 @@ export function pyramidStageTrapezoid(
               crossCentre: x,
               vertical: true,
           };
+}
+
+/**
+ * The span band a pyramid label occupies once anchored, so the stage can be measured for width where the
+ * text actually sits rather than across its whole height.
+ */
+export function pyramidLabelBand(
+    trapezoid: TrapezoidBounds,
+    anchor: OrientationAnchor,
+    extent: number
+): [number, number] {
+    const position = trapezoid.vertical ? anchor.y : anchor.x;
+    const alignment = trapezoid.vertical ? anchor.textBaseline : anchor.textAlign;
+    if (alignment === 'top' || alignment === 'left') return [position, position + extent];
+    if (alignment === 'bottom' || alignment === 'right') return [position - extent, position];
+    return [position - extent / 2, position + extent / 2];
 }
 
 /** The inside/outside distinction the funnel and pyramid placement styles select on. */

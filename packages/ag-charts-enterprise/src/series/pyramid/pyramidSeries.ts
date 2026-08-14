@@ -39,8 +39,8 @@ import {
     toNumber,
     toPlainText,
     toTextString,
+    trapezoidBandRect,
     trapezoidBox,
-    trapezoidInscribedRect,
     trapezoidOverlapsBox,
 } from 'ag-charts-core';
 import type { AgFunnelSeriesLabelPlacement, AgNumericValue } from 'ag-charts-types';
@@ -48,6 +48,7 @@ import type { AgFunnelSeriesLabelPlacement, AgNumericValue } from 'ag-charts-typ
 import { FunnelConnector } from '../funnel/funnelConnector';
 import {
     FUNNEL_TO_BAR_PLACEMENT,
+    pyramidLabelBand,
     pyramidPlacementAxes,
     pyramidStageTrapezoid,
     resolveFunnelPlacements,
@@ -588,29 +589,36 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             undefined,
             (placement) => labelContext.reportedPlacements[labelContext.placements.indexOf(placement)]
         );
-        // An inside label is bound by the largest rect the stage can hold; an outside one is anchored off
-        // the stage's own bounding box, so a tapering end does not pull it into the shape.
-        const insideRect = trapezoidInscribedRect(trapezoid);
-        const candidates = labelContext.placements.flatMap((placement, index) =>
+        const spanOf = (size: { width: number; height: number }) => (trapezoid.vertical ? size.height : size.width);
+        const buildCandidates = (index: number, rect: BoxBounds) =>
             buildBarLabelCandidates<AgPyramidSeriesLabelFormatterParams, AgFunnelSeriesLabelPlacement>({
                 isUpward: labelContext.isUpward,
                 isVertical: labelContext.isVertical,
-                placements: [placement],
+                placements: [labelContext.placements[index]],
                 reportedPlacements: [labelContext.reportedPlacements[index]],
                 orientations: ['horizontal'],
                 spacing: label.spacing,
                 label,
                 textWidth: measured.width,
                 textHeight: measured.height,
-                rect: placement.startsWith('inside') ? insideRect : stageBox,
+                rect,
                 hideable: !label.collision.alwaysShow,
                 plotRegion: labelContext.plotRegion,
                 fitted: labelContext.labelFit != null,
                 text,
                 styleDatum: labelDatum,
                 resolveStyle,
-            })
-        );
+            });
+        // An inside label is bound by the stage width across the band its own text occupies; an outside one
+        // by the stage's bounding box, so a tapering end does not pull it into the shape. Narrowing the
+        // cross axis cannot move an anchor, so an inside placement's first pass only locates that band.
+        const placementCandidates = (index: number, spanExtent: number) => {
+            const located = buildCandidates(index, stageBox);
+            if (located.length === 0 || !labelContext.placements[index].startsWith('inside')) return located;
+            const [bandLo, bandHi] = pyramidLabelBand(trapezoid, located[0].anchor, spanExtent);
+            return buildCandidates(index, trapezoidBandRect(trapezoid, bandLo, bandHi));
+        };
+        const candidates = labelContext.placements.flatMap((_, index) => placementCandidates(index, spanOf(measured)));
 
         // The engine picks the first candidate that fits; the first is baked so rendering is correct
         // even when the label never routes through the engine.
@@ -628,7 +636,21 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             labelDatum.candidates = candidates;
         } else {
             // Nothing re-fits this label later, so bound its text to the region it was baked into.
-            const fitted = fitLabelToContainerAutoSize(text, labelContext.labelFit, label, first?.fitTo?.container);
+            let fitted = fitLabelToContainerAutoSize(text, labelContext.labelFit, label, first?.fitTo?.container);
+            if (labelContext.labelFit != null && first != null) {
+                // Wrapping can leave the text taller than the band its width was measured across, which a
+                // tapering stage has less room for.
+                const fittedSpan = spanOf(measureLabelText(fitted.text, fontWithSize(label, fitted.fontSize)));
+                if (fittedSpan > spanOf(measured)) {
+                    const refitted = placementCandidates(0, fittedSpan);
+                    fitted = fitLabelToContainerAutoSize(
+                        text,
+                        labelContext.labelFit,
+                        label,
+                        refitted[0]?.fitTo?.container
+                    );
+                }
+            }
             labelDatum.fittedText = fitted.text;
             labelDatum.fittedFontSize = fitted.fontSize;
         }

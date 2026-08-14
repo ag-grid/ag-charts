@@ -97,7 +97,7 @@ Each stage can show its value with `label`, positioned along the stage axis.
 
 In this configuration:
 
-- `inside-center` centres the label on the largest rectangle that fits inside the stage, so the label of a tapering stage sits towards its wide end.
+- `inside-center` centres the label on the stage and limits its width to the part of the stage the text sits across, so a long label wraps more in a narrow stage than in a wide one.
 - An outside placement is rejected when it would leave the series area, so it works best as a fallback. Use `aspectRatio` and `spacing` to make room for one.
 
 See [Series Labels](./series-labels/) for the full set of label, placement and collision options.
