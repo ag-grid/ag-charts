@@ -1059,7 +1059,7 @@ describe('TreemapSeries', () => {
         /** Resolved rect styles keyed by the datum's `name` — covers groups and leaves alike. */
         const stylesByName = (series: TreemapSeries): Record<string, { fill?: string; stroke?: string }> => {
             const styles: Record<string, { fill?: string; stroke?: string }> = {};
-            for (const rect of Array.from((series as any).datumSelection.nodes()) as any[]) {
+            for (const rect of Array.from((series as any).datumSelection.nodes())) {
                 const name = rect.datum?.datum?.name;
                 if (name != null) {
                     styles[name] = { fill: rect.fill, stroke: rect.stroke };
@@ -1179,9 +1179,9 @@ describe('TreemapSeries', () => {
 
             // The strokes array is shorter than fills, so a tile index wrapped on the wrong
             // array would resolve `undefined` for the third and fourth roots.
-            ['E', 'F', 'G', 'H'].forEach((root, rootIndex) => {
+            for (const [rootIndex, root] of ['E', 'F', 'G', 'H'].entries()) {
                 expect(styles[`${root}-x`].stroke).toBe(strokes[rootIndex % strokes.length]);
-            });
+            }
         });
     });
 
