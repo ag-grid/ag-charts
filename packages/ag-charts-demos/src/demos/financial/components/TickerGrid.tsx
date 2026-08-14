@@ -16,7 +16,23 @@ interface TickerGridProps<T extends { ticker: string }> {
     rowData: T[];
     activeTicker: string;
     onSelect: (ticker: string) => void;
+    /**
+     * Fill the available height and scroll internally, inside a card, rather than growing
+     * to fit every row. Sidebar lists want the latter — they stack, and the sidebar is the
+     * thing that scrolls — but a full-width board with every instrument in it would
+     * otherwise run off the bottom of the page.
+     */
+    fillHeight?: boolean;
+    /**
+     * Column to hold a live sort on, flipping between ascending and descending on an
+     * interval. The rows reorder under a streaming feed, which is the point — it shows
+     * the sort indicator and the row animation doing real work.
+     */
+    autoSortColId?: string;
 }
+
+// How long each direction holds before the auto-sort flips.
+const AUTO_SORT_MS = 4_000;
 
 // A titled watchlist-style grid: a fixed row set whose values stream in place,
 // with the active ticker highlighted and rows selectable.
@@ -27,6 +43,8 @@ export function TickerGrid<T extends { ticker: string }>({
     rowData,
     activeTicker,
     onSelect,
+    fillHeight = false,
+    autoSortColId,
 }: TickerGridProps<T>) {
     const gridRef = useRef<AgGridReact<T>>(null);
     const defaultColDef = useMemo(() => baseColDef<T>(), []);
@@ -58,6 +76,20 @@ export function TickerGrid<T extends { ticker: string }>({
         gridRef.current?.api?.redrawRows();
     }, [activeTicker]);
 
+    // Hold a sort on one column and flip its direction on an interval. Seeded descending,
+    // which is the order the mover feeds are already in, so the first flip is the visible one.
+    useEffect(() => {
+        if (!autoSortColId) return;
+        let sort: 'asc' | 'desc' = 'desc';
+        const apply = () => gridRef.current?.api?.applyColumnState({ state: [{ colId: autoSortColId, sort }] });
+        apply();
+        const id = window.setInterval(() => {
+            sort = sort === 'desc' ? 'asc' : 'desc';
+            apply();
+        }, AUTO_SORT_MS);
+        return () => window.clearInterval(id);
+    }, [autoSortColId]);
+
     const onCellKeyDown = ({ event, data }: CellKeyDownEvent<T> | FullWidthCellKeyDownEvent<T>) => {
         if (!data || !(event instanceof KeyboardEvent)) return;
         if (event.key === 'Enter' || event.key === ' ') {
@@ -67,9 +99,9 @@ export function TickerGrid<T extends { ticker: string }>({
     };
 
     return (
-        <div className="fin-section">
+        <div className={fillHeight ? 'fin-section fin-section--fill' : 'fin-section'}>
             <h3 className="fin-section-title">{title}</h3>
-            <div className={gridClassName}>
+            <div className={fillHeight ? `fin-detail-card fin-section-body ${gridClassName}` : gridClassName}>
                 <AgGridReact<T>
                     ref={gridRef}
                     theme={gridTheme}
@@ -78,7 +110,9 @@ export function TickerGrid<T extends { ticker: string }>({
                     columnDefs={columnDefs}
                     defaultColDef={defaultColDef}
                     rowClassRules={rowClassRules}
-                    domLayout="autoHeight"
+                    // Omitted when filling: the default layout takes its height from the
+                    // container and virtualises rows, which autoHeight cannot do.
+                    domLayout={fillHeight ? undefined : 'autoHeight'}
                     rowHeight={28}
                     headerHeight={30}
                     onRowClicked={({ data }) => data && onSelect(data.ticker)}

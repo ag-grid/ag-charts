@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { DemoBanner } from './components/DemoBanner';
 import { FinancialChart } from './components/FinancialChart';
@@ -6,6 +6,8 @@ import { MostActive } from './components/MostActive';
 import { PeerPerformanceChart } from './components/PeerPerformanceChart';
 import { PeerSpreadHeatmap } from './components/PeerSpreadHeatmap';
 import { ProfileGauges } from './components/ProfileGauges';
+import { SavedMarkets } from './components/SavedMarkets';
+import { TickerBadge } from './components/TickerCell';
 import { Toolbar } from './components/Toolbar';
 import { Trending } from './components/Trending';
 import { Watchlist } from './components/Watchlist';
@@ -13,8 +15,11 @@ import { fmtPrice } from './format';
 import { Button, Select, ToggleGroup } from './ui';
 import { useStreamingMarket } from './useStreamingMarket';
 
-// Stream speeds — a fast desk wants to dial the cadence up or down.
+// Stream speeds — a fast desk wants to dial the cadence up or down. 1× is one bar per
+// second; the slower step exists because a streaming board is easier to read when the
+// prices are not redrawing faster than the eye can settle on them.
 const SPEED_OPTIONS = [
+    { value: '2000', label: '0.5×' },
     { value: '1000', label: '1×' },
     { value: '500', label: '2×' },
     { value: '250', label: '4×' },
@@ -22,8 +27,12 @@ const SPEED_OPTIONS = [
 
 // Shared default visible time window (in minutes) that every chart aligns to:
 // FinancialChart's trailing window, PeerPerformance's range, and the peer heatmap's
-// bucket count (buckets are one minute each). Driven by the title-bar range buttons.
-const SHARED_WINDOW_MINUTES = 120;
+// bucket span. Driven by the title-bar range buttons. 240 == the 4H button.
+const SHARED_WINDOW_MINUTES = 240;
+
+// When to clear the pulse class. The fin-chart-pulse animation in financial.css runs for
+// 1100ms; the extra grace lets it finish rather than being cancelled on its last frame.
+const PULSE_MS = 1200;
 
 // Range-button choices for the shared time window, in trailing minutes.
 const RANGE_OPTIONS = [
@@ -32,6 +41,22 @@ const RANGE_OPTIONS = [
     { value: '120', label: '2H' },
     { value: '240', label: '4H' },
 ];
+
+function BookmarkIcon() {
+    return (
+        <svg
+            className="fin-saved-cta-icon"
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+            aria-hidden="true"
+            focusable="false"
+        >
+            <path d="M4 2h8v12L8 11.1 4 14V2Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+        </svg>
+    );
+}
 
 export const FinancialApp = () => {
     const {
@@ -44,7 +69,7 @@ export const FinancialApp = () => {
         peerFeed,
         peerTick,
         ticker,
-        setTicker,
+        selectTicker: selectInstrument,
         running,
         setRunning,
         speedMs,
@@ -55,15 +80,40 @@ export const FinancialApp = () => {
     const [rangeMinutes, setRangeMinutes] = useState(SHARED_WINDOW_MINUTES);
     // Off-canvas watchlist drawer; only reachable on narrow viewports.
     const [drawerOpen, setDrawerOpen] = useState(false);
+    // When open, the saved-markets table takes the place of the gauges and peer charts.
+    // The candlestick chart above it is unaffected.
+    const [savedOpen, setSavedOpen] = useState(false);
 
     // Selecting an instrument on a phone should reveal the chart it opened.
     const selectTicker = useCallback(
         (next: string) => {
-            setTicker(next);
+            selectInstrument(next);
             setDrawerOpen(false);
         },
-        [setTicker]
+        [selectInstrument]
     );
+
+    // The chart swaps its data in place rather than remounting, which is smooth but gives a
+    // selection made over in a side list no visible answer from the chart that acted on it.
+    // A brief blue pulse on the card supplies one.
+    const chartCardRef = useRef<HTMLDivElement>(null);
+    const pulsedTickerRef = useRef(ticker);
+    useEffect(() => {
+        if (ticker === pulsedTickerRef.current) return;
+        pulsedTickerRef.current = ticker;
+        const node = chartCardRef.current;
+        if (!node) return;
+        node.classList.remove('fin-pulse');
+        // Reading offsetWidth forces a reflow, so re-adding the class restarts the animation
+        // rather than being coalesced away when two selections land close together.
+        void node.offsetWidth;
+        node.classList.add('fin-pulse');
+        const id = window.setTimeout(() => node.classList.remove('fin-pulse'), PULSE_MS);
+        return () => window.clearTimeout(id);
+    }, [ticker]);
+
+    // Everything the desk has saved: the watchlist plus both market-overview boards.
+    const savedSources = useMemo(() => [...quotes, ...trending, ...mostActive], [quotes, trending, mostActive]);
 
     const last = bars[bars.length - 1];
     const first = bars[0];
@@ -77,6 +127,18 @@ export const FinancialApp = () => {
 
             <div className="fin-body" data-drawer-open={drawerOpen}>
                 <div className="fin-sidebar fin-sidebar-left">
+                    <button
+                        type="button"
+                        className="fin-saved-cta"
+                        data-active={savedOpen}
+                        aria-pressed={savedOpen}
+                        onClick={() => setSavedOpen((prev) => !prev)}
+                    >
+                        <BookmarkIcon />
+                        <span className="fin-saved-cta-text">Saved markets</span>
+                        <span className="fin-saved-cta-count">{savedSources.length}</span>
+                    </button>
+
                     <Watchlist quotes={quotes} activeTicker={ticker} onSelect={selectTicker} />
                     <Trending rows={trending} activeTicker={ticker} onSelect={selectTicker} />
                     <MostActive rows={mostActive} activeTicker={ticker} onSelect={selectTicker} />
@@ -84,66 +146,78 @@ export const FinancialApp = () => {
                 <div className="fin-drawer-overlay" onClick={() => setDrawerOpen(false)} />
 
                 <div className="fin-main">
-                    <div className="fin-title-bar">
-                        <div className="fin-title-left">
-                            <Button
-                                className="fin-drawer-toggle"
-                                aria-label="Open watchlist"
-                                onClick={() => setDrawerOpen(true)}
-                            >
-                                ☰
-                            </Button>
-                            <div className="fin-quote">
-                                <span className="fin-quote-symbol">{instrument.name}</span>
-                                <span className="fin-quote-price">{last ? fmtPrice(last.close) : '—'}</span>
-                                <span className={change >= 0 ? 'fin-up' : 'fin-down'}>
-                                    {change >= 0 ? '▲' : '▼'} {fmtPrice(Math.abs(change))} ({changePct.toFixed(2)}%)
-                                </span>
+                    {/* The quote header and its controls sit inside the chart card, so the
+                        instrument, its range and its chart read as one component. */}
+                    <div className="fin-detail-card fin-chart-card" ref={chartCardRef}>
+                        <div className="fin-title-bar">
+                            <div className="fin-title-left">
+                                <Button
+                                    className="fin-drawer-toggle"
+                                    aria-label="Open watchlist"
+                                    onClick={() => setDrawerOpen(true)}
+                                >
+                                    ☰
+                                </Button>
+                                <div className="fin-quote">
+                                    <TickerBadge ticker={instrument.ticker} />
+                                    <span className="fin-quote-symbol">{instrument.name}</span>
+                                    <span className="fin-quote-price">{last ? fmtPrice(last.close) : '—'}</span>
+                                    <span className={change >= 0 ? 'fin-up' : 'fin-down'}>
+                                        {change >= 0 ? '▲' : '▼'} {fmtPrice(Math.abs(change))} ({changePct.toFixed(2)}%)
+                                    </span>
+                                </div>
+                            </div>
+                            <div className="fin-title-controls">
+                                <ToggleGroup
+                                    ariaLabel="Time range"
+                                    value={String(rangeMinutes)}
+                                    onValueChange={(value) => setRangeMinutes(Number(value))}
+                                    options={RANGE_OPTIONS}
+                                />
+                                <Select
+                                    label="Speed"
+                                    ariaLabel="Stream speed"
+                                    value={String(speedMs)}
+                                    onValueChange={(value) => setSpeedMs(Number(value))}
+                                    options={SPEED_OPTIONS}
+                                />
+                                <Button onClick={() => setRunning((prev) => !prev)}>
+                                    {running ? '❚❚ Pause' : '▶ Live'}
+                                </Button>
                             </div>
                         </div>
-                        <div className="fin-title-controls">
-                            <ToggleGroup
-                                ariaLabel="Time range"
-                                value={String(rangeMinutes)}
-                                onValueChange={(value) => setRangeMinutes(Number(value))}
-                                options={RANGE_OPTIONS}
-                            />
-                            <Select
-                                label="Speed"
-                                ariaLabel="Stream speed"
-                                value={String(speedMs)}
-                                onValueChange={(value) => setSpeedMs(Number(value))}
-                                options={SPEED_OPTIONS}
-                            />
-                            <Button onClick={() => setRunning((prev) => !prev)}>
-                                {running ? '❚❚ Pause' : '▶ Live'}
-                            </Button>
-                        </div>
-                    </div>
-                    <div className="fin-detail-card fin-chart-card">
                         <div className="fin-chart-body">
-                            <FinancialChart key={ticker} bars={bars} windowMinutes={rangeMinutes} />
+                            {/* No `key` on the ticker: the chart replaces its data in place, so
+                                selecting an instrument keeps the same chart instance rather than
+                                tearing it down and rebuilding it. */}
+                            <FinancialChart bars={bars} windowMinutes={rangeMinutes} ticker={ticker} />
                         </div>
                     </div>
 
-                    <ProfileGauges metrics={metrics} />
+                    {savedOpen ? (
+                        <SavedMarkets sources={savedSources} activeTicker={ticker} onSelect={selectTicker} />
+                    ) : (
+                        <>
+                            <ProfileGauges metrics={metrics} />
 
-                    <div className="fin-detail-charts">
-                        <PeerPerformanceChart
-                            key={`peer-${ticker}`}
-                            instrument={instrument}
-                            peerFeed={peerFeed}
-                            peerTick={peerTick}
-                            windowMinutes={rangeMinutes}
-                        />
-                        <PeerSpreadHeatmap
-                            key={`heatmap-${ticker}`}
-                            instrument={instrument}
-                            peerFeed={peerFeed}
-                            peerTick={peerTick}
-                            windowMinutes={rangeMinutes}
-                        />
-                    </div>
+                            <div className="fin-detail-charts">
+                                <PeerPerformanceChart
+                                    key={`peer-${ticker}`}
+                                    instrument={instrument}
+                                    peerFeed={peerFeed}
+                                    peerTick={peerTick}
+                                    windowMinutes={rangeMinutes}
+                                />
+                                <PeerSpreadHeatmap
+                                    key={`heatmap-${ticker}`}
+                                    instrument={instrument}
+                                    peerFeed={peerFeed}
+                                    peerTick={peerTick}
+                                    windowMinutes={rangeMinutes}
+                                />
+                            </div>
+                        </>
+                    )}
                 </div>
             </div>
         </div>

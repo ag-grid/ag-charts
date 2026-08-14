@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import {
     ALL_INSTRUMENTS,
@@ -57,7 +57,9 @@ export function useStreamingMarket() {
 
     const [ticker, setTicker] = useState(INSTRUMENTS[0].ticker);
     const [running, setRunning] = useState(true);
-    const [speedMs, setSpeedMs] = useState(500);
+    // 1× (one bar per second). Slow enough that a price change is legible as it lands
+    // rather than being overwritten by the next tick.
+    const [speedMs, setSpeedMs] = useState(1000);
     const [bars, setBars] = useState<Bar[]>(() => feedsRef.current!.get(ticker)!.snapshot());
     const [quotes, setQuotes] = useState<Quote[]>(() => readQuotes(feedsRef.current!));
     const [metrics, setMetrics] = useState<GaugeMetrics>(() => feedsRef.current!.get(ticker)!.metrics());
@@ -66,16 +68,22 @@ export function useStreamingMarket() {
     // Bumped on every tick so consumers of the (mutable) peer feed recompute.
     const [peerTick, setPeerTick] = useState(0);
 
-    // Catch a lazily-ticked mover feed up to the current time on selection, so its series looks live
-    // rather than frozen at the moment it was seeded.
-    useEffect(() => {
-        const feed = feedsRef.current!.get(ticker)!;
+    // Select an instrument, catching a lazily-ticked mover feed up to the current time first so its
+    // series looks live rather than frozen at the moment it was seeded.
+    //
+    // The ticker and its bars are set together, in one batch, rather than the bars following in an
+    // effect. Consumers diff the incoming bars against the outgoing ones to decide whether a change
+    // is a streaming tick or a wholesale swap, and a render carrying the new ticker but the old
+    // instrument's bars would make that call on the wrong data.
+    const selectTicker = useCallback((next: string) => {
+        const feed = feedsRef.current!.get(next)!;
         const feedTicks = feedTickRef.current!;
-        for (let behind = tickCountRef.current - feedTicks.get(ticker)!; behind > 0; behind--) feed.tick();
-        feedTicks.set(ticker, tickCountRef.current);
+        for (let behind = tickCountRef.current - feedTicks.get(next)!; behind > 0; behind--) feed.tick();
+        feedTicks.set(next, tickCountRef.current);
+        setTicker(next);
         setBars(feed.snapshot());
         setMetrics(feed.metrics());
-    }, [ticker]);
+    }, []);
 
     useEffect(() => {
         if (!running) return;
@@ -126,7 +134,7 @@ export function useStreamingMarket() {
         peerFeed: peerFeedRef.current,
         peerTick,
         ticker,
-        setTicker,
+        selectTicker,
         running,
         setRunning,
         speedMs,

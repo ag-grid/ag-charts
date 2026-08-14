@@ -2,6 +2,7 @@ import { type ColDef } from 'ag-grid-community';
 
 import { fmtPrice } from '../format';
 import { type MoverRow } from '../types';
+import { TickerCell } from './TickerCell';
 import { TickerGrid } from './TickerGrid';
 import { formatOrBlank, signedPct, sparklineColDef, upDownRules } from './grid';
 
@@ -9,7 +10,7 @@ const upDown = upDownRules<MoverRow>();
 
 // "Most active" = the highest-volume names, ranked by traded volume; values stream live.
 const columnDefs: ColDef<MoverRow>[] = [
-    { field: 'ticker', headerName: 'Ticker', flex: 0.9, tooltipField: 'name' },
+    { field: 'ticker', headerName: 'Ticker', flex: 1.35, minWidth: 74, tooltipField: 'name', cellRenderer: TickerCell },
     { field: 'last', headerName: 'Last', type: 'rightAligned', valueFormatter: formatOrBlank<MoverRow>(fmtPrice) },
     {
         field: 'changePct',
@@ -42,6 +43,7 @@ export function MostActive({ rows, activeTicker, onSelect }: MostActiveProps) {
             rowData={rows}
             activeTicker={activeTicker}
             onSelect={onSelect}
+            autoSortColId="volume"
         />
     );
 }

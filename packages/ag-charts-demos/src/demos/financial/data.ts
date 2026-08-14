@@ -260,8 +260,12 @@ export class MoverFeed {
 }
 
 export const BAR_INTERVAL_MS = 60_000; // one-minute bars
-const HISTORY_BARS = 240;
-const MAX_BARS = 480;
+// Seeded history must exceed the widest range button (4H = 240 one-minute bars), not
+// just match it. At exactly 240 the heatmap's first frame has no bucket to spare for
+// predecessor context, so rollingSpread emits its leftmost column as a false 0.00
+// (see the emitStart guard below), and the main chart's trailing slice has no headroom.
+const HISTORY_BARS = 300;
+const MAX_BARS = 540;
 const VOLUME_BASE = 1_800;
 
 // --- synthetic price generation ----------------------------------------------
@@ -475,10 +479,15 @@ export interface PeerHeatmapCell {
     value: number;
 }
 
-// Heatmap columns are fixed one-minute wall-clock buckets, so a given column keeps
-// its colour as the feed streams — only the trailing partial bucket updates.
-const HEATMAP_BUCKET_MS = BAR_INTERVAL_MS;
-const HEATMAP_BUCKETS = 30;
+// Heatmap columns are fixed wall-clock buckets, so a given column keeps its colour as
+// the feed streams — only the trailing partial bucket updates. Bucket width scales with
+// the visible window rather than being pinned to the bar interval: at one minute per
+// bucket the 4H window would be 240 columns, which renders as a barcode of sub-pixel
+// slivers instead of a heatmap.
+const HEATMAP_MAX_COLUMNS = 40;
+
+/** Minutes per heatmap bucket for a visible window, keeping the column count capped. */
+const bucketMinutesFor = (windowMinutes: number) => Math.max(1, Math.ceil(windowMinutes / HEATMAP_MAX_COLUMNS));
 
 const mean = (values: number[]) => values.reduce((sum, v) => sum + v, 0) / values.length;
 
@@ -573,13 +582,13 @@ export class PeerPerformanceFeed {
         });
     }
 
-    /** Group the most recent samples into up to `buckets` fixed wall-clock time buckets (oldest first). */
-    private timeBuckets(buckets = HEATMAP_BUCKETS): PeerSample[][] {
+    /** Group the most recent samples into up to `buckets` fixed `bucketMs`-wide buckets (oldest first). */
+    private timeBuckets(buckets: number, bucketMs: number): PeerSample[][] {
         // Scan newest-first so cost tracks the window rather than the full sample history.
         const byKey = new Map<number, PeerSample[]>();
         for (let i = this.samples.length - 1; i >= 0; i--) {
             const sample = this.samples[i];
-            const key = Math.floor(sample.time / HEATMAP_BUCKET_MS);
+            const key = Math.floor(sample.time / bucketMs);
             let bucket = byKey.get(key);
             if (!bucket) {
                 if (byKey.size === buckets) break;
@@ -621,23 +630,28 @@ export class PeerPerformanceFeed {
      * consecutive samples within the bucket. Defined against the previous sample
      * so it stays meaningful even when a bucket holds a single sample.
      */
-    rollingSpread(tickers: string[], bucketCount = HEATMAP_BUCKETS): PeerHeatmapCell[] {
-        const tickersKey = tickers.join(',');
-        if (tickersKey !== this.spreadCacheKey) {
+    rollingSpread(tickers: string[], windowMinutes: number): PeerHeatmapCell[] {
+        const bucketMinutes = bucketMinutesFor(windowMinutes);
+        const bucketMs = bucketMinutes * BAR_INTERVAL_MS;
+        const bucketCount = Math.ceil(windowMinutes / bucketMinutes);
+        // Cached cells are keyed by bucket start, which is only meaningful for one bucket width, so
+        // a width change (any range switch) has to invalidate the cache as a peer-set change does.
+        const cacheKey = `${tickers.join(',')}|${bucketMs}`;
+        if (cacheKey !== this.spreadCacheKey) {
             this.spreadCache.clear();
-            this.spreadCacheKey = tickersKey;
+            this.spreadCacheKey = cacheKey;
         }
         // Fetch one extra older bucket as predecessor context. The first emitted bucket's spread is
         // the move from its preceding sample; without that context it would be forced to zero. The
         // context bucket supplies the predecessor only — emit exactly the requested columns.
-        const buckets = this.timeBuckets(bucketCount + 1);
+        const buckets = this.timeBuckets(bucketCount + 1, bucketMs);
         const emitStart = buckets.length > bucketCount ? 1 : 0;
         const lastIndex = buckets.length - 1;
         const liveKeys = new Set<number>();
         const cells: PeerHeatmapCell[] = [];
         for (let bucketIndex = emitStart; bucketIndex <= lastIndex; bucketIndex++) {
             const bucket = buckets[bucketIndex];
-            const key = Math.floor(bucket[0].time / HEATMAP_BUCKET_MS);
+            const key = Math.floor(bucket[0].time / bucketMs);
             liveKeys.add(key);
             // A bucket with a stable in-window predecessor and that is no longer filling (not the
             // trailing bucket) keeps fixed cells; the trailing bucket and any bucket lacking a

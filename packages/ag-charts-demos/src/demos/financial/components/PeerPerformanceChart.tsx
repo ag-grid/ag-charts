@@ -90,7 +90,9 @@ export function PeerPerformanceChart({ instrument, peerFeed, peerTick, windowMin
                         {
                             type: 'line',
                             value: 0,
-                            stroke: 'white',
+                            // The index baseline is a reference mark, so it sits in chrome ink
+                            // rather than a series colour.
+                            stroke: 'var(--fin-muted)',
                             strokeOpacity: 1,
                             strokeWidth: 1,
                         },

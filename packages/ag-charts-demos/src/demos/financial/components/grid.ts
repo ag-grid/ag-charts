@@ -14,18 +14,26 @@ import { SparklineCell } from './SparklineCell';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
-// Dark theme tuned to match the terminal palette (see financial.css).
+// Dark theme tuned to match the terminal palette. The grid theme API takes literal
+// colours, so these mirror the --fin-* tokens in financial.css — change both.
+// `fontFamily: 'inherit'` picks up the container's system-ui stack.
 export const gridTheme = themeQuartz.withPart(colorSchemeDark).withParams({
-    backgroundColor: '#161b22',
-    foregroundColor: '#e6edf3',
-    headerBackgroundColor: '#161b22',
-    headerTextColor: '#8b949e',
-    borderColor: '#2a313c',
+    backgroundColor: '#17181a',
+    foregroundColor: '#e8e9ea',
+    headerBackgroundColor: '#17181a',
+    headerTextColor: '#8b9098',
+    borderColor: '#2a2c30',
+    // No outline around the grid: the app carries structure by surface tone, not lines.
+    // The internal row rules stay, so a dense table is still readable.
+    wrapperBorder: false,
     oddRowBackgroundColor: 'transparent',
-    accentColor: '#388bfd',
-    selectedRowBackgroundColor: 'rgba(56, 139, 253, 0.14)',
+    rowHoverColor: 'rgba(68, 147, 248, 0.08)',
+    accentColor: '#4493f8',
+    selectedRowBackgroundColor: 'rgba(68, 147, 248, 0.14)',
     fontFamily: 'inherit',
     fontSize: 11,
+    headerFontSize: 10,
+    headerFontWeight: 600,
     cellHorizontalPadding: 4,
     wrapperBorderRadius: 0,
     iconButtonBorderRadius: 0,
