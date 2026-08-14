@@ -1343,8 +1343,11 @@ describe('DonutSeries', () => {
         test('never grows the inner circle past the outer radius', async () => {
             const series = await createDonut({ cornerRadius: 1000, innerCircle: { fill: '#c9fdc9' } });
 
+            const [sector] = sectorNodes(series);
+            const paintedOuterRadius = sector.outerRadius - sector.concentricEdgeInset;
             const antiAliasingPadding = 1;
-            expect(circleSize(series)).toBe(Math.ceil(series.getOuterRadius() * 2 + antiAliasingPadding));
+            expect(circleSize(series)).toBe(Math.ceil(paintedOuterRadius * 2 + antiAliasingPadding));
+            expect(paintedOuterRadius).toBeLessThanOrEqual(series.getOuterRadius());
         });
 
         test('erases each sector outline from the grown circle', async () => {
@@ -1385,6 +1388,22 @@ describe('DonutSeries', () => {
             for (const [index, cutout] of series.innerCircleCutoutSelection.nodes().entries()) {
                 expect(cutout.radialEdgeInset).toBe(sectors[index].radialEdgeInset);
             }
+        });
+
+        test('stops the inner circle at the sectors painted outer edge under sector spacing', async () => {
+            const sectorSpacing = 20;
+            const series = await createDonut({
+                cornerRadius: 20,
+                sectorSpacing,
+                innerRadiusRatio: 0.9,
+                innerCircle: { fill: '#c9fdc9' },
+            });
+
+            const [sector] = sectorNodes(series);
+            const paintedOuterRadius = sector.outerRadius - sector.concentricEdgeInset;
+            const antiAliasingPadding = 1;
+            expect(circleSize(series)).toBeLessThanOrEqual(Math.ceil(paintedOuterRadius * 2 + antiAliasingPadding));
+            expect(circleSize(series)).toBeGreaterThan(Math.ceil(series.getInnerRadius() * 2 + antiAliasingPadding));
         });
 
         test('leaves the inner circle alone when there are no rounded corners', async () => {
