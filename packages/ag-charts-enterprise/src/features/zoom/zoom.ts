@@ -105,6 +105,26 @@ export class Zoom extends AbstractModuleInstance {
 
     private hoveredAxisId?: AxisID;
     private hoveredAxisDirection?: ChartAxisDirection;
+    // Tech-Debt: Widget & DragInterpreter do not capture the pointer, so the first mousemove event in DragInterpreter
+    // that triggers the drag-start event can target a different element.
+    //
+    // For example:
+    //
+    // 1.  mousedown the left-most pixel of the .ag-charts-series-area element.
+    //     Effect: drag-start/drag-move deferred.
+    //
+    // 2.  mousemove to the left by 1 pixel:
+    //     Effect: fires on X-axis onAxisMouseEnter() callback.
+    //
+    // 3.  mousemove to the left by 2 more pixels:
+    //     Effect: fires the deferred drag-start/drag-move events, but onSeriesAreaDragStart needs to do nothing if
+    //     you're dragging an axis.
+    //
+    // Workaround: Listen for un-deferred drag-start so that onSeriesAreaDragStart knows what axis was hovered when
+    // the mousedown event occurred.
+    //
+    // This workaround will become obsolete if-and-when Widget drag-* events capture the pointer.
+    private draggedAxisId?: AxisID;
 
     // State
     private dragState = DragState.None;
@@ -163,6 +183,7 @@ export class Zoom extends AbstractModuleInstance {
 
         if (ctx.widgets.seriesDragInterpreter) {
             this.cleanup.register(
+                ctx.widgets.seriesWidget.addListener('drag-start', () => (this.draggedAxisId = this.hoveredAxisId)),
                 ctx.widgets.seriesDragInterpreter.events.on('dblclick', (event) => this.onSeriesAreaDoubleClick(event)),
                 ctx.widgets.seriesDragInterpreter.events.on('drag-start', (event) => this.onSeriesAreaDragStart(event)),
                 ctx.widgets.seriesDragInterpreter.events.on('drag-move', (event) => this.onSeriesAreaDragMove(event)),
@@ -316,7 +337,7 @@ export class Zoom extends AbstractModuleInstance {
 
         this.panner.stopInteractions();
 
-        if (this.hoveredAxisId) return;
+        if (this.draggedAxisId) return;
 
         // Determine which ZoomDrag behaviour to use.
         let newDragState = DragState.None;
@@ -351,7 +372,7 @@ export class Zoom extends AbstractModuleInstance {
             ctx: { interactionManager, tooltipManager, eventsHub },
         } = this;
 
-        if (this.hoveredAxisId) return;
+        if (this.draggedAxisId) return;
 
         if (!enabled || !paddedRect || !this.isState(InteractionState.ZoomDraggable) || this.isIgnoredTouch(event)) {
             return;
@@ -390,7 +411,7 @@ export class Zoom extends AbstractModuleInstance {
         // it for the rest of the session.
         this.ctx.domManager.unlockCursor(DRAG_CURSOR_ID);
 
-        if (this.hoveredAxisId || !this.opts.enabled || this.dragState === DragState.None) return;
+        if (this.draggedAxisId || !this.opts.enabled || this.dragState === DragState.None) return;
 
         this.handleRegularDragEnd();
         this.resetDragState();
