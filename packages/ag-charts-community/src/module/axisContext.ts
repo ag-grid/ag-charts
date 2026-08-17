@@ -1,8 +1,8 @@
 import type {
     AxisID,
     BoxBounds,
+    CanvasPoint,
     ChartAxisDirection,
-    CurrentPoint,
     NormalisedTextOrSegments,
     Point,
     Scale,
@@ -113,8 +113,8 @@ export interface AxisContext {
     attachAxisOverlay(group: Group, slot: 'low' | 'mid' | 'high'): void;
     inRange(value: number, tolerance?: number): boolean;
     getRangeOverflow(value: number): number;
-    /** Pick the scale value at a current-point (click/contextmenu events), relative to axis-dom-proxy HTML element */
-    pickValue(point: CurrentPoint): AxisValuePick | undefined;
+    /** Pick the scale value at a canvas point (click/contextmenu events). */
+    pickValue(point: CanvasPoint): AxisValuePick | undefined;
     pickBand(point: Point): AxisBandDatum | undefined;
     measureBand(value: string): AxisBandMeasurement | undefined;
     /** Defined only on polar axes; cartesian axes leave it undefined. */

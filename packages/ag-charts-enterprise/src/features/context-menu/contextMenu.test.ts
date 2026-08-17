@@ -14,6 +14,8 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { ChartAxisDirection } from 'ag-charts-core';
+import { Caster } from 'ag-charts-test';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 import { DEFAULT_CONTEXT_MENU_CLASS } from './contextMenuStyles';
@@ -266,5 +268,163 @@ describe('Context Menu', () => {
         subsubmenu.items = contextMenu.items;
         chart = AgCharts.create(prepareEnterpriseTestOptions({ ...EXAMPLE_OPTIONS, contextMenu }));
         expectWarningsCalls().toMatchSnapshot();
+    });
+
+    describe('coordinates param', () => {
+        let getItems: ReturnType<typeof vi.fn>;
+        let xAxisClick: ReturnType<typeof vi.fn>;
+        let yAxisClick: ReturnType<typeof vi.fn>;
+
+        function plotCentre() {
+            const seriesRect = deproxy(chart).seriesRect;
+            expect(seriesRect).toBeDefined();
+            const { x, y, width, height } = seriesRect!;
+            return { x: x + width / 2, y: y + height / 2 };
+        }
+
+        // The centre of an axis's own interactive region. Paired with a coordinate from `plotCentre()`, this
+        // aims at the same place along the axis as the series-area click, but through the axis's dispatch.
+        function axisBandCentre(direction: ChartAxisDirection) {
+            const axis = new Caster(deproxy(chart).axes.find((a) => a.direction === direction))
+                .cast(_ModuleSupport.Axis)
+                .findProperty('getCanvasBounds')
+                .castProperty('getCanvasBounds', Function).value;
+            const { x, y, width, height } = axis.getCanvasBounds();
+            return { x: x + width / 2, y: y + height / 2 };
+        }
+
+        async function contextMenuAtPlotCentre() {
+            const { x, y } = plotCentre();
+            await contextMenuAction(x, y)(chart);
+            await waitForChartStability(chart);
+        }
+
+        beforeEach(async () => {
+            getItems = vi.fn(({ defaultItems }) => defaultItems);
+            xAxisClick = vi.fn();
+            yAxisClick = vi.fn();
+            await prepareChart(
+                { enabled: true, getItems },
+                {
+                    data: Array.from({ length: 4 }, (_, i) => ({ x: i / 5, y: i * 2 })),
+                    // `contextMenu.getItems()` receives the axis values under the pointer via its `coordinates` param.
+                    // Nine-decimal x labels are used so that the axis labels overhang the plot area by a wide margin.
+                    axes: {
+                        x: {
+                            type: 'number',
+                            label: { avoidCollisions: false, rotation: 0, format: '#{0.9f}' },
+                            listeners: { click: xAxisClick },
+                        },
+                        y: { type: 'number', listeners: { click: yAxisClick } },
+                    },
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    contextMenu: { enabled: true },
+                }
+            );
+        });
+
+        // A few pixels of coordinate-frame error is enough to shift these values, and the default `closeTo`
+        // tolerance would hide it.
+        const veryCloseTo = (value: number) => expect.closeTo(value, 4);
+
+        // Domains are 0..0.6 on x and 0..6 on y, so the plot centre is exactly 0.3 and 3. Every branch below
+        // aims at that same position on one axis, so they must all report the same value through their own
+        // callback.
+        test('reports the axis values under the pointer', async () => {
+            await contextMenuAtPlotCentre();
+
+            expect(getItems).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    coordinates: expect.objectContaining({
+                        x: expect.objectContaining({ value: veryCloseTo(0.3) }),
+                        y: expect.objectContaining({ value: veryCloseTo(3) }),
+                    }),
+                })
+            );
+        });
+
+        test('the x-axis context menu reports the same value', async () => {
+            await contextMenuAction(plotCentre().x, axisBandCentre(ChartAxisDirection.X).y)(chart);
+            await waitForChartStability(chart);
+
+            expect(getItems).toHaveBeenCalledWith(expect.objectContaining({ showOn: 'axis', value: veryCloseTo(0.3) }));
+        });
+
+        test('the y-axis context menu reports the same value', async () => {
+            await contextMenuAction(axisBandCentre(ChartAxisDirection.Y).x, plotCentre().y)(chart);
+            await waitForChartStability(chart);
+
+            expect(getItems).toHaveBeenCalledWith(expect.objectContaining({ showOn: 'axis', value: veryCloseTo(3) }));
+        });
+
+        test('the x-axis click listener reports the same value', async () => {
+            await clickAction(plotCentre().x, axisBandCentre(ChartAxisDirection.X).y)(chart);
+            await waitForChartStability(chart);
+
+            expect(xAxisClick).toHaveBeenCalledWith(expect.objectContaining({ value: veryCloseTo(0.3) }));
+        });
+
+        test('the y-axis click listener reports the same value', async () => {
+            await clickAction(axisBandCentre(ChartAxisDirection.Y).x, plotCentre().y)(chart);
+            await waitForChartStability(chart);
+
+            expect(yAxisClick).toHaveBeenCalledWith(expect.objectContaining({ value: veryCloseTo(3) }));
+        });
+    });
+
+    describe('overlapping axis region', () => {
+        let getItems: ReturnType<typeof vi.fn>;
+
+        // Aims at the horizontal centre of the plot area, on the band occupied by the crossing axis. Both are
+        // read from internals purely to place the pointer.
+        async function contextMenuAtCrossingAxisCentre() {
+            const inner = deproxy(chart);
+            const seriesRect = inner.seriesRect!;
+            const xAxis = new Caster(inner.axes.find((axis) => axis.direction === ChartAxisDirection.X))
+                .cast(_ModuleSupport.Axis)
+                .findProperty('getCanvasBounds')
+                .castProperty('getCanvasBounds', Function).value;
+            expect(seriesRect).toBeDefined();
+
+            const { x, width } = seriesRect;
+            await contextMenuAction(x + width / 2, xAxis.getCanvasBounds().y + 5)(chart);
+            await waitForChartStability(chart);
+        }
+
+        beforeEach(async () => {
+            getItems = vi.fn(({ defaultItems }) => defaultItems);
+            // An axis placed inside the plot area with `crossAt` is not dispatched through its own proxy region —
+            // the series area picks it up and annotates it onto the menu as an extra region. That is a separate
+            // code path from `coordinates`, and the only one where the axis origin picks up `crossAxisTranslation`.
+            await prepareChart(
+                { enabled: true, getItems },
+                {
+                    data: Array.from({ length: 4 }, (_, i) => ({ x: i / 5, y: i * 2 - 3 })),
+                    axes: {
+                        x: {
+                            type: 'number',
+                            crossAt: { value: 0 },
+                            label: { format: '#{0.9f}', avoidCollisions: false, rotation: 0 },
+                        },
+                        y: { type: 'number' },
+                    },
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    contextMenu: { enabled: true },
+                }
+            );
+        });
+
+        // The x domain is 0..0.6, so its centre is 0.3.
+        test('reports the axis value under the pointer', async () => {
+            await contextMenuAtCrossingAxisCentre();
+
+            expect(getItems).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    allShowOnParams: expect.arrayContaining([
+                        expect.objectContaining({ showOn: 'axis', value: expect.closeTo(0.3) }),
+                    ]),
+                })
+            );
+        });
     });
 });
