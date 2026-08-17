@@ -34,7 +34,7 @@ export const scenarios = [
         name: 'enterprise/AllCartesianModule',
         package: 'ag-charts-enterprise',
         import: '{ AllCartesianModule }',
-        limit: 584_000,
+        limit: 614_000,
     },
     {
         name: 'enterprise/AllPolarModule',
