@@ -21,6 +21,11 @@ function hasAxisClickListener(chartService: _ModuleSupport.ChartService, axisCtx
     );
 }
 
+function hasDraggableAxes(ctx: DynamicContext<_ModuleSupport.ChartRegistry>): boolean {
+    const options = ctx.chartState.getValue('options');
+    return !!(options?.zoom.enabled && options.zoom.enableAxisDragging);
+}
+
 /**
  * The AxisDOMProxy module handles interactions with the axes. In most cases it does this via the dom events on proxy
  * axis elements. However, in circumstances where the axes overlap the series area, such as when using the `crossAt`
@@ -152,7 +157,8 @@ export class AxisDOMProxy extends AbstractModuleInstance {
                 axis.bounds = new _ModuleSupport.BBox(bbox.x, bbox.y, bbox.width, bbox.height);
             }
             // Signal interactivity only on axes that actually have a click listener.
-            axis.div.setCursor(hasAxisClickListener(chartService, axisCtx) ? 'pointer' : undefined);
+            const needsCursor: boolean = !hasDraggableAxes(this.ctx) && hasAxisClickListener(chartService, axisCtx);
+            axis.div.setCursor(needsCursor ? 'pointer' : undefined);
         }
     }
 
