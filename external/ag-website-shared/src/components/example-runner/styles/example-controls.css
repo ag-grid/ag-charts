@@ -280,8 +280,12 @@ body > #highlighter {
 }
 
 /* Join the segments into a single control, collapsing the borders they share. The segments
-   otherwise pick up the shared control styling above. */
+   otherwise pick up the shared control styling above, but a button centres its own content
+   and a label does not, so that part is set explicitly. */
 .example-controls .button-group label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     border-radius: 0;
 }
 
