@@ -1,6 +1,12 @@
+import type { Page } from 'playwright/test';
+
+import type { ClientPoint } from 'ag-charts-core';
+
+import { evalPageFunction, getChartState } from './agE2E';
 import { expect, test } from './fixture';
 import { expectChartScreenshot } from './scene-capture';
 import {
+    SELECTORS,
     canvasToPageTransformer,
     delay,
     dragCanvas,
@@ -10,6 +16,7 @@ import {
     setupIntrinsicAssertions,
     toExamplePageUrl,
     waitForAllChartUpdates,
+    waitForChartUpdate,
 } from './util';
 
 test.describe('zoom', () => {
@@ -196,5 +203,53 @@ test.describe('zoom', () => {
         await expectChartScreenshot(page, page, 'zoom-pluskey-focus-visible.png', { animations: 'disabled' });
         await page.keyboard.type('-');
         await expectChartScreenshot(page, page, 'zoom-minuskey-focus-visible.png', { animations: 'disabled' });
+    });
+
+    test.describe('AG-18127 drag-start on series-area and drag-end on axis', () => {
+        const popEvents = async (page: Page) => evalPageFunction(page, 'popEvents');
+
+        test.beforeEach(async ({ page }) => {
+            async function measureElemCenter(page: Page, selector: string, nth: number): Promise<ClientPoint> {
+                const elem = page.locator(selector).nth(nth);
+                const bbox = (await elem.boundingBox())!;
+                expect(bbox).toBeDefined();
+                const { x, y, width, height } = bbox!;
+                return { clientX: x + width / 2, clientY: y + height / 2 };
+            }
+
+            const { url } = toExamplePageUrl('zoom-e2e', 'zoom-selection', 'vanilla');
+            await gotoExample(page, url);
+
+            const seriesAreaCenter = await measureElemCenter(page, SELECTORS.seriesArea, 0);
+            const xAxisCenter = await measureElemCenter(page, SELECTORS.axisProxy, 0);
+
+            await page.mouse.move(seriesAreaCenter.clientX, seriesAreaCenter.clientY);
+            await page.mouse.down({ button: 'left' });
+            await page.mouse.move(xAxisCenter.clientX, xAxisCenter.clientY);
+        });
+        test('screenshot', async ({ page }) => {
+            await expect(page).toHaveScreenshot('AG-18127-drag-move.png', { animations: 'disabled' });
+        });
+        test('getState', async ({ page }) => {
+            expect(await getChartState(page)).toMatchObject({});
+        });
+        test('popEvents', async ({ page }) => {
+            expect(await popEvents(page)).toMatchObject([]);
+        });
+
+        test.describe('mouseup', () => {
+            test.beforeEach(async ({ page }) => {
+                await page.mouse.up({ button: 'left' });
+            });
+            test('screenshot', async ({ page }) => {
+                await expect(page).toHaveScreenshot('AG-18127-drag-end.png', { animations: 'disabled' });
+            });
+            test('getState', async ({ page }) => {
+                expect(await getChartState(page)).toMatchObject({});
+            });
+            test('popEvents', async ({ page }) => {
+                expect(await popEvents(page)).toMatchObject([]);
+            });
+        });
     });
 });
