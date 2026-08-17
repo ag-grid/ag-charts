@@ -68,7 +68,7 @@ import {
 import { getChartTheme } from '../chart/mapping/themes';
 import { detectChartType } from '../chart/mapping/types';
 import { ChartTheme } from '../chart/themes/chartTheme';
-import type { ValidationIssue } from '../chart/validation/validationIssueCollector';
+import { type ValidationIssue, severityAtOrAbove } from '../chart/validation/validationIssueCollector';
 import {
     type OptionsGraphAccessor,
     SHALLOW_OPTION_KEYS,
@@ -86,6 +86,9 @@ import type { SeriesGrouping } from './seriesGrouping';
 
 /** The default `validations.consoleLogLevel` — everything, including deprecation notices. */
 const DEFAULT_CONSOLE_LOG_LEVEL: AgChartValidationLevel = 'deprecation';
+
+/** The default `validations.throwOn` — fail-fast is opt-in, so nothing throws unless a consumer asks for it. */
+const DEFAULT_THROW_ON: AgChartValidationLevel = 'none';
 
 /** The `validations` subtree of options that are not yet known to be valid: public keys, unknown values. */
 type UnvalidatedValidations = { [K in keyof AgChartValidationsOptions]?: unknown };
@@ -269,6 +272,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     // callback-invocation time so the adopt order does not matter.
     private validationSink?: (issue: ValidationIssue) => void;
 
+    private throwOn: AgChartValidationLevel = 'none';
+
+    // The CSS-refresh re-construction runs from a DOM `transitionend` handler with no caller to throw
+    // to; the same issues were already reported and thrown, if applicable, at the create that preceded it.
+    private readonly suppressFailFast: boolean;
+
     private static readonly debug = Debug.create(true, 'opts');
 
     constructor(
@@ -286,6 +295,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.logger = logger ?? new Logger();
         this.optionMetadata = metadata ?? {};
         this.processedOverrides = processedOverrides ?? {};
+        this.suppressFailFast = refreshCSSVariables;
 
         let baseChartOptions: ChartOptions<T> | null = null;
         if (currentUserOptions instanceof ChartOptions) {
@@ -337,6 +347,11 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 ? userValidations.consoleLogLevel
                 : getValidations(this.processedOverrides)?.consoleLogLevel
         );
+        this.applyThrowOn(
+            isObjectWithProperty(userValidations, 'throwOn')
+                ? userValidations.throwOn
+                : getValidations(this.processedOverrides)?.throwOn
+        );
 
         this.findSeriesWithUserVisiblity(newUserOptions, deltaOptions);
 
@@ -369,7 +384,10 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             deltaOptions !== undefined &&
             ChartOptions.isFastPathDelta(deltaOptions, presetDef?.fastUpdateKeys) &&
             baseChartOptions != null &&
-            !dataChangedLength
+            !dataChangedLength &&
+            // An armed `throwOn` must re-validate on every pass — the fast path carries `validationIssues`
+            // forward without calling the `record*` methods that throw.
+            this.throwOn === 'none'
         ) {
             ({ activeTheme, processedOptions, fastDelta } = this.fastSetup(deltaOptions, baseChartOptions));
             themeParameters = baseChartOptions.themeParameters;
@@ -396,6 +414,10 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.processedOptions = processedOptions;
         // Re-apply from the merged result so a value arriving via a theme or preset also takes effect.
         this.applyConsoleLogLevel(getValidations(this.processedOptions)?.consoleLogLevel);
+        // Re-applied here too for state consistency, but this arms nothing in the current pass: it runs
+        // after `slowSetup()`, i.e. after every `record*` call, so a theme/preset-supplied value cannot
+        // affect this pass's validation.
+        this.applyThrowOn(getValidations(this.processedOptions)?.throwOn);
         this.fastDelta = fastDelta ?? undefined;
         this.themeParameters = themeParameters;
         this.annotationThemes = annotationThemes;
@@ -479,7 +501,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         // Minimal-mode structural-output cache fast path.
         const cacheKey = this.computeStructuralCacheKeyForSlowSetup(deltaOptions, stripSymbols);
-        if (cacheKey !== undefined) {
+        // As above: an armed `throwOn` must re-validate, and a cache hit skips every `record*` call.
+        if (cacheKey !== undefined && this.throwOn === 'none') {
             const cached = getStructuralCacheEntry(cacheKey);
             if (cached) {
                 return this.slowSetupCached(cached);
@@ -584,12 +607,17 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const processedOptions = mergeDefaults(processedOverrides, resolvedOptions);
 
         removeIncompatibleModuleOptions(this.chartDef.name, processedOptions);
-        processModuleOptions(
+        const reportedMissingModules = processModuleOptions(
             this.chartDef.name,
             processedOptions,
             missingSeriesModules.concat(missingAxesModules),
             this.logger
         );
+        // A dropped series/axis/plugin option is error-severity under fail-fast, thrown only after
+        // `processModuleOptions` has already written its console record above.
+        if (reportedMissingModules != null) {
+            this.throwIfFailFast({ severity: 'error', message: reportedMissingModules.message });
+        }
 
         // Second-pass validation runs after `removeDisabledOptions`, so disabled nodes have been
         // stripped to `{ enabled: false }`; skip their required-field/discriminant warnings.
@@ -715,6 +743,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         // A pooled chart adopts a different Logger after validation has run, so the level has to be
         // re-applied or the new chart inherits the previous one's threshold.
         this.applyConsoleLogLevel(getValidations(this.processedOptions)?.consoleLogLevel);
+        // Same reasoning applies to the throw threshold: a pooled chart must not inherit the previous
+        // chart's `throwOn`.
+        this.applyThrowOn(getValidations(this.processedOptions)?.throwOn);
     }
 
     /** Point wrapped user callbacks at the owning chart's validation sink, so a swallowed throw surfaces. */
@@ -743,6 +774,18 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.logger.setLevel(consoleLogLevel);
     }
 
+    /**
+     * Resolves `validations.throwOn`, falling back to `'none'` for anything unrecognised. The fallback
+     * direction is the opposite of `applyConsoleLogLevel`'s deliberately: this runs before the union
+     * validator has, and an invalid value must not make the chart throw about itself — nor turn
+     * fail-fast on for a consumer who never asked for it.
+     */
+    private applyThrowOn(level: unknown) {
+        // Reuses `isLogLevel`: its guard table has exactly the four `AgChartValidationLevel` keys, so a
+        // new level cannot be missed by either union.
+        this.throwOn = isLogLevel(level) ? level : DEFAULT_THROW_ON;
+    }
+
     private get validateParams(): ValidateParams {
         return {
             logger: this.logger,
@@ -752,7 +795,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private recordDeprecation(message: string, path: string) {
-        this.validationIssues.push({ severity: 'deprecation', message, code: path || undefined });
+        const issue: ValidationIssue = { severity: 'deprecation', message, code: path || undefined };
+        this.validationIssues.push(issue);
+        this.throwIfFailFast(issue);
     }
 
     // Every option-validation error goes to both the console log and the per-chart overlay collector.
@@ -764,13 +809,29 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             if (error.key) {
                 path = path ? `${path}.${error.key}` : error.key;
             }
-            this.validationIssues.push({ severity: 'warning', message: error.toString(), code: path || undefined });
+            const issue: ValidationIssue = { severity: 'warning', message: error.toString(), code: path || undefined };
+            this.validationIssues.push(issue);
+            this.throwIfFailFast(issue);
         }
     }
 
     private recordValidationMessage(message: string) {
         this.logger.warn(message);
-        this.validationIssues.push({ severity: 'warning', message });
+        const issue: ValidationIssue = { severity: 'warning', message };
+        this.validationIssues.push(issue);
+        this.throwIfFailFast(issue);
+    }
+
+    /**
+     * Throws for the first issue whose severity meets the armed `validations.throwOn` threshold — never
+     * called before the console record and the overlay push above have already happened.
+     */
+    private throwIfFailFast(issue: ValidationIssue): void {
+        if (this.suppressFailFast || this.throwOn === 'none' || !severityAtOrAbove(this.throwOn, issue.severity)) {
+            return;
+        }
+        const location = issue.code ? `\`${issue.code}\`: ` : '';
+        throw new Error(`AG Charts - validations.throwOn: ${issue.severity} - ${location}${issue.message}`);
     }
 
     private validatePluginOptions(options: T, params: ValidateParams) {

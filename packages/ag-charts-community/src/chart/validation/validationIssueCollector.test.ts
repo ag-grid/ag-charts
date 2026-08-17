@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { Logger } from 'ag-charts-core';
 
-import { ValidationIssueCollector } from './validationIssueCollector';
+import { ValidationIssueCollector, severityAtOrAbove } from './validationIssueCollector';
 
 const errorIssue = { severity: 'error', message: 'runtime boom' } as const;
 const warningIssue = { severity: 'warning', message: 'bad option' } as const;
@@ -254,6 +254,33 @@ describe('ValidationIssueCollector', () => {
         collector.dismiss();
 
         expect(listener).toHaveBeenCalledTimes(4);
+    });
+});
+
+describe('severityAtOrAbove', () => {
+    it.each<{
+        level: 'error' | 'warning' | 'deprecation' | 'none';
+        severity: 'error' | 'warning' | 'deprecation';
+        expected: boolean;
+    }>([
+        // error level admits only error
+        { level: 'error', severity: 'error', expected: true },
+        { level: 'error', severity: 'warning', expected: false },
+        { level: 'error', severity: 'deprecation', expected: false },
+        // warning level admits error and warning
+        { level: 'warning', severity: 'error', expected: true },
+        { level: 'warning', severity: 'warning', expected: true },
+        { level: 'warning', severity: 'deprecation', expected: false },
+        // deprecation level admits all three severities
+        { level: 'deprecation', severity: 'error', expected: true },
+        { level: 'deprecation', severity: 'warning', expected: true },
+        { level: 'deprecation', severity: 'deprecation', expected: true },
+        // none level admits nothing
+        { level: 'none', severity: 'error', expected: false },
+        { level: 'none', severity: 'warning', expected: false },
+        { level: 'none', severity: 'deprecation', expected: false },
+    ])('level=$level, severity=$severity => $expected', ({ level, severity, expected }) => {
+        expect(severityAtOrAbove(level, severity)).toBe(expected);
     });
 });
 

@@ -384,6 +384,17 @@ export interface AgChartValidationsOptions {
      */
     overlayLevel?: AgChartValidationLevel;
     /**
+     * The minimum severity of validation problem that causes the chart to throw instead of warning
+     * and falling back to a default. `'none'` never throws, matching the behaviour of charts that do
+     * not set this option.
+     *
+     * Console output is never suppressed by this option — the console record of a problem is written
+     * before the throw.
+     *
+     * Default: `'none'`
+     */
+    throwOn?: AgChartValidationLevel;
+    /**
      * Called for each validation problem the chart raises — an invalid option value or a runtime error
      * caught during a chart update. The reported problems are the same set the validation overlay
      * shows, not every diagnostic the chart can write to the console. Never gated by

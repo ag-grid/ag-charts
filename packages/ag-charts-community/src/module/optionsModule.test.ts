@@ -4079,13 +4079,13 @@ describe('ChartOptions', () => {
         });
     });
 
-    describe('validations.consoleLogLevel', () => {
-        const invalidOptions = (extra?: object): AgChartOptions =>
-            ({
-                series: [{ type: 'line', xKey: 'x', yKey: 'y', strokeWidth: 'notanumber' as any }],
-                ...extra,
-            }) as AgChartOptions;
+    const invalidOptions = (extra?: object): AgChartOptions =>
+        ({
+            series: [{ type: 'line', xKey: 'x', yKey: 'y', strokeWidth: 'notanumber' as any }],
+            ...extra,
+        }) as AgChartOptions;
 
+    describe('validations.consoleLogLevel', () => {
         it('silences first-render validation warnings when set to `none`, without silencing validation itself', () => {
             const chartOptions = new ChartOptions(
                 invalidOptions({ validations: { consoleLogLevel: 'none' } }),
@@ -4164,6 +4164,202 @@ describe('ChartOptions', () => {
 
             expect(console.warn).toHaveBeenCalled();
             expect(updated.validationIssues.length).toBeGreaterThan(0);
+        });
+    });
+
+    describe('validations.throwOn', () => {
+        it('does not throw for the default (option absent), and still logs the existing warning', () => {
+            const chartOptions = new ChartOptions(invalidOptions(), {} as AgChartOptions, {}, {}, {});
+
+            expect(console.warn).toHaveBeenCalled();
+            expect(chartOptions.validationIssues.length).toBeGreaterThan(0);
+        });
+
+        it('does not throw when explicitly set to `none`', () => {
+            expect(
+                () =>
+                    new ChartOptions(
+                        invalidOptions({ validations: { throwOn: 'none' } }),
+                        {} as AgChartOptions,
+                        {},
+                        {},
+                        {}
+                    )
+            ).not.toThrow();
+
+            expect(console.warn).toHaveBeenCalled();
+        });
+
+        it.each(['loud', null, 42])(
+            'does not throw for an unrecognised throwOn value (%s), and the union validator still reports it',
+            (badValue) => {
+                let chartOptions!: ChartOptions<AgChartOptions>;
+                expect(() => {
+                    chartOptions = new ChartOptions(
+                        invalidOptions({ validations: { throwOn: badValue } }),
+                        {} as AgChartOptions,
+                        {},
+                        {},
+                        {}
+                    );
+                }).not.toThrow();
+
+                expect(chartOptions.validationIssues.some((issue) => issue.code === 'validations.throwOn')).toBe(true);
+                const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
+                expect(messages.some((m) => m.includes('validations.throwOn'))).toBe(true);
+            }
+        );
+
+        it('throws on a warning-severity option error, naming the option path in the message', () => {
+            expect(
+                () =>
+                    new ChartOptions(
+                        invalidOptions({ validations: { throwOn: 'warning' } }),
+                        {} as AgChartOptions,
+                        {},
+                        {},
+                        {}
+                    )
+            ).toThrowError(/^AG Charts - validations\.throwOn: warning - `series\[0\]\.strokeWidth`: /);
+        });
+
+        it('writes the console record before throwing (AC2)', () => {
+            expect(
+                () =>
+                    new ChartOptions(
+                        invalidOptions({ validations: { throwOn: 'warning' } }),
+                        {} as AgChartOptions,
+                        {},
+                        {},
+                        {}
+                    )
+            ).toThrow();
+
+            const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
+            expect(messages.some((m) => m.includes('notanumber'))).toBe(true);
+        });
+
+        it('throws for the first qualifying issue rather than collecting the whole batch first (AC3)', () => {
+            const options: AgChartOptions = {
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'x',
+                        yKey: 'y',
+                        strokeWidth: 'notanumber' as any,
+                        lineDash: 'notanarray' as any,
+                    },
+                ],
+                validations: { throwOn: 'warning' },
+            } as AgChartOptions;
+
+            expect(() => new ChartOptions(options, {} as AgChartOptions, {}, {}, {})).toThrow();
+
+            expect(console.warn).toHaveBeenCalledTimes(1);
+        });
+
+        it('does not throw at `error` for a warning-severity option error (nothing in the option pass is error-severity)', () => {
+            expect(
+                () =>
+                    new ChartOptions(
+                        invalidOptions({ validations: { throwOn: 'error' } }),
+                        {} as AgChartOptions,
+                        {},
+                        {},
+                        {}
+                    )
+            ).not.toThrow();
+
+            expect(console.warn).toHaveBeenCalled();
+        });
+
+        it('throws at `deprecation` too, since the threshold is inclusive of every louder severity', () => {
+            expect(
+                () =>
+                    new ChartOptions(
+                        invalidOptions({ validations: { throwOn: 'deprecation' } }),
+                        {} as AgChartOptions,
+                        {},
+                        {},
+                        {}
+                    )
+            ).toThrowError(/^AG Charts - validations\.throwOn: warning - /);
+        });
+
+        it('re-validates and throws again on a warm update, rather than carrying validation issues forward (S6/D4)', () => {
+            const validOptions: AgChartOptions = {
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                validations: { throwOn: 'warning' },
+            } as AgChartOptions;
+
+            const base = new ChartOptions(validOptions, {} as AgChartOptions, {}, {}, {});
+            expect(console.warn).not.toHaveBeenCalled();
+
+            expect(
+                () => new ChartOptions(base, invalidOptions({ validations: { throwOn: 'warning' } }), {}, {}, {})
+            ).toThrow();
+        });
+
+        it('does not throw when fail-fast is suppressed for the CSS-refresh re-construction', () => {
+            expect(
+                () =>
+                    new ChartOptions(
+                        invalidOptions({ validations: { throwOn: 'warning' } }),
+                        {} as AgChartOptions,
+                        {},
+                        {},
+                        {},
+                        undefined,
+                        false,
+                        true
+                    )
+            ).not.toThrow();
+        });
+
+        describe('unregistered modules (AC5)', () => {
+            const unregisteredAxisOptions = (extra?: object): AgChartOptions =>
+                ({
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    axes: {
+                        x: { type: 'ordinal-time', position: 'bottom' },
+                        y: { type: 'number', position: 'left' },
+                    },
+                    ...extra,
+                }) as any;
+
+            it('throws at `error` for a dropped axis module, after the console record is written', () => {
+                const logger = new Logger();
+
+                expect(() =>
+                    prepareOptions(unregisteredAxisOptions({ validations: { throwOn: 'error' } }), logger)
+                ).toThrow(/required modules are not registered/);
+
+                const messages = (console.error as Mock).mock.calls.map(([m]) => String(m));
+                expect(messages.some((m) => m.includes('required modules are not registered'))).toBe(true);
+            });
+
+            it('silently drops the unregistered module at `none`, exactly as today', () => {
+                const logger = new Logger();
+
+                expect(() => prepareOptions(unregisteredAxisOptions(), logger)).not.toThrow();
+
+                const messages = (console.error as Mock).mock.calls.map(([m]) => String(m));
+                expect(messages.some((m) => m.includes('required modules are not registered'))).toBe(true);
+            });
+
+            it('throws at `error` for a dropped plugin module too, not just series/axes', () => {
+                const logger = new Logger();
+                const options = {
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    zoom: { enabled: true },
+                    validations: { throwOn: 'error' },
+                } as AgChartOptions;
+
+                expect(() => prepareOptions(options, logger)).toThrow(/required modules are not registered/);
+
+                const messages = (console.error as Mock).mock.calls.map(([m]) => String(m));
+                expect(messages.some((m) => m.includes('required modules are not registered'))).toBe(true);
+            });
         });
     });
 

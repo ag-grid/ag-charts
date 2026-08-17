@@ -93,6 +93,8 @@ export class AgChartInstanceProxy implements AgChartProxy {
             const apiStartTime = Debug.check('scene:stats', 'scene:stats:verbose') ? performance.now() : undefined;
             this.factoryApi.update(options, this, undefined, apiStartTime);
             await this.chart?.waitForUpdate();
+            const failFastError = this.chart?.takeFailFastError();
+            if (failFastError != null) throw failFastError;
         });
     }
 
@@ -103,6 +105,8 @@ export class AgChartInstanceProxy implements AgChartProxy {
             const apiStartTime = Debug.check('scene:stats', 'scene:stats:verbose') ? performance.now() : undefined;
             this.factoryApi.updateUserDelta(this, deltaOptions, apiStartTime);
             await this.chart?.waitForUpdate();
+            const failFastError = this.chart?.takeFailFastError();
+            if (failFastError != null) throw failFastError;
         });
     }
 
@@ -118,10 +122,12 @@ export class AgChartInstanceProxy implements AgChartProxy {
         return options;
     }
 
-    waitForUpdate() {
+    async waitForUpdate() {
         if (!this.chart) throw new Error(DESTROYED_ERROR);
 
-        return this.chart.waitForUpdate();
+        await this.chart.waitForUpdate();
+        const failFastError = this.chart.takeFailFastError();
+        if (failFastError != null) throw failFastError;
     }
 
     applyTransaction(transaction: AgDataTransaction) {
