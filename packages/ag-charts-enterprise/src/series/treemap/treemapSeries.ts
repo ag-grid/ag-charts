@@ -405,7 +405,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         const { missingDataFill } = properties.colorScale;
         const rootIndex = nodeDatum.path?.[0] ?? 0;
 
-        const fills = isLeaf ? properties.fills : properties.undocumentedGroupFills;
+        const fills = isLeaf ? properties.fills : properties.group.fills;
         const strokes = isLeaf ? properties.strokes : properties.undocumentedGroupStrokes;
         const index = isLeaf ? rootIndex : (nodeDatum.depth ?? -1);
 

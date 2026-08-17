@@ -1006,6 +1006,199 @@ describe('TreemapSeries', () => {
         });
     });
 
+    describe('group.fills', () => {
+        // Three group depths: depth 0 (A/B), depth 1 (A1/B1), depth 2 (A1a/B1a), leaves below.
+        const DEEP_DATA = ['A', 'B'].map((root) => ({
+            name: root,
+            children: [
+                {
+                    name: `${root}1`,
+                    children: [
+                        {
+                            name: `${root}1a`,
+                            children: [
+                                { name: `${root}1a-x`, size: 3 },
+                                { name: `${root}1a-y`, size: 2 },
+                            ],
+                        },
+                    ],
+                },
+            ],
+        }));
+
+        // Two group depths: depth 0 (C/D), depth 1 (C1/D1), leaves below.
+        const SHALLOW_DATA = ['C', 'D'].map((root) => ({
+            name: root,
+            children: [
+                {
+                    name: `${root}1`,
+                    children: [
+                        { name: `${root}1-x`, size: 3 },
+                        { name: `${root}1-y`, size: 2 },
+                    ],
+                },
+            ],
+        }));
+
+        const treemapOptions = (data: any[], series: any = {}): AgChartOptions => {
+            const options = {
+                data,
+                series: [{ type: 'treemap', labelKey: 'name', sizeKey: 'size', ...series }],
+                animation: { enabled: false },
+            } as AgChartOptions;
+            prepareEnterpriseTestOptions(options);
+            return options;
+        };
+
+        const createChart = async (data: any[], series: any = {}) => {
+            chart = deproxy(AgCharts.create(treemapOptions(data, series)));
+            await waitForChartStability(chart);
+            return chart.series[0] as TreemapSeries;
+        };
+
+        /** Resolved rect styles keyed by the datum's `name` — covers groups and leaves alike. */
+        const stylesByName = (series: TreemapSeries): Record<string, { fill?: string; stroke?: string }> => {
+            const styles: Record<string, { fill?: string; stroke?: string }> = {};
+            const rects: any[] = Array.from((series as any).datumSelection.nodes());
+            for (const rect of rects) {
+                const name = rect.datum?.datum?.name;
+                if (name != null) {
+                    styles[name] = { fill: rect.fill, stroke: rect.stroke };
+                }
+            }
+            return styles;
+        };
+
+        const fillOf = (series: TreemapSeries, name: string) => stylesByName(series)[name]?.fill;
+
+        it('defaults the group palette to the theme hierarchy colours', async () => {
+            const series = await createChart(DEEP_DATA);
+            const styles = stylesByName(series);
+
+            const depthFills = ['A', 'A1', 'A1a'].map((name) => styles[name].fill);
+            expect(depthFills.every((fill) => fill != null)).toBe(true);
+            expect(new Set(depthFills).size).toBe(depthFills.length);
+        });
+
+        it('cycles the group palette by hierarchy depth', async () => {
+            const series = await createChart(DEEP_DATA, { group: { fills: ['#ff0000', '#00ff00'] } });
+            const styles = stylesByName(series);
+
+            for (const root of ['A', 'B']) {
+                expect(styles[root].fill).toBe('#ff0000'); // depth 0
+                expect(styles[`${root}1`].fill).toBe('#00ff00'); // depth 1
+                expect(styles[`${root}1a`].fill).toBe('#ff0000'); // depth 2, wrapped
+            }
+        });
+
+        it('uses only as many colours as the hierarchy is deep', async () => {
+            const fills = ['#ff0000', '#00ff00', '#0000ff', '#ffff00'];
+            const series = await createChart(SHALLOW_DATA, { group: { fills } });
+            const styles = stylesByName(series);
+
+            expect(styles.C.fill).toBe('#ff0000');
+            expect(styles.C1.fill).toBe('#00ff00');
+            expect(styles.D.fill).toBe('#ff0000');
+            expect(styles.D1.fill).toBe('#00ff00');
+
+            const rendered = Object.values(styles).map(({ fill }) => fill);
+            expect(rendered).not.toContain('#0000ff');
+            expect(rendered).not.toContain('#ffff00');
+        });
+
+        it('leaves tile fills unaffected', async () => {
+            const withoutOption = await createChart(DEEP_DATA);
+            const leafNames = ['A1a-x', 'A1a-y', 'B1a-x', 'B1a-y'];
+            const before = leafNames.map((name) => fillOf(withoutOption, name));
+            chart.destroy();
+
+            const withOption = await createChart(DEEP_DATA, { group: { fills: ['#ff0000', '#00ff00'] } });
+            const after = leafNames.map((name) => fillOf(withOption, name));
+
+            expect(before.every((fill) => fill != null)).toBe(true);
+            expect(after).toEqual(before);
+        });
+
+        it('gives an explicit group.fill priority over group.fills', async () => {
+            const series = await createChart(DEEP_DATA, {
+                group: { fill: '#0000ff', fills: ['#ff0000', '#00ff00'] },
+            });
+            const styles = stylesByName(series);
+
+            for (const name of ['A', 'A1', 'A1a', 'B', 'B1', 'B1a']) {
+                expect(styles[name].fill).toBe('#0000ff');
+            }
+        });
+
+        it('does not rotate group strokes', async () => {
+            const groupNames = ['A', 'A1', 'A1a', 'B', 'B1', 'B1a'];
+            const withoutOption = await createChart(DEEP_DATA);
+            const before = groupNames.map((name) => stylesByName(withoutOption)[name].stroke);
+            chart.destroy();
+
+            const withOption = await createChart(DEEP_DATA, { group: { fills: ['#ff0000', '#00ff00'] } });
+            const after = groupNames.map((name) => stylesByName(withOption)[name].stroke);
+
+            // Depths must resolve distinct strokes for the comparison to discriminate — a rotated
+            // stroke index would collapse depth 2 back onto depth 0.
+            expect(before.every((stroke) => stroke != null)).toBe(true);
+            expect(new Set(before).size).toBeGreaterThan(1);
+            expect(after).toEqual(before);
+        });
+
+        it('re-resolves group fills on a runtime update', async () => {
+            const proxy = AgCharts.create(treemapOptions(DEEP_DATA, { group: { fills: ['#ff0000', '#00ff00'] } }));
+            chart = deproxy(proxy);
+            await waitForChartStability(chart);
+            expect(fillOf(chart.series[0], 'A')).toBe('#ff0000');
+
+            await proxy.update(treemapOptions(DEEP_DATA, { group: { fills: ['#123456', '#654321'] } }));
+            await waitForChartStability(chart);
+
+            const styles = stylesByName(chart.series[0]);
+            expect(styles.A.fill).toBe('#123456');
+            expect(styles.A1.fill).toBe('#654321');
+            expect(styles['A1a'].fill).toBe('#123456');
+        });
+
+        it('accepts non-string colour values', async () => {
+            // A validator rejecting the gradient object emits an unknown-option warning, which
+            // setupMockConsole() turns into a failure.
+            const series = await createChart(DEEP_DATA, {
+                group: {
+                    fills: [{ type: 'gradient', colorStops: [{ color: 'green' }, { color: 'white' }] }, '#00ff00'],
+                },
+            });
+
+            expect(fillOf(series, 'A1')).toBe('#00ff00');
+        });
+
+        it('should render treemap series with group fills', async () => {
+            chart = deproxy(AgCharts.create(treemapOptions(DEEP_DATA, { group: { fills: ['#ff0000', '#00ff00'] } })));
+            await compare();
+        });
+
+        it('indexes tile strokes by the strokes array length, not the fills array length', async () => {
+            const strokes = ['#111111', '#222222'];
+            const data = ['E', 'F', 'G', 'H'].map((root) => ({
+                name: root,
+                children: [{ name: `${root}-x`, size: 3 }],
+            }));
+            const series = await createChart(data, {
+                fills: ['#ff0000', '#00ff00', '#0000ff', '#ffff00'],
+                strokes,
+                tile: { strokeWidth: 2 },
+            });
+            const styles = stylesByName(series);
+
+            // The strokes array is shorter than fills, so a tile index wrapped on the wrong
+            // array would resolve `undefined` for the third and fourth roots.
+            for (const [rootIndex, root] of ['E', 'F', 'G', 'H'].entries()) {
+                expect(styles[`${root}-x`].stroke).toBe(strokes[rootIndex % strokes.length]);
+            }
+        });
+    });
+
     describe('colorScale', () => {
         const TREEMAP_BASE = {
             ...GALLERY_EXAMPLES.TREEMAP_WITH_COLOR_RANGE_EXAMPLE.options,
