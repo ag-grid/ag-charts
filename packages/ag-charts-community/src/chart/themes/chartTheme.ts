@@ -44,6 +44,7 @@ import {
     isArray,
     jsonWalk,
     mergeDefaults,
+    mergeDefaultsShallowOperations,
 } from 'ag-charts-core';
 import type {
     AgChartAllThemeParams,
@@ -427,20 +428,24 @@ export class ChartTheme {
     }
 
     private getDefaults(presetName?: string): AgChartThemeOverrides {
+        const presetTemplate =
+            presetName == null ? undefined : ModuleRegistry.getPresetModule(presetName)?.themeTemplate;
+
         const getOverridesByType = (chartType: ChartType, seriesTypes: string[]) => {
             const result: Record<string, { series?: object; axes?: object }> = {};
-            const chartTypeDefaults = mergeDefaults(
+            const chartTypeDefaults = mergeDefaultsShallowOperations(
                 { axes: {} },
+                presetTemplate?.common,
                 ...Array.from(ModuleRegistry.listModulesByType(ModuleType.Plugin), (p) => ({
                     [p.name]: p.themeTemplate,
                 })),
-                presetName == null ? undefined : ModuleRegistry.getPresetModule(presetName)?.themeTemplate,
                 ModuleRegistry.getChartModule(chartType)?.themeTemplate,
                 this.getChartDefaults()
             );
 
             for (const seriesType of seriesTypes) {
-                result[seriesType] = mergeDefaults(
+                result[seriesType] = mergeDefaultsShallowOperations(
+                    (presetTemplate as any)?.[seriesType],
                     getSeriesThemeTemplate(seriesType),
                     result[seriesType] ?? chartTypeDefaults
                 );
@@ -448,7 +453,7 @@ export class ChartTheme {
                 const { axes } = result[seriesType] as { axes: Record<string, object> };
 
                 for (const axisModule of ModuleRegistry.listModulesByType(ModuleType.Axis)) {
-                    axes[axisModule.name] = mergeDefaults(
+                    axes[axisModule.name] = mergeDefaultsShallowOperations(
                         axes[axisModule.name],
                         !axisModule.chartType || axisModule.chartType === chartType
                             ? getAxisThemeTemplate(axisModule.name)
@@ -468,7 +473,7 @@ export class ChartTheme {
         const seriesModules = [...ModuleRegistry.listModulesByType(ModuleType.Series)];
         const seriesByChartType = groupBy(seriesModules, (s) => s.chartType || 'unknown');
 
-        return mergeDefaults(
+        return mergeDefaultsShallowOperations(
             ...Object.keys(seriesByChartType).map((chartType) =>
                 getOverridesByType(chartType as ChartType, seriesByChartType[chartType]?.map((s) => s.name) ?? [])
             )
@@ -576,7 +581,7 @@ function getAxisThemeTemplate(axisType: string) {
     for (const module of ModuleRegistry.listModulesByType(ModuleType.AxisPlugin)) {
         if (module.axisTypes?.includes(axisType) ?? true) {
             const optionsKey = module.optionsKey ?? module.name;
-            themeTemplate = mergeDefaults({ [optionsKey]: module.themeTemplate }, themeTemplate);
+            themeTemplate = mergeDefaultsShallowOperations({ [optionsKey]: module.themeTemplate }, themeTemplate);
         }
     }
     return themeTemplate;
@@ -586,12 +591,18 @@ function getSeriesThemeTemplate(seriesType: string) {
     let themeTemplate = ModuleRegistry.getSeriesModule(seriesType)?.themeTemplate ?? {};
     for (const module of ModuleRegistry.listModulesByType(ModuleType.SeriesPlugin)) {
         if (module.seriesTypes?.includes(seriesType) ?? true) {
-            themeTemplate = mergeDefaults({ series: { [module.name]: module.themeTemplate } }, themeTemplate);
+            themeTemplate = mergeDefaultsShallowOperations(
+                { series: { [module.name]: module.themeTemplate } },
+                themeTemplate
+            );
         }
     }
 
     for (const module of ModuleRegistry.listModulesByType(ModuleType.SeriesAreaPlugin)) {
-        themeTemplate = mergeDefaults({ seriesArea: { [module.name]: module.themeTemplate } }, themeTemplate);
+        themeTemplate = mergeDefaultsShallowOperations(
+            { seriesArea: { [module.name]: module.themeTemplate } },
+            themeTemplate
+        );
     }
 
     return themeTemplate;

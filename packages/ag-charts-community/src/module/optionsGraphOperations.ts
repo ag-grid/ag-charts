@@ -520,7 +520,7 @@ function everyOperation(graph: OptionsGraphInterface, vertex: VertexInterface, v
 
     let index = 0;
     for (const value of mapValues) {
-        const resolved = graph.graftAndResolveOrphanValue(vertex, `${index}`, mapOperationValue, value);
+        const resolved = graph.graftAndResolveOrphanValue(vertex, mapOperationValue, `${index}`, value);
         if (!resolved) return false;
         index++;
     }
@@ -630,7 +630,7 @@ function someOperation(graph: OptionsGraphInterface, vertex: VertexInterface, va
 
     let index = 0;
     for (const value of mapValues) {
-        const resolved = graph.graftAndResolveOrphanValue(vertex, `${index}`, mapOperationValue, value);
+        const resolved = graph.graftAndResolveOrphanValue(vertex, mapOperationValue, `${index}`, value);
         if (resolved) return true;
         index++;
     }
@@ -650,7 +650,7 @@ function switchOperation(graph: OptionsGraphInterface, vertex: VertexInterface, 
             conditionValue === caseConditionValue ||
             (Array.isArray(caseConditionValue) && caseConditionValue.includes(conditionValue))
         ) {
-            return caseResultValue;
+            return graph.graftAndResolveOrphanValue(vertex, caseResultValue, 'value', undefined);
         }
     }
 
@@ -666,6 +666,7 @@ export enum LocationOperation {
     Palette = '$palette',
     Path = '$path',
     PathString = '$pathString',
+    Preset = '$preset',
     Ref = '$ref',
 }
 
@@ -682,6 +683,7 @@ const locationOperations: Record<LocationOperation, OperationFns> = {
         dependencies: pathOperationDependenciesFactory,
         resolve: pathStringOperation,
     },
+    $preset: presetOperation,
     $ref: refOperation,
 };
 
@@ -907,6 +909,23 @@ function pathStringOperation(graph: OptionsGraphInterface, vertex: VertexInterfa
     }
 
     return path;
+}
+
+function presetOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
+    const [presetPathVertex, defaultValueVertex] = values;
+
+    const presetPath = graph.getVertexValue(presetPathVertex) as string;
+    const resolvedPath = resolvePath([], presetPath);
+    if (resolvedPath === UNRESOLVABLE_PATH) {
+        throw new Error(`Unresolvable preset path [${presetPath}] at [${graph.getPathArray(vertex)}]`);
+    }
+
+    const presetValue = graph.getPresetValue(resolvedPath);
+    if (presetValue == null) {
+        return defaultValueVertex ? graph.getVertexValue(defaultValueVertex) : undefined;
+    }
+
+    return presetValue;
 }
 
 function refOperation(graph: OptionsGraphInterface, _vertex: VertexInterface, values: Array<VertexInterface>) {

@@ -1,11 +1,4 @@
-import {
-    DEFAULT_SPARKLINE_CROSSHAIR_STROKE,
-    isDate,
-    isNumber,
-    isString,
-    simpleMemorize,
-    toTextString,
-} from 'ag-charts-core';
+import { isDate, isNumber, isString, simpleMemorize, toTextString } from 'ag-charts-core';
 import type {
     AgAreaSeriesOptions,
     AgAreaSeriesTooltipRendererParams,
@@ -14,10 +7,6 @@ import type {
     AgBarSeriesTooltipRendererParams,
     AgCartesianAxisOptions,
     AgCartesianChartOptions,
-    AgChartTheme,
-    AgChartThemeName,
-    AgChartTooltipOptions,
-    AgCommonThemeableAxisOptions,
     AgLineSeriesOptions,
     AgLineSeriesTooltipRendererParams,
     AgSparklineAxisOptions,
@@ -25,146 +14,7 @@ import type {
     AgSparklineOptions,
     AgSparklineTooltip,
     AgTooltipRendererResult,
-    WithThemeParams,
 } from 'ag-charts-types';
-
-const commonAxisProperties = {
-    title: {
-        enabled: false,
-    },
-    label: {
-        enabled: false,
-    },
-    line: {
-        enabled: false,
-    },
-    gridLine: {
-        enabled: false,
-    },
-    crosshair: {
-        enabled: false,
-        stroke: DEFAULT_SPARKLINE_CROSSHAIR_STROKE,
-        lineDash: [0],
-        label: {
-            enabled: false,
-        },
-    },
-};
-
-const numericAxisProperties = {
-    ...commonAxisProperties,
-    nice: false,
-};
-
-const chartTooltipDefaults: AgChartTooltipOptions = {
-    mode: 'compact',
-    position: {
-        anchorTo: 'node',
-        placement: ['right', 'left'],
-    },
-    showArrow: false,
-};
-
-const barGridLineDefaults: WithThemeParams<AgAxisGridLineOptions> = {
-    style: [{ stroke: { $ref: 'gridLineColor' } }],
-    width: 2,
-};
-
-const barAxisDefaults: WithThemeParams<AgCommonThemeableAxisOptions> = {
-    number: {
-        gridLine: barGridLineDefaults,
-    },
-    time: {
-        gridLine: barGridLineDefaults,
-    },
-    category: {
-        gridLine: barGridLineDefaults,
-    },
-};
-
-const SPARKLINE_THEME: WithThemeParams<AgChartTheme> = {
-    overrides: {
-        common: {
-            animation: { enabled: false },
-            contextMenu: { enabled: false },
-            keyboard: { enabled: false },
-            background: { visible: false },
-            navigator: { enabled: false },
-            padding: { $applyPadding: 0 },
-            axes: {
-                number: {
-                    ...numericAxisProperties,
-                    interval: {
-                        values: [0],
-                    },
-                },
-                log: {
-                    ...numericAxisProperties,
-                },
-                time: {
-                    ...numericAxisProperties,
-                },
-                category: {
-                    ...commonAxisProperties,
-                },
-            },
-        },
-        bar: {
-            series: {
-                crisp: false,
-                label: {
-                    placement: 'inside-end',
-                    padding: 4,
-                },
-                // @ts-expect-error undocumented option
-                sparklineMode: true,
-            },
-            tooltip: {
-                ...chartTooltipDefaults,
-                position: {
-                    ...chartTooltipDefaults.position,
-                    anchorTo: 'pointer',
-                },
-                range: 'nearest',
-            },
-            axes: barAxisDefaults,
-        },
-        line: {
-            seriesArea: {
-                padding: { $applyPadding: 2 },
-            },
-            series: {
-                // @ts-expect-error undocumented option
-                sparklineMode: true,
-                strokeWidth: 1,
-                marker: {
-                    enabled: false,
-                    size: 3,
-                },
-            },
-            tooltip: chartTooltipDefaults,
-        },
-        area: {
-            seriesArea: {
-                padding: {
-                    $applyPadding: {
-                        top: 1,
-                        right: 0,
-                        bottom: 1,
-                        left: 0,
-                    },
-                },
-            },
-            series: {
-                strokeWidth: 1,
-                fillOpacity: 0.4,
-            },
-            tooltip: chartTooltipDefaults,
-        },
-    },
-};
-
-const setInitialBaseTheme = simpleMemorize(createInitialBaseTheme);
 
 interface SparklineUndocumentedProperties {
     overrideDevicePixelRatio?: number;
@@ -172,28 +22,6 @@ interface SparklineUndocumentedProperties {
 }
 
 type SparklineSeries = AgBarSeriesOptions | AgLineSeriesOptions | AgAreaSeriesOptions;
-
-function createInitialBaseTheme(
-    baseTheme: AgChartTheme | AgChartThemeName | undefined,
-    initialBaseTheme: WithThemeParams<AgChartTheme>
-): WithThemeParams<AgChartTheme> {
-    if (typeof baseTheme === 'string') {
-        return {
-            ...initialBaseTheme,
-            baseTheme,
-        };
-    }
-
-    if (baseTheme != null) {
-        return {
-            ...baseTheme,
-            // @ts-expect-error internal implementation
-            baseTheme: setInitialBaseTheme(baseTheme.baseTheme, initialBaseTheme),
-        };
-    }
-
-    return initialBaseTheme;
-}
 
 export function sparklineDataPreset(data: any[] | undefined): {
     data: any[] | undefined;
@@ -338,7 +166,9 @@ export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
         overrideDevicePixelRatio,
         padding,
         width,
-        theme: baseTheme,
+        // Resolved from the chart's own options against the preset's `themeTemplate`; pulled out
+        // here only to keep it out of the series config below.
+        theme: _theme,
         data: baseData,
         crosshair,
         axis,
@@ -377,7 +207,6 @@ export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
         renderer: tooltipRendererFn(tooltip, datumKey),
     };
 
-    chartOpts.theme = setInitialBaseTheme(baseTheme, SPARKLINE_THEME) as AgChartTheme; // TODO: Remove cast when `WithThemeParams` is public
     chartOpts.data = data;
     chartOpts.series = [seriesConfig];
 

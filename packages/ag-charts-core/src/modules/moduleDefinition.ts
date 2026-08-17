@@ -1,4 +1,12 @@
-import type { DatumDefault, ExtensibleTheme, SeriesDefaultAxes, SeriesPredictAxis, SeriesType } from 'ag-charts-types';
+import type {
+    AgChartThemeName,
+    DatumDefault,
+    ExtensibleSeriesTheme,
+    ExtensibleTheme,
+    SeriesDefaultAxes,
+    SeriesPredictAxis,
+    SeriesType,
+} from 'ag-charts-types';
 
 import type { DynamicContext } from '../module/dynamicContext';
 import type { OptionsDefs, ValidateParams, ValidationResult } from '../state/validation';
@@ -101,7 +109,7 @@ export interface ModuleDefinition<
     readonly placeholder?: boolean;
 
     options?: OptionsDefs<TOptions>; // options definitions validation
-    themeTemplate?: ExtensibleTheme<any>; // module's default theme template
+    themeTemplate?: ExtensibleSeriesTheme<any>; // module's default theme template
     style?: string; // css string to inject into a style element
 
     // Lifecycle:
@@ -120,8 +128,14 @@ export interface ChartModuleDefinition<TOptions> extends ModuleDefinition<Module
     options: OptionsDefs<TOptions>;
 }
 
-export interface PresetModuleDefinition<TOptions> extends ModuleDefinition<ModuleType.Preset, TOptions> {
+export interface PresetModuleDefinition<TOptions> extends ModuleDefinition<
+    ModuleType.Preset,
+    TOptions,
+    ModuleInstance
+> {
     options: OptionsDefs<TOptions>;
+    baseTheme?: AgChartThemeName;
+    themeTemplate?: ExtensibleTheme;
 
     create(this: void, options: unknown, ...args: any[]): any;
     // Used only by sparklines, types should be normalised to support generic cases
@@ -151,8 +165,8 @@ export interface AxisModuleDefinition<
 export type AxisCreateOptions<TOptions> = Normalised<TOptions>;
 
 type SeriesThemeTemplate<TOptions> = TOptions extends { type: infer S extends SeriesType }
-    ? ExtensibleTheme<S>
-    : ExtensibleTheme<any>;
+    ? ExtensibleSeriesTheme<S>
+    : ExtensibleSeriesTheme<any>;
 
 export interface SeriesModuleDefinition<TOptions> extends ModuleDefinition<
     ModuleType.Series,

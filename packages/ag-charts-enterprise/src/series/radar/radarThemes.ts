@@ -10,9 +10,9 @@ import {
     SERIES_SELECTION_THEME,
     mergeDefaults,
 } from 'ag-charts-core';
-import type { ExtensibleTheme } from 'ag-charts-types';
+import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
-const BASE_RADAR_SERIES_THEME: ExtensibleTheme<'radar-line' | 'radar-area'> = {
+const BASE_RADAR_SERIES_THEME: ExtensibleSeriesTheme<'radar-line' | 'radar-area'> = {
     series: {
         stroke: { $palette: 'stroke' },
         label: {
@@ -56,7 +56,7 @@ const BASE_RADAR_SERIES_THEME: ExtensibleTheme<'radar-line' | 'radar-area'> = {
     },
 };
 
-export const RADAR_LINE_SERIES_THEME: ExtensibleTheme<'radar-line'> = mergeDefaults(
+export const RADAR_LINE_SERIES_THEME: ExtensibleSeriesTheme<'radar-line'> = mergeDefaults(
     {
         series: {
             stroke: SAFE_STROKE_FILL_OPERATION,
@@ -66,7 +66,7 @@ export const RADAR_LINE_SERIES_THEME: ExtensibleTheme<'radar-line'> = mergeDefau
     BASE_RADAR_SERIES_THEME
 );
 
-export const RADAR_AREA_SERIES_THEME: ExtensibleTheme<'radar-area'> = mergeDefaults(
+export const RADAR_AREA_SERIES_THEME: ExtensibleSeriesTheme<'radar-area'> = mergeDefaults(
     {
         series: {
             fill: {
