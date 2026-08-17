@@ -470,9 +470,7 @@ describe('Legend', () => {
         });
 
         test('line stroke and lineDash apply to the line only', async () => {
-            await compareSnapshot(
-                withLegendItem({ line: { disabledStyle: { stroke: '#767676', lineDash: [3, 3] } } })
-            );
+            await compareSnapshot(withLegendItem({ line: { disabledStyle: { stroke: '#767676', lineDash: [3, 3] } } }));
         });
 
         test('colour-only greying leaves the disabled item at full contrast', async () => {
