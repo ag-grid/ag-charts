@@ -91,7 +91,7 @@ export interface AgCartesianAxisCrossAt {
      *
      * Default: `'crossing'`
      */
-    labelsPlacement?: AgCartesianAxisCrossAtPlacement;
+    labelPlacement?: AgCartesianAxisCrossAtPlacement;
 }
 
 /** Where a component of a crossing axis is drawn: at the crossing point, or at the axis' `position` edge. */
