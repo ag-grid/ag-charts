@@ -184,4 +184,24 @@ describe('OverlaysProcessor', () => {
         expect(validationSpy).toHaveBeenCalled();
         expect(overlays.validation.focusBox).toEqual(new BBox(0, 0, 200, 200));
     });
+
+    it('re-sizes the validation overlay to the new chart rect when a later layout reports a resize', () => {
+        const { overlays, validationCollector, eventsHub } = build();
+        const validationSpy = vi.spyOn(overlays.validation, 'getElement');
+
+        validationCollector.setOverlayLevel('warning');
+        validationCollector.setIssues([{ severity: 'warning', message: 'bad option' }]);
+
+        emitLayout(eventsHub, new BBox(0, 0, 800, 600), { width: 800, height: 600 });
+        expect(overlays.validation.focusBox).toEqual(new BBox(0, 0, 800, 600));
+
+        const rendersBeforeResize = validationSpy.mock.calls.length;
+
+        // A resize (e.g. an auto-sized chart's container shrinks) emits a fresh layout with a smaller
+        // chart rect; the shown overlay must re-render and follow it rather than freeze at its
+        // first-mounted size.
+        emitLayout(eventsHub, new BBox(0, 0, 400, 300), { width: 400, height: 300 });
+        expect(validationSpy.mock.calls.length).toBeGreaterThan(rendersBeforeResize);
+        expect(overlays.validation.focusBox).toEqual(new BBox(0, 0, 400, 300));
+    });
 });
