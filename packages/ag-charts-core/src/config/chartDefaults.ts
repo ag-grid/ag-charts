@@ -408,15 +408,30 @@ export const legendOptionsDefs: OptionsDefs<AgChartLegendOptions> = {
             shape: shapeValidator,
             padding: padding,
             strokeWidth: positiveNumber,
+            disabledStyle: {
+                opacity: ratio,
+                ...fillOptionsDef,
+                ...strokeOptionsDef,
+            },
         },
         line: {
             length: positiveNumber,
             strokeWidth: positiveNumber,
+            disabledStyle: {
+                opacity: ratio,
+                stroke: colorOrRef,
+                strokeOpacity: ratio,
+                ...lineDashOptionsDef,
+            },
         },
         label: {
             maxLength: positiveNumber,
             formatter: callback,
             ...fontOptionsDef,
+            disabledStyle: {
+                opacity: ratio,
+                color: colorOrRef,
+            },
         },
         tooltip: {
             visible: union('auto', 'always', 'never'),

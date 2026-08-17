@@ -57,6 +57,9 @@ import type { LegendSymbolOptions } from './legendSymbol';
 
 type SeriesType = ChartService['series'][number];
 
+/** Opacity applied to each sub-element of a legend item that has been toggled off, absent an explicit `disabledStyle.opacity`. */
+const DISABLED_ITEM_OPACITY = 0.5;
+
 function toHighlightNodeDatum(series: SeriesType, legendDatum: CategoryLegendDatum): HighlightNodeDatum {
     switch (typeof legendDatum.itemId) {
         case 'number':
@@ -455,12 +458,12 @@ export class Legend {
             marker.shape = itemMarker.shape ?? symbol.marker.shape ?? 'square';
             marker.size = itemMarker.size;
             // Clone the marker symbol styles to prevent mutations affecting the series.
-            marker.setStyleProperties(this.getMarkerStyles(deepClone(symbol)));
+            marker.setStyleProperties(this.getMarkerStyles(deepClone(symbol), datum.enabled));
         }
 
         line.visible = anyLineEnabled;
         if (line.visible) {
-            line.setStyleProperties(this.getLineStyles(symbol));
+            line.setStyleProperties(this.getLineStyles(symbol, datum.enabled));
         }
 
         markerLabel.length = markerWidth;
@@ -768,10 +771,10 @@ export class Legend {
     }
 
     update() {
-        const { color } = this.opts.item.label;
+        const { color, disabledStyle } = this.opts.item.label;
         this.itemSelection.each((markerLabel, datum) => {
-            markerLabel.setEnabled(datum.enabled);
-            markerLabel.color = color;
+            markerLabel.color = datum.enabled ? color : (disabledStyle?.color ?? color);
+            markerLabel.labelOpacity = datum.enabled ? 1 : (disabledStyle?.opacity ?? DISABLED_ITEM_OPACITY);
         });
 
         this.updateContextMenu();
@@ -783,21 +786,26 @@ export class Legend {
         this.ctx.contextMenuRegistry?.toggle('toggle-other-series', action);
     }
 
-    private getLineStyles(datum: LegendSymbolOptions) {
+    private getLineStyles(datum: LegendSymbolOptions, enabled: boolean) {
         const { stroke, strokeOpacity = 1, strokeWidth, lineDash } = datum.line ?? {};
 
         const defaultLineStrokeWidth = Math.min(2, strokeWidth ?? 1);
+        const disabledStyle = enabled ? undefined : this.opts.item.line.disabledStyle;
 
         return {
-            stroke,
-            strokeOpacity,
+            stroke: disabledStyle?.stroke ?? stroke,
+            strokeOpacity: disabledStyle?.strokeOpacity ?? strokeOpacity,
             strokeWidth: this.opts.item.line.strokeWidth ?? defaultLineStrokeWidth,
-            lineDash,
+            lineDash: disabledStyle?.lineDash ?? lineDash,
+            lineDashOffset: disabledStyle?.lineDashOffset,
+            opacity: enabled ? 1 : (disabledStyle?.opacity ?? DISABLED_ITEM_OPACITY),
         };
     }
-    private getMarkerStyles({ marker }: LegendSymbolOptions) {
-        const { fill, stroke, strokeOpacity = 1, fillOpacity = 1, strokeWidth, lineDash, lineDashOffset } = marker;
+    private getMarkerStyles({ marker }: LegendSymbolOptions, enabled: boolean) {
+        const { stroke, strokeOpacity = 1, fillOpacity = 1, strokeWidth, lineDash, lineDashOffset } = marker;
         const defaultLineStrokeWidth = Math.min(2, strokeWidth ?? 1);
+        const disabledStyle = enabled ? undefined : this.opts.item.marker.disabledStyle;
+        const fill = disabledStyle?.fill ?? marker.fill;
 
         if (isPatternFill(fill)) {
             fill.width = 8;
@@ -813,20 +821,24 @@ export class Legend {
             fill.repeat = 'no-repeat';
         }
 
-        return getShapeStyle(
-            {
-                fill,
-                stroke,
-                strokeOpacity,
-                fillOpacity,
-                strokeWidth: this.opts.item.marker.strokeWidth ?? defaultLineStrokeWidth,
-                lineDash,
-                lineDashOffset,
-            },
-            FILL_GRADIENT_BLANK_DEFAULTS,
-            FILL_PATTERN_BLANK_DEFAULTS,
-            FILL_IMAGE_BLANK_DEFAULTS
-        );
+        return {
+            ...getShapeStyle(
+                {
+                    fill,
+                    stroke: disabledStyle?.stroke ?? stroke,
+                    strokeOpacity: disabledStyle?.strokeOpacity ?? strokeOpacity,
+                    fillOpacity: disabledStyle?.fillOpacity ?? fillOpacity,
+                    strokeWidth:
+                        disabledStyle?.strokeWidth ?? this.opts.item.marker.strokeWidth ?? defaultLineStrokeWidth,
+                    lineDash,
+                    lineDashOffset,
+                },
+                FILL_GRADIENT_BLANK_DEFAULTS,
+                FILL_PATTERN_BLANK_DEFAULTS,
+                FILL_IMAGE_BLANK_DEFAULTS
+            ),
+            opacity: enabled ? 1 : (disabledStyle?.opacity ?? DISABLED_ITEM_OPACITY),
+        };
     }
 
     private getContainerStyles() {
