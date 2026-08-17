@@ -2,7 +2,7 @@ import { loadImage as skiaLoadImage } from 'skia-canvas';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { classCast } from 'ag-charts-test';
-import type { AgChartOptions, AgDonutSeriesOptions, AgPolarChartOptions } from 'ag-charts-types';
+import type { AgChartOptions, AgChartTheme, AgDonutSeriesOptions, AgPolarChartOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
 import { OptionsGraph } from '../../../module/optionsGraph';
@@ -1520,6 +1520,105 @@ describe('DonutSeries', () => {
                 expect(cutout.startAngle).toBeCloseTo(sectorNodes(series)[index].startAngle, 5);
                 expect(cutout.endAngle).toBeCloseTo(sectorNodes(series)[index].endAngle, 5);
             }
+        });
+    });
+
+    describe('inner circle rich fills', () => {
+        const data = [
+            { asset: 'Stocks', amount: 30 },
+            { asset: 'Bonds', amount: 25 },
+            { asset: 'Cash', amount: 20 },
+            { asset: 'Real Estate', amount: 15 },
+        ];
+
+        // `prepareTestOptions` pins `foregroundColor` for the light theme but lets the dark theme
+        // supply its own, so the two arms below are genuinely different theme parameter values.
+        const LIGHT_THEME: AgChartTheme = { baseTheme: 'ag-default' };
+        const DARK_THEME: AgChartTheme = { baseTheme: 'ag-default-dark' };
+
+        const createDonut = async (series: Partial<AgDonutSeriesOptions>, theme?: AgChartTheme) => {
+            chart = await createChart({
+                ...options,
+                ...(theme != null ? { theme } : {}),
+                data,
+                series: [
+                    {
+                        type: 'donut',
+                        angleKey: 'amount',
+                        innerRadiusRatio: 0.7,
+                        ...series,
+                    } as AgDonutSeriesOptions,
+                ],
+            });
+            return classCast(chart.series[0], DonutSeries);
+        };
+
+        const innerCircleFill = (series: DonutSeries) => series.innerCircleSelection.nodes()[0].fill;
+        const circleSize = (series: DonutSeries) => series.innerCircleSelection.nodes()[0].size;
+        const ungrownCircleSize = (series: DonutSeries) => {
+            const antiAliasingPadding = 1;
+            return Math.ceil(series.getInnerRadius() * 2 + antiAliasingPadding);
+        };
+
+        test('resolves a colour ref to the referenced theme colour', async () => {
+            const series = await createDonut({ innerCircle: { fill: { ref: 'accentColor' } } });
+
+            expect(innerCircleFill(series)).toBe('#2196f3');
+        });
+
+        test.each([
+            ['light', LIGHT_THEME, '#464646'],
+            ['dark', DARK_THEME, '#fff'],
+        ] as Array<[string, AgChartTheme, string]>)(
+            'fills a bare pattern with the %s theme foreground colour',
+            async (_name, theme, foregroundColor) => {
+                const series = await createDonut({ innerCircle: { fill: { type: 'pattern' } } }, theme);
+
+                expect(innerCircleFill(series)).toMatchObject({
+                    type: 'pattern',
+                    fill: foregroundColor,
+                    stroke: foregroundColor,
+                });
+            }
+        );
+
+        test.each([
+            ['light', LIGHT_THEME],
+            ['dark', DARK_THEME],
+        ] as Array<[string, AgChartTheme]>)(
+            'keeps a user-provided pattern colour under the %s theme',
+            async (_name, theme) => {
+                const series = await createDonut(
+                    { innerCircle: { fill: { type: 'pattern', fill: 'red', stroke: 'red' } } },
+                    theme
+                );
+
+                expect(innerCircleFill(series)).toMatchObject({ type: 'pattern', fill: 'red', stroke: 'red' });
+            }
+        );
+
+        test('leaves a user-provided gradient rotation untouched', async () => {
+            const series = await createDonut({
+                innerCircle: {
+                    fill: { type: 'gradient', colorStops: [{ color: 'red' }, { color: 'blue' }], rotation: 45 },
+                },
+            });
+
+            expect(innerCircleFill(series)).toMatchObject({ type: 'gradient', rotation: 45 });
+        });
+
+        test('renders an unchanged colour string fill', async () => {
+            const series = await createDonut({ innerCircle: { fill: '#c9fdc9' } });
+
+            expect(innerCircleFill(series)).toBe('#c9fdc9');
+            expect(circleSize(series)).toBe(ungrownCircleSize(series));
+        });
+
+        test('grows the circle for an object fill with rounded corners', async () => {
+            const series = await createDonut({ cornerRadius: 20, innerCircle: { fill: { type: 'pattern' } } });
+
+            expect(circleSize(series)).toBeGreaterThan(ungrownCircleSize(series));
+            expect(series.innerCircleCutoutSelection.nodes()).toHaveLength(data.length);
         });
     });
 

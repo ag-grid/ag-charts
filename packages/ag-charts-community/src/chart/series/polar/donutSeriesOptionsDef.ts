@@ -1,6 +1,7 @@
 import {
     type OptionsDefs,
     arrayOfDefs,
+    colorUnion,
     constant,
     fontOptionsDef,
     labelBoxOptionsDef,
@@ -21,7 +22,7 @@ export const donutSeriesThemeableOptionsDef: OptionsDefs<AgDonutSeriesThemeableO
     innerRadiusOffset: number,
     innerRadiusRatio: ratio,
     innerCircle: {
-        fill: string,
+        fill: colorUnion,
         fillOpacity: ratio,
     },
     innerLabels: {
