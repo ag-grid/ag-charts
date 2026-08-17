@@ -126,5 +126,29 @@
     "AgContextMenuItemLegendItem.action": {
         "classification": "zone-wrap",
         "reason": "Context-menu action dispatched from out-of-zone DOM listeners; re-entered into the zone by patchContextMenu."
+    },
+    "AgAxisListeners.crossLineClick": {
+        "classification": "zone-wrap",
+        "reason": "Axis listener; re-entered into the zone by patchChartOptions via patchListeners(axes[<key>].listeners)."
+    },
+    "AgAxisListeners.crossLineDoubleClick": {
+        "classification": "zone-wrap",
+        "reason": "Axis listener; re-entered into the zone by patchChartOptions via patchListeners(axes[<key>].listeners)."
+    },
+    "AgBaseChartListeners.crossLineClick": {
+        "classification": "zone-wrap",
+        "reason": "Chart listener; re-entered into the zone by patchChartOptions via patchListeners(options.listeners)."
+    },
+    "AgBaseChartListeners.crossLineDoubleClick": {
+        "classification": "zone-wrap",
+        "reason": "Chart listener; re-entered into the zone by patchChartOptions via patchListeners(options.listeners)."
+    },
+    "AgCrossLineListeners.click": {
+        "classification": "zone-wrap",
+        "reason": "Cross-line listener; re-entered into the zone by patchChartOptions via patchListeners(axes[<key>].crossLines[].listeners)."
+    },
+    "AgCrossLineListeners.doubleClick": {
+        "classification": "zone-wrap",
+        "reason": "Cross-line listener; re-entered into the zone by patchChartOptions via patchListeners(axes[<key>].crossLines[].listeners)."
     }
 }

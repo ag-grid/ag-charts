@@ -1,12 +1,15 @@
 import {
     AbstractModuleInstance,
     type AxisPluginModuleInstance,
+    type CallbackParamRules,
     type DynamicContext,
     type NormalisedAxisCrossLineOptions,
+    callWithContext,
     jsonDiff,
 } from 'ag-charts-core';
+import type { AgCrossLineClickEvent, AgCrossLineDoubleClickEvent } from 'ag-charts-types';
 
-import type { SeriesAreaContextMenuEvent } from '../../core/eventsHub';
+import type { SeriesAreaContextMenuEvent, SeriesAreaPointerClickEvent } from '../../core/eventsHub';
 import type { AxisContext } from '../../module/axisContext';
 import type { ChartAxisRegistry } from '../../module/moduleContext';
 import { Group } from '../../scene/group';
@@ -49,7 +52,7 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
     private readonly labelGroup = new Group({ name: 'CrossLines-Label' });
     private instances: CrossLine[] = [];
     private lastOptions: NormalisedAxisCrossLineOptions[] | undefined;
-    private readonly removeContextMenuListener: () => void;
+    private readonly removePointerListeners: (() => void)[];
 
     constructor(ctx: DynamicContext<ChartAxisRegistry<AxisContext>>) {
         super();
@@ -59,12 +62,14 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
         this.axisCtx.attachAxisOverlay(this.lineGroup, 'mid');
         this.axisCtx.attachAxisOverlay(this.labelGroup, 'high');
 
-        // Annotate the series-area context-menu handoff when the pointer hits one of this axis's cross
-        // lines — mirrors how axis-owning modules annotate `event.axis` (see axisDomProxy). The
-        // series-area dispatch turns the annotation into a `cross-line` context-menu region.
-        this.removeContextMenuListener = this.ctx.eventsHub.on('series-area:contextmenu', (event) =>
-            this.onSeriesAreaContextMenu(event)
-        );
+        // Both handlers hit-test this axis's cross lines against the pointer, then diverge: the
+        // context-menu one annotates the series-area handoff — mirroring how axis-owning modules
+        // annotate `event.axis` (see axisDomProxy), which the series-area dispatch turns into a
+        // `cross-line` menu region — while the pointer-click one runs the cross-line listeners directly.
+        this.removePointerListeners = [
+            this.ctx.eventsHub.on('series-area:contextmenu', (event) => this.onSeriesAreaContextMenu(event)),
+            this.ctx.eventsHub.on('series-area:pointer-click', (event) => this.onSeriesAreaPointerClick(event)),
+        ];
     }
 
     private onSeriesAreaContextMenu(event: SeriesAreaContextMenuEvent): void {
@@ -73,12 +78,44 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
 
             event.crossLine.push({
                 crossLineId: crossLine.id ?? crossLine.internalId,
-                axisId: this.axisCtx.axisId,
+                axisId: this.axisCtx.userAxisId,
                 direction: this.axisCtx.direction,
                 type: crossLine.type,
                 value: crossLine.value,
                 range: crossLine.range,
             });
+        }
+    }
+
+    private onSeriesAreaPointerClick(event: SeriesAreaPointerClickEvent): void {
+        for (const crossLine of this.instances) {
+            if (crossLine.containsPoint?.(event) !== true) continue;
+
+            const isClick = event.type === 'click';
+            const apiEvent: CallbackParamRules<AgCrossLineClickEvent | AgCrossLineDoubleClickEvent> = {
+                type: isClick ? 'crossLineClick' : 'crossLineDoubleClick',
+                event: event.sourceEvent,
+                crossLineId: crossLine.id ?? crossLine.internalId,
+                axisId: this.axisCtx.userAxisId,
+                direction: this.axisCtx.direction,
+                crossLineType: crossLine.type,
+                value: crossLine.value,
+                range: crossLine.range,
+            };
+
+            // The cross line's own listener runs first, then the owning axis's, then the chart's. All
+            // three share one params object, and `callWithContext` resolves the context onto it (axis
+            // first, chart as the fallback) on the first call. The chart dispatch goes through
+            // `callWithContext` as well rather than calling `fireEvent` directly, so the chart listener
+            // sees that same axis-first context even when neither of the other two is registered to
+            // have resolved it.
+            const { listeners } = this.axisCtx;
+            const callers = [this.axisCtx.caller, this.ctx.chartService];
+            const crossLineListener = isClick ? crossLine.listeners?.click : crossLine.listeners?.doubleClick;
+            const axisListener = isClick ? listeners?.crossLineClick : listeners?.crossLineDoubleClick;
+            if (crossLineListener) callWithContext(callers, crossLineListener, apiEvent);
+            if (axisListener) callWithContext(callers, axisListener, apiEvent);
+            callWithContext(callers, (params: typeof apiEvent) => this.ctx.chartService.callListener(params), apiEvent);
         }
     }
 
@@ -162,7 +199,9 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
     }
 
     override destroy(): void {
-        this.removeContextMenuListener();
+        for (const removeListener of this.removePointerListeners) {
+            removeListener();
+        }
         for (const crossLine of this.instances) {
             this.detachInstance(crossLine);
         }

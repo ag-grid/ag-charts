@@ -71,10 +71,16 @@ export interface PolarAxisLayout {
 }
 
 export interface AxisContext {
-    context?: unknown;
-    /** User-supplied `axes[].listeners`, if any. */
-    readonly listeners?: AgAxisListeners<unknown>;
+    /**
+     * Context provider for user callbacks scoped to this axis. Carries `axes[].context` only when
+     * the user supplied one, so `callWithContext` falls through to the chart-level context otherwise.
+     */
+    readonly caller: { context?: unknown };
+    /** User listeners declared on this axis's options. */
+    readonly listeners: AgAxisListeners<unknown> | undefined;
     axisId: AxisID;
+    /** The key this axis was declared under in `axes`; `axisId` is the internal canonical id. */
+    readonly userAxisId: string;
     /** Static axis-type identifier (matches the axis module's name, e.g. `'number'`, `'angle-category'`). */
     readonly axisType: string;
     continuous: boolean;

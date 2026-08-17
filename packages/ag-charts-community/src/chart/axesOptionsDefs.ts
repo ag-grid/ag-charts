@@ -65,6 +65,7 @@ import type {
     AgCategoryAxisOptions,
     AgCommonCrossLineOptions,
     AgContinuousAxisOptions,
+    AgCrossLineListeners,
     AgCrossLineThemeOptions,
     AgCrosshairLabel,
     AgCrosshairLabelRendererResult,
@@ -79,6 +80,7 @@ import type {
     AgTimeAxisOptions,
     AgTimeAxisParentLevel,
     AgUnitTimeAxisOptions,
+    AxisValue,
 } from 'ag-charts-types';
 
 export const commonCrossLineLabelOptionsDefs: OptionsDefs<AgBaseCrossLineLabelOptions> = {
@@ -96,10 +98,17 @@ export const commonCrossLineLabelOptionsDefs: OptionsDefs<AgBaseCrossLineLabelOp
 // Stroke/enabled style shared by both cross-line variants. `fill`/`fillOpacity` are intentionally
 // excluded — they belong to the `range` variant only (see `crossLineOptionsDefs`). `id` is excluded
 // because it identifies a single cross line rather than styling it, so it is not themeable.
-const crossLineCommonStyleOptionsDefs: OptionsDefs<Omit<AgCommonCrossLineOptions, 'label' | 'id'>> = {
+const crossLineCommonStyleOptionsDefs: OptionsDefs<
+    Omit<AgCommonCrossLineOptions<AgBaseCrossLineLabelOptions, unknown>, 'label' | 'id' | 'listeners'>
+> = {
     enabled: boolean,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
+};
+
+const crossLineListenersOptionsDefs: OptionsDefs<AgCrossLineListeners<unknown>> = {
+    click: callback,
+    doubleClick: callback,
 };
 
 // The full style surface accepted by theme overrides (which carry neither `type` nor `value` and
@@ -121,10 +130,16 @@ export const radiusCrossLineLabelOptionsDefs: OptionsDefs<AgRadiusCrossLineLabel
 export function crossLineOptionsDefs(
     value: Validator,
     labelDefs: OptionsDefs<AgBaseCrossLineLabelOptions>
-): OptionsDefs<AgBaseCrossLineOptions> {
-    // `id` is per-cross-line rather than stylistic, so it lives here instead of in the themeable style defs.
-    const commonStyle = { id: string, ...crossLineCommonStyleOptionsDefs, label: labelDefs };
-    return typeUnion<AgBaseCrossLineOptions>(
+): OptionsDefs<AgBaseCrossLineOptions<AxisValue, AgBaseCrossLineLabelOptions, unknown>> {
+    // `id` and `listeners` are per-cross-line rather than stylistic, so they live here instead of in the
+    // themeable style defs.
+    const commonStyle = {
+        id: string,
+        listeners: crossLineListenersOptionsDefs,
+        ...crossLineCommonStyleOptionsDefs,
+        label: labelDefs,
+    };
+    return typeUnion<AgBaseCrossLineOptions<AxisValue, AgBaseCrossLineLabelOptions, unknown>>(
         {
             line: { value: required(value), ...commonStyle },
             range: {
@@ -287,6 +302,8 @@ export const cartesianAxisOptionsDefs: OptionsDefs<
     listeners: {
         click: callback,
         doubleClick: callback,
+        crossLineClick: callback,
+        crossLineDoubleClick: callback,
     },
 };
 

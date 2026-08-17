@@ -232,6 +232,14 @@ export abstract class Axis<
     options: TOptions;
 
     /**
+     * User listeners declared on this axis's options, surfaced on the axis context for plugins that
+     * dispatch axis-scoped events. Only cartesian axes accept any (see `CartesianAxis`).
+     */
+    protected get userListeners(): AgAxisListeners<unknown> | undefined {
+        return undefined;
+    }
+
+    /**
      * Internal axis state derived from `position` (cartesian) or layout direction
      * (gradient-legend). Not user-facing — absent from `ag-charts-types`. See I2.
      */
@@ -1183,16 +1191,21 @@ export abstract class Axis<
         const axis = this;
         const { scale } = this;
         return {
+            caller: this,
+            // A getter, not a snapshot: `applyOptions` swaps the options reference on update, so
+            // listeners added or removed by a later `chart.update()` must be picked up.
+            get listeners() {
+                return axis.userListeners;
+            },
             axisId: this.id,
+            get userAxisId() {
+                // Assigned by `Chart.applyAxes` after construction, so read it lazily.
+                return axis.userKey;
+            },
             axisType: this.type,
             scale: this.scale,
             direction: this.direction,
             continuous: this.continuous,
-            // A getter, not a snapshot: `applyOptions` swaps the options reference on update, so
-            // listeners added or removed by a later `chart.update()` must be picked up.
-            get listeners() {
-                return (axis.options as { listeners?: AgAxisListeners<unknown> }).listeners;
-            },
             get mirrored() {
                 return axis.mirrored;
             },

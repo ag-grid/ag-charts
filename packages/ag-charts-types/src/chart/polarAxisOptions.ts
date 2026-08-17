@@ -71,5 +71,9 @@ export interface AgAngleAxisFormattableLabelOptions<TContext = ContextDefault>
 export interface AgAngleAxisLabelOptions<TContext = ContextDefault>
     extends AgBaseAxisLabelOptions<TContext>, OrientableLabel {}
 
-export type AgAngleCrossLineOptions<TValue = AxisValue> = AgBaseCrossLineOptions<TValue, AgBaseCrossLineLabelOptions>;
+export type AgAngleCrossLineOptions<TValue = AxisValue> = AgBaseCrossLineOptions<
+    TValue,
+    AgBaseCrossLineLabelOptions,
+    ContextDefault
+>;
 export interface AgAngleCrossLineThemeOptions extends AgCrossLineThemeOptions<AgBaseCrossLineLabelOptions> {}
