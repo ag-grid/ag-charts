@@ -201,25 +201,33 @@ export function createTestCase(
             if (canvases.length > 1) return;
             const canvas = canvases[0];
 
-            // Try pressing the buttons to see if any errors are thrown.
-            const buttons = await page.locator('.example-controls > button').all();
-            if (clickOrder === 'reverse') buttons.reverse();
+            // Try pressing the buttons and button group segments to see if any errors are thrown.
+            // A button group's radio is hidden, so its label is the clickable part.
+            const controls = await page
+                .locator('.example-controls > button, .example-controls .button-group > label')
+                .all();
+            if (clickOrder === 'reverse') controls.reverse();
 
-            for (const button of buttons) {
+            for (const control of controls) {
+                // Clicking the checked segment of a button group fires no change event, so it
+                // cannot redraw the chart.
+                const radioId = await control.getAttribute('for');
+                if (radioId && (await page.locator(`#${radioId}`).isChecked())) continue;
+
                 const sceneRenderCount = Number(await canvas.getAttribute('data-scene-renders'));
 
-                await button.click();
+                await control.click();
 
                 const skip =
                     skipCanvasUpdateCheck === true ||
                     (Array.isArray(skipCanvasUpdateCheck) &&
-                        skipCanvasUpdateCheck.includes((await button.textContent()) ?? 'unknown'));
+                        skipCanvasUpdateCheck.includes((await control.textContent()) ?? 'unknown'));
                 if (skip) {
                     await page.waitForLoadState('networkidle');
                 } else {
                     await expect
                         .configure({
-                            message: `Pressing button ${await button.textContent()}`,
+                            message: `Pressing button ${await control.textContent()}`,
                         })
                         .poll(async () => Number(await canvas.getAttribute('data-scene-renders')))
                         .toBeGreaterThan(sceneRenderCount);

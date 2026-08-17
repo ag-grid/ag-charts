@@ -1,10 +1,48 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button onclick="lineStyleLinear()">Linear</button>
-        <button onclick="lineStyleSmooth()">Smooth</button>
-        <button onclick="lineStyleStepStart()">Step (Start)</button>
-        <button onclick="lineStyleStepMiddle()">Step (Middle)</button>
-        <button onclick="lineStyleStepEnd()">Step (End)</button>
+        <div class="button-group" role="group" aria-label="Interpolation">
+            <input
+                type="radio"
+                id="interpolation-linear"
+                name="interpolation"
+                value="linear"
+                onchange="interpolationChange(event)"
+            />
+            <label for="interpolation-linear">Linear</label>
+            <input
+                type="radio"
+                id="interpolation-smooth"
+                name="interpolation"
+                value="smooth"
+                checked
+                onchange="interpolationChange(event)"
+            />
+            <label for="interpolation-smooth">Smooth</label>
+            <input
+                type="radio"
+                id="interpolation-step-start"
+                name="interpolation"
+                value="step-start"
+                onchange="interpolationChange(event)"
+            />
+            <label for="interpolation-step-start">Step (Start)</label>
+            <input
+                type="radio"
+                id="interpolation-step-middle"
+                name="interpolation"
+                value="step-middle"
+                onchange="interpolationChange(event)"
+            />
+            <label for="interpolation-step-middle">Step (Middle)</label>
+            <input
+                type="radio"
+                id="interpolation-step-end"
+                name="interpolation"
+                value="step-end"
+                onchange="interpolationChange(event)"
+            />
+            <label for="interpolation-step-end">Step (End)</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>
