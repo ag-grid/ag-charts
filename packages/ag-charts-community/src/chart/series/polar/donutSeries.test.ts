@@ -1694,9 +1694,12 @@ describe('DonutSeries', () => {
         });
 
         test('renders an image fill', async () => {
+            // The artwork covers its whole viewBox: an image with transparent margins lets the
+            // `backgroundFill` default ('black') through, and the baseline then reads as a failed load.
             const icon = `data:image/svg+xml;utf8,${encodeURIComponent(
                 `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">` +
-                    `<circle cx="12" cy="12" r="11" fill="#2ca02c"/></svg>`
+                    `<rect width="24" height="24" fill="#2ca02c"/>` +
+                    `<path d="M0 24 L24 0" stroke="#fff" stroke-width="6"/></svg>`
             )}`;
             const preloaded = await skiaLoadImage(icon);
 
