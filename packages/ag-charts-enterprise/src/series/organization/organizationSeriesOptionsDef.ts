@@ -46,6 +46,16 @@ const expander: OptionsDefs<AgOrganizationSeriesOptionsExpander> = {
     ...strokeOptionsDef,
     cornerRadius: positiveNumber,
     enabled: boolean,
+    hoverStyle: {
+        ...fillCssOptionsDef,
+        stroke: strokeOptionsDef.stroke,
+        strokeOpacity: strokeOptionsDef.strokeOpacity,
+        ...lineDashOptionsDef,
+        text: {
+            color: fontOptionsDef.color,
+            fontWeight: fontOptionsDef.fontWeight,
+        },
+    },
     itemStyler: callbackDefs<AgOrganizationSeriesExpanderStyle>({
         ...fillOptionsDef,
         ...lineDashOptionsDef,

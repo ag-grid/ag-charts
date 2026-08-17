@@ -16,6 +16,8 @@ interface AgChartEvent<T extends string, TContext = ContextDefault> {
 }
 
 export interface AgPreventableEvent {
+    /** True if the `preventDefault()` method has been called on this event. */
+    readonly defaultPrevented: boolean;
     /** Prevent the AG Charts built-in default event handlers from running. */
     preventDefault(): void;
 }
@@ -25,10 +27,26 @@ interface AgCoordinatedEvent {
     coordinates?: AgCoordinates;
 }
 
-export interface AgNodeClickEvent<TEvent extends string, TDatum, TContext = ContextDefault>
-    extends AgChartEvent<TEvent, TContext>, AgCoordinatedEvent {
+export interface AgBaseNodeClickEvent<TEvent extends string, TDatum, TContext = ContextDefault>
+    extends AgChartEvent<TEvent, TContext>, AgPreventableEvent, AgCoordinatedEvent, AgNodeParams<TDatum> {
     /** Event type. */
     type: TEvent;
+}
+
+export interface AgNodeClickEvent<
+    TEvent extends string,
+    TDatum,
+    TContext = ContextDefault,
+> extends AgBaseNodeClickEvent<TEvent, TDatum, TContext> {
+    /** TODO: writeme */
+    allNodeParams: AgNodeParams<TDatum>[];
+}
+
+/**
+ * Everything a node event reports about the picked datum itself, i.e. an {@link AgNodeClickEvent} minus the
+ * event-delivery fields. Most fields are optional, because each series type only sets the properties applicable to it.
+ */
+export interface AgNodeParams<TDatum> {
     /** Series ID, as specified in `series.id` (or generated if not specified) */
     seriesId: string;
     /** The unique identifier of the picked datum. */
@@ -65,6 +83,14 @@ export interface AgNodeClickEvent<TEvent extends string, TDatum, TContext = Cont
     sectorLabelKey?: ResolvedDatumKey<TDatum>;
     /** radiusKey as specified on series options */
     radiusKey?: ResolvedDatumKey<TDatum>;
+    /** Histogram series only: zero-based positional index of the bin within the series. */
+    binIndex?: number;
+    /** Histogram series only: the bin's start and end bounds on the x-axis. */
+    binRange?: [AgNumericValue, AgNumericValue];
+    /** Histogram series only: the aggregated `yKey` value for the bin. */
+    aggregatedValue?: AgNumericValue;
+    /** Histogram series only: the number of source rows within the bin. */
+    frequency?: number;
 }
 
 export interface AgSeriesVisibilityChange<TContext = ContextDefault> {
@@ -232,15 +258,23 @@ export interface AgAxisClickEvent<TEvent extends string, TContext = ContextDefau
     domain: AgAxisDomain;
 }
 
+/** Axis listeners. Cross Line listeners are Cartesian charts only. */
 export interface AgAxisListeners<TContext = ContextDefault> {
     /** The listener to call when the axis is clicked. */
     click?: Listener<AgAxisClickEvent<'click', TContext>>;
     /** The listener to call when the axis is double-clicked. */
     doubleClick?: Listener<AgAxisClickEvent<'doubleClick', TContext>>;
+    /** The listener to call when a Cross Line on this axis is clicked. */
+    crossLineClick?: Listener<AgCrossLineClickEvent<TContext>>;
+    /** The listener to call when a Cross Line on this axis is double-clicked. */
+    crossLineDoubleClick?: Listener<AgCrossLineDoubleClickEvent<TContext>>;
 }
 
-export interface AgCrossLineContextMenuActionEvent<TContext = ContextDefault>
-    extends AgChartEvent<'crossLineContextMenuAction', TContext>, AgCoordinatedEvent {
+/** Identifies the Cross Line an event refers to, along with the axis that owns it. */
+export interface AgCrossLineEvent<TEvent extends string, TContext = ContextDefault> extends AgChartEvent<
+    TEvent,
+    TContext
+> {
     /** Cross Line ID (generated if not specified). */
     crossLineId: string;
     /** ID of the axis the Cross Line belongs to, as specified in `axes`. */
@@ -254,6 +288,19 @@ export interface AgCrossLineContextMenuActionEvent<TContext = ContextDefault>
     /** The `[start, end]` data values of a `range` Cross Line. Undefined for `line` Cross Lines. */
     range?: [AgAxisValue, AgAxisValue];
 }
+
+export interface AgCrossLineContextMenuActionEvent<TContext = ContextDefault>
+    extends AgCrossLineEvent<'crossLineContextMenuAction', TContext>, AgCoordinatedEvent {}
+
+export interface AgCrossLineClickEvent<TContext = ContextDefault> extends AgCrossLineEvent<
+    'crossLineClick',
+    TContext
+> {}
+
+export interface AgCrossLineDoubleClickEvent<TContext = ContextDefault> extends AgCrossLineEvent<
+    'crossLineDoubleClick',
+    TContext
+> {}
 
 export interface AgCaptionContextMenuActionEvent<TContext = ContextDefault> extends AgChartEvent<
     'captionContextMenuAction',
@@ -285,16 +332,7 @@ export interface AgCaptionListeners<TContext = ContextDefault> {
 export interface AgNodeContextMenuActionEvent<
     TDatum = DatumDefault,
     TContext = ContextDefault,
-> extends AgNodeClickEvent<'nodeContextMenuAction', TDatum, TContext> {
-    /** Histogram series only: zero-based positional index of the bin within the series. */
-    binIndex?: number;
-    /** Histogram series only: the bin's start and end bounds on the x-axis. */
-    binRange?: [number, number];
-    /** Histogram series only: the aggregated `yKey` value for the bin. */
-    aggregatedValue?: number;
-    /** Histogram series only: the number of source rows within the bin. */
-    frequency?: number;
-}
+> extends AgNodeClickEvent<'nodeContextMenuAction', TDatum, TContext> {}
 
 export interface AgBaseChartListeners<TDatum, TContext = ContextDefault> {
     /** The listener to call when a node (marker, column, bar, tile or a pie sector) in any series is clicked.
@@ -328,6 +366,10 @@ export interface AgBaseChartListeners<TDatum, TContext = ContextDefault> {
     click?: Listener<AgChartClickEvent<TContext>>;
     /** The listener to call when the chart is double-clicked. */
     doubleClick?: Listener<AgChartDoubleClickEvent<TContext>>;
+    /** The listener to call when a Cross Line on any axis is clicked. */
+    crossLineClick?: Listener<AgCrossLineClickEvent<TContext>>;
+    /** The listener to call when a Cross Line on any axis is double-clicked. */
+    crossLineDoubleClick?: Listener<AgCrossLineDoubleClickEvent<TContext>>;
     /** The listener to call when the annotations are changed. */
     annotations?: Listener<AgAnnotationsEvent<TContext>>;
     /** The listener to call when the zoom is changed. */

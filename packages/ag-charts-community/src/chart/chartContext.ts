@@ -22,7 +22,6 @@ import type { ChartRegistry } from '../module/moduleContext';
 import type { Group } from '../scene/group';
 import { Scene } from '../scene/scene';
 import type { Mutex } from '../util/mutex';
-import type { TypedEvent } from '../util/observable';
 import { AxisManager } from './axis/axisManager';
 import type { ChartService } from './chartService';
 import type { ChartState } from './chartState';
@@ -57,7 +56,6 @@ export interface ChartContextVars {
     skipCss?: boolean;
     domMode?: 'normal' | 'minimal';
     withDragInterpretation: boolean;
-    fireEvent: <TEvent extends TypedEvent>(event: TEvent) => void;
     logger: Logger;
     updateMutex: Mutex;
     cssVariables?: Record<string, string>;
@@ -111,7 +109,6 @@ export function createChartContext(chart: ChartHost, vars: ChartContextVars): Dy
         // destroy cascade looping back into `chart.destroy()`.
         .ref('chartService', chart)
         .ref('annotationRoot', chart.annotationRoot)
-        .constant('fireEvent', vars.fireEvent)
         .constant('syncManager', vars.syncManager)
         .constant('chartState', chartState)
         .constant('domManager', domManager)

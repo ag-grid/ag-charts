@@ -3,8 +3,8 @@ import type {
     AxisPluginModuleInstance,
     Callback,
     CallbackParam,
+    CanvasPoint,
     ChartAnimationPhase,
-    CurrentPoint,
     DomainWithMetadata,
     DynamicContext,
     Normalised,
@@ -75,8 +75,15 @@ import { FormatManager } from '../formatter/formatManager';
 import type { ISeries, ISeriesProperties, SeriesNodeDatum } from '../series/seriesTypes';
 import { type AxisLabelFormatterCache, createAxisLabelFormatterCache, formatAxisLabelValue } from './axisLabelUtil';
 import type { TickInterval } from './axisTick';
-import { type AxisGroupDatumTranslation, NiceMode } from './axisUtil';
+import { type AxisGroupDatumTranslation, NiceMode, type TickDatum } from './axisUtil';
 import type { AnyTimeInterval } from './generateTicksUtils';
+
+export interface AxisPickDatum {
+    readonly index: number;
+    readonly value: AgAxisValue;
+    readonly along: readonly [number, number];
+    readonly cross?: readonly [number, number];
+}
 
 export interface LabelNodeDatum extends TextSizeProperties, TextBoxingProperties {
     color?: CssColor;
@@ -225,6 +232,14 @@ export abstract class Axis<
     options: TOptions;
 
     /**
+     * User listeners declared on this axis's options, surfaced on the axis context for plugins that
+     * dispatch axis-scoped events. Only cartesian axes accept any (see `CartesianAxis`).
+     */
+    protected get userListeners(): AgAxisListeners<unknown> | undefined {
+        return undefined;
+    }
+
+    /**
      * Internal axis state derived from `position` (cartesian) or layout direction
      * (gradient-legend). Not user-facing — absent from `ag-charts-types`. See I2.
      */
@@ -234,13 +249,14 @@ export abstract class Axis<
     dataDomain: { domain: D[]; clipped: boolean } = { domain: [], clipped: false };
     private allowNull = false;
 
-    /**
-     * Rendered-tick positions captured by the tick-layout pass, used by {@link pickValue}
-     * to resolve a click position to a tick index. Populated by subclasses that generate
-     * ticks (see `CartesianAxis`); left empty by axes that do not, in which case no tick
-     * index can be resolved.
-     */
-    private pickTickData: { readonly index: number; readonly translation: number }[] = [];
+    // This is the meta-data about the screen-positioning of the ticks on our axis. It's usually a 1-dimensional scale
+    // value (`along`), but can optionally be 2-dimensional (`cross`, e.g. the "Depth" in grouped category axes). This
+    // is the single-source-of-truth for callbacks that need to broadcast information about the axis and its ticks
+    // (e.g. label.formatter or axis click handlers).
+    //
+    // This must live separately from the scene-graph LabelNodeDatum. This is because label-less axes can still be
+    // interacted with, but they do not include any text nodes in the scene-graph.
+    protected pickTickData: AxisPickDatum[] = [];
 
     readonly caption = new Caption();
 
@@ -1130,6 +1146,10 @@ export abstract class Axis<
         return this.translation;
     }
 
+    protected get continuous(): boolean {
+        return ContinuousScale.is(this.scale) || DiscreteTimeScale.is(this.scale);
+    }
+
     getLayoutState(): AxisLayout {
         return {
             id: this.id,
@@ -1171,16 +1191,21 @@ export abstract class Axis<
         const axis = this;
         const { scale } = this;
         return {
-            axisId: this.id,
-            axisType: this.type,
-            scale: this.scale,
-            direction: this.direction,
-            continuous: ContinuousScale.is(scale) || DiscreteTimeScale.is(scale),
+            caller: this,
             // A getter, not a snapshot: `applyOptions` swaps the options reference on update, so
             // listeners added or removed by a later `chart.update()` must be picked up.
             get listeners() {
-                return (axis.options as { listeners?: AgAxisListeners<unknown> }).listeners;
+                return axis.userListeners;
             },
+            axisId: this.id,
+            get userAxisId() {
+                // Assigned by `Chart.applyAxes` after construction, so read it lazily.
+                return axis.userKey;
+            },
+            axisType: this.type,
+            scale: this.scale,
+            direction: this.direction,
+            continuous: this.continuous,
             get mirrored() {
                 return axis.mirrored;
             },
@@ -1235,16 +1260,30 @@ export abstract class Axis<
         };
     }
 
-    pickValue(point: CurrentPoint): AxisValuePick | undefined {
-        const position = this.isVertical() ? point.currentY : point.currentX;
+    pickValue(point: CanvasPoint): AxisValuePick | undefined {
+        // Canvas space is the only frame every caller shares: the axis proxy region, the series area and
+        // the series rect each sit at their own offset within it. Taking canvas coordinates means the
+        // conversion to axis-local space happens here, once, instead of each caller guessing at it.
+        const origin = this.getLayoutTranslation();
+        const localX = point.canvasX - origin.x;
+        const localY = point.canvasY - origin.y;
+        const vertical = this.isVertical();
+        const position = vertical ? localY : localX;
+        // Ticks stack outwards from the axis line, so only the distance from it selects a row.
+        const crossPosition = Math.abs(vertical ? localX : localY);
 
-        const value = unsafeInvert(this.scale, position);
+        const scaleValue = unsafeInvert(this.scale, position);
         const domain = unsafeDomain(this.scale);
-        if (value == null || domain == null) {
+        if (scaleValue == null || domain == null) {
             return undefined;
         }
 
-        const index = this.resolveTickIndex(position);
+        const picked = this.resolvePickDatum(position, crossPosition);
+        const index = picked?.index ?? -1;
+        // On a continuous axis `value` is the position under the pointer, so it is read from the scale
+        // rather than the tick. On a discrete axis the two agree, and taking it from the tick is what
+        // keeps `value` and `index` describing the same thing.
+        const value = this.continuous || picked == null ? scaleValue : picked.value;
 
         // Dynamically extract properties of `AgContextMenuGetItemsParamsAxis` that are not present in the base
         // `AgContextMenuGetItemsParamsAlways` (and also add `caller` so that we can run the context-menu callbacks
@@ -1264,35 +1303,45 @@ export abstract class Axis<
         return result;
     }
 
-    protected setPickTickData(
-        ticks: readonly { readonly index: number; readonly translation: number }[],
-        firstTickIndex = 0
-    ): void {
+    protected setPickTickData(ticks: readonly Readonly<TickDatum>[], firstTickIndex = 0): void {
         // A picked value's index must match what the axis label formatter reports for the same tick. The
         // formatter numbers ticks by their 0-based position among the generated ticks, whereas TickDatum.index
         // is the absolute index (offset by firstTickIndex on reversed/zoomed axes), so subtract it here.
-        this.pickTickData = ticks.map(({ index, translation }) => ({ index: index - firstTickIndex, translation }));
+        // These ticks occupy a single row, so they span the axis in the perpendicular direction.
+        this.pickTickData = ticks.map(({ index, translation, tick }) => ({
+            index: index - firstTickIndex,
+            value: tick,
+            along: [translation, translation] as const,
+        }));
     }
 
     /**
-     * Resolve a click position to the index of the nearest rendered tick, clamping
-     * out-of-range positions to the closest end tick. Returns -1 when no ticks are
-     * available (e.g. an axis with labels, ticks and grid lines all disabled).
+     * Resolve a pick position to the tick occupying it. `along` is the axis-local coordinate in scale
+     * space; `cross` is the distance from the axis line, which selects between rows on axes that stack
+     * ticks outwards (see `GroupedCategoryAxis`). Within the candidate row the containing tick wins,
+     * falling back to the nearest one so out-of-range positions clamp to an end tick.
+     *
+     * Returns undefined when the axis generated no ticks, e.g. one with labels, ticks and grid lines
+     * all disabled.
      */
-    private resolveTickIndex(position: number): number {
-        const ticks = this.pickTickData;
-        if (ticks.length === 0) return -1;
+    private resolvePickDatum(along: number, cross: number): AxisPickDatum | undefined {
+        let nearest: AxisPickDatum | undefined;
+        let nearestDistance = Infinity;
 
-        let nearestIndex = ticks[0].index;
-        let nearestDistance = Math.abs(ticks[0].translation - position);
-        for (let i = 1; i < ticks.length; i++) {
-            const distance = Math.abs(ticks[i].translation - position);
+        for (const datum of this.pickTickData) {
+            if (datum.cross != null && (cross < datum.cross[0] || cross > datum.cross[1])) continue;
+
+            const [start, end] = datum.along;
+            if (along >= start && along <= end) return datum;
+
+            const distance = along < start ? start - along : along - end;
             if (distance < nearestDistance) {
                 nearestDistance = distance;
-                nearestIndex = ticks[i].index;
+                nearest = datum;
             }
         }
-        return nearestIndex;
+
+        return nearest;
     }
 
     pickBand(point: Point): AxisBandDatum | undefined {

@@ -11,6 +11,7 @@ import {
     sampleSerializedRoots,
     sceneSampleToJSON,
 } from '../../../libraries/ag-charts-test/src/scene/scene-sample';
+import { evalPageFunction } from './agE2E';
 import { expect, test } from './fixture';
 import { waitForAllChartUpdates } from './util';
 
@@ -69,12 +70,7 @@ export async function expectChartScreenshot(
     }
 
     try {
-        const roots = await page.evaluate(
-            () =>
-                (
-                    window as unknown as { agE2E?: { captureScenes?: () => SerializedSceneRoots[] } }
-                ).agE2E?.captureScenes?.() ?? []
-        );
+        const roots = (await evalPageFunction(page, 'captureScenes')) as SerializedSceneRoots[];
         writeSceneSnapshots(name, roots);
     } catch (captureError) {
         // A missing scene artifact must not hide behind a passing screenshot, so fail the test on a

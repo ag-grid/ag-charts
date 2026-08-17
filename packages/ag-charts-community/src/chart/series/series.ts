@@ -40,14 +40,16 @@ import {
 import type {
     AgActiveItemState,
     AgChartLabelFormatterParams,
-    AgCoordinates,
     AgDrawingMode,
     AgInitialStateLegendOptions,
-    AgNumericValue,
+    AgNodeClickEvent,
+    AgNodeContextMenuActionEvent,
+    AgNodeParams,
     AgSeriesTooltipRendererParams,
     AgSeriesVisibilityChange,
     FormatterParams,
     FormatterPropertyType,
+    Listener,
     HighlightState as PublicHighlightState,
     SelectionState as PublicSelectionState,
     SeriesType,
@@ -69,8 +71,6 @@ import { type Node, PointerEvents } from '../../scene/node';
 import type { Selection } from '../../scene/selection';
 import type { Path } from '../../scene/shape/path';
 import { Transformable } from '../../scene/transformable';
-import type { TypedEvent, TypedEventListener } from '../../util/observable';
-import { Observable } from '../../util/observable';
 import type { ChartAxis } from '../chartAxis';
 import type { ChartMode } from '../chartMode';
 import type { DataController } from '../data/dataController';
@@ -88,18 +88,22 @@ import type { SeriesTooltip } from './seriesTooltip';
 import {
     type BucketLookupFeature,
     type DatumIndex,
+    type FireNodeEventParams,
     HighlightState,
-    type INodeEvent,
     type ISeries,
     type ISeriesAriaMeta,
-    type ISeriesProperties,
     type NodeDataDependencies,
     SelectionState,
     type SeriesNodeDatum,
-    type SeriesNodeEventTypes,
 } from './seriesTypes';
 import { type ShapeFillBBox } from './shapeUtil';
 import { hasDimmedOpacity, resolveMarkerDrawingMode } from './util';
+
+type NodeEventType = 'seriesNodeClick' | 'seriesNodeDoubleClick' | 'nodeContextMenuAction';
+type SeriesListenerEvent =
+    | AgNodeClickEvent<'seriesNodeClick', unknown, unknown>
+    | AgNodeClickEvent<'seriesNodeDoubleClick', unknown, unknown>
+    | AgSeriesVisibilityChange<unknown>;
 
 export interface SeriesDataEvent {
     readonly dataModel: DataModel<any, any, any>;
@@ -161,62 +165,8 @@ export type PickResult = {
 
 export type PickNodesInBBoxPredicate = (selectionBox: BoxBounds, node: Node<unknown>) => boolean;
 
-export type INodeEventConstructor<
-    TDatum extends SeriesNodeDatum,
-    TSeries extends Series<TDatum, object, any>,
-    TEvent extends string = SeriesNodeEventTypes,
-> = new <T extends TEvent>(
-    type: T,
-    event: Event,
-    nodeDatum: TDatum,
-    series: TSeries,
-    selectionState: PublicSelectionState | undefined,
-    isCollapsed: boolean | undefined,
-    coordinates: AgCoordinates | undefined
-) => INodeEvent<T>;
-
 const CROSS_FILTER_MARKER_FILL_OPACITY_FACTOR = 0.25;
 const CROSS_FILTER_MARKER_STROKE_OPACITY_FACTOR = 0.125;
-
-export class SeriesNodeEvent<
-    TDatum extends SeriesNodeDatum,
-    TEvent extends string = SeriesNodeEventTypes,
-> implements INodeEvent<TEvent> {
-    readonly datum: unknown;
-    readonly datums?: unknown[];
-    readonly totalValue?: AgNumericValue;
-    readonly seriesId: string;
-    readonly itemId: string | number;
-    readonly dataIdKey: string | undefined;
-    readonly selectionState: PublicSelectionState | undefined;
-    readonly isCollapsed: boolean | undefined;
-    readonly coordinates: AgCoordinates | undefined;
-    defaultPrevented = false;
-
-    constructor(
-        readonly type: TEvent,
-        readonly event: Event,
-        nodeDatum: TDatum,
-        series: ISeries<TDatum, ISeriesProperties, unknown>,
-        selectionState: PublicSelectionState | undefined,
-        isCollapsed: boolean | undefined = undefined,
-        coordinates: AgCoordinates | undefined
-    ) {
-        this.datum = nodeDatum.datum;
-        this.datums = nodeDatum.datums;
-        this.totalValue = nodeDatum.totalValue;
-        this.seriesId = series.id;
-        this.dataIdKey = series.data?.dataIdKey;
-        this.itemId = getItemId(nodeDatum, this.dataIdKey);
-        this.selectionState = selectionState;
-        this.isCollapsed = isCollapsed;
-        this.coordinates = coordinates;
-    }
-
-    public preventDefault() {
-        this.defaultPrevented = true;
-    }
-}
 
 export type SeriesNodeDataContext<S = SeriesNodeDatum, L = S> = {
     itemId: string;
@@ -257,9 +207,7 @@ export type SeriesDirectionKeysMapping<P extends SeriesProperties<any>> = {
     [key in ChartAxisDirection | FormatterPropertyType]?: (keyof P & string)[];
 };
 
-export class SeriesGroupingChangedEvent implements TypedEvent {
-    type = 'groupingChanged';
-
+export class SeriesGroupingChangedEvent {
     constructor(
         public series: Series<any, object, any>,
         public seriesGrouping: SeriesGrouping | undefined
@@ -315,10 +263,7 @@ export abstract class Series<
     TProps extends SeriesProperties<TOpts>,
     TLabel = TDatum,
     TContext extends SeriesNodeDataContext<TDatum, TLabel> = SeriesNodeDataContext<TDatum, TLabel>,
->
-    extends Observable
-    implements ISeries<TDatum, TProps, TLabel>
-{
+> implements ISeries<TDatum, TProps, TLabel> {
     static readonly className: string = 'Series';
     protected cleanup = new CleanupRegistry();
     abstract readonly properties: TProps;
@@ -342,8 +287,6 @@ export abstract class Series<
         },
     })
     seriesGrouping: SeriesGrouping | undefined = undefined;
-
-    protected readonly NodeEvent: INodeEventConstructor<TDatum, any> = SeriesNodeEvent;
 
     readonly internalId = createId(this);
 
@@ -513,7 +456,7 @@ export abstract class Series<
             });
         }
 
-        this.fireEvent(new SeriesGroupingChangedEvent(this, next));
+        this.events.emit('grouping-changed', new SeriesGroupingChangedEvent(this, next));
     }
 
     getBandScalePadding() {
@@ -524,8 +467,6 @@ export abstract class Series<
     private moduleContext?: DynamicContext<ChartSeriesRegistry>;
 
     constructor(seriesOpts: SeriesConstructorOpts<TProps>) {
-        super();
-
         const {
             moduleCtx,
             pickModes,
@@ -583,7 +524,7 @@ export abstract class Series<
         this._broughtToFront = bringToFront;
         this.setZIndex(bringToFront ? Number.MAX_VALUE : index);
 
-        this.fireEvent(new SeriesGroupingChangedEvent(this, this.seriesGrouping));
+        this.events.emit('grouping-changed', new SeriesGroupingChangedEvent(this, this.seriesGrouping));
 
         return true;
     }
@@ -636,31 +577,9 @@ export abstract class Series<
         'data-update': SeriesDataEvent;
         'data-processed': SeriesDataEvent;
         'data-selection-change': null;
+        'grouping-changed': SeriesGroupingChangedEvent;
+        'visibility-change': AgSeriesVisibilityChange;
     }>();
-
-    override addEventListener(type: 'seriesVisibilityChange', listener: (e: AgSeriesVisibilityChange) => void): void;
-    override addEventListener(type: 'seriesNodeClick', listener: (e: SeriesNodeEvent<any>) => void): void;
-    override addEventListener(type: 'seriesNodeDoubleClick', listener: (e: SeriesNodeEvent<any>) => void): void;
-    override addEventListener(type: string, listener: TypedEventListener): void;
-    override addEventListener(type: string, listener: TypedEventListener | ((e: unknown) => void)): void {
-        return super.addEventListener(type, listener);
-    }
-
-    override removeEventListener(type: 'seriesVisibilityChange', listener: (e: AgSeriesVisibilityChange) => void): void;
-    override removeEventListener(type: 'seriesNodeClick', listener: (e: SeriesNodeEvent<any>) => void): void;
-    override removeEventListener(type: 'seriesNodeDoubleClick', listener: (e: SeriesNodeEvent<any>) => void): void;
-    override removeEventListener(type: string, listener: TypedEventListener): void;
-    override removeEventListener(type: string, listener: TypedEventListener | ((e: unknown) => void)): void {
-        return super.removeEventListener(type, listener);
-    }
-
-    override hasEventListener(type: 'seriesVisibilityChange'): boolean;
-    override hasEventListener(type: 'seriesNodeClick'): boolean;
-    override hasEventListener(type: 'seriesNodeDoubleClick'): boolean;
-    override hasEventListener(type: string): boolean;
-    override hasEventListener(type: string): boolean {
-        return super.hasEventListener(type);
-    }
 
     updatedDomains() {
         // For override by subclasses.
@@ -1181,6 +1100,19 @@ export abstract class Series<
         return false;
     }
 
+    /**
+     * Names the part of a node the given scene node belongs to, for series that render more than one
+     * distinct part per node (e.g. the org-chart card and its expander pill).
+     *
+     * The returned value rides along with the highlight selection, so a series can tell *which* part of
+     * the highlighted node the pointer is over. Highlight roll-up is unaffected: the highlighted datum
+     * is the same either way, and only a series returning a non-`undefined` part makes the highlight
+     * sensitive to the distinction.
+     */
+    getHighlightPart(_target: Node<unknown> | undefined): string | undefined {
+        return undefined;
+    }
+
     firesUserClickListeners(_target: Node<unknown> | undefined): boolean {
         return true;
     }
@@ -1254,60 +1186,78 @@ export abstract class Series<
         return;
     }
 
-    // Use a wrapper to comply with the @typescript-eslint/unbound-method rule.
-    private readonly fireEventWrapper = (event: TypedEvent): void => super.fireEvent(event);
-    protected override fireEvent<TEvent extends TypedEvent>(event: TEvent): void {
-        callWithContext([this.properties, this.ctx.chartService], this.fireEventWrapper, event);
+    hasNodeClickListener(): boolean {
+        const seriesListeners = this.properties.listeners;
+        const chartListeners = this.ctx.chartService.listeners;
+        return (
+            seriesListeners?.seriesNodeClick != null ||
+            seriesListeners?.seriesNodeDoubleClick != null ||
+            chartListeners.seriesNodeClick != null ||
+            chartListeners.seriesNodeDoubleClick != null
+        );
     }
 
-    fireNodeClickEvent(event: Event, datum: TDatum, coordinates: AgCoordinates | undefined): boolean {
-        const selectionState = this.getSelectionStateString(datum.datumIndex);
-        const isCollapsed = datum.itemId == null ? undefined : this.getCollapsedState(datum.itemId);
-        const clickEvent = new this.NodeEvent(
-            'seriesNodeClick',
-            event,
-            datum,
-            this,
-            selectionState,
-            isCollapsed,
-            coordinates
-        );
-        this.fireEvent(clickEvent);
-        return !clickEvent.defaultPrevented;
+    private callListeners(event: SeriesListenerEvent & { readonly defaultPrevented?: boolean }): boolean {
+        // Redundancy Type-Check: Ensure that the listeners[event.type] parameter type is correct.
+        // Example: make sure listeners['seriesNodeClick'] is type Listeners<AgNodeClickEvent<'seriesNodeClick'>> and so
+        // on for all other event types. We do this because converting seriesListener/chartListener to type
+        // `(arg:any)=>void` loosens the type-safety (so that we can call it).
+        type Rules = undefined | { [K in (typeof event)['type']]?: Listener<Extract<typeof event, { type: K }>> };
+        type UserListener = Listener<any> | undefined;
+        const seriesListener: UserListener = (this.properties.listeners satisfies Rules)?.[event.type];
+        const chartListener: UserListener = (this.ctx.chartService.listeners satisfies Rules)?.[event.type];
+
+        const callers = [this.properties, this.ctx.chartService];
+        if (seriesListener != null) callWithContext(callers, seriesListener, event);
+        if (chartListener != null) callWithContext(callers, chartListener, event);
+        return !!event.defaultPrevented;
     }
 
-    fireNodeDoubleClickEvent(event: Event, datum: TDatum, coordinates: AgCoordinates | undefined): boolean {
-        const selectionState = this.getSelectionStateString(datum.datumIndex);
-        const isCollapsed = datum.itemId == null ? undefined : this.getCollapsedState(datum.itemId);
-        const clickEvent = new this.NodeEvent(
-            'seriesNodeDoubleClick',
-            event,
-            datum,
-            this,
-            selectionState,
-            isCollapsed,
-            coordinates
-        );
-        this.fireEvent(clickEvent);
-        return !clickEvent.defaultPrevented;
+    fireNodeClickEvent(opts: FireNodeEventParams): boolean {
+        return !this.callListeners(this.createNodeEvent('seriesNodeClick', opts));
     }
 
-    createNodeContextMenuActionEvent(
-        event: Event,
-        datum: TDatum,
-        coordinates: AgCoordinates | undefined
-    ): INodeEvent<'nodeContextMenuAction'> {
-        const selectionState = this.getSelectionStateString(datum.datumIndex);
-        const isCollapsed = datum.itemId == null ? undefined : this.getCollapsedState(datum.itemId);
-        return new this.NodeEvent(
-            'nodeContextMenuAction',
+    fireNodeDoubleClickEvent(opts: FireNodeEventParams): boolean {
+        return !this.callListeners(this.createNodeEvent('seriesNodeDoubleClick', opts));
+    }
+
+    createNodeContextMenuActionEvent(opts: FireNodeEventParams): AgNodeContextMenuActionEvent {
+        return this.createNodeEvent('nodeContextMenuAction', opts);
+    }
+
+    // Do not override. Override createNodeParams instead.
+    createNodeEvent<T extends NodeEventType>(type: T, opts: FireNodeEventParams) {
+        const { event, datums, winner, coordinates } = opts;
+        const allNodeParams: AgNodeParams<unknown>[] = datums.map((d) => d.series.createNodeParams(d));
+
+        let defaultPrevented = false;
+        return {
+            ...allNodeParams[winner],
+            type,
             event,
-            datum,
-            this,
-            selectionState,
-            isCollapsed,
-            coordinates
-        );
+            coordinates,
+            allNodeParams,
+            get defaultPrevented() {
+                return defaultPrevented;
+            },
+            preventDefault: () => {
+                defaultPrevented = true;
+            },
+        };
+    }
+
+    createNodeParams(datum: TDatum): AgNodeParams<unknown> {
+        const dataIdKey = this.data?.dataIdKey;
+        return {
+            datum: datum.datum,
+            datums: datum.datums,
+            totalValue: datum.totalValue,
+            seriesId: this.id,
+            dataIdKey,
+            itemId: getItemId(datum, dataIdKey),
+            selectionState: this.getSelectionStateString(datum.datumIndex),
+            isCollapsed: datum.itemId == null ? undefined : this.getCollapsedState(datum.itemId),
+        };
     }
 
     onLegendInitialState(legendType: ChartLegendType, initialState: AgInitialStateLegendOptions | undefined) {
@@ -1370,7 +1320,8 @@ export abstract class Series<
             legendItemName: legendEvent?.legendItemName ?? legendItemName,
             visible: enabled,
         };
-        this.fireEvent(event);
+        this.callListeners(event);
+        this.events.emit('visibility-change', event);
 
         this.ctx.legendManager?.toggleItem(enabled, seriesId, itemId, legendItemName);
     }

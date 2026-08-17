@@ -63,6 +63,7 @@ import {
     greaterThan,
     htmlElement,
     lessThan,
+    lessThanOrEqual,
     number,
     numericValue,
     object,
@@ -97,6 +98,7 @@ import {
     shapeHighlightOptionsDef,
     shapeSelectionOptionsDef,
     strokeOptionsDef,
+    textAlign,
     textWrap,
     themeOperator,
 } from './optionsDefaults';
@@ -204,7 +206,7 @@ export const textOrSegments = or(
 const chartCaptionOptionsDefs: OptionsDefs<AgChartCaptionOptions> = {
     enabled: boolean,
     text: textOrSegments,
-    textAlign: union('left', 'center', 'right'),
+    textAlign,
     wrapping: textWrap,
     spacing: positiveNumber,
     maxWidth: positiveNumber,
@@ -514,6 +516,8 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
         collapsedChange: callback,
         click: callback,
         doubleClick: callback,
+        crossLineClick: callback,
+        crossLineDoubleClick: callback,
         annotations: callback,
         zoom: callback,
     },
@@ -822,7 +826,7 @@ export const undocumentedLabelFitOptionsDefs: OptionsDefs<AgChartLabelFitOptions
 
 /** Font-reduction defs for series whose labels shrink to fit before truncating or hiding. */
 export const labelAutoFontSizeOptionsDefs: OptionsDefs<AgChartLabelAutoFontSizeOptions> = {
-    minimumFontSize: positiveNumberNonZero,
+    minimumFontSize: and(positiveNumberNonZero, lessThanOrEqual('fontSize')),
 };
 
 /** Label-fit defs plus the collision object, for series that place their labels against obstacles. */
@@ -843,10 +847,11 @@ export const labelPlacementStyleDefs = {
     outsideStyle: labelPlacementStyleOptionsDef,
 };
 
-/** Label defs for point-like series (line, area) that expose a directional placement. */
+/** Label defs for point-like series (line, area, scatter, bubble) that expose a directional placement. */
 export const placedSeriesLabelOptionsDefs: OptionsDefs<AgLineSeriesLabelOptions<any, any>> = {
     ...seriesLabelOptionsDefs,
     ...labelCollisionFitOptionsDefs,
+    ...labelAutoFontSizeOptionsDefs,
     ...labelPlacementStyleDefs,
     placement: labelCollisionPlacementDef,
     spacing: positiveNumber,
@@ -855,7 +860,7 @@ export const placedSeriesLabelOptionsDefs: OptionsDefs<AgLineSeriesLabelOptions<
 export const autoSizedLabelOptionsDefs: OptionsDefs<AgChartAutoSizedBaseLabelOptions<any, any>> = {
     ...seriesLabelOptionsDefs,
     lineHeight: positiveNumber,
-    minimumFontSize: positiveNumber,
+    minimumFontSize: and(positiveNumber, lessThanOrEqual('fontSize')),
     wrapping: textWrap,
     overflowStrategy: overflowStrategy,
 };

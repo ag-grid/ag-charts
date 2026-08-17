@@ -36,6 +36,7 @@ import type {
     AgTimeInterval,
     AgTimeIntervalUnit,
     AgUnitTimeAxisOptions,
+    AxisValue,
     ContextDefault,
     CssColor,
     Opacity,
@@ -438,7 +439,7 @@ interface CrossLineLabelMorph {
 }
 
 export type NormalisedAxisCrossLineOptions = Normalised<
-    AgBaseCrossLineOptions,
+    AgBaseCrossLineOptions<AxisValue, AgBaseCrossLineLabelOptions, ContextDefault>,
     'enabled' | 'stroke' | 'strokeWidth',
     CrossLineLabelMorph
 >;

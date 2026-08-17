@@ -31,7 +31,7 @@ import {
     FlowProportionSeries,
     type FlowProportionSeriesContext,
 } from '../flow-proportion/flowProportionSeries';
-import { ChordLink, bezierControlPoints } from './chordLink';
+import { ChordLink, type ChordLinkNodeEdge, bezierControlPoints } from './chordLink';
 import { ChordSeriesProperties } from './chordSeriesProperties';
 
 const { SeriesNodePickMode, createDatumId, Sector, getShapeStyle, getLabelStyles, BBox } = _ModuleSupport;
@@ -519,6 +519,7 @@ export class ChordSeries extends FlowProportionSeries<
             sector.startAngle = datum.startAngle;
             sector.endAngle = datum.endAngle;
             sector.inset = sector.strokeWidth / 2;
+            sector.cornerRadius = style.cornerRadius;
         });
     }
 
@@ -589,6 +590,42 @@ export class ChordSeries extends FlowProportionSeries<
         return style;
     }
 
+    /**
+     * The inner outline of a node, with its corner radius resolved to what `Sector` will actually
+     * draw. Undefined when the node has no rounding for a link end to follow.
+     */
+    private nodeEdge(node: ChordNodeDatum, cornerRadius: number): ChordLinkNodeEdge | undefined {
+        const { strokeWidth } = this.properties.node;
+        const inset = strokeWidth / 2;
+        const innerRadius = node.innerRadius > 0 ? node.innerRadius + inset : 0;
+        const outerRadius = Math.max(node.outerRadius - inset, 0);
+
+        if (cornerRadius <= 0 || innerRadius <= 0) return;
+
+        // Mirrors the inner-corner clamp in scene/shape/sector.ts — the later scaling passes there
+        // cannot reduce it further, because all four of a chord node's corner radii are equal and
+        // this clamp already fits each one within both the sweep and the radial length.
+        const adjustedSweep = node.endAngle - node.startAngle - (2 * inset) / innerRadius;
+        const cornerDistance = adjustedSweep > 0 ? 2 * innerRadius * Math.sin(adjustedSweep / 2) : 0;
+        const radius = Math.floor(
+            Math.max(0, Math.min(cornerRadius, cornerDistance / 2, (outerRadius - innerRadius) / 2))
+        );
+        if (radius <= 0) return;
+
+        const centreRadius = innerRadius + radius;
+        const cornerSweep = Math.asin(radius / centreRadius);
+        const angleOffset = inset / centreRadius;
+        return {
+            innerRadius,
+            cornerRadius: radius,
+            startAngle: node.startAngle,
+            endAngle: node.endAngle,
+            startCentreAngle: node.startAngle + angleOffset + cornerSweep,
+            endCentreAngle: node.endAngle - angleOffset - cornerSweep,
+            cornerSweep,
+        };
+    }
+
     protected updateLinkNodes(opts: {
         datumSelection: _ModuleSupport.Selection<ChordLinkDatum, ChordLink<ChordLinkDatum>>;
         isHighlight: boolean;
@@ -596,6 +633,17 @@ export class ChordSeries extends FlowProportionSeries<
         const { datumSelection, isHighlight } = opts;
 
         const fillBBox = this.getShapeFillBBox();
+
+        // An itemStyler can vary cornerRadius per node, and the link has to follow whatever the
+        // node is actually drawn with. Resolved once per node rather than once per link end.
+        const nodeEdges = new Map<ChordNodeDatum, ChordLinkNodeEdge | undefined>();
+        const nodeEdge = (node: ChordNodeDatum) => {
+            if (!nodeEdges.has(node)) {
+                const { cornerRadius } = this.getNodeStyle(node, node.datumIndex, false);
+                nodeEdges.set(node, this.nodeEdge(node, cornerRadius));
+            }
+            return nodeEdges.get(node);
+        };
 
         datumSelection.each((link, datum) => {
             const style = this.getLinkStyle(datum.datum, datum.datumIndex, datum.fromNode.datumIndex, isHighlight);
@@ -607,6 +655,9 @@ export class ChordSeries extends FlowProportionSeries<
             link.endAngle1 = datum.endAngle1;
             link.startAngle2 = datum.startAngle2;
             link.endAngle2 = datum.endAngle2;
+
+            link.edge1 = nodeEdge(datum.fromNode);
+            link.edge2 = nodeEdge(datum.toNode);
 
             link.tension = style.tension;
             link.setStyleProperties(style, fillBBox);

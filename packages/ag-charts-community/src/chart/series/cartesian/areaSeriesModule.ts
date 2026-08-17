@@ -77,7 +77,7 @@ const themeTemplate: ExtensibleTheme<'area'> = {
             fontWeight: { $ref: 'fontWeight' },
             padding: 8,
             collision: { alwaysShow: LABEL_OVERFLOW_ALWAYS_SHOW },
-            insideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('textColor'),
+            insideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('chartBackgroundColor'),
             outsideStyle: LABEL_PLACEMENT_STYLE_DEFAULTS('textColor'),
             placement: 'top',
         },

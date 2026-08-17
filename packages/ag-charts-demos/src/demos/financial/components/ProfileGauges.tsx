@@ -6,9 +6,13 @@ import { AgGauge } from 'ag-charts-react';
 import { THEME } from '../chartTheme';
 import { type GaugeMetrics } from '../data';
 
-// Three-band (down/neutral/up) and five-band (analyst) discrete colour scales.
+// Three-band (down/neutral/up) and five-band (analyst) discrete colour scales,
+// pitched for the dark card surface so every band holds against near-black.
 const THREE_STEP_SCALE = ['#F43F5E', '#71717A', '#10B981'];
 const FIVE_STEP_SCALE = ['#E11D48', '#FB7185', '#71717A', '#34D399', '#059669'];
+
+// Target marker ink — reads against the dark panel.
+const TARGET_INK = '#e8e9ea';
 
 const CONSENSUS_LABELS = ['Strong sell', 'Sell', 'Neutral', 'Buy', 'Strong buy'];
 const consensusLabel = (rating: number) => CONSENSUS_LABELS[Math.min(4, Math.floor(rating / 20))];
@@ -57,7 +61,7 @@ function linearGauge(
             spacing: 1,
         },
         targets: [
-            { value, shape: 'line', placement: 'middle', size: 20, strokeWidth: 2, stroke: '#e6edf3' },
+            { value, shape: 'line', placement: 'middle', size: 20, strokeWidth: 2, stroke: TARGET_INK },
             // A downward triangle above the line for extra emphasis of the target.
             {
                 value,
@@ -65,8 +69,8 @@ function linearGauge(
                 placement: 'before',
                 size: 12,
                 rotation: 0,
-                fill: '#e6edf3',
-                stroke: '#e6edf3',
+                fill: TARGET_INK,
+                stroke: TARGET_INK,
                 spacing: 0,
             },
         ],

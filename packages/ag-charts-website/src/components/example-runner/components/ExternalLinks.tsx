@@ -9,7 +9,6 @@ export function ExternalLinks({
     options,
     internalFramework,
     exampleFiles,
-    exampleBoilerPlateFiles,
     packageJson,
     initialSelectedFile,
     plunkrHtmlUrl,
@@ -19,7 +18,6 @@ export function ExternalLinks({
     options?: ExampleOptions;
     internalFramework: InternalFramework;
     exampleFiles?: FileContents;
-    exampleBoilerPlateFiles?: FileContents;
     packageJson?: Record<string, any>;
     initialSelectedFile?: string;
 
@@ -35,7 +33,6 @@ export function ExternalLinks({
                         files={exampleFiles}
                         htmlUrl={codeSandboxHtmlUrl}
                         internalFramework={internalFramework}
-                        boilerPlateFiles={exampleBoilerPlateFiles}
                         packageJson={packageJson!}
                     />
                 </li>
@@ -46,7 +43,6 @@ export function ExternalLinks({
                         title={title}
                         files={exampleFiles}
                         htmlUrl={plunkrHtmlUrl}
-                        boilerPlateFiles={exampleBoilerPlateFiles}
                         packageJson={packageJson!}
                         fileToOpen={initialSelectedFile!}
                     />

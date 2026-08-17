@@ -1,19 +1,42 @@
 /* Trading-terminal chrome. Scoped under .fin-container so it never leaks into
-   other demos. Chart visuals are handled by the AG Charts theme, not here. */
+   other demos. Chart visuals are handled by the AG Charts theme, not here.
+
+   Structure is carried entirely by surface tone, not by lines: no element draws a
+   border. Anything that needs to read as separate from its host gets the next step
+   up the lightness ramp (bg → panel → panel-2 → elevated) instead. */
 
 /* Tokens + base typography live on the container and on any portalled content
    (Radix menus/selects/dialogs mount at document.body, outside .fin-container). */
 .fin-container,
 .fin-portal {
-    --fin-bg: #0d1117;
-    --fin-panel: #161b22;
-    --fin-panel-2: #020617;
-    --fin-border: #2a313c;
-    --fin-text: #e4e4e7;
-    --fin-muted: #a1a1aa;
+    /* Dark surfaces, neutral rather than blue-black. The page is near-black and every
+       element sits on it as a lifted panel: --fin-panel is the recessed working area,
+       --fin-panel-2 the raised card. Same roles as a light scheme with the lightness
+       order flipped, so cards read as above the surface rather than below it. */
+    --fin-bg: #0e0f11;
+    --fin-panel: #17181a;
+    /* Above the card: controls, and things that genuinely float (the chart's own type
+       menu). Same neutral family as the panels, so a menu never reads as a
+       differently-themed slab dropped on top of the app. */
+    --fin-elevated: #212327;
+    --fin-elevated-hover: #2b2e34;
+    /* Not used for any border here — this is what the grid's internal row rules resolve to. */
+    --fin-border: #2a2c30;
+    --fin-text: #e8e9ea;
+    --fin-muted: #8b9098;
+    /* Kept in step with the chart theme's up/down palette overrides, so grid cells
+       and candles read as the same green and red. */
     --fin-up: #10b981;
     --fin-down: #f43f5e;
-    --fin-accent: #388bfd;
+    /* Two blues: the bright one for accent text, markers and active icons, where it
+       has to carry against near-black; the deeper one for solid fills, where it has
+       to carry white text instead. */
+    --fin-accent: #4493f8;
+    --fin-accent-strong: #1f6feb;
+    --fin-on-accent: #ffffff;
+    /* The notice strip. */
+    --fin-notice: #1f6feb;
+    /* Categorical slots for the peer chart, bright enough to hold a 1px line on black. */
     --fin-chart-palette-0: #60a5fa;
     --fin-chart-palette-1: #f0a68c;
     --fin-chart-palette-2: #fbbf24;
@@ -24,9 +47,12 @@
     --fin-chart-palette-7: #a3e635;
     --fin-chart-palette-8: #e879f9;
     --fin-chart-palette-9: #2dd4bf;
+    /* Puts native scrollbars, and anything else the UA paints, on the dark scheme. */
+    color-scheme: dark;
     color: var(--fin-text);
     font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
     font-size: 12px;
+    font-variant-numeric: tabular-nums;
 }
 
 .fin-container {
@@ -36,6 +62,59 @@
     flex-direction: column;
     background: var(--fin-bg);
     overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Highlighted states in the chart's own chrome — the active/hovered toolbar button and
+   the active/focused row of the chart-type menu — both resolve from
+   `--ag-charts-focus-color`, which the theme derives as a mix of accentColor into the
+   background and so lands on a blue slab. A neutral lift off the menu's own surface
+   reads better; the accent-coloured label is what carries the state.
+
+   This has to be declared here rather than through the theme: `params.focusColor` is
+   rejected at runtime as an unknown option, and the chart writes the resolved value as
+   an *inline* custom property on its wrapper, which no rule on an ancestor can beat.
+   Declaring it on the toolbar and popover instead works because they are descendants
+   of that wrapper, so this shadows the inline value for their subtrees. */
+.fin-container .ag-charts-toolbar,
+.fin-container .ag-charts-popover {
+    --ag-charts-focus-color: var(--fin-elevated-hover);
+}
+
+/* ---- scrollbars ---- */
+/* `color-scheme: dark` alone leaves Chromium's default grey bars, which sit far too
+   light against a near-black panel. Firefox takes the standard properties; WebKit and
+   Chromium take the pseudo-elements. Applied to descendants too, so AG Grid's own
+   viewports are covered. */
+.fin-container,
+.fin-container *,
+.fin-portal * {
+    scrollbar-width: thin;
+    scrollbar-color: #3a3e44 transparent;
+}
+.fin-container ::-webkit-scrollbar,
+.fin-portal ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+.fin-container ::-webkit-scrollbar-track,
+.fin-container ::-webkit-scrollbar-corner,
+.fin-portal ::-webkit-scrollbar-track {
+    background: transparent;
+}
+.fin-container ::-webkit-scrollbar-thumb,
+.fin-portal ::-webkit-scrollbar-thumb {
+    background: #3a3e44;
+    border-radius: 6px;
+    /* A transparent border inset makes the thumb read as a rounded pill with breathing
+       room, without needing a painted track behind it. */
+    border: 2px solid transparent;
+    background-clip: content-box;
+}
+.fin-container ::-webkit-scrollbar-thumb:hover,
+.fin-portal ::-webkit-scrollbar-thumb:hover {
+    background: #4d525a;
+    background-clip: content-box;
 }
 
 /* ---- top toolbar ---- */
@@ -43,8 +122,10 @@
     display: flex;
     align-items: center;
     gap: 16px;
-    padding: 8px 14px;
-    background: var(--fin-panel);
+    padding: 0 14px;
+    height: 36px;
+    /* The raised panel tone, so the app header reads as chrome above the working area. */
+    background: var(--fin-bg);
     border-bottom: 1px solid var(--fin-border);
     flex: 0 0 auto;
 }
@@ -53,13 +134,11 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    color: var(--fin-accent);
-}
-
-.fin-brand-logo {
-    flex: none;
+    font-size: 14px;
+    font-weight: 650;
+    letter-spacing: -0.1px;
+    /* Deliberately ink, not accent — the header carries no brand colour. */
+    color: var(--fin-text);
 }
 
 .fin-up {
@@ -73,30 +152,50 @@
     flex: 1 1 auto;
 }
 
+/* Account block, separated from the clock by space rather than a rule. */
+.fin-account {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    padding-left: 10px;
+    white-space: nowrap;
+}
+.fin-account-label {
+    color: var(--fin-muted);
+}
+.fin-account-value {
+    font-weight: 650;
+    font-size: 13px;
+}
+
 /* ---- demo notice banner ---- */
 .fin-banner {
+    position: relative;
     display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 6px 14px;
-    background: color-mix(in srgb, var(--fin-accent) 12%, var(--fin-panel));
-    border-bottom: 1px solid var(--fin-border);
-    color: var(--fin-text);
+    gap: 10px;
+    margin: 8px 12px;
+    padding: 8px 40px 8px 12px;
+    background: var(--fin-notice);
+    color: #fff;
     font-size: 12px;
     flex: 0 0 auto;
 }
 
 .fin-banner-icon {
     flex: none;
-    color: var(--fin-accent);
+    color: #fff;
 }
 
 .fin-banner-text {
-    flex: 1 1 auto;
+    flex: 0 1 auto;
+    font-weight: 600;
 }
 
 .fin-banner-dismiss {
-    flex: none;
+    position: absolute;
+    top: 50%;
+    right: 9px;
+    transform: translateY(-50%);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -105,16 +204,17 @@
     padding: 0;
     border: none;
     background: transparent;
-    color: var(--fin-muted);
+    color: #fff;
     font: inherit;
     line-height: 1;
     cursor: pointer;
+    opacity: 0.85;
 }
 .fin-banner-dismiss:hover {
-    color: var(--fin-text);
+    opacity: 1;
 }
 .fin-banner-dismiss:focus-visible {
-    outline: 1px solid var(--fin-accent);
+    outline: 1px solid #fff;
     outline-offset: 1px;
 }
 
@@ -131,10 +231,6 @@
     min-height: 0;
 }
 
-.fin-sidebar-left {
-    border-right: 1px solid var(--fin-border);
-}
-
 .fin-main {
     display: flex;
     flex-direction: column;
@@ -143,14 +239,21 @@
     min-width: 0;
     overflow-y: auto;
     padding: 8px 12px;
-    background: var(--fin-panel);
+    background: var(--fin-bg);
 }
 
-/* The main financial chart fills the remaining viewport height; the sections
-   below it (gauges, peer charts) scroll into view. */
+/* The main financial chart fills the remaining viewport height; the sections below it
+   (gauges, peer charts) scroll into view. The floor covers the card's own header row as
+   well as the plot. Zero basis so the card is sized from free space rather than from a
+   content height the canvas cannot report until after layout — with `auto` it claimed
+   the column and left the saved-markets board pinned to its own floor. */
 .fin-main > .fin-detail-card {
-    flex: 1 1 auto;
-    min-height: 320px;
+    flex: 1 1 0;
+    /* With the saved board closed the chart gets more than this from free space, so the
+       floor only binds with the board open — where it is what decides how much room the
+       board can take. Low enough to let the board dominate, high enough that the plot
+       plus the card's own header row stay usable. */
+    min-height: 330px;
 }
 
 .fin-sidebar {
@@ -158,7 +261,7 @@
     flex-direction: column;
     min-height: 0;
     overflow-y: auto;
-    background: var(--fin-panel);
+    background: var(--fin-bg);
     padding: 8px 12px;
 }
 
@@ -167,8 +270,7 @@
 }
 
 .fin-section-title {
-    text-transform: uppercase;
-    letter-spacing: 0.6px;
+    margin: 0 0 4px;
     font-size: 11px;
     color: var(--fin-text);
 }
@@ -184,21 +286,16 @@
     height: 26px;
     padding: 0 8px;
     border-radius: 0;
-    border: 1px solid var(--fin-border);
-    background: var(--fin-panel-2);
+    background: var(--fin-elevated);
     color: var(--fin-text);
     cursor: pointer;
     font: inherit;
     user-select: none;
-    transition:
-        background 0.12s ease,
-        border-color 0.12s ease;
+    transition: background 0.12s ease;
 }
-.fin-btn:hover {
-    border-color: var(--fin-accent);
-}
+.fin-btn:hover,
 .fin-btn[data-state='open'] {
-    border-color: var(--fin-accent);
+    background: var(--fin-elevated-hover);
 }
 
 /* ---- radix Select ---- */
@@ -218,11 +315,11 @@
 }
 .fin-select-content {
     z-index: 60;
-    background: var(--fin-panel-2);
-    border: 1px solid var(--fin-border);
+    background: var(--fin-elevated);
     border-radius: 0;
     padding: 4px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+    /* A menu genuinely floats, so it earns the one elevation in the app. */
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
 }
 .fin-select-item {
     all: unset;
@@ -235,14 +332,13 @@
     color: var(--fin-text);
 }
 .fin-select-item[data-highlighted] {
-    background: var(--fin-accent);
-    color: #fff;
+    background: var(--fin-accent-strong);
+    color: var(--fin-on-accent);
 }
 
 /* ---- radix ToggleGroup ---- */
 .fin-toggle-group {
     display: inline-flex;
-    border: 1px solid var(--fin-border);
     border-radius: 0;
     overflow: hidden;
 }
@@ -254,14 +350,15 @@
     align-items: center;
     cursor: pointer;
     color: var(--fin-muted);
-    border-left: 1px solid var(--fin-border);
+    background: var(--fin-elevated);
+    margin-left: 1px;
 }
-.fin-toggle-item:first-child {
-    border-left: none;
+.fin-toggle-item:hover {
+    color: var(--fin-text);
 }
 .fin-toggle-item[data-state='on'] {
-    background: var(--fin-panel-2);
-    color: var(--fin-text);
+    background: var(--fin-accent-strong);
+    color: var(--fin-on-accent);
 }
 
 .fin-title-bar {
@@ -270,6 +367,12 @@
     justify-content: space-between;
     gap: 8px 16px;
     flex-wrap: wrap;
+}
+/* Inside the chart card the header is part of the same component; spacing alone
+   separates it from the plot. */
+.fin-chart-card > .fin-title-bar {
+    flex: 0 0 auto;
+    margin-bottom: 10px;
 }
 .fin-title-controls {
     display: flex;
@@ -305,8 +408,7 @@
         left: 0;
         z-index: 90;
         width: min(320px, 85vw);
-        border-right: 1px solid var(--fin-border);
-        box-shadow: 0 0 40px rgba(0, 0, 0, 0.6);
+        box-shadow: 0 0 40px rgba(0, 0, 0, 0.7);
         transform: translateX(-100%);
         transition: transform 0.2s ease;
     }
@@ -318,7 +420,7 @@
         position: fixed;
         inset: 0;
         z-index: 80;
-        background: rgba(0, 0, 0, 0.55);
+        background: rgba(0, 0, 0, 0.6);
     }
     .fin-drawer-toggle {
         display: inline-flex;
@@ -338,7 +440,16 @@
 }
 .fin-quote-symbol {
     font-size: 16px;
-    font-weight: 700;
+    font-weight: 650;
+}
+/* The quote header's badge is scaled up for the heading, and centres on the line: the
+   row is baseline-aligned so the price and change sit on one baseline, but a circle
+   dropped onto that baseline rides visibly high. */
+.fin-quote .fin-ticker-badge {
+    align-self: center;
+    width: 21px;
+    height: 21px;
+    font-size: 11px;
 }
 .fin-quote-price {
     font-size: 16px;
@@ -349,22 +460,23 @@
     min-height: 0;
 }
 
-/* Cards that hold a chart or a gauge share the same panel framing. */
+/* Cards that hold a chart or a gauge share the same panel framing: a raised surface
+   on the recessed working area, with no outline. */
 .fin-detail-card {
-    background: var(--fin-panel-2);
-    border: 1px solid var(--fin-border);
+    background: var(--fin-panel);
     padding: 12px;
     min-width: 0;
 }
 
+/* Sentence case, matching .fin-section-title. Uppercasing here also shouted the value
+   on the right ("BUY", "65% POSITIVE"), which is data rather than a label. */
 .fin-detail-card-title {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    text-transform: uppercase;
-    letter-spacing: 0.6px;
     font-size: 11px;
-    color: var(--fin-text);
+    font-weight: 600;
+    color: var(--fin-muted);
 }
 
 .fin-detail-card-title .fin-value {
@@ -410,6 +522,69 @@
     }
 }
 
+/* ---- market identity badge ---- */
+/* A small coloured initial before a market's name, so a long board can be scanned by
+   shape and colour rather than by reading every row. Colour slot is assigned by
+   hashing the ticker (see TickerCell.tsx) — keep the slot count in step with it. */
+.fin-ticker {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+}
+.fin-ticker-badge {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--fin-elevated);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 600;
+    line-height: 1;
+}
+.fin-ticker-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+/* On the accent-filled selected row a blue-ish badge would sink into the fill, so ring
+   it — that keeps every slot separated without giving up its identity colour. */
+.fin-grid-active .fin-ticker-badge {
+    box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.9);
+}
+/* Vibrant mid-tones rather than the darker inks a text colour would need: the initial
+   is decorative (aria-hidden, and the ticker it abbreviates is right beside it), so
+   these are tuned for identity at a glance rather than for text contrast. */
+.fin-ticker-badge[data-avatar='0'] {
+    background: #2b80de;
+}
+.fin-ticker-badge[data-avatar='1'] {
+    background: #f57c1f;
+}
+.fin-ticker-badge[data-avatar='2'] {
+    background: #10a396;
+}
+.fin-ticker-badge[data-avatar='3'] {
+    background: #7c56e0;
+}
+.fin-ticker-badge[data-avatar='4'] {
+    background: #e33a72;
+}
+.fin-ticker-badge[data-avatar='5'] {
+    background: #1cae57;
+}
+.fin-ticker-badge[data-avatar='6'] {
+    background: #dfa20d;
+}
+.fin-ticker-badge[data-avatar='7'] {
+    background: #0d97cb;
+}
+
 /* ---- watchlist + trending (AG Grid) ---- */
 /* Sparkline trend cell: let the chart fill the full cell box. */
 .fin-sparkline-col {
@@ -429,7 +604,10 @@
 }
 .fin-watchlist-grid .ag-row.fin-grid-active,
 .fin-trending-grid .ag-row.fin-grid-active {
-    box-shadow: inset 2px 0 0 var(--fin-accent);
+    box-shadow:
+        inset 4px 0 0 0 var(--fin-accent),
+        inset 0 0 0 1px var(--fin-accent);
+    background: rgba(68, 147, 248, 0.12);
 }
 /* Keyboard focus only (:focus-visible): ring the whole row rather than the cell.
    A mouse click focuses a cell too, but :focus-visible won't match, so pointer
@@ -438,6 +616,14 @@
 .fin-trending-grid .ag-row:has(.ag-cell:focus-visible) {
     outline: 1px solid var(--fin-accent);
     outline-offset: -1px;
+}
+/* First column carries the row's identity: indent it from the card edge, which the
+   4px global cell padding doesn't provide. Header included so the label lines up. */
+.fin-watchlist-grid .ag-header-cell:first-child,
+.fin-watchlist-grid .ag-cell:first-child,
+.fin-trending-grid .ag-header-cell:first-child,
+.fin-trending-grid .ag-cell:first-child {
+    padding-left: 8px;
 }
 .fin-watchlist-grid .fin-grid-active .ag-cell:first-child,
 .fin-trending-grid .fin-grid-active .ag-cell:first-child {

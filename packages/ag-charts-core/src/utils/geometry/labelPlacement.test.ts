@@ -590,6 +590,39 @@ describe('placeLabels', () => {
         expect(result!.placement === 'top' || result!.placement === 'bottom').toBe(true);
     });
 
+    describe('kept candidate when every placement collides', () => {
+        // The label sits at (300, 200) with a 100x20 box and a 10px gap, so its `top` candidate spans
+        // x 250..350 / y 165..185 and its `left` candidate x 185..285 / y 190..210.
+        const buriedDatum = (): PointLabelDatum => ({
+            point: { x: 300, y: 200, size: 0 },
+            label: { text: 'A', width: 100, height: 20 },
+            anchor: undefined,
+            placement: 'top',
+            placements: ['top', 'left'],
+            gap: 10,
+            alwaysShow: true,
+        });
+
+        const keptPlacement = (box: BoxBounds) => {
+            const datum = buriedDatum();
+            const obstacle: LabelObstacle = { kind: 'rect', box, category: 'label' };
+            const placed = placeLabels(new Map([['s', seriesLabels([datum])]]), bounds, 5, [obstacle]).get('s')!;
+            const result = placed.find((l) => l.datum === datum);
+            expect(result).toBeDefined();
+            return result!.placement;
+        };
+
+        it('keeps the least buried candidate, not the first one', () => {
+            // Buries `top` under the whole 100x20 box while only grazing `left` by 35x1.
+            expect(keptPlacement({ x: 250, y: 165, width: 100, height: 26 })).toBe('left');
+        });
+
+        it('keeps the first candidate when it is the least buried', () => {
+            // The mirror case: `left` is the deeply buried one, so the cascade stays at `top`.
+            expect(keptPlacement({ x: 185, y: 184, width: 100, height: 26 })).toBe('top');
+        });
+    });
+
     it('takes a single placement unconditionally with avoidance off, even when it overflows', () => {
         // Single-candidate labels keep the fast path: the first (only) placement is used as-is,
         // never bounds-clipped and never cascaded.
@@ -2218,5 +2251,96 @@ describe('placeLabels candidate styles', () => {
         const placed = place([bounded], styled.resolve)[0];
         expect(placed.text).toBe('W…');
         expect(placed.width).toBe(40);
+    });
+});
+
+describe('placeLabels collision shrink', () => {
+    const bounds: BoxBounds = { x: 0, y: 0, width: 400, height: 400 };
+    const FONT = { fontSize: 12, fontFamily: 'sans-serif' };
+    const TEXT = 'WWWWW';
+    const NO_PADDING = { top: 0, right: 0, bottom: 0, left: 0 };
+
+    /** A `TEXT` label anchored above `x`, free to shrink to `minimumFontSize` to clear an obstacle. */
+    const shrinkable = (x: number, overrides: Partial<PointLabelDatum> = {}): PointLabelDatum => ({
+        point: { x, y: 200, size: 0 },
+        label: { text: TEXT, width: 50, height: 20 },
+        fit: {
+            text: TEXT,
+            policy: { minimumFontSize: 6 },
+            font: FONT,
+            boxPadding: NO_PADDING,
+            boundByRegion: false,
+        },
+        anchor: undefined,
+        placement: 'top',
+        gap: 0,
+        alwaysShow: false,
+        ...overrides,
+    });
+
+    const place = (datums: PointLabelDatum[], obstacles: LabelObstacle[] = []) =>
+        placeLabels(new Map([['s', seriesLabels(datums)]]), bounds, 0, obstacles).get('s')!;
+
+    // Blocks everything left of x=180, so a 50px-wide label centred on x=200 overlaps it and a narrow
+    // enough one does not.
+    const leftBlocker: LabelObstacle = {
+        kind: 'rect',
+        box: { x: 100, y: 180, width: 80, height: 20 },
+        category: 'label',
+    };
+
+    it('shrinks a colliding label to the largest size that clears its obstacle', () => {
+        const [placed] = place([shrinkable(200)], [leftBlocker]);
+        // 10px still measures 41.7px wide and overlaps; 9px measures 37.5px and clears.
+        expect(placed.fontSize).toBe(9);
+        expect(placed.width).toBeCloseTo(37.5);
+        expect(placed.text).toBe(TEXT);
+    });
+
+    it('drops the label when it would still collide at minimumFontSize', () => {
+        const wide: LabelObstacle = {
+            kind: 'rect',
+            box: { x: 100, y: 180, width: 105, height: 20 },
+            category: 'label',
+        };
+        expect(place([shrinkable(200)], [wide])).toEqual([]);
+    });
+
+    it('does not shrink a label that places cleanly at its configured size', () => {
+        const [placed] = place([shrinkable(200)]);
+        expect(placed.fontSize).toBeUndefined();
+        expect(placed.width).toBe(50);
+    });
+
+    it('does not shrink a label whose fit carries no minimumFontSize', () => {
+        const datum = shrinkable(200, {
+            fit: { text: TEXT, policy: {}, font: FONT, boxPadding: NO_PADDING, boundByRegion: false },
+        });
+        expect(place([datum], [leftBlocker])).toEqual([]);
+    });
+
+    it('does not shrink a label carrying no fit descriptor at all', () => {
+        expect(place([shrinkable(200, { fit: undefined })], [leftBlocker])).toEqual([]);
+    });
+
+    it('keeps the full-size fallback when no size clears and the label is kept', () => {
+        const wide: LabelObstacle = {
+            kind: 'rect',
+            box: { x: 100, y: 180, width: 105, height: 20 },
+            category: 'label',
+        };
+        const [placed] = place([shrinkable(200, { alwaysShow: true })], [wide]);
+        expect(placed.fontSize).toBeUndefined();
+        expect(placed.width).toBe(50);
+    });
+
+    it('blocks a later label by the shrunken box rather than the full-size one', () => {
+        // The first label shrinks to 37.5px wide, so its box ends at x=218.75. A second label whose own
+        // box starts at x=220 clears that, where the unshrunk 50px box (ending at x=225) would not.
+        const placed = place([shrinkable(200), shrinkable(245)], [leftBlocker]);
+        expect(placed).toHaveLength(2);
+        expect(placed[0].fontSize).toBe(9);
+        expect(placed[1].fontSize).toBeUndefined();
+        expect(placed[1].x).toBeCloseTo(220);
     });
 });

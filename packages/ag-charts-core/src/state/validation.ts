@@ -97,6 +97,18 @@ export interface ValidateParams {
      */
     logger: Logger;
     /**
+     * Reports an error caught by {@link safeCall} while invoking a user callback, alongside the
+     * console `warnOnce`. Lets a chart surface a swallowed callback failure (which never reaches
+     * `tryPerformUpdate`'s catch) on the validation overlay without core depending on the collector.
+     */
+    onCallbackError?: (error: unknown, errorPath: string) => void;
+    /**
+     * Reports a deprecated option encountered by {@link deprecated}, alongside the console
+     * `deprecationOnce`. Lets a chart surface deprecations on the validation overlay (severity
+     * `deprecation`) without core depending on the collector.
+     */
+    onDeprecation?: (message: string, path: string) => void;
+    /**
      * Skip required-field and discriminant enforcement on nodes with `enabled: false`. The second
      * validation pass in `optionsModule` opts in: `removeDisabledOptions` has by then stripped a
      * disabled node down to `{ enabled: false }`, so re-validating it would warn about the
@@ -110,13 +122,6 @@ export interface ValidateParams {
      * positive.
      */
     silentAdvisories?: boolean;
-    /**
-     * Sink for the advisory issues validators emit directly rather than returning as
-     * `ValidationError`s, so that they reach the chart's issue collector as well as the console.
-     * Optional so a chart-less caller can omit it. Typed structurally because this package sits
-     * below both `ag-charts-types` and `ag-charts-community` in the build chain.
-     */
-    recordIssue?: (issue: { severity: 'error' | 'warning' | 'deprecation'; message: string; code?: string }) => void;
 }
 
 export enum ErrorType {
@@ -417,9 +422,9 @@ export function enterprise<T extends Validator | OptionsDefs<any>>(validatorOrDe
         if (value !== undefined && !isEnterprise()) {
             // Fire warnOnce directly rather than returning a ValidationError — the enterprise
             // gate is static within a session, so logging on every validate pass would spam.
-            const message = new ValidationError(ErrorType.Enterprise, description, value, context.path).toString();
-            context.params.logger.warnOnce(message);
-            context.params.recordIssue?.({ severity: 'warning', message, code: context.path || undefined });
+            context.params.logger.warnOnce(
+                new ValidationError(ErrorType.Enterprise, description, value, context.path).toString()
+            );
             return { valid: true, cleared: null, invalid: [] };
         }
         return inner(value, context);
@@ -445,11 +450,7 @@ export function deprecated<T extends Validator | OptionsDefs<any>>(validatorOrDe
         if (value !== undefined && !context.params?.silentAdvisories) {
             const notice = `Option \`${context.path}\` is deprecated. ${message}`;
             context.params.logger.deprecationOnce(notice);
-            context.params.recordIssue?.({
-                severity: 'deprecation',
-                message: notice,
-                code: context.path || undefined,
-            });
+            context.params.onDeprecation?.(notice, context.path);
         }
         return inner(value, context);
     };
@@ -791,7 +792,13 @@ export const callbackOf = (validator: Validator, description?: string) =>
 
         const cbWithValidation = Object.assign(
             (...args: any[]) => {
-                const result = safeCall(value, args, context.params.logger);
+                const result = safeCall(
+                    value,
+                    args,
+                    context.params.logger,
+                    context.path,
+                    context.params.onCallbackError
+                );
                 if (result == null) return;
                 const validatorResult = validator(result, { options: result, path: '', params: context.params });
                 if (typeof validatorResult === 'object') {
@@ -822,7 +829,13 @@ export const callbackDefs = <T>(defs: OptionsDefs<T>, description = 'an object')
 
         const cbWithValidation = Object.assign(
             (...args: any[]) => {
-                const result = safeCall(value, args, context.params.logger, context.path);
+                const result = safeCall(
+                    value,
+                    args,
+                    context.params.logger,
+                    context.path,
+                    context.params.onCallbackError
+                );
                 if (result == null) return;
                 const validatorResult = validate(result, defs, context.path, context.params);
                 warnCallbackErrors(validatorResult, context, validatorDescription);

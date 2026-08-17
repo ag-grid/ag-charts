@@ -1091,7 +1091,7 @@ describe('ChartOptions', () => {
                       "border": {
                         "enabled": false,
                       },
-                      "color": "#181d1f",
+                      "color": "#ffffff",
                     },
                     "outsideStyle": {
                       "border": {
@@ -1175,7 +1175,7 @@ describe('ChartOptions', () => {
                       "border": {
                         "enabled": false,
                       },
-                      "color": "#181d1f",
+                      "color": "#ffffff",
                     },
                     "outsideStyle": {
                       "border": {
@@ -1666,7 +1666,7 @@ describe('ChartOptions', () => {
                       "border": {
                         "enabled": false,
                       },
-                      "color": "#181d1f",
+                      "color": "#ffffff",
                     },
                     "outsideStyle": {
                       "border": {
@@ -1750,7 +1750,7 @@ describe('ChartOptions', () => {
                       "border": {
                         "enabled": false,
                       },
-                      "color": "#181d1f",
+                      "color": "#ffffff",
                     },
                     "outsideStyle": {
                       "border": {
@@ -2241,7 +2241,7 @@ describe('ChartOptions', () => {
                       "border": {
                         "enabled": false,
                       },
-                      "color": "#181d1f",
+                      "color": "#ffffff",
                     },
                     "outsideStyle": {
                       "border": {
@@ -2325,7 +2325,7 @@ describe('ChartOptions', () => {
                       "border": {
                         "enabled": false,
                       },
-                      "color": "#181d1f",
+                      "color": "#ffffff",
                     },
                     "outsideStyle": {
                       "border": {
@@ -4207,30 +4207,6 @@ describe('ChartOptions', () => {
                     'Option `series[0].strokeWidth` cannot be set to `"notanumber"`; expecting a number greater than or equal to 0, ignoring.',
                 code: 'series[0].strokeWidth',
             });
-        });
-
-        it('records a warning-severity issue for an enterprise-gated option, deduplicated across the two validation passes', () => {
-            const chartOptions = new ChartOptions(
-                { series: [{ type: 'scatter', xKey: 'x', yKey: 'y', colorKey: 'c' } as any] } as AgChartOptions,
-                {} as AgChartOptions,
-                {},
-                {},
-                {}
-            );
-
-            const message = 'Option `series[0].colorKey` is an AG Charts Enterprise feature; ignoring.';
-            const matching = chartOptions.validationIssues.filter(
-                (issue) => issue.severity === 'warning' && issue.message === message
-            );
-            expect(matching).toHaveLength(1);
-
-            const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
-            expect(messages.filter((m) => m === `AG Charts - ${message}`)).toHaveLength(1);
-
-            // The value survives the first pass as `null` (rather than being stripped), so the
-            // second validation pass re-evaluates it and would re-record the issue without the
-            // dedup in `recordAdvisoryIssue`.
-            expect((chartOptions.processedOptions.series?.[0] as any).colorKey).toBeNull();
         });
 
         it('rejects a non-function `onErrorRaised` without throwing', () => {

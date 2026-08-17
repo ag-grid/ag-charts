@@ -36,6 +36,14 @@ In this example:
 - The RTL text in the title and subtitle wrap and truncate on the left.
 - The legend layout is mirrored as is the series order in the chart.
 - The tooltip and context menu layout are mirrored.
+- Both series have negative months, and those values keep their sign on the left in every language.
+- Tooltips use `mode: 'single'`. Sales growth uses the default tooltip, net profit a custom `renderer` that wraps its own number.
+
+## Numbers
+
+Numbers keep their left-to-right reading order in RTL mode, so the negative labels in the example above render as `-30` rather than `30-`. This covers the sign, the decimal and group separators, and any unit attached to the value, such as `-12.5 kg`. Text surrounding a number still reads right-to-left.
+
+The same ordering applies to axis and series labels, tooltips and crosshair labels, including any text a `formatter` returns. HTML returned from a `renderer` is inserted exactly as supplied and is never modified, so wrap numbers in it with `U+202A` and `U+202C` as the example does.
 
 ## Axis Layout
 

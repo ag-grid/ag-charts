@@ -18,6 +18,7 @@ import type {
     SeriesAreaClickEvent,
     SeriesAreaContextMenuEvent,
     SeriesAreaHoverEvent,
+    SeriesAreaPointerClickEvent,
     SeriesKeyNavPanXEvent,
     UpdateOpts,
     ZoomChangeCompleteEvent,
@@ -30,7 +31,6 @@ import type { TranslatableGroup } from '../../scene/group';
 import type { Node as SceneNode } from '../../scene/node';
 import { Transformable } from '../../scene/transformable';
 import { BaseManager } from '../../util/baseManager';
-import type { TypedEvent } from '../../util/observable';
 import { debouncedAnimationFrame } from '../../util/render';
 import type { Widget } from '../../widget/widget';
 import type {
@@ -65,7 +65,8 @@ import {
     type SeriesNodePickIntent,
     type UnknownSeries,
 } from './series';
-import { type DatumIndex, SelectionState, type SeriesNodeDatum } from './seriesTypes';
+import type { DatumIndex, FireNodeEventParams, SeriesNodeDatum } from './seriesTypes';
+import { SelectionState } from './seriesTypes';
 import { getDatumRefPoint } from './util';
 
 type FocusAnnounceMode = 'always' | 'never' | 'when-changed';
@@ -100,7 +101,6 @@ type FindPickedNodesResult = PickedNodes | 'series-hidden' | undefined;
 export interface SeriesAreaChartDependencies {
     hasViewportSupport(): boolean;
     hasPgUpPgDownSupport(): boolean;
-    fireEvent<TEvent extends TypedEvent>(event: TEvent): void;
     getUpdateType(): ChartUpdateType;
     getTooltipContent: (
         series: PickedNode['series'],
@@ -607,8 +607,7 @@ export class SeriesAreaManager extends BaseManager {
             const found = matches?.[0];
             if (
                 (found?.series.isSelectionEnabled() && found?.series.isDatumSelectable(found.datumIndex)) ||
-                found?.series.hasEventListener('seriesNodeClick') ||
-                found?.series.hasEventListener('seriesNodeDoubleClick') ||
+                found?.series.hasNodeClickListener() ||
                 found?.series.hasBuiltinListener(pick?.target) ||
                 (matches != null && matches.length > 1 && this.chart.tooltip.pagination)
             ) {
@@ -668,6 +667,10 @@ export class SeriesAreaManager extends BaseManager {
         }
 
         if (isSeriesWidget) {
+            // Emitted before the node-click check so a cross line drawn over a series node still
+            // reports the click, matching how the context-menu dispatch offers both regions at once.
+            this.emitSeriesAreaPointerClickEvent(event, current);
+
             const clicked = this.checkSeriesNodeClick(event);
             if (clicked) {
                 this.emitSeriesAreaClickEvent(event, true, clicked.node, clicked.target);
@@ -686,13 +689,23 @@ export class SeriesAreaManager extends BaseManager {
         const newEvent = { type, event: event.sourceEvent, coordinates } satisfies
             | CallbackParamRules<AgChartClickEvent>
             | CallbackParamRules<AgChartDoubleClickEvent>;
-        this.chart.fireEvent(newEvent);
+        this.chart.ctx.chartService.callListener(newEvent);
     }
 
     private emitSeriesAreaHoverEvent(event: HoverLikeEvent, consumed: boolean): void {
         const { canvasX, canvasY } = this.toCanvasCoordinates(event);
         const payload: SeriesAreaHoverEvent = { canvasX, canvasY, consumed, sourceEvent: event.sourceEvent };
         this.chart.ctx.eventsHub.emit('series-area:hover', payload);
+    }
+
+    private emitSeriesAreaPointerClickEvent(event: ClickLikeEvent, current: Widget): void {
+        const payload: SeriesAreaPointerClickEvent = {
+            type: event.type,
+            canvasX: event.currentX + current.cssLeft(),
+            canvasY: event.currentY + current.cssTop(),
+            sourceEvent: event.sourceEvent,
+        };
+        this.chart.ctx.eventsHub.emit('series-area:pointer-click', payload);
     }
 
     private emitSeriesAreaClickEvent(
@@ -841,7 +854,13 @@ export class SeriesAreaManager extends BaseManager {
                 this.chart.ctx.chartService,
                 datum
             );
-            const defaultBehavior = series.fireNodeClickEvent(sourceEvent, datum, coordinates);
+            // Keyboard nav activates exactly one datum: single-entry list, winner is index 0.
+            const defaultBehavior = series.fireNodeClickEvent({
+                event: sourceEvent,
+                datums: [datum],
+                winner: 0,
+                coordinates,
+            });
             if (defaultBehavior) {
                 const syntheticEvent: KeyboardSyntheticMouseWidgetEvent = {
                     type: 'click',
@@ -852,11 +871,7 @@ export class SeriesAreaManager extends BaseManager {
                 this.update(ChartUpdateType.SERIES_UPDATE);
             }
         } else {
-            this.chart.fireEvent<CallbackParamRules<AgChartClickEvent>>({
-                type: 'click',
-                event: sourceEvent,
-                coordinates: undefined,
-            });
+            this.chart.ctx.chartService.callListener({ type: 'click', event: sourceEvent, coordinates: undefined });
         }
     }
 
@@ -886,9 +901,20 @@ export class SeriesAreaManager extends BaseManager {
         // interaction via the `series-area:click` event emitted by the caller, but must not also
         // reach the user's node click / double-click listeners (AG-17947).
         const firesUserClickListeners = updated.active.series.firesUserClickListeners(pickedNodes.target);
+
+        // `matches` is the flat, hit-test-ordered pick, spanning every series that overlapped the point.
+        // `updated.active` is pickManager's chosen candidate, which is not necessarily matches[0].
+        const { matches } = pickedNodes;
+        const nodeEventOpts: FireNodeEventParams = {
+            event: event.sourceEvent,
+            datums: matches,
+            winner: matches.indexOf(updated.active),
+            coordinates,
+        };
+
         if (event.type === 'click') {
             const defaultBehavior = firesUserClickListeners
-                ? updated.active.series.fireNodeClickEvent(event.sourceEvent, updated.active, coordinates)
+                ? updated.active.series.fireNodeClickEvent(nodeEventOpts)
                 : true;
             if (defaultBehavior) {
                 const next = this.pickManager.nextCandidate();
@@ -898,6 +924,9 @@ export class SeriesAreaManager extends BaseManager {
                     this.highlight.pendingHoverEvent ??= this.highlight.appliedHoverEvent;
                     this.handleHoverHighlight(false, {
                         active,
+                        // The pointer has not moved, so the part it is over is the one just clicked —
+                        // pass it on, or a click on a control would drop that control's hover state.
+                        target: pickedNodes.target,
                         defaultCb: () => {
                             this.showTooltip(active, canvasX, canvasY, next.paginationState);
                         },
@@ -917,7 +946,7 @@ export class SeriesAreaManager extends BaseManager {
             event.preventZoomDblClick = distance === 0;
 
             if (firesUserClickListeners) {
-                updated.active.series.fireNodeDoubleClickEvent(event.sourceEvent, updated.active, coordinates);
+                updated.active.series.fireNodeDoubleClickEvent(nodeEventOpts);
             }
             return { node: updated.active, target: pickedNodes.target };
         } else {
@@ -1355,7 +1384,10 @@ export class SeriesAreaManager extends BaseManager {
         });
     }
 
-    private handleHoverHighlight(redisplay: boolean, opts?: { active: PickedNode; defaultCb: () => void }) {
+    private handleHoverHighlight(
+        redisplay: boolean,
+        opts?: { active: PickedNode; target?: SceneNode<unknown>; defaultCb: () => void }
+    ) {
         this.highlight.appliedHoverEvent = this.highlight.pendingHoverEvent;
         this.highlight.pendingHoverEvent = undefined;
 
@@ -1371,9 +1403,9 @@ export class SeriesAreaManager extends BaseManager {
         const { range } = this.chart.highlight;
         const intent = range === 'tooltip' ? 'highlight-tooltip' : 'highlight';
 
-        const active: PickedNode | undefined =
-            opts?.active ??
-            this.pickManager.onPickedNodesHighlight(this.pickNodes({ x: event.currentX, y: event.currentY }, intent));
+        const pickedNodes =
+            opts?.active == null ? this.pickNodes({ x: event.currentX, y: event.currentY }, intent) : undefined;
+        const active: PickedNode | undefined = opts?.active ?? this.pickManager.onPickedNodesHighlight(pickedNodes);
 
         if (active === undefined) {
             this.pickManager.maybeActivate(undefined, () => {
@@ -1381,8 +1413,12 @@ export class SeriesAreaManager extends BaseManager {
                 opts?.defaultCb();
             });
         } else {
+            // The topmost scene node under the pointer only survives as far as `PickedNodes`; a series
+            // that renders several parts per node names the one that was hit, so the highlight can
+            // carry it (e.g. the org-chart expander pill versus the card behind it).
+            const highlightPart = active.series.getHighlightPart(opts?.target ?? pickedNodes?.target);
             this.pickManager.maybeActivate(active, () => {
-                this.chart.ctx.highlightManager.updateHighlight(this.id, active, false);
+                this.chart.ctx.highlightManager.updateHighlight(this.id, active, false, undefined, highlightPart);
                 opts?.defaultCb();
             });
         }

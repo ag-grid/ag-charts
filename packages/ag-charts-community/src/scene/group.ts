@@ -317,7 +317,12 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
             counts.nonGroups > 0 &&
             this.getVisibility()
         ) {
-            this.layer ??= this.layerManager?.addLayer({ name: this.name });
+            if (this.layer == null) {
+                this.layer = this.layerManager?.addLayer({ name: this.name });
+                // Detaching from the scene destroys the layer, so a clean group can arrive here with
+                // a fresh, empty one - it has to be rendered into before it is composited.
+                this.dirty ||= this.layer != null;
+            }
         } else if (this.layer != null) {
             this.layerManager?.removeLayer(this.layer);
             this.layer = undefined;

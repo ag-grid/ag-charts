@@ -17,12 +17,22 @@
 #   GH_TOKEN            required   token with contents:write on the publish branch
 #   GITHUB_REPOSITORY   required   owner/repo — set by the Actions runner
 #   MODE                required   'sync' (publish files) | 'remove' (delete subtree)
-#   TARGET_PREFIX       required   subtree owned by this operation, e.g. 'pr-123'
+#   TARGET_PREFIX       required   path(s) owned by this operation, e.g. 'pr-123'. MODE=remove
+#                                  accepts a whitespace-separated list so a sweep (e.g. reclaiming
+#                                  many stale previews at once) lands as ONE push: GitHub Pages
+#                                  rebuilds the whole site per push and its branch builds are
+#                                  single-flight, so N pushes cost N cancelling builds. Paths must
+#                                  not contain whitespace. MODE=sync requires exactly one.
 #   COMMIT_MESSAGE      required   commit message
 #   SOURCE_DIR          sync only  directory whose contents overlay TARGET_PREFIX/
 #   PUBLISH_BRANCH      optional   default 'gh-pages'
 #   MAX_ATTEMPTS        optional   default 5
 #   PUBLISH_REMOTE      optional   overrides the derived github.com remote (tests only)
+#
+# Outputs (when GITHUB_OUTPUT is set):
+#   commit_sha          the branch tip carrying this operation's content. Callers that address the
+#                       published files by immutable commit (e.g. a raw.githubusercontent.com URL)
+#                       need this — the branch name alone is served with a cache TTL and can move.
 set -euo pipefail
 
 : "${GH_TOKEN:?GH_TOKEN is required}"
@@ -34,9 +44,27 @@ PUBLISH_BRANCH="${PUBLISH_BRANCH:-gh-pages}"
 MAX_ATTEMPTS="${MAX_ATTEMPTS:-5}"
 REMOTE="${PUBLISH_REMOTE:-https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git}"
 
+# Unquoted on purpose: TARGET_PREFIX is a whitespace-separated list in remove mode. `set -f` is
+# load-bearing — an unquoted expansion also globs, and it globs against the CALLER's directory
+# before the safety validation below runs, so a path containing `*` or `?` would silently become
+# a set of unrelated real paths that then pass validation and get rm -rf'd.
+set -f
+# shellcheck disable=SC2206
+TARGET_PREFIXES=($TARGET_PREFIX)
+set +f
+
 case "$MODE" in
-    sync) : "${SOURCE_DIR:?SOURCE_DIR is required for MODE=sync}" ;;
-    remove) ;;
+    sync)
+        : "${SOURCE_DIR:?SOURCE_DIR is required for MODE=sync}"
+        if [ "${#TARGET_PREFIXES[@]}" -ne 1 ]; then
+            echo "::error::MODE=sync takes exactly one TARGET_PREFIX (got ${#TARGET_PREFIXES[@]})."; exit 1
+        fi
+        ;;
+    remove)
+        if [ "${#TARGET_PREFIXES[@]}" -eq 0 ]; then
+            echo "TARGET_PREFIX is empty; nothing to remove."; exit 0
+        fi
+        ;;
     *) echo "::error::MODE must be 'sync' or 'remove' (got '$MODE')"; exit 1 ;;
 esac
 
@@ -72,15 +100,33 @@ cd "$TMP"
 git config user.name 'github-actions[bot]'
 git config user.email 'github-actions[bot]@users.noreply.github.com'
 
+# Report the tip that carries this operation's content, for callers that address published files by
+# commit rather than by branch name.
+emit_commit_sha() {
+    [ -n "${GITHUB_OUTPUT:-}" ] || return 0
+    echo "commit_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+}
+
 apply_operation() {
     if [ "$MODE" = sync ]; then
         mkdir -p "$TARGET_PREFIX"
         cp -R "$SOURCE_DIR"/. "$TARGET_PREFIX"/
         touch .nojekyll # disable Jekyll for the whole Pages site
     else
-        rm -rf -- "$TARGET_PREFIX"
+        for p in "${TARGET_PREFIXES[@]}"; do
+            rm -rf -- "$p"
+        done
     fi
 }
+
+# These paths are deleted with rm -rf inside a clone of the publish branch. Reject anything
+# that could escape it or resolve to the clone root before that happens.
+for p in "${TARGET_PREFIXES[@]}"; do
+    case "$p" in
+        /* | */../* | ../* | */.. | .. | . | '')
+            echo "::error::refusing unsafe TARGET_PREFIX entry: '$p'"; exit 1 ;;
+    esac
+done
 
 attempt=1
 while :; do
@@ -97,13 +143,17 @@ while :; do
 
     git add -A
     if git diff --cached --quiet; then
+        # Identical content is already on the branch, so HEAD (the tip we just fetched) serves it.
+        # Still an addressable result, so still report a sha.
         echo "No changes to '$TARGET_PREFIX' on '$PUBLISH_BRANCH'; nothing to commit."
+        emit_commit_sha
         exit 0
     fi
     git commit --quiet -m "$COMMIT_MESSAGE"
 
     if git push --quiet origin "HEAD:$PUBLISH_BRANCH"; then
         echo "Published '$TARGET_PREFIX' to '$PUBLISH_BRANCH' (attempt $attempt/$MAX_ATTEMPTS)."
+        emit_commit_sha
         exit 0
     fi
 

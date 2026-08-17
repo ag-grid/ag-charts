@@ -26,6 +26,7 @@ import {
     spyOnAnimationFrames,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { classCast } from 'ag-charts-test';
 
 import {
     funnelLabelFadeIn,
@@ -34,6 +35,8 @@ import {
     prepareEnterpriseTestOptions,
     renderEnterpriseChartImage,
 } from '../../test/utils';
+import { FunnelConnector } from './funnelConnector';
+import { FunnelSeries } from './funnelSeries';
 
 const FUNNEL_EXAMPLE: AgChartOptions = {
     title: {
@@ -708,6 +711,219 @@ describe('FunnelSeries', () => {
 
             expectWarningsCalls().toEqual([]);
             await compare();
+        });
+    });
+
+    describe('cornerRadius', () => {
+        // Rect.serializeProps() omits the corner-radius fields, so neither the image snapshot nor the
+        // scene-graph JSON can witness this option — the nodes have to be read directly.
+        const contentNodes = (target: Chart) => {
+            const nodes: _ModuleSupport.Node[] = [];
+            const visit = (node: _ModuleSupport.Node) => {
+                nodes.push(node);
+                if (node instanceof _ModuleSupport.Group) {
+                    for (const child of node.children()) visit(child);
+                }
+            };
+            visit(classCast(target.series[0], FunnelSeries).contentGroup);
+            return nodes;
+        };
+
+        const segmentRects = (target: Chart) =>
+            contentNodes(target).filter((node): node is _ModuleSupport.Rect => node instanceof _ModuleSupport.Rect);
+
+        const dropOffConnectors = (target: Chart) =>
+            contentNodes(target).filter((node): node is FunnelConnector => node instanceof FunnelConnector);
+
+        const buildOptions = (cornerRadius?: number, direction?: 'horizontal' | 'vertical') => {
+            const options: AgChartOptions = {
+                data: [
+                    { group: 'Qualify', value: 7910 },
+                    { group: 'Develop', value: 8170 },
+                    { group: 'Propose', value: 7260 },
+                    { group: 'Close', value: 4460 },
+                ],
+                series: [
+                    {
+                        type: 'funnel',
+                        stageKey: 'group',
+                        valueKey: 'value',
+                        strokes: ['black'],
+                        strokeWidth: 4,
+                        cornerRadius,
+                        direction,
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+            return options;
+        };
+
+        it('rounds every segment, with the stroke following the rounded shape', async () => {
+            chart = deproxy(AgCharts.create(buildOptions(16)));
+            await waitForChartStability(chart);
+
+            const rects = segmentRects(chart);
+            expect(rects).toHaveLength(4);
+            for (const rect of rects) {
+                expect(rect.topLeftCornerRadius).toBe(16);
+                expect(rect.topRightCornerRadius).toBe(16);
+                expect(rect.bottomRightCornerRadius).toBe(16);
+                expect(rect.bottomLeftCornerRadius).toBe(16);
+            }
+
+            await compare();
+        });
+
+        it('starts the drop-off connectors on the segments rounded corners', async () => {
+            chart = deproxy(AgCharts.create(buildOptions(16)));
+            await waitForChartStability(chart);
+
+            const rects = segmentRects(chart).sort((a, b) => a.y - b.y);
+            const connectors = dropOffConnectors(chart).sort((a, b) => a.y0 - b.y0);
+            expect(connectors).toHaveLength(3);
+
+            for (const [index, connector] of connectors.entries()) {
+                expect(connector.capsAlongX).toBe(true);
+                expect(connector.startCornerRadius).toBe(16);
+                expect(connector.endCornerRadius).toBe(16);
+
+                // The connector opens on the bottom-left corner arc of the segment it leaves, at or past that
+                // arc's midpoint — never at the square corner, which is the cut-away the segment does not draw.
+                const { startCornerRadius: radius, x0, y0 } = connector;
+                const above = rects[index];
+                expect(x0).toBeCloseTo(above.x, 0);
+                expect(y0).toBeCloseTo(above.y + above.height, 0);
+
+                const centreX = x0 + radius;
+                const centreY = y0 - radius;
+                const [startX, startY] = connector.path.params;
+
+                expect(Math.hypot(startX - centreX, startY - centreY)).toBeCloseTo(radius);
+                expect(startX).toBeLessThanOrEqual(centreX);
+                expect(startY).toBeGreaterThanOrEqual(centreY + radius * Math.SQRT1_2 - 1e-6);
+                expect(startY).toBeLessThanOrEqual(centreY + radius + 1e-6);
+            }
+        });
+
+        it('defaults to square corners', async () => {
+            chart = deproxy(AgCharts.create(buildOptions()));
+            await waitForChartStability(chart);
+
+            const rects = segmentRects(chart);
+            expect(rects).toHaveLength(4);
+            for (const rect of rects) {
+                expect(rect.topLeftCornerRadius).toBe(0);
+                expect(rect.topRightCornerRadius).toBe(0);
+                expect(rect.bottomRightCornerRadius).toBe(0);
+                expect(rect.bottomLeftCornerRadius).toBe(0);
+            }
+
+            for (const connector of dropOffConnectors(chart)) {
+                expect(connector.startCornerRadius).toBe(0);
+                expect(connector.endCornerRadius).toBe(0);
+            }
+        });
+
+        it('rounds every segment in the horizontal direction too', async () => {
+            chart = deproxy(AgCharts.create(buildOptions(16, 'horizontal')));
+            await waitForChartStability(chart);
+
+            const rects = segmentRects(chart);
+            expect(rects).toHaveLength(4);
+            for (const rect of rects) {
+                expect(rect.topLeftCornerRadius).toBe(16);
+                expect(rect.bottomRightCornerRadius).toBe(16);
+            }
+
+            const connectors = dropOffConnectors(chart);
+            expect(connectors).toHaveLength(3);
+            for (const connector of connectors) {
+                expect(connector.capsAlongX).toBe(false);
+                expect(connector.startCornerRadius).toBe(16);
+                expect(connector.endCornerRadius).toBe(16);
+            }
+
+            await compare();
+        });
+    });
+
+    describe('stageLabel placement under RTL', () => {
+        // The stage labels are the category axis' labels, so the side they land on is the axis position
+        // the funnel theme derives from `stageLabel.placement`.
+        const buildOptions = ({
+            enableRtl,
+            placement,
+            direction,
+            theme,
+        }: {
+            enableRtl: boolean;
+            placement?: 'before' | 'after';
+            direction?: 'horizontal' | 'vertical';
+            theme?: AgChartOptions['theme'];
+        }): AgChartOptions => {
+            const options: AgChartOptions = {
+                enableRtl,
+                theme,
+                data: [
+                    { group: 'Qualify', value: 7910 },
+                    { group: 'Develop', value: 8170 },
+                    { group: 'Propose', value: 7260 },
+                    { group: 'Close', value: 4460 },
+                ],
+                series: [
+                    {
+                        type: 'funnel',
+                        stageKey: 'group',
+                        valueKey: 'value',
+                        direction,
+                        stageLabel: placement == null ? undefined : { placement },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+            return options;
+        };
+
+        const axisPosition = async (options: AgChartOptions, direction: 'x' | 'y') => {
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+            return chart.axes[direction].position;
+        };
+
+        it.each([
+            { enableRtl: false, placement: 'before' as const, expected: 'left' },
+            { enableRtl: false, placement: 'after' as const, expected: 'right' },
+            { enableRtl: true, placement: 'before' as const, expected: 'right' },
+            { enableRtl: true, placement: 'after' as const, expected: 'left' },
+            { enableRtl: true, placement: undefined, expected: 'right' },
+        ])('places the stage labels $expected for placement=$placement, enableRtl=$enableRtl', async (testCase) => {
+            const { enableRtl, placement, expected } = testCase;
+            expect(await axisPosition(buildOptions({ enableRtl, placement }), 'y')).toBe(expected);
+        });
+
+        it('leaves the horizontal direction unmirrored', async () => {
+            const options = buildOptions({ enableRtl: true, placement: 'before', direction: 'horizontal' });
+            expect(await axisPosition(options, 'x')).toBe('top');
+        });
+
+        it('renders the stage labels on the mirrored side', async () => {
+            const options = buildOptions({ enableRtl: true, placement: 'before' });
+            options.data = [
+                { group: 'Qualification stage', value: 7910 },
+                { group: 'Development stage', value: 8170 },
+                { group: 'Proposal stage', value: 7260 },
+                { group: 'Closing stage', value: 4460 },
+            ];
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+            await compare();
+        });
+
+        it('mirrors a theme-set placement too', async () => {
+            const theme = { overrides: { funnel: { series: { stageLabel: { placement: 'after' as const } } } } };
+            expect(await axisPosition(buildOptions({ enableRtl: true, theme }), 'y')).toBe('left');
         });
     });
 

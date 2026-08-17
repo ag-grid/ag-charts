@@ -1,0 +1,33 @@
+import type { PageTitle } from '@components/api-documentation/apiReferenceHelpers';
+import { getThemesApiStaticPaths } from '@components/api-documentation/apiReferenceHelpers';
+import { DISABLE_MARKDOWN_DOCS, SITE_URL } from '@constants';
+import { THEMES_API_PAGE_CONTENT } from '@utils/markdown-pages/apiReferencePageContent';
+import { buildThemesApiOverrideMarkdown } from '@utils/markdown-pages/buildApiReferenceMarkdown';
+import { getInterfacesReference } from '@utils/server/getInterfacesReference';
+
+// Served at /themes-api/overrides/<member>.md — the markdown twin of each theme-override page.
+// Mirrors the page's own getStaticPaths so the two URL sets line up 1:1. Content-negotiates from
+// the HTML URL on Accept: text/markdown (see getMarkdownNegotiationRules in htaccessRules.ts).
+export function getStaticPaths() {
+    if (DISABLE_MARKDOWN_DOCS) {
+        return [];
+    }
+    return getThemesApiStaticPaths(getInterfacesReference());
+}
+
+export function GET({ props }: { props: { pageInterface: string; pageTitle: PageTitle } }) {
+    const { pageInterface, pageTitle } = props;
+
+    const output = buildThemesApiOverrideMarkdown({
+        reference: getInterfacesReference(),
+        pageInterface,
+        pageTitle,
+        title: THEMES_API_PAGE_CONTENT.title,
+        siteRoot: SITE_URL,
+    });
+
+    return new Response(output, {
+        status: 200,
+        headers: { 'Content-Type': 'text/markdown; charset=utf-8' },
+    });
+}

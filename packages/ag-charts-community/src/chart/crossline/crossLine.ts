@@ -3,6 +3,7 @@ import { checkDatum } from 'ag-charts-core';
 import type {
     AgBaseCrossLineLabelOptions,
     AgCrossLineLabelPosition,
+    AgCrossLineListeners,
     AgTimeInterval,
     AgTimeIntervalUnit,
 } from 'ag-charts-types';
@@ -66,8 +67,8 @@ export interface CrossLine<LabelType = AgBaseCrossLineLabelOptions> {
     calculateLayout?(visible: boolean, reversedAxis?: boolean): void;
     calculatePadding?(padding: Partial<Record<AgCrossLineLabelPosition, number>>): void;
     /**
-     * Hit-tests a canvas-space point against the cross line's rendered line or fill, widened by a
-     * small fixed pixel tolerance. Returns `false` when the cross line is not currently visible.
+     * Hit-tests a canvas-space point against the cross line's rendered line, fill or label, widened
+     * by a small fixed pixel tolerance. Returns `false` when the cross line is not currently visible.
      */
     containsPoint?(point: CanvasPoint): boolean;
     clippedRange: [number, number];
@@ -85,6 +86,8 @@ export interface CrossLine<LabelType = AgBaseCrossLineLabelOptions> {
     id?: string;
     label: LabelType;
     labelGroup: Group;
+    /** User-supplied pointer listeners, when the cross line's options set any. */
+    listeners?: AgCrossLineListeners<unknown>;
     lineDash?: number[];
     range?: [any, any];
     scale?: Scale<any, number, number | AgTimeInterval | AgTimeIntervalUnit>;

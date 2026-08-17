@@ -4,6 +4,7 @@ import type {
     AgCartesianChartOptions,
     AgChartOptions,
     AgChordSeriesLinkItemStylerParams,
+    AgChordSeriesNodeItemStylerParams,
     AgPolarChartOptions,
     InteractionRange,
 } from 'ag-charts-community';
@@ -72,6 +73,62 @@ describe('ChordSeries', () => {
                         link: {
                             tension: 0.5,
                         },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
+
+        it('should render node cornerRadius', async () => {
+            // Anti-vacuity: `sector.inset = strokeWidth / 2` shrinks the radial length before the
+            // corner radius is clamped to half of it and floored, so the radius is chosen against
+            // `(width - strokeWidth) / 2` to guarantee visible rounding in the baseline.
+            const options: AgChartOptions = {
+                ...GALLERY_EXAMPLES.SIMPLE_CHORD_EXAMPLE.options,
+                series: [
+                    {
+                        ...(GALLERY_EXAMPLES.SIMPLE_CHORD_EXAMPLE.options.series![0] as any),
+                        type: 'chord',
+                        node: {
+                            width: 24,
+                            stroke: 'black',
+                            strokeWidth: 2,
+                            cornerRadius: 8,
+                            // Exercises the per-node override route as well as the series-wide option.
+                            itemStyler: ({ label }: AgChordSeriesNodeItemStylerParams<unknown>) =>
+                                label === 'NIKE Brand' || label === 'Global' ? { cornerRadius: 2 } : {},
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
+
+        it('should render node cornerRadius against links narrower than a corner', async () => {
+            // The links on `Hub` are far narrower than the corner they meet, so each one covers only
+            // part of it; opaque fills and no stroke leave nothing to hide a gap or an overlap.
+            const options: AgChartOptions = {
+                data: [
+                    { from: 'Hub', to: 'Bulk', size: 100 },
+                    { from: 'Hub', to: 'Sliver', size: 2 },
+                    { from: 'Hub', to: 'Trace', size: 1 },
+                    { from: 'Bulk', to: 'Sliver', size: 40 },
+                    { from: 'Bulk', to: 'Trace', size: 3 },
+                ],
+                series: [
+                    {
+                        type: 'chord',
+                        fromKey: 'from',
+                        toKey: 'to',
+                        sizeKey: 'size',
+                        node: { width: 40, cornerRadius: 20, strokeWidth: 0 },
+                        link: { fillOpacity: 1 },
                     },
                 ],
             };

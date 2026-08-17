@@ -13,6 +13,15 @@ export interface ValidationIssue {
 
 export type GroupedValidationIssues = Record<ValidationSeverity, ValidationIssue[]>;
 
+/**
+ * Minimal write-side for update-time data warnings, implemented by `DataController`: the data pass emits
+ * through this without depending on the concrete collector, buffering and de-duplicating its own issues,
+ * which the collector then adopts wholesale via {@link ValidationIssueCollector.setDataIssues}.
+ */
+export interface ValidationSink {
+    recordIssue(issue: ValidationIssue): void;
+}
+
 export const SEVERITY_ORDER: ValidationSeverity[] = ['error', 'warning', 'deprecation'];
 
 // Inclusive threshold: a level shows its own severity and every louder one ('error' is loudest).
@@ -39,6 +48,10 @@ function signatureOf(issues: ValidationIssue[]): string {
  */
 export class ValidationIssueCollector {
     private issues: ValidationIssue[] = [];
+    private dataIssues: ValidationIssue[] = [];
+    private callbackIssues: ValidationIssue[] = [];
+    private pendingCallbackIssues: ValidationIssue[] = [];
+    private runtimeIssues: ValidationIssue[] = [];
     private overlayLevel: ValidationOverlayLevel = 'none';
     private dismissed = false;
     private signature = '';
@@ -101,29 +114,75 @@ export class ValidationIssueCollector {
     /**
      * Replace the option-sourced issues for a fresh option-application cycle. A dismissed overlay
      * only re-shows when the collection actually changes, so a re-apply with identical issues stays hidden.
+     * The prior cycle's caught runtime error is superseded — the update about to run re-reports it if it
+     * still throws — so the runtime feed is cleared here rather than accumulating across cycles.
      */
     setIssues(issues: ValidationIssue[]) {
-        const signature = signatureOf(issues);
-        const delivered = this.deliveredKeys;
-        this.deliveredKeys = new Set(issues.map(keyOf));
         this.issues = issues;
-        if (signature !== this.signature) {
-            this.dismissed = false;
-            this.signature = signature;
-        }
-        // Only issues the current listener has not already been told about: an options pass that
-        // re-applies the same issues does not re-warn on the console either, and the fast path
-        // replays them unvalidated.
-        this.dispatchIssues(issues.filter((issue) => !delivered.has(keyOf(issue))));
+        this.runtimeIssues = [];
+        this.issuesChanged();
         this.listeners.dispatch('change');
     }
 
-    add(issue: ValidationIssue) {
-        this.issues = [...this.issues, issue];
-        this.deliveredKeys.add(keyOf(issue));
-        this.signature = signatureOf(this.issues);
-        this.dismissed = false;
-        this.dispatchIssues([issue]);
+    /**
+     * Replace the update-time data feed (invalid xKey/yKey warnings) each data-processing cycle.
+     * Re-derived from the current config, so a fixed key simply isn't re-emitted next cycle — no
+     * per-issue clearing, matching the stateless replace model of {@link setIssues}.
+     */
+    setDataIssues(issues: ValidationIssue[]) {
+        // Called every data-processing pass; skip the common no-op so a valid config costs no dispatch.
+        if (issues.length === 0 && this.dataIssues.length === 0) return;
+        this.dataIssues = issues;
+        this.issuesChanged();
+        this.listeners.dispatch('change');
+    }
+
+    /**
+     * Record a caught runtime error, de-duplicated within the runtime-error feed by severity + message.
+     * The catch site re-reports the same failure on every failed update pass (a resize re-runs the update),
+     * so an identical error counts once rather than accumulating. Kept in its own feed so a runtime error
+     * never displaces — nor is displaced by — an option or data issue that merely shares a severity and
+     * message. `code` (a per-throw stack) is excluded from the identity: it varies between throws of the
+     * same error, and folding it in would grow the signature and spuriously un-dismiss the overlay.
+     */
+    recordRuntimeError(issue: ValidationIssue) {
+        const duplicate = this.runtimeIssues.some(
+            (existing) => existing.severity === issue.severity && existing.message === issue.message
+        );
+        if (duplicate) return;
+        this.runtimeIssues.push(issue);
+        this.issuesChanged();
+        this.listeners.dispatch('change');
+    }
+
+    /**
+     * Start a fresh buffer for callback errors caught during a render cycle. Callbacks (itemStyler,
+     * formatters) can throw once per datum, so they are collected across the cycle and committed as a
+     * whole via {@link commitCallbackIssues}, keeping the feed stateless like {@link setDataIssues}.
+     */
+    beginCallbackIssues() {
+        this.pendingCallbackIssues = [];
+    }
+
+    /** Buffer a caught callback error for the current render cycle, de-duplicated by severity + message. */
+    recordCallbackIssue(issue: ValidationIssue) {
+        const duplicate = this.pendingCallbackIssues.some(
+            (existing) => existing.severity === issue.severity && existing.message === issue.message
+        );
+        if (!duplicate) this.pendingCallbackIssues.push(issue);
+    }
+
+    /**
+     * Replace the shown callback-error set with the buffer collected since {@link beginCallbackIssues}.
+     * Re-derived each cycle, so a fixed callback simply isn't re-emitted — no per-issue clearing. The
+     * atomic replace keeps a dismissed overlay dismissed when the set is unchanged.
+     */
+    commitCallbackIssues() {
+        if (this.callbackIssues.length === 0 && this.pendingCallbackIssues.length === 0) return;
+        // Copy, not alias: a callback that throws outside a render cycle (e.g. a tooltip formatter on
+        // hover) still calls recordCallbackIssue, which must not mutate the shown set in place.
+        this.callbackIssues = [...this.pendingCallbackIssues];
+        this.issuesChanged();
         this.listeners.dispatch('change');
     }
 
@@ -136,17 +195,43 @@ export class ValidationIssueCollector {
     hasVisibleIssues(): boolean {
         if (this.overlayLevel === 'none' || this.dismissed) return false;
         const allowed = LEVEL_INCLUDES[this.overlayLevel];
-        return this.issues.some((issue) => allowed.includes(issue.severity));
+        return this.allIssues().some((issue) => allowed.includes(issue.severity));
     }
 
     getVisibleIssues(): GroupedValidationIssues {
         const allowed = LEVEL_INCLUDES[this.overlayLevel];
         const grouped: GroupedValidationIssues = { error: [], warning: [], deprecation: [] };
-        for (const issue of this.issues) {
+        for (const issue of this.allIssues()) {
             if (allowed.includes(issue.severity)) {
                 grouped[issue.severity].push(issue);
             }
         }
         return grouped;
+    }
+
+    private allIssues(): ValidationIssue[] {
+        if (this.dataIssues.length === 0 && this.callbackIssues.length === 0 && this.runtimeIssues.length === 0) {
+            return this.issues;
+        }
+        return [...this.issues, ...this.dataIssues, ...this.callbackIssues, ...this.runtimeIssues];
+    }
+
+    /**
+     * The single choke point every feed mutation passes through, so a feed added later cannot reach the
+     * collection without also reaching the issue listener.
+     */
+    private issuesChanged() {
+        const all = this.allIssues();
+        const signature = signatureOf(all);
+        if (signature !== this.signature) {
+            this.dismissed = false;
+            this.signature = signature;
+        }
+        if (this.issueListener == null) return;
+        // Only what this listener has not already been told about: an options pass that re-applies the
+        // same issues does not re-warn on the console either, and the fast path replays them unvalidated.
+        const delivered = this.deliveredKeys;
+        this.deliveredKeys = new Set(all.map(keyOf));
+        this.dispatchIssues(all.filter((issue) => !delivered.has(keyOf(issue))));
     }
 }

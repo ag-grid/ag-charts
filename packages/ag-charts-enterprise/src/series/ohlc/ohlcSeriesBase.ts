@@ -7,7 +7,7 @@ import {
     type StrokeOptions,
     _ModuleSupport,
 } from 'ag-charts-community';
-import type { AgOhlcSeriesBaseOptions, AgOhlcSeriesItemStylerParams, SelectionState } from 'ag-charts-community';
+import type { AgOhlcSeriesBaseOptions, AgOhlcSeriesItemStylerParams } from 'ag-charts-community';
 import {
     AGGREGATION_INDEX_X_MAX,
     AGGREGATION_INDEX_X_MIN,
@@ -27,7 +27,7 @@ import {
     mergeDefaults,
     toNumber,
 } from 'ag-charts-core';
-import type { AgCoordinates, AgNumericValue, CssColor } from 'ag-charts-types';
+import type { AgNumericValue, CssColor } from 'ag-charts-types';
 
 import {
     type OhlcSeriesDataAggregationFilter,
@@ -88,33 +88,6 @@ export interface OhlcNodeDatum extends Omit<_ModuleSupport.CartesianSeriesNodeDa
     readonly crisp: boolean;
 
     style?: Required<NormalisedOhlcCandleStickSeriesStyle>;
-}
-
-class OhlcSeriesNodeEvent<
-    TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
-> extends _ModuleSupport.SeriesNodeEvent<OhlcNodeDatum, TEvent> {
-    readonly xKey?: string;
-    readonly openKey?: string;
-    readonly closeKey?: string;
-    readonly highKey?: string;
-    readonly lowKey?: string;
-
-    constructor(
-        type: TEvent,
-        nativeEvent: Event,
-        datum: OhlcNodeDatum,
-        series: OhlcSeriesBase<OhlcSeriesBaseTypes>,
-        selectionState: SelectionState | undefined,
-        isCollapsed: boolean | undefined,
-        coordinates: AgCoordinates | undefined
-    ) {
-        super(type, nativeEvent, datum, series, selectionState, isCollapsed, coordinates);
-        this.xKey = series.properties.xKey;
-        this.openKey = series.properties.openKey;
-        this.closeKey = series.properties.closeKey;
-        this.highKey = series.properties.highKey;
-        this.lowKey = series.properties.lowKey;
-    }
 }
 
 /**
@@ -237,7 +210,16 @@ function resetOhlcSelectionsDirect<D extends OhlcNodeDatum>(
 export abstract class OhlcSeriesBase<
     TTypes extends OhlcSeriesBaseTypes,
 > extends _ModuleSupport.AbstractBarSeries<TTypes> {
-    protected override readonly NodeEvent = OhlcSeriesNodeEvent;
+    override createNodeParams(datum: OhlcNodeDatum) {
+        return {
+            ...super.createNodeParams(datum),
+            xKey: this.properties.xKey,
+            openKey: this.properties.openKey,
+            closeKey: this.properties.closeKey,
+            highKey: this.properties.highKey,
+            lowKey: this.properties.lowKey,
+        };
+    }
 
     private readonly aggregationManager = new AggregationManager<OhlcSeriesDataAggregationFilter>();
 

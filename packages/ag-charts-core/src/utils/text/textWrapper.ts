@@ -1,6 +1,5 @@
 import type { ImageSegment, OverflowStrategy, TextWrap } from 'ag-charts-types';
 
-import { warnOnce } from '../../logging/logger';
 import {
     BLOCK_IMAGE_SPACING,
     blockStripWidth,
@@ -139,15 +138,82 @@ export function fontWithSize(font: FontOptions, fontSize: number | undefined): F
     return { fontSize, fontStyle: font.fontStyle, fontWeight: font.fontWeight, fontFamily: font.fontFamily };
 }
 
+/**
+ * The size an auto-sizing search may shrink to. Validation rejects a minimum above the configured
+ * size, but an `itemStyler` resolves its size per datum, downstream of that check.
+ */
+export function resolveMinimumFontSize(minimumFontSize: number | undefined, fontSize: number): number {
+    return minimumFontSize == null ? fontSize : Math.min(minimumFontSize, fontSize);
+}
+
+/**
+ * Largest of `steps` candidates that `probe` accepts, smallest-first so index `0` is the floor.
+ * Bisects, so a candidate that fits must imply every smaller one does.
+ */
+export function findLargestFittingStep<T>(steps: number, probe: (index: number) => T | undefined): T | undefined {
+    const top = steps - 1;
+    if (top < 0) return undefined;
+    // Most labels need no reduction at all, so the configured size earns a probe before the bisection.
+    return probe(top) ?? findMaxValue(0, top - 1, probe);
+}
+
+/**
+ * The size ladder between two bounds, smallest-first so index `0` is the floor: both bounds exactly, and
+ * every whole size strictly between them. Returns the step count and the size at each index.
+ */
+function fontSizeLadder(minimumFontSize: number, fontSize: number) {
+    // First whole size strictly inside the range at either end, so neither bound is probed twice.
+    const lowest = Math.floor(minimumFontSize) === minimumFontSize ? minimumFontSize + 1 : Math.ceil(minimumFontSize);
+    const highest = Math.ceil(fontSize) === fontSize ? fontSize - 1 : Math.floor(fontSize);
+    const steps = 2 + Math.max(0, highest - lowest + 1);
+    const sizeAt = (index: number) => {
+        if (index === 0) return minimumFontSize;
+        return index === steps - 1 ? fontSize : lowest + index - 1;
+    };
+    return { steps, sizeAt };
+}
+
+/**
+ * Largest font size between `minimumFontSize` and `fontSize` that `probe` accepts. Only the minimum
+ * is probed with `atFloor` set, so a label shrinks as far as it can before its overflow strategy may
+ * truncate or hide it. Sizes between the bounds are whole, but both bounds are probed exactly.
+ */
+export function findLargestFittingFontSize<T>(
+    minimumFontSize: number,
+    fontSize: number,
+    probe: (fontSize: number, atFloor: boolean) => T | undefined
+): T | undefined {
+    if (minimumFontSize >= fontSize) return probe(fontSize, true);
+    const { steps, sizeAt } = fontSizeLadder(minimumFontSize, fontSize);
+    return findLargestFittingStep(steps, (index) => probe(sizeAt(index), index === 0));
+}
+
+/**
+ * {@link findLargestFittingFontSize} over the same ladder, but scanning down from `fontSize` instead of
+ * bisecting. For a predicate that is not monotonic in the font size — collision clearance, where a smaller
+ * size can reflow the text into a box wider than the one it replaces — a bisection can step past the
+ * largest accepted size, so the scan is the only search that honours the contract.
+ */
+export function findLargestFontSizeDescending<T>(
+    minimumFontSize: number,
+    fontSize: number,
+    probe: (fontSize: number, atFloor: boolean) => T | undefined
+): T | undefined {
+    if (minimumFontSize >= fontSize) return probe(fontSize, true);
+    const { steps, sizeAt } = fontSizeLadder(minimumFontSize, fontSize);
+    for (let index = steps - 1; index >= 0; index--) {
+        const found = probe(sizeAt(index), index === 0);
+        if (found !== undefined) return found;
+    }
+    return undefined;
+}
+
 /** The size the search bottoms out at, or `undefined` when the label cannot shrink. */
 function autoSizeFloor(fit: LabelFit, font: FontOptions): number | undefined {
     const { minimumFontSize, maxWidth, maxHeight } = fit;
     if (minimumFontSize == null || (maxWidth == null && maxHeight == null)) return undefined;
-    if (minimumFontSize > font.fontSize) {
-        warnOnce(`minimumFontSize should be set to a value less than or equal to the font size`);
-        return undefined;
-    }
-    return minimumFontSize < font.fontSize ? minimumFontSize : undefined;
+    const resolved = resolveMinimumFontSize(minimumFontSize, font.fontSize);
+    return resolved < font.fontSize ? resolved : undefined;
 }
 
 /**
@@ -164,23 +230,17 @@ export function fitLabelTextAutoSize(
     if (fit == null || minimumFontSize == null) return { text: fitLabelText(text, fit, font) };
     // Above the floor the text must fit whole; 'hide' erases it otherwise so the search steps down.
     const wholeTextFit: LabelFit = { ...fit, overflowStrategy: 'hide' };
-    // Most labels need no reduction, and the search only visits integers — so probe the configured size
-    // first, both to skip the search and to keep a fractional `fontSize` exact.
-    const atFullSize = fitLabelText(text, wholeTextFit, font);
-    if (!isErased(atFullSize)) return { text: atFullSize };
-    // Searched from the ceiling of the floor because the search bisects to integers, and would otherwise
-    // probe — and settle on — a size below the one the user asked for.
-    const found = findMaxValue<AutoSizedLabelText>(Math.ceil(minimumFontSize), font.fontSize, (fontSize) => {
-        const fitted = fitLabelText(text, wholeTextFit, fontWithSize(font, fontSize));
-        if (isErased(fitted)) return undefined;
-        return { text: fitted, fontSize };
-    });
-    if (found != null) return found;
-    // No size holds the whole text, so the floor itself decides: it is the only size the configured
-    // overflow strategy is allowed to truncate or hide at. The search cannot cover it when it is
-    // fractional, so it is applied here rather than as one more iteration.
-    const atFloor = fitLabelText(text, fit, fontWithSize(font, minimumFontSize));
-    return isErased(atFloor) ? { text: atFloor } : { text: atFloor, fontSize: minimumFontSize };
+    const found = findLargestFittingFontSize<AutoSizedLabelText>(
+        minimumFontSize,
+        font.fontSize,
+        (fontSize, atFloor) => {
+            const fitted = fitLabelText(text, atFloor ? fit : wholeTextFit, fontWithSize(font, fontSize));
+            if (isErased(fitted)) return undefined;
+            return { text: fitted, fontSize: fontSize === font.fontSize ? undefined : fontSize };
+        }
+    );
+    // Not even the floor holds anything, so the label is whatever its overflow strategy leaves: nothing.
+    return found ?? { text: fitLabelText(text, fit, fontWithSize(font, minimumFontSize)) };
 }
 
 /** {@link fitLabelTextAutoSize} with the never-erase fallback of {@link fitLabelTextOrOverflow}. */

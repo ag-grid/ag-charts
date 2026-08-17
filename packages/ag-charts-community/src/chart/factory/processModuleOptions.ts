@@ -178,8 +178,7 @@ export function processModuleOptions<T extends Partial<AgChartOptions>>(
     chartType: string | undefined,
     options: T,
     additionalMissingModules: ModulePlaceholder[],
-    logger: Logger,
-    recordIssue?: (issue: { severity: 'error' | 'warning'; message: string }) => void
+    logger: Logger
 ): void {
     const missingModules = unique(removeUnregisteredModuleOptions(chartType, options).concat(additionalMissingModules));
 
@@ -192,13 +191,9 @@ export function processModuleOptions<T extends Partial<AgChartOptions>>(
     const missingOptions = groupBy(missingModules, (module) => (module.enterprise ? 'enterprise' : 'community'));
 
     if (ModuleRegistry.isUmd()) {
-        const message = umdMissingModulesMessage(missingOptions.enterprise ?? []);
-        logger.warnOnce(message);
-        recordIssue?.({ severity: 'warning', message });
+        logger.warnOnce(umdMissingModulesMessage(missingOptions.enterprise ?? []));
     } else {
-        const message = bundlerMissingModulesMessage(missingModules, missingOptions, installationReferenceUrl);
-        logger.errorOnce(message);
-        recordIssue?.({ severity: 'error', message });
+        logger.errorOnce(bundlerMissingModulesMessage(missingModules, missingOptions, installationReferenceUrl));
     }
 }
 

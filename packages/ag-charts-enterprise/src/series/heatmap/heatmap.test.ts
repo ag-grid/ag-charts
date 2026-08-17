@@ -1426,4 +1426,244 @@ describe('HeatmapSeries', () => {
             }
         });
     });
+
+    describe('label alignment', () => {
+        const ITEM_PADDING = 12;
+
+        const buildOptions = (series: object) =>
+            prepareEnterpriseTestOptions({
+                data: EXAMPLE_OPTIONS.data,
+                series: [
+                    {
+                        type: 'heatmap',
+                        xKey: 'year',
+                        yKey: 'person',
+                        colorKey: 'spending',
+                        colorScale: { fills: [{ color: 'yellow' }, { color: 'red' }, { color: 'blue' }] },
+                        itemPadding: ITEM_PADDING,
+                        ...series,
+                    },
+                ],
+                legend: { enabled: false },
+            } as AgChartOptions);
+
+        // Anchor offset of the first label, relative to its cell centre, plus the padded cell span it
+        // should be a fraction of and the canvas alignment carried on the same datum.
+        const readAnchor = async (options: AgChartOptions) => {
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            const series = classCast(chart.series[0], HeatmapSeries);
+            const context = series.contextNodeData;
+            expect(context).toBeDefined();
+
+            const labelDatum = context!.labelData[0];
+            expect(labelDatum).toBeDefined();
+            const nodeDatum = context!.nodeData.find((node) => node.datumIndex === labelDatum.datumIndex);
+            expect(nodeDatum).toBeDefined();
+
+            const anchor = {
+                dx: labelDatum.x - nodeDatum!.point.x,
+                dy: labelDatum.y - nodeDatum!.point.y,
+                xSpan: nodeDatum!.width - 2 * ITEM_PADDING,
+                ySpan: nodeDatum!.height - 2 * ITEM_PADDING,
+                textAlign: labelDatum.textAlign,
+                textBaseline: labelDatum.textBaseline,
+            };
+
+            chart.destroy();
+            (chart as unknown) = undefined;
+            return anchor;
+        };
+
+        it('anchors left, center and right to increasing x positions', async () => {
+            const left = await readAnchor(buildOptions({ label: { enabled: true, textAlign: 'left' } }));
+            const center = await readAnchor(buildOptions({ label: { enabled: true, textAlign: 'center' } }));
+            const right = await readAnchor(buildOptions({ label: { enabled: true, textAlign: 'right' } }));
+
+            expect(left.dx).toBeLessThan(center.dx);
+            expect(center.dx).toBeLessThan(right.dx);
+        });
+
+        it('anchors top, middle and bottom to increasing y positions', async () => {
+            const top = await readAnchor(buildOptions({ label: { enabled: true, verticalAlign: 'top' } }));
+            const middle = await readAnchor(buildOptions({ label: { enabled: true, verticalAlign: 'middle' } }));
+            const bottom = await readAnchor(buildOptions({ label: { enabled: true, verticalAlign: 'bottom' } }));
+
+            expect(top.dy).toBeLessThan(middle.dy);
+            expect(middle.dy).toBeLessThan(bottom.dy);
+        });
+
+        it('offsets the label by half the padded cell span, not its square', async () => {
+            const left = await readAnchor(buildOptions({ label: { enabled: true, textAlign: 'left' } }));
+            expect(left.xSpan).toBeGreaterThan(0);
+            expect(left.dx).toBeCloseTo(-0.5 * left.xSpan);
+
+            const bottom = await readAnchor(buildOptions({ label: { enabled: true, verticalAlign: 'bottom' } }));
+            expect(bottom.ySpan).toBeGreaterThan(0);
+            expect(bottom.dy).toBeCloseTo(0.5 * bottom.ySpan);
+        });
+
+        it('keeps the label centred by default', async () => {
+            const anchor = await readAnchor(buildOptions({ label: { enabled: true } }));
+
+            expect(anchor.dx).toBe(0);
+            expect(anchor.dy).toBe(0);
+            expect(anchor.textAlign).toBe('center');
+            expect(anchor.textBaseline).toBe('middle');
+        });
+
+        it('carries the glyph alignment matching the anchor', async () => {
+            const anchor = await readAnchor(
+                buildOptions({ label: { enabled: true, textAlign: 'right', verticalAlign: 'top' } })
+            );
+
+            expect(anchor.textAlign).toBe('right');
+            expect(anchor.textBaseline).toBe('top');
+        });
+
+        describe('per-cell alignment from a label styler', () => {
+            const TEXT_ALIGN_BY_YEAR: Record<string, 'left' | 'center' | 'right'> = {
+                '2020': 'left',
+                '2021': 'center',
+                '2022': 'right',
+            };
+            const VERTICAL_ALIGN_BY_PERSON: Record<string, 'top' | 'middle' | 'bottom'> = {
+                Florian: 'top',
+                Julian: 'middle',
+                Martian: 'bottom',
+            };
+            const TEXT_ALIGN_FACTORS = { left: -0.5, center: 0, right: 0.5 };
+            const VERTICAL_ALIGN_FACTORS = { top: -0.5, middle: 0, bottom: 0.5 };
+
+            const styledOptions = () =>
+                buildOptions({
+                    label: {
+                        enabled: true,
+                        itemStyler: ({ datum }: { datum: { year: string; person: string } }) => ({
+                            textAlign: TEXT_ALIGN_BY_YEAR[datum.year],
+                            verticalAlign: VERTICAL_ALIGN_BY_PERSON[datum.person],
+                        }),
+                    },
+                });
+
+            it('anchors every cell to the alignment its styler returned', async () => {
+                chart = deproxy(AgCharts.create(styledOptions()));
+                await waitForChartStability(chart);
+
+                const context = classCast(chart.series[0], HeatmapSeries).contextNodeData;
+                expect(context).toBeDefined();
+                expect(context!.labelData).toHaveLength(9);
+
+                for (const labelDatum of context!.labelData) {
+                    const nodeDatum = context!.nodeData.find((node) => node.datumIndex === labelDatum.datumIndex);
+                    expect(nodeDatum).toBeDefined();
+
+                    const textAlign = TEXT_ALIGN_BY_YEAR[labelDatum.datum.year];
+                    const verticalAlign = VERTICAL_ALIGN_BY_PERSON[labelDatum.datum.person];
+                    expect(labelDatum.textAlign).toBe(textAlign);
+                    expect(labelDatum.textBaseline).toBe(verticalAlign);
+                    expect(labelDatum.x - nodeDatum!.point.x).toBeCloseTo(
+                        TEXT_ALIGN_FACTORS[textAlign] * (nodeDatum!.width - 2 * ITEM_PADDING)
+                    );
+                    expect(labelDatum.y - nodeDatum!.point.y).toBeCloseTo(
+                        VERTICAL_ALIGN_FACTORS[verticalAlign] * (nodeDatum!.height - 2 * ITEM_PADDING)
+                    );
+                }
+            });
+
+            it('renders the nine styled cell alignments', async () => {
+                chart = deproxy(AgCharts.create(styledOptions()));
+                await waitForChartStability(chart);
+
+                await compareImageSnapshot(chart, ctx);
+            });
+        });
+
+        // `'start'`/`'end'` name a side of the paragraph, so the cell edge they anchor to has to
+        // follow the chart's direction (AG-18142 resolves the glyph alignment; the anchor is here).
+        describe('direction-relative alignments', () => {
+            it.each([
+                ['start', false, -0.5],
+                ['end', false, 0.5],
+                ['start', true, 0.5],
+                ['end', true, -0.5],
+            ] as const)('anchors %s to the %j-direction cell edge', async (textAlign, enableRtl, expectedFactor) => {
+                const anchor = await readAnchor({
+                    ...buildOptions({ label: { enabled: true, textAlign } }),
+                    enableRtl,
+                } as AgChartOptions);
+
+                expect(anchor.dx).toBeCloseTo(expectedFactor * anchor.xSpan);
+            });
+        });
+
+        // Every case setting the deprecated top-level options lives in this describe: setupMockConsole()
+        // fails a test on any console.warn it does not assert, so each case here must consume the
+        // deprecation notice itself.
+        describe('deprecated top-level options', () => {
+            it('warns and still applies the deprecated top-level values', async () => {
+                const anchor = await readAnchor(
+                    buildOptions({ label: { enabled: true }, textAlign: 'left', verticalAlign: 'bottom' })
+                );
+
+                expectWarningsCalls().toMatchInlineSnapshot(`
+                  [
+                    [
+                      "AG Charts - Option \`series[0].textAlign\` is deprecated. Use \`label.textAlign\` instead.",
+                    ],
+                    [
+                      "AG Charts - Option \`series[0].verticalAlign\` is deprecated. Use \`label.verticalAlign\` instead.",
+                    ],
+                  ]
+                `);
+
+                expect(anchor.dx).toBeCloseTo(-0.5 * anchor.xSpan);
+                expect(anchor.dy).toBeCloseTo(0.5 * anchor.ySpan);
+                expect(anchor.textAlign).toBe('left');
+                expect(anchor.textBaseline).toBe('bottom');
+            });
+
+            it('lets label.textAlign win over the deprecated top-level value', async () => {
+                const anchor = await readAnchor(
+                    buildOptions({
+                        label: { enabled: true, textAlign: 'right', verticalAlign: 'top' },
+                        textAlign: 'left',
+                        verticalAlign: 'bottom',
+                    })
+                );
+
+                expectWarningsCalls().toMatchInlineSnapshot(`
+                  [
+                    [
+                      "AG Charts - Option \`series[0].textAlign\` is deprecated. Use \`label.textAlign\` instead.",
+                    ],
+                    [
+                      "AG Charts - Option \`series[0].verticalAlign\` is deprecated. Use \`label.verticalAlign\` instead.",
+                    ],
+                  ]
+                `);
+
+                expect(anchor.dx).toBeCloseTo(0.5 * anchor.xSpan);
+                expect(anchor.dy).toBeCloseTo(-0.5 * anchor.ySpan);
+            });
+        });
+
+        describe('rendered output', () => {
+            const cases: [string, string, string][] = [
+                ['left', 'middle', 'left-middle'],
+                ['center', 'middle', 'center-middle'],
+                ['right', 'middle', 'right-middle'],
+                ['center', 'top', 'center-top'],
+                ['center', 'bottom', 'center-bottom'],
+            ];
+
+            it.each(cases)('renders %s / %s within the cell', async (textAlign, verticalAlign) => {
+                chart = deproxy(AgCharts.create(buildOptions({ label: { enabled: true, textAlign, verticalAlign } })));
+                await waitForChartStability(chart);
+
+                await compareImageSnapshot(chart, ctx);
+            });
+        });
+    });
 });

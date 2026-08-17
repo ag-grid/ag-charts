@@ -12,6 +12,9 @@ test.describe('text-navigation', () => {
         await page.getByTitle('Text Annotations').click();
         await page.getByText('Text').click();
         await page.click(SELECTORS.canvasProxy, { position: { x: 200, y: 200 } });
+        // The click leaves the pointer over the chart, so a crosshair can be rendered into the
+        // screenshots below. Move it away so the captures only depend on the keyboard navigation.
+        await page.mouse.move(0, 0);
 
         await page.keyboard.type('Line 1');
         await page.keyboard.down('Shift');

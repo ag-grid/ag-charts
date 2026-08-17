@@ -254,14 +254,23 @@ export async function repeat(repCount: number, fn: () => void | Promise<void>): 
     }
 }
 
+/**
+ * Example pages request the chart font only once the chart has initialised, and loading it
+ * triggers a re-render, so the network can reopen long after `load` and never go idle on pages
+ * holding several charts. Bound the wait instead of letting it run to the test timeout: pages
+ * that do settle are unaffected, and the rest still get the settling time that callers relying
+ * on a quiet page expect.
+ */
+const NETWORK_IDLE_TIMEOUT_MS = 5_000;
+
 export async function gotoUrl(page: Page, url: string) {
     await page.goto(url);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('networkidle', { timeout: NETWORK_IDLE_TIMEOUT_MS }).catch(() => {});
     expect(await page.title()).not.toMatch(/Page Not Found/);
 }
 
 export async function gotoExample(page: Page, url: string, opts = { skipStabilityChecks: false }) {
-    // gotoUrl already waits for network idle and asserts the page was found.
+    // gotoUrl settles the page as far as it can and asserts the page was found.
     await gotoUrl(page, url + '#e2e=true');
 
     // Wait for synchronous JS execution to complete before we start waiting

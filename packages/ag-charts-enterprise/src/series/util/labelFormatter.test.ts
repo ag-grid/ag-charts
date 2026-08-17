@@ -1,5 +1,3 @@
-import { testLogger } from 'ag-charts-test';
-
 import {
     formatLabels,
     formatSingleLabel,
@@ -65,6 +63,20 @@ describe('label formatter', () => {
                 { labelFontSize: 10, secondaryLabelFontSize: 11 },
             ]);
         });
+
+        it('lands the last step exactly on a fractional minimum', () => {
+            expect(
+                generateLabelSecondaryLabelFontSizeCandidates(
+                    { fontSize: 12, minimumFontSize: 9.5 },
+                    { fontSize: 10, minimumFontSize: 10 }
+                )
+            ).toEqual([
+                { labelFontSize: 9.5, secondaryLabelFontSize: 10 },
+                { labelFontSize: 10, secondaryLabelFontSize: 10 },
+                { labelFontSize: 11, secondaryLabelFontSize: 10 },
+                { labelFontSize: 12, secondaryLabelFontSize: 10 },
+            ]);
+        });
     });
 
     describe('formatSingleLabel', () => {
@@ -117,6 +129,26 @@ describe('label formatter', () => {
                 () => ({ width: 1000, height: 1000, meta: undefined })
             )!;
             expect(Math.round(format.lineHeight)).toEqual(23);
+        });
+
+        it('bottoms out on a fractional minimumFontSize, truncating there', () => {
+            const [format] = formatSingleLabel(
+                'Hello',
+                {
+                    enabled: true,
+                    fontFamily: 'Verdana',
+                    fontSize: 20,
+                    minimumFontSize: 10.5,
+                    wrapping: 'never',
+                    overflowStrategy: 'ellipsis',
+                },
+                { padding: 5 },
+                () => ({ width: 20, height: 40, meta: undefined })
+            )!;
+            // Too narrow for 'Hello' whole at any size, so the floor is where the ellipsis takes over —
+            // a whole-size-only search would settle at 10 instead, below the size asked for.
+            expect(format.fontSize).toBe(10.5);
+            expect(format.text).toContain('…');
         });
     });
 
@@ -233,8 +265,7 @@ describe('label formatter', () => {
                     overflowStrategy: 'hide',
                 },
                 { padding: 10 },
-                () => ({ width: Infinity, height: Infinity, meta: undefined }),
-                testLogger
+                () => ({ width: Infinity, height: Infinity, meta: undefined })
             );
 
             expect(output!.label).toBe(undefined);
@@ -267,8 +298,7 @@ describe('label formatter', () => {
                     overflowStrategy: 'hide',
                 },
                 { padding },
-                () => ({ width: boxWidth, height: boxHeight, meta: undefined }),
-                testLogger
+                () => ({ width: boxWidth, height: boxHeight, meta: undefined })
             );
 
             expect(output!.label).not.toBe(undefined);
@@ -301,8 +331,7 @@ describe('label formatter', () => {
                     overflowStrategy: 'hide',
                 },
                 { padding: 10 },
-                () => ({ width: 1000, height: 1000, meta: undefined }),
-                testLogger
+                () => ({ width: 1000, height: 1000, meta: undefined })
             );
 
             expect(output!.label).not.toBe(undefined);
@@ -331,8 +360,7 @@ describe('label formatter', () => {
                     overflowStrategy: 'hide',
                 },
                 { padding: 10 },
-                () => ({ width: 200, height: 60, meta: undefined }),
-                testLogger
+                () => ({ width: 200, height: 60, meta: undefined })
             );
 
             expect(output!.label).not.toBe(undefined);

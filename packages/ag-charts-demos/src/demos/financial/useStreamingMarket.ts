@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import {
     ALL_INSTRUMENTS,
@@ -20,6 +20,18 @@ const MOST_ACTIVE_ROWS = [...MOST_ACTIVE_STOCKS].sort((a, b) => b.volume - a.vol
 // The watchlist quotes always read these feeds, so they advance every tick; the
 // remaining mover feeds only matter once selected and are caught up lazily then.
 const WATCHLIST_TICKERS = new Set(INSTRUMENTS.map((inst) => inst.ticker));
+
+/** The on-screen instrument and the data read from its feed, which must always agree. */
+interface ActiveInstrument {
+    ticker: string;
+    bars: Bar[];
+    metrics: GaugeMetrics;
+}
+
+function readInstrument(feeds: Map<string, MarketFeed>, ticker: string): ActiveInstrument {
+    const feed = feeds.get(ticker)!;
+    return { ticker, bars: feed.snapshot(), metrics: feed.metrics() };
+}
 
 function readQuotes(feeds: Map<string, MarketFeed>): Quote[] {
     return INSTRUMENTS.map((inst) => {
@@ -55,27 +67,34 @@ export function useStreamingMarket() {
         feedTickRef.current = new Map(ALL_INSTRUMENTS.map((inst) => [inst.ticker, 0]));
     }
 
-    const [ticker, setTicker] = useState(INSTRUMENTS[0].ticker);
+    const [active, setActive] = useState<ActiveInstrument>(() =>
+        readInstrument(feedsRef.current!, INSTRUMENTS[0].ticker)
+    );
+    const { ticker, bars, metrics } = active;
+    // The selection, readable synchronously. A tick reads this rather than closing over `ticker`:
+    // a frame queued by the outgoing interval lands before React runs the effect that would have
+    // cancelled it, and a captured ticker would make that frame revert the selection.
+    const tickerRef = useRef(ticker);
     const [running, setRunning] = useState(true);
     const [speedMs, setSpeedMs] = useState(500);
-    const [bars, setBars] = useState<Bar[]>(() => feedsRef.current!.get(ticker)!.snapshot());
     const [quotes, setQuotes] = useState<Quote[]>(() => readQuotes(feedsRef.current!));
-    const [metrics, setMetrics] = useState<GaugeMetrics>(() => feedsRef.current!.get(ticker)!.metrics());
     const [trending, setTrending] = useState<MoverRow[]>(() => trendingFeedRef.current!.snapshot());
     const [mostActive, setMostActive] = useState<MoverRow[]>(() => mostActiveFeedRef.current!.snapshot());
     // Bumped on every tick so consumers of the (mutable) peer feed recompute.
     const [peerTick, setPeerTick] = useState(0);
 
-    // Catch a lazily-ticked mover feed up to the current time on selection, so its series looks live
-    // rather than frozen at the moment it was seeded.
-    useEffect(() => {
-        const feed = feedsRef.current!.get(ticker)!;
+    // Select an instrument, catching a lazily-ticked mover feed up to the current time first so its
+    // series looks live rather than frozen at the moment it was seeded.
+    const selectTicker = useCallback((next: string) => {
+        const feeds = feedsRef.current!;
         const feedTicks = feedTickRef.current!;
-        for (let behind = tickCountRef.current - feedTicks.get(ticker)!; behind > 0; behind--) feed.tick();
-        feedTicks.set(ticker, tickCountRef.current);
-        setBars(feed.snapshot());
-        setMetrics(feed.metrics());
-    }, [ticker]);
+        for (let behind = tickCountRef.current - feedTicks.get(next)!; behind > 0; behind--) {
+            feeds.get(next)!.tick();
+        }
+        feedTicks.set(next, tickCountRef.current);
+        tickerRef.current = next;
+        setActive(readInstrument(feeds, next));
+    }, []);
 
     useEffect(() => {
         if (!running) return;
@@ -84,14 +103,13 @@ export function useStreamingMarket() {
             const feeds = feedsRef.current!;
             const feedTicks = feedTickRef.current!;
             const count = ++tickCountRef.current;
-            let latest: Bar[] = [];
             const advance = (feedTicker: string) => {
-                const next = feeds.get(feedTicker)!.tick();
+                feeds.get(feedTicker)!.tick();
                 feedTicks.set(feedTicker, count);
-                if (feedTicker === ticker) latest = next;
             };
+            const selected = tickerRef.current;
             WATCHLIST_TICKERS.forEach(advance);
-            if (!WATCHLIST_TICKERS.has(ticker)) advance(ticker);
+            if (!WATCHLIST_TICKERS.has(selected)) advance(selected);
             peerFeedRef.current!.tick();
             const trendingRows = trendingFeedRef.current!.tick();
             const mostActiveRows = mostActiveFeedRef.current!.tick();
@@ -100,9 +118,8 @@ export function useStreamingMarket() {
             if (flushRef.current) cancelAnimationFrame(flushRef.current);
             flushRef.current = requestAnimationFrame(() => {
                 flushRef.current = 0;
-                setBars(latest);
+                setActive(readInstrument(feeds, tickerRef.current));
                 setQuotes(readQuotes(feeds));
-                setMetrics(feeds.get(ticker)!.metrics());
                 setTrending(trendingRows);
                 setMostActive(mostActiveRows);
                 setPeerTick((prev) => prev + 1);
@@ -113,7 +130,7 @@ export function useStreamingMarket() {
             if (flushRef.current) cancelAnimationFrame(flushRef.current);
             flushRef.current = 0;
         };
-    }, [running, speedMs, ticker]);
+    }, [running, speedMs]);
 
     const instrument = ALL_INSTRUMENTS.find((inst) => inst.ticker === ticker)!;
     return {
@@ -126,7 +143,7 @@ export function useStreamingMarket() {
         peerFeed: peerFeedRef.current,
         peerTick,
         ticker,
-        setTicker,
+        selectTicker,
         running,
         setRunning,
         speedMs,

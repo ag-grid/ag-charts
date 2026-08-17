@@ -20,14 +20,12 @@ import {
     dateToNumber,
     extent,
     findDiscreteColorBinLabel,
-    fitLabelTextOrOverflow,
     formatValue,
-    isArray,
-    measureTextSegments,
+    measurePlacedLabel,
+    placedLabelFit,
     rescaleVisibleRange,
     resolveLabelFit,
     resolveSeriesLabelDefaults,
-    styledLabelFit,
     toArray,
     toNumber,
     toPlainText,
@@ -39,7 +37,6 @@ import {
     type AgBubbleSeriesOptionsKeys,
     type AgBubbleSeriesStylerParams,
     type AgBubbleSeriesStylerResult,
-    type AgCoordinates,
     type AgDrawingMode,
     type AgErrorBoundSeriesTooltipRendererParams,
     type AgNumericValue,
@@ -49,7 +46,6 @@ import {
     type FillOptions,
     type FormatterPropertyType,
     type LineDashOptions,
-    type SelectionState as PublicSelectionState,
     type StrokeOptions,
 } from 'ag-charts-types';
 
@@ -103,7 +99,6 @@ import {
     type ErrorBoundSeriesNodeDatum,
     HighlightState,
     type SelectionState,
-    type SeriesNodeEventTypes,
 } from '../seriesTypes';
 import {
     type BubbleAggregation,
@@ -116,7 +111,6 @@ import {
 import { BubbleScatterSeriesProperties, BubbleSeriesProperties } from './bubbleSeriesProperties';
 import {
     CartesianSeries,
-    CartesianSeriesNodeEvent,
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
@@ -176,27 +170,6 @@ type BubbleStylerApply = MarkerStyleApply<
     BubbleScatterNodeDatum,
     ReturnType<BubbleSeries['getStyle']>
 >;
-
-class BubbleScatterSeriesNodeEvent<
-    TEvent extends string = SeriesNodeEventTypes,
-> extends CartesianSeriesNodeEvent<TEvent> {
-    readonly sizeKey?: string;
-    readonly colorKey?: string;
-
-    constructor(
-        type: TEvent,
-        nativeEvent: Event,
-        datum: BubbleScatterNodeDatum,
-        series: BubbleSeries,
-        selectionState: PublicSelectionState | undefined,
-        isCollapsed: boolean | undefined,
-        coordinates: AgCoordinates | undefined
-    ) {
-        super(type, nativeEvent, datum, series, selectionState, isCollapsed, coordinates);
-        this.sizeKey = series.properties.sizeKey;
-        this.colorKey = series.properties.colorKey;
-    }
-}
 
 export interface BubbleScatterNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum {
     readonly point: Readonly<SizedPoint>;
@@ -327,11 +300,36 @@ interface PreparedBubbleNodeDatumState {
     area: number;
 }
 
+function ascending([v0, v1]: [number, number]): [number, number] {
+    return v0 <= v1 ? [v0, v1] : [v1, v0];
+}
+
+/**
+ * A single-valued data domain has no extent to rescale into — every datum collapses onto one
+ * aggregation ratio, so the whole axis counts as visible rather than a zero-width NaN window.
+ */
+function rescaleAggregationVisibleRange(
+    visibleRange: [number, number],
+    scaleDomain: [number, number],
+    dataDomain: [number, number]
+): [number, number] {
+    const dataSpan = dataDomain[1] - dataDomain[0];
+    return dataSpan > 0 ? rescaleVisibleRange(visibleRange, scaleDomain, dataDomain) : [0, 1];
+}
+
 export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
     static override readonly className: string = 'BubbleSeries';
     static readonly type: string = 'bubble';
 
-    protected override readonly NodeEvent = BubbleScatterSeriesNodeEvent;
+    override createNodeParams(datum: BubbleScatterNodeDatum) {
+        return {
+            ...super.createNodeParams(datum),
+            xKey: this.properties.xKey,
+            yKey: this.properties.yKey,
+            sizeKey: this.properties.sizeKey,
+            colorKey: this.properties.colorKey,
+        };
+    }
 
     override properties: BubbleScatterSeriesProperties = new BubbleSeriesProperties();
 
@@ -552,7 +550,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
 
         if (processedData != null && dataModel != null) {
             if (ContinuousScale.is(xScale)) {
-                xVisibleRange = rescaleVisibleRange(
+                xVisibleRange = rescaleAggregationVisibleRange(
                     xVisibleRange,
                     xScale.domain.map(dateToNumber) as [number, number],
                     dataModel.getDomain(this, `xValue`, 'value', processedData).domain.map(dateToNumber) as [
@@ -562,7 +560,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
                 );
             }
             if (ContinuousScale.is(yScale)) {
-                yVisibleRange = rescaleVisibleRange(
+                yVisibleRange = rescaleAggregationVisibleRange(
                     yVisibleRange,
                     yScale.domain.map(dateToNumber) as [number, number],
                     dataModel.getDomain(this, `yValue`, 'value', processedData).domain.map(dateToNumber) as [
@@ -573,7 +571,16 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             }
         }
 
-        return { xRange, yRange, minSize, maxSize, xVisibleRange, yVisibleRange };
+        // A reversed axis reverses its scale domain, so the rescaled visible range comes back
+        // descending; the quadtree cull assumes an ascending [min, max] window.
+        return {
+            xRange,
+            yRange,
+            minSize,
+            maxSize,
+            xVisibleRange: ascending(xVisibleRange),
+            yVisibleRange: ascending(yVisibleRange),
+        };
     }
 
     /**
@@ -970,18 +977,10 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
               }
             : undefined;
         const boundedFit = boundLabelFit(ctx.labelFit, container);
-        const fittedText = fitLabelTextOrOverflow(labelText, boundedFit, ctx.labelFitOverflow, ctx.label);
-        let { width, height } = isArray(fittedText)
-            ? measureTextSegments(fittedText, ctx.label)
-            : ctx.labelTextMeasurer.measureLines(String(fittedText));
-
-        width += ctx.labelPadding.left + ctx.labelPadding.right;
-        height += ctx.labelPadding.bottom + ctx.labelPadding.top;
-
-        scratch.nodeLabel = { text: fittedText, width, height };
+        scratch.nodeLabel = measurePlacedLabel(labelText, ctx.label, ctx, boundedFit);
         // The marker container is per datum, so the fit the engine re-applies per candidate must carry
         // this datum's bound rather than the series-level policy.
-        scratch.nodeLabelFit = styledLabelFit(labelText, ctx.label, ctx, boundedFit);
+        scratch.nodeLabelFit = placedLabelFit(labelText, ctx.label, ctx, boundedFit);
     }
 
     /**
@@ -1277,21 +1276,30 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         }
     }
 
+    // Maps a placed label inline rather than through `getHighlightLabelData`, since a bubble's label
+    // anchor is its `point` (carrying the marker size) rather than a plain `(x, y)`.
+    private placedLabelDatum(placed: PlacedLabel<BubbleScatterNodeDatum>): BubbleScatterNodeDatum {
+        return {
+            ...placed.datum,
+            placement: placed.placement ?? placed.datum.placement,
+            // A re-fitted label is fitted to the candidate the engine chose, so the node renders that
+            // text at that size rather than the up-front measurement the cascade started from.
+            label:
+                placed.datum.fit == null
+                    ? placed.datum.label
+                    : { text: placed.text, width: placed.width, height: placed.height, fontSize: placed.fontSize },
+            point: {
+                x: placed.x,
+                y: placed.y,
+                size: placed.datum.point.size,
+            },
+        };
+    }
+
     public override updatePlacedLabelData(labelData: PlacedLabel<BubbleScatterNodeDatum>[]) {
         this.placedLabelData = labelData;
         this.labelSelection.update(
-            labelData.map((v) => ({
-                ...v.datum,
-                placement: v.placement ?? v.datum.placement,
-                // A styled label is fitted to the candidate the engine chose, so the node renders that
-                // text at that size rather than the up-front measurement the cascade started from.
-                label: v.datum.fit == null ? v.datum.label : { text: v.text, width: v.width, height: v.height },
-                point: {
-                    x: v.x,
-                    y: v.y,
-                    size: v.datum.point.size,
-                },
-            })),
+            labelData.map((v) => this.placedLabelDatum(v)),
             (text) => {
                 text.pointerEvents = PointerEvents.None;
             }
@@ -1300,8 +1308,6 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         this.updateHighlightLabelSelection();
     }
 
-    // Maps the placed labels inline rather than through `getHighlightLabelData`, since a bubble's label
-    // anchor is its `point` (carrying the marker size) rather than a plain `(x, y)`.
     protected override updateHighlightLabelSelection() {
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
         const highlightItem =
@@ -1312,15 +1318,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
                 ? []
                 : this.placedLabelData
                       .filter((label) => label.datum.datumIndex === highlightItem.datumIndex)
-                      .map((label) => ({
-                          ...label.datum,
-                          placement: label.placement ?? label.datum.placement,
-                          point: {
-                              x: label.x,
-                              y: label.y,
-                              size: label.datum.point.size,
-                          },
-                      }));
+                      .map((label) => this.placedLabelDatum(label));
 
         this.highlightLabelSelection =
             this.updateLabelSelection({
@@ -1377,7 +1375,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             text.y = (datum.point?.y ?? 0) + offset.y;
             text.fontStyle = style.fontStyle;
             text.fontWeight = style.fontWeight;
-            text.fontSize = style.fontSize;
+            text.fontSize = datum.label.fontSize ?? style.fontSize;
             text.fontFamily = style.fontFamily;
             text.textBaseline = 'top';
             text.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;

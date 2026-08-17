@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgCharts, LegendModule } from 'ag-charts-community';
+import { AgCartesianAxisCrossAtPlacement, AgCartesianChartOptions, AgCharts, LegendModule } from 'ag-charts-community';
 import { LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 
 import { getData } from './data';
@@ -33,12 +33,14 @@ const options: AgCartesianChartOptions = {
     axes: {
         x: {
             type: 'number',
+            title: { text: 'X Axis' },
             crossAt: {
                 value: 0,
             },
         },
         y: {
             type: 'number',
+            title: { text: 'Y Axis' },
             crossAt: {
                 value: 0,
             },
@@ -56,4 +58,16 @@ const options: AgCartesianChartOptions = {
     ],
 };
 
-AgCharts.create(options);
+const chart = AgCharts.create(options);
+
+function setTitlePlacement(placement: AgCartesianAxisCrossAtPlacement) {
+    options.axes!.x!.crossAt!.titlePlacement = placement;
+    options.axes!.y!.crossAt!.titlePlacement = placement;
+    chart.update(options);
+}
+
+function setLabelsPlacement(placement: AgCartesianAxisCrossAtPlacement) {
+    options.axes!.x!.crossAt!.labelsPlacement = placement;
+    options.axes!.y!.crossAt!.labelsPlacement = placement;
+    chart.update(options);
+}

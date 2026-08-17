@@ -563,6 +563,7 @@ describe('Legend', () => {
 
             expect(legendItemClick.mock.lastCall![0]).toMatchInlineSnapshot(`
               {
+                "defaultPrevented": false,
                 "event": MouseEvent {
                   "isTrusted": false,
                   "offsetX": 20,
@@ -575,6 +576,7 @@ describe('Legend', () => {
                 "seriesId": "LineSeries-1",
                 "text": "y",
                 "type": "click",
+                "visible": true,
               }
             `);
         });
@@ -594,6 +596,7 @@ describe('Legend', () => {
 
             expect(legendItemDoubleClick.mock.lastCall![0]).toMatchInlineSnapshot(`
               {
+                "defaultPrevented": false,
                 "event": MouseEvent {
                   "isTrusted": false,
                   "offsetX": 20,
@@ -606,6 +609,7 @@ describe('Legend', () => {
                 "seriesId": "LineSeries-1",
                 "text": "y",
                 "type": "dblclick",
+                "visible": false,
               }
             `);
         });

@@ -8,6 +8,22 @@ import { type Bar } from '../data';
 import { type ChartDatum } from '../types';
 import { diffWindow } from '../windowTransaction';
 
+// Scoped to this chart: the preset omits `padding` from its option types, so the theme is the
+// only lever, and the other charts on the page keep the default.
+const FINANCIAL_THEME = {
+    ...THEME,
+    overrides: {
+        ...THEME.overrides,
+        common: {
+            ...THEME.overrides.common,
+            padding: {
+                top: 8,
+                right: 12,
+            },
+        },
+    },
+};
+
 function createFinancialOptions(
     data: ChartDatum[],
     chartType: AgFinancialChartOptions['chartType']
@@ -16,7 +32,7 @@ function createFinancialOptions(
     // zoom state, so the view streams with the trailing window and no initialState is
     // re-applied on each update (which would otherwise reset zoom/chart type).
     return {
-        theme: THEME,
+        theme: FINANCIAL_THEME,
         data,
         // Bars carry a stable epoch-ms `time`, so a tick appends/removes single bars.
         dataIdKey: 'time',
@@ -36,9 +52,11 @@ interface FinancialChartProps {
     bars: Bar[];
     /** Trailing window in minutes; bars are one minute apart, so this is a bar count. */
     windowMinutes: number;
+    /** The instrument on show. A change swaps the whole series (see the effect below). */
+    ticker: string;
 }
 
-export function FinancialChart({ bars, windowMinutes }: FinancialChartProps) {
+export function FinancialChart({ bars, windowMinutes, ticker }: FinancialChartProps) {
     const chartRef = useRef<AgChartInstance>(null);
     // OPTIMIZATION: bars are immutable once created, so each one's ChartDatum (and its Date) is
     // built once rather than per tick.
@@ -47,6 +65,8 @@ export function FinancialChart({ bars, windowMinutes }: FinancialChartProps) {
     const windowRef = useRef<ChartDatum[]>([]);
     // Tracks the window size so a resize can be told apart from a streaming tick.
     const windowMinutesRef = useRef(windowMinutes);
+    // Likewise the instrument, so a selection can be told apart from a tick.
+    const tickerRef = useRef(ticker);
 
     const windowedData = useMemo(() => {
         const cache = datumCache.current;
@@ -70,22 +90,29 @@ export function FinancialChart({ bars, windowMinutes }: FinancialChartProps) {
     }, []);
 
     useEffect(() => {
+        const chart = chartRef.current;
+        // Leave the refs alone until there is an instance to apply the change to, so a window the
+        // chart never received cannot become the baseline the next diff is taken against.
+        if (!chart) return;
         const baseline = windowRef.current;
         windowRef.current = windowedData;
-        // A resize swaps most of the window at once; incremental transactions would leave the
-        // time axis domain stale, so replace the data to rebuild it. Ticks stay incremental below.
-        if (windowMinutes !== windowMinutesRef.current) {
+        // A resize or an instrument change replaces the data outright: transactions would leave the
+        // time axis domain stale, and an instrument change cannot be diffed at all — every feed
+        // shares one time grid, so the new bars carry the same `time` values (the dataIdKey) as the
+        // old. Replacing rather than remounting keeps the zoom and the toolbar's chart type.
+        if (ticker !== tickerRef.current || windowMinutes !== windowMinutesRef.current) {
+            tickerRef.current = ticker;
             windowMinutesRef.current = windowMinutes;
             // eslint-disable-next-line no-console
-            chartRef.current?.updateDelta({ data: windowedData }).catch((e) => console.error(e));
+            chart.updateDelta({ data: windowedData }).catch((e) => console.error(e));
             return;
         }
         const transactions = diffWindow(baseline, windowedData, (datum) => datum.time);
         for (const transaction of transactions) {
             // eslint-disable-next-line no-console
-            chartRef.current?.applyTransaction(transaction).catch((e) => console.error(e));
+            chart.applyTransaction(transaction).catch((e) => console.error(e));
         }
-    }, [windowedData, windowMinutes]);
+    }, [windowedData, windowMinutes, ticker]);
 
     return <AgFinancialCharts ref={chartRef} options={options} style={{ height: '100%', width: '100%' }} />;
 }

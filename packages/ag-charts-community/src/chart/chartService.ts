@@ -1,12 +1,5 @@
-import type { BoxBounds, CanvasPoint, RequireOptional } from 'ag-charts-core';
-import type {
-    AgAxisClickEvent,
-    AgCaptionClickEvent,
-    AgChartInstance,
-    AgCollapsedChangeEvent,
-    AgCoordinates,
-    AgSelectionChangeEvent,
-} from 'ag-charts-types';
+import type { BoxBounds, CanvasPoint } from 'ag-charts-core';
+import type { AgBaseChartListeners, AgChartInstance, AgCoordinates } from 'ag-charts-types';
 
 import { Group } from '../scene/group';
 import type { CaptionLike } from './captionLike';
@@ -15,14 +8,9 @@ import type { ChartType } from './chartType';
 import type { SeriesProperties } from './series/seriesProperties';
 import type { ISeries, SeriesNodeDatum } from './series/seriesTypes';
 
-export type ChartServiceEvent =
-    | RequireOptional<Omit<AgSelectionChangeEvent<unknown, unknown>, 'context'>>
-    | RequireOptional<Omit<AgCollapsedChangeEvent<unknown, unknown>, 'context'>>
-    | Omit<AgAxisClickEvent<'axisClick', unknown>, 'context'>
-    | Omit<AgAxisClickEvent<'axisDoubleClick', unknown>, 'context'>
-    | Omit<AgCaptionClickEvent<'captionClick', unknown>, 'context'>
-    | Omit<AgCaptionClickEvent<'captionDoubleClick', unknown>, 'context'>;
-export type ChartServiceEventType = ChartServiceEvent['type'];
+export type ChartListeners = AgBaseChartListeners<unknown, unknown>;
+export type ChartEventType = keyof ChartListeners;
+export type ChartEventMap = { [K in ChartEventType]: Parameters<NonNullable<ChartListeners[K]>>[0] };
 
 type BaseSeries = ISeries<SeriesNodeDatum, SeriesProperties<object>>;
 
@@ -39,7 +27,7 @@ export interface ChartService {
     readonly highlight?: ChartHighlight;
     getChartType(): ChartType;
     overrideFocusVisible(visible: boolean | undefined): void;
-    hasListener(type: ChartServiceEventType): boolean;
-    callListener(event: ChartServiceEvent): void;
+    readonly listeners: ChartListeners;
+    callListener<K extends ChartEventType>(event: ChartEventMap[K] & { type: K }): void;
     toAgCoordinates(point: CanvasPoint): AgCoordinates | undefined;
 }

@@ -16,7 +16,7 @@ import { RangesModule } from '../features/ranges/rangesModule';
 import { SyncModule } from '../features/sync/syncModule';
 import { ZoomModule } from '../features/zoom/zoomModule';
 import { GradientLegendModule } from '../gradient-legend/gradientLegendModule';
-import { PriceVolumePresetModule } from '../preset/priceVolumePresetModules';
+import { PriceVolumePresetModule } from '../preset/price-volume/priceVolumePresetModule';
 import { CandlestickSeriesModule } from '../series/candlestick/candlestickModule';
 import { OhlcSeriesModule } from '../series/ohlc/ohlcModule';
 import { RangeAreaSeriesModule } from '../series/range-area/rangeAreaModule';

@@ -16,6 +16,7 @@ import type { AgFinancialChartPresets } from './presets/financial/financialOptio
 import type { AgGaugePresets } from './presets/gauge/gaugeOptions';
 import type { AgLinearGaugePreset } from './presets/gauge/linearGaugeOptions';
 import type { AgRadialGaugePreset } from './presets/gauge/radialGaugeOptions';
+import type { AgQuadrantChartPresets } from './presets/quadrant/quadrantOptions';
 import type { AgSparklineBaseThemeableOptions, AgSparklinePresets } from './presets/sparkline/sparklineOptions';
 import type { AgBaseFlowProportionChartOptions } from './series/standalone/flowProportionOptions';
 import type { AgBaseHierarchyChartOptions } from './series/standalone/hierarchyOptions';
@@ -153,10 +154,42 @@ export type AgSparklineOptions<TDatum = DatumDefault, TContext = ContextDefault>
 > &
     AgSparklinePresets<TDatum>;
 
+export type AgBaseQuadrantChartOptions<TDatum = DatumDefault, TContext = ContextDefault> = Pick<
+    AgCartesianChartOptions<TDatum, TContext>,
+    | 'animation'
+    | 'container'
+    | 'contextMenu'
+    | 'data'
+    | 'dataIdKey'
+    | 'dataSource'
+    | 'enableRtl'
+    | 'footnote'
+    | 'formatter'
+    | 'initialState'
+    | 'height'
+    | 'listeners'
+    | 'locale'
+    | 'minWidth'
+    | 'minHeight'
+    | 'padding'
+    | 'subtitle'
+    | 'title'
+    | 'theme'
+    | 'selection'
+    | 'width'
+>;
+
+export type AgQuadrantChartOptions<TDatum = DatumDefault, TContext = ContextDefault> = AgBaseQuadrantChartOptions<
+    TDatum,
+    TContext
+> &
+    AgQuadrantChartPresets<TDatum, TContext>;
+
 export type AgPresetOptions<TDatum = DatumDefault, TContext = ContextDefault> =
     | AgFinancialChartOptions<TDatum>
     | AgGaugeOptions<TDatum, TContext>
-    | AgSparklineOptions<TDatum, TContext>;
+    | AgSparklineOptions<TDatum, TContext>
+    | AgQuadrantChartOptions<TDatum, TContext>;
 
 export type AgChartInstanceOptions<TDatum = DatumDefault, TContext = ContextDefault> =
     | AgChartOptions<TDatum, TContext>

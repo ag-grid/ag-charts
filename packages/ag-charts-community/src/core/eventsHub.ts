@@ -86,6 +86,17 @@ export interface SeriesAreaClickEvent {
     readonly target: Node<unknown> | undefined;
 }
 
+/**
+ * A pointer click (or double-click) inside the series area, carrying canvas coordinates so that
+ * modules owning content drawn over the series area can hit-test it and run their own listeners.
+ * Mirrors the `series-area:contextmenu` handoff; keyboard-synthesised clicks are excluded because
+ * they carry no pointer position.
+ */
+export interface SeriesAreaPointerClickEvent extends Readonly<CanvasPoint> {
+    readonly type: 'click' | 'dblclick';
+    readonly sourceEvent: Event;
+}
+
 export interface SeriesAreaContextMenuEvent extends Readonly<CanvasPoint> {
     readonly widgetEvent: MouseWidgetEvent<'contextmenu'>;
     /**
@@ -161,6 +172,7 @@ export interface EventsHubMap {
     'series:keynav-collapse': SeriesKeyNavCollapseEvent;
     'series-area:hover': SeriesAreaHoverEvent;
     'series-area:click': SeriesAreaClickEvent;
+    'series-area:pointer-click': SeriesAreaPointerClickEvent;
     'series-area:contextmenu': SeriesAreaContextMenuEvent;
     'series:redo': null;
     'series:undo': null;
@@ -270,6 +282,9 @@ export interface HighlightChangeEvent {
     readonly callerId: string;
     readonly currentHighlight?: HighlightNodeDatum;
     readonly previousHighlight?: HighlightNodeDatum;
+    /** Part of the highlighted node under the pointer, for series that distinguish parts (`Series.getHighlightPart`). */
+    readonly currentHighlightPart?: string;
+    readonly previousHighlightPart?: string;
     readonly highlightSuppressed: boolean;
     readonly highlightInViewport: boolean;
 }

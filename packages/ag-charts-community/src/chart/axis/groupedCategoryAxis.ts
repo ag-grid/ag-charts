@@ -27,7 +27,7 @@ import { Transformable } from '../../scene/transformable';
 import type { AxisPrimaryTickCount } from '../../util/secondaryAxisTicks';
 import type { ChartLayout } from '../chartAxis';
 import { createDatumId } from '../data/processors';
-import type { LabelNodeDatum } from './axis';
+import type { AxisPickDatum, LabelNodeDatum } from './axis';
 import { getAxisLabelSideFlag } from './axisLabelUtil';
 import type { GridLineStyleTickDatum } from './cartesianAxis';
 import { CategoryAxis } from './categoryAxis';
@@ -157,6 +157,7 @@ export class GroupedCategoryAxis extends CategoryAxis<
         this.tickTreeLayout?.resize(this.scale.range, this.scale.step, this.scale.inset, this.scale.bandwidth);
 
         if (!this.tickTreeLayout?.depth) {
+            this.pickTickData = [];
             return { bbox: BBox.zero, spacing: 0, tickSizeAtDepth: [], tickLabelLayout: [] };
         }
 
@@ -177,6 +178,7 @@ export class GroupedCategoryAxis extends CategoryAxis<
         type LabelCacheEntry = { text: any; styles: any; truncatedText: string | undefined };
         const labelDataCache = new Map<number, LabelCacheEntry>();
         const depthLabelMaxSize: Record<number, number> = {};
+        const pickIdentities: (Omit<AxisPickDatum, 'cross'> & { depth: number })[] = [];
         for (const [index, datum] of treeLabels.entries()) {
             const depth = maxDepth - datum.depth;
             depthLabelMaxSize[depth] ??= 0;
@@ -189,6 +191,16 @@ export class GroupedCategoryAxis extends CategoryAxis<
             if (maxWidth < MIN_CATEGORY_SPACING) continue;
 
             const inputText = tickFormatter(datum.label, index - 1);
+            // Capture the pick identity here, at the one place this axis decides what `value` and `index`
+            // a tick has, so a click cannot disagree with the formatter. The perpendicular extent is not
+            // known until the row sizes below have been summed, so it is filled in afterwards.
+            const alongHalfWidth = ((datum.leafCount || 1) * step) / 2;
+            pickIdentities.push({
+                index: index - 1,
+                value: datum.label ?? '',
+                along: [datum.screen - alongHalfWidth, datum.screen + alongHalfWidth],
+                depth,
+            });
             let text = inputText;
             const labelStyles = this.getLabelStyles(
                 { value: datum.index, formattedValue: text, depth },
@@ -252,6 +264,17 @@ export class GroupedCategoryAxis extends CategoryAxis<
             spacingSum += optionsMap[d]?.spacing ?? 0;
             tickSizeAtDepth[d] = labelSum + spacingSum;
         }
+
+        // Each depth occupies one row stacked outwards from the axis line, bounded by the cumulative
+        // sizes above. The outermost row runs to infinity so that clicks beyond the labels — on the axis
+        // title, say — still resolve to the group they sit under rather than to no tick at all.
+        this.pickTickData = pickIdentities.map(({ depth, ...identity }) => ({
+            ...identity,
+            cross: [
+                depth === 0 ? 0 : tickSizeAtDepth[depth - 1],
+                depth === maxDepth - 1 ? Infinity : tickSizeAtDepth[depth],
+            ] as const,
+        }));
 
         // Second pass: position labels using cached data
         const idGenerator = createIdsGenerator();

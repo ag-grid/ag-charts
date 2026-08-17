@@ -16,6 +16,7 @@ import {
     type NormalisedTextOrSegments,
     type Point,
     type RequireOptional,
+    type ResolvedTextAlign,
     cachedTextMeasurer,
     calcLineHeight,
     findDiscreteColorBinLabel,
@@ -23,6 +24,7 @@ import {
     isGradientFill,
     isNumberEqual,
     mergeDefaults,
+    resolveTextAlign,
     toPlainText,
     wrapText,
 } from 'ag-charts-core';
@@ -93,7 +95,7 @@ function nodeSize(node: TreemapNode) {
     return node.children.length > 0 ? node.sumSize - node.sizeValue : node.sizeValue;
 }
 
-const textAlignFactors: Record<TextAlign, number | undefined> = {
+const textAlignFactors: Record<ResolvedTextAlign, number | undefined> = {
     left: 0,
     center: 0.5,
     right: 1,
@@ -617,8 +619,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
                     secondaryLabelText ?? secondaryLabelValue,
                     this.properties.tile.secondaryLabel,
                     { padding: tile.padding },
-                    () => layout,
-                    this.ctx.logger
+                    () => layout
                 );
                 if (formatting == null) {
                     return;
@@ -626,8 +627,9 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
 
                 const { height: labelHeight, label, secondaryLabel } = formatting;
                 const { textAlign, verticalAlign, padding } = tile;
+                const resolvedTextAlign = resolveTextAlign(textAlign, this.ctx.domManager.isRtl);
 
-                const textAlignFactor = textAlignFactors[textAlign] ?? 0.5;
+                const textAlignFactor = textAlignFactors[resolvedTextAlign] ?? 0.5;
                 const labelX = bbox.x + padding + (bbox.width - 2 * padding) * textAlignFactor;
 
                 const verticalAlignFactor = verticalAlignFactors[verticalAlign] ?? 0.5;
@@ -693,7 +695,8 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
                     font: group.label,
                     textWrap: 'never',
                 });
-                const textAlignFactor = textAlignFactors[textAlign] ?? 0.5;
+                const resolvedTextAlign = resolveTextAlign(textAlign, this.ctx.domManager.isRtl);
+                const textAlignFactor = textAlignFactors[resolvedTextAlign] ?? 0.5;
 
                 const {
                     fontStyle = 'normal',

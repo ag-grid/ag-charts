@@ -1,5 +1,9 @@
 import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from '../../chart/callbackOptions';
-import type { AgChartAutoSizedSecondaryLabelOptions } from '../../chart/labelOptions';
+import type {
+    AgChartAutoSizedSecondaryLabelOptions,
+    AgChartLabelStyleOptions,
+    AgChartLabelStylerParams,
+} from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault, DatumKey, PixelSize, TextAlign, VerticalAlign } from '../../chart/types';
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
@@ -26,10 +30,38 @@ export type AgHeatmapSeriesTooltipRendererParams<
     AgHeatmapSeriesOptionsNames &
     AgHeatmapSeriesStyle;
 
+export interface AgHeatmapSeriesLabelStyle extends AgChartLabelStyleOptions {
+    /** Horizontal position of the label within the cell. */
+    textAlign?: TextAlign;
+    /** Vertical position of the label within the cell. */
+    verticalAlign?: VerticalAlign;
+}
+
+export interface AgHeatmapSeriesLabelOptions<TDatum = DatumDefault, TContext = ContextDefault> extends Omit<
+    AgChartAutoSizedSecondaryLabelOptions<TDatum, AgHeatmapSeriesLabelFormatterParams<TDatum>, TContext>,
+    'itemStyler'
+> {
+    /** Horizontal position of the label within the cell.
+     *
+     * Default: `center`
+     */
+    textAlign?: TextAlign;
+    /** Vertical position of the label within the cell.
+     *
+     * Default: `middle`
+     */
+    verticalAlign?: VerticalAlign;
+    /** Function used to style individual cell labels, including their position within the cell. */
+    itemStyler?: Styler<
+        AgChartLabelStylerParams<TDatum, TContext> & AgHeatmapSeriesLabelFormatterParams<TDatum>,
+        AgHeatmapSeriesLabelStyle
+    >;
+}
+
 export interface AgHeatmapSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends StrokeOptions, Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'showInLegend'> {
     /** Options for the label in each cell. */
-    label?: AgChartAutoSizedSecondaryLabelOptions<TDatum, AgHeatmapSeriesLabelFormatterParams<TDatum>, TContext>;
+    label?: AgHeatmapSeriesLabelOptions<TDatum, TContext>;
     /** Minimum distance between the label text and the edges of the cell. */
     itemPadding?: PixelSize;
     /** The corner radius applied to every cell. The chart background shows through the area cut away by the rounded corners.
@@ -37,9 +69,15 @@ export interface AgHeatmapSeriesThemeableOptions<TDatum = DatumDefault, TContext
      * Default: `0`
      */
     cornerRadius?: PixelSize;
-    /** Horizontal position of the label. */
+    /** Horizontal position of the label.
+     *
+     * @deprecated v14.1.0 Use `label.textAlign` instead.
+     */
     textAlign?: TextAlign;
-    /** Vertical position of the label. */
+    /** Vertical position of the label.
+     *
+     * @deprecated v14.1.0 Use `label.verticalAlign` instead.
+     */
     verticalAlign?: VerticalAlign;
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not. */
     title?: string;

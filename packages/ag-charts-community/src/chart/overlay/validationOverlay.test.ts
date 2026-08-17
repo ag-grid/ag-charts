@@ -1,9 +1,11 @@
-import { afterEach, describe, expect, test } from 'vitest';
+import { afterEach, describe, expect, test, vi } from 'vitest';
 
+import { ChartUpdateType } from 'ag-charts-core';
 import type { AgChartOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
 import type { Chart } from '../chart';
+import { TooltipManager } from '../interaction/tooltipManager';
 import {
     createChart,
     deproxy,
@@ -12,6 +14,8 @@ import {
     setupMockCanvas,
     setupMockConsole,
 } from '../test/utils';
+import type { GroupedValidationIssues } from '../validation/validationIssueCollector';
+import { getValidationOverlay } from './validationOverlay';
 
 // A single-issue misconfiguration: an invalid `strokeWidth` value on a line series. Validated
 // against `lineSeriesOptionsDef` before the series is constructed, so it is captured as a
@@ -161,6 +165,139 @@ describe('ValidationOverlay', () => {
         });
     });
 
+    describe('#tooltip suppression', () => {
+        // The tooltip is a browser top-layer popover, so it would paint over the validation overlay
+        // regardless of z-index; a visible overlay must therefore hold the tooltip back, and clearing
+        // it (dismiss or a fixed config) must release it again.
+        test('a visible overlay suppresses the tooltip; dismissing it releases the tooltip', async () => {
+            chart = await createChart(invalidStrokeWidthOptions);
+            expect(chart.validationCollector.hasVisibleIssues()).toBe(false);
+
+            const suppressSpy = vi.spyOn(chart.ctx.tooltipManager, 'suppressTooltip');
+            const unsuppressSpy = vi.spyOn(chart.ctx.tooltipManager, 'unsuppressTooltip');
+
+            chart.validationCollector.setOverlayLevel('warning');
+            expect(chart.validationCollector.hasVisibleIssues()).toBe(true);
+            expect(suppressSpy).toHaveBeenCalledWith('validation-overlay');
+            expect(unsuppressSpy).not.toHaveBeenCalled();
+
+            chart.validationCollector.dismiss();
+            expect(chart.validationCollector.hasVisibleIssues()).toBe(false);
+            expect(unsuppressSpy).toHaveBeenCalledWith('validation-overlay');
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - Option \`series[0].strokeWidth\` cannot be set to \`"notanumber"\`; expecting a number greater than or equal to 0, ignoring.",
+  ],
+]
+`);
+        });
+
+        test('a chart whose overlay is visible on the first render suppresses the tooltip immediately', async () => {
+            // The overlay becomes visible while the chart is set up, so the suppression fires before an
+            // instance-level spy could attach; spy on the prototype so the initial call is still observed.
+            const suppressSpy = vi.spyOn(TooltipManager.prototype, 'suppressTooltip');
+            try {
+                chart = await createChart({
+                    ...invalidStrokeWidthOptions,
+                    validations: { overlayLevel: 'warning' },
+                } as AgChartOptions);
+
+                expect(chart.validationCollector.hasVisibleIssues()).toBe(true);
+                expect(suppressSpy).toHaveBeenCalledWith('validation-overlay');
+            } finally {
+                suppressSpy.mockRestore();
+            }
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - Option \`series[0].strokeWidth\` cannot be set to \`"notanumber"\`; expecting a number greater than or equal to 0, ignoring.",
+  ],
+]
+`);
+        });
+    });
+
+    describe('#callback errors', () => {
+        // A throwing user callback (here a bar `itemStyler`) is caught by the shared `safeCall` guard,
+        // which swallows it with a console `warnOnce` so it never reaches `tryPerformUpdate`'s catch.
+        // With an error-level overlay the caught error must still surface as an error entry, while the
+        // chart degrades gracefully (the callback returns undefined instead of crashing the render).
+        const throwingItemStylerOptions: AgChartOptions = {
+            data: [
+                { x: 'Jan', y: 10 },
+                { x: 'Feb', y: 15 },
+            ],
+            series: [
+                {
+                    type: 'bar',
+                    xKey: 'x',
+                    yKey: 'y',
+                    itemStyler: () => {
+                        throw new Error('itemStyler boom');
+                    },
+                } as any,
+            ],
+        };
+
+        test('a throwing itemStyler surfaces one error entry on the overlay and the chart still renders', async () => {
+            chart = await createChart({
+                ...throwingItemStylerOptions,
+                validations: { overlayLevel: 'error' },
+            } as AgChartOptions);
+
+            const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-validation-overlay');
+            expect(overlayEl).not.toBeNull();
+
+            const errorSection = overlayEl!.querySelector('.ag-charts-validation-overlay__section--error');
+            expect(errorSection).not.toBeNull();
+
+            // The styler throws once per datum, but the caught errors collapse to a single overlay entry.
+            const messages = Array.from(errorSection!.querySelectorAll('.ag-charts-validation-overlay__message')).map(
+                (el) => el.textContent ?? ''
+            );
+            expect(messages).toHaveLength(1);
+            // The "Uncaught exception in user callback" wording only comes from the safeCall guard,
+            // proving the error surfaced via the swallowed-callback path (graceful degrade), not a
+            // propagated render crash caught by tryPerformUpdate.
+            expect(messages[0]).toContain('Uncaught exception in user callback');
+            expect(messages[0]).toContain('itemStyler');
+
+            expectWarningsCalls().toEqual([
+                [expect.stringContaining('Uncaught exception in user callback'), expect.any(Error)],
+            ]);
+        });
+
+        test('a still-broken itemStyler stays on the overlay across a cache-hit redraw', async () => {
+            chart = await createChart({
+                ...throwingItemStylerOptions,
+                validations: { overlayLevel: 'error' },
+            } as AgChartOptions);
+
+            const errorMessages = () =>
+                Array.from(
+                    chart.ctx.agDocument.body.querySelectorAll(
+                        '.ag-charts-validation-overlay__section--error .ag-charts-validation-overlay__message'
+                    )
+                ).map((el) => el.textContent ?? '');
+
+            expect(errorMessages()).toHaveLength(1);
+
+            // A redraw that reuses the callback cache never re-invokes the styler, so no fresh error is
+            // collected this cycle; the committed error must survive rather than be wiped by an empty cycle.
+            chart.update(ChartUpdateType.SCENE_RENDER);
+            await chart.waitForUpdate(5000, true);
+
+            expect(errorMessages()).toHaveLength(1);
+
+            expectWarningsCalls().toEqual([
+                [expect.stringContaining('Uncaught exception in user callback'), expect.any(Error)],
+            ]);
+        });
+    });
+
     describe('#dismiss', () => {
         // Assert on `aria-hidden` rather than DOM presence: hideOverlay clears content via
         // `innerText = '\xA0'`, which jsdom does not apply to descendant nodes (real browsers do),
@@ -178,9 +315,9 @@ describe('ValidationOverlay', () => {
                 'false'
             );
 
-            // Animations default to a real (non-instant) duration once a batch has run; skip the
-            // current batch so the removal animation's cleanup runs synchronously.
-            chart.skipAnimations();
+            // Animations run for real once the first batch has completed, so a dismiss — which happens
+            // outside any update cycle — has nothing to drive a removal animation to completion. It must
+            // still detach the overlay synchronously rather than leave it mounted until the next resize.
             chart.validationCollector.dismiss();
             expect(chart.ctx.agDocument.body.querySelector('.ag-charts-overlay')?.getAttribute('aria-hidden')).toEqual(
                 'true'
@@ -210,6 +347,102 @@ describe('ValidationOverlay', () => {
   ],
 ]
 `);
+        });
+    });
+
+    // The "Deprecation Only" QA case (jira-comments 2026-08-13): a deprecation-severity issue at
+    // overlayLevel 'deprecation' must render its own section. No community-level deprecated option
+    // exists to drive this through a real chart — the option -> collector -> overlay wiring is
+    // covered by the warning tests above — so the renderer is exercised directly here against a
+    // grouped deprecation issue, the one severity no other DOM test renders.
+    describe('#deprecation section', () => {
+        test('renders a Deprecations section, count heading and summary for a deprecation-severity issue', async () => {
+            chart = await createChart({
+                data: [{ x: 'a', y: 1 }],
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            });
+
+            const grouped: GroupedValidationIssues = {
+                error: [],
+                warning: [],
+                deprecation: [
+                    {
+                        severity: 'deprecation',
+                        message: 'Option `series[0].verticalSpacing` is deprecated. Use `depthSpacing` instead.',
+                        code: 'series[0].verticalSpacing',
+                    },
+                ],
+            };
+
+            const overlay = getValidationOverlay({
+                agDocument: chart.ctx.agDocument,
+                localeManager: chart.ctx.localeManager,
+                grouped,
+                onDismiss: () => undefined,
+            });
+
+            expect(overlay.querySelector('.ag-charts-validation-overlay__summary')?.textContent).toEqual(
+                'AG Charts found 1 deprecation'
+            );
+
+            const section = overlay.querySelector('.ag-charts-validation-overlay__section--deprecation');
+            expect(section).not.toBeNull();
+            expect(section!.querySelector('.ag-charts-validation-overlay__section-heading')?.textContent).toEqual(
+                'Deprecations (1)'
+            );
+            expect(section!.querySelectorAll('.ag-charts-validation-overlay__message')).toHaveLength(1);
+
+            // Only deprecations are present, so no louder-severity sections are rendered.
+            expect(overlay.querySelector('.ag-charts-validation-overlay__section--error')).toBeNull();
+            expect(overlay.querySelector('.ag-charts-validation-overlay__section--warning')).toBeNull();
+        });
+    });
+
+    describe('#copy button availability', () => {
+        const groupedWithIssue: GroupedValidationIssues = {
+            error: [],
+            warning: [{ severity: 'warning', message: 'Invalid strokeWidth', code: 'series[0].strokeWidth' }],
+            deprecation: [],
+        };
+
+        // The overlay reads the clipboard off agDocument.navigator, so a per-test navigator lets each
+        // case drive the writable / unavailable branch without touching the shared jsdom navigator.
+        const agDocumentWith = (clipboard?: { writeText: (data: string) => Promise<void> }) => {
+            const agDocument = Object.create(chart.ctx.agDocument);
+            Object.defineProperty(agDocument, 'navigator', { value: { clipboard } });
+            return agDocument;
+        };
+
+        test('renders the Copy button and writes diagnostics when the clipboard is writable', async () => {
+            chart = await createChart({ data: [{ x: 'a', y: 1 }], series: [{ type: 'line', xKey: 'x', yKey: 'y' }] });
+
+            const writeText = vi.fn().mockResolvedValue(undefined);
+            const overlay = getValidationOverlay({
+                agDocument: agDocumentWith({ writeText }),
+                localeManager: chart.ctx.localeManager,
+                grouped: groupedWithIssue,
+                onDismiss: () => undefined,
+            });
+
+            const copyButton = overlay.querySelector<HTMLButtonElement>('.ag-charts-validation-overlay__copy');
+            expect(copyButton).not.toBeNull();
+
+            copyButton!.click();
+            expect(writeText).toHaveBeenCalledWith('[warning] Invalid strokeWidth\nseries[0].strokeWidth');
+        });
+
+        test('omits the Copy button but keeps Dismiss when the clipboard is unavailable', async () => {
+            chart = await createChart({ data: [{ x: 'a', y: 1 }], series: [{ type: 'line', xKey: 'x', yKey: 'y' }] });
+
+            const overlay = getValidationOverlay({
+                agDocument: agDocumentWith(),
+                localeManager: chart.ctx.localeManager,
+                grouped: groupedWithIssue,
+                onDismiss: () => undefined,
+            });
+
+            expect(overlay.querySelector('.ag-charts-validation-overlay__copy')).toBeNull();
+            expect(overlay.querySelector('.ag-charts-validation-overlay__dismiss')).not.toBeNull();
         });
     });
 });

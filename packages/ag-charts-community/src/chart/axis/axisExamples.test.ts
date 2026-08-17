@@ -249,6 +249,23 @@ const EXAMPLES_LAYOUT: Record<string, TestCase> = {
     },
 };
 
+const EXAMPLES_LABEL_TEXT_ALIGN: Record<string, TestCase> = {
+    AXIS_LABEL_TEXT_ALIGN: {
+        options: axesExamples.AXIS_LABEL_TEXT_ALIGN,
+        assertions: cartesianChartAssertions({
+            axisTypes: { x: 'category', y: 'number', __AXIS_ID_2: 'number' },
+            seriesTypes: ['bar', 'bar', 'line'],
+        }),
+    },
+    AXIS_LABEL_TEXT_ALIGN_ROTATED: {
+        options: applyRotation(axesExamples.AXIS_LABEL_TEXT_ALIGN, -30),
+        assertions: cartesianChartAssertions({
+            axisTypes: { x: 'category', y: 'number', __AXIS_ID_2: 'number' },
+            seriesTypes: ['bar', 'bar', 'line'],
+        }),
+    },
+};
+
 function mixinDerivedCases(baseCases: Record<string, TestCase>): Record<string, TestCase> {
     const result = { ...baseCases };
 
@@ -518,6 +535,20 @@ describe('Axis Examples', () => {
             });
             await compare();
         });
+    });
+
+    describe('label text alignment cases', () => {
+        for (const [exampleName, example] of Object.entries(EXAMPLES_LABEL_TEXT_ALIGN)) {
+            it(`for ${exampleName} it should create chart instance as expected`, async () => {
+                chart = await createChart(example.options);
+                await example.assertions(chart);
+            });
+
+            it(`for ${exampleName} it should render to canvas as expected`, async () => {
+                chart = await createChart(example.options);
+                await compare();
+            });
+        }
     });
 
     describe('complex layout cases', () => {

@@ -39,6 +39,11 @@
                         },
                         {
                             "type": "item",
+                            "title": "Development Validation",
+                            "path": "dev-validation"
+                        },
+                        {
+                            "type": "item",
                             "title": "Migration",
                             "path": "migration"
                         },
@@ -480,6 +485,12 @@
                     "title": "Org Chart",
                     "path": "org-chart",
                     "icon": "chartsOrg",
+                    "isEnterprise": true
+                },
+                {
+                    "type": "item",
+                    "title": "Quadrant Charts",
+                    "path": "quadrant-charts",
                     "isEnterprise": true
                 }
             ]

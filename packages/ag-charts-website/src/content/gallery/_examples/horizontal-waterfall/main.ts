@@ -70,6 +70,7 @@ const options: AgCartesianChartOptions = {
                     label: {
                         enabled: true,
                         placement: 'inside-center',
+                        insideStyle: { color: { ref: 'textColor' } },
                         formatter: (params) => {
                             const value = params.value as number;
                             return `£${value}B`;

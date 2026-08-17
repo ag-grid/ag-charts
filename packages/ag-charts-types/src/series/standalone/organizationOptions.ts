@@ -7,7 +7,16 @@ import type {
 } from '../../chart/callbackOptions';
 import type { AgCssColorOrRef } from '../../chart/themeParamsOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { ContextDefault, DatumDefault, OverflowStrategy, PixelSize, TextAlign, TextWrap } from '../../chart/types';
+import type {
+    ContextDefault,
+    DatumDefault,
+    FontWeight,
+    Opacity,
+    OverflowStrategy,
+    PixelSize,
+    TextAlign,
+    TextWrap,
+} from '../../chart/types';
 import type {
     FillCssOptions,
     FillOptions,
@@ -62,6 +71,8 @@ export interface AgOrganizationSeriesOptionsExpander<
     TDatum = DatumDefault,
     TContext = ContextDefault,
 > extends AgOrganizationSeriesExpanderStyle {
+    /** Styling applied to the expander when the pointer hovers over it. */
+    hoverStyle?: AgOrganizationSeriesExpanderHoverStyle;
     itemStyler?: Styler<
         AgOrganizationSeriesExpanderItemStylerParams<TDatum, TContext>,
         AgOrganizationSeriesExpanderStyle
@@ -74,6 +85,38 @@ export interface AgOrganizationSeriesExpanderStyle extends Toggleable, FillOptio
     /** Padding around the expander content. A number applies uniform padding; an object sets each side. */
     padding?: Padding;
     text?: AgOrganizationSeriesExpanderTextStyle;
+}
+
+export interface AgOrganizationSeriesExpanderHoverStyle {
+    /**
+     * The colour for filling the expander shape when hovered. A colour string, or a theme-colour reference object.
+     *
+     * Default: the expander fill mixed with the foreground colour.
+     */
+    fill?: AgCssColorOrRef;
+    /** The opacity of the fill colour when the expander is hovered. */
+    fillOpacity?: Opacity;
+    /**
+     * The colour for the stroke when the expander is hovered.
+     *
+     * Default: the expander stroke mixed with the foreground colour.
+     */
+    stroke?: AgCssColorOrRef;
+    /** The opacity of the stroke when the expander is hovered. */
+    strokeOpacity?: Opacity;
+    /** An array specifying the length in pixels of alternating dashes and gaps, applied when the expander is hovered. */
+    lineDash?: PixelSize[];
+    /** The initial offset of the dashed line in pixels, applied when the expander is hovered. */
+    lineDashOffset?: PixelSize;
+    /** Styling applied to the expander text when the expander is hovered. */
+    text?: AgOrganizationSeriesExpanderHoverTextStyle;
+}
+
+export interface AgOrganizationSeriesExpanderHoverTextStyle {
+    /** The colour to use for the expander text when hovered. A colour string, or a theme-colour reference object. */
+    color?: AgCssColorOrRef;
+    /** The font weight to use for the expander text when hovered. */
+    fontWeight?: FontWeight;
 }
 
 export interface AgOrganizationSeriesExpanderTextStyle extends FontOptions {

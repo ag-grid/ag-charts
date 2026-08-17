@@ -156,7 +156,7 @@ export type AgContextMenuItem<TDatum = DatumDefault, TContext = ContextDefault> 
     | AgContextMenuItemSeriesNode<TDatum, TContext>
     | AgContextMenuItemLegendItem<TDatum, TContext>;
 
-type GetItemsParamsOmissions = 'type' | 'event' | 'coordinates';
+type GetItemsParamsOmissions = 'type' | 'event' | 'coordinates' | 'defaultPrevented' | 'preventDefault';
 
 // Note: The unused `_TDatumReserved = never` are reserved for future-proofing.
 //
@@ -208,7 +208,7 @@ export interface AgContextMenuShowOnParamsSeriesArea<_TDatumReserved = never, TC
 }
 
 export interface AgContextMenuShowOnParamsSeriesNode<TDatum = DatumDefault, TContext = ContextDefault> extends Omit<
-    AgNodeContextMenuActionEvent<TDatum, TContext>,
+    Omit<AgNodeContextMenuActionEvent<TDatum, TContext>, 'allNodeParams'>,
     GetItemsParamsOmissions
 > {
     /** Which clicked element this menu item should be shown for. */

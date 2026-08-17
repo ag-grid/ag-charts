@@ -34,7 +34,6 @@ import type { ProxyInteractionService } from '../dom/proxyInteractionService';
 import type { LocaleManager } from '../locale/localeManager';
 import type { Group } from '../scene/group';
 import type { Scene } from '../scene/scene';
-import type { TypedEvent } from '../util/observable';
 
 /**
  * Minimal contract for a shared toolbar instance registered by enterprise plugins.
@@ -60,7 +59,6 @@ export interface ChartRegistry {
     readonly eventsHub: EventsHub;
     readonly callbackCache: CallbackCache;
     readonly logger: Logger;
-    readonly fireEvent: <TEvent extends TypedEvent>(event: TEvent) => void;
 
     readonly chartService: ChartService;
     readonly chartTypeOriginator: ChartTypeOriginator;

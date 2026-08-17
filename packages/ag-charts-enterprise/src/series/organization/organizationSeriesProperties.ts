@@ -61,6 +61,9 @@ class OrganizationSeriesExpanderProperties extends BaseProperties {
     fillOpacity: number = 1;
 
     @Property
+    hoverStyle = new OrganizationSeriesExpanderHoverStyleProperties();
+
+    @Property
     itemStyler?: Styler<
         AgOrganizationSeriesExpanderItemStylerParams<unknown, unknown>,
         AgOrganizationSeriesExpanderStyle
@@ -115,6 +118,37 @@ class OrganizationSeriesExpanderTextProperties extends BaseProperties {
 
     @Property
     textAlign: TextAlign = 'left';
+}
+
+class OrganizationSeriesExpanderHoverStyleProperties extends BaseProperties {
+    @Property
+    fill?: CssColor;
+
+    @Property
+    fillOpacity?: number;
+
+    @Property
+    stroke?: CssColor;
+
+    @Property
+    strokeOpacity?: number;
+
+    @Property
+    lineDash?: number[];
+
+    @Property
+    lineDashOffset?: number;
+
+    @Property
+    text = new OrganizationSeriesExpanderHoverStyleTextProperties();
+}
+
+class OrganizationSeriesExpanderHoverStyleTextProperties extends BaseProperties {
+    @Property
+    color?: CssColor;
+
+    @Property
+    fontWeight?: FontWeight;
 }
 
 class OrganizationSeriesLinkProperties extends BaseProperties {

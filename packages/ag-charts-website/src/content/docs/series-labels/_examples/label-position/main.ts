@@ -28,6 +28,11 @@ type SeriesType = 'bubble' | 'bar' | 'bar-horizontal';
 
 let spacing = 6;
 
+function formatCurrency(value: number) {
+    const sign = value < 0 ? '-' : '';
+    return `${sign}$${Math.abs(value)}m`;
+}
+
 const options: AgCartesianChartOptions<BubbleDataType | BarDataType> = {
     container: document.getElementById('myChart'),
     title: { text: 'Weather Station Readings' },
@@ -121,7 +126,12 @@ function setSeriesType(seriesType: SeriesType) {
                         | AgBarSeriesLabelPlacement[],
                     spacing,
                     truncate: false,
-                    formatter: (params) => `$${params.value}m`,
+                    formatter: ({ value }) => formatCurrency(value),
+                },
+                tooltip: {
+                    renderer: ({ datum }) => ({
+                        data: [{ label: 'Profit Change', value: formatCurrency((datum as BarDataType).profitChange) }],
+                    }),
                 },
             },
         ];
