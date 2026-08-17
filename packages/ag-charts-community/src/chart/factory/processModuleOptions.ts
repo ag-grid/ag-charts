@@ -174,15 +174,21 @@ function sanitizeThemeModulesUncached(theme: ChartTheme): ChartTheme {
     });
 }
 
+/** What `processModuleOptions` wrote to the console, and the full set of modules it dropped for it. */
+export interface ProcessModuleOptionsReport {
+    message: string;
+    missingModules: ModulePlaceholder[];
+}
+
 export function processModuleOptions<T extends Partial<AgChartOptions>>(
     chartType: string | undefined,
     options: T,
     additionalMissingModules: ModulePlaceholder[],
     logger: Logger
-): void {
+): ProcessModuleOptionsReport | undefined {
     const missingModules = unique(removeUnregisteredModuleOptions(chartType, options).concat(additionalMissingModules));
 
-    if (!missingModules.length) return;
+    if (!missingModules.length) return undefined;
 
     const installationReferenceUrl = ModuleRegistry.isIntegrated()
         ? 'https://www.ag-grid.com/data-grid/integrated-charts-installation/'
@@ -190,11 +196,16 @@ export function processModuleOptions<T extends Partial<AgChartOptions>>(
 
     const missingOptions = groupBy(missingModules, (module) => (module.enterprise ? 'enterprise' : 'community'));
 
+    let message: string;
     if (ModuleRegistry.isUmd()) {
-        logger.warnOnce(umdMissingModulesMessage(missingOptions.enterprise ?? []));
+        message = umdMissingModulesMessage(missingOptions.enterprise ?? []);
+        logger.warnOnce(message);
     } else {
-        logger.errorOnce(bundlerMissingModulesMessage(missingModules, missingOptions, installationReferenceUrl));
+        message = bundlerMissingModulesMessage(missingModules, missingOptions, installationReferenceUrl);
+        logger.errorOnce(message);
     }
+
+    return { message, missingModules };
 }
 
 function umdMissingModulesMessage(enterpriseModules: ModulePlaceholder[]): string {

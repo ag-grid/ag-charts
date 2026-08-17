@@ -227,18 +227,26 @@ class AgChartsInternal {
         const { document, window: userWindow, styleContainer, skipCss, ...options } = mutableOptions ?? {};
         const baseOptions = chart?.getChartOptions();
         const newSpecialOverrides = { ...specialOverrides, document, window: userWindow, styleContainer, skipCss };
-        const chartOptions = new ChartOptions(
-            baseOptions,
-            options,
-            processedOverrides,
-            newSpecialOverrides,
-            optionsMetadata,
-            deltaOptions,
-            stripSymbols,
-            false,
-            apiStartTime,
-            chart?.ctx.logger
-        );
+        let chartOptions;
+        try {
+            chartOptions = new ChartOptions(
+                baseOptions,
+                options,
+                processedOverrides,
+                newSpecialOverrides,
+                optionsMetadata,
+                deltaOptions,
+                stripSymbols,
+                false,
+                apiStartTime,
+                chart?.ctx.logger
+            );
+        } catch (e) {
+            // Options processing can throw (`validations.throwOn`), and a chart already taken out of
+            // the pool above would otherwise stay in the busy pool for the rest of the page's life.
+            poolResult?.release();
+            throw e;
+        }
 
         if (
             chart == null ||

@@ -30,6 +30,11 @@ const LEVEL_INCLUDES: Record<ValidationOverlayLevel, ValidationSeverity[]> = {
     none: [],
 };
 
+/** Inclusive-threshold test shared by the overlay and `validations.throwOn`. */
+export function severityAtOrAbove(level: ValidationOverlayLevel, severity: ValidationSeverity): boolean {
+    return LEVEL_INCLUDES[level].includes(severity);
+}
+
 function signatureOf(issues: ValidationIssue[]): string {
     return issues.map((i) => `${i.severity}:${i.message}:${i.code ?? ''}`).join('\n');
 }
@@ -142,15 +147,13 @@ export class ValidationIssueCollector {
 
     hasVisibleIssues(): boolean {
         if (this.overlayLevel === 'none' || this.dismissed) return false;
-        const allowed = LEVEL_INCLUDES[this.overlayLevel];
-        return this.allIssues().some((issue) => allowed.includes(issue.severity));
+        return this.allIssues().some((issue) => severityAtOrAbove(this.overlayLevel, issue.severity));
     }
 
     getVisibleIssues(): GroupedValidationIssues {
-        const allowed = LEVEL_INCLUDES[this.overlayLevel];
         const grouped: GroupedValidationIssues = { error: [], warning: [], deprecation: [] };
         for (const issue of this.allIssues()) {
-            if (allowed.includes(issue.severity)) {
+            if (severityAtOrAbove(this.overlayLevel, issue.severity)) {
                 grouped[issue.severity].push(issue);
             }
         }
