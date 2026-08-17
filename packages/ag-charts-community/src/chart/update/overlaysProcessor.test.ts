@@ -204,4 +204,24 @@ describe('OverlaysProcessor', () => {
         expect(validationSpy.mock.calls.length).toBeGreaterThan(rendersBeforeResize);
         expect(overlays.validation.focusBox).toEqual(new BBox(0, 0, 400, 300));
     });
+
+    it('follows a canvas resize when a throwing update emits no layout:complete', () => {
+        const { overlays, validationCollector, eventsHub } = build();
+        const validationSpy = vi.spyOn(overlays.validation, 'getElement');
+
+        validationCollector.setOverlayLevel('error');
+        validationCollector.setIssues([{ severity: 'error', message: 'update error' }]);
+        emitLayout(eventsHub, new BBox(0, 0, 800, 600), { width: 800, height: 600 });
+        expect(overlays.validation.focusBox).toEqual(new BBox(0, 0, 800, 600));
+
+        const rendersBeforeResize = validationSpy.mock.calls.length;
+
+        // An erroring chart re-throws on every update, so a resize completes no layout and emits no
+        // layout:complete; the canvas:resize signal must still re-anchor the shown overlay to the
+        // new canvas size rather than leaving it frozen.
+        eventsHub.emit('canvas:resize', { width: 400, height: 300 });
+
+        expect(validationSpy.mock.calls.length).toBeGreaterThan(rendersBeforeResize);
+        expect(overlays.validation.focusBox).toEqual(new BBox(0, 0, 400, 300));
+    });
 });
