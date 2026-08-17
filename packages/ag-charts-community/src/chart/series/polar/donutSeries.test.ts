@@ -1536,10 +1536,10 @@ describe('DonutSeries', () => {
         const LIGHT_THEME: AgChartTheme = { baseTheme: 'ag-default' };
         const DARK_THEME: AgChartTheme = { baseTheme: 'ag-default-dark' };
 
-        const createDonut = async (series: Partial<AgDonutSeriesOptions>, theme?: AgChartTheme) => {
+        const createDonut = async (series: Partial<AgDonutSeriesOptions>, theme: AgChartTheme = LIGHT_THEME) => {
             chart = await createChart({
                 ...options,
-                ...(theme != null ? { theme } : {}),
+                theme,
                 data,
                 series: [
                     {
