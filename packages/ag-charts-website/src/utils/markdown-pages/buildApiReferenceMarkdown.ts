@@ -1,6 +1,7 @@
 import { toAbsoluteUrl } from '@ag-website-shared/markdoc/toAbsoluteUrl';
 import type { ApiReferenceType, PageTitle } from '@components/api-documentation/apiReferenceHelpers';
-import { getOptionsStaticPaths, parseJsDocs } from '@components/api-documentation/apiReferenceHelpers';
+import { parseJsDocs } from '@components/api-documentation/apiReferenceHelpers';
+import { getReferencePageLinks } from '@components/api-documentation/apiReferencePageLinks';
 import type { ApiReferenceTableLimits } from '@utils/markdoc/renderApiReferenceTable';
 import { buildApiReferenceTable } from '@utils/markdoc/renderApiReferenceTable';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
@@ -70,10 +71,9 @@ export function buildOptionsApiMarkdown({
     reference: ApiReferenceType;
     siteRoot?: string;
 }): string {
-    const variants = getOptionsStaticPaths(reference).map(({ params, props }) => {
-        const href = toAbsoluteUrl(urlWithBaseUrl(`/options/${params.memberName}/${params.type}/`), siteRoot);
-        return `- [${apiReferencePageHeading(props.pageTitle)}](${href})`;
-    });
+    const variants = getReferencePageLinks(reference, 'options').map(
+        ({ href, label }) => `- [${label}](${toAbsoluteUrl(href, siteRoot)})`
+    );
 
     return buildApiReferenceMarkdown({
         reference,

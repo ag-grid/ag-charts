@@ -83,6 +83,25 @@
     }
 }
 
+.pageLinks {
+    padding: $spacing-size-6 0 $spacing-size-8;
+    border-top: 1px solid var(--color-border-secondary);
+
+    h2 {
+        margin-bottom: $spacing-size-4;
+    }
+}
+
+.pageLinkList {
+    columns: 16rem auto;
+    margin: 0 0 $spacing-size-4;
+    padding: 0;
+    list-style: none;
+    /* Page names are a single unbroken token (`navigator.miniChart.series[type='candlestick']`),
+       which has no break opportunity to wrap at and overflows its column without this. */
+    overflow-wrap: anywhere;
+}
+
 .propertyName {
     font-weight: var(--text-bold);
 }

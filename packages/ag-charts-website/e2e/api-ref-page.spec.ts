@@ -1,4 +1,4 @@
-import type { Locator, Page } from '@playwright/test';
+import type { APIRequestContext, Locator, Page } from '@playwright/test';
 
 import { expect, test } from './fixture';
 import { createConsoleLogs, gotoUrl, setupIntrinsicAssertions, toPageUrl } from './util';
@@ -532,6 +532,43 @@ test.describe('api-ref-page', () => {
 
         await seriesLink.click();
         await expect(getNavigationHighlight(page, /^series\b/)).toHaveCount(1);
+    });
+});
+
+// The reference tree is client-rendered, so these links are the only route between the reference
+// pages for a reader that doesn't run JavaScript. Asserting against the fetched document rather
+// than a rendered page is the point: it is what such a reader receives.
+test.describe('api-ref-page served HTML', () => {
+    const REFERENCE_NAV = /<nav[^>]*aria-label="API reference pages"[^>]*>([\s\S]*?)<\/nav>/;
+
+    /** Site-relative form of a page path, carrying whatever base URL the site under test uses. */
+    const toSitePath = (path: string) => new URL(toPageUrl(path.replace(/^\//, ''))).pathname;
+
+    async function referenceNavLinks(request: APIRequestContext, uri: string) {
+        const response = await request.get(toPageUrl(uri));
+        expect(response.ok()).toBe(true);
+
+        const nav = REFERENCE_NAV.exec(await response.text());
+        expect(nav, `no reference nav in the served HTML of ${uri}`).not.toBeNull();
+        return Array.from(nav![1].matchAll(/href="([^"]+)"/g), ([, href]) => href);
+    }
+
+    test('links every options page from the reference root', async ({ request }) => {
+        const links = await referenceNavLinks(request, 'options/');
+
+        expect(links).toContain(toSitePath('/options/series/bar/'));
+        expect(links).toContain(toSitePath('/options/axes/number/'));
+        expect(links).toContain(toSitePath('/options/initialState/annotations/line/'));
+        // The theme has a reference of its own, reached from here rather than from the tree.
+        expect(links).toContain(toSitePath('/themes-api/'));
+    });
+
+    test('links an options page back to the reference root', async ({ request }) => {
+        expect(await referenceNavLinks(request, 'options/series/bar/')).toEqual([toSitePath('/options/')]);
+    });
+
+    test('links the themes reference across to the options reference', async ({ request }) => {
+        expect(await referenceNavLinks(request, 'themes-api/')).toContain(toSitePath('/options/'));
     });
 });
 

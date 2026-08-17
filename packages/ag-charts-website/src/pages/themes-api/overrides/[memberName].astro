@@ -28,6 +28,7 @@ export async function getStaticPaths() {
         <ApiReferenceFallback
             slot="fallback"
             rootInterface="AgChartTheme"
+            basePath="themes-api"
             pageInterface={Astro.props.pageInterface}
             pageTitle={Astro.props.pageTitle}
         />

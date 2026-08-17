@@ -6,16 +6,19 @@ import {
     parseJsDocs,
     processMembers,
 } from '@components/api-documentation/apiReferenceHelpers';
+import type { ReferenceBasePath } from '@components/api-documentation/apiReferencePageLinks';
+import { REFERENCE_ROOT_LINKS, getReferencePageLinks } from '@components/api-documentation/apiReferencePageLinks';
 import { getInterfacesReference } from '@utils/server/getInterfacesReference';
 import styles from './ApiReferenceFallback.module.scss';
 
 interface Props {
     rootInterface: string;
+    basePath: ReferenceBasePath;
     pageInterface?: string;
     pageTitle?: PageTitle;
 }
 
-const { rootInterface, pageInterface, pageTitle } = Astro.props;
+const { rootInterface, basePath, pageInterface, pageTitle } = Astro.props;
 
 const reference = getInterfacesReference();
 const id = pageInterface ?? rootInterface;
@@ -25,6 +28,16 @@ const interfaceRef = pageRef?.kind === 'interface' ? pageRef : undefined;
 const title = pageTitle ?? { name: id };
 const description = interfaceRef && parseJsDocs(interfaceRef.docs);
 const members = interfaceRef ? processMembers(interfaceRef, {}) : [];
+
+// Only the root of a reference lists its pages; the pages themselves link back to it, which is the
+// same hub-and-spoke the markdown twins form. Listing every sibling on every page would repeat the
+// whole set once per page for the weight of one extra hop.
+const isRootPage = pageInterface == null;
+const pageLinks = isRootPage ? getReferencePageLinks(reference, basePath) : [];
+const rootLink = REFERENCE_ROOT_LINKS[basePath];
+const otherRootLink = REFERENCE_ROOT_LINKS[basePath === 'options' ? 'themes-api' : 'options'];
+const pageLinksHeading =
+    basePath === 'options' ? 'Options with a reference page per type' : 'Chart types with their own reference page';
 ---
 
 {
@@ -83,5 +96,37 @@ const members = interfaceRef ? processMembers(interfaceRef, {}) : [];
                 })
             }
         </dl>
+
+        {
+            /* Without JavaScript the navigation tree above never renders, so these are the only
+            links between the reference pages. */
+        }
+        <nav class={styles.pageLinks} aria-label="API reference pages">
+            {
+                pageLinks.length > 0 && (
+                    <>
+                        <h2 class="text-xl">{pageLinksHeading}</h2>
+                        <ul class={styles.pageLinkList}>
+                            {pageLinks.map(({ href, label }) => (
+                                <li>
+                                    <a href={href}>{label}</a>
+                                </li>
+                            ))}
+                        </ul>
+                    </>
+                )
+            }
+            {
+                isRootPage ? (
+                    <p>
+                        See also the <a href={otherRootLink.href}>{otherRootLink.label}</a> reference.
+                    </p>
+                ) : (
+                    <p>
+                        Part of the <a href={rootLink.href}>AG Charts {rootLink.label}</a> reference.
+                    </p>
+                )
+            }
+        </nav>
     </div>
 </div>

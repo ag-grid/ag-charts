@@ -33,6 +33,7 @@ const { title, description } = optionsVariantPageContent(Astro.props.pageTitle);
         <ApiReferenceFallback
             slot="fallback"
             rootInterface="AgChartOptions"
+            basePath="options"
             pageInterface={Astro.props.pageInterface}
             pageTitle={Astro.props.pageTitle}
         />
