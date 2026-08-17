@@ -16,7 +16,6 @@ import {
     setupIntrinsicAssertions,
     toExamplePageUrl,
     waitForAllChartUpdates,
-    waitForChartUpdate,
 } from './util';
 
 test.describe('zoom', () => {
@@ -224,9 +223,9 @@ test.describe('zoom', () => {
         } as const;
 
         test.beforeEach(async ({ page }) => {
-            async function measureElemCenter(page: Page, selector: string, nth: number): Promise<ClientPoint> {
+            async function measureElemCenter(selector: string, nth: number): Promise<ClientPoint> {
                 const elem = page.locator(selector).nth(nth);
-                const bbox = (await elem.boundingBox())!;
+                const bbox = await elem.boundingBox();
                 expect(bbox).toBeDefined();
                 const { x, y, width, height } = bbox!;
                 return { clientX: x + width / 2, clientY: y + height / 2 };
@@ -235,8 +234,8 @@ test.describe('zoom', () => {
             const { url } = toExamplePageUrl('zoom-e2e', 'zoom-selection', 'vanilla');
             await gotoExample(page, url);
 
-            const seriesAreaCenter = await measureElemCenter(page, SELECTORS.seriesArea, 0);
-            const xAxisCenter = await measureElemCenter(page, SELECTORS.axisProxy, 0);
+            const seriesAreaCenter = await measureElemCenter(SELECTORS.seriesArea, 0);
+            const xAxisCenter = await measureElemCenter(SELECTORS.axisProxy, 0);
 
             await page.mouse.move(seriesAreaCenter.clientX, seriesAreaCenter.clientY);
             await page.mouse.down({ button: 'left' });
