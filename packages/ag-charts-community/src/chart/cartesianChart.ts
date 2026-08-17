@@ -192,7 +192,7 @@ export class CartesianChart extends Chart {
         }
 
         // Update the series area modules and always clip them to the series padded rect area.
-        this.seriesArea.update(seriesPaddedRect);
+        this.seriesArea.update(seriesRect, seriesPaddedRect);
 
         this.ctx.layoutManager.emitLayoutComplete(ctx, {
             axes: fromPairs(this.axes.map((axis) => [axis.id, axis.getLayoutState()])),
