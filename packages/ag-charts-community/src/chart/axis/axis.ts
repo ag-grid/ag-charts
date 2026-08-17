@@ -75,7 +75,7 @@ import { FormatManager } from '../formatter/formatManager';
 import type { ISeries, ISeriesProperties, SeriesNodeDatum } from '../series/seriesTypes';
 import { type AxisLabelFormatterCache, createAxisLabelFormatterCache, formatAxisLabelValue } from './axisLabelUtil';
 import type { TickInterval } from './axisTick';
-import { type AxisGroupDatumTranslation, NiceMode } from './axisUtil';
+import { type AxisGroupDatumTranslation, NiceMode, type TickDatum } from './axisUtil';
 import type { AnyTimeInterval } from './generateTicksUtils';
 
 export interface AxisPickDatum {
@@ -256,7 +256,7 @@ export abstract class Axis<
     //
     // This must live separately from the scene-graph LabelNodeDatum. This is because label-less axes can still be
     // interacted with, but they do not include any text nodes in the scene-graph.
-    private pickTickData: AxisPickDatum[] = [];
+    protected pickTickData: AxisPickDatum[] = [];
 
     readonly caption = new Caption();
 
@@ -1303,23 +1303,16 @@ export abstract class Axis<
         return result;
     }
 
-    protected setPickTickData(
-        ticks: readonly { readonly index: number; readonly translation: number; readonly tick?: unknown }[],
-        firstTickIndex = 0
-    ): void {
+    protected setPickTickData(ticks: readonly Readonly<TickDatum>[], firstTickIndex = 0): void {
         // A picked value's index must match what the axis label formatter reports for the same tick. The
         // formatter numbers ticks by their 0-based position among the generated ticks, whereas TickDatum.index
         // is the absolute index (offset by firstTickIndex on reversed/zoomed axes), so subtract it here.
         // These ticks occupy a single row, so they span the axis in the perpendicular direction.
         this.pickTickData = ticks.map(({ index, translation, tick }) => ({
             index: index - firstTickIndex,
-            value: tick as AgAxisValue,
+            value: tick,
             along: [translation, translation] as const,
         }));
-    }
-
-    protected setPickData(data: AxisPickDatum[]): void {
-        this.pickTickData = data;
     }
 
     /**

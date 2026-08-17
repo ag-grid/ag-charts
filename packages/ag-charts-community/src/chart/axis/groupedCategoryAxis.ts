@@ -157,7 +157,7 @@ export class GroupedCategoryAxis extends CategoryAxis<
         this.tickTreeLayout?.resize(this.scale.range, this.scale.step, this.scale.inset, this.scale.bandwidth);
 
         if (!this.tickTreeLayout?.depth) {
-            this.setPickData([]);
+            this.pickTickData = [];
             return { bbox: BBox.zero, spacing: 0, tickSizeAtDepth: [], tickLabelLayout: [] };
         }
 
@@ -268,15 +268,13 @@ export class GroupedCategoryAxis extends CategoryAxis<
         // Each depth occupies one row stacked outwards from the axis line, bounded by the cumulative
         // sizes above. The outermost row runs to infinity so that clicks beyond the labels — on the axis
         // title, say — still resolve to the group they sit under rather than to no tick at all.
-        this.setPickData(
-            pickIdentities.map(({ depth, ...identity }) => ({
-                ...identity,
-                cross: [
-                    depth === 0 ? 0 : tickSizeAtDepth[depth - 1],
-                    depth === maxDepth - 1 ? Infinity : tickSizeAtDepth[depth],
-                ] as const,
-            }))
-        );
+        this.pickTickData = pickIdentities.map(({ depth, ...identity }) => ({
+            ...identity,
+            cross: [
+                depth === 0 ? 0 : tickSizeAtDepth[depth - 1],
+                depth === maxDepth - 1 ? Infinity : tickSizeAtDepth[depth],
+            ] as const,
+        }));
 
         // Second pass: position labels using cached data
         const idGenerator = createIdsGenerator();
