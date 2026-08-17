@@ -1670,9 +1670,7 @@ describe('DonutSeries', () => {
         });
 
         test('renders a gradient fill at an explicit rotation', async () => {
-            chart = await createChart(
-                richFillOptions({ type: 'gradient', colorStops: GRADIENT_STOPS, rotation: 90 })
-            );
+            chart = await createChart(richFillOptions({ type: 'gradient', colorStops: GRADIENT_STOPS, rotation: 90 }));
 
             await compare('donut-inner-circle-gradient-fill-rotated');
             const rotated = ctx.snapshot();
