@@ -5,6 +5,7 @@ import {
     arrayOfDefs,
     boolean,
     borderOptionsDef,
+    callback,
     commonChartOptionsDefs,
     defined,
     fillOptionsDef,
@@ -58,6 +59,7 @@ export const commonChartOptions = {
     validations: {
         overlayLevel: validationLevel,
         consoleLogLevel: validationLevel,
+        onErrorRaised: callback,
     },
     container: htmlElement,
     context: () => true,

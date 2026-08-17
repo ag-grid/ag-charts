@@ -76,7 +76,7 @@ export const scenarios = [
         name: 'enterprise/MixedC',
         package: 'ag-charts-enterprise',
         import: '{ FunnelSeriesModule, MapLineSeriesModule, CrosshairModule, GradientLegendModule }',
-        limit: 537_000,
+        limit: 547_000,
     },
     {
         name: 'enterprise/MixedD',

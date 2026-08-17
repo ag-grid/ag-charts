@@ -91,7 +91,7 @@ import { Tooltip, type TooltipContent } from './tooltip/tooltip';
 import { DataWindowProcessor } from './update/dataWindowProcessor';
 import { OverlaysProcessor } from './update/overlaysProcessor';
 import type { UpdateProcessor } from './update/processor';
-import { ValidationIssueCollector } from './validation/validationIssueCollector';
+import { ValidationIssueCollector, type ValidationIssueListener } from './validation/validationIssueCollector';
 
 const debug = Debug.create(true, 'opts');
 
@@ -609,6 +609,9 @@ export abstract class Chart implements ModuleInstance, ChartService {
             }),
             ctx.chartState.observe((get) => {
                 ctx.logger.setLevel(get('options', 'validations')?.consoleLogLevel ?? 'deprecation');
+            }),
+            ctx.chartState.observe((get) => {
+                this.setIssueListener(get('options', 'validations')?.onErrorRaised);
             }),
             ctx.layoutManager.registerElement(LayoutElement.Caption, (e) => {
                 e.layoutBox.shrink(ctx.chartState.getValue('options', 'padding'));
@@ -1752,7 +1755,22 @@ export abstract class Chart implements ModuleInstance, ChartService {
         return series?.filter((s) => s.showInMiniChart !== false);
     }
 
+    /**
+     * Always set, never conditionally skipped: a pooled chart reuses a live collector, so leaving a
+     * previous tenant's listener in place would hand it this chart's issues. This can also run before
+     * the option's validator has, hence the coercion rather than trusting the value.
+     */
+    private setIssueListener(onErrorRaised: unknown) {
+        this.validationCollector.setIssueListener(
+            typeof onErrorRaised === 'function' ? (onErrorRaised as ValidationIssueListener) : undefined,
+            this.ctx.logger
+        );
+    }
+
     applyOptions(newChartOptions: ChartOptions) {
+        // Registered from the same options object in the same statement pair, so this pass's issues
+        // reach the listener this pass declared without depending on when chartState observers flush.
+        this.setIssueListener(newChartOptions.processedOptions.validations?.onErrorRaised);
         this.validationCollector.setIssues(newChartOptions.validationIssues);
 
         if (newChartOptions.seriesWithUserVisibility) {
