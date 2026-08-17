@@ -54,6 +54,68 @@
     </div>
 
     <div class="style-guide-item">
+        <code>div class="button-group"</code>
+        <div class="controls-row">
+            <label>I'm a button group with a label:</label>
+            <div class="button-group" role="group" aria-label="Button group">
+                <input type="radio" id="bg-alpha" name="button-group" value="alpha" checked />
+                <label for="bg-alpha">Alpha</label>
+                <input type="radio" id="bg-beta" name="button-group" value="beta" />
+                <label for="bg-beta">Beta</label>
+                <input type="radio" id="bg-gamma" name="button-group" value="gamma" />
+                <label for="bg-gamma">Gamma</label>
+            </div>
+        </div>
+        <div class="controls-row">
+            <label>I'm a button group containing code:</label>
+            <div class="button-group" role="group" aria-label="Button group with code">
+                <input type="radio" id="bg-code-left" name="button-group-code" value="left" checked />
+                <label for="bg-code-left"><code>'left'</code></label>
+                <input type="radio" id="bg-code-center" name="button-group-code" value="center" />
+                <label for="bg-code-center"><code>'center'</code></label>
+                <input type="radio" id="bg-code-right" name="button-group-code" value="right" />
+                <label for="bg-code-right"><code>'right'</code></label>
+            </div>
+        </div>
+        <div class="controls-row">
+            <label>I'm a button group with a disabled option:</label>
+            <div class="button-group" role="group" aria-label="Button group with a disabled option">
+                <input type="radio" id="bg-disabled-on" name="button-group-disabled" value="on" checked />
+                <label for="bg-disabled-on">Available</label>
+                <input type="radio" id="bg-disabled-off" name="button-group-disabled" value="off" disabled />
+                <label for="bg-disabled-off">Unavailable</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="style-guide-item">
+        <code>button aria-pressed</code>
+        <div class="controls-row">
+            <button aria-pressed="true">I'm a pressed toggle button</button>
+            <button aria-pressed="false">I'm an unpressed toggle button</button>
+        </div>
+    </div>
+
+    <div class="style-guide-item">
+        <code>disabled</code>
+        <div class="controls-row">
+            <button disabled>I'm a disabled button</button>
+            <select disabled>
+                <option value="Alpha">I'm a disabled select</option>
+            </select>
+            <input type="text" placeholder="I'm a disabled text input" disabled />
+            <input type="checkbox" disabled />
+        </div>
+        <div class="controls-row">
+            <fieldset class="control-group" disabled>
+                <label for="disabled-group-range">I'm a disabled control-group:</label>
+                <input type="range" id="disabled-group-range" min="0" max="10" step="1" value="5" />
+                <span>5</span>
+            </fieldset>
+        </div>
+    </div>
+
+    <div class="style-guide-item">
         <code>input type="number"</code>
         <div class="controls-row">
             <label for="number">I'm a number input with label:</label>

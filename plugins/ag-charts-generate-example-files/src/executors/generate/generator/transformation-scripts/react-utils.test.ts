@@ -61,6 +61,20 @@ describe('convertTemplate', () => {
         expect(converted).toBe('<input type="text" defaultValue="foo" maxLength="20" />');
     });
 
+    it('ensures input checked attributes are renamed', () => {
+        const template = '<input type="radio" name="group" value="foo" checked>';
+        const converted = convertTemplate(template);
+
+        expect(converted).toBe('<input type="radio" name="group" defaultValue="foo" defaultChecked />');
+    });
+
+    it('ensures explicit input checked attributes are renamed', () => {
+        const template = '<input type="checkbox" checked="true">';
+        const converted = convertTemplate(template);
+
+        expect(converted).toBe('<input type="checkbox" defaultChecked />');
+    });
+
     it('does not change value attributes for other elements', () => {
         const template = '<option value="bob">';
         const converted = convertTemplate(template);
