@@ -805,7 +805,9 @@ export class Legend {
         const { stroke, strokeOpacity = 1, fillOpacity = 1, strokeWidth, lineDash, lineDashOffset } = marker;
         const defaultLineStrokeWidth = Math.min(2, strokeWidth ?? 1);
         const disabledStyle = enabled ? undefined : this.opts.item.marker.disabledStyle;
-        const fill = disabledStyle?.fill ?? marker.fill;
+        // The symbol is pre-cloned by the caller, but the disabled fill comes straight from the
+        // options and is mutated below when it is a pattern or image fill.
+        const fill = disabledStyle?.fill != null ? deepClone(disabledStyle.fill) : marker.fill;
 
         if (isPatternFill(fill)) {
             fill.width = 8;
