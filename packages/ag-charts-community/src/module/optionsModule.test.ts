@@ -4079,13 +4079,13 @@ describe('ChartOptions', () => {
         });
     });
 
-    describe('validations.consoleLogLevel', () => {
-        const invalidOptions = (extra?: object): AgChartOptions =>
-            ({
-                series: [{ type: 'line', xKey: 'x', yKey: 'y', strokeWidth: 'notanumber' as any }],
-                ...extra,
-            }) as AgChartOptions;
+    const invalidOptions = (extra?: object): AgChartOptions =>
+        ({
+            series: [{ type: 'line', xKey: 'x', yKey: 'y', strokeWidth: 'notanumber' as any }],
+            ...extra,
+        }) as AgChartOptions;
 
+    describe('validations.consoleLogLevel', () => {
         it('silences first-render validation warnings when set to `none`, without silencing validation itself', () => {
             const chartOptions = new ChartOptions(
                 invalidOptions({ validations: { consoleLogLevel: 'none' } }),
@@ -4168,12 +4168,6 @@ describe('ChartOptions', () => {
     });
 
     describe('validations.throwOn', () => {
-        const invalidOptions = (extra?: object): AgChartOptions =>
-            ({
-                series: [{ type: 'line', xKey: 'x', yKey: 'y', strokeWidth: 'notanumber' as any }],
-                ...extra,
-            }) as AgChartOptions;
-
         it('does not throw for the default (option absent), and still logs the existing warning', () => {
             const chartOptions = new ChartOptions(invalidOptions(), {} as AgChartOptions, {}, {}, {});
 
@@ -4217,27 +4211,29 @@ describe('ChartOptions', () => {
         );
 
         it('throws on a warning-severity option error, naming the option path in the message', () => {
-            expect(() => {
-                new ChartOptions(
-                    invalidOptions({ validations: { throwOn: 'warning' } }),
-                    {} as AgChartOptions,
-                    {},
-                    {},
-                    {}
-                );
-            }).toThrowError(/^AG Charts - validations\.throwOn: warning - `series\[0\]\.strokeWidth`: /);
+            expect(
+                () =>
+                    new ChartOptions(
+                        invalidOptions({ validations: { throwOn: 'warning' } }),
+                        {} as AgChartOptions,
+                        {},
+                        {},
+                        {}
+                    )
+            ).toThrowError(/^AG Charts - validations\.throwOn: warning - `series\[0\]\.strokeWidth`: /);
         });
 
         it('writes the console record before throwing (AC2)', () => {
-            expect(() => {
-                new ChartOptions(
-                    invalidOptions({ validations: { throwOn: 'warning' } }),
-                    {} as AgChartOptions,
-                    {},
-                    {},
-                    {}
-                );
-            }).toThrow();
+            expect(
+                () =>
+                    new ChartOptions(
+                        invalidOptions({ validations: { throwOn: 'warning' } }),
+                        {} as AgChartOptions,
+                        {},
+                        {},
+                        {}
+                    )
+            ).toThrow();
 
             const messages = (console.warn as Mock).mock.calls.map(([m]) => String(m));
             expect(messages.some((m) => m.includes('notanumber'))).toBe(true);
@@ -4278,15 +4274,16 @@ describe('ChartOptions', () => {
         });
 
         it('throws at `deprecation` too, since the threshold is inclusive of every louder severity', () => {
-            expect(() => {
-                new ChartOptions(
-                    invalidOptions({ validations: { throwOn: 'deprecation' } }),
-                    {} as AgChartOptions,
-                    {},
-                    {},
-                    {}
-                );
-            }).toThrowError(/^AG Charts - validations\.throwOn: warning - /);
+            expect(
+                () =>
+                    new ChartOptions(
+                        invalidOptions({ validations: { throwOn: 'deprecation' } }),
+                        {} as AgChartOptions,
+                        {},
+                        {},
+                        {}
+                    )
+            ).toThrowError(/^AG Charts - validations\.throwOn: warning - /);
         });
 
         it('re-validates and throws again on a warm update, rather than carrying validation issues forward (S6/D4)', () => {

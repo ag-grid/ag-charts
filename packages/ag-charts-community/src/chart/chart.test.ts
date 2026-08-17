@@ -1782,7 +1782,7 @@ describe('validations.throwOn — runtime errors', () => {
             height: 300,
             data,
             series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
-            ...(validations != null ? { validations } : {}),
+            ...(validations == null ? {} : { validations }),
         } as AgCartesianChartOptions);
     }
 
