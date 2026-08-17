@@ -1874,3 +1874,44 @@ describe('validations.throwOn — runtime errors', () => {
         await expect(proxy.setState(proxy.getState())).resolves.toBeUndefined();
     });
 });
+
+describe('validations.onErrorRaised', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: Chart;
+    afterEach(() => {
+        chart?.destroy();
+    });
+
+    it('fires for a runtime error caught in tryPerformUpdate(), regardless of consoleLogLevel/overlayLevel', async () => {
+        const onErrorRaised = vi.fn();
+        const thrownError = new Error('processData boom');
+
+        const proxy = AgCharts.create({
+            container: document.body,
+            data: [
+                { x: 'A', y: 10 },
+                { x: 'B', y: 20 },
+            ],
+            series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+            validations: {
+                consoleLogLevel: 'none',
+                overlayLevel: 'none',
+                onErrorRaised,
+            },
+        }) as AgChartProxy;
+        chart = deproxy(proxy);
+        await waitForChartStability(chart);
+
+        const chartProto = Object.getPrototypeOf(chart);
+        vi.spyOn(chartProto, 'processData').mockImplementationOnce(() => {
+            throw thrownError;
+        });
+
+        chart.update(ChartUpdateType.FULL);
+        await waitForChartStability(chart);
+
+        expect(onErrorRaised).toHaveBeenCalledWith({ level: 'error', message: thrownError.message });
+    });
+});

@@ -243,10 +243,10 @@ describe('Feature Combinations', () => {
         const crossAtCases = [
             { name: 'crossing at a value', crossAt: { value: 0 } },
             { name: 'the title at the edge', crossAt: { value: 0, titlePlacement: 'edge' } },
-            { name: 'the labels at the edge', crossAt: { value: 0, labelsPlacement: 'edge' } },
+            { name: 'the labels at the edge', crossAt: { value: 0, labelPlacement: 'edge' } },
             {
                 name: 'the title and labels at the edge',
-                crossAt: { value: 0, titlePlacement: 'edge', labelsPlacement: 'edge' },
+                crossAt: { value: 0, titlePlacement: 'edge', labelPlacement: 'edge' },
             },
         ] satisfies { name: string; crossAt: AgCartesianAxisCrossAt }[];
 

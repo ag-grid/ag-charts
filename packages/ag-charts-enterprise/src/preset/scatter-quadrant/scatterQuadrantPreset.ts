@@ -202,8 +202,8 @@ export function createScatterQuadrant(
 
     if (alignAxesToPivot) {
         // TODO: bigint on crossAt
-        axes.x.crossAt = { value: Number(pivotY), titlePlacement: 'edge', labelsPlacement: 'crossing' };
-        axes.y.crossAt = { value: Number(pivotX), titlePlacement: 'edge', labelsPlacement: 'crossing' };
+        axes.x.crossAt = { value: Number(pivotY), titlePlacement: 'edge', labelPlacement: 'crossing' };
+        axes.y.crossAt = { value: Number(pivotX), titlePlacement: 'edge', labelPlacement: 'crossing' };
     }
 
     return {

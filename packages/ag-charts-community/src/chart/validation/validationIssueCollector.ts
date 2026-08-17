@@ -1,3 +1,5 @@
+import type { Logger } from 'ag-charts-core';
+
 import { Listeners } from '../../util/listeners';
 
 export type ValidationSeverity = 'error' | 'warning' | 'deprecation';
@@ -35,8 +37,14 @@ export function severityAtOrAbove(level: ValidationOverlayLevel, severity: Valid
     return LEVEL_INCLUDES[level].includes(severity);
 }
 
+export type ValidationIssueListener = (event: { level: ValidationSeverity; message: string }) => void;
+
+function keyOf(issue: ValidationIssue): string {
+    return `${issue.severity}:${issue.message}:${issue.code ?? ''}`;
+}
+
 function signatureOf(issues: ValidationIssue[]): string {
-    return issues.map((i) => `${i.severity}:${i.message}:${i.code ?? ''}`).join('\n');
+    return issues.map(keyOf).join('\n');
 }
 
 /**
@@ -53,9 +61,53 @@ export class ValidationIssueCollector {
     private dismissed = false;
     private signature = '';
     private readonly listeners = new Listeners<'change', () => void>();
+    private issueListener?: ValidationIssueListener;
+    private issueListenerLogger?: Logger;
+    private deliveredKeys = new Set<string>();
+    private readonly pendingDispatch: ValidationIssue[] = [];
+    private dispatching = false;
 
     addListener(handler: () => void) {
         return this.listeners.addListener('change', handler);
+    }
+
+    setIssueListener(listener: ValidationIssueListener | undefined, logger?: Logger) {
+        // Delivery is deduplicated per listener: a replacement has been told nothing yet, so the
+        // issues already in the collection must be reported to it rather than deduplicated away.
+        if (listener !== this.issueListener) {
+            this.deliveredKeys.clear();
+        }
+        this.issueListener = listener;
+        this.issueListenerLogger = logger;
+    }
+
+    /**
+     * Reports issues to the user-supplied listener as they are recorded, ahead of any threshold or
+     * dismissal filtering, so that delivery cannot depend on the overlay or console settings.
+     */
+    private dispatchIssues(issues: ValidationIssue[]) {
+        if (this.issueListener == null || issues.length === 0) return;
+        this.pendingDispatch.push(...issues);
+        // A listener that synchronously re-applies options re-enters this method through the issues
+        // that validation pass records; queue those and deliver them once the callback has returned.
+        if (this.dispatching) return;
+
+        // The batch belongs to the listener that was registered when its issues were raised, so a
+        // callback that swaps the listener mid-drain does not receive the remainder of the batch.
+        const listener = this.issueListener;
+        this.dispatching = true;
+        try {
+            while (this.pendingDispatch.length > 0) {
+                const pending = this.pendingDispatch.shift()!;
+                try {
+                    listener({ level: pending.severity, message: pending.message });
+                } catch (error) {
+                    this.issueListenerLogger?.error('validations.onErrorRaised threw an error', error);
+                }
+            }
+        } finally {
+            this.dispatching = false;
+        }
     }
 
     setOverlayLevel(level: ValidationOverlayLevel) {
@@ -73,7 +125,7 @@ export class ValidationIssueCollector {
     setIssues(issues: ValidationIssue[]) {
         this.issues = issues;
         this.runtimeIssues = [];
-        this.refreshSignature();
+        this.issuesChanged();
         this.listeners.dispatch('change');
     }
 
@@ -86,7 +138,7 @@ export class ValidationIssueCollector {
         // Called every data-processing pass; skip the common no-op so a valid config costs no dispatch.
         if (issues.length === 0 && this.dataIssues.length === 0) return;
         this.dataIssues = issues;
-        this.refreshSignature();
+        this.issuesChanged();
         this.listeners.dispatch('change');
     }
 
@@ -104,7 +156,7 @@ export class ValidationIssueCollector {
         );
         if (duplicate) return;
         this.runtimeIssues.push(issue);
-        this.refreshSignature();
+        this.issuesChanged();
         this.listeners.dispatch('change');
     }
 
@@ -135,7 +187,7 @@ export class ValidationIssueCollector {
         // Copy, not alias: a callback that throws outside a render cycle (e.g. a tooltip formatter on
         // hover) still calls recordCallbackIssue, which must not mutate the shown set in place.
         this.callbackIssues = [...this.pendingCallbackIssues];
-        this.refreshSignature();
+        this.issuesChanged();
         this.listeners.dispatch('change');
     }
 
@@ -167,11 +219,22 @@ export class ValidationIssueCollector {
         return [...this.issues, ...this.dataIssues, ...this.callbackIssues, ...this.runtimeIssues];
     }
 
-    private refreshSignature() {
-        const signature = signatureOf(this.allIssues());
+    /**
+     * The single choke point every feed mutation passes through, so a feed added later cannot reach the
+     * collection without also reaching the issue listener.
+     */
+    private issuesChanged() {
+        const all = this.allIssues();
+        const signature = signatureOf(all);
         if (signature !== this.signature) {
             this.dismissed = false;
             this.signature = signature;
         }
+        if (this.issueListener == null) return;
+        // Only what this listener has not already been told about: an options pass that re-applies the
+        // same issues does not re-warn on the console either, and the fast path replays them unvalidated.
+        const delivered = this.deliveredKeys;
+        this.deliveredKeys = new Set(all.map(keyOf));
+        this.dispatchIssues(all.filter((issue) => !delivered.has(keyOf(issue))));
     }
 }

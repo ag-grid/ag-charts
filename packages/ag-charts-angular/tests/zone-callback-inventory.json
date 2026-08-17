@@ -143,6 +143,10 @@
         "classification": "zone-wrap",
         "reason": "Chart listener; re-entered into the zone by patchChartOptions via patchListeners(options.listeners)."
     },
+    "AgChartValidationsOptions.onErrorRaised": {
+        "classification": "zone-wrap",
+        "reason": "Validation issues are dispatched while options are applied, which the wrapper does outside the zone; re-entered into the zone by patchChartOptions."
+    },
     "AgCrossLineListeners.click": {
         "classification": "zone-wrap",
         "reason": "Cross-line listener; re-entered into the zone by patchChartOptions via patchListeners(axes[<key>].crossLines[].listeners)."

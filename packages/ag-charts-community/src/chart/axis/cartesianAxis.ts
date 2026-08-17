@@ -889,7 +889,7 @@ export abstract class CartesianAxis<
     }
 
     private isLabelsAtEdge() {
-        return this.options.crossAt?.labelsPlacement === 'edge';
+        return this.options.crossAt?.labelPlacement === 'edge';
     }
 
     /** The title and labels render in the same place unless exactly one of them is at the edge. */

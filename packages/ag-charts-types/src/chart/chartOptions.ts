@@ -359,6 +359,14 @@ export interface AgBaseChartOptions<
  */
 export type AgChartValidationLevel = 'error' | 'warning' | 'deprecation' | 'none';
 
+/** A single validation problem reported by the chart. */
+export interface AgChartValidationIssueEvent {
+    /** The severity of the problem. */
+    level: 'error' | 'warning' | 'deprecation';
+    /** A description of the problem, the same text reported to the console and the validation overlay. */
+    message: string;
+}
+
 /** Configuration for how the chart reports invalid configuration and runtime problems. */
 export interface AgChartValidationsOptions {
     /**
@@ -386,4 +394,13 @@ export interface AgChartValidationsOptions {
      * Default: `'none'`
      */
     throwOn?: AgChartValidationLevel;
+    /**
+     * Called for each validation problem the chart raises — an invalid option value or a runtime error
+     * caught during a chart update. The reported problems are the same set the validation overlay
+     * shows, not every diagnostic the chart can write to the console. Never gated by
+     * `consoleLogLevel` or `overlayLevel`.
+     *
+     * Default: `undefined`
+     */
+    onErrorRaised?: (event: AgChartValidationIssueEvent) => void;
 }
