@@ -807,7 +807,7 @@ export class Legend {
         const disabledStyle = enabled ? undefined : this.opts.item.marker.disabledStyle;
         // The symbol is pre-cloned by the caller, but the disabled fill comes straight from the
         // options and is mutated below when it is a pattern or image fill.
-        const fill = disabledStyle?.fill != null ? deepClone(disabledStyle.fill) : marker.fill;
+        const fill = disabledStyle?.fill == null ? marker.fill : deepClone(disabledStyle.fill);
 
         if (isPatternFill(fill)) {
             fill.width = 8;

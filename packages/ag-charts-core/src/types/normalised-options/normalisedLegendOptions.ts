@@ -22,7 +22,7 @@ import type { NormalisedBorderOptions, NormalisedColorType, NormalisedPaddingOpt
 export type NormalisedLegendMarkerDisabledStyle = Normalised<
     AgChartLegendMarkerDisabledStyle,
     never,
-    { fill?: string; stroke?: CssColor }
+    { fill?: NormalisedColorType; stroke?: CssColor }
 >;
 
 export type NormalisedLegendLineDisabledStyle = Normalised<
