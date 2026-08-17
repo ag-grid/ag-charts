@@ -78,6 +78,13 @@ export class Caster<T> {
         return convert<CtorReturnType<C>>(this);
     }
 
+    castNullable<C extends AnyCtor>(ctor: C) {
+        if (this.value != null) {
+            expect(this.value).toBeInstanceOf(ctor);
+        }
+        return convert<CtorReturnType<C> | undefined>(this);
+    }
+
     findProperty<K extends string>(propertyName: K) {
         type NewT = Omit<T, K> & { [P in K]: unknown };
         expect(this.value).toHaveProperty(propertyName);
@@ -141,10 +148,24 @@ export class Caster<T> {
         return new Caster(property);
     }
 
+    // Like foo?.myProp?.myNestedProp — a nullish receiver and an absent property both yield undefined,
+    // so unlike accessProperty() this does not assert that the property exists.
+    accessNullableProperty<K extends string>(propertyName: K): Caster<unknown> {
+        if (this.value == null) {
+            return this;
+        }
+        return new Caster((this.value as Record<K, unknown>)[propertyName]);
+    }
+
     assertNonNullish() {
         expect(this.value).toBeDefined();
         expect(this.value).not.toBeNull();
         return convert<NonNullable<T>>(this);
+    }
+
+    callProperty<K extends keyof T>(propertyName: K) {
+        expect(this.value[propertyName]).toEqual(expect.any(Function));
+        return new Caster<unknown>((this.value[propertyName] as () => void)());
     }
 }
 
