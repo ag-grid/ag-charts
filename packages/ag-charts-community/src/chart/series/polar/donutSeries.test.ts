@@ -2,7 +2,13 @@ import { loadImage as skiaLoadImage } from 'skia-canvas';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { classCast } from 'ag-charts-test';
-import type { AgChartOptions, AgChartTheme, AgDonutSeriesOptions, AgPolarChartOptions } from 'ag-charts-types';
+import type {
+    AgChartOptions,
+    AgChartTheme,
+    AgColorType,
+    AgDonutSeriesOptions,
+    AgPolarChartOptions,
+} from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
 import { OptionsGraph } from '../../../module/optionsGraph';
@@ -1619,6 +1625,108 @@ describe('DonutSeries', () => {
 
             expect(circleSize(series)).toBeGreaterThan(ungrownCircleSize(series));
             expect(series.innerCircleCutoutSelection.nodes()).toHaveLength(data.length);
+        });
+
+        const richFillOptions = (fill: AgColorType, series: Partial<AgDonutSeriesOptions> = {}) => ({
+            ...options,
+            theme: LIGHT_THEME,
+            data,
+            series: [
+                {
+                    type: 'donut',
+                    angleKey: 'amount',
+                    innerRadiusRatio: 0.7,
+                    ...series,
+                    innerCircle: { fill },
+                } as AgDonutSeriesOptions,
+            ],
+        });
+
+        const GRADIENT_STOPS = [{ color: '#c9fdc9' }, { color: '#1f77b4' }];
+        const LIGHT_FOREGROUND_COLOR = '#464646';
+
+        // A baseline is generated from the implementation, so it cannot by itself show that the rich
+        // fill reached the canvas — a blank disc would be recorded just as happily. Re-rendering the
+        // same chart with a flat fill and requiring the pixels to differ is what gives it that force.
+        // One chart throughout: the mock canvas only snapshots the first one created per test.
+        const expectDiffersFromFlatFill = async (
+            reference: ImageData,
+            fill: AgColorType,
+            series: Partial<AgDonutSeriesOptions> = {}
+        ) => {
+            await chart.publicApi!.update(prepareTestOptions(richFillOptions(fill, series)) as AgChartOptions);
+            await waitForChartStability(chart);
+
+            expect(ctx.snapshot()).not.toMatchImage(reference, { writeDiff: false });
+        };
+
+        test('renders a gradient fill with no explicit rotation', async () => {
+            chart = await createChart(richFillOptions({ type: 'gradient', colorStops: GRADIENT_STOPS }));
+
+            await compare('donut-inner-circle-gradient-fill');
+            const gradient = ctx.snapshot();
+
+            await expectDiffersFromFlatFill(gradient, GRADIENT_STOPS[0].color);
+        });
+
+        test('renders a gradient fill at an explicit rotation', async () => {
+            chart = await createChart(
+                richFillOptions({ type: 'gradient', colorStops: GRADIENT_STOPS, rotation: 90 })
+            );
+
+            await compare('donut-inner-circle-gradient-fill-rotated');
+            const rotated = ctx.snapshot();
+
+            // The rotation only means something if it paints differently from the same gradient left
+            // at the default rotation, so that unrotated render is the comparison rather than a colour.
+            await expectDiffersFromFlatFill(rotated, { type: 'gradient', colorStops: GRADIENT_STOPS });
+        });
+
+        test('renders a bare pattern fill', async () => {
+            chart = await createChart(richFillOptions({ type: 'pattern' }));
+
+            await compare('donut-inner-circle-pattern-fill', PATTERN_SNAPSHOT_DEFAULTS);
+            const pattern = ctx.snapshot();
+
+            // Against the foreground colour the pattern resolves to, so a disc flooded with that
+            // colour cannot pass as a pattern.
+            await expectDiffersFromFlatFill(pattern, LIGHT_FOREGROUND_COLOR);
+        });
+
+        test('renders an image fill', async () => {
+            const icon = `data:image/svg+xml;utf8,${encodeURIComponent(
+                `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">` +
+                    `<circle cx="12" cy="12" r="11" fill="#2ca02c"/></svg>`
+            )}`;
+            const preloaded = await skiaLoadImage(icon);
+
+            chart = deproxy(
+                AgCharts.create(
+                    prepareTestOptions(richFillOptions({ type: 'image', url: icon })) as AgChartOptions
+                ) as AgChartProxy
+            );
+            (chart.ctx.scene as any).imageLoader.loadImage = () => preloaded as unknown as HTMLImageElement;
+            await waitForChartStability(chart);
+
+            await compare('donut-inner-circle-image-fill');
+            const image = ctx.snapshot();
+
+            await expectDiffersFromFlatFill(image, '#2ca02c');
+        });
+
+        // The grown circle is composited offscreen and the pattern's phase comes from the shape's own
+        // bbox, so this is the one rich-fill case node state cannot answer.
+        test('renders a pattern fill through the rounded-corner composite', async () => {
+            const cornerRadius = 20;
+            chart = await createChart(richFillOptions({ type: 'pattern' }, { cornerRadius }));
+
+            const series = classCast(chart.series[0], DonutSeries);
+            expect(series.innerCircleGroup.renderToOffscreenCanvas).toBe(true);
+
+            await compare('donut-inner-circle-pattern-fill-corner-radius', PATTERN_SNAPSHOT_DEFAULTS);
+            const pattern = ctx.snapshot();
+
+            await expectDiffersFromFlatFill(pattern, LIGHT_FOREGROUND_COLOR, { cornerRadius });
         });
     });
 
