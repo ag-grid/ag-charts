@@ -93,7 +93,7 @@ class TreemapSeriesGroup extends BaseProperties {
     fill: InternalAgColorType | undefined = undefined;
 
     @Property
-    fills: InternalAgColorType[] | undefined = undefined;
+    fills: InternalAgColorType[] = [];
 
     @Property
     fillOpacity: number = 1;
@@ -200,25 +200,20 @@ export class TreemapSeriesProperties extends HierarchySeriesProperties<AgTreemap
 
     // We haven't decided how to expose this yet, but we need to have this property, so it can change between light and dark themes
     @Property
-    undocumentedGroupFills: string[] = [];
-
-    // We haven't decided how to expose this yet, but we need to have this property, so it can change between light and dark themes
-    @Property
     undocumentedGroupStrokes: string[] = [];
 
     getStyle(
         isLeaf: boolean,
         fills: InternalAgColorType[],
         strokes: string[],
-        index: number,
-        strokeIndex: number = index
+        index: number
     ): Required<AgTreemapSeriesStyle> & { opacity: number } {
         const {
             fillOpacity,
             strokeWidth,
             strokeOpacity,
-            fill = isLeaf ? fills[index % fills.length] : fills[Math.min(index, fills.length)],
-            stroke = isLeaf ? strokes[strokeIndex % strokes.length] : strokes[Math.min(strokeIndex, strokes.length)],
+            fill = fills[index % fills.length],
+            stroke = isLeaf ? strokes[index % strokes.length] : strokes[Math.min(index, strokes.length)],
         } = isLeaf ? this.tile : this.group;
         return {
             fill,

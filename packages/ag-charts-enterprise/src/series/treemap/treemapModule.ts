@@ -59,6 +59,7 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                     spacing: 4,
                 },
                 fill: undefined, // Override default fill
+                fills: { $palette: 'hierarchyColors' },
                 stroke: undefined, // Override default stroke
                 strokeWidth: 1,
                 padding: 4,
@@ -118,7 +119,6 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                 selection: SERIES_SELECTION_THEME,
             },
             ...undocumentedThemeOptions({
-                undocumentedGroupFills: { $palette: 'hierarchyColors' },
                 undocumentedGroupStrokes: { $palette: 'secondHierarchyColors' },
             }),
         },

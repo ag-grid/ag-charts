@@ -1071,6 +1071,15 @@ describe('TreemapSeries', () => {
 
         const fillOf = (series: TreemapSeries, name: string) => stylesByName(series)[name]?.fill;
 
+        it('defaults the group palette to the theme hierarchy colours', async () => {
+            const series = await createChart(DEEP_DATA);
+            const styles = stylesByName(series);
+
+            const depthFills = ['A', 'A1', 'A1a'].map((name) => styles[name].fill);
+            expect(depthFills.every((fill) => fill != null)).toBe(true);
+            expect(new Set(depthFills).size).toBe(depthFills.length);
+        });
+
         it('cycles the group palette by hierarchy depth', async () => {
             const series = await createChart(DEEP_DATA, { group: { fills: ['#ff0000', '#00ff00'] } });
             const styles = stylesByName(series);
