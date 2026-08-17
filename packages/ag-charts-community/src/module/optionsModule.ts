@@ -850,6 +850,10 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private validateSeriesOptions(options: T, params: ValidateParams): ModulePlaceholder[] {
+        // Leave a non-array `series` in place so the chart-def validation pass reports it, rather
+        // than silently replacing it with an empty array here.
+        if (options.series != null && !isArray(options.series)) return [];
+
         const chartType = this.chartDef?.name;
         const validatedSeriesOptions: any[] = [];
         const seriesCount = options.series?.length ?? 0;
