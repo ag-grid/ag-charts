@@ -516,6 +516,8 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
         collapsedChange: callback,
         click: callback,
         doubleClick: callback,
+        crossLineClick: callback,
+        crossLineDoubleClick: callback,
         annotations: callback,
         zoom: callback,
     },

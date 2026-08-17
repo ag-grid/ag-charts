@@ -279,6 +279,10 @@ export abstract class CartesianAxis<
         return this.position === 'top' || this.position === 'bottom' ? ChartAxisDirection.X : ChartAxisDirection.Y;
     }
 
+    protected override get userListeners() {
+        return this.options.listeners;
+    }
+
     override createAxisContext(): AxisContext {
         // Mutate rather than spread so the live getters defined on the base context
         // (`range`, `gridLength`, `mirrored`, etc.) are preserved.

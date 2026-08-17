@@ -18,6 +18,7 @@ import type {
     SeriesAreaClickEvent,
     SeriesAreaContextMenuEvent,
     SeriesAreaHoverEvent,
+    SeriesAreaPointerClickEvent,
     SeriesKeyNavPanXEvent,
     UpdateOpts,
     ZoomChangeCompleteEvent,
@@ -666,6 +667,10 @@ export class SeriesAreaManager extends BaseManager {
         }
 
         if (isSeriesWidget) {
+            // Emitted before the node-click check so a cross line drawn over a series node still
+            // reports the click, matching how the context-menu dispatch offers both regions at once.
+            this.emitSeriesAreaPointerClickEvent(event, current);
+
             const clicked = this.checkSeriesNodeClick(event);
             if (clicked) {
                 this.emitSeriesAreaClickEvent(event, true, clicked.node, clicked.target);
@@ -691,6 +696,16 @@ export class SeriesAreaManager extends BaseManager {
         const { canvasX, canvasY } = this.toCanvasCoordinates(event);
         const payload: SeriesAreaHoverEvent = { canvasX, canvasY, consumed, sourceEvent: event.sourceEvent };
         this.chart.ctx.eventsHub.emit('series-area:hover', payload);
+    }
+
+    private emitSeriesAreaPointerClickEvent(event: ClickLikeEvent, current: Widget): void {
+        const payload: SeriesAreaPointerClickEvent = {
+            type: event.type,
+            canvasX: event.currentX + current.cssLeft(),
+            canvasY: event.currentY + current.cssTop(),
+            sourceEvent: event.sourceEvent,
+        };
+        this.chart.ctx.eventsHub.emit('series-area:pointer-click', payload);
     }
 
     private emitSeriesAreaClickEvent(

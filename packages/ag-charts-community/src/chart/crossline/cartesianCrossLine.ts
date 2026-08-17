@@ -4,6 +4,7 @@ import type {
     AgCartesianAxisPosition,
     AgCartesianCrossLineLabelOptions,
     AgCrossLineLabelPosition,
+    AgCrossLineListeners,
     Padding,
 } from 'ag-charts-types';
 
@@ -176,6 +177,9 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
     @Property
     label: CartesianCrossLineLabel = new CartesianCrossLineLabel();
 
+    @Property
+    listeners?: AgCrossLineListeners<unknown>;
+
     scale?: Scale<any, number> = undefined; // TODO: this type does not match the interface
     clippedRange: [number, number] = [-Infinity, Infinity];
     gridLength: number = 0;
@@ -202,10 +206,10 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
     }
 
     /**
-     * Hit-tests a canvas-space point against this cross line's rendered line/fill, widened by
-     * {@link CROSS_LINE_HIT_TOLERANCE} so thin `line` cross lines remain targetable. The `crossLineRange`
+     * Hit-tests a canvas-space point against this cross line's rendered line/fill and its label, widened
+     * by {@link CROSS_LINE_HIT_TOLERANCE} so thin `line` cross lines remain targetable. The `crossLineRange`
      * node holds the geometry for both the `line` (stroke) and `range` (fill) variants; its bbox is
-     * transformed into canvas space to match the pointer coordinates carried by context-menu events.
+     * transformed into canvas space to match the pointer coordinates carried by pointer events.
      */
     containsPoint(point: CanvasPoint): boolean {
         const group = this.type === 'range' ? this.rangeGroup : this.lineGroup;
@@ -214,7 +218,17 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
         }
 
         const bbox = Transformable.toCanvas(this.crossLineRange).clone().grow(CROSS_LINE_HIT_TOLERANCE);
-        return bbox.containsPoint(point.canvasX, point.canvasY);
+        if (bbox.containsPoint(point.canvasX, point.canvasY)) {
+            return true;
+        }
+
+        // The label is only rendered under the same conditions `updateNodes` applies, so an
+        // unlabelled cross line must not report a hit on its zero-sized label node.
+        const { label } = this;
+        if (!this.labelGroup.visible || label.enabled === false || !label.text) {
+            return false;
+        }
+        return Transformable.toCanvas(this.crossLineLabel).containsPoint(point.canvasX, point.canvasY);
     }
 
     private _isRange: boolean | undefined = undefined;

@@ -1,8 +1,18 @@
+import type { Listener } from './callbackOptions';
+import type { AgCrossLineClickEvent, AgCrossLineDoubleClickEvent } from './eventOptions';
 import type { AgChartLabelStyleOptions } from './labelOptions';
 import type { AgCssColorOrRef } from './themeParamsOptions';
-import type { AxisValue, CssColor, FontFamilyFull, Opacity, PixelSize } from './types';
+import type { AxisValue, ContextDefault, CssColor, FontFamilyFull, Opacity, PixelSize } from './types';
 
-export interface AgCommonCrossLineOptions<LabelType = AgBaseCrossLineLabelOptions> {
+/** Cross Line listeners. Cartesian charts only. */
+export interface AgCrossLineListeners<TContext = ContextDefault> {
+    /** The listener to call when the Cross Line is clicked. */
+    click?: Listener<AgCrossLineClickEvent<TContext>>;
+    /** The listener to call when the Cross Line is double-clicked. */
+    doubleClick?: Listener<AgCrossLineDoubleClickEvent<TContext>>;
+}
+
+export interface AgCommonCrossLineOptions<LabelType = AgBaseCrossLineLabelOptions, TContext = ContextDefault> {
     /** A user-supplied identifier for the Cross Line, surfaced as `crossLineId` in callback and event params. Defaults to an internally generated identifier. */
     id?: string;
     /** Whether to show the Cross Line. */
@@ -17,12 +27,15 @@ export interface AgCommonCrossLineOptions<LabelType = AgBaseCrossLineLabelOption
     lineDash?: PixelSize[];
     /** Configuration for the Cross Line label. */
     label?: LabelType;
+    /** A map of event names to listeners. */
+    listeners?: AgCrossLineListeners<TContext>;
 }
 
 export interface AgLineCrossLineOptions<
     TValue = AxisValue,
     LabelType = AgBaseCrossLineLabelOptions,
-> extends AgCommonCrossLineOptions<LabelType> {
+    TContext = ContextDefault,
+> extends AgCommonCrossLineOptions<LabelType, TContext> {
     /** Renders the Cross Line as a single line positioned at `value`. */
     type: 'line';
     /** The data value at which the line should be positioned. */
@@ -32,7 +45,8 @@ export interface AgLineCrossLineOptions<
 export interface AgRangeCrossLineOptions<
     TValue = AxisValue,
     LabelType = AgBaseCrossLineLabelOptions,
-> extends AgCommonCrossLineOptions<LabelType> {
+    TContext = ContextDefault,
+> extends AgCommonCrossLineOptions<LabelType, TContext> {
     /** Renders the Cross Line as a shaded band spanning `range`. */
     type: 'range';
     /** The `[start, end]` data values bounding the shaded region. */
@@ -43,14 +57,17 @@ export interface AgRangeCrossLineOptions<
     fillOpacity?: Opacity;
 }
 
-export type AgBaseCrossLineOptions<TValue = AxisValue, LabelType = AgBaseCrossLineLabelOptions> =
-    | AgLineCrossLineOptions<TValue, LabelType>
-    | AgRangeCrossLineOptions<TValue, LabelType>;
+export type AgBaseCrossLineOptions<
+    TValue = AxisValue,
+    LabelType = AgBaseCrossLineLabelOptions,
+    TContext = ContextDefault,
+> = AgLineCrossLineOptions<TValue, LabelType, TContext> | AgRangeCrossLineOptions<TValue, LabelType, TContext>;
 
-// `id` identifies a single Cross Line, so it is deliberately absent from the themeable surface.
+// `id` and `listeners` identify and act on a single Cross Line, so they are deliberately absent from
+// the themeable surface.
 export interface AgCrossLineThemeOptions<LabelType = AgBaseCrossLineLabelOptions> extends Omit<
-    AgCommonCrossLineOptions<LabelType>,
-    'id'
+    AgCommonCrossLineOptions<LabelType, ContextDefault>,
+    'id' | 'listeners'
 > {
     /** The colour to use for the fill of the range. */
     fill?: CssColor;
