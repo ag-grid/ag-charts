@@ -214,7 +214,7 @@ const EXAMPLES: Record<string, QuadrantTestCase> = {
     THEMED: { options: THEMED, assertions },
 };
 
-describe('Scatter Quadrant Preset', () => {
+describe('Quadrant Preset', () => {
     setupMockConsole();
     let chart: any;
 

@@ -14,10 +14,10 @@ import { RangesModule } from '../features/ranges/rangesModule';
 import { SyncModule } from '../features/sync/syncModule';
 import { ZoomModule } from '../features/zoom/zoomModule';
 import { GradientLegendModule } from '../gradient-legend/gradientLegendModule';
-import { ScatterQuadrantPresetModule } from '../preset/scatter-quadrant/scatterQuadrantPresetModule';
+import { QuadrantPresetModule } from '../preset/quadrant/quadrantPresetModule';
 
 export const QuadrantChartModule: ModuleDefinition[] = [
-    ScatterQuadrantPresetModule,
+    QuadrantPresetModule,
 
     // Axes
     NumberAxisModule,

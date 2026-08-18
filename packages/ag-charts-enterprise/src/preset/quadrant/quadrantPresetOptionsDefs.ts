@@ -29,7 +29,7 @@ const axisOptionsDefs: OptionsDefs<NonNullable<AgQuadrantChartOptions['xAxis']>>
     ]),
 };
 
-export const scatterQuadrantOptionsDefs: OptionsDefs<AgQuadrantChartOptions> = {
+export const quadrantOptionsDefs: OptionsDefs<AgQuadrantChartOptions> = {
     // Quadrant
     alignAxesToPivot: boolean,
     pivot: pivotOptionsDefs,
