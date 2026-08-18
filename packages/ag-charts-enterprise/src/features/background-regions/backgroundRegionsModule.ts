@@ -52,7 +52,7 @@ export const BackgroundRegionsModule: SeriesAreaPluginModuleDefinition<AgSeriesA
     },
 
     register: (ctx) => {
-        ctx.factory('backgroundRegion', () => new CartesianBackgroundRegion());
+        ctx.factory('backgroundRegion', () => new CartesianBackgroundRegion(ctx.logger));
     },
     create: (ctx) => new BackgroundRegionsPlugin(ctx),
 };

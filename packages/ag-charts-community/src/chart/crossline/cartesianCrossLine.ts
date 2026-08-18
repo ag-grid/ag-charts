@@ -8,7 +8,6 @@ import type {
     Padding,
 } from 'ag-charts-types';
 
-import { BandScale } from '../../scale/bandScale';
 import { BBox } from '../../scene/bbox';
 import { Group } from '../../scene/group';
 import { PointerEvents } from '../../scene/node';
@@ -17,6 +16,7 @@ import { TransformableText } from '../../scene/shape/text';
 import { Transformable } from '../../scene/transformable';
 import { LabelStyle } from '../label';
 import { rangeAlignment } from '../rangeAlignment';
+import { bandRangeExpansion } from '../scaleValue';
 import { type CrossLine, type CrossLineType, validateCrossLineValue } from './crossLine';
 import type { CrossLineLabelPosition } from './crossLineLabelPosition';
 
@@ -265,9 +265,7 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
         const { type, range, value, scale, clippedRange, strokeWidth = 0 } = this;
         if (!scale) return;
 
-        const bandwidth = scale.bandwidth ?? 0;
-        const step = scale.step ?? 0;
-        const rangePadding = scale instanceof BandScale ? (step - bandwidth) / 2 : 0;
+        const { bandwidth, rangePadding } = bandRangeExpansion(scale);
 
         let [clippedRange0, clippedRange1] = findMinMax(clippedRange);
         clippedRange0 -= bandwidth;

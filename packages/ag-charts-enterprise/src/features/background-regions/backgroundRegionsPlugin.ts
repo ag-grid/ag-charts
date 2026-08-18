@@ -58,11 +58,9 @@ export class BackgroundRegionsPlugin extends AbstractModuleInstance implements S
     }
 
     onSeriesAreaUpdate(clipRect: _ModuleSupport.BBox | undefined): void {
-        const translatedClipRect = clipRect
-            ? new _ModuleSupport.BBox(0, 0, clipRect.width, clipRect.height)
-            : undefined;
-        this.regionGroup.setClipRectCanvasSpace(translatedClipRect);
-        this.labelGroup.setClipRectCanvasSpace(translatedClipRect);
+        // Labels are deliberately unclipped so outside positions remain visible past the plot edge,
+        // matching cross line labels.
+        this.regionGroup.setClipRectCanvasSpace(clipRect);
 
         for (const instance of this.instances) {
             instance.update();
@@ -90,23 +88,25 @@ export class BackgroundRegionsPlugin extends AbstractModuleInstance implements S
     }
 
     private initInstance(region: _ModuleSupport.BackgroundRegion, opts: NormalisedSeriesAreaBackgroundRegion): void {
-        const xAxisID =
-            opts.xRange?.axis == null ? undefined : this.ctx.axisManager.getRemappedAxisId(opts.xRange.axis);
-        const yAxisID =
-            opts.yRange?.axis == null ? undefined : this.ctx.axisManager.getRemappedAxisId(opts.yRange.axis);
+        region.xScale = this.resolveScale(ChartAxisDirection.X, opts.xRange?.axis, 'xRange');
+        region.yScale = this.resolveScale(ChartAxisDirection.Y, opts.yRange?.axis, 'yRange');
+    }
 
-        const xAxisContext =
-            xAxisID == null
-                ? this.ctx.axisManager.getAxisContext(ChartAxisDirection.X).at(0)
-                : this.ctx.axisManager.getAxisIdContext(xAxisID);
+    private resolveScale(direction: ChartAxisDirection, axisKey: string | undefined, optionsKey: string) {
+        const axisID = axisKey == null ? undefined : this.ctx.axisManager.getRemappedAxisId(axisKey);
 
-        const yAxisContext =
-            yAxisID == null
-                ? this.ctx.axisManager.getAxisContext(ChartAxisDirection.Y).at(0)
-                : this.ctx.axisManager.getAxisIdContext(yAxisID);
+        if (axisKey != null && axisID == null) {
+            this.ctx.logger.warnOnce(
+                `No axis found matching \`seriesArea.backgroundRegions[].${optionsKey}.axis\` of \`${axisKey}\`, using the primary axis.`
+            );
+        }
 
-        region.xScale = xAxisContext?.scale;
-        region.yScale = yAxisContext?.scale;
+        const axisContext =
+            axisID == null
+                ? this.ctx.axisManager.getAxisContext(direction).at(0)
+                : this.ctx.axisManager.getAxisIdContext(axisID);
+
+        return axisContext?.scale;
     }
 
     private optionsEquivalent(options: NormalisedSeriesAreaBackgroundRegion[] | undefined): boolean {

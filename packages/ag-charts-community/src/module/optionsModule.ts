@@ -568,6 +568,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         this.chartDef = ModuleRegistry.getChartModule(chartType);
 
+        // Must run before chart validation, which would otherwise report these as unknown options.
+        this.removeIncompatibleSeriesAreaOptions(options);
+
         if (!this.chartDef.placeholder) {
             const { validate: validateChart = validate } = this.chartDef;
             const { cleared, invalid } = validateChart(options, this.chartDef.options, '', this.validateParams);
@@ -832,6 +835,21 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
         const location = issue.code ? `\`${issue.code}\`: ` : '';
         throw new Error(`AG Charts - validations.throwOn: ${issue.severity} - ${location}${issue.message}`);
+    }
+
+    private removeIncompatibleSeriesAreaOptions(options: T) {
+        const chartType = this.chartDef?.name;
+        const seriesArea = options.seriesArea as Record<string, unknown> | undefined;
+        if (chartType == null || seriesArea == null) return;
+
+        for (const module of ModuleRegistry.listModulesByType(ModuleType.SeriesAreaPlugin)) {
+            if (!module.chartType || module.chartType === chartType || seriesArea[module.name] == null) continue;
+
+            delete seriesArea[module.name];
+            this.recordValidationMessage(
+                `Option \`seriesArea.${module.name}\` is not supported by chart type \`${chartType}\`, ignoring.`
+            );
+        }
     }
 
     private validatePluginOptions(options: T, params: ValidateParams) {
