@@ -9,6 +9,19 @@ import { setupMockConsole } from 'ag-charts-test';
 
 import { createEnterpriseChart } from '../../test/utils';
 
+function measureXGridLines(): [number, number, number, number] | undefined {
+    const elem = document.querySelector('.ag-charts-series-area');
+    if (elem instanceof HTMLElement) {
+        const left = Number.parseInt(elem.style.left);
+        const width = Number.parseInt(elem.style.width);
+        if (!Number.isNaN(left) && !Number.isNaN(width)) {
+            const step = width / 3;
+            return [left, left + step, left + step * 2, left + width];
+        }
+    }
+    return undefined;
+}
+
 describe('AxisDOMProxy', () => {
     setupMockCanvas();
     setupMockConsole();
@@ -461,19 +474,6 @@ describe('AxisDOMProxy', () => {
     describe('band interior clicks - number', () => {
         let Xs: [number, number, number, number];
 
-        function measureXGridLines(): [number, number, number, number] | undefined {
-            const elem = document.querySelector('.ag-charts-series-area');
-            if (elem instanceof HTMLElement) {
-                const left = Number.parseInt(elem.style.left);
-                const width = Number.parseInt(elem.style.width);
-                if (!Number.isNaN(left) && !Number.isNaN(width)) {
-                    const step = width / 3;
-                    return [left, left + step, left + step * 2, left + width];
-                }
-            }
-            return undefined;
-        }
-
         beforeEach(async () => {
             chart = await createEnterpriseChart({
                 data: Array.from({ length: 4 }, (_, i) => ({ x: i / 5, y: i * 2 })),
@@ -516,6 +516,131 @@ describe('AxisDOMProxy', () => {
             expect(click.mock.calls).toMatchObject([
                 [expect.objectContaining({ value: expect.closeTo(0), index: 0 })],
                 [expect.objectContaining({ value: expect.closeTo(0.6), index: 3 })],
+            ]);
+        });
+    });
+
+    // The bigint counterpart of the case above
+    describe('band interior clicks - bigint', () => {
+        const step = 200_000_000_000_000_000_000n;
+        const xs = Array.from({ length: 4 }, (_, i) => 10n ** 21n + step * BigInt(i));
+        let Xs: [number, number, number, number];
+
+        // `value` is a bigint here, which neither `expect.closeTo` nor `toMatchObject` can compare, so
+        // reshape each pick into the {value, index} pair the assertions below describe.
+        function picks() {
+            return click.mock.calls.map(([event]) => ({ value: event.value, index: event.index }));
+        }
+
+        beforeEach(async () => {
+            chart = await createEnterpriseChart({
+                data: xs.map((x, i) => ({ x, y: i * 2 })),
+                axes: {
+                    x: {
+                        type: 'number',
+                        label: { rotation: 0, avoidCollisions: false },
+                        listeners: { click },
+                    },
+                    y: { type: 'number' },
+                },
+                zoom: { enabled: true },
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            });
+
+            Xs = measureXGridLines()!;
+            expect(Xs).toBeDefined();
+        });
+
+        test('axis click values in the center of X-labels is close to data X-values', async () => {
+            await clickAction(Xs[0], 572)(chart);
+            await clickAction(Xs[1], 572)(chart);
+            await clickAction(Xs[2], 571)(chart);
+            await clickAction(Xs[3], 572)(chart);
+            await waitForChartStability(chart);
+
+            // A pixel is worth ~10^18 here, so an interpolated value only lands near its tick; narrowing
+            // to Number for that closeness check is harmless, and the tag keeps the type asserted.
+            expect(
+                picks().map(({ value, index }) => ({ type: typeof value, value: Number(value), index }))
+            ).toMatchObject(
+                // ±5×10^18, i.e. a fortieth of a step.
+                xs.map((x, index) => ({ type: 'bigint', value: expect.closeTo(Number(x), -19), index }))
+            );
+        });
+
+        test('clicks outside min/max domain are clamped', async () => {
+            await clickAction(Xs[0] - 15, 572)(chart);
+            await clickAction(Xs[3] + 15, 572)(chart);
+            await waitForChartStability(chart);
+
+            // Clamping lands exactly on a domain endpoint, so unlike the interpolated values above these
+            // are exact — and must still be bigints.
+            expect(picks()).toEqual([
+                { value: xs[0], index: 0 },
+                { value: xs[3], index: 3 },
+            ]);
+        });
+    });
+
+    // The `Date` counterpart, on a continuous time axis to test clamping
+    describe('band interior clicks - Date', () => {
+        const xs = Array.from({ length: 4 }, (_, i) => new Date(Date.UTC(2020, 0, 1 + i)));
+        let Xs: [number, number, number, number];
+
+        // `value` is a Date, so compare epoch times: `expect.closeTo` only accepts numbers. The `isDate`
+        // tag keeps the type asserted, as a bare timestamp would compare equal.
+        function picks() {
+            return click.mock.calls.map(([event]) => ({
+                isDate: event.value instanceof Date,
+                time: new Date(event.value).getTime(),
+                index: event.index,
+            }));
+        }
+
+        beforeEach(async () => {
+            chart = await createEnterpriseChart({
+                data: xs.map((x, i) => ({ x, y: i * 2 })),
+                axes: {
+                    x: {
+                        type: 'time',
+                        // One tick per datum, so the four grid lines are ticks 0..3 as in the variants above.
+                        interval: { step: 'day' },
+                        // A full ISO-8601 timestamp is long enough to reproduce the padding the `number`
+                        // variant gets from '#{0.9f}'.
+                        label: { rotation: 0, avoidCollisions: false, format: '%Y-%m-%dT%H:%M:%S.%L' },
+                        listeners: { click },
+                    },
+                    y: { type: 'number' },
+                },
+                zoom: { enabled: true },
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            });
+
+            Xs = measureXGridLines()!;
+            expect(Xs).toBeDefined();
+        });
+
+        test('axis click values in the center of X-labels is close to data X-values', async () => {
+            await clickAction(Xs[0], 572)(chart);
+            await clickAction(Xs[1], 572)(chart);
+            await clickAction(Xs[2], 571)(chart);
+            await clickAction(Xs[3], 572)(chart);
+            await waitForChartStability(chart);
+
+            expect(picks()).toMatchObject(
+                // ±5×10^5 ms, i.e. under a fortieth of the one-day tick step.
+                xs.map((x, index) => ({ isDate: true, time: expect.closeTo(x.getTime(), -6), index }))
+            );
+        });
+
+        test('clicks outside min/max domain are clamped', async () => {
+            await clickAction(Xs[0] - 15, 572)(chart);
+            await clickAction(Xs[3] + 15, 572)(chart);
+            await waitForChartStability(chart);
+
+            expect(picks()).toEqual([
+                { isDate: true, time: xs[0].getTime(), index: 0 },
+                { isDate: true, time: xs[3].getTime(), index: 3 },
             ]);
         });
     });
