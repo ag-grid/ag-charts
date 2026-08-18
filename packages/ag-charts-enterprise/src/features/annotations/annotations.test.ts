@@ -59,6 +59,14 @@ describe('Annotations', () => {
         });
     };
 
+    // Applies annotations to the SAME chart via setState — the mock canvas only tracks the first
+    // chart per test, so cross-create snapshots would compare a stale canvas against itself.
+    const applyAnnotations = async (annotations: object[]) => {
+        await chart.setState({ ...chart.getState(), annotations });
+        await waitForChartStability(chart);
+        return ctx.snapshot();
+    };
+
     describe('initial', () => {
         it('should render a line annotation', async () => {
             await prepareChart({
@@ -786,14 +794,6 @@ describe('Annotations', () => {
         const X_START = { __type: 'date' as const, value: '2024-03-01' };
         const X_END = { __type: 'date' as const, value: '2024-09-01' };
 
-        // Applies annotations to the SAME chart via setState — the mock canvas only tracks the first
-        // chart per test, so cross-create snapshots would compare a stale canvas against itself.
-        const applyAnnotations = async (annotations: object[]) => {
-            await chart.setState({ ...chart.getState(), annotations });
-            await waitForChartStability(chart);
-            return ctx.snapshot();
-        };
-
         it('renders a bigint y coordinate identically to a number y', async () => {
             await prepareChart();
             const baseline = ctx.snapshot();
@@ -853,14 +853,6 @@ describe('Annotations', () => {
     });
 
     describe('axis label padding (AG-18182)', () => {
-        // The mock canvas only tracks the first chart per test, so every comparison below applies
-        // annotations to the SAME chart via setState (as in the bigint suite above).
-        const applyAnnotations = async (annotations: object[]) => {
-            await chart.setState({ ...chart.getState(), annotations });
-            await waitForChartStability(chart);
-            return ctx.snapshot();
-        };
-
         const horizontalLine = (padding?: unknown) => [
             { type: 'horizontal-line', value: 75, axisLabel: { enabled: true, padding } },
         ];
