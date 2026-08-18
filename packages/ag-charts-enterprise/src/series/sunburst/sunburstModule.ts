@@ -9,13 +9,13 @@ import {
     SERIES_SELECTION_THEME,
     type SeriesModuleDefinition,
 } from 'ag-charts-core';
-import type { ExtensibleTheme } from 'ag-charts-types';
+import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
 import { StandaloneChartModule } from '../../charts/standaloneChartModule';
 import { SunburstSeries } from './sunburstSeries';
 import { sunburstSeriesOptionsDef } from './sunburstSeriesOptionsDef';
 
-const themeTemplate: ExtensibleTheme<'sunburst'> = {
+const themeTemplate: ExtensibleSeriesTheme<'sunburst'> = {
     series: {
         fills: {
             $applyCycle: [

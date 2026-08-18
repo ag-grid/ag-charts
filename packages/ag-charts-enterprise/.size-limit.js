@@ -11,7 +11,7 @@ const scenarios = [
         name: 'BoxPlot module only',
         import: '{ BoxPlotSeriesModule }',
         srcLimit: '282 kB',
-        distLimit: '383 kB',
+        distLimit: '386 kB',
     },
     {
         name: 'Mixed modules A',
@@ -23,7 +23,7 @@ const scenarios = [
         name: 'Mixed modules B',
         import: '{ AngleNumberAxisModule, RadialBarSeriesModule, StatusBarModule }',
         srcLimit: '284 kB',
-        distLimit: '385 kB',
+        distLimit: '387 kB',
     },
     {
         name: 'Mixed modules C',
@@ -35,13 +35,13 @@ const scenarios = [
         name: 'Mixed modules D',
         import: '{ HeatmapSeriesModule, LinearGaugeModule, DataSourceModule, ContextMenuModule, AnimationModule }',
         srcLimit: '296 kB',
-        distLimit: '396 kB',
+        distLimit: '399 kB',
     },
     {
         name: 'Mixed modules E',
         import: '{ RadarLineSeriesModule, MapMarkerSeriesModule, RangeAreaSeriesModule, BandHighlightModule, SyncModule, ZoomModule }',
         srcLimit: '314 kB',
-        distLimit: '403 kB',
+        distLimit: '405 kB',
     },
 ];
 

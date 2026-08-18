@@ -14,7 +14,7 @@ import {
     IS_DARK_THEME,
     getSequentialColors,
 } from 'ag-charts-core';
-import type { AgChartAllThemeParams, AgChartThemeOptions, WithThemeParams } from 'ag-charts-types';
+import type { AgChartAllThemeParams, WithThemeParams } from 'ag-charts-types';
 
 import { ChartTheme } from './chartTheme';
 import type { DefaultColors } from './defaultColors';
@@ -116,9 +116,5 @@ export class DarkTheme extends ChartTheme {
         params.set(DEFAULT_TEXTBOX_COLOR, '#fff');
 
         return params;
-    }
-
-    constructor(options?: AgChartThemeOptions) {
-        super(options);
     }
 }

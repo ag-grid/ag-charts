@@ -1,5 +1,5 @@
 import { _Theme } from 'ag-charts-community';
-import { FONT_SIZE_RATIO, type Logger, SAFE_STROKE_FILL_OPERATION, mergeDefaults } from 'ag-charts-core';
+import { type Logger } from 'ag-charts-core';
 import type {
     AgAnnotationsOptions,
     AgAnnotationsToolbarButton,
@@ -20,8 +20,6 @@ import type {
     AgZoomOptions,
     DatumDefault,
 } from 'ag-charts-types';
-
-import { annotationsTheme } from './priceVolumePresetTheme';
 
 type ChartTheme = _Theme.ChartTheme;
 
@@ -82,7 +80,9 @@ export function priceVolume(
         toolbar = true,
         zoom = true,
         sync = false,
-        theme,
+        // Resolved from the chart's own options against the preset's `themeTemplate`; pulled out
+        // here only to keep it out of `unusedOpts`.
+        theme: _theme,
         data,
         formatter,
         ...unusedOpts
@@ -103,17 +103,8 @@ export function priceVolume(
                           type: 'line' as const,
                           xKey: dateKey,
                           yKey: volumeKey,
-                          stroke: SAFE_STROKE_FILL_OPERATION,
-                          marker: { enabled: false },
                       },
                   ],
-              },
-              height: 40,
-              minHandle: {
-                  height: 46,
-              },
-              maxHandle: {
-                  height: 46,
               },
           }
         : null;
@@ -159,14 +150,6 @@ export function priceVolume(
     const zoomOpts = {
         zoom: {
             enabled: zoom,
-            autoScaling: {
-                enabled: true,
-            },
-            onDataChange: {
-                stickToEnd: true,
-            },
-            // @ts-expect-error undocumented option
-            enableIndependentAxes: true,
         } satisfies AgZoomOptions,
     };
 
@@ -180,8 +163,6 @@ export function priceVolume(
         ? {
               sync: {
                   enabled: sync,
-                  nodeInteraction: true,
-                  zoom: true,
               } satisfies AgChartSyncOptions,
           }
         : null;
@@ -207,130 +188,6 @@ export function priceVolume(
         : {};
 
     return {
-        theme: {
-            baseTheme: typeof theme === 'string' ? theme : 'ag-financial',
-            ...mergeDefaults(typeof theme === 'object' ? theme : null, {
-                overrides: {
-                    common: {
-                        title: { padding: 4 },
-                        chartToolbar: {
-                            enabled: toolbar,
-                        },
-                        annotations: { ...annotationsTheme },
-                        ranges: {
-                            enableOutOfRange: true,
-                            position: 'bottom-left',
-                            fontSize: { $rem: [FONT_SIZE_RATIO.MEDIUM, 'chromeFontSize'] },
-                            minSize: 34,
-                        },
-                        axes: {
-                            number: {
-                                interval: { maxSpacing: 45 },
-                                // AG-17247: set formatter here so it takes precedence over label.format (a global formatter would not), while still falling back to label.format when it returns undefined.
-                                label: { format: '.2f', formatter },
-                            },
-                            category: {
-                                gridLine: { enabled: true },
-                            },
-                            time: {
-                                gridLine: { enabled: true },
-                            },
-                            'unit-time': {
-                                gridLine: { enabled: true },
-                            },
-                            'ordinal-time': {
-                                gridLine: { enabled: true },
-                            },
-                        },
-                    },
-                    bar: {
-                        series: {
-                            fillOpacity: 0.5,
-                            highlight: { unhighlightedItem: { opacity: 1 }, unhighlightedSeries: { opacity: 1 } },
-                        },
-                    },
-                    line: {
-                        series: {
-                            marker: { enabled: false },
-                            highlight: { unhighlightedSeries: { opacity: 1 } },
-                            ...inlineSwitch(chartType, {
-                                hlc: {
-                                    stroke: { $palette: 'altNeutral.stroke' },
-                                    strokeWidth: 2,
-                                },
-                                line: {
-                                    stroke: { $palette: 'neutral.stroke' },
-                                },
-                                'step-line': {
-                                    stroke: { $palette: 'neutral.stroke' },
-                                    interpolation: { type: 'step' },
-                                },
-                            }),
-                        },
-                    },
-                    candlestick: {
-                        series: {
-                            highlight: { unhighlightedItem: { opacity: 1 }, unhighlightedSeries: { opacity: 1 } },
-                            ...inlineSwitch(chartType, {
-                                'hollow-candlestick': {
-                                    item: {
-                                        up: { fill: 'transparent' },
-                                    },
-                                },
-                            }),
-                        },
-                    },
-                    ohlc: {
-                        series: {
-                            highlight: { unhighlightedItem: { opacity: 1 }, unhighlightedSeries: { opacity: 1 } },
-                        },
-                    },
-                    'range-area': {
-                        series: {
-                            fillOpacity: 0.3,
-                            strokeWidth: 2,
-                            highlight: {
-                                bringToFront: false,
-                                unhighlightedItem: { opacity: 1 },
-                                unhighlightedSeries: { opacity: 1 },
-                            },
-                            ...inlineSwitch(chartType, {
-                                hlc: {
-                                    fill: {
-                                        $if: [
-                                            { $eq: [{ $value: '$index' }, 1] },
-                                            { $palette: 'up.fill' },
-                                            { $palette: 'down.fill' },
-                                        ],
-                                    },
-                                    stroke: {
-                                        $if: [
-                                            { $eq: [{ $value: '$index' }, 1] },
-                                            { $palette: 'up.stroke' },
-                                            { $palette: 'down.stroke' },
-                                        ],
-                                    },
-                                },
-                            }),
-                        },
-                    },
-                    'range-bar': {
-                        series: {
-                            highlight: {
-                                unhighlightedItem: { opacity: 1 },
-                                unhighlightedSeries: { opacity: 1 },
-                            },
-                            ...inlineSwitch(chartType, {
-                                'high-low': {
-                                    fill: { $palette: 'neutral.fill' },
-                                    stroke: { $palette: 'neutral.stroke' },
-                                },
-                            }),
-                        },
-                    },
-                },
-            }),
-        },
         animation: { enabled: false },
         legend: { enabled: false },
         series: [...volumeSeries, ...priceSeries],

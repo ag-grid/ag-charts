@@ -1,6 +1,6 @@
-import { describe } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
-import { AgCharts } from 'ag-charts-community';
+import { AgCharts, _ModuleSupport } from 'ag-charts-community';
 import {
     type ChartTestCase,
     cartesianChartAssertions,
@@ -9,7 +9,7 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import type { AgQuadrantChartOptions } from 'ag-charts-types';
+import type { AgChartOptions, AgQuadrantChartOptions } from 'ag-charts-types';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
@@ -271,4 +271,46 @@ describe('Scatter Quadrant Preset', () => {
             }
         }
     );
+});
+
+// The quadrant preset's styling lives in its module `themeTemplate`, which is baked into the
+// resolved `ChartTheme`. Charts sharing a theme value must not inherit each other's preset
+// template, in either creation order.
+describe('Scatter Quadrant Preset theme isolation', () => {
+    const DATA = NUMERIC.data;
+
+    const resolveAxes = (options: AgChartOptions, presetType?: 'scatter-quadrant') => {
+        const { processedOptions } = new _ModuleSupport.ChartOptions(
+            options,
+            {} as AgChartOptions,
+            {},
+            {},
+            presetType == null ? {} : { presetType }
+        ) as unknown as { processedOptions: { axes: Record<'x' | 'y', Record<string, any>> } };
+        return processedOptions.axes;
+    };
+
+    const quadrantOptions = () => ({ data: DATA, xKey: 'x', yKey: 'y' }) as unknown as AgChartOptions;
+    const plainOptions = () =>
+        ({ data: DATA, series: [{ type: 'scatter', xKey: 'x', yKey: 'y' }] }) as unknown as AgChartOptions;
+
+    const expectQuadrantStyling = (axes: Record<'x' | 'y', Record<string, any>>) => {
+        expect(axes.x.label.enabled).toBe(false);
+        expect(axes.x.line.width).toBe(2);
+    };
+
+    const expectPlainStyling = (axes: Record<'x' | 'y', Record<string, any>>) => {
+        expect(axes.x.label.enabled).toBe(true);
+        expect(axes.x.line.width).toBe(1);
+    };
+
+    it('does not leak the preset template to a plain chart created afterwards', () => {
+        expectQuadrantStyling(resolveAxes(quadrantOptions(), 'scatter-quadrant'));
+        expectPlainStyling(resolveAxes(plainOptions()));
+    });
+
+    it('does not lose the preset template to a plain chart created beforehand', () => {
+        expectPlainStyling(resolveAxes(plainOptions()));
+        expectQuadrantStyling(resolveAxes(quadrantOptions(), 'scatter-quadrant'));
+    });
 });

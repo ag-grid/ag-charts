@@ -1,4 +1,4 @@
-import type { AgGradientColor, AgImageFill, AgPatternColor } from 'ag-charts-types';
+import type { AgImageFill, AgPatternColor } from 'ag-charts-types';
 
 import type {
     InternalAgColorType,
@@ -28,8 +28,4 @@ export function isImageFill(fill: any): fill is AgImageFill {
 
 export function isGradientOrPatternFill(fill: any): fill is InternalAgGradientColor | AgPatternColor {
     return isGradientFill(fill) || isPatternFill(fill);
-}
-
-export function isPublicGradientFill(fill: unknown): fill is AgGradientColor {
-    return isObject(fill) && fill.type == 'gradient';
 }

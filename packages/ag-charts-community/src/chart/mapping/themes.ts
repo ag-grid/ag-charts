@@ -47,7 +47,9 @@ import { VividDark } from '../themes/vividDark';
 import { VividLight } from '../themes/vividLight';
 
 type SpecialThemeName = 'ag-financial' | 'ag-financial-dark';
-type ThemeMap = { [key in AgChartThemeName | SpecialThemeName | 'undefined' | 'null']?: () => ChartTheme };
+type ThemeMap = {
+    [key in AgChartThemeName | SpecialThemeName | 'undefined' | 'null']?: (presetName?: string) => ChartTheme;
+};
 
 /**
  * Each `ChartTheme` instance bakes in per-series-type / per-axis-type defaults derived from
@@ -59,66 +61,91 @@ type ThemeMap = { [key in AgChartThemeName | SpecialThemeName | 'undefined' | 'n
  * `ModuleRegistry.ifRegistryChanged` returns the current registry revision and runs the supplied
  * callback only when it differs from the caller's last-seen value, giving each cache an explicit,
  * O(1) invalidation point.
+ *
+ * A preset's `themeTemplate` is baked in at construction too, so `presetName` is part of the key —
+ * a theme built for one preset must never be handed to a chart using another (or none).
  */
-function memoizeByRegistry<T>(factory: () => T): () => T {
-    let cached: T | undefined;
+function memoizeByRegistry<T>(factory: (presetName?: string) => T): (presetName?: string) => T {
+    const cached = new Map<string | undefined, T>();
     let lastSeen = -1;
-    return () => {
-        lastSeen = ModuleRegistry.ifRegistryChanged(lastSeen, () => {
-            cached = factory();
-        });
-        return cached!;
+    return (presetName?: string) => {
+        lastSeen = ModuleRegistry.ifRegistryChanged(lastSeen, () => cached.clear());
+        if (!cached.has(presetName)) {
+            cached.set(presetName, factory(presetName));
+        }
+        return cached.get(presetName)!;
     };
 }
 
-const lightTheme = memoizeByRegistry(() => new ChartTheme());
+const lightTheme = memoizeByRegistry((presetName?: string) => {
+    return new ChartTheme({}, presetName);
+});
 
 export const themes: ThemeMap = {
     // darkThemes,
-    'ag-default-dark': memoizeByRegistry(() => new DarkTheme()),
-    'ag-sheets-dark': memoizeByRegistry(() => new SheetsDark()),
-    'ag-polychroma-dark': memoizeByRegistry(() => new PolychromaDark()),
-    'ag-vivid-dark': memoizeByRegistry(() => new VividDark()),
-    'ag-material-dark': memoizeByRegistry(() => new MaterialDark()),
-    'ag-financial-dark': memoizeByRegistry(() => new FinancialDark()),
+    'ag-default-dark': memoizeByRegistry((presetName?: string) => new DarkTheme({}, presetName)),
+    'ag-sheets-dark': memoizeByRegistry((presetName?: string) => new SheetsDark({}, presetName)),
+    'ag-polychroma-dark': memoizeByRegistry((presetName?: string) => new PolychromaDark({}, presetName)),
+    'ag-vivid-dark': memoizeByRegistry((presetName?: string) => new VividDark({}, presetName)),
+    'ag-material-dark': memoizeByRegistry((presetName?: string) => new MaterialDark({}, presetName)),
+    'ag-financial-dark': memoizeByRegistry((presetName?: string) => new FinancialDark({}, presetName)),
 
     // lightThemes,
     'ag-default': lightTheme,
-    'ag-sheets': memoizeByRegistry(() => new SheetsLight()),
-    'ag-polychroma': memoizeByRegistry(() => new PolychromaLight()),
-    'ag-vivid': memoizeByRegistry(() => new VividLight()),
-    'ag-material': memoizeByRegistry(() => new MaterialLight()),
-    'ag-financial': memoizeByRegistry(() => new FinancialLight()),
+    'ag-sheets': memoizeByRegistry((presetName?: string) => new SheetsLight({}, presetName)),
+    'ag-polychroma': memoizeByRegistry((presetName?: string) => new PolychromaLight({}, presetName)),
+    'ag-vivid': memoizeByRegistry((presetName?: string) => new VividLight({}, presetName)),
+    'ag-material': memoizeByRegistry((presetName?: string) => new MaterialLight({}, presetName)),
+    'ag-financial': memoizeByRegistry((presetName?: string) => new FinancialLight({}, presetName)),
 };
 
+// Both caches are keyed by preset name first: the same theme value resolves to a different
+// `ChartTheme` per preset, since a preset's `themeTemplate` is baked into the instance.
+//
 // Primitive keys (stock theme names) are bounded and held strongly. Object keys (inline theme
 // option objects) are held weakly: a fresh options object per chart would otherwise pin its
 // resolved ChartTheme — and the deep config tree it owns — for the lifetime of the process,
-// leaking memory for consumers that render many charts with distinct inline themes.
-const chartThemeCache = new Map<string | null | undefined, ChartTheme>();
-let chartThemeObjectCache = new WeakMap<object, ChartTheme>();
+// leaking memory for consumers that render many charts with distinct inline themes. The preset
+// name must therefore stay OUTSIDE the weak key.
+const chartThemeCache = new Map<string | undefined, Map<string | null | undefined, ChartTheme>>();
+const chartThemeObjectCache = new Map<string | undefined, WeakMap<object, ChartTheme>>();
 let chartThemeCacheRevision = -1;
 const themeCacheDebug = Debug.create(true, 'perf', 'theme');
 
 export const getChartTheme: typeof createChartTheme = (value, logger, presetName) => {
     chartThemeCacheRevision = ModuleRegistry.ifRegistryChanged(chartThemeCacheRevision, () => {
         chartThemeCache.clear();
-        chartThemeObjectCache = new WeakMap();
+        chartThemeObjectCache.clear();
     });
+
     const objectKey = typeof value === 'object' && value !== null ? value : undefined;
-    let theme = objectKey
-        ? chartThemeObjectCache.get(objectKey)
-        : chartThemeCache.get(value as string | null | undefined);
+    let theme: ChartTheme | undefined;
+    if (objectKey) {
+        theme = chartThemeObjectCache.get(presetName)?.get(objectKey);
+    } else {
+        theme = chartThemeCache.get(presetName)?.get(value as string | null | undefined);
+    }
+
     if (theme == null) {
-        themeCacheDebug('[CACHE] ChartTheme', 'miss', createChartTheme.name, [value]);
+        themeCacheDebug('[CACHE] ChartTheme', 'miss', createChartTheme.name, [value, presetName]);
         theme = createChartTheme(value, logger, presetName);
         if (objectKey) {
-            chartThemeObjectCache.set(objectKey, theme);
+            let byObject = chartThemeObjectCache.get(presetName);
+            if (byObject == null) {
+                byObject = new WeakMap();
+                chartThemeObjectCache.set(presetName, byObject);
+            }
+            byObject.set(objectKey, theme);
         } else {
-            chartThemeCache.set(value as string | null | undefined, theme);
+            let byValue = chartThemeCache.get(presetName);
+            if (byValue == null) {
+                byValue = new Map();
+                chartThemeCache.set(presetName, byValue);
+            }
+            byValue.set(value as string | null | undefined, theme);
         }
     } else {
-        themeCacheDebug('[CACHE] ChartTheme', 'hit', createChartTheme.name, [value]);
+        themeCacheDebug('[CACHE] ChartTheme', 'hit', createChartTheme.name, [value, presetName]);
     }
     return theme;
 };
@@ -126,21 +153,27 @@ export const getChartTheme: typeof createChartTheme = (value, logger, presetName
 /** Test-only: drop all cached entries so cases start from a known cold state. */
 export function __clearChartThemeCacheForTests() {
     chartThemeCache.clear();
-    chartThemeObjectCache = new WeakMap();
+    chartThemeObjectCache.clear();
     chartThemeCacheRevision = -1;
 }
 
 function createChartTheme(value: unknown, logger: Logger = ambientLogger, presetName?: string): ChartTheme {
     if (value instanceof ChartTheme) {
         return value;
-    } else if (!validateStructure(value, logger)) {
-        return lightTheme();
+    }
+
+    // A preset's `baseTheme` is the base its styling assumes, so it stands in wherever the user's own
+    // theme does not name one — including when that theme is rejected as invalid.
+    const presetBaseTheme = presetName == null ? undefined : ModuleRegistry.getPresetModule(presetName)?.baseTheme;
+
+    if (!validateStructure(value, logger)) {
+        return presetBaseTheme ? getChartTheme(presetBaseTheme, logger, presetName) : lightTheme(presetName);
     }
 
     if (value == null || typeof value === 'string') {
         const stockTheme = themes[(value as AgChartThemeName) ?? 'ag-default'];
         if (stockTheme) {
-            return stockTheme();
+            return stockTheme(presetName);
         }
         throw new Error(`Cannot find theme \`${value}\`.`);
     }
@@ -151,7 +184,9 @@ function createChartTheme(value: unknown, logger: Logger = ambientLogger, preset
         logger.warnOnce(String(error));
     }
 
-    const baseTheme: any = cleared?.baseTheme ? getChartTheme(cleared.baseTheme, logger, presetName) : lightTheme();
+    const baseThemeValue = cleared?.baseTheme ?? presetBaseTheme;
+
+    const baseTheme: any = baseThemeValue ? getChartTheme(baseThemeValue, logger, presetName) : lightTheme(presetName);
     return cleared ? new baseTheme.constructor(cleared, presetName) : baseTheme;
 }
 

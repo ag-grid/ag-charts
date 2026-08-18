@@ -1,4 +1,4 @@
-import { type CartesianAxisDirection, isImageFill, isPatternFill, isPublicGradientFill, pick } from 'ag-charts-core';
+import { type CartesianAxisDirection, Logger, isGradientFill, isImageFill, isPatternFill, pick } from 'ag-charts-core';
 import type {
     AgBubbleSeriesOptions,
     AgCartesianChartOptions,
@@ -15,7 +15,12 @@ import type {
 type Region = keyof NonNullable<AgQuadrantChartOptions['regions']>;
 
 export function createScatterQuadrant(
-    options: AgQuadrantChartOptions
+    options: AgQuadrantChartOptions,
+    _: any,
+    __: any,
+    ___: any,
+    logger: Logger,
+    getOptionsGraph: () => any
 ): AgCartesianChartOptions<DatumDefault, ContextDefault> {
     const { alignAxesToPivot = true, pivot, regions, xAxis, yAxis, context } = options;
 
@@ -85,34 +90,22 @@ export function createScatterQuadrant(
 
     const backgroundRegions: Record<Region, AgSeriesAreaBackgroundRegion> = {
         topLeft: {
-            fill: { ref: 'foregroundColor', onto: 'backgroundColor', mix: 1 },
-            fillOpacity: 0.3,
             ...topLeft,
-            label: { position: 'inside', ...topLeft.label },
             xRange: { axis: 'x', end: pivotX },
             yRange: { axis: 'y', start: pivotY },
         },
         topRight: {
-            fill: { ref: 'foregroundColor', onto: 'backgroundColor', mix: 0.8 },
-            fillOpacity: 0.3,
             ...topRight,
-            label: { position: 'inside', ...topRight.label },
             xRange: { axis: 'x', start: pivotX },
             yRange: { axis: 'y', start: pivotY },
         },
         bottomLeft: {
-            fill: { ref: 'foregroundColor', onto: 'backgroundColor', mix: 0.4 },
-            fillOpacity: 0.3,
             ...bottomLeft,
-            label: { position: 'inside', ...bottomLeft.label },
             xRange: { axis: 'x', end: pivotX },
             yRange: { axis: 'y', end: pivotY },
         },
         bottomRight: {
-            fill: { ref: 'foregroundColor', onto: 'backgroundColor', mix: 0.6 },
-            fillOpacity: 0.3,
             ...bottomRight,
-            label: { position: 'inside', ...bottomRight.label },
             xRange: { axis: 'x', start: pivotX },
             yRange: { axis: 'y', end: pivotY },
         },
@@ -124,34 +117,77 @@ export function createScatterQuadrant(
 
         let regionKey: Region = 'bottomLeft';
         let regionName: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' = 'bottom-left';
+        let index = 2;
         let defaultMarker = bottomLeftMarker;
         if (xValue > pivotX && yValue > pivotY) {
             regionKey = 'topRight';
             regionName = 'top-right';
             defaultMarker = topRightMarker;
+            index = 1;
         } else if (xValue > pivotX) {
             regionKey = 'bottomRight';
             regionName = 'bottom-right';
             defaultMarker = bottomRightMarker;
+            index = 3;
         } else if (yValue > pivotY) {
             regionKey = 'topLeft';
             regionName = 'top-left';
             defaultMarker = topLeftMarker;
+            index = 0;
         }
 
-        const fill = backgroundRegions[regionKey].fill;
-        const stroke =
-            backgroundRegions[regionKey].stroke ??
-            (isPublicGradientFill(fill) || isPatternFill(fill) || isImageFill(fill) ? undefined : fill);
+        // Get the default marker style, without the fill so we can retrieve it from the region fill.
+        let defaultStyle: AgSeriesMarkerStyle = pick(params, [
+            'fillOpacity',
+            'lineDash',
+            'lineDashOffset',
+            'shape',
+            'size',
+            'stroke',
+            'strokeOpacity',
+            'strokeWidth',
+        ]);
 
-        let result: AgSeriesMarkerStyle = {
-            fill,
-            fillOpacity: 1,
-            stroke,
-            strokeOpacity: backgroundRegions[regionKey].strokeOpacity,
+        defaultStyle = {
+            ...defaultStyle,
             ...defaultMarker,
         };
 
+        // Resolve against the background region since we derive the marker style from the region.
+        const resolvedRegionStyle = getOptionsGraph().resolvePartial(
+            logger,
+            ['seriesArea', 'backgroundRegions', `${index}`],
+            defaultStyle,
+            { pick: false }
+        );
+
+        // Apply the fill to the stroke if possible.
+        const stroke =
+            backgroundRegions[regionKey].stroke ??
+            (isGradientFill(resolvedRegionStyle.fill) ||
+            isPatternFill(resolvedRegionStyle.fill) ||
+            isImageFill(resolvedRegionStyle.fill)
+                ? undefined
+                : resolvedRegionStyle.fill);
+
+        let result: AgSeriesMarkerStyle = {
+            ...pick(resolvedRegionStyle, [
+                'fill',
+                'fillOpacity',
+                'lineDash',
+                'lineDashOffset',
+                'shape',
+                'size',
+                'strokeOpacity',
+                'strokeWidth',
+            ]),
+            stroke,
+            // The region's own marker style is the most specific choice available, so it outranks
+            // anything derived from the region itself.
+            ...defaultMarker,
+        };
+
+        // Compose the user's itemStyler within the region's itemStyler.
         if (options.itemStyler) {
             result = { ...result, ...options.itemStyler({ ...params, ...result, region: regionName }) };
         }
@@ -185,18 +221,12 @@ export function createScatterQuadrant(
             type: 'number',
             position: 'bottom',
             context,
-            label: { enabled: false, ...xAxis?.label },
-            line: { width: 2, ...xAxis?.line },
-            tick: { enabled: false, ...xAxis?.tick },
         },
         y: {
             ...yAxis,
             type: 'number',
             position: 'left',
             context,
-            label: { enabled: false, ...yAxis?.label },
-            line: { width: 2, ...yAxis?.line },
-            tick: { enabled: false, ...yAxis?.tick },
         },
     };
 
