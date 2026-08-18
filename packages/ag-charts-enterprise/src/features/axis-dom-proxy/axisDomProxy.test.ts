@@ -5,7 +5,7 @@
 import { vi } from 'vitest';
 
 import { Chart, clickAction, setupMockCanvas, waitForChartStability } from 'ag-charts-community-test';
-import { setupMockConsole } from 'ag-charts-test';
+import { closeToBigInt, closeToDate, setupMockConsole } from 'ag-charts-test';
 
 import { createEnterpriseChart } from '../../test/utils';
 
@@ -526,11 +526,8 @@ describe('AxisDOMProxy', () => {
         const xs = Array.from({ length: 4 }, (_, i) => 10n ** 21n + step * BigInt(i));
         let Xs: [number, number, number, number];
 
-        // `value` is a bigint here, which neither `expect.closeTo` nor `toMatchObject` can compare, so
-        // reshape each pick into the {value, index} pair the assertions below describe.
-        function picks() {
-            return click.mock.calls.map(([event]) => ({ value: event.value, index: event.index }));
-        }
+        // Interpolated from the pointer's integer pixel position, so allow a pixel's worth of the domain.
+        const nearTick = (x: bigint) => closeToBigInt(x, step / 200n);
 
         beforeEach(async () => {
             chart = await createEnterpriseChart({
@@ -558,14 +555,12 @@ describe('AxisDOMProxy', () => {
             await clickAction(Xs[3], 572)(chart);
             await waitForChartStability(chart);
 
-            // A pixel is worth ~10^18 here, so an interpolated value only lands near its tick; narrowing
-            // to Number for that closeness check is harmless, and the tag keeps the type asserted.
-            expect(
-                picks().map(({ value, index }) => ({ type: typeof value, value: Number(value), index }))
-            ).toMatchObject(
-                // ±5×10^18, i.e. a fortieth of a step.
-                xs.map((x, index) => ({ type: 'bigint', value: expect.closeTo(Number(x), -19), index }))
-            );
+            expect(click.mock.calls).toMatchObject([
+                [expect.objectContaining({ value: nearTick(xs[0]), index: 0 })],
+                [expect.objectContaining({ value: nearTick(xs[1]), index: 1 })],
+                [expect.objectContaining({ value: nearTick(xs[2]), index: 2 })],
+                [expect.objectContaining({ value: nearTick(xs[3]), index: 3 })],
+            ]);
         });
 
         test('clicks outside min/max domain are clamped', async () => {
@@ -573,11 +568,11 @@ describe('AxisDOMProxy', () => {
             await clickAction(Xs[3] + 15, 572)(chart);
             await waitForChartStability(chart);
 
-            // Clamping lands exactly on a domain endpoint, so unlike the interpolated values above these
-            // are exact — and must still be bigints.
-            expect(picks()).toEqual([
-                { value: xs[0], index: 0 },
-                { value: xs[3], index: 3 },
+            // Clamping lands on a domain endpoint, so these are exact — and a narrowed Number would not
+            // compare equal to the bigint.
+            expect(click.mock.calls).toMatchObject([
+                [expect.objectContaining({ value: xs[0], index: 0 })],
+                [expect.objectContaining({ value: xs[3], index: 3 })],
             ]);
         });
     });
@@ -587,15 +582,9 @@ describe('AxisDOMProxy', () => {
         const xs = Array.from({ length: 4 }, (_, i) => new Date(Date.UTC(2020, 0, 1 + i)));
         let Xs: [number, number, number, number];
 
-        // `value` is a Date, so compare epoch times: `expect.closeTo` only accepts numbers. The `isDate`
-        // tag keeps the type asserted, as a bare timestamp would compare equal.
-        function picks() {
-            return click.mock.calls.map(([event]) => ({
-                isDate: event.value instanceof Date,
-                time: new Date(event.value).getTime(),
-                index: event.index,
-            }));
-        }
+        // Interpolated from the pointer's integer pixel position, so allow a pixel's worth of the domain.
+        // `new Date()` truncates, so the exactness of a whole-day tick turns on the rounding direction.
+        const nearTick = (x: Date) => closeToDate(x, 10 * 60 * 1000);
 
         beforeEach(async () => {
             chart = await createEnterpriseChart({
@@ -627,10 +616,12 @@ describe('AxisDOMProxy', () => {
             await clickAction(Xs[3], 572)(chart);
             await waitForChartStability(chart);
 
-            expect(picks()).toMatchObject(
-                // ±5×10^5 ms, i.e. under a fortieth of the one-day tick step.
-                xs.map((x, index) => ({ isDate: true, time: expect.closeTo(x.getTime(), -6), index }))
-            );
+            expect(click.mock.calls).toMatchObject([
+                [expect.objectContaining({ value: nearTick(xs[0]), index: 0 })],
+                [expect.objectContaining({ value: nearTick(xs[1]), index: 1 })],
+                [expect.objectContaining({ value: nearTick(xs[2]), index: 2 })],
+                [expect.objectContaining({ value: nearTick(xs[3]), index: 3 })],
+            ]);
         });
 
         test('clicks outside min/max domain are clamped', async () => {
@@ -638,9 +629,11 @@ describe('AxisDOMProxy', () => {
             await clickAction(Xs[3] + 15, 572)(chart);
             await waitForChartStability(chart);
 
-            expect(picks()).toEqual([
-                { isDate: true, time: xs[0].getTime(), index: 0 },
-                { isDate: true, time: xs[3].getTime(), index: 3 },
+            // Clamping lands on a domain endpoint, so these are exact — and a bare epoch timestamp would
+            // not compare equal to the Date.
+            expect(click.mock.calls).toMatchObject([
+                [expect.objectContaining({ value: xs[0], index: 0 })],
+                [expect.objectContaining({ value: xs[3], index: 3 })],
             ]);
         });
     });
