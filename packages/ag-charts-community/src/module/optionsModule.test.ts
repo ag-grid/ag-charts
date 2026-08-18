@@ -566,6 +566,46 @@ describe('ChartOptions', () => {
         });
     });
 
+    describe('top-level object option type warnings', () => {
+        const objectKeys = [
+            'animation',
+            'annotations',
+            'contextMenu',
+            'flashOnUpdate',
+            'navigator',
+            'scrollbar',
+            'selection',
+            'sync',
+            'tooltip',
+            'zoom',
+        ] as const;
+
+        const baseOptions = (extra: object): AgCartesianChartOptions =>
+            ({
+                data: [{ x: 'a', y: 1 }],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                ...extra,
+            }) as AgCartesianChartOptions;
+
+        it.each(objectKeys)('warns exactly once when `%s` is set to `true`, and ignores the value', (key) => {
+            const processedOptions = prepareOptions(baseOptions({ [key]: true }));
+
+            expect(console.warn).toHaveBeenCalledTimes(1);
+            const [message] = (console.warn as Mock).mock.calls[0];
+            expect(message).toContain(`Option \`${key}\` cannot be set to \`true\`; expecting an object, ignoring.`);
+            expect(processedOptions[key as keyof AgCartesianChartOptions]).not.toBe(true);
+        });
+
+        it('warns exactly once when `series` is set to `true`, and ignores the value', () => {
+            const processedOptions = prepareOptions({ data: [{ x: 'a', y: 1 }], series: true } as any);
+
+            expect(console.warn).toHaveBeenCalledTimes(1);
+            const [message] = (console.warn as Mock).mock.calls[0];
+            expect(message).toContain('Option `series` cannot be set to `true`; expecting an array, ignoring.');
+            expect(processedOptions.series).not.toBe(true);
+        });
+    });
+
     describe('tooltip range warnings', () => {
         it('warns when tooltip.range is set to area for non-area series', () => {
             prepareOptions({

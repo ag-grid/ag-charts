@@ -87,6 +87,10 @@ export function getValidationOverlay({ agDocument, localeManager, grouped, onDis
     const container = agDocument.createElement('div', BASE);
     const panel = agDocument.createElement('div', `${BASE}__panel`);
 
+    // The panel is a modal dialog over the chart, so a right-click on it must not open the chart's
+    // context menu; preventDefault marks the bubbling event so the context-menu registry skips it.
+    panel.addEventListener('contextmenu', (event) => event.preventDefault());
+
     const header = agDocument.createElement('div', `${BASE}__header`);
     const summary = agDocument.createElement('div', `${BASE}__summary`);
     summary.textContent = summaryText(localeManager, grouped);

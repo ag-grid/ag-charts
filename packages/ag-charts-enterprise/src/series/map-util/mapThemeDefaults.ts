@@ -1,7 +1,7 @@
 import { deepClone, jsonWalk, undocumentedThemeOptions } from 'ag-charts-core';
-import type { ExtensibleTheme } from 'ag-charts-types';
+import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
-export const MAP_THEME_DEFAULTS: ExtensibleTheme<'map-shape' | 'map-line' | 'map-marker'> = {
+export const MAP_THEME_DEFAULTS: ExtensibleSeriesTheme<'map-shape' | 'map-line' | 'map-marker'> = {
     zoom: {
         axes: 'xy',
         anchorPointX: 'pointer',

@@ -17,7 +17,7 @@ import type {
     AgBubbleSeriesOptions,
     AgColorScale,
     AgGradientLegendOptions,
-    ExtensibleTheme,
+    ExtensibleSeriesTheme,
     Operation,
     WithThemeParams,
 } from 'ag-charts-types';
@@ -63,7 +63,7 @@ export const BUBBLE_SCATTER_GRADIENT_LEGEND_THEME: WithThemeParams<AgGradientLeg
     },
 };
 
-const themeTemplate: ExtensibleTheme<'bubble'> = {
+const themeTemplate: ExtensibleSeriesTheme<'bubble'> = {
     series: {
         shape: 'circle',
         minSize: 7,

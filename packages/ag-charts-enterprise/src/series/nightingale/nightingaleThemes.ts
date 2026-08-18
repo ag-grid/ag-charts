@@ -8,9 +8,9 @@ import {
     POLAR_AXIS_TYPE,
     SERIES_SELECTION_THEME,
 } from 'ag-charts-core';
-import type { ExtensibleTheme } from 'ag-charts-types';
+import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
-export const NIGHTINGALE_SERIES_THEME: ExtensibleTheme<'nightingale'> = {
+export const NIGHTINGALE_SERIES_THEME: ExtensibleSeriesTheme<'nightingale'> = {
     series: {
         fill: {
             $applySwitch: [

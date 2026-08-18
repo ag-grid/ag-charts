@@ -20,13 +20,14 @@ export interface OptionsGraphInterface {
     getResolvedPath(path: Array<string>): unknown;
     getParamValue(path: string): unknown;
     getPathArray(vertex: VertexInterface): Array<string>;
+    getPresetValue(path: Array<string>): unknown;
     getVertexValue(vertex: VertexInterface): unknown;
     graftAndResolveOrphan(context: VertexInterface, branch: VertexInterface): unknown;
     graftAndResolveOrphanValue(
         context: VertexInterface,
-        path: string,
         ontoObject: unknown,
-        value: unknown,
+        path?: string,
+        value?: unknown,
         edgeValue?: string
     ): unknown;
     graftConfig(target: VertexInterface, configPathArray: Array<string>, ignorePaths: Set<string>): void;

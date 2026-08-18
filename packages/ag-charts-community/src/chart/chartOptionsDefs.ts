@@ -66,9 +66,9 @@ export const commonChartOptions = {
     context: () => true,
     theme: defined,
     series: array,
-    annotations: defined,
-    navigator: defined,
-    scrollbar: defined,
+    annotations: object,
+    navigator: object,
+    scrollbar: object,
     initialState: {
         active: initialStatePickedOptionsDef,
         chartType: string,

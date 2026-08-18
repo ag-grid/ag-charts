@@ -12,6 +12,7 @@ import {
     ModuleRegistry,
     ModuleType,
     type PlainObject,
+    type PresetModuleDefinition,
     type ValidateParams,
     type ValidationError,
     deepClone,
@@ -518,37 +519,43 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             }
         }
 
-        let activeTheme = sanitizeThemeModules(getChartTheme(options.theme, this.logger));
-
         const { presetType } = this.optionMetadata;
+        let presetDef: PresetModuleDefinition<any> | undefined;
+        let presetDefName: string | undefined;
+        let presetOptions: Partial<any> | undefined;
+        let optionsTheme = options.theme;
         if (presetType != null) {
-            const presetDef = ModuleRegistry.getPresetModule(presetType);
+            presetDef = ModuleRegistry.getPresetModule(presetType);
+            presetDefName = presetDef?.name;
+            optionsTheme ??= presetDef?.baseTheme;
+        }
 
-            if (presetDef) {
-                const { validate: validatePreset = validate } = presetDef;
-                const presetParams = options as any as AgPresetOptions;
+        const activeTheme = sanitizeThemeModules(getChartTheme(optionsTheme, this.logger, presetDefName));
 
-                // Note financial charts defines the theme in its returned options,
-                // so we need to get the theme before and after applying the preset
-                const presetSubType = (options as any).type as keyof AgPresetOverrides | undefined;
-                const presetTheme = presetSubType == null ? undefined : activeTheme.presets[presetSubType];
+        if (presetDef) {
+            const { validate: validatePreset = validate } = presetDef;
+            const presetParams = options as any as AgPresetOptions;
 
-                const { cleared, invalid } = validatePreset(presetParams, presetDef.options, '', this.validateParams);
-                this.recordValidationErrors(invalid);
+            const presetSubType = (options as any).type as keyof AgPresetOverrides | undefined;
+            const presetTheme = presetSubType == null ? undefined : activeTheme.presets[presetSubType];
 
-                if (hasRequiredInPath(invalid, '')) {
-                    options = {} as any;
-                } else {
-                    ChartOptions.debug('>>> AgCharts.createOrUpdate() - applying preset', cleared);
-                    options = presetDef.create(
-                        cleared,
-                        presetTheme,
-                        () => this.activeTheme,
-                        activeTheme.overrides,
-                        this.logger
-                    );
-                    activeTheme = sanitizeThemeModules(getChartTheme(options.theme, this.logger, presetDef.name));
-                }
+            const { cleared, invalid } = validatePreset(presetParams, presetDef.options, '', this.validateParams);
+            this.recordValidationErrors(invalid);
+
+            presetOptions = cleared ?? undefined;
+
+            if (hasRequiredInPath(invalid, '')) {
+                options = {} as any;
+            } else {
+                ChartOptions.debug('>>> AgCharts.createOrUpdate() - applying preset', presetOptions);
+                options = presetDef.create(
+                    presetOptions,
+                    presetTheme,
+                    () => this.activeTheme,
+                    activeTheme.overrides,
+                    this.logger,
+                    () => this.optionsGraph
+                );
             }
         }
 
@@ -567,6 +574,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const chartType = detectChartType(options);
 
         this.chartDef = ModuleRegistry.getChartModule(chartType);
+
+        // Must run before chart validation, which would otherwise report these as unknown options.
+        this.removeIncompatibleSeriesAreaOptions(options);
 
         if (!this.chartDef.placeholder) {
             const { validate: validateChart = validate } = this.chartDef;
@@ -597,7 +607,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             this.processedCSSVariables = this.processCSSVariables(options, activeTheme.params);
         }
 
-        const optionsGraph = createOptionsGraphMemoised(activeTheme, options, this.processedCSSVariables);
+        const optionsGraph = createOptionsGraphMemoised(
+            activeTheme,
+            options,
+            this.processedCSSVariables,
+            presetOptions
+        );
         const resolvedOptions = optionsGraph.resolve(this.logger) as any;
         const themeParameters = optionsGraph.resolveParams();
         const annotationThemes = optionsGraph.resolveAnnotationThemes();
@@ -687,7 +702,16 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private slowSetupCached(cached: StructuralCacheEntry) {
-        const activeTheme = sanitizeThemeModules(getChartTheme((this.userOptions as any).theme, this.logger));
+        const presetDef =
+            this.optionMetadata.presetType == null
+                ? undefined
+                : ModuleRegistry.getPresetModule(this.optionMetadata.presetType);
+
+        // Resolve the theme exactly as `slowSetup` does: a preset's `baseTheme` and `themeTemplate`
+        // are both baked into the `ChartTheme`, so dropping either here would style a cached chart
+        // differently from the one that populated the cache.
+        const optionsTheme = (this.userOptions as any).theme ?? presetDef?.baseTheme;
+        const activeTheme = sanitizeThemeModules(getChartTheme(optionsTheme, this.logger, presetDef?.name));
         this.chartDef = cached.chartDef;
 
         // A cache hit skips the validate loops that populate `validationIssues`, so replay the
@@ -696,10 +720,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         // Re-run the preset's data transform on this chart's data — the cached
         // processedOptions has `data` stripped to prevent aliasing.
-        const presetDef =
-            this.optionMetadata.presetType == null
-                ? undefined
-                : ModuleRegistry.getPresetModule(this.optionMetadata.presetType);
         const userData = (this.userOptions as any).data;
         const resolvedData = presetDef?.processData ? presetDef.processData(userData).data : userData;
 
@@ -834,6 +854,21 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         throw new Error(`AG Charts - validations.throwOn: ${issue.severity} - ${location}${issue.message}`);
     }
 
+    private removeIncompatibleSeriesAreaOptions(options: T) {
+        const chartType = this.chartDef?.name;
+        const seriesArea = options.seriesArea as Record<string, unknown> | undefined;
+        if (chartType == null || seriesArea == null) return;
+
+        for (const module of ModuleRegistry.listModulesByType(ModuleType.SeriesAreaPlugin)) {
+            if (!module.chartType || module.chartType === chartType || seriesArea[module.name] == null) continue;
+
+            delete seriesArea[module.name];
+            this.recordValidationMessage(
+                `Option \`seriesArea.${module.name}\` is not supported by chart type \`${chartType}\`, ignoring.`
+            );
+        }
+    }
+
     private validatePluginOptions(options: T, params: ValidateParams) {
         for (const pluginDef of ModuleRegistry.listModulesByType(ModuleType.Plugin)) {
             const pluginKey = pluginDef.name as keyof T;
@@ -850,6 +885,10 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private validateSeriesOptions(options: T, params: ValidateParams): ModulePlaceholder[] {
+        // Leave a non-array `series` in place so the chart-def validation pass reports it, rather
+        // than silently replacing it with an empty array here.
+        if (options.series != null && !isArray(options.series)) return [];
+
         const chartType = this.chartDef?.name;
         const validatedSeriesOptions: any[] = [];
         const seriesCount = options.series?.length ?? 0;

@@ -16,7 +16,7 @@ import {
     SEGMENTATION_DEFAULTS,
     SERIES_SELECTION_THEME,
 } from 'ag-charts-core';
-import type { AgAreaSeriesOptions, ExtensibleTheme } from 'ag-charts-types';
+import type { AgAreaSeriesOptions, ExtensibleSeriesTheme } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../../module/moduleContext';
 import { VERSION } from '../../../version';
@@ -25,7 +25,7 @@ import { AreaSeries } from './areaSeries';
 import { areaSeriesOptionsDef } from './areaSeriesOptionsDef';
 import { predictCartesianNonPrimitiveAxis } from './util';
 
-const themeTemplate: ExtensibleTheme<'area'> = {
+const themeTemplate: ExtensibleSeriesTheme<'area'> = {
     series: {
         nodeClickRange: { $if: [{ $path: '/selection/enabled' }, 10, 'nearest'] },
         fill: {
