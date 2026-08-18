@@ -21,38 +21,34 @@ import type { NormalisedBorderOptions, NormalisedColorType, NormalisedPaddingOpt
 
 export type NormalisedLegendMarkerDisabledStyle = Normalised<
     AgChartLegendMarkerDisabledStyle,
-    'opacity',
+    never,
     { fill?: NormalisedColorType; stroke?: CssColor }
 >;
 
-export type NormalisedLegendLineDisabledStyle = Normalised<
-    AgChartLegendLineDisabledStyle,
-    'opacity',
-    { stroke?: CssColor }
->;
+export type NormalisedLegendLineDisabledStyle = Normalised<AgChartLegendLineDisabledStyle, never, { stroke?: CssColor }>;
 
 export type NormalisedLegendLabelDisabledStyle = Normalised<
     AgChartLegendLabelDisabledStyle,
-    'opacity',
-    { color: CssColor }
+    never,
+    { color?: CssColor }
 >;
 
 export type NormalisedLegendMarkerOptions = Normalised<
     AgChartLegendMarkerOptions,
-    'size' | 'padding' | 'disabledStyle',
-    { padding: NormalisedPaddingOptions; disabledStyle: NormalisedLegendMarkerDisabledStyle }
+    'size' | 'padding',
+    { padding: NormalisedPaddingOptions; disabledStyle?: NormalisedLegendMarkerDisabledStyle }
 >;
 
 export type NormalisedLegendLineOptions = Normalised<
     AgChartLegendLineOptions,
-    'length' | 'disabledStyle',
-    { disabledStyle: NormalisedLegendLineDisabledStyle }
+    'length',
+    { disabledStyle?: NormalisedLegendLineDisabledStyle }
 >;
 
 export type NormalisedLegendLabelOptions = Normalised<
     AgChartLegendLabelOptions,
-    'color' | 'fontWeight' | 'fontSize' | 'fontFamily' | 'disabledStyle',
-    { color: CssColor; fontFamily: string; disabledStyle: NormalisedLegendLabelDisabledStyle }
+    'color' | 'fontWeight' | 'fontSize' | 'fontFamily',
+    { color: CssColor; fontFamily: string; disabledStyle?: NormalisedLegendLabelDisabledStyle }
 >;
 
 export type NormalisedPaginationMarkerStyle = Normalised<

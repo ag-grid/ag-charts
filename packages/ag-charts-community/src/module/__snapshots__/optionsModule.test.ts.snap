@@ -213,24 +213,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
     "item": {
       "label": {
         "color": "#3f7cbf",
-        "disabledStyle": {
-          "color": "#3f7cbf",
-          "opacity": 0.5,
-        },
         "fontFamily": "Georgia, Times New Roman, Times, Serif",
         "fontSize": 14,
         "fontWeight": 600,
       },
       "line": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "length": 25,
       },
       "marker": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "padding": {
           "bottom": 10,
           "left": 10,
@@ -859,24 +849,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
     "item": {
       "label": {
         "color": "#181d1f",
-        "disabledStyle": {
-          "color": "#181d1f",
-          "opacity": 0.5,
-        },
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
       },
       "line": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "length": 25,
       },
       "marker": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "padding": {
           "bottom": 8,
           "left": 8,
@@ -1475,24 +1455,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
     "item": {
       "label": {
         "color": "#181d1f",
-        "disabledStyle": {
-          "color": "#181d1f",
-          "opacity": 0.5,
-        },
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
       },
       "line": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "length": 25,
       },
       "marker": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "padding": {
           "bottom": 8,
           "left": 8,
@@ -2424,24 +2394,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
     "item": {
       "label": {
         "color": "#181d1f",
-        "disabledStyle": {
-          "color": "#181d1f",
-          "opacity": 0.5,
-        },
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
       },
       "line": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "length": 25,
       },
       "marker": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "padding": {
           "bottom": 8,
           "left": 8,
@@ -3551,24 +3511,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_PER_MARKER_CUSTOMISATION_EXAMP
     "item": {
       "label": {
         "color": "#181d1f",
-        "disabledStyle": {
-          "color": "#181d1f",
-          "opacity": 0.5,
-        },
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
       },
       "line": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "length": 25,
       },
       "marker": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "padding": {
           "bottom": 8,
           "left": 8,
@@ -3978,24 +3928,14 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
     "item": {
       "label": {
         "color": "#181d1f",
-        "disabledStyle": {
-          "color": "#181d1f",
-          "opacity": 0.5,
-        },
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
       },
       "line": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "length": 25,
       },
       "marker": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "padding": {
           "bottom": 8,
           "left": 8,
@@ -4652,24 +4592,14 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
     "item": {
       "label": {
         "color": "#181d1f",
-        "disabledStyle": {
-          "color": "#181d1f",
-          "opacity": 0.5,
-        },
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
       },
       "line": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "length": 25,
       },
       "marker": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "padding": {
           "bottom": 8,
           "left": 8,
@@ -5477,24 +5407,14 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_EXAMPLE it should prepar
     "item": {
       "label": {
         "color": "#181d1f",
-        "disabledStyle": {
-          "color": "#181d1f",
-          "opacity": 0.5,
-        },
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
       },
       "line": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "length": 25,
       },
       "marker": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "padding": {
           "bottom": 8,
           "left": 8,
@@ -5902,24 +5822,14 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_WITH_LABELS_EXAMPLE it s
     "item": {
       "label": {
         "color": "#181d1f",
-        "disabledStyle": {
-          "color": "#181d1f",
-          "opacity": 0.5,
-        },
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
       },
       "line": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "length": 25,
       },
       "marker": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "padding": {
           "bottom": 8,
           "left": 8,
@@ -6339,24 +6249,14 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMP
     "item": {
       "label": {
         "color": "#181d1f",
-        "disabledStyle": {
-          "color": "#181d1f",
-          "opacity": 0.5,
-        },
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
       },
       "line": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "length": 25,
       },
       "marker": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "padding": {
           "bottom": 8,
           "left": 8,
@@ -6746,24 +6646,14 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_
     "item": {
       "label": {
         "color": "#181d1f",
-        "disabledStyle": {
-          "color": "#181d1f",
-          "opacity": 0.5,
-        },
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
       },
       "line": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "length": 25,
       },
       "marker": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "padding": {
           "bottom": 8,
           "left": 8,
@@ -7155,24 +7045,14 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
     "item": {
       "label": {
         "color": "#181d1f",
-        "disabledStyle": {
-          "color": "#181d1f",
-          "opacity": 0.5,
-        },
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
       },
       "line": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "length": 25,
       },
       "marker": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "padding": {
           "bottom": 8,
           "left": 8,
@@ -7676,24 +7556,14 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
     "item": {
       "label": {
         "color": "#181d1f",
-        "disabledStyle": {
-          "color": "#181d1f",
-          "opacity": 0.5,
-        },
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
       },
       "line": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "length": 25,
       },
       "marker": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "padding": {
           "bottom": 8,
           "left": 8,
@@ -8208,24 +8078,14 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
     "item": {
       "label": {
         "color": "#181d1f",
-        "disabledStyle": {
-          "color": "#181d1f",
-          "opacity": 0.5,
-        },
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
       },
       "line": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "length": 25,
       },
       "marker": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "padding": {
           "bottom": 8,
           "left": 8,
@@ -9272,24 +9132,14 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
     "item": {
       "label": {
         "color": "#181d1f",
-        "disabledStyle": {
-          "color": "#181d1f",
-          "opacity": 0.5,
-        },
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
       },
       "line": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "length": 25,
       },
       "marker": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "padding": {
           "bottom": 8,
           "left": 8,
@@ -11033,24 +10883,14 @@ exports[`ChartOptions > #prepareOptions > for LOG_AXIS_EXAMPLE it should prepare
     "item": {
       "label": {
         "color": "#181d1f",
-        "disabledStyle": {
-          "color": "#181d1f",
-          "opacity": 0.5,
-        },
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
       },
       "line": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "length": 25,
       },
       "marker": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "padding": {
           "bottom": 8,
           "left": 8,
@@ -11444,24 +11284,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
     "item": {
       "label": {
         "color": "#181d1f",
-        "disabledStyle": {
-          "color": "#181d1f",
-          "opacity": 0.5,
-        },
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
       },
       "line": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "length": 25,
       },
       "marker": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "padding": {
           "bottom": 8,
           "left": 8,
@@ -12527,24 +12357,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
     "item": {
       "label": {
         "color": "#181d1f",
-        "disabledStyle": {
-          "color": "#181d1f",
-          "opacity": 0.5,
-        },
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
       },
       "line": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "length": 25,
       },
       "marker": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "padding": {
           "bottom": 8,
           "left": 8,
@@ -13165,24 +12985,14 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
     "item": {
       "label": {
         "color": "#181d1f",
-        "disabledStyle": {
-          "color": "#181d1f",
-          "opacity": 0.5,
-        },
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
       },
       "line": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "length": 25,
       },
       "marker": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "padding": {
           "bottom": 8,
           "left": 8,
@@ -14125,24 +13935,14 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
     "item": {
       "label": {
         "color": "#181d1f",
-        "disabledStyle": {
-          "color": "#181d1f",
-          "opacity": 0.5,
-        },
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
       },
       "line": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "length": 25,
       },
       "marker": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "padding": {
           "bottom": 8,
           "left": 8,
@@ -14839,24 +14639,14 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_COLUMN_CHART_EXAMPLE it sho
     "item": {
       "label": {
         "color": "#181d1f",
-        "disabledStyle": {
-          "color": "#181d1f",
-          "opacity": 0.5,
-        },
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
       },
       "line": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "length": 25,
       },
       "marker": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "padding": {
           "bottom": 8,
           "left": 8,
@@ -15146,24 +14936,14 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_DONUT_CHART_EXAMPLE it shou
     "item": {
       "label": {
         "color": "#181d1f",
-        "disabledStyle": {
-          "color": "#181d1f",
-          "opacity": 0.5,
-        },
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
       },
       "line": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "length": 25,
       },
       "marker": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "padding": {
           "bottom": 8,
           "left": 8,
@@ -15667,24 +15447,14 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
     "item": {
       "label": {
         "color": "#181d1f",
-        "disabledStyle": {
-          "color": "#181d1f",
-          "opacity": 0.5,
-        },
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
       },
       "line": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "length": 25,
       },
       "marker": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "padding": {
           "bottom": 8,
           "left": 8,
@@ -16048,24 +15818,14 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_PIE_CHART_EXAMPLE it should
     "item": {
       "label": {
         "color": "#181d1f",
-        "disabledStyle": {
-          "color": "#181d1f",
-          "opacity": 0.5,
-        },
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
       },
       "line": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "length": 25,
       },
       "marker": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "padding": {
           "bottom": 8,
           "left": 8,
@@ -16500,24 +16260,14 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_SCATTER_CHART_EXAMPLE it sh
     "item": {
       "label": {
         "color": "#181d1f",
-        "disabledStyle": {
-          "color": "#181d1f",
-          "opacity": 0.5,
-        },
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
       },
       "line": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "length": 25,
       },
       "marker": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "padding": {
           "bottom": 8,
           "left": 8,
@@ -16928,24 +16678,14 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
     "item": {
       "label": {
         "color": "#181d1f",
-        "disabledStyle": {
-          "color": "#181d1f",
-          "opacity": 0.5,
-        },
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
       },
       "line": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "length": 25,
       },
       "marker": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "padding": {
           "bottom": 8,
           "left": 8,
@@ -17878,24 +17618,14 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
     "item": {
       "label": {
         "color": "#181d1f",
-        "disabledStyle": {
-          "color": "#181d1f",
-          "opacity": 0.5,
-        },
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
       },
       "line": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "length": 25,
       },
       "marker": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "padding": {
           "bottom": 8,
           "left": 8,
@@ -18617,24 +18347,14 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
     "item": {
       "label": {
         "color": "#181d1f",
-        "disabledStyle": {
-          "color": "#181d1f",
-          "opacity": 0.5,
-        },
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
       },
       "line": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "length": 25,
       },
       "marker": {
-        "disabledStyle": {
-          "opacity": 0.5,
-        },
         "padding": {
           "bottom": 8,
           "left": 8,
@@ -19281,6 +19001,3153 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
     "enabled": true,
     "mode": "single",
     "pagination": false,
+  },
+  "touch": {
+    "dragAction": "drag",
+  },
+}
+`;
+
+exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar sparkline with labels and a label formatter 1`] = `
+{
+  "axes": {
+    "x": {
+      "gridLine": {
+        "enabled": false,
+        "style": [
+          {
+            "fillOpacity": 1,
+            "lineDash": [],
+            "stroke": "#e8e9e9",
+            "strokeWidth": 2,
+          },
+        ],
+        "width": 2,
+      },
+      "groupPaddingInner": 0.1,
+      "interval": {
+        "placement": "between",
+      },
+      "label": {
+        "autoRotate": true,
+        "avoidCollisions": true,
+        "border": {
+          "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
+        },
+        "color": "#181d1f",
+        "cornerRadius": 4,
+        "enabled": false,
+        "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+        "fontSize": 12,
+        "fontWeight": 400,
+        "padding": 5,
+        "spacing": 11,
+        "wrapping": "on-space",
+      },
+      "line": {
+        "enabled": false,
+        "stroke": "#dcdddd",
+        "width": 1,
+      },
+      "maxThicknessRatio": 0.3,
+      "position": "bottom",
+      "reverse": false,
+      "tick": {
+        "enabled": false,
+        "size": 6,
+        "stroke": "#dcdddd",
+        "width": 1,
+      },
+      "title": {
+        "color": "#181d1f",
+        "enabled": false,
+        "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+        "fontSize": 13,
+        "fontWeight": 400,
+        "spacing": 25,
+        "text": "Axis Title",
+        "truncate": true,
+        "wrapping": "always",
+      },
+      "type": "category",
+    },
+    "y": {
+      "gridLine": {
+        "enabled": true,
+        "style": [
+          {
+            "fillOpacity": 1,
+            "lineDash": [],
+            "stroke": "#e8e9e9",
+            "strokeWidth": 2,
+          },
+        ],
+        "width": 2,
+      },
+      "interval": {
+        "values": [
+          0,
+        ],
+      },
+      "label": {
+        "avoidCollisions": true,
+        "border": {
+          "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
+        },
+        "color": "#181d1f",
+        "cornerRadius": 4,
+        "enabled": false,
+        "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+        "fontSize": 12,
+        "fontWeight": 400,
+        "padding": 5,
+        "spacing": 11,
+      },
+      "line": {
+        "enabled": false,
+        "stroke": "#dcdddd",
+        "width": 1,
+      },
+      "maxThicknessRatio": 0.3,
+      "nice": false,
+      "position": "left",
+      "reverse": false,
+      "tick": {
+        "enabled": false,
+        "size": 6,
+        "stroke": "#dcdddd",
+        "width": 1,
+      },
+      "title": {
+        "color": "#181d1f",
+        "enabled": false,
+        "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+        "fontSize": 13,
+        "fontWeight": 400,
+        "spacing": 25,
+        "text": "Axis Title",
+        "truncate": true,
+        "wrapping": "always",
+      },
+      "type": "number",
+    },
+  },
+  "background": {
+    "fill": "#ffffff",
+    "visible": false,
+  },
+  "data": [
+    {
+      "x": 0,
+      "y": 1,
+    },
+    {
+      "x": 1,
+      "y": 3,
+    },
+    {
+      "x": 2,
+      "y": 2,
+    },
+    {
+      "x": 3,
+      "y": 5,
+    },
+    {
+      "x": 4,
+      "y": 4,
+    },
+  ],
+  "footnote": {
+    "border": {
+      "enabled": false,
+      "stroke": "rgba(24, 29, 31, 0.08)",
+      "strokeWidth": 1,
+    },
+    "color": "#707374",
+    "cornerRadius": 4,
+    "enabled": false,
+    "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+    "fontSize": 13,
+    "fontWeight": 400,
+    "layoutStyle": "block",
+    "padding": 0,
+    "spacing": 20,
+    "text": "Footnote",
+    "textAlign": "center",
+    "wrapping": "hyphenate",
+  },
+  "highlight": {
+    "drawingMode": "cutout",
+    "enabled": true,
+  },
+  "keyboard": {
+    "enabled": false,
+    "initialFocus": "data-start",
+  },
+  "legend": {
+    "border": {
+      "enabled": false,
+      "stroke": "#c5c7c7",
+      "strokeOpacity": 1,
+      "strokeWidth": 1,
+    },
+    "cornerRadius": 4,
+    "enabled": false,
+    "fill": "transparent",
+    "fillOpacity": 1,
+    "item": {
+      "label": {
+        "color": "#181d1f",
+        "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+        "fontSize": 12,
+        "fontWeight": 400,
+      },
+      "line": {
+        "length": 25,
+      },
+      "marker": {
+        "padding": {
+          "bottom": 8,
+          "left": 8,
+          "right": 8,
+          "top": 8,
+        },
+        "size": 15,
+      },
+      "padding": {
+        "bottom": 4,
+        "left": 8,
+        "right": 8,
+        "top": 4,
+      },
+      "showSeriesStroke": true,
+    },
+    "listeners": {},
+    "orientation": "horizontal",
+    "padding": 0,
+    "pagination": {
+      "activeStyle": {
+        "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
+      },
+      "highlightStyle": {
+        "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
+      },
+      "inactiveStyle": {
+        "fill": "#707374",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
+      },
+      "label": {
+        "color": "#181d1f",
+        "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+        "fontSize": 12,
+      },
+      "marker": {
+        "padding": {
+          "bottom": 8,
+          "left": 8,
+          "right": 8,
+          "top": 8,
+        },
+        "shape": "triangle",
+        "size": 12,
+      },
+    },
+    "position": "bottom",
+    "reverseOrder": false,
+    "spacing": 30,
+    "toggleSeries": true,
+  },
+  "listeners": {},
+  "minHeight": 300,
+  "minWidth": 300,
+  "mode": "standalone",
+  "overlays": {
+    "darkTheme": false,
+  },
+  "padding": {
+    "bottom": 10,
+    "left": 0,
+    "right": 0,
+    "top": 10,
+  },
+  "series": [
+    {
+      "crisp": false,
+      "direction": "vertical",
+      "fill": "#fac858",
+      "fillOpacity": 1,
+      "highlight": {
+        "enabled": true,
+        "unhighlightedItem": {
+          "opacity": 0.6,
+        },
+        "unhighlightedSeries": {
+          "opacity": 0.2,
+        },
+      },
+      "label": {
+        "border": {
+          "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": true,
+          "collideWith": {
+            "seriesItems": true,
+          },
+          "threshold": 4,
+        },
+        "color": "#999999",
+        "cornerRadius": 4,
+        "enabled": true,
+        "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+        "fontSize": 7.5,
+        "fontWeight": 400,
+        "formatter": [Function],
+        "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
+          "color": "#999999",
+        },
+        "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
+          "color": "#999999",
+        },
+        "padding": 1,
+        "placement": "inside-end",
+        "spacing": 8,
+      },
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
+      "selection": {
+        "enabled": false,
+        "selectedItem": {
+          "strokeWidth": 2,
+        },
+        "unselectedItem": {
+          "opacity": 0.6,
+        },
+        "unselectedSeries": {
+          "opacity": 0.2,
+        },
+      },
+      "seriesGrouping": {
+        "groupCount": 1,
+        "groupId": "bar-x-grouped",
+        "groupIndex": 0,
+        "stackCount": 0,
+        "stackIndex": 0,
+      },
+      "shadow": {
+        "blur": 5,
+        "color": "#00000080",
+        "enabled": false,
+        "xOffset": 3,
+        "yOffset": 3,
+      },
+      "sparklineMode": true,
+      "stroke": "#2b5c95",
+      "strokeWidth": 0,
+      "tooltip": {
+        "position": {
+          "anchorTo": "pointer",
+          "offset": 12,
+          "placement": [
+            "right",
+            "left",
+          ],
+          "xOffset": 0,
+          "yOffset": 0,
+        },
+        "range": "nearest",
+        "renderer": [Function],
+      },
+      "type": "bar",
+      "visible": true,
+      "xKey": "x",
+      "xKeyAxis": "x",
+      "yKey": "y",
+      "yKeyAxis": "y",
+    },
+  ],
+  "seriesArea": {
+    "border": {
+      "enabled": false,
+      "stroke": "#181d1f",
+      "strokeOpacity": 1,
+      "strokeWidth": 1,
+    },
+    "cornerRadius": 4,
+    "padding": {
+      "bottom": 0,
+      "left": 0,
+      "right": 0,
+      "top": 0,
+    },
+  },
+  "subtitle": {
+    "border": {
+      "enabled": false,
+      "stroke": "rgba(24, 29, 31, 0.08)",
+      "strokeWidth": 1,
+    },
+    "color": "#707374",
+    "cornerRadius": 4,
+    "enabled": false,
+    "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+    "fontSize": 13,
+    "fontWeight": 400,
+    "layoutStyle": "block",
+    "padding": 0,
+    "spacing": 20,
+    "text": "Subtitle",
+    "textAlign": "center",
+    "wrapping": "hyphenate",
+  },
+  "suppressFieldDotNotation": false,
+  "title": {
+    "border": {
+      "enabled": false,
+      "stroke": "rgba(24, 29, 31, 0.08)",
+      "strokeWidth": 1,
+    },
+    "color": "#181d1f",
+    "cornerRadius": 4,
+    "enabled": false,
+    "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+    "fontSize": 17,
+    "fontWeight": 400,
+    "layoutStyle": "block",
+    "padding": 0,
+    "spacing": 20,
+    "text": "Title",
+    "textAlign": "center",
+    "wrapping": "hyphenate",
+  },
+  "tooltip": {
+    "darkTheme": false,
+    "delay": 0,
+    "enabled": true,
+    "mode": "compact",
+    "pagination": false,
+    "position": {
+      "anchorTo": "pointer",
+      "placement": [
+        "right",
+        "left",
+      ],
+    },
+    "range": "nearest",
+    "showArrow": false,
+  },
+  "touch": {
+    "dragAction": "drag",
+  },
+}
+`;
+
+exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a bar sparkline with user-supplied axis styling 1`] = `
+{
+  "axes": {
+    "x": {
+      "gridLine": {
+        "enabled": false,
+        "style": [
+          {
+            "fillOpacity": 1,
+            "lineDash": [],
+            "stroke": "#e8e9e9",
+            "strokeWidth": 2,
+          },
+        ],
+        "width": 2,
+      },
+      "groupPaddingInner": 0.1,
+      "interval": {
+        "placement": "between",
+      },
+      "label": {
+        "autoRotate": true,
+        "avoidCollisions": true,
+        "border": {
+          "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
+        },
+        "color": "#181d1f",
+        "cornerRadius": 4,
+        "enabled": false,
+        "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+        "fontSize": 12,
+        "fontWeight": 400,
+        "padding": 5,
+        "spacing": 11,
+        "wrapping": "on-space",
+      },
+      "line": {
+        "enabled": false,
+        "stroke": "#dcdddd",
+        "width": 1,
+      },
+      "maxThicknessRatio": 0.3,
+      "position": "bottom",
+      "reverse": false,
+      "tick": {
+        "enabled": false,
+        "size": 6,
+        "stroke": "#dcdddd",
+        "width": 1,
+      },
+      "title": {
+        "color": "#181d1f",
+        "enabled": false,
+        "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+        "fontSize": 13,
+        "fontWeight": 400,
+        "spacing": 25,
+        "text": "Axis Title",
+        "truncate": true,
+        "wrapping": "always",
+      },
+      "type": "category",
+    },
+    "y": {
+      "gridLine": {
+        "enabled": true,
+        "style": [
+          {
+            "fillOpacity": 1,
+            "lineDash": [],
+            "stroke": "#cccccc",
+            "strokeWidth": 2,
+          },
+        ],
+        "width": 2,
+      },
+      "interval": {
+        "values": [
+          0,
+        ],
+      },
+      "label": {
+        "avoidCollisions": true,
+        "border": {
+          "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
+        },
+        "color": "#181d1f",
+        "cornerRadius": 4,
+        "enabled": false,
+        "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+        "fontSize": 12,
+        "fontWeight": 400,
+        "padding": 5,
+        "spacing": 11,
+      },
+      "line": {
+        "enabled": false,
+        "stroke": "#dcdddd",
+        "width": 1,
+      },
+      "maxThicknessRatio": 0.3,
+      "nice": false,
+      "position": "left",
+      "reverse": false,
+      "tick": {
+        "enabled": false,
+        "size": 6,
+        "stroke": "#dcdddd",
+        "width": 1,
+      },
+      "title": {
+        "color": "#181d1f",
+        "enabled": false,
+        "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+        "fontSize": 13,
+        "fontWeight": 400,
+        "spacing": 25,
+        "text": "Axis Title",
+        "truncate": true,
+        "wrapping": "always",
+      },
+      "type": "number",
+    },
+  },
+  "background": {
+    "fill": "#ffffff",
+    "visible": false,
+  },
+  "data": [
+    {
+      "x": 0,
+      "y": 1,
+    },
+    {
+      "x": 1,
+      "y": 3,
+    },
+    {
+      "x": 2,
+      "y": 2,
+    },
+    {
+      "x": 3,
+      "y": 5,
+    },
+    {
+      "x": 4,
+      "y": 4,
+    },
+  ],
+  "footnote": {
+    "border": {
+      "enabled": false,
+      "stroke": "rgba(24, 29, 31, 0.08)",
+      "strokeWidth": 1,
+    },
+    "color": "#707374",
+    "cornerRadius": 4,
+    "enabled": false,
+    "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+    "fontSize": 13,
+    "fontWeight": 400,
+    "layoutStyle": "block",
+    "padding": 0,
+    "spacing": 20,
+    "text": "Footnote",
+    "textAlign": "center",
+    "wrapping": "hyphenate",
+  },
+  "highlight": {
+    "drawingMode": "cutout",
+    "enabled": true,
+  },
+  "keyboard": {
+    "enabled": false,
+    "initialFocus": "data-start",
+  },
+  "legend": {
+    "border": {
+      "enabled": false,
+      "stroke": "#c5c7c7",
+      "strokeOpacity": 1,
+      "strokeWidth": 1,
+    },
+    "cornerRadius": 4,
+    "enabled": false,
+    "fill": "transparent",
+    "fillOpacity": 1,
+    "item": {
+      "label": {
+        "color": "#181d1f",
+        "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+        "fontSize": 12,
+        "fontWeight": 400,
+      },
+      "line": {
+        "length": 25,
+      },
+      "marker": {
+        "padding": {
+          "bottom": 8,
+          "left": 8,
+          "right": 8,
+          "top": 8,
+        },
+        "size": 15,
+      },
+      "padding": {
+        "bottom": 4,
+        "left": 8,
+        "right": 8,
+        "top": 4,
+      },
+      "showSeriesStroke": true,
+    },
+    "listeners": {},
+    "orientation": "horizontal",
+    "padding": 0,
+    "pagination": {
+      "activeStyle": {
+        "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
+      },
+      "highlightStyle": {
+        "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
+      },
+      "inactiveStyle": {
+        "fill": "#707374",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
+      },
+      "label": {
+        "color": "#181d1f",
+        "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+        "fontSize": 12,
+      },
+      "marker": {
+        "padding": {
+          "bottom": 8,
+          "left": 8,
+          "right": 8,
+          "top": 8,
+        },
+        "shape": "triangle",
+        "size": 12,
+      },
+    },
+    "position": "bottom",
+    "reverseOrder": false,
+    "spacing": 30,
+    "toggleSeries": true,
+  },
+  "listeners": {},
+  "minHeight": 300,
+  "minWidth": 300,
+  "mode": "standalone",
+  "overlays": {
+    "darkTheme": false,
+  },
+  "padding": {
+    "bottom": 0,
+    "left": 0,
+    "right": 0,
+    "top": 0,
+  },
+  "series": [
+    {
+      "crisp": false,
+      "direction": "vertical",
+      "fill": "#fac858",
+      "fillOpacity": 1,
+      "highlight": {
+        "enabled": true,
+        "unhighlightedItem": {
+          "opacity": 0.6,
+        },
+        "unhighlightedSeries": {
+          "opacity": 0.2,
+        },
+      },
+      "label": {
+        "border": {
+          "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": true,
+          "collideWith": {
+            "seriesItems": true,
+          },
+          "threshold": 4,
+        },
+        "cornerRadius": 4,
+        "enabled": false,
+        "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+        "fontSize": 12,
+        "fontWeight": 400,
+        "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
+          "color": "#ffffff",
+        },
+        "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
+          "color": "#181d1f",
+        },
+        "padding": 4,
+        "placement": "inside-end",
+        "spacing": 8,
+      },
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
+      "selection": {
+        "enabled": false,
+        "selectedItem": {
+          "strokeWidth": 2,
+        },
+        "unselectedItem": {
+          "opacity": 0.6,
+        },
+        "unselectedSeries": {
+          "opacity": 0.2,
+        },
+      },
+      "seriesGrouping": {
+        "groupCount": 1,
+        "groupId": "bar-x-grouped",
+        "groupIndex": 0,
+        "stackCount": 0,
+        "stackIndex": 0,
+      },
+      "shadow": {
+        "blur": 5,
+        "color": "#00000080",
+        "enabled": false,
+        "xOffset": 3,
+        "yOffset": 3,
+      },
+      "sparklineMode": true,
+      "stroke": "#2b5c95",
+      "strokeWidth": 0,
+      "tooltip": {
+        "position": {
+          "anchorTo": "pointer",
+          "offset": 12,
+          "placement": [
+            "right",
+            "left",
+          ],
+          "xOffset": 0,
+          "yOffset": 0,
+        },
+        "range": "nearest",
+        "renderer": [Function],
+      },
+      "type": "bar",
+      "visible": true,
+      "xKey": "x",
+      "xKeyAxis": "x",
+      "yKey": "y",
+      "yKeyAxis": "y",
+    },
+  ],
+  "seriesArea": {
+    "border": {
+      "enabled": false,
+      "stroke": "#181d1f",
+      "strokeOpacity": 1,
+      "strokeWidth": 1,
+    },
+    "cornerRadius": 4,
+    "padding": {
+      "bottom": 0,
+      "left": 0,
+      "right": 0,
+      "top": 0,
+    },
+  },
+  "subtitle": {
+    "border": {
+      "enabled": false,
+      "stroke": "rgba(24, 29, 31, 0.08)",
+      "strokeWidth": 1,
+    },
+    "color": "#707374",
+    "cornerRadius": 4,
+    "enabled": false,
+    "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+    "fontSize": 13,
+    "fontWeight": 400,
+    "layoutStyle": "block",
+    "padding": 0,
+    "spacing": 20,
+    "text": "Subtitle",
+    "textAlign": "center",
+    "wrapping": "hyphenate",
+  },
+  "suppressFieldDotNotation": false,
+  "title": {
+    "border": {
+      "enabled": false,
+      "stroke": "rgba(24, 29, 31, 0.08)",
+      "strokeWidth": 1,
+    },
+    "color": "#181d1f",
+    "cornerRadius": 4,
+    "enabled": false,
+    "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+    "fontSize": 17,
+    "fontWeight": 400,
+    "layoutStyle": "block",
+    "padding": 0,
+    "spacing": 20,
+    "text": "Title",
+    "textAlign": "center",
+    "wrapping": "hyphenate",
+  },
+  "tooltip": {
+    "darkTheme": false,
+    "delay": 0,
+    "enabled": true,
+    "mode": "compact",
+    "pagination": false,
+    "position": {
+      "anchorTo": "pointer",
+      "placement": [
+        "right",
+        "left",
+      ],
+    },
+    "range": "nearest",
+    "showArrow": false,
+  },
+  "touch": {
+    "dragAction": "drag",
+  },
+}
+`;
+
+exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a horizontal bar sparkline with user-supplied axis styling 1`] = `
+{
+  "axes": {
+    "x": {
+      "gridLine": {
+        "enabled": true,
+        "style": [
+          {
+            "fillOpacity": 1,
+            "lineDash": [],
+            "stroke": "#cccccc",
+            "strokeWidth": 2,
+          },
+        ],
+        "width": 2,
+      },
+      "interval": {
+        "values": [
+          0,
+        ],
+      },
+      "label": {
+        "avoidCollisions": true,
+        "border": {
+          "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
+        },
+        "color": "#181d1f",
+        "cornerRadius": 4,
+        "enabled": false,
+        "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+        "fontSize": 12,
+        "fontWeight": 400,
+        "padding": 5,
+        "spacing": 11,
+      },
+      "line": {
+        "enabled": false,
+        "stroke": "#dcdddd",
+        "width": 1,
+      },
+      "max": 6,
+      "maxThicknessRatio": 0.3,
+      "min": 0,
+      "nice": false,
+      "position": "bottom",
+      "reverse": false,
+      "tick": {
+        "enabled": false,
+        "size": 6,
+        "stroke": "#dcdddd",
+        "width": 1,
+      },
+      "title": {
+        "color": "#181d1f",
+        "enabled": false,
+        "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+        "fontSize": 13,
+        "fontWeight": 400,
+        "spacing": 25,
+        "text": "Axis Title",
+        "truncate": true,
+        "wrapping": "always",
+      },
+      "type": "number",
+    },
+    "y": {
+      "gridLine": {
+        "enabled": false,
+        "style": [
+          {
+            "fillOpacity": 1,
+            "lineDash": [],
+            "stroke": "#e8e9e9",
+            "strokeWidth": 2,
+          },
+        ],
+        "width": 2,
+      },
+      "groupPaddingInner": 0.1,
+      "interval": {
+        "placement": "between",
+      },
+      "label": {
+        "autoRotate": true,
+        "avoidCollisions": true,
+        "border": {
+          "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
+        },
+        "color": "#181d1f",
+        "cornerRadius": 4,
+        "enabled": false,
+        "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+        "fontSize": 12,
+        "fontWeight": 400,
+        "padding": 5,
+        "spacing": 11,
+        "wrapping": "on-space",
+      },
+      "line": {
+        "enabled": false,
+        "stroke": "#dcdddd",
+        "width": 1,
+      },
+      "maxThicknessRatio": 0.3,
+      "position": "left",
+      "reverse": false,
+      "tick": {
+        "enabled": false,
+        "size": 6,
+        "stroke": "#dcdddd",
+        "width": 1,
+      },
+      "title": {
+        "color": "#181d1f",
+        "enabled": false,
+        "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+        "fontSize": 13,
+        "fontWeight": 400,
+        "spacing": 25,
+        "text": "Axis Title",
+        "truncate": true,
+        "wrapping": "always",
+      },
+      "type": "category",
+    },
+  },
+  "background": {
+    "fill": "#ffffff",
+    "visible": false,
+  },
+  "data": [
+    {
+      "x": 0,
+      "y": 1,
+    },
+    {
+      "x": 1,
+      "y": 3,
+    },
+    {
+      "x": 2,
+      "y": 2,
+    },
+    {
+      "x": 3,
+      "y": 5,
+    },
+    {
+      "x": 4,
+      "y": 4,
+    },
+  ],
+  "footnote": {
+    "border": {
+      "enabled": false,
+      "stroke": "rgba(24, 29, 31, 0.08)",
+      "strokeWidth": 1,
+    },
+    "color": "#707374",
+    "cornerRadius": 4,
+    "enabled": false,
+    "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+    "fontSize": 13,
+    "fontWeight": 400,
+    "layoutStyle": "block",
+    "padding": 0,
+    "spacing": 20,
+    "text": "Footnote",
+    "textAlign": "center",
+    "wrapping": "hyphenate",
+  },
+  "highlight": {
+    "drawingMode": "cutout",
+    "enabled": true,
+  },
+  "keyboard": {
+    "enabled": false,
+    "initialFocus": "data-start",
+  },
+  "legend": {
+    "border": {
+      "enabled": false,
+      "stroke": "#c5c7c7",
+      "strokeOpacity": 1,
+      "strokeWidth": 1,
+    },
+    "cornerRadius": 4,
+    "enabled": false,
+    "fill": "transparent",
+    "fillOpacity": 1,
+    "item": {
+      "label": {
+        "color": "#181d1f",
+        "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+        "fontSize": 12,
+        "fontWeight": 400,
+      },
+      "line": {
+        "length": 25,
+      },
+      "marker": {
+        "padding": {
+          "bottom": 8,
+          "left": 8,
+          "right": 8,
+          "top": 8,
+        },
+        "size": 15,
+      },
+      "padding": {
+        "bottom": 4,
+        "left": 8,
+        "right": 8,
+        "top": 4,
+      },
+      "showSeriesStroke": true,
+    },
+    "listeners": {},
+    "orientation": "horizontal",
+    "padding": 0,
+    "pagination": {
+      "activeStyle": {
+        "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
+      },
+      "highlightStyle": {
+        "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
+      },
+      "inactiveStyle": {
+        "fill": "#707374",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
+      },
+      "label": {
+        "color": "#181d1f",
+        "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+        "fontSize": 12,
+      },
+      "marker": {
+        "padding": {
+          "bottom": 8,
+          "left": 8,
+          "right": 8,
+          "top": 8,
+        },
+        "shape": "triangle",
+        "size": 12,
+      },
+    },
+    "position": "bottom",
+    "reverseOrder": false,
+    "spacing": 30,
+    "toggleSeries": true,
+  },
+  "listeners": {},
+  "minHeight": 300,
+  "minWidth": 300,
+  "mode": "standalone",
+  "overlays": {
+    "darkTheme": false,
+  },
+  "padding": {
+    "bottom": 0,
+    "left": 0,
+    "right": 0,
+    "top": 0,
+  },
+  "series": [
+    {
+      "crisp": false,
+      "direction": "horizontal",
+      "fill": "#5470c6",
+      "fillOpacity": 1,
+      "highlight": {
+        "enabled": true,
+        "unhighlightedItem": {
+          "opacity": 0.6,
+        },
+        "unhighlightedSeries": {
+          "opacity": 0.2,
+        },
+      },
+      "label": {
+        "border": {
+          "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": true,
+          "collideWith": {
+            "seriesItems": true,
+          },
+          "threshold": 4,
+        },
+        "cornerRadius": 4,
+        "enabled": false,
+        "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+        "fontSize": 12,
+        "fontWeight": 400,
+        "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
+          "color": "#ffffff",
+        },
+        "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
+          "color": "#181d1f",
+        },
+        "padding": 4,
+        "placement": "inside-end",
+        "spacing": 8,
+      },
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
+      "selection": {
+        "enabled": false,
+        "selectedItem": {
+          "strokeWidth": 2,
+        },
+        "unselectedItem": {
+          "opacity": 0.6,
+        },
+        "unselectedSeries": {
+          "opacity": 0.2,
+        },
+      },
+      "seriesGrouping": {
+        "groupCount": 1,
+        "groupId": "bar-x-grouped",
+        "groupIndex": 0,
+        "stackCount": 0,
+        "stackIndex": 0,
+      },
+      "shadow": {
+        "blur": 5,
+        "color": "#00000080",
+        "enabled": false,
+        "xOffset": 3,
+        "yOffset": 3,
+      },
+      "sparklineMode": true,
+      "stroke": "#2b5c95",
+      "strokeWidth": 0,
+      "tooltip": {
+        "position": {
+          "anchorTo": "pointer",
+          "offset": 12,
+          "placement": [
+            "right",
+            "left",
+          ],
+          "xOffset": 0,
+          "yOffset": 0,
+        },
+        "range": "nearest",
+        "renderer": [Function],
+      },
+      "type": "bar",
+      "visible": true,
+      "xKey": "x",
+      "xKeyAxis": "y",
+      "yKey": "y",
+      "yKeyAxis": "x",
+    },
+  ],
+  "seriesArea": {
+    "border": {
+      "enabled": false,
+      "stroke": "#181d1f",
+      "strokeOpacity": 1,
+      "strokeWidth": 1,
+    },
+    "cornerRadius": 4,
+    "padding": {
+      "bottom": 0,
+      "left": 0,
+      "right": 0,
+      "top": 0,
+    },
+  },
+  "subtitle": {
+    "border": {
+      "enabled": false,
+      "stroke": "rgba(24, 29, 31, 0.08)",
+      "strokeWidth": 1,
+    },
+    "color": "#707374",
+    "cornerRadius": 4,
+    "enabled": false,
+    "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+    "fontSize": 13,
+    "fontWeight": 400,
+    "layoutStyle": "block",
+    "padding": 0,
+    "spacing": 20,
+    "text": "Subtitle",
+    "textAlign": "center",
+    "wrapping": "hyphenate",
+  },
+  "suppressFieldDotNotation": false,
+  "title": {
+    "border": {
+      "enabled": false,
+      "stroke": "rgba(24, 29, 31, 0.08)",
+      "strokeWidth": 1,
+    },
+    "color": "#181d1f",
+    "cornerRadius": 4,
+    "enabled": false,
+    "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+    "fontSize": 17,
+    "fontWeight": 400,
+    "layoutStyle": "block",
+    "padding": 0,
+    "spacing": 20,
+    "text": "Title",
+    "textAlign": "center",
+    "wrapping": "hyphenate",
+  },
+  "tooltip": {
+    "darkTheme": false,
+    "delay": 0,
+    "enabled": true,
+    "mode": "compact",
+    "pagination": false,
+    "position": {
+      "anchorTo": "pointer",
+      "placement": [
+        "right",
+        "left",
+      ],
+    },
+    "range": "nearest",
+    "showArrow": false,
+  },
+  "touch": {
+    "dragAction": "drag",
+  },
+}
+`;
+
+exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line sparkline with a tooltip renderer and a marker styler 1`] = `
+{
+  "axes": {
+    "x": {
+      "gridLine": {
+        "enabled": false,
+        "style": [
+          {
+            "fillOpacity": 1,
+            "lineDash": [],
+            "stroke": "#e8e9e9",
+            "strokeWidth": 1,
+          },
+        ],
+        "width": 1,
+      },
+      "groupPaddingInner": 0.1,
+      "interval": {
+        "placement": "between",
+      },
+      "label": {
+        "autoRotate": true,
+        "avoidCollisions": true,
+        "border": {
+          "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
+        },
+        "color": "#181d1f",
+        "cornerRadius": 4,
+        "enabled": false,
+        "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+        "fontSize": 12,
+        "fontWeight": 400,
+        "padding": 5,
+        "spacing": 11,
+        "wrapping": "on-space",
+      },
+      "line": {
+        "enabled": false,
+        "stroke": "#dcdddd",
+        "width": 1,
+      },
+      "maxThicknessRatio": 0.3,
+      "position": "bottom",
+      "reverse": false,
+      "tick": {
+        "enabled": false,
+        "size": 6,
+        "stroke": "#dcdddd",
+        "width": 1,
+      },
+      "title": {
+        "color": "#181d1f",
+        "enabled": false,
+        "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+        "fontSize": 13,
+        "fontWeight": 400,
+        "spacing": 25,
+        "text": "Axis Title",
+        "truncate": true,
+        "wrapping": "always",
+      },
+      "type": "category",
+    },
+    "y": {
+      "gridLine": {
+        "enabled": false,
+        "style": [
+          {
+            "fillOpacity": 1,
+            "lineDash": [],
+            "stroke": "#e8e9e9",
+            "strokeWidth": 1,
+          },
+        ],
+        "width": 1,
+      },
+      "interval": {
+        "values": [
+          0,
+        ],
+      },
+      "label": {
+        "avoidCollisions": true,
+        "border": {
+          "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
+        },
+        "color": "#181d1f",
+        "cornerRadius": 4,
+        "enabled": false,
+        "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+        "fontSize": 12,
+        "fontWeight": 400,
+        "padding": 5,
+        "spacing": 11,
+      },
+      "line": {
+        "enabled": false,
+        "stroke": "#dcdddd",
+        "width": 1,
+      },
+      "maxThicknessRatio": 0.3,
+      "nice": false,
+      "position": "left",
+      "reverse": false,
+      "tick": {
+        "enabled": false,
+        "size": 6,
+        "stroke": "#dcdddd",
+        "width": 1,
+      },
+      "title": {
+        "color": "#181d1f",
+        "enabled": false,
+        "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+        "fontSize": 13,
+        "fontWeight": 400,
+        "spacing": 25,
+        "text": "Axis Title",
+        "truncate": true,
+        "wrapping": "always",
+      },
+      "type": "number",
+    },
+  },
+  "background": {
+    "fill": "#ffffff",
+    "visible": false,
+  },
+  "data": [
+    {
+      "x": 0,
+      "y": 1,
+    },
+    {
+      "x": 1,
+      "y": 3,
+    },
+    {
+      "x": 2,
+      "y": 2,
+    },
+    {
+      "x": 3,
+      "y": 5,
+    },
+    {
+      "x": 4,
+      "y": 4,
+    },
+  ],
+  "footnote": {
+    "border": {
+      "enabled": false,
+      "stroke": "rgba(24, 29, 31, 0.08)",
+      "strokeWidth": 1,
+    },
+    "color": "#707374",
+    "cornerRadius": 4,
+    "enabled": false,
+    "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+    "fontSize": 13,
+    "fontWeight": 400,
+    "layoutStyle": "block",
+    "padding": 0,
+    "spacing": 20,
+    "text": "Footnote",
+    "textAlign": "center",
+    "wrapping": "hyphenate",
+  },
+  "highlight": {
+    "drawingMode": "cutout",
+    "enabled": true,
+  },
+  "keyboard": {
+    "enabled": false,
+    "initialFocus": "data-start",
+  },
+  "legend": {
+    "border": {
+      "enabled": false,
+      "stroke": "#c5c7c7",
+      "strokeOpacity": 1,
+      "strokeWidth": 1,
+    },
+    "cornerRadius": 4,
+    "enabled": false,
+    "fill": "transparent",
+    "fillOpacity": 1,
+    "item": {
+      "label": {
+        "color": "#181d1f",
+        "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+        "fontSize": 12,
+        "fontWeight": 400,
+      },
+      "line": {
+        "length": 25,
+      },
+      "marker": {
+        "padding": {
+          "bottom": 8,
+          "left": 8,
+          "right": 8,
+          "top": 8,
+        },
+        "size": 15,
+      },
+      "padding": {
+        "bottom": 4,
+        "left": 8,
+        "right": 8,
+        "top": 4,
+      },
+      "showSeriesStroke": true,
+    },
+    "listeners": {},
+    "orientation": "horizontal",
+    "padding": 0,
+    "pagination": {
+      "activeStyle": {
+        "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
+      },
+      "highlightStyle": {
+        "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
+      },
+      "inactiveStyle": {
+        "fill": "#707374",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
+      },
+      "label": {
+        "color": "#181d1f",
+        "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+        "fontSize": 12,
+      },
+      "marker": {
+        "padding": {
+          "bottom": 8,
+          "left": 8,
+          "right": 8,
+          "top": 8,
+        },
+        "shape": "triangle",
+        "size": 12,
+      },
+    },
+    "position": "bottom",
+    "reverseOrder": false,
+    "spacing": 30,
+    "toggleSeries": true,
+  },
+  "listeners": {},
+  "minHeight": 300,
+  "minWidth": 300,
+  "mode": "standalone",
+  "overlays": {
+    "darkTheme": false,
+  },
+  "padding": {
+    "bottom": 0,
+    "left": 0,
+    "right": 0,
+    "top": 0,
+  },
+  "series": [
+    {
+      "highlight": {
+        "enabled": true,
+        "unhighlightedSeries": {
+          "opacity": 0.2,
+        },
+      },
+      "interpolation": {
+        "type": "linear",
+      },
+      "label": {
+        "border": {
+          "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": true,
+        },
+        "cornerRadius": 4,
+        "enabled": false,
+        "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+        "fontSize": 12,
+        "fontWeight": 400,
+        "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
+          "color": "#ffffff",
+        },
+        "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
+          "color": "#181d1f",
+        },
+        "padding": 8,
+        "placement": "top",
+      },
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "marker": {
+        "enabled": true,
+        "fill": "#5090dc",
+        "itemStyler": [Function],
+        "shape": "circle",
+        "size": 0,
+        "stroke": "#2b5c95",
+        "strokeWidth": 0,
+      },
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
+      "selection": {
+        "enabled": false,
+        "selectedItem": {
+          "strokeWidth": 2,
+        },
+        "unselectedItem": {
+          "opacity": 0.6,
+        },
+        "unselectedSeries": {
+          "opacity": 0.2,
+        },
+      },
+      "sparklineMode": true,
+      "stroke": "rgb(124, 255, 178)",
+      "strokeOpacity": 1,
+      "strokeWidth": 1,
+      "tooltip": {
+        "position": {
+          "anchorTo": "node",
+          "offset": 12,
+          "placement": [
+            "right",
+            "left",
+          ],
+          "xOffset": 0,
+          "yOffset": 0,
+        },
+        "range": "nearest",
+        "renderer": [Function],
+      },
+      "type": "line",
+      "visible": true,
+      "xKey": "x",
+      "xKeyAxis": "x",
+      "yKey": "y",
+      "yKeyAxis": "y",
+    },
+  ],
+  "seriesArea": {
+    "border": {
+      "enabled": false,
+      "stroke": "#181d1f",
+      "strokeOpacity": 1,
+      "strokeWidth": 1,
+    },
+    "cornerRadius": 4,
+    "padding": {
+      "bottom": 2,
+      "left": 2,
+      "right": 2,
+      "top": 2,
+    },
+  },
+  "subtitle": {
+    "border": {
+      "enabled": false,
+      "stroke": "rgba(24, 29, 31, 0.08)",
+      "strokeWidth": 1,
+    },
+    "color": "#707374",
+    "cornerRadius": 4,
+    "enabled": false,
+    "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+    "fontSize": 13,
+    "fontWeight": 400,
+    "layoutStyle": "block",
+    "padding": 0,
+    "spacing": 20,
+    "text": "Subtitle",
+    "textAlign": "center",
+    "wrapping": "hyphenate",
+  },
+  "suppressFieldDotNotation": false,
+  "title": {
+    "border": {
+      "enabled": false,
+      "stroke": "rgba(24, 29, 31, 0.08)",
+      "strokeWidth": 1,
+    },
+    "color": "#181d1f",
+    "cornerRadius": 4,
+    "enabled": false,
+    "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+    "fontSize": 17,
+    "fontWeight": 400,
+    "layoutStyle": "block",
+    "padding": 0,
+    "spacing": 20,
+    "text": "Title",
+    "textAlign": "center",
+    "wrapping": "hyphenate",
+  },
+  "tooltip": {
+    "darkTheme": false,
+    "delay": 0,
+    "enabled": true,
+    "mode": "compact",
+    "pagination": false,
+    "position": {
+      "anchorTo": "node",
+      "placement": [
+        "right",
+        "left",
+      ],
+    },
+    "showArrow": false,
+  },
+  "touch": {
+    "dragAction": "drag",
+  },
+}
+`;
+
+exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line sparkline with a user theme override 1`] = `
+{
+  "axes": {
+    "x": {
+      "gridLine": {
+        "enabled": false,
+        "style": [
+          {
+            "fillOpacity": 1,
+            "lineDash": [],
+            "stroke": "#e8e9e9",
+            "strokeWidth": 1,
+          },
+        ],
+        "width": 1,
+      },
+      "groupPaddingInner": 0.1,
+      "interval": {
+        "placement": "between",
+      },
+      "label": {
+        "autoRotate": true,
+        "avoidCollisions": true,
+        "border": {
+          "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
+        },
+        "color": "#181d1f",
+        "cornerRadius": 4,
+        "enabled": false,
+        "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+        "fontSize": 12,
+        "fontWeight": 400,
+        "padding": 5,
+        "spacing": 11,
+        "wrapping": "on-space",
+      },
+      "line": {
+        "enabled": false,
+        "stroke": "#dcdddd",
+        "width": 1,
+      },
+      "maxThicknessRatio": 0.3,
+      "position": "bottom",
+      "reverse": false,
+      "tick": {
+        "enabled": false,
+        "size": 6,
+        "stroke": "#dcdddd",
+        "width": 1,
+      },
+      "title": {
+        "color": "#181d1f",
+        "enabled": false,
+        "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+        "fontSize": 13,
+        "fontWeight": 400,
+        "spacing": 25,
+        "text": "Axis Title",
+        "truncate": true,
+        "wrapping": "always",
+      },
+      "type": "category",
+    },
+    "y": {
+      "gridLine": {
+        "enabled": false,
+        "style": [
+          {
+            "fillOpacity": 1,
+            "lineDash": [],
+            "stroke": "#e8e9e9",
+            "strokeWidth": 1,
+          },
+        ],
+        "width": 1,
+      },
+      "interval": {
+        "values": [
+          0,
+        ],
+      },
+      "label": {
+        "avoidCollisions": true,
+        "border": {
+          "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
+        },
+        "color": "#181d1f",
+        "cornerRadius": 4,
+        "enabled": false,
+        "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+        "fontSize": 12,
+        "fontWeight": 400,
+        "padding": 5,
+        "spacing": 11,
+      },
+      "line": {
+        "enabled": false,
+        "stroke": "#dcdddd",
+        "width": 1,
+      },
+      "maxThicknessRatio": 0.3,
+      "nice": false,
+      "position": "left",
+      "reverse": false,
+      "tick": {
+        "enabled": false,
+        "size": 6,
+        "stroke": "#dcdddd",
+        "width": 1,
+      },
+      "title": {
+        "color": "#181d1f",
+        "enabled": false,
+        "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+        "fontSize": 13,
+        "fontWeight": 400,
+        "spacing": 25,
+        "text": "Axis Title",
+        "truncate": true,
+        "wrapping": "always",
+      },
+      "type": "number",
+    },
+  },
+  "background": {
+    "fill": "#ffffff",
+    "visible": false,
+  },
+  "data": [
+    {
+      "x": 0,
+      "y": 1,
+    },
+    {
+      "x": 1,
+      "y": 3,
+    },
+    {
+      "x": 2,
+      "y": 2,
+    },
+    {
+      "x": 3,
+      "y": 5,
+    },
+    {
+      "x": 4,
+      "y": 4,
+    },
+  ],
+  "footnote": {
+    "border": {
+      "enabled": false,
+      "stroke": "rgba(24, 29, 31, 0.08)",
+      "strokeWidth": 1,
+    },
+    "color": "#707374",
+    "cornerRadius": 4,
+    "enabled": false,
+    "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+    "fontSize": 13,
+    "fontWeight": 400,
+    "layoutStyle": "block",
+    "padding": 0,
+    "spacing": 20,
+    "text": "Footnote",
+    "textAlign": "center",
+    "wrapping": "hyphenate",
+  },
+  "highlight": {
+    "drawingMode": "cutout",
+    "enabled": true,
+  },
+  "keyboard": {
+    "enabled": true,
+    "initialFocus": "data-start",
+  },
+  "legend": {
+    "border": {
+      "enabled": false,
+      "stroke": "#c5c7c7",
+      "strokeOpacity": 1,
+      "strokeWidth": 1,
+    },
+    "cornerRadius": 4,
+    "enabled": false,
+    "fill": "transparent",
+    "fillOpacity": 1,
+    "item": {
+      "label": {
+        "color": "#181d1f",
+        "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+        "fontSize": 12,
+        "fontWeight": 400,
+      },
+      "line": {
+        "length": 25,
+      },
+      "marker": {
+        "padding": {
+          "bottom": 8,
+          "left": 8,
+          "right": 8,
+          "top": 8,
+        },
+        "size": 15,
+      },
+      "padding": {
+        "bottom": 4,
+        "left": 8,
+        "right": 8,
+        "top": 4,
+      },
+      "showSeriesStroke": true,
+    },
+    "listeners": {},
+    "orientation": "horizontal",
+    "padding": 0,
+    "pagination": {
+      "activeStyle": {
+        "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
+      },
+      "highlightStyle": {
+        "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
+      },
+      "inactiveStyle": {
+        "fill": "#707374",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
+      },
+      "label": {
+        "color": "#181d1f",
+        "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+        "fontSize": 12,
+      },
+      "marker": {
+        "padding": {
+          "bottom": 8,
+          "left": 8,
+          "right": 8,
+          "top": 8,
+        },
+        "shape": "triangle",
+        "size": 12,
+      },
+    },
+    "position": "bottom",
+    "reverseOrder": false,
+    "spacing": 30,
+    "toggleSeries": true,
+  },
+  "listeners": {},
+  "minHeight": 300,
+  "minWidth": 300,
+  "mode": "standalone",
+  "overlays": {
+    "darkTheme": false,
+  },
+  "padding": {
+    "bottom": 0,
+    "left": 0,
+    "right": 0,
+    "top": 0,
+  },
+  "series": [
+    {
+      "highlight": {
+        "enabled": true,
+        "unhighlightedSeries": {
+          "opacity": 0.2,
+        },
+      },
+      "interpolation": {
+        "type": "linear",
+      },
+      "label": {
+        "border": {
+          "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": true,
+        },
+        "cornerRadius": 4,
+        "enabled": false,
+        "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+        "fontSize": 12,
+        "fontWeight": 400,
+        "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
+          "color": "#ffffff",
+        },
+        "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
+          "color": "#181d1f",
+        },
+        "padding": 8,
+        "placement": "top",
+      },
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "marker": {
+        "enabled": false,
+        "fill": "#5090dc",
+        "shape": "circle",
+        "size": 3,
+        "stroke": "#2b5c95",
+        "strokeWidth": 0,
+      },
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
+      "selection": {
+        "enabled": false,
+        "selectedItem": {
+          "strokeWidth": 2,
+        },
+        "unselectedItem": {
+          "opacity": 0.6,
+        },
+        "unselectedSeries": {
+          "opacity": 0.2,
+        },
+      },
+      "sparklineMode": true,
+      "stroke": "rgb(124, 255, 178)",
+      "strokeOpacity": 1,
+      "strokeWidth": 1,
+      "tooltip": {
+        "position": {
+          "anchorTo": "node",
+          "offset": 12,
+          "placement": [
+            "right",
+            "left",
+          ],
+          "xOffset": 0,
+          "yOffset": 0,
+        },
+        "range": "nearest",
+        "renderer": [Function],
+      },
+      "type": "line",
+      "visible": true,
+      "xKey": "x",
+      "xKeyAxis": "x",
+      "yKey": "y",
+      "yKeyAxis": "y",
+    },
+  ],
+  "seriesArea": {
+    "border": {
+      "enabled": false,
+      "stroke": "#181d1f",
+      "strokeOpacity": 1,
+      "strokeWidth": 1,
+    },
+    "cornerRadius": 4,
+    "padding": {
+      "bottom": 2,
+      "left": 2,
+      "right": 2,
+      "top": 2,
+    },
+  },
+  "subtitle": {
+    "border": {
+      "enabled": false,
+      "stroke": "rgba(24, 29, 31, 0.08)",
+      "strokeWidth": 1,
+    },
+    "color": "#707374",
+    "cornerRadius": 4,
+    "enabled": false,
+    "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+    "fontSize": 13,
+    "fontWeight": 400,
+    "layoutStyle": "block",
+    "padding": 0,
+    "spacing": 20,
+    "text": "Subtitle",
+    "textAlign": "center",
+    "wrapping": "hyphenate",
+  },
+  "suppressFieldDotNotation": false,
+  "title": {
+    "border": {
+      "enabled": false,
+      "stroke": "rgba(24, 29, 31, 0.08)",
+      "strokeWidth": 1,
+    },
+    "color": "#181d1f",
+    "cornerRadius": 4,
+    "enabled": false,
+    "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+    "fontSize": 17,
+    "fontWeight": 400,
+    "layoutStyle": "block",
+    "padding": 0,
+    "spacing": 20,
+    "text": "Title",
+    "textAlign": "center",
+    "wrapping": "hyphenate",
+  },
+  "tooltip": {
+    "darkTheme": false,
+    "delay": 0,
+    "enabled": true,
+    "mode": "compact",
+    "pagination": false,
+    "position": {
+      "anchorTo": "node",
+      "placement": [
+        "right",
+        "left",
+      ],
+    },
+    "showArrow": false,
+  },
+  "touch": {
+    "dragAction": "drag",
+  },
+}
+`;
+
+exports[`ChartOptions > #prepareOptions > sparkline preset > resolves a line sparkline with top-level padding 1`] = `
+{
+  "axes": {
+    "x": {
+      "gridLine": {
+        "enabled": false,
+        "style": [
+          {
+            "fillOpacity": 1,
+            "lineDash": [],
+            "stroke": "#e8e9e9",
+            "strokeWidth": 1,
+          },
+        ],
+        "width": 1,
+      },
+      "groupPaddingInner": 0.1,
+      "interval": {
+        "placement": "between",
+      },
+      "label": {
+        "autoRotate": true,
+        "avoidCollisions": true,
+        "border": {
+          "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
+        },
+        "color": "#181d1f",
+        "cornerRadius": 4,
+        "enabled": false,
+        "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+        "fontSize": 12,
+        "fontWeight": 400,
+        "padding": 5,
+        "spacing": 11,
+        "wrapping": "on-space",
+      },
+      "line": {
+        "enabled": false,
+        "stroke": "#dcdddd",
+        "width": 1,
+      },
+      "maxThicknessRatio": 0.3,
+      "position": "bottom",
+      "reverse": false,
+      "tick": {
+        "enabled": false,
+        "size": 6,
+        "stroke": "#dcdddd",
+        "width": 1,
+      },
+      "title": {
+        "color": "#181d1f",
+        "enabled": false,
+        "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+        "fontSize": 13,
+        "fontWeight": 400,
+        "spacing": 25,
+        "text": "Axis Title",
+        "truncate": true,
+        "wrapping": "always",
+      },
+      "type": "category",
+    },
+    "y": {
+      "gridLine": {
+        "enabled": false,
+        "style": [
+          {
+            "fillOpacity": 1,
+            "lineDash": [],
+            "stroke": "#e8e9e9",
+            "strokeWidth": 1,
+          },
+        ],
+        "width": 1,
+      },
+      "interval": {
+        "values": [
+          0,
+        ],
+      },
+      "label": {
+        "avoidCollisions": true,
+        "border": {
+          "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
+        },
+        "color": "#181d1f",
+        "cornerRadius": 4,
+        "enabled": false,
+        "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+        "fontSize": 12,
+        "fontWeight": 400,
+        "padding": 5,
+        "spacing": 11,
+      },
+      "line": {
+        "enabled": false,
+        "stroke": "#dcdddd",
+        "width": 1,
+      },
+      "maxThicknessRatio": 0.3,
+      "nice": false,
+      "position": "left",
+      "reverse": false,
+      "tick": {
+        "enabled": false,
+        "size": 6,
+        "stroke": "#dcdddd",
+        "width": 1,
+      },
+      "title": {
+        "color": "#181d1f",
+        "enabled": false,
+        "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+        "fontSize": 13,
+        "fontWeight": 400,
+        "spacing": 25,
+        "text": "Axis Title",
+        "truncate": true,
+        "wrapping": "always",
+      },
+      "type": "number",
+    },
+  },
+  "background": {
+    "fill": "#ffffff",
+    "visible": false,
+  },
+  "data": [
+    {
+      "x": 0,
+      "y": 1,
+    },
+    {
+      "x": 1,
+      "y": 3,
+    },
+    {
+      "x": 2,
+      "y": 2,
+    },
+    {
+      "x": 3,
+      "y": 5,
+    },
+    {
+      "x": 4,
+      "y": 4,
+    },
+  ],
+  "footnote": {
+    "border": {
+      "enabled": false,
+      "stroke": "rgba(24, 29, 31, 0.08)",
+      "strokeWidth": 1,
+    },
+    "color": "#707374",
+    "cornerRadius": 4,
+    "enabled": false,
+    "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+    "fontSize": 13,
+    "fontWeight": 400,
+    "layoutStyle": "block",
+    "padding": 0,
+    "spacing": 20,
+    "text": "Footnote",
+    "textAlign": "center",
+    "wrapping": "hyphenate",
+  },
+  "highlight": {
+    "drawingMode": "cutout",
+    "enabled": true,
+  },
+  "keyboard": {
+    "enabled": false,
+    "initialFocus": "data-start",
+  },
+  "legend": {
+    "border": {
+      "enabled": false,
+      "stroke": "#c5c7c7",
+      "strokeOpacity": 1,
+      "strokeWidth": 1,
+    },
+    "cornerRadius": 4,
+    "enabled": false,
+    "fill": "transparent",
+    "fillOpacity": 1,
+    "item": {
+      "label": {
+        "color": "#181d1f",
+        "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+        "fontSize": 12,
+        "fontWeight": 400,
+      },
+      "line": {
+        "length": 25,
+      },
+      "marker": {
+        "padding": {
+          "bottom": 8,
+          "left": 8,
+          "right": 8,
+          "top": 8,
+        },
+        "size": 15,
+      },
+      "padding": {
+        "bottom": 4,
+        "left": 8,
+        "right": 8,
+        "top": 4,
+      },
+      "showSeriesStroke": true,
+    },
+    "listeners": {},
+    "orientation": "horizontal",
+    "padding": 0,
+    "pagination": {
+      "activeStyle": {
+        "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
+      },
+      "highlightStyle": {
+        "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
+      },
+      "inactiveStyle": {
+        "fill": "#707374",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
+      },
+      "label": {
+        "color": "#181d1f",
+        "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+        "fontSize": 12,
+      },
+      "marker": {
+        "padding": {
+          "bottom": 8,
+          "left": 8,
+          "right": 8,
+          "top": 8,
+        },
+        "shape": "triangle",
+        "size": 12,
+      },
+    },
+    "position": "bottom",
+    "reverseOrder": false,
+    "spacing": 30,
+    "toggleSeries": true,
+  },
+  "listeners": {},
+  "minHeight": 300,
+  "minWidth": 300,
+  "mode": "standalone",
+  "overlays": {
+    "darkTheme": false,
+  },
+  "padding": {
+    "bottom": 5,
+    "left": 0,
+    "right": 0,
+    "top": 5,
+  },
+  "series": [
+    {
+      "highlight": {
+        "enabled": true,
+        "unhighlightedSeries": {
+          "opacity": 0.2,
+        },
+      },
+      "interpolation": {
+        "type": "linear",
+      },
+      "label": {
+        "border": {
+          "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": true,
+        },
+        "cornerRadius": 4,
+        "enabled": false,
+        "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+        "fontSize": 12,
+        "fontWeight": 400,
+        "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
+          "color": "#ffffff",
+        },
+        "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
+          "color": "#181d1f",
+        },
+        "padding": 8,
+        "placement": "top",
+      },
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "marker": {
+        "enabled": false,
+        "fill": "#5090dc",
+        "shape": "circle",
+        "size": 3,
+        "stroke": "#2b5c95",
+        "strokeWidth": 0,
+      },
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
+      "selection": {
+        "enabled": false,
+        "selectedItem": {
+          "strokeWidth": 2,
+        },
+        "unselectedItem": {
+          "opacity": 0.6,
+        },
+        "unselectedSeries": {
+          "opacity": 0.2,
+        },
+      },
+      "sparklineMode": true,
+      "stroke": "rgb(124, 255, 178)",
+      "strokeOpacity": 1,
+      "strokeWidth": 2,
+      "tooltip": {
+        "position": {
+          "anchorTo": "node",
+          "offset": 12,
+          "placement": [
+            "right",
+            "left",
+          ],
+          "xOffset": 0,
+          "yOffset": 0,
+        },
+        "range": "nearest",
+        "renderer": [Function],
+      },
+      "type": "line",
+      "visible": true,
+      "xKey": "x",
+      "xKeyAxis": "x",
+      "yKey": "y",
+      "yKeyAxis": "y",
+    },
+  ],
+  "seriesArea": {
+    "border": {
+      "enabled": false,
+      "stroke": "#181d1f",
+      "strokeOpacity": 1,
+      "strokeWidth": 1,
+    },
+    "cornerRadius": 4,
+    "padding": {
+      "bottom": 2,
+      "left": 2,
+      "right": 2,
+      "top": 2,
+    },
+  },
+  "subtitle": {
+    "border": {
+      "enabled": false,
+      "stroke": "rgba(24, 29, 31, 0.08)",
+      "strokeWidth": 1,
+    },
+    "color": "#707374",
+    "cornerRadius": 4,
+    "enabled": false,
+    "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+    "fontSize": 13,
+    "fontWeight": 400,
+    "layoutStyle": "block",
+    "padding": 0,
+    "spacing": 20,
+    "text": "Subtitle",
+    "textAlign": "center",
+    "wrapping": "hyphenate",
+  },
+  "suppressFieldDotNotation": false,
+  "title": {
+    "border": {
+      "enabled": false,
+      "stroke": "rgba(24, 29, 31, 0.08)",
+      "strokeWidth": 1,
+    },
+    "color": "#181d1f",
+    "cornerRadius": 4,
+    "enabled": false,
+    "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+    "fontSize": 17,
+    "fontWeight": 400,
+    "layoutStyle": "block",
+    "padding": 0,
+    "spacing": 20,
+    "text": "Title",
+    "textAlign": "center",
+    "wrapping": "hyphenate",
+  },
+  "tooltip": {
+    "darkTheme": false,
+    "delay": 0,
+    "enabled": true,
+    "mode": "compact",
+    "pagination": false,
+    "position": {
+      "anchorTo": "node",
+      "placement": [
+        "right",
+        "left",
+      ],
+    },
+    "showArrow": false,
+  },
+  "touch": {
+    "dragAction": "drag",
+  },
+}
+`;
+
+exports[`ChartOptions > #prepareOptions > sparkline preset > resolves an area sparkline with fill opacity and a marker styler 1`] = `
+{
+  "axes": {
+    "x": {
+      "gridLine": {
+        "enabled": false,
+        "style": [
+          {
+            "fillOpacity": 1,
+            "lineDash": [],
+            "stroke": "#e8e9e9",
+            "strokeWidth": 1,
+          },
+        ],
+        "width": 1,
+      },
+      "groupPaddingInner": 0.1,
+      "interval": {
+        "placement": "between",
+      },
+      "label": {
+        "autoRotate": true,
+        "avoidCollisions": true,
+        "border": {
+          "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
+        },
+        "color": "#181d1f",
+        "cornerRadius": 4,
+        "enabled": false,
+        "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+        "fontSize": 12,
+        "fontWeight": 400,
+        "padding": 5,
+        "spacing": 11,
+        "wrapping": "on-space",
+      },
+      "line": {
+        "enabled": false,
+        "stroke": "#dcdddd",
+        "width": 1,
+      },
+      "maxThicknessRatio": 0.3,
+      "position": "bottom",
+      "reverse": false,
+      "tick": {
+        "enabled": false,
+        "size": 6,
+        "stroke": "#dcdddd",
+        "width": 1,
+      },
+      "title": {
+        "color": "#181d1f",
+        "enabled": false,
+        "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+        "fontSize": 13,
+        "fontWeight": 400,
+        "spacing": 25,
+        "text": "Axis Title",
+        "truncate": true,
+        "wrapping": "always",
+      },
+      "type": "category",
+    },
+    "y": {
+      "gridLine": {
+        "enabled": true,
+        "style": [
+          {
+            "fillOpacity": 1,
+            "lineDash": [],
+            "stroke": "rgb(204, 204, 235)",
+            "strokeWidth": 1,
+          },
+        ],
+        "width": 1,
+      },
+      "interval": {
+        "values": [
+          0,
+        ],
+      },
+      "label": {
+        "avoidCollisions": true,
+        "border": {
+          "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
+        },
+        "color": "#181d1f",
+        "cornerRadius": 4,
+        "enabled": false,
+        "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+        "fontSize": 12,
+        "fontWeight": 400,
+        "padding": 5,
+        "spacing": 11,
+      },
+      "line": {
+        "enabled": false,
+        "stroke": "#dcdddd",
+        "width": 1,
+      },
+      "maxThicknessRatio": 0.3,
+      "nice": false,
+      "position": "left",
+      "reverse": false,
+      "tick": {
+        "enabled": false,
+        "size": 6,
+        "stroke": "#dcdddd",
+        "width": 1,
+      },
+      "title": {
+        "color": "#181d1f",
+        "enabled": false,
+        "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+        "fontSize": 13,
+        "fontWeight": 400,
+        "spacing": 25,
+        "text": "Axis Title",
+        "truncate": true,
+        "wrapping": "always",
+      },
+      "type": "number",
+    },
+  },
+  "background": {
+    "fill": "#ffffff",
+    "visible": false,
+  },
+  "data": [
+    {
+      "x": 0,
+      "y": 1,
+    },
+    {
+      "x": 1,
+      "y": 3,
+    },
+    {
+      "x": 2,
+      "y": 2,
+    },
+    {
+      "x": 3,
+      "y": 5,
+    },
+    {
+      "x": 4,
+      "y": 4,
+    },
+  ],
+  "footnote": {
+    "border": {
+      "enabled": false,
+      "stroke": "rgba(24, 29, 31, 0.08)",
+      "strokeWidth": 1,
+    },
+    "color": "#707374",
+    "cornerRadius": 4,
+    "enabled": false,
+    "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+    "fontSize": 13,
+    "fontWeight": 400,
+    "layoutStyle": "block",
+    "padding": 0,
+    "spacing": 20,
+    "text": "Footnote",
+    "textAlign": "center",
+    "wrapping": "hyphenate",
+  },
+  "highlight": {
+    "drawingMode": "overlap",
+    "enabled": true,
+  },
+  "keyboard": {
+    "enabled": false,
+    "initialFocus": "data-start",
+  },
+  "legend": {
+    "border": {
+      "enabled": false,
+      "stroke": "#c5c7c7",
+      "strokeOpacity": 1,
+      "strokeWidth": 1,
+    },
+    "cornerRadius": 4,
+    "enabled": false,
+    "fill": "transparent",
+    "fillOpacity": 1,
+    "item": {
+      "label": {
+        "color": "#181d1f",
+        "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+        "fontSize": 12,
+        "fontWeight": 400,
+      },
+      "line": {
+        "length": 25,
+      },
+      "marker": {
+        "padding": {
+          "bottom": 8,
+          "left": 8,
+          "right": 8,
+          "top": 8,
+        },
+        "size": 15,
+      },
+      "padding": {
+        "bottom": 4,
+        "left": 8,
+        "right": 8,
+        "top": 4,
+      },
+      "showSeriesStroke": true,
+    },
+    "listeners": {},
+    "orientation": "horizontal",
+    "padding": 0,
+    "pagination": {
+      "activeStyle": {
+        "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
+      },
+      "highlightStyle": {
+        "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
+      },
+      "inactiveStyle": {
+        "fill": "#707374",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
+      },
+      "label": {
+        "color": "#181d1f",
+        "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+        "fontSize": 12,
+      },
+      "marker": {
+        "padding": {
+          "bottom": 8,
+          "left": 8,
+          "right": 8,
+          "top": 8,
+        },
+        "shape": "triangle",
+        "size": 12,
+      },
+    },
+    "position": "bottom",
+    "reverseOrder": false,
+    "spacing": 30,
+    "toggleSeries": true,
+  },
+  "listeners": {},
+  "minHeight": 300,
+  "minWidth": 300,
+  "mode": "standalone",
+  "overlays": {
+    "darkTheme": false,
+  },
+  "padding": {
+    "bottom": 0,
+    "left": 0,
+    "right": 0,
+    "top": 0,
+  },
+  "series": [
+    {
+      "fill": "rgba(216, 204, 235, 0.3)",
+      "fillOpacity": 0.5,
+      "highlight": {
+        "enabled": true,
+        "unhighlightedSeries": {
+          "opacity": 0.2,
+        },
+      },
+      "interpolation": {
+        "type": "linear",
+      },
+      "label": {
+        "border": {
+          "enabled": false,
+          "stroke": "rgba(24, 29, 31, 0.08)",
+          "strokeWidth": 1,
+        },
+        "collision": {
+          "alwaysShow": true,
+        },
+        "cornerRadius": 4,
+        "enabled": false,
+        "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+        "fontSize": 12,
+        "fontWeight": 400,
+        "insideStyle": {
+          "border": {
+            "enabled": false,
+          },
+          "color": "#ffffff",
+        },
+        "outsideStyle": {
+          "border": {
+            "enabled": false,
+          },
+          "color": "#181d1f",
+        },
+        "padding": 8,
+        "placement": "top",
+      },
+      "lineDash": [
+        0,
+      ],
+      "lineDashOffset": 0,
+      "marker": {
+        "enabled": true,
+        "fill": "#5090dc",
+        "itemStyler": [Function],
+        "shape": "circle",
+        "size": 0,
+        "stroke": "#2b5c95",
+        "strokeWidth": 0,
+      },
+      "nodeClickRange": "nearest",
+      "segmentation": {
+        "enabled": false,
+        "key": "x",
+      },
+      "selection": {
+        "enabled": false,
+        "selectedItem": {
+          "strokeWidth": 2,
+        },
+        "unselectedItem": {
+          "opacity": 0.6,
+        },
+        "unselectedSeries": {
+          "opacity": 0.2,
+        },
+      },
+      "shadow": {
+        "blur": 5,
+        "color": "#00000080",
+        "enabled": false,
+        "xOffset": 3,
+        "yOffset": 3,
+      },
+      "stroke": "rgb(119,77,185)",
+      "strokeOpacity": 1,
+      "strokeWidth": 1,
+      "tooltip": {
+        "position": {
+          "anchorTo": "node",
+          "offset": 12,
+          "placement": [
+            "right",
+            "left",
+          ],
+          "xOffset": 0,
+          "yOffset": 0,
+        },
+        "range": "nearest",
+        "renderer": [Function],
+      },
+      "type": "area",
+      "visible": true,
+      "xKey": "x",
+      "xKeyAxis": "x",
+      "yKey": "y",
+      "yKeyAxis": "y",
+    },
+  ],
+  "seriesArea": {
+    "border": {
+      "enabled": false,
+      "stroke": "#181d1f",
+      "strokeOpacity": 1,
+      "strokeWidth": 1,
+    },
+    "cornerRadius": 4,
+    "padding": {
+      "bottom": 1,
+      "left": 0,
+      "right": 0,
+      "top": 1,
+    },
+  },
+  "subtitle": {
+    "border": {
+      "enabled": false,
+      "stroke": "rgba(24, 29, 31, 0.08)",
+      "strokeWidth": 1,
+    },
+    "color": "#707374",
+    "cornerRadius": 4,
+    "enabled": false,
+    "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+    "fontSize": 13,
+    "fontWeight": 400,
+    "layoutStyle": "block",
+    "padding": 0,
+    "spacing": 20,
+    "text": "Subtitle",
+    "textAlign": "center",
+    "wrapping": "hyphenate",
+  },
+  "suppressFieldDotNotation": false,
+  "title": {
+    "border": {
+      "enabled": false,
+      "stroke": "rgba(24, 29, 31, 0.08)",
+      "strokeWidth": 1,
+    },
+    "color": "#181d1f",
+    "cornerRadius": 4,
+    "enabled": false,
+    "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
+    "fontSize": 17,
+    "fontWeight": 400,
+    "layoutStyle": "block",
+    "padding": 0,
+    "spacing": 20,
+    "text": "Title",
+    "textAlign": "center",
+    "wrapping": "hyphenate",
+  },
+  "tooltip": {
+    "darkTheme": false,
+    "delay": 0,
+    "enabled": true,
+    "mode": "compact",
+    "pagination": false,
+    "position": {
+      "anchorTo": "node",
+      "placement": [
+        "right",
+        "left",
+      ],
+    },
+    "showArrow": false,
   },
   "touch": {
     "dragAction": "drag",

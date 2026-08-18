@@ -483,21 +483,27 @@ describe('Legend', () => {
             );
         });
 
-        it('should dim every sub-element of a toggled-off item to 0.5 by default', async () => {
+        it('should dim a toggled-off item as a whole when no disabledStyle is set', async () => {
             const [disabled, enabled] = await disabledItem({});
 
-            expect(disabled.marker?.fillOpacity).toBe(0.5);
-            expect(disabled.line?.strokeOpacity).toBe(0.5);
+            // The item group carries the dim and the label keeps its own 0.5 on top, which is the
+            // appearance shipped before disabledStyle existed - no baseline churn for default charts.
+            expect(disabled.opacity).toBe(0.5);
+            expect(disabled.marker?.fillOpacity).toBe(1);
+            expect(disabled.line?.strokeOpacity).toBe(1);
             expect(disabled.labelOpacity).toBe(0.5);
 
+            expect(enabled.opacity).toBe(1);
             expect(enabled.marker?.fillOpacity).toBe(1);
             expect(enabled.line?.strokeOpacity).toBe(1);
             expect(enabled.labelOpacity).toBe(1);
         });
 
-        it('should treat opacity as absolute, per sub-element', async () => {
+        it('should treat opacity as absolute, per sub-element, once any disabledStyle is set', async () => {
             const [disabled] = await disabledItem({ marker: { disabledStyle: { opacity: 1 } } });
 
+            // The group dim is lifted so a sub-element opacity is absolute rather than a multiplier.
+            expect(disabled.opacity).toBe(1);
             expect(disabled.marker?.fillOpacity).toBe(1);
             expect(disabled.line?.strokeOpacity).toBe(0.5);
             expect(disabled.labelOpacity).toBe(0.5);
@@ -506,6 +512,7 @@ describe('Legend', () => {
         it('should fall back per property when disabledStyle is partial', async () => {
             const [disabled] = await disabledItem({ marker: { disabledStyle: { fill: '#767676' } } });
 
+            expect(disabled.opacity).toBe(1);
             expect(disabled.marker?.fill).toBe('#767676');
             expect(disabled.marker?.fillOpacity).toBe(0.5);
             expect(disabled.labelOpacity).toBe(0.5);

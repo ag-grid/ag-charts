@@ -57,6 +57,13 @@ import type { LegendSymbolOptions } from './legendSymbol';
 
 type SeriesType = ChartService['series'][number];
 
+/** Opacity applied to a legend item that has been toggled off, absent an explicit `disabledStyle.opacity`. */
+const DISABLED_ITEM_OPACITY = 0.5;
+
+function hasAnyStyle(style?: object) {
+    return style != null && Object.values(style).some((value) => value !== undefined);
+}
+
 function toHighlightNodeDatum(series: SeriesType, legendDatum: CategoryLegendDatum): HighlightNodeDatum {
     switch (typeof legendDatum.itemId) {
         case 'number':
@@ -769,9 +776,21 @@ export class Legend {
 
     update() {
         const { color, disabledStyle } = this.opts.item.label;
+        const perElementDimming = this.hasDisabledStyleOverrides();
         this.itemSelection.each((markerLabel, datum) => {
-            markerLabel.color = datum.enabled ? color : disabledStyle.color;
-            markerLabel.labelOpacity = datum.enabled ? 1 : disabledStyle.opacity;
+            if (datum.enabled) {
+                markerLabel.color = color;
+                markerLabel.opacity = 1;
+                markerLabel.labelOpacity = 1;
+            } else if (perElementDimming) {
+                markerLabel.color = disabledStyle?.color ?? color;
+                markerLabel.opacity = 1;
+                markerLabel.labelOpacity = disabledStyle?.opacity ?? DISABLED_ITEM_OPACITY;
+            } else {
+                markerLabel.color = color;
+                markerLabel.opacity = DISABLED_ITEM_OPACITY;
+                markerLabel.labelOpacity = DISABLED_ITEM_OPACITY;
+            }
         });
 
         this.updateContextMenu();
@@ -781,6 +800,23 @@ export class Legend {
         const action = this.opts.toggleSeries ? 'show' : 'hide';
         this.ctx.contextMenuRegistry?.toggle('toggle-series-visibility', action);
         this.ctx.contextMenuRegistry?.toggle('toggle-other-series', action);
+    }
+
+    /**
+     * Whether any `disabledStyle` property is set on any sub-element.
+     *
+     * With none set, a toggled-off item is dimmed as a whole (`DISABLED_ITEM_OPACITY` on the item
+     * group), which is the long-standing appearance. As soon as one is set, the dimming moves onto
+     * each sub-element so that per-sub-element opacities and colours are absolute — under a group
+     * dim, `opacity: 1` on a sub-element could never reach full contrast.
+     */
+    private hasDisabledStyleOverrides() {
+        const { marker, line, label } = this.opts.item;
+        return hasAnyStyle(marker.disabledStyle) || hasAnyStyle(line.disabledStyle) || hasAnyStyle(label.disabledStyle);
+    }
+
+    private disabledElementOpacity(styleOpacity: number | undefined) {
+        return this.hasDisabledStyleOverrides() ? (styleOpacity ?? DISABLED_ITEM_OPACITY) : 1;
     }
 
     private getLineStyles(datum: LegendSymbolOptions, enabled: boolean) {
@@ -796,7 +832,7 @@ export class Legend {
             strokeWidth: this.opts.item.line.strokeWidth ?? defaultLineStrokeWidth,
             lineDash: overrides?.lineDash ?? lineDash,
             lineDashOffset: overrides?.lineDashOffset,
-            opacity: enabled ? 1 : disabledStyle.opacity,
+            opacity: enabled ? 1 : this.disabledElementOpacity(disabledStyle?.opacity),
         };
     }
     private getMarkerStyles({ marker }: LegendSymbolOptions, enabled: boolean) {
@@ -837,7 +873,7 @@ export class Legend {
                 FILL_PATTERN_BLANK_DEFAULTS,
                 FILL_IMAGE_BLANK_DEFAULTS
             ),
-            opacity: enabled ? 1 : disabledStyle.opacity,
+            opacity: enabled ? 1 : this.disabledElementOpacity(disabledStyle?.opacity),
         };
     }
 

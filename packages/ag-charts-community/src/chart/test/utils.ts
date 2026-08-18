@@ -2066,6 +2066,7 @@ export function computeLegendBBox(chart: Chart): BBox {
 
 export interface LegendTestItemNode {
     datum?: { id: string; itemId?: string | number };
+    opacity?: number;
     labelOpacity?: number;
     marker?: { fill?: string; fillOpacity?: number; stroke?: string; strokeOpacity?: number; strokeWidth?: number };
     line?: { stroke?: string; strokeOpacity?: number; lineDash?: number[] };
