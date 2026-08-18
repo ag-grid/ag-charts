@@ -495,6 +495,8 @@ export interface AxisLayout {
     id: string;
     rect: BBox;
     translation: { x: number; y: number };
+    /** Offset applied by `crossAt`, already included in `translation`. Zero for an axis at its `position` edge. */
+    crossAxisTranslation?: { x: number; y: number };
     position?: AgCartesianAxisPosition;
     gridPadding: number;
     seriesAreaPadding: number;

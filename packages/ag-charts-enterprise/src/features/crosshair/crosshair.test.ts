@@ -684,4 +684,68 @@ describe('Crosshair', () => {
         await hoverAction(480, 250)(chart);
         await waitForChartStability(chart);
     });
+
+    describe('label placement', () => {
+        // The label is a DOM element in the canvas overlay, so its placement is invisible to an image
+        // snapshot — read the positional styles instead.
+        const labelPlacement = (axisId: string) =>
+            Array.from(
+                document.querySelectorAll<HTMLElement>(
+                    `.ag-charts-crosshair-label[data-axis-id="${axisId}"]:not(.ag-charts-crosshair-label--hidden)`
+                )
+            ).map(({ style }) => `${style.left} ${style.top} (${style.translate})`);
+
+        const hoverWithAxes = async (axes: AgCartesianAxesOptions) => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: -10, y: -8 },
+                    { x: 0, y: 0 },
+                    { x: 10, y: 9 },
+                ],
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                axes,
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            await hoverAction(480, 250)(chart);
+            await waitForChartStability(chart);
+        };
+
+        const axesAt = (crossAt?: { value: number }): AgCartesianAxesOptions => ({
+            x: { type: 'number', position: 'bottom', crosshair: { enabled: true, snap: false }, crossAt },
+            y: { type: 'number', position: 'left', crosshair: { enabled: true, snap: false }, crossAt },
+        });
+
+        it('should place labels against the axes at their position edges', async () => {
+            await hoverWithAxes(axesAt());
+
+            expect(labelPlacement('x')).toMatchInlineSnapshot(`
+              [
+                "480px 562px (-50% 0)",
+              ]
+            `);
+            expect(labelPlacement('y')).toMatchInlineSnapshot(`
+              [
+                "46px 250px (-100% -50%)",
+              ]
+            `);
+        });
+
+        it('should follow the axis lines when crossAt moves them off their position edges', async () => {
+            await hoverWithAxes(axesAt({ value: 0 }));
+
+            expect(labelPlacement('x')).toMatchInlineSnapshot(`
+              [
+                "480px 295px (-50% 0)",
+              ]
+            `);
+            expect(labelPlacement('y')).toMatchInlineSnapshot(`
+              [
+                "412px 250px (-100% -50%)",
+              ]
+            `);
+        });
+    });
 });

@@ -647,7 +647,7 @@ export abstract class CartesianAxis<
 
     override getLayoutState() {
         const layout = super.getLayoutState();
-        return { ...layout, position: this.position };
+        return { ...layout, position: this.position, crossAxisTranslation: { ...this.crossAxisTranslation } };
     }
 
     protected override updatePosition(): void {
