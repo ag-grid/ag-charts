@@ -829,8 +829,7 @@ export class Legend {
                     stroke: overrides?.stroke ?? stroke,
                     strokeOpacity: overrides?.strokeOpacity ?? strokeOpacity,
                     fillOpacity: overrides?.fillOpacity ?? fillOpacity,
-                    strokeWidth:
-                        overrides?.strokeWidth ?? this.opts.item.marker.strokeWidth ?? defaultLineStrokeWidth,
+                    strokeWidth: overrides?.strokeWidth ?? this.opts.item.marker.strokeWidth ?? defaultLineStrokeWidth,
                     lineDash,
                     lineDashOffset,
                 },
