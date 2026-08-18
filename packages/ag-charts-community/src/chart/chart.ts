@@ -1453,6 +1453,10 @@ export abstract class Chart implements ModuleInstance, ChartService {
         if (scene.resize(width, height, pixelRatio)) {
             animationManager.reset();
 
+            // A caught update error emits no layout:complete, so a shown validation overlay would freeze
+            // at its pre-resize size; broadcast the new canvas size so it can follow the resize regardless.
+            this.ctx.eventsHub.emit('canvas:resize', { width: scene.width, height: scene.height });
+
             let skipAnimations = true;
             if ((this.width == null || this.height == null) && this._firstAutoSize) {
                 skipAnimations = false;
