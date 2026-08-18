@@ -10,6 +10,7 @@ import {
     lineDashOptionsDef,
     optionsDefs,
     or,
+    padding,
     positiveNumber,
     required,
     string,
@@ -80,6 +81,7 @@ export const annotationChannelTextDefs: OptionsDefs<AgChannelAnnotationTextStyle
 const annotationAxisLabelOptionsDef: OptionsDefs<AgAnnotationAxisLabel> = {
     enabled: boolean,
     cornerRadius: positiveNumber,
+    padding: padding,
     ...fontOptionsDef,
     ...fillOptionsDef,
     ...strokeOptionsDef,
