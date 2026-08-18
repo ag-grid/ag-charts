@@ -66,7 +66,8 @@ export const createOptionsGraphMemoised = simpleMemorize(createOptionsGraph);
 export function createOptionsGraph(
     theme: ChartTheme,
     options: PlainObject,
-    cssVariables?: Record<string, string>
+    cssVariables?: Record<string, string>,
+    presetOptions?: PlainObject
 ): OptionsGraphAccessor {
     return debug.group('OptionsGraph.constructor()', () => {
         const optionsGraph = new OptionsGraph(
@@ -77,7 +78,8 @@ export function createOptionsGraph(
             theme.palette,
             theme.overrides,
             theme.getTemplateParameters(),
-            cssVariables
+            cssVariables,
+            presetOptions
         );
 
         return {
@@ -216,7 +218,8 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         public readonly palette: PlainObject = {},
         private readonly overrides: PlainObject | undefined = undefined,
         private readonly internalParams: Map<unknown, unknown> = new Map(),
-        private cssVariables: Record<string, string> = {}
+        private cssVariables: Record<string, string> = {},
+        private readonly presetOptions: PlainObject = {}
     ) {
         super({
             cachedNeighboursEdge: PATH_EDGE,
@@ -530,6 +533,10 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         return resolved;
     }
 
+    getPresetValue(path: Array<string>): unknown {
+        return getPathSafe(this.presetOptions, path);
+    }
+
     getPathArray(vertex: Vertex<unknown>): Array<string> {
         return (this.findNeighbourValue(vertex, PATH_ARRAY_EDGE) as Array<string> | undefined) ?? [];
     }
@@ -703,15 +710,15 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
      */
     graftAndResolveOrphanValue(
         context: Vertex<unknown>,
-        path: string,
         ontoObject: unknown,
-        value: unknown,
+        path?: string,
+        value: unknown = undefined,
         edgeValue = this.graftEdge
     ) {
         const orphan: PlainObject = {};
         const orphanVertex = this.addVertex(orphan);
         const contextPathArray = this.getPathArray(context);
-        const pathArray = [...contextPathArray, path];
+        const pathArray = path ? [...contextPathArray, path] : contextPathArray;
         const pathVertex = this.findVertexAtPath(pathArray) ?? this.addVertex(path);
 
         this.value$1.set(pathArray.join('.'), value);

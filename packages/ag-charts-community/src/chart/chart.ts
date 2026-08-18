@@ -36,6 +36,7 @@ import type {
     AgBaseAxisOptions,
     AgChartInstance,
     AgChartOptions,
+    AgChartValidationLevel,
     AgColorType,
     AgCoordinates,
     AgDataTransaction,
@@ -91,7 +92,11 @@ import { Tooltip, type TooltipContent } from './tooltip/tooltip';
 import { DataWindowProcessor } from './update/dataWindowProcessor';
 import { OverlaysProcessor } from './update/overlaysProcessor';
 import type { UpdateProcessor } from './update/processor';
-import { ValidationIssueCollector } from './validation/validationIssueCollector';
+import {
+    ValidationIssueCollector,
+    type ValidationIssueListener,
+    severityAtOrAbove,
+} from './validation/validationIssueCollector';
 
 const debug = Debug.create(true, 'opts');
 
@@ -610,6 +615,10 @@ export abstract class Chart implements ModuleInstance, ChartService {
             ctx.chartState.observe((get) => {
                 ctx.logger.setLevel(get('options', 'validations')?.consoleLogLevel ?? 'deprecation');
             }),
+            ctx.chartState.observe((get) => {
+                this.throwOnLevel = get('options', 'validations')?.throwOn ?? 'none';
+                this.setIssueListener(get('options', 'validations')?.onErrorRaised);
+            }),
             ctx.layoutManager.registerElement(LayoutElement.Caption, (e) => {
                 e.layoutBox.shrink(ctx.chartState.getValue('options', 'padding'));
                 this.chartCaptions.positionCaptions(e);
@@ -918,6 +927,8 @@ export abstract class Chart implements ModuleInstance, ChartService {
     private readonly updateMutex = new Mutex();
     private clearCallbackCacheOnUpdate: boolean = false;
     private updateRequestors: Record<string, ChartUpdateType> = {};
+    private throwOnLevel: AgChartValidationLevel = 'none';
+    private pendingFailFastError?: Error;
 
     private readonly performUpdateTrigger = debouncedCallback(({ count }) => {
         if (this.destroyed) return;
@@ -1004,6 +1015,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
         // previously committed callback-error set stays authoritative and must not be wiped by an empty cycle.
         const callbacksReEvaluated = this.clearCallbackCacheOnUpdate;
         if (callbacksReEvaluated) this.validationCollector.beginCallbackIssues();
+        this.pendingFailFastError = undefined;
         try {
             const status = `${ChartUpdateType[this.performUpdateType]} ${this.updateShortcutCount > 0 ? '⚠️ redo #' + this.updateShortcutCount + ' ⚠️ ' : ''}`;
             await this.debug.group(`Chart.performUpdate() ${status}`, async () => {
@@ -1019,7 +1031,19 @@ export abstract class Chart implements ModuleInstance, ChartService {
             });
             this.runningUpdateType = ChartUpdateType.NONE;
             this._performUpdateNotify.notify();
+            if (severityAtOrAbove(this.throwOnLevel, 'error')) {
+                this.pendingFailFastError = new Error(
+                    `AG Charts - validations.throwOn: error - ${String(error?.message ?? error)}`
+                );
+            }
         }
+    }
+
+    /** Clear-on-read so a stale runtime failure cannot be redelivered to a later, unrelated caller. */
+    takeFailFastError(): Error | undefined {
+        const error = this.pendingFailFastError;
+        this.pendingFailFastError = undefined;
+        return error;
     }
 
     private async performUpdate(count: number) {
@@ -1429,6 +1453,10 @@ export abstract class Chart implements ModuleInstance, ChartService {
         if (scene.resize(width, height, pixelRatio)) {
             animationManager.reset();
 
+            // A caught update error emits no layout:complete, so a shown validation overlay would freeze
+            // at its pre-resize size; broadcast the new canvas size so it can follow the resize regardless.
+            this.ctx.eventsHub.emit('canvas:resize', { width: scene.width, height: scene.height });
+
             let skipAnimations = true;
             if ((this.width == null || this.height == null) && this._firstAutoSize) {
                 skipAnimations = false;
@@ -1752,7 +1780,22 @@ export abstract class Chart implements ModuleInstance, ChartService {
         return series?.filter((s) => s.showInMiniChart !== false);
     }
 
+    /**
+     * Always set, never conditionally skipped: a pooled chart reuses a live collector, so leaving a
+     * previous tenant's listener in place would hand it this chart's issues. This can also run before
+     * the option's validator has, hence the coercion rather than trusting the value.
+     */
+    private setIssueListener(onErrorRaised: unknown) {
+        this.validationCollector.setIssueListener(
+            typeof onErrorRaised === 'function' ? (onErrorRaised as ValidationIssueListener) : undefined,
+            this.ctx.logger
+        );
+    }
+
     applyOptions(newChartOptions: ChartOptions) {
+        // Registered from the same options object in the same statement pair, so this pass's issues
+        // reach the listener this pass declared without depending on when chartState observers flush.
+        this.setIssueListener(newChartOptions.processedOptions.validations?.onErrorRaised);
         this.validationCollector.setIssues(newChartOptions.validationIssues);
 
         if (newChartOptions.seriesWithUserVisibility) {

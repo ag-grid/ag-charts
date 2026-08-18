@@ -16,7 +16,7 @@ import {
     type SeriesModuleDefinition,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
-import type { AgBarSeriesOptions, ExtensibleTheme } from 'ag-charts-types';
+import type { AgBarSeriesOptions, ExtensibleSeriesTheme } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../../module/moduleContext';
 import { VERSION } from '../../../version';
@@ -25,7 +25,7 @@ import { BarSeries } from './barSeries';
 import { barSeriesOptionsDef } from './barSeriesOptionsDef';
 import { predictCartesianNonPrimitiveAxis } from './util';
 
-const themeTemplate: ExtensibleTheme<'bar'> = {
+const themeTemplate: ExtensibleSeriesTheme<'bar'> = {
     series: {
         direction: 'vertical',
         fill: {

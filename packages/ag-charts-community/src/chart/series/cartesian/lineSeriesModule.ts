@@ -15,7 +15,7 @@ import {
     SEGMENTATION_DEFAULTS,
     SERIES_SELECTION_THEME,
 } from 'ag-charts-core';
-import type { AgLineSeriesOptions, ExtensibleTheme } from 'ag-charts-types';
+import type { AgLineSeriesOptions, ExtensibleSeriesTheme } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../../module/moduleContext';
 import { VERSION } from '../../../version';
@@ -24,7 +24,7 @@ import { LineSeries } from './lineSeries';
 import { lineSeriesOptionsDef } from './lineSeriesOptionsDef';
 import { predictCartesianNonPrimitiveAxis } from './util';
 
-const themeTemplate: ExtensibleTheme<'line'> = {
+const themeTemplate: ExtensibleSeriesTheme<'line'> = {
     series: {
         stroke: SAFE_STROKE_FILL_OPERATION,
         strokeWidth: 2,

@@ -1,7 +1,7 @@
 import { LABEL_BOXING_DEFAULTS, SAFE_RANGE2_OPERATION, SERIES_SELECTION_THEME } from 'ag-charts-core';
-import type { ExtensibleTheme } from 'ag-charts-types';
+import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
-export const HEATMAP_SERIES_THEME: ExtensibleTheme<'heatmap'> = {
+export const HEATMAP_SERIES_THEME: ExtensibleSeriesTheme<'heatmap'> = {
     axes: {
         'grouped-category': {
             paddingInner: 0,

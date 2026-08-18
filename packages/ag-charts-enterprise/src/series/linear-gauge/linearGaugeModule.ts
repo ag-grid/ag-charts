@@ -9,12 +9,12 @@ import {
     linearGaugeSeriesOptionsDef,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
-import type { ExtensibleTheme } from 'ag-charts-types';
+import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
 import { GaugePresetModule } from '../../preset/gauge/gaugePresetModule';
 import { LinearGaugeSeries } from './linearGaugeSeries';
 
-const themeTemplate: ExtensibleTheme<'linear-gauge'> = {
+const themeTemplate: ExtensibleSeriesTheme<'linear-gauge'> = {
     minWidth: 200,
     minHeight: 200,
     tooltip: {

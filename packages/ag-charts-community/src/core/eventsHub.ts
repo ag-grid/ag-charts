@@ -140,6 +140,7 @@ export interface EventsHubMap {
     'axis-dom-proxy:mouseleave': AxisDOMProxyMouseLeaveEvent;
     'axis-dom-proxy:update': AxisDOMProxyUpdateEvent;
     'axis-dom-proxy:wheel': AxisDOMProxyWheelEvent;
+    'canvas:resize': { width: number; height: number };
     'chart:request-refresh': null;
     'chart:request-update': UpdateRequestEvent;
     'collapsed:restore': CollapsedRestoreEvent;

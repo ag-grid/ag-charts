@@ -887,14 +887,14 @@ describe('CartesianAxis', () => {
 
             it('should render the labels at the edge', async () => {
                 await renderAndSnapshot(
-                    optionsFactory({ value: 0, labelsPlacement: 'edge' }),
+                    optionsFactory({ value: 0, labelPlacement: 'edge' }),
                     'cartesian-axes-cross-at-0-labels-at-edge'
                 );
             });
 
             it('should render the title and labels at the edge', async () => {
                 await renderAndSnapshot(
-                    optionsFactory({ value: 0, titlePlacement: 'edge', labelsPlacement: 'edge' }),
+                    optionsFactory({ value: 0, titlePlacement: 'edge', labelPlacement: 'edge' }),
                     'cartesian-axes-cross-at-0-title-and-labels-at-edge'
                 );
             });

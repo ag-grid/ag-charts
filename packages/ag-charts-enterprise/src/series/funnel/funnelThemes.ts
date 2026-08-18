@@ -7,7 +7,7 @@ import {
     FILL_PATTERN_SINGLE_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
 } from 'ag-charts-core';
-import type { ExtensibleTheme } from 'ag-charts-types';
+import type { ExtensibleSeriesTheme } from 'ag-charts-types';
 
 const isHorizontal = { $eq: [{ $path: ['/series/0/direction', undefined] }, 'horizontal'] };
 const isRtl = { $eq: [{ $path: ['/enableRtl', false] }, true] };
@@ -60,7 +60,7 @@ export const FUNNEL_SERIES_AXES: any = {
     },
 };
 
-export const FUNNEL_SERIES_THEME: ExtensibleTheme<'funnel'> = {
+export const FUNNEL_SERIES_THEME: ExtensibleSeriesTheme<'funnel'> = {
     series: {
         direction: 'vertical',
         strokeWidth: { $isUserOption: ['./strokes/0', 2, 0] },

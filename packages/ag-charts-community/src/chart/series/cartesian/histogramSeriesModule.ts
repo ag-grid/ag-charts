@@ -14,7 +14,7 @@ import {
     MULTI_SERIES_HIGHLIGHT_STYLE,
     undocumentedThemeOptions,
 } from 'ag-charts-core';
-import type { AgHistogramSeriesOptions, ExtensibleTheme } from 'ag-charts-types';
+import type { AgHistogramSeriesOptions, ExtensibleSeriesTheme } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../../module/moduleContext';
 import { VERSION } from '../../../version';
@@ -23,7 +23,7 @@ import { HistogramSeries } from './histogramSeries';
 import { histogramSeriesOptionsDef } from './histogramSeriesOptionsDef';
 import { predictCartesianNonPrimitiveAxis } from './util';
 
-const themeTemplate: ExtensibleTheme<'histogram'> = {
+const themeTemplate: ExtensibleSeriesTheme<'histogram'> = {
     series: {
         fill: {
             $applySwitch: [

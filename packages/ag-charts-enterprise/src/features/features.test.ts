@@ -10,7 +10,9 @@ import {
     clickAction,
     compareImageSnapshot,
     contextMenuAction,
+    deproxy,
     dragAction,
+    expectWarningsCalls,
     hoverAction,
     scrollAction,
     setupMockCanvas,
@@ -243,10 +245,10 @@ describe('Feature Combinations', () => {
         const crossAtCases = [
             { name: 'crossing at a value', crossAt: { value: 0 } },
             { name: 'the title at the edge', crossAt: { value: 0, titlePlacement: 'edge' } },
-            { name: 'the labels at the edge', crossAt: { value: 0, labelsPlacement: 'edge' } },
+            { name: 'the labels at the edge', crossAt: { value: 0, labelPlacement: 'edge' } },
             {
                 name: 'the title and labels at the edge',
-                crossAt: { value: 0, titlePlacement: 'edge', labelsPlacement: 'edge' },
+                crossAt: { value: 0, titlePlacement: 'edge', labelPlacement: 'edge' },
             },
         ] satisfies { name: string; crossAt: AgCartesianAxisCrossAt }[];
 
@@ -270,6 +272,36 @@ describe('Feature Combinations', () => {
             expect(after.ratioY.end - after.ratioY.start).toBeCloseTo(before.ratioY.end - before.ratioY.start);
             expect(after.ratioX.start).not.toBeCloseTo(before.ratioX.start);
             expect(after.ratioY.start).not.toBeCloseTo(before.ratioY.start);
+        });
+    });
+
+    describe('Plugin-backed options set to a non-object', () => {
+        const pluginKeys = ['annotations', 'navigator', 'sync', 'zoom'] as const;
+
+        it.each(pluginKeys)('warns once for `%s` set to `true` and still renders', async (key) => {
+            const options = {
+                data: [
+                    { x: 0, y: 0 },
+                    { x: 1, y: 50 },
+                    { x: 2, y: 25 },
+                ],
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                [key]: true,
+            } as AgChartOptions;
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            // The chart-level pass strips the invalid value, so the plugin pass has nothing left to report.
+            expectWarningsCalls().toEqual([
+                [
+                    expect.stringContaining(
+                        `Option \`${key}\` cannot be set to \`true\`; expecting an object, ignoring.`
+                    ),
+                ],
+            ]);
+            expect(deproxy(chart).series).toHaveLength(1);
         });
     });
 });

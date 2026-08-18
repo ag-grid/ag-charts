@@ -66,8 +66,8 @@ function setTitlePlacement(placement: AgCartesianAxisCrossAtPlacement) {
     chart.update(options);
 }
 
-function setLabelsPlacement(placement: AgCartesianAxisCrossAtPlacement) {
-    options.axes!.x!.crossAt!.labelsPlacement = placement;
-    options.axes!.y!.crossAt!.labelsPlacement = placement;
+function setLabelPlacement(placement: AgCartesianAxisCrossAtPlacement) {
+    options.axes!.x!.crossAt!.labelPlacement = placement;
+    options.axes!.y!.crossAt!.labelPlacement = placement;
     chart.update(options);
 }

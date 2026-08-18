@@ -1,8 +1,14 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import type { Mock } from 'vitest';
 
 import { ChartAxisDirection, ChartUpdateType, ambientLogger } from 'ag-charts-core';
 import { testLogger } from 'ag-charts-test';
-import type { AgCartesianChartOptions, AgPolarChartOptions, InteractionRange } from 'ag-charts-types';
+import type {
+    AgCartesianChartOptions,
+    AgChartValidationsOptions,
+    AgPolarChartOptions,
+    InteractionRange,
+} from 'ag-charts-types';
 
 import { AgCharts } from '../api/agCharts';
 import { BBox } from '../scene/bbox';
@@ -1744,4 +1750,168 @@ describe('Chart destroy() / performUpdate() race condition', () => {
         'does not throw TypeError when destroy() races with a %s series update',
         testDestroyRace
     );
+});
+
+describe('validations.throwOn — runtime errors', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: Chart;
+    afterEach(() => {
+        vi.restoreAllMocks();
+        if (chart) {
+            chart.destroy();
+            (chart as unknown) = undefined;
+        }
+    });
+
+    const RUNTIME_ERROR_MESSAGE = 'chart.test.ts runtime boom';
+
+    const INITIAL_DATA = [
+        { x: 'A', y: 10 },
+        { x: 'B', y: 20 },
+    ];
+    const UPDATED_DATA = [
+        { x: 'A', y: 30 },
+        { x: 'B', y: 40 },
+    ];
+
+    function throwOnOptions(validations?: AgChartValidationsOptions, data = INITIAL_DATA) {
+        return prepareTestOptions({
+            width: 400,
+            height: 300,
+            data,
+            series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+            ...(validations == null ? {} : { validations }),
+        } as AgCartesianChartOptions);
+    }
+
+    // Throws once from inside tryPerformUpdate's try block (past processData), the one path that
+    // reaches its catch rather than the swallowed-callback safeCall path exercised in
+    // validationOverlay.test.ts's '#callback errors'.
+    function armProcessDataThrow(target: Chart) {
+        const proto = Object.getPrototypeOf(target);
+        return vi.spyOn(proto, 'processData').mockImplementationOnce(() => {
+            throw new Error(RUNTIME_ERROR_MESSAGE);
+        });
+    }
+
+    // setupMockConsole()'s afterEach fails the test if console.error was left with unread calls,
+    // so every case that provokes one must drain it before finishing.
+    function drainErrorLog() {
+        const mock = console.error as Mock;
+        const calls = mock.mock.calls;
+        mock.mockClear();
+        return calls;
+    }
+
+    it('throwOn: error rejects both waitForUpdate() and update() with the caught runtime error', async () => {
+        const proxy = AgCharts.create(throwOnOptions({ throwOn: 'error' })) as AgChartProxy;
+        chart = deproxy(proxy);
+        armProcessDataThrow(chart);
+
+        await expect(proxy.waitForUpdate()).rejects.toThrow(RUNTIME_ERROR_MESSAGE);
+        expect(drainErrorLog()).toHaveLength(1);
+
+        armProcessDataThrow(chart);
+        await expect(proxy.update(throwOnOptions({ throwOn: 'error' }, UPDATED_DATA))).rejects.toThrow(
+            RUNTIME_ERROR_MESSAGE
+        );
+        expect(drainErrorLog()).toHaveLength(1);
+    });
+
+    it('writes the console record and records the overlay issue before rejecting — fail-fast suppresses nothing', async () => {
+        const proxy = AgCharts.create(throwOnOptions({ throwOn: 'error', overlayLevel: 'error' })) as AgChartProxy;
+        chart = deproxy(proxy);
+        armProcessDataThrow(chart);
+
+        await expect(proxy.waitForUpdate()).rejects.toThrow(RUNTIME_ERROR_MESSAGE);
+
+        const errorCalls = drainErrorLog();
+        expect(errorCalls).toHaveLength(1);
+        expect(String(errorCalls[0][0])).toContain('update error');
+
+        expect(chart.validationCollector.hasVisibleIssues()).toBe(true);
+        const visible = chart.validationCollector.getVisibleIssues();
+        expect(visible.error.some((issue) => issue.message.includes(RUNTIME_ERROR_MESSAGE))).toBe(true);
+    });
+
+    it('leaves default (none) behaviour unchanged — waitForUpdate() resolves through a caught runtime error', async () => {
+        const proxy = AgCharts.create(throwOnOptions()) as AgChartProxy;
+        chart = deproxy(proxy);
+        armProcessDataThrow(chart);
+
+        await expect(proxy.waitForUpdate()).resolves.toBeUndefined();
+        expect(drainErrorLog()).toHaveLength(1);
+    });
+
+    it('does not re-throw a stale fail-fast error on a later successful update', async () => {
+        const proxy = AgCharts.create(throwOnOptions({ throwOn: 'error' })) as AgChartProxy;
+        chart = deproxy(proxy);
+        armProcessDataThrow(chart);
+
+        await expect(proxy.waitForUpdate()).rejects.toThrow(RUNTIME_ERROR_MESSAGE);
+        drainErrorLog();
+
+        // processData is left unmocked for this pass, so it succeeds and takeFailFastError() must
+        // find nothing left to deliver.
+        await expect(proxy.update(throwOnOptions({ throwOn: 'error' }, UPDATED_DATA))).resolves.toBeUndefined();
+    });
+
+    it('leaves internal awaiters of Chart.waitForUpdate unaffected by a pending fail-fast error', async () => {
+        const proxy = AgCharts.create(throwOnOptions({ throwOn: 'error' })) as AgChartProxy;
+        chart = deproxy(proxy);
+        armProcessDataThrow(chart);
+
+        // Drive the failing pass to completion via the chart's own waitForUpdate, exactly like the
+        // internal awaiters under test, so the pending fail-fast error is armed but unconsumed here.
+        await chart.waitForUpdate();
+        drainErrorLog();
+
+        // Chart.applyTransaction and AgChartInstanceProxy.setState both await Chart.waitForUpdate()
+        // directly, never AgChartInstanceProxy's fail-fast-aware wrapper.
+        await expect(chart.applyTransaction({ update: [{ x: 'A', y: 99 }] })).resolves.toBeUndefined();
+        await expect(proxy.setState(proxy.getState())).resolves.toBeUndefined();
+    });
+});
+
+describe('validations.onErrorRaised', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: Chart;
+    afterEach(() => {
+        chart?.destroy();
+    });
+
+    it('fires for a runtime error caught in tryPerformUpdate(), regardless of consoleLogLevel/overlayLevel', async () => {
+        const onErrorRaised = vi.fn();
+        const thrownError = new Error('processData boom');
+
+        const proxy = AgCharts.create({
+            container: document.body,
+            data: [
+                { x: 'A', y: 10 },
+                { x: 'B', y: 20 },
+            ],
+            series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+            validations: {
+                consoleLogLevel: 'none',
+                overlayLevel: 'none',
+                onErrorRaised,
+            },
+        }) as AgChartProxy;
+        chart = deproxy(proxy);
+        await waitForChartStability(chart);
+
+        const chartProto = Object.getPrototypeOf(chart);
+        vi.spyOn(chartProto, 'processData').mockImplementationOnce(() => {
+            throw thrownError;
+        });
+
+        chart.update(ChartUpdateType.FULL);
+        await waitForChartStability(chart);
+
+        expect(onErrorRaised).toHaveBeenCalledWith({ level: 'error', message: thrownError.message });
+    });
 });

@@ -43,6 +43,7 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
         this.overlayElem.toggleClass(DEFAULT_OVERLAY_CLASS, true);
         this.cleanup.register(
             this.eventsHub.on('layout:complete', (e) => this.onLayoutComplete(e)),
+            this.eventsHub.on('canvas:resize', (e) => this.onCanvasResize(e)),
             this.validationCollector.addListener(() => this.onValidationChange())
         );
     }
@@ -56,6 +57,15 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
         this.lastSeriesRect = rect;
         this.lastChartRect = new BBox(0, 0, chart.width, chart.height);
         this.refresh(rect);
+    }
+
+    // An erroring chart's caught update emits no layout:complete, so the shown validation overlay must
+    // re-anchor to the resize itself or it stays frozen at its pre-resize size.
+    private onCanvasResize({ width, height }: { width: number; height: number }) {
+        this.lastChartRect = new BBox(0, 0, width, height);
+        if (this.overlayState === 'validation') {
+            this.refresh(this.lastSeriesRect ?? this.lastChartRect, false);
+        }
     }
 
     // Validation issues arise off-cycle from layout, so re-evaluate on collection change. Before the

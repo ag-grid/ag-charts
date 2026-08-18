@@ -99,9 +99,12 @@ export class SeriesArea extends BaseProperties {
         return this.moduleContext;
     }
 
-    update(clipRect: BBox | undefined) {
+    update(seriesRect: BBox, clipRect: BBox | undefined) {
+        // Plugin groups are translated to the series rect origin, so the clip rect has to be
+        // rebased into that space rather than passed through in chart coordinates.
+        const localClipRect = clipRect?.clone().translate(-seriesRect.x, -seriesRect.y);
         for (const module of this.moduleMap.modules()) {
-            module.onSeriesAreaUpdate?.(clipRect);
+            module.onSeriesAreaUpdate?.(localClipRect);
         }
     }
 
@@ -120,10 +123,14 @@ export class SeriesArea extends BaseProperties {
         this.borderNode.width = width;
         this.borderNode.height = height;
 
-        this.overlayGroup.translationX = x;
-        this.overlayGroup.translationY = y;
+        // Axis scale ranges are relative to the unpadded series rect, so plugin content must share
+        // that origin — using the padded rect displaces it by the padding and border width.
+        const { x: seriesX, y: seriesY } = event.series.rect;
 
-        this.underlayGroup.translationX = x;
-        this.underlayGroup.translationY = y;
+        this.overlayGroup.translationX = seriesX;
+        this.overlayGroup.translationY = seriesY;
+
+        this.underlayGroup.translationX = seriesX;
+        this.underlayGroup.translationY = seriesY;
     }
 }

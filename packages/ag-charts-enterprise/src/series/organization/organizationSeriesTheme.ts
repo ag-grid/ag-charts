@@ -1,7 +1,7 @@
-import type { ExtensibleTheme } from 'ag-charts-community';
+import type { ExtensibleSeriesTheme } from 'ag-charts-community';
 import { BASE_FONT_SIZE, FONT_SIZE_RATIO, SERIES_SELECTION_THEME } from 'ag-charts-core';
 
-export const organizationSeriesTheme: ExtensibleTheme<'organization'> = {
+export const organizationSeriesTheme: ExtensibleSeriesTheme<'organization'> = {
     zoom: {
         enabled: true,
         enableAxisDragging: false,
