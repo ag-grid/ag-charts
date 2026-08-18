@@ -428,7 +428,7 @@ describe('AxisDOMProxy', () => {
         });
     });
 
-    describe('category band interior clicks', () => {
+    describe('band interior clicks - category', () => {
         beforeEach(async () => {
             chart = await createEnterpriseChart({
                 data: Array.from({ length: 12 }, (_, i) => `Category-Name-${i}`).map((x, i) => ({ x, y: i })),
@@ -458,7 +458,7 @@ describe('AxisDOMProxy', () => {
     // In this example, the X-origin label is a long text "0.000000000", which adds a lot of mouse-interaction padding
     // to the left of the x-axis origin. This test is there to ensure that this padding does not interfere with the
     // computation of the axis click `value`.
-    describe('continuous band interior clicks', () => {
+    describe('band interior clicks - number', () => {
         let Xs: [number, number, number, number];
 
         function measureXGridLines(): [number, number, number, number] | undefined {
@@ -504,6 +504,17 @@ describe('AxisDOMProxy', () => {
                 [expect.objectContaining({ value: expect.closeTo(0), index: 0 })],
                 [expect.objectContaining({ value: expect.closeTo(0.2), index: 1 })],
                 [expect.objectContaining({ value: expect.closeTo(0.4), index: 2 })],
+                [expect.objectContaining({ value: expect.closeTo(0.6), index: 3 })],
+            ]);
+        });
+
+        test('clicks outside min/max domain are clamped', async () => {
+            await clickAction(Xs[0] - 15, 572)(chart);
+            await clickAction(Xs[3] + 15, 572)(chart);
+            await waitForChartStability(chart);
+
+            expect(click.mock.calls).toMatchObject([
+                [expect.objectContaining({ value: expect.closeTo(0), index: 0 })],
                 [expect.objectContaining({ value: expect.closeTo(0.6), index: 3 })],
             ]);
         });
