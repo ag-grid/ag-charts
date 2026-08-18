@@ -213,14 +213,24 @@ exports[`ChartOptions > #prepareOptions > for ADV_CHART_CUSTOMISATION it should 
     "item": {
       "label": {
         "color": "#3f7cbf",
+        "disabledStyle": {
+          "color": "#3f7cbf",
+          "opacity": 0.5,
+        },
         "fontFamily": "Georgia, Times New Roman, Times, Serif",
         "fontSize": 14,
         "fontWeight": 600,
       },
       "line": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "length": 25,
       },
       "marker": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "padding": {
           "bottom": 10,
           "left": 10,
@@ -849,14 +859,24 @@ exports[`ChartOptions > #prepareOptions > for ADV_COMBINATION_SERIES_CHART_EXAMP
     "item": {
       "label": {
         "color": "#181d1f",
+        "disabledStyle": {
+          "color": "#181d1f",
+          "opacity": 0.5,
+        },
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
       },
       "line": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "length": 25,
       },
       "marker": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "padding": {
           "bottom": 8,
           "left": 8,
@@ -1455,14 +1475,24 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE i
     "item": {
       "label": {
         "color": "#181d1f",
+        "disabledStyle": {
+          "color": "#181d1f",
+          "opacity": 0.5,
+        },
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
       },
       "line": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "length": 25,
       },
       "marker": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "padding": {
           "bottom": 8,
           "left": 8,
@@ -2394,14 +2424,24 @@ exports[`ChartOptions > #prepareOptions > for ADV_CUSTOM_TOOLTIPS_EXAMPLE it sho
     "item": {
       "label": {
         "color": "#181d1f",
+        "disabledStyle": {
+          "color": "#181d1f",
+          "opacity": 0.5,
+        },
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
       },
       "line": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "length": 25,
       },
       "marker": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "padding": {
           "bottom": 8,
           "left": 8,
@@ -3511,14 +3551,24 @@ exports[`ChartOptions > #prepareOptions > for ADV_PER_MARKER_CUSTOMISATION_EXAMP
     "item": {
       "label": {
         "color": "#181d1f",
+        "disabledStyle": {
+          "color": "#181d1f",
+          "opacity": 0.5,
+        },
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
       },
       "line": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "length": 25,
       },
       "marker": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "padding": {
           "bottom": 8,
           "left": 8,
@@ -3928,14 +3978,24 @@ exports[`ChartOptions > #prepareOptions > for ADV_TIME_AXIS_WITH_IRREGULAR_INTER
     "item": {
       "label": {
         "color": "#181d1f",
+        "disabledStyle": {
+          "color": "#181d1f",
+          "opacity": 0.5,
+        },
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
       },
       "line": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "length": 25,
       },
       "marker": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "padding": {
           "bottom": 8,
           "left": 8,
@@ -4592,14 +4652,24 @@ exports[`ChartOptions > #prepareOptions > for AREA_GRAPH_WITH_NEGATIVE_VALUES_EX
     "item": {
       "label": {
         "color": "#181d1f",
+        "disabledStyle": {
+          "color": "#181d1f",
+          "opacity": 0.5,
+        },
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
       },
       "line": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "length": 25,
       },
       "marker": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "padding": {
           "bottom": 8,
           "left": 8,
@@ -5407,14 +5477,24 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_EXAMPLE it should prepar
     "item": {
       "label": {
         "color": "#181d1f",
+        "disabledStyle": {
+          "color": "#181d1f",
+          "opacity": 0.5,
+        },
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
       },
       "line": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "length": 25,
       },
       "marker": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "padding": {
           "bottom": 8,
           "left": 8,
@@ -5822,14 +5902,24 @@ exports[`ChartOptions > #prepareOptions > for BAR_CHART_WITH_LABELS_EXAMPLE it s
     "item": {
       "label": {
         "color": "#181d1f",
+        "disabledStyle": {
+          "color": "#181d1f",
+          "opacity": 0.5,
+        },
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
       },
       "line": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "length": 25,
       },
       "marker": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "padding": {
           "bottom": 8,
           "left": 8,
@@ -6249,14 +6339,24 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMP
     "item": {
       "label": {
         "color": "#181d1f",
+        "disabledStyle": {
+          "color": "#181d1f",
+          "opacity": 0.5,
+        },
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
       },
       "line": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "length": 25,
       },
       "marker": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "padding": {
           "bottom": 8,
           "left": 8,
@@ -6646,14 +6746,24 @@ exports[`ChartOptions > #prepareOptions > for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_
     "item": {
       "label": {
         "color": "#181d1f",
+        "disabledStyle": {
+          "color": "#181d1f",
+          "opacity": 0.5,
+        },
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
       },
       "line": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "length": 25,
       },
       "marker": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "padding": {
           "bottom": 8,
           "left": 8,
@@ -7045,14 +7155,24 @@ exports[`ChartOptions > #prepareOptions > for COLUMN_CHART_WITH_NEGATIVE_VALUES_
     "item": {
       "label": {
         "color": "#181d1f",
+        "disabledStyle": {
+          "color": "#181d1f",
+          "opacity": 0.5,
+        },
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
       },
       "line": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "length": 25,
       },
       "marker": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "padding": {
           "bottom": 8,
           "left": 8,
@@ -7556,14 +7676,24 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_BAR_CHART_EXAMPLE it shoul
     "item": {
       "label": {
         "color": "#181d1f",
+        "disabledStyle": {
+          "color": "#181d1f",
+          "opacity": 0.5,
+        },
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
       },
       "line": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "length": 25,
       },
       "marker": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "padding": {
           "bottom": 8,
           "left": 8,
@@ -8078,14 +8208,24 @@ exports[`ChartOptions > #prepareOptions > for GROUPED_COLUMN_EXAMPLE it should p
     "item": {
       "label": {
         "color": "#181d1f",
+        "disabledStyle": {
+          "color": "#181d1f",
+          "opacity": 0.5,
+        },
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
       },
       "line": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "length": 25,
       },
       "marker": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "padding": {
           "bottom": 8,
           "left": 8,
@@ -9132,14 +9272,24 @@ exports[`ChartOptions > #prepareOptions > for LINE_GRAPH_WITH_GAPS_EXAMPLE it sh
     "item": {
       "label": {
         "color": "#181d1f",
+        "disabledStyle": {
+          "color": "#181d1f",
+          "opacity": 0.5,
+        },
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
       },
       "line": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "length": 25,
       },
       "marker": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "padding": {
           "bottom": 8,
           "left": 8,
@@ -10883,14 +11033,24 @@ exports[`ChartOptions > #prepareOptions > for LOG_AXIS_EXAMPLE it should prepare
     "item": {
       "label": {
         "color": "#181d1f",
+        "disabledStyle": {
+          "color": "#181d1f",
+          "opacity": 0.5,
+        },
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
       },
       "line": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "length": 25,
       },
       "marker": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "padding": {
           "bottom": 8,
           "left": 8,
@@ -11284,14 +11444,24 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_AREA_G
     "item": {
       "label": {
         "color": "#181d1f",
+        "disabledStyle": {
+          "color": "#181d1f",
+          "opacity": 0.5,
+        },
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
       },
       "line": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "length": 25,
       },
       "marker": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "padding": {
           "bottom": 8,
           "left": 8,
@@ -12357,14 +12527,24 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_BAR_EX
     "item": {
       "label": {
         "color": "#181d1f",
+        "disabledStyle": {
+          "color": "#181d1f",
+          "opacity": 0.5,
+        },
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
       },
       "line": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "length": 25,
       },
       "marker": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "padding": {
           "bottom": 8,
           "left": 8,
@@ -12985,14 +13165,24 @@ exports[`ChartOptions > #prepareOptions > for ONE_HUNDRED_PERCENT_STACKED_COLUMN
     "item": {
       "label": {
         "color": "#181d1f",
+        "disabledStyle": {
+          "color": "#181d1f",
+          "opacity": 0.5,
+        },
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
       },
       "line": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "length": 25,
       },
       "marker": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "padding": {
           "bottom": 8,
           "left": 8,
@@ -13935,14 +14125,24 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_AREA_GRAPH_EXAMPLE it shoul
     "item": {
       "label": {
         "color": "#181d1f",
+        "disabledStyle": {
+          "color": "#181d1f",
+          "opacity": 0.5,
+        },
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
       },
       "line": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "length": 25,
       },
       "marker": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "padding": {
           "bottom": 8,
           "left": 8,
@@ -14639,14 +14839,24 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_COLUMN_CHART_EXAMPLE it sho
     "item": {
       "label": {
         "color": "#181d1f",
+        "disabledStyle": {
+          "color": "#181d1f",
+          "opacity": 0.5,
+        },
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
       },
       "line": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "length": 25,
       },
       "marker": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "padding": {
           "bottom": 8,
           "left": 8,
@@ -14936,14 +15146,24 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_DONUT_CHART_EXAMPLE it shou
     "item": {
       "label": {
         "color": "#181d1f",
+        "disabledStyle": {
+          "color": "#181d1f",
+          "opacity": 0.5,
+        },
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
       },
       "line": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "length": 25,
       },
       "marker": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "padding": {
           "bottom": 8,
           "left": 8,
@@ -15447,14 +15667,24 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_LINE_CHART_EXAMPLE it shoul
     "item": {
       "label": {
         "color": "#181d1f",
+        "disabledStyle": {
+          "color": "#181d1f",
+          "opacity": 0.5,
+        },
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
       },
       "line": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "length": 25,
       },
       "marker": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "padding": {
           "bottom": 8,
           "left": 8,
@@ -15818,14 +16048,24 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_PIE_CHART_EXAMPLE it should
     "item": {
       "label": {
         "color": "#181d1f",
+        "disabledStyle": {
+          "color": "#181d1f",
+          "opacity": 0.5,
+        },
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
       },
       "line": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "length": 25,
       },
       "marker": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "padding": {
           "bottom": 8,
           "left": 8,
@@ -16260,14 +16500,24 @@ exports[`ChartOptions > #prepareOptions > for SIMPLE_SCATTER_CHART_EXAMPLE it sh
     "item": {
       "label": {
         "color": "#181d1f",
+        "disabledStyle": {
+          "color": "#181d1f",
+          "opacity": 0.5,
+        },
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
       },
       "line": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "length": 25,
       },
       "marker": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "padding": {
           "bottom": 8,
           "left": 8,
@@ -16678,14 +16928,24 @@ exports[`ChartOptions > #prepareOptions > for STACKED_AREA_GRAPH_EXAMPLE it shou
     "item": {
       "label": {
         "color": "#181d1f",
+        "disabledStyle": {
+          "color": "#181d1f",
+          "opacity": 0.5,
+        },
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
       },
       "line": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "length": 25,
       },
       "marker": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "padding": {
           "bottom": 8,
           "left": 8,
@@ -17618,14 +17878,24 @@ exports[`ChartOptions > #prepareOptions > for STACKED_BAR_CHART_EXAMPLE it shoul
     "item": {
       "label": {
         "color": "#181d1f",
+        "disabledStyle": {
+          "color": "#181d1f",
+          "opacity": 0.5,
+        },
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
       },
       "line": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "length": 25,
       },
       "marker": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "padding": {
           "bottom": 8,
           "left": 8,
@@ -18347,14 +18617,24 @@ exports[`ChartOptions > #prepareOptions > for STACKED_COLUMN_GRAPH_EXAMPLE it sh
     "item": {
       "label": {
         "color": "#181d1f",
+        "disabledStyle": {
+          "color": "#181d1f",
+          "opacity": 0.5,
+        },
         "fontFamily": ""IBM Plex Sans", -apple-system, "system-ui", "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif",
         "fontSize": 12,
         "fontWeight": 400,
       },
       "line": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "length": 25,
       },
       "marker": {
+        "disabledStyle": {
+          "opacity": 0.5,
+        },
         "padding": {
           "bottom": 8,
           "left": 8,
