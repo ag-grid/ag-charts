@@ -23,7 +23,7 @@ function hasAxisClickListener(chartService: _ModuleSupport.ChartService, axisCtx
 
 function hasDraggableAxes(ctx: DynamicContext<_ModuleSupport.ChartRegistry>): boolean {
     const options = ctx.chartState.getValue('options');
-    return !!(options?.zoom.enabled && options.zoom.enableAxisDragging);
+    return !!(options?.zoom?.enabled && options.zoom.enableAxisDragging);
 }
 
 /**
