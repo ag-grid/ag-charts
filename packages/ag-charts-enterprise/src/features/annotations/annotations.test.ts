@@ -851,4 +851,91 @@ describe('Annotations', () => {
             expect(bigintImage).toMatchImage(numberImage);
         });
     });
+
+    describe('axis label padding (AG-18182)', () => {
+        // The mock canvas only tracks the first chart per test, so every comparison below applies
+        // annotations to the SAME chart via setState (as in the bigint suite above).
+        const applyAnnotations = async (annotations: object[]) => {
+            await chart.setState({ ...chart.getState(), annotations });
+            await waitForChartStability(chart);
+            return ctx.snapshot();
+        };
+
+        const horizontalLine = (padding?: unknown) => [
+            { type: 'horizontal-line', value: 75, axisLabel: { enabled: true, padding } },
+        ];
+        const verticalLine = (padding?: unknown) => [
+            {
+                type: 'vertical-line',
+                value: { __type: 'date', value: '2024-09-01' },
+                axisLabel: { enabled: true, padding },
+            },
+        ];
+
+        it('does not average asymmetric left/right padding', async () => {
+            await prepareChart();
+            const baseline = ctx.snapshot();
+            const wideLeft = await applyAnnotations(horizontalLine({ left: 40, right: 8 }));
+            const wideRight = await applyAnnotations(horizontalLine({ left: 8, right: 40 }));
+            // Guard against a vacuously-identical pair of blank renders.
+            expect(wideLeft).not.toMatchImage(baseline, { writeDiff: false });
+            // Both total 48, so the container is the same size and only its position differs.
+            expect(wideLeft).not.toMatchImage(wideRight, { writeDiff: false });
+        });
+
+        it('does not average asymmetric top/bottom padding', async () => {
+            await prepareChart();
+            const baseline = ctx.snapshot();
+            const wideTop = await applyAnnotations(verticalLine({ top: 40, bottom: 8 }));
+            const wideBottom = await applyAnnotations(verticalLine({ top: 8, bottom: 40 }));
+            expect(wideTop).not.toMatchImage(baseline, { writeDiff: false });
+            expect(wideBottom).not.toMatchImage(wideTop, { writeDiff: false });
+        });
+
+        it('defaults to the previous spacing of { top: 4, right: 8, bottom: 4, left: 8 }', async () => {
+            await prepareChart();
+            const baseline = ctx.snapshot();
+            const noPadding = await applyAnnotations(horizontalLine());
+            const explicitDefault = await applyAnnotations(horizontalLine({ top: 4, right: 8, bottom: 4, left: 8 }));
+            const uniform = await applyAnnotations(horizontalLine(12));
+            expect(noPadding).not.toMatchImage(baseline, { writeDiff: false });
+            expect(explicitDefault).toMatchImage(noPadding);
+            expect(uniform).not.toMatchImage(noPadding, { writeDiff: false });
+        });
+
+        it('fills the unspecified sides of a partial padding object from the default', async () => {
+            await prepareChart();
+            const baseline = ctx.snapshot();
+            const partial = await applyAnnotations(horizontalLine({ right: 20 }));
+            const equivalent = await applyAnnotations(horizontalLine({ top: 4, right: 20, bottom: 4, left: 8 }));
+            const uniform = await applyAnnotations(horizontalLine(20));
+            expect(partial).not.toMatchImage(baseline, { writeDiff: false });
+            expect(partial).toMatchImage(equivalent);
+            expect(partial).not.toMatchImage(uniform, { writeDiff: false });
+        });
+
+        it('renders the default when padding is nullish', async () => {
+            await prepareChart();
+            const noPadding = await applyAnnotations(horizontalLine());
+            const nullPadding = await applyAnnotations(horizontalLine(null));
+            expect(nullPadding).toMatchImage(noPadding);
+        });
+
+        it('accepts padding from a theme override', async () => {
+            await prepareChart(undefined, {
+                ...EXAMPLE_OPTIONS,
+                theme: {
+                    overrides: {
+                        common: {
+                            annotations: { 'horizontal-line': { axisLabel: { padding: { right: 40 } } } },
+                        },
+                    },
+                },
+            });
+            const themed = await applyAnnotations([{ type: 'horizontal-line', value: 75 }]);
+            const perAnnotation = await applyAnnotations(horizontalLine({ right: 8 }));
+            // The theme value has to reach the rendered container, not merely pass validation.
+            expect(themed).not.toMatchImage(perAnnotation, { writeDiff: false });
+        });
+    });
 });
