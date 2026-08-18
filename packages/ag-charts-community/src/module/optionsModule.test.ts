@@ -10,6 +10,7 @@ import type {
     AgChartTheme,
     AgLineSeriesOptions,
     AgNumberAxisOptions,
+    AgSparklineOptions,
     SeriesType,
 } from 'ag-charts-types';
 
@@ -22,6 +23,25 @@ import { __clearStructuralCacheForTests } from './optionsStructuralCache';
 
 function prepareOptions<T extends AgChartOptions>(userOptions: T, logger?: Logger): T {
     const chartOptions = new ChartOptions(userOptions, {} as T, {}, {}, {}, undefined, false, false, undefined, logger);
+    return chartOptions.processedOptions;
+}
+
+// Mirrors AgCharts.__createSparkline() -> createOrUpdate(): a fresh create passes no base options,
+// the user options as the new options, and the sparkline preset metadata. The cast at the boundary is
+// the same one the production path makes, as ChartOptions is generic over AgChartOptions.
+function prepareSparklineOptions(userOptions: AgSparklineOptions, logger?: Logger): AgChartOptions {
+    const chartOptions = new ChartOptions(
+        undefined,
+        userOptions as AgChartOptions,
+        {},
+        {},
+        { presetType: 'sparkline', pool: true, domMode: 'minimal', withDragInterpretation: false },
+        undefined,
+        false,
+        false,
+        undefined,
+        logger
+    );
     return chartOptions.processedOptions;
 }
 
@@ -3732,6 +3752,138 @@ describe('ChartOptions', () => {
                     __AXIS_ID_4: { type: 'number', position: 'left' },
                 });
             });
+        });
+    });
+
+    // The sparkline preset builds its chart options from a theme template. These fixtures pin the
+    // post-theme-merge `processedOptions` for user options copied from the documented AG Grid
+    // sparkline colDefs, so any change to how the template is layered shows up as a snapshot diff.
+    describe('#prepareOptions > sparkline preset', () => {
+        beforeEach(__clearStructuralCacheForTests);
+
+        const sparklineData = [1, 3, 2, 5, 4];
+
+        function sparklineTooltipRenderer(params: { xValue: any; yValue: any }) {
+            return { title: String(params.xValue), content: String(params.yValue) };
+        }
+
+        function markerItemStyler(params: { highlightState?: string }) {
+            return params.highlightState === 'highlighted-item' ? { size: 7 } : { size: 0 };
+        }
+
+        function labelFormatter(params: { value: any }) {
+            return `${params.value}%`;
+        }
+
+        it('resolves a bar sparkline with user-supplied axis styling', () => {
+            const options: AgSparklineOptions = {
+                type: 'bar',
+                direction: 'vertical',
+                fill: '#fac858',
+                data: sparklineData,
+                axis: { type: 'category', stroke: '#cccccc', strokeWidth: 2, visible: true },
+            };
+
+            const preparedOptions = prepareSparklineOptions(options);
+
+            expect(preparedOptions).toMatchSnapshot();
+        });
+
+        it('resolves a horizontal bar sparkline with user-supplied axis styling', () => {
+            const options: AgSparklineOptions = {
+                type: 'bar',
+                direction: 'horizontal',
+                min: 0,
+                max: 6,
+                fill: '#5470c6',
+                data: sparklineData,
+                axis: { type: 'category', stroke: '#cccccc', strokeWidth: 2, visible: true },
+            };
+
+            const preparedOptions = prepareSparklineOptions(options);
+
+            expect(preparedOptions).toMatchSnapshot();
+        });
+
+        it('resolves a line sparkline with top-level padding', () => {
+            const options: AgSparklineOptions = {
+                type: 'line',
+                stroke: 'rgb(124, 255, 178)',
+                strokeWidth: 2,
+                data: sparklineData,
+                padding: { top: 5, bottom: 5 },
+            };
+
+            const preparedOptions = prepareSparklineOptions(options);
+
+            expect(preparedOptions).toMatchSnapshot();
+        });
+
+        it('resolves an area sparkline with fill opacity and a marker styler', () => {
+            const options: AgSparklineOptions = {
+                type: 'area',
+                fill: 'rgba(216, 204, 235, 0.3)',
+                fillOpacity: 0.5,
+                stroke: 'rgb(119,77,185)',
+                data: sparklineData,
+                marker: { enabled: true, size: 0, itemStyler: markerItemStyler },
+                axis: { type: 'category', stroke: 'rgb(204, 204, 235)' },
+            };
+
+            const preparedOptions = prepareSparklineOptions(options);
+
+            expect(preparedOptions).toMatchSnapshot();
+        });
+
+        it('resolves a line sparkline with a tooltip renderer and a marker styler', () => {
+            const options: AgSparklineOptions = {
+                type: 'line',
+                stroke: 'rgb(124, 255, 178)',
+                data: sparklineData,
+                marker: { enabled: true, size: 0, itemStyler: markerItemStyler },
+                tooltip: { renderer: sparklineTooltipRenderer },
+            };
+
+            const preparedOptions = prepareSparklineOptions(options);
+
+            expect(preparedOptions).toMatchSnapshot();
+        });
+
+        it('resolves a bar sparkline with labels and a label formatter', () => {
+            const options: AgSparklineOptions = {
+                type: 'bar',
+                direction: 'vertical',
+                fill: '#fac858',
+                data: sparklineData,
+                padding: { top: 10, bottom: 10 },
+                label: {
+                    enabled: true,
+                    color: '#999999',
+                    placement: 'inside-end',
+                    fontSize: 7.5,
+                    padding: 1,
+                    formatter: labelFormatter,
+                },
+            };
+
+            const preparedOptions = prepareSparklineOptions(options);
+
+            expect(preparedOptions).toMatchSnapshot();
+        });
+
+        it('resolves a line sparkline with a user theme override', () => {
+            const options: AgSparklineOptions = {
+                type: 'line',
+                stroke: 'rgb(124, 255, 178)',
+                data: sparklineData,
+                // The preset's own theme sets `keyboard: { enabled: false }`, so this pins which
+                // layer wins when the user overrides the same key.
+                theme: { overrides: { common: { keyboard: { enabled: true } } } },
+            };
+
+            const preparedOptions = prepareSparklineOptions(options);
+
+            expect(preparedOptions).toMatchSnapshot();
         });
     });
 
