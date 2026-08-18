@@ -6,19 +6,13 @@ import type { AnnotationAxisContext } from '../annotationTypes';
 
 const { calculateLabelTranslation } = _ModuleSupport;
 
-const DEFAULT_AXIS_LABEL_PADDING = { top: 4, right: 8, bottom: 4, left: 8 };
-
+// Defaults preserve the spacing the container had before `padding` was configurable.
 function normaliseAxisLabelPadding(padding: Padding | undefined): Required<PaddingOptions> {
-    if (padding == null) return DEFAULT_AXIS_LABEL_PADDING;
     if (typeof padding === 'number') {
         return { top: padding, right: padding, bottom: padding, left: padding };
     }
-    return {
-        top: padding.top ?? DEFAULT_AXIS_LABEL_PADDING.top,
-        right: padding.right ?? DEFAULT_AXIS_LABEL_PADDING.right,
-        bottom: padding.bottom ?? DEFAULT_AXIS_LABEL_PADDING.bottom,
-        left: padding.left ?? DEFAULT_AXIS_LABEL_PADDING.left,
-    };
+    const { top = 4, right = 8, bottom = 4, left = 8 } = padding ?? {};
+    return { top, right, bottom, left };
 }
 
 type UpdateOpts = {
