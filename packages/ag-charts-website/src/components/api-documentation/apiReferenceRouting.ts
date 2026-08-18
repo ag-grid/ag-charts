@@ -1,3 +1,4 @@
+import { replaceHistoryUrl } from '@ag-website-shared/utils/historyUrl';
 import { navigate } from 'astro:transitions/client';
 import { useEffect, useState } from 'react';
 
@@ -41,7 +42,7 @@ export function seedSelection(selection: NavigationData) {
     // Astro's router seeds `index`/`scrollX`/`scrollY` when its module loads; merging onto a state
     // it has not written yet would produce an entry it can no longer track.
     if (!inBrowser() || !history.state || readSelection()) return;
-    history.replaceState({ ...history.state, [SELECTION_STATE_KEY]: selection }, '');
+    replaceHistoryUrl(undefined, { [SELECTION_STATE_KEY]: selection });
 }
 
 export function navigateToSelection(selection: NavigationData) {
