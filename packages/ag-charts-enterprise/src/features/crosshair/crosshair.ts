@@ -45,17 +45,6 @@ export class Crosshair
 
     private options: NormalisedCrosshairOptions | undefined;
 
-    /**
-     * Read by `CartesianChart.adjustAxisWidth` to skip axis-bleeding-width
-     * adjustment when a crosshair is active (so the axis-label space the
-     * crosshair would otherwise occupy is not reclaimed by the layout).
-     * Pre-Phase-5 this was the `@Property enabled` field; after the
-     * options-reference migration it lives inside `options.enabled`.
-     */
-    get enabled(): boolean {
-        return this.options?.enabled ?? false;
-    }
-
     private readonly labels: { [key: string]: CrosshairLabel };
 
     private readonly axisCtx: _ModuleSupport.AxisContext;

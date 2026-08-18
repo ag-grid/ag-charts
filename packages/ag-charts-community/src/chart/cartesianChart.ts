@@ -435,9 +435,6 @@ export class CartesianChart extends Chart {
         seriesRect: BBox,
         visible: boolean
     ): void {
-        const crosshairModule = axis.getModuleMap().getModule<{ enabled: boolean }>('crosshair');
-        if (crosshairModule?.enabled) return;
-
         const annotationsModule = this.modulesManager.getModule('annotations');
         const hasAnnotations =
             annotationsModule?.enabled === true ||

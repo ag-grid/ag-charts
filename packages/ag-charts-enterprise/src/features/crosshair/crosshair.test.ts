@@ -738,12 +738,12 @@ describe('Crosshair', () => {
 
             expect(labelPlacement('x')).toMatchInlineSnapshot(`
               [
-                "480px 295px (-50% 0)",
+                "480px 307px (-50% 0)",
               ]
             `);
             expect(labelPlacement('y')).toMatchInlineSnapshot(`
               [
-                "412px 250px (-100% -50%)",
+                "397px 250px (-100% -50%)",
               ]
             `);
         });

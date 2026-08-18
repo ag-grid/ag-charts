@@ -8,12 +8,6 @@ const options: AgCartesianChartOptions = {
     zoom: {
         enabled: true,
     },
-    padding: {
-        top: 10,
-        left: 0,
-        right: 40,
-        bottom: 0,
-    },
     axes: {
         x: {
             type: 'category',

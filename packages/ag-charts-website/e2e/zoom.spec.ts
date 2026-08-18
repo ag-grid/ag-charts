@@ -113,9 +113,21 @@ test.describe('zoom', () => {
 
         await gotoExample(page, url);
 
-        const { width, height } = await locateCanvas(page);
+        const { height } = await locateCanvas(page);
 
-        const axisCentre = { x: Math.round(width / 2) + 10, y: Math.round(height / 2) + 45 };
+        // `crossAt` places the y-axis inside the plot area, so its position depends on how much axis
+        // width the layout reclaims. Anchor the probes to the axis' own region rather than to the
+        // canvas centre, which stops straddling the axis as soon as that width changes.
+        const yAxisBandRight = await page.evaluate(() => {
+            const proxy = document.querySelector('.ag-charts-canvas-proxy');
+            const regions = Array.from(proxy?.querySelectorAll('[role="region"]') ?? []);
+            const yAxis = regions.find((el) => el.clientHeight > el.clientWidth);
+            if (proxy == null || yAxis == null) throw new Error('No y-axis region found');
+            return yAxis.getBoundingClientRect().right - proxy.getBoundingClientRect().left;
+        });
+
+        const probeY = Math.round(height / 2) + 45;
+        const axisCentre = { x: Math.round(yAxisBandRight) - 20, y: probeY };
         await hoverCanvas(page, axisCentre);
         await waitForAllChartUpdates(page);
         await expectChartScreenshot(page, page, 'zoom-axis-overlap-axis-hover-highlight.png', {
@@ -127,10 +139,7 @@ test.describe('zoom', () => {
             animations: 'disabled',
         });
 
-        const axisHoverNoHighlight = {
-            x: Math.round(width / 2) - 25,
-            y: Math.round(height / 2) + 45,
-        };
+        const axisHoverNoHighlight = { x: axisCentre.x - 35, y: probeY };
         await hoverCanvas(page, axisHoverNoHighlight);
         await waitForAllChartUpdates(page);
         await expectChartScreenshot(page, page, 'zoom-axis-overlap-axis-hover-no-highlight.png', {
