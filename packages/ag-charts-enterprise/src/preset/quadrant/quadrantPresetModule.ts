@@ -10,7 +10,7 @@ const sharedThemeTemplate: ExtensibleSeriesTheme<'bubble' | 'scatter'> = {
     axes: {
         number: {
             label: { enabled: false },
-            line: { enabled: true, width: 2 },
+            line: { enabled: true, width: 2, stroke: { $foregroundBackgroundMix: 0.5 } },
             tick: { enabled: false },
             // TODO: ignore required `value`
             // crossAt: {
