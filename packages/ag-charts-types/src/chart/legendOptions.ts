@@ -58,7 +58,7 @@ export type AgChartLegendPosition = AgChartLegendPlacement | AgChartLegendPositi
 export type AgChartLegendOrientation = 'horizontal' | 'vertical';
 
 export interface AgChartLegendMarkerDisabledStyle {
-    /** Opacity of the marker for legend items that have been toggled off. This is an absolute opacity: it replaces the default dimming rather than multiplying it, so `1` renders the marker fully opaque.
+    /** Opacity of the marker for legend items that have been toggled off. Setting any `disabledStyle` property moves the dimming from the item onto its sub-elements, at which point this is an absolute opacity rather than a multiplier, so `1` renders the marker fully opaque.
      *
      * Default: `0.5`
      */
@@ -89,7 +89,7 @@ export interface AgChartLegendMarkerOptions {
 }
 
 export interface AgChartLegendLineDisabledStyle {
-    /** Opacity of the line for legend items that have been toggled off. This is an absolute opacity: it replaces the default dimming rather than multiplying it, so `1` renders the line fully opaque.
+    /** Opacity of the line for legend items that have been toggled off. Setting any `disabledStyle` property moves the dimming from the item onto its sub-elements, at which point this is an absolute opacity rather than a multiplier, so `1` renders the line fully opaque.
      *
      * Default: `0.5`
      */
@@ -114,7 +114,7 @@ export interface AgChartLegendLineOptions {
 }
 
 export interface AgChartLegendLabelDisabledStyle {
-    /** Opacity of the label for legend items that have been toggled off. This is an absolute opacity: it replaces the default dimming rather than multiplying it, so `1` renders the label fully opaque.
+    /** Opacity of the label for legend items that have been toggled off. Setting any `disabledStyle` property moves the dimming from the item onto its sub-elements, at which point this is an absolute opacity rather than a multiplier, so `1` renders the label fully opaque.
      *
      * Default: `0.5`
      */

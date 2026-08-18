@@ -249,7 +249,7 @@ To prevent the last visible series from being hidden, use the `preventHidingAll`
 
 {% chartExampleRunner title="Toggled-off Legend Item Styling" name="legend-disabled-style" type="generated" /%}
 
-Toggled-off Legend items are rendered at 50% opacity by default. Use the `disabledStyle` option on
+Toggled-off Legend items are dimmed as a whole by default. Use the `disabledStyle` option on
 `legend.item.marker`, `legend.item.label` and `legend.item.line` to control the appearance of each
 sub-element independently, for example to meet a contrast requirement or match an application's own
 disabled-state styling.
@@ -272,8 +272,10 @@ disabled-state styling.
 }
 ```
 
-Only the properties that are set are overridden; anything left unspecified keeps its default
-toggled-off appearance.
+Setting any `disabledStyle` property moves the dimming from the item onto its sub-elements, so each
+`opacity` is absolute rather than a multiplier: `opacity: 1` renders that sub-element at full
+contrast. Sub-elements without an explicit `opacity` are dimmed to 50%, and any other property left
+unspecified keeps its enabled-state value.
 
 ## Legend Events
 

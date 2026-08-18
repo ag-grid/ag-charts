@@ -25,7 +25,11 @@ export type NormalisedLegendMarkerDisabledStyle = Normalised<
     { fill?: NormalisedColorType; stroke?: CssColor }
 >;
 
-export type NormalisedLegendLineDisabledStyle = Normalised<AgChartLegendLineDisabledStyle, never, { stroke?: CssColor }>;
+export type NormalisedLegendLineDisabledStyle = Normalised<
+    AgChartLegendLineDisabledStyle,
+    never,
+    { stroke?: CssColor }
+>;
 
 export type NormalisedLegendLabelDisabledStyle = Normalised<
     AgChartLegendLabelDisabledStyle,
