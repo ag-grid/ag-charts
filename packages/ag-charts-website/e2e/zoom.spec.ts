@@ -108,51 +108,86 @@ test.describe('zoom', () => {
         await expect(page.locator(yAxisLabel)).not.toBeVisible();
     });
 
-    test('axis overlap hover keeps highlighting active', async ({ page }) => {
+    test('axis overlap hover and drag over a crossing axis', async ({ page }) => {
         const { url } = toExamplePageUrl('zoom-e2e', 'zoom-axis-overlap', 'vanilla');
 
         await gotoExample(page, url);
+        await waitForAllChartUpdates(page);
 
-        const { height } = await locateCanvas(page);
+        const { width, height } = await locateCanvas(page);
+        const wrapper = page.locator('.ag-charts-wrapper');
+        const tooltip = page.locator('.ag-charts-tooltip');
+        const readCursor = () => wrapper.evaluate((el) => getComputedStyle(el).cursor);
 
-        // `crossAt` places the y-axis inside the plot area, so its position depends on how much axis
-        // width the layout reclaims. Anchor the probes to the axis' own region rather than to the
-        // canvas centre, which stops straddling the axis as soon as that width changes.
-        const yAxisBandRight = await page.evaluate(() => {
+        // `crossAt` places both axes inside the plot area, so their pixel positions depend on the data,
+        // the zoom and how much axis width the layout reclaims. Locate the axis from its own proxy
+        // region and its labels by their resize cursor, rather than from offsets that go stale.
+        const band = await page.evaluate(() => {
             const proxy = document.querySelector('.ag-charts-canvas-proxy');
             const regions = Array.from(proxy?.querySelectorAll('[role="region"]') ?? []);
-            const yAxis = regions.find((el) => el.clientHeight > el.clientWidth);
-            if (proxy == null || yAxis == null) throw new Error('No y-axis region found');
-            return yAxis.getBoundingClientRect().right - proxy.getBoundingClientRect().left;
+            const xAxis = regions.find((el) => el.clientWidth > el.clientHeight);
+            if (proxy == null || xAxis == null) throw new Error('No x-axis region found');
+            const axisBox = xAxis.getBoundingClientRect();
+            const proxyBox = proxy.getBoundingClientRect();
+            return { top: axisBox.top - proxyBox.top, bottom: axisBox.bottom - proxyBox.top };
         });
+        const bandY = Math.round((band.top + band.bottom) / 2);
 
-        const probeY = Math.round(height / 2) + 45;
-        const axisCentre = { x: Math.round(yAxisBandRight) - 20, y: probeY };
-        await hoverCanvas(page, axisCentre);
+        // Only the axis labels are interactive within the band, so sweep across it for one of them.
+        let labelX = -1;
+        for (let x = Math.round(width * 0.4); x < width * 0.75; x += 6) {
+            await hoverCanvas(page, { x, y: bandY });
+            await delay(60);
+            if ((await readCursor()) === 'ew-resize') {
+                labelX = x;
+                break;
+            }
+        }
+        expect(labelX).toBeGreaterThan(0);
+
+        // An axis label takes the hover from the bar it overlaps, so no series highlight appears.
+        const axisLabel = { x: labelX, y: bandY };
+        await hoverCanvas(page, axisLabel);
         await waitForAllChartUpdates(page);
-        await expectChartScreenshot(page, page, 'zoom-axis-overlap-axis-hover-highlight.png', {
+        await expect(wrapper).toHaveCSS('cursor', 'ew-resize');
+        await expect(tooltip).toBeHidden();
+        await expectChartScreenshot(page, page, 'zoom-axis-overlap-crossing-axis-hover.png', {
             animations: 'disabled',
         });
 
-        await dragCanvas(page, axisCentre, { x: 10, y: axisCentre.y });
-        await expectChartScreenshot(page, page, 'zoom-axis-overlap-axis-does-not-drag-with-highlight.png', {
+        // Dragging the label zooms the axis, as it would on an axis at the edge of the plot.
+        await dragCanvas(page, axisLabel, { x: labelX - 150, y: bandY }, { stepDelay: 40 });
+        await waitForAllChartUpdates(page);
+        await expectChartScreenshot(page, page, 'zoom-axis-overlap-crossing-axis-drag-zooms.png', {
             animations: 'disabled',
         });
 
-        const axisHoverNoHighlight = { x: axisCentre.x - 35, y: probeY };
-        await hoverCanvas(page, axisHoverNoHighlight);
+        // Away from the axis the series takes the hover, highlighting the bar under the pointer. Sweep
+        // for a bar rather than assuming which ones the zoom above left visible.
+        const seriesY = Math.round(height * 0.8);
+        let seriesX = -1;
+        for (let x = Math.round(width * 0.1); x < width * 0.9; x += 10) {
+            await hoverCanvas(page, { x, y: seriesY });
+            await delay(60);
+            if (await tooltip.isVisible()) {
+                seriesX = x;
+                break;
+            }
+        }
+        expect(seriesX).toBeGreaterThan(0);
+
+        const seriesPoint = { x: seriesX, y: seriesY };
+        await hoverCanvas(page, seriesPoint);
         await waitForAllChartUpdates(page);
-        await expectChartScreenshot(page, page, 'zoom-axis-overlap-axis-hover-no-highlight.png', {
+        await expect(wrapper).toHaveCSS('cursor', 'default');
+        await expectChartScreenshot(page, page, 'zoom-axis-overlap-series-area-hover-highlight.png', {
             animations: 'disabled',
         });
 
-        await hoverCanvas(page, axisHoverNoHighlight);
-        await dragCanvas(page, axisHoverNoHighlight, {
-            x: axisHoverNoHighlight.x - 50,
-            y: axisHoverNoHighlight.y + 10,
-        });
+        // Dragging there pans instead of zooming, which the zoom applied above leaves room for.
+        await dragCanvas(page, seriesPoint, { x: seriesPoint.x + 150, y: seriesY }, { stepDelay: 40 });
         await waitForAllChartUpdates(page);
-        await expectChartScreenshot(page, page, 'zoom-axis-overlap-axis-does-drag-without-highlight.png', {
+        await expectChartScreenshot(page, page, 'zoom-axis-overlap-series-area-drag-pans.png', {
             animations: 'disabled',
         });
     });
