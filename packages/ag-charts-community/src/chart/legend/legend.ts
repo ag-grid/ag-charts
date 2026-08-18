@@ -57,9 +57,6 @@ import type { LegendSymbolOptions } from './legendSymbol';
 
 type SeriesType = ChartService['series'][number];
 
-/** Opacity applied to each sub-element of a legend item that has been toggled off, absent an explicit `disabledStyle.opacity`. */
-const DISABLED_ITEM_OPACITY = 0.5;
-
 function toHighlightNodeDatum(series: SeriesType, legendDatum: CategoryLegendDatum): HighlightNodeDatum {
     switch (typeof legendDatum.itemId) {
         case 'number':
@@ -773,8 +770,8 @@ export class Legend {
     update() {
         const { color, disabledStyle } = this.opts.item.label;
         this.itemSelection.each((markerLabel, datum) => {
-            markerLabel.color = datum.enabled ? color : (disabledStyle?.color ?? color);
-            markerLabel.labelOpacity = datum.enabled ? 1 : (disabledStyle?.opacity ?? DISABLED_ITEM_OPACITY);
+            markerLabel.color = datum.enabled ? color : disabledStyle.color;
+            markerLabel.labelOpacity = datum.enabled ? 1 : disabledStyle.opacity;
         });
 
         this.updateContextMenu();
@@ -790,24 +787,26 @@ export class Legend {
         const { stroke, strokeOpacity = 1, strokeWidth, lineDash } = datum.line ?? {};
 
         const defaultLineStrokeWidth = Math.min(2, strokeWidth ?? 1);
-        const disabledStyle = enabled ? undefined : this.opts.item.line.disabledStyle;
+        const { disabledStyle } = this.opts.item.line;
+        const overrides = enabled ? undefined : disabledStyle;
 
         return {
-            stroke: disabledStyle?.stroke ?? stroke,
-            strokeOpacity: disabledStyle?.strokeOpacity ?? strokeOpacity,
+            stroke: overrides?.stroke ?? stroke,
+            strokeOpacity: overrides?.strokeOpacity ?? strokeOpacity,
             strokeWidth: this.opts.item.line.strokeWidth ?? defaultLineStrokeWidth,
-            lineDash: disabledStyle?.lineDash ?? lineDash,
-            lineDashOffset: disabledStyle?.lineDashOffset,
-            opacity: enabled ? 1 : (disabledStyle?.opacity ?? DISABLED_ITEM_OPACITY),
+            lineDash: overrides?.lineDash ?? lineDash,
+            lineDashOffset: overrides?.lineDashOffset,
+            opacity: enabled ? 1 : disabledStyle.opacity,
         };
     }
     private getMarkerStyles({ marker }: LegendSymbolOptions, enabled: boolean) {
         const { stroke, strokeOpacity = 1, fillOpacity = 1, strokeWidth, lineDash, lineDashOffset } = marker;
         const defaultLineStrokeWidth = Math.min(2, strokeWidth ?? 1);
-        const disabledStyle = enabled ? undefined : this.opts.item.marker.disabledStyle;
+        const { disabledStyle } = this.opts.item.marker;
+        const overrides = enabled ? undefined : disabledStyle;
         // The symbol is pre-cloned by the caller, but the disabled fill comes straight from the
         // options and is mutated below when it is a pattern or image fill.
-        const fill = disabledStyle?.fill == null ? marker.fill : deepClone(disabledStyle.fill);
+        const fill = overrides?.fill == null ? marker.fill : deepClone(overrides.fill);
 
         if (isPatternFill(fill)) {
             fill.width = 8;
@@ -827,11 +826,11 @@ export class Legend {
             ...getShapeStyle(
                 {
                     fill,
-                    stroke: disabledStyle?.stroke ?? stroke,
-                    strokeOpacity: disabledStyle?.strokeOpacity ?? strokeOpacity,
-                    fillOpacity: disabledStyle?.fillOpacity ?? fillOpacity,
+                    stroke: overrides?.stroke ?? stroke,
+                    strokeOpacity: overrides?.strokeOpacity ?? strokeOpacity,
+                    fillOpacity: overrides?.fillOpacity ?? fillOpacity,
                     strokeWidth:
-                        disabledStyle?.strokeWidth ?? this.opts.item.marker.strokeWidth ?? defaultLineStrokeWidth,
+                        overrides?.strokeWidth ?? this.opts.item.marker.strokeWidth ?? defaultLineStrokeWidth,
                     lineDash,
                     lineDashOffset,
                 },
@@ -839,7 +838,7 @@ export class Legend {
                 FILL_PATTERN_BLANK_DEFAULTS,
                 FILL_IMAGE_BLANK_DEFAULTS
             ),
-            opacity: enabled ? 1 : (disabledStyle?.opacity ?? DISABLED_ITEM_OPACITY),
+            opacity: enabled ? 1 : disabledStyle.opacity,
         };
     }
 

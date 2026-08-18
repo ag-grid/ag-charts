@@ -12,6 +12,9 @@ import { VERSION } from '../../version';
 import { Legend } from './legend';
 import { LegendManager } from './legendManager';
 
+/** Opacity applied to each sub-element of a legend item that has been toggled off. */
+const DISABLED_ITEM_OPACITY = 0.5;
+
 export const LegendModule: PluginModuleDefinition<AgChartLegendOptions, ChartRegistry> = {
     type: 'plugin',
     name: 'legend',
@@ -68,14 +71,16 @@ export const LegendModule: PluginModuleDefinition<AgChartLegendOptions, ChartReg
         toggleSeries: true,
         item: {
             padding: { $applyPadding: { top: 4, right: 8, bottom: 4, left: 8 } },
-            marker: { size: 15, padding: { $applyPadding: 8 } },
-            line: { length: 25 },
+            marker: { size: 15, padding: { $applyPadding: 8 }, disabledStyle: { opacity: DISABLED_ITEM_OPACITY } },
+            line: { length: 25, disabledStyle: { opacity: DISABLED_ITEM_OPACITY } },
             showSeriesStroke: true,
             label: {
                 color: { $ref: 'textColor' },
                 fontSize: { $rem: FONT_SIZE_RATIO.SMALL },
                 fontFamily: { $ref: 'fontFamily' },
                 fontWeight: { $ref: 'fontWeight' },
+                // Any colour the user or theme puts on the label carries into the toggled-off state.
+                disabledStyle: { opacity: DISABLED_ITEM_OPACITY, color: { $path: '../color' } },
             },
         },
         reverseOrder: false,
