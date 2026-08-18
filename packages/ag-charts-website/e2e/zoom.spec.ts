@@ -133,19 +133,34 @@ test.describe('zoom', () => {
         });
         const bandY = Math.round((band.top + band.bottom) / 2);
 
-        // Only the axis labels are interactive within the band, so sweep across it for one of them.
-        let labelX = -1;
-        for (let x = Math.round(width * 0.4); x < width * 0.75; x += 6) {
-            await hoverCanvas(page, { x, y: bandY });
-            await delay(60);
-            if ((await readCursor()) === 'ew-resize') {
-                labelX = x;
+        // A hover that lands on nothing renders nothing, so the cursor read straight after a move can
+        // still hold the previous sample's value. Read it until two samples agree.
+        const settledCursorAt = async (point: { x: number; y: number }) => {
+            await hoverCanvas(page, point);
+            let previous = '';
+            for (let attempt = 0; attempt < 10; attempt++) {
+                await delay(30);
+                const cursor = await readCursor();
+                if (cursor === previous) return cursor;
+                previous = cursor;
+            }
+            return previous;
+        };
+
+        // Only the axis labels are interactive within the band, so sweep across it for one. Take the
+        // label's midpoint, which holds still even where its edge pixels are marginal.
+        const labelHits: number[] = [];
+        for (let x = Math.round(width * 0.4); x < width * 0.75; x += 4) {
+            if ((await settledCursorAt({ x, y: bandY })) === 'ew-resize') {
+                labelHits.push(x);
+            } else if (labelHits.length > 0) {
                 break;
             }
         }
-        expect(labelX).toBeGreaterThan(0);
+        expect(labelHits.length).toBeGreaterThan(0);
 
         // An axis label takes the hover from the bar it overlaps, so no series highlight appears.
+        const labelX = Math.round((labelHits[0] + labelHits[labelHits.length - 1]) / 2);
         const axisLabel = { x: labelX, y: bandY };
         await hoverCanvas(page, axisLabel);
         await waitForAllChartUpdates(page);
@@ -168,7 +183,7 @@ test.describe('zoom', () => {
         let seriesX = -1;
         for (let x = Math.round(width * 0.1); x < width * 0.9; x += 10) {
             await hoverCanvas(page, { x, y: seriesY });
-            await delay(60);
+            await waitForAllChartUpdates(page);
             if (await tooltip.isVisible()) {
                 seriesX = x;
                 break;

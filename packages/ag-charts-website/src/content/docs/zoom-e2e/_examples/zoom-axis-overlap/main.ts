@@ -7,6 +7,9 @@ const options: AgCartesianChartOptions = {
     data: getData(),
     zoom: {
         enabled: true,
+        // Inertia carries a pan on past the pointer for a wall-clock duration, so where it settles is
+        // not reproducible. Panning stops with the drag here.
+        deceleration: 'off',
     },
     axes: {
         x: {
