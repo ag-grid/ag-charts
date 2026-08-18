@@ -15,7 +15,7 @@ const sharedThemeTemplate: ExtensibleSeriesTheme<'bubble' | 'scatter'> = {
             // TODO: ignore required `value`
             // crossAt: {
             //     titlePlacement: 'edge',
-            //     labelsPlacement: 'crossing',
+            //     labelPlacement: 'crossing',
             // },
         },
     },
