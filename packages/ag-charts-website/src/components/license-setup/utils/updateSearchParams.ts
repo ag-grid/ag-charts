@@ -1,4 +1,5 @@
 import type { ImportType } from '@ag-grid-types';
+import { replaceHistoryUrl } from '@ag-website-shared/utils/historyUrl';
 
 export const updateSearchParams = ({
     integratedCharts,
@@ -27,5 +28,7 @@ export const updateSearchParams = ({
         }
     }
 
-    history.pushState(null, '', url);
+    // A filter, not a navigation: no page-level popstate handler services these entries, so
+    // pushing one leaves back moving the URL with nothing reacting to it.
+    replaceHistoryUrl(url);
 };
