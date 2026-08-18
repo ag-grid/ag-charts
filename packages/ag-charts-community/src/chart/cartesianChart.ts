@@ -337,10 +337,7 @@ export class CartesianChart extends Chart {
         }
 
         // adjust axis widths for crossAt axes and calculate cross positions
-        let crossPositions: Map<string, number> | undefined;
-        if (crossAtAxes.length > 0) {
-            crossPositions = this.calculateAxesCrossPositions(axisWidths, seriesRect, crossAtAxes);
-        }
+        const crossPositions = this.calculateAxesCrossPositions(axisWidths, seriesRect, crossAtAxes);
 
         const axisGroups = groupBy(this.axes, (axis) => axis.position ?? 'left');
 
@@ -382,9 +379,7 @@ export class CartesianChart extends Chart {
             });
         }
 
-        if (crossPositions != null) {
-            this.applyAxisCrossing(seriesRect, crossPositions);
-        }
+        this.applyAxisCrossing(seriesRect, crossPositions);
 
         return { clipSeries, seriesRect, axisAreaWidths: newAxisAreaWidths, overflows };
     }
@@ -513,6 +508,11 @@ export class CartesianChart extends Chart {
             if (crossPosition == null) {
                 axis.crossAxisTranslation.x = 0;
                 axis.crossAxisTranslation.y = 0;
+                // An axis that has `crossAt` but no cross position was hidden by `sticky: false`, so only
+                // restore visibility for axes that are no longer crossing at all.
+                if (axis.options.crossAt?.value == null) {
+                    axis.setAxisVisible(true);
+                }
                 continue;
             }
 

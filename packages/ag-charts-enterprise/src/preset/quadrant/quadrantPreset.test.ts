@@ -1,10 +1,11 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import { AgCharts, _ModuleSupport } from 'ag-charts-community';
 import {
     type ChartTestCase,
     cartesianChartAssertions,
     compareImageSnapshot,
+    expectNonBlank,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -269,6 +270,28 @@ describe('Quadrant Preset', () => {
                 await example.extraScreenshotActions(chart);
                 await compare();
             }
+        }
+    );
+
+    it.each([false, true])(
+        'starting from alignAxesToPivot %s it should render identically after toggling twice',
+        async (alignAxesToPivot) => {
+            const options: AgQuadrantChartOptions = { ...PIVOT_NUMERIC, alignAxesToPivot };
+            prepareEnterpriseTestOptions(options);
+
+            // The mock canvas only backs the first chart created in a test, so the round trip has to
+            // drive one chart through `update()` rather than re-create it.
+            chart = AgCharts.createQuadrantChart(options);
+            await waitForChartStability(chart);
+            const initialImage = ctx.snapshot();
+            expectNonBlank(initialImage);
+
+            for (const toggled of [!alignAxesToPivot, alignAxesToPivot]) {
+                await chart.update({ ...options, alignAxesToPivot: toggled });
+                await waitForChartStability(chart);
+            }
+
+            expect(ctx.snapshot()).toMatchImage(initialImage);
         }
     );
 });
