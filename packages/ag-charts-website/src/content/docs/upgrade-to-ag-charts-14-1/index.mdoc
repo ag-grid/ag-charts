@@ -42,22 +42,21 @@ This release includes the following breaking changes:
 
 <!-- If behaviour changes do *not* exist, add the following: -->
 
-There are no behaviour changes in AG Charts version {% migrationVersion() %}.
+<!-- There are no behaviour changes in AG Charts version {% migrationVersion() %}. -->
 
 <!-- Otherwise -->
-<!--
+
 The full list of behaviour changes across all features for version {% migrationVersion() %}.
 
 {% expandingSection headerText="Behaviour Changes" %}
 
 This release includes the following behaviour changes:
 
-### Behaviour Changes section Name
+### Legend
 
-- item...
+- Toggled-off Legend item labels are now rendered at 50% opacity, matching the marker and line, rather than the effective 25% that resulted from the label and item opacities compounding. Set `legend.item.label.disabledStyle.opacity` to `0.25` to restore the previous appearance.
 
 {% /expandingSection %}
--->
 
 ## Removal of Deprecated APIs
 
