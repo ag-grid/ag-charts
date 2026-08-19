@@ -1,10 +1,11 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import { AgCharts, _ModuleSupport } from 'ag-charts-community';
 import {
     type ChartTestCase,
     cartesianChartAssertions,
     compareImageSnapshot,
+    expectNonBlank,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -214,7 +215,7 @@ const EXAMPLES: Record<string, QuadrantTestCase> = {
     THEMED: { options: THEMED, assertions },
 };
 
-describe('Scatter Quadrant Preset', () => {
+describe('Quadrant Preset', () => {
     setupMockConsole();
     let chart: any;
 
@@ -271,15 +272,37 @@ describe('Scatter Quadrant Preset', () => {
             }
         }
     );
+
+    it.each([false, true])(
+        'starting from alignAxesToPivot %s it should render identically after toggling twice',
+        async (alignAxesToPivot) => {
+            const options: AgQuadrantChartOptions = { ...PIVOT_NUMERIC, alignAxesToPivot };
+            prepareEnterpriseTestOptions(options);
+
+            // The mock canvas only backs the first chart created in a test, so the round trip has to
+            // drive one chart through `update()` rather than re-create it.
+            chart = AgCharts.createQuadrantChart(options);
+            await waitForChartStability(chart);
+            const initialImage = ctx.snapshot();
+            expectNonBlank(initialImage);
+
+            for (const toggled of [!alignAxesToPivot, alignAxesToPivot]) {
+                await chart.update({ ...options, alignAxesToPivot: toggled });
+                await waitForChartStability(chart);
+            }
+
+            expect(ctx.snapshot()).toMatchImage(initialImage);
+        }
+    );
 });
 
 // The quadrant preset's styling lives in its module `themeTemplate`, which is baked into the
 // resolved `ChartTheme`. Charts sharing a theme value must not inherit each other's preset
 // template, in either creation order.
-describe('Scatter Quadrant Preset theme isolation', () => {
+describe('Quadrant Preset theme isolation', () => {
     const DATA = NUMERIC.data;
 
-    const resolveAxes = (options: AgChartOptions, presetType?: 'scatter-quadrant') => {
+    const resolveAxes = (options: AgChartOptions, presetType?: 'quadrant') => {
         const { processedOptions } = new _ModuleSupport.ChartOptions(
             options,
             {} as AgChartOptions,
@@ -305,12 +328,12 @@ describe('Scatter Quadrant Preset theme isolation', () => {
     };
 
     it('does not leak the preset template to a plain chart created afterwards', () => {
-        expectQuadrantStyling(resolveAxes(quadrantOptions(), 'scatter-quadrant'));
+        expectQuadrantStyling(resolveAxes(quadrantOptions(), 'quadrant'));
         expectPlainStyling(resolveAxes(plainOptions()));
     });
 
     it('does not lose the preset template to a plain chart created beforehand', () => {
         expectPlainStyling(resolveAxes(plainOptions()));
-        expectQuadrantStyling(resolveAxes(quadrantOptions(), 'scatter-quadrant'));
+        expectQuadrantStyling(resolveAxes(quadrantOptions(), 'quadrant'));
     });
 });

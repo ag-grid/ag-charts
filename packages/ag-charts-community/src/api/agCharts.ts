@@ -113,7 +113,7 @@ export abstract class AgCharts {
     ): AgChartInstance<AgQuadrantChartOptions<TDatum, any>> {
         return debug.group('AgCharts.createQuadrantChart()', () => {
             return this.create(options, {
-                presetType: 'scatter-quadrant',
+                presetType: 'quadrant',
             }) as AgChartInstance<AgQuadrantChartOptions<TDatum, any>>;
         });
     }

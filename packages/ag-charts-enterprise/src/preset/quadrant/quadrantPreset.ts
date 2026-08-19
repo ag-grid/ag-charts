@@ -14,7 +14,7 @@ import type {
 
 type Region = keyof NonNullable<AgQuadrantChartOptions['regions']>;
 
-export function createScatterQuadrant(
+export function createQuadrant(
     options: AgQuadrantChartOptions,
     _: any,
     __: any,

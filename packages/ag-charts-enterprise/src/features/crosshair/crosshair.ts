@@ -44,17 +44,6 @@ export class Crosshair
 
     private options: NormalisedCrosshairOptions | undefined;
 
-    /**
-     * Read by `CartesianChart.adjustAxisWidth` to skip axis-bleeding-width
-     * adjustment when a crosshair is active (so the axis-label space the
-     * crosshair would otherwise occupy is not reclaimed by the layout).
-     * Pre-Phase-5 this was the `@Property enabled` field; after the
-     * options-reference migration it lives inside `options.enabled`.
-     */
-    get enabled(): boolean {
-        return this.options?.enabled ?? false;
-    }
-
     private readonly labels: { [key: string]: CrosshairLabel };
 
     private readonly axisCtx: _ModuleSupport.AxisContext;
@@ -488,23 +477,29 @@ export class Crosshair
         const axisPosition = this.axisCtx.position;
         let padding = this.axisLayout.label.spacing + this.axisLayout.tickSize;
 
+        // `crossAt` moves the axis line off its `position` edge, so follow it by the same offset —
+        // otherwise the label annotates a line that is no longer there.
+        const crossOffset = this.axisLayout.crossAxisTranslation ?? { x: 0, y: 0 };
+
         // Use CSS translate percentages to avoid synchronous dimension reads.
         // translate(-50%, 0) centres horizontally; translate(0, -50%) centres vertically;
         // translate(-100%, ...) offsets by the element's full width/height.
         if (this.axisCtx.direction === ChartAxisDirection.X) {
             padding -= 4;
             const isBottom = axisPosition === 'bottom';
+            const lineY = (isBottom ? bounds.y + bounds.height : bounds.y) + crossOffset.y;
             label.show({
                 x,
-                y: isBottom ? bounds.y + bounds.height + padding : bounds.y - padding,
+                y: isBottom ? lineY + padding : lineY - padding,
                 translateX: '-50%',
                 translateY: isBottom ? '0' : '-100%',
             });
         } else {
             padding -= 8;
             const isRight = axisPosition === 'right';
+            const lineX = (isRight ? bounds.x + bounds.width : bounds.x) + crossOffset.x;
             label.show({
-                x: isRight ? bounds.x + bounds.width + padding : bounds.x - padding,
+                x: isRight ? lineX + padding : lineX - padding,
                 y,
                 translateX: isRight ? '0' : '-100%',
                 translateY: '-50%',

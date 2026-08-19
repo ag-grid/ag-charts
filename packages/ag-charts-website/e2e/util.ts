@@ -327,9 +327,11 @@ export async function dragCanvas(
     page: Page,
     start: { x: number; y: number },
     end: { x: number; y: number },
-    options = { steps: 4 }
+    // `stepDelay` paces the moves. Panning only engages once the chart has processed a move, so a drag
+    // whose moves arrive back-to-back is swallowed and the chart never moves.
+    options: { steps?: number; stepDelay?: number } = {}
 ) {
-    const { steps } = options;
+    const { steps = 4, stepDelay = 0 } = options;
     const point = await canvasToPageTransformer(page);
     let p = point(start.x, start.y);
 
@@ -340,6 +342,7 @@ export async function dragCanvas(
         const y = start.y + ((end.y - start.y) * step) / steps;
         p = point(x, y);
         await page.mouse.move(Math.round(p.x), Math.round(p.y));
+        if (stepDelay > 0) await delay(stepDelay);
     }
     await page.mouse.up();
 }

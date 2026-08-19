@@ -3,19 +3,19 @@ import type { PresetModuleDefinition } from 'ag-charts-core';
 import type { AgQuadrantChartOptions, ExtensibleSeriesTheme } from 'ag-charts-types';
 
 import { backgroundRegionsTheme } from '../../features/background-regions/backgroundRegionsTheme';
-import { createScatterQuadrant } from './scatterQuadrantPreset';
-import { scatterQuadrantOptionsDefs } from './scatterQuadrantPresetOptionsDefs';
+import { createQuadrant } from './quadrantPreset';
+import { quadrantOptionsDefs } from './quadrantPresetOptionsDefs';
 
 const sharedThemeTemplate: ExtensibleSeriesTheme<'bubble' | 'scatter'> = {
     axes: {
         number: {
             label: { enabled: false },
-            line: { enabled: true, width: 2 },
+            line: { enabled: true, width: 2, stroke: { $foregroundBackgroundMix: 0.5 } },
             tick: { enabled: false },
             // TODO: ignore required `value`
             // crossAt: {
             //     titlePlacement: 'edge',
-            //     labelsPlacement: 'crossing',
+            //     labelPlacement: 'crossing',
             // },
         },
     },
@@ -42,16 +42,16 @@ const sharedThemeTemplate: ExtensibleSeriesTheme<'bubble' | 'scatter'> = {
     },
 };
 
-export const ScatterQuadrantPresetModule: PresetModuleDefinition<AgQuadrantChartOptions> = {
+export const QuadrantPresetModule: PresetModuleDefinition<AgQuadrantChartOptions> = {
     type: 'preset',
-    name: 'scatter-quadrant',
+    name: 'quadrant',
     enterprise: true,
     dependencies: [],
     version: VERSION,
 
-    options: scatterQuadrantOptionsDefs,
+    options: quadrantOptionsDefs,
 
-    create: createScatterQuadrant,
+    create: createQuadrant,
 
     themeTemplate: {
         scatter: sharedThemeTemplate,

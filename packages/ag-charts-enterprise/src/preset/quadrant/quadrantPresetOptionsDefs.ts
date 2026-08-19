@@ -18,18 +18,10 @@ const regionOptionsDefs: OptionsDefs<NonNullable<NonNullable<AgQuadrantChartOpti
 };
 
 const axisOptionsDefs: OptionsDefs<NonNullable<AgQuadrantChartOptions['xAxis']>> = {
-    ...without(_ModuleSupport.numberAxisOptionsDefs, [
-        'crossAt',
-        'crossLines',
-        'crosshair',
-        'keys',
-        'reverse',
-        'position',
-        'type',
-    ]),
+    ...without(_ModuleSupport.numberAxisOptionsDefs, ['crossAt', 'crossLines', 'keys', 'reverse', 'position', 'type']),
 };
 
-export const scatterQuadrantOptionsDefs: OptionsDefs<AgQuadrantChartOptions> = {
+export const quadrantOptionsDefs: OptionsDefs<AgQuadrantChartOptions> = {
     // Quadrant
     alignAxesToPivot: boolean,
     pivot: pivotOptionsDefs,

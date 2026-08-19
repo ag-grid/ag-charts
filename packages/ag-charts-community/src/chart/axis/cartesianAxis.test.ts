@@ -11,9 +11,11 @@ import type {
 
 import { AgCharts } from '../../api/agCharts';
 import { Transformable } from '../../scene/transformable';
+import { expectPixelIdenticalAcrossUpdate } from '../test/bigintExamples';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     compareImageSnapshot,
+    createChart,
     deproxy,
     expectWarningsCalls,
     prepareTestOptions,
@@ -691,6 +693,35 @@ describe('CartesianAxis', () => {
             it.each(stickyScenarios)('%s', async ({ name, optionsFactory }) => {
                 await renderAndSnapshot(optionsFactory, `cartesian-axis-${name}`);
             });
+        });
+
+        describe('removal', () => {
+            const optionsWithCrossAt = (crossAt?: AgCartesianAxisCrossAt): AgCartesianChartOptions => ({
+                data: NUMERIC_DATA,
+                theme: THEME,
+                axes: {
+                    x: { type: 'number', position: 'bottom', crossAt },
+                    y: { type: 'number', position: 'left', crossAt },
+                },
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            });
+
+            it.each([
+                ['in-domain', { value: 0 }],
+                // Out of domain with `sticky: false` hides the axis, so this also covers visibility.
+                ['out-of-domain and not sticky', { value: 15, sticky: false }],
+            ] as const)(
+                'should restore the uncrossed render after adding then removing %s crossAt',
+                async (_name, crossAt) => {
+                    await expectPixelIdenticalAcrossUpdate(
+                        ctx,
+                        createChart,
+                        optionsWithCrossAt(),
+                        optionsWithCrossAt(crossAt),
+                        optionsWithCrossAt()
+                    );
+                }
+            );
         });
 
         describe('jira examples', () => {

@@ -266,7 +266,7 @@ export const enterpriseModules = new Set([
     // Presets
     'GaugePresetModule',
     'PriceVolumePresetModule',
-    'ScatterQuadrantPresetModule',
+    'QuadrantPresetModule',
 ]);
 
 // Bundle definitions - what each bundle includes
@@ -434,7 +434,7 @@ export const bundleContents = new Map([
             // Enterprise presets
             'GaugePresetModule',
             'PriceVolumePresetModule',
-            'ScatterQuadrantPresetModule',
+            'QuadrantPresetModule',
             'FinancialChartModule',
             'QuadrantChartModule',
         ],
@@ -481,7 +481,7 @@ export const bundleContents = new Map([
     [
         'QuadrantChartModule',
         [
-            'ScatterQuadrantPresetModule',
+            'QuadrantPresetModule',
             'NumberAxisModule',
             'BubbleSeriesModule',
             'ScatterSeriesModule',
@@ -608,7 +608,7 @@ export const validModuleIds = new Set([
     // Presets
     'GaugePresetModule',
     'PriceVolumePresetModule',
-    'ScatterQuadrantPresetModule',
+    'QuadrantPresetModule',
     'SparklinePresetModule',
     'FinancialChartModule',
     'QuadrantChartModule',
