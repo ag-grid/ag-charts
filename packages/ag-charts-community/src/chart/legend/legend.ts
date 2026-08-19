@@ -776,21 +776,19 @@ export class Legend {
 
     update() {
         const { color, disabledStyle } = this.opts.item.label;
+        // Group dimming leaves each sub-element undimmed and vice versa - see
+        // `hasDisabledStyleOverrides()` for which of the two applies.
         const perElementDimming = this.hasDisabledStyleOverrides();
+        const disabledColor = perElementDimming ? (disabledStyle?.color ?? color) : color;
+        const disabledGroupOpacity = perElementDimming ? 1 : DISABLED_ITEM_OPACITY;
+        const disabledLabelOpacity = perElementDimming
+            ? (disabledStyle?.opacity ?? DISABLED_ITEM_OPACITY)
+            : DISABLED_ITEM_OPACITY;
+
         this.itemSelection.each((markerLabel, datum) => {
-            if (datum.enabled) {
-                markerLabel.color = color;
-                markerLabel.opacity = 1;
-                markerLabel.labelOpacity = 1;
-            } else if (perElementDimming) {
-                markerLabel.color = disabledStyle?.color ?? color;
-                markerLabel.opacity = 1;
-                markerLabel.labelOpacity = disabledStyle?.opacity ?? DISABLED_ITEM_OPACITY;
-            } else {
-                markerLabel.color = color;
-                markerLabel.opacity = DISABLED_ITEM_OPACITY;
-                markerLabel.labelOpacity = DISABLED_ITEM_OPACITY;
-            }
+            markerLabel.color = datum.enabled ? color : disabledColor;
+            markerLabel.opacity = datum.enabled ? 1 : disabledGroupOpacity;
+            markerLabel.labelOpacity = datum.enabled ? 1 : disabledLabelOpacity;
         });
 
         this.updateContextMenu();
