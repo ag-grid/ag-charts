@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { type AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
 import {
     compareImageSnapshot,
+    deproxy,
     expectWarningsCalls,
     setupMockCanvas,
     setupMockConsole,
@@ -928,6 +929,57 @@ describe('Annotations', () => {
             const perAnnotation = await applyAnnotations(horizontalLine({ right: 8 }));
             // The theme value has to reach the rendered container, not merely pass validation.
             expect(themed).not.toMatchImage(perAnnotation, { writeDiff: false });
+        });
+    });
+
+    describe('axis label alignment with the axis (AG-18182)', () => {
+        // A horizontal-line annotation's axis label belongs to the y axis, so its distance from the
+        // axis line has to come from the y axis's own layout. It used to be taken from the x axis's,
+        // which is why reducing axes.number.label.spacing moved the y axis's own tick labels inwards
+        // and left the annotation label behind.
+        const withLabelSpacing = (ySpacing: number, xSpacing: number): AgCartesianChartOptions => ({
+            ...EXAMPLE_OPTIONS,
+            axes: {
+                y: { type: 'number', label: { spacing: ySpacing } },
+                x: { type: 'time', label: { spacing: xSpacing } },
+            },
+            initialState: {
+                annotations: [{ type: 'horizontal-line', value: 75, axisLabel: { enabled: true } }],
+            },
+        });
+
+        // The scene position is the assertion: an image comparison cannot separate the label moving
+        // from the axis area around it resizing, and both happen when a label spacing changes.
+        const axisLabelX = () => {
+            const found: any[] = [];
+            const visit = (node: any) => {
+                if (node.name === 'AnnotationAxisLabelGroup') found.push(node);
+                if (typeof node.children === 'function') {
+                    for (const child of node.children()) visit(child);
+                }
+            };
+            visit((deproxy(chart) as any).ctx.scene.root);
+            expect(found).toHaveLength(1);
+            return found[0].getBBox().x;
+        };
+
+        const axisLabelXWith = async (ySpacing: number, xSpacing: number) => {
+            await prepareChart(undefined, withLabelSpacing(ySpacing, xSpacing));
+            const x = axisLabelX();
+            chart.destroy();
+            (chart as unknown) = undefined;
+            return x;
+        };
+
+        it("tracks the y axis's own label spacing", async () => {
+            // Widening the y axis's label spacing pushes the axis line inwards by the same amount, so
+            // an annotation label that follows the y axis stays put next to the tick labels it aligns
+            // with. Reading the x axis's spacing instead left it on the moved axis line.
+            expect(await axisLabelXWith(45, 5)).toBeCloseTo(await axisLabelXWith(5, 5), 5);
+        });
+
+        it("ignores the x axis's label spacing", async () => {
+            expect(await axisLabelXWith(5, 45)).toBeCloseTo(await axisLabelXWith(5, 5), 5);
         });
     });
 });
