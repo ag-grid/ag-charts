@@ -7,6 +7,7 @@ import {
     type Scale,
     ScaleAlignment,
     Vec4,
+    clampArray,
     createId,
     toRadians,
 } from 'ag-charts-core';
@@ -67,8 +68,8 @@ export class CartesianBackgroundRegion implements _ModuleSupport.BackgroundRegio
     static readonly className = 'BackgroundRegion';
     readonly internalId = createId(this);
 
-    xScale?: Scale<any, number, number | AgTimeInterval | AgTimeIntervalUnit>;
-    yScale?: Scale<any, number, number | AgTimeInterval | AgTimeIntervalUnit>;
+    xAxis?: _ModuleSupport.AxisContext;
+    yAxis?: _ModuleSupport.AxisContext;
 
     readonly regionGroup = new _ModuleSupport.Group({ name: this.internalId });
     readonly labelGroup = new _ModuleSupport.Group({ name: this.internalId });
@@ -86,15 +87,24 @@ export class CartesianBackgroundRegion implements _ModuleSupport.BackgroundRegio
 
     update() {
         const bounds = this.getBounds();
-        const visible = bounds != null;
 
-        this.regionGroup.visible = visible;
-        this.labelGroup.visible = visible;
+        this.regionGroup.visible = bounds != null;
 
-        if (bounds == null) return;
+        if (bounds == null) {
+            this.labelGroup.visible = false;
+            return;
+        }
 
         this.updateRegionNode(bounds);
-        this.updateLabelNode(bounds);
+
+        // The label anchors to the visible part of the region rather than the region itself, so it
+        // stays at the series area edge while the region extends past it, matching cross line labels.
+        const labelBounds = this.getSeriesAreaBounds(bounds);
+        this.labelGroup.visible = labelBounds != null;
+
+        if (labelBounds == null) return;
+
+        this.updateLabelNode(labelBounds);
     }
 
     private updateRegionNode(bounds: Bounds4) {
@@ -168,11 +178,11 @@ export class CartesianBackgroundRegion implements _ModuleSupport.BackgroundRegio
     }
 
     private getBounds(): Bounds4 | undefined {
-        const { opts, xScale, yScale } = this;
-        if (!xScale || !yScale) return;
+        const { opts, xAxis, yAxis } = this;
+        if (!xAxis || !yAxis) return;
 
-        const x = this.getAxisExtent(xScale, opts.xRange, 'xRange');
-        const y = this.getAxisExtent(yScale, opts.yRange, 'yRange');
+        const x = this.getAxisExtent(xAxis.scale, opts.xRange, 'xRange');
+        const y = this.getAxisExtent(yAxis.scale, opts.yRange, 'yRange');
         if (!x || !y) return;
 
         const bounds = Vec4.from(x[0], y[0], x[1], y[1]);
@@ -187,9 +197,26 @@ export class CartesianBackgroundRegion implements _ModuleSupport.BackgroundRegio
         return bounds;
     }
 
+    /** Clamps bounds to the series area, returning `undefined` when nothing of the region is in view. */
+    private getSeriesAreaBounds(bounds: Bounds4): Bounds4 | undefined {
+        const { xAxis, yAxis } = this;
+        if (!xAxis || !yAxis) return;
+
+        const clamped = Vec4.from(
+            clampArray(bounds.x1, xAxis.range),
+            clampArray(bounds.y1, yAxis.range),
+            clampArray(bounds.x2, xAxis.range),
+            clampArray(bounds.y2, yAxis.range)
+        );
+
+        if (Vec4.width(clamped) === 0 || Vec4.height(clamped) === 0) return;
+
+        return clamped;
+    }
+
     /**
      * Resolves one axis' range to an ascending pixel pair. An omitted bound extends to that end of
-     * the plot; a bound the axis cannot resolve drops the whole region.
+     * the series area; a bound the axis cannot resolve drops the whole region.
      */
     private getAxisExtent(
         scale: Scale<any, number, number | AgTimeInterval | AgTimeIntervalUnit>,
@@ -209,7 +236,7 @@ export class CartesianBackgroundRegion implements _ModuleSupport.BackgroundRegio
         let p1 = end == null ? scale.range[1] : scale.convert(end, { alignment: ScaleAlignment.Trailing });
 
         // Only a bound resolved from a value needs band expansion — an omitted one already sits on
-        // the plot edge.
+        // the series area edge.
         let expandStart = start != null;
         let expandEnd = end != null;
 

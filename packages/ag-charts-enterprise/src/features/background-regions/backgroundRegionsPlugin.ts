@@ -58,7 +58,7 @@ export class BackgroundRegionsPlugin extends AbstractModuleInstance implements S
     }
 
     onSeriesAreaUpdate(clipRect: _ModuleSupport.BBox | undefined): void {
-        // Labels are deliberately unclipped so outside positions remain visible past the plot edge,
+        // Labels are deliberately unclipped so outside positions remain visible past the series area edge,
         // matching cross line labels.
         this.regionGroup.setClipRectCanvasSpace(clipRect);
 
@@ -88,11 +88,11 @@ export class BackgroundRegionsPlugin extends AbstractModuleInstance implements S
     }
 
     private initInstance(region: _ModuleSupport.BackgroundRegion, opts: NormalisedSeriesAreaBackgroundRegion): void {
-        region.xScale = this.resolveScale(ChartAxisDirection.X, opts.xRange?.axis, 'xRange');
-        region.yScale = this.resolveScale(ChartAxisDirection.Y, opts.yRange?.axis, 'yRange');
+        region.xAxis = this.resolveAxis(ChartAxisDirection.X, opts.xRange?.axis, 'xRange');
+        region.yAxis = this.resolveAxis(ChartAxisDirection.Y, opts.yRange?.axis, 'yRange');
     }
 
-    private resolveScale(direction: ChartAxisDirection, axisKey: string | undefined, optionsKey: string) {
+    private resolveAxis(direction: ChartAxisDirection, axisKey: string | undefined, optionsKey: string) {
         const axisID = axisKey == null ? undefined : this.ctx.axisManager.getRemappedAxisId(axisKey);
 
         if (axisKey != null && axisID == null) {
@@ -101,12 +101,9 @@ export class BackgroundRegionsPlugin extends AbstractModuleInstance implements S
             );
         }
 
-        const axisContext =
-            axisID == null
-                ? this.ctx.axisManager.getAxisContext(direction).at(0)
-                : this.ctx.axisManager.getAxisIdContext(axisID);
-
-        return axisContext?.scale;
+        return axisID == null
+            ? this.ctx.axisManager.getAxisContext(direction).at(0)
+            : this.ctx.axisManager.getAxisIdContext(axisID);
     }
 
     private optionsEquivalent(options: NormalisedSeriesAreaBackgroundRegion[] | undefined): boolean {
