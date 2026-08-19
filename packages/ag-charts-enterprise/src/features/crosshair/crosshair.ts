@@ -14,7 +14,6 @@ import {
     type CurrentPoint,
     type NormalisedCrosshairOptions,
     ZIndexMap,
-    clamp,
     coerceTextValue,
     createId,
     forceLtrNumbersIn,
@@ -50,7 +49,6 @@ export class Crosshair
     private readonly axisCtx: _ModuleSupport.AxisContext;
     private seriesRect: _ModuleSupport.BBox = new BBox(0, 0, 0, 0);
     private bounds: _ModuleSupport.BBox = new BBox(0, 0, 0, 0);
-    private chartSize: { width: number; height: number } = { width: 0, height: 0 };
     private axisLayout?: _ModuleSupport.AxisLayout;
 
     private cachedFormatter: FormatterCache | undefined;
@@ -159,12 +157,11 @@ export class Crosshair
         return this.ctx.interactionManager.isState(InteractionState.Frozen);
     }
 
-    private layout({ chart, series: { rect, visible }, axes }: _ModuleSupport.LayoutCompleteEvent) {
+    private layout({ series: { rect, visible }, axes }: _ModuleSupport.LayoutCompleteEvent) {
         const options = this.options;
         if (!visible || !axes || !options?.enabled) return;
 
         this.seriesRect = rect;
-        this.chartSize = chart;
 
         const { position: axisPosition = 'left', axisId } = this.axisCtx;
 
@@ -483,7 +480,6 @@ export class Crosshair
         // `crossAt` moves the axis line off its `position` edge, so follow it by the same offset —
         // otherwise the label annotates a line that is no longer there.
         const crossOffset = this.axisLayout.crossAxisTranslation ?? { x: 0, y: 0 };
-        const { width: labelWidth = 0, height: labelHeight = 0 } = label.size ?? {};
 
         // Use CSS translate percentages to avoid synchronous dimension reads.
         // translate(-50%, 0) centres horizontally; translate(0, -50%) centres vertically;
@@ -492,30 +488,20 @@ export class Crosshair
             padding -= 4;
             const isBottom = axisPosition === 'bottom';
             const lineY = (isBottom ? bounds.y + bounds.height : bounds.y) + crossOffset.y;
-            // An axis with no labels or ticks has no thickness, leaving no room outside the plot, so
-            // draw on the inner side of the line rather than off-canvas.
-            const outwardFits = isBottom
-                ? lineY + padding + labelHeight <= this.chartSize.height
-                : lineY - padding - labelHeight >= 0;
-            const below = isBottom === outwardFits;
             label.show({
-                x: clamp(labelWidth / 2, x, Math.max(labelWidth / 2, this.chartSize.width - labelWidth / 2)),
-                y: below ? lineY + padding : lineY - padding,
+                x,
+                y: isBottom ? lineY + padding : lineY - padding,
                 translateX: '-50%',
-                translateY: below ? '0' : '-100%',
+                translateY: isBottom ? '0' : '-100%',
             });
         } else {
             padding -= 8;
             const isRight = axisPosition === 'right';
             const lineX = (isRight ? bounds.x + bounds.width : bounds.x) + crossOffset.x;
-            const outwardFits = isRight
-                ? lineX + padding + labelWidth <= this.chartSize.width
-                : lineX - padding - labelWidth >= 0;
-            const rightOfLine = isRight === outwardFits;
             label.show({
-                x: rightOfLine ? lineX + padding : lineX - padding,
-                y: clamp(labelHeight / 2, y, Math.max(labelHeight / 2, this.chartSize.height - labelHeight / 2)),
-                translateX: rightOfLine ? '0' : '-100%',
+                x: isRight ? lineX + padding : lineX - padding,
+                y,
+                translateX: isRight ? '0' : '-100%',
                 translateY: '-50%',
             });
         }

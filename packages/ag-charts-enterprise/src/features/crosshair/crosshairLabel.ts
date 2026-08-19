@@ -12,10 +12,6 @@ export class CrosshairLabel {
     xOffset: number = 0;
     yOffset: number = 0;
 
-    /** Observed element size, used to keep the label inside the canvas. `undefined` until the first observation. */
-    size: { width: number; height: number } | undefined;
-    private readonly removeResizeListener: () => void;
-
     constructor(
         private readonly domManager: _ModuleSupport.DOMManager,
         key: string,
@@ -26,9 +22,6 @@ export class CrosshairLabel {
         this.elementProxy.setAttr('aria-hidden', 'true');
         this.elementProxy.setAttr('data-key', key);
         this.elementProxy.setAttr('data-axis-id', axisId);
-        this.removeResizeListener = this.elementProxy.addResizeListener(({ width, height }) => {
-            this.size = { width, height };
-        });
     }
 
     show(meta: Point & { translateX?: string; translateY?: string }) {
@@ -59,7 +52,6 @@ export class CrosshairLabel {
     }
 
     destroy() {
-        this.removeResizeListener();
         this.domManager.removeChild('canvas-overlay', `crosshair-label-${this.id}`);
     }
 
