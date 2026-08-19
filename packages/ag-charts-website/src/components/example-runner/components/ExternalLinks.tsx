@@ -33,7 +33,7 @@ export function ExternalLinks({
                         files={exampleFiles}
                         htmlUrl={codeSandboxHtmlUrl}
                         internalFramework={internalFramework}
-                        packageJson={packageJson!}
+                        packageJson={packageJson}
                     />
                 </li>
             ) : undefined}

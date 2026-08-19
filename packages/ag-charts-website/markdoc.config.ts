@@ -16,7 +16,6 @@ import { imageCaption } from '@ag-website-shared/markdoc/tags/imageCaption';
 import { kbd } from '@ag-website-shared/markdoc/tags/kbd';
 import { majorTable } from '@ag-website-shared/markdoc/tags/majorTable';
 import { note } from '@ag-website-shared/markdoc/tags/note';
-import { oneTrustCookies } from '@ag-website-shared/markdoc/tags/oneTrustCookies';
 import { tabItem, tabs } from '@ag-website-shared/markdoc/tags/tabs';
 import { touchImage } from '@ag-website-shared/markdoc/tags/touchimage';
 import { trialLicenceForm } from '@ag-website-shared/markdoc/tags/trialLicenceForm';
@@ -58,7 +57,6 @@ export default defineMarkdocConfig({
     tags: {
         kbd,
         link,
-        oneTrustCookies,
         tabs,
         tabItem,
         videoSection,
