@@ -49,7 +49,7 @@ function axisRegionWidgets(widgetSet: WidgetSet): AxisWidget[] {
     for (const entry of entries.values()) {
         const widget = new Caster(entry)
             .accessNullableProperty('region')
-            .accessProperty('widget')
+            .accessNullableProperty('widget')
             .castNullable(AxisWidget).value;
         if (widget != null) {
             result.push(widget);
