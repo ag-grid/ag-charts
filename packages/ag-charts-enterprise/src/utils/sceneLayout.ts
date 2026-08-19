@@ -1,4 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import type { ResolvedTextAlign } from 'ag-charts-core';
 
 export type PositionedScene = Vec2Scene | Vec4Scene | TranslatableScene;
 
@@ -72,6 +73,29 @@ function alignSceneTopEdge(scene: PositionedScene, targetY: number) {
 function alignSceneLeftEdge(scene: PositionedScene, targetX: number) {
     const overflow = targetX - scene.getBBox().x;
     if (overflow !== 0) layoutSetX(scene, sceneX(scene) + overflow);
+}
+
+// Position the scene horizontally within [left, right] by its bbox rather than its anchor
+// point, so a text node's backing box — which extends the bbox beyond the anchor by its
+// padding, asymmetrically when the padding is per-side — stays inside the bounds.
+export function alignSceneX(scene: PositionedScene, left: number, right: number, align: ResolvedTextAlign): void {
+    const target = alignedX(left, right, align);
+    layoutSetX(scene, target);
+
+    const bbox = scene.getBBox();
+    const actual = alignedX(bbox.x, bbox.x + bbox.width, align);
+    if (actual !== target) layoutSetX(scene, sceneX(scene) + target - actual);
+}
+
+function alignedX(left: number, right: number, align: ResolvedTextAlign) {
+    switch (align) {
+        case 'right':
+            return right;
+        case 'center':
+            return (left + right) / 2;
+        default:
+            return left;
+    }
 }
 
 function layoutSetX(scene: PositionedScene, x: number) {
