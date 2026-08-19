@@ -1,6 +1,7 @@
 import reactHooksPlugin from 'eslint-plugin-react-hooks';
 
 import base from '../../eslint.config.mjs';
+import { noRawHistoryWrites } from '../../external/ag-website-shared/eslint.history-rules.mjs';
 
 export default [
     ...base,
@@ -88,5 +89,10 @@ export default [
             'tools/compare-gallery-thumbnails.js',
             'update-algolia.js',
         ],
+    },
+    {
+        rules: {
+            'no-restricted-syntax': ['error', ...noRawHistoryWrites],
+        },
     },
 ];
