@@ -413,4 +413,66 @@ describe('AgCharts', () => {
             ]);
         });
     });
+    describe('invalid options', () => {
+        const expectedError =
+            /^AG Charts - AgCharts\.create\(\) requires a valid options object with at least a `container` and `series` \(or `data`\)/;
+
+        it('throws a descriptive error when called with no argument', () => {
+            expect(() => (AgCharts.create as any)()).toThrowError(expectedError);
+        });
+
+        it.each([
+            ['undefined', undefined],
+            ['null', null],
+            ['a number', 3],
+            ['a string', 'abc'],
+            ['an empty string', ''],
+            ['an empty array', []],
+            ['an empty object', {}],
+        ])('throws a descriptive error for %s', (_name, options) => {
+            expect(() => AgCharts.create(options as any)).toThrowError(expectedError);
+            expect(console.warn).not.toHaveBeenCalled();
+            expect(console.error).not.toHaveBeenCalled();
+        });
+
+        it('names the value it received', () => {
+            expect(() => AgCharts.create(3 as any)).toThrowError(/received a number \(3\)\.$/);
+            expect(() => AgCharts.create('abc' as any)).toThrowError(/received a string \('abc'\)\.$/);
+            expect(() => AgCharts.create([] as any)).toThrowError(/received an array\.$/);
+            expect(() => AgCharts.create({} as any)).toThrowError(/received an empty object\.$/);
+            expect(() => AgCharts.create(null as any)).toThrowError(/received null\.$/);
+            expect(() => AgCharts.create(undefined as any)).toThrowError(/received undefined\.$/);
+        });
+
+        it.each([
+            ['createFinancialChart', () => AgCharts.createFinancialChart(undefined as any)],
+            ['createGauge', () => AgCharts.createGauge(undefined as any)],
+            ['createQuadrantChart', () => AgCharts.createQuadrantChart(undefined as any)],
+            ['__createSparkline', () => AgCharts.__createSparkline(undefined as any)],
+        ])('names %s in the error it throws', (methodName, call) => {
+            expect(call).toThrowError(
+                new RegExp(`^AG Charts - AgCharts\\.${methodName}\\(\\) requires a valid options object`)
+            );
+        });
+
+        it('rejects a sparkline whose only option is `pool`', () => {
+            expect(() => AgCharts.__createSparkline({ pool: true } as any)).toThrowError(
+                /^AG Charts - AgCharts\.__createSparkline\(\) requires a valid options object/
+            );
+        });
+
+        it('still creates a chart from valid options', async () => {
+            const options: AgChartOptions = {
+                container,
+                data: [{ x: 'a', y: 1 }],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+            };
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await chart.waitForUpdate();
+
+            expect(deproxy(chart).series).toHaveLength(1);
+        });
+    });
 });
