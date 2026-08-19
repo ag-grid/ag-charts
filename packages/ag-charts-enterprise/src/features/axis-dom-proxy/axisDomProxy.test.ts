@@ -648,21 +648,24 @@ describe('AxisDOMProxy', () => {
     });
 
     describe('reversed axis clicks - number', () => {
+        let Xs: [number, number, number, number];
+
         beforeEach(async () => {
             chart = await createEnterpriseChart({
-                data: Array.from({ length: 4 }, (_, i) => ({ x: i * 200, y: i })),
+                data: Array.from({ length: 4 }, (_, i) => ({ x: 20_000 + i * 20_000, y: i })),
                 axes: {
                     // One tick per datum, so the four grid lines are the four ticks.
-                    x: { type: 'number', reverse: true, interval: { step: 200 }, listeners: { click } },
+                    x: { type: 'number', reverse: true, interval: { step: 20_000 }, listeners: { click } },
                     y: { type: 'number' },
                 },
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
             });
+            Xs = measureXGridLines()!;
+            expect(Xs).toBeDefined();
         });
 
-        // Grid lines run 600, 400, 200, 0 left to right on a reversed domain.
+        // Grid lines run 80000, 60000, 40000, 20000 left to right on a reversed domain.
         test('each click reports its own position', async () => {
-            const Xs = measureXGridLines()!;
             await clickAction(Xs[0], 560)(chart);
             await clickAction(Xs[1], 560)(chart);
             await clickAction(Xs[2], 560)(chart);
@@ -670,10 +673,21 @@ describe('AxisDOMProxy', () => {
             await waitForChartStability(chart);
 
             expect(click.mock.calls).toMatchObject([
-                [expect.objectContaining({ value: expect.closeTo(600), index: 3 })],
-                [expect.objectContaining({ value: expect.closeTo(400), index: 2 })],
-                [expect.objectContaining({ value: expect.closeTo(200), index: 1 })],
-                [expect.objectContaining({ value: expect.closeTo(0), index: 0 })],
+                [expect.objectContaining({ value: expect.closeTo(80_000), index: 3 })],
+                [expect.objectContaining({ value: expect.closeTo(60_000), index: 2 })],
+                [expect.objectContaining({ value: expect.closeTo(40_000), index: 1 })],
+                [expect.objectContaining({ value: expect.closeTo(20_000), index: 0 })],
+            ]);
+        });
+
+        test('clicks outside min/max domain are clamped', async () => {
+            await clickAction(Xs[0] - 15, 572)(chart);
+            await clickAction(Xs[3] + 15, 572)(chart);
+            await waitForChartStability(chart);
+
+            expect(click.mock.calls).toMatchObject([
+                [expect.objectContaining({ value: 80_000, index: 3 })],
+                [expect.objectContaining({ value: 20_000, index: 0 })],
             ]);
         });
     });
@@ -745,6 +759,8 @@ describe('AxisDOMProxy', () => {
     // A discrete domain holds whatever the data holds, in data order, so its endpoints carry no ordering.
     // Nothing may treat them as bounds: 100 sits between 0 and 1 here and must survive the click.
     describe('numeric category axis clicks', () => {
+        let Xs: [number, number, number, number];
+
         beforeEach(async () => {
             chart = await createEnterpriseChart({
                 data: [
@@ -753,23 +769,39 @@ describe('AxisDOMProxy', () => {
                     { x: 1, y: 3 },
                 ],
                 axes: {
-                    x: { type: 'category', listeners: { click } },
+                    x: {
+                        type: 'category',
+                        label: { formatter: (p) => `Category Number: ${p.value}` },
+                        listeners: { click },
+                    },
                     y: { type: 'number' },
                 },
-                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
             });
+            Xs = measureXGridLines()!;
+            expect(Xs).toBeDefined();
         });
 
         test('a category outside its neighbours’ range is reported unchanged', async () => {
-            const Xs: number[] = measureBandCentres(3);
-            await clickAction(Xs[0], 560)(chart);
-            await clickAction(Xs[1], 560)(chart);
-            await clickAction(Xs[2], 560)(chart);
+            await clickAction(84, 572)(chart);
+            await clickAction(415, 572)(chart);
+            await clickAction(756, 572)(chart);
             await waitForChartStability(chart);
 
             expect(click.mock.calls).toMatchObject([
                 [expect.objectContaining({ value: 0, index: 0 })],
                 [expect.objectContaining({ value: 100, index: 1 })],
+                [expect.objectContaining({ value: 1, index: 2 })],
+            ]);
+        });
+
+        test('clicks outside min/max domain are clamped', async () => {
+            await clickAction(35, 572)(chart);
+            await clickAction(799, 572)(chart);
+            await waitForChartStability(chart);
+
+            expect(click.mock.calls).toMatchObject([
+                [expect.objectContaining({ value: 0, index: 0 })],
                 [expect.objectContaining({ value: 1, index: 2 })],
             ]);
         });
