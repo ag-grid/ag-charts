@@ -22,6 +22,15 @@ function measureXGridLines(): [number, number, number, number] | undefined {
     return undefined;
 }
 
+// Centre of each of `count` equal bands across the series area.
+function measureBandCentres(count: number): number[] {
+    const elem = document.querySelector('.ag-charts-series-area');
+    if (!(elem instanceof HTMLElement)) throw new Error('series area not found');
+    const left = Number.parseInt(elem.style.left);
+    const width = Number.parseInt(elem.style.width);
+    return Array.from({ length: count }, (_, i) => left + (width * (i + 0.5)) / count);
+}
+
 describe('AxisDOMProxy', () => {
     setupMockCanvas();
     setupMockConsole();
@@ -634,6 +643,130 @@ describe('AxisDOMProxy', () => {
             expect(click.mock.calls).toMatchObject([
                 [expect.objectContaining({ value: xs[0], index: 0 })],
                 [expect.objectContaining({ value: xs[3], index: 3 })],
+            ]);
+        });
+    });
+
+    // `reverse` reverses the domain array rather than the range, so an axis whose bounds are read as
+    // `[first, last]` sees them the wrong way round. Clamping against those bounds pins every click to a
+    // single endpoint, which these suites guard against for each scale family that can be picked.
+    const days = Array.from({ length: 4 }, (_, i) => new Date(Date.UTC(2020, 0, 1 + i)));
+
+    describe('reversed axis clicks - number', () => {
+        beforeEach(async () => {
+            chart = await createEnterpriseChart({
+                data: Array.from({ length: 4 }, (_, i) => ({ x: i * 200, y: i })),
+                axes: {
+                    // One tick per datum, so the four grid lines are the four ticks.
+                    x: { type: 'number', reverse: true, interval: { step: 200 }, listeners: { click } },
+                    y: { type: 'number' },
+                },
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            });
+        });
+
+        // Grid lines run 600, 400, 200, 0 left to right on a reversed domain.
+        test('each click reports its own position', async () => {
+            const Xs = measureXGridLines()!;
+            await clickAction(Xs[0], 560)(chart);
+            await clickAction(Xs[1], 560)(chart);
+            await clickAction(Xs[2], 560)(chart);
+            await clickAction(Xs[3], 560)(chart);
+            await waitForChartStability(chart);
+
+            expect(click.mock.calls).toMatchObject([
+                [expect.objectContaining({ value: expect.closeTo(600), index: 3 })],
+                [expect.objectContaining({ value: expect.closeTo(400), index: 2 })],
+                [expect.objectContaining({ value: expect.closeTo(200), index: 1 })],
+                [expect.objectContaining({ value: expect.closeTo(0), index: 0 })],
+            ]);
+        });
+    });
+
+    // A `unit-time` axis is backed by a band scale, but the axis reports its picked value from the scale
+    // as a continuous axis does, so an out-of-order bound reaches the reported value here.
+    describe('reversed axis clicks - unit-time', () => {
+        beforeEach(async () => {
+            chart = await createEnterpriseChart({
+                data: days.map((x, i) => ({ x, y: i })),
+                axes: {
+                    x: { type: 'unit-time', reverse: true, listeners: { click } },
+                    y: { type: 'number' },
+                },
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+            });
+        });
+
+        test('each click reports its own band', async () => {
+            for (const centre of measureBandCentres(4)) {
+                await clickAction(centre, 560)(chart);
+            }
+            await waitForChartStability(chart);
+
+            expect(click.mock.calls).toMatchObject([
+                [expect.objectContaining({ value: days[3], index: 3 })],
+                [expect.objectContaining({ value: days[2], index: 2 })],
+                [expect.objectContaining({ value: days[1], index: 1 })],
+                [expect.objectContaining({ value: days[0], index: 0 })],
+            ]);
+        });
+    });
+
+    describe('reversed axis clicks - ordinal-time', () => {
+        beforeEach(async () => {
+            chart = await createEnterpriseChart({
+                data: days.map((x, i) => ({ x, y: i })),
+                axes: {
+                    x: { type: 'ordinal-time', reverse: true, listeners: { click } },
+                    y: { type: 'number' },
+                },
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+            });
+        });
+
+        test('each click reports its own band', async () => {
+            for (const centre of measureBandCentres(4)) {
+                await clickAction(centre, 560)(chart);
+            }
+            await waitForChartStability(chart);
+
+            expect(click.mock.calls).toMatchObject([
+                [expect.objectContaining({ value: days[3], index: 3 })],
+                [expect.objectContaining({ value: days[2], index: 2 })],
+                [expect.objectContaining({ value: days[1], index: 1 })],
+                [expect.objectContaining({ value: days[0], index: 0 })],
+            ]);
+        });
+    });
+
+    // A discrete domain holds whatever the data holds, in data order, so its endpoints carry no ordering.
+    // Nothing may treat them as bounds: 100 sits between 0 and 1 here and must survive the click.
+    describe('numeric category axis clicks', () => {
+        beforeEach(async () => {
+            chart = await createEnterpriseChart({
+                data: [
+                    { x: 0, y: 1 },
+                    { x: 100, y: 2 },
+                    { x: 1, y: 3 },
+                ],
+                axes: {
+                    x: { type: 'category', listeners: { click } },
+                    y: { type: 'number' },
+                },
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+            });
+        });
+
+        test('a category outside its neighbours’ range is reported unchanged', async () => {
+            for (const centre of measureBandCentres(3)) {
+                await clickAction(centre, 560)(chart);
+            }
+            await waitForChartStability(chart);
+
+            expect(click.mock.calls).toMatchObject([
+                [expect.objectContaining({ value: 0, index: 0 })],
+                [expect.objectContaining({ value: 100, index: 1 })],
+                [expect.objectContaining({ value: 1, index: 2 })],
             ]);
         });
     });

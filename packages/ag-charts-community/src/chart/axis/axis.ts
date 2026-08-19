@@ -192,6 +192,8 @@ function unsafeDomain(scale: Scale<unknown, unknown, unknown>): AgAxisDomain {
 
 // `domainMin`/`domainMax` rather than `getDomainMinMax`: only these keep a bigint exact and a reversed domain ordered.
 function unsafeClamp(scale: Scale<unknown, unknown, unknown>, value: AgAxisValue): AgAxisValue {
+    if (!ContinuousScale.is(scale)) return value;
+
     if (typeof value === 'number') {
         const [min, max] = [scale.domainMin, scale.domainMax] as [number, number];
         return clamp(min, value, max);
