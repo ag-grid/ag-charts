@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, test, vi } from 'vitest';
 
 import type {
     AgCartesianChartOptions,
+    AgChartLegendItemOptions,
     AgChartLegendListeners,
     AgChartLegendPosition,
     AgChartOptions,
@@ -435,6 +436,139 @@ describe('Legend', () => {
                 ],
                 legend: { item: { marker: { size: 30, strokeWidth: 10 }, line: { length: 70 } } },
             });
+        });
+    });
+
+    describe('Item disabledStyle', () => {
+        const disabledStyleData = [
+            { x: 'x1', a: 1, b: 2 },
+            { x: 'x2', a: 3, b: 2 },
+        ];
+
+        const withLegendItem = (item: AgChartLegendItemOptions): AgChartOptions => ({
+            data: disabledStyleData,
+            series: [
+                { type: 'line', xKey: 'x', yKey: 'a', visible: false, marker: { enabled: true } },
+                { type: 'line', xKey: 'x', yKey: 'b', marker: { enabled: true } },
+            ],
+            legend: { item: { showSeriesStroke: true, ...item } },
+        });
+
+        // The toggled-off item is the first one; the second stays enabled so every case also
+        // asserts that the enabled item is left alone.
+        const disabledItem = async (item: AgChartLegendItemOptions) => {
+            chart = await createChart(withLegendItem(item));
+            return getLegendModule(chart).itemSelection.nodes();
+        };
+
+        test('marker fill applies to the marker only', async () => {
+            await compareSnapshot(withLegendItem({ marker: { disabledStyle: { fill: '#767676' } } }));
+        });
+
+        test('label color applies to the label only', async () => {
+            await compareSnapshot(withLegendItem({ label: { disabledStyle: { color: '#767676' } } }));
+        });
+
+        test('line stroke and lineDash apply to the line only', async () => {
+            await compareSnapshot(withLegendItem({ line: { disabledStyle: { stroke: '#767676', lineDash: [3, 3] } } }));
+        });
+
+        test('colour-only greying leaves the disabled item at full contrast', async () => {
+            await compareSnapshot(
+                withLegendItem({
+                    marker: { disabledStyle: { fill: '#767676', stroke: '#767676', opacity: 1 } },
+                    line: { disabledStyle: { stroke: '#767676', opacity: 1 } },
+                    label: { disabledStyle: { color: '#595959', opacity: 1 } },
+                })
+            );
+        });
+
+        it('should dim a toggled-off item as a whole when no disabledStyle is set', async () => {
+            const [disabled, enabled] = await disabledItem({});
+
+            // The item group carries the dim and the label keeps its own 0.5 on top, which is the
+            // appearance shipped before disabledStyle existed - no baseline churn for default charts.
+            expect(disabled.opacity).toBe(0.5);
+            expect(disabled.marker?.fillOpacity).toBe(1);
+            expect(disabled.line?.strokeOpacity).toBe(1);
+            expect(disabled.labelOpacity).toBe(0.5);
+
+            expect(enabled.opacity).toBe(1);
+            expect(enabled.marker?.fillOpacity).toBe(1);
+            expect(enabled.line?.strokeOpacity).toBe(1);
+            expect(enabled.labelOpacity).toBe(1);
+        });
+
+        it('should treat opacity as absolute, per sub-element, once any disabledStyle is set', async () => {
+            const [disabled] = await disabledItem({ marker: { disabledStyle: { opacity: 1 } } });
+
+            // The group dim is lifted so a sub-element opacity is absolute rather than a multiplier.
+            expect(disabled.opacity).toBe(1);
+            expect(disabled.marker?.fillOpacity).toBe(1);
+            expect(disabled.line?.strokeOpacity).toBe(0.5);
+            expect(disabled.labelOpacity).toBe(0.5);
+        });
+
+        it('should fall back per property when disabledStyle is partial', async () => {
+            const [disabled] = await disabledItem({ marker: { disabledStyle: { fill: '#767676' } } });
+
+            expect(disabled.opacity).toBe(1);
+            expect(disabled.marker?.fill).toBe('#767676');
+            expect(disabled.marker?.fillOpacity).toBe(0.5);
+            expect(disabled.labelOpacity).toBe(0.5);
+        });
+
+        it('should restore the enabled appearance when the item is toggled back on', async () => {
+            chart = await createChart({
+                data: disabledStyleData,
+                series: [
+                    { type: 'line', xKey: 'x', yKey: 'a', marker: { enabled: true } },
+                    { type: 'line', xKey: 'x', yKey: 'b', marker: { enabled: true } },
+                ],
+                legend: { item: { showSeriesStroke: true, marker: { disabledStyle: { fill: '#767676' } } } },
+            });
+
+            const nodes = () => getLegendModule(chart).itemSelection.nodes();
+            const enabledFill = nodes()[0].marker?.fill;
+            const box = computeLegendBBox(chart);
+
+            await clickAction(box.x, box.y)(chart);
+            await waitForChartStability(chart);
+            expect(nodes()[0].marker?.fill).toBe('#767676');
+
+            await clickAction(box.x, box.y)(chart);
+            await waitForChartStability(chart);
+            expect(nodes()[0].marker?.fill).toBe(enabledFill);
+            expect(nodes()[0].marker?.fillOpacity).toBe(1);
+            expect(nodes()[0].labelOpacity).toBe(1);
+        });
+
+        it('should let chart options override a theme override', async () => {
+            chart = await createChart({
+                ...withLegendItem({ marker: { disabledStyle: { fill: '#111111' } } }),
+                theme: {
+                    overrides: {
+                        common: { legend: { item: { marker: { disabledStyle: { fill: '#eeeeee' } } } } },
+                    },
+                },
+            });
+
+            const [disabled] = getLegendModule(chart).itemSelection.nodes();
+            expect(disabled.marker?.fill).toBe('#111111');
+        });
+
+        it('should apply a theme override when chart options do not set one', async () => {
+            chart = await createChart({
+                ...withLegendItem({}),
+                theme: {
+                    overrides: {
+                        common: { legend: { item: { marker: { disabledStyle: { fill: '#eeeeee' } } } } },
+                    },
+                },
+            });
+
+            const [disabled] = getLegendModule(chart).itemSelection.nodes();
+            expect(disabled.marker?.fill).toBe('#eeeeee');
         });
     });
 

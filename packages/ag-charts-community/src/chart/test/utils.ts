@@ -2064,8 +2064,16 @@ export function computeLegendBBox(chart: Chart): BBox {
     return new BBox(x, y, width, height);
 }
 
+export interface LegendTestItemNode {
+    datum?: { id: string; itemId?: string | number };
+    opacity?: number;
+    labelOpacity?: number;
+    marker?: { fill?: string; fillOpacity?: number; stroke?: string; strokeOpacity?: number; strokeWidth?: number };
+    line?: { stroke?: string; strokeOpacity?: number; lineDash?: number[] };
+}
+
 export interface LegendTestInternals {
-    itemSelection: { nodes(): { datum?: { id: string; itemId?: string | number } }[] };
+    itemSelection: { nodes(): LegendTestItemNode[] };
     onHover(event: FocusEvent | MouseEvent, node: unknown, fromKeyboardFocus?: boolean): void;
     onLeave(fromKeyboardFocus?: boolean): void;
 }
