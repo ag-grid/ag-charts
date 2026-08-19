@@ -138,6 +138,7 @@ export class AxisWidgets {
     destroy(): void {
         for (const entry of this.entries.values()) {
             entry.text?.destroy();
+            entry.region?.dragInterpreter.destroy();
             entry.region?.widget.destroy();
         }
         this.entries.clear();
