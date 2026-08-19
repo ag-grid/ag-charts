@@ -75,6 +75,15 @@ describe('convertTemplate', () => {
         expect(converted).toBe('<input type="checkbox" defaultChecked />');
     });
 
+    it('converts boolean disabled attributes', () => {
+        const template = '<fieldset class="control-group" disabled=""><button disabled="">Go</button></fieldset>';
+        const converted = convertTemplate(template);
+
+        expect(converted).toBe(
+            '<fieldset className="control-group" disabled={true}><button disabled={true}>Go</button></fieldset>'
+        );
+    });
+
     it('does not change value attributes for other elements', () => {
         const template = '<option value="bob">';
         const converted = convertTemplate(template);

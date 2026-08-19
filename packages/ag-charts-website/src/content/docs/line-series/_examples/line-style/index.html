@@ -1,48 +1,57 @@
 <div class="example-controls">
     <div class="controls-row">
-        <div class="button-group" role="group" aria-label="Interpolation">
+        <span>Interpolation:</span>
+        <div class="button-group gap-right" role="group" aria-label="Interpolation">
             <input
                 type="radio"
-                id="interpolation-linear"
-                name="interpolation"
+                id="type-linear"
+                name="interpolation-type"
                 value="linear"
-                onchange="interpolationChange(event)"
+                onchange="typeChange(event)"
             />
-            <label for="interpolation-linear">Linear</label>
+            <label for="type-linear">Linear</label>
             <input
                 type="radio"
-                id="interpolation-smooth"
-                name="interpolation"
+                id="type-smooth"
+                name="interpolation-type"
                 value="smooth"
                 checked
-                onchange="interpolationChange(event)"
+                onchange="typeChange(event)"
             />
-            <label for="interpolation-smooth">Smooth</label>
-            <input
-                type="radio"
-                id="interpolation-step-start"
-                name="interpolation"
-                value="step-start"
-                onchange="interpolationChange(event)"
-            />
-            <label for="interpolation-step-start">Step (Start)</label>
-            <input
-                type="radio"
-                id="interpolation-step-middle"
-                name="interpolation"
-                value="step-middle"
-                onchange="interpolationChange(event)"
-            />
-            <label for="interpolation-step-middle">Step (Middle)</label>
-            <input
-                type="radio"
-                id="interpolation-step-end"
-                name="interpolation"
-                value="step-end"
-                onchange="interpolationChange(event)"
-            />
-            <label for="interpolation-step-end">Step (End)</label>
+            <label for="type-smooth">Smooth</label>
+            <input type="radio" id="type-step" name="interpolation-type" value="step" onchange="typeChange(event)" />
+            <label for="type-step">Step</label>
         </div>
+        <fieldset id="stepPositionGroup" class="control-group" disabled>
+            <span>Step Position:</span>
+            <div class="button-group" role="group" aria-label="Step Position">
+                <input
+                    type="radio"
+                    id="position-start"
+                    name="step-position"
+                    value="start"
+                    onchange="positionChange(event)"
+                />
+                <label for="position-start">Start</label>
+                <input
+                    type="radio"
+                    id="position-middle"
+                    name="step-position"
+                    value="middle"
+                    onchange="positionChange(event)"
+                />
+                <label for="position-middle">Middle</label>
+                <input
+                    type="radio"
+                    id="position-end"
+                    name="step-position"
+                    value="end"
+                    checked
+                    onchange="positionChange(event)"
+                />
+                <label for="position-end">End</label>
+            </div>
+        </fieldset>
     </div>
 </div>
 <div id="myChart"></div>

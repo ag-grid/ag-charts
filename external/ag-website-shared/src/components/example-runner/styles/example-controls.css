@@ -103,7 +103,7 @@ body > #highlighter {
     appearance: none;
     display: inline-block;
     height: 36px;
-    padding: 5px 14px 7px;
+    padding: 6px 14px;
     white-space: nowrap;
     border-radius: 6px;
     color: var(--button-fg);

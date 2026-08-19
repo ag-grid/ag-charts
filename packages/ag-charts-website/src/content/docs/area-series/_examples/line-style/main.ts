@@ -43,17 +43,27 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function interpolationChange(event: Event) {
-    const interpolations: Record<string, AgLineSeriesOptions['interpolation']> = {
-        linear: { type: 'linear' },
-        smooth: { type: 'smooth' },
-        'step-start': { type: 'step', position: 'start' },
-        'step-middle': { type: 'step', position: 'middle' },
-        'step-end': { type: 'step', position: 'end' },
-    };
-    const interpolation = interpolations[(event.target as HTMLInputElement).value];
+let interpolationType: 'linear' | 'smooth' | 'step' = 'smooth';
+let stepPosition: 'start' | 'middle' | 'end' = 'end';
+
+function typeChange(event: Event) {
+    interpolationType = (event.target as HTMLInputElement).value as typeof interpolationType;
+
+    const stepPositionGroup = document.getElementById('stepPositionGroup') as HTMLFieldSetElement;
+    stepPositionGroup.disabled = interpolationType !== 'step';
+
     options.series?.forEach((series) => {
-        (series as AgLineSeriesOptions).interpolation = interpolation;
+        (series as AgLineSeriesOptions).interpolation =
+            interpolationType === 'step' ? { type: 'step', position: stepPosition } : { type: interpolationType };
+    });
+    chart.update(options);
+}
+
+function positionChange(event: Event) {
+    stepPosition = (event.target as HTMLInputElement).value as typeof stepPosition;
+
+    options.series?.forEach((series) => {
+        (series as AgLineSeriesOptions).interpolation = { type: 'step', position: stepPosition };
     });
     chart.update(options);
 }

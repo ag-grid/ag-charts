@@ -40,6 +40,7 @@ export function convertTemplate(template: string) {
         .replace(/<input (.+?[^=])>/g, '<input $1 />')
         .replace(/<input (.*)value=/g, '<input $1defaultValue=')
         .replace(/<input ([^>]*?)checked(="[^"]*")?/g, '<input $1defaultChecked')
+        .replace(/ disabled="[^"]*"/g, ' disabled={true}')
         .replace(/ class=/g, ' className=')
         .replace(/ for=/g, ' htmlFor=')
         .replace(/ <option (.*)selected=""/g, '<option $1selected={true}');
@@ -87,6 +88,7 @@ export function convertFunctionalTemplate(template: string) {
         .replace(/<input (.+?[^=])>/g, '<input $1 />')
         .replace(/<input (.*)value=/g, '<input $1defaultValue=')
         .replace(/<input ([^>]*?)checked(="[^"]*")?/g, '<input $1defaultChecked')
+        .replace(/ disabled="[^"]*"/g, ' disabled={true}')
         .replace(/ class=/g, ' className=')
         .replace(/ for=/g, ' htmlFor=')
         // when using fontawesome just use "class" instead - it's always the case that we're treating it as a raw value
