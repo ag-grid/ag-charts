@@ -56,7 +56,7 @@
     <div class="style-guide-item">
         <code>div class="button-group"</code>
         <div class="controls-row">
-            <label>I'm a button group with a label:</label>
+            <span>I'm a button group:</span>
             <div class="button-group" role="group" aria-label="Button group">
                 <input type="radio" id="bg-alpha" name="button-group" value="alpha" checked />
                 <label for="bg-alpha">Alpha</label>
@@ -67,7 +67,7 @@
             </div>
         </div>
         <div class="controls-row">
-            <label>I'm a button group containing code:</label>
+            <span>I'm a button group containing code:</span>
             <div class="button-group" role="group" aria-label="Button group with code">
                 <input type="radio" id="bg-code-left" name="button-group-code" value="left" checked />
                 <label for="bg-code-left"><code>'left'</code></label>
@@ -78,13 +78,45 @@
             </div>
         </div>
         <div class="controls-row">
-            <label>I'm a button group with a disabled option:</label>
+            <span>I'm a button group with a disabled option:</span>
             <div class="button-group" role="group" aria-label="Button group with a disabled option">
                 <input type="radio" id="bg-disabled-on" name="button-group-disabled" value="on" checked />
                 <label for="bg-disabled-on">Available</label>
                 <input type="radio" id="bg-disabled-off" name="button-group-disabled" value="off" disabled />
                 <label for="bg-disabled-off">Unavailable</label>
             </div>
+        </div>
+        <div class="controls-row">
+            <span>I'm two button groups in one row:</span>
+            <div class="button-group gap-right" role="group" aria-label="First button group">
+                <input type="radio" id="bg-first-one" name="button-group-first" value="one" checked />
+                <label for="bg-first-one">One</label>
+                <input type="radio" id="bg-first-two" name="button-group-first" value="two" />
+                <label for="bg-first-two">Two</label>
+            </div>
+            <div class="button-group" role="group" aria-label="Second button group">
+                <input type="radio" id="bg-second-three" name="button-group-second" value="three" />
+                <label for="bg-second-three">Three</label>
+                <input type="radio" id="bg-second-four" name="button-group-second" value="four" checked />
+                <label for="bg-second-four">Four</label>
+            </div>
+        </div>
+        <div class="controls-row">
+            <fieldset class="control-group" disabled>
+                <span>I'm a button group in a disabled control-group:</span>
+                <div class="button-group" role="group" aria-label="Button group in a disabled control group">
+                    <input
+                        type="radio"
+                        id="bg-fieldset-selected"
+                        name="button-group-fieldset"
+                        value="selected"
+                        checked
+                    />
+                    <label for="bg-fieldset-selected">Selected</label>
+                    <input type="radio" id="bg-fieldset-other" name="button-group-fieldset" value="other" />
+                    <label for="bg-fieldset-other">Other</label>
+                </div>
+            </fieldset>
         </div>
     </div>
 
