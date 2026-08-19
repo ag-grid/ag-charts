@@ -84,6 +84,36 @@ describe('convertTemplate', () => {
         );
     });
 
+    it('converts checked after an event handler', () => {
+        const template = '<input type="radio" onchange="f(event)" checked>';
+        const converted = convertTemplate(template);
+
+        expect(converted).toBe('<input type="radio" onChange={() => this.f(event)} defaultChecked />');
+    });
+
+    it('leaves standalone-looking words in text content alone', () => {
+        const converted = convertTemplate('<label>the checked one is disabled </label>');
+
+        expect(converted).toBe('<label>the checked one is disabled </label>');
+    });
+
+    it('leaves checked alone unless it is a standalone attribute', () => {
+        const template =
+            '<input type="radio" onchange="checkedChange(event)" aria-checked="true" data-checked="1" checked>';
+        const converted = convertTemplate(template);
+
+        expect(converted).toBe(
+            '<input type="radio" onChange={() => this.checkedChange(event)} aria-checked="true" data-checked="1" defaultChecked />'
+        );
+    });
+
+    it('leaves disabled alone unless it is a standalone attribute', () => {
+        const template = '<button aria-disabled="true" data-disabled="1" disabled>Go</button>';
+        const converted = convertTemplate(template);
+
+        expect(converted).toBe('<button aria-disabled="true" data-disabled="1" disabled={true}>Go</button>');
+    });
+
     it('does not change value attributes for other elements', () => {
         const template = '<option value="bob">';
         const converted = convertTemplate(template);

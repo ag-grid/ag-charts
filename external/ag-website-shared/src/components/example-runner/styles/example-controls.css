@@ -252,6 +252,9 @@ body > #highlighter {
 .example-controls .button-group {
     display: inline-flex;
     align-self: flex-start;
+    /* A group cannot wrap, so let one too wide for the row scroll rather than clip */
+    min-width: 0;
+    overflow-x: auto;
 }
 
 /* Visually hidden, but still focusable and keyboard navigable — the label is the visible control */
@@ -342,6 +345,10 @@ body > #highlighter {
     flex-wrap: wrap;
     gap: var(--row-gap);
     font-variant: tabular-nums;
+    /* .example-controls is a wrapping column flex container, so its cross size is content-based
+       and a row would otherwise grow past the example's width */
+    max-width: 100%;
+    min-width: 0;
 }
 
 .controls-row + .controls-row {

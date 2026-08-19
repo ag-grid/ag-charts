@@ -21,7 +21,20 @@ export function convertStyles(code: string) {
     });
 }
 
+/**
+ * React needs boolean attributes as JSX expressions, and uncontrolled inputs to use the default*
+ * props. Runs before event conversion, while the tag is still plain HTML — once a handler becomes
+ * an arrow function its `>` breaks any regex that relies on `[^>]` to stay inside the tag.
+ */
+function convertBooleanAttributes(template: string) {
+    return template
+        .replace(/(<input[^>]*?\s)checked(?:="[^"]*")?(?=[\s/>])/g, '$1defaultChecked')
+        .replace(/(<[a-z][^>]*?\s)disabled(?:="[^"]*")?(?=[\s/>])/g, '$1disabled={true}');
+}
+
 export function convertTemplate(template: string) {
+    template = convertBooleanAttributes(template);
+
     // React events are case sensitive, so need to ensure casing is correct
     const caseSensitiveEvents = {
         dragover: 'onDragOver',
@@ -39,8 +52,6 @@ export function convertTemplate(template: string) {
         .replace(/,\s+event([),])/g, '$1')
         .replace(/<input (.+?[^=])>/g, '<input $1 />')
         .replace(/<input (.*)value=/g, '<input $1defaultValue=')
-        .replace(/<input ([^>]*?)checked(="[^"]*")?/g, '<input $1defaultChecked')
-        .replace(/ disabled="[^"]*"/g, ' disabled={true}')
         .replace(/ class=/g, ' className=')
         .replace(/ for=/g, ' htmlFor=')
         .replace(/ <option (.*)selected=""/g, '<option $1selected={true}');
@@ -53,6 +64,8 @@ export function convertTemplate(template: string) {
 }
 
 export function convertFunctionalTemplate(template: string) {
+    template = convertBooleanAttributes(template);
+
     // React events are case sensitive, so need to ensure casing is correct
     const caseSensitiveEvents = {
         dragover: 'onDragOver',
@@ -87,8 +100,6 @@ export function convertFunctionalTemplate(template: string) {
         .replace(/,\s+event([),])/g, '$1')
         .replace(/<input (.+?[^=])>/g, '<input $1 />')
         .replace(/<input (.*)value=/g, '<input $1defaultValue=')
-        .replace(/<input ([^>]*?)checked(="[^"]*")?/g, '<input $1defaultChecked')
-        .replace(/ disabled="[^"]*"/g, ' disabled={true}')
         .replace(/ class=/g, ' className=')
         .replace(/ for=/g, ' htmlFor=')
         // when using fontawesome just use "class" instead - it's always the case that we're treating it as a raw value
