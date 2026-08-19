@@ -972,7 +972,7 @@ export class Annotations extends AbstractModuleInstance {
             yAxis: {
                 ...yAxis.context,
                 bounds: yAxis.bounds,
-                labelPadding: calculateAxisLabelPadding(xAxis.layout),
+                labelPadding: calculateAxisLabelPadding(yAxis.layout),
                 snapToGroup: snap,
             },
         };
