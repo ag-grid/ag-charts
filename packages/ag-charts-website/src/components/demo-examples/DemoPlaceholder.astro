@@ -1,0 +1,15 @@
+---
+import styles from './DemoPlaceholder.module.scss';
+
+interface Props {
+    /** Name of the demo this stands in for, so each page's placeholder is distinguishable. */
+    title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<div class={styles.placeholder}>
+    <p class={styles.title}>{title}</p>
+    <p class={styles.note}>This demo has not been built yet.</p>
+</div>
