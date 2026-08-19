@@ -647,11 +647,6 @@ describe('AxisDOMProxy', () => {
         });
     });
 
-    // `reverse` reverses the domain array rather than the range, so an axis whose bounds are read as
-    // `[first, last]` sees them the wrong way round. Clamping against those bounds pins every click to a
-    // single endpoint, which these suites guard against for each scale family that can be picked.
-    const days = Array.from({ length: 4 }, (_, i) => new Date(Date.UTC(2020, 0, 1 + i)));
-
     describe('reversed axis clicks - number', () => {
         beforeEach(async () => {
             chart = await createEnterpriseChart({
@@ -686,6 +681,8 @@ describe('AxisDOMProxy', () => {
     // A `unit-time` axis is backed by a band scale, but the axis reports its picked value from the scale
     // as a continuous axis does, so an out-of-order bound reaches the reported value here.
     describe('reversed axis clicks - unit-time', () => {
+        const days = Array.from({ length: 4 }, (_, i) => new Date(Date.UTC(2020, 0, 1 + i)));
+
         beforeEach(async () => {
             chart = await createEnterpriseChart({
                 data: days.map((x, i) => ({ x, y: i })),
@@ -698,9 +695,11 @@ describe('AxisDOMProxy', () => {
         });
 
         test('each click reports its own band', async () => {
-            for (const centre of measureBandCentres(4)) {
-                await clickAction(centre, 560)(chart);
-            }
+            const Xs: number[] = measureBandCentres(4);
+            await clickAction(Xs[0], 560)(chart);
+            await clickAction(Xs[1], 560)(chart);
+            await clickAction(Xs[2], 560)(chart);
+            await clickAction(Xs[3], 560)(chart);
             await waitForChartStability(chart);
 
             expect(click.mock.calls).toMatchObject([
@@ -713,6 +712,8 @@ describe('AxisDOMProxy', () => {
     });
 
     describe('reversed axis clicks - ordinal-time', () => {
+        const days = Array.from({ length: 4 }, (_, i) => new Date(Date.UTC(2020, 0, 1 + i)));
+
         beforeEach(async () => {
             chart = await createEnterpriseChart({
                 data: days.map((x, i) => ({ x, y: i })),
@@ -725,9 +726,11 @@ describe('AxisDOMProxy', () => {
         });
 
         test('each click reports its own band', async () => {
-            for (const centre of measureBandCentres(4)) {
-                await clickAction(centre, 560)(chart);
-            }
+            const Xs: number[] = measureBandCentres(4);
+            await clickAction(Xs[0], 560)(chart);
+            await clickAction(Xs[1], 560)(chart);
+            await clickAction(Xs[2], 560)(chart);
+            await clickAction(Xs[3], 560)(chart);
             await waitForChartStability(chart);
 
             expect(click.mock.calls).toMatchObject([
@@ -758,9 +761,10 @@ describe('AxisDOMProxy', () => {
         });
 
         test('a category outside its neighbours’ range is reported unchanged', async () => {
-            for (const centre of measureBandCentres(3)) {
-                await clickAction(centre, 560)(chart);
-            }
+            const Xs: number[] = measureBandCentres(3);
+            await clickAction(Xs[0], 560)(chart);
+            await clickAction(Xs[1], 560)(chart);
+            await clickAction(Xs[2], 560)(chart);
             await waitForChartStability(chart);
 
             expect(click.mock.calls).toMatchObject([
