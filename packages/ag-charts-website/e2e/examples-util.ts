@@ -209,21 +209,25 @@ export function createTestCase(
             if (clickOrder === 'reverse') controls.reverse();
 
             for (const control of controls) {
-                // Clicking the checked segment fires no change event, so it cannot redraw
-                const isCheckedSegment = await control.evaluate(
-                    (el) => el instanceof HTMLLabelElement && (el.control as HTMLInputElement | null)?.checked === true
-                );
-                if (isCheckedSegment) continue;
+                // A disabled control cannot be exercised, and clicking a group's checked segment
+                // fires no change event, so neither can redraw the chart. :disabled is what covers
+                // a segment sitting inside a disabled control-group fieldset.
+                const skip = await control.evaluate((el) => {
+                    const input = el instanceof HTMLLabelElement ? el.control : null;
+                    if (input instanceof HTMLInputElement) return input.checked || input.matches(':disabled');
+                    return el.matches(':disabled');
+                });
+                if (skip) continue;
 
                 const sceneRenderCount = Number(await canvas.getAttribute('data-scene-renders'));
 
                 await control.click();
 
-                const skip =
+                const skipUpdateCheck =
                     skipCanvasUpdateCheck === true ||
                     (Array.isArray(skipCanvasUpdateCheck) &&
                         skipCanvasUpdateCheck.includes((await control.textContent()) ?? 'unknown'));
-                if (skip) {
+                if (skipUpdateCheck) {
                     await page.waitForLoadState('networkidle');
                 } else {
                     await expect
