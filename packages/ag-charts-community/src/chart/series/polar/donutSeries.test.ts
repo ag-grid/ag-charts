@@ -2,7 +2,13 @@ import { loadImage as skiaLoadImage } from 'skia-canvas';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 import { classCast } from 'ag-charts-test';
-import type { AgChartOptions, AgDonutSeriesOptions, AgPolarChartOptions } from 'ag-charts-types';
+import type {
+    AgChartOptions,
+    AgChartTheme,
+    AgColorType,
+    AgDonutSeriesOptions,
+    AgPolarChartOptions,
+} from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
 import { OptionsGraph } from '../../../module/optionsGraph';
@@ -1520,6 +1526,208 @@ describe('DonutSeries', () => {
                 expect(cutout.startAngle).toBeCloseTo(sectorNodes(series)[index].startAngle, 5);
                 expect(cutout.endAngle).toBeCloseTo(sectorNodes(series)[index].endAngle, 5);
             }
+        });
+    });
+
+    describe('inner circle rich fills', () => {
+        const data = [
+            { asset: 'Stocks', amount: 30 },
+            { asset: 'Bonds', amount: 25 },
+            { asset: 'Cash', amount: 20 },
+            { asset: 'Real Estate', amount: 15 },
+        ];
+
+        // `prepareTestOptions` pins `foregroundColor` for the light theme but lets the dark theme
+        // supply its own, so the two arms below are genuinely different theme parameter values.
+        const LIGHT_THEME: AgChartTheme = { baseTheme: 'ag-default' };
+        const DARK_THEME: AgChartTheme = { baseTheme: 'ag-default-dark' };
+
+        const createDonut = async (series: Partial<AgDonutSeriesOptions>, theme: AgChartTheme = LIGHT_THEME) => {
+            chart = await createChart({
+                ...options,
+                theme,
+                data,
+                series: [
+                    {
+                        type: 'donut',
+                        angleKey: 'amount',
+                        innerRadiusRatio: 0.7,
+                        ...series,
+                    } as AgDonutSeriesOptions,
+                ],
+            });
+            return classCast(chart.series[0], DonutSeries);
+        };
+
+        const innerCircleFill = (series: DonutSeries) => series.innerCircleSelection.nodes()[0].fill;
+        const circleSize = (series: DonutSeries) => series.innerCircleSelection.nodes()[0].size;
+        const ungrownCircleSize = (series: DonutSeries) => {
+            const antiAliasingPadding = 1;
+            return Math.ceil(series.getInnerRadius() * 2 + antiAliasingPadding);
+        };
+
+        test('resolves a colour ref to the referenced theme colour', async () => {
+            const series = await createDonut({ innerCircle: { fill: { ref: 'accentColor' } } });
+
+            expect(innerCircleFill(series)).toBe('#2196f3');
+        });
+
+        test.each([
+            ['light', LIGHT_THEME, '#464646'],
+            ['dark', DARK_THEME, '#fff'],
+        ] as Array<[string, AgChartTheme, string]>)(
+            'fills a bare pattern with the %s theme foreground colour',
+            async (_name, theme, foregroundColor) => {
+                const series = await createDonut({ innerCircle: { fill: { type: 'pattern' } } }, theme);
+
+                expect(innerCircleFill(series)).toMatchObject({
+                    type: 'pattern',
+                    fill: foregroundColor,
+                    stroke: foregroundColor,
+                });
+            }
+        );
+
+        test.each([
+            ['light', LIGHT_THEME],
+            ['dark', DARK_THEME],
+        ] as Array<[string, AgChartTheme]>)(
+            'keeps a user-provided pattern colour under the %s theme',
+            async (_name, theme) => {
+                const series = await createDonut(
+                    { innerCircle: { fill: { type: 'pattern', fill: 'red', stroke: 'red' } } },
+                    theme
+                );
+
+                expect(innerCircleFill(series)).toMatchObject({ type: 'pattern', fill: 'red', stroke: 'red' });
+            }
+        );
+
+        test('leaves a user-provided gradient rotation untouched', async () => {
+            const series = await createDonut({
+                innerCircle: {
+                    fill: { type: 'gradient', colorStops: [{ color: 'red' }, { color: 'blue' }], rotation: 45 },
+                },
+            });
+
+            expect(innerCircleFill(series)).toMatchObject({ type: 'gradient', rotation: 45 });
+        });
+
+        test('renders an unchanged colour string fill', async () => {
+            const series = await createDonut({ innerCircle: { fill: '#c9fdc9' } });
+
+            expect(innerCircleFill(series)).toBe('#c9fdc9');
+            expect(circleSize(series)).toBe(ungrownCircleSize(series));
+        });
+
+        test('grows the circle for an object fill with rounded corners', async () => {
+            const series = await createDonut({ cornerRadius: 20, innerCircle: { fill: { type: 'pattern' } } });
+
+            expect(circleSize(series)).toBeGreaterThan(ungrownCircleSize(series));
+            expect(series.innerCircleCutoutSelection.nodes()).toHaveLength(data.length);
+        });
+
+        const richFillOptions = (fill: AgColorType, series: Partial<AgDonutSeriesOptions> = {}) => ({
+            ...options,
+            theme: LIGHT_THEME,
+            data,
+            series: [
+                {
+                    type: 'donut',
+                    angleKey: 'amount',
+                    innerRadiusRatio: 0.7,
+                    ...series,
+                    innerCircle: { fill },
+                } as AgDonutSeriesOptions,
+            ],
+        });
+
+        const GRADIENT_STOPS = [{ color: '#c9fdc9' }, { color: '#1f77b4' }];
+        const LIGHT_FOREGROUND_COLOR = '#464646';
+
+        // A baseline is generated from the implementation, so it cannot by itself show that the rich
+        // fill reached the canvas — a blank disc would be recorded just as happily. Re-rendering the
+        // same chart with a flat fill and requiring the pixels to differ is what gives it that force.
+        // One chart throughout: the mock canvas only snapshots the first one created per test.
+        const expectDiffersFromFlatFill = async (
+            reference: ImageData,
+            fill: AgColorType,
+            series: Partial<AgDonutSeriesOptions> = {}
+        ) => {
+            await chart.publicApi!.update(prepareTestOptions(richFillOptions(fill, series)) as AgChartOptions);
+            await waitForChartStability(chart);
+
+            expect(ctx.snapshot()).not.toMatchImage(reference, { writeDiff: false });
+        };
+
+        test('renders a gradient fill with no explicit rotation', async () => {
+            chart = await createChart(richFillOptions({ type: 'gradient', colorStops: GRADIENT_STOPS }));
+
+            await compare('donut-inner-circle-gradient-fill');
+            const gradient = ctx.snapshot();
+
+            await expectDiffersFromFlatFill(gradient, GRADIENT_STOPS[0].color);
+        });
+
+        test('renders a gradient fill at an explicit rotation', async () => {
+            chart = await createChart(richFillOptions({ type: 'gradient', colorStops: GRADIENT_STOPS, rotation: 90 }));
+
+            await compare('donut-inner-circle-gradient-fill-rotated');
+            const rotated = ctx.snapshot();
+
+            // The rotation only means something if it paints differently from the same gradient left
+            // at the default rotation, so that unrotated render is the comparison rather than a colour.
+            await expectDiffersFromFlatFill(rotated, { type: 'gradient', colorStops: GRADIENT_STOPS });
+        });
+
+        test('renders a bare pattern fill', async () => {
+            chart = await createChart(richFillOptions({ type: 'pattern' }));
+
+            await compare('donut-inner-circle-pattern-fill', PATTERN_SNAPSHOT_DEFAULTS);
+            const pattern = ctx.snapshot();
+
+            // Against the foreground colour the pattern resolves to, so a disc flooded with that
+            // colour cannot pass as a pattern.
+            await expectDiffersFromFlatFill(pattern, LIGHT_FOREGROUND_COLOR);
+        });
+
+        test('renders an image fill', async () => {
+            // The artwork covers its whole viewBox: an image with transparent margins lets the
+            // `backgroundFill` default ('black') through, and the baseline then reads as a failed load.
+            const icon = `data:image/svg+xml;utf8,${encodeURIComponent(
+                `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">` +
+                    `<rect width="24" height="24" fill="#2ca02c"/>` +
+                    `<path d="M0 24 L24 0" stroke="#fff" stroke-width="6"/></svg>`
+            )}`;
+            const preloaded = await skiaLoadImage(icon);
+
+            chart = deproxy(
+                AgCharts.create(
+                    prepareTestOptions(richFillOptions({ type: 'image', url: icon })) as AgChartOptions
+                ) as AgChartProxy
+            );
+            (chart.ctx.scene as any).imageLoader.loadImage = () => preloaded as unknown as HTMLImageElement;
+            await waitForChartStability(chart);
+
+            await compare('donut-inner-circle-image-fill');
+            const image = ctx.snapshot();
+
+            await expectDiffersFromFlatFill(image, '#2ca02c');
+        });
+
+        // The grown circle is composited offscreen and the pattern's phase comes from the shape's own
+        // bbox, so this is the one rich-fill case node state cannot answer.
+        test('renders a pattern fill through the rounded-corner composite', async () => {
+            const cornerRadius = 20;
+            chart = await createChart(richFillOptions({ type: 'pattern' }, { cornerRadius }));
+
+            const series = classCast(chart.series[0], DonutSeries);
+            expect(series.innerCircleGroup.renderToOffscreenCanvas).toBe(true);
+
+            await compare('donut-inner-circle-pattern-fill-corner-radius', PATTERN_SNAPSHOT_DEFAULTS);
+            const pattern = ctx.snapshot();
+
+            await expectDiffersFromFlatFill(pattern, LIGHT_FOREGROUND_COLOR, { cornerRadius });
         });
     });
 

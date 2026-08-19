@@ -1,4 +1,4 @@
-import { definedZoomState } from 'ag-charts-core';
+import { definedZoomState, toClippedCanvasPoint } from 'ag-charts-core';
 import type { BoxBounds, CurrentPoint, DefinedZoomState, ZoomState } from 'ag-charts-core';
 
 import type { ZoomRect } from './scenes/zoomRect';
@@ -18,8 +18,7 @@ export class ZoomSelector {
     }
 
     update(event: CurrentPoint, props: ZoomProperties, bbox?: BoxBounds): void {
-        const canvasX = event.currentX + (bbox?.x ?? 0);
-        const canvasY = event.currentY + (bbox?.y ?? 0);
+        const { canvasX, canvasY } = toClippedCanvasPoint(event, bbox);
         this.rect.visible = true;
 
         this.updateCoords(canvasX, canvasY, props, bbox);

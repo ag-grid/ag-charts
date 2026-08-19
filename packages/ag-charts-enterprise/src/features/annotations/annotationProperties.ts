@@ -8,6 +8,7 @@ import type {
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import { BaseProperties, type DynamicContext, FONT_SIZE, Property, generateUUID } from 'ag-charts-core';
+import type { Padding } from 'ag-charts-types';
 
 import type {
     AnnotationOptionsColorPickerType,
@@ -32,12 +33,21 @@ export class PointProperties extends BaseProperties {
 
 export class ChannelAnnotationMiddleProperties extends Stroke(LineStyle(Visible(BaseProperties))) {}
 
-export class AxisLabelProperties extends Stroke(LineStyle(Fill(Label(Font(BaseProperties))))) {
+export class AxisLabelProperties extends Stroke(LineStyle(Fill(Font(BaseProperties)))) {
     @Property
     enabled?: boolean;
 
     @Property
     cornerRadius: number = 2;
+
+    @Property
+    textAlign: TextAlign = 'center';
+
+    @Property
+    formatter?: Formatter<AxisLabelFormatterParams> = undefined;
+
+    @Property
+    padding?: Padding = undefined;
 }
 
 class BackgroundProperties extends Fill(BaseProperties) {}

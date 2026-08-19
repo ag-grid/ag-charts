@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { type AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
 import {
     compareImageSnapshot,
+    deproxy,
     expectWarningsCalls,
     setupMockCanvas,
     setupMockConsole,
@@ -57,6 +58,14 @@ describe('Annotations', () => {
             failureThreshold: 0,
             failureThresholdType: 'percent',
         });
+    };
+
+    // Applies annotations to the SAME chart via setState — the mock canvas only tracks the first
+    // chart per test, so cross-create snapshots would compare a stale canvas against itself.
+    const applyAnnotations = async (annotations: object[]) => {
+        await chart.setState({ ...chart.getState(), annotations });
+        await waitForChartStability(chart);
+        return ctx.snapshot();
     };
 
     describe('initial', () => {
@@ -786,14 +795,6 @@ describe('Annotations', () => {
         const X_START = { __type: 'date' as const, value: '2024-03-01' };
         const X_END = { __type: 'date' as const, value: '2024-09-01' };
 
-        // Applies annotations to the SAME chart via setState — the mock canvas only tracks the first
-        // chart per test, so cross-create snapshots would compare a stale canvas against itself.
-        const applyAnnotations = async (annotations: object[]) => {
-            await chart.setState({ ...chart.getState(), annotations });
-            await waitForChartStability(chart);
-            return ctx.snapshot();
-        };
-
         it('renders a bigint y coordinate identically to a number y', async () => {
             await prepareChart();
             const baseline = ctx.snapshot();
@@ -849,6 +850,136 @@ describe('Annotations', () => {
             ]);
             expect(numberImage).not.toMatchImage(baseline, { writeDiff: false });
             expect(bigintImage).toMatchImage(numberImage);
+        });
+    });
+
+    describe('axis label padding (AG-18182)', () => {
+        const horizontalLine = (padding?: unknown) => [
+            { type: 'horizontal-line', value: 75, axisLabel: { enabled: true, padding } },
+        ];
+        const verticalLine = (padding?: unknown) => [
+            {
+                type: 'vertical-line',
+                value: { __type: 'date', value: '2024-09-01' },
+                axisLabel: { enabled: true, padding },
+            },
+        ];
+
+        it('does not average asymmetric left/right padding', async () => {
+            await prepareChart();
+            const baseline = ctx.snapshot();
+            const wideLeft = await applyAnnotations(horizontalLine({ left: 40, right: 8 }));
+            const wideRight = await applyAnnotations(horizontalLine({ left: 8, right: 40 }));
+            // Guard against a vacuously-identical pair of blank renders.
+            expect(wideLeft).not.toMatchImage(baseline, { writeDiff: false });
+            // Both total 48, so the container is the same size and only its position differs.
+            expect(wideLeft).not.toMatchImage(wideRight, { writeDiff: false });
+        });
+
+        it('does not average asymmetric top/bottom padding', async () => {
+            await prepareChart();
+            const baseline = ctx.snapshot();
+            const wideTop = await applyAnnotations(verticalLine({ top: 40, bottom: 8 }));
+            const wideBottom = await applyAnnotations(verticalLine({ top: 8, bottom: 40 }));
+            expect(wideTop).not.toMatchImage(baseline, { writeDiff: false });
+            expect(wideBottom).not.toMatchImage(wideTop, { writeDiff: false });
+        });
+
+        it('defaults to the previous spacing of { top: 4, right: 8, bottom: 4, left: 8 }', async () => {
+            await prepareChart();
+            const baseline = ctx.snapshot();
+            const noPadding = await applyAnnotations(horizontalLine());
+            const explicitDefault = await applyAnnotations(horizontalLine({ top: 4, right: 8, bottom: 4, left: 8 }));
+            const uniform = await applyAnnotations(horizontalLine(12));
+            expect(noPadding).not.toMatchImage(baseline, { writeDiff: false });
+            expect(explicitDefault).toMatchImage(noPadding);
+            expect(uniform).not.toMatchImage(noPadding, { writeDiff: false });
+        });
+
+        it('fills the unspecified sides of a partial padding object from the default', async () => {
+            await prepareChart();
+            const baseline = ctx.snapshot();
+            const partial = await applyAnnotations(horizontalLine({ right: 20 }));
+            const equivalent = await applyAnnotations(horizontalLine({ top: 4, right: 20, bottom: 4, left: 8 }));
+            const uniform = await applyAnnotations(horizontalLine(20));
+            expect(partial).not.toMatchImage(baseline, { writeDiff: false });
+            expect(partial).toMatchImage(equivalent);
+            expect(partial).not.toMatchImage(uniform, { writeDiff: false });
+        });
+
+        it('renders the default when padding is nullish', async () => {
+            await prepareChart();
+            const noPadding = await applyAnnotations(horizontalLine());
+            const nullPadding = await applyAnnotations(horizontalLine(null));
+            expect(nullPadding).toMatchImage(noPadding);
+        });
+
+        it('accepts padding from a theme override', async () => {
+            await prepareChart(undefined, {
+                ...EXAMPLE_OPTIONS,
+                theme: {
+                    overrides: {
+                        common: {
+                            annotations: { 'horizontal-line': { axisLabel: { padding: { right: 40 } } } },
+                        },
+                    },
+                },
+            });
+            const themed = await applyAnnotations([{ type: 'horizontal-line', value: 75 }]);
+            const perAnnotation = await applyAnnotations(horizontalLine({ right: 8 }));
+            // The theme value has to reach the rendered container, not merely pass validation.
+            expect(themed).not.toMatchImage(perAnnotation, { writeDiff: false });
+        });
+    });
+
+    describe('axis label alignment with the axis (AG-18182)', () => {
+        // A horizontal-line annotation's axis label belongs to the y axis, so its distance from the
+        // axis line has to come from the y axis's own layout. It used to be taken from the x axis's,
+        // which is why reducing axes.number.label.spacing moved the y axis's own tick labels inwards
+        // and left the annotation label behind.
+        const withLabelSpacing = (ySpacing: number, xSpacing: number): AgCartesianChartOptions => ({
+            ...EXAMPLE_OPTIONS,
+            axes: {
+                y: { type: 'number', label: { spacing: ySpacing } },
+                x: { type: 'time', label: { spacing: xSpacing } },
+            },
+            initialState: {
+                annotations: [{ type: 'horizontal-line', value: 75, axisLabel: { enabled: true } }],
+            },
+        });
+
+        // The scene position is the assertion: an image comparison cannot separate the label moving
+        // from the axis area around it resizing, and both happen when a label spacing changes.
+        const axisLabelX = () => {
+            const found: any[] = [];
+            const visit = (node: any) => {
+                if (node.name === 'AnnotationAxisLabelGroup') found.push(node);
+                if (typeof node.children === 'function') {
+                    for (const child of node.children()) visit(child);
+                }
+            };
+            visit((deproxy(chart) as any).ctx.scene.root);
+            expect(found).toHaveLength(1);
+            return found[0].getBBox().x;
+        };
+
+        const axisLabelXWith = async (ySpacing: number, xSpacing: number) => {
+            await prepareChart(undefined, withLabelSpacing(ySpacing, xSpacing));
+            const x = axisLabelX();
+            chart.destroy();
+            (chart as unknown) = undefined;
+            return x;
+        };
+
+        it("tracks the y axis's own label spacing", async () => {
+            // Widening the y axis's label spacing pushes the axis line inwards by the same amount, so
+            // an annotation label that follows the y axis stays put next to the tick labels it aligns
+            // with. Reading the x axis's spacing instead left it on the moved axis line.
+            expect(await axisLabelXWith(45, 5)).toBeCloseTo(await axisLabelXWith(5, 5), 5);
+        });
+
+        it("ignores the x axis's label spacing", async () => {
+            expect(await axisLabelXWith(5, 45)).toBeCloseTo(await axisLabelXWith(5, 5), 5);
         });
     });
 });

@@ -40,7 +40,7 @@ export class DonutInnerLabel<T extends object = any> extends Label<AgDonutSeries
 
 class DonutInnerCircle extends BaseProperties {
     @Property
-    fill: string = 'transparent';
+    fill: InternalAgColorType = 'transparent';
 
     @Property
     fillOpacity: number = 1;
