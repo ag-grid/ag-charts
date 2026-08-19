@@ -494,6 +494,46 @@ const EXAMPLES: Record<string, CartesianTestCase> = {
         },
         assertions,
     },
+
+    ZOOMED_LABEL_STICKY: {
+        options: {
+            ...NUMERIC,
+            zoom: { enabled: true, axes: 'xy' },
+            initialState: { zoom: { ratioX: { start: 0.4, end: 0.6 }, ratioY: { start: 0.4, end: 0.6 } } },
+            seriesArea: {
+                backgroundRegions: [
+                    {
+                        fill: 'lightsalmon',
+                        fillOpacity: 0.8,
+                        xRange: { start: 20, end: 80 },
+                        yRange: { start: 20, end: 80 },
+                        label: { position: 'top', text: 'sticky', fontSize: 20 },
+                    },
+                ],
+            },
+        },
+        assertions,
+    },
+
+    ZOOMED_LABEL_OUT_OF_VIEW: {
+        options: {
+            ...NUMERIC,
+            zoom: { enabled: true, axes: 'xy' },
+            initialState: { zoom: { ratioX: { start: 0.4, end: 0.6 }, ratioY: { start: 0.4, end: 0.6 } } },
+            seriesArea: {
+                backgroundRegions: [
+                    {
+                        fill: 'lightsalmon',
+                        fillOpacity: 0.8,
+                        xRange: { start: 0, end: 10 },
+                        yRange: { start: 0, end: 10 },
+                        label: { position: 'top', text: 'hidden', fontSize: 20 },
+                    },
+                ],
+            },
+        },
+        assertions,
+    },
 };
 
 const labelPositions = [
