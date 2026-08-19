@@ -231,14 +231,13 @@ body > #highlighter {
     outline: none;
 }
 
-/* Toggle buttons: a button whose pressed state reflects whether its option is applied.
-   Use for a single on/off option, e.g. <button aria-pressed="true" onclick="toggle(event)">. */
+/* Toggle buttons: a pressed button reflects that its single on/off option is applied */
 .example-controls :is(button, input[type='submit'])[aria-pressed='true'] {
     background-color: var(--button-active-bg);
     border-color: var(--button-active-border);
 }
 
-/* The descendant selector also colours any <code> inside the control */
+/* The descendant selector is needed because `.example-controls *` colours a nested <code> */
 .example-controls :is(button, input[type='submit'])[aria-pressed='true'],
 .example-controls :is(button, input[type='submit'])[aria-pressed='true'] * {
     color: var(--button-active-fg);
@@ -248,17 +247,8 @@ body > #highlighter {
     background-color: var(--button-active-hover-bg);
 }
 
-/* Button groups: radio inputs styled as a joined row of buttons, so the applied option is
-   always visible. Use for a set of mutually exclusive options. Each radio is immediately
-   followed by its own label:
-
-   <div class="button-group" role="group" aria-label="Rotation">
-       <input type="radio" id="auto" name="rotation" value="auto" checked onchange="change(event)" />
-       <label for="auto">Auto</label>
-       <input type="radio" id="fixed" name="rotation" value="fixed" onchange="change(event)" />
-       <label for="fixed">Fixed</label>
-   </div>
-*/
+/* Button groups: radio inputs styled as a joined row of buttons. Each radio must be immediately
+   followed by its own label — the sibling selectors below depend on that order. */
 .example-controls .button-group {
     display: inline-flex;
     align-self: flex-start;
@@ -279,9 +269,7 @@ body > #highlighter {
     white-space: nowrap;
 }
 
-/* Join the segments into a single control, collapsing the borders they share. The segments
-   otherwise pick up the shared control styling above, but a button centres its own content
-   and a label does not, so that part is set explicitly. */
+/* A button centres its own content, a label does not, so the segments centre theirs explicitly */
 .example-controls .button-group label {
     display: inline-flex;
     align-items: center;

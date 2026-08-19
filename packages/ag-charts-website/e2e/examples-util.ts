@@ -209,10 +209,11 @@ export function createTestCase(
             if (clickOrder === 'reverse') controls.reverse();
 
             for (const control of controls) {
-                // Clicking the checked segment of a button group fires no change event, so it
-                // cannot redraw the chart.
-                const radioId = await control.getAttribute('for');
-                if (radioId && (await page.locator(`#${radioId}`).isChecked())) continue;
+                // Clicking the checked segment fires no change event, so it cannot redraw
+                const isCheckedSegment = await control.evaluate(
+                    (el) => el instanceof HTMLLabelElement && (el.control as HTMLInputElement | null)?.checked === true
+                );
+                if (isCheckedSegment) continue;
 
                 const sceneRenderCount = Number(await canvas.getAttribute('data-scene-renders'));
 
@@ -227,7 +228,7 @@ export function createTestCase(
                 } else {
                     await expect
                         .configure({
-                            message: `Pressing button ${await control.textContent()}`,
+                            message: `Pressing ${await control.textContent()}`,
                         })
                         .poll(async () => Number(await canvas.getAttribute('data-scene-renders')))
                         .toBeGreaterThan(sceneRenderCount);

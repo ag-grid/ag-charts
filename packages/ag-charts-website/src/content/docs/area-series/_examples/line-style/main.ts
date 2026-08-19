@@ -47,7 +47,7 @@ let interpolationType: 'linear' | 'smooth' | 'step' = 'smooth';
 let stepPosition: 'start' | 'middle' | 'end' = 'end';
 
 function typeChange(event: Event) {
-    interpolationType = (event.target as HTMLInputElement).value as typeof interpolationType;
+    interpolationType = (event.target as HTMLInputElement).value as 'linear' | 'smooth' | 'step';
 
     const stepPositionGroup = document.getElementById('stepPositionGroup') as HTMLFieldSetElement;
     stepPositionGroup.disabled = interpolationType !== 'step';
@@ -60,7 +60,7 @@ function typeChange(event: Event) {
 }
 
 function positionChange(event: Event) {
-    stepPosition = (event.target as HTMLInputElement).value as typeof stepPosition;
+    stepPosition = (event.target as HTMLInputElement).value as 'start' | 'middle' | 'end';
 
     options.series?.forEach((series) => {
         (series as AgLineSeriesOptions).interpolation = { type: 'step', position: stepPosition };
