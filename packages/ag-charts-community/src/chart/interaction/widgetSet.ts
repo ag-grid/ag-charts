@@ -20,8 +20,13 @@ class DOMManagerWidget extends NativeWidget {
     }
 }
 
+type AxisInteraction = {
+    widget: AxisWidget;
+    dragInterpreter: DragInterpreter;
+};
+
 type AxisEntry = {
-    region?: AxisWidget;
+    region?: AxisInteraction;
     text?: BoundedTextWidget;
     textNested: boolean;
     regionBounds?: BoxBounds;
@@ -67,7 +72,7 @@ export class AxisWidgets {
         const entry = this.entries.get(axisId);
         if (!entry?.text) return;
         if (entry.textNested && entry.region) {
-            entry.region.removeChildWidget(entry.text);
+            entry.region.widget.removeChildWidget(entry.text);
         }
         entry.text.destroy();
         entry.text = undefined;
@@ -76,15 +81,17 @@ export class AxisWidgets {
     }
 
     /** The axis interaction region, created on first request. Callers set bounds/pointer-events/listeners. */
-    acquireRegion(axisId: AxisID): AxisWidget {
+    acquireRegion(axisId: AxisID): AxisInteraction {
         const entry = this.getEntry(axisId);
         if (!entry.region) {
-            entry.region = this.ctx.proxyInteractionService.createProxyElement({
+            const widget = this.ctx.proxyInteractionService.createProxyElement({
                 type: 'axis',
                 domManagerId: axisId,
                 where: 'afterend',
                 role: 'region',
             });
+            const dragInterpreter = new DragInterpreter(widget);
+            entry.region = { widget, dragInterpreter };
             if (entry.text && !entry.textNested) {
                 this.nestTitle(axisId, entry);
             }
@@ -98,7 +105,8 @@ export class AxisWidgets {
         if (entry.text && entry.textNested) {
             this.unnestTitle(axisId, entry);
         }
-        entry.region.destroy();
+        entry.region.dragInterpreter.destroy();
+        entry.region.widget.destroy();
         entry.region = undefined;
         this.pruneEntry(axisId, entry);
     }
@@ -117,7 +125,7 @@ export class AxisWidgets {
     setRegionBounds(axisId: AxisID, bounds: BoxBounds): void {
         const entry = this.getEntry(axisId);
         entry.regionBounds = bounds;
-        entry.region?.setBounds(bounds);
+        entry.region?.widget.setBounds(bounds);
         this.applyTitleBounds(entry);
     }
 
@@ -130,7 +138,7 @@ export class AxisWidgets {
     destroy(): void {
         for (const entry of this.entries.values()) {
             entry.text?.destroy();
-            entry.region?.destroy();
+            entry.region?.widget.destroy();
         }
         this.entries.clear();
     }
@@ -170,14 +178,14 @@ export class AxisWidgets {
     private nestTitle(axisId: AxisID, entry: AxisEntry): void {
         if (!entry.region || !entry.text) return;
         this.ctx.domManager.removeChild('canvas-proxy', this.titleId(axisId));
-        entry.region.addChild(entry.text);
+        entry.region.widget.addChild(entry.text);
         entry.textNested = true;
         this.applyTitleBounds(entry);
     }
 
     private unnestTitle(axisId: AxisID, entry: AxisEntry): void {
         if (!entry.region || !entry.text) return;
-        entry.region.removeChildWidget(entry.text);
+        entry.region.widget.removeChildWidget(entry.text);
         this.ctx.domManager.addChild('canvas-proxy', this.titleId(axisId), entry.text.getElement(), {
             where: 'afterend',
             query: '.ag-charts-series-area',

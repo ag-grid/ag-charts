@@ -422,9 +422,11 @@ export class AxisDOMProxy extends AbstractModuleInstance {
     }
 
     private createAxisDOMProxy(axisId: AxisID, direction: ChartAxisDirection): ProxyAxis {
-        const div = this.ctx.widgets.axisWidgets.acquireRegion(axisId);
+        const axisInteraction = this.ctx.widgets.axisWidgets.acquireRegion(axisId);
+        const div = axisInteraction.widget;
+        const dragInterpretation = axisInteraction.dragInterpreter.events;
 
-        div.addListener('drag-start', (event) => {
+        dragInterpretation.on('drag-start', (event) => {
             if (!this.isEnabled() || !this.isEnabledDragging()) return;
             if (event.device === 'touch') {
                 event.sourceEvent.preventDefault();
@@ -432,16 +434,16 @@ export class AxisDOMProxy extends AbstractModuleInstance {
             this.draggingAxisId = axisId;
             this.ctx.eventsHub.emit('axis-dom-proxy:drag-start', { axisId, direction, event });
         });
-        div.addListener('drag-move', (event) => {
+        dragInterpretation.on('drag-move', (event) => {
             if (!this.isEnabled() || !this.isEnabledDragging()) return;
             this.ctx.eventsHub.emit('axis-dom-proxy:drag-move', { axisId, direction, event });
         });
-        div.addListener('drag-end', (event) => {
+        dragInterpretation.on('drag-end', (event) => {
             if (!this.isEnabled() || !this.isEnabledDragging()) return;
             this.draggingAxisId = undefined;
             this.ctx.eventsHub.emit('axis-dom-proxy:drag-end', { axisId, direction, event });
         });
-        div.addListener('dblclick', (event) => {
+        dragInterpretation.on('dblclick', (event) => {
             if (this.hasClickListeners()) this.dispatchAxisClick(axisId, event);
             if (!this.isEnabled() || !this.isEnabledDoubleClick()) return;
             this.ctx.eventsHub.emit('axis-dom-proxy:dblclick', { axisId, direction, event });
@@ -460,7 +462,7 @@ export class AxisDOMProxy extends AbstractModuleInstance {
             if (!this.isEnabled() || !this.isEnabledScrolling()) return;
             this.ctx.eventsHub.emit('axis-dom-proxy:wheel', { axisId, direction, event });
         });
-        div.addListener('click', (event) => {
+        dragInterpretation.on('click', (event) => {
             if (!this.hasClickListeners()) return;
             this.dispatchAxisClick(axisId, event);
         });
