@@ -1,6 +1,12 @@
+import type { Page } from 'playwright/test';
+
+import type { ClientPoint } from 'ag-charts-core';
+
+import { evalPageFunction, getChartState } from './agE2E';
 import { expect, test } from './fixture';
 import { expectChartScreenshot } from './scene-capture';
 import {
+    SELECTORS,
     canvasToPageTransformer,
     delay,
     dragCanvas,
@@ -196,5 +202,70 @@ test.describe('zoom', () => {
         await expectChartScreenshot(page, page, 'zoom-pluskey-focus-visible.png', { animations: 'disabled' });
         await page.keyboard.type('-');
         await expectChartScreenshot(page, page, 'zoom-minuskey-focus-visible.png', { animations: 'disabled' });
+    });
+
+    test.describe('AG-18127 drag-start on series-area and drag-end on axis', () => {
+        const popEvents = async (page: Page) => evalPageFunction(page, 'popEvents');
+        const approx = (v: number) => expect.closeTo(v, 2);
+        const INITIAL_ZOOM_STATE = {
+            autoScaledAxes: ['y'],
+            rangeX: { end: 2025, start: 1626 },
+            rangeY: { end: 30, start: -30 },
+            ratioX: { end: 1, start: 0 },
+            ratioY: { end: 1, start: 0 },
+        } as const;
+        const NEW_ZOOM_STATE = {
+            autoScaledAxes: ['y'],
+            rangeX: { end: approx(1825.21), start: 1626 },
+            rangeY: { end: approx(23.96), start: approx(-26.17) },
+            ratioX: { end: approx(0.5), start: 0 },
+            ratioY: { end: approx(0.9), start: approx(0.06) },
+        } as const;
+
+        test.beforeEach(async ({ page }) => {
+            async function measureElemCenter(selector: string, nth: number): Promise<ClientPoint> {
+                const elem = page.locator(selector).nth(nth);
+                const bbox = await elem.boundingBox();
+                expect(bbox).toBeDefined();
+                const { x, y, width, height } = bbox!;
+                return { clientX: x + width / 2, clientY: y + height / 2 };
+            }
+
+            const { url } = toExamplePageUrl('zoom-e2e', 'zoom-selection', 'vanilla');
+            await gotoExample(page, url);
+
+            const seriesAreaCenter = await measureElemCenter(SELECTORS.seriesArea, 0);
+            const xAxisCenter = await measureElemCenter(SELECTORS.axisProxy, 0);
+
+            await page.mouse.move(seriesAreaCenter.clientX, seriesAreaCenter.clientY);
+            await page.mouse.down({ button: 'left' });
+            await page.mouse.move(xAxisCenter.clientX, xAxisCenter.clientY);
+        });
+        test('screenshot', async ({ page }) => {
+            await expect(page).toHaveScreenshot('AG-18127-drag-move.png', { animations: 'disabled' });
+        });
+        test('getState', async ({ page }) => {
+            expect(await getChartState(page)).toEqual(expect.objectContaining({ zoom: INITIAL_ZOOM_STATE }));
+        });
+        test('popEvents', async ({ page }) => {
+            expect(await popEvents(page)).toEqual([]);
+        });
+
+        test.describe('mouseup', () => {
+            test.beforeEach(async ({ page }) => {
+                await page.mouse.up({ button: 'left' });
+            });
+            test('screenshot', async ({ page }) => {
+                await expect(page).toHaveScreenshot('AG-18127-drag-end.png', { animations: 'disabled' });
+            });
+            test('getState', async ({ page }) => {
+                expect(await getChartState(page)).toEqual(expect.objectContaining({ zoom: NEW_ZOOM_STATE }));
+            });
+            test('popEvents', async ({ page }) => {
+                expect(await popEvents(page)).toEqual([
+                    { source: 'user-interaction', type: 'zoom', ...NEW_ZOOM_STATE },
+                ]);
+            });
+        });
     });
 });
