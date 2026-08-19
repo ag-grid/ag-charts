@@ -2,7 +2,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 import { type NormalisedTextOrSegments, resolveTextAlign, wrapTextOrSegments } from 'ag-charts-core';
 import type { AgNetworkSeriesTreeLayoutDirection, TextAlign } from 'ag-charts-types';
 
-import { type PositionedScene, layoutScenesColumn, layoutScenesRow } from '../../utils/sceneLayout';
+import { type PositionedScene, alignSceneX, layoutScenesColumn, layoutScenesRow } from '../../utils/sceneLayout';
 import type {
     NormalisedOrganizationNodeStyle,
     NormalisedOrganizationNodeTextStyle,
@@ -224,20 +224,9 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
 
         const alignTextNode = (node: _ModuleSupport.Text, textAlign: TextAlign) => {
             const resolvedTextAlign = resolveTextAlign(textAlign, this.isRtl);
-            switch (resolvedTextAlign) {
-                case 'right': {
-                    node.x = textAreaRight;
-                    break;
-                }
-                case 'center': {
-                    node.x = (textAreaLeft + textAreaRight) / 2;
-                    break;
-                }
-                default: {
-                    node.x = textAreaLeft;
-                }
-            }
+            // Set the alignment before measuring: the text bbox is anchored off it.
             node.textAlign = resolvedTextAlign;
+            alignSceneX(node, textAreaLeft, textAreaRight, resolvedTextAlign);
         };
 
         if (titleNode) alignTextNode(titleNode, styles.title.textAlign);

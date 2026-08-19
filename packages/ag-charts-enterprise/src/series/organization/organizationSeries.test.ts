@@ -464,6 +464,38 @@ function createSegmentAlignmentExample(textAlign: TextAlign, mode: 'property' | 
     };
 }
 
+function createAsymmetricTextPaddingExample(textAlign: TextAlign): any {
+    return {
+        ...SIMPLE_ORG_CHART,
+        series: [
+            {
+                type: 'organization',
+                idKey: 'id',
+                parentIdKey: 'parentId',
+                expander: { padding: { top: 2, right: 22, bottom: 2, left: 4 } },
+                node: {
+                    fill: 'aliceblue',
+                    stroke: 'dodgerblue',
+                    strokeWidth: 2,
+                    title: {
+                        key: 'name',
+                        fill: 'pink',
+                        padding: { top: 4, right: 40, bottom: 4, left: 10 },
+                        textAlign,
+                    },
+                    subtitle: {
+                        key: 'job',
+                        fill: 'lavender',
+                        padding: { top: 2, right: 16, bottom: 2, left: 4 },
+                        textAlign,
+                    },
+                    labels: [{ key: 'location', textAlign }],
+                },
+            },
+        ],
+    };
+}
+
 interface StandaloneTestCase extends ChartTestCase {
     options: AgStandaloneChartOptions;
 }
@@ -687,6 +719,18 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
                 },
             ],
         } as any,
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    TEXT_TIER_BACKING_BOX_ASYMMETRIC_PADDING: {
+        options: createAsymmetricTextPaddingExample('center'),
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    TEXT_TIER_BACKING_BOX_ASYMMETRIC_PADDING_LEFT_ALIGNED: {
+        options: createAsymmetricTextPaddingExample('left'),
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    TEXT_TIER_BACKING_BOX_ASYMMETRIC_PADDING_RIGHT_ALIGNED: {
+        options: createAsymmetricTextPaddingExample('right'),
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
     },
     TEXT_TIER_BACKING_BOX_VIA_ITEM_STYLER: {
