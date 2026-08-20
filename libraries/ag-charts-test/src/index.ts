@@ -1,6 +1,7 @@
 export * as mockCanvas from './canvas/mock-canvas';
 export * from './dom/events';
 export * from './canvas/to-match-image';
+export * from './matchers/close-to';
 export * from './examples/load-example';
 export * from './console/mock-console';
 export * from './console/test-logger';

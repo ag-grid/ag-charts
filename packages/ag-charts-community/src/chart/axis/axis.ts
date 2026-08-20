@@ -22,6 +22,7 @@ import {
     WeakCache,
     ZIndexMap,
     callWithContext,
+    clamp,
     clampArray,
     deepFreeze,
     findMinMax,
@@ -187,6 +188,26 @@ function unsafeInvert(scale: Scale<unknown, unknown, unknown>, value: number): A
 
 function unsafeDomain(scale: Scale<unknown, unknown, unknown>): AgAxisDomain {
     return scale.domain as AgAxisDomain;
+}
+
+// `domainMin`/`domainMax` rather than `getDomainMinMax`: only these keep a bigint exact and a reversed domain ordered.
+function unsafeClamp(scale: Scale<unknown, unknown, unknown>, value: AgAxisValue): AgAxisValue {
+    if (!ContinuousScale.is(scale)) return value;
+
+    if (typeof value === 'number') {
+        const [min, max] = [scale.domainMin, scale.domainMax] as [number, number];
+        return clamp(min, value, max);
+    } else if (typeof value === 'bigint') {
+        const [min, max] = [scale.domainMin, scale.domainMax] as [bigint, bigint];
+        if (value > max) return max;
+        if (value < min) return min;
+        return value;
+    } else if (value instanceof Date) {
+        const [min, max] = [scale.domainMin, scale.domainMax] as [Date, Date];
+        return new Date(clamp(min.getTime(), value.getTime(), max.getTime()));
+    } else {
+        return value satisfies string;
+    }
 }
 
 /**
@@ -1282,7 +1303,8 @@ export abstract class Axis<
         // Ticks stack outwards from the axis line, so only the distance from it selects a row.
         const crossPosition = Math.abs(vertical ? localX : localY);
 
-        const scaleValue = unsafeInvert(this.scale, position);
+        const invertValue = unsafeInvert(this.scale, position);
+        const scaleValue = unsafeClamp(this.scale, invertValue);
         const domain = unsafeDomain(this.scale);
         if (scaleValue == null || domain == null) {
             return undefined;

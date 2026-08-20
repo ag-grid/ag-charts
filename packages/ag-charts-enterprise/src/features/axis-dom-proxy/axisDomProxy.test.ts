@@ -5,9 +5,31 @@
 import { vi } from 'vitest';
 
 import { Chart, clickAction, setupMockCanvas, waitForChartStability } from 'ag-charts-community-test';
-import { setupMockConsole } from 'ag-charts-test';
+import { closeToBigInt, closeToDate, setupMockConsole } from 'ag-charts-test';
 
 import { createEnterpriseChart } from '../../test/utils';
+
+function measureXGridLines(): [number, number, number, number] | undefined {
+    const elem = document.querySelector('.ag-charts-series-area');
+    if (elem instanceof HTMLElement) {
+        const left = Number.parseInt(elem.style.left);
+        const width = Number.parseInt(elem.style.width);
+        if (!Number.isNaN(left) && !Number.isNaN(width)) {
+            const step = width / 3;
+            return [left, left + step, left + step * 2, left + width];
+        }
+    }
+    return undefined;
+}
+
+// Centre of each of `count` equal bands across the series area.
+function measureBandCentres(count: number): number[] {
+    const elem = document.querySelector('.ag-charts-series-area');
+    if (!(elem instanceof HTMLElement)) throw new Error('series area not found');
+    const left = Number.parseInt(elem.style.left);
+    const width = Number.parseInt(elem.style.width);
+    return Array.from({ length: count }, (_, i) => left + (width * (i + 0.5)) / count);
+}
 
 describe('AxisDOMProxy', () => {
     setupMockCanvas();
@@ -428,7 +450,7 @@ describe('AxisDOMProxy', () => {
         });
     });
 
-    describe('category band interior clicks', () => {
+    describe('band interior clicks - category', () => {
         beforeEach(async () => {
             chart = await createEnterpriseChart({
                 data: Array.from({ length: 12 }, (_, i) => `Category-Name-${i}`).map((x, i) => ({ x, y: i })),
@@ -458,21 +480,8 @@ describe('AxisDOMProxy', () => {
     // In this example, the X-origin label is a long text "0.000000000", which adds a lot of mouse-interaction padding
     // to the left of the x-axis origin. This test is there to ensure that this padding does not interfere with the
     // computation of the axis click `value`.
-    describe('continuous band interior clicks', () => {
+    describe('band interior clicks - number', () => {
         let Xs: [number, number, number, number];
-
-        function measureXGridLines(): [number, number, number, number] | undefined {
-            const elem = document.querySelector('.ag-charts-series-area');
-            if (elem instanceof HTMLElement) {
-                const left = Number.parseInt(elem.style.left);
-                const width = Number.parseInt(elem.style.width);
-                if (!Number.isNaN(left) && !Number.isNaN(width)) {
-                    const step = width / 3;
-                    return [left, left + step, left + step * 2, left + width];
-                }
-            }
-            return undefined;
-        }
 
         beforeEach(async () => {
             chart = await createEnterpriseChart({
@@ -505,6 +514,295 @@ describe('AxisDOMProxy', () => {
                 [expect.objectContaining({ value: expect.closeTo(0.2), index: 1 })],
                 [expect.objectContaining({ value: expect.closeTo(0.4), index: 2 })],
                 [expect.objectContaining({ value: expect.closeTo(0.6), index: 3 })],
+            ]);
+        });
+
+        test('clicks outside min/max domain are clamped', async () => {
+            await clickAction(Xs[0] - 15, 572)(chart);
+            await clickAction(Xs[3] + 15, 572)(chart);
+            await waitForChartStability(chart);
+
+            expect(click.mock.calls).toMatchObject([
+                [expect.objectContaining({ value: expect.closeTo(0), index: 0 })],
+                [expect.objectContaining({ value: expect.closeTo(0.6), index: 3 })],
+            ]);
+        });
+    });
+
+    // The bigint counterpart of the case above
+    describe('band interior clicks - bigint', () => {
+        const step = 200_000_000_000_000_000_000n;
+        const xs = Array.from({ length: 4 }, (_, i) => 10n ** 21n + step * BigInt(i));
+        let Xs: [number, number, number, number];
+
+        // Interpolated from the pointer's integer pixel position, so allow a pixel's worth of the domain.
+        const nearTick = (x: bigint) => closeToBigInt(x, step / 200n);
+
+        beforeEach(async () => {
+            chart = await createEnterpriseChart({
+                data: xs.map((x, i) => ({ x, y: i * 2 })),
+                axes: {
+                    x: {
+                        type: 'number',
+                        label: { rotation: 0, avoidCollisions: false },
+                        listeners: { click },
+                    },
+                    y: { type: 'number' },
+                },
+                zoom: { enabled: true },
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            });
+
+            Xs = measureXGridLines()!;
+            expect(Xs).toBeDefined();
+        });
+
+        test('axis click values in the center of X-labels is close to data X-values', async () => {
+            await clickAction(Xs[0], 572)(chart);
+            await clickAction(Xs[1], 572)(chart);
+            await clickAction(Xs[2], 571)(chart);
+            await clickAction(Xs[3], 572)(chart);
+            await waitForChartStability(chart);
+
+            expect(click.mock.calls).toMatchObject([
+                [expect.objectContaining({ value: nearTick(xs[0]), index: 0 })],
+                [expect.objectContaining({ value: nearTick(xs[1]), index: 1 })],
+                [expect.objectContaining({ value: nearTick(xs[2]), index: 2 })],
+                [expect.objectContaining({ value: nearTick(xs[3]), index: 3 })],
+            ]);
+        });
+
+        test('clicks outside min/max domain are clamped', async () => {
+            await clickAction(Xs[0] - 15, 572)(chart);
+            await clickAction(Xs[3] + 15, 572)(chart);
+            await waitForChartStability(chart);
+
+            // Clamping lands on a domain endpoint, so these are exact — and a narrowed Number would not
+            // compare equal to the bigint.
+            expect(click.mock.calls).toMatchObject([
+                [expect.objectContaining({ value: xs[0], index: 0 })],
+                [expect.objectContaining({ value: xs[3], index: 3 })],
+            ]);
+        });
+    });
+
+    // The `Date` counterpart, on a continuous time axis to test clamping
+    describe('band interior clicks - Date', () => {
+        const xs = Array.from({ length: 4 }, (_, i) => new Date(Date.UTC(2020, 0, 1 + i)));
+        let Xs: [number, number, number, number];
+
+        // Interpolated from the pointer's integer pixel position, so allow a pixel's worth of the domain.
+        // `new Date()` truncates, so the exactness of a whole-day tick turns on the rounding direction.
+        const nearTick = (x: Date) => closeToDate(x, 10 * 60 * 1000);
+
+        beforeEach(async () => {
+            chart = await createEnterpriseChart({
+                data: xs.map((x, i) => ({ x, y: i * 2 })),
+                axes: {
+                    x: {
+                        type: 'time',
+                        // One tick per datum, so the four grid lines are ticks 0..3 as in the variants above.
+                        interval: { step: 'day' },
+                        // A full ISO-8601 timestamp is long enough to reproduce the padding the `number`
+                        // variant gets from '#{0.9f}'.
+                        label: { rotation: 0, avoidCollisions: false, format: '%Y-%m-%dT%H:%M:%S.%L' },
+                        listeners: { click },
+                    },
+                    y: { type: 'number' },
+                },
+                zoom: { enabled: true },
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            });
+
+            Xs = measureXGridLines()!;
+            expect(Xs).toBeDefined();
+        });
+
+        test('axis click values in the center of X-labels is close to data X-values', async () => {
+            await clickAction(Xs[0], 572)(chart);
+            await clickAction(Xs[1], 572)(chart);
+            await clickAction(Xs[2], 571)(chart);
+            await clickAction(Xs[3], 572)(chart);
+            await waitForChartStability(chart);
+
+            expect(click.mock.calls).toMatchObject([
+                [expect.objectContaining({ value: nearTick(xs[0]), index: 0 })],
+                [expect.objectContaining({ value: nearTick(xs[1]), index: 1 })],
+                [expect.objectContaining({ value: nearTick(xs[2]), index: 2 })],
+                [expect.objectContaining({ value: nearTick(xs[3]), index: 3 })],
+            ]);
+        });
+
+        test('clicks outside min/max domain are clamped', async () => {
+            await clickAction(Xs[0] - 15, 572)(chart);
+            await clickAction(Xs[3] + 15, 572)(chart);
+            await waitForChartStability(chart);
+
+            // Clamping lands on a domain endpoint, so these are exact — and a bare epoch timestamp would
+            // not compare equal to the Date.
+            expect(click.mock.calls).toMatchObject([
+                [expect.objectContaining({ value: xs[0], index: 0 })],
+                [expect.objectContaining({ value: xs[3], index: 3 })],
+            ]);
+        });
+    });
+
+    describe('reversed axis clicks - number', () => {
+        let Xs: [number, number, number, number];
+
+        beforeEach(async () => {
+            chart = await createEnterpriseChart({
+                data: Array.from({ length: 4 }, (_, i) => ({ x: 20_000 + i * 20_000, y: i })),
+                axes: {
+                    // One tick per datum, so the four grid lines are the four ticks.
+                    x: { type: 'number', reverse: true, interval: { step: 20_000 }, listeners: { click } },
+                    y: { type: 'number' },
+                },
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            });
+            Xs = measureXGridLines()!;
+            expect(Xs).toBeDefined();
+        });
+
+        // Grid lines run 80000, 60000, 40000, 20000 left to right on a reversed domain.
+        test('each click reports its own position', async () => {
+            await clickAction(Xs[0], 560)(chart);
+            await clickAction(Xs[1], 560)(chart);
+            await clickAction(Xs[2], 560)(chart);
+            await clickAction(Xs[3], 560)(chart);
+            await waitForChartStability(chart);
+
+            expect(click.mock.calls).toMatchObject([
+                [expect.objectContaining({ value: expect.closeTo(80_000), index: 3 })],
+                [expect.objectContaining({ value: expect.closeTo(60_000), index: 2 })],
+                [expect.objectContaining({ value: expect.closeTo(40_000), index: 1 })],
+                [expect.objectContaining({ value: expect.closeTo(20_000), index: 0 })],
+            ]);
+        });
+
+        test('clicks outside min/max domain are clamped', async () => {
+            await clickAction(Xs[0] - 15, 572)(chart);
+            await clickAction(Xs[3] + 15, 572)(chart);
+            await waitForChartStability(chart);
+
+            expect(click.mock.calls).toMatchObject([
+                [expect.objectContaining({ value: 80_000, index: 3 })],
+                [expect.objectContaining({ value: 20_000, index: 0 })],
+            ]);
+        });
+    });
+
+    // A `unit-time` axis is backed by a band scale, but the axis reports its picked value from the scale
+    // as a continuous axis does, so an out-of-order bound reaches the reported value here.
+    describe('reversed axis clicks - unit-time', () => {
+        const days = Array.from({ length: 4 }, (_, i) => new Date(Date.UTC(2020, 0, 1 + i)));
+
+        beforeEach(async () => {
+            chart = await createEnterpriseChart({
+                data: days.map((x, i) => ({ x, y: i })),
+                axes: {
+                    x: { type: 'unit-time', reverse: true, listeners: { click } },
+                    y: { type: 'number' },
+                },
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+            });
+        });
+
+        test('each click reports its own band', async () => {
+            const Xs: number[] = measureBandCentres(4);
+            await clickAction(Xs[0], 560)(chart);
+            await clickAction(Xs[1], 560)(chart);
+            await clickAction(Xs[2], 560)(chart);
+            await clickAction(Xs[3], 560)(chart);
+            await waitForChartStability(chart);
+
+            expect(click.mock.calls).toMatchObject([
+                [expect.objectContaining({ value: days[3], index: 3 })],
+                [expect.objectContaining({ value: days[2], index: 2 })],
+                [expect.objectContaining({ value: days[1], index: 1 })],
+                [expect.objectContaining({ value: days[0], index: 0 })],
+            ]);
+        });
+    });
+
+    describe('reversed axis clicks - ordinal-time', () => {
+        const days = Array.from({ length: 4 }, (_, i) => new Date(Date.UTC(2020, 0, 1 + i)));
+
+        beforeEach(async () => {
+            chart = await createEnterpriseChart({
+                data: days.map((x, i) => ({ x, y: i })),
+                axes: {
+                    x: { type: 'ordinal-time', reverse: true, listeners: { click } },
+                    y: { type: 'number' },
+                },
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+            });
+        });
+
+        test('each click reports its own band', async () => {
+            const Xs: number[] = measureBandCentres(4);
+            await clickAction(Xs[0], 560)(chart);
+            await clickAction(Xs[1], 560)(chart);
+            await clickAction(Xs[2], 560)(chart);
+            await clickAction(Xs[3], 560)(chart);
+            await waitForChartStability(chart);
+
+            expect(click.mock.calls).toMatchObject([
+                [expect.objectContaining({ value: days[3], index: 3 })],
+                [expect.objectContaining({ value: days[2], index: 2 })],
+                [expect.objectContaining({ value: days[1], index: 1 })],
+                [expect.objectContaining({ value: days[0], index: 0 })],
+            ]);
+        });
+    });
+
+    // A discrete domain holds whatever the data holds, in data order, so its endpoints carry no ordering.
+    // Nothing may treat them as bounds: 100 sits between 0 and 1 here and must survive the click.
+    describe('numeric category axis clicks', () => {
+        let Xs: [number, number, number, number];
+
+        beforeEach(async () => {
+            chart = await createEnterpriseChart({
+                data: [
+                    { x: 0, y: 1 },
+                    { x: 100, y: 2 },
+                    { x: 1, y: 3 },
+                ],
+                axes: {
+                    x: {
+                        type: 'category',
+                        label: { formatter: (p) => `Category Number: ${p.value}` },
+                        listeners: { click },
+                    },
+                    y: { type: 'number' },
+                },
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+            });
+            Xs = measureXGridLines()!;
+            expect(Xs).toBeDefined();
+        });
+
+        test('a category outside its neighbours’ range is reported unchanged', async () => {
+            await clickAction(84, 572)(chart);
+            await clickAction(415, 572)(chart);
+            await clickAction(756, 572)(chart);
+            await waitForChartStability(chart);
+
+            expect(click.mock.calls).toMatchObject([
+                [expect.objectContaining({ value: 0, index: 0 })],
+                [expect.objectContaining({ value: 100, index: 1 })],
+                [expect.objectContaining({ value: 1, index: 2 })],
+            ]);
+        });
+
+        test('clicks outside min/max domain are clamped', async () => {
+            await clickAction(35, 572)(chart);
+            await clickAction(799, 572)(chart);
+            await waitForChartStability(chart);
+
+            expect(click.mock.calls).toMatchObject([
+                [expect.objectContaining({ value: 0, index: 0 })],
+                [expect.objectContaining({ value: 1, index: 2 })],
             ]);
         });
     });
