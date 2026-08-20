@@ -58,6 +58,11 @@ function Item({ itemData, framework, pageName }: { itemData?: any; framework?: F
 
     const className = classnames(styles.item, itemData.icon ? styles.hasIcon : '', isActive ? styles.isActive : '');
 
+    // Split off the final word so the trailing icons can never wrap onto a line of their own.
+    const titleWords = String(itemData.title ?? '').split(' ');
+    const titleTail = titleWords.pop();
+    const titleLead = titleWords.join(' ');
+
     return (
         isCorrectFramework && (
             <>
@@ -65,9 +70,12 @@ function Item({ itemData, framework, pageName }: { itemData?: any; framework?: F
                     {itemData.icon && <Icon name={itemData.icon} svgClasses={styles.itemIcon} />}
 
                     <span>
-                        {itemData.title}
-                        {itemData.isEnterprise && <Icon name="enterprise" svgClasses={styles.enterpriseIcon} />}
-                        {isExternalURL && <Icon name="newTab" svgClasses={styles.externalIcon} />}
+                        {titleLead && `${titleLead} `}
+                        <span className={styles.titleTail}>
+                            {titleTail}
+                            {itemData.isEnterprise && <Icon name="enterprise" svgClasses={styles.enterpriseIcon} />}
+                            {isExternalURL && <Icon name="newTab" svgClasses={styles.externalIcon} />}
+                        </span>
                     </span>
                 </a>
 
