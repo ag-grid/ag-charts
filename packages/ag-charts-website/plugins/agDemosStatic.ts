@@ -5,18 +5,21 @@ import type { Plugin, ViteDevServer } from 'vite';
 const DEMOS_DIST = fileURLToPath(new URL('../../ag-charts-demos/dist', import.meta.url));
 
 /**
- * Dev-only: serve the built ag-charts-demos app from its dist folder under the
- * site base at `<base>/internal-demos`. Registered as an early connect middleware
- * so it resolves before Astro's page router (which would otherwise 404 the
- * request). `configureServer` never runs during a production build; in production
- * the demos are copied into the build output instead (see astro.config.mjs).
+ * Dev-only: serve the built ag-charts-demos app from its dist folder at
+ * `/internal-demos`. Registered as an early connect middleware so it resolves before
+ * Astro's page router (which would otherwise 404 the request). `configureServer` never
+ * runs during a production build; in production the demos are copied into the build
+ * output instead (see astro.config.mjs).
+ *
+ * Base-less by design: Vite strips the configured base before plugin middlewares run, so
+ * a mount carrying the base would never match when one is set.
  *
  * The demos build is base-relative (DEMOS_BASE_PATH=./), so its assets resolve
  * relative to the entry module's URL under whatever base serves this mount — the
  * same demos route logic then works unchanged in dev, staging, and production.
  */
-export default function agDemosStatic(basePath = '/'): Plugin {
-    const mountPath = `${basePath.replace(/\/$/, '')}/internal-demos`;
+export default function agDemosStatic(): Plugin {
+    const mountPath = '/internal-demos';
     const serve = sirv(DEMOS_DIST, { dev: true, single: true, etag: true });
 
     return {

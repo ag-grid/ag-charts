@@ -1,0 +1,22 @@
+---
+import SharedDemoPage from '@ag-website-shared/components/demo-page/DemoPage.astro';
+
+import DemoFrame from './DemoFrame.astro';
+import { DEMO_PAGE_HERO } from './demoPageContent';
+import type { DemoExampleId } from './exampleRegistry';
+import { DEMO_EXAMPLES, getDemoExample } from './exampleRegistry';
+import MobileNotice from './MobileNotice.astro';
+
+interface Props {
+    currentId: DemoExampleId;
+}
+
+const { currentId } = Astro.props;
+
+const current = getDemoExample(currentId);
+---
+
+<SharedDemoPage currentId={currentId} examples={DEMO_EXAMPLES} {...DEMO_PAGE_HERO}>
+    <MobileNotice slot="mobile-notice" />
+    <DemoFrame demoAppId={current.demoAppId} title={current.title} />
+</SharedDemoPage>

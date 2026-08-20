@@ -91,7 +91,7 @@ const plugins = [
     agHotModuleReload(),
     agAutoRedirect(['/javascript', '/react', '/vue', '/angular', '/gallery']),
     agDevCsp(),
-    agDemosStatic(PUBLIC_BASE_URL),
+    agDemosStatic(),
     agDevMarkdownNegotiation(),
 ];
 if (NODE_ENV !== 'test') {
