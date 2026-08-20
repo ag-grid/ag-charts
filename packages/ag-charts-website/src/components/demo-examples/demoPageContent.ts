@@ -5,7 +5,7 @@ import type { DemoExampleId } from './exampleRegistry';
 
 /**
  * Hero copy every showcase page shows, and the two CTAs beneath it. Provisional wording, pending
- * the real showcase demos and a marketing pass.
+ * a marketing pass.
  *
  * `DemoPage.astro` passes these to the shared demo page and the markdown twins render the same
  * values, so a page and its twin cannot drift.

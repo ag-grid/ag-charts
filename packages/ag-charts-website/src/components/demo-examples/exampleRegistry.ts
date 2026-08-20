@@ -27,10 +27,21 @@ export const DEMO_EXAMPLES: DemoExample[] = [
         description: 'Traffic, funnel and retention charts over a shared date range.',
         demoAppId: 'web-analytics',
     },
-    {
-        id: 'real-time',
-        title: 'Real-Time Monitoring',
-        path: './examples-real-time',
-        description: 'Streaming time-series with thresholds and annotations.',
-    },
+    // Uncomment once the real-time demo exists, restoring `src/pages/examples-real-time.astro`
+    // and its `.md.ts` twin alongside it. Its copy is still in DEMO_PAGE_CONTENT.
+    // {
+    //     id: 'real-time',
+    //     title: 'Real-Time Monitoring',
+    //     path: './examples-real-time',
+    //     description: 'Streaming time-series with thresholds and annotations.',
+    // },
 ];
+
+/** Throws rather than quietly rendering a page for a demo the feature list does not offer. */
+export function getDemoExample(id: DemoExampleId): DemoExample {
+    const example = DEMO_EXAMPLES.find((candidate) => candidate.id === id);
+    if (!example) {
+        throw new Error(`No demo registered for id "${id}"`);
+    }
+    return example;
+}

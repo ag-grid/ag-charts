@@ -5,7 +5,7 @@ import DemoFrame from './DemoFrame.astro';
 import DemoPlaceholder from './DemoPlaceholder.astro';
 import { DEMO_PAGE_HERO } from './demoPageContent';
 import type { DemoExampleId } from './exampleRegistry';
-import { DEMO_EXAMPLES } from './exampleRegistry';
+import { DEMO_EXAMPLES, getDemoExample } from './exampleRegistry';
 import MobileNotice from './MobileNotice.astro';
 
 interface Props {
@@ -14,10 +14,7 @@ interface Props {
 
 const { currentId } = Astro.props;
 
-const current = DEMO_EXAMPLES.find((example) => example.id === currentId);
-if (!current) {
-    throw new Error(`No demo registered for id "${currentId}"`);
-}
+const current = getDemoExample(currentId);
 ---
 
 <SharedDemoPage currentId={currentId} examples={DEMO_EXAMPLES} {...DEMO_PAGE_HERO}>
