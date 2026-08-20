@@ -1806,6 +1806,64 @@ describe('OrganizationSeries', () => {
         });
     });
 
+    describe('expander border cut-out', () => {
+        // A red card border makes the pixels attributable: any red inside the pill can only have
+        // come from the card's stroke running behind it.
+        const buildOptions = (expander: Record<string, unknown>): AgChartOptions => ({
+            ...SIMPLE_ORG_CHART,
+            series: [
+                {
+                    type: 'organization',
+                    idKey: 'id',
+                    parentIdKey: 'parentId',
+                    node: {
+                        title: { key: 'name' },
+                        subtitle: { key: 'job' },
+                        cornerRadius: 0,
+                        stroke: '#ff0000',
+                        strokeWidth: 4,
+                    },
+                    // The pill's stroke defaults to the node's, so give it one of its own — otherwise
+                    // the probe counts the pill's own outline as border bleed-through.
+                    expander: { cornerRadius: 0, stroke: '#0000ff', ...expander },
+                },
+            ],
+        });
+
+        function countCardStrokePixels(region: _ModuleSupport.BBox): number {
+            const image = ctx.snapshot();
+            let count = 0;
+            for (let y = Math.ceil(region.y); y < Math.floor(region.y + region.height); y++) {
+                for (let x = Math.ceil(region.x); x < Math.floor(region.x + region.width); x++) {
+                    const offset = (y * image.width + x) * 4;
+                    const [r, g, b] = image.data.slice(offset, offset + 3);
+                    if (r > 200 && g < 120 && b < 120) count++;
+                }
+            }
+            return count;
+        }
+
+        it.each([0, 0.1, 0.5, 1])(
+            'keeps the card border out of the expander pill at expander.fillOpacity %s',
+            async (fillOpacity) => {
+                const options = buildOptions({ fillOpacity });
+                prepareEnterpriseTestOptions(options);
+
+                chart = AgCharts.create(options);
+                await waitForChartStability(chart);
+
+                const pill = _ModuleSupport.Transformable.toCanvas(findTaggedNode('ceo', OrganizationNodeTag.Expander));
+
+                expect(countCardStrokePixels(pill.clone().shrink(1))).toBe(0);
+                // Control: the same border line is still drawn either side of the pill, so a zero
+                // count above means the cut-out worked rather than that the border never rendered.
+                expect(
+                    countCardStrokePixels(new _ModuleSupport.BBox(pill.x - 21, pill.y, 20, pill.height))
+                ).toBeGreaterThan(0);
+            }
+        );
+    });
+
     describe('node labels', () => {
         it('should render when a labels-array entry has `enabled: false` (AG-17252)', async () => {
             // A disabled label entry must be skipped silently, not crash `dataModel`.

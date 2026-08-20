@@ -83,8 +83,17 @@ class OrganizationCardRect extends _ModuleSupport.Rect {
     // for its gaps.
     private getExclusionPath(exclusion: _ModuleSupport.BBox) {
         const { x, y, width, height, strokeWidth, exclusionPath } = this;
-        const key = [x, y, width, height, strokeWidth, exclusion.x, exclusion.y, exclusion.width, exclusion.height]
-            .join();
+        const key = [
+            x,
+            y,
+            width,
+            height,
+            strokeWidth,
+            exclusion.x,
+            exclusion.y,
+            exclusion.width,
+            exclusion.height,
+        ].join();
         if (key === this.exclusionPathKey) return exclusionPath;
         this.exclusionPathKey = key;
 
