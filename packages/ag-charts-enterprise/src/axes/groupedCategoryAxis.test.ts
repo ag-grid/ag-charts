@@ -201,29 +201,17 @@ describe('Grouped Category', () => {
             await waitForChartStability(chart);
         };
 
-        const chartOptions = (crosshair?: AgGroupedCategoryAxisOptions['crosshair']) => ({
-            data: [
-                { y: 10, x: ['Food', 'Meat', 'Fish'] },
-                { y: 10, x: ['Food', 'Meat', 'Chicken'] },
-                { y: 10, x: ['Food', 'Fruit', 'Banana'] },
-                { y: 10, x: ['Food', 'Fruit', 'Apple'] },
-                { y: 10, x: ['Drink', 'Soda', 'Coke'] },
-                { y: 10, x: ['Drink', 'Soda', 'Pepsi'] },
-                { y: 10, x: ['Drink', 'Tea', 'Green'] },
-            ],
-            axes: {
-                x: {
-                    type: 'grouped-category' as const,
-                    depthOptions: [{}, {}, {}],
-                    label: { formatter, itemStyler },
-                    crosshair,
-                    listeners: { click },
-                },
-            },
-            zoom: { enabled: true },
-            contextMenu: { getItems },
-            series: [{ type: 'bar' as const, xKey: 'x', yKey: 'y', listeners: { seriesNodeClick } }],
-        });
+        const hoverEveryBand = async () => {
+            for (const x of measureBandCentres(7)) {
+                await hoverPoint({ x, y: 300 });
+            }
+        };
+
+        const clickEveryBand = async () => {
+            for (const x of measureBandCentres(7)) {
+                await clickPoint({ x, y: 300 });
+            }
+        };
 
         beforeEach(async () => {
             formatter = vi.fn();
@@ -257,7 +245,28 @@ describe('Grouped Category', () => {
                     },
                 ];
             });
-            chart = await createEnterpriseChart(chartOptions());
+            chart = await createEnterpriseChart({
+                data: [
+                    { y: 10, x: ['Food', 'Meat', 'Fish'] },
+                    { y: 10, x: ['Food', 'Meat', 'Chicken'] },
+                    { y: 10, x: ['Food', 'Fruit', 'Banana'] },
+                    { y: 10, x: ['Food', 'Fruit', 'Apple'] },
+                    { y: 10, x: ['Drink', 'Soda', 'Coke'] },
+                    { y: 10, x: ['Drink', 'Soda', 'Pepsi'] },
+                    { y: 10, x: ['Drink', 'Tea', 'Green'] },
+                ],
+                axes: {
+                    x: {
+                        type: 'grouped-category' as const,
+                        depthOptions: [{}, {}, {}],
+                        label: { formatter, itemStyler },
+                        listeners: { click },
+                    },
+                },
+                zoom: { enabled: true },
+                contextMenu: { getItems },
+                series: [{ type: 'bar' as const, xKey: 'x', yKey: 'y', listeners: { seriesNodeClick } }],
+            });
         });
 
         test('formatter (init)', () => {
@@ -372,9 +381,7 @@ describe('Grouped Category', () => {
 
         test('series-node hover', async () => {
             formatter.mockClear();
-            for (const x of measureBandCentres(7)) {
-                await hoverPoint({ x, y: 300 });
-            }
+            await hoverEveryBand();
             expect(formatter.mock.calls).toMatchObject([
                 params({ depth: 0, index: 2, value: ['Food', 'Meat', 'Fish'], formattedValue: 'Fish' }),
                 params({ depth: 0, index: 3, value: ['Food', 'Meat', 'Chicken'], formattedValue: 'Chicken' }),
@@ -387,9 +394,7 @@ describe('Grouped Category', () => {
         });
 
         test('series-node click', async () => {
-            for (const x of measureBandCentres(7)) {
-                await clickPoint({ x, y: 300 });
-            }
+            await clickEveryBand();
             expect(seriesNodeClick.mock.calls).toMatchObject([
                 coords({ depth: 0, index: 2, value: ['Food', 'Meat', 'Fish'], formattedValue: 'Fish' }),
                 coords({ depth: 0, index: 3, value: ['Food', 'Meat', 'Chicken'], formattedValue: 'Chicken' }),
@@ -447,19 +452,37 @@ describe('Grouped Category', () => {
         describe('crosshair', () => {
             beforeEach(async () => {
                 chart.destroy();
-                chart = await createEnterpriseChart(
-                    chartOptions({
-                        enabled: true,
-                        label: { enabled: true, formatter: crosshairFormatter, renderer: crosshairRenderer },
-                    })
-                );
+                chart = await createEnterpriseChart({
+                    data: [
+                        { y: 10, x: ['Food', 'Meat', 'Fish'] },
+                        { y: 10, x: ['Food', 'Meat', 'Chicken'] },
+                        { y: 10, x: ['Food', 'Fruit', 'Banana'] },
+                        { y: 10, x: ['Food', 'Fruit', 'Apple'] },
+                        { y: 10, x: ['Drink', 'Soda', 'Coke'] },
+                        { y: 10, x: ['Drink', 'Soda', 'Pepsi'] },
+                        { y: 10, x: ['Drink', 'Tea', 'Green'] },
+                    ],
+                    axes: {
+                        x: {
+                            type: 'grouped-category' as const,
+                            depthOptions: [{}, {}, {}],
+                            label: { formatter, itemStyler },
+                            crosshair: {
+                                enabled: true,
+                                label: {
+                                    enabled: true,
+                                    formatter: crosshairFormatter,
+                                    renderer: crosshairRenderer,
+                                },
+                            },
+                            listeners: { click },
+                        },
+                    },
+                    zoom: { enabled: true },
+                    contextMenu: { getItems },
+                    series: [{ type: 'bar' as const, xKey: 'x', yKey: 'y', listeners: { seriesNodeClick } }],
+                });
             });
-
-            const hoverEveryBand = async () => {
-                for (const x of measureBandCentres(7)) {
-                    await hoverPoint({ x, y: 300 });
-                }
-            };
 
             test('label formatter', async () => {
                 await hoverEveryBand();
