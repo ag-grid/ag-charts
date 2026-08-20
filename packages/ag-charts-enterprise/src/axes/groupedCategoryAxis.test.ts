@@ -278,34 +278,37 @@ describe('Grouped Category', () => {
             });
 
             test('formatter (init)', () => {
-                // formatter callbacks should have formattedValue:undefined, because that is what is being calculated.
+                // The formatter computes the formatted value, so it must never be handed one. Asserted as an
+                // absent key rather than an `undefined` one, because `objectContaining` treats a key it was
+                // given as one that has to be present.
+                expect(formatter.mock.calls.every(([p]) => !('formattedValue' in p))).toBe(true);
                 expect(formatter.mock.calls).toMatchObject([
-                    params({ depth: 2, index: 0, value: ['Food', 'Meat', 'Fish'], formattedValue: undefined }),
-                    params({ depth: 1, index: 1, value: ['Food', 'Meat', 'Fish'], formattedValue: undefined }),
-                    params({ depth: 0, index: 2, value: ['Food', 'Meat', 'Fish'], formattedValue: undefined }),
-                    params({ depth: 0, index: 3, value: ['Food', 'Meat', 'Chicken'], formattedValue: undefined }),
-                    params({ depth: 1, index: 4, value: ['Food', 'Fruit', 'Banana'], formattedValue: undefined }),
-                    params({ depth: 0, index: 5, value: ['Food', 'Fruit', 'Banana'], formattedValue: undefined }),
-                    params({ depth: 0, index: 6, value: ['Food', 'Fruit', 'Apple'], formattedValue: undefined }),
-                    params({ depth: 2, index: 7, value: ['Drink', 'Soda', 'Coke'], formattedValue: undefined }),
-                    params({ depth: 1, index: 8, value: ['Drink', 'Soda', 'Coke'], formattedValue: undefined }),
-                    params({ depth: 0, index: 9, value: ['Drink', 'Soda', 'Coke'], formattedValue: undefined }),
-                    params({ depth: 0, index: 10, value: ['Drink', 'Soda', 'Pepsi'], formattedValue: undefined }),
-                    params({ depth: 1, index: 11, value: ['Drink', 'Tea', 'Green'], formattedValue: undefined }),
-                    params({ depth: 0, index: 12, value: ['Drink', 'Tea', 'Green'], formattedValue: undefined }),
-                    params({ depth: 2, index: 0, value: ['Food', 'Meat', 'Fish'], formattedValue: undefined }),
-                    params({ depth: 1, index: 1, value: ['Food', 'Meat', 'Fish'], formattedValue: undefined }),
-                    params({ depth: 0, index: 2, value: ['Food', 'Meat', 'Fish'], formattedValue: undefined }),
-                    params({ depth: 0, index: 3, value: ['Food', 'Meat', 'Chicken'], formattedValue: undefined }),
-                    params({ depth: 1, index: 4, value: ['Food', 'Fruit', 'Banana'], formattedValue: undefined }),
-                    params({ depth: 0, index: 5, value: ['Food', 'Fruit', 'Banana'], formattedValue: undefined }),
-                    params({ depth: 0, index: 6, value: ['Food', 'Fruit', 'Apple'], formattedValue: undefined }),
-                    params({ depth: 2, index: 7, value: ['Drink', 'Soda', 'Coke'], formattedValue: undefined }),
-                    params({ depth: 1, index: 8, value: ['Drink', 'Soda', 'Coke'], formattedValue: undefined }),
-                    params({ depth: 0, index: 9, value: ['Drink', 'Soda', 'Coke'], formattedValue: undefined }),
-                    params({ depth: 0, index: 10, value: ['Drink', 'Soda', 'Pepsi'], formattedValue: undefined }),
-                    params({ depth: 1, index: 11, value: ['Drink', 'Tea', 'Green'], formattedValue: undefined }),
-                    params({ depth: 0, index: 12, value: ['Drink', 'Tea', 'Green'], formattedValue: undefined }),
+                    params({ depth: 2, index: 0, value: ['Food', 'Meat', 'Fish'] }),
+                    params({ depth: 1, index: 1, value: ['Food', 'Meat', 'Fish'] }),
+                    params({ depth: 0, index: 2, value: ['Food', 'Meat', 'Fish'] }),
+                    params({ depth: 0, index: 3, value: ['Food', 'Meat', 'Chicken'] }),
+                    params({ depth: 1, index: 4, value: ['Food', 'Fruit', 'Banana'] }),
+                    params({ depth: 0, index: 5, value: ['Food', 'Fruit', 'Banana'] }),
+                    params({ depth: 0, index: 6, value: ['Food', 'Fruit', 'Apple'] }),
+                    params({ depth: 2, index: 7, value: ['Drink', 'Soda', 'Coke'] }),
+                    params({ depth: 1, index: 8, value: ['Drink', 'Soda', 'Coke'] }),
+                    params({ depth: 0, index: 9, value: ['Drink', 'Soda', 'Coke'] }),
+                    params({ depth: 0, index: 10, value: ['Drink', 'Soda', 'Pepsi'] }),
+                    params({ depth: 1, index: 11, value: ['Drink', 'Tea', 'Green'] }),
+                    params({ depth: 0, index: 12, value: ['Drink', 'Tea', 'Green'] }),
+                    params({ depth: 2, index: 0, value: ['Food', 'Meat', 'Fish'] }),
+                    params({ depth: 1, index: 1, value: ['Food', 'Meat', 'Fish'] }),
+                    params({ depth: 0, index: 2, value: ['Food', 'Meat', 'Fish'] }),
+                    params({ depth: 0, index: 3, value: ['Food', 'Meat', 'Chicken'] }),
+                    params({ depth: 1, index: 4, value: ['Food', 'Fruit', 'Banana'] }),
+                    params({ depth: 0, index: 5, value: ['Food', 'Fruit', 'Banana'] }),
+                    params({ depth: 0, index: 6, value: ['Food', 'Fruit', 'Apple'] }),
+                    params({ depth: 2, index: 7, value: ['Drink', 'Soda', 'Coke'] }),
+                    params({ depth: 1, index: 8, value: ['Drink', 'Soda', 'Coke'] }),
+                    params({ depth: 0, index: 9, value: ['Drink', 'Soda', 'Coke'] }),
+                    params({ depth: 0, index: 10, value: ['Drink', 'Soda', 'Pepsi'] }),
+                    params({ depth: 1, index: 11, value: ['Drink', 'Tea', 'Green'] }),
+                    params({ depth: 0, index: 12, value: ['Drink', 'Tea', 'Green'] }),
                 ]);
             });
 
@@ -346,19 +349,19 @@ describe('Grouped Category', () => {
                 await clickPoint({ x: 727, y: 502 }); // 'Green'
                 await waitForChartStability(chart);
                 expect(click.mock.calls).toMatchObject([
-                    params({ depth: 2, index: 0, value: ['Food', 'Meat', 'Fish'], formattedValue: 'Food' }),
-                    params({ depth: 1, index: 1, value: ['Food', 'Meat', 'Fish'], formattedValue: 'Meat' }),
-                    params({ depth: 0, index: 2, value: ['Food', 'Meat', 'Fish'], formattedValue: 'Fish' }),
-                    params({ depth: 0, index: 3, value: ['Food', 'Meat', 'Chicken'], formattedValue: 'Chicken' }),
-                    params({ depth: 1, index: 4, value: ['Food', 'Fruit', 'Banana'], formattedValue: 'Fruit' }),
-                    params({ depth: 0, index: 5, value: ['Food', 'Fruit', 'Banana'], formattedValue: 'Banana' }),
-                    params({ depth: 0, index: 6, value: ['Food', 'Fruit', 'Apple'], formattedValue: 'Apple' }),
-                    params({ depth: 2, index: 7, value: ['Drink', 'Soda', 'Coke'], formattedValue: 'Drink' }),
-                    params({ depth: 1, index: 8, value: ['Drink', 'Soda', 'Coke'], formattedValue: 'Soda' }),
-                    params({ depth: 0, index: 9, value: ['Drink', 'Soda', 'Coke'], formattedValue: 'Coke' }),
-                    params({ depth: 0, index: 10, value: ['Drink', 'Soda', 'Pepsi'], formattedValue: 'Pepsi' }),
-                    params({ depth: 1, index: 11, value: ['Drink', 'Tea', 'Green'], formattedValue: 'Tea' }),
-                    params({ depth: 0, index: 12, value: ['Drink', 'Tea', 'Green'], formattedValue: 'Green' }),
+                    params({ depth: 2, index: 0, value: ['Food', 'Meat', 'Fish'] }),
+                    params({ depth: 1, index: 1, value: ['Food', 'Meat', 'Fish'] }),
+                    params({ depth: 0, index: 2, value: ['Food', 'Meat', 'Fish'] }),
+                    params({ depth: 0, index: 3, value: ['Food', 'Meat', 'Chicken'] }),
+                    params({ depth: 1, index: 4, value: ['Food', 'Fruit', 'Banana'] }),
+                    params({ depth: 0, index: 5, value: ['Food', 'Fruit', 'Banana'] }),
+                    params({ depth: 0, index: 6, value: ['Food', 'Fruit', 'Apple'] }),
+                    params({ depth: 2, index: 7, value: ['Drink', 'Soda', 'Coke'] }),
+                    params({ depth: 1, index: 8, value: ['Drink', 'Soda', 'Coke'] }),
+                    params({ depth: 0, index: 9, value: ['Drink', 'Soda', 'Coke'] }),
+                    params({ depth: 0, index: 10, value: ['Drink', 'Soda', 'Pepsi'] }),
+                    params({ depth: 1, index: 11, value: ['Drink', 'Tea', 'Green'] }),
+                    params({ depth: 0, index: 12, value: ['Drink', 'Tea', 'Green'] }),
                 ]);
             });
 
@@ -368,13 +371,7 @@ describe('Grouped Category', () => {
                 // The axis scope deliberately carries no `coordinates`, so the axis identity has to be
                 // complete on the params themselves.
                 expect(getItems.mock.calls).toMatchObject([
-                    params({
-                        showOn: 'axis',
-                        depth: 0,
-                        index: 2,
-                        value: ['Food', 'Meat', 'Fish'],
-                        formattedValue: 'Fish',
-                    }),
+                    params({ showOn: 'axis', depth: 0, index: 2, value: ['Food', 'Meat', 'Fish'] }),
                 ]);
             });
 
@@ -382,7 +379,7 @@ describe('Grouped Category', () => {
                 await contextMenuPoint({ x: 150, y: 545 }); // 'Meat'
                 await clickMenuItem('Run action (axis)');
                 expect(axisAction.mock.calls).toMatchObject([
-                    params({ depth: 1, index: 1, value: ['Food', 'Meat', 'Fish'], formattedValue: 'Meat' }),
+                    params({ depth: 1, index: 1, value: ['Food', 'Meat', 'Fish'] }),
                 ]);
                 expect(nodeAction).not.toHaveBeenCalled();
             });
@@ -390,27 +387,31 @@ describe('Grouped Category', () => {
             test('series-node hover', async () => {
                 formatter.mockClear();
                 await hoverEveryBand();
+                // Hovering formats the datum through the tooltip rather than for a rendered label, and the
+                // formatter must report the same identity there as it does for the label itself. It still
+                // receives no formattedValue — that is the value it computes.
+                expect(formatter.mock.calls.every(([p]) => !('formattedValue' in p))).toBe(true);
                 expect(formatter.mock.calls).toMatchObject([
-                    params({ depth: 0, index: 2, value: ['Food', 'Meat', 'Fish'], formattedValue: 'Fish' }),
-                    params({ depth: 0, index: 3, value: ['Food', 'Meat', 'Chicken'], formattedValue: 'Chicken' }),
-                    params({ depth: 0, index: 5, value: ['Food', 'Fruit', 'Banana'], formattedValue: 'Banana' }),
-                    params({ depth: 0, index: 6, value: ['Food', 'Fruit', 'Apple'], formattedValue: 'Apple' }),
-                    params({ depth: 0, index: 9, value: ['Drink', 'Soda', 'Coke'], formattedValue: 'Coke' }),
-                    params({ depth: 0, index: 10, value: ['Drink', 'Soda', 'Pepsi'], formattedValue: 'Pepsi' }),
-                    params({ depth: 0, index: 12, value: ['Drink', 'Tea', 'Green'], formattedValue: 'Green' }),
+                    params({ depth: 0, index: 2, value: ['Food', 'Meat', 'Fish'] }),
+                    params({ depth: 0, index: 3, value: ['Food', 'Meat', 'Chicken'] }),
+                    params({ depth: 0, index: 5, value: ['Food', 'Fruit', 'Banana'] }),
+                    params({ depth: 0, index: 6, value: ['Food', 'Fruit', 'Apple'] }),
+                    params({ depth: 0, index: 9, value: ['Drink', 'Soda', 'Coke'] }),
+                    params({ depth: 0, index: 10, value: ['Drink', 'Soda', 'Pepsi'] }),
+                    params({ depth: 0, index: 12, value: ['Drink', 'Tea', 'Green'] }),
                 ]);
             });
 
             test('series-node click', async () => {
                 await clickEveryBand();
                 expect(seriesNodeClick.mock.calls).toMatchObject([
-                    coords({ depth: 0, index: 2, value: ['Food', 'Meat', 'Fish'], formattedValue: 'Fish' }),
-                    coords({ depth: 0, index: 3, value: ['Food', 'Meat', 'Chicken'], formattedValue: 'Chicken' }),
-                    coords({ depth: 0, index: 5, value: ['Food', 'Fruit', 'Banana'], formattedValue: 'Banana' }),
-                    coords({ depth: 0, index: 6, value: ['Food', 'Fruit', 'Apple'], formattedValue: 'Apple' }),
-                    coords({ depth: 0, index: 9, value: ['Drink', 'Soda', 'Coke'], formattedValue: 'Coke' }),
-                    coords({ depth: 0, index: 10, value: ['Drink', 'Soda', 'Pepsi'], formattedValue: 'Pepsi' }),
-                    coords({ depth: 0, index: 12, value: ['Drink', 'Tea', 'Green'], formattedValue: 'Green' }),
+                    coords({ depth: 0, index: 2, value: ['Food', 'Meat', 'Fish'] }),
+                    coords({ depth: 0, index: 3, value: ['Food', 'Meat', 'Chicken'] }),
+                    coords({ depth: 0, index: 5, value: ['Food', 'Fruit', 'Banana'] }),
+                    coords({ depth: 0, index: 6, value: ['Food', 'Fruit', 'Apple'] }),
+                    coords({ depth: 0, index: 9, value: ['Drink', 'Soda', 'Coke'] }),
+                    coords({ depth: 0, index: 10, value: ['Drink', 'Soda', 'Pepsi'] }),
+                    coords({ depth: 0, index: 12, value: ['Drink', 'Tea', 'Green'] }),
                 ]);
             });
 
@@ -419,7 +420,7 @@ describe('Grouped Category', () => {
                 await pressOnSeriesArea('ArrowRight');
                 await pressOnSeriesArea('Enter');
                 expect(seriesNodeClick.mock.calls).toMatchObject([
-                    coords({ depth: 0, index: 3, value: ['Food', 'Meat', 'Chicken'], formattedValue: 'Chicken' }),
+                    coords({ depth: 0, index: 3, value: ['Food', 'Meat', 'Chicken'] }),
                 ]);
             });
 
@@ -429,7 +430,7 @@ describe('Grouped Category', () => {
                 await waitForChartStability(chart);
                 // A series node reports the axis identity through `coordinates`, not on the params root.
                 expect(getItems.mock.calls).toMatchObject([
-                    coords({ depth: 0, index: 3, value: ['Food', 'Meat', 'Chicken'], formattedValue: 'Chicken' }),
+                    coords({ depth: 0, index: 3, value: ['Food', 'Meat', 'Chicken'] }),
                 ]);
             });
 
@@ -438,7 +439,7 @@ describe('Grouped Category', () => {
                 await contextMenuPoint({ x: secondBand, y: 300 });
                 await clickMenuItem('Run action (series-node)');
                 expect(nodeAction.mock.calls).toMatchObject([
-                    coords({ depth: 0, index: 3, value: ['Food', 'Meat', 'Chicken'], formattedValue: 'Chicken' }),
+                    coords({ depth: 0, index: 3, value: ['Food', 'Meat', 'Chicken'] }),
                 ]);
                 expect(axisAction).not.toHaveBeenCalled();
             });
@@ -450,7 +451,7 @@ describe('Grouped Category', () => {
                 // The chart-wide scope reports the same axis identity, so an `always` item is not a
                 // second, weaker contract.
                 expect(alwaysAction.mock.calls).toMatchObject([
-                    coords({ depth: 0, index: 3, value: ['Food', 'Meat', 'Chicken'], formattedValue: 'Chicken' }),
+                    coords({ depth: 0, index: 3, value: ['Food', 'Meat', 'Chicken'] }),
                 ]);
             });
         });
