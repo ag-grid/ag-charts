@@ -19,7 +19,10 @@ const { demoAppId, title } = Astro.props;
     mounts a single `#root` once per document, so inline they would measure the whole window and
     never re-mount when the router swaps between showcase pages. A frame gives each demo its own
     viewport and a fresh document per visit.
+
+    Eager, not lazy: the stage is above the fold on every showcase page, and deferring the load
+    leaves the frame showing the user-agent's white canvas for long enough to read as a flash
+    against the card when switching demos.
 */
 }
-<iframe class={styles.frame} src={urlWithBaseUrl(`/demos/${demoAppId}/`)} title={`${title} demo`} loading="lazy"
-></iframe>
+<iframe class={styles.frame} src={urlWithBaseUrl(`/demos/${demoAppId}/`)} title={`${title} demo`}></iframe>
