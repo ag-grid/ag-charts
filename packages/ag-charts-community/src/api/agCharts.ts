@@ -7,6 +7,7 @@ import {
     deepClone,
     deepFreeze,
     enterpriseRegistry,
+    isPlainObject,
     jsonWalk,
     strictObjectKeys,
 } from 'ag-charts-core';
@@ -30,6 +31,35 @@ import { Pool } from '../util/pool';
 import { VERSION } from '../version';
 
 const debug = Debug.create(true, 'opts');
+
+function describeValue(value: unknown): string {
+    if (value === null) return 'null';
+    if (Array.isArray(value)) return 'an array';
+    if (typeof value === 'string') {
+        const truncated = value.length > 20 ? `${value.slice(0, 20)}\u2026` : value;
+        return `a string ('${truncated}')`;
+    }
+    if (typeof value === 'object') {
+        return Object.keys(value).length === 0 ? 'an empty object' : 'an object';
+    }
+    if (typeof value === 'function') return 'a function';
+    if (value === undefined) return 'undefined';
+    return `a ${typeof value} (${String(value)})`;
+}
+
+/**
+ * Rejects arguments that cannot be options at all - anything that is not a non-empty plain object.
+ * Individual option values are validated later by the options module, which warns rather than throws,
+ * and `container` is optional by design (integrated, sparkline and server-side-render charts omit it),
+ * so the fields named in the message are guidance for the caller, not a stricter requirement.
+ */
+function assertValidOptions(options: unknown, methodName: string): void {
+    if (!isPlainObject(options) || Object.keys(options).length === 0) {
+        throw new Error(
+            `AG Charts - ${methodName} requires a non-empty options object; a minimal chart specifies a \`container\` and \`series\` (or \`data\`). Received ${describeValue(options)}.`
+        );
+    }
+}
 
 /**
  * Factory for creating and updating instances of AgChartInstance.
@@ -75,11 +105,11 @@ export abstract class AgCharts {
         userOptions: O,
         optionsMetadata?: ChartInternalOptionMetadata
     ): AgChartInstance<O> {
+        assertValidOptions(userOptions, 'AgCharts.create()');
         const apiStartTime = Debug.check('scene:stats', 'scene:stats:verbose') ? performance.now() : undefined;
         return debug.group('AgCharts.create()', () => {
             // deepClone should clone EVERYTHING here, so we can detect mutations in development mode.
             userOptions = Debug.inDevelopmentMode(() => deepFreeze(deepClone(userOptions))) ?? userOptions;
-            this.licenseCheck(userOptions);
             const licenseManager = this.licenseCheck(userOptions);
             const chart = AgChartsInternal.createOrUpdate({
                 userOptions,
@@ -96,12 +126,14 @@ export abstract class AgCharts {
     }
 
     public static createFinancialChart(options: AgFinancialChartOptions): AgChartInstance<AgFinancialChartOptions> {
+        assertValidOptions(options, 'AgCharts.createFinancialChart()');
         return debug.group('AgCharts.createFinancialChart()', () => {
             return this.create(options as any, { presetType: 'price-volume' }) as any;
         });
     }
 
     public static createGauge(options: AgGaugeOptions): AgChartInstance<AgGaugeOptions> {
+        assertValidOptions(options, 'AgCharts.createGauge()');
         return debug.group('AgCharts.createGauge()', () => {
             return this.create(options as AgChartOptions, { presetType: 'gauge-preset' }) as any;
         });
@@ -111,6 +143,7 @@ export abstract class AgCharts {
         options: AgQuadrantChartOptions<TDatum, TContext>
         // TODO: any to prevent errors
     ): AgChartInstance<AgQuadrantChartOptions<TDatum, any>> {
+        assertValidOptions(options, 'AgCharts.createQuadrantChart()');
         return debug.group('AgCharts.createQuadrantChart()', () => {
             return this.create(options, {
                 presetType: 'quadrant',
@@ -119,8 +152,10 @@ export abstract class AgCharts {
     }
 
     public static __createSparkline(options: AgSparklineOptions): AgChartInstance<AgSparklineOptions> {
+        assertValidOptions(options, 'AgCharts.__createSparkline()');
         return debug.group('AgCharts.__createSparkline()', () => {
             const { pool, ...normalOptions } = options as any;
+            assertValidOptions(normalOptions, 'AgCharts.__createSparkline()');
             return this.create(normalOptions as AgChartOptions, {
                 presetType: 'sparkline',
                 pool: pool ?? true,
