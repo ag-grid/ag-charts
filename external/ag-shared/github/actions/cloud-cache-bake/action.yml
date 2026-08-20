@@ -290,6 +290,13 @@ runs:
               # publication time (measured on ag-charts: created_at 12:48:38Z
               # exactly matched commit fd9ce35). Aiming the tag at an old commit is
               # therefore the only lever on where this sorts in the releases list.
+              #
+              # Which means an ALREADY-EXISTING release keeps its old title, notes
+              # and tag target: this block cannot retarget it, and deliberately does
+              # not try. Moving a tag from CI would be a force-push on every run,
+              # and re-titling on every run would overwrite a deliberate human edit.
+              # Migrating an existing release is a documented one-off — delete it,
+              # move the tag, recreate — see the cloud-sessions doc.
               if ! gh release view "$TAG" >/dev/null 2>&1; then
                   create_args=(--prerelease --title "$TITLE" --notes '')
                   [[ -n "$TARGET" ]] && create_args+=(--target "$TARGET")

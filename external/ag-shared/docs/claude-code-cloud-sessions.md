@@ -85,7 +85,9 @@ Do this once per cloud environment (and once more for an organization-shared env
 
    Generate `AG_CLOUD_CACHE_KEY` with `openssl rand -hex 32` and use the same value for the repo's `CLOUD_CACHE_KEY` secret. The bake requires 64 or more hex characters and refuses anything else: the MAC subkey is one HMAC of the passphrase rather than a 200k-iteration PBKDF2, so the published MAC is in principle an offline verifier for guesses. Each guess still costs a full HMAC pass over the several-hundred-MB ciphertext and cannot be amortised across candidates, so the realistic risk is a guessable value rather than a cheap oracle — which is why the check is on format (making the requirement checkable) rather than a KDF on both subkeys.
 
-   It is not really a credential — the payload is public npm packages, and the encryption is there so we are not republishing several hundred MB of third-party tree in readable form on a public repo — but it is still a shared value, so treat the usual warning as applying: anyone using the environment can read these, and there is no secrets store.
+   **Treat it as an integrity credential, not just an obfuscation passphrase.** The payload itself is public npm packages, so nothing is kept secret by encrypting it — but anyone holding this value can derive both subkeys and mint an asset that authenticates, and the setup script then extracts that tree into `node_modules` where it is executed. Forgeability, not confidentiality, is what the value protects. So: do not reuse it for anything else, and do not paste it into a ticket, a chat or a PR.
+
+   Its exposure ceiling is the environment itself — anyone who can use a cloud environment can read its variables, and there is no secrets store. That is an accepted limitation rather than a hidden one, because that same person can already run arbitrary code in a session on that environment; it does mean the value must not be shared any wider than the set of people you would give a session to.
 
 6. Save, then start a session and ask Claude to run (from the repo root — see step 4 about the working directory):
 
