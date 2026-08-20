@@ -398,6 +398,13 @@ restore_prebuilt_node_modules() {
         return 1
     fi
 
+    # Clear the marker as soon as the key is known good, not after a successful
+    # download. An earlier build may have recorded a missing or mismatched key; if
+    # this one has the key but then hits an ordinary miss, a zstd failure or a
+    # network error, a marker left in place would have cloud-doctor.sh reporting a
+    # configuration fault that no longer exists.
+    rm -f "${AG_CLOUD_CACHE_DIR}/prebuilt-skipped"
+
     local hash asset url
     hash="$(sha256_of "$REPO_ROOT/yarn.lock")"
     asset="node-modules-${hash:0:16}-${CACHE_KEY_GENERATION}.bin"
@@ -426,7 +433,6 @@ restore_prebuilt_node_modules() {
         return 1
     fi
     log_info "downloaded ${asset} ($(du -sh "$tarball" 2>/dev/null | awk '{print $1}'))"
-    rm -f "${AG_CLOUD_CACHE_DIR}/prebuilt-skipped"
 
     # Authenticate before decrypting.
     #
@@ -436,6 +442,13 @@ restore_prebuilt_node_modules() {
     # payload is merely unreadable, not unforgeable. Anyone able to write the
     # release could swap it; only a holder of the passphrase can produce one that
     # verifies here.
+    #
+    # The authenticated data covers the asset NAME as well as the bytes, and the
+    # name used is the one derived from THIS repo's lockfile above — never anything
+    # read from the download. Over the ciphertext alone, a valid asset copied onto
+    # another lockfile's name would verify, and the wrong tree would then be cached
+    # with this lockfile's hash stamped beside it, which nothing downstream could
+    # detect. The encoding must match the bake action's byte for byte.
     #
     # The shape check is load-bearing too, and not paranoia about the bake: a
     # proxy or an error page served with a 200 arrives as a plausible file, and
@@ -451,10 +464,13 @@ restore_prebuilt_node_modules() {
         printf '%s: malformed header\n' "$asset" >"${AG_CLOUD_CACHE_DIR}/prebuilt-skipped" 2>/dev/null || true
         return 1
     fi
-    mac_got="$(tail -c +66 "$tarball" | openssl dgst -sha256 -hmac "$kmac" -r | cut -d' ' -f1)"
+    mac_got="$({
+        printf 'ag-cloud-cache/v1\n%s\n' "$asset"
+        tail -c +66 "$tarball"
+    } | openssl dgst -sha256 -hmac "$kmac" -r | cut -d' ' -f1)"
     if [[ "$mac_want" != "$mac_got" ]]; then
         rm -f "$tarball"
-        log_warn "CONFIG: ${asset} failed authentication — AG_CLOUD_CACHE_KEY does not match the key generation ${CACHE_KEY_GENERATION} was baked with, or the asset was altered after publication. Falling back to a local install."
+        log_warn "CONFIG: ${asset} failed authentication — AG_CLOUD_CACHE_KEY does not match the key generation ${CACHE_KEY_GENERATION} was baked with, or the asset was altered or substituted after publication. Falling back to a local install."
         printf '%s: MAC mismatch\n' "$asset" >"${AG_CLOUD_CACHE_DIR}/prebuilt-skipped" 2>/dev/null || true
         return 1
     fi

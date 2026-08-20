@@ -23,9 +23,20 @@ description: Bake a fully-scripted node_modules tarball and publish it as a rele
 # public and a release asset is world-readable. That is about not republishing
 # several hundred MB of third-party dependency tree under our own name, not about
 # secrecy — the contents are public npm packages. The MAC is the part that earns
-# its keep: it means only a holder of the passphrase can produce an asset the
-# setup script will accept, so the artefact cannot be swapped by anyone who
-# merely has write access to the release.
+# its keep: only a holder of the passphrase can produce an asset the setup script
+# will accept.
+#
+# The MAC therefore covers the asset's IDENTITY as well as its bytes. Over the
+# ciphertext alone it would not: anyone able to write release assets could copy a
+# legitimately-baked asset over a different lockfile's asset name, and the MAC
+# would still verify — the consumer would then install a tree for the wrong
+# lockfile and stamp its OWN lockfile hash beside it, so nothing downstream could
+# notice. Binding the name closes that, since the consumer authenticates against
+# the name it resolved from its own lockfile rather than anything in the download.
+#
+# What this does NOT give is freshness: an older asset for the SAME name is still
+# accepted. That is bounded by the name being a function of the lockfile, so such
+# an asset is a tree for the same dependency set.
 #
 # Everything behavioural lives in this action so a fix percolates to every repo
 # via the ag-shared subrepo; each repo supplies only a caller workflow.
@@ -87,6 +98,23 @@ runs:
               set -euo pipefail
               [[ -n "$KEY" ]] || {
                   echo "::error::encryption-key is empty — refusing to publish an unencrypted node_modules tree"
+                  exit 1
+              }
+              # The MAC subkey is one HMAC of the passphrase, not a 200k-iteration
+              # PBKDF2 like the encryption key, so the published MAC is in principle
+              # an offline verifier for guesses at the passphrase. In practice each
+              # guess costs a full HMAC pass over the several-hundred-MB ciphertext,
+              # which cannot be amortised across candidates because the key varies —
+              # so this is not the cheap oracle it first looks like, and a dictionary
+              # word is the only realistically reachable value.
+              #
+              # Hence a length floor here rather than a KDF on both subkeys: this is
+              # the one place that sees the key and can refuse, and `openssl kdf`
+              # needs OpenSSL 3, which the consumer side cannot assume (macOS ships
+              # LibreSSL, and cloud-setup.sh is meant to stay runnable there).
+              # Generate the value with `openssl rand -hex 32`.
+              [[ "${#KEY}" -ge 32 ]] || {
+                  echo "::error::encryption-key is shorter than 32 characters — generate one with 'openssl rand -hex 32'"
                   exit 1
               }
 
@@ -218,7 +246,14 @@ runs:
               # than as a second asset, because the prune step below keeps the N
               # most recent assets: a second file per bake would silently halve how
               # many lockfiles the tag retains.
-              openssl dgst -sha256 -hmac "$kmac" -r payload.enc | cut -d' ' -f1 >payload.mac
+              #
+              # Authenticated data is a context label, the asset name and then the
+              # ciphertext. cloud-setup.sh reconstructs exactly this — change the
+              # encoding on one side, change it on both. The newline delimiters make
+              # the encoding unambiguous, which a bare concatenation would not be;
+              # an asset name cannot contain one.
+              { printf 'ag-cloud-cache/v1\n%s\n' "$ASSET"; cat payload.enc; } |
+                  openssl dgst -sha256 -hmac "$kmac" -r | cut -d' ' -f1 >payload.mac
               [[ "$(wc -c <payload.mac)" -eq 65 ]] || {
                   echo "::error::MAC header is not 65 bytes — refusing to publish a payload the consumer cannot parse"
                   exit 1
