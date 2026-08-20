@@ -2798,5 +2798,19 @@
         "deprecationNotes": null,
         "breakingChangesNotes": null,
         "documentationUrl": null
+    },
+    {
+        "key": "AG-18050",
+        "issueType": "Bug",
+        "componentsByName": ["Charts"],
+        "summary": "[Charts] Website pipeline shows \"NaN.Undefined\" for tickets without a version",
+        "versions": [""],
+        "status": "Needs Review",
+        "resolution": null,
+        "features": [],
+        "moreInformation": null,
+        "deprecationNotes": null,
+        "breakingChangesNotes": null,
+        "documentationUrl": null
     }
 ]
