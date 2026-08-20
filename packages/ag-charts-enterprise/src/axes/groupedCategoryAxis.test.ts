@@ -159,9 +159,12 @@ describe('Grouped Category', () => {
         let axisAction: ReturnType<typeof vi.fn>;
         let getItems: ReturnType<typeof vi.fn>;
 
-        const { objectContaining } = expect;
-        const params = (p: object) => [objectContaining(p)];
-        const coords = (p: object) => [objectContaining({ coordinates: objectContaining({ x: objectContaining(p) }) })];
+        const params = (p: object) => [expect.objectContaining(p)];
+        const coords = (p: object) => [
+            expect.objectContaining({
+                coordinates: expect.objectContaining({ x: expect.objectContaining(p) }),
+            }),
+        ];
 
         function measureBandCentres(count: number): number[] {
             const elem = document.querySelector('.ag-charts-series-area');
@@ -214,7 +217,7 @@ describe('Grouped Category', () => {
             await waitForChartStability(chart);
         }
 
-        beforeEach(async () => {
+        beforeEach(() => {
             formatter = vi.fn();
             itemStyler = vi.fn();
             crosshairFormatter = vi.fn();
