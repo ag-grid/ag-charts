@@ -34,8 +34,9 @@ export const organizationSeriesTheme: ExtensibleSeriesTheme<'organization'> = {
             lineDashOffset: { $path: '../node/lineDashOffset' },
             padding: { $applyPadding: { top: 5, right: 7.5, bottom: 5, left: 7.5 } },
             hoverStyle: {
-                fill: { $mix: [{ $path: '../fill' }, { $ref: 'foregroundColor' }, 0.075] },
-                stroke: { $mix: [{ $path: '../stroke' }, { $ref: 'foregroundColor' }, 0.075] },
+                // Background-only, matching the button hover state used by the toolbar and Financial
+                // Charts range buttons — both paint `focusColor`, an accentColor/backgroundColor mix.
+                fill: { $ref: 'focusColor' },
             },
             text: {
                 color: { $ref: 'subtleTextColor' },

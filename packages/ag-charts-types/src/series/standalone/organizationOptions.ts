@@ -91,16 +91,12 @@ export interface AgOrganizationSeriesExpanderHoverStyle {
     /**
      * The colour for filling the expander shape when hovered. A colour string, or a theme-colour reference object.
      *
-     * Default: the expander fill mixed with the foreground colour.
+     * Default: a mix of the theme's accent and background colours, matching the button hover state.
      */
     fill?: AgCssColorOrRef;
     /** The opacity of the fill colour when the expander is hovered. */
     fillOpacity?: Opacity;
-    /**
-     * The colour for the stroke when the expander is hovered.
-     *
-     * Default: the expander stroke mixed with the foreground colour.
-     */
+    /** The colour for the stroke when the expander is hovered. Defaults to the expander stroke, unchanged. */
     stroke?: AgCssColorOrRef;
     /** The opacity of the stroke when the expander is hovered. */
     strokeOpacity?: Opacity;
