@@ -1,10 +1,30 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button onclick="setThemeDefault()">Default Theme</button>
-        <button onclick="setThemeSheets()">Sheets Theme</button>
-        <button onclick="setThemePolychroma()">Polychroma Theme</button>
-        <button onclick="setThemeVivid()">Vivid Theme</button>
-        <button onclick="setThemeMaterial()">Material Theme</button>
+        <div class="button-group" role="group" aria-label="Theme">
+            <input
+                type="radio"
+                id="theme-default"
+                name="theme"
+                value="ag-default"
+                checked
+                onchange="themeChange(event)"
+            />
+            <label for="theme-default">Default Theme</label>
+            <input type="radio" id="theme-sheets" name="theme" value="ag-sheets" onchange="themeChange(event)" />
+            <label for="theme-sheets">Sheets Theme</label>
+            <input
+                type="radio"
+                id="theme-polychroma"
+                name="theme"
+                value="ag-polychroma"
+                onchange="themeChange(event)"
+            />
+            <label for="theme-polychroma">Polychroma Theme</label>
+            <input type="radio" id="theme-vivid" name="theme" value="ag-vivid" onchange="themeChange(event)" />
+            <label for="theme-vivid">Vivid Theme</label>
+            <input type="radio" id="theme-material" name="theme" value="ag-material" onchange="themeChange(event)" />
+            <label for="theme-material">Material Theme</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

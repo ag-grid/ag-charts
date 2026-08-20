@@ -31,6 +31,10 @@ export const EXAMPLE_OPTIONS: Record<string, Record<string, ExampleOverrides>> =
         'interaction-ranges': { skipCanvasUpdateCheck: true },
         'node-click-select': { skipCanvasUpdateCheck: true },
     },
+    'examples-controls-test': {
+        // A style guide for the controls themselves — none of them drive the chart.
+        'examples-controls-tester': { skipCanvasUpdateCheck: true },
+    },
     'context-menu-e2e': {
         'captions-declarative': { frameworks: ['vanilla'] },
         'captions-dynamic': { frameworks: ['vanilla'] },
@@ -60,11 +64,7 @@ export const EXAMPLE_OPTIONS: Record<string, Record<string, ExampleOverrides>> =
     'range-bar-series': {
         'range-bar-missing-data': { ignoreConsoleWarnings: true },
     },
-    'sankey-series': {
-        alignment: { clickOrder: 'reverse' },
-    },
     themes: {
-        'stock-themes': { clickOrder: 'reverse' },
         'advanced-theme': { frameworks: [] },
     },
     tooltips: {

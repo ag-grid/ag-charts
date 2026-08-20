@@ -201,25 +201,38 @@ export function createTestCase(
             if (canvases.length > 1) return;
             const canvas = canvases[0];
 
-            // Try pressing the buttons to see if any errors are thrown.
-            const buttons = await page.locator('.example-controls > button').all();
-            if (clickOrder === 'reverse') buttons.reverse();
+            // Try pressing the buttons and button group segments to see if any errors are thrown.
+            // A button group's radio is hidden, so its label is the clickable part.
+            const controls = await page
+                .locator('.example-controls > button, .example-controls .button-group > label')
+                .all();
+            if (clickOrder === 'reverse') controls.reverse();
 
-            for (const button of buttons) {
+            for (const control of controls) {
+                // A disabled control cannot be exercised, and clicking a group's checked segment
+                // fires no change event, so neither can redraw the chart. :disabled is what covers
+                // a segment sitting inside a disabled control-group fieldset.
+                const skip = await control.evaluate((el) => {
+                    const input = el instanceof HTMLLabelElement ? el.control : null;
+                    if (input instanceof HTMLInputElement) return input.checked || input.matches(':disabled');
+                    return el.matches(':disabled');
+                });
+                if (skip) continue;
+
                 const sceneRenderCount = Number(await canvas.getAttribute('data-scene-renders'));
 
-                await button.click();
+                await control.click();
 
-                const skip =
+                const skipUpdateCheck =
                     skipCanvasUpdateCheck === true ||
                     (Array.isArray(skipCanvasUpdateCheck) &&
-                        skipCanvasUpdateCheck.includes((await button.textContent()) ?? 'unknown'));
-                if (skip) {
+                        skipCanvasUpdateCheck.includes((await control.textContent()) ?? 'unknown'));
+                if (skipUpdateCheck) {
                     await page.waitForLoadState('networkidle');
                 } else {
                     await expect
                         .configure({
-                            message: `Pressing button ${await button.textContent()}`,
+                            message: `Pressing ${await control.textContent()}`,
                         })
                         .poll(async () => Number(await canvas.getAttribute('data-scene-renders')))
                         .toBeGreaterThan(sceneRenderCount);

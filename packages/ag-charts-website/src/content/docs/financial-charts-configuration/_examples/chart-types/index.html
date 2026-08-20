@@ -1,12 +1,34 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button onclick="changeType('candlestick')">Candlestick (Default)</button>
-        <button onclick="changeType('ohlc')">OHLC</button>
-        <button onclick="changeType('hollow-candlestick')">Hollow Candlestick</button>
-        <button onclick="changeType('line')">Line</button>
-        <button onclick="changeType('step-line')">Step Line</button>
-        <button onclick="changeType('hlc')">HLC</button>
-        <button onclick="changeType('high-low')">High Low</button>
+        <div class="button-group" role="group" aria-label="Chart Type">
+            <input
+                type="radio"
+                id="type-candlestick"
+                name="chart-type"
+                value="candlestick"
+                checked
+                onchange="changeType(event)"
+            />
+            <label for="type-candlestick">Candlestick (Default)</label>
+            <input type="radio" id="type-ohlc" name="chart-type" value="ohlc" onchange="changeType(event)" />
+            <label for="type-ohlc">OHLC</label>
+            <input
+                type="radio"
+                id="type-hollow-candlestick"
+                name="chart-type"
+                value="hollow-candlestick"
+                onchange="changeType(event)"
+            />
+            <label for="type-hollow-candlestick">Hollow Candlestick</label>
+            <input type="radio" id="type-line" name="chart-type" value="line" onchange="changeType(event)" />
+            <label for="type-line">Line</label>
+            <input type="radio" id="type-step-line" name="chart-type" value="step-line" onchange="changeType(event)" />
+            <label for="type-step-line">Step Line</label>
+            <input type="radio" id="type-hlc" name="chart-type" value="hlc" onchange="changeType(event)" />
+            <label for="type-hlc">HLC</label>
+            <input type="radio" id="type-high-low" name="chart-type" value="high-low" onchange="changeType(event)" />
+            <label for="type-high-low">High Low</label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>

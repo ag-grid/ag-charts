@@ -22,32 +22,8 @@ const options: AgPolarChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function setThemeDefault() {
-    options.theme = 'ag-default';
-
-    chart.update(options);
-}
-
-function setThemeSheets() {
-    options.theme = 'ag-sheets';
-
-    chart.update(options);
-}
-
-function setThemePolychroma() {
-    options.theme = 'ag-polychroma';
-
-    chart.update(options);
-}
-
-function setThemeVivid() {
-    options.theme = 'ag-vivid';
-
-    chart.update(options);
-}
-
-function setThemeMaterial() {
-    options.theme = 'ag-material';
+function themeChange(event: Event) {
+    options.theme = (event.target as HTMLInputElement).value as AgPolarChartOptions['theme'];
 
     chart.update(options);
 }

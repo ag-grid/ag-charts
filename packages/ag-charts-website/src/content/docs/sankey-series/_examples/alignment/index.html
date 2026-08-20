@@ -1,9 +1,34 @@
 <div class="example-controls">
     <div class="controls-row">
-        <button onclick="alignLeft()"><code>'left'</code></button>
-        <button onclick="alignRight()"><code>'right'</code></button>
-        <button onclick="alignCenter()"><code>'center'</code></button>
-        <button onclick="alignJustify()"><code>'justify'</code></button>
+        <div class="button-group" role="group" aria-label="Alignment">
+            <input
+                type="radio"
+                id="alignment-left"
+                name="alignment"
+                value="left"
+                checked
+                onchange="alignmentChange(event)"
+            />
+            <label for="alignment-left"><code>'left'</code></label>
+            <input type="radio" id="alignment-right" name="alignment" value="right" onchange="alignmentChange(event)" />
+            <label for="alignment-right"><code>'right'</code></label>
+            <input
+                type="radio"
+                id="alignment-center"
+                name="alignment"
+                value="center"
+                onchange="alignmentChange(event)"
+            />
+            <label for="alignment-center"><code>'center'</code></label>
+            <input
+                type="radio"
+                id="alignment-justify"
+                name="alignment"
+                value="justify"
+                onchange="alignmentChange(event)"
+            />
+            <label for="alignment-justify"><code>'justify'</code></label>
+        </div>
     </div>
 </div>
 <div id="myChart"></div>
