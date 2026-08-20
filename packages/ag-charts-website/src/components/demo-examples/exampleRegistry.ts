@@ -4,11 +4,8 @@ export type DemoExampleId = 'financial' | 'web-analytics' | 'real-time';
 
 export interface DemoExample extends DemoPageExample {
     id: DemoExampleId;
-    /**
-     * Demo app to frame, as registered in `ag-charts-demos`. Absent while a demo is still to be
-     * built, which is what makes its page show a placeholder instead.
-     */
-    demoAppId?: string;
+    /** Demo app to frame, as registered in `ag-charts-demos`. */
+    demoAppId: string;
 }
 
 /** Listed in feature-list order; paths stay flat so the site needs no redirects. */
@@ -27,13 +24,14 @@ export const DEMO_EXAMPLES: DemoExample[] = [
         description: 'Traffic, funnel and retention charts over a shared date range.',
         demoAppId: 'web-analytics',
     },
-    // Uncomment once the real-time demo exists, restoring `src/pages/examples-real-time.astro`
+    // Uncomment once the real-time demo app exists, restoring `src/pages/examples-real-time.astro`
     // and its `.md.ts` twin alongside it. Its copy is still in DEMO_PAGE_CONTENT.
     // {
     //     id: 'real-time',
     //     title: 'Real-Time Monitoring',
     //     path: './examples-real-time',
     //     description: 'Streaming time-series with thresholds and annotations.',
+    //     demoAppId: 'real-time',
     // },
 ];
 

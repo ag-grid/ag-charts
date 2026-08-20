@@ -1,5 +1,5 @@
 import { DEMO_PAGE_CONTENT, DEMO_PAGE_HERO } from '@components/demo-examples/demoPageContent';
-import { DEMO_EXAMPLES, getDemoExample } from '@components/demo-examples/exampleRegistry';
+import { DEMO_EXAMPLES } from '@components/demo-examples/exampleRegistry';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import { describe, expect, it } from 'vitest';
 
@@ -26,10 +26,9 @@ describe('buildDemoMarkdown', () => {
             expect(output).toContain(DEMO_PAGE_HERO.description);
         });
 
-        it('describes the demo as running or still to be built, matching the registry', () => {
-            const isBuilt = getDemoExample(demo).demoAppId != null;
-            expect(output).toContain(isBuilt ? 'runs an interactive AG Charts demo' : 'has not been built yet');
-            expect(output).not.toContain(isBuilt ? 'has not been built yet' : 'runs an interactive AG Charts demo');
+        it('says the demo is interactive and only exists in a browser', () => {
+            expect(output).toContain('runs an interactive AG Charts demo');
+            expect(output).toContain('It has no text version');
         });
 
         it('lists every sibling demo with its description, on an absolute trailing-slash URL', () => {

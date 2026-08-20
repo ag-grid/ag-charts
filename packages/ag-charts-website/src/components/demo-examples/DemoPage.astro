@@ -2,7 +2,6 @@
 import SharedDemoPage from '@ag-website-shared/components/demo-page/DemoPage.astro';
 
 import DemoFrame from './DemoFrame.astro';
-import DemoPlaceholder from './DemoPlaceholder.astro';
 import { DEMO_PAGE_HERO } from './demoPageContent';
 import type { DemoExampleId } from './exampleRegistry';
 import { DEMO_EXAMPLES, getDemoExample } from './exampleRegistry';
@@ -19,11 +18,5 @@ const current = getDemoExample(currentId);
 
 <SharedDemoPage currentId={currentId} examples={DEMO_EXAMPLES} {...DEMO_PAGE_HERO}>
     <MobileNotice slot="mobile-notice" />
-    {
-        current.demoAppId ? (
-            <DemoFrame demoAppId={current.demoAppId} title={current.title} />
-        ) : (
-            <DemoPlaceholder title={current.title} />
-        )
-    }
+    <DemoFrame demoAppId={current.demoAppId} title={current.title} />
 </SharedDemoPage>
