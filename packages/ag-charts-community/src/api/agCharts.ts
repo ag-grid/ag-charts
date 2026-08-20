@@ -87,6 +87,17 @@ export abstract class AgCharts {
     /** @private - for use by Charts website dark-mode support. */
     static readonly optionsMutationFn?: (opts: AgChartOptions, preset?: string) => AgChartOptions;
 
+    /**
+     * @private - for use by the framework wrappers.
+     *
+     * The wrappers merge their own `container` into the caller's `options` before delegating, so an
+     * invalid `options` prop reaches `create()` as a perfectly valid `{ container }` object and the
+     * guard there cannot fire. They call this on the raw prop, before the merge.
+     */
+    public static __assertValidOptions(options: unknown, methodName: string): void {
+        assertValidOptions(options, methodName);
+    }
+
     public static getLicenseDetails(licenseKey: string) {
         return enterpriseRegistry.licenseManager?.({}).getLicenseDetails(licenseKey);
     }

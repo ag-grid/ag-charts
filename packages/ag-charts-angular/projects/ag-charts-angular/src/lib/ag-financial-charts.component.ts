@@ -18,6 +18,8 @@ export class AgFinancialCharts extends AgChartsBase<AgFinancialChartOptions> {
     @Output()
     public chartReady: EventEmitter<AgChartInstance> = new EventEmitter();
 
+    protected readonly selector = 'ag-financial-charts';
+
     constructor(
         elementDef: ElementRef,
         protected ngZone: NgZone

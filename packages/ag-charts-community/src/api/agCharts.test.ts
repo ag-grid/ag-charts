@@ -444,6 +444,15 @@ describe('AgCharts', () => {
             expect(() => AgCharts.create(undefined as any)).toThrowError(/Received undefined\.$/);
         });
 
+        // The framework wrappers merge their own `container` in before delegating, so `undefined` and `3`
+        // both reach create() as a valid `{ container }` object. They check the raw prop through here.
+        it('reports the caller the wrapper names, via __assertValidOptions', () => {
+            expect(() => AgCharts.__assertValidOptions(undefined, 'AgCharts `options` prop')).toThrowError(
+                /^AG Charts - AgCharts `options` prop requires a non-empty options object.*Received undefined\.$/
+            );
+            expect(() => AgCharts.__assertValidOptions({ container: null }, 'AgCharts `options` prop')).not.toThrow();
+        });
+
         it.each([
             ['createFinancialChart', () => AgCharts.createFinancialChart(undefined as any)],
             ['createGauge', () => AgCharts.createGauge(undefined as any)],

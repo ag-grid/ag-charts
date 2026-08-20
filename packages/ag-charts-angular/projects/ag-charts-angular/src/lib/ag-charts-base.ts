@@ -6,6 +6,7 @@ import {
     AgCaptionListeners,
     AgChartInstance,
     AgChartLegendListeners,
+    AgCharts as AgChartsAPI,
     AgContextMenuGetItemsCallback,
     AgContextMenuItem,
     AgContextMenuOptions,
@@ -26,6 +27,9 @@ export abstract class AgChartsBase<Options extends {}> implements AfterViewInit,
     protected ngZone!: NgZone;
 
     protected abstract createChart(options: Options): any;
+
+    /** The element name this component is used as, so an options error names the tag the author wrote. */
+    protected abstract readonly selector: string;
 
     ngAfterViewInit(): void {
         const options = this.patchChartOptions(this.options);
@@ -59,6 +63,11 @@ export abstract class AgChartsBase<Options extends {}> implements AfterViewInit,
     // Returns a patched copy rather than mutating the consumer's options: event-style callbacks
     // (listeners, context-menu actions) are wrapped to re-enter the Angular zone the chart runs outside.
     private patchChartOptions(propsOptions: any): any {
+        // Every deref below - and the `container` merge at the end - assumes an options object, so an
+        // invalid `[options]` input either crashes here with a raw TypeError or reaches the chart as a
+        // valid `{ container }` object that `AgCharts.create()`'s own guard cannot reject. Check first.
+        AgChartsAPI.__assertValidOptions(propsOptions, `<${this.selector}> \`options\` input`);
+
         const patched: any = { ...propsOptions };
 
         if (propsOptions.listeners) {
