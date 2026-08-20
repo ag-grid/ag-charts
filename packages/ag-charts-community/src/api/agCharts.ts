@@ -47,10 +47,16 @@ function describeValue(value: unknown): string {
     return `a ${typeof value} (${String(value)})`;
 }
 
+/**
+ * Rejects arguments that cannot be options at all - anything that is not a non-empty plain object.
+ * Individual option values are validated later by the options module, which warns rather than throws,
+ * and `container` is optional by design (integrated, sparkline and server-side-render charts omit it),
+ * so the fields named in the message are guidance for the caller, not a stricter requirement.
+ */
 function assertValidOptions(options: unknown, methodName: string): void {
     if (!isPlainObject(options) || Object.keys(options).length === 0) {
         throw new Error(
-            `AG Charts - ${methodName} requires a valid options object with at least a \`container\` and \`series\` (or \`data\`); received ${describeValue(options)}.`
+            `AG Charts - ${methodName} requires a non-empty options object; a minimal chart specifies a \`container\` and \`series\` (or \`data\`). Received ${describeValue(options)}.`
         );
     }
 }
