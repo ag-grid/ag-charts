@@ -785,7 +785,29 @@ export abstract class Series<
             return HighlightState.OtherItem;
         }
 
+        // `highlight.mode: 'shared'` lifts this series' item at the highlighted datum's category out of the
+        // series-level dimming; everything else in this series - and every series contributing no item at
+        // that category - is unchanged from `'single'` mode.
+        if (datumIndex != null && this.getSharedCategoryMatch(highlightedDatum) === datumIndex) {
+            return HighlightState.OtherItem;
+        }
+
         return HighlightState.OtherSeries;
+    }
+
+    /**
+     * In `highlight.mode: 'shared'`, the index of this series' item sharing the highlighted datum's
+     * category; `undefined` in `'single'` mode, for a series-level highlight (a focused legend item, which
+     * carries a NaN datum index), and when this series contributes no item at that category.
+     */
+    private getSharedCategoryMatch(highlightedDatum: HighlightNodeDatum | undefined): DatumIndex | undefined {
+        const { chartService } = this.ctx;
+        if (chartService.highlight?.mode !== 'shared' || !this.isDatumHighlight(highlightedDatum)) return;
+
+        const hoveredSeries = highlightedDatum?.series;
+        if (hoveredSeries == null) return;
+
+        return chartService.getSharedHighlightMatch?.(hoveredSeries, highlightedDatum.datumIndex, this);
     }
 
     public getDataSelectionState(datumIndex: DatumIndex | undefined): SelectionState | undefined {
@@ -887,7 +909,14 @@ export abstract class Series<
                 currentHighlightState === HighlightState.Series &&
                 this.isDatumHighlight(currentHighlightedDatum) !== this.isDatumHighlight(previousHighlightedDatum);
 
-            if (!datumLevelnessChanged) {
+            // In `highlight.mode: 'shared'` a hover moving between two categories this series contributes an
+            // item to leaves both probes at the same coarse state, but the item lifted out of the dimming has
+            // moved - so without this the previous category's item is left lit.
+            const sharedMatchChanged =
+                this.getSharedCategoryMatch(currentHighlightedDatum) !==
+                this.getSharedCategoryMatch(previousHighlightedDatum);
+
+            if (!datumLevelnessChanged && !sharedMatchChanged) {
                 this.hasChangesOnHighlight = false;
                 return;
             }

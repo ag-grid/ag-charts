@@ -6,7 +6,8 @@ import type { CaptionLike } from './captionLike';
 import type { ChartHighlight } from './chartHighlight';
 import type { ChartType } from './chartType';
 import type { SeriesProperties } from './series/seriesProperties';
-import type { ISeries, SeriesNodeDatum } from './series/seriesTypes';
+import type { DatumIndex, ISeries, SeriesNodeDatum } from './series/seriesTypes';
+import type { CategoryGroupSeries } from './sharedCategoryGroup';
 
 export type ChartListeners = AgBaseChartListeners<unknown, unknown>;
 export type ChartEventType = keyof ChartListeners;
@@ -26,6 +27,15 @@ export interface ChartService {
     readonly context?: unknown;
     readonly highlight?: ChartHighlight;
     getChartType(): ChartType;
+    /**
+     * `highlight.mode: 'shared'` - the index of the item `series` contributes at the hovered datum's
+     * category, or `undefined` when it contributes none. Optional so that partial stubs remain valid.
+     */
+    getSharedHighlightMatch?(
+        hoveredSeries: CategoryGroupSeries,
+        hoveredDatumIndex: DatumIndex,
+        series: CategoryGroupSeries
+    ): DatumIndex | undefined;
     overrideFocusVisible(visible: boolean | undefined): void;
     readonly listeners: ChartListeners;
     callListener<K extends ChartEventType>(event: ChartEventMap[K] & { type: K }): void;
