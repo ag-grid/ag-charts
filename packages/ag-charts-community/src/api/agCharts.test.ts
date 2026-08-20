@@ -492,6 +492,24 @@ describe('AgCharts', () => {
             ]);
         });
 
+        // A wrapper re-checks the prop on every update, and the chart is already alive by then, so the
+        // report has to survive the update path too - not just create.
+        it('reports a wrapper prop that turns invalid on update', async () => {
+            chart = AgCharts.create({ container, data: [{ x: 'a', y: 1 }] } as AgChartOptions);
+            await chart.waitForUpdate();
+            expectWarningsCalls();
+
+            const wrapperOptions = AgCharts.__validateOptionsArgument<object | undefined>(
+                3 as any,
+                'AgCharts `options` prop'
+            );
+            await chart.update({ ...wrapperOptions, container } as AgChartOptions);
+
+            expectErrorCalls().toEqual([
+                [expect.stringMatching(/^AG Charts - AgCharts `options` prop requires a non-empty options object/)],
+            ]);
+        });
+
         it('leaves a usable options object untouched', () => {
             const options = { container: null };
             expect(AgCharts.__validateOptionsArgument(options, 'AgCharts `options` prop')).toBe(options);
