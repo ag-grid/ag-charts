@@ -1565,18 +1565,6 @@ describe('OrganizationSeries', () => {
             return new Caster(textNode).cast(_ModuleSupport.Text).value;
         }
 
-        /** Mean RGB channel of a `#rrggbb` or `rgb(…)`/`rgba(…)` colour, for lightness assertions. */
-        function meanChannel(color: unknown): number {
-            expect(typeof color).toBe('string');
-            const hex = /^#([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i.exec(String(color));
-            const rgb = /^rgba?\(\s*(\d+)\D+(\d+)\D+(\d+)/i.exec(String(color));
-            const match = hex ?? rgb;
-            expect(match).not.toBeNull();
-            const radix = hex ? 16 : 10;
-            const channel = (index: number) => Number.parseInt(match![index], radix);
-            return (channel(1) + channel(2) + channel(3)) / 3;
-        }
-
         async function hoverItem(itemId: string, tag: OrganizationNodeTag): Promise<void> {
             const { x, y } = centreOf(itemId, tag);
             await hoverAction(x, y)(chart);
@@ -1686,22 +1674,41 @@ describe('OrganizationSeries', () => {
             expect(hoveredFill).not.toBe(unhoveredFill);
         });
 
-        it('derives the default hover fill from a user-configured expander fill, not from the theme fill', async () => {
-            const options = buildOptions({ fill: '#804000' });
-            prepareEnterpriseTestOptions(options);
+        it('uses the theme button-hover colour as the default hover fill, independently of the expander fill', async () => {
+            const themed = buildOptions();
+            prepareEnterpriseTestOptions(themed);
+            chart = AgCharts.create(themed);
+            await waitForChartStability(chart);
+            await hoverItem('cfo', OrganizationNodeTag.Expander);
+            const themedHoverFill = expanderShapeNode('cfo').fill;
+            chart.destroy();
 
-            chart = AgCharts.create(options);
+            // The default is a fixed accentColor/backgroundColor mix (the button hover state), so a
+            // user-set expander fill must not move it — the r1 behaviour this replaces did move with it.
+            const custom = buildOptions({ fill: '#804000' });
+            prepareEnterpriseTestOptions(custom);
+            chart = AgCharts.create(custom);
             await waitForChartStability(chart);
 
             expect(expanderShapeNode('cfo').fill).toBe('#804000');
 
             await hoverItem('cfo', OrganizationNodeTag.Expander);
 
-            const hoveredFill = expanderShapeNode('cfo').fill;
-            expect(hoveredFill).not.toBe('#804000');
-            // A mix of `#804000` towards the foreground stays dark; one derived from the theme's own
-            // white expander fill would land near-white, which is what this pins against.
-            expect(meanChannel(hoveredFill)).toBeLessThan(128);
+            expect(expanderShapeNode('cfo').fill).toBe(themedHoverFill);
+        });
+
+        it('leaves the expander stroke unchanged on hover by default — the default treatment is fill-only', async () => {
+            const options = buildOptions();
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const unhoveredStroke = expanderShapeNode('cfo').stroke;
+
+            await hoverItem('cfo', OrganizationNodeTag.Expander);
+
+            expect(expanderShapeNode('cfo').stroke).toBe(unhoveredStroke);
         });
 
         it('requests exactly one series update for a card-to-pill move, and none for a repeat hover at the same point', async () => {
