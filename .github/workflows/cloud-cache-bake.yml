@@ -69,8 +69,9 @@ jobs:
                   # the one published first against a newer commit. So aiming the
                   # tag at an old commit is the only lever on its position.
                   #
-                  # Set this to a commit older than the oldest product release and
-                  # leave it set: --target only applies when the tag does not yet
-                  # exist, which is exactly the case (a deleted tag) where an unset
-                  # value would silently return the release to the top of the list.
-                  # release-target: <sha of an early commit>
+                  # This repo's first commit (2020-01-20), chosen because it
+                  # predates every product release. Leave it set: --target applies
+                  # only when the tag does not yet exist, which is exactly the case
+                  # (a deleted tag) where an unset value would silently return the
+                  # release to the top of the list.
+                  release-target: d7e9df0d0d0b7304ab676f84a603f2f620c22cff
