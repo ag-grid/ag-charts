@@ -26,8 +26,10 @@ describe('buildDemoMarkdown', () => {
             expect(output).toContain(DEMO_PAGE_HERO.description);
         });
 
-        it('says the demo is a placeholder rather than implying it runs', () => {
-            expect(output).toContain('has not been built yet');
+        it('describes the demo as running or still to be built, matching the registry', () => {
+            const isBuilt = DEMO_EXAMPLES.find((example) => example.id === demo)?.demoAppId != null;
+            expect(output).toContain(isBuilt ? 'runs an interactive AG Charts demo' : 'has not been built yet');
+            expect(output).not.toContain(isBuilt ? 'has not been built yet' : 'runs an interactive AG Charts demo');
         });
 
         it('lists every sibling demo with its description, on an absolute trailing-slash URL', () => {

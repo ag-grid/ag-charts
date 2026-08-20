@@ -1,0 +1,25 @@
+---
+import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
+
+import styles from './DemoFrame.module.scss';
+
+interface Props {
+    /** Demo app id registered in `ag-charts-demos`. */
+    demoAppId: string;
+    /** Demo name, for the frame's accessible label. */
+    title: string;
+}
+
+const { demoAppId, title } = Astro.props;
+---
+
+{
+    /*
+    Framed rather than mounted inline. The demo apps size themselves in `vh` and the SPA entry
+    mounts a single `#root` once per document, so inline they would measure the whole window and
+    never re-mount when the router swaps between showcase pages. A frame gives each demo its own
+    viewport and a fresh document per visit.
+*/
+}
+<iframe class={styles.frame} src={urlWithBaseUrl(`/demos/${demoAppId}/`)} title={`${title} demo`} loading="lazy"
+></iframe>

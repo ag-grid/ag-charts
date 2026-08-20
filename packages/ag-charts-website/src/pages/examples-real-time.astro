@@ -1,7 +1,6 @@
 ---
 import Layout from '@layouts/Layout.astro';
 import DemoPage from '@components/demo-examples/DemoPage.astro';
-import DemoPlaceholder from '@components/demo-examples/DemoPlaceholder.astro';
 import { DEMO_PAGE_CONTENT } from '@components/demo-examples/demoPageContent';
 import { DISABLE_MARKDOWN_DOCS } from '@constants';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
@@ -11,7 +10,5 @@ const markdownUrl = DISABLE_MARKDOWN_DOCS ? undefined : urlWithBaseUrl('/example
 ---
 
 <Layout title={content.metaTitle} description={content.metaDescription} showSearchBar={true} markdownUrl={markdownUrl}>
-    <DemoPage currentId="real-time">
-        <DemoPlaceholder title="Real-Time Monitoring" />
-    </DemoPage>
+    <DemoPage currentId="real-time" />
 </Layout>
