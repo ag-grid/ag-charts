@@ -62,3 +62,15 @@ jobs:
                   # decrypt with the same value in AG_CLOUD_CACHE_KEY. The action
                   # fails rather than publishing a readable tree if it is unset.
                   encryption-key: ${{ secrets.CLOUD_CACHE_KEY }}
+                  # Where this release sorts on the releases page is a function of
+                  # its TAGGED COMMIT, not its publication time — measured on this
+                  # repo, and confirmed by a two-release probe in which the release
+                  # published second, against an older commit, still sorted below
+                  # the one published first against a newer commit. So aiming the
+                  # tag at an old commit is the only lever on its position.
+                  #
+                  # Set this to a commit older than the oldest product release and
+                  # leave it set: --target only applies when the tag does not yet
+                  # exist, which is exactly the case (a deleted tag) where an unset
+                  # value would silently return the release to the top of the list.
+                  # release-target: <sha of an early commit>
