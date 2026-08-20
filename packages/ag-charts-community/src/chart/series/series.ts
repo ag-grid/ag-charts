@@ -802,12 +802,10 @@ export abstract class Series<
      */
     private getSharedCategoryMatch(highlightedDatum: HighlightNodeDatum | undefined): DatumIndex | undefined {
         const { chartService } = this.ctx;
-        if (chartService.highlight?.mode !== 'shared' || !this.isDatumHighlight(highlightedDatum)) return;
+        if (highlightedDatum == null || chartService.highlight?.mode !== 'shared') return;
+        if (highlightedDatum.series == null || !this.isDatumHighlight(highlightedDatum)) return;
 
-        const hoveredSeries = highlightedDatum?.series;
-        if (hoveredSeries == null) return;
-
-        return chartService.getSharedHighlightMatch?.(hoveredSeries, highlightedDatum.datumIndex, this);
+        return chartService.getSharedHighlightMatch?.(highlightedDatum.series, highlightedDatum.datumIndex, this);
     }
 
     public getDataSelectionState(datumIndex: DatumIndex | undefined): SelectionState | undefined {
