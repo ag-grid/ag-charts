@@ -1513,7 +1513,18 @@ export class SeriesAreaManager extends BaseManager {
         // NOTE: There's a rendering bug with on `seriesToUpdate` branch when calling `setState`; All series that
         // aren't included in the `seriesToUpdate` property get reset to an unhighlighted style. The root cause for
         // this is unknown, further investigation may be required.
-        if (this.getHoverDevice() === 'setState' || newSeries == null || lastSeries == null || suppressionChanged) {
+        // In `highlight.mode: 'shared'` the highlight styles every series that has an item at the hovered
+        // category, so a hover moving between two categories of the same series still changes every other
+        // series' dimming - narrowing the update to the hovered series would leave it stale.
+        const sharedHighlight = this.chart.highlight.mode === 'shared';
+
+        if (
+            this.getHoverDevice() === 'setState' ||
+            newSeries == null ||
+            lastSeries == null ||
+            suppressionChanged ||
+            sharedHighlight
+        ) {
             this.update(ChartUpdateType.SERIES_UPDATE, { clearCallbackCache: true });
         } else {
             this.update(ChartUpdateType.SERIES_UPDATE, {
