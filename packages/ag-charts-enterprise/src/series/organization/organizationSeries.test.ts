@@ -495,78 +495,80 @@ function createTextImageExample(
     };
 }
 
+const assertions = standaloneChartAssertions({ seriesTypes: ['organization'] });
+
 const EXAMPLES: Record<string, StandaloneTestCase> = {
     SIMPLE_ORG_CHART: {
         options: SIMPLE_ORG_CHART,
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     SIMPLE_ORG_CHART_THEMED: {
         options: SIMPLE_ORG_CHART_THEMED,
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     SIMPLE_ORG_CHART_RTL: {
         options: { ...SIMPLE_ORG_CHART, enableRtl: true },
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     LINKS_ROUNDED_INTERPOLATION: {
         options: LINKS_ROUNDED_INTERPOLATION,
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     ITEM_STYLERS: {
         options: ITEM_STYLERS,
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     FORMATTERS: {
         options: FORMATTERS,
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     TEXT_CENTER_IMAGE_TOP: {
         options: createTextImageExample('center', 'top'),
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     TEXT_RIGHT_IMAGE_RIGHT: {
         options: createTextImageExample('right', 'right'),
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     TEXT_CENTER_IMAGE_RIGHT: {
         options: createTextImageExample('center', 'right'),
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     IMAGE_CIRCLE_TOP: {
         options: createTextImageExample('center', 'top', 20),
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     IMAGE_CIRCLE_BOTTOM: {
         options: createTextImageExample('left', 'bottom', 20),
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     IMAGE_CIRCLE_LEFT: {
         options: createTextImageExample('left', 'left', 20),
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     IMAGE_CIRCLE_RIGHT: {
         options: createTextImageExample('right', 'right', 20),
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     SEGMENT_TITLE_LEFT_ALIGNED: {
         options: createSegmentAlignmentExample('left', 'property'),
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     SEGMENT_TITLE_RIGHT_ALIGNED: {
         options: createSegmentAlignmentExample('right', 'property'),
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     SEGMENT_TITLE_CENTER_ALIGNED: {
         options: createSegmentAlignmentExample('center', 'property'),
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     SEGMENT_TITLE_LEFT_ALIGNED_VIA_ITEM_STYLER: {
         options: createSegmentAlignmentExample('left', 'itemStyler'),
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     SEGMENT_TITLE_CENTER_ALIGNED_VIA_ITEM_STYLER: {
         options: createSegmentAlignmentExample('center', 'itemStyler'),
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     SEGMENT_TITLE_PER_DATUM_ALIGNMENT_VIA_ITEM_STYLER: {
         // Confirms cached per-datum styles aren't shared between OrganizationNodes:
@@ -593,11 +595,11 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
                 },
             ],
         } as any,
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     SEGMENT_TITLE_RIGHT_ALIGNED_VIA_ITEM_STYLER: {
         options: createSegmentAlignmentExample('right', 'itemStyler'),
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     TEXT_TIER_BACKING_BOX: {
         options: {
@@ -635,7 +637,7 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
                 },
             ],
         } as any,
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     TEXT_TIER_BACKING_BOX_LARGE_PADDING: {
         // Regression for AG-17193 pt2: with sizable padding (>>0) the text-box layout
@@ -687,7 +689,7 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
                 },
             ],
         } as any,
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     TEXT_TIER_BACKING_BOX_VIA_ITEM_STYLER: {
         options: {
@@ -711,7 +713,7 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
                 },
             ],
         } as any,
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     NODE_ITEM_STYLER_USES_IS_COLLAPSED: {
         // 'cto' is collapsed via initialState; node.itemStyler returns a distinct fill/stroke
@@ -737,7 +739,7 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
                 },
             ],
         } as any,
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     TEXT_TIER_ITEM_STYLER_USES_IS_COLLAPSED: {
         // Same setup but the styler lives on the title tier — confirms isCollapsed reaches
@@ -762,7 +764,7 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
                 },
             ],
         } as any,
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     NODE_TEXT_FORMATTER_USES_IS_COLLAPSED: {
         // Title/subtitle/label formatters receive `isCollapsed` and can append a marker —
@@ -797,7 +799,7 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
                 },
             ],
         } as any,
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     TEXT_TIER_BACKING_BOX_PARTIAL_OVERRIDE: {
         // property-level supplies stroke + cornerRadius + padding; itemStyler adds fill conditionally.
@@ -825,14 +827,14 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
                 },
             ],
         } as any,
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     DIRECTION_HORIZONTAL: {
         options: {
             ...SIMPLE_ORG_CHART,
             theme: { overrides: { organization: { series: { direction: 'horizontal' } } } },
         },
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     EXPANDER_ALL_AND_DIRECT_CHILDREN: {
         options: {
@@ -849,7 +851,7 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
                 },
             ],
         } as any,
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     EXPANDER_NO_CHILDREN: {
         options: {
@@ -866,35 +868,87 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
                 },
             ],
         } as any,
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     DIRECTION_HORIZONTAL_IMAGE_TOP: {
         options: {
             ...createTextImageExample('center', 'top'),
             theme: { overrides: { organization: { series: { direction: 'horizontal' } } } },
         },
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     DIRECTION_HORIZONTAL_IMAGE_RIGHT: {
         options: {
             ...createTextImageExample('left', 'right'),
             theme: { overrides: { organization: { series: { direction: 'horizontal' } } } },
         },
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     DIRECTION_HORIZONTAL_REVERSE: {
         options: {
             ...SIMPLE_ORG_CHART,
             theme: { overrides: { organization: { series: { direction: 'horizontal', reverse: true } } } },
         },
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
     },
     DIRECTION_VERTICAL_REVERSE: {
         options: {
             ...SIMPLE_ORG_CHART,
             theme: { overrides: { organization: { series: { direction: 'vertical', reverse: true } } } },
         },
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+        assertions,
+    },
+    STACKED: {
+        options: {
+            ...TEAM_DIRECTORY_ORG_CHART,
+            initialState: { collapsed: [] },
+            theme: { overrides: { organization: { series: { layout: { type: 'stacked', stackAtDepth: 3 } } } } },
+        },
+        assertions,
+    },
+    STACKED_VERTICAL_REVERSE: {
+        options: {
+            ...TEAM_DIRECTORY_ORG_CHART,
+            initialState: { collapsed: [] },
+            theme: {
+                overrides: {
+                    organization: {
+                        series: { layout: { type: 'stacked', stackAtDepth: 3 }, direction: 'vertical', reverse: true },
+                    },
+                },
+            },
+        },
+        assertions,
+    },
+    STACKED_HORIZONTAL: {
+        options: {
+            ...TEAM_DIRECTORY_ORG_CHART,
+            initialState: { collapsed: [] },
+            theme: {
+                overrides: {
+                    organization: { series: { layout: { type: 'stacked', stackAtDepth: 3 }, direction: 'horizontal' } },
+                },
+            },
+        },
+        assertions,
+    },
+    STACKED_HORIZONTAL_REVERSE: {
+        options: {
+            ...TEAM_DIRECTORY_ORG_CHART,
+            initialState: { collapsed: [] },
+            theme: {
+                overrides: {
+                    organization: {
+                        series: {
+                            layout: { type: 'stacked', stackAtDepth: 3 },
+                            direction: 'horizontal',
+                            reverse: true,
+                        },
+                    },
+                },
+            },
+        },
+        assertions,
     },
 };
 

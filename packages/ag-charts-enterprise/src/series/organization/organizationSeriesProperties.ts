@@ -44,6 +44,9 @@ export class OrganizationSeriesProperties extends NetworkSeriesTreeLayoutPropert
     link = new OrganizationSeriesLinkProperties();
 
     @Property
+    layout = new OrganizationSeriesLayoutProperties();
+
+    @Property
     node = new OrganizationSeriesNodeProperties();
 }
 
@@ -172,6 +175,21 @@ class OrganizationSeriesLinkProperties extends BaseProperties {
 
     @Property
     strokeWidth: number = 1;
+}
+
+class OrganizationSeriesLayoutProperties extends BaseProperties {
+    // Left undefined so that a series with no `layout` option keeps the default tree layout.
+    @Property
+    type?: 'stacked';
+
+    @Property
+    linkIndentation: number = 50;
+
+    @Property
+    nodeIndentation: number = 30;
+
+    @Property
+    stackAtDepth: number = 4;
 }
 
 class OrganizationSeriesLinkStepInterpolationProperties extends BaseProperties {

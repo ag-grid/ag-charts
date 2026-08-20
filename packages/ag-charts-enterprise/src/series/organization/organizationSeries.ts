@@ -36,6 +36,7 @@ import {
 
 import { NetworkLinkNode } from '../network/networkLinkNode';
 import { AbstractNetworkSeries } from '../network/networkSeries';
+import { NetworkStackedLayout, type NetworkStackedLayoutUpdateOptions } from '../network/networkStackedLayout';
 import { NetworkTreeLayout, type NetworkTreeLayoutUpdateOptions } from '../network/networkTreeLayout';
 import type { NetworkLinkInterpolation } from '../network/networkTypes';
 import { OrganizationGraph } from './organizationGraph';
@@ -64,6 +65,9 @@ interface DatumCallbackState {
     isCollapsed: boolean;
 }
 
+type OrganizationLayoutUpdateOptions = NetworkTreeLayoutUpdateOptions<OrganizationVertex, OrganizationEdge> &
+    NetworkStackedLayoutUpdateOptions<OrganizationVertex, OrganizationEdge>;
+
 export class OrganizationSeries extends AbstractNetworkSeries<
     OrganizationVertex,
     OrganizationEdge,
@@ -79,6 +83,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     override properties = new OrganizationSeriesProperties();
 
     private rootVertex?: Vertex<OrganizationVertex, OrganizationEdge>;
+
+    private stackedLayout?: NetworkStackedLayout<OrganizationVertex, OrganizationEdge>;
 
     /** Source-data index of the node whose expander pill the pointer is currently over. */
     private hoveredExpanderDatumIndex?: number;
@@ -560,9 +566,9 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         };
     }
 
-    protected override makeLayoutUpdateOptions(): NetworkTreeLayoutUpdateOptions<OrganizationVertex, OrganizationEdge> {
+    protected override makeLayoutUpdateOptions(): OrganizationLayoutUpdateOptions {
         const {
-            properties: { node, expander, innerSpacing, outerSpacing, depthSpacing },
+            properties: { node, expander, innerSpacing, outerSpacing, depthSpacing, layout },
         } = this;
 
         return {
@@ -583,6 +589,21 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             verticalSpacingExtra: expander.enabled
                 ? (expander.text.fontSize + expander.padding.top + expander.padding.bottom + expander.strokeWidth) / 2
                 : 0,
+
+            linkIndentation: layout.linkIndentation,
+            nodeIndentation: layout.nodeIndentation,
+            stackAtDepth: layout.stackAtDepth,
+
+            getLayout:
+                layout.type === 'stacked'
+                    ? (vertex) => {
+                          const depth = this.graph.findNeighbourValue(vertex, 'depth') as number | undefined;
+                          if (depth == null || depth < layout.stackAtDepth - 1) return;
+
+                          this.stackedLayout ??= new NetworkStackedLayout();
+                          return this.stackedLayout;
+                      }
+                    : () => undefined,
         };
     }
 

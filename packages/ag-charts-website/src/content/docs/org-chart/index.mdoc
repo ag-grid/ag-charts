@@ -133,6 +133,32 @@ In this configuration:
 }
 ```
 
+## Stacked
+
+{% chartExampleRunner title="Stacked" name="org-chart-stacked" type="generated" /%}
+
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'organization',
+            layout: {
+                type: 'stacked',
+                linkIndentation: 50,
+                nodeIndentation: 30,
+                stackAtDepth: 4,
+            },
+        },
+    ],
+}
+```
+
+In this example:
+
+- The series is set to switch to the `'stacked'` layout at a depth of `4` given by the `stackAtDepth` option.
+- `linkIndentation` sets the number of pixels to indent the link from the edge of the parent node.
+- `nodeIndentation` sets the number of pixels to indent the child node from the link.
+
 ## Expander
 
 The expander is displayed on nodes with children and is used to [collapse and expand](#collapse-and-expand) subtrees.

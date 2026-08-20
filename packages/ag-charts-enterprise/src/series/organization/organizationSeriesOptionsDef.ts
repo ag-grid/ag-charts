@@ -11,6 +11,7 @@ import {
     type AgOrganizationSeriesOptionsNodeImage,
     type AgOrganizationSeriesOptionsNodeSubtitle,
     type AgOrganizationSeriesOptionsNodeTitle,
+    type AgOrganizationSeriesStackedLayoutOptions,
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
@@ -155,12 +156,20 @@ const node: OptionsDefs<AgOrganizationSeriesOptionsNode> = {
     clickToExpand: boolean,
 };
 
+const stackedLayout: OptionsDefs<AgOrganizationSeriesStackedLayoutOptions> = {
+    type: constant('stacked'),
+    linkIndentation: positiveNumber,
+    nodeIndentation: positiveNumber,
+    stackAtDepth: positiveNumberNonZero,
+};
+
 export const organizationSeriesOptionsDef: OptionsDefs<AgOrganizationSeriesOptions> = {
     ...commonSeriesOptionsDefs,
     ..._ModuleSupport.organizationSeriesThemeableOptionsDef,
     type: required(constant('organization')),
     expander: expander,
     idKey: string,
+    layout: stackedLayout,
     link: link,
     node: node,
     parentIdKey: string,
