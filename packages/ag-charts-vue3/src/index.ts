@@ -13,8 +13,7 @@ import {
 // into a valid `{ container }` object, so the guard inside `AgCharts.create()` can never see what the
 // caller passed. Validate the raw prop first, and report the same error against the prop itself.
 function mergeOptions<O>(options: O, container: HTMLElement, componentName: string): O {
-    AgChartsAPI.__assertValidOptions(options, `${componentName} \`options\` prop`);
-    return { ...options, container };
+    return { ...AgChartsAPI.__validateOptionsArgument(options, `${componentName} \`options\` prop`), container };
 }
 
 export const AgCharts = /*#__PURE__*/ defineComponent({

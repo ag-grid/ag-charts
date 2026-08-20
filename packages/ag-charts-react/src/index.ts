@@ -26,16 +26,15 @@ interface BaseChartProps {
 }
 
 // The merge below turns anything spreadable into a valid `{ container }` object - `undefined`, `3`
-// and `{}` all become one - so `AgCharts.create()`'s own guard can never see what the caller passed.
+// and `{}` all become one - so `AgCharts.create()`'s own check can never see what the caller passed.
 // Validate the raw prop first, and report the same error against the prop rather than the factory.
 function getOptions(
     options: AgChartOptions,
     containerRef: RefObject<HTMLElement | null>,
     displayName: string
 ): AgChartOptions {
-    AgChartsAPI.__assertValidOptions(options, `${displayName} \`options\` prop`);
     return {
-        ...options,
+        ...AgChartsAPI.__validateOptionsArgument(options, `${displayName} \`options\` prop`),
         container: containerRef.current!,
     };
 }

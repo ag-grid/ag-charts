@@ -835,6 +835,22 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
     }
 
+    /**
+     * Report an argument that could not be options at all (`create(undefined)`, `create(3)`, an empty
+     * object) through the same feed as any option-validation error, so it reaches the console log, the
+     * `validations.overlayLevel` overlay, `validations.onErrorRaised` and `validations.throwOn`. Raised
+     * at `error` severity - unlike a per-option problem, nothing of the caller's intent survives it.
+     *
+     * Pushed as a new array: the unchanged-options fast path aliases `validationIssues` to the base
+     * options' array, which must not gain this chart's issue.
+     */
+    recordOptionsArgumentError(message: string) {
+        this.logger.error(message);
+        const issue: ValidationIssue = { severity: 'error', message };
+        this.validationIssues = [...this.validationIssues, issue];
+        this.throwIfFailFast(issue);
+    }
+
     private recordValidationMessage(message: string) {
         this.logger.warn(message);
         const issue: ValidationIssue = { severity: 'warning', message };
