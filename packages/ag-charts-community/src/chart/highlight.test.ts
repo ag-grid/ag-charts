@@ -1072,6 +1072,46 @@ describe('Chart highlighting', () => {
             expect(await statesForRange('tooltip')).toEqual(nodeStates);
         });
 
+        it('repaints a third series when the hover moves to a different series and category', async () => {
+            const options = prepareTestOptions<AgCartesianChartOptions>({
+                data: categoryData.map((d, index) => ({ ...d, pears: 2 + index })),
+                axes: {
+                    x: { position: 'bottom', type: 'category' },
+                    y: { position: 'left', type: 'number' },
+                },
+                legend: { enabled: false },
+                highlight: { mode: 'shared' },
+                series: [
+                    { type: 'bar', xKey: 'category', yKey: 'apples' },
+                    { type: 'bar', xKey: 'category', yKey: 'oranges' },
+                    { type: 'bar', xKey: 'category', yKey: 'pears' },
+                ],
+            });
+
+            chart = await createChart(options);
+            await waitForChartStability(chart);
+
+            const datumQ2 = defaultHighlightDatum(chart, { name: 'q2', options, seriesIndex: 0, datumIndex: 1 });
+            const datumQ3 = defaultHighlightDatum(chart, { name: 'q3', options, seriesIndex: 1, datumIndex: 2 });
+            expect(datumQ2).toBeDefined();
+            expect(datumQ3).toBeDefined();
+
+            chart.ctx.highlightManager.updateHighlight(chart.id, datumQ2);
+            await waitForChartStability(chart);
+
+            const afterQ2 = baseLayerFillOpacities(chart, 2);
+            expect(afterQ2[1]).toBeGreaterThan(afterQ2[0]);
+
+            // The hovered series changes too, so the third series is only repainted because shared mode
+            // widens the update beyond the previously and newly hovered series.
+            chart.ctx.highlightManager.updateHighlight(chart.id, datumQ3);
+            await waitForChartStability(chart);
+
+            const afterQ3 = baseLayerFillOpacities(chart, 2);
+            expect(afterQ3[2]).toBeGreaterThan(afterQ3[0]);
+            expect(afterQ3[1]).toBe(afterQ3[0]);
+        });
+
         describe('visual regression', () => {
             it('renders the items at the hovered category lit across every contributing series', async () => {
                 const options = twoBarSeriesOptions('shared');

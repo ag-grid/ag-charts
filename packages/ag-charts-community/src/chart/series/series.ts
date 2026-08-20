@@ -798,12 +798,16 @@ export abstract class Series<
     /**
      * In `highlight.mode: 'shared'`, the index of this series' item sharing the highlighted datum's
      * category; `undefined` in `'single'` mode, for a series-level highlight (a focused legend item, which
-     * carries a NaN datum index), and when this series contributes no item at that category.
+     * carries a NaN datum index), for the hovered series itself, and when this series contributes no item at
+     * that category.
      */
     private getSharedCategoryMatch(highlightedDatum: HighlightNodeDatum | undefined): DatumIndex | undefined {
         const { chartService } = this.ctx;
         if (highlightedDatum == null || chartService.highlight?.mode !== 'shared') return;
         if (highlightedDatum.series == null || !this.isDatumHighlight(highlightedDatum)) return;
+        // The hovered series is styled exactly as it is in `'single'` mode, so it has no match of its own -
+        // resolving one would only force a redundant repaint of it on every move within the series.
+        if (highlightedDatum.series === this) return;
 
         return chartService.getSharedHighlightMatch?.(highlightedDatum.series, highlightedDatum.datumIndex, this);
     }
