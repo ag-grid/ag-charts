@@ -54,12 +54,18 @@ function wrapTextTier(
 // the pill rather than becoming a hole.
 class OrganizationCardRect extends _ModuleSupport.Rect {
     private exclusion?: _ModuleSupport.BBox;
+    private exclusionCornerRadius = 0;
     private readonly exclusionPath = new _ModuleSupport.ExtendedPath2D();
     private exclusionPathKey = '';
 
-    setStrokeExclusion(exclusion: _ModuleSupport.BBox | undefined) {
-        if (exclusion == null ? this.exclusion == null : this.exclusion?.equals(exclusion) === true) return;
+    setStrokeExclusion(exclusion: _ModuleSupport.BBox | undefined, cornerRadius: number) {
+        const unchanged =
+            exclusion == null
+                ? this.exclusion == null
+                : this.exclusion?.equals(exclusion) === true && this.exclusionCornerRadius === cornerRadius;
+        if (unchanged) return;
         this.exclusion = exclusion;
+        this.exclusionCornerRadius = cornerRadius;
         this.markDirty();
     }
 
@@ -82,7 +88,7 @@ class OrganizationCardRect extends _ModuleSupport.Rect {
     // default nonzero rule keeps everything but the pill — the construction `SegmentedPath` uses
     // for its gaps.
     private getExclusionPath(exclusion: _ModuleSupport.BBox) {
-        const { x, y, width, height, strokeWidth, exclusionPath } = this;
+        const { x, y, width, height, strokeWidth, exclusionPath, exclusionCornerRadius } = this;
         const key = [
             x,
             y,
@@ -93,6 +99,7 @@ class OrganizationCardRect extends _ModuleSupport.Rect {
             exclusion.y,
             exclusion.width,
             exclusion.height,
+            exclusionCornerRadius,
         ].join();
         if (key === this.exclusionPathKey) return exclusionPath;
         this.exclusionPathKey = key;
@@ -110,11 +117,14 @@ class OrganizationCardRect extends _ModuleSupport.Rect {
         exclusionPath.lineTo(x1, y0);
         exclusionPath.closePath();
 
-        exclusionPath.moveTo(exclusion.x, exclusion.y);
-        exclusionPath.lineTo(exclusion.x + exclusion.width, exclusion.y);
-        exclusionPath.lineTo(exclusion.x + exclusion.width, exclusion.y + exclusion.height);
-        exclusionPath.lineTo(exclusion.x, exclusion.y + exclusion.height);
-        exclusionPath.closePath();
+        // Follow the pill's own rounded outline, not its bounding box: a card border thick enough
+        // to reach into the pill's corner arcs would otherwise lose the segments that run outside
+        // the pill but inside its box, leaving the border gapped either side of the control.
+        if (exclusionCornerRadius > 0) {
+            exclusionPath.roundRect(exclusion.x, exclusion.y, exclusion.width, exclusion.height, exclusionCornerRadius);
+        } else {
+            exclusionPath.rect(exclusion.x, exclusion.y, exclusion.width, exclusion.height);
+        }
 
         return exclusionPath;
     }
@@ -261,10 +271,11 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
                     this.expanderNode.translationY,
                     expanderBBox.width,
                     expanderBBox.height
-                )
+                ),
+                this.expanderNode.cornerRadius
             );
         } else {
-            this.shapeNode.setStrokeExclusion(undefined);
+            this.shapeNode.setStrokeExclusion(undefined, 0);
         }
 
         // Conditional clip: only when `regularBBox` clamped the card under its intrinsic
@@ -515,6 +526,12 @@ class OrganizationExpanderNode extends _ModuleSupport.TranslatableGroup {
     private shapeNode?: _ModuleSupport.Rect;
     private countNode?: _ModuleSupport.Text;
     private chevronNode?: ChevronPath;
+
+    // Read back off the painted pill rather than the style, so the card's cut-out cannot disagree
+    // with the shape actually rendered. The pill only ever takes a uniform radius.
+    get cornerRadius() {
+        return this.shapeNode?.topLeftCornerRadius ?? 0;
+    }
 
     update(
         expanderText: NormalisedTextOrSegments,

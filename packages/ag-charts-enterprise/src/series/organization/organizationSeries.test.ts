@@ -1809,7 +1809,10 @@ describe('OrganizationSeries', () => {
     describe('expander border cut-out', () => {
         // A red card border makes the pixels attributable: any red inside the pill can only have
         // come from the card's stroke running behind it.
-        const buildOptions = (expander: Record<string, unknown>): AgChartOptions => ({
+        const buildOptions = (
+            expander: Record<string, unknown>,
+            node: Record<string, unknown> = {}
+        ): AgChartOptions => ({
             ...SIMPLE_ORG_CHART,
             series: [
                 {
@@ -1822,6 +1825,7 @@ describe('OrganizationSeries', () => {
                         cornerRadius: 0,
                         stroke: '#ff0000',
                         strokeWidth: 4,
+                        ...node,
                     },
                     // The pill's stroke defaults to the node's, so give it one of its own — otherwise
                     // the probe counts the pill's own outline as border bleed-through.
@@ -1862,6 +1866,31 @@ describe('OrganizationSeries', () => {
                 ).toBeGreaterThan(0);
             }
         );
+
+        it('cuts out the pill outline rather than its bounding box when the expander is rounded', async () => {
+            // A stadium-shaped pill against a card border thick enough to reach into the corner
+            // arcs: the border still has to run through the wedges between the arc and the pill's
+            // box, which a rectangular cut-out would erase.
+            const options = buildOptions({ cornerRadius: 40, strokeWidth: 1, fillOpacity: 0 }, { strokeWidth: 20 });
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const pill = _ModuleSupport.Transformable.toCanvas(findTaggedNode('ceo', OrganizationNodeTag.Expander));
+            const radius = pill.height / 2;
+
+            // Inside the arc, where the pill genuinely covers the border.
+            expect(
+                countCardStrokePixels(
+                    new _ModuleSupport.BBox(pill.x + radius, pill.y + 1, pill.width - 2 * radius, pill.height - 2)
+                )
+            ).toBe(0);
+            // Outside it, in the pill's own bounding box — the border must survive here.
+            expect(countCardStrokePixels(new _ModuleSupport.BBox(pill.x, pill.y, radius, pill.height))).toBeGreaterThan(
+                0
+            );
+        });
     });
 
     describe('node labels', () => {
