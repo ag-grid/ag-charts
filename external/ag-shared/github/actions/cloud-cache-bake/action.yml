@@ -108,13 +108,17 @@ runs:
               # so this is not the cheap oracle it first looks like, and a dictionary
               # word is the only realistically reachable value.
               #
-              # Hence a length floor here rather than a KDF on both subkeys: this is
-              # the one place that sees the key and can refuse, and `openssl kdf`
-              # needs OpenSSL 3, which the consumer side cannot assume (macOS ships
+              # Hence a check here rather than a KDF on both subkeys: this is the one
+              # place that sees the key and can refuse, and `openssl kdf` needs
+              # OpenSSL 3, which the consumer side cannot assume (macOS ships
               # LibreSSL, and cloud-setup.sh is meant to stay runnable there).
-              # Generate the value with `openssl rand -hex 32`.
-              [[ "${#KEY}" -ge 32 ]] || {
-                  echo "::error::encryption-key is shorter than 32 characters — generate one with 'openssl rand -hex 32'"
+              #
+              # The check is on FORMAT, not length. A length floor admits `aaaa...`
+              # and a long English phrase, neither of which carries the entropy the
+              # floor was standing in for. Matching what `openssl rand -hex 32`
+              # produces makes the requirement checkable rather than aspirational.
+              [[ "$KEY" =~ ^[0-9a-fA-F]{64,}$ ]] || {
+                  echo "::error::encryption-key must be 64 or more hex characters — generate one with 'openssl rand -hex 32'"
                   exit 1
               }
 

@@ -75,7 +75,7 @@ Do this once per cloud environment (and once more for an organization-shared env
 
    Note that attaching a second repository also changes the session's working directory: with one repo it is the repo root, with two it is the parent (`/home/user`), so `bash external/…` fails. Note also that `~` is `/root`, not `/home/user`, so the repo is at `/home/user/ag-charts` and `cd ~/ag-charts` fails too — use the absolute path.
 
-5. Optionally add **Environment variables** (`.env` format, one per line). None are required; useful ones:
+5. Add **Environment variables** (`.env` format, one per line). `AG_CLOUD_CACHE_KEY` is **required** for an environment that starts ready — without it the prebuilt tree cannot be decrypted, so every session falls back to the capped install and owes a `finish-setup.sh` run. The other two are optional conveniences.
 
    ```text
    AG_CLOUD_CACHE_KEY=<the same value as the repo's CLOUD_CACHE_KEY secret>
@@ -83,9 +83,9 @@ Do this once per cloud environment (and once more for an organization-shared env
    NX_DAEMON=false
    ```
 
-   Generate `AG_CLOUD_CACHE_KEY` with `openssl rand -hex 32` and use the same value for the repo's `CLOUD_CACHE_KEY` secret. The bake refuses a value shorter than 32 characters: the MAC subkey is one HMAC of the passphrase rather than a 200k-iteration PBKDF2, so a dictionary word would be guessable against the published MAC — the per-guess cost is a full pass over the several-hundred-MB ciphertext, which is why a length floor is enough and neither subkey needs hardening.
+   Generate `AG_CLOUD_CACHE_KEY` with `openssl rand -hex 32` and use the same value for the repo's `CLOUD_CACHE_KEY` secret. The bake requires 64 or more hex characters and refuses anything else: the MAC subkey is one HMAC of the passphrase rather than a 200k-iteration PBKDF2, so the published MAC is in principle an offline verifier for guesses. Each guess still costs a full HMAC pass over the several-hundred-MB ciphertext and cannot be amortised across candidates, so the realistic risk is a guessable value rather than a cheap oracle — which is why the check is on format (making the requirement checkable) rather than a KDF on both subkeys.
 
-   `AG_CLOUD_CACHE_KEY` is what makes the fast path work: the baked dependency tree is encrypted, so without it the environment build falls back to the capped local install and every session then owes a `finish-setup.sh` run. It is not really a credential — the payload is public npm packages, and the encryption is there so we are not republishing several hundred MB of third-party tree in readable form on a public repo — but it is still a shared value, so treat the usual warning as applying: anyone using the environment can read these, and there is no secrets store.
+   It is not really a credential — the payload is public npm packages, and the encryption is there so we are not republishing several hundred MB of third-party tree in readable form on a public repo — but it is still a shared value, so treat the usual warning as applying: anyone using the environment can read these, and there is no secrets store.
 
 6. Save, then start a session and ask Claude to run (from the repo root — see step 4 about the working directory):
 
