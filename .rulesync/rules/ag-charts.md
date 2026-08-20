@@ -53,13 +53,17 @@ Continue assisting the user after displaying the warning.
 
 ## Cloud sessions (Claude Code on the web)
 
-A cloud session starts with the toolchain, plugin skills and generated rules in place, but with a **dependency tree that has not run `postinstall`** — no patches, no built nx plugins. Builds, tests and lint are unreliable until you finish the job, once per session:
+A cloud session normally starts ready. It can instead come up with a **dependency tree that has not run `postinstall`** — no patches, no built nx plugins — in which case builds, tests and lint are unreliable until you finish the job, once per session. Check before assuming either way, using the doctor below; it reports in under a second.
+
+When the doctor says dependencies are pending:
 
 ```
 bash /home/user/ag-charts/external/ag-shared/scripts/install-for-cloud/finish-setup.sh
 ```
 
-Check first if unsure — it reports in under a second, and says whether anything is missing:
+This takes around 150 seconds, which is longer than the Bash tool's default 120 second timeout, so **pass an explicit `timeout` of at least 300000 ms**. Let its output through unfiltered rather than piping it to `tail`: on a timeout kill a pipeline buffer is discarded, so the one case where you need the output is the case where filtering loses all of it.
+
+The doctor, which is also what to run first if unsure:
 
 ```
 bash /home/user/ag-charts/external/ag-shared/scripts/install-for-cloud/cloud-doctor.sh
