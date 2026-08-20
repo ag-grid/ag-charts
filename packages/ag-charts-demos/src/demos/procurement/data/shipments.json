@@ -1,0 +1,263 @@
+[
+    {
+        "shipmentId": "SHP-4017",
+        "supplierId": "NIP",
+        "plantId": "CHA",
+        "departDate": "2026-07-03T23:00:00.000Z",
+        "projectedDate": "2026-08-09T17:00:00.000Z",
+        "requiredDate": "2026-08-19T17:00:00.000Z",
+        "carrierDelay": false
+    },
+    {
+        "shipmentId": "SHP-4009",
+        "supplierId": "GLS",
+        "plantId": "CHA",
+        "departDate": "2026-08-05T02:00:00.000Z",
+        "projectedDate": "2026-08-09T19:00:00.000Z",
+        "requiredDate": "2026-08-17T19:00:00.000Z",
+        "carrierDelay": false
+    },
+    {
+        "shipmentId": "SHP-4023",
+        "supplierId": "NIP",
+        "plantId": "QRO",
+        "departDate": "2026-07-11T04:00:00.000Z",
+        "projectedDate": "2026-08-10T00:00:00.000Z",
+        "requiredDate": "2026-08-15T00:00:00.000Z",
+        "carrierDelay": false
+    },
+    {
+        "shipmentId": "SHP-4038",
+        "supplierId": "TAT",
+        "plantId": "CHA",
+        "departDate": "2026-06-27T17:00:00.000Z",
+        "projectedDate": "2026-08-12T17:00:00.000Z",
+        "requiredDate": "2026-08-16T17:00:00.000Z",
+        "carrierDelay": false
+    },
+    {
+        "shipmentId": "SHP-4026",
+        "supplierId": "RHA",
+        "plantId": "CHA",
+        "departDate": "2026-07-12T21:00:00.000Z",
+        "projectedDate": "2026-08-12T21:00:00.000Z",
+        "requiredDate": "2026-08-17T21:00:00.000Z",
+        "carrierDelay": false
+    },
+    {
+        "shipmentId": "SHP-4029",
+        "supplierId": "RHA",
+        "plantId": "QRO",
+        "departDate": "2026-07-23T02:00:00.000Z",
+        "projectedDate": "2026-08-18T18:00:00.000Z",
+        "requiredDate": "2026-08-16T18:00:00.000Z",
+        "carrierDelay": true
+    },
+    {
+        "shipmentId": "SHP-4003",
+        "supplierId": "BAL",
+        "plantId": "DTW",
+        "departDate": "2026-07-13T21:00:00.000Z",
+        "projectedDate": "2026-08-16T21:00:00.000Z",
+        "requiredDate": "2026-08-25T21:00:00.000Z",
+        "carrierDelay": false
+    },
+    {
+        "shipmentId": "SHP-4020",
+        "supplierId": "NIP",
+        "plantId": "DTW",
+        "departDate": "2026-07-09T16:00:00.000Z",
+        "projectedDate": "2026-08-16T21:00:00.000Z",
+        "requiredDate": "2026-08-20T21:00:00.000Z",
+        "carrierDelay": false
+    },
+    {
+        "shipmentId": "SHP-4011",
+        "supplierId": "GLS",
+        "plantId": "QRO",
+        "departDate": "2026-08-07T19:00:00.000Z",
+        "projectedDate": "2026-08-17T19:00:00.000Z",
+        "requiredDate": "2026-08-20T19:00:00.000Z",
+        "carrierDelay": false
+    },
+    {
+        "shipmentId": "SHP-4010",
+        "supplierId": "GLS",
+        "plantId": "DTW",
+        "departDate": "2026-08-07T19:00:00.000Z",
+        "projectedDate": "2026-08-20T00:00:00.000Z",
+        "requiredDate": "2026-08-19T00:00:00.000Z",
+        "carrierDelay": true
+    },
+    {
+        "shipmentId": "SHP-4018",
+        "supplierId": "NIP",
+        "plantId": "CHA",
+        "departDate": "2026-07-21T22:00:00.000Z",
+        "projectedDate": "2026-08-23T20:00:00.000Z",
+        "requiredDate": "2026-08-26T20:00:00.000Z",
+        "carrierDelay": false
+    },
+    {
+        "shipmentId": "SHP-4027",
+        "supplierId": "RHA",
+        "plantId": "CHA",
+        "departDate": "2026-07-23T06:00:00.000Z",
+        "projectedDate": "2026-08-23T20:00:00.000Z",
+        "requiredDate": "2026-08-23T20:00:00.000Z",
+        "carrierDelay": false
+    },
+    {
+        "shipmentId": "SHP-4021",
+        "supplierId": "NIP",
+        "plantId": "DTW",
+        "departDate": "2026-07-21T00:00:00.000Z",
+        "projectedDate": "2026-08-24T00:00:00.000Z",
+        "requiredDate": "2026-08-27T00:00:00.000Z",
+        "carrierDelay": false
+    },
+    {
+        "shipmentId": "SHP-4039",
+        "supplierId": "TAT",
+        "plantId": "CHA",
+        "departDate": "2026-07-09T22:00:00.000Z",
+        "projectedDate": "2026-08-26T22:00:00.000Z",
+        "requiredDate": "2026-09-01T22:00:00.000Z",
+        "carrierDelay": false
+    },
+    {
+        "shipmentId": "SHP-4024",
+        "supplierId": "NIP",
+        "plantId": "QRO",
+        "departDate": "2026-07-21T17:00:00.000Z",
+        "projectedDate": "2026-08-27T17:00:00.000Z",
+        "requiredDate": "2026-08-29T17:00:00.000Z",
+        "carrierDelay": false
+    },
+    {
+        "shipmentId": "SHP-4044",
+        "supplierId": "TAT",
+        "plantId": "QRO",
+        "departDate": "2026-07-23T23:00:00.000Z",
+        "projectedDate": "2026-08-29T23:00:00.000Z",
+        "requiredDate": "2026-09-06T23:00:00.000Z",
+        "carrierDelay": false
+    },
+    {
+        "shipmentId": "SHP-4042",
+        "supplierId": "TAT",
+        "plantId": "DTW",
+        "departDate": "2026-07-17T00:00:00.000Z",
+        "projectedDate": "2026-09-02T00:00:00.000Z",
+        "requiredDate": "2026-09-04T00:00:00.000Z",
+        "carrierDelay": false
+    },
+    {
+        "shipmentId": "SHP-4028",
+        "supplierId": "RHA",
+        "plantId": "CHA",
+        "departDate": "2026-08-03T16:00:00.000Z",
+        "projectedDate": "2026-09-02T20:00:00.000Z",
+        "requiredDate": "2026-09-06T20:00:00.000Z",
+        "carrierDelay": false
+    },
+    {
+        "shipmentId": "SHP-4030",
+        "supplierId": "RHA",
+        "plantId": "QRO",
+        "departDate": "2026-08-09T18:00:00.000Z",
+        "projectedDate": "2026-09-03T18:00:00.000Z",
+        "requiredDate": "2026-09-11T18:00:00.000Z",
+        "carrierDelay": false
+    },
+    {
+        "shipmentId": "SHP-4040",
+        "supplierId": "TAT",
+        "plantId": "CHA",
+        "departDate": "2026-07-22T00:00:00.000Z",
+        "projectedDate": "2026-09-03T20:00:00.000Z",
+        "requiredDate": "2026-09-13T20:00:00.000Z",
+        "carrierDelay": false
+    },
+    {
+        "shipmentId": "SHP-4001",
+        "supplierId": "ANK",
+        "plantId": "QRO",
+        "departDate": "2026-08-03T23:00:00.000Z",
+        "projectedDate": "2026-09-04T23:00:00.000Z",
+        "requiredDate": "2026-09-02T23:00:00.000Z",
+        "carrierDelay": true
+    },
+    {
+        "shipmentId": "SHP-4007",
+        "supplierId": "CPF",
+        "plantId": "CHA",
+        "departDate": "2026-07-27T18:00:00.000Z",
+        "projectedDate": "2026-09-05T18:00:00.000Z",
+        "requiredDate": "2026-09-10T18:00:00.000Z",
+        "carrierDelay": false
+    },
+    {
+        "shipmentId": "SHP-4004",
+        "supplierId": "BAL",
+        "plantId": "DTW",
+        "departDate": "2026-08-04T00:00:00.000Z",
+        "projectedDate": "2026-09-06T23:00:00.000Z",
+        "requiredDate": "2026-09-09T23:00:00.000Z",
+        "carrierDelay": false
+    },
+    {
+        "shipmentId": "SHP-4022",
+        "supplierId": "NIP",
+        "plantId": "DTW",
+        "departDate": "2026-07-30T22:00:00.000Z",
+        "projectedDate": "2026-09-08T22:00:00.000Z",
+        "requiredDate": "2026-09-07T22:00:00.000Z",
+        "carrierDelay": true
+    },
+    {
+        "shipmentId": "SHP-4019",
+        "supplierId": "NIP",
+        "plantId": "CHA",
+        "departDate": "2026-08-09T18:00:00.000Z",
+        "projectedDate": "2026-09-09T18:00:00.000Z",
+        "requiredDate": "2026-09-15T18:00:00.000Z",
+        "carrierDelay": false
+    },
+    {
+        "shipmentId": "SHP-4002",
+        "supplierId": "BAL",
+        "plantId": "CHA",
+        "departDate": "2026-07-30T20:00:00.000Z",
+        "projectedDate": "2026-09-10T20:00:00.000Z",
+        "requiredDate": "2026-09-13T20:00:00.000Z",
+        "carrierDelay": false
+    },
+    {
+        "shipmentId": "SHP-4041",
+        "supplierId": "TAT",
+        "plantId": "CHA",
+        "departDate": "2026-08-01T23:00:00.000Z",
+        "projectedDate": "2026-09-11T23:00:00.000Z",
+        "requiredDate": "2026-09-20T23:00:00.000Z",
+        "carrierDelay": false
+    },
+    {
+        "shipmentId": "SHP-4043",
+        "supplierId": "TAT",
+        "plantId": "DTW",
+        "departDate": "2026-08-05T21:00:00.000Z",
+        "projectedDate": "2026-09-14T21:00:00.000Z",
+        "requiredDate": "2026-09-18T21:00:00.000Z",
+        "carrierDelay": false
+    },
+    {
+        "shipmentId": "SHP-4025",
+        "supplierId": "NIP",
+        "plantId": "QRO",
+        "departDate": "2026-08-06T17:00:00.000Z",
+        "projectedDate": "2026-09-16T17:00:00.000Z",
+        "requiredDate": "2026-09-18T17:00:00.000Z",
+        "carrierDelay": false
+    }
+]

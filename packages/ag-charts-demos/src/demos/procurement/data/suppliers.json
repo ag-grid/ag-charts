@@ -1,0 +1,327 @@
+[
+    {
+        "supplierId": "NIP",
+        "name": "Nippon Metals",
+        "country": "Japan",
+        "city": "Yokohama",
+        "origin": {
+            "latitude": 35.44,
+            "longitude": 139.64
+        },
+        "reliability": 0.81,
+        "priceIndex": 1.12,
+        "leadTimeDays": 38,
+        "qualityScore": 0.94,
+        "priceVariance": 0.03,
+        "contractRenewal": {
+            "monthsFromNow": 19,
+            "dayOfMonth": 1
+        }
+    },
+    {
+        "supplierId": "RHA",
+        "name": "Rhine Alloys",
+        "country": "Germany",
+        "city": "Duisburg",
+        "origin": {
+            "latitude": 51.43,
+            "longitude": 6.76
+        },
+        "reliability": 0.96,
+        "priceIndex": 1.02,
+        "leadTimeDays": 30,
+        "qualityScore": 0.98,
+        "priceVariance": -0.01,
+        "contractRenewal": {
+            "daysFromNow": 18
+        }
+    },
+    {
+        "supplierId": "GLS",
+        "name": "Great Lakes Steel",
+        "country": "United States",
+        "city": "Cleveland",
+        "origin": {
+            "latitude": 41.5,
+            "longitude": -81.69
+        },
+        "reliability": 0.93,
+        "priceIndex": 0.98,
+        "leadTimeDays": 12,
+        "qualityScore": 0.91,
+        "priceVariance": 0.01,
+        "contractRenewal": {
+            "monthsFromNow": 5
+        }
+    },
+    {
+        "supplierId": "BAL",
+        "name": "Bayan Alloys",
+        "country": "Malaysia",
+        "city": "Kuala Lumpur",
+        "origin": {
+            "latitude": 3.14,
+            "longitude": 101.69
+        },
+        "reliability": 0.91,
+        "priceIndex": 0.91,
+        "leadTimeDays": 41,
+        "qualityScore": 0.86,
+        "priceVariance": -0.02,
+        "contractRenewal": {
+            "monthsFromNow": 9
+        }
+    },
+    {
+        "supplierId": "TAT",
+        "name": "Tata Structural",
+        "country": "India",
+        "city": "Jamshedpur",
+        "origin": {
+            "latitude": 22.8,
+            "longitude": 86.2
+        },
+        "reliability": 0.88,
+        "priceIndex": 0.86,
+        "leadTimeDays": 44,
+        "qualityScore": 0.89,
+        "priceVariance": 0.05,
+        "contractRenewal": {
+            "monthsFromNow": 2
+        }
+    },
+    {
+        "supplierId": "SZM",
+        "name": "Shenzhen Microtech",
+        "country": "China",
+        "city": "Shenzhen",
+        "origin": {
+            "latitude": 22.54,
+            "longitude": 114.06
+        },
+        "reliability": 0.81,
+        "priceIndex": 0.84,
+        "leadTimeDays": 36,
+        "qualityScore": 0.88,
+        "priceVariance": 0.02,
+        "contractRenewal": {
+            "monthsFromNow": 7
+        }
+    },
+    {
+        "supplierId": "HSC",
+        "name": "Hsinchu Semicon",
+        "country": "Taiwan",
+        "city": "Hsinchu",
+        "origin": {
+            "latitude": 24.8,
+            "longitude": 120.97
+        },
+        "reliability": 0.95,
+        "priceIndex": 1.16,
+        "leadTimeDays": 33,
+        "qualityScore": 0.97,
+        "priceVariance": -0.01,
+        "contractRenewal": {
+            "monthsFromNow": 11
+        }
+    },
+    {
+        "supplierId": "SCW",
+        "name": "Seoul Circuit Works",
+        "country": "South Korea",
+        "city": "Incheon",
+        "origin": {
+            "latitude": 37.46,
+            "longitude": 126.71
+        },
+        "reliability": 0.91,
+        "priceIndex": 1.02,
+        "leadTimeDays": 31,
+        "qualityScore": 0.95,
+        "priceVariance": 0,
+        "contractRenewal": {
+            "monthsFromNow": 4
+        }
+    },
+    {
+        "supplierId": "BCX",
+        "name": "Baltic Connectors",
+        "country": "Poland",
+        "city": "Gdansk",
+        "origin": {
+            "latitude": 54.35,
+            "longitude": 18.65
+        },
+        "reliability": 0.88,
+        "priceIndex": 0.95,
+        "leadTimeDays": 26,
+        "qualityScore": 0.92,
+        "priceVariance": 0.01,
+        "contractRenewal": {
+            "monthsFromNow": 14
+        }
+    },
+    {
+        "supplierId": "VGP",
+        "name": "Vega Polymers",
+        "country": "Netherlands",
+        "city": "Rotterdam",
+        "origin": {
+            "latitude": 51.92,
+            "longitude": 4.48
+        },
+        "reliability": 0.92,
+        "priceIndex": 1.03,
+        "leadTimeDays": 24,
+        "qualityScore": 0.94,
+        "priceVariance": -0.02,
+        "contractRenewal": {
+            "monthsFromNow": 6
+        }
+    },
+    {
+        "supplierId": "GPC",
+        "name": "Gulf Petrochem",
+        "country": "United States",
+        "city": "Houston",
+        "origin": {
+            "latitude": 29.76,
+            "longitude": -95.37
+        },
+        "reliability": 0.87,
+        "priceIndex": 0.94,
+        "leadTimeDays": 9,
+        "qualityScore": 0.9,
+        "priceVariance": 0.02,
+        "contractRenewal": {
+            "monthsFromNow": 3
+        }
+    },
+    {
+        "supplierId": "CPF",
+        "name": "Chennai Polyfilms",
+        "country": "India",
+        "city": "Chennai",
+        "origin": {
+            "latitude": 13.08,
+            "longitude": 80.27
+        },
+        "reliability": 0.76,
+        "priceIndex": 0.79,
+        "leadTimeDays": 44,
+        "qualityScore": 0.83,
+        "priceVariance": 0.04,
+        "contractRenewal": {
+            "monthsFromNow": 8
+        }
+    },
+    {
+        "supplierId": "CSP",
+        "name": "Cascadia Packaging",
+        "country": "United States",
+        "city": "Portland",
+        "origin": {
+            "latitude": 45.52,
+            "longitude": -122.68
+        },
+        "reliability": 0.94,
+        "priceIndex": 1.01,
+        "leadTimeDays": 8,
+        "qualityScore": 0.96,
+        "priceVariance": 0,
+        "contractRenewal": {
+            "monthsFromNow": 10
+        }
+    },
+    {
+        "supplierId": "MCT",
+        "name": "Monterrey Cartón",
+        "country": "Mexico",
+        "city": "Monterrey",
+        "origin": {
+            "latitude": 25.69,
+            "longitude": -100.32
+        },
+        "reliability": 0.85,
+        "priceIndex": 0.86,
+        "leadTimeDays": 11,
+        "qualityScore": 0.88,
+        "priceVariance": 0.03,
+        "contractRenewal": {
+            "monthsFromNow": 1
+        }
+    },
+    {
+        "supplierId": "LYC",
+        "name": "Lyon Coatings",
+        "country": "France",
+        "city": "Lyon",
+        "origin": {
+            "latitude": 45.76,
+            "longitude": 4.84
+        },
+        "reliability": 0.9,
+        "priceIndex": 1.08,
+        "leadTimeDays": 27,
+        "qualityScore": 0.93,
+        "priceVariance": -0.01,
+        "contractRenewal": {
+            "monthsFromNow": 12
+        }
+    },
+    {
+        "supplierId": "ANK",
+        "name": "Ankara Kimya",
+        "country": "Turkey",
+        "city": "Ankara",
+        "origin": {
+            "latitude": 39.93,
+            "longitude": 32.86
+        },
+        "reliability": 0.74,
+        "priceIndex": 0.81,
+        "leadTimeDays": 32,
+        "qualityScore": 0.81,
+        "priceVariance": 0.06,
+        "contractRenewal": {
+            "monthsFromNow": 2
+        }
+    },
+    {
+        "supplierId": "OHF",
+        "name": "Ohio Fastener Co",
+        "country": "United States",
+        "city": "Columbus",
+        "origin": {
+            "latitude": 39.96,
+            "longitude": -83
+        },
+        "reliability": 0.97,
+        "priceIndex": 1.06,
+        "leadTimeDays": 6,
+        "qualityScore": 0.98,
+        "priceVariance": -0.01,
+        "contractRenewal": {
+            "monthsFromNow": 15
+        }
+    },
+    {
+        "supplierId": "MLF",
+        "name": "Milano Fissaggi",
+        "country": "Italy",
+        "city": "Milan",
+        "origin": {
+            "latitude": 45.46,
+            "longitude": 9.19
+        },
+        "reliability": 0.86,
+        "priceIndex": 0.92,
+        "leadTimeDays": 25,
+        "qualityScore": 0.87,
+        "priceVariance": 0.02,
+        "contractRenewal": {
+            "monthsFromNow": 5
+        }
+    }
+]

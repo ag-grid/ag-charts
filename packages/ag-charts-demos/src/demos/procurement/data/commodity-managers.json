@@ -1,0 +1,44 @@
+[
+    {
+        "managerId": "priya-chen",
+        "name": "Priya Chen",
+        "title": "Commodity Manager",
+        "commodity": "Steel & Metals",
+        "supplierIds": ["NIP", "RHA", "GLS", "BAL", "TAT"]
+    },
+    {
+        "managerId": "daniel-okafor",
+        "name": "Daniel Okafor",
+        "title": "Commodity Manager",
+        "commodity": "Electronics & Components",
+        "supplierIds": ["SZM", "HSC", "SCW", "BCX"]
+    },
+    {
+        "managerId": "sofia-moreau",
+        "name": "Sofia Moreau",
+        "title": "Commodity Manager",
+        "commodity": "Plastics & Polymers",
+        "supplierIds": ["VGP", "GPC", "CPF"]
+    },
+    {
+        "managerId": "ade-larsson",
+        "name": "Ade Larsson",
+        "title": "Commodity Manager",
+        "commodity": "Packaging Materials",
+        "supplierIds": ["CSP", "MCT"]
+    },
+    {
+        "managerId": "marco-ruiz",
+        "name": "Marco Ruiz",
+        "title": "Commodity Manager",
+        "commodity": "Chemicals & Coatings",
+        "supplierIds": ["LYC", "ANK"]
+    },
+    {
+        "managerId": "hana-kim",
+        "name": "Hana Kim",
+        "title": "Commodity Manager",
+        "commodity": "Fasteners & Hardware",
+        "supplierIds": ["OHF", "MLF"]
+    }
+]
