@@ -23,7 +23,6 @@ import type {
     AgCartesianAxisType,
     AgCartesianChartOptions,
     AgContextMenuGetItemsParams,
-    AgGroupedCategoryAxisOptions,
     AgPolarChartOptions,
 } from 'ag-charts-types';
 
@@ -168,19 +167,35 @@ describe('Grouped Category', () => {
         let axisAction: ReturnType<typeof vi.fn>;
         let getItems: ReturnType<typeof vi.fn>;
 
-        const clickPoint = async ({ x, y }: Readonly<Point>) => await clickAction(x, y)(chart);
-        const hoverPoint = async ({ x, y }: Readonly<Point>) => await hoverAction(x, y)(chart);
-        const contextMenuPoint = async ({ x, y }: Readonly<Point>) => await contextMenuAction(x, y)(chart);
-        const params = (p: object) => [expect.objectContaining(p)];
-        const coords = (p: object) => [
-            expect.objectContaining({
-                coordinates: expect.objectContaining({ x: expect.objectContaining(p) }),
-            }),
-        ];
+        const { objectContaining } = expect;
+        const params = (p: object) => [objectContaining(p)];
+        const coords = (p: object) => [objectContaining({ coordinates: objectContaining({ x: objectContaining(p) }) })];
 
-        // Firing a menu item's `action` is only reachable through the rendered menu, so the item is
-        // located by the label `getItems` gave it.
-        const clickMenuItem = async (label: string) => {
+        async function clickPoint({ x, y }: Readonly<Point>): Promise<void> {
+            await clickAction(x, y)(chart);
+        }
+
+        async function hoverPoint({ x, y }: Readonly<Point>): Promise<void> {
+            await hoverAction(x, y)(chart);
+        }
+
+        async function contextMenuPoint({ x, y }: Readonly<Point>): Promise<void> {
+            await contextMenuAction(x, y)(chart);
+        }
+
+        async function hoverEveryBand(): Promise<void> {
+            for (const x of measureBandCentres(7)) {
+                await hoverPoint({ x, y: 300 });
+            }
+        }
+
+        async function clickEveryBand(): Promise<void> {
+            for (const x of measureBandCentres(7)) {
+                await clickPoint({ x, y: 300 });
+            }
+        }
+
+        async function clickMenuItem(label: string): Promise<void> {
             const items = Array.from(
                 document.body.getElementsByClassName(
                     `${DEFAULT_CONTEXT_MENU_CLASS}__item`
@@ -190,28 +205,14 @@ describe('Grouped Category', () => {
             expect(item).toBeDefined();
             item!.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
             await waitForChartStability(chart);
-        };
+        }
 
-        // Keyboard navigation reaches the same listeners as the pointer, but builds `coordinates` from
-        // the focused datum's reference point instead of a pointer position.
-        const pressOnSeriesArea = async (key: string) => {
+        async function pressOnSeriesArea(key: string): Promise<void> {
             const seriesArea = document.querySelector<HTMLElement>('.ag-charts-series-area');
             if (!seriesArea) throw new Error('series area not found');
             seriesArea.dispatchEvent(new KeyboardEvent('keydown', { key, code: key, bubbles: true }));
             await waitForChartStability(chart);
-        };
-
-        const hoverEveryBand = async () => {
-            for (const x of measureBandCentres(7)) {
-                await hoverPoint({ x, y: 300 });
-            }
-        };
-
-        const clickEveryBand = async () => {
-            for (const x of measureBandCentres(7)) {
-                await clickPoint({ x, y: 300 });
-            }
-        };
+        }
 
         beforeEach(async () => {
             formatter = vi.fn();
