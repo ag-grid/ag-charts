@@ -1035,6 +1035,43 @@ describe('Chart highlighting', () => {
             expect(afterQ3[3]).toBe(afterQ3[0]);
         });
 
+        it('resolves the same states for highlight.range node and tooltip', async () => {
+            // The grouping is derived downstream of the highlight itself, so the range - which only decides
+            // the pick intent that triggers the hover - must not change the outcome.
+            const statesForRange = async (range: 'node' | 'tooltip') => {
+                const options = twoBarSeriesOptions('shared');
+                options.highlight = { mode: 'shared', range };
+                chart = await createChart(options);
+                await waitForChartStability(chart);
+
+                // Inside the Q2 bar of the first series.
+                await hoverAction(285, 300)(chart);
+                await waitForChartStability(chart);
+
+                const activeHighlight = chart.ctx.highlightManager.getActiveHighlight();
+                expect(activeHighlight?.series).toBe(chart.series[0]);
+                expect(activeHighlight?.datumIndex).toBe(1);
+
+                const states = [0, 1].map((seriesIndex) =>
+                    [0, 1, 2, 3].map((datumIndex) => stateAt(chart, seriesIndex, datumIndex))
+                );
+
+                chart.destroy();
+                (chart as unknown) = undefined;
+
+                return states;
+            };
+
+            const nodeStates = await statesForRange('node');
+            expect(nodeStates[1]).toEqual([
+                'unhighlighted-series',
+                'unhighlighted-item',
+                'unhighlighted-series',
+                'unhighlighted-series',
+            ]);
+            expect(await statesForRange('tooltip')).toEqual(nodeStates);
+        });
+
         describe('visual regression', () => {
             it('renders the items at the hovered category lit across every contributing series', async () => {
                 const options = twoBarSeriesOptions('shared');
