@@ -69,6 +69,7 @@ export interface ChartLayout {
 
 export interface ChartAxis<TOptions extends NormalisedBaseAxisOptions = NormalisedBaseAxisOptions> {
     userKey: string;
+    setPickComputationEnabled(enabled: boolean): void;
     attachAxis(opts: AxisGroups): void;
     calculateLayout(
         primaryTickCount?: AxisPrimaryTickCount,

@@ -1142,6 +1142,16 @@ export abstract class Axis<
         return { domain: [...d.domain], clipped: false };
     }
 
+    private pickComputationEnabled = true;
+
+    setPickComputationEnabled(enabled: boolean): void {
+        this.pickComputationEnabled = enabled;
+    }
+
+    protected isPickComputationEnabled(): boolean {
+        return this.pickComputationEnabled;
+    }
+
     protected getLayoutTranslation(): { x: number; y: number } {
         return this.translation;
     }

@@ -2252,9 +2252,13 @@ export abstract class Chart implements ModuleInstance, ChartService {
         // Axes the user never named — the implicit primary axes created for a direction no `axes` entry
         // covers — have no unmapped key. Fall back to the canonical id ('x', 'y', ...) so `userKey` is
         // always a usable identifier, matching how option key paths resolve axis keys.
-        const { unmappedAxisKeys } = this.chartOptions;
+        const { unmappedAxisKeys, optionMetadata } = this.chartOptions;
+        // Optimization: try (if possible) to disable the expensive tick-calculation.
+        // This is ignored if the Axis thinks tick-calculation is still required.
+        const pickComputationEnabled = optionMetadata.presetType !== 'sparkline';
         for (const axis of chart.axes) {
             axis.userKey = unmappedAxisKeys.get(axis.id) ?? axis.id;
+            axis.setPickComputationEnabled(pickComputationEnabled);
         }
         return true;
     }
