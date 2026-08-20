@@ -5,11 +5,9 @@ import { useEffect, useRef } from 'react';
 
 export function useScrollSpy({
     headings,
-    offset = 120,
     delayedScrollSpy,
 }: {
     headings: MarkdownHeading[];
-    offset?: number;
     /**
      * Delay scroll spy running, so the UI has time to render
      */
@@ -26,14 +24,23 @@ export function useScrollSpy({
     }
 
     useEffect(() => {
+        let stopScrollSpy: (() => void) | undefined;
+        let delayTimeout: ReturnType<typeof setTimeout> | undefined;
+
         function runScrollSpy() {
-            scrollspy(headings, handleScrollSpy, { offset });
+            stopScrollSpy = scrollspy(headings, handleScrollSpy);
         }
+
         if (delayedScrollSpy) {
-            setTimeout(() => runScrollSpy(), 500);
+            delayTimeout = setTimeout(runScrollSpy, 500);
         } else {
             runScrollSpy();
         }
+
+        return () => {
+            clearTimeout(delayTimeout);
+            stopScrollSpy?.();
+        };
     }, [location?.hash, headings, delayedScrollSpy]);
 
     return menuRef;
