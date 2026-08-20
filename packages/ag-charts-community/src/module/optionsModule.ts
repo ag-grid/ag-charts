@@ -910,6 +910,22 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const seriesCount = options.series?.length ?? 0;
         const missingModules: ModulePlaceholder[] = [];
 
+        if (seriesCount === 0) {
+            // With no `series` the chart still resolves against the default series type, so an
+            // unregistered module for that type is the same defect as an explicit type/module
+            // mismatch below - report it the same way rather than building a chart that cannot
+            // render. Presets supply their own series later, so they are left alone.
+            const defaultType = this.optionsType(options);
+            const defaultPlaceholder = ExpectedModules.get(defaultType);
+            if (
+                this.optionMetadata.presetType == null &&
+                ModuleRegistry.getSeriesModule(defaultType) == null &&
+                defaultPlaceholder?.type === ModuleType.Series
+            ) {
+                missingModules.push(defaultPlaceholder);
+            }
+        }
+
         let validSeriesTypes: string | undefined;
         for (let index = 0; index < seriesCount; index++) {
             const keyPath = `series[${index}]`;
