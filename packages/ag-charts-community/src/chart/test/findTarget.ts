@@ -47,7 +47,10 @@ function axisRegionWidgets(widgetSet: WidgetSet): AxisWidget[] {
     const entries = new Caster(widgetSet.axisWidgets).accessProperty('entries').cast(Map).value;
     const result: AxisWidget[] = [];
     for (const entry of entries.values()) {
-        const widget = new Caster(entry).accessNullableProperty('region').castNullable(AxisWidget).value;
+        const widget = new Caster(entry)
+            .accessNullableProperty('region')
+            .accessNullableProperty('widget')
+            .castNullable(AxisWidget).value;
         if (widget != null) {
             result.push(widget);
         }
