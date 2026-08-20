@@ -37,6 +37,10 @@
                 "isCollapsed": true
             },
             {
+                "title": "Examples",
+                "path": "/examples"
+            },
+            {
                 "title": "Gallery",
                 "path": "/gallery"
             },
