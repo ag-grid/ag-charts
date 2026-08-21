@@ -1,0 +1,14 @@
+---
+import Layout from '@layouts/Layout.astro';
+import { ThemeBuilderShared as ThemeBuilder } from '@components/theme-builder/ThemeBuilderShared';
+---
+
+<Layout
+    title="Theme Builder | AG Charts"
+    description="Build a custom AG Charts theme in the browser: pick a palette, tune theme parameters against a live chart, and copy the theme into your application."
+    showSearchBar={true}
+    hideFooter
+    noIndex
+>
+    <ThemeBuilder client:only="react" />
+</Layout>
