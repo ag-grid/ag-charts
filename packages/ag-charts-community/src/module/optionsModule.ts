@@ -835,6 +835,22 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
     }
 
+    /**
+     * Report an argument that could not be options at all (`create(undefined)`, `create(3)`, an empty
+     * object) through the same feed as any option-validation error, so it reaches the console log, the
+     * `validations.overlayLevel` overlay, `validations.onErrorRaised` and `validations.throwOn`. Raised
+     * at `error` severity - unlike a per-option problem, nothing of the caller's intent survives it.
+     *
+     * Pushed as a new array: the unchanged-options fast path aliases `validationIssues` to the base
+     * options' array, which must not gain this chart's issue.
+     */
+    recordOptionsArgumentError(message: string) {
+        this.logger.error(message);
+        const issue: ValidationIssue = { severity: 'error', message };
+        this.validationIssues = [...this.validationIssues, issue];
+        this.throwIfFailFast(issue);
+    }
+
     private recordValidationMessage(message: string) {
         this.logger.warn(message);
         const issue: ValidationIssue = { severity: 'warning', message };
@@ -893,6 +909,22 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const validatedSeriesOptions: any[] = [];
         const seriesCount = options.series?.length ?? 0;
         const missingModules: ModulePlaceholder[] = [];
+
+        if (seriesCount === 0) {
+            // With no `series` the chart still resolves against the default series type, so an
+            // unregistered module for that type is the same defect as an explicit type/module
+            // mismatch below - report it the same way rather than building a chart that cannot
+            // render. Presets supply their own series later, so they are left alone.
+            const defaultType = this.optionsType(options);
+            const defaultPlaceholder = ExpectedModules.get(defaultType);
+            if (
+                this.optionMetadata.presetType == null &&
+                ModuleRegistry.getSeriesModule(defaultType) == null &&
+                defaultPlaceholder?.type === ModuleType.Series
+            ) {
+                missingModules.push(defaultPlaceholder);
+            }
+        }
 
         let validSeriesTypes: string | undefined;
         for (let index = 0; index < seriesCount; index++) {

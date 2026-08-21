@@ -48,17 +48,46 @@ function describeValue(value: unknown): string {
 }
 
 /**
- * Rejects arguments that cannot be options at all - anything that is not a non-empty plain object.
+ * Carries the diagnostic for an argument that could not be options at all from the entry point that
+ * spotted it to the chart that ends up being built, which is the only thing able to report it through
+ * the console logger and the validation overlay. A symbol key rather than a property so it cannot
+ * collide with, or be mistaken for, a user option; `create()` and `createOrUpdate()` strip it before
+ * anything else sees the object.
+ */
+const OPTIONS_ARGUMENT_ISSUE = Symbol('agChartsOptionsArgumentIssue');
+
+/**
+ * Describes an argument that cannot be options at all - anything that is not a non-empty plain object.
  * Individual option values are validated later by the options module, which warns rather than throws,
  * and `container` is optional by design (integrated, sparkline and server-side-render charts omit it),
  * so the fields named in the message are guidance for the caller, not a stricter requirement.
+ *
+ * Reported, never thrown: the chart reports it as an `error`-severity validation issue, so it reaches
+ * the console, the `validations.overlayLevel` overlay and `validations.onErrorRaised` like any other
+ * validation error, and a wrapper does not have to translate an exception into its own error channel.
  */
-function assertValidOptions(options: unknown, methodName: string): void {
-    if (!isPlainObject(options) || Object.keys(options).length === 0) {
-        throw new Error(
-            `AG Charts - ${methodName} requires a non-empty options object; a minimal chart specifies a \`container\` and \`series\` (or \`data\`). Received ${describeValue(options)}.`
-        );
-    }
+function optionsArgumentIssue(options: unknown, methodName: string): string | undefined {
+    if (isPlainObject(options) && Object.keys(options).length > 0) return undefined;
+    return `${methodName} requires a non-empty options object; a minimal chart specifies a \`container\` and \`series\` (or \`data\`). Received ${describeValue(options)}.`;
+}
+
+/** Tags an invalid argument with its diagnostic, leaving a valid one - and an already-tagged one - alone. */
+function withOptionsArgumentIssue<O>(options: O, methodName: string): O {
+    if (isPlainObject(options) && OPTIONS_ARGUMENT_ISSUE in options) return options;
+    const issue = optionsArgumentIssue(options, methodName);
+    return issue == null ? options : ({ [OPTIONS_ARGUMENT_ISSUE]: issue } as O);
+}
+
+/**
+ * Splits a tagged argument back into the options to build from and the diagnostic to report. Done here
+ * rather than in `createOrUpdate()` for the create path, because `deepClone()` copies own string keys
+ * only and would drop the tag in development mode.
+ */
+function takeOptionsArgumentIssue<O>(options: O, methodName: string): { options: O; issue?: string } {
+    const tagged = withOptionsArgumentIssue(options, methodName);
+    if (!isPlainObject(tagged) || !(OPTIONS_ARGUMENT_ISSUE in tagged)) return { options };
+    const { [OPTIONS_ARGUMENT_ISSUE]: issue, ...rest } = tagged as Record<string | symbol, unknown>;
+    return { options: rest as O, issue: issue as string };
 }
 
 /**
@@ -87,6 +116,19 @@ export abstract class AgCharts {
     /** @private - for use by Charts website dark-mode support. */
     static readonly optionsMutationFn?: (opts: AgChartOptions, preset?: string) => AgChartOptions;
 
+    /**
+     * @private - for use by the framework wrappers.
+     *
+     * The wrappers merge their own `container` into the caller's `options` before delegating, so an
+     * invalid `options` prop reaches `create()` as a perfectly valid `{ container }` object and the
+     * check there cannot fire. They call this on the raw prop, before the merge, and build from what
+     * it returns: the prop itself when it is usable, otherwise an empty object carrying the diagnostic
+     * for the chart to report. Nothing is thrown - the wrapper's own render is not the place to fail.
+     */
+    public static __validateOptionsArgument<O>(options: O, methodName: string): O {
+        return withOptionsArgumentIssue(options, methodName);
+    }
+
     public static getLicenseDetails(licenseKey: string) {
         return enterpriseRegistry.licenseManager?.({}).getLicenseDetails(licenseKey);
     }
@@ -105,7 +147,11 @@ export abstract class AgCharts {
         userOptions: O,
         optionsMetadata?: ChartInternalOptionMetadata
     ): AgChartInstance<O> {
-        assertValidOptions(userOptions, 'AgCharts.create()');
+        const { options: validOptions, issue: argumentIssue } = takeOptionsArgumentIssue(
+            userOptions,
+            'AgCharts.create()'
+        );
+        userOptions = validOptions;
         const apiStartTime = Debug.check('scene:stats', 'scene:stats:verbose') ? performance.now() : undefined;
         return debug.group('AgCharts.create()', () => {
             // deepClone should clone EVERYTHING here, so we can detect mutations in development mode.
@@ -115,6 +161,7 @@ export abstract class AgCharts {
                 userOptions,
                 licenseManager,
                 optionsMetadata,
+                optionsArgumentIssue: argumentIssue,
                 apiStartTime,
             });
 
@@ -126,14 +173,14 @@ export abstract class AgCharts {
     }
 
     public static createFinancialChart(options: AgFinancialChartOptions): AgChartInstance<AgFinancialChartOptions> {
-        assertValidOptions(options, 'AgCharts.createFinancialChart()');
+        options = withOptionsArgumentIssue(options, 'AgCharts.createFinancialChart()');
         return debug.group('AgCharts.createFinancialChart()', () => {
             return this.create(options as any, { presetType: 'price-volume' }) as any;
         });
     }
 
     public static createGauge(options: AgGaugeOptions): AgChartInstance<AgGaugeOptions> {
-        assertValidOptions(options, 'AgCharts.createGauge()');
+        options = withOptionsArgumentIssue(options, 'AgCharts.createGauge()');
         return debug.group('AgCharts.createGauge()', () => {
             return this.create(options as AgChartOptions, { presetType: 'gauge-preset' }) as any;
         });
@@ -143,7 +190,7 @@ export abstract class AgCharts {
         options: AgQuadrantChartOptions<TDatum, TContext>
         // TODO: any to prevent errors
     ): AgChartInstance<AgQuadrantChartOptions<TDatum, any>> {
-        assertValidOptions(options, 'AgCharts.createQuadrantChart()');
+        options = withOptionsArgumentIssue(options, 'AgCharts.createQuadrantChart()');
         return debug.group('AgCharts.createQuadrantChart()', () => {
             return this.create(options, {
                 presetType: 'quadrant',
@@ -152,11 +199,10 @@ export abstract class AgCharts {
     }
 
     public static __createSparkline(options: AgSparklineOptions): AgChartInstance<AgSparklineOptions> {
-        assertValidOptions(options, 'AgCharts.__createSparkline()');
+        options = withOptionsArgumentIssue(options, 'AgCharts.__createSparkline()');
         return debug.group('AgCharts.__createSparkline()', () => {
             const { pool, ...normalOptions } = options as any;
-            assertValidOptions(normalOptions, 'AgCharts.__createSparkline()');
-            return this.create(normalOptions as AgChartOptions, {
+            return this.create(withOptionsArgumentIssue(normalOptions, 'AgCharts.__createSparkline()'), {
                 presetType: 'sparkline',
                 pool: pool ?? true,
                 domMode: 'minimal',
@@ -206,6 +252,8 @@ class AgChartsInternal {
         licenseManager?: LicenseManager;
         specialOverrides?: Partial<ChartSpecialOverrides>;
         optionsMetadata?: ChartInternalOptionMetadata;
+        /** Reported as an `error` validation issue once the chart exists - see `optionsArgumentIssue()`. */
+        optionsArgumentIssue?: string;
         data?: DataServiceRestoredData;
         stripSymbols?: boolean;
         apiStartTime?: number;
@@ -222,6 +270,7 @@ class AgChartsInternal {
             stripSymbols = false,
             apiStartTime,
         } = opts;
+        let { optionsArgumentIssue: argumentIssue } = opts;
         const styles = enterpriseRegistry.styles == null ? [] : [['ag-charts-enterprise', enterpriseRegistry.styles]];
 
         if (ModuleRegistry.listModules().next().done) {
@@ -259,7 +308,17 @@ class AgChartsInternal {
             chart = poolResult.item;
         }
 
-        const { document, window: userWindow, styleContainer, skipCss, ...options } = mutableOptions ?? {};
+        const {
+            document,
+            window: userWindow,
+            styleContainer,
+            skipCss,
+            // A wrapper validated its raw prop before merging its container in, so the diagnostic
+            // arrives on the options object; strip it here so nothing downstream sees it.
+            [OPTIONS_ARGUMENT_ISSUE]: taggedIssue,
+            ...options
+        } = (mutableOptions ?? {}) as Record<string | symbol, any>;
+        argumentIssue ??= taggedIssue;
         const baseOptions = chart?.getChartOptions();
         const newSpecialOverrides = { ...specialOverrides, document, window: userWindow, styleContainer, skipCss };
         let chartOptions;
@@ -302,6 +361,11 @@ class AgChartsInternal {
         // a chart's console output and `warnOnce` dedup on a single Logger.
         chartOptions.adoptLogger(chart.ctx.logger);
         chartOptions.adoptValidationSink((issue) => chart.validationCollector.recordCallbackIssue(issue));
+
+        // After `adoptLogger`, so the report goes to the Logger the chart actually keeps.
+        if (argumentIssue != null) {
+            chartOptions.recordOptionsArgumentError(argumentIssue);
+        }
 
         if (chartOptions.optionsGraph) {
             chart.ctx.optionsGraphService.updateCallback((logger, path, partialOptions, resolveOptions) => {

@@ -18,6 +18,8 @@ export class AgGauge extends AgChartsBase<AgGaugeOptions> {
     @Output()
     public chartReady: EventEmitter<AgChartInstance> = new EventEmitter();
 
+    protected readonly selector = 'ag-gauge';
+
     constructor(
         elementDef: ElementRef,
         protected ngZone: NgZone

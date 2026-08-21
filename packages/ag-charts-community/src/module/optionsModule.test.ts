@@ -15,9 +15,12 @@ import type {
 } from 'ag-charts-types';
 
 import { sanitizeThemeModules } from '../chart/factory/processModuleOptions';
+import { BarSeriesModule } from '../chart/series/cartesian/barSeriesModule';
 import * as examples from '../chart/test/examples';
 import { ChartTheme } from '../chart/themes/chartTheme';
 import { VERSION } from '../version';
+import { CategoryAxisModule } from './axis-modules/categoryAxisModule';
+import { NumberAxisModule } from './axis-modules/numberAxisModule';
 import { ChartOptions } from './optionsModule';
 import { __clearStructuralCacheForTests } from './optionsStructuralCache';
 
@@ -484,6 +487,35 @@ describe('ChartOptions', () => {
             const [message] = (console.warn as Mock).mock.calls[0];
             expect(message).toContain('Option `series[0].type` is required and has not been provided');
             expect(message).toContain("'line'");
+        });
+
+        it('reports the missing module for the default series type when no series are provided', () => {
+            // AG-18240: with no `series` the chart still resolves against the default `line` type, so
+            // an unregistered LineSeriesModule is the same defect as an explicit type/module mismatch
+            // and must be reported, not silently ignored.
+            // Restore exactly what was registered rather than re-registering the community bundle: the
+            // stacking/grouping suite below registers its own ad-hoc series definitions at collection
+            // time, and dropping them here would silently skip its snapshot assertions.
+            const registeredModules = [...ModuleRegistry.listModules()];
+            ModuleRegistry.reset();
+            ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, NumberAxisModule]);
+            try {
+                prepareOptions({} as AgChartOptions);
+            } finally {
+                ModuleRegistry.reset();
+                ModuleRegistry.registerModules(registeredModules);
+            }
+
+            const messages = (console.error as Mock).mock.calls.map(([m]) => String(m));
+            expect(messages.some((m) => m.includes('required modules are not registered'))).toBe(true);
+            expect(messages.some((m) => m.includes('LineSeriesModule'))).toBe(true);
+        });
+
+        it('stays silent when the default series type has a registered module', () => {
+            prepareOptions({} as AgChartOptions);
+
+            expect(console.error).not.toHaveBeenCalled();
+            expect(console.warn).not.toHaveBeenCalled();
         });
 
         it('warns when a series type is unknown and suggests valid types', () => {

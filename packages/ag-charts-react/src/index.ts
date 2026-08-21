@@ -25,9 +25,16 @@ interface BaseChartProps {
     className?: string;
 }
 
-function getOptions(options: AgChartOptions, containerRef: RefObject<HTMLElement | null>): AgChartOptions {
+// The merge below turns anything spreadable into a valid `{ container }` object - `undefined`, `3`
+// and `{}` all become one - so `AgCharts.create()`'s own check can never see what the caller passed.
+// Validate the raw prop first, and report the same error against the prop rather than the factory.
+function getOptions(
+    options: AgChartOptions,
+    containerRef: RefObject<HTMLElement | null>,
+    displayName: string
+): AgChartOptions {
     return {
-        ...options,
+        ...AgChartsAPI.__validateOptionsArgument(options, `${displayName} \`options\` prop`),
         container: containerRef.current!,
     };
 }
@@ -44,7 +51,7 @@ function ChartWithConstructor<Props extends BaseChartProps>(
         // This fires earlier than ideal - so has a negative impact on mounting performance
         // but it's important we do this so refs work as expected
         useLayoutEffect(() => {
-            const chart = ctor(getOptions(options, containerRef));
+            const chart = ctor(getOptions(options, containerRef, displayName));
             chartRef.current = chart;
 
             return () => {
@@ -60,7 +67,7 @@ function ChartWithConstructor<Props extends BaseChartProps>(
                 // never have been created — so raw console is the only guaranteed report. The wrapper
                 // holds only the public `AgChartInstance` type, which exposes no logger.
                 // eslint-disable-next-line no-console
-                chartRef.current?.update(getOptions(options, containerRef)).catch((e) => console.error(e));
+                chartRef.current?.update(getOptions(options, containerRef, displayName)).catch((e) => console.error(e));
             }
         }, [options]);
 
