@@ -26,6 +26,7 @@ import agDevMarkdownNegotiation from './plugins/agDevMarkdownNegotiation';
 import agHotModuleReload from './plugins/agHotModuleReload';
 import agHtaccessGen from './plugins/agHtaccessGen';
 import agRedirectsChecker from './plugins/agRedirectsChecker';
+import { FRAMEWORKS, FRAMEWORK_REDIRECT_PATH } from './src/constants';
 import { getAstroRedirectRules } from './src/utils/htaccess/htaccessRules';
 import { getSitemapConfig } from './src/utils/sitemap';
 import { urlWithBaseUrl } from './src/utils/urlWithBaseUrl';
@@ -211,7 +212,11 @@ export default defineConfig({
                   },
               ]),
         agHtaccessGen({ htaccessEnv: HTACCESS }),
-        agLinkChecker({ include: CHECK_LINKS === 'true', prefix: PUBLIC_BASE_URL }),
+        agLinkChecker({
+            include: CHECK_LINKS === 'true',
+            prefix: PUBLIC_BASE_URL,
+            frameworkRedirect: { path: FRAMEWORK_REDIRECT_PATH, frameworks: FRAMEWORKS },
+        }),
         agRedirectsChecker({
             skip: CHECK_REDIRECTS !== 'true',
         }),

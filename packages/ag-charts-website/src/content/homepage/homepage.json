@@ -11,9 +11,23 @@
         "gallery": {
             "tag": "AG Charts JavaScript Charting Library",
             "heading": "JavaScript Charts Designed for Every Use Case",
-            "ctaTitle": "Get Started For Free",
-            "ctaUrl": "/react/quick-start/?utm_source=charts-homepage&utm_medium=features-section&utm_campaign=homepage-cta",
-            "ctaId": "get-started-for-free"
+            "ctas": [
+                {
+                    "title": "Explore the Docs",
+                    "url": "/r/quick-start/?utm_source=charts-homepage&utm_medium=features-section&utm_campaign=homepage-cta",
+                    "id": "get-started-for-free"
+                },
+                {
+                    "title": "Free Trial",
+                    "url": "/r/community-vs-enterprise/?utm_source=charts-homepage&utm_medium=features-section&utm_campaign=homepage-cta#request-a-30-day-enterprise-bundle-trial-licence",
+                    "id": "gallery-section-free-trial-cta"
+                },
+                {
+                    "title": "Buy Now",
+                    "url": "/license-pricing/?utm_source=charts-homepage&utm_medium=features-section&utm_campaign=homepage-cta",
+                    "id": "gallery-section-buy-now-cta"
+                }
+            ]
         },
         "financial": {
             "tag": "JavaScript Financial Charts - Create Trading Views in Minutes",

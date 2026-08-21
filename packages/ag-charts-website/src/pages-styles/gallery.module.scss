@@ -47,3 +47,31 @@
         font-size: clamp(20px, 5vw, var(--text-fs-2xl));
     }
 }
+
+.toolbarTitleGroup {
+    display: flex;
+    align-items: center;
+    gap: $spacing-size-6;
+}
+
+// Dropped below the gallery breakpoint, where the title and theme dropdown already fill
+// the fixed-height toolbar band.
+.toolbarCtas {
+    display: none;
+
+    @media screen and (min-width: $breakpoint-gallery-small) {
+        display: flex;
+        align-items: center;
+        gap: $spacing-size-2;
+    }
+
+    :global(.icon) {
+        --icon-size: #{$spacing-size-4};
+
+        transition: transform $transition-default-timing;
+    }
+
+    a:hover :global(.icon) {
+        transform: translateX(4px);
+    }
+}
