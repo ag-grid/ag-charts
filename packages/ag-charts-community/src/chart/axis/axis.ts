@@ -637,7 +637,12 @@ export abstract class Axis<
     }
 
     protected getLabelStyles(
-        params: { value: number; formattedValue: NormalisedTextOrSegments | undefined; depth?: number },
+        params: {
+            value: unknown;
+            formattedValue: NormalisedTextOrSegments | undefined;
+            depth?: number;
+            index?: number;
+        },
         additionalStyles?: AgBaseAxisLabelStyleOptions,
         label: NormalisedBaseAxisLabelOptions = this.options.label
     ) {
