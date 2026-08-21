@@ -886,7 +886,7 @@ export class SankeySeries extends FlowProportionSeries<
         const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
         const selectionState = this.getSelectionStateString(datumIndex);
         const candidateState = this.getCandidateStateString(datumIndex);
-        // `style` is the resolved node style; its `fill` no longer carries unresolved colour refs.
+        // `style` is the resolved node style, so its `fill` never carries unresolved colour refs.
         const fill = this.filterItemStylerFillParams(style.fill as NormalisedColorType) ?? style.fill;
 
         return {

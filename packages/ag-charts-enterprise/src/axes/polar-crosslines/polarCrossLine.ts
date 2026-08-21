@@ -96,7 +96,7 @@ export class PolarCrossLine extends BaseProperties implements _ModuleSupport.Pol
     label = new PolarCrossLineLabel();
 
     // Accepted so the shared cross-line options surface validates on polar axes, but never invoked:
-    // polar cross lines are not hit-testable (AG-17771).
+    // polar cross lines are not hit-testable.
     @Property
     listeners?: AgCrossLineListeners<unknown>;
 

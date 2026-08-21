@@ -317,7 +317,6 @@ export class AxisDOMProxy extends AbstractModuleInstance {
      */
     private dispatchAxisClick(axisId: AxisID, widgetEvent: _Widget.MouseWidgetEvent<'click' | 'dblclick'>) {
         // Keyboard-synthetic clicks carry no pointer coordinates, so there is nothing to pick.
-        // Keyboard activation is out of scope for this feature (AG-9809).
         if (widgetEvent.device === 'keyboard') return;
 
         const div = this.axes.find((axis) => axis.axisId === axisId)?.div;

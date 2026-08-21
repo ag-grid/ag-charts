@@ -64,7 +64,6 @@ export function collapsedStartingBarPosition(
         const { opacity = 1 } = datum;
 
         if (prevDatum && (Number.isNaN(x) || Number.isNaN(y))) {
-            // Fallback
             ({ x, y } = prevDatum);
             width = isVertical ? prevDatum.width : 0;
             height = isVertical ? 0 : prevDatum.height;

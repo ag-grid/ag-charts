@@ -42,9 +42,8 @@ describe('Scene', () => {
         });
     });
 
-    // AG-17372: at non-1 DPR, autoSize failed to fill a 600 px container because the first
-    // Scene.resize callback matched the HdpiCanvas seeded defaults exactly and the equality
-    // short-circuit fired before the DPR transform was installed.
+    // At non-1 DPR the first Scene.resize callback can match the HdpiCanvas seeded defaults exactly,
+    // so the equality short-circuit must not skip installing the DPR transform.
     it('installs the DPR transform on the canvas context at construction', () => {
         const canvasElement = document.createElement('canvas');
         const scene = new Scene({ canvasElement, pixelRatio: 1.5 });

@@ -39,18 +39,14 @@ export type OrganizationEdge =
     | 'labels';
 
 export interface OrganizationDatum extends NetworkDatum<OrganizationVertex, OrganizationEdge> {
-    // The user's source data row — stable across renders so reference-equality
-    // (e.g. HighlightManager) works correctly.
+    // Stable across renders, so reference-equality (e.g. HighlightManager) holds.
     datum: unknown;
-    // True if this node is hidden because it's in a collapsed branch.
     collapsedByAncestor: boolean;
 }
 
 export type OrganizationLinkDatum = NetworkLinkDatum<OrganizationVertex, OrganizationEdge>;
 
-// `fill` and `stroke` for text tiers explicitly carry `undefined` rather than being
-// erased: unset means "no backing box", which the public contract surfaces to
-// itemStyler params as `fill: undefined` (instead of an empty-string sentinel).
+// `fill`/`stroke` stay present as `undefined` — the itemStyler contract surfaces "no backing box" that way.
 export type NormalisedOrganizationNodeTextStyle = Normalised<
     AgOrganizationSeriesNodeTextStyle,
     | 'cornerRadius'

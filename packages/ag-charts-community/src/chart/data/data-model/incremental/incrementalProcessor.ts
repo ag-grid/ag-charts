@@ -200,10 +200,6 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
             for (const domain of bandedDomains.values()) {
                 domain.applyIndexMap(indexMap);
             }
-
-            // Note: No need for special append-only or prepend-only handling here.
-            // handleInsertion() now properly marks the last band dirty when appending,
-            // and handleRemoval() marks the first band dirty when removing from start.
         }
     }
 
@@ -674,12 +670,8 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
         extractValue: (cached: InsertionCacheValue | undefined, destIndex: number) => T,
         onRemove?: (removedValues: T[]) => void
     ): void {
-        // The array mutates in place, so any epoch column derived from it may go stale. A materialised
-        // epoch column (ISO strings parsed to epoch ms) is always stale after a write. A string-free
-        // column is cached as its own identity and only goes stale if this delta writes a string into
-        // it — `ensureEpochColumn`'s lazy parse never re-runs on an identity hit, so an unparsed string
-        // would otherwise survive. Tracking strings in the delta keeps the common all-numeric/Date
-        // streaming case scan-free while staying correct when the value kind changes.
+        // In-place mutation can stale a derived epoch column: `ensureEpochColumn`'s lazy parse never
+        // re-runs on an identity hit, so a string written by this delta must be tracked here.
         const epochColumn = getEpochColumn(target);
         const identityEpochColumn = epochColumn !== undefined && epochColumn === target;
         let deltaWroteString = false;
@@ -733,12 +725,8 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
             }
         }
 
-        // Critical invariant: After this transformation, groups[i] must
-        // still correspond to datum at columns[j][i] for all columns.
-        // This is why we require no invalid keys - they would break this mapping.
-
-        // Apply the same transformation to groups array as we did to columns/keys
-        // For each insertion, create a new DataGroup; for deletions, groups are removed
+        // Invariant: groups[i] must still correspond to the datum at columns[j][i], which is why
+        // invalid keys are disallowed — they would break the mapping.
         changeDesc.applyToArray(processedData.groups, (destIndex) => {
             return this.createDataGroupForInsertion(destIndex, processedData, scope, insertionCache);
         });

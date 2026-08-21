@@ -16,7 +16,6 @@ import {
 import { createCanvasContext } from '../utils/canvas';
 import { toFontString, toTextString } from '../utils/text/textUtils';
 
-// Manages text measurement and wrapping functionalities.
 export class TextMeasurer implements ITextMeasurer {
     private readonly baselineMap = new Map<string, number>();
     private readonly charMap = new Map<string, number>();
@@ -218,10 +217,8 @@ export function blockStripHeight(images: { textMetrics: TextMetricsBox }[]): num
 export function isBlockBoundary(segments: NormalisedContentSegment[], i: number): boolean {
     const seg = segments[i];
     if (seg?.type !== 'image' || seg.block !== true) return false;
-    // Walk back over the contiguous run of block images this segment belongs to. The run is a
-    // leading strip only if it starts at index 0 or right after a `\n`. A preceding inline image
-    // (or a non-block image breaking the run) means this image sits mid-line and stays inline —
-    // otherwise `text, block-image, block-image` would wrongly promote the second image to a strip.
+    // Walk back over the contiguous run of block images this segment belongs to: the run is a leading strip
+    // only if it starts at index 0 or right after a `\n`, otherwise the image sits mid-line and stays inline.
     let j = i;
     while (j > 0) {
         const prev = segments[j - 1];
@@ -253,9 +250,8 @@ export function measureTextSegments(
     function finalizeBlock() {
         if (blockStartIndex === null) return;
         let endIndex = lineMetrics.length;
-        // Exclude a trailing line that was opened by `\n` but never had content written to it —
-        // that empty line belongs outside the block row (either as a true blank line in a non-block
-        // context, or as the marker for the next block row).
+        // Exclude a trailing line opened by `\n` that never had content written to it — that empty line
+        // belongs outside the block row.
         if (currentLineUncommitted && endIndex > blockStartIndex + 1) {
             endIndex -= 1;
         }
@@ -273,9 +269,8 @@ export function measureTextSegments(
         const segment = textSegments[i];
 
         if (isBlockBoundary(textSegments, i)) {
-            // A block image either opens a new row (when index 0 / after \n) or extends the leading
-            // strip on the row that is already open. The distinction is whether the previous
-            // segment is itself a block image with no inline content between them.
+            // A block image either opens a new row (at index 0 / after \n) or extends the leading strip on
+            // the row already open, depending on whether the previous segment is itself a block image.
             const extendsStrip =
                 i > 0 && textSegments[i - 1].type === 'image' && (textSegments[i - 1] as ImageSegment).block === true;
             if (!extendsStrip) {
@@ -298,9 +293,8 @@ export function measureTextSegments(
         }
 
         if (segment.type === 'image') {
-            // Inline image (block flag absent or non-boundary). The image does not contribute to the
-            // line's ascent/descent here: it is positioned relative to the text and the box is grown
-            // to fit during finalisation below, once the line's text metrics are known.
+            // Inline image: it does not contribute to the line's ascent/descent here — the box is grown to
+            // fit during finalisation below, once the line's text metrics are known.
             const textMetrics = imageSegmentBox(segment);
             currentLine.width += textMetrics.width;
             currentLine.segments.push({ ...segment, textMetrics });
@@ -325,7 +319,6 @@ export function measureTextSegments(
         for (let j = 0; j < textLines.length; j++) {
             const textLine = textLines[j];
             const textMetrics = measurer.measureText(textLine);
-            // On new line, push a new line metrics object
             if (j > 0) {
                 openNewLine();
             }
@@ -348,9 +341,8 @@ export function measureTextSegments(
 
     finalizeBlock();
 
-    // Grow each line to contain its inline images. The line's text-only ascent/descent are captured
-    // first (images contributed nothing above), then each image box is placed relative to the text
-    // baseline per its verticalAlign and the line's ascent/descent expanded to fit.
+    // Grow each line to contain its inline images: the text-only ascent/descent are captured first, then
+    // each image box is placed per its verticalAlign and the line's ascent/descent expanded to fit.
     for (const line of lineMetrics) {
         line.textAscent = line.ascent;
         line.textDescent = line.descent;

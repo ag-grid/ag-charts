@@ -15,8 +15,7 @@ const isDebugPage = (page: string) => {
 };
 
 /*
- * Demo app examples — published for internal review but unlinked and kept out of
- * search (also carry noindex and a robots disallow entry).
+ * Demo app examples: published for internal review, but unlinked and kept out of search.
  */
 export const isDemoPage = (page: string) => {
     return page.includes('/demos/') || page.endsWith('/demos');
@@ -43,18 +42,15 @@ const isRedirectPage = (page: string) => {
 const isNonPublicContent = (page: string) => {
     return (
         page.endsWith('/style-guide/') ||
-        // Post-submission confirmation pages. They carry no content a searcher or an agent can use,
-        // and they are disallowed in robots.txt (see getSitemapIgnorePaths), so listing them in the
-        // sitemap contradicts it and Search Console reports "submitted URL blocked by robots.txt".
+        // Post-submission confirmations are robots-disallowed, so listing them here would make
+        // Search Console report "submitted URL blocked by robots.txt".
         page.endsWith('/contact/failure/') ||
         page.endsWith('/contact/success/')
     );
 };
 
 /*
- * Internal pages for integration and end-to-end testing. The `-test` suffix denotes
- * manual regression harnesses; `-e2e` denotes pages backing automated Playwright specs.
- * Both are excluded from search engines and navigation.
+ * Internal test pages: `-test` for manual harnesses, `-e2e` for Playwright specs.
  */
 export const isInternalPage = (page: string) => {
     return (

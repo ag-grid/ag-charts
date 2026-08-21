@@ -19,9 +19,7 @@ const icon = (letter: string, fill: string) =>
 
 const A = icon('A', '#1f77b4');
 
-// Each caption uses the same block-leading content but a different textAlign. Block rows are
-// left-anchored within the caption box, so this highlights how alignment interacts with the
-// otherwise-centred single lines.
+// Block rows are left-anchored within the caption box, so textAlign only moves the single lines.
 const blockText = (label: string) => [
     { type: 'image' as const, url: A, width: 32, height: 32, block: true, cornerRadius: 6 },
     { text: label, fontWeight: 'bold' as const },

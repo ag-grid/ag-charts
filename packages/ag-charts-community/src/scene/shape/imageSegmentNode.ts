@@ -21,10 +21,8 @@ export class ImageSegmentNode extends Node {
     url: string = '';
     backgroundFill?: string;
 
-    // Tracks the loader this node has registered itself with via `loadImage`. When the node is
-    // detached from the scene (Text rebuilds its richText children on every text-set), this is
-    // used to unregister so a never-resolving load can't pin the discarded node — and its
-    // surrounding subtree — alive for the chart's lifetime.
+    // The loader to unregister from on detach, so a never-resolving load cannot pin this node, and
+    // its surrounding subtree, alive for the chart's lifetime.
     private registeredLoader?: ImageLoader;
 
     override setScene(scene?: IScene) {
@@ -52,9 +50,7 @@ export class ImageSegmentNode extends Node {
             return;
         }
 
-        // Multiply our own opacity into the inherited alpha so series-label fade-in
-        // animations (propagated through the parent group's globalAlpha) apply to the
-        // image as well as the surrounding text segments.
+        // Multiply into the inherited alpha so parent-group fade animations reach the image too.
         const previousAlpha = ctx.globalAlpha;
         ctx.globalAlpha = previousAlpha * opacity;
 
@@ -85,8 +81,8 @@ export class ImageSegmentNode extends Node {
                     this.tracePath(ctx, x, y, boxWidth, boxHeight, cornerRadius);
                     ctx.clip();
                 }
-                // 4-arg drawImage scales the image to the box; the loader size hint gives SVGs
-                // concrete intrinsic dimensions, so this is reliable.
+                // 4-arg drawImage scales to the box; the loader size hint gives SVGs the concrete
+                // intrinsic dimensions this relies on.
                 ctx.drawImage(image, imgX, imgY, this.imageWidth, this.imageHeight);
                 if (clipToCorners) {
                     ctx.restore();

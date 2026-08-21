@@ -444,9 +444,8 @@ describe('Color', () => {
     });
 
     test('isUnsupportedColorFormat does not reject formats outside its four-format scope (D1 guard)', () => {
-        // D1: this predicate rejects exactly `oklab()`/`lab()`/`lch()`/`color()`; every other
-        // format the browser accepts (hwb(), color-mix(), currentColor, ...) must fall through
-        // unaffected so the generic `color` validator is not narrowed wholesale.
+        // The predicate rejects exactly `oklab()`/`lab()`/`lch()`/`color()`; every other format the browser
+        // accepts must fall through so the generic `color` validator is not narrowed wholesale.
         expect(isUnsupportedColorFormat('hwb(194 0% 0%)')).toBe(false);
         expect(isUnsupportedColorFormat('color-mix(in srgb, red, blue)')).toBe(false);
         expect(isUnsupportedColorFormat('currentColor')).toBe(false);
@@ -480,8 +479,7 @@ describe('Color', () => {
     });
 
     test('validColorString/fromString still accept padded, comma-separated rgb()', () => {
-        // Regression pin: widening the split to `/[\s,]+/` must not produce empty tokens
-        // from the surrounding padding.
+        // Widening the split to `/[\s,]+/` must not produce empty tokens from the surrounding padding.
         expect(Color.validColorString('rgb( 72, 120, 208 )')).toBe(true);
         expect(Color.fromString('rgb( 72, 120, 208 )').toRgbaString()).toBe(
             Color.fromString('rgb(72, 120, 208)').toRgbaString()

@@ -25,9 +25,7 @@ const GAUGE_FILL: Record<Kpi['tone'], string> = {
  * exist to answer.
  */
 function gaugeOptions({ value, target, targetLabel }: KpiGauge, tone: Kpi['tone']): AgLinearGaugeOptions {
-    // A rate can exceed its target and spend can exceed its allocation, so the scale runs past both:
-    // clamped to the target the bar lands exactly on the marker and an overrun reads as on plan,
-    // contradicting the figure above it. 100 stays the floor so a tile under target keeps its scale.
+    // The scale runs past the target: clamped to it, an overrun would land on the marker and read as on plan.
     const max = Math.max(100, Math.ceil(value * 100));
 
     return {
@@ -62,8 +60,7 @@ function gaugeOptions({ value, target, targetLabel }: KpiGauge, tone: Kpi['tone'
 
 function KpiGaugeBar({ gauge, tone }: { gauge: KpiGauge; tone: Kpi['tone'] }) {
     const options = useMemo(() => gaugeOptions(gauge, tone), [gauge, tone]);
-    // The detail line already states the figure and its target in words, so the gauge restates
-    // rather than adds — it stays out of the tile's accessible text.
+    // The detail line already states the figure and its target, so the gauge stays out of accessible text.
     return (
         <span className="pc-kpi-gauge" aria-hidden="true">
             <AgGauge options={options} style={{ height: '100%', width: '100%' }} />
@@ -196,14 +193,6 @@ export function buildKpis(summary: MySummary): Kpi[] {
                 icon: STATUS_ICONS[status],
             })),
         },
-        // {
-        //     key: 'open',
-        //     label: 'My open POs',
-        //     value: fmtInt(summary.openOrders),
-        //     detail: 'Across my suppliers, not yet delivered',
-        //     tone: 'neutral',
-        //     icon: '●',
-        // },
     ];
 }
 

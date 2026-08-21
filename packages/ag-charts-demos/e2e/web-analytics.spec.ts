@@ -60,8 +60,7 @@ test.describe(DEMO_ID, () => {
         await waitForAllChartUpdates(page);
         popConsoleIssues();
 
-        // Radix unmounts inactive tab content, so coming back is a full remount —
-        // the path where a destroyed chart instance or a stale ref would surface.
+        // Radix unmounts inactive tab content, so coming back is a full remount.
         for (const tab of [...TABS.slice(1), TABS[0]]) {
             await openTab(page, tab);
         }

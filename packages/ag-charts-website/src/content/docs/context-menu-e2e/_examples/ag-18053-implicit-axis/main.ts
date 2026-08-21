@@ -8,9 +8,7 @@ import { AgCharts, AllEnterpriseModule, ModuleRegistry } from 'ag-charts-enterpr
 
 ModuleRegistry.registerModules([AllEnterpriseModule]);
 
-// AG-18053: the reported case. `axes` names only the left `y` axis, and no series names an axis, so the
-// bottom axis is created implicitly from the series' `xKey`. Right-clicking it must still report
-// `axisId: 'x'` rather than an empty string.
+// The bottom axis is implicit from the series' `xKey`; right-clicking it must still report `axisId: 'x'`.
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: [

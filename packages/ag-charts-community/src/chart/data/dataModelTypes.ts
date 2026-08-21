@@ -244,7 +244,7 @@ export interface OptimizationMetadata {
 
 export type DatumPropertyType = 'range' | 'category';
 
-// AG-10337 Keep track of the number of missing values in each per-series data array.
+// Keep track of the number of missing values in each per-series data array.
 export type MissMap = Map<string, number>;
 
 export type GroupingFn<K> = (keys: unknown[]) => K[];

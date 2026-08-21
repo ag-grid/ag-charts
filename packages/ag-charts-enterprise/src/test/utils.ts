@@ -17,23 +17,18 @@ import { setupEnterpriseModules } from '../setup';
 setupEnterpriseModules();
 
 // Frame-trajectory spec fragments shared by the funnel-family suites (funnel, cone-funnel, pyramid).
-// They pin the animation those enterprise series have in common — the item-label fade-in and the
-// connector/body path reveal — so each suite asserts it from one source rather than re-deriving it.
 
-// The item-label fade-in of BaseFunnelSeries (funnel, cone-funnel), reused verbatim by pyramid: each
-// label snaps to opacity 0 on the first frame and fades to 1 during the add/trailing phases.
-// Non-vacuous only alongside a frame-0 collapsed guard (see funnelLabelOpacities) — a label held at 1
-// satisfies increases/bounded/settlesAt.
+// Item-label fade-in shared by BaseFunnelSeries and pyramid: labels snap to opacity 0 on the first
+// frame and fade to 1 during add/trailing. Non-vacuous only alongside a frame-0 collapsed guard (see funnelLabelOpacities).
 export const funnelLabelFadeIn: PhasedPropertyExpectation = {
     during: ['add', 'trailing'],
     expect: ['increases', 'bounded'],
     settlesAt: 1,
 };
 
-// A funnel connector or pyramid body path revealing from a collapsed edge: its bbox widens and its
-// near edge recedes while the deep path stations stay non-finite until the shape opens out. Pass the
-// phase window the motion runs in (funnel connectors reveal during `initial`; pyramid bodies grow
-// across the load's `initial`/`update` window), or omit it to check across the whole trajectory.
+// A funnel connector or pyramid body path revealing from a collapsed edge: bbox widens, near edge
+// recedes, deep path stations stay non-finite until the shape opens out. Pass the phase window the
+// motion runs in, or omit it to check across the whole trajectory.
 export function funnelPathReveal(during?: PhasedPropertyExpectation['during']): SceneNodeExpectation {
     const phase = (expectation: readonly TrajectoryExpectation[]): ScenePropertyExpectation =>
         during == null ? expectation : { during, expect: expectation };
@@ -48,11 +43,8 @@ export function funnelPathReveal(during?: PhasedPropertyExpectation['during']): 
     };
 }
 
-// The opacities of the labels matched by `isLabelKey` on a single frame — the anti-vacuity input for
-// funnelLabelFadeIn. Callers assert the list is non-empty and every value is ~0 on the first frame, so
-// a fade spec cannot be satisfied by labels that were never hidden. (Kept `expect`-free so this test
-// helper stays out of the enterprise runtime dependency surface — enterprise `src/test` is linted as
-// shippable source.)
+// Opacities of the labels matched by `isLabelKey` on a single frame, for guarding funnelLabelFadeIn
+// against vacuous passes. Kept `expect`-free since enterprise `src/test` is linted as shippable source.
 export function funnelLabelOpacities(frame: SceneGeometrySample, isLabelKey: (key: string) => boolean): number[] {
     return [...frame].filter(([key]) => isLabelKey(key)).map(([, props]) => props.opacity);
 }
@@ -66,7 +58,6 @@ export function prepareEnterpriseTestOptions<T extends AgChartOptions<any, any> 
     options: T,
     container = document.body
 ) {
-    // Default to animation off.
     options.animation ??= { enabled: false };
     return prepareTestOptions(options as any, container);
 }
@@ -78,8 +69,7 @@ export async function createEnterpriseChart<T extends AgChartOptions<any, any>>(
     return chart;
 }
 
-// Returns the image so each caller chooses its own matcher (snapshot vs pixel comparison).
-// Note: the mock canvas only tracks the first chart created per test, so call this at most once per test.
+// Call at most once per test: the mock canvas only tracks the first chart created per test.
 export async function renderEnterpriseChartImage(
     ctx: Parameters<typeof extractImageData>[0],
     options: AgChartOptions

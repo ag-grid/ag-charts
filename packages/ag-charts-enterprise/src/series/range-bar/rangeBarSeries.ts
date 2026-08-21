@@ -138,26 +138,21 @@ type NormalisedRangeBarSeriesStyle = Normalised<AgRangeBarSeriesStyle, never, Fi
  * or resolve - cheap property lookups use `this` directly in methods.
  */
 interface RangeBarSeriesNodeDatumContext extends _ModuleSupport.CartesianCreateNodeDataContext<RangeBarNodeDatum> {
-    // Data arrays (resolved from dataModel - worth caching)
     readonly yLowValues: AgNumericValue[];
     readonly yHighValues: AgNumericValue[];
 
-    // Computed positioning (involves scale conversions - worth caching)
     readonly barWidth: number;
     readonly groupOffset: number;
     readonly barOffset: number;
 
-    // Pre-computed values
     readonly barAlongX: boolean;
     // Value axis reversed: low then sits at the rect's far edge, so the low/high labels swap ends.
     readonly yReversed: boolean;
     readonly crisp: boolean;
 
-    // Property keys (constant across all datums - worth caching)
     readonly yLowKey: string;
     readonly yHighKey: string;
 
-    // Label configuration (checked before expensive label text computation)
     readonly labelEnabled: boolean;
     readonly labelPlacement: 'inside' | 'outside';
     // Signed anchor offsets per role: yLow and yHigh face opposite edges, so each folds in its own facing padding.
@@ -176,7 +171,6 @@ interface RangeBarSeriesNodeDatumContext extends _ModuleSupport.CartesianCreateN
     readonly labelRoutesThroughEngine: boolean;
     readonly labelFit: LabelFit | undefined;
 
-    // Incremental update support
     readonly dataAggregationFilter: RangeBarSeriesDataAggregationFilter | undefined;
 }
 
@@ -237,7 +231,6 @@ interface RangeBarNodeDatum extends Omit<_ModuleSupport.CartesianSeriesNodeDatum
     readonly labels: RangeBarNodeLabelDatum[];
     readonly crisp: boolean;
 
-    // Required for types
     readonly clipBBox?: _ModuleSupport.BBox;
     readonly opacity?: number;
     style?: Required<NormalisedRangeBarSeriesStyle>;
@@ -486,7 +479,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const [r0, r1] = xScale.range;
         const range = Math.abs(r1 - r0);
 
-        // Ensure we have the needed aggregation level (force deferred computation if necessary)
         this.aggregationManager.ensureLevelForRange(range);
 
         const dataAggregationFilter = this.aggregationManager.getFilterForRange(range);
@@ -579,7 +571,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const [yLowValue, yHighValue] =
             rawLowValue < rawHighValue ? [rawLowValue, rawHighValue] : [rawHighValue, rawLowValue];
 
-        // Populate scratch with validated, computed values
         scratch.datum = datum;
         scratch.xValue = xValue;
         scratch.yLowValue = yLowValue;
@@ -601,18 +592,18 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             datum: scratch.datum,
             datumIndex: params.datumIndex,
             xValue: scratch.xValue,
-            yLowValue: 0, // Will be updated by updateNodeDatum
-            yHighValue: 0, // Will be updated by updateNodeDatum
+            yLowValue: 0,
+            yHighValue: 0,
             yLowKey: ctx.yLowKey,
             yHighKey: ctx.yHighKey,
             xKey: ctx.xKey,
-            x: 0, // Will be updated by updateNodeDatum
-            y: 0, // Will be updated by updateNodeDatum
-            width: 0, // Will be updated by updateNodeDatum
-            height: 0, // Will be updated by updateNodeDatum
-            midPoint: { x: 0, y: 0 }, // Will be updated by updateNodeDatum
+            x: 0,
+            y: 0,
+            width: 0,
+            height: 0,
+            midPoint: { x: 0, y: 0 },
             crisp: params.crisp,
-            labels: [], // Will be updated by updateNodeDatum
+            labels: [],
         };
     }
 
@@ -650,7 +641,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
 
         const mutableNode = node as Mutable<RangeBarNodeDatum>;
 
-        // Update main node properties
         mutableNode.index = params.groupedDataIndex;
         mutableNode.datum = prepared.datum;
         mutableNode.datumIndex = params.datumIndex;
@@ -659,7 +649,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         mutableNode.yHighValue = prepared.rawHighValue;
         mutableNode.crisp = params.crisp;
 
-        // Compute bounds
         const y = Math.round(ctx.yScale.convert(params.yHigh));
         const bottomY = Math.round(ctx.yScale.convert(params.yLow));
         const height = Math.max(strokeWidth, Math.abs(bottomY - y));
@@ -676,12 +665,10 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         mutableNode.width = rect.width;
         mutableNode.height = rect.height;
 
-        // Update midPoint in place
         const mutableMidPoint = mutableNode.midPoint as Mutable<Point>;
         mutableMidPoint.x = rect.x + rect.width / 2;
         mutableMidPoint.y = rect.y + rect.height / 2;
 
-        // Update clipBBox in place (if it exists)
         const existingClipBBox = mutableNode.clipBBox;
         if (existingClipBBox) {
             existingClipBBox.x = rect.x;
@@ -739,7 +726,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             const xValue = ctx.xValues[midDatumIndex];
             if (xValue === undefined && !this.properties.allowNullKeys) continue;
 
-            // Populate scratch object with aggregated values
             nodeDatumParamsScratch.datumIndex = midDatumIndex;
             nodeDatumParamsScratch.groupedDataIndex = 0;
             nodeDatumParamsScratch.x = xPosition(midDatumIndex);
@@ -748,7 +734,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             nodeDatumParamsScratch.yHigh = ctx.yHighValues[yMaxIndex];
             nodeDatumParamsScratch.crisp = ctx.crisp;
 
-            // Use shared utility for create/update logic
             upsertNodeDatum(
                 ctx,
                 nodeDatumParamsScratch,
@@ -780,7 +765,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         for (let datumIndex = start; datumIndex < end; datumIndex += 1) {
             if (invalidData?.[datumIndex] === true) continue;
 
-            // Populate scratch object
             nodeDatumParamsScratch.datumIndex = datumIndex;
             nodeDatumParamsScratch.groupedDataIndex = 0;
             nodeDatumParamsScratch.x = xPosition(datumIndex);
@@ -789,7 +773,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             nodeDatumParamsScratch.yHigh = ctx.yHighValues[datumIndex];
             nodeDatumParamsScratch.crisp = ctx.crisp;
 
-            // Use shared utility for create/update logic
             upsertNodeDatum(
                 ctx,
                 nodeDatumParamsScratch,
@@ -814,7 +797,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             this,
             processedData
         )) {
-            // Populate scratch object
             nodeDatumParamsScratch.datumIndex = datumIndex;
             nodeDatumParamsScratch.groupedDataIndex = groupDataIndex;
             nodeDatumParamsScratch.x = xPosition(datumIndex);
@@ -823,7 +805,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             nodeDatumParamsScratch.yHigh = ctx.yHighValues[datumIndex];
             nodeDatumParamsScratch.crisp = ctx.crisp;
 
-            // Use shared utility for create/update logic
             upsertNodeDatum(
                 ctx,
                 nodeDatumParamsScratch,
@@ -840,7 +821,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const { yLowKey, yHighKey, strokeWidth } = this.properties;
         const itemId = `${yLowKey}-${yHighKey}` as const;
 
-        // Helper for x position calculation (uses context)
         const xPosition = (datumIndex: number) => {
             const x = ctx.xScale.convert(ctx.xValues[datumIndex]);
             if (!Number.isFinite(x)) return Number.NaN;
@@ -877,7 +857,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             crisp: false,
         };
 
-        // Strategy selection - delegate to specialized methods
         if (ctx.dataAggregationFilter != null) {
             this.createNodeDataWithAggregation(
                 ctx,
@@ -895,7 +874,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
     }
 
     protected override finalizeNodeData(ctx: RangeBarSeriesNodeDatumContext): void {
-        // Trim excess nodes if we did incremental updates and have leftover nodes
         if (ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodes.length) {
             ctx.nodes.length = ctx.nodeIndex;
         }
@@ -928,7 +906,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         ctx: RangeBarSeriesNodeDatumContext,
         result: RangeBarSeriesNodeDataContext
     ): RangeBarSeriesNodeDataContext {
-        // Build label data from nodes
         for (const node of ctx.nodes) {
             result.labelData.push(...node.labels);
         }
@@ -958,7 +935,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         // The first orientation is baked into `rotation`; an array resolves against the bar rect for inside placement only.
         const rotation = ctx.labelRotation;
 
-        // Calculate label positions and alignment using scratch params
         const rectX = params.rectX;
         const rectY = params.rectY;
         const rectWidth = params.rectWidth;
@@ -1015,10 +991,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             })
         );
 
-        // Signed reach from the bar edge to the anchor. Unrotated it is the series-constant facing
-        // padding; a rotated label reaches by its box's cross-axis extent, so it is measured per datum.
-        // A rotated box also drifts off its anchor on the cross-axis (asymmetric padding), so both labels
-        // are pulled back by the same drift to stay centred on the bar.
+        // Reach from the bar edge to the anchor: series-constant when unrotated, per-datum (box cross-axis
+        // extent) when rotated; a rotated box's asymmetric drift off its anchor is pulled back on both labels.
         let yLowPadding = ctx.yLowPadding;
         let yHighPadding = ctx.yHighPadding;
         let crossDrift = 0;
@@ -1070,9 +1044,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             yHighTextBaseline = barAlongX ? 'middle' : 'top';
         }
 
-        // Update or create yLowLabel
         if (labels.length > 0 && labels[0].itemType === 'low') {
-            // Update existing label in place
             const yLowLabel = labels[0] as Mutable<RangeBarNodeLabelDatum>;
             yLowLabel.datumIndex = datumIndex;
             yLowLabel.x = yLowX;
@@ -1087,7 +1059,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             yLowLabel.fittedFontSize = yLowFontSize;
             yLowLabel.datum = datum;
         } else {
-            // Create new label
             labels[0] = {
                 datumIndex,
                 x: yLowX,
@@ -1106,9 +1077,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             };
         }
 
-        // Update or create yHighLabel
         if (labels.length > 1 && labels[1].itemType === 'high') {
-            // Update existing label in place
             const yHighLabel = labels[1] as Mutable<RangeBarNodeLabelDatum>;
             yHighLabel.datumIndex = datumIndex;
             yHighLabel.x = yHighX;
@@ -1123,7 +1092,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             yHighLabel.fittedFontSize = yHighFontSize;
             yHighLabel.datum = datum;
         } else {
-            // Create new label
             labels[1] = {
                 datumIndex,
                 x: yHighX,
@@ -1142,7 +1110,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             };
         }
 
-        // Ensure labels array has exactly 2 items
         labels.length = 2;
 
         const low = labels[0] as Mutable<RangeBarNodeLabelDatum>;

@@ -33,15 +33,12 @@ export interface DynamicContextApi<TRegistry> {
 export type DynamicContext<TRegistry> = DynamicContextApi<TRegistry> & Readonly<TRegistry>;
 
 // TypeScript cannot verify defineProperty-based registrations satisfy Readonly<TRegistry>.
-// This single helper encapsulates the boundary cast between the implementation and the public type.
 function asDynamicContext<TRegistry>(impl: DynamicContextImpl<TRegistry>): DynamicContext<TRegistry> {
     return impl as unknown as DynamicContext<TRegistry>;
 }
 
-// Internal state is kept in a WeakMap instead of as own instance properties so that consumer-
-// registered service names (e.g. `parent`, `series`, `children`) can never collide with or
-// shadow internal bookkeeping. Every registered name becomes an own property on the impl
-// (via defineProperty), so any internal field would risk being overwritten.
+// Internal state lives in a WeakMap rather than own properties: every registered service name becomes
+// an own property via defineProperty and would otherwise collide with internal bookkeeping.
 interface InternalState<TRegistry> {
     readonly cleanup: CleanupRegistry;
     readonly self: DynamicContext<TRegistry>;
@@ -140,8 +137,7 @@ class DynamicContextImpl<TRegistry> {
         }
         s.children.clear();
 
-        // Destroy in reverse-registration order (LIFO): dependents registered later
-        // tear down before the foundational services they rely on.
+        // Destroy in reverse-registration order: dependents tear down before the services they rely on.
         const keys = Object.keys(this);
         for (let i = keys.length - 1; i >= 0; i--) {
             const key = keys[i];
@@ -149,8 +145,7 @@ class DynamicContextImpl<TRegistry> {
             if (s.refs.has(key)) continue;
 
             const descriptor = Object.getOwnPropertyDescriptor(this, key);
-            // Only destroy resolved services (value descriptors with a destroy method).
-            // Getters indicate uninitialised services — skip them.
+            // Getters indicate uninitialised services — only resolved value descriptors need destroying.
             if (descriptor?.value != null && typeof descriptor.value === 'object') {
                 (descriptor.value as Partial<Destroyable>).destroy?.();
             }
@@ -165,10 +160,8 @@ class DynamicContextImpl<TRegistry> {
 
     private resolve<K extends string & keyof TRegistry>(name: K, fn: ServiceFactory<TRegistry, K>): TRegistry[K] {
         const s = internal(this);
-        // Block lazy construction on a destroyed context. Without this, a getter that
-        // fires after destroy() (e.g. from an event callback that still runs during
-        // teardown) would spin up a brand-new service on a dead chart and reattach
-        // listeners/DOM bindings — a zombie leak.
+        // Block lazy construction on a destroyed context: a getter firing after destroy() would spin up a
+        // new service on a dead chart and reattach listeners/DOM bindings — a zombie leak.
         if (s.destroyed) {
             throw new Error(`AG Charts - DynamicContext: cannot resolve '${name}' on a destroyed context.`);
         }

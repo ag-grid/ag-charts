@@ -362,7 +362,7 @@ describe('LinearScale', () => {
             }
         });
 
-        // AC AG-16608 #16: spans beyond Number.MAX_SAFE_INTEGER stay position-monotonic.
+        // Spans beyond Number.MAX_SAFE_INTEGER stay position-monotonic.
         test('positions monotonically across a span larger than Number.MAX_SAFE_INTEGER', () => {
             const span = 10n ** 21n;
             expect(Number(span)).toBeGreaterThan(Number.MAX_SAFE_INTEGER);
@@ -383,8 +383,8 @@ describe('LinearScale', () => {
             }
         });
 
-        // AG-16608: tick generation narrows the domain via withTemporaryDomain; the snapshot/restore pair
-        // must reinstate the exact bigint endpoints so a zoomed convert() keeps adjacent bigints distinct.
+        // Tick generation narrows the domain via withTemporaryDomain; the snapshot/restore pair must
+        // reinstate the exact bigint endpoints so a zoomed convert() keeps adjacent bigints distinct.
         test('preserves exact bigint endpoints across a snapshotDomain/restoreDomain round-trip', () => {
             const lo = 9_007_199_254_740_990n; // straddles Number.MAX_SAFE_INTEGER (2^53 - 1)
             const hi = 9_007_199_254_741_000n;
@@ -459,9 +459,8 @@ describe('LinearScale', () => {
                 expect(scale.convertClamped(150n)).toBe(100);
             });
 
-            // A Number-narrowed clamp loses sub-ULP detail at high magnitudes: at 1e18 the float64
-            // ULP (~128) swallows a +1 offset, collapsing it onto the lower endpoint. The bigint
-            // path must clamp on the exact endpoints so the offset survives into convert().
+            // At 1e18 the float64 ULP (~128) swallows a +1 offset, so the bigint path must clamp on
+            // the exact endpoints for the offset to survive into convert().
             test('preserves sub-ULP precision at high magnitudes', () => {
                 const base = 10n ** 18n;
                 const scale = new LinearScale();
@@ -557,7 +556,7 @@ describe('LinearScale', () => {
             expect(scale.niceDomain({ ...tickParams, interval: 30 }, [13n, 97n])).toEqual([0, 120]);
         });
 
-        // AC AG-16608 #15e / #16: ticks beyond Number.MAX_SAFE_INTEGER keep exact values.
+        // Ticks beyond Number.MAX_SAFE_INTEGER keep exact values.
         test('keeps exact tick values for spans larger than Number.MAX_SAFE_INTEGER', () => {
             const scale = new LinearScale();
             scale.range = [0, 600];

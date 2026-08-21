@@ -304,7 +304,7 @@ export class ChartCaption implements CaptionLike {
      * the same `captionType` discriminator.
      */
     private handleClick(moduleCtx: DynamicContext<ChartRegistry>, event: MouseWidgetEvent<'click' | 'dblclick'>) {
-        // Keyboard activation of caption listeners is out of scope for this feature (AG-17707).
+        // Keyboard activation of caption listeners is not supported.
         if (event.device === 'keyboard') return;
 
         const isDoubleClick = event.type === 'dblclick';

@@ -48,7 +48,6 @@ export interface LabelFit {
 /** `'preserve'` is engine-internal: text still wraps to `maxWidth`, but nothing is ever dropped or ellipsised. */
 export type WrapOverflow = OverflowStrategy | 'preserve';
 
-// Extended measurement options including wrapping behaviour.
 export interface WrapOptions {
     font: FontOptions;
     maxWidth: number;

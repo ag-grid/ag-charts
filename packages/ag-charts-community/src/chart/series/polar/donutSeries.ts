@@ -212,7 +212,7 @@ export class DonutSeries extends PolarSeries<
     private readonly calloutLabelGroup = this.contentGroup.appendChild(new Group({ name: 'pieCalloutLabels' }));
     private readonly calloutLabelSelection = Selection.select<Group<PieDonutNodeDatum>>(this.calloutLabelGroup, Group);
 
-    // AG-6193 If the sum of all datums is 0, then we'll draw 1 or 2 rings to represent the empty series.
+    // When every datum sums to 0 these rings stand in for the empty series.
     readonly zerosumRingsGroup = this.backgroundGroup.appendChild(new Group({ name: `${this.id}-zerosumRings` }));
     readonly zerosumOuterRing = this.zerosumRingsGroup.appendChild(new Marker({ shape: 'circle' }));
     readonly zerosumInnerRing = this.zerosumRingsGroup.appendChild(new Marker({ shape: 'circle' }));
@@ -224,9 +224,8 @@ export class DonutSeries extends PolarSeries<
         this.innerCircleGroup,
         () => new Marker({ shape: 'circle' })
     );
-    // `destination-out` erases everything already painted on its canvas, so the cutouts must share
-    // the inner circle's group - and only ever that group, which composites offscreen while they
-    // are present so the erase cannot reach the chart behind the series.
+    // `destination-out` erases everything already on its canvas, so the cutouts must live only in
+    // the inner circle's group, which composites offscreen while they are present.
     private readonly innerCircleCutoutGroup = this.innerCircleGroup.appendChild(
         new Group({ name: `${this.id}-innerCircleCutout` })
     );
@@ -400,11 +399,9 @@ export class DonutSeries extends PolarSeries<
             ],
         });
 
-        // AG-9879 Warning about missing data.
+        // Warn about missing data.
         for (const valueDef of this.processedData?.defs?.values ?? []) {
-            // The 'angleRaw' is an undocumented property for the internal implementation, so ignore this.
-            // If any 'angleRaw' values are missing, then we'll also be missing 'angleValue' values and
-            // will log a warning anyway.
+            // 'angleRaw' is internal, and its misses are always mirrored by 'angleValue' misses.
             const { id, missing, property } = valueDef;
             const missCount = getMissCount(this, missing);
             if (id !== 'angleRaw' && missCount > 0) {
@@ -1065,10 +1062,8 @@ export class DonutSeries extends PolarSeries<
         });
     }
 
-    // A rounded inner corner pulls each sector's fill away from the inner radius, leaving a crescent
-    // of chart background that `innerCircle.fill` should cover. The corner arcs top out where the
-    // crescents end, so the fill reaches that radius - and covers the `sectorSpacing` strips up to
-    // it, which otherwise read as slots cut into the filled band.
+    // Rounded inner corners leave crescents of chart background that `innerCircle.fill` must
+    // cover, so the fill extends to where the corner arcs top out.
     private getInnerCircleFillRadius() {
         const innerRadius = this.getInnerRadius();
         const { fill } = this.properties.innerCircle;
@@ -1111,9 +1106,8 @@ export class DonutSeries extends PolarSeries<
         this.innerCircleSelection.update(datums);
     }
 
-    // The grown circle reaches under the sectors themselves, where a translucent or transparent
-    // sector would composite over it rather than over the page. Erasing each sector's own outline
-    // from the circle leaves only the crescents and spacing strips filled.
+    // The grown circle reaches under the sectors, which a translucent sector would show through;
+    // erasing each sector's outline leaves only the crescents and spacing strips filled.
     private updateInnerCircleCutoutSelection() {
         // Mirrors the predicate Group applies to `renderToOffscreenCanvas`: without that isolation
         // the cutout would erase the chart behind the series along with the circle.

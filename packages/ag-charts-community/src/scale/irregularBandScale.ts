@@ -53,8 +53,6 @@ export class IrregularBandScale<D = string, I = number> extends BandScale<D, I> 
     }
 
     override findIndex(value: D): number | undefined {
-        // Find the index of the domain value in the band range keys. This is only used when has no fixed widths and is
-        // called from `BandScale`.
         let index = 0;
         for (const key of this._bandRanges.keys()) {
             if (key === (value as number)) return index;
@@ -155,9 +153,8 @@ export class IrregularBandScale<D = string, I = number> extends BandScale<D, I> 
 
         const round = this.round && Math.floor(bandwidth) > 0;
         if (round) {
-            // Keep whole-pixel band widths for uniform grouped bars, but leave the inset (band origin)
-            // unrounded so a centred fixed-width band stays on the true band centre; the device-pixel
-            // snap at render handles crispness.
+            // Whole-pixel band widths, but an unrounded inset so a centred fixed-width band stays on
+            // the true band centre.
             bandwidth = Math.round(bandwidth);
         }
 

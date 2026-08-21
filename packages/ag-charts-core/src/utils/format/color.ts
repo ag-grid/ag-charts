@@ -204,9 +204,7 @@ export class Color implements IColor {
 
         const contents = str.substring(po + 1, pc);
 
-        // The `/ alpha` form separates the alpha component with a slash; otherwise
-        // components are split on whitespace and/or commas, covering both the
-        // comma-separated and space-separated syntaxes.
+        // The `/ alpha` form separates alpha with a slash; otherwise components split on whitespace and/or commas.
         const slash = contents.indexOf('/');
         const head = slash === -1 ? contents : contents.substring(0, slash);
         const parts = head.trim().split(/[\s,]+/);
@@ -309,9 +307,7 @@ export class Color implements IColor {
 
         const contents = str.substring(po + 1, pc);
 
-        // The `/ alpha` form separates the alpha component with a slash; otherwise
-        // components are split on whitespace and/or commas, covering both the
-        // comma-separated and space-separated syntaxes.
+        // The `/ alpha` form separates alpha with a slash; otherwise components split on whitespace and/or commas.
         const slash = contents.indexOf('/');
         const head = slash === -1 ? contents : contents.substring(0, slash);
         const parts = head.trim().split(/[\s,]+/);
@@ -356,9 +352,7 @@ export class Color implements IColor {
 
         const contents = str.substring(po + 1, pc);
 
-        // The `/ alpha` form separates the alpha component with a slash; otherwise
-        // components are split on whitespace and/or commas, covering both the
-        // comma-separated and space-separated syntaxes.
+        // The `/ alpha` form separates alpha with a slash; otherwise components split on whitespace and/or commas.
         const slash = contents.indexOf('/');
         const head = slash === -1 ? contents : contents.substring(0, slash);
         const parts = head.trim().split(/[\s,]+/);

@@ -47,8 +47,7 @@ describe('ChordSeries', () => {
     };
 
     it('renders a bigint sizeKey without error (AG-16608)', async () => {
-        // Chord node-size accumulation must not mix a bigint size with a Number seed/divisor
-        // ("Cannot mix BigInt and other types").
+        // Node-size accumulation must not mix a bigint size with a Number seed/divisor.
         const options: AgChartOptions = {
             data: [
                 { from: 'A', to: 'B', size: 9_007_199_254_740_993n },
@@ -83,9 +82,8 @@ describe('ChordSeries', () => {
         });
 
         it('should render node cornerRadius', async () => {
-            // Anti-vacuity: `sector.inset = strokeWidth / 2` shrinks the radial length before the
-            // corner radius is clamped to half of it and floored, so the radius is chosen against
-            // `(width - strokeWidth) / 2` to guarantee visible rounding in the baseline.
+            // `sector.inset = strokeWidth / 2` shrinks the radial length before the corner radius is
+            // clamped to half of it, so these values guarantee visible rounding in the baseline.
             const options: AgChartOptions = {
                 ...GALLERY_EXAMPLES.SIMPLE_CHORD_EXAMPLE.options,
                 series: [
@@ -97,7 +95,6 @@ describe('ChordSeries', () => {
                             stroke: 'black',
                             strokeWidth: 2,
                             cornerRadius: 8,
-                            // Exercises the per-node override route as well as the series-wide option.
                             itemStyler: ({ label }: AgChordSeriesNodeItemStylerParams<unknown>) =>
                                 label === 'NIKE Brand' || label === 'Global' ? { cornerRadius: 2 } : {},
                         },
@@ -111,8 +108,8 @@ describe('ChordSeries', () => {
         });
 
         it('should render node cornerRadius against links narrower than a corner', async () => {
-            // The links on `Hub` are far narrower than the corner they meet, so each one covers only
-            // part of it; opaque fills and no stroke leave nothing to hide a gap or an overlap.
+            // Links narrower than the corner they meet, with opaque fills and no stroke, leave
+            // nothing to hide a gap or an overlap.
             const options: AgChartOptions = {
                 data: [
                     { from: 'Hub', to: 'Bulk', size: 100 },
@@ -314,7 +311,6 @@ describe('ChordSeries', () => {
 
         const checkHighlight = async (chartInstance: any) => {
             await hoverChartNodes(chartInstance, ({ series }) => {
-                // Check the highlighted marker
                 const highlightNode = testParams.getHighlightNode(chartInstance, series);
                 expect(highlightNode).toBeDefined();
                 expect(highlightNode.fill).toEqual('lime');
@@ -327,12 +323,10 @@ describe('ChordSeries', () => {
             offset?: { x: number; y: number }
         ) => {
             await hoverChartNodes(chartInstance, async ({ x, y }) => {
-                // Perform click
                 await clickAction(x + (offset?.x ?? 0), y + (offset?.y ?? 0))(chartInstance);
                 await waitForChartStability(chartInstance);
             });
 
-            // Check click handler
             const nodeCount = chartInstance.series.reduce(
                 (sum, series) => sum + testParams.getNodeData(series).length,
                 0
@@ -343,17 +337,14 @@ describe('ChordSeries', () => {
         it(`should render tooltip correctly`, async () => {
             chart = await createChart({ hasTooltip: true });
             await hoverChartNodes(chart, ({ series, item }) => {
-                // Check the tooltip is shown
                 const tooltip = document.querySelector('.ag-charts-tooltip');
                 expect(tooltip).toBeInstanceOf(HTMLElement);
                 expect(!tooltip?.hasAttribute('data-presented-as-popover')).toBe(false);
 
-                // Check the tooltip text
                 const values = testParams.getDatumValues(item, series);
                 expect(tooltip?.textContent).toEqual(format(...values));
             });
 
-            // Check the tooltip is hidden (hover over top-left corner)
             await hoverAction(8, 8)(chart);
             await waitForChartStability(chart, MIN_TOOLTIP_HIDE_DELAY);
             const tooltip = document.querySelector('.ag-charts-tooltip');
@@ -410,7 +401,6 @@ describe('ChordSeries', () => {
         const cartesianTestParams = {
             getNodeData: (series) => series.contextNodeData?.nodeData ?? [],
             getTooltipRenderedValues: (params) => [params.xValue, params.yValue],
-            // Returns a highlighted marker
             getHighlightNode: (_, series) => series.highlightNodeGroup.children().next().value,
         } as Parameters<typeof testPointerEvents>[0];
 
@@ -656,9 +646,7 @@ describe('ChordSeries', () => {
         expect(highlightedItemDatum).toEqual(linkNode.datum);
     });
 
-    // Chord extends FlowProportionSeries, whose resetAnimation() is a no-op and which never drives the
-    // animation manager, so nodes and links never tween. Pinned by a minimal guard rather than a
-    // trajectory suite, since there is no motion to describe.
+    // FlowProportionSeries never drives the animation manager, so nodes and links never tween.
     describe('does not animate', () => {
         const frames = spyOnAnimationFrames();
 
@@ -686,13 +674,11 @@ describe('ChordSeries', () => {
                 })
             );
 
-            // Anti-vacuity: the extra edge adds a node and a link, so the flow genuinely changed — a
-            // constant trajectory over it is a real snap, not a pin over an unchanged scene.
+            // Anti-vacuity: a constant trajectory is only meaningful if the flow genuinely changed.
             const beforeCount = flowKeys(before).length;
             const afterCount = flowKeys(after).length;
             expect(beforeCount).toBeGreaterThan(0);
             expect(afterCount).toBeGreaterThan(beforeCount);
-            // The full new layout is present on the first captured frame (nothing grows/fades in).
             expect(flowKeys(trajectory[0]).length).toBe(afterCount);
             expectNoAnimation(trajectory);
         });

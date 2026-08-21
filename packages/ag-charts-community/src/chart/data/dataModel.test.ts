@@ -1322,7 +1322,7 @@ describe('DataModel', () => {
             expect(processedData!.columns).toEqual([
                 data1.map((d) => d.ie),
                 data1.map((d) => d.chrome),
-                data1.map((d) => d.firefox), // This needs to be present
+                data1.map((d) => d.firefox),
                 data2.map((d) => d.firefox),
                 data1.map((d) => d.safari),
             ]);
@@ -1522,7 +1522,6 @@ describe('DataModel', () => {
             const processedData = dataModel.processData(sources);
             processedData!.reduced = { diff: {} };
 
-            // First insertion
             dataSet.addTransaction({
                 add: [{ x: 3, y: 30 }],
                 addIndex: 1,
@@ -1531,7 +1530,6 @@ describe('DataModel', () => {
             const reprocessed1 = dataModel.reprocessData(processedData!, undefined, undefined);
             verifyReprocessMatchesBaseline(dataModel, reprocessed1, sources);
 
-            // Second insertion
             dataSet.addTransaction({
                 add: [{ x: 2, y: 20 }],
                 addIndex: 1,
@@ -1540,7 +1538,6 @@ describe('DataModel', () => {
             const reprocessed2 = dataModel.reprocessData(reprocessed1, undefined, undefined);
             verifyReprocessMatchesBaseline(dataModel, reprocessed2, sources);
 
-            // Third insertion
             dataSet.addTransaction({
                 add: [{ x: 4, y: 40 }],
                 addIndex: 3,
@@ -1574,7 +1571,6 @@ describe('DataModel', () => {
             const processedData = dataModel.processData(sources);
 
             // columnNeedValueOf only tracks value columns (count, amount), not keys
-            // Both value columns contain primitives (numbers), so should be false
             expect(processedData!.columnNeedValueOf).toEqual([false, false]);
         });
 
@@ -1597,8 +1593,6 @@ describe('DataModel', () => {
             const processedData = dataModel.processData(sources);
 
             // columnNeedValueOf only tracks value columns (not the timestamp key)
-            // First value column (dateValue) contains Date objects - needs valueOf
-            // Second value column (primitiveValue) contains primitives - doesn't need valueOf
             expect(processedData!.columnNeedValueOf).toEqual([true, false]);
         });
 
@@ -1620,8 +1614,6 @@ describe('DataModel', () => {
             const processedData = dataModel.processData(sources);
 
             // columnNeedValueOf only tracks value columns (not the key)
-            // First value column: primitives (false)
-            // Second value column: objects/dates (true)
             expect(processedData!.columnNeedValueOf).toEqual([false, true]);
         });
 
@@ -1642,17 +1634,14 @@ describe('DataModel', () => {
             const sources = basicDataSet(initialData).set('test', dataSet);
             const processedData = dataModel.processData(sources);
 
-            // columnNeedValueOf should track value columns (dateValue: true, primitiveValue: false)
             expect(processedData!.columnNeedValueOf).toEqual([true, false]);
 
-            // Add more data
             dataSet.addTransaction({
                 append: [{ timestamp: new Date(2024, 0, 3), dateValue: new Date(2024, 0, 3), primitiveValue: 30 }],
             });
 
             const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
 
-            // Should maintain columnNeedValueOf metadata
             expect(reprocessed.columnNeedValueOf).toEqual([true, false]);
         });
     });
@@ -1697,8 +1686,8 @@ describe('DataModel', () => {
         });
 
         it('should retain bigint values in the column and continuous domain', () => {
-            // AG-16608: bigint values now flow into the column and build a bigint ContinuousDomain
-            // (the scale/aggregation arithmetic that consumes them is bigint-safe).
+            // bigint values flow into the column and build a bigint ContinuousDomain; the scale and
+            // aggregation arithmetic that consumes them is bigint-safe.
             const dataModel = new DataModel<any, any>(
                 {
                     props: [categoryKey('id'), value('count')],
@@ -1720,8 +1709,8 @@ describe('DataModel', () => {
         });
 
         it('should retain bigint keys in the key column', () => {
-            // AG-16608: bigint *keys* now flow through extraction unchanged (the SORT_DOMAIN_GROUPS
-            // comparator is bigint-safe), matching the existing support for bigint values.
+            // bigint keys flow through extraction unchanged, since the SORT_DOMAIN_GROUPS comparator is
+            // bigint-safe.
             const dataModel = new DataModel<any, any>(
                 {
                     props: [rangeKey('x'), value('y')],
@@ -1741,7 +1730,7 @@ describe('DataModel', () => {
         });
 
         it('should sort grouped bigint keys without throwing', () => {
-            // AG-16608: SORT_DOMAIN_GROUPS compares bigint keys directly; subtraction would yield a
+            // SORT_DOMAIN_GROUPS compares bigint keys directly; subtraction would yield a
             // bigint that Array.sort ToNumber-coerces and throws on.
             const dataModel = new DataModel<any, any, true>(
                 {
@@ -2006,14 +1995,12 @@ describe('DataModel', () => {
 
                 const processedData = dataModel.processData(sources);
 
-                // Mutate item in place
                 item1.y = 25;
                 dataSet.addTransaction({ update: [item1] });
 
                 const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
-                // Verify updated values are reflected
                 expect(reprocessed.columns).toEqual([[10, 25, 30]]);
                 expect(reprocessed.domain.values).toEqual([[10, 30]]);
             });
@@ -2035,7 +2022,6 @@ describe('DataModel', () => {
                 const processedData = dataModel.processData(sources);
                 processedData!.reduced = { diff: {} };
 
-                // Mutate items in place
                 item0.y = 15;
                 item2.y = 35;
                 dataSet.addTransaction({ update: [item0, item2] });
@@ -2043,7 +2029,6 @@ describe('DataModel', () => {
                 const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
-                // Verify updated values are reflected
                 expect(reprocessed.columns).toEqual([[15, 20, 35]]);
                 expect(reprocessed.domain.values).toEqual([[15, 35]]);
             });
@@ -2064,7 +2049,6 @@ describe('DataModel', () => {
                 const processedData = dataModel.processData(sources);
                 processedData!.reduced = { diff: {} };
 
-                // Mutate and add
                 item0.y = 15;
                 const newItem = { x: 3, y: 30 };
                 dataSet.addTransaction({ update: [item0], append: [newItem] });
@@ -2092,7 +2076,6 @@ describe('DataModel', () => {
                 const processedData = dataModel.processData(sources);
                 processedData!.reduced = { diff: {} };
 
-                // Mutate and prepend
                 item1.y = 35;
                 const newItem = { x: 1, y: 10 };
                 dataSet.addTransaction({ update: [item1], prepend: [newItem] });
@@ -2121,7 +2104,6 @@ describe('DataModel', () => {
                 const processedData = dataModel.processData(sources);
                 processedData!.reduced = { diff: {} };
 
-                // Remove, update, and add
                 item0.y = 15;
                 const newItem = { x: 4, y: 40 };
                 dataSet.addTransaction({
@@ -2153,7 +2135,6 @@ describe('DataModel', () => {
                 const initialProcessedData = dataModel.processData(sources)!;
                 initialProcessedData.reduced = { diff: {} };
 
-                // First update
                 item0.y = 15;
                 dataSet.addTransaction({ update: [item0] });
                 const firstReprocessed = dataModel.reprocessData(initialProcessedData, undefined, undefined);
@@ -2161,7 +2142,6 @@ describe('DataModel', () => {
 
                 expect(firstReprocessed.columns).toEqual([[15, 20]]);
 
-                // Second update
                 item1.y = 25;
                 dataSet.addTransaction({ update: [item1] });
                 const secondReprocessed = dataModel.reprocessData(firstReprocessed, undefined, undefined);
@@ -2189,14 +2169,12 @@ describe('DataModel', () => {
 
                 const processedData = dataModel.processData(sources)!;
 
-                // Mutate item in place
                 item1.value = 25;
                 dataSet.addTransaction({ update: [item1] });
 
                 const reprocessed = dataModel.reprocessData(processedData, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
-                // Verify updated value is reflected in the group
                 if (reprocessed.type === 'grouped') {
                     expect(resolveGroupColumn(reprocessed, 1, 0)).toEqual([25]);
                 }
@@ -2219,7 +2197,6 @@ describe('DataModel', () => {
 
                 const processedData = dataModel.processData(sources)!;
 
-                // Mutate items in place
                 item0.value = 15;
                 item2.value = 35;
                 dataSet.addTransaction({ update: [item0, item2] });
@@ -2249,7 +2226,6 @@ describe('DataModel', () => {
 
                 const processedData = dataModel.processData(sources)!;
 
-                // Change both category and value
                 item1.category = 'C';
                 item1.value = 25;
                 dataSet.addTransaction({ update: [item1] });
@@ -2257,7 +2233,6 @@ describe('DataModel', () => {
                 const reprocessed = dataModel.reprocessData(processedData, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
-                // Verify the updated category appears in the groups
                 if (reprocessed.type === 'grouped') {
                     expect(reprocessed.groups.map((g) => g.keys[0])).toEqual(['A', 'C']);
                     expect(resolveGroupColumn(reprocessed, 1, 0)).toEqual([25]);
@@ -2282,19 +2257,16 @@ describe('DataModel', () => {
 
                 const processedData = dataModel.processData(sources);
 
-                // Mutate item - this should affect accumulation
                 item1.y = 25;
                 dataSet.addTransaction({ update: [item1] });
 
                 const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
                 verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
-                // Verify accumulated and normalized values are recalculated
-                // Accumulated: [10, 35, 65], Normalized to [0, 100]
                 const accumulated = [10, 35, 65];
                 const domainMin = Math.min(...accumulated);
                 const domainMax = Math.max(...accumulated);
-                const span = domainMax - domainMin || 1; // Avoid divide-by-zero when span is zero.
+                const span = domainMax - domainMin || 1;
                 const expectedNormalized = accumulated.map((v) => ((v - domainMin) / span) * 100);
 
                 expect(reprocessed.columns[0]).toHaveLength(3);
@@ -2322,7 +2294,6 @@ describe('DataModel', () => {
                 const processedData = dataModel.processData(sources);
                 processedData!.reduced = { diff: {} };
 
-                // Insert item in middle and update existing item
                 const item2 = { x: 3, y: 30 };
                 item1.y = 25;
                 dataSet.addTransaction({
@@ -2422,7 +2393,6 @@ describe('DataModel', () => {
 
             describe('cross-band scenarios', () => {
                 it('should detect smallest interval at band boundary', () => {
-                    // Create data with smallest interval at band boundary
                     // With 10K items and targetBandCount=10, bands are ~1000 items each
                     const initialData = Array.from({ length: 10000 }, (_, i) => {
                         if (i < 999) return { x: i * 10, y: i };
@@ -2434,12 +2404,10 @@ describe('DataModel', () => {
                     const reprocessed = runSmallestIntervalScenario(initialData, { append: newData });
 
                     expectSmallestInterval(reprocessed);
-                    // Smallest interval is at boundary: 9991 - 9990 = 1
                     expectSmallestInterval(reprocessed, 1);
                 });
 
                 it('should handle intervals spanning multiple bands', () => {
-                    // Create sparse data where smallest interval might span bands
                     const initialData = Array.from({ length: 10000 }, (_, i) => ({ x: i * 100, y: i }));
                     const reprocessed = runSmallestIntervalScenario(initialData, {
                         append: [{ x: 1000000, y: 10000 }],
@@ -2462,7 +2430,6 @@ describe('DataModel', () => {
 
             describe('invalid data handling', () => {
                 it('should match full processing with NaN values across bands', () => {
-                    // Mix valid and invalid data across bands
                     const initialData = Array.from({ length: 10000 }, (_, i) => ({
                         x: i % 10 === 0 ? Number.NaN : i,
                         y: i,
@@ -2487,19 +2454,16 @@ describe('DataModel', () => {
 
                     const processedData = dataModel.processData(sources);
 
-                    // Verify initial processing returns Infinity (initialValue) for all-NaN data
                     expectSmallestInterval(processedData, Infinity, { allowNonFinite: true });
 
                     dataSet.addTransaction({ append: [{ x: Number.NaN, y: 10000 }] });
 
                     const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
 
-                    // Verify reprocessing also returns Infinity for all-NaN data
                     expectSmallestInterval(reprocessed, Infinity, { allowNonFinite: true });
                 });
 
                 it('should handle sparse data with gaps', () => {
-                    // Sparse data with large gaps
                     const initialData = Array.from({ length: 10000 }, (_, i) => ({
                         x: i * (i % 100 === 0 ? 1000 : 1),
                         y: i,
@@ -2634,9 +2598,6 @@ describe('DataModel', () => {
             expect(processedData?.optimizations?.sharedDatumIndices?.sharedGroupCount).toBeGreaterThan(0);
         });
 
-        // Note: Batch merging and domain banding metadata are collected but may not
-        // always be present depending on the data structure and processing path
-
         it('should always collect metadata for testing', () => {
             const dataModel = new DataModel<any, any>(
                 {
@@ -2656,7 +2617,6 @@ describe('DataModel', () => {
 
             const processedData = dataModel.processData(sources);
 
-            // Metadata is now always collected for testing purposes
             expect(processedData?.optimizations).toBeDefined();
             expect(processedData?.optimizations?.performance).toBeDefined();
             expect(processedData?.optimizations?.reprocessing).toBeDefined();
@@ -2671,14 +2631,12 @@ describe('DataModel', () => {
                     testLogger
                 );
 
-                // Create large dataset (above banding threshold)
                 const initialData = Array.from({ length: 10000 }, (_, i) => ({ x: i, y: i }));
                 const dataSet = new DataSet(initialData, testLogger);
                 const sources = new Map([['test', dataSet]]);
 
                 const processedData = dataModel.processData(sources);
 
-                // Verify banding metadata exists
                 expect(processedData?.optimizations?.reducerBanding).toBeDefined();
                 const reducerMeta = processedData?.optimizations?.reducerBanding?.reducers?.find(
                     (r) => r.property === 'smallestKeyInterval'
@@ -2686,7 +2644,6 @@ describe('DataModel', () => {
                 expect(reducerMeta).toBeDefined();
                 expect(reducerMeta?.applied).toBe(true);
 
-                // Verify stats are reasonable
                 const stats = reducerMeta?.stats;
                 expect(stats).toBeDefined();
                 expect(stats?.totalBands).toBeGreaterThan(1);
@@ -2708,14 +2665,12 @@ describe('DataModel', () => {
 
                 const processedData = dataModel.processData(sources);
 
-                // Append data (rolling window scenario)
                 const removeData = initialData.slice(0, 100);
                 const appendData = Array.from({ length: 100 }, (_, i) => ({ x: 10000 + i, y: 10000 + i }));
                 dataSet.addTransaction({ remove: removeData, append: appendData });
 
                 const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
 
-                // Verify banding was applied during reprocessing
                 expect(reprocessed.optimizations?.reducerBanding).toBeDefined();
                 const reducerMeta = reprocessed.optimizations?.reducerBanding?.reducers?.find(
                     (r) => r.property === 'smallestKeyInterval'
@@ -2742,19 +2697,16 @@ describe('DataModel', () => {
                     testLogger
                 );
 
-                // Create small dataset (below banding threshold of 1000)
                 const initialData = Array.from({ length: 500 }, (_, i) => ({ x: i, y: i }));
                 const dataSet = new DataSet(initialData, testLogger);
                 const sources = new Map([['test', dataSet]]);
 
                 const processedData = dataModel.processData(sources);
 
-                // Verify banding was not applied (or applied but with single band)
                 const reducerMeta = processedData?.optimizations?.reducerBanding?.reducers?.find(
                     (r) => r.property === 'smallestKeyInterval'
                 );
                 if (reducerMeta?.stats) {
-                    // If metadata exists, it should indicate single band
                     expect(reducerMeta.stats.totalBands).toBeLessThanOrEqual(1);
                 }
             });
@@ -2773,7 +2725,6 @@ describe('DataModel', () => {
 
                 const processedData = dataModel.processData(sources);
 
-                // Multiple rolling window updates
                 for (let i = 0; i < 5; i++) {
                     const removeData = [initialData[i * 100]];
                     const appendData = [{ x: 10000 + i, y: 10000 + i }];
@@ -2782,7 +2733,6 @@ describe('DataModel', () => {
 
                 const reprocessed = dataModel.reprocessData(processedData!, undefined, undefined);
 
-                // Verify efficient caching (low scan ratio)
                 const reducerMeta = reprocessed.optimizations?.reducerBanding?.reducers?.find(
                     (r) => r.property === 'smallestKeyInterval'
                 );
@@ -2979,7 +2929,6 @@ describe('DataModel', () => {
                 const entry = result[KEY_SORT_ORDERS].get(0);
 
                 expect(entry).toBeDefined();
-                // Category keys don't have numeric sort order
                 expect(entry!.isUnique).toBe(true);
             });
 
@@ -3000,8 +2949,6 @@ describe('DataModel', () => {
                 const entry = result[KEY_SORT_ORDERS].get(0);
 
                 expect(entry).toBeDefined();
-                // Category duplicates don't affect numeric tracking (strings not tracked)
-                // isUnique should be true since we only track numeric values
                 expect(entry!.isUnique).toBe(true);
             });
         });
@@ -3027,7 +2974,6 @@ describe('DataModel', () => {
                 expect(result[KEY_SORT_ORDERS].get(0)?.sortOrder).toBe(1);
                 expect(result[KEY_SORT_ORDERS].get(0)?.isUnique).toBe(true);
 
-                // Append ascending data
                 dataSet.addTransaction({ append: [{ x: 4, y: 40 }] });
                 const reprocessed = dataModel.reprocessData(result, undefined, undefined);
 
@@ -3054,7 +3000,6 @@ describe('DataModel', () => {
                 const result = dataModel.processData(sources)!;
                 expect(result[KEY_SORT_ORDERS].get(0)?.sortOrder).toBe(1);
 
-                // Append data that violates ascending order
                 dataSet.addTransaction({ append: [{ x: 1, y: 40 }] });
                 const reprocessed = dataModel.reprocessData(result, undefined, undefined);
 
@@ -3080,7 +3025,6 @@ describe('DataModel', () => {
                 const result = dataModel.processData(sources)!;
                 expect(result[KEY_SORT_ORDERS].get(0)?.isUnique).toBe(true);
 
-                // Append duplicate key
                 dataSet.addTransaction({ append: [{ x: 3, y: 40 }] });
                 const reprocessed = dataModel.reprocessData(result, undefined, undefined);
 
@@ -3103,7 +3047,6 @@ describe('DataModel', () => {
                 expect(result[KEY_SORT_ORDERS].get(0)?.sortOrder).toBe(1);
                 expect(result[KEY_SORT_ORDERS].get(0)?.isUnique).toBe(true);
 
-                // Rolling window: remove from start, append to end
                 for (let i = 0; i < 10; i++) {
                     const toRemove = initialData[i];
                     dataSet.addTransaction({
@@ -3114,7 +3057,6 @@ describe('DataModel', () => {
 
                 const reprocessed = dataModel.reprocessData(result, undefined, undefined);
 
-                // Order should be preserved
                 expect(reprocessed[KEY_SORT_ORDERS].get(0)?.sortOrder).toBe(1);
                 expect(reprocessed[KEY_SORT_ORDERS].get(0)?.isUnique).toBe(true);
             });
@@ -3135,7 +3077,6 @@ describe('DataModel', () => {
                 testLogger
             );
 
-            // Create sorted unique Date data
             const data = Array.from({ length: 30 }, (_, i) => ({
                 date: new Date(`2024-01-${String(i + 1).padStart(2, '0')}`),
                 value: i * 10,
@@ -3145,11 +3086,9 @@ describe('DataModel', () => {
 
             const result = dataModel.processData(sources)!;
 
-            // Verify KEY_SORT_ORDERS metadata
             expect(result[KEY_SORT_ORDERS].get(0)?.sortOrder).toBe(1);
             expect(result[KEY_SORT_ORDERS].get(0)?.isUnique).toBe(true);
 
-            // Verify domain is correct
             expect(result.domain.keys[0].length).toBe(30);
             expect(result.domain.keys[0][0]).toBeInstanceOf(Date);
             expect((result.domain.keys[0][0] as Date).getTime()).toBe(new Date('2024-01-01').getTime());
@@ -3178,7 +3117,6 @@ describe('DataModel', () => {
 
             const result = dataModel.processData(sources)!;
 
-            // Append new sorted data
             dataSet.addTransaction({
                 append: [{ date: new Date('2024-01-31'), value: 300 }],
             });
@@ -3186,11 +3124,9 @@ describe('DataModel', () => {
             const reprocessed = dataModel.reprocessData(result, undefined, undefined);
             verifyReprocessMatchesBaseline(dataModel, reprocessed, sources);
 
-            // Verify domain extended
             expect(reprocessed.domain.keys[0].length).toBe(31);
             expect((reprocessed.domain.keys[0][30] as Date).getTime()).toBe(new Date('2024-01-31').getTime());
 
-            // Verify sort order preserved
             expect(reprocessed[KEY_SORT_ORDERS].get(0)?.sortOrder).toBe(1);
             expect(reprocessed[KEY_SORT_ORDERS].get(0)?.isUnique).toBe(true);
         });
@@ -3208,7 +3144,6 @@ describe('DataModel', () => {
                 testLogger
             );
 
-            // Start with Jan 1-30
             const data = Array.from({ length: 30 }, (_, i) => ({
                 date: new Date(`2024-01-${String(i + 1).padStart(2, '0')}`),
                 value: i * 10,
@@ -3218,11 +3153,9 @@ describe('DataModel', () => {
 
             let result: any = dataModel.processData(sources)!;
 
-            // Rolling window: remove first, append next day (continuing into February)
             const appendedDates: Date[] = [];
             for (let i = 0; i < 5; i++) {
                 const toRemove = data[i];
-                // Continue sequence into February: Jan 31, Feb 1, Feb 2, Feb 3, Feb 4
                 const newDate = new Date(2024, i === 0 ? 0 : 1, i === 0 ? 31 : i);
                 appendedDates.push(newDate);
                 dataSet.addTransaction({
@@ -3234,11 +3167,7 @@ describe('DataModel', () => {
                 verifyReprocessMatchesBaseline(dataModel, result, sources);
             }
 
-            // For discrete domains with banding, the domain tracks ALL unique values
-            // ever seen (not just currently visible ones). The bands are rebuilt on
-            // structure changes, but the full domain history is preserved.
-            // Current data is Jan 6-Feb 4 (30 items), but domain includes all seen dates.
-            // The actual length depends on banding behaviour, but first and last should match.
+            // A banded discrete domain retains every unique value ever seen, so only its first and last entries are predictable.
             const domainTimes = result.domain.keys[0]
                 .map((d: Date) => d.getTime())
                 .filter((t: number) => Number.isFinite(t));

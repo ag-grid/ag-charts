@@ -4,9 +4,7 @@ import type { AgTooltipPlacement } from 'ag-charts-types';
 
 import { type TooltipBoundsOpts, getTooltipBounds } from './tooltipBounds';
 
-// AG-17064 coverage for the directional `tooltip.position.offset` property, with
-// explicit regression coverage for comment 111104 (David Glickman): `anchorTo: 'chart'`
-// previously ignored the offset, causing tooltips to sit flush against the chart edge.
+// Coverage for the directional `tooltip.position.offset` property, including `anchorTo: 'chart'`.
 
 const TOOLTIP_SIZE = { width: 100, height: 50 };
 const CANVAS_RECT = { width: 800, height: 600 };
@@ -67,8 +65,8 @@ describe('getTooltipBounds', () => {
     });
 
     describe("anchorTo: 'pointer' — offset pushes outward from the anchor point", () => {
-        // Regression guard: pointer/node anchoring uses opposite sign to chart anchoring —
-        // the tooltip is pushed AWAY from the pointer along the placement direction.
+        // Pointer/node anchoring uses the opposite sign to chart anchoring: the tooltip is pushed
+        // AWAY from the pointer along the placement direction.
 
         it("placement: 'top' with offset: 12 sits 12px above the pointer", () => {
             const zero = getTooltipBounds(

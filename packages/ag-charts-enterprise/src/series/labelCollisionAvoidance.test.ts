@@ -18,8 +18,7 @@ import { ukRoadData } from './map-test/ukRoadData';
 import ukRoadTopology from './map-test/ukRoadTopology.json';
 import ukTopology from './map-test/ukTopology.json';
 
-// Consolidated placement/collision coverage for enterprise series. Collision resolution always runs;
-// `collideWith` within `label.collision` is undocumented, so option objects that use it are built
+// `collideWith` within `label.collision` is undocumented, so option objects using it are built
 // untyped and cast at the AgCharts.create boundary.
 describe('label collision avoidance', () => {
     setupMockConsole();
@@ -50,7 +49,6 @@ describe('label collision avoidance', () => {
         return series.labelSelection.nodes().filter((node) => node.visible).length;
     };
 
-    // Renders a placement-cascade options factory and returns how many labels stayed visible.
     const renderPlacementCount = async (
         makeOptions: (collision: object, placement?: string | string[]) => object,
         collision: object,
@@ -63,12 +61,10 @@ describe('label collision avoidance', () => {
         return visibleLabelCount();
     };
 
-    // A tight cluster of lat/lon markers (projection fixed by the UK background) forces overlapping
-    // labels, so placement candidates always resolve real collisions; `alwaysShow` only decides the
-    // terminal outcome for a label that fails every candidate.
+    // A tight cluster of markers forces overlapping labels, so placement candidates always resolve
+    // real collisions.
     describe('map-marker', () => {
-        // 4x4 grid of points within a ~1° box; at the UK-wide projection they land in a small pixel
-        // region, so their labels overlap heavily.
+        // A ~1° box lands in a small pixel region at the UK-wide projection, so labels overlap heavily.
         const collisionData = Array.from({ length: 16 }, (_, i) => ({
             name: `Site ${i + 1}`,
             lat: 51.5 + (i % 4) * 0.3,
@@ -97,8 +93,7 @@ describe('label collision avoidance', () => {
             await renderAndSnapshot(markerOptions({ collision: { alwaysShow: true } }));
         });
 
-        // The theme default is `collision.alwaysShow: false` (map-marker hides on collision), so a chart
-        // with no explicit `collision` option must behave exactly like the explicit `alwaysShow: false` case.
+        // The theme default is `collision.alwaysShow: false`, so an unset option must match it.
         it('hides overlapping labels by default, matching the explicit alwaysShow: false count', async () => {
             const render = async (config: object) => {
                 chart?.destroy();
@@ -113,15 +108,13 @@ describe('label collision avoidance', () => {
             };
 
             const defaultVisible = await render({});
-            // Anti-vacuous guard: the dense cluster must actually force some labels to hide.
             expect(defaultVisible).toBeLessThan(collisionData.length);
 
             const explicitVisible = await render({ collision: { alwaysShow: false } });
             expect(defaultVisible).toBe(explicitVisible);
         });
 
-        // `label.spacing` is the gap between a marker-based label and its anchor; a larger value pushes
-        // the label further from the marker. A single isolated marker so its 'top' label never collides.
+        // A single isolated marker, so its 'top' label never collides and only spacing varies.
         const singleMarker = (spacing: number) =>
             ({
                 topology: ukTopology,
@@ -153,8 +146,7 @@ describe('label collision avoidance', () => {
         });
     });
 
-    // Map-line labels centre on the line (no directional placement), so collision resolution only ever
-    // decides whether an overlapping label is hidden or kept.
+    // Map-line labels centre on the line, so collision only decides hidden vs kept.
     describe('map-line', () => {
         const lineOptions = (config: object) => ({
             topology: ukRoadTopology,
@@ -164,8 +156,7 @@ describe('label collision avoidance', () => {
                     type: 'map-line',
                     idKey: 'name',
                     labelKey: 'name',
-                    // Large bold labels so neighbouring route names genuinely overlap, forcing the
-                    // collision pass to drop some when hideable (and keep them all with alwaysShow: true).
+                    // Large bold labels so neighbouring route names genuinely overlap.
                     label: { enabled: true, fontSize: 24, fontWeight: 'bold', ...config },
                 },
             ],
@@ -179,8 +170,7 @@ describe('label collision avoidance', () => {
             await renderAndSnapshot(lineOptions({ collision: { alwaysShow: true } }));
         });
 
-        // The theme default is `collision.alwaysShow: false` (map-line hides on collision), so a chart
-        // with no explicit `collision` option must behave exactly like the explicit `alwaysShow: false` case.
+        // The theme default is `collision.alwaysShow: false`, so an unset option must match it.
         it('drops overlapping route labels by default, matching the explicit alwaysShow: false count', async () => {
             const render = async (config: object) => {
                 chart?.destroy();
@@ -192,7 +182,6 @@ describe('label collision avoidance', () => {
             };
 
             const defaultVisible = await render({});
-            // Anti-vacuous guard: the bold, large route labels must actually force some to hide.
             expect(defaultVisible).toBeLessThan(ukRoadData.length);
 
             const explicitVisible = await render({ collision: { alwaysShow: false } });
@@ -200,8 +189,7 @@ describe('label collision avoidance', () => {
         });
     });
 
-    // A `placement` array is an ordered fallback list: the first candidate that clears its obstacles wins,
-    // so an array whose first candidate already fits renders identically to that single placement.
+    // A `placement` array is an ordered fallback list: the first candidate that clears its obstacles wins.
     describe('bar-family placement cascade (first fitting candidate wins)', () => {
         it('waterfall renders an array placement identically to its first candidate', async () => {
             const options = (placement: string | string[]): AgChartOptions => ({
@@ -286,8 +274,6 @@ describe('label collision avoidance', () => {
         });
     });
 
-    // `label.orientation` rotates bar-family labels along/across the bar's length. Coverage across the
-    // enterprise bar-family series; the `horizontal`/`vertical` distinction is what varies.
     describe('bar-family label orientation', () => {
         const orientations = ['horizontal', 'vertical', 'vertical-reversed'];
         const rangeData = [
@@ -340,10 +326,8 @@ describe('label collision avoidance', () => {
             });
         }
 
-        // Orientation array fall-through for waterfall (inside-center, so the fit region is the bar rect):
-        // tall, thin bars whose long upright (horizontal) label overflows the bar width fall through to
-        // vertical for every bar, matching a fixed vertical orientation. Alternating deltas keep
-        // the bars tall so the vertical candidate fits the bar height.
+        // Tall, thin bars whose horizontal label overflows the bar width must fall through to the
+        // vertical candidate; alternating deltas keep the bars tall enough for it to fit.
         it('waterfall falls through to vertical when the horizontal label overflows a thin bar', async () => {
             const thinWaterfall = (orientation: string | string[]) => {
                 const label = { enabled: true, placement: 'inside-center', orientation, formatter: () => 'WWWWWWWWWW' };
@@ -367,9 +351,8 @@ describe('label collision avoidance', () => {
             );
         });
 
-        // Range-bar carries two labels (low + high) per node, each anchored at a bar end. An inside
-        // orientation array resolves against the bar rect and the resolved label is slid flush inside
-        // it, so neither end label straddles or overflows the bar. Coverage of the dual-label seam.
+        // Range-bar carries two labels per node, and an inside orientation array must slide each
+        // flush inside the bar rect rather than straddling it.
         it('range-bar resolves an inside-placement orientation array against the bar rect', async () => {
             await renderAndSnapshot({
                 data: Array.from({ length: 10 }, (_, i) => ({ x: `C${i}`, low: 0, high: 100 })),
@@ -393,8 +376,8 @@ describe('label collision avoidance', () => {
     });
 
     describe('cross-series obstacles (baked range-bar labels vs scatter label)', () => {
-        // Range-bar A spans low 2 to high 8, baking a label at each end. The HIT scatter point sits just
-        // below the low label so its `top` candidate lands on it; the rest are clear.
+        // The HIT scatter point sits just below range-bar A's low label so its `top` candidate
+        // collides; the rest are clear.
         const rangeData = [
             { x: 'A', low: 2, high: 8 },
             { x: 'B', low: 3, high: 7 },
@@ -453,11 +436,9 @@ describe('label collision avoidance', () => {
             const [rangeBar, scatter] = chart.series as unknown as Parameters<typeof visibleLabelBoxes>[0][];
             const rangeBarBoxes = visibleLabelBoxes(rangeBar);
             const scatterBoxes = visibleLabelBoxes(scatter);
-            // Anti-vacuous guards: both series must render labels for the invariant to mean anything.
             expect(rangeBarBoxes.length).toBeGreaterThan(0);
             expect(scatterBoxes.length).toBeGreaterThan(0);
-            // A hideable scatter label must never remain visible on top of a range-bar's baked label
-            // (this covers both the low and high end labels contributed to the obstacle index).
+            // A hideable scatter label must never remain visible on top of a range-bar's baked label.
             for (const rangeBarBox of rangeBarBoxes) {
                 for (const scatterBox of scatterBoxes) {
                     expect(overlaps(rangeBarBox, scatterBox)).toBe(false);
@@ -467,9 +448,8 @@ describe('label collision avoidance', () => {
     });
 
     describe('waterfall placement cascade and own-label hiding', () => {
-        // A single positive bar filling the value axis; its `outside-end` label overflows the series area
-        // into the padding band, so a hideable single-placement label is dropped when series-area
-        // avoidance is on, while a placement array cascades to an inside candidate that fits.
+        // The bar's `outside-end` label overflows the series area, so series-area avoidance must
+        // drop a single-placement label and cascade a placement array to an inside candidate.
         const options = (collision: object, placement: string | string[] = 'outside-end'): any => ({
             data: [{ x: 'A', y: 10 }],
             legend: { enabled: false },

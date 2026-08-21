@@ -59,8 +59,7 @@ export function DeliveryMap({ shipments, selectedShipmentId, onShipmentClick }: 
     const options = useMemo<AgTopologyChartOptions<MapPoint>>(() => {
         const dimmed = (id: string) => selectedShipmentId != null && id !== selectedShipmentId;
 
-        // One route series per status, matching the marker series below, so a lane's line
-        // and its marker always agree on colour without a per-datum styler.
+        // One route series per status, so a lane's line and marker agree on colour without a per-datum styler.
         const routeSeries = STATUS_DRAW_ORDER.map<AgMapLineSeriesOptions<MapPoint>>((status) => ({
             type: 'map-line',
             topology: ROUTE_TOPOLOGY,
@@ -68,9 +67,7 @@ export function DeliveryMap({ shipments, selectedShipmentId, onShipmentClick }: 
             idKey: 'id',
             data: points.filter((point) => point.shipment?.status === status),
             stroke: STATUS_COLORS[status],
-            // Routes are context, markers are the data. A hundred lanes converging on three
-            // plants overlap heavily, and at a heavier weight the overlaps blend into a
-            // muddy wash that reads as neither status colour.
+            // Light weight: at a heavier one, overlapping lanes blend into a wash that reads as neither status colour.
             strokeWidth: 1,
             strokeOpacity: 0.28,
             // The status key is rendered as HTML beside the card, so nothing needs a legend.
@@ -81,12 +78,10 @@ export function DeliveryMap({ shipments, selectedShipmentId, onShipmentClick }: 
             highlight: { enabled: false },
         }));
 
-        // One series per status, so each status gets its own marker shape as well as its
-        // own colour — the accessibility requirement is that status never rests on colour.
+        // One series per status, so status never rests on colour alone.
         const markerSeries = STATUS_DRAW_ORDER.map<AgMapMarkerSeriesOptions<MapPoint>>((status) => ({
             type: 'map-marker',
-            // Positional, so deliberately no `idKey`: with one, the series would try to
-            // match each shipment against the country topology and warn that it cannot.
+            // Positional, so deliberately no `idKey`: with one the series would warn it cannot match the topology.
             latitudeKey: 'latitude',
             longitudeKey: 'longitude',
             data: points.filter((point) => point.shipment?.status === status),
@@ -140,8 +135,7 @@ export function DeliveryMap({ shipments, selectedShipmentId, onShipmentClick }: 
             fill: 'var(--pc-text)',
             stroke: 'var(--pc-panel)',
             strokeWidth: 1.5,
-            // Plants sit where every lane converges, so the label needs somewhere to go:
-            // an ordered fallback list is tried until one placement fits.
+            // Plants sit where every lane converges, so an ordered fallback list is tried until a placement fits.
             label: {
                 fontSize: 11,
                 color: 'var(--pc-muted)',
@@ -166,8 +160,7 @@ export function DeliveryMap({ shipments, selectedShipmentId, onShipmentClick }: 
                 plants,
                 ...markerSeries,
             ],
-            // The status legend is rendered as HTML alongside the board, so it can carry
-            // the same glyphs the tiles use.
+            // The status legend is rendered as HTML alongside the board, carrying the same glyphs as the tiles.
             legend: { enabled: false },
             padding: 0,
         };

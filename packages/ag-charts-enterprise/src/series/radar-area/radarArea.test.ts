@@ -205,10 +205,7 @@ describe('RadarAreaSeries', () => {
         await compare();
     });
 
-    // The initial-load reveal, asserted over the whole animation trajectory (see the
-    // animation-trajectory-tests rule) rather than as per-ratio image snapshots. Each series'
-    // fill and line path grows from the polar centre — its bounding box sweeps from a point to
-    // full size while the data labels fade in at the tail of the reveal.
+    // Each series' fill and line path grows from the polar centre while data labels fade in at the tail of the reveal.
     describe('initial animation', () => {
         const frames = spyOnAnimationFrames();
 
@@ -231,8 +228,6 @@ describe('RadarAreaSeries', () => {
             for (const key of keys) {
                 const width = trajectory.map((frame) => frame.get(key)!.width);
                 const height = trajectory.map((frame) => frame.get(key)!.height);
-                // Anti-vacuity: the path collapses to a point at frame 0 and settles at full size,
-                // so the directional specs below cannot pass flat.
                 expect(width[0], `${key} width at frame 0`).toBeLessThanOrEqual(0.01);
                 expect(width.at(-1)!, `${key} width settled`).toBeGreaterThan(1);
                 expectMonotonic(width, 'increasing');
@@ -255,8 +250,7 @@ describe('RadarAreaSeries', () => {
                 'series[*]/path[*]': {
                     width: ['increases', 'progresses'],
                     height: ['increases', 'progresses'],
-                    // The bbox grows about the fixed polar centre, so its top-left corner drifts
-                    // outward in lock-step with the width/height reveal.
+                    // The bbox grows about the fixed polar centre, so its top-left corner drifts with the reveal.
                     x: 'any',
                     y: 'any',
                     // Per-station top-y crossings are non-finite while the path is collapsed.
@@ -273,8 +267,6 @@ describe('RadarAreaSeries', () => {
             expectSceneTrajectory(trajectory, spec);
         });
 
-        // Pixel endpoint guard replacing the deleted 0%/100% ratio snapshots: the animated reveal
-        // must settle at exactly what a snapped render of the same options produces.
         it('reveal endpoints match a static render', async () => {
             const options: AgChartOptions = { ...EXAMPLE_OPTIONS };
             prepareEnterpriseTestOptions(options);
@@ -690,13 +682,11 @@ describe('RadarAreaSeries', () => {
                 await waitForChartStability(chart);
             });
             test('snapshot', async () => {
-                // The 'pattern' fill type is rendered slightly different on GitHub CI, but the difference isn't
-                // noticeable without an image-diff aid. I've counted the exact number of pixels that differ.
+                // The 'pattern' fill type renders slightly differently on GitHub CI, imperceptible without an image-diff aid.
                 await compare(looserSnapshotDefaults(0.08));
             });
         });
         describe('highlights', () => {
-            // Manual-test version available at radar-area-series-test#styler-highlight-state
             beforeEach(async () => {
                 chart = AgCharts.create(
                     prepareEnterpriseTestOptions<O>({
@@ -787,7 +777,6 @@ describe('RadarAreaSeries', () => {
                     expect(popCalls()).toMatchSnapshot();
 
                     await hover(legendItem1);
-                    // Wait for delayed unhighlights to complete
                     await waitForChartStability(chart, MIN_UNHIGHLIGHT_DELAY);
                     expect(popCalls()).toMatchSnapshot();
                 });

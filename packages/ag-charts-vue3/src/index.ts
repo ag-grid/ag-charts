@@ -9,9 +9,8 @@ import {
     AgQuadrantChartOptions,
 } from 'ag-charts-community';
 
-// Spreading `options` into the container merge turns anything spreadable - `undefined`, `3`, `{}` -
-// into a valid `{ container }` object, so the guard inside `AgCharts.create()` can never see what the
-// caller passed. Validate the raw prop first, and report the same error against the prop itself.
+// Spreading `options` into the container merge turns anything spreadable into a valid `{ container }`
+// object, so `AgCharts.create()`'s own guard can never see what the caller passed. Validate the raw prop.
 function mergeOptions<O>(options: O, container: HTMLElement, componentName: string): O {
     return { ...AgChartsAPI.__validateOptionsArgument(options, `${componentName} \`options\` prop`), container };
 }

@@ -43,9 +43,7 @@ interface PresenceCase {
     missingDataFill: string | undefined;
 }
 
-// Tier-2 colour-scale series (bubble, scatter) keep the tooltip on missing-colour datums:
-// the marker, label and geometry exist independently of colour, so the mark stays queryable.
-// `missingDataFill` is a cosmetic override — it does not change tooltip behaviour.
+// Tier-2 colour-scale series keep the tooltip on missing-colour datums; `missingDataFill` is a cosmetic override only.
 const cases: PresenceCase[] = [
     { name: 'BubbleSeries with missingDataFill', seriesType: 'bubble', missingDataFill: '#cccccc' },
     { name: 'ScatterSeries with missingDataFill', seriesType: 'scatter', missingDataFill: '#cccccc' },
@@ -53,10 +51,8 @@ const cases: PresenceCase[] = [
     { name: 'ScatterSeries without missingDataFill', seriesType: 'scatter', missingDataFill: undefined },
 ];
 
-// AG-16046 pt2: BubbleSeries and ScatterSeries are defined in community but their `colorKey`
-// option is enterprise-gated by `enterprise(string)` in their option defs. Tests that exercise
-// missing-colorValue behaviour must therefore run under the enterprise registry mode set up by
-// `prepareEnterpriseTestOptions`; otherwise the option is cleared and the code path is never hit.
+// `colorKey` is enterprise-gated on these community series options, so tests must run under
+// `prepareEnterpriseTestOptions` or the option is cleared and the code path is never hit.
 describe('colorScale.missingDataFill - bubble/scatter', () => {
     setupMockConsole();
     setupMockCanvas();
@@ -150,9 +146,7 @@ describe('colorScale.missingDataFill - bubble/scatter', () => {
     );
 });
 
-// AG-17296: Verify that a user-supplied partial `colorScale` (e.g. `{}` or `{ mode: 'discrete' }`)
-// does not wipe the theme-supplied fills for series that derive their palette via `$map` theme
-// expressions.
+// A user-supplied partial `colorScale` must not wipe theme-supplied fills derived via `$map` theme expressions.
 describe('colorScale partial options — theme fills survive user partials', () => {
     setupMockConsole();
     setupMockCanvas();

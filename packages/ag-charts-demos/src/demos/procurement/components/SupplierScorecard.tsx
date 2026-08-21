@@ -59,8 +59,7 @@ function ContactActions() {
  * positionally is a sortable, labelled column here.
  */
 export function SupplierScorecard({ rows, supplierColors, selectedSupplierId, onSelect }: SupplierScorecardProps) {
-    // Wrapped headers are what let the figure columns be as narrow as their figures: "vs contract"
-    // sets the floor otherwise, and in a half-width card that padding is the whole budget.
+    // Wrapped headers let the figure columns be as narrow as their figures; "vs contract" sets the floor otherwise.
     const defaultColDef = useMemo<ColDef<Row>>(
         () => ({ ...baseColDef<Row>(), wrapHeaderText: true, autoHeaderHeight: true }),
         []
@@ -74,8 +73,7 @@ export function SupplierScorecard({ rows, supplierColors, selectedSupplierId, on
                 minWidth: 150,
                 flex: 1.4,
                 filter: false,
-                // The selector, rather than the row: it carries the pressed state, and a button is
-                // reachable and toggleable from the keyboard where a row is not.
+                // The selector carries the pressed state, and a button is keyboard-reachable where a row is not.
                 cellRenderer: ({ data }: ICellRendererParams<Row>) =>
                     data == null ? null : (
                         <button
@@ -124,9 +122,7 @@ export function SupplierScorecard({ rows, supplierColors, selectedSupplierId, on
                 minWidth: 66,
                 type: 'rightAligned',
                 filter: false,
-                // Deliberately untoned. Every supplier rejects something, so a rule that reddens any
-                // non-zero figure reddens the whole column and stops meaning anything; the quality
-                // score beside it already carries the against-target judgement.
+                // Deliberately untoned: every supplier rejects something, so reddening non-zero figures means nothing.
                 valueFormatter: ({ value }) => fmtCurrencyCompact(value),
             },
             {
@@ -144,8 +140,7 @@ export function SupplierScorecard({ rows, supplierColors, selectedSupplierId, on
                 minWidth: 56,
                 type: 'rightAligned',
                 filter: false,
-                // A count rather than a quantity: her commodity is bought in both tonnes and kilos, so
-                // a summed quantity is only comparable between suppliers that happen to share a unit.
+                // A count, not a quantity: the commodity is bought in both tonnes and kilos.
                 valueFormatter: ({ value }) => fmtInt(value),
             },
             {
@@ -162,9 +157,7 @@ export function SupplierScorecard({ rows, supplierColors, selectedSupplierId, on
                 minWidth: 62,
                 type: 'rightAligned',
                 filter: false,
-                // Always days, so the column is one comparable number down the row rather than dates
-                // and countdowns mixed. `daysToRenewal` goes negative once a contract has lapsed, and
-                // the minus is the whole meaning — hence the sign rather than a bare figure.
+                // Always signed days: `daysToRenewal` goes negative once a contract has lapsed, and the minus is the meaning.
                 valueFormatter: ({ value }) => (value < 0 ? `−${fmtInt(Math.abs(value))}d` : `${fmtInt(value)}d`),
             },
             {
@@ -172,8 +165,7 @@ export function SupplierScorecard({ rows, supplierColors, selectedSupplierId, on
                 headerName: 'Contact',
                 minWidth: 84,
                 maxWidth: 84,
-                // Pinned, as in the purchase-order grid: an action she has to scroll sideways to
-                // reach is an action she will not take.
+                // Pinned: an action she has to scroll sideways to reach is an action she will not take.
                 pinned: 'right',
                 sortable: false,
                 filter: false,

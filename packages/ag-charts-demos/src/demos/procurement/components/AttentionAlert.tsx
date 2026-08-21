@@ -46,8 +46,7 @@ export function AttentionAlert({ items, onSelect, onResolve }: AttentionAlertPro
         triggerRef.current?.focus();
     }, []);
 
-    // The panel is modal — the scrim takes every click meant for the page behind it — so Tab has to
-    // be contained too, or focus walks into controls the pointer cannot reach.
+    // The panel is modal, so Tab has to be contained or focus walks into unreachable controls.
     useEffect(() => {
         if (!open) return;
         const panel = panelRef.current;
@@ -65,8 +64,7 @@ export function AttentionAlert({ items, onSelect, onResolve }: AttentionAlertPro
             );
             const active = document.activeElement;
             if (focusable.length === 0) {
-                // Nothing to land on — the all-clear state has no controls but the close button, so
-                // this is only reachable if that ever goes. Hold focus on the panel itself.
+                // No controls but the close button in the all-clear state; hold focus on the panel itself.
                 event.preventDefault();
                 panel.focus();
                 return;
@@ -75,9 +73,7 @@ export function AttentionAlert({ items, onSelect, onResolve }: AttentionAlertPro
             const first = focusable[0];
             const last = focusable[focusable.length - 1];
             const inside = active instanceof Node && panel.contains(active);
-            // Wrapping at both ends, and pulling stray focus back in: forwards off the last control
-            // returns to the first, backwards off the first (or off the panel itself, which is where
-            // focus starts) returns to the last.
+            // Wrap at both ends, and pull stray focus (including off the panel itself) back into the list.
             if (event.shiftKey ? active === first || active === panel || !inside : active === last || !inside) {
                 event.preventDefault();
                 (event.shiftKey ? last : first).focus();
@@ -100,8 +96,7 @@ export function AttentionAlert({ items, onSelect, onResolve }: AttentionAlertPro
         if (panel && !panel.contains(document.activeElement)) panel.focus();
     }, [open, items.length]);
 
-    // Following an item moves the workspace underneath, so the panel gets out of the way. Resolving
-    // one does not: she works the list down, and closing after every decision would fight her.
+    // Following an item moves the workspace, so the panel gets out of the way; resolving one does not.
     const select = useCallback(
         (shipmentId: string) => {
             onSelect(shipmentId);

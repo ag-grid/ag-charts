@@ -7,12 +7,10 @@ import { toAbsoluteUrl } from '@ag-website-shared/markdoc/toAbsoluteUrl';
 import { resolveSharedUrl } from '@ag-website-shared/utils/resolveSharedUrl';
 import { urlWithPrefix } from '@utils/urlWithPrefix';
 
-// The page is framework-agnostic; resolve its framework-prefixed doc links against a
-// single framework, matching the other markdown-page builders.
+// The page is framework-agnostic, so its doc links resolve against one arbitrary framework.
 const FRAMEWORK: Framework = 'javascript';
 
-// Feature-matrix JSON shape (see chartsFeaturesMatrix.json). The charts matrix is a
-// flat list of sections, each holding leaf features — it has no nested sub-groups.
+// The charts feature matrix is a flat list of sections; it has no nested sub-groups.
 type FeatureValue = boolean | { value: boolean; detail?: string };
 interface FeatureLeaf {
     label: { name: string; link: string; icon?: string };
@@ -46,9 +44,7 @@ function featureCell(value: FeatureValue): string {
 }
 
 function featureRow(leaf: FeatureLeaf, siteRoot?: string): string[] {
-    // `resolveSharedUrl` turns the `grid:`/`charts:` prefix into the resolved doc URL
-    // (absolute in a real build, since GRID_URL/CHARTS_SITE_URL carry the origin);
-    // toAbsoluteUrl then fills in the origin for any root-relative result.
+    // resolveSharedUrl only yields an absolute URL in a real build, so fill in the origin after.
     const href = toAbsoluteUrl(resolveSharedUrl({ url: leaf.label.link, framework: FRAMEWORK }), siteRoot);
     return [
         `[${leaf.label.name.trim()}](${href})`,
@@ -73,8 +69,7 @@ function renderFeatureMatrix(sections: FeatureSection[], siteRoot?: string): str
 }
 
 function renderPlans(siteRoot?: string): string {
-    // The AG Charts pricing page defaults to the charts view, showing the AG Charts
-    // plans plus the shared Enterprise Bundle (see LicensePricing defaultSelection).
+    // Matches LicensePricing's defaultSelection: the charts plans plus the Enterprise Bundle.
     const chartsPlans = DEV_LICENSE_DATA.filter((plan) => plan.tabGroup === 'charts' || plan.tabGroup === 'both');
     const rows = chartsPlans.map((plan) => {
         const suffix = plan.description ? ` (${htmlToText(plan.description)})` : '';

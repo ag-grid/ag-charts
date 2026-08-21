@@ -191,9 +191,8 @@ export class GroupedCategoryAxis extends CategoryAxis<
             if (maxWidth < MIN_CATEGORY_SPACING) continue;
 
             const inputText = tickFormatter(datum.label, index - 1);
-            // Capture the pick identity here, at the one place this axis decides what `value` and `index`
-            // a tick has, so a click cannot disagree with the formatter. The perpendicular extent is not
-            // known until the row sizes below have been summed, so it is filled in afterwards.
+            // Captured here so a click cannot disagree with the formatter; the perpendicular extent is
+            // only known once the row sizes below have been summed.
             const alongHalfWidth = ((datum.leafCount || 1) * step) / 2;
             pickIdentities.push({
                 index: index - 1,
@@ -265,9 +264,8 @@ export class GroupedCategoryAxis extends CategoryAxis<
             tickSizeAtDepth[d] = labelSum + spacingSum;
         }
 
-        // Each depth occupies one row stacked outwards from the axis line, bounded by the cumulative
-        // sizes above. The outermost row runs to infinity so that clicks beyond the labels — on the axis
-        // title, say — still resolve to the group they sit under rather than to no tick at all.
+        // One row per depth, stacked outwards; the outermost runs to infinity so clicks beyond the
+        // labels still resolve to the group they sit under.
         this.pickTickData = pickIdentities.map(({ depth, ...identity }) => ({
             ...identity,
             cross: [

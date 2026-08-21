@@ -4,9 +4,7 @@ import { AllEnterpriseModule } from 'ag-grid-enterprise';
 // Enterprise bundle (includes all community features) — needed for the Set Filter.
 ModuleRegistry.registerModules([AllEnterpriseModule]);
 
-// Light Quartz theme matching the dashboard chrome. The grid theme API derives shades from these
-// and so takes literal colours, which is why they mirror the Signal tokens in procurement.css
-// rather than referencing them — change both.
+// The grid theme API derives shades from literal colours, so these mirror the Signal tokens in procurement.css.
 export const gridTheme = themeQuartz.withParams({
     backgroundColor: '#ffffff', // --color-panel
     foregroundColor: '#17181a', // --color-text-primary

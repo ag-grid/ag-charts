@@ -62,10 +62,8 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
         this.axisCtx.attachAxisOverlay(this.lineGroup, 'mid');
         this.axisCtx.attachAxisOverlay(this.labelGroup, 'high');
 
-        // Both handlers hit-test this axis's cross lines against the pointer, then diverge: the
-        // context-menu one annotates the series-area handoff — mirroring how axis-owning modules
-        // annotate `event.axis` (see axisDomProxy), which the series-area dispatch turns into a
-        // `cross-line` menu region — while the pointer-click one runs the cross-line listeners directly.
+        // Both hit-test this axis's cross lines, then diverge: the context-menu one annotates the
+        // series-area handoff, the pointer-click one runs the cross-line listeners directly.
         this.removePointerListeners = [
             this.ctx.eventsHub.on('series-area:contextmenu', (event) => this.onSeriesAreaContextMenu(event)),
             this.ctx.eventsHub.on('series-area:pointer-click', (event) => this.onSeriesAreaPointerClick(event)),
@@ -103,12 +101,8 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
                 range: crossLine.range,
             };
 
-            // The cross line's own listener runs first, then the owning axis's, then the chart's. All
-            // three share one params object, and `callWithContext` resolves the context onto it (axis
-            // first, chart as the fallback) on the first call. The chart dispatch goes through
-            // `callWithContext` as well rather than calling `fireEvent` directly, so the chart listener
-            // sees that same axis-first context even when neither of the other two is registered to
-            // have resolved it.
+            // Cross line, then axis, then chart, all sharing one params object so `callWithContext`
+            // resolves the context axis-first for every listener, including the chart's.
             const { listeners } = this.axisCtx;
             const callers = [this.axisCtx.caller, this.ctx.chartService];
             const crossLineListener = isClick ? crossLine.listeners?.click : crossLine.listeners?.doubleClick;

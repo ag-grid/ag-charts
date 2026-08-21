@@ -43,15 +43,9 @@ const contextMenuReference = () =>
         })
     );
 
-// Regression for the themes-api page failing to load with "RangeError: Maximum call stack size
-// exceeded". The crash was not infinite recursion — `extractSearchData` builds a finite but very
-// large index (the AgChartTheme tree reaches ~150k entries), and the previous implementation
-// assembled it with `results.push(...childArray)`. Spreading a child array as call arguments
-// overflows V8's argument limit (~125k in Node, lower in browsers) and throws. The fix flattens the
-// recursion into a shared accumulator so no large array is ever spread as arguments.
-//
-// This builds a non-cyclic Root -> Wide -> Leaf structure whose Wide subtree expands to
-// breadth + breadth^2 entries, comfortably above the argument limit, reproducing the overflow.
+// A non-cyclic Root -> Wide -> Leaf structure whose Wide subtree expands to breadth + breadth^2
+// entries: enough to overflow V8's argument limit if the index is assembled by spreading child
+// arrays into `push`, as the real AgChartTheme tree (~150k entries) does.
 function makeLargeReference(breadth: number) {
     const member = (name: string, type: string) => ({ kind: 'member', name, type, optional: false });
     const reference: Record<string, unknown> = {
@@ -417,7 +411,6 @@ describe('extractSearchData', () => {
 
         const run = () => extractSearchData(reference as any, reference.get('Root'), [{ name: 'r', type: 'Root' }]);
 
-        // Pre-fix this threw "Maximum call stack size exceeded" while spreading the Wide subtree.
         expect(run).not.toThrow();
         // Root(1) + Wide members(breadth) + Leaf members per Wide member(breadth^2).
         expect(run()).toHaveLength(1 + breadth + breadth * breadth);

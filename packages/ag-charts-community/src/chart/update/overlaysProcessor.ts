@@ -85,10 +85,8 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
     private refresh(rect: BBox, seriesStateCurrent = true) {
         const newOverlayState = this.selectOverlayState(seriesStateCurrent);
 
-        // The validation overlay is a modal dialog spanning the whole chart (matching AG Grid's full-grid
-        // overlay), so it takes the chart/scene rect rather than the series rect. The overlay lives in
-        // canvas space, so anchor it to the scene size — width/height options can shrink the canvas below
-        // its DOM container — falling back to the container only before the first layout has a scene size.
+        // The validation overlay spans the whole chart, so it anchors to the scene rect: canvas space,
+        // which width/height options can shrink below the DOM container.
         const overlayRect =
             newOverlayState === 'validation' ? (this.lastChartRect ?? this.fullContainerRect() ?? rect) : rect;
 
@@ -107,11 +105,8 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
             this.overlayMounted = false;
         }
 
-        // The loading overlay's content is fixed for as long as the state holds, and re-creating the
-        // element restarts its fade-in animation — so while loading it is mounted once and then only
-        // repositioned, otherwise a burst of async requests re-fades it on every layout. Every other
-        // overlay derives its content from live state (validation lists its current issues) and must
-        // re-render on each refresh.
+        // Re-creating an element restarts its fade-in, so the loading overlay — whose content is fixed
+        // — mounts once; every other overlay derives content from live state and must re-render.
         const next = this.getOverlayFromState(this.overlayState);
         if (next) {
             const mountOnce = this.overlayState === 'loading';
@@ -138,10 +133,7 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
         if (this.dataService.isLoading()) {
             return 'loading';
         }
-        // Series-derived states are only meaningful once a layout has settled with the current
-        // options: option application dispatches a validation change before the new series are
-        // attached, so off-cycle the series still describe the previous update. Hold whatever the
-        // last layout concluded and let the next one revise it.
+        // Off-cycle the series still describe the previous update, so hold the last layout's verdict.
         if (!seriesStateCurrent) {
             return this.overlayState === 'validation' || this.overlayState === 'loading'
                 ? undefined
@@ -179,21 +171,16 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
 
     private showOverlay(overlay: Overlay, seriesRect: BBox) {
         const element = overlay.getElement(this.chartLike, this.animationManager, this.localeManager, seriesRect);
-        // The content is absolutely positioned with no `top`, so a placeholder text node (see hideOverlay)
-        // left in the container's flow displaces it by one line box. Clearing has to follow getElement(),
-        // which can itself write that placeholder by stopping the pending remove animation.
+        // Must clear after getElement(), which can itself write hideOverlay's placeholder text node —
+        // left in the flow it displaces this absolutely-positioned content by a line box.
         this.overlayElem.replaceChildren(element);
     }
 
     // Off an update cycle (e.g. a user dismiss) nothing drives the removal animation's batch, so its
     // cleanup — which detaches the element — never runs; remove synchronously there instead of animating.
     private hideOverlay(overlay: Overlay, animate = true) {
-        // AG-11424 Frustratingly, browsers do not reliably announce aria-live changes to overlayElem when
-        // re-adding an identical element. This seems that if, for example, the user toggle the last visible
-        // series off/on/off, then the second "No visible series" overlay announcement may not get fired.
-        // Firefox & Safari seem to handle this correctly, whereas Chromium does not. However setting the
-        // content to a No-Break Space helps the browser to understand that the aria status has changed,
-        // and also tells the no screenreader not to announce anything because it's just whitespace.
+        // Chromium skips the aria-live announcement when an identical overlay element is re-added;
+        // interposing a no-break space marks the status as changed without announcing anything.
         overlay.removeElement(
             () => {
                 this.overlayElem.innerText = '\xA0';

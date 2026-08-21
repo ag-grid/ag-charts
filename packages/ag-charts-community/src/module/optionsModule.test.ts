@@ -29,9 +29,8 @@ function prepareOptions<T extends AgChartOptions>(userOptions: T, logger?: Logge
     return chartOptions.processedOptions;
 }
 
-// Mirrors AgCharts.__createSparkline() -> createOrUpdate(): a fresh create passes no base options,
-// the user options as the new options, and the sparkline preset metadata. The cast at the boundary is
-// the same one the production path makes, as ChartOptions is generic over AgChartOptions.
+// Mirrors AgCharts.__createSparkline() -> createOrUpdate(): no base options, the user options as the
+// new options, and the sparkline preset metadata.
 function prepareSparklineOptions(userOptions: AgSparklineOptions, logger?: Logger): AgChartOptions {
     const chartOptions = new ChartOptions(
         undefined,
@@ -490,12 +489,8 @@ describe('ChartOptions', () => {
         });
 
         it('reports the missing module for the default series type when no series are provided', () => {
-            // AG-18240: with no `series` the chart still resolves against the default `line` type, so
-            // an unregistered LineSeriesModule is the same defect as an explicit type/module mismatch
-            // and must be reported, not silently ignored.
-            // Restore exactly what was registered rather than re-registering the community bundle: the
-            // stacking/grouping suite below registers its own ad-hoc series definitions at collection
-            // time, and dropping them here would silently skip its snapshot assertions.
+            // Restore exactly what was registered: the stacking/grouping suite below registers its own
+            // ad-hoc series definitions at collection time, which re-registering the bundle would drop.
             const registeredModules = [...ModuleRegistry.listModules()];
             ModuleRegistry.reset();
             ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, NumberAxisModule]);
@@ -725,10 +720,8 @@ describe('ChartOptions', () => {
     });
 
     describe('circular opaque payloads (CRT-1143 regression)', () => {
-        // AG Grid's cross-filter integration passes `context: this` - a component instance whose object
-        // graph contains back-references; a `context` can equally be a plain object that references
-        // itself. A full `update()` diffs the options and walks the diff, which must skip these opaque
-        // pass-throughs by name rather than by type, or it follows the cycle into a stack overflow.
+        // A `context` may hold self-references (AG Grid's cross-filter passes a component instance), so
+        // the `update()` diff walk must skip these opaque pass-throughs by name or it overflows the stack.
         class CrossFilterContext {
             readonly self = this;
             readonly gui: { owner: CrossFilterContext };
@@ -3102,7 +3095,6 @@ describe('ChartOptions', () => {
             expect(preparedOptions.tooltip?.enabled).toBe(false);
             expect(preparedOptions.tooltip?.range).toBe(theme.config.line.tooltip.range);
 
-            // Disabled modules now keep their options object.
             expect(preparedOptions.legend).not.toBeUndefined();
         });
 
@@ -3822,9 +3814,8 @@ describe('ChartOptions', () => {
         });
     });
 
-    // The sparkline preset builds its chart options from a theme template. These fixtures pin the
-    // post-theme-merge `processedOptions` for user options copied from the documented AG Grid
-    // sparkline colDefs, so any change to how the template is layered shows up as a snapshot diff.
+    // Pins the post-theme-merge `processedOptions` for the documented AG Grid sparkline colDefs, so any
+    // change to how the preset's theme template is layered shows up as a snapshot diff.
     describe('#prepareOptions > sparkline preset', () => {
         beforeEach(__clearStructuralCacheForTests);
 
@@ -4010,8 +4001,8 @@ describe('ChartOptions', () => {
                 subtitle: { text: 'S', fontFamily: 'CustomFont, sans-serif' },
             } as AgChartOptions);
 
-            // Weight is part of the spec so a family that ships a separate file per weight
-            // (e.g. FontAwesome solid vs regular) loads the file the options actually reference.
+            // Weight is part of the spec: a family shipping one file per weight (e.g. FontAwesome solid
+            // vs regular) must load the file the options reference.
             expect(fonts).toContain('900 16px "Font Awesome 6 Free"');
             expect(fonts).toContain('16px CustomFont');
             expect([...fonts].some((spec) => spec.includes('sans-serif'))).toBe(false);
@@ -4258,8 +4249,7 @@ describe('ChartOptions', () => {
             expect(prepared.series[0].strokeWidth).toBe(2);
         });
 
-        // Themes style; they do not activate. Styling a border through a theme must not switch it on, while an
-        // explicit `enabled` still decides — integrated charts configure exclusively through overrides.
+        // Themes style; they do not activate. Only an explicit `enabled` switches a border on.
         it('does not enable a feature from styling supplied through theme overrides', () => {
             const prepared: any = prepareOptions(
                 barOptions({ label: { border: { stroke: 'rgb(190, 55, 55)' } } }) as any
@@ -4629,8 +4619,8 @@ describe('ChartOptions', () => {
                 validations,
             }) as unknown as AgChartOptions;
 
-        // `onErrorRaised` is wired up on the `Chart`, which does not exist at this level; assert on
-        // `validationIssues`, the array the listener is fed from, instead of the callback itself.
+        // `onErrorRaised` is wired up on the `Chart`, absent at this level, so assert on
+        // `validationIssues`, the array the listener is fed from.
         it('records an issue whose message matches the console warning content', () => {
             const chartOptions = new ChartOptions(badStrokeWidthOptions(), {} as AgChartOptions, {}, {}, {});
 

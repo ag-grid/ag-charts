@@ -603,9 +603,7 @@ describe('RangeBarSeries', () => {
         await compare();
     });
 
-    // Frame-trajectory coverage for the range-bar animations (initial reveal, update, add, remove,
-    // shuffle) and the CRT-1082 legend-toggle midpoint regression. See the animation-trajectory-tests
-    // rule.
+    // Frame-trajectory coverage for the range-bar animations: initial reveal, update, add, remove, shuffle, and legend-toggle midpoint collapse.
     describe('animation -test page actions', () => {
         const frames = spyOnAnimationFrames();
 
@@ -614,17 +612,14 @@ describe('RangeBarSeries', () => {
             { date: 'Feb', low: -16.7, high: 10.6 },
             { date: 'Mar', low: -4.7, high: 11.6 },
         ];
-        // Grouped low2/high2 midpoints are non-zero (e.g. Jan -3), so a midpoint collapse lands the
-        // near edge well clear of the value-0 baseline — the discriminator for CRT-1082.
+        // Grouped low2/high2 midpoints are non-zero, so a midpoint collapse lands the near edge clear of the value-0 baseline.
         const GROUPED_DATA = [
             { date: 'Jan', low1: -13.9, high1: 5.2, low2: -8, high2: 2 },
             { date: 'Feb', low1: -16.7, high1: 10.6, low2: -5, high2: 8 },
             { date: 'Mar', low1: -4.7, high1: 11.6, low2: -1, high2: 6 },
         ];
 
-        // A pinned value axis makes the data mutations below provably non-scale-affecting: only the
-        // marks move, so a band reflow or a value-extent change is the series animation, never a
-        // rescale.
+        // Pinned value axis: data mutations below only move the marks, never rescale.
         const options = (
             direction: 'horizontal' | 'vertical',
             data: object[] = DATA,
@@ -657,9 +652,7 @@ describe('RangeBarSeries', () => {
             series: opts.series?.map((s, i) => (i === index ? { ...s, visible: false } : s)),
         });
 
-        // A range bar's rect splits into a "value" axis (the low..high extent, growing from the
-        // midpoint) and a "band" axis (the category slot). Naming the four properties per-direction
-        // keeps every spec below orientation-symmetric.
+        // Naming the four rect properties per-direction (value extent vs. band slot) keeps every spec below orientation-symmetric.
         type Dims = { value: 'height' | 'width'; near: 'y' | 'x'; band: 'width' | 'height'; bandPos: 'x' | 'y' };
         const dims = (direction: 'horizontal' | 'vertical'): Dims =>
             direction === 'vertical'
@@ -708,13 +701,9 @@ describe('RangeBarSeries', () => {
         for (const direction of ['vertical', 'horizontal'] as const) {
             const d = dims(direction);
             const catPos = direction === 'vertical' ? 'bottom' : 'left';
-            // The category axis reflows/reorders as bands are added, removed or shuffled; its
-            // per-tick motion is data-order dependent and incidental to the bar animation under test
-            // (the endpoint guards below cover its settled pixels), so it is left unpinned.
+            // The category axis's per-tick motion is data-order dependent and incidental here (endpoint guards below cover its settled pixels), so it is left unpinned.
             const catAxisAny: Record<string, SceneNodeExpectation> = { [`axis[${catPos}]/*`]: 'any' };
 
-            // Initial-load reveal: each bar expands from its midpoint along the value axis (the near
-            // edge slides out) while its band holds. The docs page's rolling "range-bar-animation".
             it(`initial load (${direction}): bars expand from their midpoint`, async () => {
                 chart = AgCharts.create(options(direction));
                 const sampleScene = createSceneGeometrySampler(chart);
@@ -731,8 +720,6 @@ describe('RangeBarSeries', () => {
                 });
             });
 
-            // "Update Data": every bar tweens its low/high edges to the new values (the value extent
-            // moves monotonically); the pinned band holds.
             it(`update data (${direction}): low/high edges tween to the new values`, async () => {
                 chart = AgCharts.create(options(direction));
                 const sampleScene = createSceneGeometrySampler(chart);
@@ -762,9 +749,7 @@ describe('RangeBarSeries', () => {
                 );
             });
 
-            // "Add Data": a new trailing category enters. Its bar spawns collapsed at its midpoint and
-            // grows out during the 'add' phase; the existing bars narrow during 'update'. captureSnap
-            // (not captureUpdate) because the category-axis reflow snaps the axis line at frame 0.
+            // captureSnap (not captureUpdate): the category-axis reflow snaps the axis line at frame 0.
             it(`add data (${direction}): entering bar grows from its midpoint while others narrow`, async () => {
                 chart = AgCharts.create(options(direction, DATA.slice(0, 2)));
                 const sampleScene = createSceneGeometrySampler(chart);
@@ -788,8 +773,6 @@ describe('RangeBarSeries', () => {
                 });
             });
 
-            // "Remove Data": the trailing category leaves — its bar collapses to its midpoint during
-            // 'remove' and is dropped; the survivors widen into the freed space during 'update'.
             it(`remove data (${direction}): leaving bar collapses to its midpoint while others widen`, async () => {
                 chart = AgCharts.create(options(direction));
                 const sampleScene = createSceneGeometrySampler(chart);
@@ -798,9 +781,7 @@ describe('RangeBarSeries', () => {
                 );
                 expect(rectCount(before)).toBe(3);
                 expect(rectCount(after)).toBe(2);
-                // Anti-vacuity + midpoint guard: the leaver starts at full extent, and its last visible
-                // frame sits at ~0 extent centred on its ORIGINAL midpoint (a baseline collapse would
-                // land the near edge on the value-0 pixel, far from this midpoint).
+                // Anti-vacuity + midpoint guard: the leaver's last visible frame must sit centred on its ORIGINAL midpoint, not collapsed to the value-0 baseline.
                 const leaver0 = trajectory[0].get('series[0]/rect[Mar]')!;
                 expect(leaver0[d.value]).toBeGreaterThan(100);
                 const leaverLast = lastFrameWith(trajectory, 'series[0]/rect[Mar]');
@@ -820,8 +801,6 @@ describe('RangeBarSeries', () => {
                 });
             });
 
-            // "Shuffle Data": same values, reordered categories. Bars slide along the band axis to
-            // their new slots (a tween, not a redraw); the value extent holds.
             it(`shuffle data (${direction}): bars slide to their reordered band positions`, async () => {
                 chart = AgCharts.create(options(direction));
                 const sampleScene = createSceneGeometrySampler(chart);
@@ -842,11 +821,7 @@ describe('RangeBarSeries', () => {
                 });
             });
 
-            // CRT-1082: a range-bar legend toggle must collapse the hidden series' bars to their
-            // MIDPOINT, not the chart baseline. The toggled-off layer collapses during 'remove'; the
-            // survivor widens into the vacated band during 'update'. A baseline-collapse regression
-            // moves the near edge to the value-0 pixel, which the midpoint guard rejects. captureSnap
-            // because a series toggle snaps structurally at frame 0.
+            // A legend toggle must collapse the hidden series' bars to their MIDPOINT, not the chart baseline. captureSnap: a series toggle snaps structurally at frame 0.
             it(`legend toggle off (${direction}): hidden bars collapse to their midpoint (CRT-1082)`, async () => {
                 const grouped = groupedOptions(direction);
                 chart = AgCharts.create(grouped);
@@ -854,7 +829,7 @@ describe('RangeBarSeries', () => {
                 const { trajectory, after } = await frames.captureSnap(chart, sampleScene, () =>
                     chart.update(hideSeries(grouped, 1))
                 );
-                // Anti-vacuity + CRT-1082 midpoint guard.
+                // Anti-vacuity + midpoint guard.
                 const hidden0 = trajectory[0].get('series[1]/rect[Jan]')!;
                 expect(hidden0[d.value]).toBeGreaterThan(50);
                 const hiddenLast = lastFrameWith(trajectory, 'series[1]/rect[Jan]');
@@ -872,10 +847,7 @@ describe('RangeBarSeries', () => {
                 });
             });
 
-            // The retired rolling "range-bar-animation" fired one update that added, removed,
-            // shuffled AND revalued at once ("animate continuously without snapping"). A single mixed
-            // update must keep the low<=high extent on every frame and settle exactly on the static
-            // scene. captureSnap because the category add/remove snaps the axis line at frame 0.
+            // A single mixed update (add + remove + shuffle + revalue) must keep low<=high on every frame. captureSnap: the category add/remove snaps the axis line at frame 0.
             it(`combined mutation (${direction}): mixed add/remove/shuffle/revalue stays coherent`, async () => {
                 chart = AgCharts.create(options(direction));
                 const sampleScene = createSceneGeometrySampler(chart);
@@ -900,9 +872,7 @@ describe('RangeBarSeries', () => {
             });
         }
 
-        // Value axis UNPINNED: removing the low-extreme datum contracts the domain, and the axis must
-        // rescale by tweening its ticks, not snapping. captureSnap because the category reflow snaps
-        // the axis line at frame 0.
+        // Value axis UNPINNED here: removing the low-extreme datum contracts the domain. captureSnap: the category reflow snaps the axis line at frame 0.
         it('unpinned value axis (vertical): axis rescales by tweening, not snapping', async () => {
             const d = dims('vertical');
             const unpinned = (data: object[]) => options('vertical', data, {});
@@ -911,16 +881,14 @@ describe('RangeBarSeries', () => {
             const { before, trajectory, after } = await frames.captureSnap(chart, sampleScene, () =>
                 chart.update(unpinned([DATA[0], DATA[2]]))
             );
-            // The +10 gridline is present throughout; removing the -16.7 low rescales the domain, so
-            // its pixel position must genuinely move — and move progressively, not snap.
+            // Anti-vacuity: the +10 gridline's pixel position must genuinely move, and progressively (not snap).
             const tick = 'axis[left]/line[l:10]';
             expect(Math.abs(after.get(tick)!.y1 - before.get(tick)!.y1)).toBeGreaterThan(20);
             expectProgresses(trajectory.map((f) => f.get(tick)?.y1 ?? Number.NaN));
             expectSceneTrajectory(trajectory, { '*': 'any' }, { frameInvariants: [nonNegativeExtent(d)] });
         });
 
-        // Shuffle: category labels must track their reordered bars ("labels track the reordered
-        // data"). captureUpdate works here — the category set is unchanged, so no axis-line snap.
+        // captureUpdate works here: the category set is unchanged, so no axis-line snap.
         it('shuffle data (vertical): category labels track their reordered bars', async () => {
             chart = AgCharts.create(options('vertical'));
             const sampleScene = createSceneGeometrySampler(chart);
@@ -937,8 +905,6 @@ describe('RangeBarSeries', () => {
             expect(Math.abs(after.get(label)!.x - (bar.x + bar.width / 2))).toBeLessThanOrEqual(2);
         });
 
-        // Pixel endpoint guards: the animated routes must settle at exactly the pixels a snapped
-        // render of the same options produces (replacing the deleted 0%/100% image snapshots).
         for (const direction of ['vertical', 'horizontal'] as const) {
             it(`endpoints (${direction}): update data settles at the static render`, async () => {
                 const opts = options(direction);
@@ -2246,8 +2212,7 @@ describe('RangeBarSeries category/gridline pixel alignment', () => {
     const DATA = CATEGORIES.map((c, i) => ({ cat: c, low: 20 + i * 5, high: 60 + i * 8 }));
     const DPRS = [1, 1.75, 2, 2.5];
     const WIDTHS = [300, 641, 799, 1000];
-    // `undefined` = band-filling width; `9` = the fixed odd-pixel width from the ticket repro, which
-    // exposes the device-pixel snap divergence a band-filling (often even) width can mask.
+    // `undefined` = band-filling width; `9` = a fixed odd-pixel width, which exposes device-pixel snap divergence a band-filling (often even) width can mask.
     const BAR_WIDTHS: Array<number | undefined> = [undefined, 9];
 
     for (const dpr of DPRS) {
@@ -2331,7 +2296,7 @@ describe('RangeBarSeries aggregated device-pixel snap', () => {
             expect(rects.length).toBe(nodeCount);
 
             const offGrid = rects.filter(([, { x, width }]) => !onDeviceGrid(x, dpr) || !onDeviceGrid(x + width, dpr));
-            // Sliced so a wholesale regression reports a readable handful rather than every bar.
+            // Sliced so a wholesale failure reports a readable handful rather than every bar.
             expect(offGrid.slice(0, 5).map(([key, { x, width }]) => `${key} x=${x} width=${width}`)).toEqual([]);
         });
     }

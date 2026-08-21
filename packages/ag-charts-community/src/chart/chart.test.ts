@@ -201,7 +201,6 @@ describe('Chart', () => {
 
         const checkHighlight = async (chartInstance: Chart) => {
             await hoverChartNodes(chartInstance, ({ series }) => {
-                // Check the highlighted marker
                 const highlightNode = testParams.getHighlightNode(chartInstance, series);
                 expect(highlightNode).toBeDefined();
                 expect(highlightNode.fill).toEqual('lime');
@@ -223,12 +222,10 @@ describe('Chart', () => {
                 if (offsetY) {
                     y += y < seriesAreaCenter.y ? 5 : -5;
                 }
-                // Perform click
                 await clickAction(x, y)(chartInstance);
                 await waitForChartStability(chartInstance);
             });
 
-            // Check click handler
             const nodeCount = chartInstance.series.reduce(
                 (sum, series) => sum + testParams.getNodeData(series).length,
                 0
@@ -242,25 +239,21 @@ describe('Chart', () => {
             nodeExit: (item: any) => [number, number]
         ) => {
             await hoverChartNodes(chartInstance, async ({ item, x, y }) => {
-                // Perform click
                 const [downX, downY] = nodeExit(item);
                 await clickAction(x, y, { mousedown: { offsetX: downX, offsetY: downY } })(chartInstance);
                 await waitForChartStability(chartInstance);
             });
 
-            // Check click handler
             expect(onNodeClick).toHaveBeenCalledTimes(0);
         };
 
         it(`should render tooltip correctly`, async () => {
             chart = await createChartPreset({ hasTooltip: true });
             await hoverChartNodes(chart, ({ series, item }) => {
-                // Check the tooltip is shown
                 const tooltip = document.querySelector('.ag-charts-tooltip');
                 expect(tooltip).toBeInstanceOf(HTMLElement);
                 expect(!tooltip?.hasAttribute('data-presented-as-popover')).toBe(false);
 
-                // Check the tooltip text
                 const values = testParams.getDatumValues(item, series);
                 expect(tooltip?.textContent).toEqual(format(...values));
             });
@@ -566,7 +559,7 @@ describe('Chart', () => {
             expect(chart.data.data.length).toBe(lengthBeforeMutation);
         });
 
-        // AG-16389: updateDelta should not reset data accumulated via applyTransaction
+        // updateDelta must not reset data accumulated via applyTransaction.
         it('should preserve applyTransaction data when updateDelta changes series options', async () => {
             const initialData = [
                 { x: 0, y: 10 },
@@ -588,13 +581,11 @@ describe('Chart', () => {
                 ],
             });
 
-            // Step 1: Create chart with initial data
             const chartProxy = AgCharts.create(options);
             chart = deproxy(chartProxy);
             await waitForChartStability(chart);
             expect(chart.data.data.length).toBe(2);
 
-            // Step 2: updateDelta with increasing length data-set (simulates loading data)
             await chartProxy.updateDelta({
                 data: [
                     { x: 0, y: 10 },
@@ -605,13 +596,11 @@ describe('Chart', () => {
             await waitForChartStability(chart);
             expect(chart.data.data.length).toBe(3);
 
-            // Step 3: Full update back to initialData (simulates user action that resets data)
             await chartProxy.updateDelta({ data: initialData });
             await waitForChartStability(chart);
             expect(chart.data.data.length).toBe(2);
 
             // At this point, DataSet.data and userOptions.data may have different references
-            // Step 4: Use applyTransaction to add more data (streaming scenario)
             await chartProxy.applyTransaction({
                 add: [
                     { x: 2, y: 30 },
@@ -621,7 +610,6 @@ describe('Chart', () => {
             await waitForChartStability(chart);
             expect(chart.data.data.length).toBe(4);
 
-            // Step 5: Toggle series option - this should NOT reset the data
             await chartProxy.updateDelta({
                 series: options.series.map((s) => ({ ...s, connectMissingData: true })),
             });
@@ -874,9 +862,8 @@ describe('Chart', () => {
             );
             const updated = agChartInstance.update(pieOptions);
 
-            // The replacement attaches its element synchronously while the outgoing chart's teardown
-            // is queued behind the update mutex, so an outgoing element left in the container's flow
-            // displaces the replacement by its own min-height until that teardown runs.
+            // The replacement attaches its element synchronously, so an outgoing element left in the
+            // container's flow would displace it until the queued teardown runs.
             expect(container.querySelectorAll('.ag-charts-wrapper')).toHaveLength(1);
 
             await updated;
@@ -1057,23 +1044,18 @@ describe('Chart', () => {
             chart = deproxy(agChartInstance);
             await waitForChartStability(chart);
 
-            // Verify listener is registered
             expect(chart.listeners.click).toBeDefined();
 
-            // Reset mock call count before clearing
             chartClick.mockClear();
 
-            // Update with listeners: undefined
             await agChartInstance.update({
                 ...options,
                 listeners: undefined,
             });
             await waitForChartStability(chart);
 
-            // Verify listener is cleared
             expect(chart.listeners.click).toBeUndefined();
 
-            // Trigger a click event and verify the cleared listener is not called
             await clickAction(100, 100)(agChartInstance);
             await waitForChartStability(chart);
             expect(chartClick).not.toHaveBeenCalled();
@@ -1103,10 +1085,8 @@ describe('Chart', () => {
             chart = deproxy(agChartInstance);
             await waitForChartStability(chart);
 
-            // Verify listener is registered
             expect(chart.series[0].properties.listeners?.seriesNodeClick).toBeDefined();
 
-            // Update with series listeners: undefined
             await agChartInstance.update({
                 ...options,
                 series: [
@@ -1118,7 +1098,6 @@ describe('Chart', () => {
             });
             await waitForChartStability(chart);
 
-            // Verify listener is cleared
             expect(chart.series[0].properties.listeners?.seriesNodeClick).toBeUndefined();
         });
 
@@ -1150,15 +1129,12 @@ describe('Chart', () => {
             chart = deproxy(agChartInstance);
             await waitForChartStability(chart);
 
-            // Verify listeners are registered
             expect(chart.listeners.click).toBeDefined();
             expect(chart.series[0].properties.listeners?.seriesNodeClick).toBeDefined();
 
-            // Reset mock call counts before clearing
             chartClick.mockClear();
             seriesNodeClick.mockClear();
 
-            // Update with both listeners: undefined
             await agChartInstance.update({
                 ...options,
                 listeners: undefined,
@@ -1171,11 +1147,9 @@ describe('Chart', () => {
             });
             await waitForChartStability(chart);
 
-            // Verify listeners are cleared
             expect(chart.listeners.click).toBeUndefined();
             expect(chart.series[0].properties.listeners?.seriesNodeClick).toBeUndefined();
 
-            // Trigger click events and verify cleared listeners are not called
             await clickAction(200, 200)(agChartInstance);
             await waitForChartStability(chart);
             expect(chartClick).not.toHaveBeenCalled();
@@ -1242,11 +1216,9 @@ describe('Chart', () => {
             chart = deproxy(agChartInstance);
             await waitForChartStability(chart);
 
-            // Verify user listener is registered
             expect(chart.series[0].properties.listeners?.seriesNodeClick).toBeDefined();
             expect(chart.listeners.seriesVisibilityChange).toBeDefined();
 
-            // Update with series listeners: undefined
             await agChartInstance.update({
                 ...options,
                 series: [
@@ -1258,7 +1230,6 @@ describe('Chart', () => {
             });
             await waitForChartStability(chart);
 
-            // Verify user listener is cleared
             expect(chart.series[0].properties.listeners?.seriesNodeClick).toBeUndefined();
 
             // Clearing the series listeners must not disturb the chart-level ones.
@@ -1389,7 +1360,6 @@ describe('Chart', () => {
                 ).resolves.not.toThrow();
                 await waitForChartStability(chart);
 
-                // Verify it was appended
                 expect(chart.data.data).toHaveLength(4);
                 expect(chart.data.data[3]).toEqual({ x: 4, y: 40 });
             });
@@ -1503,7 +1473,6 @@ describe('Chart', () => {
                 ).resolves.not.toThrow();
                 await waitForChartStability(chart);
 
-                // Data unchanged
                 expect(chart.data.data).toHaveLength(3);
             });
 
@@ -1512,7 +1481,6 @@ describe('Chart', () => {
                 await expect(chartProxy.applyTransaction({})).resolves.not.toThrow();
                 await waitForChartStability(chart);
 
-                // Data unchanged
                 expect(chart.data.data).toHaveLength(3);
             });
         });
@@ -1679,7 +1647,6 @@ describe('Chart', () => {
                 expect(updatedOptions.data).toBeDefined();
                 expect(updatedOptions.data!).toHaveLength(4);
 
-                // Verify all data items have valid values (non-zero)
                 for (const item of updatedOptions.data!) {
                     expect(item.value).toBeGreaterThan(0);
                 }
@@ -1741,9 +1708,8 @@ describe('Chart destroy() / performUpdate() race condition', () => {
         await waitForChartStability(innerChart);
         await (innerChart as any).updateMutex.waitForClearAcquireQueue();
 
-        // Implicit assertion: if assembleResult threw TypeError (this.chart!.seriesRect!
-        // on a cleared series), tryPerformUpdate's catch block would call Logger.error
-        // → console.error. setupMockConsole's afterEach asserts console.error is never called.
+        // Implicit assertion: a TypeError from a cleared series would reach Logger.error, and
+        // setupMockConsole's afterEach fails on any unexpected console.error.
     }
 
     it.each(['bar', 'area', 'line'] as const)(
@@ -1786,9 +1752,8 @@ describe('validations.throwOn — runtime errors', () => {
         } as AgCartesianChartOptions);
     }
 
-    // Throws once from inside tryPerformUpdate's try block (past processData), the one path that
-    // reaches its catch rather than the swallowed-callback safeCall path exercised in
-    // validationOverlay.test.ts's '#callback errors'.
+    // Throws from inside tryPerformUpdate's try block, the one path that reaches its catch rather
+    // than the swallowed-callback safeCall path.
     function armProcessDataThrow(target: Chart) {
         const proto = Object.getPrototypeOf(target);
         return vi.spyOn(proto, 'processData').mockImplementationOnce(() => {

@@ -1,8 +1,7 @@
 import { timeValueToNumber } from '../time/timeFormatDefaults';
 
-// Hot paths (domain computation, aggregation bucketing, sort-order detection) cannot interpret
-// ISO 8601 strings, so a string time column is parsed to epoch ms exactly once and memoized by
-// source-column identity. Columns mutated in place must be invalidated via invalidateEpochColumn.
+// Hot paths cannot interpret ISO 8601 strings, so a string time column is parsed to epoch ms once and
+// memoized by source-column identity. Columns mutated in place must be invalidated via invalidateEpochColumn.
 const epochColumnCache = new WeakMap<readonly unknown[], unknown[]>();
 
 function parseEpochValue(value: unknown): unknown {

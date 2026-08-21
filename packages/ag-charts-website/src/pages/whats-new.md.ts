@@ -4,9 +4,7 @@ import { DISABLE_MARKDOWN_DOCS, SITE_URL } from '@constants';
 import { urlWithPrefix } from '@utils/urlWithPrefix';
 import { type CollectionEntry, getEntry } from 'astro:content';
 
-// Served at /whats-new.md — the markdown twin of the /whats-new page, built from the same versions
-// collection and shared product metadata the page renders. Content-negotiates from the HTML URL on
-// Accept: text/markdown (see getMarkdownNegotiationRules in htaccessRules.ts).
+// Reached from the HTML URL via Accept: text/markdown (see getMarkdownNegotiationRules).
 export async function GET() {
     if (DISABLE_MARKDOWN_DOCS) {
         return new Response(null, { status: 404 });
@@ -18,8 +16,7 @@ export async function GET() {
         site: 'charts',
         versionsData,
         siteRoot: SITE_URL,
-        // Highlight and release-note paths are framework-relative; the page resolves them against
-        // the reader's remembered framework, so the twin picks the framework-agnostic core.
+        // Paths are framework-relative; the twin has no remembered framework, so pick the core.
         resolveUrl: (url) => urlWithPrefix({ framework: 'javascript', url }),
     });
 

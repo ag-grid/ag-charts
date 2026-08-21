@@ -47,9 +47,7 @@ export function SpendSunburst({ tree, supplierColors }: SpendSunburstProps) {
             labelKey: 'name',
             sizeKey: 'size',
             sizeName: 'Spend',
-            // Separated by a hairline stroke rather than a gap: spacing narrow sectors apart
-            // breaks the ring into spikes that read as rendering artefacts instead of small
-            // values, whereas a stroke keeps the band continuous and still divides them.
+            // A hairline stroke rather than a gap: spacing narrow sectors apart breaks the ring into spikes.
             sectorSpacing: 0,
             cornerRadius: 0,
             strokes: ['var(--pc-panel)'],
@@ -60,8 +58,7 @@ export function SpendSunburst({ tree, supplierColors }: SpendSunburstProps) {
             secondaryLabel: {
                 fontSize: 11,
                 minimumFontSize: 8,
-                // `size` carries the sliver an empty leaf is drawn with, so the label has to
-                // read the true spend to avoid captioning that sliver.
+                // `size` carries the sliver an empty leaf is drawn with, so the label must read the true spend.
                 formatter: ({ datum }) => (datum.spend > 0 ? fmtCurrencyCompact(datum.spend) : 'no spend'),
             },
             itemStyler: ({ datum }) => ({ fill: sectorFill(datum, supplierColors) }),

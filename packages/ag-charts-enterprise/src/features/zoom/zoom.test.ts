@@ -248,7 +248,7 @@ describe('Zoom', () => {
             await prepareChart();
             await scrollAction(cx, cy, -10000)(chart);
             // Should not zoom in
-            // @todo(AG-15504) - we should zoom in as far as possible
+            // TODO: we should zoom in as far as possible
             await compare();
         });
 
@@ -1053,7 +1053,7 @@ describe('Zoom', () => {
         const resetZoomState = {
             rangeX: {
                 end: { __type: 'date', value: '2022-06-30T23:00:00.000Z' },
-                // FIXME(AG-16401): Seems there's a bug with rangeX.start in Node.js (not reproducible in Chrome).
+                // FIXME: rangeX.start behaves differently in Node.js (not reproducible in Chrome).
                 // start: { __type: 'date', value: '2021-01-01T00:00:00.000Z' },
             },
             rangeY: {
@@ -1358,8 +1358,8 @@ describe('Zoom', () => {
         });
     });
 
-    // CRT-1042: Scrolling mousewheel on axis area should zoom AND call preventDefault.
-    // CRT-1050: Non-cancelable wheel events (trackpad inertia) should be ignored on axes.
+    // Scrolling the mousewheel on an axis area should zoom and call preventDefault; non-cancelable wheel
+    // events (trackpad inertia) should be ignored on axes.
     describe('CRT-1042/1050 axis wheel zoom', () => {
         it('should zoom the y-axis via wheel scroll and call preventDefault (CRT-1042)', async () => {
             await prepareChart({

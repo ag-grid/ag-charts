@@ -122,8 +122,7 @@ type WaterfallNodePointDatum = _ModuleSupport.DataModelSeriesNodeDatum['point'] 
 
 export interface WaterfallNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum, Readonly<Point> {
     readonly index: number;
-    // Set for synthetic total/subtotal bars to their `totals.itemId`, falling back to their `axisLabel`.
-    // Real bars leave it unset so `getItemId` resolves via `dataIdKey`, then `datumIndex`.
+    // Synthetic total/subtotal bars set this to `totals.itemId` (or `axisLabel`); real bars leave it unset to resolve via `dataIdKey`/`datumIndex`.
     readonly itemId?: string;
     readonly itemType: AgWaterfallSeriesItemType;
     readonly cumulativeValue: number;
@@ -131,7 +130,6 @@ export interface WaterfallNodeDatum extends _ModuleSupport.CartesianSeriesNodeDa
     readonly height: number;
     readonly label: WaterfallNodeLabelDatum;
     readonly crisp: boolean;
-    // Required for types
     readonly clipBBox?: _ModuleSupport.BBox;
     readonly opacity?: number;
     style?: Required<AgWaterfallSeriesStyle>;
@@ -159,7 +157,6 @@ interface WaterfallSeriesNodeDatumContext extends _ModuleSupport.CartesianCreate
     readonly yName: string | undefined;
     readonly lineStrokeWidth: number;
     readonly yDomain: number[];
-    // Data arrays
     readonly yRawValues: (AgNumericValue | undefined)[];
     readonly totalTypeValues: (AgWaterfallSeriesItemType | undefined)[];
     readonly yCurrValues: AgNumericValue[];
@@ -260,9 +257,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             if (totalsAtIndex) {
                 for (const total of totalsAtIndex) {
                     const { axisLabel, itemId } = total;
-                    // When an itemId is supplied it becomes the bar's category identity so totals sharing
-                    // an axisLabel stay distinct: the category scale keys uniqueness on object reference,
-                    // while toString() supplies the displayed label.
+                    // itemId becomes the bar's category identity, keeping totals with the same axisLabel distinct on the category scale.
                     const xValue = itemId == null ? axisLabel : { id: itemId, toString: () => axisLabel };
                     dataWithTotals.push({ ...total.toJson(), [xKey]: xValue });
                 }
@@ -352,8 +347,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         } else {
             const yCurrIndex = dataModel.resolveProcessedDataIndexById(this, 'yCurrent');
             const yExtent = values[yCurrIndex];
-            // minValue/maxValue (not Math.min/max, which throw on bigint) keep an exact bigint extent, and
-            // zeroLike keeps the baseline the same type so fixNumericExtent never sees a mixed extent.
+            // minValue/maxValue avoid Math.min/max, which throw on bigint; zeroLike keeps the baseline the same type.
             const fixedYExtent = [
                 minValue(zeroLike(yExtent[0]), yExtent[0]),
                 maxValue(zeroLike(yExtent[1]), yExtent[1]),
@@ -369,7 +363,6 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
     protected override populateNodeData(ctx: WaterfallSeriesNodeDatumContext): void {
         let trailingSubtotal: AgNumericValue = 0;
 
-        // Scratch object for params - reused across iterations
         const paramsScratch: WaterfallNodeDatumParams = {
             datumIndex: 0,
             itemId: undefined,
@@ -405,14 +398,11 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
             const value = this.computeDisplayValue(isTotal, isSubtotal, rawValue, cumulativeValue, trailingValue);
 
-            // Real bars leave itemId unset so it resolves via dataIdKey (then datumIndex); synthetic bars
-            // have no data row, so a totals `itemId` (falling back to the axis label) is their only stable
-            // identifier. xDatum is the axis label for synthetic bars.
+            // Synthetic bars have no data row, so their totals `itemId` (or axis label) is their only stable identifier.
             const totalItemId = isTotalOrSubtotal
                 ? ((datum as { itemId?: string } | undefined)?.itemId ?? String(xDatum))
                 : undefined;
 
-            // Update scratch params
             paramsScratch.datumIndex = datumIndex;
             paramsScratch.itemId = totalItemId;
             paramsScratch.datum = isTotalOrSubtotal ? undefined : datum;
@@ -422,7 +412,6 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             paramsScratch.trailingValue = trailingValue;
             paramsScratch.datumType = datumType;
 
-            // Use shared utility for create/update logic
             const nodeDatum = upsertNodeDatum(
                 ctx,
                 paramsScratch,
@@ -578,8 +567,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         cumulativeValue?: AgNumericValue,
         trailingValue?: AgNumericValue
     ): AgNumericValue | undefined {
-        // Preserve the original (possibly bigint) value so the label and label-formatter callback keep full
-        // precision (AC 9.2.1/9.2.2); the bar geometry uses the separately-narrowed cumulativeValue, not this.
+        // Preserve the original (possibly bigint) value so the label and formatter callback keep full precision.
         if (isTotal) {
             return cumulativeValue;
         }
@@ -667,9 +655,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
         const converted = xScale.convert(xDatum);
         if (!Number.isFinite(converted)) return;
-        // Band axes seat the bar within its category slot so the centre lands on the tick/gridline;
-        // a continuous (time/number) axis keeps the bar's edge on the converted point, where centring
-        // would push the extent bars half a width past the axis range and clip them.
+        // A continuous axis keeps the bar's edge on the converted point; centring it there would clip extent bars past the axis range.
         const x = categoryIsBand ? converted + groupOffset + barOffset : Math.round(converted);
 
         const isPositive = (value ?? 0) >= 0;
@@ -688,7 +674,6 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         const rectWidth = barAlongX ? barHeight : barWidth;
         const rectHeight = barAlongX ? barWidth : barHeight;
 
-        // Update properties
         mutableNode.index = datumIndex;
         mutableNode.itemId = itemId;
         mutableNode.itemType = seriesItemType;
@@ -705,7 +690,6 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         mutableNode.height = rectHeight;
         mutableNode.crisp = crisp;
 
-        // Update midPoint in place
         if (mutableNode.midPoint) {
             mutableNode.midPoint.x = rectX + rectWidth / 2;
             mutableNode.midPoint.y = rectY + rectHeight / 2;
@@ -746,11 +730,9 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             const isUpward = (value ?? -1) >= 0 !== valueAxisReversed;
             const resolvesOrientation = barLabelResolvesOrientation(label.orientation);
             const labelRotation = barLabelRotation(firstCandidate(label.orientation));
-            // Only bind the text to the bar when `inside` is the sole placement; a cascade with a non-inside
-            // fallback must keep full text so a label that cannot fit inside can escape to that fallback.
+            // Only bind text to the bar when `inside` is the sole placement, so a non-inside fallback can keep the full text.
             const insideOnly = toArray(label.placement).every((p) => p.startsWith('inside'));
-            // Inside labels fit within the bar region (reserving the anchored-side spacing gap and drawn
-            // box); outside labels sit beside it, so leave them unbound.
+            // Inside labels fit within the bar region; outside labels sit beside it, so leave them unbound.
             const bounds =
                 insideOnly && (labelFit != null || resolvesOrientation)
                     ? insideBarLabelBounds(
@@ -762,9 +744,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                           expandPlacementLabelBoxExtent(label)
                       )
                     : undefined;
-            // The engine refits an orientation array per orientation, knowing a rotated label measures
-            // against the bar's other axis; fitting here would bind every orientation to the upright
-            // budget, and every positioned candidate to the first placement's (see barSeries).
+            // The engine refits per orientation since a rotated label measures against the bar's other axis (see barSeries).
             const { text: fittedLabelText, fontSize: fittedFontSize } = barLabelRoutesThroughEngine(
                 label.orientation,
                 label.placement,
@@ -773,9 +753,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                 ? { text: labelText, fontSize: undefined }
                 : fitLabelToContainerAutoSize(labelText, labelFit, label, bounds?.container);
             if (!label.collision.alwaysShow || barLabelResolvesPlacement(label.placement)) {
-                // A placement/orientation array (or a hideable label) pre-positions a candidate per
-                // placement × orientation the engine cascades through until one fits; a hideable no-fit
-                // label is dropped so it can be hidden.
+                // Pre-positions a candidate per placement x orientation for the engine to cascade through until one fits.
                 const measured = measureLabelText(fittedLabelText, label);
                 const placements = toArray(label.placement);
                 if (placements.length === 0) placements.push('inside-center');
@@ -806,8 +784,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                                   this.labelPath(seriesItemType)
                               ),
                 });
-                // The engine picks the first candidate that fits; the first is baked as a backward-safe
-                // default until the engine writes the chosen one back.
+                // The first candidate is baked as a backward-safe default until the engine writes the chosen one back.
                 const { anchor, region, placement: granular } = candidates[0];
                 mutableNode.label.text = fittedLabelText;
                 mutableNode.label.x = anchor.x;
@@ -844,8 +821,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                 mutableNode.label.y = labelPlacement.y;
                 mutableNode.label.textAlign = labelPlacement.textAlign;
                 mutableNode.label.textBaseline = labelPlacement.textBaseline;
-                // Bake the first orientation; an array resolves against the bar rect for inside placements
-                // only (see barSeries).
+                // An orientation array resolves against the bar rect for inside placements only (see barSeries).
                 mutableNode.label.rotation = labelRotation;
                 mutableNode.label.region = resolvesOrientation ? bounds?.region : undefined;
                 mutableNode.label.offsetX = 0;
@@ -856,7 +832,6 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                 mutableNode.label.fittedFontSize = fittedFontSize;
             }
         } else {
-            // Clear label when disabled
             mutableNode.label.text = '';
             mutableNode.label.candidates = undefined;
             mutableNode.label.hidden = false;
@@ -1085,7 +1060,6 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
         const selectionStateString = this.getSelectionStateString(datumIndex);
         const candidateStateString = this.getCandidateStateString(datumIndex);
-        // `style` is the resolved item style; its `fill` no longer carries unresolved colour refs.
         const fill = this.filterItemStylerFillParams(style.fill as NormalisedColorType) ?? style.fill;
 
         return {
@@ -1206,9 +1180,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             // Inflate the measured text by the label's drawn box (padding + border stroke) so collisions
             // avoid the box, not just the text.
             const box = expandPlacementLabelBoxExtent(label);
-            // A styler resolves the box per placement × orientation; on the orientation-only route below the
-            // placement is baked, so the styled geometry is resolved at the first orientation (see
-            // styledBarLabelBox) and replaces the configured measurement.
+            // On the orientation-only route the placement is baked, so styled geometry resolves at the first orientation.
             const styled = styledBarLabelBox(
                 label.itemStyler == null
                     ? undefined
@@ -1233,11 +1205,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
                 configuredFit == null || styled == null
                     ? configuredFit
                     : { ...configuredFit, font: styled.font, boxPadding: styled.boxPadding };
-            // A cascading item carries pre-positioned candidates (built per item config); others resolve
-            // their orientation array against the bar rect, or stay baked when single-orientation.
             if (nodeLabel.candidates == null) {
-                // A label its styler disabled reserves nothing and blocks no neighbour. Only the baked
-                // route needs this; the engine skips hidden candidates on the cascading one itself.
+                // A label its styler disabled reserves nothing and blocks no neighbour on the baked route.
                 if (styled?.hidden === true) continue;
                 data.push(
                     ...buildBarLabelData([node], () => ({
@@ -1418,9 +1387,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         const nodeDatum = this.contextNodeData?.nodeData?.[datumIndex];
         const format = this.getItemStyle(nodeDatum, false, undefined, nodeDatum?.itemType);
 
-        // Override only the renderer; other tooltip fields (enabled, position, range, class,
-        // interaction) are read directly off `series.properties.tooltip` upstream of this method,
-        // so the wrapper's defaults for those fields are never consulted by the tooltip pipeline.
+        // Override only the renderer; other tooltip fields are read directly off `series.properties.tooltip` upstream.
         let effectiveTooltip = tooltip;
         const itemTooltipRenderer = this.getItemConfig(seriesItemType).tooltip?.renderer;
         if (itemTooltipRenderer != null) {

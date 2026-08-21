@@ -43,9 +43,7 @@ export class BarShape<D = any> extends Rect<D> {
         // Direct backing field writes bypass SceneChangeDetection decorators
         this.__direction = direction ?? 'x';
         this.__featherRatio = featherRatio ?? 0;
-        // Centre-preserve the category dimension (only meaningful on band scales; the series resolves
-        // this). Set here so it is available before animation (the settle-snap avoidance in barUtil
-        // reads it).
+        // Must be set before animation: barUtil's settle-snap avoidance reads it.
         this.__crispCentreDirection = crispCentreDirection;
 
         super.setStaticProperties(

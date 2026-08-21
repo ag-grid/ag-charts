@@ -99,8 +99,7 @@ it.each(DST_DAYS)('tiles week buckets across the %s transition by calendar day',
         if (index > 0) expect(bucket.start).toBe(buckets[index - 1].end);
     }
 
-    // The bucket holding the transition is 23 or 25 hours off 7 × 24h, and must still cover exactly
-    // seven calendar days — a fixed-168h tile would slip an hour and start mid-day thereafter.
+    // The bucket holding a transition must still cover exactly seven calendar days.
     const straddling = buckets.filter((bucket) => bucket.end - bucket.start !== 7 * DAY_MS);
     expect(straddling.length).toBe(1);
     for (const bucket of buckets) {
@@ -165,13 +164,11 @@ it.each(DST_DAYS)('runs the burn-up over consecutive calendar days across the %s
         if (index > 0) {
             const previous = points[index - 1].date;
             const next = new Date(previous.getFullYear(), previous.getMonth(), previous.getDate() + 1);
-            // Indexed by a UTC day count but labelled by calendar arithmetic: if the two disagree
-            // past a transition, a day is repeated or skipped here.
+            // Indexed by a UTC day count but labelled by calendar arithmetic; disagreement repeats or skips a day.
             expect(point.date.getTime()).toBe(next.getTime());
         }
     }
 
-    // Every order lands on a day inside the series, so the last figure is the full total. An order
-    // whose day index falls outside the array is dropped silently, and this is what catches it.
+    // An order whose day index falls outside the array is dropped silently, and this catches it.
     expect(points.at(-1)!.committed).toBeCloseTo(sumSpend(orders), 4);
 });

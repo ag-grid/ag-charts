@@ -857,31 +857,31 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             series: this,
             datum: scratch.datum,
             datumIndex: params.datumIndex,
-            cumulativeValue: 0, // Will be updated by updateNodeDatum
+            cumulativeValue: 0,
             phantom,
             xValue: scratch.xValue ?? '',
-            yValue: 0, // Will be updated by updateNodeDatum
+            yValue: 0,
             yKey: ctx.yKey,
             xKey: ctx.xKey,
             capDefaults: {
-                lengthRatioMultiplier: 0, // Will be updated by updateNodeDatum
-                lengthMax: 0, // Will be updated by updateNodeDatum
+                lengthRatioMultiplier: 0,
+                lengthMax: 0,
             },
-            x: 0, // Will be updated by updateNodeDatum
-            y: 0, // Will be updated by updateNodeDatum
-            width: 0, // Will be updated by updateNodeDatum
-            height: 0, // Will be updated by updateNodeDatum
-            midPoint: { x: 0, y: 0 }, // Required - updated in place by updateNodeDatum
+            x: 0,
+            y: 0,
+            width: 0,
+            height: 0,
+            midPoint: { x: 0, y: 0 },
             opacity: params.opacity,
             featherRatio: params.featherRatio,
-            topLeftCornerRadius: false, // Will be updated by updateNodeDatum
-            topRightCornerRadius: false, // Will be updated by updateNodeDatum
-            bottomRightCornerRadius: false, // Will be updated by updateNodeDatum
-            bottomLeftCornerRadius: false, // Will be updated by updateNodeDatum
-            clipBBox: undefined, // Will be created/updated by updateNodeDatum
+            topLeftCornerRadius: false,
+            topRightCornerRadius: false,
+            bottomRightCornerRadius: false,
+            bottomLeftCornerRadius: false,
+            clipBBox: undefined,
             crisp: ctx.crisp,
-            label: undefined, // Will be created/updated by updateNodeDatum
-            missing: false, // Will be updated by updateNodeDatum
+            label: undefined,
+            missing: false,
             focusable: !phantom,
         };
     }
@@ -902,11 +902,9 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             return { nodeData: undefined, phantomNodeData: undefined };
         }
 
-        // Create skeleton main node and populate it
         const nodeData = this.createSkeletonNodeDatum(ctx, params, false);
         this.updateNodeDatum(ctx, nodeData, params, prepared);
 
-        // Create phantom node if cross-filtering is active
         let phantomNodeData: BarNodeDatum | undefined;
         if (prepared.yFilterValue != null) {
             phantomNodeData = this.createSkeletonNodeDatum(ctx, params, true);
@@ -940,7 +938,6 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
 
         const mutableNode = node as Mutable<BarNodeDatum>;
 
-        // Update main node properties
         const phantom = node.phantom;
         const prevY = params.yStart;
         const yValue = phantom ? prepared.yFilterValue! : (prepared.yFilterValue ?? prepared.yRawValue);
@@ -992,7 +989,6 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         const barRectWidth = ctx.barAlongX ? Math.abs(ctx.bboxBottom - bboxHeight) : params.width * (crossScale ?? 1);
         const barRectHeight = ctx.barAlongX ? params.width * (crossScale ?? 1) : Math.abs(ctx.bboxBottom - bboxHeight);
 
-        // Update mutable properties
         mutableNode.datum = prepared.datum;
         mutableNode.datumIndex = params.datumIndex;
         mutableNode.cumulativeValue = cumulativeValue;
@@ -1004,12 +1000,10 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         mutableNode.width = barRectWidth;
         mutableNode.height = barRectHeight;
 
-        // Update midPoint in place
         const mutableMidPoint = mutableNode.midPoint as Mutable<Point>;
         mutableMidPoint.x = rectX + rectWidth / 2;
         mutableMidPoint.y = rectY + rectHeight / 2;
 
-        // Update capDefaults
         const lengthRatioMultiplier = ctx.shouldFlipXY ? rectHeight : rectWidth;
         mutableNode.capDefaults.lengthRatioMultiplier = lengthRatioMultiplier;
         mutableNode.capDefaults.lengthMax = lengthRatioMultiplier;
@@ -1021,7 +1015,6 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         mutableNode.bottomRightCornerRadius = ctx.barAlongX === isUpward;
         mutableNode.bottomLeftCornerRadius = !isUpward;
 
-        // Update clipBBox in place
         const existingClipBBox = mutableNode.clipBBox;
         if (existingClipBBox) {
             existingClipBBox.x = rectX;
@@ -1034,7 +1027,6 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
 
         mutableNode.crisp = ctx.crisp;
 
-        // Update label in place
         const rect = { x: rectX, y: rectY, width: rectWidth, height: rectHeight };
         if (nodeLabelText == null) {
             mutableNode.label = undefined;

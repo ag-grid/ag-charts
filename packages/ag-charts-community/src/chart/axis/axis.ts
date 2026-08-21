@@ -270,13 +270,8 @@ export abstract class Axis<
     dataDomain: { domain: D[]; clipped: boolean } = { domain: [], clipped: false };
     private allowNull = false;
 
-    // This is the meta-data about the screen-positioning of the ticks on our axis. It's usually a 1-dimensional scale
-    // value (`along`), but can optionally be 2-dimensional (`cross`, e.g. the "Depth" in grouped category axes). This
-    // is the single-source-of-truth for callbacks that need to broadcast information about the axis and its ticks
-    // (e.g. label.formatter or axis click handlers).
-    //
-    // This must live separately from the scene-graph LabelNodeDatum. This is because label-less axes can still be
-    // interacted with, but they do not include any text nodes in the scene-graph.
+    // Screen-positioning meta-data for tick callbacks. Kept separate from the scene-graph LabelNodeDatum
+    // because label-less axes are still interactive but contribute no text nodes.
     protected pickTickData: AxisPickDatum[] = [];
 
     readonly caption = new Caption();
@@ -466,10 +461,7 @@ export abstract class Axis<
         this.id = id;
         this.options = options;
         scale.logger = moduleCtx.logger;
-        // Only assign `context` when the user supplied one — a missing key
-        // must leave the property absent so `'context' in axis` returns
-        // `false` and chart-level context can fall through. See the field
-        // declaration above.
+        // The property must stay absent when unsupplied so `'context' in axis` lets chart-level context fall through.
         const userContext = (options as { context?: unknown }).context;
         if (userContext !== undefined) {
             this.context = userContext;
@@ -492,8 +484,7 @@ export abstract class Axis<
     applyOptions(options: TOptions): void {
         this.options = options;
         this.syncOptionDerivedState(options);
-        // Tick layouts are cached by domain/range/nice, none of which capture label or tick option
-        // changes; drop the cache so an updated configuration regenerates ticks and labels.
+        // Tick layouts are cached by domain/range/nice, which do not capture label or tick option changes.
         this.invalidateLayoutCache();
     }
 
@@ -510,8 +501,7 @@ export abstract class Axis<
         // Override in classes
     }
 
-    // AG-15360 Avoid calling removeTooltip() if no tooltip is shown. This avoid a laggy tooltips caused by interference
-    // with SeriesAreaManager's tooltip updates.
+    // Avoid removeTooltip() when no tooltip is shown: it interferes with SeriesAreaManager's tooltip updates.
     private isHovering = false;
 
     private onMouseMove(event: MouseWidgetEvent<'mousemove'>) {
@@ -1208,10 +1198,7 @@ export abstract class Axis<
 
     createModuleContext(): DynamicContext<ChartAxisRegistry<AxisContext>> {
         this.axisContext ??= this.createAxisContext();
-        // `crossLine` is declared on the typed registry but not registered here — it's installed
-        // later by the owning cross-lines module's `register` hook (`CrossLinesModule` on cartesian
-        // axes, `PolarCrossLinesModule` on polar axes) before the cross-lines plugin's first read.
-        // The type just reserves the slot.
+        // `crossLine` is only a reserved slot here; the owning cross-lines module registers it in its `register` hook.
         this.moduleContext ??= this.moduleCtx
             .child<{ parent: AxisContext; crossLine: CrossLine }>()
             .constant('parent', this.axisContext);
@@ -1292,9 +1279,7 @@ export abstract class Axis<
     }
 
     pickValue(point: CanvasPoint): AxisValuePick | undefined {
-        // Canvas space is the only frame every caller shares: the axis proxy region, the series area and
-        // the series rect each sit at their own offset within it. Taking canvas coordinates means the
-        // conversion to axis-local space happens here, once, instead of each caller guessing at it.
+        // Canvas space is the only frame every caller shares, so the conversion to axis-local space happens here once.
         const origin = this.getLayoutTranslation();
         const localX = point.canvasX - origin.x;
         const localY = point.canvasY - origin.y;
@@ -1312,14 +1297,11 @@ export abstract class Axis<
 
         const picked = this.resolvePickDatum(position, crossPosition);
         const index = picked?.index ?? -1;
-        // On a continuous axis `value` is the position under the pointer, so it is read from the scale
-        // rather than the tick. On a discrete axis the two agree, and taking it from the tick is what
-        // keeps `value` and `index` describing the same thing.
+        // On a continuous axis `value` is the pointer position; on a discrete one it must come from the
+        // tick so that `value` and `index` describe the same thing.
         const value = this.continuous || picked == null ? scaleValue : picked.value;
 
-        // Dynamically extract properties of `AgContextMenuGetItemsParamsAxis` that are not present in the base
-        // `AgContextMenuGetItemsParamsAlways` (and also add `caller` so that we can run the context-menu callbacks
-        // `callWithContext`).
+        // The axis-only additions to the base context-menu params, plus `caller` for `callWithContext`.
         type Rules = Omit<AgContextMenuGetItemsParamsAxis, keyof AgContextMenuGetItemsParamsAlways> &
             Pick<AxisValuePick, 'caller'>;
         const result: AxisValuePick = {
@@ -1336,10 +1318,7 @@ export abstract class Axis<
     }
 
     protected setPickTickData(ticks: readonly Readonly<TickDatum>[], firstTickIndex = 0): void {
-        // A picked value's index must match what the axis label formatter reports for the same tick. The
-        // formatter numbers ticks by their 0-based position among the generated ticks, whereas TickDatum.index
-        // is the absolute index (offset by firstTickIndex on reversed/zoomed axes), so subtract it here.
-        // These ticks occupy a single row, so they span the axis in the perpendicular direction.
+        // TickDatum.index is absolute, but the label formatter numbers ticks from 0, so rebase onto firstTickIndex.
         this.pickTickData = ticks.map(({ index, translation, tick }) => ({
             index: index - firstTickIndex,
             value: tick,

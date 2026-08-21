@@ -20,20 +20,16 @@ test.describe('css variables', () => {
                 await gotoExample(page, url);
                 await expectChartScreenshot(page, page.locator(SELECTORS.canvas), 'initial-value.png');
 
-                // Expect the colours to change
                 await page.getByText('Change CSS Variable').click();
                 await expectChartScreenshot(page, page.locator(SELECTORS.canvas), 'changed-value.png');
 
-                // Expect the theme to change and keep the new colours
                 await page.getByTitle('Change to Default Theme').click();
                 await expectChartScreenshot(page, page.locator(SELECTORS.canvas), 'changed-theme.png');
 
-                // Expect the theme to stay the same and the colours to change
                 await page.getByTitle('Change to Default Theme').click();
                 await page.getByText('Change CSS Variable').click();
                 await expectChartScreenshot(page, page.locator(SELECTORS.canvas), 'change-value-same-theme.png');
 
-                // Expect the theme to change and the colours to change
                 await page.getByTitle('Change to Paper Theme').click();
                 await page.getByText('Change CSS Variable').click();
                 await expectChartScreenshot(page, page.locator(SELECTORS.canvas), 'change-value-and-theme.png');

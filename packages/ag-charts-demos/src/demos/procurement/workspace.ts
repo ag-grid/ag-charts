@@ -232,8 +232,7 @@ export function mySummary(rangeOrders: PurchaseOrder[]): MySummary {
         if (order.actualDate == null) openOrders += 1;
     }
 
-    // Scoped by delivery date, as `myScorecard` scopes each supplier's rate: by order date the same
-    // window holds a smaller set, and the headline would quote a figure no supplier card agrees with.
+    // Scoped by delivery date, as `myScorecard` is, or the headline quotes a figure no supplier card agrees with.
     let delivered = 0;
     let onTime = 0;
     for (const order of deliveredInRange(MY_ORDERS, trailingMonths(PERFORMANCE_MONTHS))) {
@@ -280,8 +279,7 @@ export function myAttentionItems(): AttentionItem[] {
     return late
         .sort((a, b) => a.requiredDate - b.requiredDate)
         .map((shipment) => {
-            // Late is defined by the projection having passed the required date, so the slack is
-            // always negative and the item can state the overrun directly.
+            // Late means the projection has passed the required date, so the slack is always negative.
             const daysLate = Math.abs(daysBetween(shipment.projectedDate, shipment.requiredDate));
             const carrier = shipment.carrierDelay ? ' · carrier delay logged' : '';
             return {
@@ -301,10 +299,7 @@ export { ON_TIME_TARGET };
 
 // --- her periods --------------------------------------------------------------
 
-// Two period controls, because the two tabs are asking different questions of the same orders.
-// Supplier performance is a trend and needs a trailing window of whole months; spend is a
-// commitment against an allocation, and an allocation only exists for a calendar period. Sharing
-// one selector would force one of the two to be read over a window that means nothing to it.
+// Two period controls: a trend needs a trailing window of whole months, a commitment a calendar period.
 
 /**
  * The trailing windows the suppliers tab can be read over, longest first.
@@ -507,8 +502,7 @@ export const mySupplierShare = (rangeOrders: PurchaseOrder[]): SupplierShareRow[
 export function mySpendTrend(period: SpendPeriod): SpendTrend {
     const grain = period === 'ytd' ? 'month' : 'week';
 
-    // For months, the window stops where the current month began, so `monthBuckets` cannot emit a
-    // partial one; for weeks, `weekBuckets` drops the trailing partial itself.
+    // The window stops where the current month began, so `monthBuckets` cannot emit a partial one.
     const range: DateRange =
         grain === 'month'
             ? {

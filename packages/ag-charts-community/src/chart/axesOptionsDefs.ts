@@ -86,8 +86,7 @@ import type {
 export const commonCrossLineLabelOptionsDefs: OptionsDefs<AgBaseCrossLineLabelOptions> = {
     enabled: boolean,
     text: string,
-    // Deliberately signed: cross-line label padding positions the label relative to the line, so
-    // negative values are meaningful here and remain permitted (AG-17973).
+    // Signed: label padding positions the label relative to the line, so negative values are meaningful.
     padding: signedPadding,
     border: borderOptionsDef,
     cornerRadius: number,
@@ -95,9 +94,7 @@ export const commonCrossLineLabelOptionsDefs: OptionsDefs<AgBaseCrossLineLabelOp
     ...fillOptionsDef,
 };
 
-// Stroke/enabled style shared by both cross-line variants. `fill`/`fillOpacity` are intentionally
-// excluded — they belong to the `range` variant only (see `crossLineOptionsDefs`). `id` is excluded
-// because it identifies a single cross line rather than styling it, so it is not themeable.
+// `fill`/`fillOpacity` belong to the `range` variant only, and `id` identifies rather than styles a cross line.
 const crossLineCommonStyleOptionsDefs: OptionsDefs<
     Omit<AgCommonCrossLineOptions<AgBaseCrossLineLabelOptions, unknown>, 'label' | 'id' | 'listeners'>
 > = {
@@ -111,8 +108,7 @@ const crossLineListenersOptionsDefs: OptionsDefs<AgCrossLineListeners<unknown>> 
     doubleClick: callback,
 };
 
-// The full style surface accepted by theme overrides (which carry neither `type` nor `value` and
-// supply their own `label`); theme defaults apply to both variants, so `fill`/`fillOpacity` are valid.
+// Theme overrides apply to both variants, so `fill`/`fillOpacity` are valid here.
 export const crossLineStyleOptionsDefs: OptionsDefs<Omit<AgCrossLineThemeOptions, 'label'>> = {
     ...crossLineCommonStyleOptionsDefs,
     fill: colorOrRef,
@@ -124,15 +120,12 @@ export const radiusCrossLineLabelOptionsDefs: OptionsDefs<AgRadiusCrossLineLabel
     positionAngle: number,
 };
 
-// Builds the cross-line options schema as a discriminated union on `type`, so the value is
-// validated against the axis it's attached to: `line` carries a single `value`, `range` a
-// two-item `range` tuple, both checked with the supplied per-axis `value` validator.
+// Discriminated on `type` so each variant's value is checked with the supplied per-axis `value` validator.
 export function crossLineOptionsDefs(
     value: Validator,
     labelDefs: OptionsDefs<AgBaseCrossLineLabelOptions>
 ): OptionsDefs<AgBaseCrossLineOptions<AxisValue, AgBaseCrossLineLabelOptions, unknown>> {
-    // `id` and `listeners` are per-cross-line rather than stylistic, so they live here instead of in the
-    // themeable style defs.
+    // `id` and `listeners` are per-cross-line rather than stylistic, so they are not themeable.
     const commonStyle = {
         id: string,
         listeners: crossLineListenersOptionsDefs,

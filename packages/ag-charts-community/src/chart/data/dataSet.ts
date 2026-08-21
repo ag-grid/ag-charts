@@ -172,12 +172,10 @@ export class DataSet<T = unknown> {
     private normalizeTransaction(transaction: DataSetTransaction<T>): DataSetTransaction<T> {
         const { add, addIndex, prepend, append, remove, update } = transaction;
 
-        // If using legacy format, return as-is
         if (add === undefined) {
             return transaction;
         }
 
-        // Convert add+addIndex to prepend/append/insertions
         const result: DataSetTransaction<T> = { remove, update };
 
         // Preserve any existing prepend/append (shouldn't happen in practice)
@@ -189,10 +187,8 @@ export class DataSet<T = unknown> {
             const currentSize = this.netSize();
 
             if (addIndex === undefined || addIndex >= currentSize) {
-                // Append to end (default behaviour)
                 result.append = append ? [...append, ...add] : add;
             } else if (addIndex === 0) {
-                // Prepend to beginning
                 result.prepend = prepend ? [...add, ...prepend] : add;
             } else {
                 // Arbitrary insertion: store in insertions array
@@ -229,12 +225,10 @@ export class DataSet<T = unknown> {
             return false;
         }
 
-        // Get all insertion values in order: prepends, insertions, appends
         const prependedValues = changeDescription.getPrependedValues<T>();
         const insertionValues = changeDescription.getInsertionValues<T>();
         const appendedValues = changeDescription.getAppendedValues<T>();
 
-        // Create a flat list of all values to insert, in the order they'll be consumed
         const allInsertionValues = [...prependedValues, ...insertionValues, ...appendedValues];
 
         // Use a sequential index to consume insertion values in order instead of a map
@@ -242,7 +236,6 @@ export class DataSet<T = unknown> {
         // target overlapping indices)
         let insertionValueIndex = 0;
 
-        // Apply transformations using sequential consumption
         changeDescription.applyToArray(this.data, function applyToArrayResultFn(destIndex: number) {
             if (insertionValueIndex >= allInsertionValues.length) {
                 throw new Error(`AG Charts - Internal error: No insertion value found for index ${destIndex}`);
@@ -423,7 +416,6 @@ export class DataSet<T = unknown> {
             }
         }
 
-        // Add entries for appended items.
         const appendStartIndex = indexMap.finalLength - totalAppendCount;
         for (let i = 0; i < appendedValues.length; i++) {
             const id = this.getIdValue(appendedValues[i]);
@@ -456,7 +448,6 @@ export class DataSet<T = unknown> {
             return undefined;
         }
 
-        // Return cached version if available
         if (this.cachedChangeDescription) {
             return this.cachedChangeDescription;
         }

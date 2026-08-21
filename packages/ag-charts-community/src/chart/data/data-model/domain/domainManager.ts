@@ -112,9 +112,7 @@ export class DomainManager<D extends object, K extends keyof D & string> {
             }
         }
 
-        // Initialize bands for key domains first (this determines band structure)
-        // Only initialize if bands don't exist yet or if data size has changed significantly
-        // During reprocessing, bands are already adjusted by updateBandsForChanges()
+        // Key domains first: they determine the band structure that value domains reuse.
         this.initializeDomainBands(
             this.ctx.keys,
             keyDomains,
@@ -133,9 +131,7 @@ export class DomainManager<D extends object, K extends keyof D & string> {
             (def) => String(def.property)
         );
 
-        // Collect pre-scan band statistics (after initialization, before extending domains)
-        // This shows how many bands WILL BE scanned, not how many are currently dirty
-        // Always collect these stats so they're available for testing
+        // Collected before extending domains, so these count the bands that will be scanned.
         const preScanDomainStats = new Map<IDataDomain, ReturnType<BandedDomain['getStats']>>();
         if (bandedDomains.size > 0) {
             bandStats = {

@@ -51,9 +51,7 @@ export function QualityCostChart({ rows, supplierColors, selectedSupplierId, onS
             yName: 'Cost of rejected material',
             cornerRadius: 3,
             widthRatio: 0.65,
-            // Every bar takes its supplier's identity colour from the styler below, so the series
-            // fill only ever shows in the legend — where a single supplier's colour would read as
-            // if the item stood for that supplier rather than for the measure.
+            // Bars take their supplier's colour from the styler, so the series fill only ever shows in the legend.
             fill: NEUTRAL,
             itemStyler: ({ datum }) =>
                 dimmed(datum.supplierId)
@@ -72,8 +70,7 @@ export function QualityCostChart({ rows, supplierColors, selectedSupplierId, onS
             listeners: { seriesNodeClick: ({ datum }) => onSelect(datum.supplierId) },
         };
 
-        // A mark per supplier, not a series through them: the axis has no order, so a stroke between
-        // the rates would draw a trend that does not exist.
+        // A mark per supplier, not a series: the axis has no order, so a stroke would draw a trend that is not there.
         const rate: AgScatterSeriesOptions<Row> = {
             type: 'scatter',
             xKey: 'supplier',
@@ -116,8 +113,7 @@ export function QualityCostChart({ rows, supplierColors, selectedSupplierId, onS
                 },
             },
             legend: { enabled: true },
-            // The box can fall below the 300px a chart defaults to as its minimum, and a chart that
-            // will not shrink to its box overflows it and swallows clicks meant for the card below.
+            // Below the 300px chart minimum; a chart that will not shrink overflows its box and swallows clicks.
             minWidth: 0,
             minHeight: 0,
             padding: { top: 8, right: 8, bottom: 4, left: 4 },

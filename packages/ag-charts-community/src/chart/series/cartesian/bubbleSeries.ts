@@ -626,11 +626,9 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
 
-        // Determine if we can incrementally update existing nodes
         const canIncrementallyUpdate =
             processedData.changeDescription != null && this.contextNodeData?.nodeData != null;
 
-        // Determine label text domain for formatting
         let labelTextDomain: any[];
         if (labelKey) {
             labelTextDomain = [];
@@ -728,7 +726,6 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
      * Strategy selection happens inside: simple or aggregation path.
      */
     protected override populateNodeData(ctx: BubbleSeriesNodeDatumContext): void {
-        // Set size scale range
         this.sizeScale.range = this.getSizeRange();
 
         // Pre-allocate scratch object for datum state
@@ -751,7 +748,6 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
 
         this.aggregateIndexSet = undefined;
 
-        // Strategy selection - delegate to specialized methods
         const { dataAggregation } = this;
         if (dataAggregation == null) {
             this.createNodeDataSimple(ctx, scratch);
@@ -884,7 +880,6 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
 
         const crossFilterSelected = ctx.crossFilterSelectedDataValues?.[datumIndex];
 
-        // Compute marker size
         const markerSize = sizeValue == null ? ctx.sizeScale.range[0] : ctx.sizeScale.convertClamped(sizeValue);
 
         // Compute label (skip expensive formatting if labels disabled)
@@ -898,7 +893,6 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
 
         const colorValue = ctx.colorDataValues?.[datumIndex];
 
-        // Populate scratch object
         scratch.datum = datum;
         scratch.xDatum = xDatum;
         scratch.yDatum = yDatum;
@@ -1031,7 +1025,6 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         const mutableNode = node as Mutable<BubbleScatterNodeDatum>;
         const { x, y, markerSize, dilation } = scratch;
 
-        // Update basic properties
         mutableNode.datum = scratch.datum;
         mutableNode.datumIndex = datumIndex;
         mutableNode.xValue = scratch.xDatum;
@@ -1050,13 +1043,11 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         mutableNode.region = ctx.plotRegion;
         mutableNode.placement = ctx.labelPlacement;
 
-        // Update point in-place
         const mutablePoint = mutableNode.point;
         mutablePoint.x = x;
         mutablePoint.y = y;
         mutablePoint.size = Math.sqrt(dilation) * markerSize;
 
-        // Update midPoint in-place
         const mutableMidPoint = mutableNode.midPoint as Mutable<Point>;
         mutableMidPoint.x = x;
         mutableMidPoint.y = y;

@@ -218,7 +218,7 @@ describe('NightingaleSeries', () => {
         const y = 570;
         beforeEach(async () => {
             const options: AgChartOptions = {
-                animation: { enabled: true, duration: 0 }, // AG-14232: There's a bug with nightingale `animation.enabled = false`
+                animation: { enabled: true, duration: 0 }, // `animation.enabled = false` is broken for nightingale.
                 data: [
                     { quarter: `Q1'22`, software: 4.35, hardware: 2.14, services: 3.91 },
                     { quarter: `Q2'22`, software: 4.28, hardware: 3.13, services: 3.04 },
@@ -242,7 +242,6 @@ describe('NightingaleSeries', () => {
                     await clickAction(x, y)(chart);
                     await compare(`nightingale-test-ts-nightingale-series-legend-click-${x}`);
                     await clickAction(x, y)(chart);
-                    // Clear highlight state to match initial state (legend click sets highlight when toggling back on)
                     const chartInstance = deproxy(chart);
                     for (const { legend } of chartInstance.modulesManager.legends()) {
                         chartInstance.ctx.highlightManager.updateHighlight((legend as any).id);
@@ -257,7 +256,6 @@ describe('NightingaleSeries', () => {
                     await tapAction(x, y)(chart);
                     await compare(`nightingale-test-ts-nightingale-series-legend-click-${x}`);
                     await tapAction(x, y)(chart);
-                    // Clear highlight state to match initial state (legend click sets highlight when toggling back on)
                     const chartInstance = deproxy(chart);
                     for (const { legend } of chartInstance.modulesManager.legends()) {
                         chartInstance.ctx.highlightManager.updateHighlight((legend as any).id);
@@ -285,11 +283,8 @@ describe('NightingaleSeries', () => {
         });
     });
 
-    // The public animation data actions — initial load, add/remove/update data — asserted over the whole
-    // animation trajectory (see the animation-trajectory-tests rule) rather than as per-ratio image
-    // snapshots. Only the empty→ready reveal animates: each wedge grows radially from a collapsed centre
-    // (outerRadius 0 → target) while its fixed angular slice holds. A data update, add, or partial remove
-    // on an already-populated series snaps to the settled state with no tween — the snap CASEs pin that.
+    // Only the empty→ready reveal animates: each wedge grows radially from a collapsed centre while
+    // its angular slice holds. Any mutation of an already-populated series snaps.
     describe('animation -test page actions', () => {
         const frames = spyOnAnimationFrames();
 
@@ -324,9 +319,7 @@ describe('NightingaleSeries', () => {
             trajectory.map((f) => outerRadiusOf(f, key)).filter((v): v is number => v != null && Number.isFinite(v));
         const maxRadius = (sample: SceneGeometrySample) =>
             Math.max(...sectorEntries(sample).map(([, v]) => v.outerRadius));
-        // The per-wedge labels start collapsed at opacity ~0 on the first captured frame, so the
-        // trailing-phase fade-in specs cannot pass vacuously — a regression that snapped them straight
-        // to full opacity would trip this.
+        // Anti-vacuity: without this the trailing-phase fade-in specs could pass flat.
         const expectLabelsStartHidden = (trajectory: SceneGeometrySample[]) => {
             const hidden = [...trajectory[0]].filter(([key]) => /^series\[\d+\]\/labels\/text\[.+\]$/.test(key));
             expect(hidden.length, 'label nodes at frame 0').toBeGreaterThan(0);
@@ -344,7 +337,7 @@ describe('NightingaleSeries', () => {
             const sectorKeys = sectorEntries(sampleScene()).map(([key]) => key);
             expect(sectorKeys).toHaveLength(8);
 
-            // Every wedge advances by one shared growth fraction on each frame — the desync detector.
+            // Every wedge must advance by one shared growth fraction per frame.
             const wedgesGrowInSync: SceneFrameInvariant = {
                 name: 'all wedges share one radial growth fraction',
                 check: (frame) => {
@@ -361,9 +354,6 @@ describe('NightingaleSeries', () => {
                 },
             };
 
-            // Each wedge grows radially during 'initial' — its outer edge sweeps out and, for the
-            // radially-stacked outer series, its inner edge tracks the series beneath it. The angular
-            // slice holds fixed; the per-wedge labels fade in during the trailing phase, after the growth.
             const radialGrowth = {
                 startAngle: 'constant',
                 endAngle: 'constant',
@@ -387,8 +377,7 @@ describe('NightingaleSeries', () => {
             );
             expectLabelsStartHidden(trajectory);
 
-            // Anti-vacuity: every wedge starts collapsed at the centre (~0) and grows to a real radius —
-            // a snap regression would show frame 0 already at the target.
+            // Anti-vacuity: a snap would show frame 0 already at the target.
             for (const key of sectorKeys) {
                 const radius = radii(trajectory, key);
                 expect(radius[0], `${key} collapsed at frame 0`).toBeLessThanOrEqual(1);
@@ -406,10 +395,8 @@ describe('NightingaleSeries', () => {
             const { before, trajectory, after } = await frames.captureSnap(proxy, sampleScene, () =>
                 (proxy as AgChartInstance).update({ ...options, data: grow(NG_DATA) } as AgPolarChartOptions)
             );
-            // The update actually grew the air wedges (anti-vacuity for the snap assertion)...
+            // Anti-vacuity for the snap assertion below.
             expect(maxRadius(after) - maxRadius(before), 'wedges grew').toBeGreaterThan(20);
-            // ...and the whole scene held constant across the captured frames: it landed fully formed on
-            // frame 0 with no tween anywhere (a regression that tweened the growth would break this).
             expectSceneTrajectory(trajectory);
         });
 
@@ -441,8 +428,6 @@ describe('NightingaleSeries', () => {
             expectSceneTrajectory(trajectory);
         });
 
-        // Endpoint sanity guards: the animated reveal into `before` and the snapped transition into
-        // `after` must settle at exactly the pixels a non-animated render of the same options produces.
         it('sanity: update-data endpoints match static renders', async () => {
             const before = nightingaleOptions();
             const proxy = AgCharts.create(before);
@@ -811,7 +796,6 @@ describe('NightingaleSeries', () => {
             });
         });
         describe('highlights', () => {
-            // Manual-test version available at nightingale-series-test#styler-highlight-state
             beforeEach(async () => {
                 chart = AgCharts.create(
                     prepareEnterpriseTestOptions<O>({
@@ -891,7 +875,6 @@ describe('NightingaleSeries', () => {
                     expect(popCalls()).toMatchSnapshot();
 
                     await hover(legendItem1);
-                    // Wait for delayed unhighlights to complete
                     await waitForChartStability(chart, MIN_UNHIGHLIGHT_DELAY);
                     expect(popCalls()).toMatchSnapshot();
                 });

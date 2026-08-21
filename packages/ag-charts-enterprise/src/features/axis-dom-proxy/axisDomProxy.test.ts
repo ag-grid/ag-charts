@@ -72,7 +72,7 @@ describe('AxisDOMProxy', () => {
         });
 
         // Check that label formatter's indices match the DFS ordering of the x-grouping.
-        // Note: axes[].label.formatter is called twice on start up for some reason.
+        // Note: axes[].label.formatter is called twice on start up.
         test('formatter - value/index match', () => {
             expect(formatter.mock.calls).toMatchObject([
                 [expect.objectContaining({ value: 'Food', index: 0 })],
@@ -315,7 +315,7 @@ describe('AxisDOMProxy', () => {
 
         // Sanity check for the case above: picking must agree with the numbering the label formatter
         // sees, so the formatter is called for the hidden end labels too — indices 0..5, not 1..4.
-        // Note: axes[].label.formatter is called twice on start up for some reason.
+        // Note: axes[].label.formatter is called twice on start up.
         test('formatter - value/index match', () => {
             expect(formatter.mock.calls).toMatchObject([
                 [expect.objectContaining({ value: 0, index: 0 })],
@@ -411,9 +411,8 @@ describe('AxisDOMProxy', () => {
         });
     });
 
-    // `nice: false` used to be one of the conditions that sent the axis down the tick-skipping fast path.
-    // That path is now reserved for chart types where nothing can pick at all, so a clickable axis keeps its
-    // ticks whatever `nice` is set to.
+    // The tick-skipping fast path is reserved for chart types where nothing can pick at all, so a clickable
+    // axis keeps its ticks whatever `nice` is set to.
     describe('axis with labels, ticks and grid lines disabled - number, nice: false', () => {
         beforeEach(async () => {
             chart = await createEnterpriseChart({

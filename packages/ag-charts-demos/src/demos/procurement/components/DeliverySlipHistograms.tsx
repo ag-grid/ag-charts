@@ -153,8 +153,7 @@ function splitOptions(row: SlipDistribution, lateCount: number, color: string): 
         ],
         series: [series],
         legend: { enabled: false },
-        // Far below the 300px a chart defaults to as its minimum, and a chart that will not shrink to
-        // its box overflows it and swallows clicks meant for whatever sits below.
+        // Below the 300px chart minimum; a chart that will not shrink overflows its box and swallows clicks.
         minWidth: 0,
         minHeight: 0,
         padding: { top: 0, right: 0, bottom: 0, left: 0 },
@@ -183,8 +182,7 @@ export function DeliverySlipHistograms({
     const facets = useMemo(
         () =>
             rows.map((row, index) => {
-                // The x axis is drawn once, under the bottom facet: every facet shares the same
-                // categories, so repeating it per row restates the same scale four more times.
+                // The x axis is drawn once, under the bottom facet: every facet shares the same categories.
                 const isLast = index === rows.length - 1;
                 const dimmed = selectedSupplierId != null && row.supplierId !== selectedSupplierId;
                 const color = dimmed ? NEUTRAL : (supplierColors[row.supplierId] ?? NEUTRAL);
@@ -215,9 +213,7 @@ export function DeliverySlipHistograms({
                     theme: THEME,
                     data: scale.bars.get(row.supplierId) ?? [],
                     series: [series],
-                    // A facet is far shorter than the 300px a chart defaults to as its minimum, and a
-                    // chart that will not shrink to its box overflows it and swallows clicks meant for
-                    // whatever sits below.
+                    // Below the 300px chart minimum; a chart that will not shrink overflows its box and swallows clicks.
                     minWidth: 0,
                     minHeight: 0,
                     axes: {
@@ -239,8 +235,7 @@ export function DeliverySlipHistograms({
                             max: scale.maxCount,
                             nice: false,
                             label: { enabled: false },
-                            // A facet this short has room for the two ticks that bound the shared
-                            // scale, and those are the two that carry the comparison.
+                            // A facet this short has room only for the two ticks that bound the shared scale.
                             interval: { values: [0, scale.maxCount] },
                         },
                     },
@@ -259,8 +254,7 @@ export function DeliverySlipHistograms({
     return (
         <div className="pc-facets">
             {facets.map(({ row, options, split, isLast, lateCount }) => (
-                // The bottom facet is taller by exactly the band its axis labels occupy, so every plot
-                // area stays the same height and the shared y scale still compares.
+                // The bottom facet is taller by its axis-label band, so every plot area keeps the same height.
                 <div key={row.supplierId} className={isLast ? 'pc-facet pc-facet--axis' : 'pc-facet'}>
                     <span className="pc-facet-head">
                         <span className="pc-facet-name">{row.supplier}</span>

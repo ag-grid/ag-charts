@@ -184,24 +184,22 @@ export function createTestCase(
 ) {
     const { url, status, framework, clickOrder, skipCanvasUpdateCheck, ignoreConsoleWarnings } = opts;
 
-    // Use a special test title suffix to indicate console warnings should be ignored
+    // The title suffix is how createConsoleLogs learns to ignore this test's warnings.
     const titleSuffix = ignoreConsoleWarnings ? ' [ignoreConsoleWarnings]' : '';
 
     if (status === 'ok') {
         testFn(`should load ${url}${titleSuffix}`, async ({ page }) => {
             test.slow(framework === 'angular', 'allow more time for Angular load times');
 
-            // Load example and wait for things to settle.
             await gotoExample(page, url);
 
             await initialCallback?.(page);
 
-            // Check we're dealing with a single canvas, otherwise things get tricky!
+            // Multi-canvas examples are out of scope for the control sweep below.
             const canvases = await page.locator('.ag-charts-wrapper').all();
             if (canvases.length > 1) return;
             const canvas = canvases[0];
 
-            // Try pressing the buttons and button group segments to see if any errors are thrown.
             // A button group's radio is hidden, so its label is the clickable part.
             const controls = await page
                 .locator('.example-controls > button, .example-controls .button-group > label')
@@ -209,9 +207,7 @@ export function createTestCase(
             if (clickOrder === 'reverse') controls.reverse();
 
             for (const control of controls) {
-                // A disabled control cannot be exercised, and clicking a group's checked segment
-                // fires no change event, so neither can redraw the chart. :disabled is what covers
-                // a segment sitting inside a disabled control-group fieldset.
+                // Neither a disabled control nor an already-checked segment can redraw the chart.
                 const skip = await control.evaluate((el) => {
                     const input = el instanceof HTMLLabelElement ? el.control : null;
                     if (input instanceof HTMLInputElement) return input.checked || input.matches(':disabled');
