@@ -1,4 +1,5 @@
 import { toAbsoluteUrl } from '@ag-website-shared/markdoc/toAbsoluteUrl';
+import { GALLERY_CTAS } from '@components/gallery/galleryCtas';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 
 import galleryData from '../../content/gallery/data.json';
@@ -45,6 +46,7 @@ export function buildGalleryMarkdown({ siteRoot }: { siteRoot?: string } = {}): 
         frontmatter,
         '# AG Charts Gallery',
         'Browse the AG Charts gallery of chart examples, grouped by chart type. Each example links to a live, interactive demo.',
+        GALLERY_CTAS.map((cta) => `[${cta.title}](${toAbsoluteUrl(urlWithBaseUrl(cta.url), siteRoot)})`).join(' | '),
     ];
 
     for (const chartType of series.flat()) {
