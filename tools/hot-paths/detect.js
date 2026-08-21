@@ -239,7 +239,8 @@ function signalsIn({ added, context }) {
     return Object.fromEntries(found);
 }
 
-const LOOP_OPENER_RE = /\b(for|while)\s*\(|\.(forEach|map|filter|reduce|flatMap)\(/;
+const LOOP_OPENER_RE =
+    /\b(for|while)\s*\(|\.(forEach|map|filter|reduce|flatMap|some|every|find|findIndex|findLast|sort)\(/;
 const BLOCK_BOUNDARY_RE = /\b(function\b|class\b|constructor\b|override\b|private\b|protected\b|public\b|static\b)/;
 const ARROW_OPENER_RE = /=>\s*\{\s*$/;
 const DEFERRED_CALLBACK_RE =

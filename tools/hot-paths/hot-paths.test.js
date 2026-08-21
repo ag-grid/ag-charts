@@ -294,3 +294,21 @@ test('insideLoop: a predicate a helper calls straight away stays in-loop', () =>
     assert.ok(hit, 'the enclosing loop is still found');
     assert.equal(hit.line, 1);
 });
+
+test('benchmark map: a base no benchmark example instantiates says so', () => {
+    // The Cartesian scaled examples do not run the polar or hierarchy bases, so
+    // naming them would be the clean-run-that-never-executed-the-change failure the
+    // guide warns about.
+    for (const file of [
+        'packages/ag-charts-community/src/chart/series/polar/polarSeries.ts',
+        'packages/ag-charts-community/src/chart/series/hierarchy/hierarchySeries.ts',
+    ]) {
+        const result = recommend([file]);
+        assert.deepEqual(result.examples, [], `${file} recommends nothing`);
+        assert.match(result.notes.join(' '), /No benchmark example exercises/, `${file} says why`);
+    }
+
+    // The Cartesian bases those examples do run keep their recommendation.
+    const cartesian = recommend(['packages/ag-charts-community/src/chart/series/cartesian/cartesianSeries.ts']);
+    assert.ok(cartesian.examples.length > 0, 'a base the examples run still recommends them');
+});

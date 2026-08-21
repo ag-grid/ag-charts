@@ -63,7 +63,7 @@ as evidence but never cite it as the changed line.
 
 Calibration at the current threshold, over the last 48 PR merges: stage 1 alone matches
 **67%** of them — the tier globs are deliberately broad — and the stage-2 scoring narrows
-that to **27%**, catching **10 of 13** known performance commits. The scoring is what
+that to **29%**, catching **10 of 13** known performance commits. The scoring is what
 makes the pass affordable, so re-derive both rates after changing any weight; do not tune
 the threshold on a single PR.
 

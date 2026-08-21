@@ -150,9 +150,16 @@ const RULES = [
         // Named, not matched by shape: `chart/series/` also holds the managers
         // (`seriesAreaManager.ts`, `pickManager.ts`), and tagging those with five
         // scaled examples would push their own interaction benchmarks past the cap.
-        re: /(^|\/)(series|dataModelSeries|cartesianSeries|polarSeries|hierarchySeries|abstractBarSeries|placedLabelCartesianSeries)\.ts$/,
+        re: /(^|\/)(series|dataModelSeries|cartesianSeries|abstractBarSeries|placedLabelCartesianSeries)\.ts$/,
         names: ['high-perf-bar', 'high-perf-line', 'high-perf-area', 'large-dataset', 'enterprise-1M-line-series'],
     },
+
+    // The polar and hierarchy bases are not on the Cartesian examples' path, so they
+    // get their subclasses' types instead of those examples' names: no benchmark
+    // example instantiates them, and the uncovered-type note says so rather than
+    // recommending a run that would never execute the change.
+    { re: /(^|\/)polarSeries\.ts$/, types: ['pie', 'donut'] },
+    { re: /(^|\/)hierarchySeries\.ts$/, types: ['treemap', 'sunburst'] },
 
     // Subsystems — pick the examples whose measured phase covers them.
     { re: /\/chart\/axis\//, names: ['axes-1M-number', 'axes-1M-time', 'axes-1M-unit-time', 'axes-1M-ordinal-time'] },
