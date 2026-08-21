@@ -64,9 +64,7 @@ export interface ZoomOnDataChangeCtx extends Pick<
     _ModuleSupport.ChartRegistry,
     'chartState' | 'eventsHub' | 'axisManager' | 'logger'
 > {
-    // `zoomManager` is optional on _ModuleSupport.ChartRegistry, but ZoomOnDataChange is only ever
-    // instantiated by the zoom module, which guarantees its presence. Narrow once at
-    // the boundary so consumers don't need `!` assertions at every call site.
+    // Optional on ChartRegistry, but the zoom module is the only instantiator and guarantees it.
     readonly zoomManager: _ModuleSupport.ZoomManager;
     readonly cleanup: CleanupRegistry;
     readonly onConstrainChanges: (e: _ModuleSupport.ZoomChangeRequestEvent) => void;

@@ -85,8 +85,7 @@ describe('PieSeries', () => {
     const options: AgPolarChartOptions = prepareTestOptions({});
 
     // The public animation data actions, each asserted over the whole trajectory (see the
-    // animation-trajectory-tests rule). Pie sectors sweep their angular SPAN, the outer radius
-    // re-layouts as callout labels claim or release room, and those labels re-fade after the data lands.
+    // animation-trajectory-tests rule).
     describe('animation -test page actions', () => {
         const frames = spyOnAnimationFrames();
 

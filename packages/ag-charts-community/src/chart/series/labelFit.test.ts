@@ -14,13 +14,8 @@ import {
 
 const ELLIPSIS = '…';
 
-// Consolidated cross-series coverage for the label-fit surface (`maxWidth`/`maxHeight`/`wrapping`/`truncate`).
-// These are undocumented options, so the label objects below are built untyped and cast at the AgCharts.create
-// boundary. `setupMockConsole` fails the test on any "property is unknown" warning, so every case also proves the
-// fit options are accepted on the series' label. Each snapshot deliberately mixes label lengths and item sizes so a
-// single image exercises the whole spectrum — labels shown whole, wrapped across lines, and wrapped-then-ellipsised.
-// Bar and histogram fit their labels to their own geometry (bar rect / bin), so truncation applies with no explicit
-// bound; line is representative of the explicit-bounds path.
+// The label-fit options are undocumented, so the label objects below are built untyped and cast at the
+// AgCharts.create boundary; `setupMockConsole` fails the test on any "property is unknown" warning.
 describe('series label fit', () => {
     setupMockConsole();
 
@@ -89,9 +84,7 @@ describe('series label fit', () => {
         });
 
         it('honours an explicit maxWidth tighter than the bar rect, and defers to the rect when looser', async () => {
-            // Two grouped bar series share the same long label. Series A's maxWidth (20) is tighter than the (halved)
-            // grouped-bar width, so the explicit bound governs and truncates hard; series B's maxWidth (400) is far
-            // looser than the bar, so the rect governs and more text survives.
+            // Whichever of maxWidth and the (halved) grouped-bar width is tighter governs the fit.
             const data = [
                 { cat: 'A', a: 100, b: 100 },
                 { cat: 'B', a: 70, b: 70 },
@@ -237,10 +230,7 @@ describe('series label fit', () => {
         expect(someTruncated(texts)).toBe(true);
     });
 
-    // Pie/donut sector labels auto-fit the wedge: the series computes the room each sector offers a horizontal
-    // label and fits the text to it, so wrapping/truncate alone shrink the label to its sector without any
-    // explicit maxWidth (mirroring how a bar label fits its rect). Mixed sector sizes and label lengths show the
-    // spectrum in one image — short labels whole, longer ones wrapped, the longest wrapped-then-ellipsised.
+    // Sector labels auto-fit the wedge, so wrapping/truncate shrink them without any explicit maxWidth.
     const sectorLabelData = [
         { value: 26, label: 'Q1' },
         { value: 22, label: 'Two words here' },
@@ -321,11 +311,8 @@ describe('series label fit', () => {
         expect(someTruncated(texts)).toBe(true);
     });
 
-    // A boxed inside label must sit centred on the marker. The placement engine centres the padded box, so
-    // the text has to be inset by the label padding — this only surfaces for boxed labels (unboxed padding is
-    // 0, which is why it went unnoticed). Bubble/scatter render their own label nodes, so these guard that they
-    // apply the inset like the shared line/area path, including on a non-centred (pin) marker whose inscribed
-    // label rectangle sits away from the marker centre.
+    // The placement engine centres the padded box, so a boxed inside label's text must be inset by the label
+    // padding to sit centred on the marker; bubble/scatter render their own label nodes and must do the same.
     const boxedInsideLabel = {
         enabled: true,
         placement: 'inside',
@@ -523,9 +510,7 @@ describe('series label fit', () => {
     });
 
     it('scales an inside label to a complex (heart) marker across data-driven sizes', async () => {
-        // Bubble derives each marker's diameter from the size scale, so this exercises the per-datum fit:
-        // a heart uses a conservative central box, and the same label survives in big hearts but is
-        // truncated (then hidden) as the marker shrinks.
+        // Bubble derives each marker's diameter from the size scale, so the fit is per-datum.
         const heartData = [
             { x: 0, y: 55, size: 9, label: 'Quarterly revenue growth' },
             { x: 1, y: 50, size: 4, label: 'Quarterly revenue growth' },

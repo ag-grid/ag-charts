@@ -435,31 +435,12 @@ describe('AreaSeries', () => {
         }
     });
 
-    // The initial-load reveal is pinned per-frame by the 'initial load: the stacked fills and strokes
-    // swipe in while markers scale in' and 'integrated mode: initial load' trajectory CASEs in
-    // 'animation -test page actions'.
-
-    // Adding and removing points at both edges is pinned per-frame by the 'single add points
-    // before/after' and 'single remove first/last point' trajectory CASEs in 'animation -test page
-    // actions'.
-
-    // Opening and closing a gap (data to/from undefined) is pinned per-frame by the 'single update to
-    // undefined' and 'single update from undefined' trajectory CASEs in 'animation -test page actions'.
-
-    // Legend hide/show is pinned per-frame by the 'legend hide' and 'legend show' trajectory CASEs in
-    // 'animation -test page actions'.
-
-    // One CASE per control on the area-series-test pages, in standalone and integrated modes. Area
-    // paints TWO nodes per series — a fill polygon (in the background group) and a top-edge stroke — so
-    // every path assertion resolves both keys and pins each. The initial reveal, grouping switches and
-    // normalizedTo changes all re-run the clip-based swipe reveal (identical mechanism to the line
-    // suite's easeOut reveal); data updates morph both paths per-station while the markers re-fade.
+    // Area paints two nodes per series — a fill polygon (background group) and a top-edge stroke — so
+    // every path assertion must resolve and pin both keys.
     describe('animation -test page actions', () => {
         const frames = spyOnAnimationFrames();
 
-        // Stacked category fixture on a pinned value domain, matching the public animation docs' shape:
-        // within [0, 200] the randomise/toggle updates below are provably non-scale-affecting, so the
-        // stack animates in isolation.
+        // The pinned [0, 200] domain makes the updates below non-scale-affecting, isolating the stack.
         const stackedOptions = (mode?: 'integrated'): AgCartesianChartOptions => {
             const options: AgCartesianChartOptions = {
                 data: [
@@ -481,8 +462,7 @@ describe('AreaSeries', () => {
             return prepareTestOptions(options);
         };
 
-        // A single non-stacked area on pinned x- AND y-domains: within [0, 10] × [0, 200] every point
-        // mutation is provably non-scale-affecting, so the fill/stroke and markers animate in isolation.
+        // Pinned [0, 10] × [0, 200] domains make point mutations non-scale-affecting.
         const singleOptions = (
             data: Array<{ x: number; y: number | undefined }>,
             mode?: 'integrated'
@@ -515,9 +495,7 @@ describe('AreaSeries', () => {
             return prepareTestOptions(options);
         };
 
-        // The fill renders in the series background group and the stroke in the content group; re-created
-        // series (grouping/normalizedTo/direction switches) bump the sampler's duplicate suffix
-        // (path[fill#2]), so both are matched by prefix.
+        // Re-created series bump the sampler's duplicate suffix (path[fill#2]), so match by prefix.
         const fillKey = (sample: SceneGeometrySample, i = 0): string => {
             const keys = [...sample.keys()].filter((k) =>
                 new RegExp(`^series\\[${i}\\]/background/path\\[fill`).test(k)
@@ -541,10 +519,8 @@ describe('AreaSeries', () => {
             return m ? m.x + (m.translationX ?? 0) : undefined;
         };
 
-        // Area markers re-map their local position the instant the data lands and only opacity re-fades;
-        // category swaps snap them to their new bands. captureUpdate's whole-scene start anchor trips on
-        // that frame-0 snap, so the CASEs hand-roll the capture (as the line suite's captureFrom does) and
-        // pin only what genuinely tweens.
+        // Area markers snap to their new position at frame 0, which trips captureUpdate's whole-scene
+        // start anchor — hence the hand-rolled capture that pins only what genuinely tweens.
         const captureFrom = (options: AgCartesianChartOptions, action: () => void | Promise<void>) => {
             chart = AgCharts.create(options);
             return frames.captureSnap(chart, createSceneGeometrySampler(chart), action);
@@ -564,15 +540,13 @@ describe('AreaSeries', () => {
             prop: 'opacity' | 'width' = 'opacity'
         ) => expectNodeStartsCollapsed(trajectory, `series[0]/marker[${label}]`, prop);
 
-        // A data update re-fades every present marker (survivors and entrants) from opacity 0 during
-        // add/trailing. Only anti-vacuous alongside a frame-0 expectMarkerStartsCollapsed guard.
+        // Only anti-vacuous alongside a frame-0 expectMarkerStartsCollapsed guard.
         const fadeIn: PhasedPropertyExpectation = {
             during: ['add', 'trailing'],
             expect: ['increases', 'bounded'],
             settlesAt: 1,
         };
-        // Markers re-map their local x/y the instant the data lands, so local position is left free;
-        // translation must stay put (a fromToMotion regression would fly them across the plot).
+        // Local x/y re-maps at frame 0 so is left free; translation must stay put.
         const markerPosition: Record<string, ScenePropertyExpectation> = {
             x: 'any',
             y: 'any',
@@ -597,9 +571,8 @@ describe('AreaSeries', () => {
             },
         };
 
-        // The clip-based reveal: both paths are drawn in full from the first frame (their vertices never
-        // move) while a clip window sweeps left-to-right (clip:x grows across the plot). clip drops to 0
-        // once the mask is removed at the end, so clip:x is only present during the sweep.
+        // The reveal draws both paths in full from frame 0 and sweeps a clip window across them; clip:x
+        // exists only while the mask is active.
         const swipeReveal = (): SceneNodeExpectation => ({
             'top@0': 'constant',
             'top@1': 'constant',
@@ -617,11 +590,8 @@ describe('AreaSeries', () => {
             'clip:y': 'any',
         });
 
-        // Stacked area fills are contiguous bands: each layer's fill spans from its own stroke (top edge)
-        // down to the layer below's stroke, and the bottom layer down to the baseline. The samplable
-        // contract is that the per-station stroke tops never cross — layer k sits at or above layer k-1 on
-        // every station of every frame. Layers whose station is non-finite (a legend-hidden layer once it
-        // goes invisible) are skipped.
+        // Stacked bands must stay contiguous: per-station stroke tops never cross, layer k sitting at or
+        // above layer k-1. Non-finite stations (a legend-hidden layer) are skipped.
         const stackTopsOrdered: SceneFrameInvariant = {
             name: 'stacked area layers never invert',
             check: (frame) => {
@@ -660,8 +630,6 @@ describe('AreaSeries', () => {
             expectMarkerStartsCollapsed(trajectory, 'Q3', 'width');
         });
 
-        // "Update points" / "Randomise" — every value jitters within the pinned domain. Both paths morph
-        // per-station during the update phase, the markers re-fade, and the stack stays contiguous.
         it('randomise: both paths morph per-station monotonically while the stack holds', async () => {
             const options = stackedOptions();
             chart = AgCharts.create(options);
@@ -702,9 +670,8 @@ describe('AreaSeries', () => {
             expectMarkerStartsCollapsed(trajectory, 'Q1');
         });
 
-        // "Add Series" — a fourth layer would stack on top; here the third is added back. The entering
-        // series spawns at its final band geometry and fades its fill, stroke and markers in (unlike line,
-        // which snaps a new series in). The lower survivors are unaffected (their cumulative is unchanged).
+        // An entering layer spawns at its final band geometry and fades in; the lower survivors' cumulative
+        // is unchanged, so their bands hold.
         it('add series: the entering fill, stroke and markers fade in at full geometry', async () => {
             const options = stackedOptions();
             const all = options.series!;
@@ -723,8 +690,7 @@ describe('AreaSeries', () => {
                 'series[2]/background/path[*]': { opacity: fadeUp, subpaths: 'any' },
                 'series[2]/path[stroke]': { opacity: fadeUp, subpaths: 'any' },
                 'series[2]/marker[*]': { opacity: fadeUp },
-                // The lower survivors re-fade their markers but their bands are unchanged (only the fill's
-                // drawn-subpath count flips as the new top layer joins).
+                // Only the fill's drawn-subpath count flips as the new top layer joins.
                 'series[0]/background/path[*]': { subpaths: 'any' },
                 'series[1]/background/path[*]': { subpaths: 'any' },
                 'series[0]/marker[*]': markerRefade,
@@ -737,8 +703,7 @@ describe('AreaSeries', () => {
             expect(trajectory[0].get('series[2]/marker[Q1]')?.opacity ?? 1).toBeLessThanOrEqual(0.001);
         });
 
-        // "Remove Series" — the top layer leaves; its nodes drop immediately (no fade-out to observe) and
-        // the lower survivors are unchanged, so the honest invariant is that nothing animates.
+        // A leaving top layer drops immediately (no fade-out), so nothing animates.
         it('remove series: the top layer drops and nothing else animates', async () => {
             const options = stackedOptions();
             const all = options.series!;
@@ -748,8 +713,6 @@ describe('AreaSeries', () => {
             expect([...before.keys()].some((k) => k.startsWith('series[2]'))).toBe(true);
             expect([...after.keys()].some((k) => k.startsWith('series[2]'))).toBe(false);
             expect(trajectory.some((f) => [...f.keys()].some((k) => k.startsWith('series[2]')))).toBe(false);
-            // The removed top layer leaves no motion behind; the survivors' bands hold (only their
-            // markers re-fade).
             expectSceneTrajectory(
                 trajectory,
                 {
@@ -763,9 +726,7 @@ describe('AreaSeries', () => {
             );
         });
 
-        // "Toggle series off" (stacked) — a coordinated single-beat update: the toggled-off bottom layer's
-        // fill collapses to the baseline while the survivors slide down into its place, tiling contiguously
-        // every frame. The `during: 'update'` windows are the desync-regression detector (CRT-1040 analogue).
+        // The `during: 'update'` windows are what detect the two halves desyncing.
         it('legend hide: the toggled layer collapses as survivors slide down, staying contiguous', async () => {
             const options = stackedOptions();
             const { trajectory, after } = await captureFrom(options, () =>
@@ -777,9 +738,7 @@ describe('AreaSeries', () => {
             const hiddenFill = fillKey(trajectory[0], 0);
             // Anti-vacuity: the toggled-off layer starts at full height and must genuinely collapse.
             expect(trajectory[0].get(hiddenFill)!.height).toBeGreaterThan(40);
-            // The survivors genuinely tween (not snap): y/height/every top@N pass through several
-            // intermediate frames rather than jumping straight to their resting value, so `progresses`
-            // proves real sliding, not just a net direction.
+            // `progresses` proves real sliding rather than a snap in the right net direction.
             const slideDown: SceneNodeExpectation = {
                 y: { during: 'update', expect: ['increases', 'progresses', 'bounded'] },
                 height: { during: 'update', expect: ['decreases', 'progresses', 'bounded'] },
@@ -808,9 +767,7 @@ describe('AreaSeries', () => {
                         x: 'any',
                         width: 'any',
                     },
-                    // The stroke traces the same collapsing top edge as the background fill above, but
-                    // (unlike the fill polygon) never splits into a second subpath, so every station holds
-                    // its collapse cleanly and x/width stay pinned to the full plot width throughout.
+                    // Unlike the fill polygon, the stroke never splits into a second subpath.
                     'series[0]/path[stroke]': {
                         x: 'constant',
                         width: 'constant',
@@ -824,8 +781,7 @@ describe('AreaSeries', () => {
                         'top@4': { during: 'update', expect: ['increases', 'bounded'] },
                         subpaths: 'any',
                     },
-                    // The toggled-off layer's markers never render (visible stays 0 throughout); their
-                    // opacity keeps re-fading internally regardless, so only that property is left free.
+                    // The markers never render, but their opacity still re-fades internally.
                     'series[0]/marker[*]': { opacity: 'any', visible: 'constant' },
                     'series[1]/background/path[*]': slideDown,
                     'series[1]/path[stroke]': slideDown,
@@ -840,8 +796,6 @@ describe('AreaSeries', () => {
             expect(after.get(fillKey(after, 0))!.visible).toBe(0);
         });
 
-        // "Toggle series back on" (stacked) — the exit in reverse: the re-shown bottom layer grows from the
-        // baseline while the survivors slide back up, again coordinated in the update phase.
         it('legend show: the re-shown layer grows as survivors slide back, staying contiguous', async () => {
             const options = stackedOptions();
             const hidden = {
@@ -850,9 +804,7 @@ describe('AreaSeries', () => {
             };
             const { trajectory, after } = await captureFrom(hidden, () => chart.update(options));
             const shownFill = fillKey(after, 0);
-            // The mirror of "legend hide"'s slideDown: the two survivors slide back up as the re-shown
-            // layer grows in beneath them. As there, every property tweens through several frames rather
-            // than snapping, so `progresses` proves real sliding.
+            // The mirror of "legend hide"'s slideDown.
             const slideUp: SceneNodeExpectation = {
                 y: { during: 'update', expect: ['decreases', 'progresses', 'bounded'] },
                 height: { during: 'update', expect: ['increases', 'progresses', 'bounded'] },
@@ -865,9 +817,7 @@ describe('AreaSeries', () => {
                 'top@3': { during: 'update', expect: ['decreases', 'progresses', 'bounded'] },
                 'top@4': { during: 'update', expect: ['decreases', 'progresses', 'bounded'] },
             };
-            // The re-shown layer's own growth, mirroring "legend hide"'s collapse in reverse. Unlike the
-            // hide toggle, `visible` flips to 1 immediately (show-then-animate, not collapse-then-hide), so
-            // it holds constant across the whole capture rather than transitioning mid-trajectory.
+            // Showing is show-then-animate (not collapse-then-hide), so `visible` is 1 for the whole capture.
             const growFromBaseline: SceneNodeExpectation = {
                 height: { during: 'update', expect: ['increases', 'progresses', 'bounded'] },
                 y: { during: 'update', expect: ['decreases', 'progresses', 'bounded'] },
@@ -900,8 +850,6 @@ describe('AreaSeries', () => {
             expect(after.get(shownFill)!.height).toBeGreaterThan(40);
         });
 
-        // The pinned-extent single-series update spec: the fill/stroke keep their x-extent while the
-        // top edge morphs per-station, and the stroke stays one connected subpath.
         const morphInPlace = (opts: { pinnedTops?: boolean } = {}): Record<string, ScenePropertyExpectation> => ({
             x: { during: 'update', expect: 'constant' },
             width: { during: 'update', expect: 'constant' },
@@ -915,12 +863,8 @@ describe('AreaSeries', () => {
             'top@4': opts.pinnedTops ? 'constant' : { during: 'update', expect: ['monotonic', 'bounded'] },
         });
 
-        // Add/remove/reflow cases pin the fill and stroke to the x-extent motion they share — the left
-        // edge (x) and total width step a known direction — and leave the interior (per-station tops and
-        // the vertical bbox derived from them) free. `increasingExtent`/`decreasingExtent` bound a
-        // monotonic edge to its endpoints and force a real tween (never a snap); `squeezing` is for an
-        // edge that dips and returns to where it started (a shift, or a category reflow that redistributes
-        // bands within a fixed plot width) so it cannot be endpoint-bounded, only proven to move.
+        // `increasingExtent`/`decreasingExtent` bound a monotonic edge to its endpoints; `squeezing` is
+        // edge that dips and returns, which cannot be endpoint-bounded and can only be proven to move.
         const increasingExtent: readonly TrajectoryExpectation[] = ['increases', 'progresses', 'bounded'];
         const decreasingExtent: readonly TrajectoryExpectation[] = ['decreases', 'progresses', 'bounded'];
         const squeezing: readonly TrajectoryExpectation[] = ['progresses'];
@@ -928,8 +872,7 @@ describe('AreaSeries', () => {
             x: ScenePropertyExpectation,
             width: ScenePropertyExpectation,
             subpaths: ScenePropertyExpectation,
-            // Stations whose crossing legitimately vanishes mid-animation (a point entering/leaving at
-            // that edge) sample non-finite for part of the trajectory, so they must be `degenerate`.
+            // A station whose crossing vanishes mid-animation samples non-finite, so must be `degenerate`.
             degenerateTops: number[] = [],
             // Per-station overrides once the probed trajectory supports a stronger expectation than `any`.
             tops: Record<string, ScenePropertyExpectation> = {}
@@ -939,8 +882,6 @@ describe('AreaSeries', () => {
             return { x, width, subpaths, y: 'any', height: 'any', ...stationTops, ...tops };
         };
 
-        // "Update points" — every value jitters within the pinned domain. Both paths morph per-station
-        // while the x-extent and axes hold, the stroke stays one subpath, and the markers re-fade.
         it('single update points: both paths morph per-station while the extent holds', async () => {
             const { before, trajectory } = await captureFrom(
                 singleOptions([
@@ -972,8 +913,6 @@ describe('AreaSeries', () => {
             expectMarkerStartsCollapsed(trajectory, '2');
         });
 
-        // "Add points after" — new points extend the path rightward within the pinned x-domain: the left
-        // edge is anchored (x holds) while the width grows, and the new markers fade in.
         it('single add points after: the width grows and new markers fade in', async () => {
             const { before, trajectory, after } = await captureFrom(
                 singleOptions([
@@ -1000,9 +939,7 @@ describe('AreaSeries', () => {
             expect(markerCount(after)).toBe(7);
             const stroke0 = strokeKey(before);
             expect(after.get(stroke0)!.width).toBeGreaterThan(before.get(stroke0)!.width);
-            // The new points widen the path from the right: the two stations nearest the anchored left
-            // edge settle cleanly, but the station nearest the growing edge overshoots past its final
-            // resting value before correcting, so it can only be proven to progress.
+            // The station nearest the growing edge overshoots before correcting, so it can only progress.
             const addAfterTops = {
                 'top@0': 'constant' as const,
                 'top@1': increasingExtent,
@@ -1018,8 +955,6 @@ describe('AreaSeries', () => {
             expectMarkerStartsCollapsed(trajectory, '5');
         });
 
-        // "Add points before" — prepend points; the left edge steps OUT (bbox x decreases) as the width
-        // grows, and the new leading markers fade in.
         it('single add points before: the left edge steps out as the width grows', async () => {
             const { before, trajectory, after } = await captureFrom(
                 singleOptions([
@@ -1045,10 +980,8 @@ describe('AreaSeries', () => {
             expect(markerCount(after)).toBe(7);
             const stroke0 = strokeKey(before);
             expect(after.get(stroke0)!.x).toBeLessThan(before.get(stroke0)!.x);
-            // The prepended points widen the path from the left: the station nearest the anchored right
-            // edge legitimately vanishes as the new leading segment sweeps past it (degenerate), and the
-            // station nearest the growing left edge overshoots past its final resting value, so it can
-            // only be proven to progress.
+            // The right-most station vanishes as the new leading segment sweeps past it; the left-most
+            // overshoots its resting value before correcting.
             const addBeforeTops = {
                 'top@0': decreasingExtent,
                 'top@1': squeezing,
@@ -1075,8 +1008,6 @@ describe('AreaSeries', () => {
             expectMarkerStartsCollapsed(trajectory, '1');
         });
 
-        // "Remove points middle" — interior points leave; the endpoints (x-extent) are unchanged so the
-        // width holds and the stroke stays connected, while the removed markers drop.
         it('single remove points middle: the extent holds while interior markers leave', async () => {
             const { before, trajectory, after } = await captureFrom(
                 singleOptions([
@@ -1130,8 +1061,6 @@ describe('AreaSeries', () => {
             });
         });
 
-        // "Remove the first point" — the leftmost point leaves, so the path's left edge steps IN: bbox x
-        // increases while the width shrinks.
         it('single remove first point: the left edge steps in and the width shrinks', async () => {
             const { before, trajectory, after } = await captureFrom(
                 singleOptions([
@@ -1155,8 +1084,6 @@ describe('AreaSeries', () => {
             const stroke0 = strokeKey(before);
             expect(after.get(stroke0)!.x).toBeGreaterThan(before.get(stroke0)!.x);
             expect(after.get(stroke0)!.width).toBeLessThan(before.get(stroke0)!.width);
-            // The retained points keep their pixel positions, so every interior station morphs cleanly
-            // to where the shrunk path now crosses it.
             const removeFirstTops = {
                 'top@0': decreasingExtent,
                 'top@1': increasingExtent,
@@ -1184,8 +1111,6 @@ describe('AreaSeries', () => {
             expectMarkerStartsCollapsed(trajectory, '2');
         });
 
-        // "Remove the last point" — the rightmost point leaves, so the right edge steps in: bbox x holds
-        // (left edge anchored) while the width shrinks.
         it('single remove last point: the right edge steps in and the width shrinks', async () => {
             const { before, trajectory, after } = await captureFrom(
                 singleOptions([
@@ -1208,8 +1133,6 @@ describe('AreaSeries', () => {
             expect(markerCount(after)).toBe(4);
             const stroke0 = strokeKey(before);
             expect(after.get(stroke0)!.width).toBeLessThan(before.get(stroke0)!.width);
-            // The retained points keep their pixel positions, so every interior station morphs cleanly
-            // to where the shrunk path now crosses it.
             const removeLastTops = {
                 'top@0': 'constant' as const,
                 'top@1': increasingExtent,
@@ -1225,9 +1148,8 @@ describe('AreaSeries', () => {
             expectMarkerStartsCollapsed(trajectory, '1');
         });
 
-        // "Update points to undefined" — an interior value becoming undefined opens a gap. The STROKE
-        // splits and its stations straddling the gap lose their crossing (degenerate); the FILL closes to
-        // the baseline instead of splitting, so its gap stations dive downward. The gap marker leaves.
+        // Opening a gap splits the stroke (its gap stations go degenerate) but the fill closes to the
+        // baseline instead, so its gap stations dive downward.
         it('single update to undefined: the stroke splits at the gap while the fill closes to the baseline', async () => {
             const { before, trajectory, after } = await captureFrom(
                 singleOptions([
@@ -1281,10 +1203,8 @@ describe('AreaSeries', () => {
             });
         });
 
-        // "Update points to defined" — the reverse: an undefined interior value fills back in, so the
-        // stroke re-joins (2 subpaths -> 1) and the returning marker fades in. The gap stations don't
-        // animate FROM their true (non-finite) static geometry: the tween starts from a collapsed
-        // placeholder shared by both stations, then morphs down to where the reconnected path settles.
+        // Closing a gap re-joins the stroke; the gap stations tween from a shared collapsed placeholder
+        // rather than from their true (non-finite) static geometry.
         it('single update from undefined: the stroke re-joins as the gap closes', async () => {
             const { before, trajectory, after } = await captureFrom(
                 singleOptions([
@@ -1324,9 +1244,7 @@ describe('AreaSeries', () => {
             expectMarkerStartsCollapsed(trajectory, '2');
         });
 
-        // The interior stations trace the same zigzag curve as it steps across the pinned domain: two
-        // alternate rising and falling monotonically to their new resting value, while the far edge
-        // (top@4) rides the structurally-changing station and legitimately goes non-finite mid-tween.
+        // top@4 rides the structurally-changing station and legitimately goes non-finite mid-tween.
         const shiftTops = {
             'top@0': decreasingExtent,
             'top@1': increasingExtent,
@@ -1334,8 +1252,6 @@ describe('AreaSeries', () => {
             'top@3': increasingExtent,
         };
 
-        // "Shift left" — drop the first point, append one at the end: the left edge steps in (x increases)
-        // while one marker leaves at the start and one enters at the end.
         it('single shift left: the left edge steps in as the first point leaves and one enters', async () => {
             const { trajectory, after } = await captureFrom(
                 singleOptions([
@@ -1365,7 +1281,6 @@ describe('AreaSeries', () => {
             expectMarkerStartsCollapsed(trajectory, '6');
         });
 
-        // "Shift right" — prepend a point, drop the last: mirror of shift left, the left edge steps out.
         it('single shift right: the left edge steps out as a new first point enters and the last leaves', async () => {
             const { trajectory, after } = await captureFrom(
                 singleOptions([
@@ -1395,10 +1310,8 @@ describe('AreaSeries', () => {
             expectMarkerStartsCollapsed(trajectory, '1');
         });
 
-        // "Add points middle" (continuous x-axis) — an interior point drops in between two existing ones.
-        // On a pinned number axis every point maps to a fixed pixel, so the neighbours do NOT spread apart
-        // (unlike a category reflow): the new point is woven in while the existing geometry holds. This
-        // exercises the enter animation for a datum arriving in the interior rather than at an edge.
+        // On a pinned number axis every point maps to a fixed pixel, so an interior insertion does NOT
+        // spread its neighbours apart the way a category reflow does.
         it('single add points middle: an interior point weaves in without disturbing its neighbours', async () => {
             const { before, trajectory, after } = await captureFrom(
                 singleOptions([
@@ -1426,14 +1339,10 @@ describe('AreaSeries', () => {
             // The new point lands strictly between its neighbours.
             expect(markerX(after, '4')).toBeLessThan(markerX(after, '5')!);
             expect(markerX(after, '5')).toBeLessThan(markerX(after, '6')!);
-            // Insertion-spread on a continuous axis: the existing points keep their exact pixel positions,
-            // so the neighbours hold rather than moving away from the insertion.
             for (const n of ['0', '2', '4', '6', '8']) {
                 expect(markerX(after, n), `marker ${n} present after`).toBeDefined();
                 expect(Math.abs(markerX(after, n)! - markerX(before, n)!), `marker ${n} held`).toBeLessThanOrEqual(1);
             }
-            // None of the five stations fall on the woven-in point, and the retained points don't move,
-            // so every station is untouched by the insertion.
             const addMiddleTops = {
                 'top@0': 'constant' as const,
                 'top@1': 'constant' as const,
@@ -1449,9 +1358,7 @@ describe('AreaSeries', () => {
             expectMarkerStartsCollapsed(trajectory, '5');
         });
 
-        // "Remove half" — a bulk update drops several interior points at once, exercising simultaneous
-        // leave animations. The retained endpoints pin the extent, so the band holds its width and stays
-        // one connected subpath while four markers leave together.
+        // Simultaneous leave animations, with the retained endpoints pinning the extent.
         it('single remove half: several interior points leave together while the extent holds', async () => {
             const { before, trajectory, after } = await captureFrom(
                 singleOptions([
@@ -1479,7 +1386,6 @@ describe('AreaSeries', () => {
             for (const gone of ['1', '3', '4', '6']) {
                 expect([...after.keys()], `marker ${gone} removed`).not.toContain(`series[0]/marker[${gone}]`);
             }
-            // The survivors keep their positions and the endpoints pin the extent.
             for (const kept of ['0', '2', '5', '7']) {
                 expect(markerX(after, kept), `marker ${kept} present after`).toBeDefined();
                 expect(
@@ -1487,8 +1393,6 @@ describe('AreaSeries', () => {
                     `marker ${kept} held`
                 ).toBeLessThanOrEqual(1);
             }
-            // The retained endpoints anchor stations 0 and 4; the three interior stations all morph
-            // toward the surviving neighbours in the same direction as the removed points drop out.
             const removeHalfTops = {
                 'top@0': 'constant' as const,
                 'top@1': increasingExtent,
@@ -1503,9 +1407,7 @@ describe('AreaSeries', () => {
             });
         });
 
-        // "Add double" — the bulk-insertion mirror: one update roughly doubles the point count by weaving
-        // several new points into the interior, exercising simultaneous enter animations. The retained
-        // endpoints pin the extent; the three new markers fade in together.
+        // Simultaneous enter animations, with the retained endpoints pinning the extent.
         it('single add double: several interior points enter together at a fixed extent', async () => {
             const { before, trajectory, after } = await captureFrom(
                 singleOptions([
@@ -1532,7 +1434,6 @@ describe('AreaSeries', () => {
             for (const added of ['1', '3', '5']) {
                 expect([...after.keys()], `marker ${added} added`).toContain(`series[0]/marker[${added}]`);
             }
-            // The originals keep their positions; the inserted points weave between them.
             for (const kept of ['0', '2', '4', '6']) {
                 expect(markerX(after, kept), `marker ${kept} present after`).toBeDefined();
                 expect(
@@ -1540,8 +1441,6 @@ describe('AreaSeries', () => {
                     `marker ${kept} held`
                 ).toBeLessThanOrEqual(1);
             }
-            // Stations 0, 3 and 4 land exactly on retained points that don't move; stations 1 and 2 sit
-            // between originals and morph toward the woven-in points.
             const addDoubleTops = {
                 'top@0': 'constant' as const,
                 'top@1': decreasingExtent,
@@ -1569,16 +1468,13 @@ describe('AreaSeries', () => {
             { x: 'w11', y: 121 },
         ];
 
-        // "Add End Week" — a new category appends; every band narrows and shifts left to make room, the
-        // paths re-cover the reflowed bands, and the new marker fades in.
         it('category add end week: bands reflow left and the new marker fades in', async () => {
             const { before, trajectory, after } = await captureFrom(categoryOptions(WEEKS), () =>
                 chart.updateDelta({ data: [...WEEKS, { x: 'w12', y: 90 }] })
             );
             expect(markerCount(before)).toBe(7);
             expect(markerCount(after)).toBe(8);
-            // The left edge is pinned (station 0 holds); the interior widens towards the new right edge,
-            // except the station nearest it, which overshoots past its resting value before correcting.
+            // The station nearest the new right edge overshoots its resting value before correcting.
             const addEndWeekTops = {
                 'top@0': 'constant' as const,
                 'top@1': increasingExtent,
@@ -1595,14 +1491,12 @@ describe('AreaSeries', () => {
             expectMarkerStartsCollapsed(trajectory, 'w12');
         });
 
-        // "Add Start Week" — a new category prepends; bands reflow right and the new leading marker fades in.
         it('category add start week: bands reflow right and the leading marker fades in', async () => {
             const { trajectory, after } = await captureFrom(categoryOptions(WEEKS), () =>
                 chart.updateDelta({ data: [{ x: 'w2', y: 90 }, ...WEEKS] })
             );
             expect(markerCount(after)).toBe(8);
-            // The right edge is pinned (station 4 holds); the interior narrows away from the new left edge,
-            // except the station nearest it, which dips past its resting value before correcting.
+            // The station nearest the new left edge dips past its resting value before correcting.
             const addStartWeekTops = {
                 'top@0': decreasingExtent,
                 'top@1': squeezing,
@@ -1619,9 +1513,6 @@ describe('AreaSeries', () => {
             expectMarkerStartsCollapsed(trajectory, 'w2');
         });
 
-        // "Add Weeks 7+8" — the middle-insertion case: two categories drop into the interior gap between
-        // w6 and w9 rather than at an edge, so the inserted markers land between their neighbours and the
-        // categories to their right slide right to make room.
         it('category add middle weeks: inserted bands land between neighbours', async () => {
             const withMiddle = [
                 { x: 'w3', y: 60 },
@@ -1645,10 +1536,8 @@ describe('AreaSeries', () => {
             expect(markerX(after, 'w6')).toBeLessThan(markerX(after, 'w7')!);
             expect(markerX(after, 'w7')).toBeLessThan(markerX(after, 'w8')!);
             expect(markerX(after, 'w8')).toBeLessThan(markerX(after, 'w9')!);
-            // Insertion-spread: category bands snap to their reflowed positions at frame 0 (no per-frame
-            // slide), so the spread is asserted across the settled endpoints. Neighbours left of the
-            // insertion end further LEFT and those to the right end further RIGHT, the outer edges (w3, w11)
-            // stay pinned, and the shift grows towards the gap as the bands redistribute across a fixed plot.
+            // Category bands snap to their reflowed positions at frame 0, so the spread can only be
+            // asserted across the settled endpoints.
             const shift = (label: string) => markerX(after, label)! - markerX(before, label)!;
             expect(shift('w4')).toBeLessThan(0);
             expect(shift('w5')).toBeLessThan(shift('w4'));
@@ -1657,9 +1546,7 @@ describe('AreaSeries', () => {
             expect(shift('w9')).toBeGreaterThan(shift('w10'));
             expect(Math.abs(shift('w3'))).toBeLessThanOrEqual(1);
             expect(Math.abs(shift('w11'))).toBeLessThanOrEqual(1);
-            // Interior stations 1-3 fall between reflowed bands and tween smoothly toward their new resting
-            // value as the paths re-cover the redistributed layout; the outer stations sit on the untouched
-            // end categories (w3, w11) and hold.
+            // The outer stations sit on the untouched end categories (w3, w11) and hold.
             const addMiddleWeeksTops = {
                 'top@0': 'constant' as const,
                 'top@1': increasingExtent,
@@ -1684,9 +1571,6 @@ describe('AreaSeries', () => {
             expectMarkerStartsCollapsed(trajectory, 'w7');
         });
 
-        // CRT-490 / AG-12655: reordering categories must not crash (the historic collapseSpan datumIndex
-        // error) and the markers must re-map to the reshuffled bands. The capture running without a throw
-        // is the no-crash guard; the ordering assertions are the re-map guard.
         it('CRT-490 category reorder: markers re-map to the reshuffled bands without crashing', async () => {
             const reordered = [WEEKS[3], WEEKS[0], WEEKS[5], WEEKS[1], WEEKS[6], WEEKS[2], WEEKS[4]];
             const { before, trajectory, after } = await captureFrom(categoryOptions(WEEKS), () =>
@@ -1699,8 +1583,7 @@ describe('AreaSeries', () => {
             }
             // w6 moved from last to first, so it really shifted left.
             expect(markerX(after, 'w6')!).toBeLessThan(markerX(before, 'w6')!);
-            // A reorder redraws the whole path in its new shape at once (no per-frame path tween — only
-            // the markers re-fade into their remapped bands), so every station holds constant throughout.
+            // A reorder redraws the whole path at once — only the markers re-fade — so stations hold.
             const reorderTops = {
                 'top@0': 'constant' as const,
                 'top@1': 'constant' as const,
@@ -1725,9 +1608,7 @@ describe('AreaSeries', () => {
             expect(Math.min(...widths), 'a marker starts the sweep at zero size').toBeLessThanOrEqual(0.1);
         };
 
-        // The "stack -> group" toggle from the missing-data-area example: no grouped<->stacked morph
-        // exists, so the switch re-creates the series and replays the initial-load swipe reveal. After it,
-        // the areas are un-stacked (each fill reaches the shared baseline independently).
+        // No grouped<->stacked morph exists, so the switch re-creates the series and replays the reveal.
         it('stack -> group: the switch re-reveals via a swipe and un-stacks the fills', async () => {
             const options = stackedOptions();
             const all = options.series! as AgAreaSeriesOptions[];
@@ -1752,8 +1633,7 @@ describe('AreaSeries', () => {
             expect(Math.abs(baselines[2] - baselines[0])).toBeLessThanOrEqual(1);
         });
 
-        // "normalizedTo" — switching into normalized stacking re-creates the series (swipe reveal); the
-        // top layer settles flat at the 100% line, proving the normalisation landed.
+        // Switching into normalized stacking re-creates the series, so the swipe reveal replays.
         it('normalizedTo: switching into normalised stacking re-reveals and flattens the top layer', async () => {
             const options = stackedOptions();
             const all = options.series! as AgAreaSeriesOptions[];
@@ -1777,9 +1657,6 @@ describe('AreaSeries', () => {
             expect(Math.abs(topStroke['top@0'] - topStroke['top@4'])).toBeLessThanOrEqual(1);
         });
 
-        // "Data 1 / Data 2" (category-changes, smooth) — the whole category set swaps to a differing one.
-        // The path morphs across frames (its bbox sweeps out and back) while the axis cross-fades the
-        // outgoing and incoming label sets.
         it('category set swap: the smooth path morphs while the axis label set changes', async () => {
             // Pinned to cover both data sets' ranges so only the x-band remap animates (no y rescale).
             const swapOptions = (data: Array<{ category: string; iphone: number }>): AgCartesianChartOptions =>
@@ -1814,9 +1691,8 @@ describe('AreaSeries', () => {
             const { before, trajectory, after } = await captureFrom(swapOptions(d1), () =>
                 chart.update(swapOptions(d2))
             );
-            // The fill and stroke genuinely tween: their left edge sweeps out to an intermediate and back
-            // (the smooth path morphs across the reshuffled categories) rather than snapping. The interior
-            // stations mirror that dip-and-return, except the rightmost, which settles by rising cleanly.
+            // The left edge sweeps out to an intermediate and back rather than snapping; the interior
+            // stations mirror that dip-and-return, bar the rightmost, which rises cleanly.
             const swapTops = {
                 'top@0': squeezing,
                 'top@1': squeezing,
@@ -1863,17 +1739,14 @@ describe('AreaSeries', () => {
             expectMarkerStartsCollapsed(trajectory, 'Q3', 'width');
         });
 
-        // Integrated defaults must not suppress the entrance animation: adding an end week still fades the
-        // new marker in.
+        // Integrated defaults must not suppress the entrance animation.
         it('integrated mode: category add end week fades the new marker in', async () => {
             const { before, trajectory, after } = await captureFrom(categoryOptions(WEEKS, 'integrated'), () =>
                 chart.updateDelta({ data: [...WEEKS, { x: 'w12', y: 90 }] })
             );
             expect(markerCount(before)).toBe(7);
             expect(markerCount(after)).toBe(8);
-            // Mirrors the standalone "category add end week" CASE: the left edge is pinned, the interior
-            // widens towards the new right edge, except the station nearest it, which overshoots past its
-            // resting value before correcting.
+            // The station nearest the new right edge overshoots its resting value before correcting.
             const addEndWeekTops = {
                 'top@0': 'constant' as const,
                 'top@1': increasingExtent,
@@ -1910,9 +1783,8 @@ describe('AreaSeries', () => {
             });
         });
 
-        // "Start ticking" — a point is appended on a timer while the previous append is still animating.
-        // Each interrupting update must keep the stroke a single connected subpath and let the area keep
-        // growing rightward, never leaving a broken or frozen path.
+        // Appends land while the previous one is still animating; each interruption must leave the stroke
+        // a single connected subpath and the area still growing rightward.
         it('ticking: appending points mid-animation keeps the stroke connected and growing', async () => {
             const data = [
                 { x: 0, y: 40 },
@@ -1943,9 +1815,7 @@ describe('AreaSeries', () => {
             expect(trajectory.at(-1)!.get(key)!.width).toBeGreaterThan(trajectory[0].get(key)!.width);
         });
 
-        // "Rapid Update" — a second data change lands before the first has finished. The batch must
-        // abandon the first target and settle on the second: the final point count is the second update's
-        // (3 -> 7), proving the interrupted first update (which shrank to 3) did not win.
+        // A second data change landing mid-animation must abandon the first target and settle on the second.
         it('rapid update: an interrupting update settles on the final data, not the abandoned one', async () => {
             chart = AgCharts.create(
                 singleOptions([
@@ -1994,9 +1864,8 @@ describe('AreaSeries', () => {
             expect(after.get(strokeKey(after))!.subpaths).toBe(1);
         });
 
-        // AG-12468 / AG-10542: a data update that flips the x-scale between category and continuous is not
-        // path-comparable (areaUtil's prepareAreaPathAnimation returns undefined), so the batch must SNAP
-        // rather than tween garbage between incompatible scales.
+        // A category<->continuous x-scale flip is not path-comparable (prepareAreaPathAnimation returns
+        // undefined), so the batch must snap rather than tween between incompatible scales.
         it('AG-12468 scale-type change: a category->number x-scale flip snaps without tweening', async () => {
             const category: AgCartesianChartOptions = {
                 data: [
@@ -2036,9 +1905,8 @@ describe('AreaSeries', () => {
             expect([...trajectory.at(-1)!.keys()]).toContain('axis[bottom]/text[l:0]');
         });
 
-        // AG-10904: re-applying identical data is a no-op (prepareAreaPathAnimation reports 'no-op'), so no
-        // motion may run — every geometry property holds constant. The fill's drawn-subpath count is
-        // re-decomposed by the redraw (not motion), so it alone is exempt.
+        // Re-applying identical data is a no-op, so nothing may move. The fill's drawn-subpath count is
+        // re-decomposed by the redraw rather than by motion, so it alone is exempt.
         it('AG-10904 no-op update: re-applying identical data produces no animation', async () => {
             const options = singleOptions([
                 { x: 0, y: 40 },
@@ -2059,8 +1927,7 @@ describe('AreaSeries', () => {
             expect(trajectory[0].get(strokeKey(trajectory[0]))!.subpaths).toBe(1);
         });
 
-        // CRT-823: a legend-hidden area series must stay visually inert while a visible sibling animates —
-        // the historic bug ran the hidden series' update animation, briefly drawing it across the baseline.
+        // A legend-hidden area must stay visually inert while a visible sibling animates.
         it('CRT-823 hidden series: a legend-hidden area stays inert while a sibling animates', async () => {
             const base = stackedOptions();
             const hidden: AgCartesianChartOptions = {
@@ -2086,9 +1953,8 @@ describe('AreaSeries', () => {
             expectNoAnimation(trajectory.map(hiddenOnly));
         });
 
-        // AG-16436: toggling series off until only one remains visible must still animate the survivor
-        // coordinated in the update phase (the toggled layer collapses to the baseline, the survivor slides
-        // down to become the sole layer) rather than desyncing or leaving garbage.
+        // Toggling down to a single visible series must still animate the survivor coordinated with the
+        // collapsing layer, rather than desyncing.
         it('AG-16436 toggle to last visible: the survivor slides to the baseline as the other collapses', async () => {
             const options: AgCartesianChartOptions = {
                 data: [
@@ -2115,9 +1981,7 @@ describe('AreaSeries', () => {
             const bottomFill = fillKey(trajectory[0], 0);
             // Anti-vacuity: the toggled-off layer starts at full height and must genuinely collapse.
             expect(trajectory[0].get(bottomFill)!.height).toBeGreaterThan(40);
-            // The survivors genuinely tween (not snap): y/height/every top@N pass through several
-            // intermediate frames rather than jumping straight to their resting value, so `progresses`
-            // proves real sliding, not just a net direction.
+            // `progresses` proves real sliding rather than a snap in the right net direction.
             const slideDown: SceneNodeExpectation = {
                 y: { during: 'update', expect: ['increases', 'progresses', 'bounded'] },
                 height: { during: 'update', expect: ['decreases', 'progresses', 'bounded'] },
@@ -2146,9 +2010,7 @@ describe('AreaSeries', () => {
                         x: 'any',
                         width: 'any',
                     },
-                    // The stroke traces the same collapsing top edge as the background fill above, but
-                    // (unlike the fill polygon) never splits into a second subpath, so every station holds
-                    // its collapse cleanly and x/width stay pinned to the full plot width throughout.
+                    // Unlike the fill polygon, the stroke never splits into a second subpath.
                     'series[0]/path[stroke]': {
                         x: 'constant',
                         width: 'constant',
@@ -2162,8 +2024,7 @@ describe('AreaSeries', () => {
                         'top@4': { during: 'update', expect: ['increases', 'bounded'] },
                         subpaths: 'any',
                     },
-                    // The toggled-off layer's markers never render (visible stays 0 throughout); their
-                    // opacity keeps re-fading internally regardless, so only that property is left free.
+                    // The markers never render, but their opacity still re-fades internally.
                     'series[0]/marker[*]': { opacity: 'any', visible: 'constant' },
                     'series[1]/background/path[*]': slideDown,
                     'series[1]/path[stroke]': slideDown,
@@ -2178,11 +2039,8 @@ describe('AreaSeries', () => {
             expect(survivorFill.y + survivorFill.height).toBeGreaterThan(480);
         });
 
-        // AG-12468: adding the first data via updateDelta onto an empty chart. With unpinned axes the
-        // empty starting state has a non-finite (invalid) x-scale, which isScaleValid guards: the batch
-        // must snap so the area is drawn at full geometry immediately. Without the guard the batch tweens
-        // from that invalid scale and the fill is absent for the first half of the animation — the historic
-        // "area doesn't render until a resize". (The type-flip half of the pair is covered above.)
+        // An empty chart with unpinned axes has a non-finite x-scale, which isScaleValid guards: the batch
+        // must snap, since tweening from that invalid scale leaves the fill absent for half the animation.
         it('AG-12468 add initial data: the area snaps in at full geometry rather than tweening from an invalid scale', async () => {
             const empty = prepareTestOptions({
                 data: [],
@@ -2220,8 +2078,8 @@ describe('AreaSeries', () => {
             }
         });
 
-        // AG-9954: the initial-load swipe glues the marker scale-in to the sweep edge — the leftmost marker
-        // finishes scaling in before the rightmost even starts, in lock-step with the clip window's advance.
+        // The initial-load swipe glues the marker scale-in to the sweep edge, so the leftmost marker
+        // finishes scaling in before the rightmost even starts.
         it('AG-9954 reveal sync: markers scale in left-to-right in lock-step with the swipe', async () => {
             const labels = ['A', 'B', 'C', 'D', 'E', 'F'];
             chart = AgCharts.create(
@@ -2237,8 +2095,7 @@ describe('AreaSeries', () => {
             const sampleScene = createSceneGeometrySampler(chart);
             const trajectory = await frames.captureAnimationFrames(chart, sampleScene, { frames: 40 });
             const fill0 = fillKey(trajectory.at(-1)!);
-            // The clip window sweeps across the plot; clip:x is present only while the mask is active, so
-            // progression is asserted over the sweep frames.
+            // clip:x is present only while the mask is active, so only sweep frames are asserted.
             const clipXs = trajectory
                 .map((f) => f.get(fill0)?.['clip:x'])
                 .filter((v): v is number => v != null && Number.isFinite(v));
@@ -2250,18 +2107,15 @@ describe('AreaSeries', () => {
             // Each marker begins scaling in no earlier than the one to its left.
             const starts = labels.map((l) => firstFrameAbove(l, 0.01));
             expectMonotonic(starts, 'increasing');
-            // The leftmost finishes (>=90%) strictly before the rightmost even starts — this strictness is
-            // what fails on a total snap (all indices would be 0).
+            // The strictness here is what fails on a total snap (all indices would be 0).
             const leftmostDone = trajectory.findIndex(
                 (f) => (f.get('series[0]/marker[A]')?.width ?? 0) >= finalWidth * 0.9
             );
             expect(leftmostDone).toBeGreaterThan(0);
             expect(starts.at(-1)!).toBeGreaterThan(0);
             expect(leftmostDone).toBeLessThan(starts.at(-1)!);
-            // The sync itself: a marker must not begin scaling in ahead of the clip edge that reveals it.
-            // At the frame each marker starts, the sweep (clip:x) has already reached that marker's band.
-            // The historic desync (a non-inverse easing on the delay) pops mid-plot markers in early —
-            // e.g. the second marker starting while the sweep is still ~100px short of it.
+            // A marker must not begin scaling in ahead of the clip edge that reveals it: at the frame each
+            // marker starts, the sweep has already reached that marker's band.
             const last = trajectory.at(-1)!;
             const SWEEP_LEAD_TOL = 40;
             let checked = 0;
@@ -2279,8 +2133,7 @@ describe('AreaSeries', () => {
             expect(checked).toBeGreaterThanOrEqual(3);
         });
 
-        // Endpoint sanity guards: the animated route must settle at exactly the pixels a snapped
-        // render of the same options produces (see expectAnimatedEndpointsMatchStatic).
+        // The animated route must settle at exactly the pixels a snapped render of the same options gives.
         it('sanity: single update points endpoints match static renders', async () => {
             const options = singleOptions([
                 { x: 0, y: 40 },
@@ -2393,7 +2246,6 @@ describe('AreaSeries', () => {
         });
     });
 
-    // AG-12350 - nodeClick triggered on legend item click.
     describe('nodeClick', () => {
         const clicks: string[] = [];
         const doubleClicks: string[] = [];
@@ -2468,7 +2320,6 @@ describe('AreaSeries', () => {
                 }
             });
             test('touch', async () => {
-                // Faulty because of AG-14228
                 for (const { canvasX: x, canvasY: y } of iterAreaSectors(chart)) {
                     await waitForChartStability(chart);
                     await tapAction(x, y)(chart);
@@ -4002,9 +3853,7 @@ describe('AreaSeries', () => {
             chart = AgCharts.create(options);
             await compare();
 
-            // Verify Y-domain is computed from all visible data within X range [1..4]
-            // (visible y values: 30, 10, 25, 15; area baseline at 0),
-            // not from a single point (the pre-fix bug).
+            // The Y-domain must span all visible data in the X range, not just a single point.
             const { axes } = deproxy(chart);
             const yAxis = axes.find((a: any) => a.direction === ChartAxisDirection.Y);
             expect(yAxis!.dataDomain.domain).toEqual([0, 30]);

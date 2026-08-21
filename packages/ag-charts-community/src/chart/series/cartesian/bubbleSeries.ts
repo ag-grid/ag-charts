@@ -189,9 +189,7 @@ export interface BubbleScatterNodeDatum extends CartesianSeriesNodeDatum, ErrorB
     readonly count: number;
     readonly dilation: number;
     readonly area: number;
-    // WARNING! This selected-state is related to cross-filtering which is not an officially documented or supported
-    // feature. It has nothing to do with the official data selection API in the options contract. Do not use, or use
-    // with extreme caution.
+    // WARNING: internal cross-filtering state, unrelated to the public data-selection API. Do not use.
     readonly crossFilterSelected: boolean | undefined;
     style?: NormalisedSeriesMarkerStyle;
 }
@@ -615,9 +613,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         } = this.properties;
 
         const placements = toArray(label.placement);
-        // Only fit to the marker when `inside` is the sole placement; a mixed fallback list keeps
-        // full-size text and lets the engine reject an oversized inside candidate (via insideSize)
-        // so a directional fallback isn't constrained to the marker.
+        // Only fit to the marker when `inside` is the sole placement, so directional fallbacks stay full-size.
         const insideOnly = placements.length > 0 && placements.every((placement) => placement === 'inside');
         const insideRect = placements.includes('inside') ? markerLabelRect(marker.shape) : undefined;
         const collideWith = label.collision.resolveCollideWith();
@@ -701,9 +697,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             labelFitOverflow: insideOnly && label.collision.alwaysShow ? labelFit : undefined,
             labelStyled: label.itemStyler != null,
             label,
-            // The series-area clamp is opt-in via `collideWith.seriesArea`. Inside-only labels are
-            // additionally exempt: fitted to and centred on their marker, an edge marker's label rides
-            // with the point, so only directional placements can spill past the series area.
+            // Inside-only labels ride with their marker, so only directional placements can spill out.
             plotRegion: insideOnly || !collideWith.seriesArea ? undefined : this.getSeriesPlotRegion(),
 
             // Other state
@@ -717,9 +711,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         };
     }
 
-    // ============================================================================
-    // Template Method Hooks
-    // ============================================================================
+    // Template method hooks.
 
     /**
      * Populates the node data array by iterating over visible data.
@@ -1619,9 +1611,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             { resolveMarkerSubPath: [] }
         );
         if (resolvedColorFill != null) {
-            // `getMarkerStyle` does not apply the colour-scale fill — that lives in
-            // `updateDatumStyles`. Override so the tooltip swatch and fill-bound context match
-            // the on-canvas marker colour.
+            // `getMarkerStyle` omits the colour-scale fill, so apply it here to match the on-canvas marker.
             activeStyle.fill = resolvedColorFill;
         }
 

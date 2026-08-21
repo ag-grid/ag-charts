@@ -1,8 +1,7 @@
 import { type Page, expect } from '@playwright/test';
 
-// Shared depth assertions for the demo apps: every chart mounted, settled, and
-// showing real data, with no console noise. Used by demo-charts.spec.ts (the
-// existing demos) and web-analytics.spec.ts (which adds tab switching on top).
+// Shared depth assertions for the demo apps: every chart mounted, settled, and showing real data,
+// with no console noise.
 
 export const WRAPPER = '.ag-charts-wrapper';
 

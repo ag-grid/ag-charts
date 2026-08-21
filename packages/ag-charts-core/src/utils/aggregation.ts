@@ -478,8 +478,6 @@ export function createAggregationIndices(
     }
 
     // Pre-compute scale factors (multiplication is faster than division)
-    // For continuous: scaleFactor = maxRange / domainRange, so bucketIndex = floor((x - d0) * scaleFactor)
-    // For discrete: scaleFactor = maxRange / domainCount
     const scaleFactor = continuous ? maxRange / (d1 - d0) : maxRange * (1 / domainCount);
 
     // Cache for current bucket to reduce array access overhead (Positive / Default)
@@ -525,21 +523,14 @@ export function createAggregationIndices(
             yMin = yMinValue ?? nan;
         }
 
-        // Determine which bucket set to use
         let isPositiveDatum = true;
         if (split) {
-            // In split mode, we decide based on sign
-            // Positive bucket gets values >= 0
-            // Negative bucket gets values < 0
-            // (Using yMax as the discriminator, similar to original logic)
             isPositiveDatum = yMax >= 0;
         } else if (positive != null && yMax >= 0 !== positive) {
-            // In non-split mode, filter by 'positive' arg if present
             continue;
         }
 
         // Compute scaled x position in one multiplication (combines xRatio and bucket scaling)
-        // scaledX is in range [0, maxRange] for values within domain
         let scaledX: number;
         if (continuous) {
             if (xNeedsValueOf) {
@@ -551,9 +542,8 @@ export function createAggregationIndices(
             scaledX = datumIndex * scaleFactor;
         }
 
-        // Clamp to maxRange-1 to handle scaledX=maxRange edge case
-        // Note: Must use Math.floor (not |0) because |0 truncates toward zero, causing negative
-        // scaledX values (data below domain) to incorrectly map to bucket 0 instead of negative bucket
+        // Clamped to maxRange-1 for scaledX === maxRange. Math.floor, not |0: truncation toward zero
+        // would map out-of-domain negative scaledX into bucket 0.
         const bucketIndex = Math.floor(scaledX);
         const aggIndex = (bucketIndex < maxRange ? bucketIndex : maxRange - 1) * AGGREGATION_SPAN;
 

@@ -12,9 +12,7 @@ const SIZE_QUANTIZATION = 3;
 const FILTER_DATUM_THRESHOLD = 5;
 const FILTER_RANGE_THRESHOLD = 0.05;
 
-// ============================================================================
 // CORE LAYER: Pure, testable aggregation functions
-// ============================================================================
 
 export interface BubbleAggregation {
     xValues: any[];
@@ -287,9 +285,7 @@ export function computeBubbleAggregation(
         : undefined;
 }
 
-// ============================================================================
 // ADAPTER LAYER: Scale integration
-// ============================================================================
 
 /**
  * Aggregates bubble data for rendering optimization (low-level adapter).
@@ -324,9 +320,7 @@ function aggregateBubbleData(
     );
 }
 
-// ============================================================================
 // INTEGRATION LAYER: DataModel
-// ============================================================================
 
 /**
  * High-level aggregation function for series integration.

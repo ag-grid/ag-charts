@@ -149,11 +149,8 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
     }
 
     override resolveFont(): string | undefined {
-        // Offscreen layer groups render to a separate canvas context, so their
-        // children's fonts don't affect the parent canvas. Return undefined so
-        // the parent's resolveChildFont() skips past this group. The group's own
-        // renderInContext() still calls resolveChildFont() to pre-set the font
-        // on its offscreen context.
+        // Offscreen layer groups render to their own context, so returning undefined makes the parent's
+        // resolveChildFont() skip past this group; renderInContext() still pre-sets the offscreen font.
         if (this.useOffscreenCanvas) return undefined;
         return this.resolveChildFont();
     }
@@ -439,9 +436,8 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         try {
             ctx.globalAlpha *= this.opacity;
 
-            // Pre-set the font so children's isolatedRender save/restore doesn't force Chrome
-            // to re-resolve it per Text node. Comparing against the tracker avoids the
-            // ctx.font getter's canonicalisation re-parse.
+            // Pre-set the font so children's isolatedRender save/restore doesn't force Chrome to re-resolve
+            // it per Text node; comparing against the tracker avoids the ctx.font getter's re-parse.
             const childFont = this.resolveChildFont();
             if (childFont != null && childRenderCtx.currentFont !== childFont) {
                 ctx.font = childFont;

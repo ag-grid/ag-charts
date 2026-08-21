@@ -1247,10 +1247,8 @@ describe('SunburstSeries', () => {
         const SECTOR = /^series\[0\]\/sector\[/;
         const sectorEntries = (sample: SceneGeometrySample) => [...sample].filter(([key]) => SECTOR.test(key));
 
-        // A child sector must nest inside a parent sector one ring inward (parent outerRadius ==
-        // child innerRadius, parent angular span contains child's), checked via geometry rather than
-        // the node key since a reshuffle re-points sampler keys at reused instances. Depth-1 sectors
-        // (innerRadius ~ 0) sit on the invisible root and are exempt.
+        // Nesting is checked via geometry rather than node keys, since a reshuffle re-points sampler keys at
+        // reused instances. Depth-1 sectors (innerRadius ~ 0) sit on the invisible root and are exempt.
         const sectorsNestWithinParents: SceneFrameInvariant = {
             name: 'sub-sectors nest within a parent ring sector',
             check: (frame) => {

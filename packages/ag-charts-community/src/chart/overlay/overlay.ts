@@ -34,9 +34,8 @@ function imageVerticalAlignToCss(verticalAlign: ImageSegment['verticalAlign']): 
     }
 }
 
-// Maps an image segment's decoration to the CSS for its overlay <img>. Mirrors the canvas
-// ImageSegmentNode: a padded box (`border-box` + `object-fit: contain`), optional background and
-// rounded corners. Exported for unit testing — jsdom cannot host a real <img>.
+// Mirrors the canvas ImageSegmentNode decoration. Exported for unit testing — jsdom cannot host a
+// real <img>.
 export function imageSegmentStyle(segment: ImageSegment): Partial<CSSStyleDeclaration> {
     const { top, right, bottom, left } = resolvePadding(segment.padding);
     return {
@@ -92,9 +91,8 @@ export class Overlay extends BaseProperties {
         this.rendererAsText = undefined;
         this.focusBox = rect;
 
-        // The renderer is optional, and per the documented Renderer<P, R> contract may
-        // return `undefined` to fall through to the default overlay text. An empty string
-        // still renders (as an empty overlay).
+        // Per the Renderer<P, R> contract `undefined` falls through to the default text; '' renders
+        // an empty overlay.
         const params: AgChartOverlayRendererParams<DatumDefault> = {};
         const rendered = this.renderer ? callWithContext(callers, this.renderer, params) : undefined;
         const htmlContent = coerceTextValue(rendered);
@@ -168,9 +166,8 @@ export class Overlay extends BaseProperties {
         return this.content;
     }
 
-    // Overlays are plain DOM, so an image segment maps to an <img> the browser loads natively —
-    // no ImageLoader (which exists only for the canvas pipeline). Decoration is mirrored from the
-    // canvas ImageSegmentNode: padded box, optional background, rounded corners and border.
+    // Overlays are plain DOM, so the browser loads the image natively — ImageLoader exists only for
+    // the canvas pipeline.
     private appendImageSegment(container: HTMLElement, segment: ImageSegment) {
         const img = createElement('img', imageSegmentStyle(segment));
         img.src = segment.url;

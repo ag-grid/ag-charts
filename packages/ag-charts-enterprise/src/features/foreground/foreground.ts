@@ -18,9 +18,8 @@ export class Foreground extends _ModuleSupport.Background {
         });
     }
 
-    // Foreground is enterprise-only and registered via `enterpriseRegistry.createForeground`
-    // rather than as a plugin module, so it has no `themeTemplate`. The inline defaults below
-    // are therefore the canonical source for the `foreground` option subtree.
+    // Foreground is not a plugin module and so has no `themeTemplate`: the inline defaults below are
+    // the canonical source for the `foreground` option subtree.
     protected override applyOptions() {
         const opts = this.ctx.chartState.getValue('options', 'foreground');
         this.node.visible = opts?.visible ?? true;

@@ -54,8 +54,8 @@ export function scroll(
     const clientY = rect.top + y;
     const event = new WheelEvent('wheel', {
         bubbles: true,
-        // ZoomWheelSequencer aborts on non-cancelable events (trackpad-inertia guard, AG-16317).
-        // WheelEventInit.cancelable defaults to false — without this the zoom handler never fires.
+        // WheelEventInit.cancelable defaults to false, but ZoomWheelSequencer aborts on
+        // non-cancelable events (trackpad-inertia guard), so the zoom handler would never fire.
         cancelable: true,
         clientX,
         clientY,
@@ -220,9 +220,7 @@ export function isVersionInRange(currentVersion: string, minVersion?: string, ma
     return true;
 }
 
-// ============================================================================
-// Performance Benchmark Functions
-// ============================================================================
+// Performance benchmark functions.
 
 /**
  * Perform initial chart load benchmark.

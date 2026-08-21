@@ -1,9 +1,7 @@
 import { expect } from 'vitest';
 
-// Plugin option schemas are validated twice — once against `commonChartOptionsDefs` in the chart pass,
-// then again against the plugin module's own `options` in the plugin pass. Both must resolve to the same
-// object: while they were separate copies they drifted, and the stricter copy cleared values the other
-// accepted. Reference the shared const rather than inlining a second literal.
+// Plugin option schemas are validated twice, in the chart pass and the plugin pass. Both must resolve
+// to the same object — separate copies drift, and the stricter one clears values the other accepts.
 export function expectSharedOptionsDefs(name: string, pluginOptions: unknown, commonOptions: unknown) {
     // Guard against a vacuous pass: two `undefined` reads would otherwise satisfy the identity check.
     expect(pluginOptions, `\`${name}\` plugin options must be a populated schema`).toEqual(expect.any(Object));

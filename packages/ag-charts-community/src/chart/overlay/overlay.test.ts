@@ -470,10 +470,8 @@ HTMLCollection [
             await publicApi.update(seriesOptions(true));
             await waitForChartStability(chart);
 
-            // The no-break space must survive the whole hidden interval so that Chromium detects an
-            // aria-live change when the overlay re-appears. Asserted via `innerText` because jsdom does
-            // not implement it — the write lands as a plain property, so `textContent` stays empty here
-            // even though a real browser replaces the container's children.
+            // The no-break space must survive the whole hidden interval so Chromium detects an aria-live change
+            // on re-appear. Asserted via `innerText` because jsdom does not implement it.
             expect((overlayContainer() as HTMLElement | null)?.innerText).toEqual('\xA0');
 
             await publicApi.update(seriesOptions(false));

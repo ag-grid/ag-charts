@@ -63,16 +63,14 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
     isReprocessingSupported(processedData: ProcessedData<D>): boolean {
         // Grouped data has additional constraints for incremental updates
         if (processedData.type === 'grouped') {
-            // Require unique groups - each datum must have distinct keys
+            // Non-unique groups need aggregation recalculation, which incremental updates cannot do.
             if (!processedData.groupsUnique) return false;
 
             // Require single data source - all scopes must share same DataSet
             const uniqueDataSets = this.getUniqueDataSets(processedData);
             if (uniqueDataSets.size !== 1) return false;
 
-            // Key constraint: grouped data requires groupsUnique=true because
-            // incremental updates can't handle aggregation recalculation yet
-            // Cannot have invalid keys - would break groups.length === columns.length invariant
+            // Invalid keys would break the groups.length === columns.length invariant.
             const scope = first(processedData.scopes);
             const invalidKeys = processedData.invalidKeys?.get(scope);
             if (invalidKeys?.some((invalid) => invalid)) return false;
@@ -157,12 +155,9 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
         processedData.time = end - start;
         processedData.version += 1;
 
-        // Collect optimization metadata for testing
         collectOptimizationMetadataFn(processedData, 'reprocess');
 
-        // Store the change description on processedData for series to use
-        // for incremental nodeData updates. For single-scope cases (most common),
-        // this provides direct access. For multi-scope, series can check their scope.
+        // Only exposed when every scope saw the same change; multi-scope series read their own.
         const uniqueChanges = uniqueChangeDescriptions(scopeChanges);
         processedData.changeDescription = uniqueChanges.size === 1 ? uniqueChanges.values().next().value : undefined;
 
@@ -1013,20 +1008,15 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
             const { indexMap } = changeDesc;
 
             if (isUpdateOnly(indexMap)) {
-                // Update-only: Values changed but indices stable
-                // DOMAIN_RANGES must be cleared (values changed)
-                // Sort orders can be preserved if only values changed, not keys
+                // Indices are stable, so sort orders survive provided the key values did not change.
             } else if (isAppendOnly(indexMap)) {
-                // Append-only: New items at end, no index shifts
-                // DOMAIN_RANGES must be rebuilt to include new values
-                // Sort orders need incremental update for new values
+                // Appends shift no indices, so sort orders only need extending.
                 hasAppendOnly = true;
                 appendOriginalLength = indexMap.originalLength;
             } else if (hasOnlyRemovals(indexMap)) {
                 // Removal-only: Sort orders preserved (removals can't create duplicates or change order)
             } else if (isRollingWindow(indexMap)) {
-                // Rolling window: Removals from start + appends at end
-                // Sort orders can be preserved if appended values maintain continuity
+                // Removals from the start plus appends at the end can preserve sort order continuity.
                 hasRollingWindow = true;
                 rollingWindowInfo = {
                     originalLength: indexMap.originalLength,
@@ -1070,14 +1060,9 @@ export class IncrementalProcessor<D extends object, K extends keyof D & string> 
             const keysArray = first(keysMap.values());
             if (!keysArray || keysArray.length === 0) continue;
 
-            // After rolling window, the keys array has been transformed:
-            // - Removed `removedCount` items from start
-            // - Appended new items at the end
-            // The new array length is: originalLength - removedCount + appendCount
-            // The appended items start at: originalLength - removedCount
+            // The rolling window dropped `removedCount` from the start, so appends begin here.
             const appendStartIndex = originalLength - removedCount;
 
-            // Get the last remaining value (just before append point)
             const lastRemainingValue = appendStartIndex > 0 ? keysArray[appendStartIndex - 1] : undefined;
             const appendedValues = keysArray.slice(appendStartIndex);
 

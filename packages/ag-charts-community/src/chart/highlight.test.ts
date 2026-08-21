@@ -710,9 +710,7 @@ describe('Chart highlighting', () => {
     });
 
     describe('Datum-level to series-level highlight transition', () => {
-        // A legend item's highlight is series-level: `datumIndex` is NaN (see `toHighlightNodeDatum`
-        // in legend.ts, string-itemId branch). Keyboard focus moving from a bar to the legend
-        // therefore transitions datum-level -> series-level on the same series.
+        // Legend items highlight at series level, with `datumIndex` set to NaN.
         const legendStyleHighlight = (series: Chart['series'][number], itemId: string): HighlightNodeDatum => ({
             series,
             itemId,
@@ -756,12 +754,10 @@ describe('Chart highlighting', () => {
                 expect(fillOpacity).toBeLessThan(1);
             }
 
-            // Series-level highlight of the *same* series, from a different caller — this mirrors
-            // Tab moving focus out of the series area and into a legend item.
+            // Series-level highlight of the same series, as when focus moves into a legend item.
             chart.ctx.highlightManager.updateHighlight('legend', legendStyleHighlight(chart.series[0], 'apples'));
             await waitForChartStability(chart);
 
-            // Regression (CRT-1155): the stale `unhighlightedItem` dimming used to be left on screen.
             expect(baseLayerFillOpacities(chart, 0)).toEqual([1, 1, 1, 1]);
         });
 
@@ -1068,16 +1064,14 @@ describe('Chart highlighting', () => {
             await waitForChartStability(chart);
 
             const afterQ3 = baseLayerFillOpacities(chart, 1);
-            // Regression check: without invalidating the repaint on a shared-match change, the item at
-            // Q2 (previously lifted) stays lit at the same opacity as the newly-matched Q3 item.
+            // Without invalidating the repaint on a shared-match change, the Q2 item stays lit.
             expect(afterQ3[2]).toBeGreaterThan(afterQ3[0]);
             expect(afterQ3[1]).toBe(afterQ3[0]);
             expect(afterQ3[3]).toBe(afterQ3[0]);
         });
 
         it('resolves the same states for highlight.range node and tooltip', async () => {
-            // The grouping is derived downstream of the highlight itself, so the range - which only decides
-            // the pick intent that triggers the hover - must not change the outcome.
+            // The range only decides the pick intent, so it must not change the resolved states.
             const statesForRange = async (range: 'node' | 'tooltip') => {
                 const options = twoBarSeriesOptions('shared');
                 options.highlight = { mode: 'shared', range };
@@ -1142,8 +1136,7 @@ describe('Chart highlighting', () => {
             const afterQ2 = baseLayerFillOpacities(chart, 2);
             expect(afterQ2[1]).toBeGreaterThan(afterQ2[0]);
 
-            // The hovered series changes too, so the third series is only repainted because shared mode
-            // widens the update beyond the previously and newly hovered series.
+            // Shared mode widens the update beyond the hovered series, so the third series repaints too.
             chart.ctx.highlightManager.updateHighlight(chart.id, datumQ3);
             await waitForChartStability(chart);
 

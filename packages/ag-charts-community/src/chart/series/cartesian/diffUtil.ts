@@ -18,7 +18,7 @@ export function calculateDataDiff<N extends CartesianSeriesNodeDatum>(
     }
 
     if (!processedDataUpdated) {
-        // CRT-965: Treat domain update (with no data-reprocessing) as a data diff no-op.
+        // A domain update with no data-reprocessing is a data-diff no-op.
         return {
             changed: false,
             added: new Set(),

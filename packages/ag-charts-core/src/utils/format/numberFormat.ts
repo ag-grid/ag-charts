@@ -99,15 +99,11 @@ export function createNumberFormatter(format: string | FormatterOptions) {
     }
 
     return (n: AgNumericValue, fractionDigits?: number) => {
-        // A bigint can reach here via an `any`-typed value path; the body below uses Math/toFixed which
-        // throw on bigint, so emit a locale-grouped string directly (AG-16608 AC #6/#8).
+        // Math/toFixed below throw on bigint, so format it directly.
         if (typeof n === 'bigint') {
             return `${prefix}${n.toLocaleString('en-US')}${suffix}`;
         }
-        // When a format type is specified and no precision is in the format string:
-        // - For 'f' and '%' types, fractionDigits can be used (it represents decimal places)
-        // - For other types (s, r, g, e, etc.), use default precision (fractionDigits represents tick step, not format precision)
-        // - When no type is specified, fractionDigits can be used as a fallback
+        // `fractionDigits` is decimal places for 'f'/'%' and untyped formats, but a tick step elsewhere.
         let effectivePrecision: number;
         if (formatterPrecision != null) {
             effectivePrecision = formatterPrecision;

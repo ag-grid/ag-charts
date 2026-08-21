@@ -159,9 +159,8 @@ export class Legend {
     }
 
     constructor(private readonly ctx: DynamicContext<ChartRegistry>) {
-        // Start invisible — updateGroupVisibility() will enable when legend has data and options.
-        // This prevents a spurious true→false dirty mark during the first flushChanges() for chart
-        // types where the legend is disabled (sparklines, gauges).
+        // Enabled later by updateGroupVisibility(); starting visible would spuriously dirty the first
+        // flushChanges() for chart types with no legend (sparklines, gauges).
         this.group.visible = false;
 
         this.pagination = new Pagination(
@@ -1221,10 +1220,8 @@ export class Legend {
             if (this.ctx.interactionManager.isState(InteractionState.Default) || event?.initialState) {
                 updateManagers(opts);
             } else if (this.ctx.interactionManager.isState(InteractionState.Animation)) {
-                // A keyboard focus change is a deliberate navigation that must take effect immediately,
-                // interrupting any in-progress animation. Pointer hover, by contrast, defers both setting
-                // and clearing highlights until the current animation batch completes so that a passing
-                // hover does not interrupt a show/hide animation.
+                // Keyboard navigation must interrupt an in-progress animation; a passing pointer hover
+                // must not, so it defers to the end of the animation batch.
                 if (fromKeyboardFocus) {
                     updateManagers(opts);
                 } else {
@@ -1247,10 +1244,7 @@ export class Legend {
             const nodeDatum = toHighlightNodeDatum(series, legendDatum);
             highlightNodeDatum({ itemId, nodeDatum });
         } else {
-            // Either no highlightable target, or the current legend item opts out
-            // (e.g. a discrete colour-scale bin whose itemId is a bin index, not a
-            // datum index). Push an undefined highlight so any prior highlight under
-            // this caller id is cleared on hover transition.
+            // No highlightable target, or the item opts out — clear any prior highlight for this caller.
             highlightNodeDatum(undefined);
         }
     }

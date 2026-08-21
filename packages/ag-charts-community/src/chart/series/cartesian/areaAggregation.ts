@@ -40,9 +40,7 @@ export interface PartialAreaAggregationResult {
     computeRemaining?: () => AreaSeriesDataAggregationFilter[];
 }
 
-// ============================================================================
-// CORE LAYER: Pure, testable aggregation functions
-// ============================================================================
+// Core layer: pure, testable aggregation functions.
 
 /**
  * Determines the aggregation bucket index for a datum.
@@ -370,9 +368,7 @@ export function computeAreaAggregationPartial(
     return { immediate: [immediateLevel], computeRemaining };
 }
 
-// ============================================================================
-// ADAPTER LAYER: Scale integration
-// ============================================================================
+// Adapter layer: scale integration.
 
 /**
  * Aggregates area data for rendering optimization (low-level adapter).
@@ -391,9 +387,7 @@ function aggregateAreaData(
     return computeAreaAggregation([d0, d1], xValues, yValues, { xNeedsValueOf, yNeedsValueOf });
 }
 
-// ============================================================================
-// INTEGRATION LAYER: Memoization
-// ============================================================================
+// Integration layer: memoisation.
 
 /**
  * Memoized version of aggregateAreaData for internal use.

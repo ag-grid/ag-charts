@@ -327,9 +327,8 @@ describe('Context Menu', () => {
         // tolerance would hide it.
         const veryCloseTo = (value: number) => expect.closeTo(value, 4);
 
-        // Domains are 0..0.6 on x and 0..6 on y, so the plot centre is exactly 0.3 and 3. Every branch below
-        // aims at that same position on one axis, so they must all report the same value through their own
-        // callback.
+        // Domains are 0..0.6 on x and 0..6 on y, so the plot centre is exactly 0.3 and 3; every branch aims
+        // at that same position and must report it through its own callback.
         test('reports the axis values under the pointer', async () => {
             await contextMenuAtPlotCentre();
 
@@ -393,9 +392,8 @@ describe('Context Menu', () => {
 
         beforeEach(async () => {
             getItems = vi.fn(({ defaultItems }) => defaultItems);
-            // An axis placed inside the plot area with `crossAt` is not dispatched through its own proxy region —
-            // the series area picks it up and annotates it onto the menu as an extra region. That is a separate
-            // code path from `coordinates`, and the only one where the axis origin picks up `crossAxisTranslation`.
+            // A `crossAt` axis is annotated onto the menu by the series area rather than its own proxy region:
+            // a separate path from `coordinates`, and the only one applying `crossAxisTranslation`.
             await prepareChart(
                 { enabled: true, getItems },
                 {

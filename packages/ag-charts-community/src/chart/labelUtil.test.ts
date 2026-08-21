@@ -194,10 +194,8 @@ describe('fitSectorLabelRect', () => {
     });
 
     it('fits a multi-line label to the widest band, filling the wedge further out than the bisector', () => {
-        // The closing sector of a pie tilted up-left: its trailing radial edge is the vertical 12 o'clock
-        // line, which caps a bisector-symmetric box. A tall multi-line box must instead span the wedge's true
-        // width, placed furthest out where the wedge is widest, so the label fills the wedge rather than
-        // hugging that edge. Angles match what the series builds (starting at -π/2, closing at 3π/2).
+        // The closing sector's trailing radial edge is vertical, which caps a bisector-symmetric box, so a
+        // tall label must instead span the wedge's true width furthest out, where the wedge is widest.
         const s = {
             startAngle: -Math.PI / 2 + 0.86 * 2 * Math.PI,
             endAngle: -Math.PI / 2 + 2 * Math.PI,
@@ -250,9 +248,8 @@ describe('buildBarLabelCandidates', () => {
     });
 
     it('constrains inside placements to the bar rect and floats outside placements', () => {
-        // A centred inside label reserves nothing on the length axis (the one-sided spacing is delivered
-        // by the anchor offset) and spans the bar's full cross extent; collision clearance is the
-        // engine's to apply, not the region's.
+        // A centred inside label reserves nothing on the length axis - the anchor offset delivers the
+        // one-sided spacing - and collision clearance belongs to the engine, not the region.
         const candidates = build(['inside-center', 'outside-end'], ['horizontal']);
         expect(candidates[0].region).toEqual(rect);
         expect(candidates[1].region).toBeUndefined();

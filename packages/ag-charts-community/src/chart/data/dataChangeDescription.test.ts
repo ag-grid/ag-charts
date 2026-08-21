@@ -426,9 +426,7 @@ describe('DataChangeDescription', () => {
             const data = Array.from({ length: 10 }, (_, i) => ({ id: i, value: i }));
             const ds = new DataSet(data, testLogger, 'id');
 
-            // Remove index 2, insert 3 new items at index 5
-            // Original: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-            // After:    [0, 1, 3, 4, X, X, X, 5, 6, 7, 8, 9] (12 items)
+            // After: [0, 1, 3, 4, X, X, X, 5, 6, 7, 8, 9] (12 items)
             ds.addTransaction({
                 remove: [data[2]],
                 insertions: [
@@ -459,11 +457,6 @@ describe('DataChangeDescription', () => {
 
             expect(result.length).toBe(refArray.length);
 
-            // Old 0 was selected → should still be selected at its new position
-            // Old 3 was selected → should still be selected at its new position
-            // Old 7 was selected → should still be selected at its new position
-            // Verify by cross-referencing: selected original values are 0, 3, 7
-            // In refArray: value 0 is at index 0, value 3 is at index 2, value 7 is at index 9
             expect(result[0]).toBe(1); // old idx 0 → value 0
             expect(result[2]).toBe(1); // old idx 3 → value 3 (shifted by removal of idx 2)
             expect(result[9]).toBe(1); // old idx 7 → value 7 (shifted by removal + 3 insertions)

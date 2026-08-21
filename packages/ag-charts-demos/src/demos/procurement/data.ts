@@ -463,7 +463,7 @@ export function buildSpendTree(commodity: Commodity, orders: PurchaseOrder[], su
                         name: SUPPLIER_BY_ID.get(supplierId)!.name,
                         path: [subcategory, material.name, supplierId],
                         spend,
-                        // Leaves only: a size on an internal node is added to its children's, doubling the branch's arc.
+                        // Leaves only: an internal node's size compounds with its children's, doubling its arc.
                         size: Math.max(spend, sliver),
                         shareOfParent: 0,
                         shareOfTotal: total > 0 ? spend / total : 0,

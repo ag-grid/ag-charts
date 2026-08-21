@@ -37,14 +37,8 @@ export function pickGaugeFocus(self: GaugeSeries, opts: PickFocusInputs): PickFo
     const { data, selection } = others[otherIndex];
     if (data == null || data.length === 0) return;
 
-    // When focus actually moves between layers (an Up/Down that lands on a different layer),
-    // the carried datumIndex belongs to the previous layer and has no meaning in the new one:
-    // layer 0 is a single merged node (`datumUnion`) and the target layer has no positional
-    // relationship to it. Reset to 0 so the pick always resolves to a datum present in the
-    // chosen layer's selection (the union datum for layer 0, target 0 for the targets layer);
-    // a stale non-zero index could otherwise reference a datum absent from the selection,
-    // failing the pick and leaving keyboard focus stuck. Staying within a layer — including an
-    // Up/Down that clamps back to the same boundary layer — preserves the current position.
+    // Layers have no positional relationship, so a datumIndex carried across a layer change can name
+    // a datum absent from the new selection and strand keyboard focus; reset it on a real layer move.
     const previousOtherIndex = opts.otherIndex - opts.otherIndexDelta;
     const layerChanged = otherIndex !== previousOtherIndex;
     const datumIndex = layerChanged ? 0 : clamp(0, opts.datumIndex, data.length - 1);

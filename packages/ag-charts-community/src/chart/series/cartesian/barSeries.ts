@@ -1031,12 +1031,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         if (nodeLabelText == null) {
             mutableNode.label = undefined;
         } else if (ctx.labelResolvesPlacement || ctx.labelHideable) {
-            // Positioned-candidate path: pre-position a candidate per placement × orientation for the
-            // engine to resolve, each footprint inflated by the box (padding + border stroke) and — when
-            // an overflow policy applies — carrying the glyph budget its own region offers, so the engine
-            // fits the text per candidate and prefers the one that keeps the most of it. The engine picks
-            // the first candidate that fits its region; the first is baked as a backward-safe default
-            // until the engine writes the chosen one back.
+            // A candidate per placement × orientation, each footprint inflated by padding and border stroke;
+            // the engine picks the first that fits its region, so the first is baked in as a safe default.
             const text = measureLabelText(nodeLabelText, ctx.label);
             const orientations = toArray(ctx.label.orientation);
             if (orientations.length === 0) orientations.push('horizontal');
@@ -1120,9 +1116,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             // The first orientation is baked into `rotation`; an array resolves against the bar region
             // for inside placements — outside labels fall back to the plot bounds via no region.
             const region = ctx.labelResolvesOrientation ? bounds?.region : undefined;
-            // An orientation array is refitted per orientation by the engine, which knows that a rotated
-            // label measures against the bar's other axis; fitting here would bind every orientation to
-            // the upright budget and leave a rotation that could hold the full text unreachable.
+            // The engine refits per orientation; fitting here would bind every orientation to the upright budget.
             const { text: fittedText, fontSize: fittedFontSize } = ctx.labelResolvesOrientation
                 ? { text: nodeLabelText, fontSize: undefined }
                 : fitLabelToContainerAutoSize(nodeLabelText, ctx.labelFit, ctx.label, bounds?.container);
@@ -1421,10 +1415,6 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         return { nodeData, phantomNodeData };
     }
 
-    // ============================================================================
-    // Template Method Hooks (createNodeData flow)
-    // ============================================================================
-
     /**
      * Populates node data by selecting the appropriate strategy based on data type.
      * Creates scratch objects and delegates to strategy-specific methods.
@@ -1508,7 +1498,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         ctx: BarSeriesNodeDatumContext,
         result: BarSeriesNodeDataContext
     ): BarSeriesNodeDataContext {
-        // seriesRect may be unset during early-layout races or pool recycling (AG-17361).
+        // seriesRect may be unset during early-layout races or pool recycling.
         const seriesRect = this.chart?.seriesRect;
         if (seriesRect == null) return result;
 

@@ -294,9 +294,7 @@ describe('ColorScale', () => {
         });
 
         test('JIRA example: explicit stops with 4 colours', () => {
-            // {red, stop:40}, {yellow, stop:60}, {lightgreen, stop:80}, {green}
-            // resolveColorScaleFills produces domain [0, 40, 60, 80] (bin-end positions)
-            // 0-39=red, 40-59=yellow, 60-79=lightgreen, 80-100=green
+            // Fills {red, stop:40}, {yellow, stop:60}, {lightgreen, stop:80}, {green} resolve to this domain.
             const scale = new ColorScale();
 
             scale.domain = [0, 40, 60, 80];
@@ -315,9 +313,7 @@ describe('ColorScale', () => {
         });
 
         test('mixed stops: fills without stops share space equally', () => {
-            // {red}, {yellow, stop:60}, {lightgreen, stop:80}, {green}
-            // resolveColorScaleFills produces domain [0, 30, 60, 80]
-            // red=[0,30), yellow=[30,60), lightgreen=[60,80), green=[80,100]
+            // Fills {red}, {yellow, stop:60}, {lightgreen, stop:80}, {green}; the unstopped red shares equally.
             const scale = new ColorScale();
 
             scale.domain = [0, 30, 60, 80];

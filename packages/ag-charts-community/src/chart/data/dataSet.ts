@@ -231,9 +231,8 @@ export class DataSet<T = unknown> {
 
         const allInsertionValues = [...prependedValues, ...insertionValues, ...appendedValues];
 
-        // Use a sequential index to consume insertion values in order instead of a map
-        // keyed by destination index (which causes collisions when multiple insertions
-        // target overlapping indices)
+        // Consume insertion values sequentially; keying by destination index collides when
+        // multiple insertions target overlapping indices.
         let insertionValueIndex = 0;
 
         changeDescription.applyToArray(this.data, function applyToArrayResultFn(destIndex: number) {
@@ -243,9 +242,8 @@ export class DataSet<T = unknown> {
             return allInsertionValues[insertionValueIndex++];
         });
 
-        // Apply pending replacements for ID-based updates using final indices.
-        // Only original-data updates populate pendingReplacements (via collectUpdatedOriginalIndicesById);
-        // prepend/append/insertion updates are applied in-place during collectUpdatedIndicesFromGroupsById.
+        // Only original-data updates populate pendingReplacements; prepend/append/insertion updates
+        // are already applied in place.
         if (this.cachedPendingReplacements && this.cachedPendingReplacements.size > 0) {
             const { updatedIndices } = changeDescription.indexMap;
             for (const finalIdx of updatedIndices) {
@@ -385,9 +383,8 @@ export class DataSet<T = unknown> {
             return;
         }
 
-        // Incremental maintenance: shift indices, remove deleted entries, add new entries.
-        // Safe to mutate Map during for..of: delete of current/visited keys is spec-safe,
-        // set of existing keys updates value without affecting iteration order.
+        // Safe to mutate the Map during for..of: deleting current/visited keys is spec-safe, and
+        // setting an existing key updates the value without affecting iteration order.
         const idCache = this.idToIndexCache;
         const indexShift = totalPrependCount - contiguousRemovalCount;
 
@@ -1178,9 +1175,8 @@ export class DataSet<T = unknown> {
 
                 const removalsBeforeCount = sortedRemovedAsc ? removalPtr : 0;
 
-                // Count insertions that occur before this original's position in the virtual array.
-                // An original at index `originalIdx` has virtual index `originalIdx + totalPrependCount`.
-                // Insertions with virtualIndex <= that position shift the original forward.
+                // An original at `originalIdx` sits at virtual index `originalIdx + totalPrependCount`;
+                // insertions at or before that position shift it forward.
                 const virtualPosOfOriginal = originalIdx + totalPrependCount;
                 let insertionsBeforeCount = 0;
                 for (const insertion of trackedInsertions) {

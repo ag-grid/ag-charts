@@ -16,12 +16,8 @@ import {
 const ELLIPSIS = '…';
 const FONT_SIZE = 20;
 
-// `label.minimumFontSize` lets a label shrink rather than wrap, truncate or hide. A bar-family label
-// shrinks into its bar; a marker-based one, which has no container in its outside placements, shrinks to
-// clear the neighbours the placement cascade could not get it past. Bar, histogram, scatter, bubble, line
-// and area cover the community half (waterfall and range-bar are covered in the enterprise suite);
-// assertions read the drawn glyph size off the scene graph rather than re-deriving it, so they check what
-// the fit layer actually put on the canvas.
+// `label.minimumFontSize` lets a label shrink rather than wrap, truncate or hide. Assertions read the
+// drawn glyph size off the scene graph, checking what the fit layer actually put on the canvas.
 describe('label minimumFontSize', () => {
     setupMockConsole();
 
@@ -150,9 +146,8 @@ describe('label minimumFontSize', () => {
     });
 
     it('wraps and shrinks together, landing on the largest size the wrapped text fits at', async () => {
-        // Only `overflowStrategy` is overridden while the search runs, so each candidate size is wrapped
-        // before it is measured: the label lands at the largest size whose wrapped text fits the bar.
-        // Short bars make height the binding constraint, which wrapping alone cannot satisfy here.
+        // Each candidate size is wrapped before it is measured, so the label lands at the largest size
+        // whose wrapped text fits the bar; short bars make height the binding constraint here.
         const short = { ...barChart({ wrapping: 'on-space', truncate: true, minimumFontSize: 4 }) };
         short.data = data.map((datum, i) => ({ ...datum, value: 9 + i }));
         short.axes = { ...axes, y: { ...axes.y, max: 100 } } as typeof axes;
@@ -187,9 +182,8 @@ describe('label minimumFontSize', () => {
     });
 
     it('clamps a minimum the itemStyler resolved below', async () => {
-        // Validation only sees the configured pair, so an itemStyler that returns a smaller size is the
-        // one route left to `minimumFontSize > fontSize`. The label takes the styler's size rather than
-        // growing back up to the floor.
+        // An itemStyler returning a smaller size is the only route left to `minimumFontSize > fontSize`;
+        // the label takes the styler's size rather than growing back up to the floor.
         await render(barChart({ truncate: true, minimumFontSize: 16, itemStyler: () => ({ fontSize: 8 }) }));
         const rendered = labels();
         expect(rendered.length).toBe(data.length);
@@ -198,15 +192,12 @@ describe('label minimumFontSize', () => {
         }
     });
 
-    // One image per series type, each packing the whole spectrum into a single render: labels that fit
-    // untouched, labels shrunk to fit, and labels that reach the floor and truncate from there. The
-    // scene-graph cases above pin the exact sizes; these pin how the sizes look side by side.
+    // One image per series type packs the whole shrink spectrum into a single render; the scene-graph
+    // cases above pin the exact sizes, these pin how the sizes look side by side.
     describe('visual', () => {
         it('renders bar labels across the shrink spectrum', async () => {
-            // Four grouped series over the same bars, so one image compares four configurations at matching
-            // bar widths: no floor at all (truncates at 20px), a low floor without wrapping (shrinks on one
-            // line), the same floor with wrapping (wraps and shrinks together), and a high floor with
-            // wrapping (wraps, reaches 14px, then truncates).
+            // Four grouped series over the same bars compare configurations at matching bar widths: no
+            // floor, a low floor, the same floor with wrapping, and a high floor with wrapping.
             const grouped = [
                 { cat: 'Alpha', a: 90, b: 72, c: 54, d: 36, short: 'Ore', mid: 'Iron', long: 'Iron ore refining' },
                 { cat: 'Bravo', a: 80, b: 64, c: 48, d: 32, short: 'Gas', mid: 'Gases', long: 'Natural gas depot' },
@@ -241,9 +232,8 @@ describe('label minimumFontSize', () => {
         });
 
         it('renders histogram labels across the shrink spectrum', async () => {
-            // Unequal bins give each label a different width to fit into, so a single series covers the
-            // spectrum: the wide bins hold their label on one line, the narrow ones wrap and shrink
-            // together, and the narrowest reach the 12px floor and truncate from there.
+            // Unequal bins give each label a different width to fit into, covering the spectrum from
+            // wide bins on one line to the narrowest reaching the 12px floor and truncating.
             await renderAndSnapshot({
                 data: Array.from({ length: 120 }, (_, i) => ({ x: i % 40 })),
                 legend: { enabled: false },
@@ -307,17 +297,14 @@ describe('label minimumFontSize', () => {
     });
 
     // A marker-based label has no container in its outside placements, so `minimumFontSize` buys it room
-    // by clearing the neighbours the placement cascade could not get it past, rather than by fitting a
-    // shape. Scatter and bubble cover the two label pipelines (bubble's is per-datum, sized by its
-    // marker); line and area share a third.
+    // by clearing neighbours the placement cascade could not get it past, rather than fitting a shape.
     describe('point labels', () => {
         const pointAxes = {
             x: { type: 'number', position: 'bottom', min: 0, max: 10 },
             y: { type: 'number', position: 'left', min: 0, max: 10 },
         };
-        // Two neighbours whose labels overlap by an amount `gap` controls, plus an uncrowded control. The
-        // pair is centred and well clear of the plot edges, so the only thing either label has to get past
-        // is the other one.
+        // Two neighbours whose labels overlap by an amount `gap` controls, plus an uncrowded control,
+        // centred and well clear of the plot edges so the only thing either label has to get past is the other.
         const pairChart = (gap: number, label: object, type = 'scatter') => ({
             data: [
                 { x: 5 - gap / 2, y: 5, label: 'Station Alpha' },
@@ -388,9 +375,8 @@ describe('label minimumFontSize', () => {
         });
 
         it('exhausts the placement fallback list at full size before shrinking', async () => {
-            // `bottom` is clear at full size, so the label cascades there and keeps its size rather than
-            // shrinking to stay at `top`: every placement is tried before any size below the configured
-            // one is.
+            // `bottom` is clear at full size, so the label cascades there rather than shrinking to stay
+            // at `top`: every placement is tried before any size below the configured one is.
             await render(pairChart(1.2, { placement: ['top', 'bottom'], minimumFontSize: 6 }));
             expect(sized()['Station Bravo']).toBe(FONT_SIZE);
         });
@@ -426,9 +412,8 @@ describe('label minimumFontSize', () => {
         });
 
         it('reduces from the itemStyler-resolved font size', async () => {
-            // The styler halves the configured size. The search ladder still runs from 20px, so this pins
-            // that a trial above the styler's size cannot enlarge the label past it: the crowded label
-            // shrinks below 10px rather than landing anywhere between 10px and 20px.
+            // The search ladder still runs from 20px, pinning that a trial above the styler's halved
+            // size cannot enlarge the label past it — it shrinks below 10px, not between 10 and 20px.
             await render(pairChart(0.8, { minimumFontSize: 4, itemStyler: () => ({ fontSize: 10 }) }));
             const rendered = sized();
             expect(rendered['Station Alpha']).toBe(10);
@@ -497,9 +482,8 @@ describe('label minimumFontSize', () => {
         });
 
         it('renders point labels across the shrink spectrum', async () => {
-            // One row of neighbours per series over widening gaps, so a single image holds the spectrum:
-            // no floor at all (the crowded labels drop out), and a low floor (they return, each at the
-            // largest size that clears the label before it).
+            // One row of neighbours per series over widening gaps: no floor drops the crowded labels,
+            // a low floor returns them each at the largest size that clears the label before it.
             const row = (yKey: string, extra: object) => ({
                 type: 'scatter',
                 xKey: 'x',

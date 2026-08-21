@@ -3368,9 +3368,8 @@ describe('DataModel', () => {
         });
 
         it('does not warn about timezone ambiguity for mixed-offset ISO strings on a category axis', () => {
-            // A category axis keeps ISO strings as opaque labels (no instant interpretation); even though
-            // the value sniffer tags the column 'date', the timezone-ambiguity warning must not fire because
-            // the offsets are never interpreted as instants.
+            // A category axis keeps ISO strings as opaque labels, so the timezone-ambiguity warning
+            // must not fire even though the sniffer tags the column 'date'.
             const model = new DataModel<any, any, false>(
                 {
                     props: [scoped(keyProperty('x')), scoped(valueProperty('y', 'number'))],
@@ -3407,10 +3406,8 @@ describe('DataModel', () => {
         });
 
         it('reparses a string-free time key column when an incremental insert introduces an ISO string', () => {
-            // A string-free numeric-epoch column is seeded as its own epoch identity at extraction. An
-            // incremental insert that writes an ISO string into it must drop that identity, otherwise
-            // ensureEpochColumn's lazy parse never re-runs on the identity hit and the raw string leaks
-            // into the continuous key domain.
+            // An insert writing an ISO string into a numeric-epoch column must drop its epoch identity,
+            // or ensureEpochColumn skips the lazy parse and the raw string leaks into the key domain.
             const model = timeKeyModel();
             const initialData: Array<{ x: number | string; y: number }> = [
                 { x: Date.parse('2024-01-15T09:00:00Z'), y: 1 },

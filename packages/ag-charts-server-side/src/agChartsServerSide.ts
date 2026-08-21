@@ -101,10 +101,8 @@ export class AgChartsServerSide {
 
             const container = env.document.getElementById('container')!;
 
-            // Show watermark for unlicensed enterprise use.
-            // We use getWatermarkForegroundConfig() (not getWatermarkForegroundConfigForBrowser())
-            // because SSR should always show the watermark when unlicensed, even for localhost.
-            // Console output is guarded by LicenseManager.licenseOutputLogged to print at most once.
+            // Not getWatermarkForegroundConfigForBrowser(): SSR must always watermark when unlicensed,
+            // including on localhost.
             let chartOptions: any = options;
             const licenseManager = enterpriseRegistry.licenseManager?.({ document: env.document } as any);
             if (licenseManager) {

@@ -373,14 +373,8 @@ describe('AgChartsServerSide', () => {
     });
 });
 
-// REGRESSION COVERAGE:
-// The ordering of these describe blocks is load-bearing — the first block renders charts WITHOUT
-// enterprise modules registered, seeding the per-process ChartTheme cache from a community-only
-// registry snapshot. The enterprise block below then registers enterprise modules in beforeAll
-// and renders enterprise charts (waterfall, heatmap, gauges); without `ModuleRegistry.ifRegistryChanged`
-// invalidating the theme cache, those charts reuse a stale `theme.config` missing their axis defaults
-// and throw `Cannot read properties of undefined (reading 'enabled')` during axis layout. The
-// `afterEach` console assertions on every block fail loudly if that regression returns.
+// Block ordering is load-bearing: the community-only block above seeds the per-process ChartTheme
+// cache, and this block covers `ModuleRegistry.ifRegistryChanged` invalidating it.
 describe('AgChartsServerSide enterprise licensing', () => {
     setupMockConsole();
 
@@ -597,9 +591,8 @@ describe('AgChartsServerSide enterprise licensing', () => {
 });
 
 describe('AgChartsServerSide community-only watermark', () => {
-    // These tests verify watermark rendering with only AllCommunityModule registered
-    // (no AllEnterpriseModule). The enterpriseRegistry is still populated from the
-    // side-effect import of ag-charts-enterprise in the SSR package.
+    // Only AllCommunityModule is registered here, but enterpriseRegistry is still populated by the
+    // SSR package's side-effect import of ag-charts-enterprise.
 
     // setupMockConsole must be called BEFORE afterEach because vitest runs afterEach in LIFO order
     setupMockConsole();

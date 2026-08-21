@@ -52,9 +52,8 @@ test.describe('css variables', () => {
         await expect(page.locator('#status')).toContainText('Mode: Dark');
         await expectChartScreenshot(page, charts, 'css-variables-dark-mode-dark.png');
 
-        // Toggling again must re-resolve the CSS variables and repaint back to the original light
-        // appearance (still without an explicit chart.update()) — the reverse of the transition above,
-        // which no other baseline exercises. The restored image is expected to match the initial light one.
+        // Toggling back must re-resolve the CSS variables and repaint to the original light appearance,
+        // still without an explicit chart.update().
         await page.getByText('Toggle Dark Mode').click();
         await waitForAllChartUpdates(page);
         await expect(page.locator('#status')).toContainText('Mode: Light');

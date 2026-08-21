@@ -997,9 +997,8 @@ describe('Legend', () => {
             const legend = getLegendModule(chart);
             const items = legend.itemSelection.nodes();
 
-            // Simulate mid-animation state (spyOnAnimationManager completes animations
-            // instantly via forceTimeJump, so we push Animation state directly to test
-            // the legend's highlight interruption behaviour).
+            // spyOnAnimationManager completes animations instantly via forceTimeJump, so Animation state is pushed
+            // directly to reach the legend's highlight-interruption path.
             chart.ctx.interactionManager.pushState(InteractionState.Animation);
 
             // Keyboard navigation: blur the current item then focus a different one.
@@ -1080,9 +1079,8 @@ describe('Legend', () => {
             await clickAction(x, y)(chart);
             await waitForChartStability(chart);
 
-            // Simulate mid-animation state (spyOnAnimationManager completes animations
-            // instantly via forceTimeJump, so we push Animation state directly to test
-            // the legend's highlight deferral behaviour).
+            // spyOnAnimationManager completes animations instantly via forceTimeJump, so Animation state is pushed
+            // directly to reach the legend's highlight-deferral path.
             chart.ctx.interactionManager.pushState(InteractionState.Animation);
 
             const startBatchSpy = vi.spyOn(chart.ctx.animationManager, 'startBatch');
@@ -1139,18 +1137,15 @@ describe('Legend', () => {
             updateTooltip.mockClear();
             removeTooltip.mockClear();
 
-            // ZoomDrag is written directly to pin the guard itself, without a zoom module: isState()
-            // compares only the lowest set bit of the state queue, so the guard is observable only
-            // while no higher-priority state (notably Animation) is queued. The equivalent test over
-            // a real series-area drag lives in ag-charts-enterprise zoom.test.ts.
+            // ZoomDrag is written directly to pin the guard without a zoom module: isState() compares only the
+            // lowest set bit, so the guard is observable only while no higher-priority state is queued.
             interactionManager.pushState(InteractionState.ZoomDrag);
             expect(interactionManager.isState(InteractionState.ZoomDrag)).toBe(true);
 
             legend.onHover(new MouseEvent('mouseenter'), items[1]);
 
-            // The hover must be dropped before it reaches either manager: highlight application is
-            // separately gated on the state queue, so the tooltip calls are what distinguish the
-            // guard returning early from a highlight that merely never lands.
+            // Highlight application is separately gated on the state queue, so the tooltip calls are what
+            // distinguish the guard returning early from a highlight that merely never lands.
             expect(updateTooltip).not.toHaveBeenCalled();
             expect(removeTooltip).not.toHaveBeenCalled();
             expect(highlightManager.getActiveHighlight()).toBeUndefined();

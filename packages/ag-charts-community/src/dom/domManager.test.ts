@@ -16,9 +16,8 @@ describe('DOMManager', () => {
 
     const eventsHub: EventsHub = new EventEmitter();
 
-    // Builds a chart container nested inside a scrollable ancestor whose client rect is `scrollableRect`.
-    // jsdom does not implement computedStyleMap(); stub it so findScrollableContainer() detects the
-    // ancestor as scrollable (overflow-y: auto).
+    // jsdom does not implement computedStyleMap(); stub it so findScrollableContainer() detects the ancestor
+    // as scrollable.
     const buildScrollableContainer = (scrollableRect: DOMRect) => {
         const scrollable = doc.createElement('div');
         const container = doc.createElement('div');
@@ -69,9 +68,8 @@ describe('DOMManager', () => {
         });
     });
 
-    // These assertions guard the CSSOM declaration: the watcher transition must carry an
-    // `!important` priority so it survives users globally disabling transitions. jsdom does not
-    // run transitions or emit `transitionend`, so the runtime refresh path is covered by browser e2e.
+    // The watcher transition must carry an `!important` priority so it survives users globally disabling
+    // transitions. jsdom runs no transitions, so the runtime refresh path is covered by browser e2e.
     describe('updateCSSVariableWatchers() — CSS change detection', () => {
         it('sets an important transition on the sensor element (normal DOM)', () => {
             const container = doc.createElement('div');
@@ -102,9 +100,8 @@ describe('DOMManager', () => {
             expect(styleEl!.style.getPropertyPriority('transition')).toBe('important');
         });
 
-        // A `style-src` nonce disables `'unsafe-inline'` for style elements, so an un-nonced
-        // `@property` element is blocked and the watcher never fires. The shadow-DOM path needs no
-        // equivalent: it styles a div through the CSSOM, which CSP does not govern.
+        // A `style-src` nonce disables `'unsafe-inline'`, so an un-nonced `@property` element is blocked and
+        // the watcher never fires. The shadow-DOM path styles via the CSSOM, which CSP does not govern.
         it('sets the style nonce on the @property element of every watcher (normal DOM)', () => {
             const container = doc.createElement('div');
             doc.body.append(container);
@@ -160,8 +157,7 @@ describe('DOMManager', () => {
             // Created detached: nothing to measure yet.
             expect(dm.containerSize).toBeUndefined();
 
-            // Attach to the document and give it a laid-out size. jsdom never fires a
-            // layout-driven ResizeObserver callback, so the attach-transition re-measure
+            // jsdom never fires a layout-driven ResizeObserver callback, so the attach-transition re-measure
             // is the only thing that can produce a size here.
             doc.body.append(container);
             Object.defineProperty(container, 'clientWidth', { value: 400, configurable: true });
@@ -189,8 +185,7 @@ describe('DOMManager', () => {
             await vi.runAllTimersAsync();
             expect(dm.containerSize).toBeUndefined();
 
-            // Attach to the document and give it a laid-out size. jsdom never fires a
-            // layout-driven ResizeObserver callback, so the attach-transition re-measure
+            // jsdom never fires a layout-driven ResizeObserver callback, so the attach-transition re-measure
             // is the only thing that can produce a size here.
             doc.body.append(container);
             Object.defineProperty(container, 'clientWidth', { value: 400, configurable: true });
@@ -219,9 +214,8 @@ describe('DOMManager', () => {
             await vi.runAllTimersAsync();
             expect(dm.containerSize).toBeUndefined();
 
-            // Connecting the host connects the container; jsdom never fires a layout-driven
-            // ResizeObserver callback, so the attach-transition re-measure is the only thing
-            // that can produce a size here.
+            // jsdom never fires a layout-driven ResizeObserver callback, so the attach-transition re-measure
+            // is the only thing that can produce a size here.
             doc.body.append(component);
             Object.defineProperty(container, 'clientWidth', { value: 400, configurable: true });
             Object.defineProperty(container, 'clientHeight', { value: 250, configurable: true });

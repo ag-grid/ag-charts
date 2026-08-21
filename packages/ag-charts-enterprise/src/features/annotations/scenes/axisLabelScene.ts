@@ -95,9 +95,7 @@ export class AxisLabelScene extends _ModuleSupport.Group {
         label.x = translationX;
         label.y = translationY;
 
-        // The rect is placed from the text anchor, so asymmetric padding is not averaged away. Rounding
-        // the half-width before subtracting keeps the default output identical to the previous
-        // `Math.round((width + left + right) / 2)` form.
+        // The rect is placed from the text anchor, so asymmetric padding is not averaged away.
         rect.x = translationX - Math.round(labelBBox.width / 2) - left;
         rect.y = translationY - Math.round(labelBBox.height / 2) - top;
         rect.width = labelBBox.width + left + right;

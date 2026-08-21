@@ -51,8 +51,8 @@ export class LinearScale extends ContinuousScale<AgNumericValue> {
         const [b0, b1] = domain;
         const isBigIntDomain = typeof b0 === 'bigint' && typeof b1 === 'bigint';
 
-        // Full-precision BigInt ticks for the full (unzoomed) domain. A custom interval or zoomed
-        // sub-range falls through to the Number path below — documented limitation (AG-16608 AC #17).
+        // Full-precision BigInt ticks for the full (unzoomed) domain only; a custom interval or zoomed
+        // sub-range falls through to the Number path below.
         const fullRange = visibleRange == null || (visibleRange[0] === 0 && visibleRange[1] === 1);
         if (isBigIntDomain && !interval && fullRange) {
             const ticks = createBigIntTicks(b0, b1, tickCount);

@@ -542,9 +542,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         return node.getShapeBBox();
     }
 
-    // Drag-to-select hit-tests against the card only. The default predicate uses the node's
-    // full bbox, which for an org node also spans the expander pill's overhang, so a drag-rect
-    // touching only the pill would wrongly pick the node.
+    // Hit-test the card only: the default full-bbox predicate also spans the expander pill's overhang,
+    // so a drag-rect touching only the pill would wrongly pick the node.
     protected override pickNodesInBBoxPredicate() {
         const { containment } = this.properties.selection;
         return (selectionBox: BoxBounds, node: _ModuleSupport.Node): boolean => {

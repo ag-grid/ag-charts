@@ -30,9 +30,8 @@ ModuleRegistry.registerModules([
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
-    // `data` is assigned after the extract block: embedding the million-row generated dataset in the
-    // example options-extraction output would bloat generated artefacts. The benchmark fills it in
-    // before any run.
+    // `data` is assigned after the extract block so the million-row generated dataset does not bloat the
+    // options-extraction output; the benchmark fills it in before any run.
     data: [],
     animation: { enabled: false },
     zoom: {

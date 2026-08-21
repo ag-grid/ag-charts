@@ -177,8 +177,7 @@ describe('DataService', () => {
         });
 
         // A non-empty array is structurally valid at the series-agnostic DataService boundary, so it is
-        // dispatched without a warning even when its rows cannot render against the series keys; that
-        // case is detected and retained later by the chart's post-render check.
+        // dispatched without a warning even when its rows cannot render against the series keys.
         it.each([
             ['objects with custom keys', [{ foo: 1 }, { bar: 2 }]],
             ['primitives', [1, 2, 3]],

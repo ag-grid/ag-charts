@@ -8,12 +8,8 @@ import {
     watchConsole,
 } from './chart-assertions';
 
-// Depth coverage for the demos, on top of the generic smoke test in demos.spec.ts —
-// which only asserts that *a* chart and *a* canvas exist, and so passes even if
-// every chart but one silently failed to render.
-//
-// web-analytics is covered by its own spec, which layers tab switching on the same
-// assertions; it is excluded here rather than duplicated.
+// Depth coverage for the demos: demos.spec.ts only asserts that *a* chart and *a* canvas exist, so it
+// passes even if every chart but one silently failed to render. web-analytics has its own spec.
 
 interface DemoCase {
     id: string;

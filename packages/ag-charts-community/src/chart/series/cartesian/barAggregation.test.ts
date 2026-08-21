@@ -620,9 +620,8 @@ describe('computeBarAggregationPartial', () => {
 });
 
 describe('aggregateBarDataFromDataModel - bigint and ISO 8601 time values (render hardening)', () => {
-    // Exercises the real aggregation entry point (where high-volume bigint/ISO columns must be narrowed),
-    // above AGGREGATION_THRESHOLD, rather than the lower-level compute function. Non-stacked: x via keys,
-    // value via the 'yValue-raw' column.
+    // Exercises the real aggregation entry point above AGGREGATION_THRESHOLD, where high-volume
+    // bigint/ISO columns must be narrowed, rather than the lower-level compute function.
     const series: ScopeProvider = { id: 'series-1' };
     const stubDataModel = (xValues: any[], yValues: any[], domain: any[]) =>
         stubAggregationDataModel(xValues, { 'yValue-raw': yValues }, domain);

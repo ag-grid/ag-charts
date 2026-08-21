@@ -460,9 +460,8 @@ describe('CrossLine', () => {
     });
 
     describe('#disabled options', () => {
-        // Regression (AG-14484): a valid crossline disabled via `enabled: false` is stripped to
-        // `{ enabled: false }` before the second validation pass, which must not warn about the
-        // removed `type`/`value`. `setupMockConsole`'s afterEach fails on any unexpected warning.
+        // A crossline disabled via `enabled: false` is stripped to `{ enabled: false }` before the second
+        // validation pass; `setupMockConsole`'s afterEach fails on any warning about the removed keys.
         it('does not warn for crosslines disabled via enabled: false', async () => {
             const options: AgCartesianChartOptions = {
                 ...examples.LINE_CROSSLINES,

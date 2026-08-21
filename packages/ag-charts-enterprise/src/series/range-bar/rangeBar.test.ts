@@ -2258,9 +2258,8 @@ describe('RangeBarSeries aggregated device-pixel snap', () => {
         chart = undefined;
     });
 
-    // Aggregation has no public option: it engages on ungrouped, non-animatable data (count above
-    // MAX_ANIMATABLE_NODES) whose finest aggregation level still spans the plot width, so the fixture
-    // keeps the default 800px canvas and a dense numeric x.
+    // Aggregation has no public option; it engages only on ungrouped data above MAX_ANIMATABLE_NODES that
+    // still spans the plot width, hence the default 800px canvas and dense numeric x.
     const DATA = Array.from({ length: HIGH_VOLUME_COUNT }, (_, i) => ({
         x: i + 1,
         lo: Math.sin(i / 10) - 1,

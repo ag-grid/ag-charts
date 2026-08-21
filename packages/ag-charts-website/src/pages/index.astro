@@ -225,9 +225,8 @@ const markdownUrl = DISABLE_MARKDOWN_DOCS ? undefined : urlWithBaseUrl('/index.m
 </Layout>
 
 {
-    /* Externalised to a 'self' script (config via data- attributes) so the site CSP
-    can drop script-src 'unsafe-inline' — see public/scripts/site-header-scroll.js.
-    Classic non-deferred script so document.currentScript resolves. */
+    /* Externalised so the site CSP can drop script-src 'unsafe-inline'; classic and non-deferred
+    so `document.currentScript` resolves. */
 }
 <script
     is:inline

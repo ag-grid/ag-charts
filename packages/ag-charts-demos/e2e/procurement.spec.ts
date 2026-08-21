@@ -7,15 +7,8 @@ import {
     watchConsole,
 } from './chart-assertions';
 
-// Behaviour coverage for the commodity-manager workspace. What this spec owns is what makes the demo
-// a workspace rather than a dashboard: it opens already scoped to one person, the worklist that leads
-// it resolves in place, and each tab's selection stays on the tab that made it. None of that is
-// reachable from a render-only assertion, because every interaction is a canvas click or a button
-// press.
-//
-// demo-charts.spec.ts covers the landing tab's charts alongside the other demos; the per-tab chart
-// population is asserted here, because Radix unmounts inactive tab content and the generic sweep
-// only ever sees My orders.
+// demo-charts.spec.ts covers the landing tab's charts; per-tab chart population is asserted here
+// because Radix unmounts inactive tab content and the generic sweep only ever sees My orders.
 
 const DEMO_ID = 'procurement';
 

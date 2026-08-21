@@ -323,10 +323,8 @@ describe('Zoom', () => {
         });
 
         it('should not warn when zooming a large-x-value bar chart fully in', async () => {
-            // x-values at/above Number.MAX_SAFE_INTEGER lose float64 precision (consecutive integers
-            // collapse to the same double), which at full zoom-in yields a fitted bar window with a
-            // ratio marginally above 1. The offsets are added at runtime so the source carries no
-            // precision-losing literal.
+            // x-values at/above Number.MAX_SAFE_INTEGER lose float64 precision, so full zoom-in yields a fitted
+            // bar window with a ratio marginally above 1. Offsets are applied at runtime to keep literals exact.
             const base = Number.MAX_SAFE_INTEGER;
             const revenues = [120, 150, 130, 170, 160];
             const largeXBarOptions: AgChartOptions = {
@@ -588,9 +586,8 @@ describe('Zoom', () => {
                 }
             }
 
-            // Drags from the axis grab point toward the plot edge, capturing the zoomed span shortly before the
-            // edge, at the edge, and after continuing past it. The zoom must keep updating right up to the axis
-            // end (not stall before it) and stop there (not continue past it).
+            // Captures the zoomed span before, at and past the plot edge: the zoom must keep updating right up
+            // to the axis end and stop there.
             async function dragToEdge(
                 axis: 'x' | 'y',
                 grab: { x: number; y: number },
@@ -1666,9 +1663,8 @@ describe('Zoom', () => {
 
             legend.onHover(new MouseEvent('mouseenter'), items[1]);
 
-            // The hover must be dropped before it reaches either manager: highlight application is
-            // separately gated on the state queue, so the tooltip calls are what distinguish the
-            // guard returning early from a highlight that merely never lands.
+            // Highlight application is separately gated on the state queue, so the tooltip calls are what
+            // distinguish the guard returning early from a highlight that merely never lands.
             expect(updateTooltip).not.toHaveBeenCalled();
             expect(removeTooltip).not.toHaveBeenCalled();
             expect(highlightManager.getActiveHighlight()).toBeUndefined();

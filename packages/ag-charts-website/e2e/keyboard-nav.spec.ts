@@ -70,10 +70,8 @@ test.describe('keyboard-nav', () => {
     }
 
     test("CRT-1155 Tab from a datum to that same series' legend item clears item dimming", async ({ page }) => {
-        // The 'basic keyboard navigation' case above also Tabs to the legend, but it presses ArrowDown
-        // first, so the datum highlight it leaves behind belongs to a *different* series than the legend
-        // item it lands on. Staying within the first series is what exercises the datum-level ->
-        // series-level transition on one series, which used to leave the whole series dimmed.
+        // Unlike 'basic keyboard navigation' above, this stays within the first series so the
+        // datum-level -> series-level transition happens on one and the same series.
         await gotoExample(page, toExamplePageUrl('accessibility', 'keyboard-navigation', 'vanilla').url);
 
         await page.locator('input').first().click();
@@ -87,9 +85,8 @@ test.describe('keyboard-nav', () => {
         await page.keyboard.press('Tab');
         await expect(page.locator(SELECTORS.legendItems).first()).toBeFocused();
 
-        // Expected rendering: 'Onshore Wind' bars at full opacity, the other five series dimmed by
-        // `unhighlightedSeries` — i.e. identical to the existing 'legend-focus.png' baseline. Before the
-        // fix, the first series' bars stayed dimmed by `unhighlightedItem` with nothing highlighted.
+        // Expected: 'Onshore Wind' at full opacity, the other five dimmed by `unhighlightedSeries` —
+        // i.e. identical to the 'legend-focus.png' baseline.
         await expectChartScreenshot(
             page,
             page.locator(SELECTORS.canvasCenter),
@@ -437,9 +434,8 @@ test.describe('keyboard-nav', () => {
         await page.keyboard.press('ArrowRight');
         await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), `linear-gauge-target2-highlight.png`);
 
-        // CRT-1124: ArrowUp directly from a non-first target must return to the main bar
-        // (previously got stuck because the carried target index had no valid landing in
-        // the single-node main section).
+        // ArrowUp from a non-first target must return to the main bar, whose single node has no
+        // landing for the carried target index.
         await page.keyboard.press('ArrowUp');
         await expectChartScreenshot(page, page.locator(SELECTORS.canvasCenter), `linear-gauge-bar-highlight.png`);
 
@@ -689,8 +685,6 @@ test.describe('keyboard-nav', () => {
          * (2)  It does not mean that is should hide a focus indicator that is already.
          *
          * We are testing (2), with the "Zoom-In" and "Undo" actions.
-         *
-         * Related ticket: AG-13041
          */
         test.beforeEach(async ({ page }) => {
             const { url } = toExamplePageUrl('accessibility-e2e', 'activatesFocusIndicator-false', 'vanilla');

@@ -1,8 +1,6 @@
 export type Bit = 0 | 1;
 
-// Note:
-// `index >>> 5` means "word offset". It's equivalent to an integer-divison by 32.
-// `index & 31` means "bit offset". It's equivalent to a modulo by 32.
+// `index >>> 5` gives the word offset (divide by 32); `index & 31` gives the bit offset (modulo 32).
 
 export class Bitfield {
     private readonly buffer: Uint32Array;

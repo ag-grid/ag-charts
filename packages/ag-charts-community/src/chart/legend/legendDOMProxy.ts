@@ -106,31 +106,24 @@ export class LegendDOMProxy {
                 ariaDescribedBy: this.itemDescription.id,
                 parent: this.itemList,
             });
-            // Retrieve the datum from the node rather than from the each() parameter.
-            // The method parameter `datum` gets destroyed when the data is refreshed
-            // using Series.getLegendData(). But the scene node will stay the same.
+            // Read the datum from the node: the `each()` parameter is destroyed when Series.getLegendData()
+            // refreshes the data, while the scene node persists.
             const button = markerLabel.proxyButton;
             button.addListener('click', (ev) => itemListener.onClick(ev.sourceEvent, markerLabel.datum!, button));
             button.addListener('dblclick', (ev) => itemListener.onDoubleClick(ev.sourceEvent, markerLabel.datum!));
             button.addListener('mouseenter', (ev) => itemListener.onHover(ev.sourceEvent, markerLabel));
             button.addListener('mouseleave', () => itemListener.onLeave());
             button.addListener('contextmenu', (ev) => itemListener.onContextClick(ev, markerLabel));
-            // Keyboard focus/blur must take effect immediately, interrupting any in-progress animation,
-            // so they pass fromKeyboardFocus=true. A focus that is not keyboard-driven (no :focus-visible)
-            // is treated as a leave and keeps the default deferred behaviour.
+            // Keyboard focus/blur must interrupt any in-progress animation, so they pass fromKeyboardFocus=true;
+            // a non-keyboard focus is treated as a leave and keeps the deferred behaviour.
             button.addListener('blur', () => itemListener.onLeave(true));
             button.addListener('focus', (ev) =>
                 this.shouldApplyHoverOnFocus(button)
                     ? itemListener.onHover(ev.sourceEvent, markerLabel, true)
                     : itemListener.onLeave()
             );
-            // Enable touch long-tap context menus:
-            //
-            // We don't actually need to listen for drag events. However, on of the quirks of `Widget` is that it only
-            // adds a 'touchstart' listener if the widget has 'drag-*' listener(s), it's this 'touchstart' listener that
-            // handles both touch dragging and long-taps. Rather than adding 'touchstart' listeners to all HTMLElement
-            // (of which most don't even need one), we just add a dummy 'drag-start' to enable long-taps on legend
-            // buttons.
+            // A `Widget` only attaches its 'touchstart' listener (which drives long-taps) when it has a 'drag-*'
+            // listener, so a dummy 'drag-start' enables touch long-tap context menus on legend buttons.
             button.addListener('drag-start', () => {});
         });
         this.dirty = false;
@@ -180,7 +173,7 @@ export class LegendDOMProxy {
                 const visible = l.pageIndex === pagination.currentPage;
 
                 const { x, y, height, width } = Transformable.toCanvas(l, l.getTextMeasureBBox());
-                const margin = (maxHeight - height) / 2; // CRT-543 Give the legend items the same heights for a better look.
+                const margin = (maxHeight - height) / 2; // Give the legend items the same heights for a better look.
                 const bbox: BoxBounds = { x: x - groupBBox.x, y: y - margin - groupBBox.y, height: maxHeight, width };
 
                 const enabled = interactive && visible;

@@ -461,9 +461,7 @@ describe('placeLabels', () => {
     });
 
     it('resolves keep-series before droppable series regardless of declaration order', () => {
-        // Two series overlapping at the same point, with the droppable series declared FIRST. The keep
-        // series still resolves first (fixed obstacles seed the index before droppable labels), keeping
-        // its sole placement ('top'); the droppable series, resolved after it, falls back to 'bottom'.
+        // Fixed obstacles seed the index before droppable labels, so declaration order does not matter.
         const avoiding: PointLabelDatum = {
             point: { x: 200, y: 200, size: 0 },
             label: { text: 'A', width: 40, height: 12 },
@@ -551,10 +549,7 @@ describe('placeLabels', () => {
     });
 
     it('cascades a placement fallback list with avoidance off, mirroring line/area', () => {
-        // Line/area emit a `placement:'top'` datum and carry the fallback list on the series
-        // defaults; with `collisionAvoidance.enabled: false` the defaults avoid is false. The list
-        // is a directional fallback set, so 'top' (which overflows the top edge) must fall to
-        // 'bottom' regardless of avoidance.
+        // The list is a directional fallback set, so an overflowing 'top' falls to 'bottom' regardless.
         const datum: PointLabelDatum = {
             point: { x: 100, y: 0, size: 0 },
             label: { text: 'A', width: 40, height: 12 },
@@ -755,9 +750,7 @@ describe('placeLabels', () => {
     });
 
     it('measures own-marker clearance geometrically, so a diagonal keeps its longer corner gap', () => {
-        // Same `spacing` off the same marker, but a diagonal label is offset on both axes, so its nearest
-        // corner sits √2·(r + spacing) − r ≈ 18.3 from the marker rather than `spacing` = 10. A threshold
-        // of 12 reaches the marker from directly above and must not be counted as reaching it diagonally.
+        // A diagonal label's corner gap is √2·(r + spacing) − r ≈ 18.3, not `spacing` = 10.
         const labelled = (placement: 'top' | 'top-right'): PointLabelDatum => ({
             point: { x: 100, y: 100, size: 20 },
             label: { text: 'X', width: 30, height: 12 },
@@ -776,9 +769,7 @@ describe('placeLabels', () => {
     });
 
     it('keeps a label flush against the shared bounds at a positive threshold', () => {
-        // The threshold is clearance from obstacles, not an inset on the region a label is tested against:
-        // a box sitting exactly on the bounds edge stays contained however much clearance it asks for.
-        // Only a box that genuinely leaves the bounds is dropped.
+        // The threshold is clearance from obstacles, not an inset on the bounds.
         const centred = (y: number): PointLabelDatum => ({
             point: { x: 100, y, size: 0 },
             label: { text: 'A', width: 40, height: 12 },
@@ -844,9 +835,7 @@ describe('placeLabels', () => {
     });
 
     it('tolerates marker overlap when a negative threshold collapses the label box', () => {
-        // A label centred on a neighbouring series' marker overlaps it and is dropped at threshold 0. A
-        // negative threshold that shrinks the box past its own extent tolerates the overlap: a collapsed
-        // (non-positive) box must clear the marker circle, not spuriously collide with it.
+        // A negative threshold can collapse the label box, which must then clear the marker, not collide.
         const marker: PointLabelDatum = {
             point: { x: 100, y: 100, size: 16 },
             label: { text: '', width: 0, height: 0 },
@@ -1552,10 +1541,7 @@ describe('bar label placement helpers', () => {
         });
 
         it('excludes any-category obstacle overlapping the own box on the compass path', () => {
-            // A wide region the horizontal label fits, so the only thing that could reject it is an
-            // obstacle. A marker obstacle overlapping the label sits within the own box (the region), so
-            // the category-agnostic own-shape exclusion ignores it and the label keeps its first
-            // (horizontal) orientation rather than falling through to vertical.
+            // The own-shape exclusion is category-agnostic, so an obstacle inside the own box is ignored.
             const wideRegion: BoxBounds = { x: 0, y: 0, width: 200, height: 200 };
             const centred: OrientationAnchor = { x: 100, y: 100, textAlign: 'center', textBaseline: 'middle' };
             const target = { rotation: 0 };
@@ -1989,9 +1975,8 @@ describe('sectorLabelContainer', () => {
     });
 });
 
-// A datum carrying a fit descriptor has its text refitted to every candidate in turn, so a candidate
-// that can hold the whole text is not disqualified by an earlier candidate's truncation. The mocked
-// measurer above makes each character 10px wide and every line 20px tall.
+// Text is refitted per candidate, so an earlier candidate's truncation cannot disqualify a later one.
+// The mocked measurer makes each character 10px wide and every line 20px tall.
 describe('placeLabels per-candidate fit', () => {
     const bounds: BoxBounds = { x: 0, y: 0, width: 400, height: 400 };
     const FONT = { fontSize: 12, fontFamily: 'sans-serif' };

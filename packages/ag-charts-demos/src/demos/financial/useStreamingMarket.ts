@@ -71,9 +71,8 @@ export function useStreamingMarket() {
         readInstrument(feedsRef.current!, INSTRUMENTS[0].ticker)
     );
     const { ticker, bars, metrics } = active;
-    // The selection, readable synchronously. A tick reads this rather than closing over `ticker`:
-    // a frame queued by the outgoing interval lands before React runs the effect that would have
-    // cancelled it, and a captured ticker would make that frame revert the selection.
+    // The selection, readable synchronously: a frame queued by the outgoing interval lands before React runs
+    // the cancelling effect, and a captured `ticker` would make that frame revert the selection.
     const tickerRef = useRef(ticker);
     const [running, setRunning] = useState(true);
     const [speedMs, setSpeedMs] = useState(500);

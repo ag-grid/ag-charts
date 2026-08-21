@@ -500,9 +500,7 @@ function splitIntoBlockGroups(textSegments: NormalisedContentSegment[]): Segment
     for (let i = 0; i < textSegments.length; i++) {
         const seg = textSegments[i];
         if (isBlockBoundary(textSegments, i)) {
-            // A block boundary either opens a new row or extends the leading strip of the row
-            // already being built. The strip extends when the previous segment was itself a block
-            // image (and therefore part of the same strip).
+            // Consecutive block images belong to the same leading strip; otherwise a new row opens.
             const extendsStrip =
                 i > 0 && textSegments[i - 1].type === 'image' && (textSegments[i - 1] as ImageSegment).block === true;
             if (extendsStrip && current) {
@@ -637,15 +635,11 @@ function wrapBlockGroup(
         return allKeep ? strip : wrapInlineSegments(segments, options);
     }
 
-    // The inner text column is bounded by the overall block-height budget. Block row height
-    // then becomes max(stripHeight, textColumnHeight) — strip images are already filtered to
-    // fit within maxHeight above, so the row never exceeds the allotted height.
+    // Row height is max(stripHeight, textColumnHeight); strip images are already filtered to maxHeight.
     const innerOptions = { ...options, maxWidth: innerMaxWidth, maxHeight: Math.max(0, maxHeight) };
     const innerResult = wrapBlockTextColumn(segments, innerOptions, allKeep);
 
-    // Inner wrap can occasionally emit a single ellipsis/orphan segment that itself exceeds the
-    // column budget when `innerMaxWidth` is sub-character. If that happens, the centered label
-    // ends up wider than the tile and the strip is pushed past the tile edge — drop the column.
+    // A sub-character `innerMaxWidth` can emit an orphan wider than the column, pushing the strip past the tile edge.
     if (
         !preservesText(options) &&
         innerResult.length > 0 &&
@@ -656,9 +650,7 @@ function wrapBlockGroup(
     return [...strip, ...innerResult];
 }
 
-// Measure and drop block-leading images until the strip fits `maxWidth`: filter images that
-// can't fit on their own, then drop 'hide' images right-to-left, then 'keep' images as a last
-// resort. Returns the surviving images measured (widest-relevant geometry already attached).
+// Drops block-leading images right-to-left ('hide' first, then 'keep') until the strip fits `maxWidth`.
 function buildBlockStrip(blockImages: ImageSegment[], options: WrapOptions): MeasuredImageSegment[] {
     const maxHeight = options.maxHeight ?? Infinity;
     const strip: MeasuredImageSegment[] = [];
@@ -678,9 +670,7 @@ function buildBlockStrip(blockImages: ImageSegment[], options: WrapOptions): Mea
     return strip;
 }
 
-// Wrap the text column that flows to the right of a block-image strip. Under 'hide' the column
-// is allowed to truncate; under all-'keep' trailing text is dropped rightmost-first until the
-// column wraps whole.
+// Wraps the column right of a block-image strip: 'hide' may truncate, all-'keep' drops trailing text instead.
 function wrapBlockTextColumn(
     segments: NormalisedContentSegment[],
     innerOptions: WrapOptions,
@@ -844,8 +834,7 @@ function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: 
             continue;
         }
 
-        // Height of the in-progress line's inline content not yet added to totalHeight. The fit and
-        // text-wrap paths account their own height; only the image-wrap below leaves a line behind.
+        // Only the image-wrap path below leaves a line unaccounted for in totalHeight.
         let lineHeight = 0;
         for (const segment of segments) {
             if (lineWidth + segment.textMetrics.width <= options.maxWidth) {
@@ -895,9 +884,7 @@ function fitMeasuredSegments(textSegments: NormalisedContentSegment[], options: 
     return result;
 }
 
-// Carry an input line break into the wrapped output. The renderer treats a trailing \n on a
-// text segment as a line break; if the previous segment is an image, push a synthetic
-// newline-only text segment so the break is preserved.
+// The renderer only reads a trailing \n on a text segment, so a break after an image needs a synthetic one.
 function appendLineBreak(result: MeasuredSegment[], font: FontOptions): void {
     const last = result.at(-1);
     if (last && last.type !== 'image') {

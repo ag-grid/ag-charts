@@ -14,13 +14,7 @@ const { demoAppId, title } = Astro.props;
 ---
 
 {
-    /*
-    Framed, not mounted inline: the demo apps size themselves in `vh` and the SPA entry mounts a
-    single `#root` per document, so inline they would measure the whole window and never re-mount
-    when the router swaps between showcase pages.
-
-    Eager, not lazy: the stage is above the fold, and a deferred frame sits on the user-agent's
-    white canvas long enough to read as a flash against the card when switching demos.
-*/
+    /* Framed rather than inline: the demo apps size themselves in `vh` and mount a single `#root`
+    per document. Eager rather than lazy: a deferred frame flashes white against the card. */
 }
 <iframe class={styles.frame} src={urlWithBaseUrl(`/demos/${demoAppId}/`)} title={`${title} demo`}></iframe>

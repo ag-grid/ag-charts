@@ -168,10 +168,8 @@ describe('CartesianAxis animation', () => {
             ...bottomTick('l:140', { opacity: fadesIn }),
         });
 
-        // Nothing may be drawn outside the range once the pan settles: tick 0 crosses the range
-        // start mid-flight and must be fully faded by the last frame it is still in the scene.
-        // The axisUtil visibility culling is inert (Line has only a `y` setter, so `node.y` reads
-        // undefined) — only the fade is assertable here.
+        // Nothing may be drawn outside the range once the pan settles. The axisUtil visibility culling is
+        // inert here (Line has only a `y` setter), so only the fade is assertable.
         const lastPresent = [...trajectory].reverse().find((f) => f.has('axis[bottom]/text[l:0]'));
         for (const node of ['text[l:0]', 'line[l:0]', 'grid/line[l:0]']) {
             expect(lastPresent!.get(`axis[bottom]/${node}`)!.opacity).toBe(0);
@@ -193,9 +191,8 @@ describe('CartesianAxis animation', () => {
         await chart.updateDelta({ axes: { x: { max: 200 } } });
         const trajectory = await frames.captureAnimationFrames(chart, sampleScene);
 
-        // Mirror of the unreversed case: tick 100 starts at the range START and slides right.
-        // On a reversed-axis domain change the stroke path stays empty until trailing, so only
-        // its settled frames carry drawn geometry.
+        // Mirror of the unreversed case: tick 100 starts at the range START and slides right. On a
+        // reversed-axis domain change the stroke path stays empty until trailing.
         const slidesRight = { during: 'update', expect: ['increases', 'bounded'] } as const;
         const rightTick = (id: string): Record<string, SceneNodeExpectation> => ({
             [`axis[bottom]/text[${id}]`]: { x: slidesRight, opacity: fadesOut },

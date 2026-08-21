@@ -107,10 +107,8 @@ export class PropertiesArray<T extends BaseProperties> extends Array<T> {
         }
     }
 
-    // Matches BaseProperties.clear() — BaseProperties.clear() recurses into any field where
-    // isProperties(value) is true, which includes PropertiesArray. Without this, clearing a
-    // parent (e.g. ColorScaleProperties) throws TypeError when a child array-typed property
-    // is reached.
+    // `BaseProperties.clear()` recurses into every `isProperties()` field, which includes this one,
+    // so the override is required for a parent to be clearable.
     clear(): this {
         this.length = 0;
         return this;

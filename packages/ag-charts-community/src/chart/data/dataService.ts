@@ -136,9 +136,8 @@ export class DataService<D extends object> {
         const { latestRequest } = this;
         if (!latestRequest) return;
 
-        // Let the in-flight request settle, then return the last data-set actually dispatched to the
-        // chart. After an invalid/empty response the chart retains this data-set, so a clone or image
-        // export must restore the same data rather than the discarded response.
+        // The last dispatched data-set, not the last response: after an invalid/empty response the
+        // chart retains the older data, and a clone or image export must match what is rendered.
         await latestRequest.fetchRequest;
         return this.lastDispatchedData;
     }
@@ -173,9 +172,8 @@ export class DataService<D extends object> {
     }
 
     private async fetch(params: AgDataSourceCallbackParams, requestId?: number) {
-        // The throttled request has fired, so release the bridge latch and hold the in-flight count
-        // until the whole operation (primary, secondaries, dispatch) settles. The `finally` must
-        // always release the count, otherwise a failed fetch would wedge the spinner on permanently.
+        // The in-flight count must be held until primary, secondaries and dispatch all settle, and
+        // always released in `finally`, or a failed fetch wedges the spinner on permanently.
         this.fetchPending = false;
         this.inFlightCount++;
         try {
@@ -245,9 +243,7 @@ export class DataService<D extends object> {
         const { id, response, threw } = await fetchRequest;
 
         // Only a non-empty array replaces the current data; anything else routes through `data:error`
-        // to retain the previous data-set. A non-array is a developer error and warrants a warning; an
-        // empty array is well-formed so it is retained silently. Non-empty arrays whose rows do not
-        // render against the series keys are caught by the post-render retain in the chart.
+        // to retain the existing data-set, warning only for a non-array (a developer error).
         if (isNonEmptyArray(response)) {
             this.lastDispatchedData = { params, data: response };
             this.throttledDispatch(id, response as D[], requestId);

@@ -86,8 +86,7 @@ export class ChartCaptions {
         } else if (textAlign === 'right') {
             xInset = -right;
         }
-        // Position the node even when text is empty so its bbox reserves a line of space —
-        // an `enabled: true` caption with `text: ''` should still occupy layout (AG-16511).
+        // An enabled caption with empty text must still reserve a line of layout space.
         caption.node.x = this.computeX(textAlign, layoutBox) + xInset;
         caption.node.y = layoutBox.y + (vAlign === 'top' ? top : layoutBox.height - bottom);
         caption.node.textBaseline = vAlign;
@@ -106,8 +105,7 @@ export class ChartCaptions {
         const bbox = caption.node.getBBox().clone();
         const spacing = opts.spacing ?? 0;
 
-        // Empty text yields a zero-height bbox from the Text node; reserve one line of font
-        // height so an enabled caption with `text: ''` still occupies layout space (AG-16511).
+        // Text reports a zero-height bbox for empty text; reserve a line so the caption still takes space.
         if (bbox.height === 0) {
             bbox.height = cachedTextMeasurer(captionFont(opts)).lineHeight();
             if (vAlign === 'bottom') bbox.y -= bbox.height;

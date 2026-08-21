@@ -488,12 +488,9 @@ describe('label collision avoidance', () => {
             ).toBe(1);
         });
 
-        // With an `['inside-center', ...]` cascade that has a non-inside fallback, a label too large to fit
-        // inside the bar must keep its full text and cascade to the outside fallback rather than being
-        // truncated to the bar and pinned inside. (Only an inside-only placement binds the text to the bar.)
+        // Only an inside-only placement binds label text to the bar rect; a cascade with a fallback must not.
         it('keeps full text and cascades an oversized inside-first label to the outside fallback', async () => {
-            // A very short bar whose long label cannot fit inside. Without the fix the label is fitted to the
-            // tiny inside container and dropped; with it, full text cascades to the outside fallback.
+            // A very short bar whose long label cannot fit inside.
             const opts: any = {
                 data: [{ x: 'A', y: 1 }],
                 legend: { enabled: false },
@@ -528,9 +525,7 @@ describe('label collision avoidance', () => {
             expect(labels[0].datum.label?.placement).toBe('outside-end');
         });
 
-        // The short bars keep the `outside-end` label above the bar; the full-height bar whose
-        // `outside-end` overflows the top series area cascades to `inside-center`; the total bar carries
-        // a label too wide to fit inside, which the two cases below resolve differently.
+        // Bars sized to cover each outcome: outside-end fits, overflows and cascades inside, or is too wide inside.
         const multiBarCascade = (label: object) => {
             const barLabel = {
                 enabled: true,
@@ -619,10 +614,7 @@ describe('label collision avoidance', () => {
             ).toBe(2);
         });
 
-        // Each bar carries an independent low and high label. One render covering every outcome: bar A
-        // keeps both labels `outside` (room above the high end and below the low end); bar B's high end
-        // reaches the axis top so its overflowing `outside` label cascades to `inside`, while its low
-        // label stays outside; bar C's high label is too wide to fit inside and is dropped.
+        // One render, every outcome: A keeps both outside, B's high end cascades inside, C's high label is dropped.
         const multiBarCascade = (label: object) => ({
             data: [
                 { x: 'A', low: 2, high: 6 },
@@ -677,12 +669,7 @@ describe('label collision avoidance', () => {
                 .map((node) => ({ placement: node.datum.placement, box: node.computeBBox() }))
                 .filter((label): label is { placement: string | undefined; box: Box } => label.box != null);
 
-        // A single short bar (low 47, high 53 on a 0-100 axis) whose two end labels cannot both fit inside
-        // the bar rect, but which is deliberately tall enough to hold one — otherwise both ends cascade on
-        // fit alone and the sibling obstacle is not what drives the result. With
-        // `placement: ['inside', 'outside']` and hideable labels, neither label may be dropped for failing
-        // to fit inside (both can escape outside), and the second-placed label must treat its
-        // already-placed sibling — sharing the one bar rect — as an obstacle and cascade outside.
+        // The bar is tall enough to hold one end label, so the sibling obstacle — not fit alone — drives the cascade.
         it('cascades one sibling label outside instead of dropping or overlapping it inside', async () => {
             const opts: any = {
                 data: [{ x: 'A', low: 47, high: 53 }],
@@ -710,10 +697,7 @@ describe('label collision avoidance', () => {
             expect(labels.filter((l) => l.placement?.startsWith('outside'))).toHaveLength(1);
         });
 
-        // Visual coverage with default styling (no `color`, default `alwaysShow`): three short bars whose
-        // two end labels collide inside. With `placement: ['inside', 'outside']` one label per bar renders
-        // outside the bar to avoid the sibling, rather than being hidden — and the outside label picks up
-        // the legible `outsideStyle` colour (dark on the background) while the inside label stays white.
+        // Default styling, so the snapshot also pins `outsideStyle` being applied to the escaped label.
         it('renders one label per short bar outside to avoid the inside collision', async () => {
             await renderAndSnapshot({
                 data: [
@@ -738,9 +722,7 @@ describe('label collision avoidance', () => {
     });
 
     describe('range-bar reversed value axis', () => {
-        // A reversed value axis puts the low value at the top of the bar and the high value at the bottom,
-        // so the low label must render above the high label. Covers both the baked path (single inside
-        // placement) and the placement-cascade path.
+        // A reversed value axis puts low at the top of the bar, so the low label must render above the high label.
         const reversedLabelEnds = async (label: object) => {
             const opts: any = {
                 data: [{ x: 'A', low: 2, high: 8 }],
@@ -782,9 +764,7 @@ describe('label collision avoidance', () => {
         });
     });
 
-    // Range-area labels are point-anchored on the low and high strokes, so they resolve through the
-    // compass placement engine: the coarse `outside`/`inside` vocabulary maps per datum onto the
-    // direction that faces away from / into the band.
+    // Range-area labels are point-anchored, so `outside`/`inside` map per datum onto compass directions.
     describe('range-area label placement', () => {
         type LabelNode = {
             visible: boolean;
@@ -827,9 +807,7 @@ describe('label collision avoidance', () => {
             series: [{ type: 'range-area', xKey: 'x', yLowKey: 'low', yHighKey: 'high', label }],
         });
 
-        // A band too narrow for both end labels to sit inside it. With `placement: ['inside', 'outside']`
-        // the second-placed label must treat its already-placed sibling as an obstacle and cascade
-        // outside, rather than overlapping it or being dropped.
+        // A band too narrow for both end labels, so the second must treat its sibling as an obstacle.
         it('cascades one sibling label outside instead of dropping or overlapping it inside', async () => {
             const labels = await placedLabels(
                 narrowBand({ enabled: true, placement: ['inside', 'outside'], collision: { alwaysShow: false } })
@@ -956,11 +934,7 @@ describe('label collision avoidance', () => {
             expect(new Set(captured)).toEqual(new Set(['inside', 'outside']));
         });
 
-        // The structural tests above assert the placement the engine resolved; these pin what actually
-        // renders, so a cascade that reports the right placement but draws in the wrong spot still fails.
-        // The first two are a contrast pair over identical data: without a fallback the colliding sibling
-        // is dropped, with one it survives outside the band. Each asserts its label distribution first, so
-        // no baseline can bake in a render where the fallback silently failed to fire.
+        // These pin what renders, not just the resolved placement, so a label drawn in the wrong spot still fails.
         describe('rendered placement fallback', () => {
             // Bands narrow enough that the two end labels cannot both sit inside at the theme's spacing.
             const cascadeBands = (placement: string | string[]) => ({

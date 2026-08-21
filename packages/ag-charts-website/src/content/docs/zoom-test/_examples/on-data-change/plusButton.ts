@@ -65,10 +65,7 @@ function computeNewValue(
     index: number,
     defaultIncrement: number
 ): number {
-    // When:
-    // -   Inserting in the middle, we take the average of x, y1, y2, y3 from topRow / bottomRow.
-    // -   Appending at the end, we copy from topRow.
-    // -   Prepending at the start, we copy from bottomRow.
+    // Middle inserts average the two neighbours; edge inserts extrapolate from the single neighbour.
     if (topRow && bottomRow) {
         const topValue = parser(topRow, index);
         const bottomValue = parser(bottomRow, index);

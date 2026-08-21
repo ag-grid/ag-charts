@@ -1092,9 +1092,7 @@ describe('HeatmapSeries', () => {
             await compare();
         });
 
-        // Mirrors plunker https://plnkr.co/edit/8wpS0AylLFG3GSsZ — baud rate (Even/Odd)
-        // grouped on X, line-rate category on Y (reversed). Guards the tick/cell
-        // alignment the user observed on that specific config.
+        // Guards tick/cell alignment for grouped X categories against a reversed Y axis.
         it('should render plunker 8wpS0AylLFG3GSsZ baud/parity scenario', async () => {
             const baudRates = [187.6, 187.7, 187.8];
             const parities = ['E', 'O'];
@@ -1306,9 +1304,7 @@ describe('HeatmapSeries', () => {
         });
     });
 
-    // Heatmap skips its animation batch (`animationManager.skipCurrentBatch()` in update()), so cells
-    // never tween — a data change lands the new layout on the first frame. Pinned by a minimal guard
-    // rather than a trajectory suite, since there is no motion to describe.
+    // Heatmap skips its animation batch, so a data change lands the new layout on the first frame.
     describe('does not animate', () => {
         const frames = spyOnAnimationFrames();
 
@@ -1583,9 +1579,7 @@ describe('HeatmapSeries', () => {
             });
         });
 
-        // Every case setting the deprecated top-level options lives in this describe: setupMockConsole()
-        // fails a test on any console.warn it does not assert, so each case here must consume the
-        // deprecation notice itself.
+        // setupMockConsole() fails on any unasserted warning, so every case here must consume its deprecation notice.
         describe('deprecated top-level options', () => {
             it('warns and still applies the deprecated top-level values', async () => {
                 const anchor = await readAnchor(

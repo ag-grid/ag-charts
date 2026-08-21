@@ -1019,10 +1019,8 @@ export abstract class CartesianAxis<
         }
         const visible = text !== '';
 
-        // Along a horizontal axis a band scale places its ticks in the middle of each band, which is
-        // not what a configured alignment aligns against: `'right'` means the right edge of the band
-        // the tick belongs to. A vertical axis bands the other way, so its own alignment is
-        // unaffected and `alignLabelColumns` handles the label column instead.
+        // A band scale ticks the middle of each band, but a configured alignment aligns against the
+        // band edge; only the horizontal axis needs the correction (`alignLabelColumns` covers vertical).
         const bandEdgeOffset = horizontal ? getBandEdgeOffset(scale.bandwidth ?? 0, labelTextAlign) : 0;
 
         const x = horizontal ? translation + bandEdgeOffset : labelOffset;

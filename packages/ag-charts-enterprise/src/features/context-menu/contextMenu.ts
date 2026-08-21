@@ -50,9 +50,8 @@ type Caller = { context?: unknown } | undefined;
 
 const moduleId = 'context-menu';
 
-// `contextMenuRegistry` is optional on _ModuleSupport.ChartRegistry, but the context-menu module
-// registers it in its own `register()` hook, so it is guaranteed present whenever
-// ContextMenu is instantiated. Narrow once here rather than asserting `!`.
+// `contextMenuRegistry` is optional on ChartRegistry, but this module's `register()` hook installs it
+// before ContextMenu can be instantiated, so narrow it once here rather than asserting `!`.
 export type ContextMenuCtx = Omit<DynamicContext<_ModuleSupport.ChartRegistry>, 'contextMenuRegistry'> & {
     readonly contextMenuRegistry: _ModuleSupport.ContextMenuRegistry;
 };

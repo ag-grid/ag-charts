@@ -51,9 +51,8 @@ test.describe('forced reflow detection', () => {
         expect(finalTooltipBox?.x).not.toBe(initialTooltipBox?.x);
     });
 
-    // Setting canvas dimensions and font properties unavoidably triggers UpdateLayoutTree, so those
-    // are allowlisted; the examples use 150 points (> RENDER_TO_OFFSCREEN_CANVAS_THRESHOLD) so the
-    // offscreen rendering path in group.ts is exercised.
+    // Canvas sizing and font setup unavoidably trigger UpdateLayoutTree, so they are allowlisted; the
+    // examples use 150 points (> RENDER_TO_OFFSCREEN_CANVAS_THRESHOLD) to exercise offscreen rendering.
     const sparklineAllowlist = ['applyPendingResize', 'updateBaseFont', 'drawImage'];
     const SPARKLINE_COUNT = 30; // must match the count in the test example
 
@@ -120,9 +119,7 @@ test.describe('forced reflow detection', () => {
         });
     });
 
-    // Simulates grid scroll: destroy visible sparklines (returning them to pool)
-    // then create new ones from pool — the lifecycle that occurs as rows scroll
-    // in and out of the viewport.
+    // Simulates grid scroll: return visible sparklines to the pool, then take new ones from it.
     test('sparkline scroll recycling should not cause forced reflows', async ({ page }) => {
         await gotoExample(page, toExamplePageUrl('sparklines-e2e', 'sparkline-reflow', 'vanilla').url);
         await waitForAllChartUpdates(page);

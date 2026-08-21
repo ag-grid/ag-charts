@@ -182,22 +182,14 @@ describe('BandedReducer', () => {
         });
 
         it('prevents band splitting on zero-length updates', () => {
-            // Small dataset (10 points) that starts with a single band
-            // When minDataSizeForBanding=1000 (default), 10 points creates just 1 band
             const manager = new BandedReducer({ targetBandCount: 10 });
             manager.initializeBands(10);
 
             const initialBands = manager.getBands();
             const initialBandCount = initialBands.length;
 
-            // On a small dataset:
-            // - Single band has size 10
-            // - idealBandSize = ceil(10 / 10) = 1
-            // - maxBandSize = ceil(1 * 1.1) = 2
-            // - bandSize (10) > maxBandSize (2) would trigger split without the guard!
-
-            // Simulate repeated zero-length updates (used to mark bands dirty for updates)
-            // This should NOT cause band splitting
+            // The single band's size (10) exceeds maxBandSize (2) here, so without the guard these
+            // zero-length dirty-marking updates would split it.
             for (let i = 0; i < 10; i++) {
                 manager.handleInsertion(i, 0);
             }

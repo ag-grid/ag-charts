@@ -356,9 +356,7 @@ class AgChartsInternal {
             }
         }
 
-        // A chart taken from the pool already exists and keeps the Logger it was built with, so the
-        // one these options were validated against is a different instance. Adopt the chart's to keep
-        // a chart's console output and `warnOnce` dedup on a single Logger.
+        // A pooled chart keeps its own Logger, so adopt it to keep console output and `warnOnce` dedup unified.
         chartOptions.adoptLogger(chart.ctx.logger);
         chartOptions.adoptValidationSink((issue) => chart.validationCollector.recordCallbackIssue(issue));
 
@@ -442,7 +440,7 @@ class AgChartsInternal {
         return proxy;
     }
 
-    // CRT-1018 Use `Parameters` and `unknown` to strictly enforce type-safety
+    // `Parameters` and `unknown` here strictly enforce type-safety.
     private static readonly markRemovedProperties: Parameters<
         typeof jsonWalk<DeepPartial<AgChartOptions>, unknown, boolean>
     >[1] = (
@@ -506,7 +504,7 @@ class AgChartsInternal {
             this.createChartInstance,
             this.detachAndClear,
             this.destroy,
-            Infinity // AG-13480 - Prevent Grid exhausting pool during sorting.
+            Infinity // Unbounded, so Grid sorting cannot exhaust the pool.
         );
     }
 

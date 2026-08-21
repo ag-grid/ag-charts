@@ -40,7 +40,6 @@ test.describe('zoom', () => {
         const withNavigatorXAxisLeft = { x: (width * 3) / 4, y: height - 80 };
         const withNavigatorXAxisRight = { x: width / 4, y: height - 80 };
 
-        // 1. Click the zoom-in button the floating zoom buttons
         await hoverCanvas(page, { x: 100, y: height - 100 });
         const zoomIn = page.getByTitle('Zoom in');
         await zoomIn.click();
@@ -51,30 +50,23 @@ test.describe('zoom', () => {
         await zoomIn.click();
         await expectChartScreenshot(page, page, 'zoom-1-before-navigator-zoom-in.png', { animations: 'disabled' });
 
-        // 2. Drag the y-axis with the navigator hidden to zoom in
         await dragCanvas(page, withoutNavigatorYAxisBottom, withoutNavigatorYAxisTop);
         await expectChartScreenshot(page, page, 'zoom-2-before-navigator-drag-y-axis.png', { animations: 'disabled' });
 
-        // Show navigator with minichart
         await page.locator('.example-controls button').getByText('Toggle Navigator').click();
 
-        // 3. Drag the y-axis with the navigator visible to zoom in
         await dragCanvas(page, withNavigatorYAxisBottom, withNavigatorYAxisTop);
         await expectChartScreenshot(page, page, 'zoom-3-with-navigator-drag-y-axis.png', { animations: 'disabled' });
 
-        // 4. Drag the x-axis with the navigator visible to zoom in
         await dragCanvas(page, withNavigatorXAxisLeft, withNavigatorXAxisRight);
         await expectChartScreenshot(page, page, 'zoom-4-with-navigator-drag-x-axis.png', { animations: 'disabled' });
 
-        // Hide navigator
         await page.locator('.example-controls button').getByText('Toggle Navigator').click();
 
-        // 5. Drag the y-axis twice with the navigator hidden again to zoom out
         await dragCanvas(page, withoutNavigatorYAxisTop, withoutNavigatorYAxisBottom);
         await dragCanvas(page, withoutNavigatorYAxisTop, withoutNavigatorYAxisBottom);
         await expectChartScreenshot(page, page, 'zoom-5-after-navigator-drag-y-axis.png', { animations: 'disabled' });
 
-        // 6. Drag the x-axis twice with the navigator hidden again to zoom out
         await dragCanvas(page, withoutNavigatorXAxisLeft, withoutNavigatorXAxisRight);
         await dragCanvas(page, withoutNavigatorXAxisLeft, withoutNavigatorXAxisRight);
         await delay(300); // Delay due to debounce in ZoomToolbar (ZOOM_VALID_CHECK_DEBOUNCE)
@@ -91,24 +83,20 @@ test.describe('zoom', () => {
         const { width, height } = await locateCanvas(page);
         const midPoint = { x: Math.round(width / 2), y: Math.round(height / 2) };
 
-        // Expect crosshairs to be visible on first hover.
         await hoverCanvas(page, midPoint);
         await expect(page.locator(xAxisLabel)).toBeVisible();
         await expect(page.locator(yAxisLabel)).toBeVisible();
 
-        // Mousewheel to zoom should remove crosshairs.
         await page.mouse.wheel(0, -100);
         await expect(page.locator(xAxisLabel)).not.toBeVisible();
         await expect(page.locator(yAxisLabel)).not.toBeVisible();
 
         await expectChartScreenshot(page, page, 'zoom-crosshairs-after-wheel-zoom.png', { animations: 'disabled' });
 
-        // Expect crosshairs to become visible on second hover.
         await hoverCanvas(page, midPoint);
         await expect(page.locator(xAxisLabel)).toBeVisible();
         await expect(page.locator(yAxisLabel)).toBeVisible();
 
-        // Drag canvas (pan zoom)
         await dragCanvas(page, midPoint, { x: midPoint.x + 50, y: midPoint.y });
         await expect(page.locator(xAxisLabel)).not.toBeVisible();
         await expect(page.locator(yAxisLabel)).not.toBeVisible();
@@ -125,9 +113,8 @@ test.describe('zoom', () => {
         const tooltip = page.locator('.ag-charts-tooltip');
         const readCursor = () => wrapper.evaluate((el) => getComputedStyle(el).cursor);
 
-        // `crossAt` places both axes inside the plot area, so their pixel positions depend on the data,
-        // the zoom and how much axis width the layout reclaims. Locate the axis from its own proxy
-        // region and its labels by their resize cursor, rather than from offsets that go stale.
+        // `crossAt` places both axes inside the plot area, so their pixel positions depend on data and
+        // zoom; locate the axis from its own proxy region rather than an offset that would go stale.
         const band = await page.evaluate(() => {
             const proxy = document.querySelector('.ag-charts-canvas-proxy');
             const regions = Array.from(proxy?.querySelectorAll('[role="region"]') ?? []);

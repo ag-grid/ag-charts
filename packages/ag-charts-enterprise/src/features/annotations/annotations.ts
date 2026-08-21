@@ -708,9 +708,8 @@ export class Annotations extends AbstractModuleInstance {
         );
     }
 
-    // Annotations are declared `defined` in the chart option defs, so none of the colour validators that
-    // gate every other colour surface run over them; without this an unsupported format either throws
-    // when a properties class parses it or silently paints through the canvas.
+    // Annotations are declared `defined` in the chart option defs, so the colour validators that gate every
+    // other colour surface never run over them.
     private dropUnsupportedColors(annotation: AgAnnotation) {
         const colors: { color?: unknown; stroke?: unknown; fill?: unknown } = annotation;
         for (const key of ['color', 'stroke', 'fill'] as const) {

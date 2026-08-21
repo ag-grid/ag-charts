@@ -216,9 +216,8 @@ test.describe('cursor lock during drag', () => {
                 async () => {
                     await expect(wrapper).toHaveClass(LOCKED);
 
-                    // Still held: cross over the navigator pan slider. `container.css`'s
-                    // `.ag-charts-wrapper--cursor-locked .ag-charts-proxy-elem { cursor: inherit
-                    // !important }` must beat the slider's own inline `grab`.
+                    // Still held while crossing the pan slider: the cursor-locked `!important` rule in
+                    // `container.css` must beat the slider's own inline `grab`.
                     await page.mouse.move(sliderCentre.x, sliderCentre.y);
                     await expect(panSlider).toHaveCSS('cursor', 'grabbing');
                 }

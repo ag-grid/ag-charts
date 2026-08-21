@@ -99,14 +99,8 @@ export const themes: ThemeMap = {
     'ag-financial': memoizeByRegistry((presetName?: string) => new FinancialLight({}, presetName)),
 };
 
-// Both caches are keyed by preset name first: the same theme value resolves to a different
-// `ChartTheme` per preset, since a preset's `themeTemplate` is baked into the instance.
-//
-// Primitive keys (stock theme names) are bounded and held strongly. Object keys (inline theme
-// option objects) are held weakly: a fresh options object per chart would otherwise pin its
-// resolved ChartTheme — and the deep config tree it owns — for the lifetime of the process,
-// leaking memory for consumers that render many charts with distinct inline themes. The preset
-// name must therefore stay OUTSIDE the weak key.
+// Both caches key on preset name first: a preset's `themeTemplate` is baked into the instance, so the
+// preset name must stay OUTSIDE the weak key or a per-chart options object pins its ChartTheme forever.
 const chartThemeCache = new Map<string | undefined, Map<string | null | undefined, ChartTheme>>();
 const chartThemeObjectCache = new Map<string | undefined, WeakMap<object, ChartTheme>>();
 let chartThemeCacheRevision = -1;

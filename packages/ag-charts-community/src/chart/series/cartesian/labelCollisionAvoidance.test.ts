@@ -18,9 +18,8 @@ import {
     waitForChartStability,
 } from '../../test/utils';
 
-// `label.placement` is documented for point-like series; `label.collision` is documented too, but
-// `collideWith` within it is an undocumented opt-in model (see chartDefaults.ts), so the option
-// objects below are built untyped and cast at the AgCharts.create boundary.
+// `collideWith` is an undocumented opt-in model (see chartDefaults.ts), so these option objects are
+// built untyped and cast at the AgCharts.create boundary.
 type LabelCollisionConfig = {
     placement?: string[];
     collision?: {
@@ -31,11 +30,8 @@ type LabelCollisionConfig = {
     spacing?: number;
 };
 
-// Line and area route labels through the collision-placement engine, which honours the configured
-// placements: each candidate-placement set resolves colliding labels into different final positions,
-// so the rendered output diverges per placement. Collision resolution always runs now, so the axis of
-// variation is the placement candidate list and, for the first case, whether a colliding label is kept
-// (at its least-overflow candidate) rather than hidden.
+// Line and area honour the configured placement candidates, so each candidate set resolves colliding
+// labels to different final positions; the first case also varies keep-vs-hide.
 const PLACED_LABEL_STRATEGIES: Record<string, LabelCollisionConfig> = {
     'keep overlapping (alwaysShow: true)': {
         placement: ['top', 'bottom'],
@@ -59,9 +55,8 @@ const PLACED_LABEL_STRATEGIES: Record<string, LabelCollisionConfig> = {
     },
 };
 
-// Scatter (and bubble, which it extends) position labels at their own fixed `label.placement` and
-// ignore the placement candidates, so collision resolution only ever decides whether an overlapping
-// label is hidden or kept — the single meaningful axis for marker series is `alwaysShow`.
+// Scatter and bubble label at their own fixed `label.placement` and ignore the candidates, so
+// `alwaysShow` is the only meaningful axis for marker series.
 const MARKER_LABEL_STRATEGIES: Record<string, LabelCollisionConfig> = {
     'keep overlapping (alwaysShow: true)': { collision: { alwaysShow: true } },
     'hide on collision (alwaysShow: false, default)': { collision: { alwaysShow: false } },
@@ -559,9 +554,8 @@ describe('label collision avoidance', () => {
         });
     });
 
-    // Reproduces the reported scenario: three close, parallel lines with a `['top','bottom','inside']`
-    // list. The top line resolves up and the bottom line down; the middle line collides on both sides
-    // and falls through to `inside`, where its label fits the 23px marker rather than being dropped.
+    // Three close parallel lines: the middle label collides top and bottom and falls through to `inside`,
+    // where it fits the 23px marker rather than being dropped.
     describe('mixed directional/inside cascade (three parallel lines)', () => {
         const parallelLineData = [
             { x: 0, top: 58, mid: 50, bottom: 42 },
@@ -604,9 +598,8 @@ describe('label collision avoidance', () => {
         });
     });
 
-    // Marker series enable collision avoidance, so a mixed `inside`+directional list cascades: the
-    // label fits inside the marker when it can, else falls back to a directional placement with full
-    // text rather than vanishing. Scatter shares BubbleSeries' label pipeline, so both are covered.
+    // Marker series cascade a mixed `inside`+directional list: the label fits inside the marker when it can,
+    // else falls back to a directional placement with full text. Scatter shares BubbleSeries' pipeline.
     describe('inside placement fallback cascade (marker series)', () => {
         // Three well-separated mid-height points: no inter-marker or inter-label collisions, so an
         // inside failure is isolated to the marker-fit test and directional fallbacks stay clear.
@@ -744,10 +737,8 @@ describe('label collision avoidance', () => {
     });
 
     describe('series-area overflow (marker series)', () => {
-        // A single point pinned to the top edge of the plot; a `top` label sits above the series area
-        // but within the chart's outer padding band. Series-area containment is opt-in via
-        // `collideWith.seriesArea`: off by default the label is kept (spilling into the padding band is
-        // allowed); enabling it treats the overflow as a collision so a hideable label is dropped.
+        // Series-area containment is opt-in via `collideWith.seriesArea`: off by default a label spilling into
+        // the chart's outer padding band is kept; on, the overflow counts as a collision and hides it.
         const topEdgeData = [{ x: 5, y: 10, size: 4, label: 'Edge' }];
         const edgeAxes = {
             x: { position: 'bottom', type: 'number', min: 0, max: 10 },
@@ -812,9 +803,8 @@ describe('label collision avoidance', () => {
                 expect(placed.length).toBe(1);
             });
 
-            // An `inside` label is fitted to and centred on its marker, so an edge marker's label
-            // rides with the point; it is exempt from the series-area containment that hides
-            // directional labels spilling into the padding zone.
+            // An `inside` label is fitted to and centred on its marker, so it is exempt from the series-area
+            // containment that hides directional labels spilling into the padding band.
             it(`${type}: keeps an inside label centred on an edge marker even with seriesArea on`, async () => {
                 const placed = await render(type, { seriesArea: true, placement: 'inside', markerSize: 60 });
                 expect(placed.length).toBe(1);
@@ -873,10 +863,8 @@ describe('label collision avoidance', () => {
         });
 
         describe('labels', () => {
-            // A line and a bar sharing the same category and top value, so the bar's `outside-end` label
-            // and the line's `top` label stack above the same point; padded, filled boxes force them to
-            // overlap. The line is declared first so its kept label seeds the obstacle before the
-            // hideable bar label resolves and either avoids it (default) or ignores it (labels off).
+            // A line and a bar share a category and top value so their padded label boxes overlap; the line is
+            // declared first, so its kept label seeds the obstacle before the hideable bar label resolves.
             const comboData = [{ x: 'A', line: 10, bar: 10 }];
             const boxedLabel = { fill: 'white', padding: 20 };
 
@@ -1103,9 +1091,8 @@ describe('label collision avoidance', () => {
             }
         });
 
-        // A bordered outside label's drawn box (padding + half the border stroke reserved outward) must
-        // sit exactly `spacing` from the bar, not `spacing - strokeWidth/2` — i.e. the anchor offset must
-        // include the border extent, not padding alone.
+        // A bordered outside label reserves padding plus half the border stroke outward, so the anchor offset
+        // must include the border extent for the drawn box to sit exactly `spacing` from the bar.
         it('reserves padding and border in a bordered histogram outside-label offset', async () => {
             const SPACING = 20;
             const PADDING = 12;
@@ -1195,10 +1182,8 @@ describe('label collision avoidance', () => {
         });
     });
 
-    // A bar's inside label with the default `alwaysShow: true` and a single placement is baked
-    // directly rather than routed through the placement engine, so it never enters the obstacle index
-    // via placement. It must still act as a `label` obstacle so another series' labels avoid it —
-    // otherwise a scatter label sitting over a bar's inside label goes undetected.
+    // A bar's inside label with default `alwaysShow` and a single placement is baked rather than routed
+    // through the placement engine, but must still act as a `label` obstacle for other series.
     describe('cross-series obstacles (baked bar inside label vs scatter label)', () => {
         type Box = { x: number; y: number; width: number; height: number };
         const overlaps = (a: Box, b: Box) =>
@@ -1273,9 +1258,8 @@ describe('label collision avoidance', () => {
         const overlaps = (a: Box, b: Box) =>
             a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
 
-        // Six points fall in the first bin [0, 4), so its frequency is 6 and its inside-centre label
-        // sits at y ≈ 3. The HIT scatter point sits just below that centre so its `top` candidate lands
-        // on the baked label (`bottom` clears it); the rest are clear.
+        // Six points fall in bin [0, 4), so its inside-centre label sits at y = 3; the HIT scatter point sits
+        // just below that centre, so its `top` candidate lands on the baked label.
         const histogramData = [{ x: 1 }, { x: 1 }, { x: 2 }, { x: 2 }, { x: 3 }, { x: 3 }, { x: 5 }, { x: 9 }];
         const scatterData = [
             { x: 2, y: 2.8, name: 'HIT' },
@@ -1340,9 +1324,8 @@ describe('label collision avoidance', () => {
     });
 
     describe('histogram placement cascade and own-label hiding', () => {
-        // A single bin filling the value axis; its `outside-end` label overflows the series area into the
-        // padding band, so a hideable single-placement label is dropped when series-area avoidance is on,
-        // while a placement array cascades to an inside candidate that fits.
+        // The single bin's `outside-end` label overflows the series area, so a hideable single-placement label
+        // is dropped while a placement array cascades to an inside candidate that fits.
         const data = Array.from({ length: 10 }, () => ({ x: 0.5 }));
         const options = (collision: object, placement: string | string[] = 'outside-end'): any => ({
             data,
@@ -1388,12 +1371,11 @@ describe('label collision avoidance', () => {
             ).toBe(1);
         });
 
-        // With an `['inside-center', ...]` cascade that has a non-inside fallback, a label too large to fit
-        // inside the bin must NOT be truncated to the bin and pinned inside; it keeps its full text and
-        // cascades to the outside fallback. (Only an inside-only placement binds the text to the bar.)
+        // With a cascade that has a non-inside fallback, a label too large for the bin keeps its full text and
+        // cascades outside; only an inside-only placement binds the text to the bar.
         it('keeps full text and cascades an oversized inside-first label to the outside fallback', async () => {
-            // A narrow, centred bin whose long label cannot fit inside. Without the fix the label is fitted
-            // to the tiny inside container and dropped; with it, full text cascades to the outside fallback.
+            // A narrow, centred bin whose long label cannot fit inside, so the full text must cascade to the
+            // outside fallback rather than being fitted to the tiny inside container.
             const opts: any = {
                 data: Array.from({ length: 5 }, () => ({ x: 2 })),
                 legend: { enabled: false },
@@ -1424,10 +1406,8 @@ describe('label collision avoidance', () => {
             expect(labels[0].datum.label?.placement).toBe('outside-end');
         });
 
-        // The short bins keep the `outside-end` label above the bar; the full-height bin whose
-        // `outside-end` overflows the top series area cascades to `inside-center`; the full-height bin
-        // with a label too wide to fit inside exercises the overflow policy, which the two cases below
-        // resolve differently.
+        // Three bins: one keeping `outside-end` above the bar, one overflowing the top and cascading to
+        // `inside-center`, and one whose label is too wide inside, exercising the overflow policy.
         const multiBinCascade = (label: object) => {
             const binData = [
                 ...Array.from({ length: 3 }, () => ({ x: 0.5 })),
@@ -1514,9 +1494,8 @@ describe('label collision avoidance', () => {
         });
     });
 
-    // `label.orientation` rotates bar-family labels: `horizontal` reads upright, the two `vertical`
-    // variants a quarter-turn in either direction. Both a column and a horizontal bar are exercised
-    // per orientation.
+    // `label.orientation` rotates bar-family labels: `horizontal` upright, the two `vertical` variants a
+    // quarter-turn either way. Both a column and a horizontal bar are exercised per orientation.
     describe('bar label orientation', () => {
         const barData = Array.from({ length: 6 }, (_, i) => ({ cat: `Category ${i}`, value: 30 + 10 * Math.sin(i) }));
         const orientations = ['horizontal', 'vertical', 'vertical-reversed'];
@@ -1592,11 +1571,8 @@ describe('label collision avoidance', () => {
             );
         });
 
-        // Shrinking the chart width must not make a resolved vertical label snap back to the wider
-        // horizontal bake. Once a bar is too narrow for horizontal the engine picks vertical; a bar too
-        // narrow for even vertical hides its label (an orientation array opts into overflow management),
-        // which must not be reached by reverting to the first (horizontal) orientation baked at
-        // node-data time, since that would overflow the bar rect.
+        // Once a bar is too narrow for horizontal the engine picks vertical, and a bar too narrow for even
+        // vertical hides its label; neither may revert to the horizontal bake made at node-data time.
         it('keeps a narrowing bar label vertical instead of reverting to horizontal', async () => {
             const optionsAt = (width: number) => {
                 const options = {
@@ -1659,9 +1635,8 @@ describe('label collision avoidance', () => {
             }
         });
 
-        // A vertical label rotates about its untransformed glyph-box centre; re-deriving that pivot
-        // from an already-rotated box makes it walk on every resize. Resize away and back must be a
-        // no-op on the pivot.
+        // A vertical label pivots on its untransformed glyph-box centre; re-deriving that pivot from an
+        // already-rotated box would make it walk on every resize.
         it('keeps a vertical label pivot stable across resizes (no drift)', async () => {
             const optionsAt = (width: number) => {
                 const options = {
@@ -1784,11 +1759,8 @@ describe('label collision avoidance', () => {
         }
     });
 
-    // A bar-family label with an orientation array but only a single `placement` and default
-    // `alwaysShow` is baked (not routed through positioned candidates), yet still `usesPlacedLabels`
-    // because the engine must resolve its orientation. It must never see its own baked footprint as a
-    // `label` obstacle — neither during its own resolution nor as a cross-series obstacle other series'
-    // labels are asked to avoid.
+    // A baked bar label (orientation array, single placement, default `alwaysShow`) still needs its
+    // orientation resolved, but must never see its own footprint as a `label` obstacle.
     describe('orientation-array bar label is not its own obstacle', () => {
         const barData = Array.from({ length: 8 }, (_, i) => ({ cat: `Category ${i}`, bar: 30 + 10 * Math.sin(i) }));
         const comboData = barData.map((d, i) => ({ ...d, line: 20 + 8 * Math.cos(i) }));
@@ -1797,9 +1769,8 @@ describe('label collision avoidance', () => {
             y: { type: 'number', position: 'left' },
         };
 
-        // `alwaysShow` pins the baked path this case covers: an orientation array alone would opt the
-        // label into overflow management, routing it through positioned candidates and hiding the ones
-        // that cannot be placed — a different mechanism from the self-obstacle behaviour pinned here.
+        // `alwaysShow` pins the baked path: an orientation array alone would route the label through positioned
+        // candidates, a different mechanism from the self-obstacle behaviour pinned here.
         const barLabel = {
             enabled: true,
             orientation: ['horizontal', 'vertical'] as const,
@@ -1888,9 +1859,8 @@ describe('label collision avoidance', () => {
         });
     });
 
-    // An inside label's spacing is a gap from the bar's value end, so it applies only along the bar's
-    // length axis. On the cross axis the label may span the full bar width/height and must not be
-    // rejected as a collision, letting a candidate that overflows the old all-sides inset be kept.
+    // Inside-label spacing is a gap from the bar's value end, so it applies along the bar's length axis
+    // only; a candidate spanning the bar's full cross-axis width must not be rejected as a collision.
     describe('inside-label spacing applies only along the bar-length axis', () => {
         const labelNodes = () => {
             const series = deproxy(chart as any).series[0] as unknown as {
@@ -1933,8 +1903,8 @@ describe('label collision avoidance', () => {
                 ],
             };
             prepareTestOptions(options as any);
-            // Thin columns (each narrower than twice the spacing) so the old all-sides inset region
-            // would reject the horizontal label, while it still fits the bar's full width.
+            // Thin columns (each narrower than twice the spacing) so an all-sides inset region would reject the
+            // horizontal label, while it still fits the bar's full width.
             (options as any).width = 500;
             (options as any).height = 400;
             chart = AgCharts.create(options as any);
@@ -1952,8 +1922,8 @@ describe('label collision avoidance', () => {
                 // The label stayed horizontal: it fits the bar's full width with no cross-axis spacing.
                 expect(node.rotation).toBe(0);
                 expect(bbox!.width).toBeLessThanOrEqual(bar!.width + 0.5);
-                // Anti-vacuous: the label is wider than the old all-sides inset region, so the previous
-                // behaviour would have rejected the horizontal candidate and rotated it to vertical.
+                // Anti-vacuous: the label is wider than an all-sides inset region, which would have rejected the
+                // horizontal candidate and rotated it to vertical.
                 expect(bbox!.width).toBeGreaterThan(bar!.width - 2 * spacing);
             }
         });
@@ -1984,8 +1954,8 @@ describe('label collision avoidance', () => {
                 ],
             };
             prepareTestOptions(options as any);
-            // Thin bars (each shorter than twice the spacing) so the old all-sides inset region would
-            // reject the vertical label, while it still fits the bar's full height.
+            // Thin bars (each shorter than twice the spacing) so an all-sides inset region would reject the
+            // vertical label, while it still fits the bar's full height.
             (options as any).width = 400;
             (options as any).height = 500;
             chart = AgCharts.create(options as any);
@@ -2003,15 +1973,14 @@ describe('label collision avoidance', () => {
                 // The label stayed vertical: it fits the bar's full height with no cross-axis spacing.
                 expect(node.rotation).not.toBe(0);
                 expect(bbox!.height).toBeLessThanOrEqual(bar!.height + 0.5);
-                // Anti-vacuous: the label is taller than the old all-sides inset region.
+                // Anti-vacuous: the label is taller than an all-sides inset region.
                 expect(bbox!.height).toBeGreaterThan(bar!.height - 2 * spacing);
             }
         });
     });
 
-    // `alwaysShow` gates only the terminal hide-vs-keep decision once collision resolution has run;
-    // it is orthogonal to fit (wrapping/truncation) and placement cascade, which always apply
-    // regardless of its value.
+    // `alwaysShow` gates only the terminal hide-vs-keep decision; it is orthogonal to fit and placement
+    // cascade, which always apply.
     describe('collision.alwaysShow (acceptance criteria)', () => {
         it('alwaysShow: false hides a label that cannot avoid a collision', async () => {
             // Anti-vacuous guard: some labels must actually collide for the assertion to be meaningful.
@@ -2049,9 +2018,8 @@ describe('label collision avoidance', () => {
         });
     });
 
-    // `collision.threshold` is the collision-detection threshold applied to the label's own box: 0 is a
-    // no-op, a negative value tolerates overlap up to `|threshold|` px. A negative value must also pass
-    // validation (setupMockConsole fails the test on any validation warning).
+    // `collision.threshold` applies to the label's own box: 0 is a no-op, a negative value tolerates overlap
+    // up to `|threshold|` px and must still pass validation.
     describe('collision.threshold (acceptance criteria)', () => {
         it('threshold: 0 keeps the label box unchanged, hiding a colliding label', async () => {
             const placed = await renderPlaced({ collision: { alwaysShow: false, threshold: 0 } });

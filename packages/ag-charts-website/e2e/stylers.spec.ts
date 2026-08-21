@@ -69,11 +69,8 @@ async function popStylerCalls(page: Page): Promise<StylerCall[]> {
     return (await evalPageFunction(page, 'popStylerCalls')) as StylerCall[];
 }
 
-// Distinct datum categories recorded with `state` at any point during the pop. We test which element was
-// *ever* highlighted, not its final frame: one highlight can be re-emitted as the chart settles (some
-// series types overwrite the highlighted node with a trailing unhighlighted frame), so the last-seen
-// state is unreliable while the set of highlighted elements is exact. Keyed by category, not by node:
-// hovering one point on a radar chart highlights that category across every overlapping series at once.
+// Matches on ever-highlighted rather than final state: a trailing unhighlighted frame makes last-seen state
+// unreliable. Keyed by category because one hover highlights it across every overlapping series.
 function keysWithState(calls: StylerCall[], kind: StylerKind, state: string): Set<string> {
     const keys = new Set<string>();
     for (const call of calls) {

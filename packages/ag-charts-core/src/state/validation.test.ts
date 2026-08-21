@@ -807,9 +807,8 @@ describe('Validation utils', () => {
             expect(isValid({ c: 'hsl(145, 63%, 42%)' }, { c: color })).toBe(true);
         });
 
-        // `isUnsupportedColorFormat` rejects only the four named formats ahead of the browser parse, so
-        // `currentColor` keeps validating. The hwb()/color-mix()/oklch() pins live in color.test.ts, since
-        // jsdom's CSS engine rejects those regardless.
+        // The hwb()/color-mix()/oklch() pins live in color.test.ts, as jsdom's CSS engine rejects those
+        // regardless; here only `currentColor` distinguishes a targeted rejection from a blanket one.
         it('still accepts currentColor (D1 guard: not narrowed wholesale)', () => {
             expect(isValid({ c: 'currentColor' }, { c: color })).toBe(true);
         });
