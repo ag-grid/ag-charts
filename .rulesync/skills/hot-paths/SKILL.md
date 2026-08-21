@@ -16,10 +16,15 @@ It is a **review and impact-analysis** guide. For *implementing* an optimisation
 ## Run the detector first
 
 ```bash
+node tools/hot-paths/detect.js --range <base>...<head>   # exact revisions, fork point to head
 node tools/hot-paths/detect.js --pr <number> --summary   # a PR, vs its merge-base
 node tools/hot-paths/detect.js --base latest --summary   # the working tree, untracked files included
-node tools/hot-paths/detect.js --range <base>..<head>    # an explicit range
 ```
+
+Three dots resolve the fork point of the head from the base — what a branch or PR
+actually contains. Two dots compare the two revisions as given, which charges the
+change for whatever the base has merged since. Prefer `--range` with resolved SHAs
+when reviewing: `--pr` re-resolves the head, so a push landing mid-review moves it.
 
 JSON on stdout is the default; `--summary` swaps it for the human-readable form.
 The exit status is 0 whatever the verdict, so read the `triggered` boolean rather

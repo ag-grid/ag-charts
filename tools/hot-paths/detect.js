@@ -87,8 +87,15 @@ function resolveRange(argv) {
 
     const range = opt('--range');
     if (range) {
-        const [base, head] = range.split('..');
-        return { base, head: head || 'HEAD', label: range };
+        // `a...b` is the fork point of `b` from `a`, which is what a PR contains;
+        // `a..b` compares the two revisions exactly as given. Reviewing a branch
+        // wants the former — against the base tip, anything merged since the fork
+        // reads as part of the change.
+        const threeDot = range.includes('...');
+        const [left, right] = range.split(threeDot ? '...' : '..');
+        const head = right || 'HEAD';
+        const base = threeDot ? git(['merge-base', left, head]).trim() : left;
+        return { base, head, label: threeDot ? `${base.slice(0, 10)}..${head}` : range };
     }
 
     const pr = opt('--pr');

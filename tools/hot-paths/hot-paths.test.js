@@ -3,7 +3,7 @@ const test = require('node:test');
 const path = require('node:path');
 const { execFileSync } = require('node:child_process');
 
-const { globToRegExp, insideLoop } = require('./detect');
+const { globToRegExp, insideLoop, resolveRange } = require('./detect');
 const { allExamples, recommend, tagsFor } = require('./benchmark-map');
 
 // Run with: node --test tools/hot-paths/
@@ -222,4 +222,16 @@ test('benchmark map: shared series bases recommend the scaled examples', () => {
         const { command } = recommend([path]);
         assert.ok(command, `${path} runs in every scaled example and must name something to measure`);
     }
+});
+
+test('resolveRange: three dots resolve the fork point, two dots do not', () => {
+    // A review wants the fork point, so the range form the guidelines document for
+    // it has to mean that — not a comparison against wherever the base now sits.
+    const three = resolveRange(['--range', 'HEAD~1...HEAD']);
+    assert.match(three.base, /^[0-9a-f]{40}$/, 'three-dot base is a resolved merge-base');
+    assert.equal(three.head, 'HEAD');
+
+    const two = resolveRange(['--range', 'HEAD~1..HEAD']);
+    assert.equal(two.base, 'HEAD~1', 'two-dot passes the revisions through untouched');
+    assert.equal(two.head, 'HEAD');
 });
