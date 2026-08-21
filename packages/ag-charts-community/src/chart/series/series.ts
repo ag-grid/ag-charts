@@ -97,7 +97,7 @@ import {
     type SeriesNodeDatum,
 } from './seriesTypes';
 import { type ShapeFillBBox } from './shapeUtil';
-import { hasDimmedOpacity, resolveMarkerDrawingMode } from './util';
+import { hasDimmedOpacity, isDatumHighlight, resolveMarkerDrawingMode } from './util';
 
 type NodeEventType = 'seriesNodeClick' | 'seriesNodeDoubleClick' | 'nodeContextMenuAction';
 type SeriesListenerEvent =
@@ -785,9 +785,6 @@ export abstract class Series<
             return HighlightState.OtherItem;
         }
 
-        // `highlight.mode: 'shared'` lifts this series' item at the highlighted datum's category out of the
-        // series-level dimming; everything else in this series - and every series contributing no item at
-        // that category - is unchanged from `'single'` mode.
         if (datumIndex != null && this.getSharedCategoryMatch(highlightedDatum) === datumIndex) {
             return HighlightState.OtherItem;
         }
@@ -796,17 +793,14 @@ export abstract class Series<
     }
 
     /**
-     * In `highlight.mode: 'shared'`, the index of this series' item sharing the highlighted datum's
-     * category; `undefined` in `'single'` mode, for a series-level highlight (a focused legend item, which
-     * carries a NaN datum index), for the hovered series itself, and when this series contributes no item at
-     * that category.
+     * In `highlight.mode: 'shared'`, the index of this series' item sharing the highlighted datum's category.
+     * `undefined` when there is none, for series-level highlights, and for the hovered series itself.
      */
     private getSharedCategoryMatch(highlightedDatum: HighlightNodeDatum | undefined): DatumIndex | undefined {
         const { chartService } = this.ctx;
         if (highlightedDatum == null || chartService.highlight?.mode !== 'shared') return;
         if (highlightedDatum.series == null || !this.isDatumHighlight(highlightedDatum)) return;
-        // The hovered series is styled exactly as it is in `'single'` mode, so it has no match of its own -
-        // resolving one would only force a redundant repaint of it on every move within the series.
+        // The hovered series is styled as in `'single'` mode, so a match of its own would only repaint it.
         if (highlightedDatum.series === this) return;
 
         return chartService.getSharedHighlightMatch?.(highlightedDatum.series, highlightedDatum.datumIndex, this);
@@ -911,9 +905,7 @@ export abstract class Series<
                 currentHighlightState === HighlightState.Series &&
                 this.isDatumHighlight(currentHighlightedDatum) !== this.isDatumHighlight(previousHighlightedDatum);
 
-            // In `highlight.mode: 'shared'` a hover moving between two categories this series contributes an
-            // item to leaves both probes at the same coarse state, but the item lifted out of the dimming has
-            // moved - so without this the previous category's item is left lit.
+            // A move between two categories of this series leaves the coarse state equal but the lit item moved.
             const sharedMatchChanged =
                 this.getSharedCategoryMatch(currentHighlightedDatum) !==
                 this.getSharedCategoryMatch(previousHighlightedDatum);
@@ -956,13 +948,8 @@ export abstract class Series<
         return highlightedDatum.datumIndex === datumIndex;
     }
 
-    /**
-     * Whether a highlight targets one specific datum, as opposed to a whole series. Datum-level
-     * highlights carry a concrete `datumIndex`; series-level ones (e.g. a focused legend item) use NaN.
-     */
     protected isDatumHighlight(highlightedDatum: HighlightNodeDatum | undefined): boolean {
-        const datumIndex = highlightedDatum?.datumIndex;
-        return typeof datumIndex === 'number' && !Number.isNaN(datumIndex);
+        return isDatumHighlight(highlightedDatum);
     }
 
     private hasDataSelection(): boolean {

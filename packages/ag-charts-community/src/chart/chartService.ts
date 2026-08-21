@@ -27,10 +27,7 @@ export interface ChartService {
     readonly context?: unknown;
     readonly highlight?: ChartHighlight;
     getChartType(): ChartType;
-    /**
-     * `highlight.mode: 'shared'` - the index of the item `series` contributes at the hovered datum's
-     * category, or `undefined` when it contributes none. Optional so that partial stubs remain valid.
-     */
+    /** The index of the item `series` contributes at the hovered datum's category. Optional for partial stubs. */
     getSharedHighlightMatch?(
         hoveredSeries: CategoryGroupSeries,
         hoveredDatumIndex: DatumIndex,

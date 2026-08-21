@@ -1070,8 +1070,7 @@ export abstract class Chart implements ModuleInstance, ChartService {
             this.clearCallbackCache();
         }
 
-        // Series data and visibility can both have changed since the last update, and the category groups
-        // are derived from both.
+        // Category groups derive from series data and visibility, either of which may have changed.
         this.sharedCategoryGroup.invalidate();
 
         // Clear state immediately so that side effects can be detected prior to SCENE_RENDER.

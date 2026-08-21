@@ -1,25 +1,19 @@
 import type { DatumIndex } from './series/seriesTypes';
 
-/** The subset of a series needed to group items by category. */
 export interface CategoryGroupSeries {
     isEnabled(): boolean;
     getCategoryValue(datumIndex: DatumIndex): unknown;
     datumIndexForCategoryValue(categoryValue: unknown): DatumIndex | undefined;
 }
 
-/** The item each series contributes at a given category, keyed by series. */
 export type CategoryGroup = ReadonlyMap<CategoryGroupSeries, DatumIndex>;
 
-// `Series.onChangeHighlight` resolves the current and the previous highlight, so a single-entry cache
-// would thrash between the two and recompute on every styled datum.
+// `Series.onChangeHighlight` resolves both the current and the previous highlight, so one entry thrashes.
 const CACHE_SIZE = 2;
 
 /**
  * Groups the items sharing a datum's category across all series. Used by both `tooltip.mode: 'shared'`
  * and `highlight.mode: 'shared'`, so the two group on identical rules.
- *
- * `datumIndexForCategoryValue` is a linear scan per series, so groups are cached until the next chart
- * update - data and series-visibility changes both invalidate through `invalidate()`.
  */
 export class SharedCategoryGroup {
     private readonly cache: { series: CategoryGroupSeries; datumIndex: DatumIndex; group: CategoryGroup }[] = [];
@@ -50,8 +44,7 @@ function computeCategoryGroup(
 ): CategoryGroup {
     const group = new Map<CategoryGroupSeries, DatumIndex>();
 
-    // A series with no category concept - scatter, bubble, pie, maps - has no category value to group on,
-    // and `datumIndexForCategoryValue` dereferences the value it is given.
+    // Series with no category concept - scatter, bubble, pie, maps - contribute to no group.
     const categoryValue = series.getCategoryValue(datumIndex);
     if (categoryValue == null) return group;
 
