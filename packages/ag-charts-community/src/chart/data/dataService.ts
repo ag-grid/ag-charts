@@ -10,6 +10,58 @@ function isNonEmptyArray(response: unknown): response is unknown[] {
     return Array.isArray(response) && response.length > 0;
 }
 
+/**
+ * Orders the in-flight requests of one data stream so that only un-superseded data is applied.
+ *
+ * Streams are tracked separately because they answer different questions — a primary request covers
+ * the current window, a secondary loader the whole domain — and a request for one is not a
+ * replacement for the other.
+ */
+class RequestQueue {
+    private requests: Promise<unknown>[] = [];
+
+    public add(request: Promise<unknown>) {
+        this.requests.push(request);
+    }
+
+    /**
+     * Claims the right to apply a request's data, retiring it and every request it supersedes.
+     *
+     * Must be called once all of the data to be applied has settled, with no `await` between the
+     * claim and applying it: a newer request can supersede this one across any suspension point.
+     */
+    public claim(request: Promise<unknown>, onlyLatest: boolean) {
+        const requestIndex = this.requests.indexOf(request);
+
+        if (requestIndex === -1 || (onlyLatest && requestIndex !== this.requests.length - 1)) {
+            this.requests = this.requests.filter((pending) => pending !== request);
+            return false;
+        }
+
+        this.requests = this.requests.slice(requestIndex + 1);
+        return true;
+    }
+}
+
+interface SecondaryLoader {
+    source: AgDataSourceRequestSource;
+    triggers: AgDataSourceRequestSource[];
+    callback: (data: unknown[]) => void;
+    requests: RequestQueue;
+}
+
+interface Response {
+    id: number;
+    response: unknown;
+    threw: boolean;
+}
+
+interface SecondaryResponse {
+    secondary: SecondaryLoader;
+    request: Promise<unknown>;
+    response: unknown;
+}
+
 export interface DataServiceRestoredData {
     params: AgDataSourceCallbackParams;
     data: unknown;
@@ -39,7 +91,7 @@ export class DataService<D extends object> {
     private inFlightCount = 0;
     private isForcedLoadingData: boolean | undefined = undefined;
     private latestRequest?: { params: AgDataSourceCallbackParams; fetchRequest: Promise<unknown> };
-    private freshRequests: Promise<unknown>[] = [];
+    private readonly primaryRequests = new RequestQueue();
     private requestCounter = 0;
 
     private pendingData: DataServiceRestoredData | undefined = undefined;
@@ -50,11 +102,7 @@ export class DataService<D extends object> {
     private throttledFetch = this.createThrottledFetch(this.requestThrottle);
     private throttledDispatch = this.createThrottledDispatch(this.dispatchThrottle);
 
-    private _secondaryLoaders: {
-        source: AgDataSourceRequestSource;
-        triggers: AgDataSourceRequestSource[];
-        callback: (data: unknown[]) => void;
-    }[] = [];
+    private _secondaryLoaders: SecondaryLoader[] = [];
 
     constructor(
         private readonly eventsHub: EventsHub,
@@ -110,7 +158,7 @@ export class DataService<D extends object> {
         triggers: AgDataSourceRequestSource[],
         callback: (data: unknown[]) => void
     ) {
-        this._secondaryLoaders.push({ source, triggers, callback });
+        this._secondaryLoaders.push({ source, triggers, callback, requests: new RequestQueue() });
         return () => {
             this._secondaryLoaders = this._secondaryLoaders.filter((secondary) => secondary.callback !== callback);
         };
@@ -190,64 +238,56 @@ export class DataService<D extends object> {
             params.context = this.caller.context;
         }
 
-        const fetchRequest = Promise.resolve().then(
-            async (): Promise<{ id: number; response: unknown; threw: boolean }> => {
-                if (!this.dataSourceCallback) {
-                    throw new Error('DataService - [dataSource.getData] callback not initialised');
-                }
-
-                const id = this.requestCounter++;
-                this.debug(`DataService - requesting | ${id}`);
-
-                const { response, threw } = await this.performFetch(params, id);
-
-                this.isLoadingInitialData = false;
-
-                const requestIndex = this.freshRequests.indexOf(fetchRequest);
-                if (
-                    requestIndex === -1 ||
-                    (this.dispatchOnlyLatest && requestIndex !== this.freshRequests.length - 1)
-                ) {
-                    this.debug(`DataService - discarding stale request | ${id}`);
-                    return { id, response, threw };
-                }
-
-                this.freshRequests = this.freshRequests.slice(requestIndex + 1);
-
-                return { id, response, threw };
+        const fetchRequest = Promise.resolve().then(async (): Promise<Response> => {
+            if (!this.dataSourceCallback) {
+                throw new Error('DataService - [dataSource.getData] callback not initialised');
             }
-        );
 
-        const secondaryFetchRequests = [];
+            const id = this.requestCounter++;
+            this.debug(`DataService - requesting | ${id}`);
+
+            const { response, threw } = await this.performFetch(params, id);
+
+            this.isLoadingInitialData = false;
+
+            return { id, response, threw };
+        });
+
+        const secondaryFetchRequests: Promise<SecondaryResponse>[] = [];
         if (params.source != null && this.dataSourceCallback) {
             for (const secondary of this._secondaryLoaders) {
                 if (!secondary.triggers.includes(params.source)) continue;
-                secondaryFetchRequests.push(
-                    this.performFetch({ ...params, source: secondary.source }, secondary.source).then(
-                        ({ response }) => {
-                            // Skip non-array and empty responses so the mini-chart retains its last
-                            // valid display instead of blanking on an invalid lazy response.
-                            if (isNonEmptyArray(response)) {
-                                secondary.callback(response);
-                            }
-                        }
-                    )
-                );
+                const request = this.performFetch({ ...params, source: secondary.source }, secondary.source);
+                secondary.requests.add(request);
+                secondaryFetchRequests.push(request.then(({ response }) => ({ secondary, request, response })));
             }
         }
 
         this.latestRequest = { params, fetchRequest };
-        this.freshRequests.push(fetchRequest);
+        this.primaryRequests.add(fetchRequest);
 
         // Ensure secondary requests have finished before dispatching the update.
-        await Promise.all(secondaryFetchRequests);
+        const secondaryResponses = await Promise.all(secondaryFetchRequests);
+
+        for (const { secondary, request, response: secondaryResponse } of secondaryResponses) {
+            // A loader answers for the whole domain, so neither a superseded window nor a primary
+            // that never settles may suppress its data: only a newer request to the same loader.
+            if (!secondary.requests.claim(request, this.dispatchOnlyLatest)) continue;
+
+            // Skip non-array and empty responses so the loader retains its last valid display
+            // instead of blanking on an invalid lazy response.
+            if (isNonEmptyArray(secondaryResponse)) {
+                secondary.callback(secondaryResponse);
+            }
+        }
 
         const { id, response, threw } = await fetchRequest;
 
-        // Only a non-empty array replaces the current data; anything else routes through `data:error`
-        // to retain the previous data-set. A non-array is a developer error and warrants a warning; an
-        // empty array is well-formed so it is retained silently. Non-empty arrays whose rows do not
-        // render against the series keys are caught by the post-render retain in the chart.
+        if (!this.primaryRequests.claim(fetchRequest, this.dispatchOnlyLatest)) {
+            this.debug(`DataService - discarding stale request | ${id}`);
+            return;
+        }
+
         if (isNonEmptyArray(response)) {
             this.lastDispatchedData = { params, data: response };
             this.throttledDispatch(id, response as D[], requestId);
