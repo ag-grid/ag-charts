@@ -1,4 +1,5 @@
 import { CollapsibleSection } from '@ag-website-shared/components/theme-builder/CollapsibleSection';
+import { PaletteEditor } from '@ag-website-shared/components/theme-builder/PaletteEditor';
 import { ParamEditor } from '@ag-website-shared/components/theme-builder/ParamEditor';
 import {
     horizontalSpacingIcon,
@@ -9,7 +10,7 @@ import { useApplicationConfigAtom } from '@ag-website-shared/theming/application
 import styled from '@emotion/styled';
 import type { ReactNode } from 'react';
 
-import { PaletteEditor } from './PaletteEditor';
+import { usePalette } from './paletteModel';
 import { type ChartsParamConfig, type LengthIcon, PARAM_GROUPS } from './params';
 
 const PALETTE_SECTION = 'Palette';
@@ -46,6 +47,7 @@ const paramEditor = (param: ChartsParamConfig) => (
 
 export const EditorPanel = () => {
     const [expanded, setExpanded] = useApplicationConfigAtom('expandedEditors');
+    const [palette, setPalette] = usePalette();
     const openSections = expanded || DEFAULT_OPEN_SECTIONS;
 
     const toggleSection = (heading: string) => {
@@ -66,7 +68,7 @@ export const EditorPanel = () => {
                 visible effect, and unlike the params below it has no default
                 surfaced anywhere else in the panel. */}
             <CollapsibleSection {...sectionProps(PALETTE_SECTION)}>
-                <PaletteEditor />
+                <PaletteEditor value={palette} onChange={setPalette} />
             </CollapsibleSection>
             {PARAM_GROUPS.map((group) => (
                 <CollapsibleSection key={group.id} {...sectionProps(group.label)}>

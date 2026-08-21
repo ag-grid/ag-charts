@@ -1,3 +1,4 @@
+import { EMPTY_PALETTE } from '@ag-website-shared/components/theme-builder/palette';
 import { applyPreset } from '@ag-website-shared/theming/preset';
 import { useRenderedTheme, useRenderedThemeInfo } from '@ag-website-shared/theming/rendered-theme';
 import styled from '@emotion/styled';
@@ -25,7 +26,7 @@ export const RootContainer = ({ isDark }: { isDark: boolean }) => {
     const [selectedId, setSelectedId] = useState<string | null>(null);
 
     const selection: ChartsThemeSelection = useMemo(
-        () => ({ baseTheme: DEFAULT_THEME_NAME, params: overriddenParams, palette: palette ?? {} }),
+        () => ({ baseTheme: DEFAULT_THEME_NAME, params: overriddenParams, palette: palette ?? EMPTY_PALETTE }),
         [overriddenParams, palette]
     );
     const previewTheme = useMemo(() => toChartTheme(selection), [selection]);

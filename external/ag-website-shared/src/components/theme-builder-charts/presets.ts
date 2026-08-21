@@ -1,8 +1,8 @@
+import type { Palette } from '@ag-website-shared/components/theme-builder/palette';
 import type { Preset } from '@ag-website-shared/theming/preset';
 import type { AgChartThemeName } from 'ag-charts-community';
 
 import { CHARTS_PARAM_DEFAULTS, getPalette, getStackParams } from './chartsTheme';
-import type { Palette } from './paletteModel';
 
 /**
  * The AG Charts stock themes, offered as presets.

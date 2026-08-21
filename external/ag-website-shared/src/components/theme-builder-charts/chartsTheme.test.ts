@@ -90,6 +90,11 @@ describe('AG Charts param translation', () => {
                 // Fills and strokes are index-paired, which the palette editor
                 // relies on to keep a series' two colours together.
                 expect(palette.strokes).toHaveLength(palette.fills.length);
+                // No stock theme uses a gradient or pattern fill, so nothing is
+                // dropped by the narrowing in `getPalette`.
+                expect(palette.fills.every((fill) => typeof fill === 'string')).toBe(true);
+                const stockThemes = _Theme.themes as Record<string, () => { palette: { fills: unknown[] } }>;
+                expect(palette.fills).toHaveLength(stockThemes[themeName]().palette.fills.length);
             }
         });
     });
