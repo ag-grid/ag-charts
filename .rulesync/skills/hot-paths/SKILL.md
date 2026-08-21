@@ -17,9 +17,13 @@ It is a **review and impact-analysis** guide. For *implementing* an optimisation
 
 ```bash
 node tools/hot-paths/detect.js --pr <number> --summary   # a PR, vs its merge-base
-node tools/hot-paths/detect.js --base latest --summary   # the working tree
-node tools/hot-paths/detect.js --range <base>..<head>    # JSON, for a machine reader
+node tools/hot-paths/detect.js --base latest --summary   # the working tree, untracked files included
+node tools/hot-paths/detect.js --range <base>..<head>    # an explicit range
 ```
+
+JSON on stdout is the default; `--summary` swaps it for the human-readable form.
+The exit status is 0 whatever the verdict, so read the `triggered` boolean rather
+than testing the status.
 
 Two stages, both mechanical:
 
