@@ -48,13 +48,95 @@ function wrapTextTier(
     });
 }
 
+// The expander pill straddles the card's edge, so the card's border runs behind it and a
+// translucent expander fill lets that border show through the pill. The exclusion is punched out
+// of the border only — the card's fill is left intact so its background stays continuous under
+// the pill rather than becoming a hole.
+class OrganizationCardRect extends _ModuleSupport.Rect {
+    private exclusion?: _ModuleSupport.BBox;
+    private exclusionCornerRadius = 0;
+    private readonly exclusionPath = new _ModuleSupport.ExtendedPath2D();
+    private exclusionPathKey = '';
+
+    setStrokeExclusion(exclusion: _ModuleSupport.BBox | undefined, cornerRadius: number) {
+        const unchanged =
+            exclusion == null
+                ? this.exclusion == null
+                : this.exclusion?.equals(exclusion) === true && this.exclusionCornerRadius === cornerRadius;
+        if (unchanged) return;
+        this.exclusion = exclusion;
+        this.exclusionCornerRadius = cornerRadius;
+        this.markDirty();
+    }
+
+    protected override renderStroke(
+        ctx: CanvasRenderingContext2D & { setLineDash(lineDash: readonly number[]): void }
+    ) {
+        const { exclusion } = this;
+        if (exclusion == null) {
+            super.renderStroke(ctx);
+            return;
+        }
+
+        ctx.save();
+        ctx.clip(this.getExclusionPath(exclusion).getPath2D());
+        super.renderStroke(ctx);
+        ctx.restore();
+    }
+
+    // Winding-rule hole: the card's bounds anti-clockwise, the pill's footprint clockwise, so the
+    // default nonzero rule keeps everything but the pill — the construction `SegmentedPath` uses
+    // for its gaps.
+    private getExclusionPath(exclusion: _ModuleSupport.BBox) {
+        const { x, y, width, height, strokeWidth, exclusionPath, exclusionCornerRadius } = this;
+        const key = [
+            x,
+            y,
+            width,
+            height,
+            strokeWidth,
+            exclusion.x,
+            exclusion.y,
+            exclusion.width,
+            exclusion.height,
+            exclusionCornerRadius,
+        ].join();
+        if (key === this.exclusionPathKey) return exclusionPath;
+        this.exclusionPathKey = key;
+
+        // Grow the outer bounds past the stroke so the mask itself never clips the border.
+        const x0 = x - strokeWidth;
+        const y0 = y - strokeWidth;
+        const x1 = x + width + strokeWidth;
+        const y1 = y + height + strokeWidth;
+
+        exclusionPath.clear();
+        exclusionPath.moveTo(x0, y0);
+        exclusionPath.lineTo(x0, y1);
+        exclusionPath.lineTo(x1, y1);
+        exclusionPath.lineTo(x1, y0);
+        exclusionPath.closePath();
+
+        // Follow the pill's own rounded outline, not its bounding box: a card border thick enough
+        // to reach into the pill's corner arcs would otherwise lose the segments that run outside
+        // the pill but inside its box, leaving the border gapped either side of the control.
+        if (exclusionCornerRadius > 0) {
+            exclusionPath.roundRect(exclusion.x, exclusion.y, exclusion.width, exclusion.height, exclusionCornerRadius);
+        } else {
+            exclusionPath.rect(exclusion.x, exclusion.y, exclusion.width, exclusion.height);
+        }
+
+        return exclusionPath;
+    }
+}
+
 export class OrganizationNode extends _ModuleSupport.TranslatableGroup<OrganizationDatum> {
     // Field initialisation order is the scene-graph z-order: card border (`shapeNode`) at
     // the bottom, image + text tiers in `contentGroup` above it, and the expander pill is
     // appended later in `updateExpanderNode` so it stays visually on top. `contentGroup`
     // also carries the conditional clip applied in `updateBBox` when `maxWidth`/`maxHeight`
     // clamp the card under its intrinsic content size.
-    private readonly shapeNode = this.appendChild(new _ModuleSupport.Rect({ tag: OrganizationNodeTag.Card }));
+    private readonly shapeNode = this.appendChild(new OrganizationCardRect({ tag: OrganizationNodeTag.Card }));
     private readonly contentGroup = this.appendChild(new _ModuleSupport.Group());
     private imageNode?: _ModuleSupport.Rect;
     private titleNode?: _ModuleSupport.Text;
@@ -182,6 +264,18 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
                     break;
                 }
             }
+
+            this.shapeNode.setStrokeExclusion(
+                new _ModuleSupport.BBox(
+                    this.expanderNode.translationX,
+                    this.expanderNode.translationY,
+                    expanderBBox.width,
+                    expanderBBox.height
+                ),
+                this.expanderNode.cornerRadius
+            );
+        } else {
+            this.shapeNode.setStrokeExclusion(undefined, 0);
         }
 
         // Conditional clip: only when `regularBBox` clamped the card under its intrinsic
@@ -432,6 +526,12 @@ class OrganizationExpanderNode extends _ModuleSupport.TranslatableGroup {
     private shapeNode?: _ModuleSupport.Rect;
     private countNode?: _ModuleSupport.Text;
     private chevronNode?: ChevronPath;
+
+    // Read back off the painted pill rather than the style, so the card's cut-out cannot disagree
+    // with the shape actually rendered. The pill only ever takes a uniform radius.
+    get cornerRadius() {
+        return this.shapeNode?.topLeftCornerRadius ?? 0;
+    }
 
     update(
         expanderText: NormalisedTextOrSegments,
