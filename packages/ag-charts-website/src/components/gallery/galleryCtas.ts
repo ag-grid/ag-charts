@@ -11,7 +11,7 @@ export const GALLERY_CTAS: GalleryCta[] = [
     {
         id: 'gallery-page-free-trial-cta',
         title: 'Free Trial',
-        url: '/react/community-vs-enterprise/#request-a-30-day-enterprise-bundle-trial-licence',
+        url: '/r/community-vs-enterprise/#request-a-30-day-enterprise-bundle-trial-licence',
     },
     {
         id: 'gallery-page-buy-now-cta',
