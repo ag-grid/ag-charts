@@ -278,17 +278,19 @@ test('insideLoop: a listener declared inside a loop is not per-iteration work', 
     assert.equal(insideLoop(lines, 3), null);
 });
 
-test('insideLoop: a split iteration callback is still a loop, not a boundary', () => {
-    // Same arrow shape as the listener above, but the call it belongs to iterates,
-    // so its body does run once per element.
+test('insideLoop: a predicate a helper calls straight away stays in-loop', () => {
+    // Same arrow shape as the listener above. `dropLastWhile` invokes it per element,
+    // so the enclosing loop's frequency is the right one to charge — real code in
+    // `generateTicksUtils.ts` does exactly this, and an arrow-is-a-boundary rule
+    // loses it.
     const lines = [
-        'const points = data.map(',
-        '    (datum) => {',
-        '        return { x: datum.x, y: datum.y };',
-        '    }',
-        ');',
+        'for (let i = 0; i < ticks.length; i++) {',
+        '    dropLastWhile(intervalTicks, (lastTick) => {',
+        '        return lastTick.valueOf() >= p1.valueOf();',
+        '    });',
+        '}',
     ];
     const hit = insideLoop(lines, 3);
-    assert.ok(hit, 'the iteration is found');
-    assert.equal(hit.line, 1, 'the loop reported is the iterating call, not the arrow');
+    assert.ok(hit, 'the enclosing loop is still found');
+    assert.equal(hit.line, 1);
 });

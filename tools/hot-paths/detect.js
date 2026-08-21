@@ -242,7 +242,8 @@ function signalsIn({ added, context }) {
 const LOOP_OPENER_RE = /\b(for|while)\s*\(|\.(forEach|map|filter|reduce|flatMap)\(/;
 const BLOCK_BOUNDARY_RE = /\b(function\b|class\b|constructor\b|override\b|private\b|protected\b|public\b|static\b)/;
 const ARROW_OPENER_RE = /=>\s*\{\s*$/;
-const ITERATION_CALL_RE = /\.(forEach|map|filter|reduce|flatMap|some|every|find|findIndex|sort)\(\s*$/;
+const DEFERRED_CALLBACK_RE =
+    /(addEventListener|addListener|removeEventListener|\.on|\.once|\.then|\.catch|\.finally|\.subscribe|setTimeout|setInterval|requestAnimationFrame|queueMicrotask|addManagedListener|addDestroyFunc)\s*\(/;
 
 /**
  * Whether a line executes inside a loop, by walking outwards through decreasing
@@ -275,18 +276,15 @@ function insideLoop(lines, lineNo) {
         if (at < 0 || at >= indent) continue;
         indent = at;
         if (LOOP_OPENER_RE.test(text)) return { line: i + 1, text: text.trim().slice(0, 160) };
-        // An arrow body runs when the arrow is called. For an array iteration that is
-        // once per element, which the check above already caught on the call itself;
-        // for a listener or a callback stored for later it is not once per turn of
-        // whatever loop encloses the declaration, so the walk stops here. Prettier
-        // moves the arrow onto its own line once the call no longer fits, which is
-        // why the iteration may be on the line above rather than this one.
-        if (ARROW_OPENER_RE.test(text)) {
-            let previous = i - 1;
-            while (previous >= 0 && lines[previous].trim() === '') previous--;
-            if (previous < 0 || !ITERATION_CALL_RE.test(lines[previous])) return null;
-            return { line: previous + 1, text: lines[previous].trim().slice(0, 160) };
-        }
+        // A callback registered for later — a listener, a timer, a frame request —
+        // runs when its event fires, not once per turn of the loop that registered
+        // it, so the walk stops at one. Every other arrow stays transparent: a
+        // predicate passed to a helper that calls it straight away (`dropLastWhile`,
+        // a comparator, any of the array methods) really does run per element, and
+        // which of the two a given call is cannot be decided from the line alone.
+        // Defaulting to in-loop keeps the false negatives — a missed regression —
+        // rarer than the false positives, which cost one sub-agent.
+        if (ARROW_OPENER_RE.test(text) && DEFERRED_CALLBACK_RE.test(text)) return null;
         if (BLOCK_BOUNDARY_RE.test(text)) return null;
     }
     return null;
