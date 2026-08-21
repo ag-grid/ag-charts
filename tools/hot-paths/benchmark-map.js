@@ -138,7 +138,8 @@ const RULES = [
     { re: /unitTimeScale/i, types: ['unit-time'] },
     { re: /ordinalTimeScale/i, types: ['ordinal-time'] },
     { re: /(?<!unit|ordinal)timeScale|\/time\//i, types: ['time'] },
-    { re: /(continuousScale|linearScale|logScale)/i, types: ['number'] },
+    { re: /logScale/i, types: ['log'] },
+    { re: /(continuousScale|linearScale)/i, types: ['number'] },
     { re: /(bandScale|ordinalScale|categoryAxis)/i, types: ['category'] },
 
     // Subsystems — pick the examples whose measured phase covers them.
@@ -193,7 +194,7 @@ function tagsFor(paths) {
 function recommend(paths) {
     const tags = tagsFor(paths);
     const examples = allExamples();
-    const scored = examples
+    const allScored = examples
         .map((ex) => {
             let score = 0;
             const why = [];
@@ -225,18 +226,42 @@ function recommend(paths) {
             return { ...ex, score, why };
         })
         .filter((ex) => ex.score > 0)
-        .sort((a, b) => b.score - a.score || a.name.localeCompare(b.name))
-        .slice(0, MAX_RECOMMENDED);
+        .sort((a, b) => b.score - a.score || a.name.localeCompare(b.name));
+
+    // Cover every changed type before filling the remaining slots by score. A
+    // straight top-N lets the highest-scoring type fill every slot, leaving another
+    // changed series with no example in the command and no warning either.
+    const covers = (ex, t) => ex.types.includes(t) || ex.variants.includes(t);
+    const scored = [];
+    for (const type of tags.types) {
+        if (scored.length >= MAX_RECOMMENDED) break;
+        if (scored.some((ex) => covers(ex, type))) continue;
+        const best = allScored.find((ex) => covers(ex, type) && !scored.includes(ex));
+        if (best) scored.push(best);
+    }
+    for (const ex of allScored) {
+        if (scored.length >= MAX_RECOMMENDED) break;
+        if (!scored.includes(ex)) scored.push(ex);
+    }
+    scored.sort((a, b) => b.score - a.score || a.name.localeCompare(b.name));
 
     // A series with no example cannot be evidenced by the browser suite. Say so
     // rather than falling back to a benchmark that never runs the changed code.
-    const covered = new Set(examples.flatMap((ex) => [...ex.types, ...ex.variants]));
-    const uncovered = tags.types.filter((t) => !covered.has(t));
+    const inCatalogue = new Set(examples.flatMap((ex) => [...ex.types, ...ex.variants]));
+    const uncovered = tags.types.filter((t) => !inCatalogue.has(t));
     const notes = [...tags.notes];
     if (uncovered.length > 0) {
         notes.push(
             `No benchmark example exercises ${uncovered.join(', ')} — the browser suite cannot evidence this change. ` +
                 'Profile locally with `/ag-charts:benchmark-profile` instead.'
+        );
+    }
+    // More changed types than slots: name what the command leaves unmeasured.
+    const dropped = tags.types.filter((t) => !uncovered.includes(t) && !scored.some((ex) => covers(ex, t)));
+    if (dropped.length > 0) {
+        notes.push(
+            `The ${MAX_RECOMMENDED}-example cap leaves ${dropped.join(', ')} unmeasured; ` +
+                'run those separately if the change touches them.'
         );
     }
 

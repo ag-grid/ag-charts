@@ -239,6 +239,14 @@ function insideLoop(lines, lineNo) {
     let indent = target.search(/\S/);
     if (indent < 0) return null;
 
+    // A loop whose body is on its own line: `data.map((d) => ({ x: d.x }))` is
+    // per-datum work that the outward walk cannot see, because the loop it runs in
+    // is the line itself. A trailing `{` means the body is on later lines instead,
+    // and those lines are scored in their own right.
+    if (LOOP_OPENER_RE.test(target) && !/\{\s*$/.test(target)) {
+        return { line: lineNo, text: target.trim().slice(0, 160) };
+    }
+
     for (let i = lineNo - 2; i >= 0; i--) {
         const text = lines[i];
         const at = text.search(/\S/);
@@ -382,4 +390,4 @@ if (require.main === module) {
     main();
 }
 
-module.exports = { analyse, resolveRange, globToRegExp };
+module.exports = { analyse, resolveRange, globToRegExp, insideLoop };

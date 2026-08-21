@@ -3,7 +3,7 @@ const test = require('node:test');
 const path = require('node:path');
 const { execFileSync } = require('node:child_process');
 
-const { globToRegExp } = require('./detect');
+const { globToRegExp, insideLoop } = require('./detect');
 const { allExamples, recommend, tagsFor } = require('./benchmark-map');
 
 // Run with: node --test tools/hot-paths/
@@ -128,4 +128,50 @@ test('benchmark map CLI: reads paths piped in on stdin', () => {
     const result = JSON.parse(out);
     assert.deepEqual(result.tags.types, ['unit-time']);
     assert.match(result.command, /axes-1M-unit-time/);
+});
+
+test('insideLoop: a one-line callback is in-loop work', () => {
+    const lines = ['function build(data) {', '    return data.map((d) => ({ x: d.x, y: d.y }));', '}'];
+    const hit = insideLoop(lines, 2);
+    assert.ok(hit, 'a loop whose body is on its own line runs per item');
+    assert.equal(hit.line, 2);
+});
+
+test('insideLoop: a loop opener whose body follows is not itself in-loop', () => {
+    // The body lines are scored in their own right; counting the opener too would
+    // score every added loop as in-loop work.
+    const lines = ['function build(data) {', '    for (const d of data) {', '        use(d);', '    }', '}'];
+    assert.equal(insideLoop(lines, 2), null);
+    assert.ok(insideLoop(lines, 3), 'the body line is inside the loop');
+});
+
+test('benchmark map: a log-scale change is not evidenced by number-axis examples', () => {
+    const { tags, examples, notes } = recommend(['packages/ag-charts-community/src/scale/logScale.ts']);
+    assert.deepEqual(tags.types, ['log']);
+    assert.deepEqual(examples, [], 'no example declares a log axis');
+    assert.ok(notes.some((n) => /No benchmark example exercises log/.test(n)));
+});
+
+test('benchmark map: the cap covers every changed type, or names what it dropped', () => {
+    const paths = [
+        'packages/ag-charts-community/src/chart/series/cartesian/barSeries.ts',
+        'packages/ag-charts-community/src/chart/series/cartesian/lineSeries.ts',
+        'packages/ag-charts-community/src/chart/series/cartesian/areaSeries.ts',
+        'packages/ag-charts-community/src/chart/series/cartesian/bubbleSeries.ts',
+        'packages/ag-charts-community/src/chart/series/cartesian/histogramSeries.ts',
+        'packages/ag-charts-enterprise/src/series/ohlc/ohlcSeries.ts',
+    ];
+    const { tags, examples, notes } = recommend(paths);
+    const all = allExamples();
+    const represented = new Set(
+        examples.flatMap((e) => {
+            const ex = all.find((x) => x.name === e.name);
+            return [...ex.types, ...ex.variants];
+        })
+    );
+    for (const type of tags.types) {
+        const covered = represented.has(type);
+        const flagged = notes.some((n) => n.includes(type));
+        assert.ok(covered || flagged, `${type} is neither in the command nor named in a note`);
+    }
 });
