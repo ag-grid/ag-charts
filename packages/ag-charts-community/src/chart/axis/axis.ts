@@ -39,6 +39,7 @@ import type {
     AgBaseAxisLabelStyleOptions,
     AgContextMenuGetItemsParamsAlways,
     AgContextMenuGetItemsParamsAxis,
+    AgGroupedCategoryValue,
     AgTimeAxisFormattableLabelUnitFormat,
     AgTimeInterval,
     AgTimeIntervalUnit,
@@ -219,7 +220,7 @@ function unsafeClamp(scale: Scale<unknown, unknown, unknown>, value: AgAxisValue
         const [min, max] = [scale.domainMin, scale.domainMax] as [Date, Date];
         return new Date(clamp(min.getTime(), value.getTime(), max.getTime()));
     } else {
-        return value satisfies string;
+        return value satisfies string | AgGroupedCategoryValue;
     }
 }
 
@@ -1132,7 +1133,7 @@ export abstract class Axis<
                 rowIdentity?.index ?? Number.NaN,
                 // Only the callback is told the depth. `formatParams` keeps none, so the default
                 // formatting a tooltip or crosshair falls back to stays the whole joined path.
-                rowIdentity && { depth: rowIdentity.depth }
+                rowIdentity && { depth: rowIdentity.depth, dateStyle: undefined, truncateDate: undefined }
             );
         };
 

@@ -149,7 +149,7 @@ export function formatAxisLabelValue(
     index: number,
     options?: {
         specifier?: string | Record<string, string>;
-        dateStyle: DateFormatterStyle;
+        dateStyle: DateFormatterStyle | undefined;
         truncateDate: 'year' | 'month' | 'day' | undefined;
         depth?: number;
     }
