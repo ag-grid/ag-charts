@@ -166,7 +166,10 @@ describe('Sector', () => {
                 })
             ),
             // Regressions
-            [{ innerRadius: 30, outerRadius: 30, startAngle: 0, endAngle: 1, stroke: 'black', strokeWidth: 1 }],
+            [
+                // AG-11219
+                { innerRadius: 30, outerRadius: 30, startAngle: 0, endAngle: 1, stroke: 'black', strokeWidth: 1 },
+            ],
             // Small-angle donuts: with inset=1 and innerRadius=10 the inner sweep is exceeded below
             // 0.2 rad, which is where the spike artifact appears.
             [
