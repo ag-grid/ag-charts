@@ -45,6 +45,11 @@ export abstract class DataModelSeries<
 > extends Series<TDatum, TOpts, TProps, TLabel, TContext> {
     protected dataModel?: DataModel<any, any, any>;
     protected processedData?: ProcessedData<any>;
+    private categoryValueLookup?: {
+        xValues: any[];
+        invalidValues: boolean[] | undefined;
+        byValue: CategoryValueIndex;
+    };
     private readonly categoryKey: string | undefined;
     private readonly clipFocusBox: boolean;
 
@@ -109,6 +114,8 @@ export abstract class DataModelSeries<
 
         this.dataModel = dataModel;
         this.processedData = processedData;
+        // Incremental reprocessing mutates the existing columns, so identity alone cannot detect the change.
+        this.categoryValueLookup = undefined;
         this.events.emit('data-processed', { dataModel, processedData });
         return { dataModel, processedData };
     }
@@ -254,6 +261,10 @@ export abstract class DataModelSeries<
         categoryValue = categoryValue.valueOf();
         const invalidValues = processedData.invalidData?.get(this.id);
         const xValues = this.keysOrValues(categoryKey);
+
+        const byValue = this.categoryValueIndex(xValues, invalidValues);
+        if (byValue != null) return byValue.get(categoryValue);
+
         for (let datumIndex = 0; datumIndex < xValues.length; datumIndex += 1) {
             if (invalidValues?.[datumIndex] === true) continue;
 
@@ -262,4 +273,34 @@ export abstract class DataModelSeries<
             if (objectsEqual(categoryValue, xValue)) return datumIndex;
         }
     }
+
+    /**
+     * OPTIMIZATION: shared category grouping resolves every series against the hovered category on each
+     * highlight change, so scanning per lookup costs O(series x datums) per pointer move.
+     */
+    private categoryValueIndex(xValues: any[], invalidValues: boolean[] | undefined): CategoryValueIndex {
+        let lookup = this.categoryValueLookup;
+        if (lookup?.xValues !== xValues || lookup.invalidValues !== invalidValues) {
+            lookup = { xValues, invalidValues, byValue: buildCategoryValueIndex(xValues, invalidValues) };
+            this.categoryValueLookup = lookup;
+        }
+        return lookup.byValue;
+    }
+}
+
+/** `undefined` for non-primitive category values, which only `objectsEqual` can compare. */
+type CategoryValueIndex = Map<unknown, number> | undefined;
+
+function buildCategoryValueIndex(xValues: any[], invalidValues: boolean[] | undefined): CategoryValueIndex {
+    const byValue = new Map<unknown, number>();
+    for (let datumIndex = 0; datumIndex < xValues.length; datumIndex += 1) {
+        if (invalidValues?.[datumIndex] === true) continue;
+
+        const xValue = xValues[datumIndex]?.valueOf();
+        if (xValue !== null && typeof xValue === 'object') return undefined;
+        // `Map` matches NaN against itself where the `objectsEqual` fallback does not.
+        if (typeof xValue === 'number' && Number.isNaN(xValue)) continue;
+        if (!byValue.has(xValue)) byValue.set(xValue, datumIndex);
+    }
+    return byValue;
 }
