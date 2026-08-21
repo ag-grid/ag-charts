@@ -931,6 +931,46 @@ describe('Chart highlighting', () => {
             }
         });
 
+        it('matches on the category value, not the datum index, when a series omits an earlier category', async () => {
+            const options = prepareTestOptions<AgCartesianChartOptions>({
+                data: categoryData,
+                axes: {
+                    x: { position: 'bottom', type: 'category' },
+                    y: { position: 'left', type: 'number' },
+                },
+                legend: { enabled: false },
+                highlight: { mode: 'shared' },
+                series: [
+                    { type: 'bar', xKey: 'category', yKey: 'apples' },
+                    {
+                        type: 'bar',
+                        xKey: 'category',
+                        yKey: 'oranges',
+                        // Drops 'Q2', so this series holds 'Q3' at index 1 where the hovered series holds it at 2.
+                        data: categoryData.filter((d) => d.category !== 'Q2'),
+                    },
+                ],
+            });
+
+            chart = await createChart(options);
+            await waitForChartStability(chart);
+
+            const hoveredDatum = defaultHighlightDatum(chart, {
+                name: 'q3-apples',
+                options,
+                seriesIndex: 0,
+                datumIndex: 2,
+            });
+            expect(hoveredDatum).toBeDefined();
+
+            chart.ctx.highlightManager.updateHighlight(chart.id, hoveredDatum);
+            await waitForChartStability(chart);
+
+            expect(stateAt(chart, 1, 1)).toBe('unhighlighted-item');
+            expect(stateAt(chart, 1, 0)).toBe('unhighlighted-series');
+            expect(stateAt(chart, 1, 2)).toBe('unhighlighted-series');
+        });
+
         it('leaves a scatter series (no category concept) wholly unhighlighted-series', async () => {
             const options = prepareTestOptions<AgCartesianChartOptions>({
                 data: cartesianSeriesData,
