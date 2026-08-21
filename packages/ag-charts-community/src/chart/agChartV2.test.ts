@@ -12,6 +12,7 @@ import {
     cartesianChartAssertions,
     clickAction,
     compareImageSnapshot,
+    deproxy,
     prepareTestOptions,
     repeat,
     setupMockCanvas,
@@ -231,6 +232,23 @@ describe('AgChartV2', () => {
                 skipSpy.mockRestore();
 
                 expect(resizeSkips).toHaveLength(0);
+            }, 15_000);
+
+            it('keeps the initial animation phase across a resize that preserves the entry animation', async () => {
+                chart = AgCharts.create(barOptions());
+                await waitForChartStability(chart);
+
+                const chartInstance = deproxy(chart);
+                chartInstance.resetAnimations();
+                expect(chartInstance.chartAnimationPhase).toBe('initial');
+
+                // The resize keeps the queued entry animation alive, but animationManager.reset()
+                // stops the batch it has not yet armed, dispatching the callback that reports the
+                // entry animation as finished. Reporting 'ready' here lets the next resize in the
+                // same initial phase cancel the animation outright (AG-18087).
+                (chartInstance as any).resize('test', { inWidth: 801, inHeight: 601 });
+
+                expect(chartInstance.chartAnimationPhase).toBe('initial');
             }, 15_000);
         });
     });
