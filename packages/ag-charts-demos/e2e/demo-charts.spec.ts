@@ -43,6 +43,13 @@ const DEMOS: DemoCase[] = [
             await expect(page.getByRole('button', { name: /Live/ })).toBeVisible();
         },
     },
+    {
+        id: 'procurement',
+        // The landing tab only: arrival schedule, the in-transit map, the on-time tile's gauge and
+        // the at-risk tile's segmented bar. Radix unmounts inactive tab content, so the other tabs'
+        // charts are covered in procurement.spec.ts, which keeps the per-tab counts.
+        population: { structural: 4 },
+    },
 ];
 
 for (const { id, population, settle } of DEMOS) {

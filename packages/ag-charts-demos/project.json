@@ -38,6 +38,7 @@
     },
     "test": {
       "executor": "nx:run-commands",
+      "dependsOn": ["^build"],
       "inputs": ["default", "^production"],
       "outputs": ["{workspaceRoot}/reports/ag-charts-demos.xml"],
       "cache": true,
