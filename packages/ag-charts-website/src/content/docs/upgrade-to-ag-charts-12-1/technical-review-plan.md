@@ -79,7 +79,7 @@ No interactive features are described on this page.
 ### Blog Post Validation
 
 1. **Blog Post URL**
-    - URL: `https://blog.ag-grid.com/whats-new-in-ag-charts-12-1/`
+    - URL: `https://www.ag-grid.com/blog/whats-new-in-ag-charts-12-1/`
     - Status: Verified as valid and accessible
     - Content: Correctly describes 6 new features in AG Charts 12.1
 

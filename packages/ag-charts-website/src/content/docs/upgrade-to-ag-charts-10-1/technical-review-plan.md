@@ -93,7 +93,7 @@ This is an upgrade guide for AG Charts version 10.1, focusing on deprecations an
 ### External Link Validation
 
 1. **Release Post Link**
-    - URL: `https://blog.ag-grid.com/whats-new-in-ag-charts-10-1/`
+    - URL: `https://www.ag-grid.com/blog/whats-new-in-ag-charts-10-1/`
     - Verify link is accessible and contains relevant v10.1 information
 
 2. **Changelog Link**
