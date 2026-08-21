@@ -1,5 +1,7 @@
 const assert = require('node:assert/strict');
 const test = require('node:test');
+const path = require('node:path');
+const { execFileSync } = require('node:child_process');
 
 const { globToRegExp } = require('./detect');
 const { allExamples, recommend, tagsFor } = require('./benchmark-map');
@@ -114,4 +116,16 @@ test('benchmark map: an unrecognised path recommends nothing rather than guessin
 test('benchmark map: scale paths map to their axis type', () => {
     assert.ok(tagsFor(['packages/ag-charts-community/src/scale/unitTimeScale.ts']).types.includes('unit-time'));
     assert.ok(tagsFor(['packages/ag-charts-community/src/scale/ordinalTimeScale.ts']).types.includes('ordinal-time'));
+});
+
+test('benchmark map CLI: reads paths piped in on stdin', () => {
+    // `input` gives the child a pipe, which is what made readFileSync(0) throw
+    // EAGAIN — the documented `git diff --name-only | benchmark-map.js` form.
+    const out = execFileSync(process.execPath, [path.join(__dirname, 'benchmark-map.js')], {
+        input: 'packages/ag-charts-community/src/scale/unitTimeScale.ts\n',
+        encoding: 'utf8',
+    });
+    const result = JSON.parse(out);
+    assert.deepEqual(result.tags.types, ['unit-time']);
+    assert.match(result.command, /axes-1M-unit-time/);
 });

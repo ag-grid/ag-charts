@@ -248,7 +248,18 @@ function recommend(paths) {
     };
 }
 
-function main() {
+/**
+ * Everything piped in. `readFileSync(0)` fails with EAGAIN here: a pipe from
+ * another process is opened non-blocking, so the first read can arrive before
+ * any data does. Consuming the stream waits instead.
+ */
+async function readStdin() {
+    const chunks = [];
+    for await (const chunk of process.stdin) chunks.push(chunk);
+    return Buffer.concat(chunks).toString('utf8');
+}
+
+async function main() {
     const argv = process.argv.slice(2);
     if (argv.includes('--list')) {
         for (const ex of allExamples()) {
@@ -269,7 +280,7 @@ function main() {
     if (forIdx !== -1 && argv[forIdx + 1]) {
         paths = argv[forIdx + 1].split(/[\s,]+/).filter(Boolean);
     } else if (!process.stdin.isTTY) {
-        paths = fs.readFileSync(0, 'utf8').split(/\s+/).filter(Boolean);
+        paths = (await readStdin()).split(/\s+/).filter(Boolean);
     }
     if (paths.length === 0) {
         console.error('Usage: benchmark-map.js --list | --for <path>[,<path>...] | <paths on stdin>');
@@ -279,7 +290,10 @@ function main() {
 }
 
 if (require.main === module) {
-    main();
+    main().catch((err) => {
+        console.error(err.message);
+        process.exit(1);
+    });
 }
 
 module.exports = { allExamples, recommend, tagsFor };
