@@ -76,7 +76,8 @@ import type { AxisGroups, ChartAxis, ChartLayout, FormatDatumParams } from '../c
 import type { CrossLine } from '../crossline/crossLine';
 import { FormatManager } from '../formatter/formatManager';
 import type { ISeries, ISeriesProperties, SeriesNodeDatum } from '../series/seriesTypes';
-import { type AxisLabelFormatterCache, createAxisLabelFormatterCache, formatAxisLabelValue } from './axisLabelUtil';
+import type { AxisLabelFormatterCache } from './axisLabelUtil';
+import { createAxisLabelFormatterCache, formatAxisLabelValue, getAxisLabelSideFlag } from './axisLabelUtil';
 import type { TickInterval } from './axisTick';
 import { type AxisGroupDatumTranslation, NiceMode, type TickDatum } from './axisUtil';
 import type { AnyTimeInterval } from './generateTicksUtils';
@@ -1316,14 +1317,21 @@ export abstract class Axis<
     }
 
     pickValue(point: CanvasPoint): AxisValuePick | undefined {
+        // One-Dimensional "Position" (all axes):
         // Canvas space is the only frame every caller shares, so the conversion to axis-local space happens here once.
         const origin = this.getLayoutTranslation();
         const localX = point.canvasX - origin.x;
         const localY = point.canvasY - origin.y;
         const vertical = this.isVertical();
         const position = vertical ? localY : localX;
-        // Ticks stack outwards from the axis line, so only the distance from it selects a row.
-        const crossPosition = Math.abs(vertical ? localX : localY);
+        // Two-Dimensional "Cross Position" (Grouped Category):
+        // Ticks stack outwards from the axis line, so only the distance from it selects a row. Measured
+        // signed, towards the side the labels are on, and floored at zero: a point on the series-area side
+        // of the line reads as the row against the line, so a click in the plot resolves to a leaf rather
+        // than being folded onto whichever outer row it mirrors onto. Points beyond the outermost labels
+        // need no ceiling — that row already extends to infinity.
+        const outwardSign = getAxisLabelSideFlag(this.mirrored) * (vertical ? 1 : -1);
+        const crossPosition = Math.max(0, outwardSign * (vertical ? localX : localY));
 
         const invertValue = unsafeInvert(this.scale, position);
         const scaleValue = unsafeClamp(this.scale, invertValue);
@@ -1346,6 +1354,7 @@ export abstract class Axis<
             axisId: this.userKey,
             value,
             index,
+            depth: picked?.depth,
             direction: this.direction,
             boundSeries: this.formatterBoundSeries.get(),
             domain,
