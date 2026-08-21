@@ -108,6 +108,10 @@ export const EXAMPLE_OPTIONS: Record<string, Record<string, ExampleOverrides>> =
     'security-e2e': {
         '*': { frameworks: ['vanilla'] },
     },
+    'org-chart-e2e': {
+        // Only this example is vanilla-pinned; `e2e-org-chart-collapse` is swept across frameworks.
+        'e2e-org-chart-active-node': { frameworks: ['vanilla'] },
+    },
     'sparklines-test': {
         'debug-sequential-render': { frameworks: [] },
     },

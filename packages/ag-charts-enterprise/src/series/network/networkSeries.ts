@@ -6,6 +6,7 @@ import {
     ChartUpdateType,
     type DefinedZoomState,
     type DynamicContext,
+    type Point,
     Vec2,
     Vertex,
     clamp,
@@ -344,6 +345,30 @@ export abstract class AbstractNetworkSeries<
         this.updateDatumNodes(this.datumSelection);
         this.updateLinkNodes(this.linkSelection);
         this.layout.update(this.makeLayoutUpdateOptions());
+    }
+
+    /**
+     * Anchors the highlight and tooltip a `setState` active item asks for. The scene nodes sit under
+     * `viewportGroup`, which carries the zoom transform, whereas the caller resolves this point
+     * against `contentGroup`; round-tripping through canvas space keeps the two in step at any zoom.
+     */
+    datumMidPoint(datum: _ModuleSupport.SeriesNodeDatum): Point | undefined {
+        const { vertex } = datum as TDatum;
+        if (vertex == null) return;
+
+        const nodeDatumIndex = this.getNodeDatumIndex(vertex);
+        if (typeof nodeDatumIndex !== 'number') return;
+
+        const node = this.datumSelection.at(nodeDatumIndex);
+        if (!node) return;
+
+        const bbox = _ModuleSupport.Transformable.toCanvas(node, this.measureDatumNode(node));
+        if (!bbox.isFinite()) return;
+
+        return _ModuleSupport.Transformable.fromCanvasPoint(this.contentGroup, {
+            canvasX: bbox.x + bbox.width / 2,
+            canvasY: bbox.y + bbox.height / 2,
+        });
     }
 
     private getDatumNodeBBox(vertex: Vertex<TVertex, TEdge>) {
