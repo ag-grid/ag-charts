@@ -2,7 +2,10 @@ import {
     ChartAxisDirection,
     ChartUpdateType,
     CleanupRegistry,
+    isDate,
     isFiniteNumber,
+    isNumber,
+    isString,
     pickDirectionZoom,
 } from 'ag-charts-core';
 import type { DynamicContext, ZoomMinMax } from 'ag-charts-core';
@@ -13,6 +16,10 @@ import type { ChartRegistry } from '../../module/moduleContext';
 import type { AxisLike, ChartLike, UpdateProcessor } from './processor';
 
 const DEFAULT_ZOOM: ZoomMinMax = { min: 0, max: 1 };
+
+function isWindowBound(value: unknown): value is string | number | Date {
+    return isString(value) || isNumber(value) || isDate(value);
+}
 
 export class DataWindowProcessor implements UpdateProcessor {
     private dirtyZoom = false;
@@ -130,7 +137,7 @@ export class DataWindowProcessor implements UpdateProcessor {
 
         if (axis) {
             const zoom = pickDirectionZoom(this.ctx.chartState.getValue('zoom'), axis.direction) ?? DEFAULT_ZOOM;
-            window = this.getAxisWindow(axis, zoom);
+            window = this.getPendingWindow() ?? this.getAxisWindow(axis, zoom);
             shouldRefresh = this.shouldRefresh(event, axis, zoom, window);
         }
 
@@ -186,9 +193,26 @@ export class DataWindowProcessor implements UpdateProcessor {
         return true;
     }
 
+    /**
+     * The window an unresolved `initialState.zoom.rangeX` asks for, stated in data space so it needs
+     * no domain to interpret. Requesting it directly both honours the request on the first fetch and
+     * gives the axis the domain it needs to resolve the memento.
+     */
+    private getPendingWindow(): AgDataSourceCallbackParams | undefined {
+        const range = this.ctx.zoomManager?.getPendingRangeX();
+        if (!range) return;
+
+        const { start, end } = range;
+        if (!isWindowBound(start) || !isWindowBound(end)) return;
+
+        return { windowStart: start, windowEnd: end };
+    }
+
     private getAxisWindow(axis: AxisLike, zoom: ZoomMinMax): AgDataSourceCallbackParams | undefined {
         const extents = this.getDomainPixelExtents(axis);
         if (!extents) return;
+
+        if (axis.scale.domainMin == null || axis.scale.domainMax == null) return;
 
         const [d0, d1] = extents;
 
