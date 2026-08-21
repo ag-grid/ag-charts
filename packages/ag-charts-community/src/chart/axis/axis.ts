@@ -194,6 +194,10 @@ function unsafeDomain(scale: Scale<unknown, unknown, unknown>): AgAxisDomain {
 function unsafeClamp(scale: Scale<unknown, unknown, unknown>, value: AgAxisValue): AgAxisValue {
     if (!ContinuousScale.is(scale)) return value;
 
+    // A scale whose domain is still empty — a lazily loaded chart before its first response — has
+    // nothing to clamp against, and the casts below would otherwise read off `undefined`.
+    if (scale.domainMin == null || scale.domainMax == null) return value;
+
     if (typeof value === 'number') {
         const [min, max] = [scale.domainMin, scale.domainMax] as [number, number];
         return clamp(min, value, max);
