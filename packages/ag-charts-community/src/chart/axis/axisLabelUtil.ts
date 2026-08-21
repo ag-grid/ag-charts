@@ -151,6 +151,7 @@ export function formatAxisLabelValue(
         specifier?: string | Record<string, string>;
         dateStyle: DateFormatterStyle;
         truncateDate: 'year' | 'month' | 'day' | undefined;
+        depth?: number;
     }
 ): NormalisedTextOrSegments | undefined {
     const formatter = label?.formatter;
@@ -167,6 +168,7 @@ export function formatAxisLabelValue(
             type,
             value,
             index,
+            depth: options?.depth,
             domain,
             fractionDigits,
             unit,

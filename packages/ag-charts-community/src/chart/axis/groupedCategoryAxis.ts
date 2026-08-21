@@ -62,6 +62,7 @@ export class GroupedCategoryAxis extends CategoryAxis<
 
     private computedLayout?: ComputedGroupAxisLayout = undefined;
     private tickTreeLayout?: TreeLayout = undefined;
+    private tickValues?: GroupedCategoryKey[] = undefined;
     private tickNodes?: Map<GroupedCategoryKey, TreeNode> = undefined;
     private leafNodeToKey?: Map<TreeNode, GroupedCategoryKey> = undefined;
     private filterTickCache?: {
@@ -190,7 +191,8 @@ export class GroupedCategoryAxis extends CategoryAxis<
             let maxWidth = (datum.leafCount || 1) * step;
             if (maxWidth < MIN_CATEGORY_SPACING) continue;
 
-            const inputText = tickFormatter(datum.label, index - 1);
+            const value = (datum.refId == null ? undefined : this.tickValues?.[datum.refId]) ?? [];
+            const inputText = tickFormatter(value, index - 1, depth);
             // Captured here so a click cannot disagree with the formatter; the perpendicular extent is
             // only known once the row sizes below have been summed.
             const alongHalfWidth = ((datum.leafCount || 1) * step) / 2;
@@ -769,6 +771,7 @@ export class GroupedCategoryAxis extends CategoryAxis<
         const domain: GroupedCategoryKey[] = this.dataDomain.domain.map(convertIntegratedCategoryValue);
 
         const { layout, tickNodes } = treeLayout(domain);
+        this.tickValues = domain;
         this.tickTreeLayout = layout;
         this.tickNodes = tickNodes;
         this.leafNodeToKey = new Map<TreeNode, GroupedCategoryKey>();

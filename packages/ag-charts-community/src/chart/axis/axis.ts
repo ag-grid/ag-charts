@@ -42,6 +42,7 @@ import type {
     AgTimeInterval,
     AgTimeIntervalUnit,
     AnyFormatterSource,
+    CategoryFormatterParams,
     CssColor,
     DateFormatterStyle,
     FormatterParams,
@@ -936,7 +937,7 @@ export abstract class Axis<
         inputFractionDigits?: number,
         inputTimeInterval?: AgTimeInterval | AgTimeIntervalUnit,
         dateStyle: DateFormatterStyle = 'long'
-    ): (value: any, index: number) => NormalisedTextOrSegments {
+    ): (value: any, index: number, depth?: number) => NormalisedTextOrSegments {
         const { moduleCtx } = this;
         const label = this.options.label;
         const { formatManager } = moduleCtx;
@@ -984,16 +985,20 @@ export abstract class Axis<
         };
 
         const formatterCache = this.formatterCache;
-        return (value: any, index: number): NormalisedTextOrSegments => {
+        return (value: any, index: number, depth?: number): NormalisedTextOrSegments => {
             const formatParams = this.datumFormatParams(value, params, fractionDigits, timeInterval, dateStyle);
             // For time axis, the datum is aligned. However, for ticks, we don't want to align the datum.
             formatParams.value = value;
+            if (depth != null) {
+                (formatParams as CategoryFormatterParams<unknown, unknown>).depth = depth;
+            }
 
             return (
                 formatAxisLabelValue(currentLabel, formatterCache, f, formatParams, index, {
                     specifier,
                     dateStyle,
                     truncateDate,
+                    depth,
                 }) ??
                 formatManager.format(f, formatParams, options) ??
                 formatManager.defaultFormat(formatParams, options)
